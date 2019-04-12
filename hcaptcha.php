@@ -1,8 +1,8 @@
 <?php
 /*
- * Plugin Name: hCaptcha Integration for WordPress
+ * Plugin Name: hCaptcha for Forms and More
  * Plugin URI: https://hcaptcha.com/
- * Description: hCaptcha: a new way to monetize your site traffic. 
+ * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
  * Version: 1.0
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/

@@ -239,7 +239,7 @@ if(isset($_POST["submit"])){
                 <fieldset>
                     <h3>hCaptcha Settings</h3>
                     <div class="inside">
-					 <h3>In order to use <a href="https://hCaptcha.com/?r=b52d8cad8941">hCaptcha </a> please register <a href="https://hCaptcha.com/?r=b52d8cad8941">here</a> </h3>
+					 <h3>In order to use <a href="https://hCaptcha.com/?r=wp">hCaptcha </a> please register <a href="https://hCaptcha.com/?r=wp">here</a> to get your site key and secret key.</h3>
                         <form method="post" action="">
                             <strong>hCaptcha Site Key</strong><br><br />
                             <input type="text" name="<?php echo $hcap_api_key_n; ?>" size="50" value="<?php echo $hcap_api_key; ?>" /><br><br />
@@ -259,9 +259,9 @@ if(isset($_POST["submit"])){
                                 <option value="compact" <?php if($hcap_size == "compact"){echo 'selected';} ?>>Compact</option>
                             </select><br><br />
 
-                            <strong>hCaptcha Language</strong><br><br />
+                            <strong>Override Language Detection (optional)</strong><br><br />
                             <input type="text" name="<?php echo $hcap_language_n; ?>" size="50" value="<?php echo $hcap_language; ?>" /><br>
-                            Available <a href="https://hcaptcha.com/webmaster/docs/languages" target="_blank">language codes</a><br><br />
+                            Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a><br><br />
 
                             <!-- Features -->
                             <strong>Enable/Disable Features</strong><br /><br />

@@ -55,3 +55,25 @@ Please see the hCaptcha privacy policy at:
 
 * Plugin Created
 
+=== Forms and Plugins Supported ==
+
+* Ninja Forms Addon
+* Contact Form 7 Addon
+* Login Form
+* Register Form
+* Comment Form
+* Lost Password Form
+* WooCommerce Login Form
+* WooCommerce Registration Form
+* WooCommerce Lost Password Form
+* WooCommerce Checkout Form
+* Buddypress Registration Form
+* BuddyPress Create Group Form
+* bbpress new topic Form
+* bbpress reply Form
+* WPForo new topic Form
+* WPForo Reply Form
+* Mailchimp for WP Form
+* Jetpack Contact Form
+* Subscribers Form
+

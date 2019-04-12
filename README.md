@@ -54,3 +54,25 @@ A: Please see our website at: https://hcaptcha.com/
 * Initial version: Alex Vilchynskyy + intercrypt team
 * Current version and maintainer: hCaptcha team
 
+
+## Support
+
+* Ninja Forms Addon
+* Contact Form 7 Addon
+* Login Form
+* Register Form
+* Comment Form
+* Lost Password Form
+* WooCommerce Login Form
+* WooCommerce Registration Form
+* WooCommerce Lost Password Form
+* WooCommerce Checkout Form
+* Buddypress Registration Form
+* BuddyPress Create Group Form
+* bbpress new topic Form
+* bbpress reply Form
+* WPForo new topic Form
+* WPForo Reply Form
+* Mailchimp for WP Form
+* Jetpack Contact Form
+* Subscribers Form
