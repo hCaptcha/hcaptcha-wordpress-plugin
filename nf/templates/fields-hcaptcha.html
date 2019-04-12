@@ -1,0 +1,5 @@
+<script id="tmpl-nf-field-hcaptcha" type="text/template">
+	<input id="nf-field-{{{ data.id }}}" name="nf-field-{{{ data.id }}}" class="{{{ data.renderClasses() }}} nf-element" type="hidden" value="{{{ data.value }}}" />
+
+	<div class="h-captcha" data-sitekey="{{{ data.hcaptcha_key }}}" data-theme="{{{ data.hcaptcha_theme }}}" data-size="{{{ data.hcaptcha_size }}}" data-fieldid="{{{ data.id }}}"></div>
+</script>
