@@ -57,22 +57,22 @@ A: Please see our website at: https://hcaptcha.com/
 
 ## Support
 
-* Ninja Forms Addon
-* Contact Form 7 Addon
+* Ninja Forms Addon (alpha)
+* Contact Form 7 Addon (alpha)
 * Login Form
 * Register Form
 * Comment Form
 * Lost Password Form
-* WooCommerce Login Form
-* WooCommerce Registration Form
-* WooCommerce Lost Password Form
-* WooCommerce Checkout Form
-* Buddypress Registration Form
-* BuddyPress Create Group Form
-* bbpress new topic Form
-* bbpress reply Form
-* WPForo new topic Form
-* WPForo Reply Form
-* Mailchimp for WP Form
-* Jetpack Contact Form
-* Subscribers Form
+* WooCommerce Login Form (alpha)
+* WooCommerce Registration Form (alpha) 
+* WooCommerce Lost Password Form (alpha)
+* WooCommerce Checkout Form (alpha)
+* Buddypress Registration Form (alpha)
+* BuddyPress Create Group Form (alpha)
+* bbpress new topic Form (alpha)
+* bbpress reply Form (alpha)
+* WPForo new topic Form (alpha)
+* WPForo Reply Form (alpha)
+* Mailchimp for WP Form (alpha)
+* Jetpack Contact Form (alpha)
+* Subscribers Form (alpha)
