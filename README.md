@@ -12,7 +12,7 @@ Stable tag: 4.9
 License: GPLv2 or later, at your option  
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
-Enables hCaptcha integration with Wordpress.
+Enables hCaptcha integration with WordPress.
 
 ## Description
  

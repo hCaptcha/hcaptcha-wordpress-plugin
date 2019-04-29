@@ -1,4 +1,7 @@
 <?php
+// If this file is called directly, abort.
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 add_action( 'admin_menu', 'hcaptcha_options_nav' );
 function hcaptcha_options_nav() {
     add_options_page( "hCaptcha Settings", "hCaptcha", "manage_options", "hcaptcha-options", "hcaptcha_options" );

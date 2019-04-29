@@ -1,4 +1,8 @@
 <?php
+
+// If this file is called directly, abort.
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 /* Add hCAPTCHA to the Jetpack Contact Form */
 if ( ! function_exists( 'hcap_hcaptcha_jetpack_form' ) ) {
 	function hcap_hcaptcha_jetpack_form( $content ) {
@@ -12,7 +16,7 @@ if ( ! function_exists( 'hcaptcha_jetpack_cf_callback' ) ) {
 		if ( ! preg_match( "~\[hcaptcha\]~", $matches[0] ) ) {
 			return $matches[1] . "[hcaptcha]" . $matches[3];
 		}
-		return $matches[0];
+		return $matches[0] . wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );
 	}
 } /* end function hcaptcha_jetpack_cf_callback */
 
@@ -26,7 +30,7 @@ add_filter( 'jetpack_contact_form_is_spam', 'hcap_hcaptcha_jetpack_verify', 11, 
 if ( ! function_exists( 'hcap_hcaptcha_jetpack_verify' ) ) {
 	function hcap_hcaptcha_jetpack_verify( $is_spam = false ) {
 
-        if (isset($_POST['h-captcha-response'])) {
+        if (isset( $_POST['hcaptcha_jetpack_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_jetpack_nonce'], 'hcaptcha_jetpack' ) && isset($_POST['h-captcha-response'])) {
             global $hcap_status;
     
             $get_hcaptcha_response = htmlspecialchars($_POST['h-captcha-response']);

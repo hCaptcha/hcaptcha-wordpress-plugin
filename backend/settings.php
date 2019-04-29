@@ -1,4 +1,7 @@
 <?php
+// If this file is called directly, abort.
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 $hcap_api_key_n                     = "hcaptcha_api_key";
 $hcap_secret_key_n                  = "hcaptcha_secret_key";
 $hcap_theme_n                       = "hcaptcha_theme";
@@ -24,7 +27,7 @@ $hcap_mc4wp_status_n                = "hcaptcha_mc4wp_status";
 $hcap_jetpack_cf_status_n           = "hcaptcha_jetpack_cf_status";
 $hcap_subscribers_status_n          = "hcaptcha_subscribers_status";
 
-if(isset($_POST["submit"])){
+if( isset( $_POST['hcaptcha_settings_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_settings_nonce'], 'hcaptcha_settings' ) && isset($_POST["submit"]) ){
     if(isset($_POST[$hcap_api_key_n])){
         $hcap_api_key           = $_POST[$hcap_api_key_n];
         update_option($hcap_api_key_n, $hcap_api_key);
@@ -171,8 +174,8 @@ if(isset($_POST["submit"])){
     }
 
     if(isset($_POST[$hcap_wpforo_reply_status_n])){
-        $hcap_jetpack_cf_status = $_POST[$hcap_wpforo_reply_status_n];
-        update_option($hcap_lpf_status_n, $hcap_wpforo_reply_status);
+        $hcap_wpforo_reply_status = $_POST[$hcap_wpforo_reply_status_n];
+        update_option($hcap_wpforo_reply_status_n, $hcap_wpforo_reply_status);
     } else {
         $hcap_wpforo_reply_status         = "off";
         update_option($hcap_wpforo_reply_status_n, $hcap_wpforo_reply_status);
@@ -288,6 +291,9 @@ if(isset($_POST["submit"])){
                             <input type="checkbox" name="<?php echo $hcap_subscribers_status_n; ?>" <?php if($hcap_subscribers_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on Subscribers Form</span><br /><br />                             
                         
                             <p><input type="submit" value="Save hCaptcha Settings" class="button button-primary" name="submit" /></p>
+                            <?php
+                                wp_nonce_field( 'hcaptcha_settings', 'hcaptcha_settings_nonce' );
+                            ?>
                         </form>
                     </div>
                 </fieldset>

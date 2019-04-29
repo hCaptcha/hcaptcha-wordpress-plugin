@@ -9,9 +9,7 @@
 */
 
 // If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 define('hcap_PLUGIN_NAME','hCaptcha WP');
 define('hcap_PLUGIN_DIR', 'hcaptcha-wp');
@@ -75,11 +73,12 @@ $hcap_subscribers_status            = get_option($hcap_subscribers_status_n);
 // add the hcaptcha script to footer
 function hcap_captcha_script(){
 	global $hcap_language;
-    $output = '<script src="https://hcaptcha.com/1/api.js?hl='.$hcap_language.'" async defer></script>';
-    echo $output;
+    
+    wp_enqueue_script( 'hcpatcha-script', '//hcaptcha.com/1/api.js?hl='.$hcap_language, array(), false, true );
 }
-add_action( 'wp_footer', 'hcap_captcha_script', 10, 0 );
-add_action( 'login_footer', 'hcap_captcha_script', 10, 0 );
+
+add_action( 'wp_enqueue_scripts', 'hcap_captcha_script' );
+add_action( 'login_enqueue_scripts', 'hcap_captcha_script');
 
 function hcap_display_hcaptcha($content = ''){
 	$hcaptcha_api_key 	= get_option('hcaptcha_api_key' );
@@ -124,6 +123,10 @@ if(!empty($hcap_lf_status) && $hcap_lf_status == "on"){
 
 if(!empty($hcap_rf_status) && $hcap_rf_status == "on"){
 	require_once( "default/register-form.php" );
+}
+
+if( !empty($hcap_cmf_status) && $hcap_cmf_status == 'on' ){
+	require_once( "default/comment-form.php" );
 }
 
 if(!empty($hcap_lpf_status) && $hcap_lpf_status == "on"){
@@ -192,6 +195,8 @@ if(!empty($hcap_wpforo_new_topic_status) && $hcap_wpforo_new_topic_status == "on
 		require_once( "wpforo/wpforo-new-topic.php" );
 	}
 }
+
+//echo $hcap_wpforo_reply_status . '---';die;
 
 if(!empty($hcap_wpforo_reply_status) && $hcap_wpforo_reply_status == "on"){
 	// check if the other plugin is active
