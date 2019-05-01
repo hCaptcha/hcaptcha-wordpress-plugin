@@ -17,17 +17,17 @@ function hcap_nf_template_file_paths( $paths ){
 }
 add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', function( $field ){
 
-$field[ 'settings' ][ 'hcaptcha_key' ]      = get_option('hcaptcha_api_key' );
-$field[ 'settings' ][ 'hcaptcha_theme' ] 	= get_option("hcaptcha_theme");
-$field[ 'settings' ][ 'hcaptcha_size' ] 	= get_option("hcaptcha_size");
-$field[ 'settings' ][ 'hcaptcha_nonce_field' ] = wp_nonce_field( 'hcaptcha_nf', 'hcaptcha_nf_nonce', true, false );
+    $field[ 'settings' ][ 'hcaptcha_key' ]      = get_option('hcaptcha_api_key' );
+    $field[ 'settings' ][ 'hcaptcha_theme' ]    = get_option("hcaptcha_theme");
+    $field[ 'settings' ][ 'hcaptcha_size' ]     = get_option("hcaptcha_size");
+    $field[ 'settings' ][ 'hcaptcha_nonce_field' ] = wp_nonce_field( 'hcaptcha_nf', 'hcaptcha_nf_nonce', true, false );
 
-return $field;
+    return $field;
 }, 10, 1);
 
 add_action( 'wp_enqueue_scripts', 'hcap_nf_captcha_script' );
 
 function hcap_nf_captcha_script(){
-	wp_enqueue_script( 'nf-hcaptcha-js', plugin_dir_url( __FILE__ ) . 'nf-hcaptcha.js', array('nf-front-end' ), '1.0.0', true );  
-	wp_add_inline_script( 'nf-hcaptcha-js', 'setTimeout(function(){window.grecaptcha.render("nf-hcpatcha")}, 1000);' );
+    wp_enqueue_script( 'nf-hcaptcha-js', plugin_dir_url( __FILE__ ) . 'nf-hcaptcha.js', array('nf-front-end' ), '1.0.0', true );  
+    wp_add_inline_script( 'nf-hcaptcha-js', 'setTimeout(function(){window.grecaptcha.render("nf-hcaptcha")}, 1000);' );
 }

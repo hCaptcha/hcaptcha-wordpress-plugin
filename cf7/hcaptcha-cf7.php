@@ -13,25 +13,25 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         $hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
 
         $script = "var widgetIds = [];
-            var hcap_cf7LoadCallback = function() {
-                var hcap_cf7Widgets = document.querySelectorAll('.hcap_cf7-h-captcha');
-                for (var i = 0; i < hcap_cf7Widgets.length; ++i) {
-                    var hcap_cf7Widget = hcap_cf7Widgets[i];
-                    var widgetId = grecaptcha.render(hcap_cf7Widget.id, {
-                        'sitekey' : '" . $hcaptcha_api_key ."'
-                    });
-                    widgetIds.push(widgetId);
-                }
-            };
-            (function($) {
-                $('.wpcf7').on('invalid.wpcf7 mailsent.wpcf7', function() {
-                    for (var i = 0; i < widgetIds.length; i++) {
-                        grecaptcha.reset(widgetIds[i]);
-                    }
+        var hcap_cf7LoadCallback = function() {
+        var hcap_cf7Widgets = document.querySelectorAll('.hcap_cf7-h-captcha');
+        for (var i = 0; i < hcap_cf7Widgets.length; ++i) {
+            var hcap_cf7Widget = hcap_cf7Widgets[i];
+            var widgetId = grecaptcha.render(hcap_cf7Widget.id, {
+                'sitekey' : '" . $hcaptcha_api_key ."'
                 });
-            })(jQuery);";
+                widgetIds.push(widgetId);
+            }
+        };
+        (function($) {
+            $('.wpcf7').on('invalid.wpcf7 mailsent.wpcf7', function() {
+                for (var i = 0; i < widgetIds.length; i++) {
+                    grecaptcha.reset(widgetIds[i]);
+                }
+            });
+        })(jQuery);";
 
-        wp_add_inline_script( 'hcpatcha-script', $script );
+        wp_add_inline_script( 'hcaptcha-script', $script );
     }
     add_action( 'wp_enqueue_scripts', 'enqueue_hcap_cf7_script' );
 
@@ -47,9 +47,9 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         $hcaptcha_api_key = get_option('hcaptcha_api_key');
         $hcaptcha_theme 	= get_option("hcaptcha_theme");
         $hcaptcha_size 		= get_option("hcaptcha_size");
-    
+
         return '<div class="h-captcha" id="hcap_cf7-' . uniqid() . '" class="h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key
-            . '" data-theme="'.$hcaptcha_theme.'" data-size="'.$hcaptcha_size.'"></div><span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid"></span>' . wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7_nonce', true, false );
+        . '" data-theme="'.$hcaptcha_theme.'" data-size="'.$hcaptcha_size.'"></div><span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid"></span>' . wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7_nonce', true, false );
     }
     add_shortcode('cf7-hcaptcha', 'hcap_cf7_shortcode');
 
@@ -87,7 +87,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         }
 
         $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $url = 'https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $data['h-captcha-response'];
+        $url = 'https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . sanitize_text_field( $data['h-captcha-response'] );
         $request = wp_remote_get($url);
         $body = wp_remote_retrieve_body($request);
         $response = json_decode($body);

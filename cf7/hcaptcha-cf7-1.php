@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action( 'wpcf7_init', 'tnc_hcap_add_cf7_tag' );
- 
+
 function tnc_hcap_add_cf7_tag() {
     wpcf7_add_form_tag( array( 'hcaptcha' ), 'tnc_hcap_cf7_tag_cb', array( 'name-attr' => true ) );
 }
@@ -20,11 +20,11 @@ function tnc_hcap_cf7_tag_cb(){
 }
 
 // add_action( 'wpcf7_init', 'custom_add_form_tag_clock' );
- 
+
 // function custom_add_form_tag_clock() {
 //     wpcf7_add_form_tag( 'clock', 'custom_clock_form_tag_handler' ); // "clock" is the type of the form-tag
 // }
- 
+
 // function custom_clock_form_tag_handler( $tag ) {
 //     return date_i18n( get_option( 'time_format' ) );
 // }
