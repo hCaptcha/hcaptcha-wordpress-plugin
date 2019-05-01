@@ -13,8 +13,9 @@ if ( ! function_exists( 'hcap_hcaptcha_jetpack_form' ) ) {
 /* Add reCAPTCHA shortcode to the provided shortcode for Jetpack contact form */
 if ( ! function_exists( 'hcaptcha_jetpack_cf_callback' ) ) {
     function hcaptcha_jetpack_cf_callback( $matches ) {
+
         if ( ! preg_match( "~\[hcaptcha\]~", $matches[0] ) ) {
-            return $matches[1] . "[hcaptcha]" . $matches[3];
+            return $matches[1] . "[hcaptcha]" . wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false ) . $matches[3];
         }
         return $matches[0] . wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );
     }
