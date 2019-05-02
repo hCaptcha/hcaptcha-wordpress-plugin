@@ -40,7 +40,7 @@ A: Please see our website at: https://hcaptcha.com/
  
 ## Screenshots
 
-(Coming soon.)
+See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordpress-now-available-49765536c69f
  
 ## Changelog
  
