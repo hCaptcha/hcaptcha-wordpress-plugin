@@ -58,7 +58,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
 
     function hcap_cf7_verify_recaptcha($result)
     {
-
+        // NONCE validation always fails. Returning to false value shows the error, found in issue #12
         // if (!isset($_POST['hcaptcha_contact_form7_nonce']) || (isset($_POST['hcaptcha_contact_form7_nonce']) && !wp_verify_nonce($_POST['hcaptcha_contact_form7'], 'hcaptcha_contact_form7'))) {
         //     return false;
         // }
