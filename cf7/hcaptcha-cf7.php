@@ -58,10 +58,15 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
 
     function hcap_cf7_verify_recaptcha($result)
     {
-        // NONCE validation always fails. Returning to false value shows the error, found in issue #12
+        // As of CF7 5.1.3, NONCE validation always fails. Returning to false value shows the error, found in issue #12
         // if (!isset($_POST['hcaptcha_contact_form7_nonce']) || (isset($_POST['hcaptcha_contact_form7_nonce']) && !wp_verify_nonce($_POST['hcaptcha_contact_form7'], 'hcaptcha_contact_form7'))) {
         //     return false;
         // }
+        //
+        // CF7 author's comments: "any good effect expected from a nonce is limited when it is used for a publicly-open contact form that anyone can submit, 
+        // and undesirable side effects have been seen in some cases.”
+        //
+        // Our comments: hCaptcha passcodes are one-time use, so effectively serve as a nonce anyway.
 
         $_wpcf7 = !empty($_POST['_wpcf7']) ? absint($_POST['_wpcf7']) : 0;
         if (empty($_wpcf7)) {
