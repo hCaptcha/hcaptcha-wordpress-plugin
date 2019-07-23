@@ -2,13 +2,9 @@
 # hCaptcha for WordPress
 
 
-Contributors: intercrypt, hCaptcha team  
+Contributors: intercrypt, hCaptcha team, phpwebdev, faysalhaque
 Maintainers: hCaptcha team  
-Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
-Requires at least: 4.0.1  
-Tested up to: 5.1.1  
-Requires PHP: 5.2.4  
-Stable tag: 1.1  
+
 License: GPLv2 or later, at your option  
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -41,19 +37,11 @@ A: Please see our website at: https://hcaptcha.com/
 ## Screenshots
 
 See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordpress-now-available-49765536c69f
- 
-## Changelog
- 
-### 1.0
-
-* Plugin Created
-
 
 ## Credits
 
 * Initial version: Alex Vilchynskyy + intercrypt team
 * Current version and maintainer: hCaptcha team
-
 
 ## Support
 
