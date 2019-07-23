@@ -2,7 +2,7 @@
 # hCaptcha for WordPress
 
 
-Contributors: intercrypt, hCaptcha team, phpwebdev, faysalhaque
+Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque
 
 Maintainers: hCaptcha team  
 
