@@ -1,16 +1,17 @@
 <?php
 // If this file is called directly, abort.
-if ( ! defined( 'ABSPATH' ) ) exit;
+if (!defined('ABSPATH')) exit;
 
 $hcaptcha_api_key = get_option('hcaptcha_api_key');
-$hcaptcha_secret_key = get_option( 'hcaptcha_secret_key' );
+$hcaptcha_secret_key = get_option('hcaptcha_secret_key');
 if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
-    function enqueue_hcap_cf7_script() {
+    function enqueue_hcap_cf7_script()
+    {
         global $hcap_cf7;
         if (!$hcap_cf7) {
             return;
         }
-        $hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
+        $hcaptcha_api_key = get_option('hcaptcha_api_key');
 
         $script = "var widgetIds = [];
         var hcap_cf7LoadCallback = function() {
@@ -18,7 +19,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         for (var i = 0; i < hcap_cf7Widgets.length; ++i) {
             var hcap_cf7Widget = hcap_cf7Widgets[i];
             var widgetId = grecaptcha.render(hcap_cf7Widget.id, {
-                'sitekey' : '" . $hcaptcha_api_key ."'
+                'sitekey' : '" . $hcaptcha_api_key . "'
                 });
                 widgetIds.push(widgetId);
             }
@@ -31,35 +32,38 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
             });
         })(jQuery);";
 
-        wp_add_inline_script( 'hcaptcha-script', $script );
+        wp_add_inline_script('hcaptcha-script', $script);
     }
-    add_action( 'wp_enqueue_scripts', 'enqueue_hcap_cf7_script' );
+    add_action('wp_enqueue_scripts', 'enqueue_hcap_cf7_script');
 
-    function hcap_cf7_wpcf7_form_elements($form) {
+    function hcap_cf7_wpcf7_form_elements($form)
+    {
         $form = do_shortcode($form);
         return $form;
     }
     add_filter('wpcf7_form_elements', 'hcap_cf7_wpcf7_form_elements');
 
-    function hcap_cf7_shortcode($atts) {
+    function hcap_cf7_shortcode($atts)
+    {
         global $hcap_cf7;
         $hcap_cf7 = true;
         $hcaptcha_api_key = get_option('hcaptcha_api_key');
-        $hcaptcha_theme 	= get_option("hcaptcha_theme");
-        $hcaptcha_size 		= get_option("hcaptcha_size");
+        $hcaptcha_theme     = get_option("hcaptcha_theme");
+        $hcaptcha_size         = get_option("hcaptcha_size");
 
         return '<div class="h-captcha" id="hcap_cf7-' . uniqid() . '" class="h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key
-        . '" data-theme="'.$hcaptcha_theme.'" data-size="'.$hcaptcha_size.'"></div><span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid"></span>' . wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7_nonce', true, false );
+            . '" data-theme="' . $hcaptcha_theme . '" data-size="' . $hcaptcha_size . '"></div><span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid"></span>' . wp_nonce_field('hcaptcha_contact_form7', 'hcaptcha_contact_form7', true, false);
     }
     add_shortcode('cf7-hcaptcha', 'hcap_cf7_shortcode');
 
-    function hcap_cf7_verify_recaptcha($result) {
+    function hcap_cf7_verify_recaptcha($result)
+    {
+        // NONCE validation always fails. Returning to false value shows the error, found in issue #12
+        // if (!isset($_POST['hcaptcha_contact_form7_nonce']) || (isset($_POST['hcaptcha_contact_form7_nonce']) && !wp_verify_nonce($_POST['hcaptcha_contact_form7'], 'hcaptcha_contact_form7'))) {
+        //     return false;
+        // }
 
-        if( ! isset( $_POST['hcaptcha_contact_form7_nonce'] ) || ( isset( $_POST['hcaptcha_contact_form7_nonce'] ) && ! wp_verify_nonce( $_POST['hcaptcha_contact_form7_nonce'], 'hcaptcha_contact_form7' ) ) ){
-            return false;
-        }
-
-        $_wpcf7 = ! empty($_POST['_wpcf7']) ? absint($_POST['_wpcf7']) : 0;
+        $_wpcf7 = !empty($_POST['_wpcf7']) ? absint($_POST['_wpcf7']) : 0;
         if (empty($_wpcf7)) {
             return $result;
         }
@@ -70,8 +74,8 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
             return $result;
         }
 
-        $cf7_text = do_shortcode( '[contact-form-7 id="' . $data['_wpcf7'] . '"]' );
-        $hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
+        $cf7_text = do_shortcode('[contact-form-7 id="' . $data['_wpcf7'] . '"]');
+        $hcaptcha_api_key = get_option('hcaptcha_api_key');
         if (false === strpos($cf7_text, $hcaptcha_api_key)) {
             return $result;
         }
@@ -87,11 +91,11 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         }
 
         $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $url = 'https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . sanitize_text_field( $data['h-captcha-response'] );
+        $url = 'https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . sanitize_text_field($data['h-captcha-response']);
         $request = wp_remote_get($url);
         $body = wp_remote_retrieve_body($request);
         $response = json_decode($body);
-        if (!(isset ($response->success) && 1 == $response->success)) {
+        if (!(isset($response->success) && 1 == $response->success)) {
             $result->invalidate(array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'), $message);
         }
 
