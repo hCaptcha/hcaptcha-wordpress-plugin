@@ -29,5 +29,5 @@ add_action( 'wp_enqueue_scripts', 'hcap_nf_captcha_script' );
 
 function hcap_nf_captcha_script(){
     wp_enqueue_script( 'nf-hcaptcha-js', plugin_dir_url( __FILE__ ) . 'nf-hcaptcha.js', array('nf-front-end' ), '1.0.0', true );  
-    wp_add_inline_script( 'nf-hcaptcha-js', 'setTimeout(function(){window.grecaptcha.render("nf-hcaptcha")}, 1000);' );
+    wp_add_inline_script( 'nf-hcaptcha-js', 'setTimeout(function(){window.hcaptcha.render("nf-hcaptcha")}, 1000);' );
 }

@@ -18,7 +18,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         var hcap_cf7Widgets = document.querySelectorAll('.hcap_cf7-h-captcha');
         for (var i = 0; i < hcap_cf7Widgets.length; ++i) {
             var hcap_cf7Widget = hcap_cf7Widgets[i];
-            var widgetId = grecaptcha.render(hcap_cf7Widget.id, {
+            var widgetId = hcaptcha.render(hcap_cf7Widget.id, {
                 'sitekey' : '" . $hcaptcha_api_key . "'
                 });
                 widgetIds.push(widgetId);
@@ -27,7 +27,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
         (function($) {
             $('.wpcf7').on('invalid.wpcf7 mailsent.wpcf7', function() {
                 for (var i = 0; i < widgetIds.length; i++) {
-                    grecaptcha.reset(widgetIds[i]);
+                    hcaptcha.reset(widgetIds[i]);
                 }
             });
         })(jQuery);";
