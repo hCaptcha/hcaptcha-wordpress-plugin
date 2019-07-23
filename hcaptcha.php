@@ -3,7 +3,7 @@
  * Plugin Name: hCaptcha for Forms and More
  * Plugin URI: https://hcaptcha.com/
  * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version: 1.2
+ * Version: 1.3
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
 */
