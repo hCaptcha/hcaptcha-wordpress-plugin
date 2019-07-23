@@ -39,7 +39,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
     function hcap_cf7_wpcf7_form_elements($form)
     {
         /**
-         * The quickes and easiest way to add the hcaptcha shortcode if it's not added in the CF7 form fields.
+         * The quickest and easiest way to add the hcaptcha shortcode if it's not added in the CF7 form fields.
          */
         if (strpos($form, '[cf7-hcaptcha]') === false) {
             $form = str_replace('<input type="submit"', '[cf7-hcaptcha]<br /><input type="submit"', $form);
