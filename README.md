@@ -3,6 +3,7 @@
 
 
 Contributors: intercrypt, hCaptcha team, phpwebdev, faysalhaque
+
 Maintainers: hCaptcha team  
 
 License: GPLv2 or later, at your option  
