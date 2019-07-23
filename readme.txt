@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.0.1  
 Tested up to: 5.1.1  
 Requires PHP: 5.2.4  
-Stable tag: 1.2
+Stable tag: 1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -62,6 +62,10 @@ Please see the hCaptcha privacy policy at:
 = 1.2 =
 
 * Update to Contact Form 7 support. Adds compatibility for version 5.1.3.
+
+= 1.3 =
+
+* Automatic addition of hCaptcha button to Contact Form 7 forms when enabled.
 
 
 === Forms and Plugins Supported ==
