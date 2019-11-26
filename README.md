@@ -12,7 +12,9 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Enables hCaptcha integration with WordPress.
 
 ## Description
- 
+
+**NOTE: This is a community-developed plugin. All integrations were submitted by developers like you. If you see an integration that doesn't work, or one that's missing, please open a pull request!**
+
 hCaptcha: a new way to monetize your site traffic 
 
 Do you use a captcha to keep out bots? hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled.  
