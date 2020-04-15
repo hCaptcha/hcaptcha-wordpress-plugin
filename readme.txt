@@ -2,7 +2,7 @@
 Contributors: hcaptcha
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.0.1  
-Tested up to: 5.1.1  
+Tested up to: 5.4.0  
 Requires PHP: 5.2.4  
 Stable tag: 1.3
 License: GPLv2 or later
@@ -12,9 +12,9 @@ Enables hCaptcha.com integration with WordPress.
 
 == Description ==
  
-hCaptcha: a new way to monetize your site traffic 
+hCaptcha is a drop-in replacement for reCAPTCHA that pays website owners.
 
-Do you use a captcha to keep out bots? hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled.  
+Do you use a captcha to keep out bots? hCaptcha protects user privacy, rewards websites, and helps companies get their data labeled. Help build a better web. 
 
 hCaptcha is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.  
 
