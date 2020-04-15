@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.0.1  
 Tested up to: 5.4.0  
 Requires PHP: 5.2.4  
-Stable tag: 1.4
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -21,6 +21,13 @@ hCaptcha is designed to solve the most labor intensive problem in machine learni
 More data generally produces better results in training machine learning models. The recent success of deep models has led to increasingly large datasets, almost always with some human review. However, creating large human-reviewed datasets via Mechanical Turk, Figure Eight, etc. is both slow and expensive.  
 
 hCaptcha allows websites to make money serving this demand while blocking bots and other forms of abuse.  
+
+**NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support. 
+
+If you see an integration that doesn't work, or one that's missing, please open a pull request:
+https://github.com/hCaptcha/hcaptcha-wordpress-plugin
+
+However, you may wish to email the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support if they choose to do so. This will simplify your use of hCaptcha, and is the best solution in the long run.
  
 === Installation ===
  
@@ -66,6 +73,10 @@ Please see the hCaptcha privacy policy at:
 = 1.3 =
 
 * Automatic addition of hCaptcha button to Contact Form 7 forms when enabled.
+
+= 1.4.1 =
+
+* Updated testing information, improve docs.
 
 
 === Forms and Plugins Supported ==
