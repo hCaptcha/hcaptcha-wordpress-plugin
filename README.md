@@ -58,6 +58,7 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
 * WooCommerce Checkout Form
+* WooCommerce Wishlists (see notes in wc_wl/wc-wl-create-list.php)
 * Buddypress Registration Form
 * BuddyPress Create Group Form
 * bbpress new topic Form
