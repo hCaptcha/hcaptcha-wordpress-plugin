@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.0.1  
 Tested up to: 5.4.0  
 Requires PHP: 5.2.4  
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -77,6 +77,10 @@ Please see the hCaptcha privacy policy at:
 = 1.4.1 =
 
 * Updated testing information, improve docs.
+
+= 1.4.2 = 
+
+* Fixed comment issue, added WooCommerce Wishlists
 
 
 === Forms and Plugins Supported ==
