@@ -91,6 +91,7 @@ Please see the hCaptcha privacy policy at:
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
 * WooCommerce Checkout Form
+* WooCommerce Wishlists (see notes in wc_wl/wc-wl-create-list.php)
 * Buddypress Registration Form
 * BuddyPress Create Group Form
 * bbpress new topic Form
