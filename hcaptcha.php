@@ -3,7 +3,7 @@
  * Plugin Name: hCaptcha for Forms and More
  * Plugin URI: https://hcaptcha.com/
  * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version: 1.4.1
+ * Version: 1.4.2
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
 */
@@ -74,7 +74,8 @@ $hcap_subscribers_status            = get_option($hcap_subscribers_status_n);
 function hcap_captcha_script()
 {
     global $hcap_language;
-
+    $dir = plugin_dir_url(__FILE__);
+    wp_enqueue_style('hcaptcha-style', $dir . 'assets/styles.css', [], false, 'all');
     wp_enqueue_script('hcaptcha-script', '//hcaptcha.com/1/api.js?hl=' . $hcap_language, array(), false, true);
 }
 
