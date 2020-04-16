@@ -2,30 +2,31 @@
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$hcap_api_key_n                     = "hcaptcha_api_key";
-$hcap_secret_key_n                  = "hcaptcha_secret_key";
-$hcap_theme_n                       = "hcaptcha_theme";
-$hcap_size_n                        = "hcaptcha_size";
-$hcap_language_n                    = "hcaptcha_language";
-$hcap_nf_status_n                   = "hcaptcha_nf_status";
-$hcap_cf7_status_n                  = "hcaptcha_cf7_status";
-$hcap_lf_status_n                   = "hcaptcha_lf_status";
-$hcap_rf_status_n                   = "hcaptcha_rf_status";
-$hcap_cmf_status_n                  = "hcaptcha_cmf_status";
-$hcap_lpf_status_n                  = "hcaptcha_lpf_status";
-$hcap_wc_login_status_n             = "hcaptcha_wc_login_status";
-$hcap_wc_reg_status_n               = "hcaptcha_wc_reg_status";
-$hcap_wc_lost_pass_status_n         = "hcaptcha_wc_lost_pass_status";
-$hcap_wc_checkout_status_n          = "hcaptcha_wc_checkout_status";
-$hcap_bp_reg_status_n               = "hcaptcha_bp_reg_status";
-$hcap_bp_create_group_status_n      = "hcaptcha_bp_create_group_status";
-$hcap_bbp_new_topic_status_n        = "hcaptcha_bbp_new_topic_status";
-$hcap_bbp_reply_status_n            = "hcaptcha_bbp_reply_status";
-$hcap_wpforo_new_topic_status_n     = "hcaptcha_wpforo_new_topic_status";
-$hcap_wpforo_reply_status_n         = "hcaptcha_wpforo_reply_status";
-$hcap_mc4wp_status_n                = "hcaptcha_mc4wp_status";
-$hcap_jetpack_cf_status_n           = "hcaptcha_jetpack_cf_status";
-$hcap_subscribers_status_n          = "hcaptcha_subscribers_status";
+$hcap_api_key_n                       = "hcaptcha_api_key";
+$hcap_secret_key_n                    = "hcaptcha_secret_key";
+$hcap_theme_n                         = "hcaptcha_theme";
+$hcap_size_n                          = "hcaptcha_size";
+$hcap_language_n                      = "hcaptcha_language";
+$hcap_nf_status_n                     = "hcaptcha_nf_status";
+$hcap_cf7_status_n                    = "hcaptcha_cf7_status";
+$hcap_lf_status_n                     = "hcaptcha_lf_status";
+$hcap_rf_status_n                     = "hcaptcha_rf_status";
+$hcap_cmf_status_n                    = "hcaptcha_cmf_status";
+$hcap_lpf_status_n                    = "hcaptcha_lpf_status";
+$hcap_wc_login_status_n               = "hcaptcha_wc_login_status";
+$hcap_wc_reg_status_n                 = "hcaptcha_wc_reg_status";
+$hcap_wc_lost_pass_status_n           = "hcaptcha_wc_lost_pass_status";
+$hcap_wc_checkout_status_n            = "hcaptcha_wc_checkout_status";
+$hcap_bp_reg_status_n                 = "hcaptcha_bp_reg_status";
+$hcap_bp_create_group_status_n        = "hcaptcha_bp_create_group_status";
+$hcap_bbp_new_topic_status_n          = "hcaptcha_bbp_new_topic_status";
+$hcap_bbp_reply_status_n              = "hcaptcha_bbp_reply_status";
+$hcap_wpforo_new_topic_status_n       = "hcaptcha_wpforo_new_topic_status";
+$hcap_wpforo_reply_status_n           = "hcaptcha_wpforo_reply_status";
+$hcap_mc4wp_status_n                  = "hcaptcha_mc4wp_status";
+$hcap_jetpack_cf_status_n             = "hcaptcha_jetpack_cf_status";
+$hcap_subscribers_status_n            = "hcaptcha_subscribers_status";
+$hcaptcha_wc_wl_create_list_status_n  = "hcaptcha_wc_wl_create_list_status";
 
 if( isset( $_POST['hcaptcha_settings_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_settings_nonce'], 'hcaptcha_settings' ) && isset($_POST["submit"]) ){
     if(isset($_POST[$hcap_api_key_n])){
@@ -205,6 +206,14 @@ if( isset( $_POST['hcaptcha_settings_nonce'] ) && wp_verify_nonce( $_POST['hcapt
         update_option($hcap_subscribers_status_n, sanitize_text_field( $hcap_subscribers_status ) );
     }
 
+    if(isset($_POST[$hcaptcha_wc_wl_create_list_status_n])){
+        $hcaptcha_wc_wl_create_list_status         = $_POST[$hcaptcha_wc_wl_create_list_status_n];
+        update_option($hcaptcha_wc_wl_create_list_status_n, sanitize_text_field($hcaptcha_wc_wl_create_list_status ) );
+    } else {
+        $hcaptcha_wc_wl_create_list_status         = "off";
+        update_option($hcaptcha_wc_wl_create_list_status_n, sanitize_text_field($hcaptcha_wc_wl_create_list_status ) );
+    }
+
     echo '<div id="message" class="updated fade"><p>Settings Updated</p></div>';
 } else {
     $hcap_api_key                       = get_option($hcap_api_key_n);
@@ -231,6 +240,7 @@ if( isset( $_POST['hcaptcha_settings_nonce'] ) && wp_verify_nonce( $_POST['hcapt
     $hcap_mc4wp_status                  = get_option($hcap_mc4wp_status_n);
     $hcap_jetpack_cf_status             = get_option($hcap_jetpack_cf_status_n);
     $hcap_subscribers_status            = get_option($hcap_subscribers_status_n);
+    $hcaptcha_wc_wl_create_list_status  = get_option($hcaptcha_wc_wl_create_list_status_n);
 }
 
 ?>
@@ -276,10 +286,9 @@ if( isset( $_POST['hcaptcha_settings_nonce'] ) && wp_verify_nonce( $_POST['hcapt
                             <input type="checkbox" name="<?php echo $hcap_lpf_status_n; ?>" <?php if($hcap_lpf_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on Lost Password Form</span><br /><br />                             
                             <input type="checkbox" name="<?php echo $hcap_wc_login_status_n; ?>" <?php if($hcap_wc_login_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on WooCommerce Login Form</span><br /><br />                             
                             <input type="checkbox" name="<?php echo $hcap_wc_reg_status_n; ?>" <?php if($hcap_wc_reg_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on WooCommerce Registration Form</span><br /><br />
-
                             <input type="checkbox" name="<?php echo $hcap_wc_lost_pass_status_n; ?>" <?php if($hcap_wc_lost_pass_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on WooCommerce Lost Password Form</span><br /><br />
-
                             <input type="checkbox" name="<?php echo $hcap_wc_checkout_status_n; ?>" <?php if($hcap_wc_checkout_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on WooCommerce Checkout Form</span><br /><br />                             
+                            <input type="checkbox" name="<?php echo $hcaptcha_wc_wl_create_list_status_n; ?>" <?php if($hcaptcha_wc_wl_create_list_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on WooCommerce Wishlists Create List Form</span><br /><br />                             
                             <input type="checkbox" name="<?php echo $hcap_bp_reg_status_n; ?>" <?php if($hcap_bp_reg_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on Buddypress Registration Form</span><br /><br />                             
                             <input type="checkbox" name="<?php echo $hcap_bp_create_group_status_n; ?>" <?php if($hcap_bp_create_group_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on BuddyPress Create Group Form</span><br /><br />                             
                             <input type="checkbox" name="<?php echo $hcap_bbp_new_topic_status_n; ?>" <?php if($hcap_bbp_new_topic_status == "on"){echo "checked='checked'";} else { echo "";} ?>/> &nbsp;<span>Enable hCaptcha on bbpress new topic Form</span><br /><br />                             

@@ -20,30 +20,31 @@ include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 
 
 // get settings
-$hcap_api_key_n                     = "hcaptcha_api_key";
-$hcap_secret_key_n                  = "hcaptcha_secret_key";
-$hcap_theme_n                       = "hcaptcha_theme";
-$hcap_size_n                        = "hcaptcha_size";
-$hcap_language_n                    = "hcaptcha_language";
-$hcap_nf_status_n                   = "hcaptcha_nf_status";
-$hcap_cf7_status_n                  = "hcaptcha_cf7_status";
-$hcap_lf_status_n                   = "hcaptcha_lf_status";
-$hcap_rf_status_n                   = "hcaptcha_rf_status";
-$hcap_cmf_status_n                  = "hcaptcha_cmf_status";
-$hcap_lpf_status_n                  = "hcaptcha_lpf_status";
-$hcap_wc_login_status_n             = "hcaptcha_wc_login_status";
-$hcap_wc_reg_status_n               = "hcaptcha_wc_reg_status";
-$hcap_wc_lost_pass_status_n         = "hcaptcha_wc_lost_pass_status";
-$hcap_wc_checkout_status_n          = "hcaptcha_wc_checkout_status";
-$hcap_bp_reg_status_n               = "hcaptcha_bp_reg_status";
-$hcap_bp_create_group_status_n      = "hcaptcha_bp_create_group_status";
-$hcap_bbp_new_topic_status_n        = "hcaptcha_bbp_new_topic_status";
-$hcap_bbp_reply_status_n            = "hcaptcha_bbp_reply_status";
-$hcap_wpforo_new_topic_status_n     = "hcaptcha_wpforo_new_topic_status";
-$hcap_wpforo_reply_status_n         = "hcaptcha_wpforo_reply_status";
-$hcap_mc4wp_status_n                = "hcaptcha_mc4wp_status";
-$hcap_jetpack_cf_status_n           = "hcaptcha_jetpack_cf_status";
-$hcap_subscribers_status_n          = "hcaptcha_subscribers_status";
+$hcap_api_key_n                       = "hcaptcha_api_key";
+$hcap_secret_key_n                    = "hcaptcha_secret_key";
+$hcap_theme_n                         = "hcaptcha_theme";
+$hcap_size_n                          = "hcaptcha_size";
+$hcap_language_n                      = "hcaptcha_language";
+$hcap_nf_status_n                     = "hcaptcha_nf_status";
+$hcap_cf7_status_n                    = "hcaptcha_cf7_status";
+$hcap_lf_status_n                     = "hcaptcha_lf_status";
+$hcap_rf_status_n                     = "hcaptcha_rf_status";
+$hcap_cmf_status_n                    = "hcaptcha_cmf_status";
+$hcap_lpf_status_n                    = "hcaptcha_lpf_status";
+$hcap_wc_login_status_n               = "hcaptcha_wc_login_status";
+$hcap_wc_reg_status_n                 = "hcaptcha_wc_reg_status";
+$hcap_wc_lost_pass_status_n           = "hcaptcha_wc_lost_pass_status";
+$hcap_wc_checkout_status_n            = "hcaptcha_wc_checkout_status";
+$hcap_bp_reg_status_n                 = "hcaptcha_bp_reg_status";
+$hcap_bp_create_group_status_n        = "hcaptcha_bp_create_group_status";
+$hcap_bbp_new_topic_status_n          = "hcaptcha_bbp_new_topic_status";
+$hcap_bbp_reply_status_n              = "hcaptcha_bbp_reply_status";
+$hcap_wpforo_new_topic_status_n       = "hcaptcha_wpforo_new_topic_status";
+$hcap_wpforo_reply_status_n           = "hcaptcha_wpforo_reply_status";
+$hcap_mc4wp_status_n                  = "hcaptcha_mc4wp_status";
+$hcap_jetpack_cf_status_n             = "hcaptcha_jetpack_cf_status";
+$hcap_subscribers_status_n            = "hcaptcha_subscribers_status";
+$hcaptcha_wc_wl_create_list_status_n  = "hcaptcha_wc_wl_create_list_status";
 
 $hcap_api_key                       = get_option($hcap_api_key_n);
 $hcap_secret_key                    = get_option($hcap_secret_key_n);
@@ -69,6 +70,7 @@ $hcap_wpforo_reply_status           = get_option($hcap_wpforo_reply_status_n);
 $hcap_mc4wp_status                  = get_option($hcap_mc4wp_status_n);
 $hcap_jetpack_cf_status             = get_option($hcap_jetpack_cf_status_n);
 $hcap_subscribers_status            = get_option($hcap_subscribers_status_n);
+$hcaptcha_wc_wl_create_list_status  = get_option($hcaptcha_wc_wl_create_list_status_n);
 
 // add the hcaptcha script to footer
 function hcap_captcha_script()
@@ -229,6 +231,13 @@ if (!empty($hcap_subscribers_status) && $hcap_subscribers_status == "on") {
     }
 }
 
+if (!empty($hcaptcha_wc_wl_create_list_status) && $hcaptcha_wc_wl_create_list_status == "on") {
+    // check if the other plugin is active
+    if (is_plugin_active('woocommerce-wishlists/woocommerce-wishlists.php')) {
+        require_once("wc_wl/wc-wl-create-list.php");
+    }
+}
+
 
 register_activation_hook(__FILE__, 'hcap_activation');
 register_deactivation_hook(__FILE__, 'hcap_deactivation');
@@ -254,6 +263,7 @@ function hcap_activation()
     add_option('hcaptcha_mc4wp_status', '', '', 'yes');
     add_option('hcaptcha_jetpack_cf_status', '', '', 'yes');
     add_option('hcaptcha_subscribers_status', '', '', 'yes');
+    add_option('hcaptcha_wc_wl_create_list_status', '', '', 'yes');
     // do some other things on plugin activation
 }
 function hcap_deactivation()
