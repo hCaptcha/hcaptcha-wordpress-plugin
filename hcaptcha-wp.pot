@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hCaptcha for Forms and More\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-30 12:45+0000\n"
+"POT-Creation-Date: 2020-04-30 13:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -15,12 +15,38 @@ msgstr ""
 "X-Generator: Loco https://localise.biz/\n"
 "X-Loco-Version: 2.3.3; wp-5.4.1"
 
-#: common/hcaptcha.php:19
-msgid "<strong>ERROR</strong>: Invalid Captcha"
+#: hcaptcha.php:106 bp/bp-create-group.php:35 bp/bp-register.php:37
+#: wpforo/wpforo-reply.php:31 wpforo/wpforo-new-topic.php:31
+#: nf/class-nf-hcaptcha.php:46 bbp/bbp-reply.php:29 bbp/bbp-new-topic.php:30
+#: wc/wc-register.php:29 wc/wc-login.php:30 cf7/hcaptcha-cf7.php:96
+#: jetpack/jetpack.php:46 subscriber/subscriber.php:34
+msgid "The Captcha is invalid."
 msgstr ""
 
-#. Author of the plugin
-msgid "hCaptcha"
+#: bp/bp-create-group.php:39 bp/bp-register.php:40 wpforo/wpforo-reply.php:36
+#: wpforo/wpforo-new-topic.php:36 nf/class-nf-hcaptcha.php:35
+#: bbp/bbp-reply.php:32 bbp/bbp-new-topic.php:33 wc/wc-register.php:32
+#: wc/wc-login.php:34 mailchimp/mailchimp-for-wp.php:10 jetpack/jetpack.php:52
+#: subscriber/subscriber.php:38
+msgid "Please complete the captcha."
+msgstr ""
+
+#: wc/wc-checkout.php:27 wc_wl/wc-wl-create-list.php:40
+msgid "Error: The Captcha is invalid."
+msgstr ""
+
+#: wc/wc-checkout.php:31 wc_wl/wc-wl-create-list.php:46
+msgid "Error: Please complete the captcha."
+msgstr ""
+
+#: default/register-form.php:26 default/comment-form.php:51
+#: default/login-form.php:28 common/hcaptcha.php:31
+msgid "<strong>Error</strong>: The Captcha is invalid."
+msgstr ""
+
+#: default/register-form.php:32 default/comment-form.php:55
+#: default/login-form.php:31 common/hcaptcha.php:22
+msgid "<strong>Error</strong>: Please complete the captcha."
 msgstr ""
 
 #. Name of the plugin
@@ -33,25 +59,14 @@ msgid ""
 "and spam. It is a drop-in replacement for reCAPTCHA."
 msgstr ""
 
-#. Author URI of the plugin
-msgid "https://hCaptcha.com/"
-msgstr ""
-
 #. URI of the plugin
 msgid "https://hcaptcha.com/"
 msgstr ""
 
-#: hcaptcha.php:106 bp/bp-register.php:37 bbp/bbp-reply.php:29
-#: bbp/bbp-reply.php:32 bbp/bbp-new-topic.php:30 bbp/bbp-new-topic.php:33
-#: cf7/hcaptcha-cf7.php:96
-msgid "Invalid Captcha"
+#. Author of the plugin
+msgid "hCaptcha"
 msgstr ""
 
-#: bp/bp-register.php:40
-msgid "Please verify Captcha"
-msgstr ""
-
-#: wc/wc-register.php:29 wc/wc-register.php:32 wc/wc-login.php:30
-#: wc/wc-login.php:34
-msgid "The Captcha is invalid."
+#. Author URI of the plugin
+msgid "https://hCaptcha.com/"
 msgstr ""
