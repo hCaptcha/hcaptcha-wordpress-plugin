@@ -21,22 +21,10 @@ add_filter( 'sbscrbr_check', 'hcap_subscriber_verify' );
 /* check google captcha in subscriber */
 if ( ! function_exists( 'hcap_subscriber_verify' ) ) {
     function hcap_subscriber_verify( $check_result = true ) {
-
-        if (isset( $_POST['hcaptcha_subscriber_form_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_subscriber_form_nonce'], 'hcaptcha_subscriber_form' ) && isset($_POST['h-captcha-response'])) {
-            $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
-            
-            $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-            $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-            $response = json_decode($response["body"], true);
-            if (true == $response["success"]) {
-                return $check_result;
-            } else {
-                $check_result = __('The Captcha is invalid.', 'hcaptcha-wp');
-                return $check_result;
-            } 
-        } else {
-            $check_result = __('Please complete the captcha.', 'hcaptcha-wp');
-            return $check_result;
-        }
+	    $errorMessage = hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
+	    if ( $errorMessage === null ) {
+		    return $check_result;
+	    }
+	    return $errorMessage;
     }
 }

@@ -18,24 +18,11 @@ add_filter( 'wpforo_add_topic_data_filter', 'hcap_verify_wpforo_topic_captcha', 
 if ( ! function_exists( 'hcap_verify_wpforo_topic_captcha' ) ) {
     function hcap_verify_wpforo_topic_captcha( $data ) {
         global $wpforo;
-
-        if (isset( $_POST['hcaptcha_wpforo_new_topic_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_wpforo_new_topic_nonce'], 'hcaptcha_wpforo_new_topic' ) && isset($_POST['h-captcha-response'])) {
-            $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
-            
-            $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-            $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-            $response = json_decode($response["body"], true);
-            if (true == $response["success"]) {
-                return $data;
-            } else {
-                $error_message = __('The Captcha is invalid.', 'hcaptcha-wp');
-                $wpforo->notice->add( $error_message, 'error');
-                return false;
-            } 
-        } else {
-            $error_message = __('Please complete the captcha.', 'hcaptcha-wp');
-            $wpforo->notice->add( $error_message, 'error');
-            return false;
-        }
+	    $errorMessage = hcaptcha_get_verify_message( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic' );
+	    if ( $errorMessage === null ) {
+		    return $data;
+	    }
+	    $wpforo->notice->add( $errorMessage, 'error');
+	    return false;
     }
 }

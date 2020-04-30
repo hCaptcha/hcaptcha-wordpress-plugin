@@ -25,19 +25,11 @@ add_action( 'bp_before_registration_submit_buttons', 'hcap_display_bp_register',
 
 function hcap_verify_bp_register_captcha() {
     global $bp;
-    if (isset( $_POST['hcaptcha_bp_register_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_bp_register_nonce'], 'hcaptcha_bp_register' ) && isset($_POST['h-captcha-response'])) {
-        $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
 
-        $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-        $response = json_decode($response["body"], true);
-        if (true == $response["success"]) {
-            return true;
-        } else {
-            $bp->signup->errors['hcaptcha_response_verify'] = __('The Captcha is invalid.', 'hcaptcha-wp');
-        } 
-    } else {
-        $bp->signup->errors['hcaptcha_response_verify'] = __('Please complete the captcha.', 'hcaptcha-wp');
-    }   
+	$errorMessage = hcaptcha_get_verify_message( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register' );
+	if ( $errorMessage === null ) {
+		return true;
+	}
+	$bp->signup->errors['hcaptcha_response_verify'] = $errorMessage;
 }
 add_action( 'bp_signup_validate',  'hcap_verify_bp_register_captcha' ); 

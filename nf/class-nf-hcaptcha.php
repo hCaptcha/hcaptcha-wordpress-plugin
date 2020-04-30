@@ -31,21 +31,15 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha
     }
 
     public function validate( $field, $data ) {
-        if ( empty( $field['value'] ) ) {
-            return __('Please complete the captcha.', 'hcaptcha-wp');
-        }
+	    if ( empty( $field['value'] ) ) {
+		    return __( 'Please complete the captcha.', 'hcaptcha-wp' );
+	    }
 
-        $secret_key = get_option('hcaptcha_secret_key');
-        $url = 'https://hcaptcha.com/siteverify?secret=' . $secret_key . '&response='.sanitize_text_field( $field['value'] );
-        $resp = wp_remote_get( esc_url_raw( $url ) );
+	    $result = hcaptcha_request_verify( $field['value'] );
+	    if ( $result === 'fail' ) {
+		    return array( __( 'The Captcha is invalid.', 'hcaptcha-wp' ) );
+	    }
 
-        if ( !is_wp_error( $resp ) ) {
-            $body = wp_remote_retrieve_body( $resp );
-            $response = json_decode( $body );
-            if ( $response->success === false ) {
-                return array( __('The Captcha is invalid.', 'hcaptcha-wp') );
-            }
-        }
     }
 
     function hide_field_type( $field_types )

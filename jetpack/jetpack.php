@@ -30,28 +30,13 @@ add_filter( 'jetpack_contact_form_is_spam', 'hcap_hcaptcha_jetpack_verify', 11, 
 /* check reCAPTCHA answer from the Jetpack Contact Form */
 if ( ! function_exists( 'hcap_hcaptcha_jetpack_verify' ) ) {
     function hcap_hcaptcha_jetpack_verify( $is_spam = false ) {
-
-        if (isset( $_POST['hcaptcha_jetpack_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_jetpack_nonce'], 'hcaptcha_jetpack' ) && isset($_POST['h-captcha-response'])) {
-            global $hcap_status;
-            
-            $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
-            
-            $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-            $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-            $response = json_decode($response["body"], true);
-            if (true == $response["success"]) {
-                return $is_spam;
-            } else {
-                $is_spam = new WP_Error();
-                $is_spam->add( 'invalid_hcaptcha', __('The Captcha is invalid.', 'hcaptcha-wp') );
-                add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
-                return $is_spam;
-            } 
-        } else {
-            $is_spam = new WP_Error();
-            $is_spam->add( 'invalid_hcaptcha', __('Please complete the captcha.', 'hcaptcha-wp') );
-            add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
-            return $is_spam;
-        }
+	    $errorMessage = hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+	    if ( $errorMessage === null ) {
+		    return $is_spam;
+	    }
+	    $is_spam = new WP_Error();
+	    $is_spam->add( 'invalid_hcaptcha', $errorMessage );
+	    add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
+	    return $is_spam;
     }
 } /* end function hcap_hcaptcha_jetpack_verify */

@@ -39,22 +39,12 @@ function hcap_verify_comment_captcha($commentdata)
     if (is_admin()) {
         return $commentdata;
     } else {
-        if (isset($_POST['hcaptcha_comment_form_nonce']) && wp_verify_nonce($_POST['hcaptcha_comment_form_nonce'], 'hcaptcha_comment_form') && isset($_POST['h-captcha-response'])) {
-            $get_hcaptcha_response = htmlspecialchars(sanitize_text_field($_POST['h-captcha-response']));
 
-            $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-            $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-            $response = json_decode($response["body"], true);
-            if (true == $response["success"]) {
-                return $commentdata;
-            } else {
-	            $message = __('<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-wp');
-                wp_die($message, $message, array('back_link' => true));
-            }
-        } else {
-	        $message = __('<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-wp');
-            wp_die($message, $message, array('back_link' => true));
-        }
+	    $errorMessage = hcaptcha_get_verify_message_html( 'hcaptcha_comment_form_nonce', 'hcaptcha_comment_form' );
+	    if ( $errorMessage === null ) {
+		    return $commentdata;
+	    }
+	    wp_die($errorMessage, $errorMessage, array('back_link' => true));
     }
 }
 add_filter("preprocess_comment", "hcap_verify_comment_captcha");
