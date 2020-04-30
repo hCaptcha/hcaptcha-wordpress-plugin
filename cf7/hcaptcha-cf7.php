@@ -93,7 +93,7 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
 
         $message = get_option('hcap_cf7_message');
         if (empty($message)) {
-            $message = 'Invalid captcha';
+            $message = __( 'The Captcha is invalid.', 'hcaptcha-wp' );
         }
 
         if (empty($data['h-captcha-response'])) {

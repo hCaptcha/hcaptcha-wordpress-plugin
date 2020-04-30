@@ -37,13 +37,13 @@ function hcap_verify_wc_wl_create_list_captcha($valid_captcha) {
       return $valid_captcha;
     } else {
       $valid_captcha = false;
-      $error_message = 'Error: The Captcha is invalid.';
+      $error_message = __('Error: The Captcha is invalid.', 'hcaptcha-wp');
       wc_add_notice($error_message, 'error');
       return $valid_captcha;
     }
   } else {
     $valid_captcha = false;
-    $error_message = 'Error: The Captcha is invalid.';
+    $error_message = __('Error: Please complete the captcha.', 'hcaptcha-wp');
     wc_add_notice($error_message, 'error');
     return $valid_captcha;
   } 

@@ -34,10 +34,10 @@ function hcap_verify_bp_register_captcha() {
         if (true == $response["success"]) {
             return true;
         } else {
-            $bp->signup->errors['hcaptcha_response_verify'] = __('Invalid Captcha', 'hcaptcha-wp');
+            $bp->signup->errors['hcaptcha_response_verify'] = __('The Captcha is invalid.', 'hcaptcha-wp');
         } 
     } else {
-        $bp->signup->errors['hcaptcha_response_verify'] = __('Please verify Captcha', 'hcaptcha-wp');   
+        $bp->signup->errors['hcaptcha_response_verify'] = __('Please complete the captcha.', 'hcaptcha-wp');
     }   
 }
 add_action( 'bp_signup_validate',  'hcap_verify_bp_register_captcha' ); 

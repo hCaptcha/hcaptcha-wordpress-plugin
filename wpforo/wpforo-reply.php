@@ -28,12 +28,12 @@ if ( ! function_exists( 'hcap_verify_wpforo_reply_captcha' ) ) {
             if (true == $response["success"]) {
                 return $data;
             } else {
-                $error_message = "Invalid Captcha";
+                $error_message = __('The Captcha is invalid.', 'hcaptcha-wp');
                 $wpforo->notice->add( $error_message, 'error');
                 return false;
             } 
         } else {
-            $error_message = "Invalid Captcha";
+            $error_message = __('Please complete the captcha.', 'hcaptcha-wp');
             $wpforo->notice->add( $error_message, 'error');
             return false;
         }

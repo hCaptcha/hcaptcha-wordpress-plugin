@@ -48,10 +48,12 @@ function hcap_verify_comment_captcha($commentdata)
             if (true == $response["success"]) {
                 return $commentdata;
             } else {
-                wp_die(__('<strong>ERROR</strong>: Invalid Captcha', 'hcaptcha_wp'), __('<strong>ERROR</strong>: Invalid Captcha', 'hcaptcha_wp'), array('back_link' => true));
+	            $message = __('<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-wp');
+                wp_die($message, $message, array('back_link' => true));
             }
         } else {
-            wp_die(__('<strong>ERROR</strong>: Invalid Captcha', 'hcaptcha_wp'), __('<strong>ERROR</strong>: Invalid Captcha', 'hcaptcha_wp'), array('back_link' => true));
+	        $message = __('<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-wp');
+            wp_die($message, $message, array('back_link' => true));
         }
     }
 }

@@ -43,13 +43,13 @@ if ( ! function_exists( 'hcap_hcaptcha_jetpack_verify' ) ) {
                 return $is_spam;
             } else {
                 $is_spam = new WP_Error();
-                $is_spam->add( 'invalid_hcaptcha', "The captcha is invalid." );
+                $is_spam->add( 'invalid_hcaptcha', __('The Captcha is invalid.', 'hcaptcha-wp') );
                 add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
                 return $is_spam;
             } 
         } else {
             $is_spam = new WP_Error();
-            $is_spam->add( 'invalid_hcaptcha', "The captcha is invalid." );
+            $is_spam->add( 'invalid_hcaptcha', __('Please complete the captcha.', 'hcaptcha-wp') );
             add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
             return $is_spam;
         }

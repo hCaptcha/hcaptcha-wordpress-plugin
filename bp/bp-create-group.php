@@ -32,11 +32,11 @@ if ( ! function_exists( 'hcap_hcaptcha_bp_group_verify' ) ) {
             if (true == $response["success"]) {
                 return false;
             } else {
-                bp_core_add_message( "Invalid Captcha", 'error' );
+                bp_core_add_message( __('The Captcha is invalid.', 'hcaptcha-wp'), 'error' );
                 bp_core_redirect( bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create/step/group-details/' );
             } 
         } else {
-            bp_core_add_message( "Invalid Captcha", 'error' );
+            bp_core_add_message( __('Please complete the captcha.', 'hcaptcha-wp'), 'error' );
             bp_core_redirect( bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create/step/group-details/' );
         }
     }

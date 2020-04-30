@@ -32,7 +32,7 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha
 
     public function validate( $field, $data ) {
         if ( empty( $field['value'] ) ) {
-            return __( 'Please complete the captcha', 'ninja-forms' );
+            return __('Please complete the captcha.', 'hcaptcha-wp');
         }
 
         $secret_key = get_option('hcaptcha_secret_key');
@@ -43,7 +43,7 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha
             $body = wp_remote_retrieve_body( $resp );
             $response = json_decode( $body );
             if ( $response->success === false ) {
-                return array( __( 'Captcha mismatch. Please enter the correct value in captcha field', 'nf-hcaptcha' ) );
+                return array( __('The Captcha is invalid.', 'hcaptcha-wp') );
             }
         }
     }

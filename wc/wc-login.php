@@ -27,11 +27,11 @@ function hcap_verify_wc_login_captcha($validation_error) {
         if (true == $response["success"]) {
             return $validation_error;
         } else {
-            $validation_error->add( 'hcaptcha_error' ,  __("The Captcha is invalid.",'hcaptcha-wp') );
+            $validation_error->add( 'hcaptcha_error' ,  __('The Captcha is invalid.', 'hcaptcha-wp') );
             return $validation_error;
         } 
     } else {
-        $validation_error->add( 'hcaptcha_error' ,  __("The Captcha is invalid.",'hcaptcha-wp') );
+        $validation_error->add( 'hcaptcha_error' ,  __('Please complete the captcha.', 'hcaptcha-wp') );
         return $validation_error;       
     }   
 }

@@ -16,7 +16,7 @@ function hcap_wp_login_form() {
 }
 
 function hcap_verify_login_captcha($user, $password) {
-    if (isset( $_POST['hcaptcha_login_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_login_nonce'], 'hcaptcha_login' ) && isset($_POST['h-captcha-response'])) {
+	if (isset( $_POST['hcaptcha_login_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_login_nonce'], 'hcaptcha_login' ) && isset($_POST['h-captcha-response'])) {
         $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
 
         $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
@@ -25,10 +25,10 @@ function hcap_verify_login_captcha($user, $password) {
         if (true == $response["success"]) {
             return $user;
         } else {
-            return new WP_Error("Captcha Invalid", __("<strong>ERROR</strong>: Invalid Captcha"));
+            return new WP_Error("Invalid Captcha", __( '<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-wp' ));
         } 
     } else {
-        return new WP_Error("Captcha Invalid", __("<strong>ERROR</strong>: Invalid Captcha"));
+        return new WP_Error("Invalid Captcha", __('<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-wp'));
     }   
 }
 add_filter("wp_authenticate_user", "hcap_verify_login_captcha", 10, 2);

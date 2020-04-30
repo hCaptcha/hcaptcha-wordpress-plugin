@@ -24,11 +24,11 @@ function hcap_verify_wc_checkout_captcha($validation_error) {
         $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
         $response = json_decode($response["body"], true);
         if (false == $response["success"]) {
-            $error_message = 'Error: Invalid Captcha';
+            $error_message = __('Error: The Captcha is invalid.', 'hcaptcha-wp');
             wc_add_notice( $error_message, 'error' );
         }
     } else {
-        $error_message = 'Error: Invalid Captcha';
+        $error_message = __('Error: Please complete the captcha.', 'hcaptcha-wp');
         wc_add_notice( $error_message, 'error' );   
     }   
 }

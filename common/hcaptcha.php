@@ -16,11 +16,10 @@ function hcaptcha_display_captcha()
 
 function hcaptcha_verify_captcha($error)
 {
-    $errorMsg = '<strong>ERROR</strong>: Invalid Captcha';
     if ( ! isset( $_POST['hcaptcha_lost_password_nonce'] )
         || ! wp_verify_nonce( $_POST['hcaptcha_lost_password_nonce'], 'hcaptcha_lost_password' )
         || ! isset( $_POST['h-captcha-response'] ) ) {
-        $error->add( 'invalid_captcha', $errorMsg );
+        $error->add( 'invalid_captcha', __('<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-wp') );
         return;
     }
     $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
@@ -29,6 +28,6 @@ function hcaptcha_verify_captcha($error)
     $response = wp_remote_get( 'https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response );
     $response = json_decode( $response['body'], true );
     if ( false == $response['success'] ) {
-        $error->add( 'invalid_captcha', $errorMsg );
+        $error->add( 'invalid_captcha', __( '<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-wp' ) );
     }
 }

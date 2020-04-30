@@ -29,13 +29,13 @@ if ( ! function_exists( 'hcap_subscriber_verify' ) ) {
             $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
             $response = json_decode($response["body"], true);
             if (true == $response["success"]) {
-                return true;
+                return $check_result;
             } else {
-                $check_result = "Please complete captcha";
+                $check_result = __('The Captcha is invalid.', 'hcaptcha-wp');
                 return $check_result;
             } 
         } else {
-            $check_result = "Please complete captcha";
+            $check_result = __('Please complete the captcha.', 'hcaptcha-wp');
             return $check_result;
         }
     }

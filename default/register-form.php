@@ -23,13 +23,13 @@ function hcap_verify_register_captcha($errors, $sanitized_user_login, $user_emai
         $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
         $response = json_decode($response["body"], true);
         if (false == $response["success"]) {
-            $errors->add( 'invalid_captcha', __( '<strong>ERROR</strong>: Captcha invalid.', 'hcaptcha_wp' ) );
+            $errors->add( 'invalid_captcha', __( '<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-wp' ) );
             return $errors;
         } else {
             return $errors;
         }
     } else {
-        $errors->add( 'invalid_captcha', __( '<strong>ERROR</strong>: Captcha invalid.', 'hcaptcha_wp' ) );
+        $errors->add( 'invalid_captcha', __('<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-wp') );
         return $errors;
     }   
 }

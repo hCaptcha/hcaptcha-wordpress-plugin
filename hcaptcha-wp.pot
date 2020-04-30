@@ -1,0 +1,57 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: hCaptcha for Forms and More\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-30 12:45+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.3.3; wp-5.4.1"
+
+#: common/hcaptcha.php:19
+msgid "<strong>ERROR</strong>: Invalid Captcha"
+msgstr ""
+
+#. Author of the plugin
+msgid "hCaptcha"
+msgstr ""
+
+#. Name of the plugin
+msgid "hCaptcha for Forms and More"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"hCaptcha is a new way to monetize your site traffic while keeping out bots "
+"and spam. It is a drop-in replacement for reCAPTCHA."
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://hCaptcha.com/"
+msgstr ""
+
+#. URI of the plugin
+msgid "https://hcaptcha.com/"
+msgstr ""
+
+#: hcaptcha.php:106 bp/bp-register.php:37 bbp/bbp-reply.php:29
+#: bbp/bbp-reply.php:32 bbp/bbp-new-topic.php:30 bbp/bbp-new-topic.php:33
+#: cf7/hcaptcha-cf7.php:96
+msgid "Invalid Captcha"
+msgstr ""
+
+#: bp/bp-register.php:40
+msgid "Please verify Captcha"
+msgstr ""
+
+#: wc/wc-register.php:29 wc/wc-register.php:32 wc/wc-login.php:30
+#: wc/wc-login.php:34
+msgid "The Captcha is invalid."
+msgstr ""

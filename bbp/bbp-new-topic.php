@@ -27,10 +27,10 @@ function hcap_verify_bbp_new_topic_captcha() {
         if (true == $response["success"]) {
             return true;
         } else {
-            bbp_add_error( 'hcap_error', 'Invalid Captcha' );
-        } 
+            bbp_add_error( 'hcap_error', __( 'The Captcha is invalid.', 'hcaptcha-wp' ) );
+        }
     } else {
-        bbp_add_error( 'hcap_error', 'Invalid Captcha' );
-    }   
+        bbp_add_error( 'hcap_error', __( 'Please complete the captcha.', 'hcaptcha-wp' ) );
+    }
 }
-add_action( 'bbp_new_topic_pre_extras',  'hcap_verify_bbp_new_topic_captcha' ); 
+add_action( 'bbp_new_topic_pre_extras',  'hcap_verify_bbp_new_topic_captcha' );

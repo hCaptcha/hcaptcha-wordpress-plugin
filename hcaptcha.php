@@ -6,6 +6,7 @@
  * Version: 1.4.2
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
+ * Text Domain: hcaptcha-wp
 */
 
 // If this file is called directly, abort.
@@ -102,7 +103,7 @@ add_shortcode('hcaptcha', 'hcap_display_hcaptcha');
 if (!function_exists('hcap_hcaptcha_error_message')) {
     function hcap_hcaptcha_error_message($hcaptcha_content = '')
     {
-        $hcaptcha_content = sprintf('<p id="hcap_error" class="error hcap_error">Invalid Captcha</p>') . $hcaptcha_content;
+        $hcaptcha_content = sprintf('<p id="hcap_error" class="error hcap_error">%s</p>', __('The Captcha is invalid.', 'hcaptcha-wp')) . $hcaptcha_content;
         return $hcaptcha_content;
     }
 }
@@ -273,3 +274,7 @@ function hcap_deactivation()
 {
     // Do something on deactivation
 }
+function hcaptcha_wp_load_textdomain() {
+	load_plugin_textdomain( 'hcaptcha-wp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+}
+add_action('plugins_loaded', 'hcaptcha_wp_load_textdomain');

@@ -7,7 +7,7 @@ function hcap_add_mc4wp_error_message( $messages ) {
 
     $messages['invalid_hcaptcha'] = array(
         'type' => 'error',
-        'text' => 'Please complete the captcha.'
+        'text' => __('Please complete the captcha.', 'hcaptcha-wp')
     );
 
     return $messages;
