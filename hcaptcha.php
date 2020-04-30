@@ -7,6 +7,7 @@
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
  * Text Domain: hcaptcha-wp
+ * Domain Path: /languages
 */
 
 // If this file is called directly, abort.
@@ -274,6 +275,7 @@ function hcap_deactivation()
 {
     // Do something on deactivation
 }
+
 function hcaptcha_wp_load_textdomain() {
 	load_plugin_textdomain( 'hcaptcha-wp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 }
