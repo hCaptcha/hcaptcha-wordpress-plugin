@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hCaptcha for Forms and More\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-30 13:29+0000\n"
+"POT-Creation-Date: 2020-04-30 13:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -15,28 +15,22 @@ msgstr ""
 "X-Generator: Loco https://localise.biz/\n"
 "X-Loco-Version: 2.3.3; wp-5.4.1"
 
-#: hcaptcha.php:106 bp/bp-create-group.php:35 bp/bp-register.php:37
+#: hcaptcha.php:107 bp/bp-create-group.php:35 bp/bp-register.php:37
 #: wpforo/wpforo-reply.php:31 wpforo/wpforo-new-topic.php:31
 #: nf/class-nf-hcaptcha.php:46 bbp/bbp-reply.php:29 bbp/bbp-new-topic.php:30
-#: wc/wc-register.php:29 wc/wc-login.php:30 cf7/hcaptcha-cf7.php:96
-#: jetpack/jetpack.php:46 subscriber/subscriber.php:34
+#: wc/wc-register.php:29 wc/wc-checkout.php:27 wc/wc-login.php:30
+#: cf7/hcaptcha-cf7.php:96 jetpack/jetpack.php:46
+#: wc_wl/wc-wl-create-list.php:40 subscriber/subscriber.php:34
 msgid "The Captcha is invalid."
 msgstr ""
 
 #: bp/bp-create-group.php:39 bp/bp-register.php:40 wpforo/wpforo-reply.php:36
 #: wpforo/wpforo-new-topic.php:36 nf/class-nf-hcaptcha.php:35
 #: bbp/bbp-reply.php:32 bbp/bbp-new-topic.php:33 wc/wc-register.php:32
-#: wc/wc-login.php:34 mailchimp/mailchimp-for-wp.php:10 jetpack/jetpack.php:52
+#: wc/wc-checkout.php:31 wc/wc-login.php:34 mailchimp/mailchimp-for-wp.php:10
+#: jetpack/jetpack.php:52 wc_wl/wc-wl-create-list.php:46
 #: subscriber/subscriber.php:38
 msgid "Please complete the captcha."
-msgstr ""
-
-#: wc/wc-checkout.php:27 wc_wl/wc-wl-create-list.php:40
-msgid "Error: The Captcha is invalid."
-msgstr ""
-
-#: wc/wc-checkout.php:31 wc_wl/wc-wl-create-list.php:46
-msgid "Error: Please complete the captcha."
 msgstr ""
 
 #: default/register-form.php:26 default/comment-form.php:51
