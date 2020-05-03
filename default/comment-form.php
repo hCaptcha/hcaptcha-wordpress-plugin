@@ -35,16 +35,10 @@ function hcap_wp_login_comment_form($field)
 
 function hcap_verify_comment_captcha($commentdata)
 {
-
-    if (is_admin()) {
-        return $commentdata;
-    } else {
-
-	    $errorMessage = hcaptcha_get_verify_message_html( 'hcaptcha_comment_form_nonce', 'hcaptcha_comment_form' );
-	    if ( $errorMessage === null ) {
-		    return $commentdata;
-	    }
-	    wp_die($errorMessage, $errorMessage, array('back_link' => true));
-    }
+	$errorMessage = hcaptcha_get_verify_message_html( 'hcaptcha_comment_form_nonce', 'hcaptcha_comment_form' );
+	if ( $errorMessage === null ) {
+		return $commentdata;
+	}
+	wp_die($errorMessage, $errorMessage, array('back_link' => true));
 }
 add_filter("preprocess_comment", "hcap_verify_comment_captcha");
