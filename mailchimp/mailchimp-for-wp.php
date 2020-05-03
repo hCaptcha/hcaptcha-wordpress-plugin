@@ -26,9 +26,8 @@ add_action( 'mc4wp_form_content', 'hcap_mailchimp_wp_form', 20, 3 );
 
 add_filter( 'mc4wp_valid_form_request', 'hcap_mc4wp_error', 10, 2 );
 
-function hcap_mc4wp_error($errors = ''){
-
-	$errorMessage = hcaptcha_verify_POST( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+function hcap_mc4wp_error(){
+	$errorMessage = hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 	if ( $errorMessage !== 'success' ) {
 		return 'invalid_hcaptcha';
 	}
