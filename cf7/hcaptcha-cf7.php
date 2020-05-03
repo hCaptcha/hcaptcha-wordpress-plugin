@@ -91,9 +91,19 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
             return $result;
         }
 
-	    $result = hcaptcha_request_verify( $data['h-captcha-response'] );
-	    if ( $result === 'fail' ) {
-		    $result->invalidate(array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'), __( 'The Captcha is invalid.', 'hcaptcha-wp' ));
+	    if ( empty($data['h-captcha-response']) ) {
+		    $result->invalidate(
+			    array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'),
+			    __( 'Please complete the captcha.', 'hcaptcha-wp' )
+		    );
+	    } else {
+		    $captchaResult = hcaptcha_request_verify( $data['h-captcha-response'] );
+		    if ( $captchaResult === 'fail' ) {
+			    $result->invalidate(
+				    array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'),
+				    __( 'The Captcha is invalid.', 'hcaptcha-wp' )
+			    );
+		    }
 	    }
 
         return $result;
