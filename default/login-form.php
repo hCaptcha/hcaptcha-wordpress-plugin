@@ -16,19 +16,10 @@ function hcap_wp_login_form() {
 }
 
 function hcap_verify_login_captcha($user, $password) {
-    if (isset( $_POST['hcaptcha_login_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_login_nonce'], 'hcaptcha_login' ) && isset($_POST['h-captcha-response'])) {
-        $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
-
-        $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-        $response = json_decode($response["body"], true);
-        if (true == $response["success"]) {
-            return $user;
-        } else {
-            return new WP_Error("Captcha Invalid", __("<strong>ERROR</strong>: Invalid Captcha"));
-        } 
-    } else {
-        return new WP_Error("Captcha Invalid", __("<strong>ERROR</strong>: Invalid Captcha"));
-    }   
+	$errorMessage = hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+	if ( $errorMessage === null ) {
+		return $user;
+	}
+	return new WP_Error("Invalid Captcha", $errorMessage);
 }
 add_filter("wp_authenticate_user", "hcap_verify_login_captcha", 10, 2);

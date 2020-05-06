@@ -17,19 +17,9 @@ add_action( 'woocommerce_after_checkout_billing_form', 'hcap_display_wc_checkout
 
 
 function hcap_verify_wc_checkout_captcha($validation_error) {
-    if (isset( $_POST['hcaptcha_wc_checkout_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_wc_checkout_nonce'], 'hcaptcha_wc_checkout' ) && isset($_POST['h-captcha-response'])) {
-        $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
-
-        $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-        $response = json_decode($response["body"], true);
-        if (false == $response["success"]) {
-            $error_message = 'Error: Invalid Captcha';
-            wc_add_notice( $error_message, 'error' );
-        }
-    } else {
-        $error_message = 'Error: Invalid Captcha';
-        wc_add_notice( $error_message, 'error' );   
-    }   
+	$errorMessage = hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
+	if ( $errorMessage !== null ) {
+		wc_add_notice( $errorMessage, 'error' );
+	}
 }
 add_action( 'woocommerce_checkout_process',  'hcap_verify_wc_checkout_captcha' );

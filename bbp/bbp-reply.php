@@ -16,20 +16,10 @@ function hcap_display_bbp_reply(){
 add_action( 'bbp_theme_after_reply_form_content', 'hcap_display_bbp_reply', 10, 0 );
 
 function hcap_verify_bbp_reply_captcha() {
-
-    if (isset( $_POST['hcaptcha_bbp_reply_nonce'] ) && wp_verify_nonce( $_POST['hcaptcha_bbp_reply_nonce'], 'hcaptcha_bbp_reply' ) && isset($_POST['h-captcha-response'])) {
-        $get_hcaptcha_response = htmlspecialchars( sanitize_text_field( $_POST['h-captcha-response'] ) );
-
-        $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-        $response = json_decode($response["body"], true);
-        if (true == $response["success"]) {
-            return true;
-        } else {
-            bbp_add_error( 'hcap_error', 'Invalid Captcha' );
-        } 
-    } else {
-        bbp_add_error( 'hcap_error', 'Invalid Captcha' );
-    }   
+	$errorMessage = hcaptcha_get_verify_message( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply' );
+	if ( $errorMessage === null ) {
+		return true;
+	}
+	bbp_add_error( 'hcap_error', $errorMessage );
 }
 add_action( 'bbp_new_reply_pre_extras',  'hcap_verify_bbp_reply_captcha' ); 

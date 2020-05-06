@@ -28,24 +28,11 @@ This integration requires the creation of a template file override as follows
 */
 
 function hcap_verify_wc_wl_create_list_captcha($valid_captcha) {
-  if (isset($_POST['hcaptcha_wc_create_wishlist_nonce']) && wp_verify_nonce($_POST['hcaptcha_wc_create_wishlist_nonce'], 'hcaptcha_wc_create_wishlist') && isset($_POST['h-captcha-response'])) {
-    $get_hcaptcha_response = htmlspecialchars(sanitize_text_field($_POST['h-captcha-response']));
-    $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-    $response = wp_remote_get('https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . $get_hcaptcha_response);
-    $response = json_decode($response["body"], true);
-    if (true == $response["success"]) {
-      return $valid_captcha;
-    } else {
-      $valid_captcha = false;
-      $error_message = 'Error: The Captcha is invalid.';
-      wc_add_notice($error_message, 'error');
-      return $valid_captcha;
-    }
-  } else {
-    $valid_captcha = false;
-    $error_message = 'Error: The Captcha is invalid.';
-    wc_add_notice($error_message, 'error');
-    return $valid_captcha;
-  } 
+	$errorMessage = hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlist_nonce', 'hcaptcha_wc_create_wishlist' );
+	if ( $errorMessage === null ) {
+		return $valid_captcha;
+	}
+	wc_add_notice($errorMessage, 'error');
+	return false;
 }
 add_filter("woocommerce_validate_wishlist_create", "hcap_verify_wc_wl_create_list_captcha");

@@ -6,6 +6,8 @@
  * Version: 1.4.2
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
+ * Text Domain: hcaptcha-wp
+ * Domain Path: /languages
 */
 
 // If this file is called directly, abort.
@@ -17,6 +19,7 @@ define('hcap_PLUGIN_DIR', 'hcaptcha-wp');
 // add admin page
 include "backend/nav.php";
 include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+include 'common/request.php';
 
 
 // get settings
@@ -102,7 +105,7 @@ add_shortcode('hcaptcha', 'hcap_display_hcaptcha');
 if (!function_exists('hcap_hcaptcha_error_message')) {
     function hcap_hcaptcha_error_message($hcaptcha_content = '')
     {
-        $hcaptcha_content = sprintf('<p id="hcap_error" class="error hcap_error">Invalid Captcha</p>') . $hcaptcha_content;
+        $hcaptcha_content = sprintf('<p id="hcap_error" class="error hcap_error">%s</p>', __('The Captcha is invalid.', 'hcaptcha-wp')) . $hcaptcha_content;
         return $hcaptcha_content;
     }
 }
@@ -136,6 +139,7 @@ if (!empty($hcap_cmf_status) && $hcap_cmf_status == 'on') {
 }
 
 if (!empty($hcap_lpf_status) && $hcap_lpf_status == "on") {
+    require_once("common/lost-password-form.php");
     require_once("default/lost-password.php");
 }
 
@@ -156,6 +160,7 @@ if (!empty($hcap_wc_reg_status) && $hcap_wc_reg_status == "on") {
 if (!empty($hcap_wc_lost_pass_status) && $hcap_wc_lost_pass_status == "on") {
     // check if the other plugin is active
     if (is_plugin_active('woocommerce/woocommerce.php')) {
+        require_once("common/lost-password-form.php");
         require_once("wc/wc-lost-password.php");
     }
 }
@@ -271,3 +276,8 @@ function hcap_deactivation()
 {
     // Do something on deactivation
 }
+
+function hcaptcha_wp_load_textdomain() {
+	load_plugin_textdomain( 'hcaptcha-wp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+}
+add_action('plugins_loaded', 'hcaptcha_wp_load_textdomain');

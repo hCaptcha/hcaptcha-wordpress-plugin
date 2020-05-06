@@ -91,24 +91,20 @@ if (!empty($hcaptcha_api_key) && !empty($hcaptcha_secret_key) && !is_admin()) {
             return $result;
         }
 
-        $message = get_option('hcap_cf7_message');
-        if (empty($message)) {
-            $message = 'Invalid captcha';
-        }
-
-        if (empty($data['h-captcha-response'])) {
-            $result->invalidate(array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'), $message);
-            return $result;
-        }
-
-        $hcaptcha_secret_key = get_option('hcaptcha_secret_key');
-        $url = 'https://hcaptcha.com/siteverify?secret=' . $hcaptcha_secret_key . '&response=' . sanitize_text_field($data['h-captcha-response']);
-        $request = wp_remote_get($url);
-        $body = wp_remote_retrieve_body($request);
-        $response = json_decode($body);
-        if (!(isset($response->success) && 1 == $response->success)) {
-            $result->invalidate(array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'), $message);
-        }
+	    if ( empty($data['h-captcha-response']) ) {
+		    $result->invalidate(
+			    array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'),
+			    __( 'Please complete the captcha.', 'hcaptcha-wp' )
+		    );
+	    } else {
+		    $captchaResult = hcaptcha_request_verify( $data['h-captcha-response'] );
+		    if ( $captchaResult === 'fail' ) {
+			    $result->invalidate(
+				    array('type' => 'captcha', 'name' => 'hcap_cf7-h-captcha-invalid'),
+				    __( 'The Captcha is invalid.', 'hcaptcha-wp' )
+			    );
+		    }
+	    }
 
         return $result;
     }
