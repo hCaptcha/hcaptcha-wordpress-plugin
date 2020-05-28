@@ -80,7 +80,7 @@ function hcap_captcha_script()
 {
     global $hcap_language;
     $dir = plugin_dir_url(__FILE__);
-    wp_enqueue_style('hcaptcha-style', $dir . 'assets/styles.css', [], false, 'all');
+    wp_enqueue_style('hcaptcha-style', $dir . 'style.css', [], false, 'all');
     wp_enqueue_script('hcaptcha-script', '//hcaptcha.com/1/api.js?hl=' . $hcap_language, array(), false, true);
 }
 
