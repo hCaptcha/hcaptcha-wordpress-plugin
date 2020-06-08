@@ -203,7 +203,7 @@ function hcap_load_modules() {
 			continue;
 		}
 
-		if ( ! ( $module[1] && is_plugin_active( $module[1] ) ) ) {
+		if ( ( $module[1] && ! is_plugin_active( $module[1] ) ) ) {
 			continue;
 		}
 
