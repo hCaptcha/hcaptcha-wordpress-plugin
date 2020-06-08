@@ -54,34 +54,30 @@ function hcap_display_options_page() {
 			<?php
 		}
 		?>
-		<fieldset>
-			<h3><?php esc_html_e( 'hCaptcha Settings', 'hcaptcha-wp' ); ?></h3>
-			<div class="inside">
-				<h3>
-					<?php
-					echo wp_kses_post(
-						__(
-							'In order to use <a href="https://hCaptcha.com/?r=wp" target="_blank">hCaptcha</a> please register <a href="https://hCaptcha.com/?r=wp" target="_blank">here</a> to get your site key and secret key.',
-							'hcaptcha-wp'
-						)
-					);
-					?>
-				</h3>
-				<form method="post" action="">
-					<?php hcap_display_options(); ?>
-					<p>
-						<input
-								type="submit"
-								value="<?php esc_html_e( 'Save hCaptcha Settings', 'hcaptcha-wp' ); ?>"
-								class="button button-primary"
-								name="submit"/>
-					</p>
-					<?php
-					wp_nonce_field( 'hcaptcha_settings', 'hcaptcha_settings_nonce' );
-					?>
-				</form>
-			</div>
-		</fieldset>
+		<h3><?php esc_html_e( 'hCaptcha Settings', 'hcaptcha-wp' ); ?></h3>
+		<h3>
+			<?php
+			echo wp_kses_post(
+				__(
+					'In order to use <a href="https://hCaptcha.com/?r=wp" target="_blank">hCaptcha</a> please register <a href="https://hCaptcha.com/?r=wp" target="_blank">here</a> to get your site key and secret key.',
+					'hcaptcha-wp'
+				)
+			);
+			?>
+		</h3>
+		<form method="post" action="">
+			<?php hcap_display_options(); ?>
+			<p>
+				<input
+						type="submit"
+						value="<?php esc_html_e( 'Save hCaptcha Settings', 'hcaptcha-wp' ); ?>"
+						class="button button-primary"
+						name="submit"/>
+			</p>
+			<?php
+			wp_nonce_field( 'hcaptcha_settings', 'hcaptcha_settings_nonce' );
+			?>
+		</form>
 	</div>
 	<?php
 }

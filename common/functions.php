@@ -33,7 +33,7 @@ function hcap_options() {
 			'label'       => __( 'Override Language Detection (optional)', 'hcaptcha-wp' ),
 			'type'        => 'text',
 			'description' => __(
-				'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>',
+				'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>.',
 				'hcaptcha-wp'
 			),
 		],

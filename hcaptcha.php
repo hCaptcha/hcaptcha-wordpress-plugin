@@ -218,41 +218,6 @@ function hcap_load_modules() {
 
 add_action( 'init', 'hcap_load_modules' );
 
-register_activation_hook( __FILE__, 'hcap_activation' );
-
-/**
- * Plugin activation hook.
- */
-function hcap_activation() {
-	$options = [
-		'hcaptcha_api_key',
-		'hcaptcha_nf_status',
-		'hcaptcha_cf7_status',
-		'hcaptcha_lf_status',
-		'hcaptcha_rf_status',
-		'hcaptcha_cmf_status',
-		'hcaptcha_lpf_status',
-		'hcaptcha_wc_login_status',
-		'hcaptcha_wc_reg_status',
-		'hcaptcha_wc_lost_pass_status',
-		'hcaptcha_wc_checkout_status',
-		'hcaptcha_bp_reg_status',
-		'hcaptcha_bp_create_group_status',
-		'hcaptcha_bbp_new_topic_status',
-		'hcaptcha_bbp_reply_status',
-		'hcaptcha_wpforo_new_topic_status',
-		'hcaptcha_wpforo_reply_status',
-		'hcaptcha_mc4wp_status',
-		'hcaptcha_jetpack_cf_status',
-		'hcaptcha_subscribers_status',
-		'hcaptcha_wc_wl_create_list_status',
-	];
-
-	foreach ( $options as $option ) {
-		add_option( $option, '', '', 'yes' );
-	}
-}
-
 /**
  * Load plugin text domain.
  */
