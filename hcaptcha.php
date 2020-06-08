@@ -37,69 +37,15 @@ require 'backend/nav.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 require 'common/request.php';
 
-// Get settings.
-$hcap_api_key_n                      = 'hcaptcha_api_key';
-$hcap_secret_key_n                   = 'hcaptcha_secret_key';
-$hcap_theme_n                        = 'hcaptcha_theme';
-$hcap_size_n                         = 'hcaptcha_size';
-$hcap_language_n                     = 'hcaptcha_language';
-$hcap_nf_status_n                    = 'hcaptcha_nf_status';
-$hcap_cf7_status_n                   = 'hcaptcha_cf7_status';
-$hcap_lf_status_n                    = 'hcaptcha_lf_status';
-$hcap_rf_status_n                    = 'hcaptcha_rf_status';
-$hcap_cmf_status_n                   = 'hcaptcha_cmf_status';
-$hcap_lpf_status_n                   = 'hcaptcha_lpf_status';
-$hcap_wc_login_status_n              = 'hcaptcha_wc_login_status';
-$hcap_wc_reg_status_n                = 'hcaptcha_wc_reg_status';
-$hcap_wc_lost_pass_status_n          = 'hcaptcha_wc_lost_pass_status';
-$hcap_wc_checkout_status_n           = 'hcaptcha_wc_checkout_status';
-$hcap_bp_reg_status_n                = 'hcaptcha_bp_reg_status';
-$hcap_bp_create_group_status_n       = 'hcaptcha_bp_create_group_status';
-$hcap_bbp_new_topic_status_n         = 'hcaptcha_bbp_new_topic_status';
-$hcap_bbp_reply_status_n             = 'hcaptcha_bbp_reply_status';
-$hcap_wpforo_new_topic_status_n      = 'hcaptcha_wpforo_new_topic_status';
-$hcap_wpforo_reply_status_n          = 'hcaptcha_wpforo_reply_status';
-$hcap_mc4wp_status_n                 = 'hcaptcha_mc4wp_status';
-$hcap_jetpack_cf_status_n            = 'hcaptcha_jetpack_cf_status';
-$hcap_subscribers_status_n           = 'hcaptcha_subscribers_status';
-$hcaptcha_wc_wl_create_list_status_n = 'hcaptcha_wc_wl_create_list_status';
-
-$hcap_api_key                      = get_option( $hcap_api_key_n );
-$hcap_secret_key                   = get_option( $hcap_secret_key_n );
-$hcap_nf_status                    = get_option( $hcap_nf_status_n );
-$hcap_theme                        = get_option( $hcap_theme_n );
-$hcap_size                         = get_option( $hcap_size_n );
-$hcap_language                     = get_option( $hcap_language_n );
-$hcap_cf7_status                   = get_option( $hcap_cf7_status_n );
-$hcap_lf_status                    = get_option( $hcap_lf_status_n );
-$hcap_rf_status                    = get_option( $hcap_rf_status_n );
-$hcap_cmf_status                   = get_option( $hcap_cmf_status_n );
-$hcap_lpf_status                   = get_option( $hcap_lpf_status_n );
-$hcap_wc_login_status              = get_option( $hcap_wc_login_status_n );
-$hcap_wc_reg_status                = get_option( $hcap_wc_reg_status_n );
-$hcap_wc_lost_pass_status          = get_option( $hcap_wc_lost_pass_status_n );
-$hcap_wc_checkout_status           = get_option( $hcap_wc_checkout_status_n );
-$hcap_bp_reg_status                = get_option( $hcap_bp_reg_status_n );
-$hcap_bp_create_group_status       = get_option( $hcap_bp_create_group_status_n );
-$hcap_bbp_new_topic_status         = get_option( $hcap_bbp_new_topic_status_n );
-$hcap_bbp_reply_status             = get_option( $hcap_bbp_reply_status_n );
-$hcap_wpforo_new_topic_status      = get_option( $hcap_wpforo_new_topic_status_n );
-$hcap_wpforo_reply_status          = get_option( $hcap_wpforo_reply_status_n );
-$hcap_mc4wp_status                 = get_option( $hcap_mc4wp_status_n );
-$hcap_jetpack_cf_status            = get_option( $hcap_jetpack_cf_status_n );
-$hcap_subscribers_status           = get_option( $hcap_subscribers_status_n );
-$hcaptcha_wc_wl_create_list_status = get_option( $hcaptcha_wc_wl_create_list_status_n );
-
 /**
  * Add the hcaptcha script to footer.
  */
 function hcap_captcha_script() {
-	global $hcap_language;
 	$dir = plugin_dir_url( __FILE__ );
 	wp_enqueue_style( 'hcaptcha-style', $dir . 'style.css', [], HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
-		'//hcaptcha.com/1/api.js?hl=' . $hcap_language,
+		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
 		[],
 		HCAPTCHA_VERSION,
 		true
@@ -145,121 +91,130 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	}
 }
 
-// Contact form 7.
-if ( ! empty( $hcap_cf7_status ) && 'on' === $hcap_cf7_status ) {
-	if ( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) ) {
-		require_once 'cf7/hcaptcha-cf7.php';
+/**
+ * Load plugin modules.
+ */
+function hcap_load_modules() {
+	$modules = [
+		'Login Form'                => [
+			'hcaptcha_lf_status',
+			'',
+			'default/login-form.php',
+		],
+		'Register Form'             => [
+			'hcaptcha_rf_status',
+			'',
+			'default/register-form.php',
+		],
+		'Comment Form'              => [
+			'hcaptcha_cmf_status',
+			'',
+			'default/comment-form.php',
+		],
+		'Lost Password Form'        => [
+			'hcaptcha_lpf_status',
+			'',
+			[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+		],
+		'Contact Form 7'            => [
+			'hcaptcha_cf7_status',
+			'contact-form-7/wp-contact-form-7.php',
+			'cf7/hcaptcha-cf7.php',
+		],
+		'Ninja Forms'               => [
+			'hcaptcha_nf_status',
+			'ninja-forms/ninja-forms.php',
+			'nf/ninja-forms-hcaptcha.php',
+		],
+		'WooCommerce Login'         => [
+			'hcaptcha_wc_login_status',
+			'woocommerce/woocommerce.php',
+			'wc/wc-login.php',
+		],
+		'WooCommerce Register'      => [
+			'hcaptcha_wc_reg_status',
+			'woocommerce/woocommerce.php',
+			'wc/wc-register.php',
+		],
+		'WooCommerce Lost Password' => [
+			'hcaptcha_wc_lost_pass_status',
+			'woocommerce/woocommerce.php',
+			[ 'common/lost-password-form.php', 'wc/wc-lost-password.php' ],
+		],
+		'WooCommerce Checkout'      => [
+			'hcaptcha_wc_checkout_status',
+			'woocommerce/woocommerce.php',
+			'wc/wc-checkout.php',
+		],
+		'BuddyPress Register'       => [
+			'hcaptcha_bp_reg_status',
+			'buddypress/bp-loader.php',
+			'bp/bp-register.php',
+		],
+		'BuddyPress Create Group'   => [
+			'hcaptcha_bp_create_group_status',
+			'buddypress/bp-loader.php',
+			'bp/bp-create-group.php',
+		],
+		'BB Press New Topic'        => [
+			'hcaptcha_bbp_new_topic_status',
+			'bbpress/bbpress.php',
+			'bp/bp-create-group.php',
+		],
+		'BB Press Reply'            => [
+			'hcaptcha_bbp_reply_status',
+			'bbpress/bbpress.php',
+			'bbp/bbp-reply.php',
+		],
+		'wpForo New Topic'          => [
+			'hcaptcha_wpforo_new_topic_status',
+			'wpforo/wpforo.php',
+			'wpforo/wpforo-new-topic.php',
+		],
+		'wpForo Reply'              => [
+			'hcaptcha_wpforo_reply_status',
+			'wpforo/wpforo.php',
+			'wpforo/wpforo-reply.php',
+		],
+		'MailChimp'                 => [
+			'hcaptcha_mc4wp_status',
+			'mailchimp-for-wp/mailchimp-for-wp.php',
+			'mailchimp/mailchimp-for-wp.php',
+		],
+		'Jetpack'                   => [
+			'hcaptcha_jetpack_cf_status',
+			'jetpack/jetpack.php',
+			'jetpack/jetpack.php',
+		],
+		'Subscriber'                => [
+			'hcaptcha_subscribers_status',
+			'subscriber/subscriber.php',
+			'subscriber/subscriber.php',
+		],
+		'WC Wishlist'               => [
+			'hcaptcha_wc_wl_create_list_status',
+			'woocommerce-wishlists/woocommerce-wishlists.php',
+			'wc_wl/wc-wl-create-list.php',
+		],
+	];
+
+	foreach ( $modules as $module ) {
+		$status = get_option( $module[0] );
+		if ( 'on' !== $status ) {
+			continue;
+		}
+
+		if ( ! ( $module[1] & is_plugin_active( $module[1] ) ) ) {
+			continue;
+		}
+
+		foreach ( (array) $module[2] as $require ) {
+			require_once $require;
+		}
 	}
 }
 
-// Ninja forms.
-if ( ! empty( $hcap_nf_status ) && 'on' === $hcap_nf_status ) {
-	if ( is_plugin_active( 'ninja-forms/ninja-forms.php' ) ) {
-		require_once 'nf/ninja-forms-hcaptcha.php';
-	}
-}
-
-if ( ! empty( $hcap_lf_status ) && 'on' === $hcap_lf_status ) {
-	require_once 'default/login-form.php';
-}
-
-if ( ! empty( $hcap_rf_status ) && 'on' === $hcap_rf_status ) {
-	require_once 'default/register-form.php';
-}
-
-if ( ! empty( $hcap_cmf_status ) && 'on' === $hcap_cmf_status ) {
-	require_once 'default/comment-form.php';
-}
-
-if ( ! empty( $hcap_lpf_status ) && 'on' === $hcap_lpf_status ) {
-	require_once 'common/lost-password-form.php';
-	require_once 'default/lost-password.php';
-}
-
-if ( ! empty( $hcap_wc_login_status ) && 'on' === $hcap_wc_login_status ) {
-	if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-		require_once 'wc/wc-login.php';
-	}
-}
-
-if ( ! empty( $hcap_wc_reg_status ) && 'on' === $hcap_wc_reg_status ) {
-	if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-		require_once 'wc/wc-register.php';
-	}
-}
-
-if ( ! empty( $hcap_wc_lost_pass_status ) && 'on' === $hcap_wc_lost_pass_status ) {
-	if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-		require_once 'common/lost-password-form.php';
-		require_once 'wc/wc-lost-password.php';
-	}
-}
-
-if ( ! empty( $hcap_wc_checkout_status ) && 'on' === $hcap_wc_checkout_status ) {
-	if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-		require_once 'wc/wc-checkout.php';
-	}
-}
-
-if ( ! empty( $hcap_bp_reg_status ) && 'on' === $hcap_bp_reg_status ) {
-	if ( is_plugin_active( 'buddypress/bp-loader.php' ) ) {
-		require_once 'bp/bp-register.php';
-	}
-}
-
-if ( ! empty( $hcap_bp_create_group_status ) && 'on' === $hcap_bp_create_group_status ) {
-	if ( is_plugin_active( 'buddypress/bp-loader.php' ) ) {
-		require_once 'bp/bp-create-group.php';
-	}
-}
-
-if ( ! empty( $hcap_bbp_new_topic_status ) && 'on' === $hcap_bbp_new_topic_status ) {
-	if ( is_plugin_active( 'bbpress/bbpress.php' ) ) {
-		require_once 'bbp/bbp-new-topic.php';
-	}
-}
-
-if ( ! empty( $hcap_bbp_reply_status ) && 'on' === $hcap_bbp_reply_status ) {
-	if ( is_plugin_active( 'bbpress/bbpress.php' ) ) {
-		require_once 'bbp/bbp-reply.php';
-	}
-}
-
-if ( ! empty( $hcap_wpforo_new_topic_status ) && 'on' === $hcap_wpforo_new_topic_status ) {
-	if ( is_plugin_active( 'wpforo/wpforo.php' ) ) {
-		require_once 'wpforo/wpforo-new-topic.php';
-	}
-}
-
-if ( ! empty( $hcap_wpforo_reply_status ) && 'on' === $hcap_wpforo_reply_status ) {
-	if ( is_plugin_active( 'wpforo/wpforo.php' ) ) {
-		require_once 'wpforo/wpforo-reply.php';
-	}
-}
-
-if ( ! empty( $hcap_mc4wp_status ) && 'on' === $hcap_mc4wp_status ) {
-	if ( is_plugin_active( 'mailchimp-for-wp/mailchimp-for-wp.php' ) ) {
-		require_once 'mailchimp/mailchimp-for-wp.php';
-	}
-}
-
-if ( ! empty( $hcap_jetpack_cf_status ) && 'on' === $hcap_jetpack_cf_status ) {
-	if ( is_plugin_active( 'jetpack/jetpack.php' ) ) {
-		require_once 'jetpack/jetpack.php';
-	}
-}
-
-if ( ! empty( $hcap_subscribers_status ) && 'on' === $hcap_subscribers_status ) {
-	if ( is_plugin_active( 'subscriber/subscriber.php' ) ) {
-		require_once 'subscriber/subscriber.php';
-	}
-}
-
-if ( ! empty( $hcaptcha_wc_wl_create_list_status ) && 'on' === $hcaptcha_wc_wl_create_list_status ) {
-	if ( is_plugin_active( 'woocommerce-wishlists/woocommerce-wishlists.php' ) ) {
-		require_once 'wc_wl/wc-wl-create-list.php';
-	}
-}
+hcap_load_modules();
 
 register_activation_hook( __FILE__, 'hcap_activation' );
 
@@ -267,27 +222,33 @@ register_activation_hook( __FILE__, 'hcap_activation' );
  * Plugin activation hook.
  */
 function hcap_activation() {
-	add_option( 'hcaptcha_api_key', '', '', 'yes' );
-	add_option( 'hcaptcha_nf_status', '', '', 'yes' );
-	add_option( 'hcaptcha_cf7_status', '', '', 'yes' );
-	add_option( 'hcaptcha_lf_status', '', '', 'yes' );
-	add_option( 'hcaptcha_rf_status', '', '', 'yes' );
-	add_option( 'hcaptcha_cmf_status', '', '', 'yes' );
-	add_option( 'hcaptcha_lpf_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wc_login_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wc_reg_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wc_lost_pass_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wc_checkout_status', '', '', 'yes' );
-	add_option( 'hcaptcha_bp_reg_status', '', '', 'yes' );
-	add_option( 'hcaptcha_bp_create_group_status', '', '', 'yes' );
-	add_option( 'hcaptcha_bbp_new_topic_status', '', '', 'yes' );
-	add_option( 'hcaptcha_bbp_reply_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wpforo_new_topic_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wpforo_reply_status', '', '', 'yes' );
-	add_option( 'hcaptcha_mc4wp_status', '', '', 'yes' );
-	add_option( 'hcaptcha_jetpack_cf_status', '', '', 'yes' );
-	add_option( 'hcaptcha_subscribers_status', '', '', 'yes' );
-	add_option( 'hcaptcha_wc_wl_create_list_status', '', '', 'yes' );
+	$options = [
+		'hcaptcha_api_key',
+		'hcaptcha_nf_status',
+		'hcaptcha_cf7_status',
+		'hcaptcha_lf_status',
+		'hcaptcha_rf_status',
+		'hcaptcha_cmf_status',
+		'hcaptcha_lpf_status',
+		'hcaptcha_wc_login_status',
+		'hcaptcha_wc_reg_status',
+		'hcaptcha_wc_lost_pass_status',
+		'hcaptcha_wc_checkout_status',
+		'hcaptcha_bp_reg_status',
+		'hcaptcha_bp_create_group_status',
+		'hcaptcha_bbp_new_topic_status',
+		'hcaptcha_bbp_reply_status',
+		'hcaptcha_wpforo_new_topic_status',
+		'hcaptcha_wpforo_reply_status',
+		'hcaptcha_mc4wp_status',
+		'hcaptcha_jetpack_cf_status',
+		'hcaptcha_subscribers_status',
+		'hcaptcha_wc_wl_create_list_status',
+	];
+
+	foreach ( $options as $option ) {
+		add_option( $option, '', '', 'yes' );
+	}
 }
 
 /**
