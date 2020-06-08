@@ -36,6 +36,7 @@ define( 'HCAPTCHA_PATH', dirname( __FILE__ ) );
 define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 
 require 'common/request.php';
+require 'common/functions.php';
 
 // Add admin page.
 if ( is_admin() ) {

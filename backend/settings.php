@@ -10,8 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once HCAPTCHA_PATH . '/common/functions.php';
-
 hcap_display_options_page();
 
 /**

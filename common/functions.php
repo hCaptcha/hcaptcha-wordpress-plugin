@@ -1,4 +1,37 @@
 <?php
+/**
+ * Functions file.
+ *
+ * @package hcaptcha-wp
+ */
+
+/**
+ * Get hCaptcha form.
+ *
+ * @return false|string
+ */
+function hcap_form() {
+	ob_start();
+	hcap_form_display();
+	return ob_get_clean();
+}
+
+/**
+ * Display hCaptcha form.
+ */
+function hcap_form_display() {
+	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
+	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
+	$hcaptcha_size    = get_option( 'hcaptcha_size' );
+	?>
+	<div
+		class="h-captcha"
+		data-sitekey="<?php echo esc_html( $hcaptcha_api_key ); ?>"
+		data-theme="<?php echo esc_html( $hcaptcha_theme ); ?>"
+		data-size="<?php echo esc_html( $hcaptcha_size ); ?>">
+	</div>
+	<?php
+}
 
 /**
  * List of hcap options.

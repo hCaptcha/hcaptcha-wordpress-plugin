@@ -14,17 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Display on lost password form.
  */
 function hcaptcha_lost_password_display() {
-	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
-	$hcaptcha_size    = get_option( 'hcaptcha_size' );
-	?>
-	<div
-			class="h-captcha"
-			data-sitekey="<?php echo esc_html( $hcaptcha_api_key ); ?>"
-			data-theme="<?php echo esc_html( $hcaptcha_theme ); ?>"
-			data-size="<?php echo esc_html( $hcaptcha_size ); ?>">
-	</div>
-	<?php
+	hcap_form_display();
 	wp_nonce_field( 'hcaptcha_lost_password', 'hcaptcha_lost_password_nonce' );
 }
 
