@@ -34,7 +34,6 @@ define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 
 // Add admin page.
 require 'backend/nav.php';
-require_once ABSPATH . 'wp-admin/includes/plugin.php';
 require 'common/request.php';
 
 /**
@@ -214,7 +213,7 @@ function hcap_load_modules() {
 	}
 }
 
-hcap_load_modules();
+add_action( 'init', 'hcap_load_modules' );
 
 register_activation_hook( __FILE__, 'hcap_activation' );
 
