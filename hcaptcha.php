@@ -2,8 +2,11 @@
 /**
  * Plugin Name: hCaptcha for Forms and More
  * Plugin URI: https://hcaptcha.com/
- * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in
- * replacement for reCAPTCHA. Author: hCaptcha Author URI: https://hCaptcha.com/ Version: 1.5.0 Stable tag: 1.5.0
+ * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
+ * Author: hCaptcha
+ * Author URI: https://hCaptcha.com/
+ * Version: 1.5.0
+ * Stable tag: 1.5.0
  *
  * Text Domain: hcaptcha-wp
  * Domain Path: /languages/
