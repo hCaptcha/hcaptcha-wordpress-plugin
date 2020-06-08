@@ -98,6 +98,16 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
  */
 function hcap_load_modules() {
 	$modules = [
+		'Ninja Forms'               => [
+			'hcaptcha_nf_status',
+			'ninja-forms/ninja-forms.php',
+			'nf/ninja-forms-hcaptcha.php',
+		],
+		'Contact Form 7'            => [
+			'hcaptcha_cf7_status',
+			'contact-form-7/wp-contact-form-7.php',
+			'cf7/hcaptcha-cf7.php',
+		],
 		'Login Form'                => [
 			'hcaptcha_lf_status',
 			'',
@@ -117,16 +127,6 @@ function hcap_load_modules() {
 			'hcaptcha_lpf_status',
 			'',
 			[ 'common/lost-password-form.php', 'default/lost-password.php' ],
-		],
-		'Contact Form 7'            => [
-			'hcaptcha_cf7_status',
-			'contact-form-7/wp-contact-form-7.php',
-			'cf7/hcaptcha-cf7.php',
-		],
-		'Ninja Forms'               => [
-			'hcaptcha_nf_status',
-			'ninja-forms/ninja-forms.php',
-			'nf/ninja-forms-hcaptcha.php',
 		],
 		'WooCommerce Login'         => [
 			'hcaptcha_wc_login_status',
