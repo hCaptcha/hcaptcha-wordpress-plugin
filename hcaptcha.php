@@ -32,9 +32,12 @@ define( 'HCAPTCHA_PATH', dirname( __FILE__ ) );
  */
 define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 
-// Add admin page.
-require 'backend/nav.php';
 require 'common/request.php';
+
+// Add admin page.
+if ( is_admin() ) {
+	require 'backend/nav.php';
+}
 
 /**
  * Add the hcaptcha script to footer.
