@@ -33,5 +33,19 @@ function hcaptcha_options() {
 		wp_die( esc_html__( 'You do not have sufficient permissions to access this page.' ) );
 	}
 
-	include dirname( __FILE__ ) . '/settings.php';
+	include HCAPTCHA_PATH . '/backend/settings.php';
 }
+
+/**
+ * Admin styles.
+ */
+function hcap_admin_enqueue_scripts() {
+	wp_enqueue_style(
+		'hcaptcha-admin',
+		HCAPTCHA_URL . '/assets/css/admin.css',
+		[],
+		HCAPTCHA_VERSION
+	);
+}
+
+add_action( 'admin_enqueue_scripts', 'hcap_admin_enqueue_scripts' );

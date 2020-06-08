@@ -83,18 +83,6 @@ function hcap_display_options_page() {
 			</div>
 		</fieldset>
 	</div>
-	<style type="text/css">
-		a {
-			text-decoration: none;
-		}
-
-		#poststuff h3 {
-			border-bottom: 1px solid #f4f4f4;
-			padding: 0;
-			margin: 10px 0 20px 10px;
-			padding-bottom: 15px;
-		}
-	</style>
 	<?php
 }
 
