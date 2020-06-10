@@ -61,27 +61,6 @@ function hcap_captcha_script() {
 add_action( 'wp_enqueue_scripts', 'hcap_captcha_script' );
 add_action( 'login_enqueue_scripts', 'hcap_captcha_script' );
 
-/**
- * Display hCaptcha shortcode.
- *
- * @param string $content hcaptcha shortcode content.
- *
- * @return string
- */
-function hcap_display_hcaptcha( $content = '' ) {
-	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
-	$hcaptcha_size    = get_option( 'hcaptcha_size' );
-
-	$hcaptcha = '<div class="h-captcha" data-sitekey="' . $hcaptcha_api_key . '" data-theme="' . $hcaptcha_theme . '" data-size="' . $hcaptcha_size . '"></div>';
-
-	$hcaptcha = apply_filters( 'hcap_hcaptcha_content', $hcaptcha );
-
-	return $content . $hcaptcha;
-}
-
-add_shortcode( 'hcaptcha', 'hcap_display_hcaptcha' );
-
 if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	/**
 	 * Print error message.

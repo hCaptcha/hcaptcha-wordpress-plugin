@@ -34,6 +34,21 @@ function hcap_form_display() {
 }
 
 /**
+ * Display hCaptcha shortcode.
+ *
+ * @param string $content hcaptcha shortcode content.
+ *
+ * @return string
+ */
+function hcap_shortcode( $content = '' ) {
+	$hcaptcha = apply_filters( 'hcap_hcaptcha_content', hcap_form() );
+
+	return $content . $hcaptcha;
+}
+
+add_shortcode( 'hcaptcha', 'hcap_shortcode' );
+
+/**
  * List of hcap options.
  */
 function hcap_options() {
