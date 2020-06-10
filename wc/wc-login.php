@@ -42,4 +42,4 @@ function hcap_verify_wc_login_captcha( $validation_error ) {
 	return $validation_error;
 }
 
-apply_filters( 'woocommerce_process_login_errors', 'hcap_verify_wc_login_captcha' );
+add_filter( 'woocommerce_process_login_errors', 'hcap_verify_wc_login_captcha' );
