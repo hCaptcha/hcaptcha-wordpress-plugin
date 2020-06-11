@@ -134,15 +134,15 @@ function hcap_options() {
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_bbp_new_topic_status'     => [
-			'label' => __( 'Enable hCaptcha on bbpress new topic Form', 'hcaptcha-wp' ),
+			'label' => __( 'Enable hCaptcha on bbPress New Topic Form', 'hcaptcha-wp' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_bbp_reply_status'         => [
-			'label' => __( 'Enable hCaptcha on bbpress reply Form', 'hcaptcha-wp' ),
+			'label' => __( 'Enable hCaptcha on bbPress Reply Form', 'hcaptcha-wp' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_wpforo_new_topic_status'  => [
-			'label' => __( 'Enable hCaptcha on WPForo new topic Form', 'hcaptcha-wp' ),
+			'label' => __( 'Enable hCaptcha on WPForo New Topic Form', 'hcaptcha-wp' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_wpforo_reply_status'      => [
