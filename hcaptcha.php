@@ -183,6 +183,10 @@ function hcap_load_modules() {
 		],
 	];
 
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
 	foreach ( $modules as $module ) {
 		$status = get_option( $module[0] );
 		if ( 'on' !== $status ) {
