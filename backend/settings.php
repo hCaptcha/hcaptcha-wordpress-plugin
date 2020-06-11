@@ -123,13 +123,15 @@ function hcap_display_option( $option_name, $option ) {
 	$description  = isset( $option['description'] ) ? $option['description'] : '';
 	switch ( $option['type'] ) {
 		case 'text':
+		case 'password':
+		case 'number':
 			?>
 			<strong>
 				<?php echo esc_html( $option['label'] ); ?>
 			</strong>
 			<br><br>
 			<input
-					type="text" size="50"
+					type="<?php echo esc_attr( $option['type'] ); ?>" size="50"
 					id="<?php echo esc_attr( $option_name ); ?>"
 					name="<?php echo esc_attr( $option_name ); ?>"
 					value="<?php echo esc_html( $option_value ); ?>"/>

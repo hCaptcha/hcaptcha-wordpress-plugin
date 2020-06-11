@@ -59,7 +59,7 @@ function hcap_options() {
 		],
 		'hcaptcha_secret_key'               => [
 			'label' => __( 'hCaptcha Secret Key', 'hcaptcha-wp' ),
-			'type'  => 'text',
+			'type'  => 'password',
 		],
 		'hcaptcha_theme'                    => [
 			'label'   => __( 'hCaptcha Theme', 'hcaptcha-wp' ),
