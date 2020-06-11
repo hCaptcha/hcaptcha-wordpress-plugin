@@ -30,6 +30,7 @@ function hcap_verify_bbp_new_topic_captcha() {
 		'hcaptcha_bbp_new_topic_nonce',
 		'hcaptcha_bbp_new_topic'
 	);
+
 	if ( null === $error_message ) {
 		return true;
 	}

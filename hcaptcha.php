@@ -144,7 +144,7 @@ function hcap_load_modules() {
 		'BB Press New Topic'        => [
 			'hcaptcha_bbp_new_topic_status',
 			'bbpress/bbpress.php',
-			'bp/bp-create-group.php',
+			'bbp/bbp-new-topic.php',
 		],
 		'BB Press Reply'            => [
 			'hcaptcha_bbp_reply_status',
