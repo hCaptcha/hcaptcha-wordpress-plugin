@@ -44,7 +44,6 @@ if ( ! function_exists( 'hcap_hcaptcha_bp_group_verify' ) ) {
 		);
 
 		if ( null === $error_message ) {
-			// @todo Looks like a bug, check it.
 			return false;
 		}
 
