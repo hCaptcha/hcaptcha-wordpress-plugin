@@ -130,8 +130,8 @@ function hcap_display_option( $option_name, $option ) {
 			<br><br>
 			<input
 					type="text" size="50"
-					id="<?php echo esc_html( $option_name ); ?>"
-					name="<?php echo esc_html( $option_name ); ?>"
+					id="<?php echo esc_attr( $option_name ); ?>"
+					name="<?php echo esc_attr( $option_name ); ?>"
 					value="<?php echo esc_html( $option_value ); ?>"/>
 			<?php
 			if ( $description ) {
@@ -145,8 +145,8 @@ function hcap_display_option( $option_name, $option ) {
 			?>
 			<input
 					type="checkbox"
-					id="<?php echo esc_html( $option_name ); ?>"
-					name="<?php echo esc_html( $option_name ); ?>"
+					id="<?php echo esc_attr( $option_name ); ?>"
+					name="<?php echo esc_attr( $option_name ); ?>"
 				<?php checked( 'on', $option_value ); ?>/>
 			&nbsp;
 			<span><?php echo esc_html( $option['label'] ); ?></span>
@@ -159,8 +159,8 @@ function hcap_display_option( $option_name, $option ) {
 				<strong><?php echo esc_html( $option['label'] ); ?></strong>
 				<br><br>
 				<select
-						id="<?php echo esc_html( $option_name ); ?>"
-						name="<?php echo esc_html( $option_name ); ?>">
+						id="<?php echo esc_attr( $option_name ); ?>"
+						name="<?php echo esc_attr( $option_name ); ?>">
 					<?php
 					foreach ( $option['options'] as $key => $value ) {
 						?>
