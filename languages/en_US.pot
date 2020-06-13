@@ -1,0 +1,166 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: hCaptcha for Forms and More\n"
+"POT-Creation-Date: 2020-06-10 17:20+0300\n"
+"PO-Revision-Date: 2020-06-10 17:14+0300\n"
+"Last-Translator: KAGG Design <info@kagg.eu>\n"
+"Language-Team: hCaptcha team\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3.1\n"
+"X-Poedit-KeywordsList: __;esc_html__;esc_attr__\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: assets\n"
+
+#: backend/nav.php:33
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: backend/settings.php:60
+msgid "In order to use <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">hCaptcha</a> please register <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">here</a> to get your site key and secret key."
+msgstr ""
+
+#: cf7/hcaptcha-cf7.php:139 common/request.php:109 nf/class-nf-hcaptcha.php:89
+msgid "Please complete the captcha."
+msgstr ""
+
+#: cf7/hcaptcha-cf7.php:149 common/request.php:110 hcaptcha.php:73
+#: mailchimp/mailchimp-for-wp.php:23 nf/class-nf-hcaptcha.php:94
+msgid "The Captcha is invalid."
+msgstr ""
+
+#: common/functions.php:57
+msgid "hCaptcha Site Key"
+msgstr ""
+
+#: common/functions.php:61
+msgid "hCaptcha Secret Key"
+msgstr ""
+
+#: common/functions.php:65
+msgid "hCaptcha Theme"
+msgstr ""
+
+#: common/functions.php:68
+msgid "Light"
+msgstr ""
+
+#: common/functions.php:69
+msgid "Dark"
+msgstr ""
+
+#: common/functions.php:73
+msgid "hCaptcha Size"
+msgstr ""
+
+#: common/functions.php:76
+msgid "Normal"
+msgstr ""
+
+#: common/functions.php:77
+msgid "Compact"
+msgstr ""
+
+#: common/functions.php:81
+msgid "Override Language Detection (optional)"
+msgstr ""
+
+#: common/functions.php:84
+msgid "Info on <a href=\"https://hcaptcha.com/docs/languages\" target=\"_blank\">language codes</a>."
+msgstr ""
+
+#: common/functions.php:89
+msgid "Enable Ninja Forms Addon"
+msgstr ""
+
+#: common/functions.php:93
+msgid "Enable Contact Form 7 Addon"
+msgstr ""
+
+#: common/functions.php:97
+msgid "Enable hCaptcha on Login Form"
+msgstr ""
+
+#: common/functions.php:101
+msgid "Enable hCaptcha on Register Form"
+msgstr ""
+
+#: common/functions.php:105
+msgid "Enable hCaptcha on Comment Form"
+msgstr ""
+
+#: common/functions.php:109
+msgid "Enable hCaptcha on Lost Password Form"
+msgstr ""
+
+#: common/functions.php:113
+msgid "Enable hCaptcha on WooCommerce Login Form"
+msgstr ""
+
+#: common/functions.php:117
+msgid "Enable hCaptcha on WooCommerce Registration Form"
+msgstr ""
+
+#: common/functions.php:121
+msgid "Enable hCaptcha on WooCommerce Lost Password Form"
+msgstr ""
+
+#: common/functions.php:125
+msgid "Enable hCaptcha on WooCommerce Checkout Form"
+msgstr ""
+
+#: common/functions.php:129
+msgid "Enable hCaptcha on Buddypress Registration Form"
+msgstr ""
+
+#: common/functions.php:133
+msgid "Enable hCaptcha on BuddyPress Create Group Form"
+msgstr ""
+
+#: common/functions.php:137
+msgid "Enable hCaptcha on bbpress new topic Form"
+msgstr ""
+
+#: common/functions.php:141
+msgid "Enable hCaptcha on bbpress reply Form"
+msgstr ""
+
+#: common/functions.php:145
+msgid "Enable hCaptcha on WPForo new topic Form"
+msgstr ""
+
+#: common/functions.php:149
+msgid "Enable hCaptcha on WPForo Reply Form"
+msgstr ""
+
+#: common/functions.php:153
+msgid "Enable hCaptcha on Mailchimp for WP Form"
+msgstr ""
+
+#: common/functions.php:157
+msgid "Enable hCaptcha on Jetpack Contact Form"
+msgstr ""
+
+#: common/functions.php:161
+msgid "Enable hCaptcha on Subscribers Form"
+msgstr ""
+
+#: common/functions.php:165
+msgid "Enable hCaptcha on WooCommerce Wishlists Create List Form"
+msgstr ""
+
+#: common/request.php:128
+msgid "<strong>Error</strong>: Please complete the captcha."
+msgstr ""
+
+#: common/request.php:129
+msgid "<strong>Error</strong>: The Captcha is invalid."
+msgstr ""
+
+#: nf/class-nf-hcaptcha.php:75
+msgid "hCaptcha"
+msgstr ""

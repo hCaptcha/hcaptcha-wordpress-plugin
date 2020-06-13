@@ -1,50 +1,111 @@
 <?php
+/**
+ * Ninja Forms class file.
+ *
+ * @package hcaptcha-wp
+ */
 
 // If this file is called directly, abort.
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
- * Class NF_HCaptchaForNinjaForms_Fields_HCaptchaField
+ * Class HCaptchaFieldsForNF
  */
-class HCaptchaFieldsForNF extends NF_Fields_recaptcha
-{
-    protected $_name = 'hcaptcha-for-ninja-forms';
+class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 
-    protected $_type = 'hcaptcha';
+	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
-    protected $_section = 'misc';
+	/**
+	 * Name.
+	 *
+	 * @var string
+	 */
+	protected $_name = 'hcaptcha-for-ninja-forms';
 
-    protected $_icon = 'filter';
+	/**
+	 * Type.
+	 *
+	 * @var string
+	 */
+	protected $_type = 'hcaptcha';
 
-    protected $_templates = 'hcaptcha';
+	/**
+	 * Section.
+	 *
+	 * @var string
+	 */
+	protected $_section = 'misc';
 
-    protected $_test_value = '';
+	/**
+	 * Icon.
+	 *
+	 * @var string
+	 */
+	protected $_icon = 'filter';
 
-    protected $_settings = array( 'label', 'classes' );
+	/**
+	 * Templates.
+	 *
+	 * @var string
+	 */
+	protected $_templates = 'hcaptcha';
 
-    public function __construct()
-    {
-        parent::__construct();
+	/**
+	 * Test value.
+	 *
+	 * @var string
+	 */
+	protected $_test_value = '';
 
-        $this->_nicename = __( 'hCaptcha', 'ninja-forms' );
-        add_filter( 'nf_sub_hidden_field_types', array( $this, 'hide_field_type' ) );
-    }
+	/**
+	 * Settings.
+	 *
+	 * @var string[]
+	 */
+	protected $_settings = [ 'label', 'classes' ];
 
-    public function validate( $field, $data ) {
-	    if ( empty( $field['value'] ) ) {
-		    return __( 'Please complete the captcha.', 'hcaptcha-wp' );
-	    }
+	/**
+	 * HCaptchaFieldsForNF constructor.
+	 */
+	public function __construct() {
+		parent::__construct();
 
-	    $result = hcaptcha_request_verify( $field['value'] );
-	    if ( $result === 'fail' ) {
-		    return array( __( 'The Captcha is invalid.', 'hcaptcha-wp' ) );
-	    }
+		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
+		add_filter( 'nf_sub_hidden_field_types', [ $this, 'hide_field_type' ] );
+	}
 
-    }
+	/**
+	 * Validate form.
+	 *
+	 * @param array $field Field.
+	 * @param mixed $data  Data.
+	 *
+	 * @return array|mixed|string|void
+	 */
+	public function validate( $field, $data ) {
+		if ( empty( $field['value'] ) ) {
+			return __( 'Please complete the captcha.', 'hcaptcha-wp' );
+		}
 
-    function hide_field_type( $field_types )
-    {
-        $field_types[] = $this->_name;
-        return $field_types;
-    }
+		$result = hcaptcha_request_verify( $field['value'] );
+		if ( 'fail' === $result ) {
+			return [ __( 'The Captcha is invalid.', 'hcaptcha-wp' ) ];
+		}
+
+	}
+
+	/**
+	 * Hide hCaptcha field type.
+	 *
+	 * @param array $field_types Field types.
+	 *
+	 * @return mixed
+	 */
+	public function hide_field_type( $field_types ) {
+		$field_types[] = $this->_name;
+
+		return $field_types;
+	}
 }

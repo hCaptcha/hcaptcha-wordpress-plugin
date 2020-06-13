@@ -1,26 +1,47 @@
 <?php
+/**
+ * Register form file.
+ *
+ * @package hcaptcha-wp
+ */
 
 // If this file is called directly, abort.
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Register form.
+ */
+function hcap_wp_register_form() {
+	hcap_form_display();
+	wp_nonce_field( 'hcaptcha_registration', 'hcaptcha_registration_nonce' );
+}
 
 add_filter( 'register_form', 'hcap_wp_register_form' );
 
-function hcap_wp_register_form() {
-    $hcaptcha_api_key = get_option('hcaptcha_api_key' );
-    $hcaptcha_theme     = get_option("hcaptcha_theme");
-    $hcaptcha_size      = get_option("hcaptcha_size");
-    $output = '<div class="h-captcha" data-sitekey="'.$hcaptcha_api_key.'" data-theme="'.$hcaptcha_theme.'" data-size="'.$hcaptcha_size.'"></div>';
-    $output .= wp_nonce_field( 'hcaptcha_registration', 'hcaptcha_registration_nonce', true, false );
-    
-    echo $output;
-}
+/**
+ * Verify register captcha.
+ *
+ * @param WP_Error $errors               A WP_Error object containing any errors encountered during registration.
+ * @param string   $sanitized_user_login User's username after it has been sanitized.
+ * @param string   $user_email           User's email.
+ *
+ * @return mixed
+ */
+function hcap_verify_register_captcha( $errors, $sanitized_user_login, $user_email ) {
+	$error_message = hcaptcha_get_verify_message_html(
+		'hcaptcha_registration_nonce',
+		'hcaptcha_registration'
+	);
 
-function hcap_verify_register_captcha($errors, $sanitized_user_login, $user_email) {
-	$errorMessage = hcaptcha_get_verify_message_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
-	if ( $errorMessage === null ) {
+	if ( null === $error_message ) {
 		return $errors;
 	}
-	$errors->add( 'invalid_captcha', $errorMessage );
+
+	$errors->add( 'invalid_captcha', $error_message );
+
 	return $errors;
 }
-add_filter("registration_errors", "hcap_verify_register_captcha", 10, 3);
+
+add_filter( 'registration_errors', 'hcap_verify_register_captcha', 10, 3 );
