@@ -208,7 +208,7 @@ function hcap_load_modules() {
 	}
 }
 
-add_action( 'init', 'hcap_load_modules' );
+add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
 
 /**
  * Load plugin text domain.
