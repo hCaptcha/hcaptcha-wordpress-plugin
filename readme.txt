@@ -12,7 +12,7 @@ Enables hCaptcha.com integration with WordPress.
 
 == Description ==
  
-hCaptcha is a drop-in replacement for reCAPTCHA that pays website owners.
+hCaptcha is a drop-in replacement for reCAPTCHA that pays website owners while preserving user privacy.
 
 Do you use a captcha to keep out bots? hCaptcha protects user privacy, rewards websites, and helps companies get their data labeled. Help build a better web. 
 
@@ -81,6 +81,10 @@ Please see the hCaptcha privacy policy at:
 = 1.4.2 = 
 
 * Fixed comment issue, added WooCommerce Wishlists
+
+= 1.5.0 =
+
+* Refactor to improve code hygiene, fixes for latest Ninja Forms.
 
 
 === Forms and Plugins Supported ==

@@ -15,9 +15,9 @@ Enables hCaptcha integration with WordPress.
 
 **NOTE: This is a community-developed plugin. All integrations were submitted by developers like you. If you see an integration that doesn't work, or one that's missing, please open a pull request!**
 
-hCaptcha: a new way to monetize your site traffic 
+hCaptcha: a new way to monetize your site traffic and protect user privacy 
 
-Do you use a captcha to keep out bots? hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled.  
+Do you use a captcha to keep out bots? hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled, without giving your user data to an ad company.
 
 hCaptcha is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.  
 
