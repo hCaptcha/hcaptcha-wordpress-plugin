@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.4
 Requires PHP: 5.6  
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -16,12 +16,6 @@ hCaptcha is a drop-in replacement for reCAPTCHA that pays website owners while p
 
 Do you use a captcha to keep out bots? hCaptcha protects user privacy, rewards websites, and helps companies get their data labeled. Help build a better web. 
 
-hCaptcha is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.  
-
-More data generally produces better results in training machine learning models. The recent success of deep models has led to increasingly large datasets, almost always with some human review. However, creating large human-reviewed datasets via Mechanical Turk, Figure Eight, etc. is both slow and expensive.  
-
-hCaptcha allows websites to make money serving this demand while blocking bots and other forms of abuse.  
-
 **NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support. 
 
 If you see an integration that doesn't work, or one that's missing, please open a pull request:
@@ -31,7 +25,9 @@ However, you may wish to email the authors of plugins you'd like to support hCap
 
 == How hCaptcha Works ==
 
-hCaptcha is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.
+The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots. 
+
+hCaptcha takes this idea and extends it by attempting to use those challenge answers for annotation, in an attempt to avoid simply wasting that effort. It is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.
 
 More data generally produces better results in training machine learning models. The recent success of deep models has led to increasingly large datasets, almost always with some human review. However, creating large human-reviewed datasets via Mechanical Turk, Figure Eight, etc. is both slow and expensive.
 
@@ -93,6 +89,10 @@ Please see the hCaptcha privacy policy at:
 = 1.5.0 =
 
 * Refactor to improve code hygiene, fixes for latest Ninja Forms.
+
+= 1.5.1 =
+
+* Update docs
 
 
 === Forms and Plugins Supported ==
