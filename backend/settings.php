@@ -46,19 +46,19 @@ function hcap_display_options_page() {
 			?>
 			<div id="message" class="updated fade">
 				<p>
-					<?php esc_html_e( 'Settings Updated', 'hcaptcha-wp' ); ?>
+					<?php esc_html_e( 'Settings Updated', 'hcaptcha-for-forms-and-more' ); ?>
 				</p>
 			</div>
 			<?php
 		}
 		?>
-		<h3><?php esc_html_e( 'hCaptcha Settings', 'hcaptcha-wp' ); ?></h3>
+		<h3><?php esc_html_e( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' ); ?></h3>
 		<h3>
 			<?php
 			echo wp_kses_post(
 				__(
 					'In order to use <a href="https://hCaptcha.com/?r=wp" target="_blank">hCaptcha</a> please register <a href="https://hCaptcha.com/?r=wp" target="_blank">here</a> to get your site key and secret key.',
-					'hcaptcha-wp'
+					'hcaptcha-for-forms-and-more'
 				)
 			);
 			?>
@@ -68,7 +68,7 @@ function hcap_display_options_page() {
 			<p>
 				<input
 						type="submit"
-						value="<?php esc_html_e( 'Save hCaptcha Settings', 'hcaptcha-wp' ); ?>"
+						value="<?php esc_html_e( 'Save hCaptcha Settings', 'hcaptcha-for-forms-and-more' ); ?>"
 						class="button button-primary"
 						name="submit"/>
 			</p>
@@ -96,7 +96,7 @@ function hcap_display_options() {
 	);
 
 	?>
-	<strong><?php esc_html_e( 'Enable/Disable Features', 'hcaptcha-wp' ); ?></strong>
+	<strong><?php esc_html_e( 'Enable/Disable Features', 'hcaptcha-for-forms-and-more' ); ?></strong>
 	<br><br>
 	<?php
 

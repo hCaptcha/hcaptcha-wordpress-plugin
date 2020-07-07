@@ -106,8 +106,8 @@ if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	 */
 	function hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name ) {
 		return hcaptcha_get_verify_output(
-			__( 'Please complete the captcha.', 'hcaptcha-wp' ),
-			__( 'The Captcha is invalid.', 'hcaptcha-wp' ),
+			__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
+			__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ),
 			$nonce_field_name,
 			$nonce_action_name
 		);
@@ -125,8 +125,8 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 	 */
 	function hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) {
 		return hcaptcha_get_verify_output(
-			__( '<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-wp' ),
-			__( '<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-wp' ),
+			__( '<strong>Error</strong>: Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
+			__( '<strong>Error</strong>: The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ),
 			$nonce_field_name,
 			$nonce_action_name
 		);
