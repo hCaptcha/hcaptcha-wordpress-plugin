@@ -120,11 +120,12 @@ function hcap_cf7_verify_recaptcha( $result ) {
 
 	$submission = WPCF7_Submission::get_instance();
 	$data       = $submission->get_posted_data();
-	if ( empty( $data['_wpcf7'] ) ) {
+	$wpcf7_id   = filter_input( INPUT_POST, '_wpcf7', FILTER_VALIDATE_INT );
+	if ( empty( $wpcf7_id ) ) {
 		return $result;
 	}
 
-	$cf7_text         = do_shortcode( '[contact-form-7 id="' . $data['_wpcf7'] . '"]' );
+	$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
 	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
 	if ( false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
 		return $result;
