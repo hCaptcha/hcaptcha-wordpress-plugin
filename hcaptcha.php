@@ -13,8 +13,8 @@
  * WC requires at least: 3.0
  * WC tested up to: 4.2
  *
- * Text Domain: hcaptcha-wp
- * Domain Path: /languages/
+ * Text Domain: hcaptcha-for-forms-and-more
+ * Domain Path: /languages
  *
  * @package hcaptcha-wp
  * @author  hCaptcha
@@ -75,7 +75,7 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	 * @return string
 	 */
 	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
-		$hcaptcha_content = sprintf( '<p id="hcap_error" class="error hcap_error">%s</p>', __( 'The Captcha is invalid.', 'hcaptcha-wp' ) ) . $hcaptcha_content;
+		$hcaptcha_content = sprintf( '<p id="hcap_error" class="error hcap_error">%s</p>', __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) ) . $hcaptcha_content;
 
 		return $hcaptcha_content;
 	}
@@ -214,7 +214,11 @@ add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
  * Load plugin text domain.
  */
 function hcaptcha_wp_load_textdomain() {
-	load_plugin_textdomain( 'hcaptcha-wp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	load_plugin_textdomain(
+		'hcaptcha-for-forms-and-more',
+		false,
+		dirname( plugin_basename( __FILE__ ) ) . '/languages/'
+	);
 }
 
 add_action( 'plugins_loaded', 'hcaptcha_wp_load_textdomain' );

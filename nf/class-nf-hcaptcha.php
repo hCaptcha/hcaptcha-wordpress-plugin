@@ -86,12 +86,12 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 	 */
 	public function validate( $field, $data ) {
 		if ( empty( $field['value'] ) ) {
-			return __( 'Please complete the captcha.', 'hcaptcha-wp' );
+			return __( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' );
 		}
 
 		$result = hcaptcha_request_verify( $field['value'] );
 		if ( 'fail' === $result ) {
-			return [ __( 'The Captcha is invalid.', 'hcaptcha-wp' ) ];
+			return [ __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) ];
 		}
 
 	}
