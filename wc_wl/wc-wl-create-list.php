@@ -13,6 +13,51 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+add_filter(
+	'hcap_hcaptcha_content',
+	function ( $content ) {
+		$content .= wp_nonce_field(
+			'hcaptcha_wc_create_wishlist',
+			'hcaptcha_wc_create_wishlist_nonce',
+			true,
+			false
+		);
+
+		return $content;
+	}
+);
+
+/**
+ * Before WooCommerce Wishlist wrapper action.
+ */
+function hcap_woocommerce_wishlists_before_wrapper_action() {
+	ob_start();
+}
+
+add_action( 'woocommerce_wishlists_before_wrapper', 'hcap_woocommerce_wishlists_before_wrapper_action' );
+
+/**
+ * After WooCommerce Wishlist wrapper action.
+ */
+function hcap_woocommerce_wishlists_after_wrapper_action() {
+	$wrapper = ob_get_clean();
+
+	// Find last $search string and insert hcaptcha before it.
+	$search  = '<p class="form-row">';
+	$replace = "\n" . hcap_shortcode() . "\n" . $search;
+
+	$wrapper = preg_replace(
+		'/(' . $search . ')(?!.*' . $search . ')/is',
+		$replace,
+		$wrapper
+	);
+
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo $wrapper;
+}
+
+add_action( 'woocommerce_wishlists_after_wrapper', 'hcap_woocommerce_wishlists_after_wrapper_action' );
+
 /**
  * WC Wishlist form.
  *
