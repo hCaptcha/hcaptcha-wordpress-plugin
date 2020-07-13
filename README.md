@@ -2,7 +2,7 @@
 # hCaptcha for WordPress
 
 
-Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz
+Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kagg
 
 Maintainers: hCaptcha team  
 
@@ -15,18 +15,11 @@ Enables hCaptcha integration with WordPress.
 
 **NOTE: This is a community-developed plugin. All integrations were submitted by developers like you. If you see an integration that doesn't work, or one that's missing, please open a pull request!**
 
-hCaptcha: a new way to monetize your site traffic and protect user privacy 
+hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled, without giving your user data to an ad company. 
 
-Do you use a captcha to keep out bots? hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled, without giving your user data to an ad company.
-
-hCaptcha is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.  
-
-More data generally produces better results in training machine learning models. The recent success of deep models has led to increasingly large datasets, almost always with some human review. However, creating large human-reviewed datasets via Mechanical Turk, Figure Eight, etc. is both slow and expensive.  
-
-hCaptcha allows websites to make money serving this demand while blocking bots and other forms of abuse.  
- 
 ## Installation
- 
+
+0. Sign up at https://hcaptcha.com/ to get a site key and secret.
 1. Upload `hcaptcha-wp` folder to the `/wp-content/plugins/` directory  
 2. Activate the plugin through the 'Plugins' menu in WordPress  
 3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress  
