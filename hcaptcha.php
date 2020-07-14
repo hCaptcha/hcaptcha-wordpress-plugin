@@ -53,7 +53,7 @@ if ( is_admin() ) {
  */
 function hcap_captcha_script() {
 	$dir = plugin_dir_url( __FILE__ );
-	wp_enqueue_style( 'hcaptcha-style', $dir . 'style.css', [], HCAPTCHA_VERSION );
+	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', [], HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
 		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
