@@ -122,6 +122,7 @@ Please see the hCaptcha privacy policy at:
 * BuddyPress Create Group Form
 * bbpress new topic Form
 * bbpress reply Form
+* WPForms Lite
 * WPForo new topic Form
 * WPForo Reply Form
 * Mailchimp for WP Form
