@@ -2,7 +2,7 @@
 # hCaptcha for WordPress
 
 
-Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kagg
+Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kagg, publicarray
 
 Maintainers: hCaptcha team  
 
@@ -56,6 +56,7 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * BuddyPress Create Group Form
 * bbpress new topic Form
 * bbpress reply Form
+* WPForms Lite
 * WPForo new topic Form
 * WPForo Reply Form
 * Mailchimp for WP Form

@@ -156,6 +156,11 @@ function hcap_load_modules() {
 			'bbpress/bbpress.php',
 			'bbp/bbp-reply.php',
 		],
+		'WPForms'                    => [
+			'hcaptcha_wpforms_status',
+			'wpforms-lite/wpforms.php',
+			'wpforms/wpforms.php',
+		],
 		'wpForo New Topic'          => [
 			'hcaptcha_wpforo_new_topic_status',
 			'wpforo/wpforo.php',
