@@ -164,3 +164,7 @@ msgstr ""
 #: nf/class-hcaptchafieldsfornf.php:75
 msgid "hCaptcha"
 msgstr ""
+
+#: wpforms/wpforms.php:45
+msgid "Captcha Failed"
+msgstr ""
