@@ -53,11 +53,11 @@ if ( is_admin() ) {
  */
 function hcap_captcha_script() {
 	$dir = plugin_dir_url( __FILE__ );
-	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', [], HCAPTCHA_VERSION );
+	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', array(), HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
 		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
-		[],
+		array(),
 		HCAPTCHA_VERSION,
 		true
 	);
@@ -85,113 +85,113 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
  * Load plugin modules.
  */
 function hcap_load_modules() {
-	$modules = [
-		'Ninja Forms'               => [
+	$modules = array(
+		'Ninja Forms'               => array(
 			'hcaptcha_nf_status',
 			'ninja-forms/ninja-forms.php',
 			'nf/ninja-forms-hcaptcha.php',
-		],
-		'Contact Form 7'            => [
+		),
+		'Contact Form 7'            => array(
 			'hcaptcha_cf7_status',
 			'contact-form-7/wp-contact-form-7.php',
 			'cf7/hcaptcha-cf7.php',
-		],
-		'Login Form'                => [
+		),
+		'Login Form'                => array(
 			'hcaptcha_lf_status',
 			'',
 			'default/login-form.php',
-		],
-		'Register Form'             => [
+		),
+		'Register Form'             => array(
 			'hcaptcha_rf_status',
 			'',
 			'default/register-form.php',
-		],
-		'Comment Form'              => [
+		),
+		'Comment Form'              => array(
 			'hcaptcha_cmf_status',
 			'',
 			'default/comment-form.php',
-		],
-		'Lost Password Form'        => [
+		),
+		'Lost Password Form'        => array(
 			'hcaptcha_lpf_status',
 			'',
-			[ 'common/lost-password-form.php', 'default/lost-password.php' ],
-		],
-		'WooCommerce Login'         => [
+			array( 'common/lost-password-form.php', 'default/lost-password.php' ),
+		),
+		'WooCommerce Login'         => array(
 			'hcaptcha_wc_login_status',
 			'woocommerce/woocommerce.php',
 			'wc/wc-login.php',
-		],
-		'WooCommerce Register'      => [
+		),
+		'WooCommerce Register'      => array(
 			'hcaptcha_wc_reg_status',
 			'woocommerce/woocommerce.php',
 			'wc/wc-register.php',
-		],
-		'WooCommerce Lost Password' => [
+		),
+		'WooCommerce Lost Password' => array(
 			'hcaptcha_wc_lost_pass_status',
 			'woocommerce/woocommerce.php',
-			[ 'common/lost-password-form.php', 'wc/wc-lost-password.php' ],
-		],
-		'WooCommerce Checkout'      => [
+			array( 'common/lost-password-form.php', 'wc/wc-lost-password.php' ),
+		),
+		'WooCommerce Checkout'      => array(
 			'hcaptcha_wc_checkout_status',
 			'woocommerce/woocommerce.php',
 			'wc/wc-checkout.php',
-		],
-		'BuddyPress Register'       => [
+		),
+		'BuddyPress Register'       => array(
 			'hcaptcha_bp_reg_status',
 			'buddypress/bp-loader.php',
 			'bp/bp-register.php',
-		],
-		'BuddyPress Create Group'   => [
+		),
+		'BuddyPress Create Group'   => array(
 			'hcaptcha_bp_create_group_status',
 			'buddypress/bp-loader.php',
 			'bp/bp-create-group.php',
-		],
-		'BB Press New Topic'        => [
+		),
+		'BB Press New Topic'        => array(
 			'hcaptcha_bbp_new_topic_status',
 			'bbpress/bbpress.php',
 			'bbp/bbp-new-topic.php',
-		],
-		'BB Press Reply'            => [
+		),
+		'BB Press Reply'            => array(
 			'hcaptcha_bbp_reply_status',
 			'bbpress/bbpress.php',
 			'bbp/bbp-reply.php',
-		],
-		'WPForms'                    => [
+		),
+		'WPForms'                   => array(
 			'hcaptcha_wpforms_status',
 			'wpforms-lite/wpforms.php',
 			'wpforms/wpforms.php',
-		],
-		'wpForo New Topic'          => [
+		),
+		'wpForo New Topic'          => array(
 			'hcaptcha_wpforo_new_topic_status',
 			'wpforo/wpforo.php',
 			'wpforo/wpforo-new-topic.php',
-		],
-		'wpForo Reply'              => [
+		),
+		'wpForo Reply'              => array(
 			'hcaptcha_wpforo_reply_status',
 			'wpforo/wpforo.php',
 			'wpforo/wpforo-reply.php',
-		],
-		'MailChimp'                 => [
+		),
+		'MailChimp'                 => array(
 			'hcaptcha_mc4wp_status',
 			'mailchimp-for-wp/mailchimp-for-wp.php',
 			'mailchimp/mailchimp-for-wp.php',
-		],
-		'Jetpack'                   => [
+		),
+		'Jetpack'                   => array(
 			'hcaptcha_jetpack_cf_status',
 			'jetpack/jetpack.php',
 			'jetpack/jetpack.php',
-		],
-		'Subscriber'                => [
+		),
+		'Subscriber'                => array(
 			'hcaptcha_subscribers_status',
 			'subscriber/subscriber.php',
 			'subscriber/subscriber.php',
-		],
-		'WC Wishlist'               => [
+		),
+		'WC Wishlist'               => array(
 			'hcaptcha_wc_wl_create_list_status',
 			'woocommerce-wishlists/woocommerce-wishlists.php',
 			'wc_wl/wc-wl-create-list.php',
-		],
-	];
+		),
+	);
 
 	if ( ! function_exists( 'is_plugin_active' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';

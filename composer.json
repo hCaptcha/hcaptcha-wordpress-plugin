@@ -1,0 +1,11 @@
+{
+    "name": "hcaptcha/hcaptcha-wordpress-plugin",
+    "description": "hCaptcha WordPress plugin",
+    "type": "project",
+    "license": "MIT",
+    "require": {},
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+        "wp-coding-standards/wpcs": "^2.3"
+    }
+}

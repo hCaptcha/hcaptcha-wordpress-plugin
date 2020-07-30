@@ -133,20 +133,20 @@ function hcap_cf7_verify_recaptcha( $result ) {
 
 	if ( empty( $data['h-captcha-response'] ) ) {
 		$result->invalidate(
-			[
+			array(
 				'type' => 'captcha',
 				'name' => 'hcap_cf7-h-captcha-invalid',
-			],
+			),
 			__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' )
 		);
 	} else {
 		$captcha_result = hcaptcha_request_verify( $data['h-captcha-response'] );
 		if ( 'fail' === $captcha_result ) {
 			$result->invalidate(
-				[
+				array(
 					'type' => 'captcha',
 					'name' => 'hcap_cf7-h-captcha-invalid',
-				],
+				),
 				__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
 			);
 		}

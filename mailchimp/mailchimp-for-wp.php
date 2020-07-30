@@ -18,10 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return mixed
  */
 function hcap_add_mc4wp_error_message( $messages ) {
-	$messages['invalid_hcaptcha'] = [
+	$messages['invalid_hcaptcha'] = array(
 		'type' => 'error',
 		'text' => __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ),
-	];
+	);
 
 	return $messages;
 }

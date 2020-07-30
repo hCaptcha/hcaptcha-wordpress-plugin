@@ -24,12 +24,12 @@ msgstr ""
 msgid "In order to use <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">hCaptcha</a> please register <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">here</a> to get your site key and secret key."
 msgstr ""
 
-#: cf7/hcaptcha-cf7.php:139 common/request.php:109 nf/class-nf-hcaptcha.php:89
+#: cf7/hcaptcha-cf7.php:139 common/request.php:109 nf/class-hcaptchafieldsfornf.php:89
 msgid "Please complete the captcha."
 msgstr ""
 
 #: cf7/hcaptcha-cf7.php:149 common/request.php:110 hcaptcha.php:73
-#: mailchimp/mailchimp-for-wp.php:23 nf/class-nf-hcaptcha.php:94
+#: mailchimp/mailchimp-for-wp.php:23 nf/class-hcaptchafieldsfornf.php:94
 msgid "The Captcha is invalid."
 msgstr ""
 
@@ -161,6 +161,10 @@ msgstr ""
 msgid "<strong>Error</strong>: The Captcha is invalid."
 msgstr ""
 
-#: nf/class-nf-hcaptcha.php:75
+#: nf/class-hcaptchafieldsfornf.php:75
 msgid "hCaptcha"
+msgstr ""
+
+#: wpforms/wpforms.php:45
+msgid "Captcha Failed"
 msgstr ""

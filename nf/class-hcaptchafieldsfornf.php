@@ -64,7 +64,7 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 	 *
 	 * @var string[]
 	 */
-	protected $_settings = [ 'label', 'classes' ];
+	protected $_settings = array( 'label', 'classes' );
 
 	/**
 	 * HCaptchaFieldsForNF constructor.
@@ -73,7 +73,7 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 		parent::__construct();
 
 		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
-		add_filter( 'nf_sub_hidden_field_types', [ $this, 'hide_field_type' ] );
+		add_filter( 'nf_sub_hidden_field_types', array( $this, 'hide_field_type' ) );
 	}
 
 	/**
@@ -91,7 +91,7 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 
 		$result = hcaptcha_request_verify( $field['value'] );
 		if ( 'fail' === $result ) {
-			return [ __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) ];
+			return array( __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 	}

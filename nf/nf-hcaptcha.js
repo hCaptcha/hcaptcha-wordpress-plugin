@@ -1,34 +1,46 @@
-var hCaptchaFieldController = Marionette.Object.extend( {
-	initialize: function() {
+/**
+ * Ninja Forms controller file.
+ *
+ * @package hcaptcha-wp
+ */
 
-		// On the Form Submission's field validaiton...
-		var submitChannel = Backbone.Radio.channel( 'submit' );
-		this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
+var hCaptchaFieldController = Marionette.Object.extend(
+	{
+		initialize: function() {
 
-		// on the Field's model value change...
-		var fieldsChannel = Backbone.Radio.channel( 'fields' );
-		this.listenTo( fieldsChannel, 'change:modelValue', this.updateHcaptcha );
-	},
+			// On the Form Submission's field validaiton...
+			var submitChannel = Backbone.Radio.channel( 'submit' );
+			this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
 
-	updateHcaptcha: function( model ) {
+			// on the Field's model value change...
+			var fieldsChannel = Backbone.Radio.channel( 'fields' );
+			this.listenTo( fieldsChannel, 'change:modelValue', this.updateHcaptcha );
+		},
 
-		// Only validate a specific fields type.
-		if ( 'hcaptcha-for-ninja-forms' !== model.get( 'type' ) ) return;
+		updateHcaptcha: function( model ) {
 
-		// Check if Model has a value
-		if ( model.get( 'value' ) ) {
-			// Remove Error from Model
-			Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'required-error' );
-		} else {
-			var hcap_response = hcaptcha.getResponse();
-			model.set( 'value', hcap_response );
+			// Only validate a specific fields type...
+			if ( 'hcaptcha-for-ninja-forms' !== model.get( 'type' ) ) {
+				return;
+			}
+
+			// Check if Model has a value...
+			if ( model.get( 'value' ) ) {
+				// Remove Error from Model...
+				Backbone.Radio.channel( 'fields' ).request( 'remove:error', model.get( 'id' ), 'required-error' );
+			} else {
+				var hcap_response = hcaptcha.getResponse();
+				model.set( 'value', hcap_response );
+			}
 		}
 	}
-} );
+);
 
 // On Document Ready...
-jQuery( document ).ready( function( $ ) {
+jQuery( document ).ready(
+	function( $ ) {
 
-	// Instantiate our custom field's controller, defined above.
-	new hCaptchaFieldController();
-} );
+		// Instantiate our custom field's controller, defined above.
+		new hCaptchaFieldController();
+	}
+);
