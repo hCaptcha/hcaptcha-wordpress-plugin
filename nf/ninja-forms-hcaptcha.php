@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_filter(
 	'ninja_forms_register_fields',
 	function ( $fields ) {
-		require_once plugin_dir_path( __FILE__ ) . 'class-nf-hcaptcha.php';
+		require_once plugin_dir_path( __FILE__ ) . 'class-hcaptchafieldsfornf.php';
 		$fields['hcaptcha-for-ninja-forms'] = new HCaptchaFieldsForNF();
 
 		return $fields;
@@ -61,7 +61,7 @@ function hcap_nf_captcha_script() {
 	wp_enqueue_script(
 		'nf-hcaptcha-js',
 		plugin_dir_url( __FILE__ ) . 'nf-hcaptcha.js',
-		[ 'nf-front-end' ],
+		array( 'nf-front-end' ),
 		HCAPTCHA_VERSION,
 		true
 	);

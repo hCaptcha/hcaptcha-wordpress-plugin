@@ -60,7 +60,7 @@ function hcap_verify_comment_captcha( $commentdata ) {
 		return $commentdata;
 	}
 
-	wp_die( wp_kses_post( $error_message ), wp_kses_post( $error_message ), [ 'back_link' => true ] );
+	wp_die( wp_kses_post( $error_message ), wp_kses_post( $error_message ), array( 'back_link' => true ) );
 }
 
 add_filter( 'preprocess_comment', 'hcap_verify_comment_captcha' );
