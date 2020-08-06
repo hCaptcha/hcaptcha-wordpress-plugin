@@ -45,6 +45,10 @@ hCaptcha allows websites to earn rewards while serving this demand while blockin
 Q: Where can I get more information about hCaptcha?  
 A: Please see our website at: https://hcaptcha.com/
 
+Q: Why isn't my WPForms Lite install working?  
+A: Please make sure you have removed the reCAPTCHA keys 
+   under WPForms > Settings > reCAPTCHA to avoid a conflict.
+
 === Privacy Notices ===
 
 With the default configuration, this plugin does not:
