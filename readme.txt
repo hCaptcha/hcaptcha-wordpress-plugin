@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.4
-Tested up to: 5.4
+Tested up to: 5.5
 Requires PHP: 5.6  
-Stable tag: 1.5.4
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -66,52 +66,42 @@ Please see the hCaptcha privacy policy at:
  
 == Changelog ==
  
-= 1.0 =
+= 1.6.0 =
+* Tested with WordPress 5.5 and WooCommerce 4.4
 
-* Plugin Created
-
-= 1.1 =
-
-* Minor bugfixes
-
-= 1.2 =
-
-* Update to Contact Form 7 support. Adds compatibility for version 5.1.3.
-
-= 1.3 =
-
-* Automatic addition of hCaptcha button to Contact Form 7 forms when enabled.
-
-= 1.4.1 =
-
-* Updated testing information, improve docs.
-
-= 1.4.2 = 
-
-* Fixed comment issue, added WooCommerce Wishlists
-
-= 1.5.0 =
-
-* Refactor to improve code hygiene, fixes for latest Ninja Forms.
-
-= 1.5.1 =
-
-* Update docs
-
-= 1.5.2 =
-
-* CF7 bug fix: enforce validation
+= 1.5.4 =
+* Added WPForms Lite support
 
 = 1.5.3 =
-
 * WooCommerce Wishlists bug fix
 * text domain updated: better i18n support
 
-= 1.5.4 =
+= 1.5.2 =
+* CF7 bug fix: enforce validation
 
-* Added WPForms Lite support
+= 1.5.1 =
+* Update docs
 
+= 1.5.0 =
+* Refactor to improve code hygiene, fixes for latest Ninja Forms.
 
+= 1.4.2 = 
+* Fixed comment issue, added WooCommerce Wishlists
+
+= 1.4.1 =
+* Updated testing information, improve docs.
+
+= 1.3 =
+* Automatic addition of hCaptcha button to Contact Form 7 forms when enabled.
+
+= 1.2 =
+* Update to Contact Form 7 support. Adds compatibility for version 5.1.3.
+
+= 1.1 =
+* Minor bugfixes
+
+= 1.0 =
+* Plugin Created
 
 === Forms and Plugins Supported ==
 
