@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.5
 Requires PHP: 5.6  
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -42,6 +42,11 @@ hCaptcha allows websites to earn rewards while serving this demand while blockin
  
 === Frequently Asked Questions ===
 
+Q: You don't support plugin X. How can I get support for it added?
+A: Open a PR on github: https://github.com/hCaptcha/hcaptcha-wordpress-plugin
+   or just email the authors of plugin X. Adding hCaptcha support is typically
+   quite a quick task for most plugins.
+
 Q: Where can I get more information about hCaptcha?  
 A: Please see our website at: https://hcaptcha.com/
 
@@ -65,6 +70,9 @@ Please see the hCaptcha privacy policy at:
 * ([hCaptcha.com](https://hCaptcha.com/privacy))
  
 == Changelog ==
+
+= 1.6.1 =
+* WPCS coding standards and docs update
  
 = 1.6.0 =
 * Tested with WordPress 5.5 and WooCommerce 4.4
