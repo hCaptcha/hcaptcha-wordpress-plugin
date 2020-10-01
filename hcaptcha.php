@@ -156,11 +156,16 @@ function hcap_load_modules() {
 			'bbpress/bbpress.php',
 			'bbp/bbp-reply.php',
 		),
-		'WPForms'                   => array(
-			'hcaptcha_wpforms_status',
-			'wpforms-lite/wpforms.php',
-			'wpforms/wpforms.php',
-		),
+        'WPForms Lite'                   => array(
+            'hcaptcha_wpforms_lite_status',
+            'wpforms-lite/wpforms.php',
+            'wpforms/wpforms.php',
+        ),
+        'WPForms'                   => array(
+            'hcaptcha_wpforms_status',
+            'wpforms/wpforms.php',
+            'wpforms/wpforms.php',
+        ),
 		'wpForo New Topic'          => array(
 			'hcaptcha_wpforo_new_topic_status',
 			'wpforo/wpforo.php',
