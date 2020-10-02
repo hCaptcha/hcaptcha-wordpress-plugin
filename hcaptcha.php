@@ -156,7 +156,7 @@ function hcap_load_modules() {
 			'bbpress/bbpress.php',
 			'bbp/bbp-reply.php',
 		),
-		'WPForms Lite'                   => array(
+		'WPForms Lite'              => array(
 			'hcaptcha_wpforms_lite_status',
 			'wpforms-lite/wpforms.php',
 			'wpforms/wpforms.php',
