@@ -145,6 +145,10 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on WPForms Lite', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		),
+		'hcaptcha_wpforms_pro_status'       => array(
+			'label' => __( 'Enable hCaptcha on WPForms Pro', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		),
 		'hcaptcha_wpforo_new_topic_status'  => array(
 			'label' => __( 'Enable hCaptcha on WPForo New Topic Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
