@@ -141,11 +141,11 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on bbPress Reply Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		),
-		'hcaptcha_wpforms_lite_status'      => array(
+		'hcaptcha_wpforms_status'           => array(
 			'label' => __( 'Enable hCaptcha on WPForms Lite', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		),
-		'hcaptcha_wpforms_status'           => array(
+		'hcaptcha_wpforms_pro_status'       => array(
 			'label' => __( 'Enable hCaptcha on WPForms Pro', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		),

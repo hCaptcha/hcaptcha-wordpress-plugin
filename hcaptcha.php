@@ -157,12 +157,12 @@ function hcap_load_modules() {
 			'bbp/bbp-reply.php',
 		),
 		'WPForms Lite'              => array(
-			'hcaptcha_wpforms_lite_status',
+			'hcaptcha_wpforms_status',
 			'wpforms-lite/wpforms.php',
 			'wpforms/wpforms.php',
 		),
-		'WPForms'                   => array(
-			'hcaptcha_wpforms_status',
+		'WPForms Pro'               => array(
+			'hcaptcha_wpforms_pro_status',
 			'wpforms/wpforms.php',
 			'wpforms/wpforms.php',
 		),
