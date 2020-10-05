@@ -60,6 +60,7 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * bbpress new topic Form
 * bbpress reply Form
 * WPForms Lite
+* WPForms Pro
 * WPForo new topic Form
 * WPForo Reply Form
 * Mailchimp for WP Form
