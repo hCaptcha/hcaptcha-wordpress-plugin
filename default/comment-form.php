@@ -59,7 +59,6 @@ function hcap_verify_comment_captcha( $commentdata ) {
 	if ( null === $error_message ) {
 		return $commentdata;
 	}
-	
 	if ( is_admin() ) {
 		return $commentdata;
 	}
