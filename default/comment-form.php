@@ -59,6 +59,9 @@ function hcap_verify_comment_captcha( $commentdata ) {
 	if ( null === $error_message ) {
 		return $commentdata;
 	}
+	if ( is_admin() ) {
+		return $commentdata;
+	}
 
 	wp_die( wp_kses_post( $error_message ), wp_kses_post( $error_message ), array( 'back_link' => true ) );
 }
