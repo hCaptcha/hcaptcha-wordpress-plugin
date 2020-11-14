@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! function_exists( 'hcap_hcaptcha_jetpack_form' ) ) {
+
 	/**
 	 * Add hCaptcha to Jetpack contact form.
 	 *
@@ -19,11 +20,19 @@ if ( ! function_exists( 'hcap_hcaptcha_jetpack_form' ) ) {
 	 * @return string|string[]|null
 	 */
 	function hcap_hcaptcha_jetpack_form( $content ) {
-		return preg_replace_callback(
+		$content = preg_replace_callback(
 			'~(\[contact-form([\s\S]*)?][\s\S]*)(\[/contact-form])~U',
 			'hcaptcha_jetpack_cf_callback',
 			$content
 		);
+
+		$content = preg_replace_callback(
+			'~(<form ([\s\S]*)?wp-block-jetpack-contact-form[\s\S]*)?(</form>)~U',
+			'hcaptcha_jetpack_cf_callback',
+			$content
+		);
+
+		return $content;
 	}
 }
 
@@ -43,7 +52,6 @@ if ( ! function_exists( 'hcaptcha_jetpack_cf_callback' ) ) {
 	 * @return string
 	 */
 	function hcaptcha_jetpack_cf_callback( $matches ) {
-
 		if ( ! preg_match( '~\[hcaptcha]~', $matches[0] ) ) {
 			return (
 				$matches[1] . '[hcaptcha]' .
@@ -60,6 +68,7 @@ if ( ! function_exists( 'hcaptcha_jetpack_cf_callback' ) ) {
 }
 
 if ( ! function_exists( 'hcap_hcaptcha_jetpack_verify' ) ) {
+
 	/**
 	 * Verify hCaptcha answer from the Jetpack Contact Form.
 	 *
