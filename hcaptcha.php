@@ -40,6 +40,11 @@ define( 'HCAPTCHA_PATH', dirname( __FILE__ ) );
  */
 define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 
+/**
+ * Main plugin file.
+ */
+define( 'HCAPTCHA_FILE', __FILE__ );
+
 require 'common/request.php';
 require 'common/functions.php';
 
