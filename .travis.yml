@@ -1,16 +1,6 @@
-# Travis CI (MIT License) configuration file
-# @link https://travis-ci.org/
-
-# Use new container based environment
-sudo: false
-
-# Declare project language.
-# @link http://about.travis-ci.org/docs/user/languages/php/
 language: php
 
-# Declare versions of PHP to use. Use one decimal max.
-# @link http://docs.travis-ci.com/user/build-configuration/
-matrix:
+jobs:
   fast_finish: true
 
   include:
@@ -32,8 +22,6 @@ matrix:
     - php: '7.4'
       env:
         - SNIFF=1
-    - php: 'nightly'
-        - DEV="--no-dev"
 
   allow_failures:
     - php: nightly
