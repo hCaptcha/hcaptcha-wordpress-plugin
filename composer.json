@@ -1,11 +1,29 @@
 {
-    "name": "hcaptcha/hcaptcha-wordpress-plugin",
-    "description": "hCaptcha WordPress plugin",
-    "type": "project",
-    "license": "MIT",
-    "require": {},
-    "require-dev": {
-        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-        "wp-coding-standards/wpcs": "^2.3"
+  "name": "hcaptcha/hcaptcha-wordpress-plugin",
+  "description": "hCaptcha WordPress plugin",
+  "license": "GPL-2.0",
+  "keywords": [
+    "hcaptcha"
+  ],
+  "homepage": "https://wordpress.org/plugins/hcaptcha-for-forms-and-more/",
+  "type": "wordpress-plugin",
+  "authors": [
+    {
+      "name": "hCaptcha",
+      "homepage": "https://hCaptcha.com/"
     }
+  ],
+  "support": {
+    "issues": "https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {},
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^3.5",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+    "phpcompatibility/php-compatibility": "^9.3",
+    "phpcompatibility/phpcompatibility-wp": "^2.1",
+    "wp-coding-standards/wpcs": "^2.3"
+  }
 }

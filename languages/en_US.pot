@@ -2,33 +2,46 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: hCaptcha for Forms and More\n"
-"POT-Creation-Date: 2020-06-10 17:20+0300\n"
+"POT-Creation-Date: 2020-11-14 15:41+0200\n"
 "PO-Revision-Date: 2020-06-10 17:14+0300\n"
 "Last-Translator: KAGG Design <info@kagg.eu>\n"
 "Language-Team: hCaptcha team\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.3.1\n"
+"X-Generator: Poedit 2.4.2\n"
 "X-Poedit-KeywordsList: __;esc_html__;esc_attr__\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: assets\n"
 
-#: backend/nav.php:33
+#: backend/nav.php:23
+msgid "hCaptcha Settings"
+msgstr ""
+
+#: backend/nav.php:40
 msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: backend/nav.php:80
+msgid "View hCaptcha settings"
+msgstr ""
+
+#: backend/nav.php:81
+msgid "Settings"
 msgstr ""
 
 #: backend/settings.php:60
 msgid "In order to use <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">hCaptcha</a> please register <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">here</a> to get your site key and secret key."
 msgstr ""
 
-#: cf7/hcaptcha-cf7.php:139 common/request.php:109 nf/class-hcaptchafieldsfornf.php:89
+#: cf7/hcaptcha-cf7.php:140 common/request.php:109
+#: nf/class-hcaptchafieldsfornf.php:89
 msgid "Please complete the captcha."
 msgstr ""
 
-#: cf7/hcaptcha-cf7.php:149 common/request.php:110 hcaptcha.php:73
+#: cf7/hcaptcha-cf7.php:150 common/request.php:110 hcaptcha.php:83
 #: mailchimp/mailchimp-for-wp.php:23 nf/class-hcaptchafieldsfornf.php:94
 msgid "The Captcha is invalid."
 msgstr ""
@@ -122,34 +135,42 @@ msgid "Enable hCaptcha on BuddyPress Create Group Form"
 msgstr ""
 
 #: common/functions.php:137
-msgid "Enable hCaptcha on bbpress new topic Form"
+msgid "Enable hCaptcha on bbPress New Topic Form"
 msgstr ""
 
 #: common/functions.php:141
-msgid "Enable hCaptcha on bbpress reply Form"
+msgid "Enable hCaptcha on bbPress Reply Form"
 msgstr ""
 
 #: common/functions.php:145
-msgid "Enable hCaptcha on WPForo new topic Form"
+msgid "Enable hCaptcha on WPForms Lite"
 msgstr ""
 
 #: common/functions.php:149
-msgid "Enable hCaptcha on WPForo Reply Form"
+msgid "Enable hCaptcha on WPForms Pro"
 msgstr ""
 
 #: common/functions.php:153
-msgid "Enable hCaptcha on Mailchimp for WP Form"
+msgid "Enable hCaptcha on WPForo New Topic Form"
 msgstr ""
 
 #: common/functions.php:157
-msgid "Enable hCaptcha on Jetpack Contact Form"
+msgid "Enable hCaptcha on WPForo Reply Form"
 msgstr ""
 
 #: common/functions.php:161
-msgid "Enable hCaptcha on Subscribers Form"
+msgid "Enable hCaptcha on Mailchimp for WP Form"
 msgstr ""
 
 #: common/functions.php:165
+msgid "Enable hCaptcha on Jetpack Contact Form"
+msgstr ""
+
+#: common/functions.php:169
+msgid "Enable hCaptcha on Subscribers Form"
+msgstr ""
+
+#: common/functions.php:173
 msgid "Enable hCaptcha on WooCommerce Wishlists Create List Form"
 msgstr ""
 
