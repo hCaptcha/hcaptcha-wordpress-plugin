@@ -66,3 +66,15 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * Mailchimp for WP Form
 * Jetpack Contact Form
 * Subscribers Form
+
+**Please note**
+
+Some plugins listed have been superceded by native support, and are included only for legacy purposes.
+
+You should always use native hCaptcha support if available for your plugin.
+Please check with your plugin author if native support is not yet available.
+
+Instructions for native integrations are below:
+
+* [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms/)
+
