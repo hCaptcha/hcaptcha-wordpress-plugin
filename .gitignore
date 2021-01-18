@@ -6,5 +6,3 @@ vendor/
 .DS_Store
 .phpcs.cache
 Thumbs.db
-
-!composer.lock

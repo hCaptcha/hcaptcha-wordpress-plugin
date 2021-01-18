@@ -134,7 +134,7 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_hcap_load_modules(): array {
+	public function dp_test_hcap_load_modules() {
 		$modules = [
 			'Ninja Forms'               => [
 				'hcaptcha_nf_status',

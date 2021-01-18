@@ -11,6 +11,15 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test wc-wl-create-list.php file.
+ *
+ * WooCommerce requires PHP 7.0.
+ *
+ * Cannot activate WooCommerce plugin with php 8.0
+ * due to some bug with usort() in \WC_Install::needs_db_update()
+ * caused by antecedent/patchwork.
+ *
+ * @requires PHP >= 7.0
+ * @requires PHP < 8.0
  */
 class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 
