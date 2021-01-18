@@ -7,7 +7,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -29,8 +31,6 @@ if ( ! function_exists( 'hcap_verify_wpforo_topic_captcha' ) ) {
 	 * @return mixed|bool
 	 */
 	function hcap_verify_wpforo_topic_captcha( $data ) {
-		global $wpforo;
-
 		$error_message = hcaptcha_get_verify_message(
 			'hcaptcha_wpforo_new_topic_nonce',
 			'hcaptcha_wpforo_new_topic'
@@ -40,7 +40,7 @@ if ( ! function_exists( 'hcap_verify_wpforo_topic_captcha' ) ) {
 			return $data;
 		}
 
-		$wpforo->notice->add( $error_message, 'error' );
+		WPF()->notice->add( $error_message, 'error' );
 
 		return false;
 	}

@@ -7,7 +7,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -44,7 +46,7 @@ if ( ! function_exists( 'hcap_hcaptcha_bp_group_verify' ) ) {
 		);
 
 		if ( null === $error_message ) {
-			return false;
+			return true;
 		}
 
 		bp_core_add_message( $error_message, 'error' );

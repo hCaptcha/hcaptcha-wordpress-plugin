@@ -22,7 +22,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -33,7 +35,7 @@ define( 'HCAPTCHA_VERSION', '1.6.4' );
 /**
  * Path to the plugin dir.
  */
-define( 'HCAPTCHA_PATH', dirname( __FILE__ ) );
+define( 'HCAPTCHA_PATH', __DIR__ );
 
 /**
  * Plugin dir url.
@@ -44,6 +46,8 @@ define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
  * Main plugin file.
  */
 define( 'HCAPTCHA_FILE', __FILE__ );
+
+require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
 require 'common/request.php';
 require 'common/functions.php';
@@ -204,7 +208,9 @@ function hcap_load_modules() {
 	);
 
 	if ( ! function_exists( 'is_plugin_active' ) ) {
+		// @codeCoverageIgnoreStart
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		// @codeCoverageIgnoreEnd
 	}
 
 	foreach ( $modules as $module ) {
