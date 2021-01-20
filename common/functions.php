@@ -85,9 +85,9 @@ function hcap_options() {
 				'hcaptcha-for-forms-and-more'
 			),
 		),
-        'hcaptcha_recaptchacompat'          => array(
-			'label'     => __( 'Disable recaptchacompat (stop replacing other instances of reCaptcha with hCaptcha)', 'hcaptcha-for-forms-and-more' ),
-			'type'      => 'checkbox',
+		'hcaptcha_recaptchacompat'          => array(
+			'label' => __( 'Disable recaptchacompat (stop replacing other instances of reCaptcha with hCaptcha)', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
 		),
 		'hcaptcha_nf_status'                => array(
 			'label' => __( 'Enable Ninja Forms Addon', 'hcaptcha-for-forms-and-more' ),
