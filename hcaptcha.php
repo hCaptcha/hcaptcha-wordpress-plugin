@@ -61,11 +61,12 @@ if ( is_admin() ) {
  * Add the hcaptcha script to footer.
  */
 function hcap_captcha_script() {
+    if( get_option( 'hcaptcha_recaptchacompat' ) ) { $compat = '&recaptchacompat=off'; }
 	$dir = plugin_dir_url( __FILE__ );
 	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', array(), HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
-		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
+		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ) . $compat,
 		array(),
 		HCAPTCHA_VERSION,
 		true
