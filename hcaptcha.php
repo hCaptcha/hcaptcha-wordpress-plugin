@@ -76,7 +76,6 @@ function hcap_captcha_script() {
 		if ( get_option( 'hcaptcha_recaptchacompat' ) ) {
 			$url_params .= 'recaptchacompat=off';
 		}
-
 	}
 
 	$dir = plugin_dir_url( __FILE__ );
