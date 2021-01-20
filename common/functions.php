@@ -86,7 +86,7 @@ function hcap_options() {
 			),
 		),
 		'hcaptcha_recaptchacompat'          => array(
-			'label' => __( 'Disable recaptchacompat (stop replacing other instances of reCaptcha with hCaptcha)', 'hcaptcha-for-forms-and-more' ),
+			'label' => __( 'Disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha)', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		),
 		'hcaptcha_nf_status'                => array(
