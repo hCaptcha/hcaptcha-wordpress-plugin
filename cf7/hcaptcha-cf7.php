@@ -134,7 +134,7 @@ function hcap_cf7_verify_recaptcha( $result ) {
 
 	$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
 	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-	if ( false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
+	if ( empty( $hcaptcha_api_key ) || false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
 		return $result;
 	}
 
