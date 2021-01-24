@@ -32,7 +32,7 @@ FunctionMocker::init(
 			realpath( HCAPTCHA_PATH . '/wc_wl' ),
 			realpath( HCAPTCHA_PATH . '/wpforms' ),
 			realpath( HCAPTCHA_PATH . '/wpforo' ),
-			realpath( HCAPTCHA_PATH . '/.tests/php/integration/stubs' ),
+			realpath( HCAPTCHA_PATH . '/.tests/php/integration/Stubs' ),
 		],
 		'redefinable-internals' => [
 			'defined',
@@ -41,4 +41,4 @@ FunctionMocker::init(
 	]
 );
 
-require_once HCAPTCHA_PATH . '/.tests/php/integration/stubs/bp-groups-template.php';
+require_once HCAPTCHA_PATH . '/.tests/php/integration/Stubs/bp-groups-template.php';

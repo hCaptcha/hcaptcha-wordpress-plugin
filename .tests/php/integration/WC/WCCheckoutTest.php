@@ -34,7 +34,9 @@ class WCCheckoutTest extends HCaptchaPluginWPTestCase {
 	 * Test tear down.
 	 */
 	public function tearDown(): void {
-		wc_clear_notices();
+		if ( function_exists( 'wc_clear_notices' ) ) {
+			wc_clear_notices();
+		}
 
 		parent::tearDown();
 	}

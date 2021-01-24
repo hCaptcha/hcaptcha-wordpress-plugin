@@ -16,8 +16,8 @@ settings:
     colors: true
 coverage:
     enabled: true
-    low_limit: 20
-    high_limit: 60
+    low_limit: 35
+    high_limit: 90
     show_only_summary: true
     include:
         - ./backend/*

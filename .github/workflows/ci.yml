@@ -1,0 +1,92 @@
+name: hCaptcha CI
+
+on: [ push, pull_request ]
+
+jobs:
+  run:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        php-version: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0' ]
+
+    env:
+      wp-directory: wordpress
+      wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
+      DB_HOST: 127.0.0.1
+      DB_TABLE_PREFIX: wp_
+      DB_NAME: wp-tests
+      DB_USER: root
+      DB_PASSWORD: root
+      WP_URL: http://test.test
+      WP_DOMAIN: test.test
+      WP_ADMIN_USERNAME: admin
+      WP_ADMIN_PASSWORD: admin
+      WP_ADMIN_EMAIL: admin@test.test
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: ${{ env.DB_NAME }}
+
+    runs-on: ${{ matrix.os }}
+
+    name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.wp-plugin-directory }}
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: gd, mbstring, mysqlnd, zip
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: composer install
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #      - name: Run code sniffer
+      #        run: vendor/bin/phpcs --colors
+
+      - name: Start mysql
+        run: |
+          sudo systemctl start mysql
+          mysql -uroot -proot -e "set global character_set_server=\"utf8mb4\""
+          mysql -uroot -proot -e "set global sql_mode=\"ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES\""
+
+      - name: Install WP CLI
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          chmod +x wp-cli.phar
+          mkdir -p wp-cli
+          sudo mv wp-cli.phar wp-cli/wp
+          echo "$GITHUB_WORKSPACE/wp-cli" >> $GITHUB_PATH
+
+      - name: Install WP
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          wp core download
+          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="${{ env.DB_HOST }}" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
+          wp db create
+          wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
+
+      - name: Install plugins
+        working-directory: ${{ env.wp-directory }}
+        run: wp plugin install bbpress buddypress contact-form-7 ninja-forms wpforms-lite wpforo
+
+      - name: Install WooCommerce plugin
+        if: ${{ matrix.php-version != '5.6' }}
+        working-directory: ${{ env.wp-directory }}
+        run: wp plugin install woocommerce
+
+      - name: Run WP tests
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: composer integration -- --env github-actions

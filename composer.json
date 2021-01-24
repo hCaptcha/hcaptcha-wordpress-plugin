@@ -1,7 +1,7 @@
 {
   "name": "hcaptcha/hcaptcha-wordpress-plugin",
   "description": "hCaptcha WordPress plugin",
-  "license": "GPL-2.0",
+  "license": "GPL-2.0-or-later",
   "keywords": [
     "hcaptcha"
   ],
@@ -46,15 +46,16 @@
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
     },
     "classmap": [
-      ".tests/php/integration/Stubs",
       "nf"
     ]
   },
   "bin": [
-    "build/update-tests"
+    "bin/update-tests"
   ],
   "scripts": {
     "pre-update-cmd": "update-tests",
+    "update-tests": "update-tests",
+    "revert-tests": "update-tests revert",
     "acceptance": "codecept run acceptance -c .codeception.yml",
     "integration": "codecept run integration -c .codeception.yml",
     "unit": "codecept run unit -c .codeception.yml"

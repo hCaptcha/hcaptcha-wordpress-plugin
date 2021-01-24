@@ -99,18 +99,18 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 			$require,
 			function ( &$value, $key ) {
 				$value = WP_PLUGIN_DIR . '\\' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '\\' . $value;
-				$value = str_replace( '/', '\\', $value );
+				$value = $this->normalize_path( $value );
 			}
 		);
 
-		$intersect = array_intersect( $require, get_included_files() );
+		$intersect = array_intersect( $require, $this->normalize_path( get_included_files() ) );
 		if ( ! empty( $intersect ) ) {
 			self::assertSame( $intersect, array_intersect( $intersect, $require ) );
 		}
 
 		hcap_load_modules();
 
-		$intersect = array_intersect( $require, get_included_files() );
+		$intersect = array_intersect( $require, $this->normalize_path( get_included_files() ) );
 		if ( ! empty( $intersect ) ) {
 			self::assertSame( $intersect, array_intersect( $intersect, $require ) );
 		}
@@ -126,7 +126,7 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 		hcap_load_modules();
 
-		self::assertSame( $require, array_intersect( $require, get_included_files() ) );
+		self::assertSame( $require, array_intersect( $require, $this->normalize_path( get_included_files() ) ) );
 	}
 
 	/**
@@ -289,5 +289,16 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertFalse( $override_filter_params[0] );
 		self::assertSame( $domain, $override_filter_params[1] );
 		self::assertSame( $mofile, $override_filter_params[2] );
+	}
+
+	/**
+	 * Convert Windows path to Linux style to make tests OS-independent.
+	 *
+	 * @param string|string[] $path Path.
+	 *
+	 * @return string|string[]
+	 */
+	private function normalize_path( $path ) {
+		return str_replace( '\\', '/', $path );
 	}
 }

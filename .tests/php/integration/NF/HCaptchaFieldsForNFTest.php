@@ -12,6 +12,12 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test HCaptchaFieldsForNF class.
+ *
+ * Cannot activate Ninja Forms plugin with php 8.0
+ * due to some bug with uksort() in \Ninja_Forms::plugins_loaded()
+ * caused by antecedent/patchwork.
+ *
+ * @requires PHP < 8.0
  */
 class HCaptchaFieldsForNFTest extends HCaptchaPluginWPTestCase {
 

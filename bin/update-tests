@@ -13,14 +13,20 @@ else
   DEV_MODE=$COMPOSER_DEV_MODE
 fi
 
-if [[ $DEV_MODE != '1' ]]; then
+if [[ $1 == '' && $DEV_MODE != '1' ]]; then
   echo "Script works with composer in dev mode only."
   exit 0
 fi
 
 if [[ $1 == '' ]]; then
-  PHP_VERSION=$(php -v | sed -nr "s/.*PHP (.+\..+)\..*/\1/p")
+  PHP_VERSION=$(php -v | sed -nr "s/PHP ([^.]*?\.[^.]*?)\..*/\1/p")
 else
+  if [[ $1 == 'revert' ]]; then
+    # Restore test files to the current branch version.
+    git checkout -- $TEST_DIR
+    echo "Tests reverted to the initial state."
+    exit 0
+  fi
   PHP_VERSION=$1
 fi
 
@@ -55,7 +61,7 @@ if [[ $PHP_UNIT == '' ]]; then
   exit 1
 fi
 
-if [[ $CURRENT_PHP_UNIT == "$PHP_UNIT" ]]; then
+if [[ $1 == '' && $CURRENT_PHP_UNIT == "$PHP_UNIT" ]]; then
   # Do nothing if current version of phpunit is the same as required. Important on CI.
   # Anytime force update available specifying the first argument like 'update-phpunit 7.0'
   echo "Nothing to do with phpunit."

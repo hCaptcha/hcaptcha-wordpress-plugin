@@ -26,7 +26,14 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 *
 	 * @var array
 	 */
-	private $plugin_active = [];
+	protected static $plugin_active = [];
+
+	/**
+	 * Status of do_action after activation of ninja-forms plugin.
+	 *
+	 * @var boolean
+	 */
+	protected static $did_plugins_loaded_for_nf = false;
 
 	/**
 	 * Teardown after class.
@@ -41,11 +48,33 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 * Setup test.
 	 */
 	public function setUp(): void {
+		$plugins_requiring_php_7 = [
+			'ninja-forms/ninja-forms.php',
+			'woocommerce/woocommerce.php',
+		];
+
+		if (
+			in_array( static::$plugin, $plugins_requiring_php_7, true ) &&
+			version_compare( PHP_VERSION, '7.0', '<' )
+		) {
+			self::markTestSkipped(
+				'This tests requires PHP 7.0 at least.'
+			);
+		}
+
 		parent::setUp();
 
-		if ( ! isset( $this->plugin_active[ static::$plugin ] ) ) {
+		if ( ! isset( static::$plugin_active[ static::$plugin ] ) ) {
 			activate_plugin( static::$plugin );
-			$this->plugin_active[ static::$plugin ] = true;
+			static::$plugin_active[ static::$plugin ] = true;
+		}
+
+		if (
+			'ninja-forms/ninja-forms.php' === static::$plugin &&
+			! static::$did_plugins_loaded_for_nf
+		) {
+			do_action( 'plugins_loaded' );
+			static::$did_plugins_loaded_for_nf = true;
 		}
 	}
 }

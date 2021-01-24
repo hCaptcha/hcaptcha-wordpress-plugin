@@ -1,6 +1,6 @@
 <?php
 /**
- * Parameters example
+ * GH Actions parameters
  *
  * @since   {VERSION}
  * @link    {URL}
@@ -21,4 +21,3 @@ return [
 	'DB_PASSWORD'       => 'root',
 	'DB_TABLE_PREFIX'   => 'wp_',
 ];
-
