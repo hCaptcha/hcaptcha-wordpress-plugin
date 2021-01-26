@@ -53,8 +53,9 @@ jobs:
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      #      - name: Run code sniffer
-      #        run: vendor/bin/phpcs --colors
+      - name: Run code sniffer
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: composer phpcs
 
       - name: Start mysql
         run: |

@@ -4,22 +4,14 @@
 
 	<!-- What to scan -->
 	<file>.</file>
-	<exclude-pattern>*/\.make/*</exclude-pattern>
+	<exclude-pattern>*/\.codeception/*</exclude-pattern>
+	<exclude-pattern>*/\.github/*</exclude-pattern>
 	<exclude-pattern>*/assets/*</exclude-pattern>
+	<exclude-pattern>*/bin/*</exclude-pattern>
 	<exclude-pattern>*/css/*</exclude-pattern>
-	<exclude-pattern>*/dist/*</exclude-pattern>
-	<exclude-pattern>*/js/*</exclude-pattern>
+	<exclude-pattern>*/deploy/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
-	<exclude-pattern>*/lib/*</exclude-pattern>
-	<exclude-pattern>*/src/*</exclude-pattern>
-	<exclude-pattern>*/tests/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
-	<exclude-pattern>*\.js</exclude-pattern>
-	<exclude-pattern>*\.mo</exclude-pattern>
-	<exclude-pattern>*\.po</exclude-pattern>
-	<exclude-pattern>*\.twig</exclude-pattern>
-	<exclude-pattern>*\.css</exclude-pattern>
-	<exclude-pattern>*\.scss</exclude-pattern>
 
 	<!-- How to scan -->
 	<arg value="sp"/><!-- Show sniff and progress -->
@@ -28,7 +20,6 @@
 	<arg name="parallel" value="12"/><!-- Enables parallel processing when available for faster results. -->
 
 	<config name="installed_paths" value="vendor/phpcompatibility/php-compatibility,vendor/phpcompatibility/phpcompatibility-paragonie,vendor/phpcompatibility/phpcompatibility-wp,vendor/wp-coding-standards/wpcs"/>
-	<config name="testVersion" value="5.6-"/>
 
 	<!-- Rules: Check PHP version compatibility -->
 	<rule ref="PHPCompatibility"/>
@@ -39,6 +30,12 @@
 	<rule ref="WordPress"/>
 
 	<rule ref="Generic.Arrays.DisallowShortArraySyntax.Found">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<severity>0</severity>
 	</rule>
 </ruleset>

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Stubs of BuddyPress function.
+ *
+ * @package HCaptcha\Tests
+ */
 
 /**
  * BuddyPress is group creation step.
