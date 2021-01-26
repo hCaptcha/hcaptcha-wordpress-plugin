@@ -26,7 +26,7 @@
 	<rule ref="PHPCompatibilityWP"/>
 
 	<!-- Rules: WordPress Coding Standards -->
-	<config name="minimum_supported_wp_version" value="5.1"/>
+	<config name="minimum_supported_wp_version" value="4.4"/>
 	<rule ref="WordPress"/>
 
 	<rule ref="Generic.Arrays.DisallowShortArraySyntax.Found">
