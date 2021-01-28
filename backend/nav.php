@@ -7,7 +7,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -39,11 +41,12 @@ function hcaptcha_options() {
 			esc_html__(
 				'You do not have sufficient permissions to access this page.',
 				'hcaptcha-for-forms-and-more'
-			)
+			),
+			'hCaptcha'
 		);
 	}
 
-	include HCAPTCHA_PATH . '/backend/settings.php';
+	require_once HCAPTCHA_PATH . '/backend/settings.php';
 }
 
 /**

@@ -7,11 +7,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
-}
-
-if ( empty( get_option( 'hcaptcha_api_key' ) ) || empty( get_option( 'hcaptcha_secret_key' ) ) ) {
-	return;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -89,7 +87,7 @@ function hcap_cf7_shortcode( $atts ) {
 	$hcaptcha_size    = get_option( 'hcaptcha_size' );
 
 	return (
-		'<div id="hcap_cf7-' . uniqid() .
+		'<div id="' . uniqid( 'hcap_cf7-', true ) .
 		'" class="h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
 		'" data-theme="' . esc_html( $hcaptcha_theme ) .
 		'" data-size="' . esc_html( $hcaptcha_size ) . '"></div>' .
@@ -119,15 +117,24 @@ function hcap_cf7_verify_recaptcha( $result ) {
 	// Our comments: hCaptcha passcodes are one-time use, so effectively serve as a nonce anyway.
 
 	$submission = WPCF7_Submission::get_instance();
-	$data       = $submission->get_posted_data();
-	$wpcf7_id   = filter_input( INPUT_POST, '_wpcf7', FILTER_VALIDATE_INT );
+	if ( null === $submission ) {
+		return $result;
+	}
+
+	$data     = $submission->get_posted_data();
+	$wpcf7_id = filter_var(
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		isset( $_POST['_wpcf7'] ) ? wp_unslash( $_POST['_wpcf7'] ) : 0,
+		FILTER_VALIDATE_INT
+	);
+
 	if ( empty( $wpcf7_id ) ) {
 		return $result;
 	}
 
 	$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
 	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-	if ( false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
+	if ( empty( $hcaptcha_api_key ) || false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
 		return $result;
 	}
 
