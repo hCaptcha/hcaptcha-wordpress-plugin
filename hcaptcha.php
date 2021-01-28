@@ -61,21 +61,17 @@ function hcap_captcha_script() {
 	if ( get_option( 'hcaptcha_recaptchacompat' ) || get_option( 'hcaptcha_language' ) ) {
 		$url_params = '?';
 
-		if ( get_option( 'hcaptcha_recaptchacompat' ) && get_option( 'hcaptcha_language' ) ) {
-			$param_separator = '&';
-		} else {
-			$param_separator = '';
+		$param_array = array();
+
+		if ( get_option( 'hcaptcha_recaptchacompat' ) ) {
+			$param_array['recaptchacompat'] = 'off';
 		}
 
 		if ( get_option( 'hcaptcha_language' ) ) {
-			$url_params .= 'hl=' . get_option( 'hcaptcha_language' );
+			$param_array['hl'] = get_option( 'hcaptcha_language' );
 		}
 
-		$url_params .= $param_separator;
-
-		if ( get_option( 'hcaptcha_recaptchacompat' ) ) {
-			$url_params .= 'recaptchacompat=off';
-		}
+		$url_params .= http_build_query( $param_array );
 	}
 
 	$dir = plugin_dir_url( __FILE__ );
