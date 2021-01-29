@@ -90,6 +90,10 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'type'        => 'text',
 					'description' => 'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>.',
 				],
+			'hcaptcha_recaptchacompat'          => [
+				'label' => 'Disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha)',
+				'type'  => 'checkbox',
+			],
 			'hcaptcha_nf_status'                =>
 				[
 					'label' => 'Enable Ninja Forms Addon',

@@ -96,6 +96,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 	<br><br>
 				<input
 					type="checkbox"
+					id="hcaptcha_recaptchacompat"
+					name="hcaptcha_recaptchacompat"
+				/>
+			&nbsp;
+			<span>Disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha)</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_nf_status"
 					name="hcaptcha_nf_status"
 				/>
@@ -402,6 +410,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				<strong>Enable/Disable Features</strong>
 	<br><br>
 				<input
+					type="checkbox"
+					id="hcaptcha_recaptchacompat"
+					name="hcaptcha_recaptchacompat"
+				/>
+			&nbsp;
+			<span>Disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha)</span>
+			<br><br>
+						<input
 					type="checkbox"
 					id="hcaptcha_nf_status"
 					name="hcaptcha_nf_status"
