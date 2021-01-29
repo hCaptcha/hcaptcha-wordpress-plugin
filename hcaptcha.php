@@ -61,29 +61,25 @@ if ( is_admin() ) {
  * Add the hcaptcha script to footer.
  */
 function hcap_captcha_script() {
-	$url_params = '';
-	if ( get_option( 'hcaptcha_recaptchacompat' ) || get_option( 'hcaptcha_language' ) ) {
-		$url_params = '?';
+	$param_array = [];
+	$compat      = get_option( 'hcaptcha_recaptchacompat' );
+	$language    = get_option( 'hcaptcha_language' );
 
-		$param_array = array();
-
-		if ( get_option( 'hcaptcha_recaptchacompat' ) ) {
-			$param_array['recaptchacompat'] = 'off';
-		}
-
-		if ( get_option( 'hcaptcha_language' ) ) {
-			$param_array['hl'] = get_option( 'hcaptcha_language' );
-		}
-
-		$url_params .= http_build_query( $param_array );
+	if ( $compat ) {
+		$param_array['recaptchacompat'] = 'off';
 	}
 
-	$dir = plugin_dir_url( __FILE__ );
-	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', array(), HCAPTCHA_VERSION );
+	if ( $language ) {
+		$param_array['hl'] = $language;
+	}
+
+	$url_params = add_query_arg( $param_array, '' );
+
+	wp_enqueue_style( 'hcaptcha-style', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
 		'//hcaptcha.com/1/api.js' . $url_params,
-		array(),
+		[],
 		HCAPTCHA_VERSION,
 		true
 	);
