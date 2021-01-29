@@ -5,8 +5,8 @@
  * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
- * Version: 1.7.0
- * Stable tag: 1.7.0
+ * Version: 1.8.0
+ * Stable tag: 1.8.0
  * Requires at least: 4.4
  * Tested up to: 5.6
  * Requires PHP: 5.6
@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.7.0' );
+define( 'HCAPTCHA_VERSION', '1.8.0' );
 
 /**
  * Path to the plugin dir.
