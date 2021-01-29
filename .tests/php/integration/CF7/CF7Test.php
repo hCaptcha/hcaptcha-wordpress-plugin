@@ -67,6 +67,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
             });
         })(jQuery);";
 
+		hcap_captcha_script();
 		enqueue_hcap_cf7_script();
 
 		self::assertTrue( wp_script_is( 'hcaptcha-script', 'enqueued' ) );

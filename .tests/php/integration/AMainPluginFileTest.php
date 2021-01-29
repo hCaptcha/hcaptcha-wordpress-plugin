@@ -13,6 +13,20 @@ namespace HCaptcha\Tests\Integration;
 class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down test.
+	 */
+	public function tearDown(): void {
+		wp_dequeue_script( 'hcaptcha-script' );
+		wp_deregister_script( 'hcaptcha-script' );
+
+		wp_dequeue_style( 'hcaptcha-style' );
+		wp_deregister_style( 'hcaptcha-style' );
+
+		delete_option( 'hcaptcha_recaptchacompat' );
+		delete_option( 'hcaptcha_language' );
+	}
+
+	/**
 	 * Test main plugin file content.
 	 */
 	public function test_main_file_content(): void {
@@ -52,8 +66,21 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test hcap_captcha_script().
+	 *
+	 * @param string|false $compat              Compat option value.
+	 * @param string|false $language            Language option value.
+	 * @param string       $expected_script_src Expected script source.
+	 *
+	 * @dataProvider dp_test_hcap_captcha_script
 	 */
-	public function test_hcap_captcha_script(): void {
+	public function test_hcap_captcha_script( $compat, $language, $expected_script_src ): void {
+		global $wp_scripts, $wp_styles;
+
+		$expected_style_src = HCAPTCHA_URL . '/css/style.css';
+
+		update_option( 'hcaptcha_recaptchacompat', $compat );
+		update_option( 'hcaptcha_language', $language );
+
 		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
 
@@ -61,6 +88,24 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
+
+		self::assertSame( $expected_style_src, $wp_styles->registered['hcaptcha-style']->src );
+		self::assertSame( $expected_script_src, $wp_scripts->registered['hcaptcha-script']->src );
+	}
+
+	/**
+	 * Data provider for test_hcap_captcha_script().
+	 *
+	 * @return array
+	 */
+	public function dp_test_hcap_captcha_script() {
+		return [
+			'no options'    => [ false, false, '//hcaptcha.com/1/api.js' ],
+			'empty options' => [ '', '', '//hcaptcha.com/1/api.js' ],
+			'compat only'   => [ 'on', false, '//hcaptcha.com/1/api.js?recaptchacompat=off' ],
+			'language only' => [ false, 'ru', '//hcaptcha.com/1/api.js?hl=ru' ],
+			'both options'  => [ 'on', 'ru', '//hcaptcha.com/1/api.js?recaptchacompat=off&hl=ru' ],
+		];
 	}
 
 	/**
