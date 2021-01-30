@@ -100,7 +100,7 @@ class SettingsTest extends HCaptchaWPTestCase {
 					name="hcaptcha_recaptchacompat"
 				/>
 			&nbsp;
-			<span>Disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha)</span>
+			<span>Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)</span>
 			<br><br>
 						<input
 					type="checkbox"
