@@ -72,7 +72,7 @@ Please see the hCaptcha privacy policy at:
 == Changelog ==
 
 = 1.8.0 =
-* Added option to disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha).
+* Added option to disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)
 
 = 1.7.0 =
 * 100% covered by WordPress integration tests.
@@ -162,4 +162,3 @@ Please check with your plugin author if native support is not yet available.
 Instructions for native integrations are below:
 
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
-
