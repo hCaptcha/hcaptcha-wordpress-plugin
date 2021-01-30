@@ -5,8 +5,8 @@
  * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
- * Version: 1.7.0
- * Stable tag: 1.7.0
+ * Version: 1.8.0
+ * Stable tag: 1.8.0
  * Requires at least: 4.4
  * Tested up to: 5.6
  * Requires PHP: 5.6
@@ -30,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.7.0' );
+define( 'HCAPTCHA_VERSION', '1.8.0' );
 
 /**
  * Path to the plugin dir.
@@ -61,12 +61,25 @@ if ( is_admin() ) {
  * Add the hcaptcha script to footer.
  */
 function hcap_captcha_script() {
-	$dir = plugin_dir_url( __FILE__ );
-	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', array(), HCAPTCHA_VERSION );
+	$param_array = [];
+	$compat      = get_option( 'hcaptcha_recaptchacompat' );
+	$language    = get_option( 'hcaptcha_language' );
+
+	if ( $compat ) {
+		$param_array['recaptchacompat'] = 'off';
+	}
+
+	if ( $language ) {
+		$param_array['hl'] = $language;
+	}
+
+	$url_params = add_query_arg( $param_array, '' );
+
+	wp_enqueue_style( 'hcaptcha-style', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
-		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
-		array(),
+		'//hcaptcha.com/1/api.js' . $url_params,
+		[],
 		HCAPTCHA_VERSION,
 		true
 	);
