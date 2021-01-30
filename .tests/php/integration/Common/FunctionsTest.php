@@ -91,7 +91,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'description' => 'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>.',
 				],
 			'hcaptcha_recaptchacompat'          => [
-				'label' => 'Disable recaptchacompat (stop replacing other instances of reCAPTCHA with hCaptcha)',
+				'label' => 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)',
 				'type'  => 'checkbox',
 			],
 			'hcaptcha_nf_status'                =>
