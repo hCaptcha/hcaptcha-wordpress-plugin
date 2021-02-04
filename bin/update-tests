@@ -14,7 +14,7 @@ else
 fi
 
 if [[ $1 == '' && $DEV_MODE != '1' ]]; then
-  echo "Script works with composer in dev mode only."
+#  Script works with composer in dev mode only.
   exit 0
 fi
 
