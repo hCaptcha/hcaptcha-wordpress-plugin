@@ -75,6 +75,7 @@ function hcap_options() {
 			'options' => array(
 				'normal'  => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
 				'compact' => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
+				'invisible' => __( 'Invisible', 'hcaptcha-for-forms-and-more' ),
 			),
 		),
 		'hcaptcha_language'                 => array(
