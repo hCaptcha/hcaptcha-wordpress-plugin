@@ -7,9 +7,7 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -42,9 +40,9 @@ function hcap_wp_login_comment_form( $field ) {
 		);
 
 		return $output;
+	} else {
+		return $field;
 	}
-
-	return $field;
 }
 
 add_filter( 'comment_form_field_comment', 'hcap_wp_login_comment_form', 10, 1 );
@@ -57,20 +55,15 @@ add_filter( 'comment_form_field_comment', 'hcap_wp_login_comment_form', 10, 1 );
  * @return mixed
  */
 function hcap_verify_comment_captcha( $commentdata ) {
-	$error_message = hcaptcha_get_verify_message_html(
-		'hcaptcha_comment_form_nonce',
-		'hcaptcha_comment_form'
-	);
-
+	$error_message = hcaptcha_get_verify_message_html( 'hcaptcha_comment_form_nonce', 'hcaptcha_comment_form' );
 	if ( null === $error_message ) {
 		return $commentdata;
 	}
-
 	if ( is_admin() ) {
 		return $commentdata;
 	}
 
-	wp_die( wp_kses_post( $error_message ), 'hCaptcha', array( 'back_link' => true ) );
+	wp_die( wp_kses_post( $error_message ), wp_kses_post( $error_message ), array( 'back_link' => true ) );
 }
 
 add_filter( 'preprocess_comment', 'hcap_verify_comment_captcha' );

@@ -5,13 +5,13 @@
  * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
  * Author: hCaptcha
  * Author URI: https://hCaptcha.com/
- * Version: 1.8.0
- * Stable tag: 1.8.0
+ * Version: 1.6.4
+ * Stable tag: 1.6.4
  * Requires at least: 4.4
- * Tested up to: 5.6
+ * Tested up to: 5.5
  * Requires PHP: 5.6
  * WC requires at least: 3.0
- * WC tested up to: 4.9
+ * WC tested up to: 4.7
  *
  * Text Domain: hcaptcha-for-forms-and-more
  * Domain Path: /languages
@@ -22,20 +22,18 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.8.0' );
+define( 'HCAPTCHA_VERSION', '1.6.4' );
 
 /**
  * Path to the plugin dir.
  */
-define( 'HCAPTCHA_PATH', __DIR__ );
+define( 'HCAPTCHA_PATH', dirname( __FILE__ ) );
 
 /**
  * Plugin dir url.
@@ -46,8 +44,6 @@ define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
  * Main plugin file.
  */
 define( 'HCAPTCHA_FILE', __FILE__ );
-
-require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
 require 'common/request.php';
 require 'common/functions.php';
@@ -61,25 +57,12 @@ if ( is_admin() ) {
  * Add the hcaptcha script to footer.
  */
 function hcap_captcha_script() {
-	$param_array = [];
-	$compat      = get_option( 'hcaptcha_recaptchacompat' );
-	$language    = get_option( 'hcaptcha_language' );
-
-	if ( $compat ) {
-		$param_array['recaptchacompat'] = 'off';
-	}
-
-	if ( $language ) {
-		$param_array['hl'] = $language;
-	}
-
-	$url_params = add_query_arg( $param_array, '' );
-
-	wp_enqueue_style( 'hcaptcha-style', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
+	$dir = plugin_dir_url( __FILE__ );
+	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', array(), HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
-		'//hcaptcha.com/1/api.js' . $url_params,
-		[],
+		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
+		array(),
 		HCAPTCHA_VERSION,
 		true
 	);
@@ -221,9 +204,7 @@ function hcap_load_modules() {
 	);
 
 	if ( ! function_exists( 'is_plugin_active' ) ) {
-		// @codeCoverageIgnoreStart
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		// @codeCoverageIgnoreEnd
 	}
 
 	foreach ( $modules as $module ) {

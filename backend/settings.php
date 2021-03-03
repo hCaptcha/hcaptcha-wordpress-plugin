@@ -7,9 +7,7 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
 hcap_display_options_page();
@@ -21,17 +19,15 @@ function hcap_display_options_page() {
 	$updated = false;
 
 	if (
-		isset( $_POST['hcaptcha_settings_nonce'], $_POST['submit'] ) &&
+		isset( $_POST['hcaptcha_settings_nonce'] ) &&
 		wp_verify_nonce(
-			filter_var( wp_unslash( $_POST['hcaptcha_settings_nonce'] ), FILTER_SANITIZE_STRING ),
+			filter_input( INPUT_POST, 'hcaptcha_settings_nonce', FILTER_SANITIZE_STRING ),
 			'hcaptcha_settings'
-		)
+		) &&
+		isset( $_POST['submit'] )
 	) {
 		foreach ( hcap_options() as $option_name => $option ) {
-			$option_value = filter_var(
-				wp_unslash( isset( $_POST[ $option_name ] ) ? $_POST[ $option_name ] : '' ),
-				FILTER_SANITIZE_STRING
-			);
+			$option_value = filter_input( INPUT_POST, $option_name, FILTER_SANITIZE_STRING );
 
 			if ( ! $option_value && 'checkbox' === $option['type'] ) {
 				$option_value = 'off';

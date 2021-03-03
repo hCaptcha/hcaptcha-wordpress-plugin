@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.4
-Tested up to: 5.6
+Tested up to: 5.5
 Requires PHP: 5.6  
-Stable tag: 1.8.0
+Stable tag: 1.6.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -71,15 +71,8 @@ Please see the hCaptcha privacy policy at:
  
 == Changelog ==
 
-= 1.8.0 =
-* Added option to disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)
-
-= 1.7.0 =
-* 100% covered by WordPress integration tests.
-* Tests run on CI with PHP 5.6 - 8.0, latest WordPress core and latest related plugins.
-
-= 1.6.4 =
-* Make any Jetpack contact form working with Block Editor
+= 1.6.3 =
+* Make any Jetpack contact form working with Block Editor 
 * Tested with WooCommerce 4.7
 
 = 1.6.3 =
@@ -154,7 +147,7 @@ Please see the hCaptcha privacy policy at:
 
 === Please note ===
 
-Some plugins listed have been superseded by native support, and are included only for legacy purposes.
+Some plugins listed have been superceded by native support, and are included only for legacy purposes.
 
 You should always use native hCaptcha support if available for your plugin.
 Please check with your plugin author if native support is not yet available.
@@ -162,3 +155,4 @@ Please check with your plugin author if native support is not yet available.
 Instructions for native integrations are below:
 
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
+

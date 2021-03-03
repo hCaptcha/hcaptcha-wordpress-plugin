@@ -7,9 +7,7 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
 if ( ! function_exists( 'hcap_hcaptcha_jetpack_form' ) ) {
@@ -85,11 +83,11 @@ if ( ! function_exists( 'hcap_hcaptcha_jetpack_verify' ) ) {
 			return $is_spam;
 		}
 
-		$error = new WP_Error();
-		$error->add( 'invalid_hcaptcha', $error_message );
+		$is_spam = new WP_Error();
+		$is_spam->add( 'invalid_hcaptcha', $error_message );
 		add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
 
-		return $error;
+		return $is_spam;
 	}
 }
 

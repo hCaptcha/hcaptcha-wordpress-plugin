@@ -1,15 +1,13 @@
 <?php
 /**
- * Mailchimp form file.
+ * Functions file.
  *
  * @package hcaptcha-wp
  */
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
 /**

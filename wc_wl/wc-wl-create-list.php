@@ -10,30 +10,22 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
-/**
- * Filter hcap_hcaptcha_content.
- *
- * @param string $content Content.
- *
- * @return string
- */
-function hcap_woocommerce_wishlists_hcaptcha_content_filter( $content ) {
-	$content .= wp_nonce_field(
-		'hcaptcha_wc_create_wishlist',
-		'hcaptcha_wc_create_wishlist_nonce',
-		true,
-		false
-	);
+add_filter(
+	'hcap_hcaptcha_content',
+	function ( $content ) {
+		$content .= wp_nonce_field(
+			'hcaptcha_wc_create_wishlist',
+			'hcaptcha_wc_create_wishlist_nonce',
+			true,
+			false
+		);
 
-	return $content;
-}
-
-add_filter( 'hcap_hcaptcha_content', 'hcap_woocommerce_wishlists_hcaptcha_content_filter' );
+		return $content;
+	}
+);
 
 /**
  * Before WooCommerce Wishlist wrapper action.

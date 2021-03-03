@@ -54,15 +54,18 @@ if ( ! function_exists( 'hcaptcha_verify_POST' ) ) {
 		// phpcs:enable WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 
 		if (
-			! isset( $_POST[ $nonce_field_name ], $_POST['h-captcha-response'] ) ||
-			empty( $_POST['h-captcha-response'] ) ||
-			! wp_verify_nonce( filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_STRING ), $nonce_action_name )
-		) {
+			! isset( $_POST[ $nonce_field_name ] )
+			|| ! wp_verify_nonce(
+				filter_input( INPUT_POST, $nonce_field_name, FILTER_SANITIZE_STRING ),
+				$nonce_action_name
+			)
+			|| ! isset( $_POST['h-captcha-response'] )
+			|| empty( $_POST['h-captcha-response'] ) ) {
 			return 'empty';
 		}
 
 		return hcaptcha_request_verify(
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_STRING )
+			filter_input( INPUT_POST, 'h-captcha-response', FILTER_SANITIZE_STRING )
 		);
 	}
 }

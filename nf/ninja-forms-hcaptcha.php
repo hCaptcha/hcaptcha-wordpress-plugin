@@ -7,25 +7,18 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
 
-/**
- * Filter ninja_forms_register_fields.
- *
- * @param array $fields Fields.
- *
- * @return mixed
- */
-function hcap_ninja_forms_register_fields( $fields ) {
-	$fields['hcaptcha-for-ninja-forms'] = new HCaptchaFieldsForNF();
+add_filter(
+	'ninja_forms_register_fields',
+	function ( $fields ) {
+		require_once plugin_dir_path( __FILE__ ) . 'class-hcaptchafieldsfornf.php';
+		$fields['hcaptcha-for-ninja-forms'] = new HCaptchaFieldsForNF();
 
-	return $fields;
-}
-
-add_filter( 'ninja_forms_register_fields', 'hcap_ninja_forms_register_fields' );
+		return $fields;
+	}
+);
 
 /**
  * Add template file path.
@@ -35,37 +28,28 @@ add_filter( 'ninja_forms_register_fields', 'hcap_ninja_forms_register_fields' );
  * @return mixed
  */
 function hcap_nf_template_file_paths( $paths ) {
-	$paths[] = __DIR__ . '/templates/';
+	$paths[] = dirname( __FILE__ ) . '/templates/';
 
 	return $paths;
 }
 
 add_filter( 'ninja_forms_field_template_file_paths', 'hcap_nf_template_file_paths' );
 
-/**
- * Filter ninja_forms_localize_field_hcaptcha-for-ninja-forms.
- *
- * @param array $field Field.
- *
- * @return mixed
- */
-function ninja_forms_localize_field_hcaptcha_for_ninja_forms_filter( $field ) {
-	$field['settings']['hcaptcha_key']         = get_option( 'hcaptcha_api_key' );
-	$field['settings']['hcaptcha_theme']       = get_option( 'hcaptcha_theme' );
-	$field['settings']['hcaptcha_size']        = get_option( 'hcaptcha_size' );
-	$field['settings']['hcaptcha_nonce_field'] = wp_nonce_field(
-		'hcaptcha_nf',
-		'hcaptcha_nf_nonce',
-		true,
-		false
-	);
-
-	return $field;
-}
-
 add_filter(
 	'ninja_forms_localize_field_hcaptcha-for-ninja-forms',
-	'ninja_forms_localize_field_hcaptcha_for_ninja_forms_filter',
+	function ( $field ) {
+		$field['settings']['hcaptcha_key']         = get_option( 'hcaptcha_api_key' );
+		$field['settings']['hcaptcha_theme']       = get_option( 'hcaptcha_theme' );
+		$field['settings']['hcaptcha_size']        = get_option( 'hcaptcha_size' );
+		$field['settings']['hcaptcha_nonce_field'] = wp_nonce_field(
+			'hcaptcha_nf',
+			'hcaptcha_nf_nonce',
+			true,
+			false
+		);
+
+		return $field;
+	},
 	10,
 	1
 );

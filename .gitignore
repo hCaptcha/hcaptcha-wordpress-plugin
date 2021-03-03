@@ -1,8 +1,2 @@
-.codeception/_output/
-.idea/
+*.swp
 vendor/
-
-*.lock
-.DS_Store
-.phpcs.cache
-Thumbs.db
