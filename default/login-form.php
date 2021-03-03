@@ -7,7 +7,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -39,7 +41,7 @@ function hcap_verify_login_captcha( $user, $password ) {
 		return $user;
 	}
 
-	return new WP_Error( 'Invalid Captcha', $error_message );
+	return new WP_Error( __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' ), $error_message );
 }
 
 add_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha', 10, 2 );

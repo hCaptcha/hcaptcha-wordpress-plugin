@@ -1,0 +1,18 @@
+bootstrap: ./_bootstrap.php
+modules:
+    enabled:
+        - WPLoader
+    config:
+        WPLoader:
+            wpRootFolder: '%WP_ROOT_PATH%'
+            dbName: '%DB_NAME%'
+            dbHost: '%DB_HOST%'
+            dbUser: '%DB_USER%'
+            dbPassword: '%DB_PASSWORD%'
+            wpDebug: true
+            tablePrefix: '%DB_TABLE_PREFIX%'
+            domain: '%WP_URL%'
+            plugins:
+                - hcaptcha-wordpress-plugin/hcaptcha.php
+            activatePlugins:
+                - hcaptcha-wordpress-plugin/hcaptcha.php
