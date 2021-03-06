@@ -87,11 +87,13 @@ function hcap_cf7_shortcode( $atts ) {
 	$hcaptcha_size    = get_option( 'hcaptcha_size' );
 
 	return (
-		'<div id="' . uniqid( 'hcap_cf7-', true ) .
-		'" class="h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
+		'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
+		'<span id="' . uniqid( 'hcap_cf7-', true ) .
+		'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
 		'" data-theme="' . esc_html( $hcaptcha_theme ) .
-		'" data-size="' . esc_html( $hcaptcha_size ) . '"></div>' .
-		'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid"></span>' .
+		'" data-size="' . esc_html( $hcaptcha_size ) . '">' .
+		'</span>' .
+		'</span>' .
 		wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7', true, false )
 	);
 }
