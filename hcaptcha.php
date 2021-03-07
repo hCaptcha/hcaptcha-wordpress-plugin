@@ -1,23 +1,27 @@
 <?php
 /**
- * Plugin Name: hCaptcha for Forms and More
- * Plugin URI: https://hcaptcha.com/
- * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Author: hCaptcha
- * Author URI: https://hCaptcha.com/
- * Version: 1.8.0
- * Stable tag: 1.8.0
- * Requires at least: 4.4
- * Tested up to: 5.6
- * Requires PHP: 5.6
+ * Plugin hCaptcha
+ *
+ * @package              hcaptcha-wp
+ * @author               hCaptcha
+ * @license              GPL-2.0-or-later
+ * @wordpress-plugin
+ *
+ * Plugin Name:          hCaptcha for Forms and More
+ * Plugin URI:           https://hcaptcha.com/
+ * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
+ * Version:              1.9.0
+ * Requires at least:    4.4
+ * Requires PHP:         5.6
+ * Author:               hCaptcha
+ * Author URI:           https://hCaptcha.com/
+ * License:              GPL v2 or later
+ * License URI:          https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:          hcaptcha-for-forms-and-more
+ * Domain Path:          /languages/
+ *
  * WC requires at least: 3.0
- * WC tested up to: 4.9
- *
- * Text Domain: hcaptcha-for-forms-and-more
- * Domain Path: /languages
- *
- * @package hcaptcha-wp
- * @author  hCaptcha
+ * WC tested up to:      5.0
  */
 
 // If this file is called directly, abort.
@@ -30,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.8.0' );
+define( 'HCAPTCHA_VERSION', '1.9.0' );
 
 /**
  * Path to the plugin dir.

@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.4
-Tested up to: 5.6
+Tested up to: 5.7
 Requires PHP: 5.6  
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -70,6 +70,9 @@ Please see the hCaptcha privacy policy at:
 * ([hCaptcha.com](https://hCaptcha.com/privacy))
  
 == Changelog ==
+
+= 1.9.0 =
+* Tested with WordPress 5.7 and WooCommerce 5.0
 
 = 1.8.0 =
 * Added option to disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)

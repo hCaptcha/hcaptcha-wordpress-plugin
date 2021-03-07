@@ -1,9 +1,8 @@
-
 # hCaptcha for WordPress
 
-[![Build Status](https://travis-ci.org/hCaptcha/hcaptcha-wordpress-plugin.svg?branch=master)](https://travis-ci.org/hCaptcha/hcaptcha-wordpress-plugin)
+![Build Status](https://github.com/hCaptcha/hcaptcha-wordpress-plugin/actions/workflows/ci.yml/badge.svg?branch=master)
 
-Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kagg, publicarray
+Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kaggdesign, publicarray
 
 Maintainers: hCaptcha team  
 
@@ -22,12 +21,29 @@ hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money 
 
 ## Installation
 
-0. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
-1. Upload `hcaptcha-wp` folder to the `/wp-content/plugins/` directory  
+```
+cd /wp-content/plugins
+git clone https://github.com/hCaptcha/hcaptcha-wordpress-plugin.git
+cd hcaptcha-wordpress-plugin
+composer install
+```
+1. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
 2. Activate the plugin through the 'Plugins' menu in WordPress  
 3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress  
 4. Enable desired Integrations  
  
+## Run code sniffer to respect WordPress coding standards
+
+```
+composer phpcs
+```
+
+## Run integration tests
+
+```
+composer integration
+```
+
 ## Frequently Asked Questions
 
 Q: Where can I get more information about hCaptcha?  
