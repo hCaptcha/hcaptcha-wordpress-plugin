@@ -6,7 +6,7 @@ jobs:
   run:
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ubuntu-18.04]
         php-version: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0' ]
 
     env:
@@ -22,12 +22,6 @@ jobs:
       WP_ADMIN_USERNAME: admin
       WP_ADMIN_PASSWORD: admin
       WP_ADMIN_EMAIL: admin@test.test
-
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_DATABASE: ${{ env.DB_NAME }}
 
     runs-on: ${{ matrix.os }}
 
@@ -60,8 +54,8 @@ jobs:
       - name: Start mysql
         run: |
           sudo systemctl start mysql
-          mysql -uroot -proot -e "set global character_set_server=\"utf8mb4\""
-          mysql -uroot -proot -e "set global sql_mode=\"ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES\""
+          mysql -e "set global character_set_server=\"utf8mb4\"" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+          mysql -e "set global sql_mode=\"ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES\"" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
 
       - name: Install WP CLI
         run: |
