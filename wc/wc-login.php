@@ -7,7 +7,9 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -15,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function hcap_display_wc_login() {
 	hcap_form_display();
-	wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce' );
+	wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login' );
 }
 
 add_action( 'woocommerce_login_form', 'hcap_display_wc_login', 10, 0 );

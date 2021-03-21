@@ -1,0 +1,39 @@
+name: Deploy to WordPress.org
+on:
+  release:
+    types: [published]
+jobs:
+  tag:
+    name: New release
+
+    runs-on: ubuntu-latest
+
+    env:
+      SLUG: "hcaptcha-for-forms-and-more"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies in prod version
+        run: composer install --no-dev
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: WordPress Plugin Deploy
+        id: deploy
+        uses: kagg-design/action-wordpress-plugin-deploy@test
+        with:
+          generate-zip: true
+        env:
+          SVN_SERVER: ${{ secrets.SVN_SERVER }}
+          SLUG: ${{ env.SLUG }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{github.workspace}}/${{ env.SLUG }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

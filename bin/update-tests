@@ -1,0 +1,79 @@
+#!/bin/bash
+# This file updates tests according to the phpunit library used for current php version, or php version in 1st argument.
+# Usage:
+#   update-tests - to update tests according to the phpunit library used for current php version.
+#   update-tests x.x - to update tests according to the phpunit library used for specific php version x.x, where x.x = 5.6|7.0|7.1|7.2|7.3|7.4|8.0.
+
+# Directory with phpunit tests.
+TEST_DIR=".tests"
+
+if grep -q Microsoft /proc/version; then
+  DEV_MODE=$(cmd.exe /c echo %COMPOSER_DEV_MODE% | sed -nr 's/\r//p')
+else
+  DEV_MODE=$COMPOSER_DEV_MODE
+fi
+
+if [[ $1 == '' && $DEV_MODE != '1' ]]; then
+#  Script works with composer in dev mode only.
+  exit 0
+fi
+
+if [[ $1 == '' ]]; then
+  PHP_VERSION=$(php -v | sed -nr "s/PHP ([^.]*?\.[^.]*?)\..*/\1/p")
+else
+  if [[ $1 == 'revert' ]]; then
+    # Restore test files to the current branch version.
+    git checkout -- $TEST_DIR
+    echo "Tests reverted to the initial state."
+    exit 0
+  fi
+  PHP_VERSION=$1
+fi
+
+echo "PHP_VERSION: $PHP_VERSION"
+
+VERSION_FILE="vendor/phpunit/phpunit/src/Runner/Version.php"
+CURRENT_PHP_UNIT=''
+
+RESULT=$(test -f $VERSION_FILE && sed -nr "s/.*new Version.+'(.+\..+)\..*'.*/\1/p" $VERSION_FILE)
+
+if [[ $? == 0 ]]; then
+  CURRENT_PHP_UNIT=$RESULT
+  echo "CURRENT_PHP_UNIT: $CURRENT_PHP_UNIT"
+else
+  echo "CURRENT_PHP_UNIT: Not found."
+fi
+
+if [[ $PHP_VERSION == '5.6' ]]; then
+  PHP_UNIT='5.7'
+elif [[ $PHP_VERSION == '7.0' ]]; then
+  PHP_UNIT='6.5'
+elif [[ $PHP_VERSION == '7.1' ]]; then
+  PHP_UNIT='7.5'
+elif [[ $PHP_VERSION == '7.2' ]]; then
+  PHP_UNIT='8.5'
+elif [[ $PHP_VERSION == '7.3' || $PHP_VERSION == '7.4' || $PHP_VERSION == '8.0' ]]; then
+  PHP_UNIT='9.5'
+fi
+
+if [[ $PHP_UNIT == '' ]]; then
+  echo "Wrong PHP version: $PHP_VERSION"
+  exit 1
+fi
+
+if [[ $1 == '' && $CURRENT_PHP_UNIT == "$PHP_UNIT" ]]; then
+  # Do nothing if current version of phpunit is the same as required. Important on CI.
+  # Anytime force update available specifying the first argument like 'update-phpunit 7.0'
+  echo "Nothing to do with phpunit."
+  exit 0
+fi
+
+# Restore test files to the current branch version.
+git checkout -- $TEST_DIR
+
+if [[ $PHP_UNIT == '5.7' || $PHP_UNIT == '6.5' || $PHP_UNIT == '7.5' ]]; then
+  echo "Preparing tests for phpunit-$PHP_UNIT"
+  find $TEST_DIR -type f -exec sed -i "s/: void / /g" {} \;
+fi
+
+exit 0

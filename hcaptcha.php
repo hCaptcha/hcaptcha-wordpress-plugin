@@ -1,39 +1,45 @@
 <?php
 /**
- * Plugin Name: hCaptcha for Forms and More
- * Plugin URI: https://hcaptcha.com/
- * Description: hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Author: hCaptcha
- * Author URI: https://hCaptcha.com/
- * Version: 1.8.1
- * Stable tag: 1.8.1
- * Requires at least: 4.4
- * Tested up to: 5.5
- * Requires PHP: 5.6
+ * Plugin hCaptcha
+ *
+ * @package              hcaptcha-wp
+ * @author               hCaptcha
+ * @license              GPL-2.0-or-later
+ * @wordpress-plugin
+ *
+ * Plugin Name:          hCaptcha for Forms and More
+ * Plugin URI:           https://hcaptcha.com/
+ * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
+ * Version:              1.9.0
+ * Requires at least:    4.4
+ * Requires PHP:         5.6
+ * Author:               hCaptcha
+ * Author URI:           https://hCaptcha.com/
+ * License:              GPL v2 or later
+ * License URI:          https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:          hcaptcha-for-forms-and-more
+ * Domain Path:          /languages/
+ *
  * WC requires at least: 3.0
- * WC tested up to: 4.7
- *
- * Text Domain: hcaptcha-for-forms-and-more
- * Domain Path: /languages
- *
- * @package hcaptcha-wp
- * @author  hCaptcha
+ * WC tested up to:      5.0
  */
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit;
+	// @codeCoverageIgnoreEnd
 }
 
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.8.1' );
+define( 'HCAPTCHA_VERSION', '1.9.0' );
 
 /**
  * Path to the plugin dir.
  */
-define( 'HCAPTCHA_PATH', dirname( __FILE__ ) );
+define( 'HCAPTCHA_PATH', __DIR__ );
 
 /**
  * Plugin dir url.
@@ -44,6 +50,8 @@ define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
  * Main plugin file.
  */
 define( 'HCAPTCHA_FILE', __FILE__ );
+
+require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
 require 'common/request.php';
 require 'common/functions.php';
@@ -57,12 +65,25 @@ if ( is_admin() ) {
  * Add the hcaptcha script to footer.
  */
 function hcap_captcha_script() {
-	$dir = plugin_dir_url( __FILE__ );
-	wp_enqueue_style( 'hcaptcha-style', $dir . '/css/style.css', array(), HCAPTCHA_VERSION );
+	$param_array = [];
+	$compat      = get_option( 'hcaptcha_recaptchacompat' );
+	$language    = get_option( 'hcaptcha_language' );
+
+	if ( $compat ) {
+		$param_array['recaptchacompat'] = 'off';
+	}
+
+	if ( $language ) {
+		$param_array['hl'] = $language;
+	}
+
+	$url_params = add_query_arg( $param_array, '' );
+
+	wp_enqueue_style( 'hcaptcha-style', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
 	wp_enqueue_script(
 		'hcaptcha-script',
-		'//hcaptcha.com/1/api.js?hl=' . get_option( 'hcaptcha_language' ),
-		array(),
+		'//hcaptcha.com/1/api.js' . $url_params,
+		[],
 		HCAPTCHA_VERSION,
 		true
 	);
@@ -204,7 +225,9 @@ function hcap_load_modules() {
 	);
 
 	if ( ! function_exists( 'is_plugin_active' ) ) {
+		// @codeCoverageIgnoreStart
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		// @codeCoverageIgnoreEnd
 	}
 
 	foreach ( $modules as $module ) {
