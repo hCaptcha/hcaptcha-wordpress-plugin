@@ -8,6 +8,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      SLUG: "hcaptcha-for-forms-and-more"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,13 +27,13 @@ jobs:
           generate-zip: true
         env:
           SVN_SERVER: ${{ secrets.SVN_SERVER }}
-          SLUG: "hcaptcha-for-forms-and-more"
+          SLUG: ${{ env.SLUG }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{github.workspace}}/${{ github.event.repository.name }}.zip
+          files: ${{github.workspace}}/${{ env.SLUG }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
