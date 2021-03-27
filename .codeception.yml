@@ -23,10 +23,9 @@ coverage:
         - ./backend/*
         - ./bbp/*
         - ./bp/*
-        - ./cf7/*
+        - ./cf7/*.php
         - ./common/*
         - ./default/*
-        - ./deploy/*
         - ./jetpack/*
         - ./mailchimp/*
         - ./nf/*.php
