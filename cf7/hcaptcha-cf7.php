@@ -13,42 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Enqueue CF7 script.
- */
-function enqueue_hcap_cf7_script() {
-	global $hcap_cf7;
-
-	if ( ! $hcap_cf7 ) {
-		return;
-	}
-
-	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-
-	$script = "var widgetIds = [];
-        var hcap_cf7LoadCallback = function() {
-        var hcap_cf7Widgets = document.querySelectorAll('.hcap_cf7-h-captcha');
-        for (var i = 0; i < hcap_cf7Widgets.length; ++i) {
-            var hcap_cf7Widget = hcap_cf7Widgets[i];
-            var widgetId = hcaptcha.render(hcap_cf7Widget.id, {
-                'sitekey' : '" . esc_html( $hcaptcha_api_key ) . "'
-                });
-                widgetIds.push(widgetId);
-            }
-        };
-        (function($) {
-            $('.wpcf7').on('invalid.wpcf7 mailsent.wpcf7', function() {
-                for (var i = 0; i < widgetIds.length; i++) {
-                    hcaptcha.reset(widgetIds[i]);
-                }
-            });
-        })(jQuery);";
-
-	wp_add_inline_script( 'hcaptcha-script', $script );
-}
-
-add_action( 'wp_enqueue_scripts', 'enqueue_hcap_cf7_script' );
-
-/**
  * Add CF7 form element.
  *
  * @param mixed $form CF7 form.
@@ -78,10 +42,6 @@ add_filter( 'wpcf7_form_elements', 'hcap_cf7_wpcf7_form_elements' );
  * @return string
  */
 function hcap_cf7_shortcode( $atts ) {
-	global $hcap_cf7;
-
-	$hcap_cf7 = true;
-
 	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
 	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
 	$hcaptcha_size    = get_option( 'hcaptcha_size' );
@@ -165,3 +125,18 @@ function hcap_cf7_verify_recaptcha( $result ) {
 }
 
 add_filter( 'wpcf7_validate', 'hcap_cf7_verify_recaptcha', 20, 2 );
+
+/**
+ * Enqueue CF7 scripts.
+ */
+function hcap_cf7_enqueue_scrips() {
+	wp_enqueue_script(
+		'cf7-hcaptcha',
+		plugin_dir_url( __FILE__ ) . 'cf7-hcaptcha.js',
+		[],
+		HCAPTCHA_VERSION,
+		true
+	);
+}
+
+add_action( 'wp_enqueue_scripts', 'hcap_cf7_enqueue_scrips' );

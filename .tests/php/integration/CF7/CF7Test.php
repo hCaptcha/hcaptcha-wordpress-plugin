@@ -29,58 +29,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['hcap_cf7'] );
-
 		wp_deregister_script( 'hcaptcha-script' );
 		wp_dequeue_script( 'hcaptcha-script' );
 
 		parent::tearDown();
-	}
-
-	/**
-	 * Test enqueue_hcap_cf7_script().
-	 */
-	public function test_enqueue_hcap_cf7_script() {
-		global $hcap_cf7;
-
-		$hcap_cf7 = true;
-
-		$hcaptcha_api_key = 'some key';
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
-
-		$expected = "var widgetIds = [];
-        var hcap_cf7LoadCallback = function() {
-        var hcap_cf7Widgets = document.querySelectorAll('.hcap_cf7-h-captcha');
-        for (var i = 0; i < hcap_cf7Widgets.length; ++i) {
-            var hcap_cf7Widget = hcap_cf7Widgets[i];
-            var widgetId = hcaptcha.render(hcap_cf7Widget.id, {
-                'sitekey' : '" . $hcaptcha_api_key . "'
-                });
-                widgetIds.push(widgetId);
-            }
-        };
-        (function($) {
-            $('.wpcf7').on('invalid.wpcf7 mailsent.wpcf7', function() {
-                for (var i = 0; i < widgetIds.length; i++) {
-                    hcaptcha.reset(widgetIds[i]);
-                }
-            });
-        })(jQuery);";
-
-		hcap_captcha_script();
-		enqueue_hcap_cf7_script();
-
-		self::assertTrue( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
-		self::assertSame( $expected, $GLOBALS['wp_scripts']->registered['hcaptcha-script']->extra['after'][1] );
-	}
-
-	/**
-	 * Test enqueue_hcap_cf7_script().
-	 */
-	public function test_enqueue_hcap_cf7_script_without_cf7() {
-		enqueue_hcap_cf7_script();
-
-		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
 	}
 
 	/**
@@ -325,5 +277,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			->once();
 
 		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+	}
+
+	/**
+	 * Test hcap_cf7_enqueue_scrips().
+	 */
+	public function test_hcap_cf7_enqueue_scrips() {
+		hcap_cf7_enqueue_scrips();
+
+		self::assertTrue( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
 	}
 }
