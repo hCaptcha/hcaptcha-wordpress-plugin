@@ -1,0 +1,232 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: hCaptcha for Forms and More\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-01-26 05:18+0000\n"
+"PO-Revision-Date: 2021-02-26 02:58+0000\n"
+"Last-Translator: \n"
+"Language-Team: 한국어\n"
+"Language: ko_KR\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.5.0; wp-5.6.2\n"
+"X-Domain: hcaptcha-for-forms-and-more"
+
+#: hcaptcha.php:83 common/request.php:110 nf/class-hcaptchafieldsfornf.php:94
+#: nf/class-nf-hcaptcha.php:94 cf7/hcaptcha-cf7.php:150
+#: mailchimp/mailchimp-for-wp.php:23
+msgid "The Captcha is invalid."
+msgstr "캡챠가 잘못되었습니다."
+
+#: common/request.php:109 nf/class-hcaptchafieldsfornf.php:89
+#: nf/class-nf-hcaptcha.php:89 cf7/hcaptcha-cf7.php:140
+msgid "Please complete the captcha."
+msgstr "캡챠를 풀어주세요."
+
+#: common/request.php:128
+msgid "<strong>Error</strong>: Please complete the captcha."
+msgstr "<strong>오류</strong>: 캡챠를 풀어주세요."
+
+#: common/request.php:129
+msgid "<strong>Error</strong>: The Captcha is invalid."
+msgstr "<strong>오류</strong>: 캡챠가 잘못되었습니다."
+
+#: common/functions.php:57
+msgid "hCaptcha Site Key"
+msgstr "hCaptcha 사이트 키"
+
+#: common/functions.php:61
+msgid "hCaptcha Secret Key"
+msgstr "hCaptcha 비밀키"
+
+#: common/functions.php:65
+msgid "hCaptcha Theme"
+msgstr "hCaptcha 테마"
+
+#: common/functions.php:68
+msgid "Light"
+msgstr "라이트"
+
+#: common/functions.php:69
+msgid "Dark"
+msgstr "다크"
+
+#: common/functions.php:73
+msgid "hCaptcha Size"
+msgstr "hCaptcha 크기"
+
+#: common/functions.php:76
+msgid "Normal"
+msgstr "일반"
+
+#: common/functions.php:77
+msgid "Compact"
+msgstr ""
+
+#: common/functions.php:81
+msgid "Override Language Detection (optional)"
+msgstr "언어 자동감지 무시 (선택)"
+
+#: common/functions.php:83
+msgid ""
+"Info on <a href=\"https://hcaptcha.com/docs/languages\" target=\"_blank\">"
+"language codes</a>."
+msgstr ""
+"<a href=\"https://hcaptcha.com/docs/languages\" target=\"_blank\">언어 코드 "
+"정보</a>에 대해 알아보세요."
+
+#: common/functions.php:89
+msgid "Enable Ninja Forms Addon"
+msgstr ""
+
+#: common/functions.php:93
+msgid "Enable Contact Form 7 Addon"
+msgstr "Contact Form 7에서 활성화"
+
+#: common/functions.php:97
+msgid "Enable hCaptcha on Login Form"
+msgstr "hCaptcha를 로그인 폼에서 활성화"
+
+#: common/functions.php:101
+msgid "Enable hCaptcha on Register Form"
+msgstr "hCaptcha를 회원가입 폼에서 활성화"
+
+#: common/functions.php:105
+msgid "Enable hCaptcha on Comment Form"
+msgstr "hCaptcha를 댓글 폼에서 활성화"
+
+#: common/functions.php:109
+msgid "Enable hCaptcha on Lost Password Form"
+msgstr "hCaptcha를 비밀번호 재설정 폼에서 활성화"
+
+#: common/functions.php:113
+msgid "Enable hCaptcha on WooCommerce Login Form"
+msgstr "hCaptcha를 우커머스 로그인 폼에서 활성화"
+
+#: common/functions.php:117
+msgid "Enable hCaptcha on WooCommerce Registration Form"
+msgstr "hCaptcha를 우커머스 회원가입 폼에서 활성화"
+
+#: common/functions.php:121
+msgid "Enable hCaptcha on WooCommerce Lost Password Form"
+msgstr "hCaptcha를 우커머스 비밀번호 찾기 폼에서 활성화"
+
+#: common/functions.php:125
+msgid "Enable hCaptcha on WooCommerce Checkout Form"
+msgstr "hCaptcha를 우커머스 체크아웃 폼에서 활성화"
+
+#: common/functions.php:129
+msgid "Enable hCaptcha on Buddypress Registration Form"
+msgstr "hCaptcha를 BuddyPress 회원가입 폼에서 활성화"
+
+#: common/functions.php:133
+msgid "Enable hCaptcha on BuddyPress Create Group Form"
+msgstr "hCaptcha를 BuddyPress 그룹 생성 폼에서 활성화"
+
+#: common/functions.php:137
+msgid "Enable hCaptcha on bbPress New Topic Form"
+msgstr "hCaptcha를 bbPress 새 주제 폼에서 활성화"
+
+#: common/functions.php:141
+msgid "Enable hCaptcha on bbPress Reply Form"
+msgstr "hCaptcha를 bbPress 답장 폼에서 활성화"
+
+#: common/functions.php:145
+msgid "Enable hCaptcha on WPForms Lite"
+msgstr "hCaptcha를 WPForms Lite 에서 활성화"
+
+#: common/functions.php:149
+msgid "Enable hCaptcha on WPForms Pro"
+msgstr "hCaptcha를 WPForms Pro 에서 활성화"
+
+#: common/functions.php:153
+msgid "Enable hCaptcha on WPForo New Topic Form"
+msgstr "hCaptcha를 WPForo 새 주제 폼에서 활성화"
+
+#: common/functions.php:157
+msgid "Enable hCaptcha on WPForo Reply Form"
+msgstr "hCaptcha를 WPForo 답장 폼에서 활성화"
+
+#: common/functions.php:161
+msgid "Enable hCaptcha on Mailchimp for WP Form"
+msgstr "hCaptcha를 Mailchimp for WP 폼에서 활성화"
+
+#: common/functions.php:165
+msgid "Enable hCaptcha on Jetpack Contact Form"
+msgstr "hCaptcha를 젯팩 연락처 폼에서 활성화"
+
+#: common/functions.php:169
+msgid "Enable hCaptcha on Subscribers Form"
+msgstr "hCaptcha를 Subscribers 폼에서 활성화"
+
+#: common/functions.php:173
+msgid "Enable hCaptcha on WooCommerce Wishlists Create List Form"
+msgstr "hCaptcha를 우커머스 위시리스트 생성 폼에서 활성화"
+
+#: wpforms/wpforms.php:45
+msgid "Captcha Failed"
+msgstr "캡챠 인증 실패."
+
+#: backend/settings.php:49
+msgid "Settings Updated"
+msgstr "설정 업데이트됨"
+
+#: backend/settings.php:55 backend/nav.php:23
+msgid "hCaptcha Settings"
+msgstr "hCaptcha 설정"
+
+#: backend/settings.php:59
+msgid ""
+"In order to use <a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">"
+"hCaptcha</a> please register <a href=\"https://hCaptcha.com/?r=wp\" "
+"target=\"_blank\">here</a> to get your site key and secret key."
+msgstr ""
+"<a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">hCaptcha</a> 사이트에서 "
+"<a href=\"https://hCaptcha.com/?r=wp\" target=\"_blank\">회원가입</a>을 한 후 사이트 "
+"키와 비밀 키를 요청하세요."
+
+#: backend/settings.php:71
+msgid "Save hCaptcha Settings"
+msgstr "hCaptcha 설정 저장하기"
+
+#: backend/settings.php:99
+msgid "Enable/Disable Features"
+msgstr "기능 활성화/비활성화"
+
+#: backend/nav.php:39
+msgid "You do not have sufficient permissions to access this page."
+msgstr "당신은 접근 권한을 가지고 있지 않습니다."
+
+#: backend/nav.php:80
+msgid "View hCaptcha settings"
+msgstr "캡챠 설정 보기"
+
+#: backend/nav.php:81
+msgid "Settings"
+msgstr "설정"
+
+#. Name of the plugin
+msgid "hCaptcha for Forms and More"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"hCaptcha is a new way to monetize your site traffic while keeping out bots "
+"and spam. It is a drop-in replacement for reCAPTCHA."
+msgstr ""
+
+#. URI of the plugin
+msgid "https://hcaptcha.com/"
+msgstr "https://hcaptcha.com/"
+
+#. Author of the plugin
+msgid "hCaptcha"
+msgstr "hCaptcha"
+
+#. Author URI of the plugin
+msgid "https://hCaptcha.com/"
+msgstr "https://hCaptcha.com/"
+
