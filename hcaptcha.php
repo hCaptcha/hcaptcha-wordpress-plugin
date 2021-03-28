@@ -14,7 +14,7 @@
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
- * Author URI:           https://hCaptcha.com/
+ * Author URI:           https://hcaptcha.com/
  * License:              GPL v2 or later
  * License URI:          https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:          hcaptcha-for-forms-and-more
