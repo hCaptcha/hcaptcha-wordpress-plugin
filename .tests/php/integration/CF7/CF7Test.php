@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\CF7;
 
+use HCaptcha\CF7\CF7;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
@@ -14,7 +15,7 @@ use WPCF7_Submission;
 use WPCF7_Validation;
 
 /**
- * Test cf7 files.
+ * Test CF7 files.
  */
 class CF7Test extends HCaptchaPluginWPTestCase {
 
@@ -33,6 +34,18 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		wp_dequeue_script( 'hcaptcha-script' );
 
 		parent::tearDown();
+	}
+
+	/**
+	 * Test init_hooks().
+	 */
+	public function test_init_hooks() {
+		$subject = new CF7();
+
+		self::assertSame( 10, has_filter( 'wpcf7_form_elements', [ $subject, 'wpcf7_form_elements' ] ) );
+		self::assertTrue( shortcode_exists( 'cf7-hcaptcha' ) );
+		self::assertSame( 20, has_filter( 'wpcf7_validate', [ $subject, 'verify_hcaptcha' ] ) );
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scrips' ] ) );
 	}
 
 	/**
@@ -80,12 +93,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<br><input type="submit" value="Send">' .
 			'</form>';
 
-		self::assertSame( $expected, hcap_cf7_wpcf7_form_elements( $form ) );
+		$subject = new CF7();
+
+		self::assertSame( $expected, $subject->wpcf7_form_elements( $form ) );
 
 		$form     = str_replace( '<input', '[cf7-hcaptcha]<input', $form );
 		$expected = str_replace( '<br>', '', $expected );
 
-		self::assertSame( $expected, hcap_cf7_wpcf7_form_elements( $form ) );
+		self::assertSame( $expected, $subject->wpcf7_form_elements( $form ) );
 	}
 
 	/**
@@ -124,7 +139,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 
-		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
 	}
 
 	/**
@@ -133,7 +150,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
 
-		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
 	}
 
 	/**
@@ -147,7 +166,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 
-		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
 	}
 
 	/**
@@ -180,7 +201,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 
-		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
 	}
 
 	/**
@@ -227,7 +250,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			)
 			->once();
 
-		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
 	}
 
 	/**
@@ -276,14 +301,32 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			)
 			->once();
 
-		self::assertSame( $result, hcap_cf7_verify_recaptcha( $result ) );
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
 	}
 
 	/**
 	 * Test hcap_cf7_enqueue_scrips().
 	 */
 	public function test_hcap_cf7_enqueue_scrips() {
-		hcap_cf7_enqueue_scrips();
+		$subject = new CF7();
+
+		$subject->enqueue_scrips();
+
+		self::assertFalse( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		ob_end_clean();
+
+		self::assertFalse( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
+
+		do_shortcode( '[cf7-hcaptcha]' );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		ob_end_clean();
 
 		self::assertTrue( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
 	}

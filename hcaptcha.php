@@ -25,6 +25,8 @@
  */
 
 // If this file is called directly, abort.
+use HCaptcha\CF7\CF7;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
 	exit;
@@ -109,6 +111,8 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 
 /**
  * Load plugin modules.
+ *
+ * @noinspection PhpIncludeInspection
  */
 function hcap_load_modules() {
 	$modules = array(
@@ -120,7 +124,7 @@ function hcap_load_modules() {
 		'Contact Form 7'            => array(
 			'hcaptcha_cf7_status',
 			'contact-form-7/wp-contact-form-7.php',
-			'cf7/hcaptcha-cf7.php',
+			CF7::class,
 		),
 		'Login Form'                => array(
 			'hcaptcha_lf_status',
@@ -240,8 +244,13 @@ function hcap_load_modules() {
 			continue;
 		}
 
-		foreach ( (array) $module[2] as $require ) {
-			require_once $require;
+		foreach ( (array) $module[2] as $component ) {
+			if ( false === strpos( $component, '.php' ) ) {
+				new $component();
+				continue;
+			}
+
+			require_once HCAPTCHA_PATH . '/' . $component;
 		}
 	}
 }

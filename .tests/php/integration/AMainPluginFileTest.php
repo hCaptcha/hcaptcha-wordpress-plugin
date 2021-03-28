@@ -7,6 +7,10 @@
 
 namespace HCaptcha\Tests\Integration;
 
+use HCaptcha\CF7\CF7;
+use ReflectionClass;
+use ReflectionException;
+
 /**
  * Test main plugin file.
  */
@@ -124,6 +128,7 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 	 * @param array $module Module to load.
 	 *
 	 * @dataProvider dp_test_hcap_load_modules
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_hcap_load_modules( $module ): void {
 		$plugin_option = $module[0];
@@ -139,25 +144,32 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 		$plugin_path = $module[1];
 
-		$require = (array) $module[2];
+		$component = (array) $module[2];
+
 		array_walk(
-			$require,
+			$component,
 			function ( &$value, $key ) {
-				$value = WP_PLUGIN_DIR . '\\' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '\\' . $value;
+				if ( false === strpos( $value, '.php' ) ) {
+					$reflection = new ReflectionClass( $value );
+					$value      = $reflection->getFileName();
+				} else {
+					$value = WP_PLUGIN_DIR . '\\' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '\\' . $value;
+				}
+
 				$value = $this->normalize_path( $value );
 			}
 		);
 
-		$intersect = array_intersect( $require, $this->normalize_path( get_included_files() ) );
+		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
 		if ( ! empty( $intersect ) ) {
-			self::assertSame( $intersect, array_intersect( $intersect, $require ) );
+			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
 		}
 
 		hcap_load_modules();
 
-		$intersect = array_intersect( $require, $this->normalize_path( get_included_files() ) );
+		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
 		if ( ! empty( $intersect ) ) {
-			self::assertSame( $intersect, array_intersect( $intersect, $require ) );
+			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
 		}
 
 		add_filter(
@@ -171,7 +183,7 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 		hcap_load_modules();
 
-		self::assertSame( $require, array_intersect( $require, $this->normalize_path( get_included_files() ) ) );
+		self::assertSame( $component, array_intersect( $component, $this->normalize_path( get_included_files() ) ) );
 	}
 
 	/**
@@ -189,7 +201,7 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 			'Contact Form 7'            => [
 				'hcaptcha_cf7_status',
 				'contact-form-7/wp-contact-form-7.php',
-				'cf7/hcaptcha-cf7.php',
+				CF7::class,
 			],
 			'Login Form'                => [
 				'hcaptcha_lf_status',
