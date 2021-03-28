@@ -10,7 +10,7 @@
  * Plugin Name:          hCaptcha for Forms and More
  * Plugin URI:           https://hcaptcha.com/
  * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version:              1.9.0
+ * Version:              1.9.1
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
@@ -25,6 +25,8 @@
  */
 
 // If this file is called directly, abort.
+use HCaptcha\CF7\CF7;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
 	exit;
@@ -34,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.9.0' );
+define( 'HCAPTCHA_VERSION', '1.9.1' );
 
 /**
  * Path to the plugin dir.
@@ -109,6 +111,8 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 
 /**
  * Load plugin modules.
+ *
+ * @noinspection PhpIncludeInspection
  */
 function hcap_load_modules() {
 	$modules = array(
@@ -120,7 +124,7 @@ function hcap_load_modules() {
 		'Contact Form 7'            => array(
 			'hcaptcha_cf7_status',
 			'contact-form-7/wp-contact-form-7.php',
-			'cf7/hcaptcha-cf7.php',
+			CF7::class,
 		),
 		'Login Form'                => array(
 			'hcaptcha_lf_status',
@@ -240,8 +244,13 @@ function hcap_load_modules() {
 			continue;
 		}
 
-		foreach ( (array) $module[2] as $require ) {
-			require_once $require;
+		foreach ( (array) $module[2] as $component ) {
+			if ( false === strpos( $component, '.php' ) ) {
+				new $component();
+				continue;
+			}
+
+			require_once HCAPTCHA_PATH . '/' . $component;
 		}
 	}
 }

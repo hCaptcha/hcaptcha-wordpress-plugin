@@ -9,8 +9,6 @@ namespace HCaptcha\Tests\Integration;
 
 /**
  * Class HCaptchaPluginWPTestCase
- *
- * @group current
  */
 class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
