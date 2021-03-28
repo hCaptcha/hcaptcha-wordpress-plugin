@@ -27,6 +27,7 @@ FunctionMocker::init(
 			realpath( HCAPTCHA_PATH . '/jetpack' ),
 			realpath( HCAPTCHA_PATH . '/mailchimp' ),
 			realpath( HCAPTCHA_PATH . '/nf' ),
+			realpath( HCAPTCHA_PATH . '/src/php' ),
 			realpath( HCAPTCHA_PATH . '/subscriber' ),
 			realpath( HCAPTCHA_PATH . '/wc' ),
 			realpath( HCAPTCHA_PATH . '/wc_wl' ),

@@ -16,6 +16,12 @@
   "support": {
     "issues": "https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more"
   },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/kagg-design/function-mocker.git"
+    }
+  ],
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {},
@@ -25,7 +31,7 @@
     "codeception/module-db": "^1.1",
     "codeception/module-webdriver": "^1.2",
     "lucatume/wp-browser": "^3.0",
-    "lucatume/function-mocker": "^1.3",
+    "lucatume/function-mocker": "dev-php8",
     "mockery/mockery": "1.3 - 1.4",
     "squizlabs/php_codesniffer": "^3.5",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
@@ -34,13 +40,16 @@
     "wp-coding-standards/wpcs": "^2.3"
   },
   "autoload": {
+    "psr-4": {
+      "HCaptcha\\": "src/php"
+    },
     "classmap": [
       "nf"
     ]
   },
   "autoload-dev": {
     "psr-4": {
-      "HCaptcha\\": "src",
+      "HCaptcha\\": "src/php",
       "HCaptcha\\Tests\\Acceptance\\": ".tests/php/acceptance",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
