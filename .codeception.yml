@@ -23,12 +23,12 @@ coverage:
         - ./backend/*
         - ./bbp/*
         - ./bp/*
-        - ./cf7/*.php
         - ./common/*
         - ./default/*
         - ./jetpack/*
         - ./mailchimp/*
         - ./nf/*.php
+        - ./src/php/*
         - ./subscriber/*
         - ./wc/*
         - ./wc_wl/*
