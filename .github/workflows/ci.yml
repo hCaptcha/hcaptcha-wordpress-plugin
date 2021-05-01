@@ -39,7 +39,6 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Set up Composer caching
-        working-directory: ${{ env.wp-plugin-directory }}
         uses: actions/cache@v2
         env:
           cache-name: cache-composer-dependencies
