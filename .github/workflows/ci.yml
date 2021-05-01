@@ -28,7 +28,7 @@ jobs:
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
         with:
           path: ${{ env.wp-plugin-directory }}

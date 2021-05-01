@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Get Composer cache directory
-        working-directory: ${{ env.wp-plugin-directory }}
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
