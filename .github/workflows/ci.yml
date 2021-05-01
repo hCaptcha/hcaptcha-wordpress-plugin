@@ -34,12 +34,12 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
 
       - name: Get Composer cache directory
+        working-directory: ${{ env.wp-plugin-directory }}
         id: composer-cache
-        run: |
-          pwd
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Set up Composer caching
+        working-directory: ${{ env.wp-plugin-directory }}
         uses: actions/cache@v2
         env:
           cache-name: cache-composer-dependencies
@@ -59,9 +59,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ${{ env.wp-plugin-directory }}
-        run: |
-          pwd
-          composer install
+        run: composer install
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
