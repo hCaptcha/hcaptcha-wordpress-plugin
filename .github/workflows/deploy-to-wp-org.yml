@@ -30,7 +30,9 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: Install dependencies in prod version
-        run: composer install --no-dev
+        run: |
+          composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
+          composer install --no-dev
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
