@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function hcap_display_wc_login() {
 	hcap_form_display();
-	wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login' );
+	wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce' );
 }
 
 add_action( 'woocommerce_login_form', 'hcap_display_wc_login', 10, 0 );
@@ -30,7 +30,7 @@ add_action( 'woocommerce_login_form', 'hcap_display_wc_login', 10, 0 );
  * @return WP_Error
  */
 function hcap_verify_wc_login_captcha( $validation_error ) {
-	remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha', 10, 2 );
+	remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
 
 	$error_message = hcaptcha_get_verify_message(
 		'hcaptcha_login_nonce',

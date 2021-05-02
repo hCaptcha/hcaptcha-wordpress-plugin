@@ -21,7 +21,7 @@ class WCLoginTest extends HCaptchaWPTestCase {
 	public function test_hcap_display_wc_login() {
 		$expected =
 			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login', true, false );
+			wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce', true, false );
 
 		ob_start();
 
