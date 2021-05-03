@@ -77,6 +77,10 @@ function hcap_options() {
 				'compact' => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
 			),
 		),
+		'hcaptcha_loggedin'                     => array(
+			'label'   => __( 'Turn off when logged in', 'hcaptcha-for-forms-and-more' ),
+			'type'    => 'checkbox',
+		),
 		'hcaptcha_language'                 => array(
 			'label'       => __( 'Override Language Detection (optional)', 'hcaptcha-for-forms-and-more' ),
 			'type'        => 'text',
