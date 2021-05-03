@@ -10,7 +10,7 @@
  * Plugin Name:          hCaptcha for Forms and More
  * Plugin URI:           https://hcaptcha.com/
  * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version:              1.9.2
+ * Version:              1.9.1
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      5.2
+ * WC tested up to:      5.0
  */
 
 // If this file is called directly, abort.
@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.9.2' );
+define( 'HCAPTCHA_VERSION', '1.9.1' );
 
 /**
  * Path to the plugin dir.
@@ -91,8 +91,6 @@ function hcap_captcha_script() {
 	);
 }
 
-add_action( 'wp_enqueue_scripts', 'hcap_captcha_script' );
-add_action( 'login_enqueue_scripts', 'hcap_captcha_script' );
 
 if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	/**
@@ -255,7 +253,6 @@ function hcap_load_modules() {
 	}
 }
 
-add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
 
 /**
  * Load plugin text domain.
@@ -268,4 +265,15 @@ function hcaptcha_wp_load_textdomain() {
 	);
 }
 
-add_action( 'plugins_loaded', 'hcaptcha_wp_load_textdomain' );
+//Make sure we can use wp_get_current_user
+require_once( ABSPATH . '/wp-includes/pluggable.php' );
+$current_user = wp_get_current_user();
+$status = get_option( 'hcaptcha_loggedin');
+
+//We should not load if user is logged in and the option is set to onl load for logged out users
+if ('on' !== $status or !($current_user instanceof WP_User) ){
+	add_action( 'wp_enqueue_scripts', 'hcap_captcha_script' );
+	add_action( 'login_enqueue_scripts', 'hcap_captcha_script' );
+	add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
+	add_action( 'plugins_loaded', 'hcaptcha_wp_load_textdomain' );
+}
