@@ -61,6 +61,9 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_action( 'wp_enqueue_scripts', 'hcap_captcha_script' ) );
 		self::assertSame( 10, has_action( 'login_enqueue_scripts', 'hcap_captcha_script' ) );
 
+		self::assertTrue( function_exists( 'hcap_remove_wp_authenticate_user' ) );
+		self::assertSame( 10, has_action( 'woocommerce_login_credentials', 'hcap_remove_wp_authenticate_user' ) );
+
 		self::assertTrue( function_exists( 'hcap_load_modules' ) );
 		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', 'hcap_load_modules' ) );
 
@@ -313,6 +316,20 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 		);
 
 		return $modules;
+	}
+
+	/**
+	 * Test hcap_remove_wp_authenticate_user().
+	 *
+	 * Must be after test_hcap_load_modules().
+	 */
+	public function test_hcap_remove_wp_authenticate_user():void {
+		self::assertSame( 10, has_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' ) );
+
+		$credentials = [];
+		self::assertSame( $credentials, apply_filters( 'woocommerce_login_credentials', $credentials ) );
+
+		self::assertFalse( has_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' ) );
 	}
 
 	/**

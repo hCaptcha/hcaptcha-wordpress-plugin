@@ -258,6 +258,21 @@ function hcap_load_modules() {
 add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
 
 /**
+ * Remove standard WP login captcha if we login via WC.
+ *
+ * @param array $credentials Credentials.
+ *
+ * @return array
+ */
+function hcap_remove_wp_authenticate_user( $credentials ) {
+	remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
+
+	return $credentials;
+}
+
+add_filter( 'woocommerce_login_credentials', 'hcap_remove_wp_authenticate_user' );
+
+/**
  * Load plugin text domain.
  */
 function hcaptcha_wp_load_textdomain() {
