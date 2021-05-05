@@ -32,6 +32,8 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test main plugin file content.
+	 *
+	 * @noinspection PhpUnitTestsInspection
 	 */
 	public function test_main_file_content(): void {
 		self::assertSame( '1.9.2', HCAPTCHA_VERSION );
@@ -69,6 +71,14 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( function_exists( 'hcaptcha_wp_load_textdomain' ) );
 		self::assertSame( 10, has_action( 'plugins_loaded', 'hcaptcha_wp_load_textdomain' ) );
+
+		self::assertTrue(
+			in_array(
+				$this->normalize_path( ABSPATH . 'wp-includes/pluggable.php' ),
+				$this->normalize_path( get_included_files() ),
+				true
+			)
+		);
 	}
 
 	/**

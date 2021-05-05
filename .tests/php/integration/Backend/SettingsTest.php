@@ -96,6 +96,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 	<br><br>
 				<input
 					type="checkbox"
+					id="hcaptcha_off_when_logged_in"
+					name="hcaptcha_off_when_logged_in"
+				/>
+			&nbsp;
+			<span>Turn off when logged in</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_recaptchacompat"
 					name="hcaptcha_recaptchacompat"
 				/>
@@ -410,6 +418,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				<strong>Enable/Disable Features</strong>
 	<br><br>
 				<input
+					type="checkbox"
+					id="hcaptcha_off_when_logged_in"
+					name="hcaptcha_off_when_logged_in"
+				/>
+			&nbsp;
+			<span>Turn off when logged in</span>
+			<br><br>
+						<input
 					type="checkbox"
 					id="hcaptcha_recaptchacompat"
 					name="hcaptcha_recaptchacompat"

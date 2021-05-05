@@ -90,6 +90,10 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'type'        => 'text',
 					'description' => 'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>.',
 				],
+			'hcaptcha_off_when_logged_in'       => [
+				'label' => 'Turn off when logged in',
+				'type'  => 'checkbox',
+			],
 			'hcaptcha_recaptchacompat'          => [
 				'label' => 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)',
 				'type'  => 'checkbox',

@@ -91,9 +91,6 @@ function hcap_captcha_script() {
 	);
 }
 
-add_action( 'wp_enqueue_scripts', 'hcap_captcha_script' );
-add_action( 'login_enqueue_scripts', 'hcap_captcha_script' );
-
 if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	/**
 	 * Print error message.
@@ -255,8 +252,6 @@ function hcap_load_modules() {
 	}
 }
 
-add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
-
 /**
  * Remove standard WP login captcha if we login via WC.
  *
@@ -270,8 +265,6 @@ function hcap_remove_wp_authenticate_user( $credentials ) {
 	return $credentials;
 }
 
-add_filter( 'woocommerce_login_credentials', 'hcap_remove_wp_authenticate_user' );
-
 /**
  * Load plugin text domain.
  */
@@ -283,4 +276,14 @@ function hcaptcha_wp_load_textdomain() {
 	);
 }
 
-add_action( 'plugins_loaded', 'hcaptcha_wp_load_textdomain' );
+// Make sure we can use is_user_logged_in().
+require_once ABSPATH . 'wp-includes/pluggable.php';
+
+// Do not load hcaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
+if ( ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ) {
+	add_action( 'wp_enqueue_scripts', 'hcap_captcha_script' );
+	add_action( 'login_enqueue_scripts', 'hcap_captcha_script' );
+	add_action( 'plugins_loaded', 'hcap_load_modules', - PHP_INT_MAX );
+	add_filter( 'woocommerce_login_credentials', 'hcap_remove_wp_authenticate_user' );
+	add_action( 'plugins_loaded', 'hcaptcha_wp_load_textdomain' );
+}
