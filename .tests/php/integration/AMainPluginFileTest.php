@@ -323,7 +323,7 @@ class AMainPluginFileTest extends HCaptchaWPTestCase {
 	 *
 	 * Must be after test_hcap_load_modules().
 	 */
-	public function test_hcap_remove_wp_authenticate_user():void {
+	public function test_hcap_remove_wp_authenticate_user(): void {
 		self::assertSame( 10, has_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' ) );
 
 		$credentials = [];
