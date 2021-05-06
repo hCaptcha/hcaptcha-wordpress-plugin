@@ -85,6 +85,10 @@ function hcap_options() {
 				'hcaptcha-for-forms-and-more'
 			),
 		),
+		'hcaptcha_off_when_logged_in'       => array(
+			'label' => __( 'Turn off when logged in', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		),
 		'hcaptcha_recaptchacompat'          => array(
 			'label' => __( 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',

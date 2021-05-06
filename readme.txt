@@ -33,28 +33,55 @@ More data generally produces better results in training machine learning models.
 
 hCaptcha allows websites to earn rewards while serving this demand while blocking bots and other forms of abuse when a user needs to prove their humanity.
  
-=== Installation ===
+== Installation ==
  
 1. Upload `hcaptcha-wp` folder to the `/wp-content/plugins/` directory  
 2. Activate the plugin through the 'Plugins' menu in WordPress  
 3. Enter your site key and SECRET in the Settings -> hCaptcha menu in WordPress  
 4. Enable desired Integrations  
  
-=== Frequently Asked Questions ===
+== Frequently Asked Questions ==
 
-Q: You don't support plugin X. How can I get support for it added?
-A: Open a PR on github: https://github.com/hCaptcha/hcaptcha-wordpress-plugin
-   or just email the authors of plugin X. Adding hCaptcha support is typically
-   quite a quick task for most plugins.
+= You don't support plugin X. How can I get support for it added? =
 
-Q: Where can I get more information about hCaptcha?  
-A: Please see our website at: https://hcaptcha.com/
+Open a PR on github: https://github.com/hCaptcha/hcaptcha-wordpress-plugin or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
 
-Q: Why isn't my WPForms Lite install working?  
-A: Please make sure you have removed the reCAPTCHA keys 
-   under WPForms > Settings > reCAPTCHA to avoid a conflict.
+= Where can I get more information about hCaptcha? =
 
-=== Privacy Notices ===
+Please see our website at: https://hcaptcha.com/
+
+= Why isn't my WPForms Lite install working? =
+
+Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
+
+= How to block hcaptcha on specific page? =
+
+hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add this code to your theme's `functions.php` file:
+
+`
+/**
+ * Filter hCaptcha activation flag.
+ *
+ * @param bool $activate Activate flag.
+ *
+ * @return bool
+ */
+function my_hcap_activate( $activate ) {
+	$url = isset( $_SERVER['REQUEST_URI'] ) ?
+		filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
+		'';
+
+	if ( '/my-account/' === $url ) {
+		return false;
+	}
+
+	return $activate;
+}
+
+add_filter( 'hcap_activate', 'my_hcap_activate' );
+`
+
+== Privacy Notices ==
 
 With the default configuration, this plugin does not:
 
@@ -70,6 +97,11 @@ Please see the hCaptcha privacy policy at:
 * ([hCaptcha.com](https://hCaptcha.com/privacy))
  
 == Changelog ==
+
+= 1.10.0 =
+* Fixed issue with WC login form when WP login form option is on.
+* Added feature to turn off the plugin for logged in users.
+* Added hook to disable the plugin on specific pages.
 
 = 1.9.2 =
 * Fixed issue with WooCommerce on my-account page - captcha was requested even if solved properly.

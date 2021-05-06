@@ -30,8 +30,6 @@ add_action( 'woocommerce_login_form', 'hcap_display_wc_login', 10, 0 );
  * @return WP_Error
  */
 function hcap_verify_wc_login_captcha( $validation_error ) {
-	remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
-
 	$error_message = hcaptcha_get_verify_message(
 		'hcaptcha_login_nonce',
 		'hcaptcha_login'
