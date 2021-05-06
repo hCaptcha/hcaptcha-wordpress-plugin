@@ -98,6 +98,11 @@ Please see the hCaptcha privacy policy at:
  
 == Changelog ==
 
+= 1.10.0 =
+* Fixed issue with WC login form when WP login form option is on.
+* Added feature to turn off the plugin for logged in users.
+* Added hook to disable the plugin on specific pages.
+
 = 1.9.2 =
 * Fixed issue with WooCommerce on my-account page - captcha was requested even if solved properly.
 
