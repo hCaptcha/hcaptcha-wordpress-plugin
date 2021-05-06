@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\Backend;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test settings file.
@@ -642,5 +643,134 @@ class SettingsTest extends HCaptchaWPTestCase {
 		foreach ( $options as $option_name => $option_value ) {
 			self::assertSame( $option_value, get_option( $option_name ) );
 		}
+	}
+
+	/**
+	 * Test hcap_display_option().
+	 *
+	 * @param string $option_name Option name.
+	 * @param array  $option      Option content.
+	 * @param string $expected    Expected output.
+	 *
+	 * @dataProvider dp_test_hcap_display_option
+	 */
+	public function test_hcap_display_option( $option_name, $option, $expected ) {
+		ob_start();
+
+		hcap_display_option( $option_name, $option );
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Data provider for test_hcap_display_option().
+	 *
+	 * @return array
+	 */
+	public function dp_test_hcap_display_option() {
+		return [
+			'text'     => [
+				'text_option',
+				[
+					'label' => 'Some text label',
+					'type'  => 'text',
+				],
+				'			<strong>
+				Some text label			</strong>
+			<br><br>
+			<input
+					type="text" size="50"
+					id="text_option"
+					name="text_option"
+					value=""/>
+						<br><br>
+			',
+			],
+			'password' => [
+				'password_option',
+				[
+					'label' => 'Some password label',
+					'type'  => 'password',
+				],
+				'			<strong>
+				Some password label			</strong>
+			<br><br>
+			<input
+					type="password" size="50"
+					id="password_option"
+					name="password_option"
+					value=""/>
+						<br><br>
+			',
+			],
+			'number'   => [
+				'number_option',
+				[
+					'label' => 'Some number label',
+					'type'  => 'number',
+				],
+				'			<strong>
+				Some number label			</strong>
+			<br><br>
+			<input
+					type="number" size="50"
+					id="number_option"
+					name="number_option"
+					value=""/>
+						<br><br>
+			',
+			],
+			'checkbox' => [
+				'checkbox_option',
+				[
+					'label' => 'Some checkbox label',
+					'type'  => 'checkbox',
+				],
+				'			<input
+					type="checkbox"
+					id="checkbox_option"
+					name="checkbox_option"
+				/>
+			&nbsp;
+			<span>Some checkbox label</span>
+			<br><br>
+			',
+			],
+			'select'   => [
+				'select_option',
+				[
+					'label'   => 'Some select label',
+					'type'    => 'select',
+					'options' => [
+						'light' => 'Light',
+						'dark'  => 'Dark',
+					],
+				],
+				'				<strong>Some select label</strong>
+				<br><br>
+				<select
+						id="select_option"
+						name="select_option">
+											<option
+								value="light"
+							>
+							Light						</option>
+												<option
+								value="dark"
+							>
+							Dark						</option>
+										</select>
+				<br><br>
+				',
+			],
+			'wrong'    => [
+				'wrong_option',
+				[
+					'label' => 'Some wrong label',
+					'type'  => 'wrong',
+				],
+				'',
+			],
+		];
 	}
 }
