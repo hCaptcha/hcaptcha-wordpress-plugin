@@ -21,7 +21,6 @@ FunctionMocker::init(
 			realpath( HCAPTCHA_PATH . '/backend' ),
 			realpath( HCAPTCHA_PATH . '/bbp' ),
 			realpath( HCAPTCHA_PATH . '/bp' ),
-			realpath( HCAPTCHA_PATH . '/cf7' ),
 			realpath( HCAPTCHA_PATH . '/common' ),
 			realpath( HCAPTCHA_PATH . '/default' ),
 			realpath( HCAPTCHA_PATH . '/jetpack' ),
