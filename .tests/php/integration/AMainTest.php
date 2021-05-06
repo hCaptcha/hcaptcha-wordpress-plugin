@@ -48,7 +48,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_init
 	 * @noinspection PhpUnitTestsInspection
 	 */
-	public function test_init( $logged_in, $hcaptcha_off_when_logged_in, $hcaptcha_active ) {
+	public function test_init_and_init_hooks( $logged_in, $hcaptcha_off_when_logged_in, $hcaptcha_active ) {
 		global $current_user, $hcaptcha_wordpress_plugin;
 
 		// Plugin was loaded by codeception.
@@ -61,6 +61,11 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertSame(
+			- PHP_INT_MAX,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
+
+		self::assertSame(
 			10,
 			has_action( 'wp_enqueue_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
 		);
@@ -69,7 +74,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			has_action( 'login_enqueue_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
 		);
 		self::assertSame(
-			- PHP_INT_MAX,
+			- PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'hcap_load_modules' ] )
 		);
 		self::assertSame(
@@ -96,7 +101,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		}
 
 		$subject = new Main();
-		$subject->init();
+		$subject->init_hooks();
 
 		if ( $hcaptcha_active ) {
 			self::assertSame(
@@ -108,7 +113,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				has_action( 'login_enqueue_scripts', [ $subject, 'hcap_captcha_script' ] )
 			);
 			self::assertSame(
-				- PHP_INT_MAX,
+				- PHP_INT_MAX + 1,
 				has_action( 'plugins_loaded', [ $subject, 'hcap_load_modules' ] )
 			);
 			self::assertSame(

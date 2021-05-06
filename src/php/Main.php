@@ -18,7 +18,7 @@ class Main {
 	 * Input class.
 	 */
 	public function init() {
-		$this->init_hooks();
+		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
 	}
 
 	/**
@@ -28,14 +28,25 @@ class Main {
 		// Make sure we can use is_user_logged_in().
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
-		// Do not load hcaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
-		if ( ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ) {
+		if ( $this->activate_hcaptcha() ) {
 			add_action( 'wp_enqueue_scripts', [ $this, 'hcap_captcha_script' ] );
 			add_action( 'login_enqueue_scripts', [ $this, 'hcap_captcha_script' ] );
-			add_action( 'plugins_loaded', [ $this, 'hcap_load_modules' ], - PHP_INT_MAX );
+			add_action( 'plugins_loaded', [ $this, 'hcap_load_modules' ], - PHP_INT_MAX + 1 );
 			add_filter( 'woocommerce_login_credentials', [ $this, 'hcap_remove_wp_authenticate_user' ] );
 			add_action( 'plugins_loaded', [ $this, 'hcaptcha_wp_load_textdomain' ] );
 		}
+	}
+
+	/**
+	 * Check if we have to activate the plugin.
+	 *
+	 * @return bool
+	 */
+	private function activate_hcaptcha() {
+		// Do not load hcaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
+		$activate = ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) );
+
+		return (bool) apply_filters( 'hcap_activate', $activate );
 	}
 
 	/**
