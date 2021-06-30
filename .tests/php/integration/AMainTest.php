@@ -24,6 +24,8 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
+		global $hcaptcha_wordpress_plugin;
+
 		unset( $GLOBALS['current_user'] );
 
 		wp_dequeue_script( 'hcaptcha-script' );
@@ -34,6 +36,8 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		delete_option( 'hcaptcha_recaptchacompat' );
 		delete_option( 'hcaptcha_language' );
+
+		$hcaptcha_wordpress_plugin->form_shown = false;
 
 		parent::tearDown();
 	}
@@ -67,11 +71,14 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_action( 'wp_enqueue_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
+			has_filter(
+				'wp_resource_hints',
+				[ $hcaptcha_wordpress_plugin, 'prefetch_hcaptcha_dns' ]
+			)
 		);
 		self::assertSame(
-			10,
-			has_action( 'login_enqueue_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
+			0,
+			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
 		);
 		self::assertSame(
 			- PHP_INT_MAX + 1,
@@ -106,11 +113,14 @@ class AMainTest extends HCaptchaWPTestCase {
 		if ( $hcaptcha_active ) {
 			self::assertSame(
 				10,
-				has_action( 'wp_enqueue_scripts', [ $subject, 'hcap_captcha_script' ] )
+				has_filter(
+					'wp_resource_hints',
+					[ $hcaptcha_wordpress_plugin, 'prefetch_hcaptcha_dns' ]
+				)
 			);
 			self::assertSame(
-				10,
-				has_action( 'login_enqueue_scripts', [ $subject, 'hcap_captcha_script' ] )
+				0,
+				has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
 			);
 			self::assertSame(
 				- PHP_INT_MAX + 1,
@@ -129,10 +139,13 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 		} else {
 			self::assertFalse(
-				has_action( 'wp_enqueue_scripts', [ $subject, 'hcap_captcha_script' ] )
+				has_filter(
+					'wp_resource_hints',
+					[ $subject, 'prefetch_hcaptcha_dns' ]
+				)
 			);
 			self::assertFalse(
-				has_action( 'login_enqueue_scripts', [ $subject, 'hcap_captcha_script' ] )
+				has_action( 'wp_print_footer_scripts', [ $subject, 'hcap_captcha_script' ] )
 			);
 			self::assertFalse(
 				has_action( 'plugins_loaded', [ $subject, 'hcap_load_modules' ] )
@@ -164,6 +177,24 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test prefetch_hcaptcha_dns().
+	 */
+	public function test_prefetch_hcaptcha_dns() {
+		$urls     = [
+			'//s.w.org',
+		];
+		$expected = [
+			'//s.w.org',
+			'https://hcaptcha.com',
+		];
+
+		$subject = new Main();
+
+		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'some-type' ) );
+		self::assertSame( $expected, $subject->prefetch_hcaptcha_dns( $urls, 'dns-prefetch' ) );
+	}
+
+	/**
 	 * Test hcap_captcha_script().
 	 *
 	 * @param string|false $compat              Compat option value.
@@ -173,7 +204,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_hcap_captcha_script
 	 */
 	public function test_hcap_captcha_script( $compat, $language, $expected_script_src ): void {
-		global $wp_scripts, $wp_styles;
+		global $wp_scripts, $wp_styles, $hcaptcha_wordpress_plugin;
+
+		$hcaptcha_wordpress_plugin->form_shown = true;
 
 		$expected_style_src = HCAPTCHA_URL . '/css/style.css';
 
@@ -183,7 +216,9 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
 
-		do_action( 'wp_enqueue_scripts' );
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		ob_get_clean();
 
 		self::assertTrue( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
@@ -205,6 +240,23 @@ class AMainTest extends HCaptchaWPTestCase {
 			'language only' => [ false, 'ru', '//hcaptcha.com/1/api.js?hl=ru' ],
 			'both options'  => [ 'on', 'ru', '//hcaptcha.com/1/api.js?recaptchacompat=off&hl=ru' ],
 		];
+	}
+
+	/**
+	 * Test hcap_captcha_script() when form NOT shown.
+	 */
+	public function test_hcap_captcha_script_when_form_NOT_shown(): void {
+		global $hcaptcha_wordpress_plugin;
+
+		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		ob_get_clean();
+
+		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
 	}
 
 	/**

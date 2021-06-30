@@ -20,9 +20,12 @@ function hcap_form() {
  * Display hCaptcha form.
  */
 function hcap_form_display() {
+	global $hcaptcha_wordpress_plugin;
+
 	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
 	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
 	$hcaptcha_size    = get_option( 'hcaptcha_size' );
+
 	?>
 	<div
 		class="h-captcha"
@@ -31,6 +34,8 @@ function hcap_form_display() {
 		data-size="<?php echo esc_html( $hcaptcha_size ); ?>">
 	</div>
 	<?php
+
+	$hcaptcha_wordpress_plugin->form_shown = true;
 }
 
 /**
