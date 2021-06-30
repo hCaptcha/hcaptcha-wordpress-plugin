@@ -15,6 +15,13 @@ use HCaptcha\CF7\CF7;
 class Main {
 
 	/**
+	 * Form shown somewhere, use this flag to run the script.
+	 *
+	 * @var boolean
+	 */
+	public $form_shown = false;
+
+	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -29,8 +36,8 @@ class Main {
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
 		if ( $this->activate_hcaptcha() ) {
-			add_action( 'wp_enqueue_scripts', [ $this, 'hcap_captcha_script' ] );
-			add_action( 'login_enqueue_scripts', [ $this, 'hcap_captcha_script' ] );
+			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+			add_action( 'wp_print_footer_scripts', [ $this, 'hcap_captcha_script' ], 0 );
 			add_action( 'plugins_loaded', [ $this, 'hcap_load_modules' ], - PHP_INT_MAX + 1 );
 			add_filter( 'woocommerce_login_credentials', [ $this, 'hcap_remove_wp_authenticate_user' ] );
 			add_action( 'plugins_loaded', [ $this, 'hcaptcha_wp_load_textdomain' ] );
@@ -50,9 +57,31 @@ class Main {
 	}
 
 	/**
+	 * Prefetch hcaptcha dns.
+	 * We cannot control if hcaptcha form is shown here, as this is hooked on wp_head.
+	 * So, we always prefetch hcaptcha dns if hcaptcha is active, but it is a small overhead.
+	 *
+	 * @param array  $urls          URLs to print for resource hints.
+	 * @param string $relation_type The relation type the URLs are printed for.
+	 *
+	 * @return array
+	 */
+	public function prefetch_hcaptcha_dns( $urls, $relation_type ) {
+		if ( 'dns-prefetch' === $relation_type ) {
+			$urls[] = 'https://hcaptcha.com';
+		}
+
+		return $urls;
+	}
+
+	/**
 	 * Add the hcaptcha script to footer.
 	 */
 	public function hcap_captcha_script() {
+		if ( ! $this->form_shown ) {
+			return;
+		}
+
 		$param_array = [];
 		$compat      = get_option( 'hcaptcha_recaptchacompat' );
 		$language    = get_option( 'hcaptcha_language' );
