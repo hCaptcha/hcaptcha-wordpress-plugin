@@ -16,7 +16,7 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	 * Test main plugin file content.
 	 */
 	public function test_main_file_content(): void {
-		self::assertSame( '1.10.0', HCAPTCHA_VERSION );
+		self::assertSame( '1.10.1', HCAPTCHA_VERSION );
 		self::assertSame( realpath( __DIR__ . '/../../../' ), HCAPTCHA_PATH );
 
 		$config = include __DIR__ . '/../../../.codeception/_config/params.local.php';
@@ -48,5 +48,23 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		$expected         = '<p id="hcap_error" class="error hcap_error">The Captcha is invalid.</p>' . $hcaptcha_content;
 
 		self::assertSame( $expected, hcap_hcaptcha_error_message( $hcaptcha_content ) );
+	}
+
+	/**
+	 * Test that readme.txt contains proper stable tag.
+	 */
+	public function test_readme_txt(): void {
+		$expected    = [
+			'stable_tag' => HCAPTCHA_VERSION,
+		];
+		$readme_file = HCAPTCHA_PATH . '/readme.txt';
+
+		$readme_headers = get_file_data(
+			$readme_file,
+			[ 'stable_tag' => 'Stable tag' ],
+			'plugin'
+		);
+
+		self::assertSame( $expected, $readme_headers );
 	}
 }
