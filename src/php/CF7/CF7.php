@@ -16,13 +16,6 @@ use WPCF7_Validation;
 class CF7 {
 
 	/**
-	 * Content has cf7-hcaptcha shortcode flag.
-	 *
-	 * @var boolean
-	 */
-	private $has_shortcode = false;
-
-	/**
 	 * CF7 constructor.
 	 */
 	public function __construct() {
@@ -54,9 +47,8 @@ class CF7 {
 		if ( strpos( $form, '[cf7-hcaptcha]' ) === false ) {
 			$form = str_replace( '<input type="submit"', '[cf7-hcaptcha]<br><input type="submit"', $form );
 		}
-		$form = do_shortcode( $form );
 
-		return $form;
+		return do_shortcode( $form );
 	}
 
 	/**
@@ -67,10 +59,13 @@ class CF7 {
 	 * @return string
 	 */
 	public function cf7_hcaptcha_shortcode( $atts ) {
-		$hcaptcha_api_key    = get_option( 'hcaptcha_api_key' );
-		$hcaptcha_theme      = get_option( 'hcaptcha_theme' );
-		$hcaptcha_size       = get_option( 'hcaptcha_size' );
-		$this->has_shortcode = true;
+		global $hcaptcha_wordpress_plugin;
+
+		$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
+		$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
+		$hcaptcha_size    = get_option( 'hcaptcha_size' );
+
+		$hcaptcha_wordpress_plugin->form_shown = true;
 
 		return (
 			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
@@ -89,7 +84,7 @@ class CF7 {
 	 *
 	 * @param WPCF7_Validation $result Result.
 	 *
-	 * @return mixed
+	 * @return WPCF7_Validation
 	 */
 	public function verify_hcaptcha( $result ) {
 		// As of CF7 5.1.3, NONCE validation always fails. Returning to false value shows the error, found in issue #12
@@ -152,7 +147,9 @@ class CF7 {
 	 * Enqueue CF7 scripts.
 	 */
 	public function enqueue_scrips() {
-		if ( ! $this->has_shortcode ) {
+		global $hcaptcha_wordpress_plugin;
+
+		if ( ! $hcaptcha_wordpress_plugin->form_shown ) {
 			return;
 		}
 

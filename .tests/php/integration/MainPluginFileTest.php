@@ -16,7 +16,19 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	 * Test main plugin file content.
 	 */
 	public function test_main_file_content(): void {
-		self::assertSame( '1.10.1', HCAPTCHA_VERSION );
+		$expected    = [
+			'version' => HCAPTCHA_VERSION,
+		];
+		$plugin_file = HCAPTCHA_FILE;
+
+		$plugin_headers = get_file_data(
+			$plugin_file,
+			[ 'version' => 'Version' ],
+			'plugin'
+		);
+
+		self::assertSame( $expected, $plugin_headers );
+
 		self::assertSame( realpath( __DIR__ . '/../../../' ), HCAPTCHA_PATH );
 
 		$config = include __DIR__ . '/../../../.codeception/_config/params.local.php';

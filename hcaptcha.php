@@ -10,7 +10,7 @@
  * Plugin Name:          hCaptcha for Forms and More
  * Plugin URI:           https://hcaptcha.com/
  * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version:              1.10.1
+ * Version:              1.10.2
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      5.2
+ * WC tested up to:      5.4
  */
 
 use HCaptcha\Main;
@@ -36,12 +36,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-define( 'HCAPTCHA_VERSION', '1.10.1' );
+const HCAPTCHA_VERSION = '1.10.2';
 
 /**
  * Path to the plugin dir.
  */
-define( 'HCAPTCHA_PATH', __DIR__ );
+const HCAPTCHA_PATH = __DIR__;
 
 /**
  * Plugin dir url.
@@ -51,7 +51,7 @@ define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 /**
  * Main plugin file.
  */
-define( 'HCAPTCHA_FILE', __FILE__ );
+const HCAPTCHA_FILE = __FILE__;
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
@@ -72,9 +72,12 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	 * @return string
 	 */
 	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
-		$hcaptcha_content = sprintf( '<p id="hcap_error" class="error hcap_error">%s</p>', __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) ) . $hcaptcha_content;
+		$message = sprintf(
+			'<p id="hcap_error" class="error hcap_error">%s</p>',
+			__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
+		);
 
-		return $hcaptcha_content;
+		return $message . $hcaptcha_content;
 	}
 }
 
