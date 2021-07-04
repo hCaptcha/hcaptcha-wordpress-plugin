@@ -30,6 +30,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
+		global $hcaptcha_wordpress_plugin;
+
+		$hcaptcha_wordpress_plugin->form_shown = false;
+
 		wp_deregister_script( 'hcaptcha-script' );
 		wp_dequeue_script( 'hcaptcha-script' );
 
