@@ -84,7 +84,7 @@ class CF7 {
 	 *
 	 * @param WPCF7_Validation $result Result.
 	 *
-	 * @return mixed
+	 * @return WPCF7_Validation
 	 */
 	public function verify_hcaptcha( $result ) {
 		// As of CF7 5.1.3, NONCE validation always fails. Returning to false value shows the error, found in issue #12

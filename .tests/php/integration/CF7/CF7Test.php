@@ -126,7 +126,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		add_shortcode(
 			'contact-form-7',
-			function ( $content ) use ( $wpcf7_id, $cf7_text ) {
+			static function ( $content ) use ( $wpcf7_id, $cf7_text ) {
 				if ( $wpcf7_id === (int) $content['id'] ) {
 					return $cf7_text;
 				}
@@ -192,7 +192,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		add_shortcode(
 			'contact-form-7',
-			function ( $content ) use ( $wpcf7_id, $cf7_text ) {
+			static function ( $content ) use ( $wpcf7_id, $cf7_text ) {
 				if ( $wpcf7_id === (int) $content['id'] ) {
 					return $cf7_text;
 				}
@@ -229,7 +229,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		add_shortcode(
 			'contact-form-7',
-			function ( $content ) use ( $wpcf7_id, $cf7_text ) {
+			static function ( $content ) use ( $wpcf7_id, $cf7_text ) {
 				if ( $wpcf7_id === (int) $content['id'] ) {
 					return $cf7_text;
 				}
@@ -278,7 +278,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		add_shortcode(
 			'contact-form-7',
-			function ( $content ) use ( $wpcf7_id, $cf7_text ) {
+			static function ( $content ) use ( $wpcf7_id, $cf7_text ) {
 				if ( $wpcf7_id === (int) $content['id'] ) {
 					return $cf7_text;
 				}
