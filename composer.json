@@ -42,10 +42,7 @@
   "autoload": {
     "psr-4": {
       "HCaptcha\\": "src/php"
-    },
-    "classmap": [
-      "nf"
-    ]
+    }
   },
   "autoload-dev": {
     "psr-4": {
@@ -53,10 +50,7 @@
       "HCaptcha\\Tests\\Acceptance\\": ".tests/php/acceptance",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
-    },
-    "classmap": [
-      "nf"
-    ]
+    }
   },
   "bin": [
     "bin/update-tests"
