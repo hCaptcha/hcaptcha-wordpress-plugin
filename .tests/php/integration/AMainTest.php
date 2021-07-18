@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\CF7;
 use HCaptcha\Main;
+use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionClass;
 use ReflectionException;
@@ -335,7 +336,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Ninja Forms'               => [
 				'hcaptcha_nf_status',
 				'ninja-forms/ninja-forms.php',
-				'nf/ninja-forms-hcaptcha.php',
+				NF::class,
 			],
 			'Contact Form 7'            => [
 				'hcaptcha_cf7_status',

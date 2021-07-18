@@ -8,6 +8,7 @@
 namespace HCaptcha;
 
 use HCaptcha\CF7\CF7;
+use HCaptcha\NF\NF;
 
 /**
  * Class Main.
@@ -116,7 +117,7 @@ class Main {
 			'Ninja Forms'               => [
 				'hcaptcha_nf_status',
 				'ninja-forms/ninja-forms.php',
-				'nf/ninja-forms-hcaptcha.php',
+				NF::class,
 			],
 			'Contact Form 7'            => [
 				'hcaptcha_cf7_status',

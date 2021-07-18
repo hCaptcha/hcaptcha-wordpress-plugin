@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.4
-Tested up to: 5.7
+Tested up to: 5.8
 Requires PHP: 5.6  
-Stable tag: 1.10.2
+Stable tag: 1.10.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -97,6 +97,13 @@ Please see the hCaptcha privacy policy at:
 * ([hCaptcha.com](https://hCaptcha.com/privacy))
  
 == Changelog ==
+
+= 1.10.3 =
+* Fixed issue with Ninja Forms - hCaptcha is not shown.
+* Tested with WordPress 5.8 and WooCommerce 5.5
+
+= 1.10.2 =
+* Fixed issue with CF7 - hCaptcha is not shown.
 
 = 1.10.0 =
 * Fixed issue with WC login form when WP login form option is on.
