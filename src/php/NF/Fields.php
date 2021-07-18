@@ -1,14 +1,18 @@
 <?php
 /**
- * Ninja Forms class file.
+ * Fields class file.
  *
  * @package hcaptcha-wp
  */
 
+namespace HCaptcha\NF;
+
+use NF_Fields_Recaptcha;
+
 /**
- * Class HCaptchaFieldsForNF
+ * Class Fields
  */
-class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
+class Fields extends NF_Fields_recaptcha {
 
 	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
@@ -27,48 +31,21 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 	protected $_type = 'hcaptcha';
 
 	/**
-	 * Section.
-	 *
-	 * @var string
-	 */
-	protected $_section = 'misc';
-
-	/**
-	 * Icon.
-	 *
-	 * @var string
-	 */
-	protected $_icon = 'filter';
-
-	/**
 	 * Templates.
 	 *
 	 * @var string
 	 */
 	protected $_templates = 'hcaptcha';
 
-	/**
-	 * Test value.
-	 *
-	 * @var string
-	 */
-	protected $_test_value = '';
+	// phpcs:enable PSR2.Classes.PropertyDeclaration.Underscore
 
 	/**
-	 * Settings.
-	 *
-	 * @var string[]
-	 */
-	protected $_settings = array( 'label', 'classes' );
-
-	/**
-	 * HCaptchaFieldsForNF constructor.
+	 * Fields constructor.
 	 */
 	public function __construct() {
 		parent::__construct();
 
 		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
-		add_filter( 'nf_sub_hidden_field_types', array( $this, 'hide_field_type' ) );
 	}
 
 	/**
@@ -89,18 +66,5 @@ class HCaptchaFieldsForNF extends NF_Fields_recaptcha {
 			return array( __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-	}
-
-	/**
-	 * Hide hCaptcha field type.
-	 *
-	 * @param array $field_types Field types.
-	 *
-	 * @return mixed
-	 */
-	public function hide_field_type( $field_types ) {
-		$field_types[] = $this->_name;
-
-		return $field_types;
 	}
 }

@@ -1,17 +1,17 @@
 <?php
 /**
- * HCaptchaFieldsForNFTest class file.
+ * FieldsTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\NF;
 
-use HCaptchaFieldsForNF;
+use HCaptcha\NF\Fields;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
- * Test HCaptchaFieldsForNF class.
+ * Test Fields class.
  *
  * Cannot activate Ninja Forms plugin with php 8.0
  * due to some bug with uksort() in \Ninja_Forms::plugins_loaded()
@@ -19,7 +19,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
  *
  * @requires PHP < 8.0
  */
-class HCaptchaFieldsForNFTest extends HCaptchaPluginWPTestCase {
+class FieldsTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Plugin relative path.
@@ -32,9 +32,9 @@ class HCaptchaFieldsForNFTest extends HCaptchaPluginWPTestCase {
 	 * Test __construct().
 	 */
 	public function test_constructor() {
-		$subject = new HCaptchaFieldsForNF();
+		$subject = new Fields();
 
-		self::assertSame( 10, has_filter( 'nf_sub_hidden_field_types', [ $subject, 'hide_field_type' ] ) );
+		self::assertSame( 'hCaptcha', $subject->get_nicename() );
 	}
 
 	/**
@@ -44,7 +44,7 @@ class HCaptchaFieldsForNFTest extends HCaptchaPluginWPTestCase {
 		$field = [ 'value' => 'some value' ];
 		$this->prepare_hcaptcha_request_verify( $field['value'] );
 
-		$subject = new HCaptchaFieldsForNF();
+		$subject = new Fields();
 
 		self::assertNull( $subject->validate( $field, null ) );
 	}
@@ -53,7 +53,7 @@ class HCaptchaFieldsForNFTest extends HCaptchaPluginWPTestCase {
 	 * Test validate() without field.
 	 */
 	public function test_validate_without_field() {
-		$subject = new HCaptchaFieldsForNF();
+		$subject = new Fields();
 
 		self::assertSame( 'Please complete the captcha.', $subject->validate( [], null ) );
 	}
@@ -65,20 +65,8 @@ class HCaptchaFieldsForNFTest extends HCaptchaPluginWPTestCase {
 		$field = [ 'value' => 'some value' ];
 		$this->prepare_hcaptcha_request_verify( $field['value'], false );
 
-		$subject = new HCaptchaFieldsForNF();
+		$subject = new Fields();
 
 		self::assertSame( [ 'The Captcha is invalid.' ], $subject->validate( $field, null ) );
-	}
-
-	/**
-	 * Test hide_field_type().
-	 */
-	public function test_hide_field_type() {
-		$field_types = [ 'some type' ];
-		$expected    = array_merge( $field_types, [ 'hcaptcha-for-ninja-forms' ] );
-
-		$subject = new HCaptchaFieldsForNF();
-
-		self::assertSame( $expected, $subject->hide_field_type( $field_types ) );
 	}
 }
