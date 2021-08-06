@@ -14,6 +14,12 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  */
 class RequestTest extends HCaptchaWPTestCase {
 
+	public function tearDown(): void {
+		unset( $_REQUEST['h-captcha-response'] );
+
+		parent::tearDown();
+	}
+
 	/**
 	 * Test hcaptcha_request_verify().
 	 */
@@ -23,6 +29,26 @@ class RequestTest extends HCaptchaWPTestCase {
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
 
 		self::assertSame( 'success', hcaptcha_request_verify( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test hcaptcha_request_verify() with no argument.
+	 */
+	public function test_hcaptcha_request_verify_default_success() {
+		$hcaptcha_response = 'some response';
+
+		$_REQUEST['h-captcha-response'] = $hcaptcha_response;
+
+		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+
+		self::assertSame( 'success', hcaptcha_request_verify() );
+	}
+
+	/**
+	 * Test hcaptcha_request_verify() with no argument.
+	 */
+	public function test_hcaptcha_request_verify_default_fail() {
+		self::assertSame( 'fail', hcaptcha_request_verify() );
 	}
 
 	/**
