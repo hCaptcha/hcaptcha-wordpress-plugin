@@ -15,9 +15,11 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response = null ) {
 		if ( null === $hcaptcha_response ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended
 			$hcaptcha_response = isset( $_REQUEST['h-captcha-response'] ) ?
 				filter_var( wp_unslash( $_REQUEST['h-captcha-response'] ), FILTER_SANITIZE_STRING ) :
 				'';
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(

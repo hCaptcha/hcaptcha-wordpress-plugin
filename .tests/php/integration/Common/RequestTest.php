@@ -14,7 +14,11 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  */
 class RequestTest extends HCaptchaWPTestCase {
 
+	/**
+	 * Tear down the test.
+	 */
 	public function tearDown(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_REQUEST['h-captcha-response'] );
 
 		parent::tearDown();
