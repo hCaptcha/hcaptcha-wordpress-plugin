@@ -52,10 +52,10 @@ class HCaptchaWPTestCase extends WPTestCase {
 		}
 
 		return '	<div
-		class="h-captcha"
-		data-sitekey=""
-		data-theme=""
-		data-size="">
+			class="h-captcha"
+			data-sitekey=""
+			data-theme=""
+			data-size="">
 	</div>
 	' . $nonce_field;
 	}

@@ -35,10 +35,10 @@ function hcap_form_display( $action = '', $name = '' ) {
 
 	?>
 	<div
-		class="h-captcha"
-		data-sitekey="<?php echo esc_html( $hcaptcha_api_key ); ?>"
-		data-theme="<?php echo esc_html( $hcaptcha_theme ); ?>"
-		data-size="<?php echo esc_html( $hcaptcha_size ); ?>">
+			class="h-captcha"
+			data-sitekey="<?php echo esc_html( $hcaptcha_api_key ); ?>"
+			data-theme="<?php echo esc_html( $hcaptcha_theme ); ?>"
+			data-size="<?php echo esc_html( $hcaptcha_size ); ?>">
 	</div>
 	<?php
 
