@@ -11,6 +11,8 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
  * Test functions file.
+ *
+ * @group functions
  */
 class FunctionsTest extends HCaptchaWPTestCase {
 
@@ -49,11 +51,19 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test hcap_shortcode().
+	 *
+	 * @param string $action Action name for wp_nonce_field.
+	 * @param string $name   Nonce name for wp_nonce_field.
+	 *
+	 * @dataProvider dp_test_hcap_shortcode
 	 */
-	public function test_hcap_shortcode() {
-		$content  = 'some content';
+	public function test_hcap_shortcode( $action, $name ) {
 		$filtered = ' filtered ';
-		$expected = $content . $filtered . $this->get_hcap_form();
+
+		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;
+		$form_name   = empty( $name ) ? 'hcaptcha_nonce' : $name;
+
+		$expected = $filtered . $this->get_hcap_form( $form_action, $form_name );
 
 		add_filter(
 			'hcap_hcaptcha_content',
@@ -62,7 +72,28 @@ class FunctionsTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		self::assertSame( $expected, hcap_shortcode( $content ) );
+		$shortcode = '[hcaptcha';
+
+		$shortcode .= empty( $action ) ? '' : ' action="' . $action . '"';
+		$shortcode .= empty( $name ) ? '' : ' name="' . $name . '"';
+
+		$shortcode .= ']';
+
+		self::assertSame( $expected, do_shortcode( $shortcode ) );
+	}
+
+	/**
+	 * Data provider for test_hcap_shortcode().
+	 *
+	 * @return array
+	 */
+	public function dp_test_hcap_shortcode() {
+		return [
+			'no arguments'   => [ '', '' ],
+			'action only'    => [ 'some_action', '' ],
+			'name only'      => [ '', 'some_name' ],
+			'with arguments' => [ 'some_action', 'some_name' ],
+		];
 	}
 
 	/**

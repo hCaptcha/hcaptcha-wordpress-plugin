@@ -41,15 +41,12 @@ if ( ! function_exists( 'hcap_mailchimp_wp_form' ) ) {
 	 * @return string
 	 */
 	function hcap_mailchimp_wp_form( $content = '', $form = '', $element = '' ) {
-		$content = str_replace(
+		return str_replace(
 			'<input type="submit"',
-			hcap_shortcode() .
-			wp_nonce_field( 'hcaptcha_mailchimp', 'hcaptcha_mailchimp_nonce', true, false ) .
+			hcap_form( 'hcaptcha_mailchimp', 'hcaptcha_mailchimp_nonce' ) .
 			'<input type="submit"',
 			$content
 		);
-
-		return $content;
 	}
 }
 

@@ -36,16 +36,25 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Return hcap_form_display() content.
 	 *
+	 * @param string $action Action name for wp_nonce_field.
+	 * @param string $name   Nonce name for wp_nonce_field.
+	 *
 	 * @return string
 	 */
-	protected function get_hcap_form() {
+	protected function get_hcap_form( $action = '', $name = '' ) {
+		$nonce_field = '';
+
+		if ( ! empty( $action ) && ! empty( $name ) ) {
+			$nonce_field = wp_nonce_field( $action, $name, true, false );
+		}
+
 		return '	<div
 		class="h-captcha"
 		data-sitekey=""
 		data-theme=""
 		data-size="">
 	</div>
-	';
+	' . $nonce_field;
 	}
 
 	/**
