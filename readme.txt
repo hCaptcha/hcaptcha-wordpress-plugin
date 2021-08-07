@@ -85,6 +85,19 @@ if ( 'success' !== $result ) {
 }
 `
 
+= Does [hcaptcha] shortcode have arguments? =
+
+Shortcode adds not only hcaptcha div to the form but also nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode
+`
+[hcaptcha action="my_hcap_action" name="my_hcap_name"]
+`
+
+and in the verification
+
+`
+$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
+`
+
 = How to block hcaptcha on specific page? =
 
 hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add this code to your theme's `functions.php` file:
