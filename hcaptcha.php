@@ -53,6 +53,16 @@ define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
  */
 const HCAPTCHA_FILE = __FILE__;
 
+/**
+ * Default nonce action.
+ */
+const HCAPTCHA_ACTION = 'hcaptcha_action';
+
+/**
+ * Default nonce name.
+ */
+const HCAPTCHA_NONCE = 'hcaptcha_nonce';
+
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
 require 'common/request.php';

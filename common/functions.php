@@ -59,8 +59,8 @@ function hcap_form_display( $action = '', $name = '' ) {
 function hcap_shortcode( $atts ) {
 	$atts = shortcode_atts(
 		[
-			'action' => 'hcaptcha_action',
-			'name'   => 'hcaptcha_nonce',
+			'action' => HCAPTCHA_ACTION,
+			'name'   => HCAPTCHA_NONCE,
 		],
 		$atts
 	);

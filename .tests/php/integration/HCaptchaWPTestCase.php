@@ -28,6 +28,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * End test
 	 */
 	public function tearDown(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		unset( $_POST );
+
 		Mockery::close();
 		parent::tearDown();
 		FunctionMocker::tearDown();
@@ -64,6 +67,12 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @param bool|null $result            Desired result.
 	 */
 	protected function prepare_hcaptcha_request_verify( $hcaptcha_response, $result = true ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['h-captcha-response'] ) ) {
+			$_POST[ HCAPTCHA_NONCE ]     = wp_create_nonce( HCAPTCHA_ACTION );
+			$_POST['h-captcha-response'] = $hcaptcha_response;
+		}
+
 		$raw_response = wp_json_encode( [ 'success' => $result ] );
 		if ( null === $result ) {
 			$raw_response = '';

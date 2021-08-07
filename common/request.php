@@ -15,11 +15,17 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response = null ) {
 		if ( null === $hcaptcha_response ) {
-			// phpcs:disable WordPress.Security.NonceVerification.Recommended
-			$hcaptcha_response = isset( $_REQUEST['h-captcha-response'] ) ?
-				filter_var( wp_unslash( $_REQUEST['h-captcha-response'] ), FILTER_SANITIZE_STRING ) :
+			if (
+				! isset( $_POST[ HCAPTCHA_NONCE ], $_POST['h-captcha-response'] ) ||
+				empty( $_POST['h-captcha-response'] ) ||
+				! wp_verify_nonce( filter_var( wp_unslash( $_POST[ HCAPTCHA_NONCE ] ), FILTER_SANITIZE_STRING ), HCAPTCHA_ACTION )
+			) {
+				return 'empty';
+			}
+
+			$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
+				filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_STRING ) :
 				'';
-			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(
