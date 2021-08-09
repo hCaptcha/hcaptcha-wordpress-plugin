@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 use WPDieException;
 
 /**
@@ -43,7 +44,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$subject->init();
 
 		self::assertSame(
-			10,
+			- PHP_INT_MAX,
 			has_action( 'init', [ $subject, 'verify_form' ] )
 		);
 
@@ -107,6 +108,37 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		self::assertSame( $content, $subject->content_filter( $content ) );
 		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test content_filter() on CLI.
+	 *
+	 * @group auto-verify
+	 */
+	public function test_content_filter_on_cli() {
+		FunctionMocker::replace(
+			'defined',
+			function( $constant_name ) {
+				return 'AWP_CLI' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			function( $name ) {
+				return 'AWP_CLI' === $name;
+			}
+		);
+
+		var_dump( defined('AWP_CLI') );
+
+		$content = $this->get_test_content();
+
+		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**

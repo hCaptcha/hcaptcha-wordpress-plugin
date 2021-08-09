@@ -16,6 +16,8 @@ use WPCF7_Validation;
 
 /**
  * Test CF7 class.
+ *
+ * @group cf7
  */
 class CF7Test extends HCaptchaPluginWPTestCase {
 

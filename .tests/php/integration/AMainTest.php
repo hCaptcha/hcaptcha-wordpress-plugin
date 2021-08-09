@@ -18,6 +18,8 @@ use ReflectionException;
  * Test Main class.
  *
  * @group main
+ *
+ * @group bp
  * @group jetpack
  */
 class AMainTest extends HCaptchaWPTestCase {
