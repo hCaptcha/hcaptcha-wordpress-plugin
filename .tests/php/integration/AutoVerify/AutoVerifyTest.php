@@ -130,8 +130,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		var_dump( defined('AWP_CLI') );
-
 		$content = $this->get_test_content();
 
 		$subject = new AutoVerify();
