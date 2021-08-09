@@ -29,7 +29,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'], $GLOBALS['current_screen'], $GLOBALS['wp_rewrite'] );
+		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'], $GLOBALS['current_screen'] );
 		delete_transient( AutoVerify::TRANSIENT );
 		$this->disable_wp_die = false;
 
@@ -445,6 +445,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * Test verify_form() in rest, case 3 and 4.
 	 */
 	public function test_verify_form_in_rest_case_3_and_4() {
+		$old_wp_rewrite = $GLOBALS['wp_rewrite'];
+
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['wp_rewrite'] = null;
 
@@ -452,6 +454,9 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$subject = new AutoVerify();
 		$subject->verify_form();
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_rewrite'] = $old_wp_rewrite;
 	}
 
 	/**
