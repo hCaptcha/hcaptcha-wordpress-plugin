@@ -104,11 +104,13 @@ See also the section "How to automatically verify an arbitrary form?".
 
 Arbitrary user forms can be verified automatically easily. Just add auto="true" or auto="1" to the shortcode:
 
+`
 [hcaptcha auto="true"]
+`
 
 and insert this shortcode into your form.
 
-So far it works only in the post content, will be extended soon.
+Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but this will be extended soon.
 
 = How to block hcaptcha on specific page? =
 
