@@ -78,7 +78,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;
 		$form_name   = empty( $name ) ? 'hcaptcha_nonce' : $name;
-		$form_auto   = filter_var( $auto, FILTER_VALIDATE_BOOL );
+		$form_auto   = filter_var( $auto, FILTER_VALIDATE_BOOLEAN );
 
 		$expected = $filtered . $this->get_hcap_form( $form_action, $form_name, $form_auto );
 
