@@ -98,6 +98,18 @@ and in the verification
 $result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
 `
 
+See also the section "How to automatically verify an arbitrary form?".
+
+= How to automatically verify an arbitrary form? =
+
+Arbitrary user forms can be verified automatically easily. Just add auto="true" or auto="1" to the shortcode:
+
+[hcaptcha auto="true"]
+
+and insert this shortcode into your form.
+
+So far it works only in the post content, will be extended soon.
+
 = How to block hcaptcha on specific page? =
 
 hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add this code to your theme's `functions.php` file:
