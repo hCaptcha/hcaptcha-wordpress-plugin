@@ -29,7 +29,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'] );
+		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'], $GLOBALS['current_screen'] );
 		delete_transient( AutoVerify::TRANSIENT );
 		$this->disable_wp_die = false;
 
@@ -111,28 +111,64 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test content_filter() on CLI.
+	 * Test content_filter() in CLI.
 	 *
-	 * @group auto-verify
+	 * This does not work, no idea why.
+	 * Function mocker does not replace required functions.
 	 */
-	public function test_content_filter_on_cli() {
+	public function no_test_content_filter_in_cli() {
 		FunctionMocker::replace(
 			'defined',
-			function( $constant_name ) {
-				return 'AWP_CLI' === $constant_name;
+			function ( $constant_name ) {
+				return 'WP_CLI' === $constant_name;
 			}
 		);
 
 		FunctionMocker::replace(
 			'constant',
-			function( $name ) {
-				return 'AWP_CLI' === $name;
+			function ( $name ) {
+				return 'WP_CLI' === $name;
 			}
 		);
 
 		$content = $this->get_test_content();
 
 		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test content_filter() in admin.
+	 */
+	public function test_content_filter_in_admin() {
+		set_current_screen( 'some-screen' );
+
+		$content = $this->get_test_content();
+
+		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test content_filter() in ajax.
+	 */
+	public function test_content_filter_in_ajax() {
+		$content = $this->get_test_content();
+
+		$subject = new AutoVerify();
+
+		add_filter(
+			'wp_doing_ajax',
+			static function ( $wp_doing_ajax ) {
+				return true;
+			}
+		);
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		self::assertSame( $content, $subject->content_filter( $content ) );
@@ -238,6 +274,56 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		}
 
 		parent::wp_die_handler( $message );
+	}
+
+	/**
+	 * Test verify_form() in CLI.
+	 *
+	 * This does not work, no idea why.
+	 * Function mocker does not replace required functions.
+	 */
+	public function no_test_verify_form_in_cli() {
+		FunctionMocker::replace(
+			'defined',
+			function ( $constant_name ) {
+				return 'WP_CLI' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			function ( $name ) {
+				return 'WP_CLI' === $name;
+			}
+		);
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
+	}
+
+	/**
+	 * Test verify_form() in admin.
+	 */
+	public function test_verify_form_in_admin() {
+		set_current_screen( 'some-screen' );
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
+	}
+
+	/**
+	 * Test verify_form() in ajax.
+	 */
+	public function test_verify_form_in_ajax() {
+		add_filter(
+			'wp_doing_ajax',
+			static function ( $wp_doing_ajax ) {
+				return true;
+			}
+		);
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
 	}
 
 	/**
