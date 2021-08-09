@@ -5,12 +5,12 @@
  * @package HCaptcha\Tests
  */
 
-namespace HCaptcha\Tests\Integration\CF7;
+namespace HCaptcha\Tests\Integration;
 
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionClass;
 use ReflectionException;
 
@@ -18,6 +18,7 @@ use ReflectionException;
  * Test Main class.
  *
  * @group main
+ * @group jetpack
  */
 class AMainTest extends HCaptchaWPTestCase {
 
@@ -52,6 +53,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_init
 	 * @noinspection PhpUnitTestsInspection
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_and_init_hooks( $logged_in, $hcaptcha_off_when_logged_in, $hcaptcha_active ) {
 		global $current_user, $hcaptcha_wordpress_plugin;
@@ -138,6 +140,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				10,
 				has_action( 'plugins_loaded', [ $subject, 'hcaptcha_wp_load_textdomain' ] )
 			);
+			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
 			self::assertFalse(
 				has_filter(
@@ -160,6 +163,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			self::assertFalse(
 				has_action( 'plugins_loaded', [ $subject, 'hcaptcha_wp_load_textdomain' ] )
 			);
+			self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 		}
 	}
 

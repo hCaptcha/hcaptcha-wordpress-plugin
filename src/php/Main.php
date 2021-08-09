@@ -7,6 +7,7 @@
 
 namespace HCaptcha;
 
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\NF\NF;
 
@@ -21,6 +22,13 @@ class Main {
 	 * @var boolean
 	 */
 	public $form_shown = false;
+
+	/**
+	 * Instance of AutoVerify.
+	 *
+	 * @var AutoVerify
+	 */
+	protected $auto_verify;
 
 	/**
 	 * Input class.
@@ -42,6 +50,8 @@ class Main {
 			add_action( 'plugins_loaded', [ $this, 'hcap_load_modules' ], - PHP_INT_MAX + 1 );
 			add_filter( 'woocommerce_login_credentials', [ $this, 'hcap_remove_wp_authenticate_user' ] );
 			add_action( 'plugins_loaded', [ $this, 'hcaptcha_wp_load_textdomain' ] );
+			$this->auto_verify = new AutoVerify();
+			$this->auto_verify->init();
 		}
 	}
 

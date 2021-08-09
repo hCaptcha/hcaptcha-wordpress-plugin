@@ -9,6 +9,9 @@ namespace HCaptcha\Tests\Integration;
 
 use Codeception\TestCase\WPTestCase;
 use Mockery;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -22,6 +25,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 	public function setUp(): void {
 		FunctionMocker::setUp();
 		parent::setUp();
+
+		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 	}
 
 	/**
@@ -29,7 +34,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		unset( $_POST );
+		unset( $_POST, $_SERVER['REQUEST_URI'] );
 
 		Mockery::close();
 		parent::tearDown();
@@ -37,25 +42,88 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
+	 * Get an object protected property.
+	 *
+	 * @param object $object        Object.
+	 * @param string $property_name Property name.
+	 *
+	 * @return mixed
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	protected function get_protected_property( $object, $property_name ) {
+		$reflection_class = new ReflectionClass( $object );
+
+		$property = $reflection_class->getProperty( $property_name );
+		$property->setAccessible( true );
+		$value = $property->getValue( $object );
+		$property->setAccessible( false );
+
+		return $value;
+	}
+
+	/**
+	 * Set an object protected property.
+	 *
+	 * @param object $object        Object.
+	 * @param string $property_name Property name.
+	 * @param mixed  $value         Property vale.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	protected function set_protected_property( $object, $property_name, $value ) {
+		$reflection_class = new ReflectionClass( $object );
+
+		$property = $reflection_class->getProperty( $property_name );
+		$property->setAccessible( true );
+		$property->setValue( $object, $value );
+		$property->setAccessible( false );
+	}
+
+	/**
+	 * Set an object protected method accessibility.
+	 *
+	 * @param object $object      Object.
+	 * @param string $method_name Property name.
+	 * @param bool   $accessible  Property vale.
+	 *
+	 * @return ReflectionMethod
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	protected function set_method_accessibility( $object, $method_name, $accessible = true ) {
+		$reflection_class = new ReflectionClass( $object );
+
+		$method = $reflection_class->getMethod( $method_name );
+		$method->setAccessible( $accessible );
+
+		return $method;
+	}
+
+	/**
 	 * Return hcap_form_display() content.
 	 *
 	 * @param string $action Action name for wp_nonce_field.
 	 * @param string $name   Nonce name for wp_nonce_field.
+	 * @param bool   $auto   This form has to be auto-verified.
 	 *
 	 * @return string
 	 */
-	protected function get_hcap_form( $action = '', $name = '' ) {
+	protected function get_hcap_form( $action = '', $name = '', $auto = false ) {
 		$nonce_field = '';
 
 		if ( ! empty( $action ) && ! empty( $name ) ) {
 			$nonce_field = wp_nonce_field( $action, $name, true, false );
 		}
 
+		$data_auto = $auto ? 'true' : 'false';
+
 		return '	<div
 			class="h-captcha"
 			data-sitekey=""
 			data-theme=""
-			data-size="">
+			data-size=""
+			data-auto="' . $data_auto . '">
 	</div>
 	' . $nonce_field;
 	}

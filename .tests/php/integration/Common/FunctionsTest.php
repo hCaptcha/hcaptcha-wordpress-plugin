@@ -32,6 +32,12 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcap_form() {
 		self::assertSame( $this->get_hcap_form(), hcap_form() );
+
+		$action = 'some_action';
+		$name   = 'some_name';
+		$auto   = true;
+
+		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), hcap_form( $action, $name, $auto ) );
 	}
 
 	/**
@@ -47,6 +53,15 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $this->get_hcap_form(), ob_get_clean() );
 		self::assertTrue( $hcaptcha_wordpress_plugin->form_shown );
+
+		$action = 'some_action';
+		$name   = 'some_name';
+		$auto   = true;
+
+		ob_start();
+		hcap_form_display( $action, $name, $auto );
+
+		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
 	}
 
 	/**
@@ -54,16 +69,18 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 *
 	 * @param string $action Action name for wp_nonce_field.
 	 * @param string $name   Nonce name for wp_nonce_field.
+	 * @param string $auto   Auto argument.
 	 *
 	 * @dataProvider dp_test_hcap_shortcode
 	 */
-	public function test_hcap_shortcode( $action, $name ) {
+	public function test_hcap_shortcode( $action, $name, $auto ) {
 		$filtered = ' filtered ';
 
 		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;
 		$form_name   = empty( $name ) ? 'hcaptcha_nonce' : $name;
+		$form_auto   = filter_var( $auto, FILTER_VALIDATE_BOOL );
 
-		$expected = $filtered . $this->get_hcap_form( $form_action, $form_name );
+		$expected = $filtered . $this->get_hcap_form( $form_action, $form_name, $form_auto );
 
 		add_filter(
 			'hcap_hcaptcha_content',
@@ -76,6 +93,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 		$shortcode .= empty( $action ) ? '' : ' action="' . $action . '"';
 		$shortcode .= empty( $name ) ? '' : ' name="' . $name . '"';
+		$shortcode .= empty( $auto ) ? '' : ' auto="' . $auto . '"';
 
 		$shortcode .= ']';
 
@@ -89,10 +107,15 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_hcap_shortcode() {
 		return [
-			'no arguments'   => [ '', '' ],
-			'action only'    => [ 'some_action', '' ],
-			'name only'      => [ '', 'some_name' ],
-			'with arguments' => [ 'some_action', 'some_name' ],
+			'no arguments'   => [ '', '', '' ],
+			'action only'    => [ 'some_action', '', '' ],
+			'name only'      => [ '', 'some_name', '' ],
+			'with arguments' => [ 'some_action', 'some_name', '' ],
+			'auto false'     => [ 'some_action', 'some_name', 'false' ],
+			'auto 0'         => [ 'some_action', 'some_name', 'false' ],
+			'auto wrong'     => [ 'some_action', 'some_name', 'false' ],
+			'auto true'      => [ 'some_action', 'some_name', 'true' ],
+			'auto 1'         => [ 'some_action', 'some_name', '1' ],
 		];
 	}
 

@@ -10,12 +10,13 @@
  *
  * @param string $action Action name for wp_nonce_field.
  * @param string $name   Nonce name for wp_nonce_field.
+ * @param bool   $auto   This form has to be auto-verified.
  *
  * @return false|string
  */
-function hcap_form( $action = '', $name = '' ) {
+function hcap_form( $action = '', $name = '', $auto = false ) {
 	ob_start();
-	hcap_form_display( $action, $name );
+	hcap_form_display( $action, $name, $auto );
 
 	return ob_get_clean();
 }
@@ -25,8 +26,9 @@ function hcap_form( $action = '', $name = '' ) {
  *
  * @param string $action Action name for wp_nonce_field.
  * @param string $name   Nonce name for wp_nonce_field.
+ * @param bool   $auto   This form has to be auto-verified.
  */
-function hcap_form_display( $action = '', $name = '' ) {
+function hcap_form_display( $action = '', $name = '', $auto = false ) {
 	global $hcaptcha_wordpress_plugin;
 
 	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
@@ -36,9 +38,10 @@ function hcap_form_display( $action = '', $name = '' ) {
 	?>
 	<div
 			class="h-captcha"
-			data-sitekey="<?php echo esc_html( $hcaptcha_api_key ); ?>"
-			data-theme="<?php echo esc_html( $hcaptcha_theme ); ?>"
-			data-size="<?php echo esc_html( $hcaptcha_size ); ?>">
+			data-sitekey="<?php echo esc_attr( $hcaptcha_api_key ); ?>"
+			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
+			data-size="<?php echo esc_attr( $hcaptcha_size ); ?>"
+			data-auto="<?php echo $auto ? 'true' : 'false'; ?>">
 	</div>
 	<?php
 
@@ -61,11 +64,14 @@ function hcap_shortcode( $atts ) {
 		[
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
+			'auto'   => false,
 		],
 		$atts
 	);
 
-	return apply_filters( 'hcap_hcaptcha_content', hcap_form( $atts['action'], $atts['name'] ) );
+	$atts['auto'] = filter_var( $atts['auto'], FILTER_VALIDATE_BOOLEAN );
+
+	return apply_filters( 'hcap_hcaptcha_content', hcap_form( $atts['action'], $atts['name'], $atts['auto'] ) );
 }
 
 add_shortcode( 'hcaptcha', 'hcap_shortcode' );

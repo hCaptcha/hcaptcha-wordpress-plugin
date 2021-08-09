@@ -12,6 +12,8 @@ use WP_Error;
 
 /**
  * Test jetpack form file.
+ *
+ * @group jetpack
  */
 class JetpackTest extends HCaptchaWPTestCase {
 
@@ -33,25 +35,27 @@ class JetpackTest extends HCaptchaWPTestCase {
 	 * @return array
 	 */
 	public function dp_test_hcap_hcaptcha_jetpack_form() {
-		$nonce = wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );
+		$_SERVER['REQUEST_URI'] = 'http://test.test/';
+
+		$nonce_field = wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );
 
 		return [
 			'Empty contact form'                 => [ '', '' ],
 			'Classic contact form'               => [
 				'[contact-form] Some contact form [/contact-form]',
-				'[contact-form] Some contact form [hcaptcha]' . $nonce . '[/contact-form]',
+				'[contact-form] Some contact form [hcaptcha]' . $nonce_field . '[/contact-form]',
 			],
 			'Classic contact form with hcaptcha' => [
 				'[contact-form] Some contact form [hcaptcha][/contact-form]',
-				'[contact-form] Some contact form [hcaptcha][/contact-form]' . $nonce,
+				'[contact-form] Some contact form [hcaptcha][/contact-form]' . $nonce_field,
 			],
 			'Block contact form'                 => [
 				'<form wp-block-jetpack-contact-form </form>',
-				'<form wp-block-jetpack-contact-form [hcaptcha]' . $nonce . '</form>',
+				'<form wp-block-jetpack-contact-form [hcaptcha]' . $nonce_field . '</form>',
 			],
 			'Block contact form with hcaptcha'   => [
 				'<form wp-block-jetpack-contact-form [hcaptcha]</form>',
-				'<form wp-block-jetpack-contact-form [hcaptcha]</form>' . $nonce,
+				'<form wp-block-jetpack-contact-form [hcaptcha]</form>' . $nonce_field,
 			],
 		];
 	}
