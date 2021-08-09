@@ -7,8 +7,6 @@
 
 namespace HCaptcha\AutoVerify;
 
-use HCaptcha\Main;
-
 /**
  * Class AutoVerify
  */
@@ -18,28 +16,6 @@ class AutoVerify {
 	 * Transient name where to store registered forms.
 	 */
 	const TRANSIENT = 'hcaptcha_auto_verify';
-
-	/**
-	 * Cipher key.
-	 *
-	 * @var string
-	 */
-	private $key;
-
-	/**
-	 * Cipher iv.
-	 *
-	 * @var string
-	 */
-	private $iv;
-
-	/**
-	 * AutoVerify constructor.
-	 */
-	public function __construct() {
-		$this->key = wp_hash( 'secret_key' );
-		$this->iv  = substr( wp_hash( 'secret_iv' ), 0, 16 );
-	}
 
 	/**
 	 * Init class.
@@ -323,28 +299,5 @@ class AutoVerify {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Encrypt data.
-	 *
-	 * @param string $data Data to encrypt.
-	 *
-	 * @return string
-	 * @noinspection EncryptionInitializationVectorRandomnessInspection
-	 */
-	private function encrypt( $data = '' ) {
-		return openssl_encrypt( $data, 'AES-256-CBC', $this->key, 0, $this->iv );
-	}
-
-	/**
-	 * Decrypt data.
-	 *
-	 * @param string $data Data to decrypt.
-	 *
-	 * @return string
-	 */
-	private function decrypt( $data = '' ) {
-		return openssl_decrypt( $data, 'AES-256-CBC', $this->key, 0, $this->iv );
 	}
 }
