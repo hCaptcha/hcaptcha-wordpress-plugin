@@ -38,7 +38,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init() and init_hooks().
 	 */
-	public function test_init_And_init_hooks() {
+	public function test_init_and_init_hooks() {
 		$subject = new AutoVerify();
 		$subject->init();
 
@@ -61,6 +61,29 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$content     = $this->get_test_content();
 
 		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$expected = $this->get_registered_forms();
+
+		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test content_filter() with action containing host.
+	 */
+	public function test_content_filter_with_action() {
+		$request_uri = $this->get_test_request_uri();
+		$content     = $this->get_test_content();
+		$content     = str_replace(
+			'<form method="post">',
+			'<form method="post" action="http://test.test' . $request_uri . '">',
+			$content
+		);
+
+		unset( $_SERVER['REQUEST_URI'] );
 
 		$expected = $this->get_registered_forms();
 

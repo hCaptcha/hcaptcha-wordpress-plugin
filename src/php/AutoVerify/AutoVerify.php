@@ -135,7 +135,7 @@ class AutoVerify {
 		$form_action = '';
 
 		if ( preg_match( '#<form [\S\s]*?action="(.*)"[\S\s]*?>#', $form, $m ) ) {
-			$form_action = $m[1];
+			$form_action = wp_parse_url( $m[1], PHP_URL_PATH );
 		}
 
 		if ( ! $form_action ) {
