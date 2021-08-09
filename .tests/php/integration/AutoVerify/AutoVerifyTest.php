@@ -29,7 +29,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'], $GLOBALS['current_screen'] );
+		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'], $GLOBALS['current_screen'], $GLOBALS['wp_rewrite'] );
 		delete_transient( AutoVerify::TRANSIENT );
 		$this->disable_wp_die = false;
 
@@ -63,7 +63,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$_SERVER['REQUEST_URI'] = $request_uri;
 
-		$expected = $this->get_registered_forms();
+		$expected = $this->get_test_registered_forms();
 
 		$subject = new AutoVerify();
 
@@ -86,7 +86,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		unset( $_SERVER['REQUEST_URI'] );
 
-		$expected = $this->get_registered_forms();
+		$expected = $this->get_test_registered_forms();
 
 		$subject = new AutoVerify();
 
@@ -117,7 +117,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$request_uri = $this->get_test_request_uri();
 		$content     = $this->get_test_content();
 		$content     = preg_replace( '#<input[\S\s]+?>#', '', $content );
-		$expected    = $this->get_registered_forms();
+		$expected    = $this->get_test_registered_forms();
 
 		$expected[ untrailingslashit( $request_uri ) ][0] = [];
 
@@ -126,6 +126,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$subject = new AutoVerify();
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+
+		// Test update existing transient.
 		self::assertSame( $content, $subject->content_filter( $content ) );
 		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
@@ -145,6 +149,15 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		self::assertSame( $content, $subject->content_filter( $content ) );
 		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
+
+		$registered_forms                              = $this->get_test_registered_forms();
+		$expected                                      = $registered_forms;
+		$expected[ untrailingslashit( $request_uri ) ] = [];
+
+		// Test update existing transient.
+		set_transient( AutoVerify::TRANSIENT, $registered_forms );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**
@@ -229,6 +242,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	public function test_verify_form_when_no_request_uri() {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 
+		unset( $_SERVER['REQUEST_URI'] );
+
 		$subject = new AutoVerify();
 		$subject->verify_form();
 	}
@@ -247,6 +262,44 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify_form() when forms on another uri are registered.
+	 */
+	public function test_verify_form_when_forms_on_another_uri_are_registered() {
+		$request_uri = $this->get_test_request_uri();
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = $request_uri;
+
+		$registered_forms             = $this->get_test_registered_forms();
+		$registered_forms['some_uri'] = $registered_forms[ untrailingslashit( $request_uri ) ];
+		unset( $registered_forms[ untrailingslashit( $request_uri ) ] );
+
+		set_transient( AutoVerify::TRANSIENT, $registered_forms );
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
+	}
+
+	/**
+	 * Test verify_form() when another forms on the same uri are registered.
+	 */
+	public function test_verify_form_when_another_forms_on_the_same_uri_are_registered() {
+		$request_uri = $this->get_test_request_uri();
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = $request_uri;
+
+		$registered_forms = $this->get_test_registered_forms();
+
+		$registered_forms[ untrailingslashit( $request_uri ) ][0] = [ 'some_input' ];
+
+		set_transient( AutoVerify::TRANSIENT, $registered_forms );
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
+	}
+
+	/**
 	 * Test verify_form() when verify is not successful.
 	 */
 	public function test_verify_form_when_no_success() {
@@ -257,7 +310,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$_POST['test_input'] = 'some input';
 
-		set_transient( AutoVerify::TRANSIENT, $this->get_registered_forms() );
+		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
 
 		$this->disable_wp_die = true;
 
@@ -285,7 +338,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$_POST['test_input'] = 'some input';
 
-		set_transient( AutoVerify::TRANSIENT, $this->get_registered_forms() );
+		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
 
@@ -364,6 +417,44 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify_form() in rest, case 2.
+	 *
+	 * This does not work, no idea why.
+	 * Function mocker does not replace required functions.
+	 */
+	public function no_test_verify_form_in_rest_case_2() {
+		$rest_route         = rest_get_url_prefix() . '/some-route/';
+		$_GET['rest_route'] = $rest_route;
+
+		FunctionMocker::replace(
+			'filter_input',
+			function ( $type, $var_name, $filter ) use ( $rest_route ) {
+				if ( INPUT_GET === $type && 'rest_route' === $var_name && FILTER_SANITIZE_STRING === $filter ) {
+					return $rest_route;
+				}
+
+				return null;
+			}
+		);
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
+	}
+
+	/**
+	 * Test verify_form() in rest, case 3 and 4.
+	 */
+	public function test_verify_form_in_rest_case_3_and_4() {
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_rewrite'] = null;
+
+		$_SERVER['REQUEST_URI'] = rest_url();
+
+		$subject = new AutoVerify();
+		$subject->verify_form();
+	}
+
+	/**
 	 * Get test request URI.
 	 *
 	 * @return string
@@ -423,7 +514,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 *
 	 * @return \string[][][]
 	 */
-	private function get_registered_forms() {
+	private function get_test_registered_forms() {
 		$request_uri = $this->get_test_request_uri();
 
 		return [
