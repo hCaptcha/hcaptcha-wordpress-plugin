@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.8
 Requires PHP: 5.6  
-Stable tag: 1.10.3
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -153,6 +153,9 @@ Please see the hCaptcha privacy policy at:
 * ([hCaptcha.com](https://hCaptcha.com/privacy))
  
 == Changelog ==
+
+= 1.11.0 =
+* Added auto-verification of an arbitrary form.
 
 = 1.10.3 =
 * Fixed issue with Ninja Forms - hCaptcha is not shown.
