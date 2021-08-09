@@ -111,6 +111,43 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test content_filter() when no input in form (really?).
+	 */
+	public function test_content_filter_without_form_inputs() {
+		$request_uri = $this->get_test_request_uri();
+		$content     = $this->get_test_content();
+		$content     = preg_replace( '#<input[\S\s]+?>#', '', $content );
+		$expected    = $this->get_registered_forms();
+
+		$expected[ untrailingslashit( $request_uri ) ][0] = [];
+
+		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test content_filter() when no data-auto in form (really?).
+	 */
+	public function test_content_filter_without_form_data_auto() {
+		$request_uri = $this->get_test_request_uri();
+		$content     = $this->get_test_content();
+		$content     = preg_replace( '#data-auto=".*?">#', '', $content );
+
+		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
 	 * Test content_filter() in CLI.
 	 *
 	 * This does not work, no idea why.
