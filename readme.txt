@@ -54,11 +54,11 @@ Please see our website at: https://hcaptcha.com/
 
 Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
 
-= How to add hcaptcha to an arbitrary form? =
+= How to add hCaptcha to an arbitrary form =
 
-First, add the hcaptcha snippet to the form.
+First, add the hCaptcha snippet to the form.
 
-If you create the form as an HTML block in the post content, just insert the shortcode `[captcha]` inside it. It may look like this:
+If you create the form as an HTML block in the post content, just insert the shortcode `[hcaptcha]` inside it. It may look like this:
 
 `
 <form method="post">
@@ -85,24 +85,24 @@ if ( 'success' !== $result ) {
 }
 `
 
-= Does [hcaptcha] shortcode have arguments? =
+= Does the [hcaptcha] shortcode have arguments? =
 
-Shortcode adds not only hcaptcha div to the form but also nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode
+The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 `
 [hcaptcha action="my_hcap_action" name="my_hcap_name"]
 `
 
-and in the verification
+and in the verification:
 
 `
 $result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
 `
 
-See also the section "How to automatically verify an arbitrary form?".
+See also the section *"How to automatically verify an arbitrary form"*
 
-= How to automatically verify an arbitrary form? =
+= How to automatically verify an arbitrary form =
 
-Arbitrary user forms can be verified automatically easily. Just add auto="true" or auto="1" to the shortcode:
+Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"` to the shortcode:
 
 `
 [hcaptcha auto="true"]
