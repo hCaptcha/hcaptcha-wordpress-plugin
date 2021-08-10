@@ -52,7 +52,7 @@ function hcap_woocommerce_wishlists_after_wrapper_action() {
 
 	// Find last $search string and insert hcaptcha before it.
 	$search  = '<p class="form-row">';
-	$replace = "\n" . hcap_shortcode() . "\n" . $search;
+	$replace = "\n" . hcap_form() . "\n" . $search;
 
 	$wrapper = preg_replace(
 		'/(' . $search . ')(?!.*' . $search . ')/is',

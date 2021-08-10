@@ -9,14 +9,32 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	/**
 	 * Verify hCaptcha response.
 	 *
-	 * @param string $hcaptcha_response hCaptcha response.
+	 * @param string|null $hcaptcha_response hCaptcha response.
 	 *
 	 * @return string fail|success
 	 */
-	function hcaptcha_request_verify( $hcaptcha_response ) {
+	function hcaptcha_request_verify( $hcaptcha_response = null ) {
+		if ( null === $hcaptcha_response ) {
+			if (
+				! isset( $_POST[ HCAPTCHA_NONCE ], $_POST['h-captcha-response'] ) ||
+				empty( $_POST['h-captcha-response'] ) ||
+				! wp_verify_nonce( filter_var( wp_unslash( $_POST[ HCAPTCHA_NONCE ] ), FILTER_SANITIZE_STRING ), HCAPTCHA_ACTION )
+			) {
+				return 'empty';
+			}
+
+			$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
+				filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_STRING ) :
+				'';
+		}
+
 		$hcaptcha_response_sanitized = htmlspecialchars(
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_STRING )
 		);
+
+		if ( '' === $hcaptcha_response ) {
+			return 'fail';
+		}
 
 		$hcaptcha_secret_key = get_option( 'hcaptcha_secret_key' );
 		$raw_response        = wp_remote_get(

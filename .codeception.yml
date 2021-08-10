@@ -27,7 +27,6 @@ coverage:
         - ./default/*
         - ./jetpack/*
         - ./mailchimp/*
-        - ./nf/*.php
         - ./src/php/*
         - ./subscriber/*
         - ./wc/*

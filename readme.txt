@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.8
 Requires PHP: 5.6  
-Stable tag: 1.10.3
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -27,7 +27,7 @@ However, you may wish to email the authors of plugins you'd like to support hCap
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots. 
 
-hCaptcha takes this idea and extends it by attempting to use those challenge answers for annotation, in an attempt to avoid simply wasting that effort. It is designed to solve the most labor intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.
+hCaptcha takes this idea and extends it by attempting to use those challenge answers for annotation, in an attempt to avoid simply wasting that effort. It is designed to solve the most labor-intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.
 
 More data generally produces better results in training machine learning models. The recent success of deep models has led to increasingly large datasets, almost always with some human review. However, creating large human-reviewed datasets via Mechanical Turk, Figure Eight, etc. is both slow and expensive.
 
@@ -44,15 +44,73 @@ hCaptcha allows websites to earn rewards while serving this demand while blockin
 
 = You don't support plugin X. How can I get support for it added? =
 
-Open a PR on github: https://github.com/hCaptcha/hcaptcha-wordpress-plugin or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
+Open a PR on GitHub: https://github.com/hCaptcha/hcaptcha-wordpress-plugin or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
 
 = Where can I get more information about hCaptcha? =
 
 Please see our website at: https://hcaptcha.com/
 
-= Why isn't my WPForms Lite install working? =
+= Why isn't my WPForms Lite installation working? =
 
 Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
+
+= How to add hCaptcha to an arbitrary form =
+
+First, add the hCaptcha snippet to the form.
+
+If you create the form as an HTML block in the post content, just insert the shortcode `[hcaptcha]` inside it. It may look like this:
+
+`
+<form method="post">
+	<input type="text" name="test_input">
+	<input type="submit" value="Send">
+    [hcaptcha]
+</form>
+
+`
+
+If you create the form programmatically, insert the following statement inside it:
+
+`
+do_shortcode( 'hcaptcha' );
+`
+
+Secondly, verify the result of hcaptcha challenge.
+
+`
+$result = hcaptcha_request_verify();
+
+if ( 'success' !== $result ) {
+    // Block processing of the form.
+}
+`
+
+= Does the [hcaptcha] shortcode have arguments? =
+
+The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
+`
+[hcaptcha action="my_hcap_action" name="my_hcap_name"]
+`
+
+and in the verification:
+
+`
+$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
+`
+
+See also the section *"How to automatically verify an arbitrary form"*
+
+= How to automatically verify an arbitrary form =
+
+Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"` to the shortcode:
+
+`
+[hcaptcha auto="true"]
+`
+
+and insert this shortcode into your form.
+
+Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but this will be extended soon.
 
 = How to block hcaptcha on specific page? =
 
@@ -97,6 +155,9 @@ Please see the hCaptcha privacy policy at:
 * ([hCaptcha.com](https://hCaptcha.com/privacy))
  
 == Changelog ==
+
+= 1.11.0 =
+* Added auto-verification of an arbitrary form.
 
 = 1.10.3 =
 * Fixed issue with Ninja Forms - hCaptcha is not shown.

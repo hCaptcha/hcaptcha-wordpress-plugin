@@ -9,6 +9,8 @@ namespace HCaptcha\Tests\Integration;
 
 /**
  * Test main plugin file.
+ *
+ * @group main-plugin-file
  */
 class MainPluginFileTest extends HCaptchaWPTestCase {
 
@@ -36,6 +38,9 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertSame( 'http://' . $wp_url . '/wp-content/plugins/hcaptcha-wordpress-plugin', HCAPTCHA_URL );
 
 		self::assertSame( realpath( __DIR__ . '/../../../hcaptcha.php' ), HCAPTCHA_FILE );
+
+		self::assertSame( 'hcaptcha_action', HCAPTCHA_ACTION );
+		self::assertSame( 'hcaptcha_nonce', HCAPTCHA_NONCE );
 
 		// request.php was required.
 		self::assertTrue( function_exists( 'hcaptcha_request_verify' ) );
