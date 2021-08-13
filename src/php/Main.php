@@ -9,6 +9,7 @@ namespace HCaptcha;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
+use HCaptcha\Divi\FixDivi;
 use HCaptcha\NF\NF;
 
 /**
@@ -53,6 +54,9 @@ class Main {
 			$this->auto_verify = new AutoVerify();
 			$this->auto_verify->init();
 		}
+
+		$fix_divi = new FixDivi();
+		$fix_divi->init();
 	}
 
 	/**
