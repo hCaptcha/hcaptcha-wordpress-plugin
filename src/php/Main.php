@@ -55,8 +55,7 @@ class Main {
 			$this->auto_verify->init();
 		}
 
-		$fix_divi = new FixDivi();
-		$fix_divi->init();
+		( new FixDivi() )->init();
 	}
 
 	/**
