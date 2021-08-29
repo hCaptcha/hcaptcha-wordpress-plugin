@@ -5,10 +5,10 @@
  * @package HCaptcha\Tests
  */
 
-namespace HCaptcha\Tests\Integration\FixDivi;
+namespace HCaptcha\Tests\Unit\FixDivi;
 
 use HCaptcha\Divi\FixDivi;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -16,7 +16,7 @@ use tad\FunctionMocker\FunctionMocker;
  *
  * @group divi
  */
-class FixDiviTest extends HCaptchaWPTestCase {
+class FixDiviTest extends HCaptchaTestCase {
 
 	/**
 	 * Test init() and init_hooks().
@@ -24,6 +24,8 @@ class FixDiviTest extends HCaptchaWPTestCase {
 	public function test_init_and_init_hooks() {
 		$subject = new FixDivi();
 		$subject->init();
+
+//		self::expectActionAdd
 
 		self::assertSame(
 			- PHP_INT_MAX,
@@ -34,7 +36,7 @@ class FixDiviTest extends HCaptchaWPTestCase {
 	/**
 	 * Test register_autoload().
 	 */
-	public function test_register_autoload() {
+	public function est_register_autoload() {
 		$autoload = FunctionMocker::replace( 'spl_autoload_register' );
 
 		FunctionMocker::replace(
@@ -53,7 +55,7 @@ class FixDiviTest extends HCaptchaWPTestCase {
 	/**
 	 * Test register_autoload() without divi theme.
 	 */
-	public function test_register_autoload_without_divi_theme() {
+	public function est_register_autoload_without_divi_theme() {
 		$autoload = FunctionMocker::replace( 'spl_autoload_register' );
 
 		$subject = new FixDivi();

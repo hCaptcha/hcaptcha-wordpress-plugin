@@ -14,6 +14,10 @@
 
 global $argv;
 
+if ( in_array( 'acceptance', $argv, true ) ) {
+	return [];
+}
+
 if ( in_array( 'unit', $argv, true ) ) {
 	return [];
 }
