@@ -156,6 +156,10 @@ Please see the hCaptcha privacy policy at:
  
 == Changelog ==
 
+= 1.12.0 =
+* hCaptcha moved inside of Jetpack block form, before submit button.
+* Fixed fatal error with Divi theme.
+
 = 1.11.0 =
 * Added auto-verification of an arbitrary form.
 

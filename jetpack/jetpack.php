@@ -22,19 +22,19 @@ if ( ! function_exists( 'hcap_hcaptcha_jetpack_form' ) ) {
 	 * @return string|string[]|null
 	 */
 	function hcap_hcaptcha_jetpack_form( $content ) {
+		// Jetpack classic form.
 		$content = preg_replace_callback(
-			'~(\[contact-form([\s\S]*)?][\s\S]*)(\[/contact-form])~U',
-			'hcaptcha_jetpack_cf_callback',
+			'~(\[contact-form(?:[\s\S]*)?][\s\S]*)(\[/contact-form])~U',
+			'hcaptcha_jetpack_cf_classic_callback',
 			$content
 		);
 
-		$content = preg_replace_callback(
-			'~(<form ([\s\S]*)?wp-block-jetpack-contact-form[\s\S]*)?(</form>)~U',
-			'hcaptcha_jetpack_cf_callback',
+		// Jetpack block form.
+		return preg_replace_callback(
+			'~(?:<form (?:[\s\S]*)?wp-block-jetpack-contact-form[\s\S]*)?(<button [\s\S]*type="submit"[\s\S]*</button>)[\s\S]*</form>~U',
+			'hcaptcha_jetpack_cf_block_callback',
 			$content
 		);
-
-		return $content;
 	}
 }
 
@@ -44,27 +44,51 @@ add_filter( 'widget_text', 'hcap_hcaptcha_jetpack_form', 0 );
 add_filter( 'widget_text', 'shortcode_unautop' );
 add_filter( 'widget_text', 'do_shortcode' );
 
-if ( ! function_exists( 'hcaptcha_jetpack_cf_callback' ) ) {
+if ( ! function_exists( 'hcaptcha_jetpack_cf_classic_callback' ) ) {
 
 	/**
-	 * Add hCaptcha shortcode to the provided shortcode for Jetpack contact form.
+	 * Add hCaptcha shortcode to the provided shortcode for Jetpack classic contact form.
 	 *
 	 * @param array $matches Matches.
 	 *
 	 * @return string
 	 */
-	function hcaptcha_jetpack_cf_callback( $matches ) {
-		if ( ! preg_match( '~\[hcaptcha]~', $matches[0] ) ) {
+	function hcaptcha_jetpack_cf_classic_callback( $matches ) {
+		if ( preg_match( '~\[hcaptcha]~', $matches[0] ) ) {
 			return (
-				$matches[1] . '[hcaptcha]' .
-				wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false ) .
-				$matches[3]
+				$matches[0] .
+				wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false )
 			);
 		}
 
 		return (
-			$matches[0] .
-			wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false )
+			$matches[1] . '[hcaptcha]' .
+			wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false ) .
+			$matches[2]
+		);
+	}
+}
+
+if ( ! function_exists( 'hcaptcha_jetpack_cf_block_callback' ) ) {
+
+	/**
+	 * Add hCaptcha shortcode to the provided shortcode for Jetpack block contact form.
+	 *
+	 * @param array $matches Matches.
+	 *
+	 * @return string
+	 */
+	function hcaptcha_jetpack_cf_block_callback( $matches ) {
+		$replace = $matches[1] . wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );
+
+		if ( ! preg_match( '~\[hcaptcha]~', $matches[0] ) ) {
+			$replace = '[hcaptcha]' . $replace;
+		}
+
+		return str_replace(
+			$matches[1],
+			$replace,
+			$matches[0]
 		);
 	}
 }
