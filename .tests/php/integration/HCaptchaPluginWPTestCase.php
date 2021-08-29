@@ -56,7 +56,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			version_compare( PHP_VERSION, '7.0', '<' )
 		) {
 			self::markTestSkipped(
-				'This tests requires PHP 7.0 at least.'
+				'This test requires PHP 7.0 at least.'
 			);
 		}
 

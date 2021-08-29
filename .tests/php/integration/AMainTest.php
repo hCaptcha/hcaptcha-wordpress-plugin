@@ -453,7 +453,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		array_walk(
 			$modules,
-			function ( &$value, $key ) {
+			static function ( &$value, $key ) {
 				$value = [ $value ];
 			}
 		);

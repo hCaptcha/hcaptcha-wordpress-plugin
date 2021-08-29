@@ -12,6 +12,8 @@ use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test bp files.
+ *
+ * @group bp
  */
 class BPTest extends HCaptchaPluginWPTestCase {
 
