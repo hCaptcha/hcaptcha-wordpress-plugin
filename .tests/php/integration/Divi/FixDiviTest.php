@@ -14,7 +14,7 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test FixDivi class.
  *
- * @group bp2
+ * @group divi
  */
 class FixDiviTest extends HCaptchaWPTestCase {
 
