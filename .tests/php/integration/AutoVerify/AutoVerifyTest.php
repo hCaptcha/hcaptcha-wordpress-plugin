@@ -5,11 +5,15 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
 use WPDieException;
 
 /**
@@ -161,36 +165,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test content_filter() in CLI.
-	 *
-	 * This does not work, no idea why.
-	 * Function mocker does not replace required functions.
-	 */
-	public function no_test_content_filter_in_cli() {
-		FunctionMocker::replace(
-			'defined',
-			function ( $constant_name ) {
-				return 'WP_CLI' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			function ( $name ) {
-				return 'WP_CLI' === $name;
-			}
-		);
-
-		$content = $this->get_test_content();
-
-		$subject = new AutoVerify();
-
-		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->content_filter( $content ) );
-		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-	}
-
-	/**
 	 * Test content_filter() in admin.
 	 */
 	public function test_content_filter_in_admin() {
@@ -215,7 +189,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'wp_doing_ajax',
-			static function ( $wp_doing_ajax ) {
+			static function () {
 				return true;
 			}
 		);
@@ -367,31 +341,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify_form() in CLI.
-	 *
-	 * This does not work, no idea why.
-	 * Function mocker does not replace required functions.
-	 */
-	public function no_test_verify_form_in_cli() {
-		FunctionMocker::replace(
-			'defined',
-			function ( $constant_name ) {
-				return 'WP_CLI' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			function ( $name ) {
-				return 'WP_CLI' === $name;
-			}
-		);
-
-		$subject = new AutoVerify();
-		$subject->verify_form();
-	}
-
-	/**
 	 * Test verify_form() in admin.
 	 */
 	public function test_verify_form_in_admin() {
@@ -407,33 +356,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	public function test_verify_form_in_ajax() {
 		add_filter(
 			'wp_doing_ajax',
-			static function ( $wp_doing_ajax ) {
+			static function () {
 				return true;
-			}
-		);
-
-		$subject = new AutoVerify();
-		$subject->verify_form();
-	}
-
-	/**
-	 * Test verify_form() in rest, case 2.
-	 *
-	 * This does not work, no idea why.
-	 * Function mocker does not replace required functions.
-	 */
-	public function no_test_verify_form_in_rest_case_2() {
-		$rest_route         = rest_get_url_prefix() . '/some-route/';
-		$_GET['rest_route'] = $rest_route;
-
-		FunctionMocker::replace(
-			'filter_input',
-			function ( $type, $var_name, $filter ) use ( $rest_route ) {
-				if ( INPUT_GET === $type && 'rest_route' === $var_name && FILTER_SANITIZE_STRING === $filter ) {
-					return $rest_route;
-				}
-
-				return null;
 			}
 		);
 
@@ -517,7 +441,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Get registered forms.
 	 *
-	 * @return \string[][][]
+	 * @return string[][][]
 	 */
 	private function get_test_registered_forms() {
 		$request_uri = $this->get_test_request_uri();
