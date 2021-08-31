@@ -87,6 +87,10 @@ class SettingsTest extends HCaptchaWPTestCase {
 								value="compact"
 							>
 							Compact						</option>
+												<option
+								value="invisible"
+							>
+							Invisible						</option>
 										</select>
 				<br><br>
 							<strong>
@@ -410,6 +414,10 @@ class SettingsTest extends HCaptchaWPTestCase {
 								value="compact"
 							>
 							Compact						</option>
+												<option
+								value="invisible"
+							>
+							Invisible						</option>
 										</select>
 				<br><br>
 							<strong>

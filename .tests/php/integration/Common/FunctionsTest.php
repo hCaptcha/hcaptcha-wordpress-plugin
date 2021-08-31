@@ -155,8 +155,9 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'type'    => 'select',
 					'options' =>
 						[
-							'normal'  => 'Normal',
-							'compact' => 'Compact',
+							'normal'    => 'Normal',
+							'compact'   => 'Compact',
+							'invisible' => 'Invisible',
 						],
 				],
 			'hcaptcha_language'                 =>

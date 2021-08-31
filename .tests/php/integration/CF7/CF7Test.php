@@ -325,13 +325,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$subject->enqueue_scrips();
 
-		self::assertFalse( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
+		self::assertFalse( wp_script_is( CF7::HANDLE, 'enqueued' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		ob_end_clean();
 
-		self::assertFalse( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
+		self::assertFalse( wp_script_is( CF7::HANDLE, 'enqueued' ) );
 
 		do_shortcode( '[cf7-hcaptcha]' );
 
@@ -339,6 +339,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		do_action( 'wp_print_footer_scripts' );
 		ob_end_clean();
 
-		self::assertTrue( wp_script_is( 'cf7-hcaptcha', 'enqueued' ) );
+		self::assertTrue( wp_script_is( CF7::HANDLE, 'enqueued' ) );
 	}
 }
