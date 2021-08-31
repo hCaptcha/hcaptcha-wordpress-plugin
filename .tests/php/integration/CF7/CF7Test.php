@@ -61,8 +61,12 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_wpcf7_form_elements().
+	 *
+	 * @param string $hcaptcha_size Widget size/visibility.
+	 *
+	 * @dataProvider dp_test_hcap_cf7_wpcf7_form_elements
 	 */
-	public function test_hcap_cf7_wpcf7_form_elements() {
+	public function test_hcap_cf7_wpcf7_form_elements( $hcaptcha_size ) {
 		$form =
 			'<form>' .
 			'<input type="submit" value="Send">' .
@@ -74,7 +78,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$hcaptcha_api_key = 'some api key';
 		$hcaptcha_theme   = 'some theme';
-		$hcaptcha_size    = 'some size';
 
 		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
 		update_option( 'hcaptcha_theme', $hcaptcha_theme );
@@ -91,12 +94,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
+		$callback = 'invisible' === $hcaptcha_size ? '" data-callback="hCaptchaSubmitCF7' : '';
+
 		$expected =
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
 			'<span id="' . $uniqid . '"' .
 			' class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key . '"' .
 			' data-theme="' . $hcaptcha_theme . '"' .
+			$callback .
 			' data-size="' . $hcaptcha_size . '">' .
 			'</span>' .
 			'</span>' .
@@ -115,7 +121,21 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Data provide for test_hcap_cf7_wpcf7_form_elements().
+	 *
+	 * @return array
+	 */
+	public function dp_test_hcap_cf7_wpcf7_form_elements() {
+		return [
+			'visible'   => 'normal',
+			'invisible' => 'invisible',
+		];
+	}
+
+	/**
 	 * Test hcap_cf7_verify_recaptcha().
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha() {
 		$data             = [ 'h-captcha-response' => 'some response' ];
@@ -157,6 +177,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without submission.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
@@ -168,6 +190,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without posted data.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_posted_data() {
 		$data       = [];
@@ -184,6 +208,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without api key.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_api_key() {
 		$data     = [];
@@ -219,6 +245,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without response.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_response() {
 		$data             = [];
@@ -268,6 +296,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() not verified.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_not_verified() {
 		$data             = [ 'h-captcha-response' => 'some response' ];
@@ -321,24 +351,32 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Test hcap_cf7_enqueue_scrips().
 	 */
 	public function test_hcap_cf7_enqueue_scrips() {
+		$hcaptcha_size = 'normal';
+
 		$subject = new CF7();
 
 		$subject->enqueue_scrips();
 
-		self::assertFalse( wp_script_is( CF7::HANDLE, 'enqueued' ) );
+		self::assertFalse( wp_script_is( CF7::HANDLE ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		ob_end_clean();
 
-		self::assertFalse( wp_script_is( CF7::HANDLE, 'enqueued' ) );
+		self::assertFalse( wp_script_is( CF7::HANDLE ) );
 
+		update_option( 'hcaptcha_size', $hcaptcha_size );
 		do_shortcode( '[cf7-hcaptcha]' );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		ob_end_clean();
 
-		self::assertTrue( wp_script_is( CF7::HANDLE, 'enqueued' ) );
+		self::assertTrue( wp_script_is( CF7::HANDLE ) );
+
+		self::assertSame(
+			'var hCaptchaCF7 = {"size":"' . $hcaptcha_size . '"};',
+			wp_scripts()->get_data( CF7::HANDLE, 'data' )
+		);
 	}
 }
