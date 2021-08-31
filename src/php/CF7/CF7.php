@@ -14,6 +14,14 @@ use WPCF7_Validation;
  * Class CF7.
  */
 class CF7 {
+	const HANDLE = 'hcaptcha-cf7';
+
+	/**
+	 * Widget size.
+	 *
+	 * @var false|string
+	 */
+	private $hcaptcha_size;
 
 	/**
 	 * CF7 constructor.
@@ -35,7 +43,7 @@ class CF7 {
 	/**
 	 * Add CF7 form element.
 	 *
-	 * @param mixed $form CF7 form.
+	 * @param string $form CF7 form.
 	 *
 	 * @return string
 	 */
@@ -61,9 +69,11 @@ class CF7 {
 	public function cf7_hcaptcha_shortcode( $atts ) {
 		global $hcaptcha_wordpress_plugin;
 
-		$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-		$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
-		$hcaptcha_size    = get_option( 'hcaptcha_size' );
+		$hcaptcha_api_key    = get_option( 'hcaptcha_api_key' );
+		$hcaptcha_theme      = get_option( 'hcaptcha_theme' );
+		$this->hcaptcha_size = get_option( 'hcaptcha_size' );
+
+		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmitCF7' : '';
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
 
@@ -72,7 +82,8 @@ class CF7 {
 			'<span id="' . uniqid( 'hcap_cf7-', true ) .
 			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
 			'" data-theme="' . esc_html( $hcaptcha_theme ) .
-			'" data-size="' . esc_html( $hcaptcha_size ) . '">' .
+			$callback .
+			'" data-size="' . esc_html( $this->hcaptcha_size ) . '">' .
 			'</span>' .
 			'</span>' .
 			wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7', true, false )
@@ -87,15 +98,17 @@ class CF7 {
 	 * @return WPCF7_Validation
 	 */
 	public function verify_hcaptcha( $result ) {
-		// As of CF7 5.1.3, NONCE validation always fails. Returning to false value shows the error, found in issue #12
-		// if (!isset($_POST['hcaptcha_contact_form7_nonce']) || (isset($_POST['hcaptcha_contact_form7_nonce']) && !wp_verify_nonce($_POST['hcaptcha_contact_form7'], 'hcaptcha_contact_form7'))) {
-		// return false;
-		// }
-		//
-		// CF7 author's comments: "any good effect expected from a nonce is limited when it is used for a publicly-open contact form that anyone can submit,
-		// and undesirable side effects have been seen in some cases.”
-		//
-		// Our comments: hCaptcha passcodes are one-time use, so effectively serve as a nonce anyway.
+		/**
+		 * As of CF7 5.1.3, NONCE validation always fails. Returning to false value shows the error, found in issue #12
+		 * if (!isset($_POST['hcaptcha_contact_form7_nonce']) || (isset($_POST['hcaptcha_contact_form7_nonce']) && !wp_verify_nonce($_POST['hcaptcha_contact_form7'], 'hcaptcha_contact_form7'))) {
+		 * return false;
+		 * }
+		 *
+		 * CF7 author's comments: "any good effect expected from a nonce is limited when it is used for a publicly-open contact form that anyone can submit,
+		 * and undesirable side effects have been seen in some cases.”
+		 *
+		 * Our comments: hCaptcha passcodes are one-time use, so effectively serve as a nonce anyway.
+		 */
 
 		$submission = WPCF7_Submission::get_instance();
 		if ( null === $submission ) {
@@ -154,11 +167,17 @@ class CF7 {
 		}
 
 		wp_enqueue_script(
-			'cf7-hcaptcha',
-			HCAPTCHA_URL . '/assets/js/cf7.js',
+			self::HANDLE,
+			HCAPTCHA_URL . '/assets/js/hcaptcha-cf7.js',
 			[],
 			HCAPTCHA_VERSION,
 			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			'hCaptchaCF7',
+			[ 'size' => $this->hcaptcha_size ]
 		);
 	}
 }

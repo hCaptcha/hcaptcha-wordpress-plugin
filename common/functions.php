@@ -101,8 +101,9 @@ function hcap_options() {
 			'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
 			'type'    => 'select',
 			'options' => [
-				'normal'  => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
-				'compact' => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
+				'normal'    => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
+				'compact'   => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
+				'invisible' => __( 'Invisible', 'hcaptcha-for-forms-and-more' ),
 			],
 		],
 		'hcaptcha_language'                 => [
