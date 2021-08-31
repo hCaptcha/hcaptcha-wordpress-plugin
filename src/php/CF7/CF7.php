@@ -14,7 +14,8 @@ use WPCF7_Validation;
  * Class CF7.
  */
 class CF7 {
-	const HANDLE = 'hcaptcha-cf7';
+	const HANDLE    = 'hcaptcha-cf7';
+	const SHORTCODE = 'cf7-hcaptcha';
 
 	/**
 	 * Widget size.
@@ -35,9 +36,9 @@ class CF7 {
 	 */
 	public function init_hooks() {
 		add_filter( 'wpcf7_form_elements', [ $this, 'wpcf7_form_elements' ] );
-		add_shortcode( 'cf7-hcaptcha', [ $this, 'cf7_hcaptcha_shortcode' ] );
+		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
 		add_filter( 'wpcf7_validate', [ $this, 'verify_hcaptcha' ], 20, 2 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scrips' ], 9 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -48,12 +49,12 @@ class CF7 {
 	 * @return string
 	 */
 	public function wpcf7_form_elements( $form ) {
-
-		/**
-		 * The quickest and easiest way to add the hcaptcha shortcode if it's not added in the CF7 form fields.
-		 */
-		if ( strpos( $form, '[cf7-hcaptcha]' ) === false ) {
-			$form = str_replace( '<input type="submit"', '[cf7-hcaptcha]<br><input type="submit"', $form );
+		if ( strpos( $form, '[' . self::SHORTCODE . ']' ) === false ) {
+			$form = str_replace(
+				'<input type="submit"',
+				'[' . self::SHORTCODE . ']<br><input type="submit"',
+				$form
+			);
 		}
 
 		return do_shortcode( $form );
@@ -77,6 +78,10 @@ class CF7 {
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
 
+		/**
+		 * CF7 works via REST API, where current user is set to 0 (not logged in) if nonce is not present.
+		 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
+		 */
 		return (
 			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
 			'<span id="' . uniqid( 'hcap_cf7-', true ) .
@@ -86,7 +91,7 @@ class CF7 {
 			'" data-size="' . esc_html( $this->hcaptcha_size ) . '">' .
 			'</span>' .
 			'</span>' .
-			wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7', true, false )
+			wp_nonce_field( 'wp_rest', '_wpnonce', true, false )
 		);
 	}
 
@@ -98,18 +103,6 @@ class CF7 {
 	 * @return WPCF7_Validation
 	 */
 	public function verify_hcaptcha( $result ) {
-		/**
-		 * As of CF7 5.1.3, NONCE validation always fails. Returning to false value shows the error, found in issue #12
-		 * if (!isset($_POST['hcaptcha_contact_form7_nonce']) || (isset($_POST['hcaptcha_contact_form7_nonce']) && !wp_verify_nonce($_POST['hcaptcha_contact_form7'], 'hcaptcha_contact_form7'))) {
-		 * return false;
-		 * }
-		 *
-		 * CF7 author's comments: "any good effect expected from a nonce is limited when it is used for a publicly-open contact form that anyone can submit,
-		 * and undesirable side effects have been seen in some cases.”
-		 *
-		 * Our comments: hCaptcha passcodes are one-time use, so effectively serve as a nonce anyway.
-		 */
-
 		$submission = WPCF7_Submission::get_instance();
 		if ( null === $submission ) {
 			return $result;
@@ -140,17 +133,20 @@ class CF7 {
 				],
 				__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' )
 			);
-		} else {
-			$captcha_result = hcaptcha_request_verify( $data['h-captcha-response'] );
-			if ( 'fail' === $captcha_result ) {
-				$result->invalidate(
-					[
-						'type' => 'captcha',
-						'name' => 'hcap_cf7-h-captcha-invalid',
-					],
-					__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
-				);
-			}
+
+			return $result;
+		}
+
+		$captcha_result = hcaptcha_request_verify( $data['h-captcha-response'] );
+
+		if ( 'fail' === $captcha_result ) {
+			$result->invalidate(
+				[
+					'type' => 'captcha',
+					'name' => 'hcap_cf7-h-captcha-invalid',
+				],
+				__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
+			);
 		}
 
 		return $result;
@@ -159,7 +155,7 @@ class CF7 {
 	/**
 	 * Enqueue CF7 scripts.
 	 */
-	public function enqueue_scrips() {
+	public function enqueue_scripts() {
 		global $hcaptcha_wordpress_plugin;
 
 		if ( ! $hcaptcha_wordpress_plugin->form_shown ) {

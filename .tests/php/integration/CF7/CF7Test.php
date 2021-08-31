@@ -56,7 +56,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		self::assertSame( 10, has_filter( 'wpcf7_form_elements', [ $subject, 'wpcf7_form_elements' ] ) );
 		self::assertTrue( shortcode_exists( 'cf7-hcaptcha' ) );
 		self::assertSame( 20, has_filter( 'wpcf7_validate', [ $subject, 'verify_hcaptcha' ] ) );
-		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scrips' ] ) );
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 	}
 
 	/**
@@ -348,14 +348,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test hcap_cf7_enqueue_scrips().
+	 * Test hcap_cf7_enqueue_scripts().
 	 */
-	public function test_hcap_cf7_enqueue_scrips() {
+	public function test_hcap_cf7_enqueue_scripts() {
 		$hcaptcha_size = 'normal';
 
 		$subject = new CF7();
 
-		$subject->enqueue_scrips();
+		$subject->enqueue_scripts();
 
 		self::assertFalse( wp_script_is( CF7::HANDLE ) );
 
