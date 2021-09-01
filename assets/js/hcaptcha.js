@@ -1,9 +1,7 @@
 /* global hcaptcha, hCaptcha */
 
-window.hCaptchaSubmit = function( token ) {
-	// const submitFormFunction = Object.getPrototypeOf( hCaptcha.form ).submit;
-	// submitFormFunction.call( hCaptcha.form );
-
+window.hCaptchaSubmit = function() {
+	// noinspection JSUnresolvedFunction
 	hCaptcha.currentForm.formElement.requestSubmit( hCaptcha.currentForm.submitButtonElement );
 };
 
