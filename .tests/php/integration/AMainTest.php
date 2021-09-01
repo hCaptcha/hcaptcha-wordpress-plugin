@@ -291,7 +291,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha-api' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 		self::assertSame(
-			'var hCaptcha = {"forms":["body.login form#loginform","body.login form#registerform"]};',
+			'var hCaptcha = {"forms":[["body.login form#loginform","input[type=\"submit\"]"],["body.login form#registerform","input[type=\"submit\"]"],["form#commentform","input[type=\"submit\"]"],["body.login form#lostpasswordform","input[type=\"submit\"]"],["form.woocommerce-form.woocommerce-form-login.login","button[type=\"submit\"]"],["form.woocommerce-form.woocommerce-form-register.register","button[type=\"submit\"]"],["form.woocommerce-ResetPassword.lost_reset_password","button[type=\"submit\"]"],["form.checkout.woocommerce-checkout","button[type=\"submit\"]"]]};',
 			wp_scripts()->get_data( 'hcaptcha', 'data' )
 		);
 	}

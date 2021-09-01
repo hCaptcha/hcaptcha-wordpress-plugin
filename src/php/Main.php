@@ -40,8 +40,6 @@ class Main {
 
 	/**
 	 * Init hooks.
-	 *
-	 * @noinspection PhpIncludeInspection
 	 */
 	public function init_hooks() {
 		// Make sure we can use is_user_logged_in().
@@ -132,22 +130,61 @@ class Main {
 			HCAPTCHA_VERSION,
 			true
 		);
+
+		/**
+		 * Below is the array describing forms to which invisible hcaptcha can be attached.
+		 * Each element for one form can be a string or an array.
+		 * If it is a string, it contains the form css selector.
+		 * If it is an array, it additionally contains the submit button selector inside the form.
+		 * Default submit button selector is `input[type="submit"]`.
+		 */
+
+		//				[ '.nf-form-cont form', 'input[type="button"]' ], // Ninja Forms.
+
+		$forms =
+			[
+				// Login form.
+				'body.login form#loginform',
+				// Register form.
+				'body.login form#registerform',
+				// Comment form.
+				'form#commentform',
+				// Lost password form.
+				'body.login form#lostpasswordform',
+				// WooCommerce login form.
+				[ 'form.woocommerce-form.woocommerce-form-login.login', 'button[type="submit"]' ],
+				// WooCommerce register form.
+				[ 'form.woocommerce-form.woocommerce-form-register.register', 'button[type="submit"]' ],
+				// WooCommerce lost password form.
+				[ 'form.woocommerce-ResetPassword.lost_reset_password', 'button[type="submit"]' ],
+				// WooCommerce checkout form.
+				// Does not work so far, some WC script removes our event listener.
+				[ 'form.checkout.woocommerce-checkout', 'button[type="submit"]' ],
+			];
+
+		$default_submit_btn_selector = 'input[type="submit"]';
+
+		// Add default submit button selector to all string items.
+		$forms = array_map(
+			static function ( $form ) use ( $default_submit_btn_selector ) {
+				if ( is_array( $form ) ) {
+					return $form;
+				}
+
+				return [ $form, $default_submit_btn_selector ];
+			},
+			$forms
+		);
+
 		wp_localize_script(
 			'hcaptcha',
 			'hCaptcha',
-			[
-				'forms' => [
-					'body.login form#loginform', // Login.
-					'body.login form#registerform', // Register.
-				],
-			]
+			[ 'forms' => $forms ]
 		);
 	}
 
 	/**
 	 * Load plugin modules.
-	 *
-	 * @noinspection PhpIncludeInspection
 	 */
 	public function load_modules() {
 		$modules = [
