@@ -15,9 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Subscriber form.
  *
+ * @param string $content Subscriber form content.
+ *
  * @return string
  */
-function hcap_subscriber_form() {
+function hcap_subscriber_form( $content ) {
 	$output = hcap_form();
 
 	$output .= wp_nonce_field(
@@ -27,10 +29,10 @@ function hcap_subscriber_form() {
 		false
 	);
 
-	return $output;
+	return $content . $output;
 }
 
-add_filter( 'sbscrbr_add_field', 'hcap_subscriber_form', 10, 0 );
+add_filter( 'sbscrbr_add_field', 'hcap_subscriber_form', 10 );
 
 if ( ! function_exists( 'hcap_subscriber_verify' ) ) {
 	/**
