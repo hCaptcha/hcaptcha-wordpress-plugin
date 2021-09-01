@@ -1,3 +1,3 @@
-.h-captcha {
-margin-bottom: 2rem;
+.h-captcha:not([data-size="invisible"]) {
+	margin-bottom: 2rem;
 }
