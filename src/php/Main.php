@@ -138,6 +138,7 @@ class Main {
 			[
 				'forms' => [
 					'body.login form#loginform', // Login.
+					'body.login form#registerform', // Register.
 				],
 			]
 		);

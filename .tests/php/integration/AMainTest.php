@@ -291,7 +291,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha-api' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 		self::assertSame(
-			'var hCaptcha = {"forms":["body.login form#loginform"]};',
+			'var hCaptcha = {"forms":["body.login form#loginform","body.login form#registerform"]};',
 			wp_scripts()->get_data( 'hcaptcha', 'data' )
 		);
 	}
