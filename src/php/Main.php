@@ -139,8 +139,6 @@ class Main {
 		 * Default submit button selector is `input[type="submit"]`.
 		 */
 
-		//				[ '.nf-form-cont form', 'input[type="button"]' ], // Ninja Forms.
-
 		$forms =
 			[
 				// Login form.
@@ -151,6 +149,8 @@ class Main {
 				'form#commentform',
 				// Lost password form.
 				'body.login form#lostpasswordform',
+				// '.nf-form-cont form', 'input[type="button"]' - Ninja Forms, does not work due to scripts.
+				//
 				// WooCommerce login form.
 				[ 'form.woocommerce-form.woocommerce-form-login.login', 'button[type="submit"]' ],
 				// WooCommerce register form.
