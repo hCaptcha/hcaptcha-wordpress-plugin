@@ -37,7 +37,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const hCaptchaValidateCF7 = function( event ) {
 		event.preventDefault();
 		hCaptchaCF7.form = event.target.closest( 'form' );
-		hcaptcha.execute( hCaptchaGetWidgetId( event.target.parentElement.parentElement ) );
+		hcaptcha.execute( hCaptchaGetWidgetId( hCaptchaCF7.form ) );
 	};
 
 	[ ...document.querySelectorAll( '.wpcf7' ) ].map( form => {
