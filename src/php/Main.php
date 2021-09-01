@@ -160,6 +160,28 @@ class Main {
 				// WooCommerce checkout form.
 				// Does not work so far, some WC script removes our event listener.
 				[ 'form.checkout.woocommerce-checkout', 'button[type="submit"]' ],
+				// BBPress new topic and reply.
+				[ 'form#new-post', 'button[type="submit"]' ],
+				// BuddyPress create group.
+				'form#create-group-form',
+				// BuddyPress register.
+				'form#signup-form',
+				// Jetpack.
+				// Contact form - classic and block.
+				// Newsletter sign-up form.
+				// RSVP form.
+				// Registration form.
+				// Appointment form.
+				// Feedback form.
+				[ 'form.contact-form.commentsblock', 'button[type="submit"]' ],
+				// Mailchimp.
+				'form.mc4wp-form',
+				// Subscriber.
+				'form#sbscrbr-form',
+				// WPForms.
+				[ 'form.wpforms-form', 'button[type="submit"]' ],
+				// WpForo new topic and reply.
+				'form.wpforoeditor',
 			];
 
 		$default_submit_btn_selector = 'input[type="submit"]';
