@@ -179,12 +179,12 @@ class FunctionsTest extends HCaptchaWPTestCase {
 			],
 			'hcaptcha_nf_status'                =>
 				[
-					'label' => 'Enable Ninja Forms Addon',
+					'label' => 'Enable hCaptcha on Ninja Forms',
 					'type'  => 'checkbox',
 				],
 			'hcaptcha_cf7_status'               =>
 				[
-					'label' => 'Enable Contact Form 7 Addon',
+					'label' => 'Enable hCaptcha on Contact Form 7',
 					'type'  => 'checkbox',
 				],
 			'hcaptcha_lf_status'                =>

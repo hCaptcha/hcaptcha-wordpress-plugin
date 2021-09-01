@@ -126,11 +126,11 @@ function hcap_options() {
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_nf_status'                => [
-			'label' => __( 'Enable Ninja Forms Addon', 'hcaptcha-for-forms-and-more' ),
+			'label' => __( 'Enable hCaptcha on Ninja Forms', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_cf7_status'               => [
-			'label' => __( 'Enable Contact Form 7 Addon', 'hcaptcha-for-forms-and-more' ),
+			'label' => __( 'Enable hCaptcha on Contact Form 7', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_lf_status'                => [
