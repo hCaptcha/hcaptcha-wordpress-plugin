@@ -311,7 +311,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'pre_option_' . $plugin_option,
-			function ( $pre_option, $option, $default ) {
+			function () {
 				return 'on';
 			},
 			10,
@@ -324,7 +324,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		array_walk(
 			$component,
-			function ( &$value, $key ) {
+			function ( &$value ) {
 				if ( false === strpos( $value, '.php' ) ) {
 					$reflection = new ReflectionClass( $value );
 					$value      = $reflection->getFileName();
@@ -350,7 +350,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'pre_option_active_plugins',
-			function ( $pre_option, $option, $default ) use ( &$plugin_path ) {
+			function () use ( &$plugin_path ) {
 				return [ $plugin_path ];
 			},
 			10,
@@ -483,7 +483,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		array_walk(
 			$modules,
-			static function ( &$value, $key ) {
+			static function ( &$value ) {
 				$value = [ $value ];
 			}
 		);

@@ -40,6 +40,8 @@ class Main {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @noinspection PhpIncludeInspection
 	 */
 	public function init_hooks() {
 		// Make sure we can use is_user_logged_in().
@@ -143,6 +145,8 @@ class Main {
 
 	/**
 	 * Load plugin modules.
+	 *
+	 * @noinspection PhpIncludeInspection
 	 */
 	public function load_modules() {
 		$modules = [
@@ -286,7 +290,7 @@ class Main {
 	}
 
 	/**
-	 * Remove standard WP login captcha if we login via WC.
+	 * Remove standard WP login captcha if we do logging in via WC.
 	 *
 	 * @param array $credentials Credentials.
 	 *
