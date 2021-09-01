@@ -55,7 +55,6 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		hcap_form_display();
-
 		self::assertSame( $this->get_hcap_form(), ob_get_clean() );
 		self::assertTrue( $hcaptcha_wordpress_plugin->form_shown );
 
@@ -65,8 +64,12 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		hcap_form_display( $action, $name, $auto );
-
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
+
+		update_option( 'hcaptcha_size', 'invisible' );
+		ob_start();
+		hcap_form_display( $action, $name, $auto );
+		self::assertSame( $this->get_hcap_form( $action, $name, $auto, true ), ob_get_clean() );
 	}
 
 	/**

@@ -37,11 +37,11 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		unset( $GLOBALS['current_user'] );
 
-		wp_dequeue_script( 'hcaptcha-script' );
-		wp_deregister_script( 'hcaptcha-script' );
+		wp_dequeue_script( 'hcaptcha-api' );
+		wp_deregister_script( 'hcaptcha-api' );
 
-		wp_dequeue_style( 'hcaptcha-style' );
-		wp_deregister_style( 'hcaptcha-style' );
+		wp_dequeue_style( 'hcaptcha' );
+		wp_deregister_style( 'hcaptcha' );
 
 		delete_option( 'hcaptcha_recaptchacompat' );
 		delete_option( 'hcaptcha_language' );
@@ -88,22 +88,22 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			0,
-			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
+			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 		);
 		self::assertSame(
 			- PHP_INT_MAX + 1,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'hcap_load_modules' ] )
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_modules' ] )
 		);
 		self::assertSame(
 			10,
 			has_filter(
 				'woocommerce_login_credentials',
-				[ $hcaptcha_wordpress_plugin, 'hcap_remove_wp_authenticate_user' ]
+				[ $hcaptcha_wordpress_plugin, 'remove_filter_wp_authenticate_user' ]
 			)
 		);
 		self::assertSame(
 			10,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'hcaptcha_wp_load_textdomain' ] )
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
 		);
 
 		unset( $current_user );
@@ -130,22 +130,22 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 			self::assertSame(
 				0,
-				has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'hcap_captcha_script' ] )
+				has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 			);
 			self::assertSame(
 				- PHP_INT_MAX + 1,
-				has_action( 'plugins_loaded', [ $subject, 'hcap_load_modules' ] )
+				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 			);
 			self::assertSame(
 				10,
 				has_filter(
 					'woocommerce_login_credentials',
-					[ $subject, 'hcap_remove_wp_authenticate_user' ]
+					[ $subject, 'remove_filter_wp_authenticate_user' ]
 				)
 			);
 			self::assertSame(
 				10,
-				has_action( 'plugins_loaded', [ $subject, 'hcaptcha_wp_load_textdomain' ] )
+				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 			);
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
@@ -156,19 +156,19 @@ class AMainTest extends HCaptchaWPTestCase {
 				)
 			);
 			self::assertFalse(
-				has_action( 'wp_print_footer_scripts', [ $subject, 'hcap_captcha_script' ] )
+				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 			);
 			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'hcap_load_modules' ] )
+				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 			);
 			self::assertFalse(
 				has_filter(
 					'woocommerce_login_credentials',
-					[ $subject, 'hcap_remove_wp_authenticate_user' ]
+					[ $subject, 'remove_filter_wp_authenticate_user' ]
 				)
 			);
 			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'hcaptcha_wp_load_textdomain' ] )
+				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 			);
 			self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 		}
@@ -207,15 +207,15 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_captcha_script().
+	 * Test print_footer_scripts().
 	 *
 	 * @param string|false $compat              Compat option value.
 	 * @param string|false $language            Language option value.
 	 * @param string       $expected_script_src Expected script source.
 	 *
-	 * @dataProvider dp_test_hcap_captcha_script
+	 * @dataProvider dp_test_print_footer_scripts
 	 */
-	public function test_hcap_captcha_script( $compat, $language, $expected_script_src ): void {
+	public function test_print_footer_scripts( $compat, $language, $expected_script_src ): void {
 		global $wp_scripts, $wp_styles, $hcaptcha_wordpress_plugin;
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
@@ -225,26 +225,26 @@ class AMainTest extends HCaptchaWPTestCase {
 		update_option( 'hcaptcha_recaptchacompat', $compat );
 		update_option( 'hcaptcha_language', $language );
 
-		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
+		self::assertFalse( wp_style_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		ob_get_clean();
 
-		self::assertTrue( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
-		self::assertTrue( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
+		self::assertTrue( wp_style_is( 'hcaptcha' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-api' ) );
 
-		self::assertSame( $expected_style_src, $wp_styles->registered['hcaptcha-style']->src );
-		self::assertSame( $expected_script_src, $wp_scripts->registered['hcaptcha-script']->src );
+		self::assertSame( $expected_style_src, $wp_styles->registered['hcaptcha']->src );
+		self::assertSame( $expected_script_src, $wp_scripts->registered['hcaptcha-api']->src );
 	}
 
 	/**
-	 * Data provider for test_hcap_captcha_script().
+	 * Data provider for test_print_footer_scripts().
 	 *
 	 * @return array
 	 */
-	public function dp_test_hcap_captcha_script() {
+	public function dp_test_print_footer_scripts() {
 		return [
 			'no options'    => [ false, false, '//hcaptcha.com/1/api.js' ],
 			'empty options' => [ '', '', '//hcaptcha.com/1/api.js' ],
@@ -255,31 +255,56 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_captcha_script() when form NOT shown.
+	 * Test print_footer_scripts() when form NOT shown.
 	 */
-	public function test_hcap_captcha_script_when_form_NOT_shown(): void {
-		global $hcaptcha_wordpress_plugin;
-
-		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
+	public function test_print_footer_scripts_when_form_NOT_shown(): void {
+		self::assertFalse( wp_style_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		ob_get_clean();
 
-		self::assertFalse( wp_style_is( 'hcaptcha-style', 'enqueued' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-script', 'enqueued' ) );
+		self::assertFalse( wp_style_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
 	}
 
 	/**
-	 * Test hcap_load_modules().
+	 * Test print_footer_scripts() when form is invisible.
+	 */
+	public function test_print_footer_scripts_when_form_is_invisible(): void {
+		global $hcaptcha_wordpress_plugin;
+
+		$hcaptcha_wordpress_plugin->form_shown = true;
+
+		update_option( 'hcaptcha_size', 'invisible' );
+
+		self::assertFalse( wp_style_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		ob_get_clean();
+
+		self::assertTrue( wp_style_is( 'hcaptcha' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-api' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha' ) );
+		self::assertSame(
+			'var hCaptcha = {"forms":["body.login form#loginform"]};',
+			wp_scripts()->get_data( 'hcaptcha', 'data' )
+		);
+	}
+
+	/**
+	 * Test load_modules().
 	 *
 	 * @param array $module Module to load.
 	 *
-	 * @dataProvider dp_test_hcap_load_modules
+	 * @dataProvider dp_test_load_modules
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_hcap_load_modules( $module ): void {
+	public function test_load_modules( $module ): void {
 		$subject = new Main();
 
 		$plugin_option = $module[0];
@@ -316,7 +341,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
 		}
 
-		$subject->hcap_load_modules();
+		$subject->load_modules();
 
 		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
 		if ( ! empty( $intersect ) ) {
@@ -332,17 +357,17 @@ class AMainTest extends HCaptchaWPTestCase {
 			3
 		);
 
-		$subject->hcap_load_modules();
+		$subject->load_modules();
 
 		self::assertSame( $component, array_intersect( $component, $this->normalize_path( get_included_files() ) ) );
 	}
 
 	/**
-	 * Data provider for test_hcap_load_modules().
+	 * Data provider for test_load_modules().
 	 *
 	 * @return array
 	 */
-	public function dp_test_hcap_load_modules() {
+	public function dp_test_load_modules() {
 		$modules = [
 			'Ninja Forms'               => [
 				'hcaptcha_nf_status',
@@ -467,11 +492,11 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_remove_wp_authenticate_user().
+	 * Test remove_filter_wp_authenticate_user().
 	 *
-	 * Must be after test_hcap_load_modules().
+	 * Must be after test_load_modules().
 	 */
-	public function test_hcap_remove_wp_authenticate_user(): void {
+	public function test_remove_filter_wp_authenticate_user(): void {
 		add_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha', 10, 2 );
 
 		self::assertSame(
@@ -492,9 +517,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_wp_load_textdomain().
+	 * Test load_textdomain().
 	 */
-	public function test_hcaptcha_wp_load_textdomain(): void {
+	public function test_load_textdomain(): void {
 		$subject = new Main();
 		$subject->init_hooks();
 
@@ -518,9 +543,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			3
 		);
 
-		self::assertEquals( 10, has_action( 'plugins_loaded', [ $subject, 'hcaptcha_wp_load_textdomain' ] ) );
+		self::assertEquals( 10, has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] ) );
 
-		$subject->hcaptcha_wp_load_textdomain();
+		$subject->load_textdomain();
 
 		self::assertFalse( $override_filter_params[0] );
 		self::assertSame( $domain, $override_filter_params[1] );

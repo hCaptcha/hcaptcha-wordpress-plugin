@@ -35,12 +35,15 @@ function hcap_form_display( $action = '', $name = '', $auto = false ) {
 	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
 	$hcaptcha_size    = get_option( 'hcaptcha_size' );
 
+	$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
+
 	?>
 	<div
 			class="h-captcha"
 			data-sitekey="<?php echo esc_attr( $hcaptcha_api_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $hcaptcha_size ); ?>"
+			<?php echo wp_kses_post( $callback ); ?>
 			data-auto="<?php echo $auto ? 'true' : 'false'; ?>">
 	</div>
 	<?php

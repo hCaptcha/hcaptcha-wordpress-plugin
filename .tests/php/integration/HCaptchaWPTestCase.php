@@ -108,27 +108,31 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Return hcap_form_display() content.
 	 *
-	 * @param string $action Action name for wp_nonce_field.
-	 * @param string $name   Nonce name for wp_nonce_field.
-	 * @param bool   $auto   This form has to be auto-verified.
+	 * @param string $action    Action name for wp_nonce_field.
+	 * @param string $name      Nonce name for wp_nonce_field.
+	 * @param bool   $auto      This form has to be auto-verified.
+	 * @param string $invisible This form is invisible.
 	 *
 	 * @return string
 	 */
-	protected function get_hcap_form( $action = '', $name = '', $auto = false ) {
+	protected function get_hcap_form( $action = '', $name = '', $auto = false, $invisible = false ) {
+		$callback = $invisible ? 'data-callback="hCaptchaSubmit"' : '';
+
 		$nonce_field = '';
 
 		if ( ! empty( $action ) && ! empty( $name ) ) {
 			$nonce_field = wp_nonce_field( $action, $name, true, false );
 		}
 
+		$data_size = $invisible ? 'invisible' : '';
 		$data_auto = $auto ? 'true' : 'false';
 
 		return '	<div
 			class="h-captcha"
 			data-sitekey=""
 			data-theme=""
-			data-size=""
-			data-auto="' . $data_auto . '">
+			data-size="' . $data_size . '"
+			' . $callback . '			data-auto="' . $data_auto . '">
 	</div>
 	' . $nonce_field;
 	}

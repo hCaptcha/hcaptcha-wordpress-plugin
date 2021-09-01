@@ -47,10 +47,10 @@ class Main {
 
 		if ( $this->activate_hcaptcha() ) {
 			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
-			add_action( 'wp_print_footer_scripts', [ $this, 'hcap_captcha_script' ], 0 );
-			add_action( 'plugins_loaded', [ $this, 'hcap_load_modules' ], - PHP_INT_MAX + 1 );
-			add_filter( 'woocommerce_login_credentials', [ $this, 'hcap_remove_wp_authenticate_user' ] );
-			add_action( 'plugins_loaded', [ $this, 'hcaptcha_wp_load_textdomain' ] );
+			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
+			add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 			$this->auto_verify = new AutoVerify();
 			$this->auto_verify->init();
 		}
@@ -91,7 +91,7 @@ class Main {
 	/**
 	 * Add the hcaptcha script to footer.
 	 */
-	public function hcap_captcha_script() {
+	public function print_footer_scripts() {
 		if ( ! $this->form_shown ) {
 			return;
 		}
@@ -110,22 +110,41 @@ class Main {
 
 		$url_params = add_query_arg( $param_array, '' );
 
-		wp_enqueue_style( 'hcaptcha-style', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
+		wp_enqueue_style( 'hcaptcha', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
 		wp_enqueue_script(
-			'hcaptcha-script',
+			'hcaptcha-api',
 			'//hcaptcha.com/1/api.js' . $url_params,
 			[],
 			HCAPTCHA_VERSION,
 			true
 		);
+
+		if ( 'invisible' !== get_option( 'hcaptcha_size' ) ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'hcaptcha',
+			HCAPTCHA_URL . '/assets/js/hcaptcha.js',
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+		wp_localize_script(
+			'hcaptcha',
+			'hCaptcha',
+			[
+				'forms' => [
+					'body.login form#loginform', // Login.
+				],
+			]
+		);
 	}
 
 	/**
 	 * Load plugin modules.
-	 *
-	 * @noinspection PhpIncludeInspection
 	 */
-	public function hcap_load_modules() {
+	public function load_modules() {
 		$modules = [
 			'Ninja Forms'               => [
 				'hcaptcha_nf_status',
@@ -273,7 +292,7 @@ class Main {
 	 *
 	 * @return array
 	 */
-	public function hcap_remove_wp_authenticate_user( $credentials ) {
+	public function remove_filter_wp_authenticate_user( $credentials ) {
 		remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
 
 		return $credentials;
@@ -282,7 +301,7 @@ class Main {
 	/**
 	 * Load plugin text domain.
 	 */
-	public function hcaptcha_wp_load_textdomain() {
+	public function load_textdomain() {
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',
 			false,
