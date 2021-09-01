@@ -227,14 +227,14 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on Jetpack Contact Form',
 					'type'  => 'checkbox',
 				],
-			'hcaptcha_nf_status'                =>
-				[
-					'label' => 'Enable hCaptcha on Ninja Forms',
-					'type'  => 'checkbox',
-				],
 			'hcaptcha_mc4wp_status'             =>
 				[
 					'label' => 'Enable hCaptcha on Mailchimp for WP Form',
+					'type'  => 'checkbox',
+				],
+			'hcaptcha_nf_status'                =>
+				[
+					'label' => 'Enable hCaptcha on Ninja Forms',
 					'type'  => 'checkbox',
 				],
 			'hcaptcha_subscribers_status'       =>
