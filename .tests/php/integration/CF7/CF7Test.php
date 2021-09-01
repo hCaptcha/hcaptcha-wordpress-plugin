@@ -74,7 +74,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$uniqid = 'hcap_cf7-6004092a854114.24546665';
 
-		$nonce = wp_nonce_field( 'hcaptcha_contact_form7', 'hcaptcha_contact_form7', true, false );
+		$nonce = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
 
 		$hcaptcha_api_key = 'some api key';
 		$hcaptcha_theme   = 'some theme';
@@ -99,11 +99,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$expected =
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
-			'<span id="' . $uniqid . '"' .
-			' class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key . '"' .
-			' data-theme="' . $hcaptcha_theme . '"' .
+			'<span id="' . $uniqid .
+			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key .
+			'" data-theme="' . $hcaptcha_theme .
 			$callback .
-			' data-size="' . $hcaptcha_size . '">' .
+			'" data-size="' . $hcaptcha_size . '">' .
 			'</span>' .
 			'</span>' .
 			$nonce .
@@ -127,8 +127,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function dp_test_hcap_cf7_wpcf7_form_elements() {
 		return [
-			'visible'   => 'normal',
-			'invisible' => 'invisible',
+			'visible'   => [ 'normal' ],
+			'invisible' => [ 'invisible' ],
 		];
 	}
 
