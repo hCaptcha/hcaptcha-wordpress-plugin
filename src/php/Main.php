@@ -200,7 +200,7 @@ class Main {
 
 		wp_localize_script(
 			'hcaptcha',
-			'hCaptcha',
+			'hCaptchaData',
 			[ 'forms' => $forms ]
 		);
 	}

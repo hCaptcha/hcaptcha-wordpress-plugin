@@ -119,13 +119,10 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 * Test nf_captcha_script().
 	 */
 	public function test_nf_captcha_script() {
-		$expected = 'setTimeout(function(){window.hcaptcha.render("nf-hcaptcha")}, 1000);';
-
 		$subject = new NF();
 
 		$subject->nf_captcha_script();
 
-		self::assertTrue( wp_script_is( 'nf-hcaptcha', 'enqueued' ) );
-		self::assertSame( $expected, $GLOBALS['wp_scripts']->registered['nf-hcaptcha']->extra['after'][1] );
+		self::assertTrue( wp_script_is( 'hcaptcha-nf', 'enqueued' ) );
 	}
 }

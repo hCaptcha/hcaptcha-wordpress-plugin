@@ -1,18 +1,16 @@
-/* global hcaptcha, hCaptcha */
+/* global hcaptcha, hCaptchaData */
 
-window.hCaptchaSubmit = function() {
-	// noinspection JSUnresolvedFunction
-	hCaptcha.currentForm.formElement.requestSubmit( hCaptcha.currentForm.submitButtonElement );
-};
-
-document.addEventListener( 'DOMContentLoaded', function() {
+class HCaptcha {
+	constructor() {
+		this.foundForms = [];
+	}
 
 	/**
 	 * Generate random id.
 	 *
 	 * @returns {string}
 	 */
-	const generateID = () => {
+	generateID() {
 		const s4 = () => {
 			return Math.floor( ( 1 + Math.random() ) * 0x10000 )
 				.toString( 16 )
@@ -25,11 +23,11 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	/**
 	 * Get found form by id.
 	 *
-	 * @param id
+	 * @param {string} id hCaptcha Id.
 	 * @returns {*}
 	 */
-	const getFoundFormById = ( id ) => {
-		const forms = hCaptcha.foundForms.filter( form => id === form.hCaptchaId );
+	getFoundFormById( id ) {
+		const forms = this.foundForms.filter( form => id === form.hCaptchaId );
 		return forms[ 0 ];
 	};
 
@@ -37,9 +35,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	 * Get hCaptcha widget id.
 	 *
 	 * @param {HTMLDivElement} el Form element.
-	 * @returns string
+	 * @returns {string}
 	 */
-	const hCaptchaGetWidgetId = function( el ) {
+	hCaptchaGetWidgetId( el ) {
 		return el.getElementsByClassName( 'h-captcha' )[ 0 ].getElementsByTagName( 'iframe' )[ 0 ].dataset.hcaptchaWidgetId;
 	};
 
@@ -48,9 +46,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	 *
 	 * @param {CustomEvent} event Event.
 	 */
-	const hCaptchaValidate = function( event ) {
+	hCaptchaValidate = ( event ) => {
 		const formElement = event.currentTarget;
-		const form = getFoundFormById( formElement.dataset.hCaptchaId );
+		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = formElement.querySelector( form.submitButtonSelector );
 
 		if ( event.target !== submitButtonElement ) {
@@ -59,22 +57,42 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 		event.preventDefault();
 
-		hCaptcha.currentForm = { formElement, submitButtonElement };
-		hcaptcha.execute( hCaptchaGetWidgetId( formElement ) );
+		this.currentForm = { formElement, submitButtonElement };
+		hcaptcha.execute( this.hCaptchaGetWidgetId( formElement ) );
 	};
 
-	hCaptcha.foundForms = [];
-	hCaptcha.forms.map( form => {
-		let formSelector, submitButtonSelector;
+	/**
+	 * Bind events on forms containing hCaptcha.
+	 *
+	 * @param forms
+	 */
+	bindEvents( forms ) {
+		forms.map( form => {
+			let formSelector, submitButtonSelector;
 
-		[ formSelector, submitButtonSelector ] = form;
+			[ formSelector, submitButtonSelector ] = form;
 
-		[ ...document.querySelectorAll( formSelector ) ].map( formElement => {
-			const hCaptchaId = generateID();
-			hCaptcha.foundForms.push( { hCaptchaId, submitButtonSelector } );
+			[ ...document.querySelectorAll( formSelector ) ].map( formElement => {
+				const hCaptchaId = this.generateID();
+				this.foundForms.push( { hCaptchaId, submitButtonSelector } );
 
-			formElement.dataset.hCaptchaId = hCaptchaId;
-			formElement.addEventListener( 'click', hCaptchaValidate, false );
+				formElement.dataset.hCaptchaId = hCaptchaId;
+				formElement.addEventListener( 'click', this.hCaptchaValidate, false );
+			} );
 		} );
-	} );
+	};
+
+	/**
+	 * Submit a form containing hCaptcha.
+	 */
+	submit = () => {
+		// noinspection JSUnresolvedFunction
+		this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
+	};
+}
+
+document.addEventListener( 'DOMContentLoaded', () => {
+	const hCaptcha = new HCaptcha();
+	hCaptcha.bindEvents( hCaptchaData.forms );
+	window.hCaptchaSubmit = hCaptcha.submit;
 } );
