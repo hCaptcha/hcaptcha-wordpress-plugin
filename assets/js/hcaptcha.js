@@ -49,11 +49,17 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	 * @param {CustomEvent} event Event.
 	 */
 	const hCaptchaValidate = function( event ) {
+		const formElement = event.currentTarget;
+		const form = getFoundFormById( formElement.dataset.hCaptchaId );
+		const submitButtonElement = formElement.querySelector( form.submitButtonSelector );
+
+		if ( event.target !== submitButtonElement ) {
+			return;
+		}
+
 		event.preventDefault();
 
-		const form = getFoundFormById( event.target.dataset.hCaptchaId );
-		const formElement = event.target.closest( form.formSelector );
-		hCaptcha.currentForm = { formElement, submitButtonElement: event.target };
+		hCaptcha.currentForm = { formElement, submitButtonElement };
 		hcaptcha.execute( hCaptchaGetWidgetId( formElement ) );
 	};
 
@@ -65,11 +71,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 		[ ...document.querySelectorAll( formSelector ) ].map( formElement => {
 			const hCaptchaId = generateID();
-			hCaptcha.foundForms.push( { formSelector, submitButtonSelector, hCaptchaId } );
+			hCaptcha.foundForms.push( { hCaptchaId, submitButtonSelector } );
 
-			const submitButtonElement = formElement.querySelector( submitButtonSelector );
-			submitButtonElement.dataset.hCaptchaId = hCaptchaId;
-			submitButtonElement.addEventListener( 'click', hCaptchaValidate, false );
+			formElement.dataset.hCaptchaId = hCaptchaId;
+			formElement.addEventListener( 'click', hCaptchaValidate, false );
 		} );
 	} );
 } );
