@@ -86,16 +86,11 @@ class NF {
 	 */
 	public function nf_captcha_script() {
 		wp_enqueue_script(
-			'nf-hcaptcha',
-			plugin_dir_url( __FILE__ ) . 'nf-hcaptcha.js',
-			array( 'nf-front-end' ),
+			'hcaptcha-nf',
+			HCAPTCHA_URL . '/assets/js/hcaptcha-nf.js',
+			[ 'nf-front-end', 'hcaptcha-api' ],
 			HCAPTCHA_VERSION,
 			true
-		);
-
-		wp_add_inline_script(
-			'nf-hcaptcha',
-			'setTimeout(function(){window.hcaptcha.render("nf-hcaptcha")}, 1000);'
 		);
 	}
 }
