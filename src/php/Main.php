@@ -182,6 +182,8 @@ class Main {
 				[ 'form.wpforms-form', 'button[type="submit"]' ],
 				// WpForo new topic and reply.
 				'form.wpforoeditor',
+				// Arbitrary form.
+				[ 'form', '*[type="submit"]' ],
 			];
 
 		$default_submit_btn_selector = 'input[type="submit"]';

@@ -73,6 +73,13 @@ class HCaptcha {
 			[ formSelector, submitButtonSelector ] = form;
 
 			[ ...document.querySelectorAll( formSelector ) ].map( formElement => {
+				const hcaptchaElement = formElement.querySelector( '.h-captcha' );
+
+				// Ignore forms not having hcaptcha.
+				if ( null === hcaptchaElement ) {
+					return;
+				}
+
 				const hCaptchaId = this.generateID();
 				this.foundForms.push( { hCaptchaId, submitButtonSelector } );
 
