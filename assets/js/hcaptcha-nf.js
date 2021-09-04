@@ -6,7 +6,7 @@
 
 /* global hcaptcha */
 
-const hCaptchaFieldController = Marionette.Object.extend(
+const HCaptchaFieldController = Marionette.Object.extend(
 	{
 		initialize: function() {
 			// On the Form Submission's field validation.
@@ -16,13 +16,6 @@ const hCaptchaFieldController = Marionette.Object.extend(
 			// On the Field's model value change.
 			const fieldsChannel = Backbone.Radio.channel( 'fields' );
 			this.listenTo( fieldsChannel, 'change:modelValue', this.updateHcaptcha );
-
-			setTimeout(
-				function() {
-					hcaptcha.render( 'hcaptcha-nf' );
-				},
-				100
-			);
 		},
 
 		updateHcaptcha: function( model ) {
@@ -46,5 +39,5 @@ const hCaptchaFieldController = Marionette.Object.extend(
 // On Document Ready.
 document.addEventListener( 'DOMContentLoaded', function() {
 	// Instantiate our custom field's controller, defined above.
-	new hCaptchaFieldController();
+	new HCaptchaFieldController();
 } );

@@ -9,6 +9,7 @@ namespace HCaptcha;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\NF\NF;
 
@@ -96,32 +97,35 @@ class Main {
 			return;
 		}
 
-		$param_array = [];
-		$compat      = get_option( 'hcaptcha_recaptchacompat' );
-		$language    = get_option( 'hcaptcha_language' );
+		$params = [
+			'onload' => 'hCaptchaOnLoad',
+			'render' => 'explicit',
+		];
+
+		$compat   = get_option( 'hcaptcha_recaptchacompat' );
+		$language = get_option( 'hcaptcha_language' );
 
 		if ( $compat ) {
-			$param_array['recaptchacompat'] = 'off';
+			$params['recaptchacompat'] = 'off';
 		}
 
 		if ( $language ) {
-			$param_array['hl'] = $language;
+			$params['hl'] = $language;
 		}
 
-		$url_params = add_query_arg( $param_array, '' );
+		$src_params = add_query_arg( $params, '' );
+		$src        = 'https://hcaptcha.com/1/api.js' . $src_params;
 
-		wp_enqueue_style( 'hcaptcha', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
-		wp_enqueue_script(
-			'hcaptcha-api',
-			'//hcaptcha.com/1/api.js' . $url_params,
-			[],
-			HCAPTCHA_VERSION,
-			true
-		);
+		?>
+		<style>
+			.h-captcha:not([data-size="invisible"]) {
+				margin-bottom: 2rem;
+			}
+		</style>
+		<?php
 
-		if ( 'invisible' !== get_option( 'hcaptcha_size' ) ) {
-			return;
-		}
+		$delay = absint( apply_filters( 'hcap_delay', 1000 ) );
+		DelayedScript::launch( [ 'src' => $src ], $delay );
 
 		wp_enqueue_script(
 			'hcaptcha',

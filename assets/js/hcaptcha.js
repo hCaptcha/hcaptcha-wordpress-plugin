@@ -17,7 +17,7 @@ class HCaptcha {
 				.substring( 1 );
 		};
 
-		return s4() + '-' + s4() + '-' + s4() + '-' + s4();
+		return 'hcaptcha-' + s4() + '-' + s4() + '-' + s4() + '-' + s4();
 	};
 
 	/**
@@ -66,7 +66,7 @@ class HCaptcha {
 	 *
 	 * @param forms
 	 */
-	bindEvents( forms ) {
+	bindEvents = ( forms ) => {
 		forms.map( form => {
 			let formSelector, submitButtonSelector;
 
@@ -77,6 +77,12 @@ class HCaptcha {
 
 				// Ignore forms not having hcaptcha.
 				if ( null === hcaptchaElement ) {
+					return;
+				}
+
+				hcaptcha.render( hcaptchaElement );
+
+				if( 'invisible' !== hcaptchaElement.dataset.size ) {
 					return;
 				}
 
@@ -98,8 +104,13 @@ class HCaptcha {
 	};
 }
 
-document.addEventListener( 'DOMContentLoaded', () => {
-	const hCaptcha = new HCaptcha();
-	hCaptcha.bindEvents( hCaptchaData.forms );
-	window.hCaptchaSubmit = hCaptcha.submit;
-} );
+const hCaptcha = new HCaptcha();
+
+window.hCaptchaBindEvents = hCaptcha.bindEvents;
+window.hCaptchaSubmit = hCaptcha.submit;
+
+window.hCaptchaOnLoad = () => {
+	if ( typeof hCaptchaBindEvents !== 'undefined' ) {
+		hCaptchaBindEvents( hCaptchaData.forms );
+	}
+}
