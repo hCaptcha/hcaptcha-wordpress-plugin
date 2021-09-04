@@ -124,7 +124,14 @@ class Main {
 		</style>
 		<?php
 
-		$delay = absint( apply_filters( 'hcap_delay', 1000 ) );
+
+		/**
+		 * Filter delay time for hcaptcha API script.
+		 * Any negative value will prevent API script from loading at all,
+		 * until user interaction: mouseenter, click, scroll or touch.
+		 * This significantly improves Google Pagespeed Insights score.
+		 */
+		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
 		DelayedScript::launch( [ 'src' => $src ], $delay );
 
 		wp_enqueue_script(

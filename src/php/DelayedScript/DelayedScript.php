@@ -65,7 +65,11 @@ class DelayedScript {
 
 				function delayedLoad() {
 					window.addEventListener( 'scroll', scrollHandler );
-					setTimeout( load, <?php echo (int) $delay; ?> );
+					const delay = <?php echo (int) $delay; ?>;
+
+					if ( delay >= 0 ) {
+						setTimeout( load, delay );
+					}
 				}
 
 				window.addEventListener( 'touchstart', load );
@@ -89,12 +93,12 @@ class DelayedScript {
 	public static function launch( array $args, $delay = 3000 ) {
 		ob_start();
 
-		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		const t = document.getElementsByTagName( 'script' )[0];
 		const s = document.createElement('script');
 		s.type  = 'text/javascript';
 		<?php
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		foreach ( $args as $key => $arg ) {
 			if ( 'data' === $key ) {
 				foreach ( $arg as $data_key => $data_arg ) {
