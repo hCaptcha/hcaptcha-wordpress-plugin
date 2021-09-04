@@ -74,7 +74,7 @@ class CF7 {
 		$hcaptcha_theme      = get_option( 'hcaptcha_theme' );
 		$this->hcaptcha_size = get_option( 'hcaptcha_size' );
 
-		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmitCF7' : '';
+		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
 
@@ -168,12 +168,6 @@ class CF7 {
 			[],
 			HCAPTCHA_VERSION,
 			true
-		);
-
-		wp_localize_script(
-			self::HANDLE,
-			'hCaptchaCF7',
-			[ 'size' => $this->hcaptcha_size ]
 		);
 	}
 }

@@ -94,7 +94,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$callback = 'invisible' === $hcaptcha_size ? '" data-callback="hCaptchaSubmitCF7' : '';
+		$callback = 'invisible' === $hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
 		$expected =
 			'<form>' .
@@ -373,10 +373,5 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		ob_end_clean();
 
 		self::assertTrue( wp_script_is( CF7::HANDLE ) );
-
-		self::assertSame(
-			'var hCaptchaCF7 = {"size":"' . $hcaptcha_size . '"};',
-			wp_scripts()->get_data( CF7::HANDLE, 'data' )
-		);
 	}
 }

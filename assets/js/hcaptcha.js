@@ -17,7 +17,7 @@ class HCaptcha {
 				.substring( 1 );
 		};
 
-		return 'hcaptcha-' + s4() + '-' + s4() + '-' + s4() + '-' + s4();
+		return s4() + '-' + s4() + '-' + s4() + '-' + s4();
 	};
 
 	/**
@@ -37,7 +37,7 @@ class HCaptcha {
 	 * @param {HTMLDivElement} el Form element.
 	 * @returns {string}
 	 */
-	hCaptchaGetWidgetId( el ) {
+	getWidgetId = ( el ) => {
 		return el.getElementsByClassName( 'h-captcha' )[ 0 ].getElementsByTagName( 'iframe' )[ 0 ].dataset.hcaptchaWidgetId;
 	};
 
@@ -46,7 +46,7 @@ class HCaptcha {
 	 *
 	 * @param {CustomEvent} event Event.
 	 */
-	hCaptchaValidate = ( event ) => {
+	validate = ( event ) => {
 		const formElement = event.currentTarget;
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = formElement.querySelector( form.submitButtonSelector );
@@ -58,7 +58,7 @@ class HCaptcha {
 		event.preventDefault();
 
 		this.currentForm = { formElement, submitButtonElement };
-		hcaptcha.execute( this.hCaptchaGetWidgetId( formElement ) );
+		hcaptcha.execute( this.getWidgetId( formElement ) );
 	};
 
 	/**
@@ -95,7 +95,7 @@ class HCaptcha {
 				this.foundForms.push( { hCaptchaId, submitButtonSelector } );
 
 				formElement.dataset.hCaptchaId = hCaptchaId;
-				formElement.addEventListener( 'click', this.hCaptchaValidate, false );
+				formElement.addEventListener( 'click', this.validate, false );
 			} );
 		} );
 	};
@@ -111,6 +111,7 @@ class HCaptcha {
 
 const hCaptcha = new HCaptcha();
 
+window.hCaptchaGetWidgetId = hCaptcha.getWidgetId;
 window.hCaptchaBindEvents = hCaptcha.bindEvents;
 window.hCaptchaSubmit = hCaptcha.submit;
 
