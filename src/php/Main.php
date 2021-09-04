@@ -124,7 +124,6 @@ class Main {
 		</style>
 		<?php
 
-
 		/**
 		 * Filter delay time for hcaptcha API script.
 		 * Any negative value will prevent API script from loading at all,
