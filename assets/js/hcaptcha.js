@@ -1,4 +1,4 @@
-/* global hcaptcha, hCaptchaData */
+/* global hcaptcha */
 
 class HCaptcha {
 	constructor() {
@@ -63,40 +63,34 @@ class HCaptcha {
 
 	/**
 	 * Bind events on forms containing hCaptcha.
-	 *
-	 * @param forms
 	 */
-	bindEvents = ( forms ) => {
-		forms.map( form => {
-			let formSelector, submitButtonSelector;
+	bindEvents = () => {
+		const submitButtonSelector = '*[type="submit"]';
 
-			[ formSelector, submitButtonSelector ] = form;
+		[ ...document.querySelectorAll( 'form' ) ].map( formElement => {
+			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
 
-			[ ...document.querySelectorAll( formSelector ) ].map( formElement => {
-				const hcaptchaElement = formElement.querySelector( '.h-captcha' );
+			// Ignore forms not having hcaptcha.
+			if ( null === hcaptchaElement ) {
+				return;
+			}
 
-				// Ignore forms not having hcaptcha.
-				if ( null === hcaptchaElement ) {
-					return;
-				}
+			// Do not render second time, processing arbitrary 'form' selector.
+			if ( null !== hcaptchaElement.querySelector( 'iframe' ) ) {
+				return;
+			}
 
-				// Do not render second time, processing arbitrary 'form' selector.
-				if ( null !== hcaptchaElement.querySelector( 'iframe' ) ) {
-					return;
-				}
+			hcaptcha.render( hcaptchaElement );
 
-				hcaptcha.render( hcaptchaElement );
+			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
+				return;
+			}
 
-				if( 'invisible' !== hcaptchaElement.dataset.size ) {
-					return;
-				}
+			const hCaptchaId = this.generateID();
+			this.foundForms.push( { hCaptchaId, submitButtonSelector } );
 
-				const hCaptchaId = this.generateID();
-				this.foundForms.push( { hCaptchaId, submitButtonSelector } );
-
-				formElement.dataset.hCaptchaId = hCaptchaId;
-				formElement.addEventListener( 'click', this.validate, false );
-			} );
+			formElement.dataset.hCaptchaId = hCaptchaId;
+			formElement.addEventListener( 'click', this.validate, false );
 		} );
 	};
 
@@ -117,6 +111,6 @@ window.hCaptchaSubmit = hCaptcha.submit;
 
 window.hCaptchaOnLoad = () => {
 	if ( typeof hCaptchaBindEvents !== 'undefined' ) {
-		hCaptchaBindEvents( hCaptchaData.forms );
+		hCaptchaBindEvents();
 	}
-}
+};
