@@ -38,11 +38,8 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		unset( $GLOBALS['current_user'] );
 
-		wp_dequeue_script( 'hcaptcha-api' );
-		wp_deregister_script( 'hcaptcha-api' );
-
-		wp_dequeue_style( 'hcaptcha' );
-		wp_deregister_style( 'hcaptcha' );
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
 
 		delete_option( 'hcaptcha_recaptchacompat' );
 		delete_option( 'hcaptcha_language' );
@@ -217,27 +214,88 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_print_footer_scripts
 	 */
 	public function test_print_footer_scripts( $compat, $language, $expected_script_src ): void {
-		global $wp_scripts, $wp_styles, $hcaptcha_wordpress_plugin;
+		global $hcaptcha_wordpress_plugin;
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
 
-		$expected_style_src = HCAPTCHA_URL . '/css/style.css';
+		$expected_scripts = '<style>
+			.h-captcha:not([data-size="invisible"]) {
+				margin-bottom: 2rem;
+			}
+		</style>
+		
+		<script type="text/javascript" async>
+			( () => {
+				\'use strict\';
+
+				let loaded = false,
+					scrolled = false,
+					timerId;
+
+				function load() {
+					if ( loaded ) {
+						return;
+					}
+
+					loaded = true;
+					clearTimeout( timerId );
+
+					window.removeEventListener( \'touchstart\', load );
+					document.removeEventListener( \'mouseenter\', load );
+					document.removeEventListener( \'click\', load );
+					window.removeEventListener( \'load\', delayedLoad );
+
+							const t = document.getElementsByTagName( \'script\' )[0];
+		const s = document.createElement(\'script\');
+		s.type  = \'text/javascript\';
+		s[\'src\'] = \'' . $expected_script_src . '\';
+		s.async = true;
+		t.parentNode.insertBefore( s, t );
+						}
+
+				function scrollHandler() {
+					if ( ! scrolled ) {
+						// Ignore first scroll event, which can be on page load.
+						scrolled = true;
+						return;
+					}
+
+					window.removeEventListener( \'scroll\', scrollHandler );
+					load();
+				}
+
+				function delayedLoad() {
+					window.addEventListener( \'scroll\', scrollHandler );
+					const delay = -1;
+
+					if ( delay >= 0 ) {
+						setTimeout( load, delay );
+					}
+				}
+
+				window.addEventListener( \'touchstart\', load );
+				document.addEventListener( \'mouseenter\', load );
+				document.addEventListener( \'click\', load );
+				window.addEventListener( \'load\', delayedLoad );
+			} )();
+		</script>';
 
 		update_option( 'hcaptcha_recaptchacompat', $compat );
 		update_option( 'hcaptcha_language', $language );
 
-		self::assertFalse( wp_style_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
-		ob_get_clean();
+		$scripts = ob_get_clean();
 
-		self::assertTrue( wp_style_is( 'hcaptcha' ) );
-		self::assertTrue( wp_script_is( 'hcaptcha-api' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha' ) );
+		self::assertSame(
+			'var hCaptchaData = {"forms":[["body.login form#loginform","input[type=\"submit\"]"],["body.login form#registerform","input[type=\"submit\"]"],["form#commentform","input[type=\"submit\"]"],["body.login form#lostpasswordform","input[type=\"submit\"]"],["form.woocommerce-form.woocommerce-form-login.login","button[type=\"submit\"]"],["form.woocommerce-form.woocommerce-form-register.register","button[type=\"submit\"]"],["form.woocommerce-ResetPassword.lost_reset_password","button[type=\"submit\"]"],["form.checkout.woocommerce-checkout","button[type=\"submit\"]"],["form#new-post","button[type=\"submit\"]"],["form#create-group-form","input[type=\"submit\"]"],["form#signup-form","input[type=\"submit\"]"],["form.contact-form.commentsblock","button[type=\"submit\"]"],["form.mc4wp-form","input[type=\"submit\"]"],["form#sbscrbr-form","input[type=\"submit\"]"],["form.wpforms-form","button[type=\"submit\"]"],["form.wpforoeditor","input[type=\"submit\"]"],["form","*[type=\"submit\"]"]]};',
+			wp_scripts()->get_data( 'hcaptcha', 'data' )
+		);
 
-		self::assertSame( $expected_style_src, $wp_styles->registered['hcaptcha']->src );
-		self::assertSame( $expected_script_src, $wp_scripts->registered['hcaptcha-api']->src );
+		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 	}
 
 	/**
@@ -247,11 +305,11 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_print_footer_scripts() {
 		return [
-			'no options'    => [ false, false, '//hcaptcha.com/1/api.js' ],
-			'empty options' => [ '', '', '//hcaptcha.com/1/api.js' ],
-			'compat only'   => [ 'on', false, '//hcaptcha.com/1/api.js?recaptchacompat=off' ],
-			'language only' => [ false, 'ru', '//hcaptcha.com/1/api.js?hl=ru' ],
-			'both options'  => [ 'on', 'ru', '//hcaptcha.com/1/api.js?recaptchacompat=off&hl=ru' ],
+			'no options'    => [ false, false, 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
+			'empty options' => [ '', '', 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
+			'compat only'   => [ 'on', false, 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off' ],
+			'language only' => [ false, 'ru', 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru' ],
+			'both options'  => [ 'on', 'ru', 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&hl=ru' ],
 		];
 	}
 
@@ -259,42 +317,16 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown(): void {
-		self::assertFalse( wp_style_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
-
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		ob_get_clean();
-
-		self::assertFalse( wp_style_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
-	}
-
-	/**
-	 * Test print_footer_scripts() when form is invisible.
-	 */
-	public function test_print_footer_scripts_when_form_is_invisible(): void {
-		global $hcaptcha_wordpress_plugin;
-
-		$hcaptcha_wordpress_plugin->form_shown = true;
-
-		update_option( 'hcaptcha_size', 'invisible' );
-
-		self::assertFalse( wp_style_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-api' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
-		ob_get_clean();
+		$scripts = ob_get_clean();
 
-		self::assertTrue( wp_style_is( 'hcaptcha' ) );
-		self::assertTrue( wp_script_is( 'hcaptcha-api' ) );
-		self::assertTrue( wp_script_is( 'hcaptcha' ) );
-		self::assertSame(
-			'var hCaptchaData = {"forms":[["body.login form#loginform","input[type=\"submit\"]"],["body.login form#registerform","input[type=\"submit\"]"],["form#commentform","input[type=\"submit\"]"],["body.login form#lostpasswordform","input[type=\"submit\"]"],["form.woocommerce-form.woocommerce-form-login.login","button[type=\"submit\"]"],["form.woocommerce-form.woocommerce-form-register.register","button[type=\"submit\"]"],["form.woocommerce-ResetPassword.lost_reset_password","button[type=\"submit\"]"],["form.checkout.woocommerce-checkout","button[type=\"submit\"]"],["form#new-post","button[type=\"submit\"]"],["form#create-group-form","input[type=\"submit\"]"],["form#signup-form","input[type=\"submit\"]"],["form.contact-form.commentsblock","button[type=\"submit\"]"],["form.mc4wp-form","input[type=\"submit\"]"],["form#sbscrbr-form","input[type=\"submit\"]"],["form.wpforms-form","button[type=\"submit\"]"],["form.wpforoeditor","input[type=\"submit\"]"],["form","*[type=\"submit\"]"]]};',
-			wp_scripts()->get_data( 'hcaptcha', 'data' )
-		);
+		self::assertFalse( strpos( $scripts, '<style>' ) );
+		self::assertFalse( strpos( $scripts, 'api.js' ) );
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 	}
 
 	/**
