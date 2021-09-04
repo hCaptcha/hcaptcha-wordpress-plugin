@@ -80,6 +80,11 @@ class HCaptcha {
 					return;
 				}
 
+				// Do not render second time, processing arbitrary 'form' selector.
+				if ( null !== hcaptchaElement.querySelector( 'iframe' ) ) {
+					return;
+				}
+
 				hcaptcha.render( hcaptchaElement );
 
 				if( 'invisible' !== hcaptchaElement.dataset.size ) {
