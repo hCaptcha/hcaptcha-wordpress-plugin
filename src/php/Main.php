@@ -9,6 +9,8 @@ namespace HCaptcha;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
+use HCaptcha\DelayedScript\DelayedScript;
+use HCaptcha\Divi\FixDivi;
 use HCaptcha\NF\NF;
 
 /**
@@ -46,13 +48,15 @@ class Main {
 
 		if ( $this->activate_hcaptcha() ) {
 			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
-			add_action( 'wp_print_footer_scripts', [ $this, 'hcap_captcha_script' ], 0 );
-			add_action( 'plugins_loaded', [ $this, 'hcap_load_modules' ], - PHP_INT_MAX + 1 );
-			add_filter( 'woocommerce_login_credentials', [ $this, 'hcap_remove_wp_authenticate_user' ] );
-			add_action( 'plugins_loaded', [ $this, 'hcaptcha_wp_load_textdomain' ] );
+			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
+			add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 			$this->auto_verify = new AutoVerify();
 			$this->auto_verify->init();
 		}
+
+		( new FixDivi() )->init();
 	}
 
 	/**
@@ -88,29 +92,50 @@ class Main {
 	/**
 	 * Add the hcaptcha script to footer.
 	 */
-	public function hcap_captcha_script() {
+	public function print_footer_scripts() {
 		if ( ! $this->form_shown ) {
 			return;
 		}
 
-		$param_array = [];
-		$compat      = get_option( 'hcaptcha_recaptchacompat' );
-		$language    = get_option( 'hcaptcha_language' );
+		$params = [
+			'onload' => 'hCaptchaOnLoad',
+			'render' => 'explicit',
+		];
+
+		$compat   = get_option( 'hcaptcha_recaptchacompat' );
+		$language = get_option( 'hcaptcha_language' );
 
 		if ( $compat ) {
-			$param_array['recaptchacompat'] = 'off';
+			$params['recaptchacompat'] = 'off';
 		}
 
 		if ( $language ) {
-			$param_array['hl'] = $language;
+			$params['hl'] = $language;
 		}
 
-		$url_params = add_query_arg( $param_array, '' );
+		$src_params = add_query_arg( $params, '' );
+		$src        = 'https://js.hcaptcha.com/1/api.js' . $src_params;
 
-		wp_enqueue_style( 'hcaptcha-style', HCAPTCHA_URL . '/css/style.css', [], HCAPTCHA_VERSION );
+		?>
+		<style>
+			.h-captcha:not([data-size="invisible"]) {
+				margin-bottom: 2rem;
+			}
+		</style>
+		<?php
+
+		/**
+		 * Filter delay time for hcaptcha API script.
+		 * Any negative value will prevent API script from loading at all,
+		 * until user interaction: mouseenter, click, scroll or touch.
+		 * This significantly improves Google Pagespeed Insights score.
+		 */
+		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
+		DelayedScript::launch( [ 'src' => $src ], $delay );
+
 		wp_enqueue_script(
-			'hcaptcha-script',
-			'//hcaptcha.com/1/api.js' . $url_params,
+			'hcaptcha',
+			HCAPTCHA_URL . '/assets/js/hcaptcha.js',
 			[],
 			HCAPTCHA_VERSION,
 			true
@@ -119,10 +144,8 @@ class Main {
 
 	/**
 	 * Load plugin modules.
-	 *
-	 * @noinspection PhpIncludeInspection
 	 */
-	public function hcap_load_modules() {
+	public function load_modules() {
 		$modules = [
 			'Ninja Forms'               => [
 				'hcaptcha_nf_status',
@@ -264,13 +287,13 @@ class Main {
 	}
 
 	/**
-	 * Remove standard WP login captcha if we login via WC.
+	 * Remove standard WP login captcha if we do logging in via WC.
 	 *
 	 * @param array $credentials Credentials.
 	 *
 	 * @return array
 	 */
-	public function hcap_remove_wp_authenticate_user( $credentials ) {
+	public function remove_filter_wp_authenticate_user( $credentials ) {
 		remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
 
 		return $credentials;
@@ -279,7 +302,7 @@ class Main {
 	/**
 	 * Load plugin text domain.
 	 */
-	public function hcaptcha_wp_load_textdomain() {
+	public function load_textdomain() {
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',
 			false,

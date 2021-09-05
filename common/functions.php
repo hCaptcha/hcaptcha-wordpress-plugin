@@ -35,12 +35,15 @@ function hcap_form_display( $action = '', $name = '', $auto = false ) {
 	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
 	$hcaptcha_size    = get_option( 'hcaptcha_size' );
 
+	$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
+
 	?>
 	<div
 			class="h-captcha"
 			data-sitekey="<?php echo esc_attr( $hcaptcha_api_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $hcaptcha_size ); ?>"
+			<?php echo wp_kses_post( $callback ); ?>
 			data-auto="<?php echo $auto ? 'true' : 'false'; ?>">
 	</div>
 	<?php
@@ -101,8 +104,9 @@ function hcap_options() {
 			'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
 			'type'    => 'select',
 			'options' => [
-				'normal'  => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
-				'compact' => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
+				'normal'    => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
+				'compact'   => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
+				'invisible' => __( 'Invisible', 'hcaptcha-for-forms-and-more' ),
 			],
 		],
 		'hcaptcha_language'                 => [
@@ -121,14 +125,6 @@ function hcap_options() {
 			'label' => __( 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
-		'hcaptcha_nf_status'                => [
-			'label' => __( 'Enable Ninja Forms Addon', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_cf7_status'               => [
-			'label' => __( 'Enable Contact Form 7 Addon', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
 		'hcaptcha_lf_status'                => [
 			'label' => __( 'Enable hCaptcha on Login Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
@@ -137,12 +133,48 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on Register Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
+		'hcaptcha_lpf_status'               => [
+			'label' => __( 'Enable hCaptcha on Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
 		'hcaptcha_cmf_status'               => [
 			'label' => __( 'Enable hCaptcha on Comment Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
-		'hcaptcha_lpf_status'               => [
-			'label' => __( 'Enable hCaptcha on Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+		'hcaptcha_bbp_new_topic_status'     => [
+			'label' => __( 'Enable hCaptcha on bbPress New Topic Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_bbp_reply_status'         => [
+			'label' => __( 'Enable hCaptcha on bbPress Reply Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_bp_reg_status'            => [
+			'label' => __( 'Enable hCaptcha on Buddypress Registration Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_bp_create_group_status'   => [
+			'label' => __( 'Enable hCaptcha on BuddyPress Create Group Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_cf7_status'               => [
+			'label' => __( 'Enable hCaptcha on Contact Form 7', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_jetpack_cf_status'        => [
+			'label' => __( 'Enable hCaptcha on Jetpack Contact Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_mc4wp_status'             => [
+			'label' => __( 'Enable hCaptcha on Mailchimp for WP Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_nf_status'                => [
+			'label' => __( 'Enable hCaptcha on Ninja Forms', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_subscribers_status'       => [
+			'label' => __( 'Enable hCaptcha on Subscribers Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_wc_login_status'          => [
@@ -161,20 +193,8 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on WooCommerce Checkout Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
-		'hcaptcha_bp_reg_status'            => [
-			'label' => __( 'Enable hCaptcha on Buddypress Registration Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_bp_create_group_status'   => [
-			'label' => __( 'Enable hCaptcha on BuddyPress Create Group Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_bbp_new_topic_status'     => [
-			'label' => __( 'Enable hCaptcha on bbPress New Topic Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_bbp_reply_status'         => [
-			'label' => __( 'Enable hCaptcha on bbPress Reply Form', 'hcaptcha-for-forms-and-more' ),
+		'hcaptcha_wc_wl_create_list_status' => [
+			'label' => __( 'Enable hCaptcha on WooCommerce Wishlists Create List Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_wpforms_status'           => [
@@ -191,22 +211,6 @@ function hcap_options() {
 		],
 		'hcaptcha_wpforo_reply_status'      => [
 			'label' => __( 'Enable hCaptcha on WPForo Reply Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_mc4wp_status'             => [
-			'label' => __( 'Enable hCaptcha on Mailchimp for WP Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_jetpack_cf_status'        => [
-			'label' => __( 'Enable hCaptcha on Jetpack Contact Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_subscribers_status'       => [
-			'label' => __( 'Enable hCaptcha on Subscribers Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_wc_wl_create_list_status' => [
-			'label' => __( 'Enable hCaptcha on WooCommerce Wishlists Create List Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 	];

@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\BP;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -12,6 +17,8 @@ use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test bp files.
+ *
+ * @group bp
  */
 class BPTest extends HCaptchaPluginWPTestCase {
 

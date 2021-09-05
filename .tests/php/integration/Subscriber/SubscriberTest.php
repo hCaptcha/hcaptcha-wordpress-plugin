@@ -11,6 +11,8 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
  * Test subscriber.php file.
+ *
+ * @group subscriber
  */
 class SubscriberTest extends HCaptchaWPTestCase {
 
@@ -18,7 +20,9 @@ class SubscriberTest extends HCaptchaWPTestCase {
 	 * Tests hcap_subscriber_form().
 	 */
 	public function test_hcap_subscriber_form() {
+		$content  = '<!--some form content-->';
 		$expected =
+			$content .
 			$this->get_hcap_form() .
 			wp_nonce_field(
 				'hcaptcha_subscriber_form',
@@ -27,7 +31,7 @@ class SubscriberTest extends HCaptchaWPTestCase {
 				false
 			);
 
-		self::assertSame( $expected, hcap_subscriber_form() );
+		self::assertSame( $expected, hcap_subscriber_form( $content ) );
 	}
 
 	/**

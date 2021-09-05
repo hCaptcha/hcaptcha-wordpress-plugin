@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration;
 
 /**
@@ -56,7 +61,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			version_compare( PHP_VERSION, '7.0', '<' )
 		) {
 			self::markTestSkipped(
-				'This tests requires PHP 7.0 at least.'
+				'This test requires PHP 7.0 at least.'
 			);
 		}
 

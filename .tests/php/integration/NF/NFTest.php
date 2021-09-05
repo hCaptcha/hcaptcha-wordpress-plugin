@@ -113,19 +113,24 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		$subject = new NF();
 
 		self::assertSame( $expected, $subject->localize_field( $field ) );
+
+		// Test that invisible size is replaced by normal.
+		update_option( 'hcaptcha_size', 'invisible' );
+		$expected['settings']['hcaptcha_size'] = 'normal';
+
+		$subject = new NF();
+
+		self::assertSame( $expected, $subject->localize_field( $field ) );
 	}
 
 	/**
 	 * Test nf_captcha_script().
 	 */
 	public function test_nf_captcha_script() {
-		$expected = 'setTimeout(function(){window.hcaptcha.render("nf-hcaptcha")}, 1000);';
-
 		$subject = new NF();
 
 		$subject->nf_captcha_script();
 
-		self::assertTrue( wp_script_is( 'nf-hcaptcha', 'enqueued' ) );
-		self::assertSame( $expected, $GLOBALS['wp_scripts']->registered['nf-hcaptcha']->extra['after'][1] );
+		self::assertTrue( wp_script_is( 'hcaptcha-nf', 'enqueued' ) );
 	}
 }

@@ -50,12 +50,12 @@ class JetpackTest extends HCaptchaWPTestCase {
 				'[contact-form] Some contact form [hcaptcha][/contact-form]' . $nonce_field,
 			],
 			'Block contact form'                 => [
-				'<form wp-block-jetpack-contact-form </form>',
-				'<form wp-block-jetpack-contact-form [hcaptcha]' . $nonce_field . '</form>',
+				'<form class="wp-block-jetpack-contact-form" <button type="submit">Contact Us</button></form>',
+				'<form class="wp-block-jetpack-contact-form" [hcaptcha]<button type="submit">Contact Us</button>' . $nonce_field . '</form>',
 			],
 			'Block contact form with hcaptcha'   => [
-				'<form wp-block-jetpack-contact-form [hcaptcha]</form>',
-				'<form wp-block-jetpack-contact-form [hcaptcha]</form>' . $nonce_field,
+				'<form class="wp-block-jetpack-contact-form" [hcaptcha]<button type="submit">Contact Us</button></form>',
+				'<form class="wp-block-jetpack-contact-form" [hcaptcha]<button type="submit">Contact Us</button>' . $nonce_field . '</form>',
 			],
 		];
 	}

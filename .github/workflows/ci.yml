@@ -68,6 +68,10 @@ jobs:
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer phpcs
 
+      - name: Run unit tests
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: composer unit
+
       - name: Start mysql
         run: |
           sudo systemctl start mysql

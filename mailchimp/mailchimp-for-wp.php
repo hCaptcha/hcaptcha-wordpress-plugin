@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @param array $messages Messages.
  *
- * @return mixed
+ * @return array
  */
 function hcap_add_mc4wp_error_message( $messages ) {
 	$messages['invalid_hcaptcha'] = array(

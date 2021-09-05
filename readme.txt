@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.8
 Requires PHP: 5.6  
-Stable tag: 1.11.0
+Stable tag: 1.12.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -18,8 +18,8 @@ Do you use a captcha to keep out bots? hCaptcha protects user privacy, rewards w
 
 **NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support. 
 
-If you see an integration that doesn't work, or one that's missing, please open a pull request:
-https://github.com/hCaptcha/hcaptcha-wordpress-plugin
+If you see an integration that doesn't work, or one that's missing, please
+[open a pull request](https://github.com/hCaptcha/hcaptcha-wordpress-plugin):
 
 However, you may wish to email the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support if they choose to do so. This will simplify your use of hCaptcha, and is the best solution in the long run.
 
@@ -44,11 +44,11 @@ hCaptcha allows websites to earn rewards while serving this demand while blockin
 
 = You don't support plugin X. How can I get support for it added? =
 
-Open a PR on GitHub: https://github.com/hCaptcha/hcaptcha-wordpress-plugin or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
+[Open a PR on GitHub](https://github.com/hCaptcha/hcaptcha-wordpress-plugin): or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
 
 = Where can I get more information about hCaptcha? =
 
-Please see our website at: https://hcaptcha.com/
+Please see our [website](https://hcaptcha.com/).
 
 = Why isn't my WPForms Lite installation working? =
 
@@ -66,7 +66,6 @@ If you create the form as an HTML block in the post content, just insert the sho
 	<input type="submit" value="Send">
     [hcaptcha]
 </form>
-
 `
 
 If you create the form programmatically, insert the following statement inside it:
@@ -88,6 +87,7 @@ if ( 'success' !== $result ) {
 = Does the [hcaptcha] shortcode have arguments? =
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
+
 `
 [hcaptcha action="my_hcap_action" name="my_hcap_name"]
 `
@@ -152,9 +152,17 @@ Once you activate this plugin, the hCaptcha-answering user's personal data, incl
 
 Please see the hCaptcha privacy policy at: 
 
-* ([hCaptcha.com](https://hCaptcha.com/privacy))
+* [hCaptcha.com](https://hCaptcha.com/privacy)
  
 == Changelog ==
+
+= 1.12.0 =
+* Added Invisible hCaptcha feature.
+* Added delayed rendering of hCaptcha to improve Google PageSpeed Insights score.
+* hCaptcha moved inside of Jetpack block form, before submit button.
+* Fixed fatal error with Divi theme.
+* Fixed - only 1 Contact Form 7 was working on the page.
+* Nonce is now checked with Contact Form 7.
 
 = 1.11.0 =
 * Added auto-verification of an arbitrary form.

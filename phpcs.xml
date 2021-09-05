@@ -6,10 +6,10 @@
 	<file>.</file>
 	<exclude-pattern>*/\.codeception/*</exclude-pattern>
 	<exclude-pattern>*/\.github/*</exclude-pattern>
+	<exclude-pattern>*/\.wordpress-org/*</exclude-pattern>
 	<exclude-pattern>*/assets/*</exclude-pattern>
 	<exclude-pattern>*/bin/*</exclude-pattern>
 	<exclude-pattern>*/css/*</exclude-pattern>
-	<exclude-pattern>*/deploy/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 

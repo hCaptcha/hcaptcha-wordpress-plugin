@@ -65,6 +65,5 @@ class Fields extends NF_Fields_recaptcha {
 		if ( 'fail' === $result ) {
 			return array( __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) );
 		}
-
 	}
 }

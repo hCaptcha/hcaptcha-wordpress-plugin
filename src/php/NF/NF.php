@@ -66,9 +66,14 @@ class NF {
 	public function localize_field( $field ) {
 		global $hcaptcha_wordpress_plugin;
 
-		$field['settings']['hcaptcha_key']         = get_option( 'hcaptcha_api_key' );
-		$field['settings']['hcaptcha_theme']       = get_option( 'hcaptcha_theme' );
-		$field['settings']['hcaptcha_size']        = get_option( 'hcaptcha_size' );
+		$field['settings']['hcaptcha_key']   = get_option( 'hcaptcha_api_key' );
+		$field['settings']['hcaptcha_theme'] = get_option( 'hcaptcha_theme' );
+		$hcaptcha_size                       = get_option( 'hcaptcha_size' );
+
+		// Invisible is not supported by Ninja Forms so far.
+		$hcaptcha_size = 'invisible' === $hcaptcha_size ? 'normal' : $hcaptcha_size;
+
+		$field['settings']['hcaptcha_size']        = $hcaptcha_size;
 		$field['settings']['hcaptcha_nonce_field'] = wp_nonce_field(
 			'hcaptcha_nf',
 			'hcaptcha_nf_nonce',
@@ -86,16 +91,11 @@ class NF {
 	 */
 	public function nf_captcha_script() {
 		wp_enqueue_script(
-			'nf-hcaptcha',
-			plugin_dir_url( __FILE__ ) . 'nf-hcaptcha.js',
-			array( 'nf-front-end' ),
+			'hcaptcha-nf',
+			HCAPTCHA_URL . '/assets/js/hcaptcha-nf.js',
+			[ 'nf-front-end' ],
 			HCAPTCHA_VERSION,
 			true
-		);
-
-		wp_add_inline_script(
-			'nf-hcaptcha',
-			'setTimeout(function(){window.hcaptcha.render("nf-hcaptcha")}, 1000);'
 		);
 	}
 }

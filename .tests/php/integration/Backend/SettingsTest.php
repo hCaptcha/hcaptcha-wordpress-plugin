@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\Backend;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -82,6 +87,10 @@ class SettingsTest extends HCaptchaWPTestCase {
 								value="compact"
 							>
 							Compact						</option>
+												<option
+								value="invisible"
+							>
+							Invisible						</option>
 										</select>
 				<br><br>
 							<strong>
@@ -113,22 +122,6 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_nf_status"
-					name="hcaptcha_nf_status"
-				/>
-			&nbsp;
-			<span>Enable Ninja Forms Addon</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_cf7_status"
-					name="hcaptcha_cf7_status"
-				/>
-			&nbsp;
-			<span>Enable Contact Form 7 Addon</span>
-			<br><br>
-						<input
-					type="checkbox"
 					id="hcaptcha_lf_status"
 					name="hcaptcha_lf_status"
 				/>
@@ -145,6 +138,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_lpf_status"
+					name="hcaptcha_lpf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Lost Password Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_cmf_status"
 					name="hcaptcha_cmf_status"
 				/>
@@ -153,11 +154,75 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_lpf_status"
-					name="hcaptcha_lpf_status"
+					id="hcaptcha_bbp_new_topic_status"
+					name="hcaptcha_bbp_new_topic_status"
 				/>
 			&nbsp;
-			<span>Enable hCaptcha on Lost Password Form</span>
+			<span>Enable hCaptcha on bbPress New Topic Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bbp_reply_status"
+					name="hcaptcha_bbp_reply_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on bbPress Reply Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bp_reg_status"
+					name="hcaptcha_bp_reg_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Buddypress Registration Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bp_create_group_status"
+					name="hcaptcha_bp_create_group_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on BuddyPress Create Group Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_cf7_status"
+					name="hcaptcha_cf7_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Contact Form 7</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_jetpack_cf_status"
+					name="hcaptcha_jetpack_cf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Jetpack Contact Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_mc4wp_status"
+					name="hcaptcha_mc4wp_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Mailchimp for WP Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_nf_status"
+					name="hcaptcha_nf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ninja Forms</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_subscribers_status"
+					name="hcaptcha_subscribers_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Subscribers Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -193,35 +258,11 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_bp_reg_status"
-					name="hcaptcha_bp_reg_status"
+					id="hcaptcha_wc_wl_create_list_status"
+					name="hcaptcha_wc_wl_create_list_status"
 				/>
 			&nbsp;
-			<span>Enable hCaptcha on Buddypress Registration Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_bp_create_group_status"
-					name="hcaptcha_bp_create_group_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on BuddyPress Create Group Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_bbp_new_topic_status"
-					name="hcaptcha_bbp_new_topic_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on bbPress New Topic Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_bbp_reply_status"
-					name="hcaptcha_bbp_reply_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on bbPress Reply Form</span>
+			<span>Enable hCaptcha on WooCommerce Wishlists Create List Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -254,38 +295,6 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on WPForo Reply Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_mc4wp_status"
-					name="hcaptcha_mc4wp_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on Mailchimp for WP Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_jetpack_cf_status"
-					name="hcaptcha_jetpack_cf_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on Jetpack Contact Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_subscribers_status"
-					name="hcaptcha_subscribers_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on Subscribers Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_wc_wl_create_list_status"
-					name="hcaptcha_wc_wl_create_list_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on WooCommerce Wishlists Create List Form</span>
 			<br><br>
 						<p>
 				<input
@@ -405,6 +414,10 @@ class SettingsTest extends HCaptchaWPTestCase {
 								value="compact"
 							>
 							Compact						</option>
+												<option
+								value="invisible"
+							>
+							Invisible						</option>
 										</select>
 				<br><br>
 							<strong>
@@ -436,22 +449,6 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_nf_status"
-					name="hcaptcha_nf_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable Ninja Forms Addon</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_cf7_status"
-					name="hcaptcha_cf7_status"
-				/>
-			&nbsp;
-			<span>Enable Contact Form 7 Addon</span>
-			<br><br>
-						<input
-					type="checkbox"
 					id="hcaptcha_lf_status"
 					name="hcaptcha_lf_status"
 				/>
@@ -468,6 +465,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_lpf_status"
+					name="hcaptcha_lpf_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Lost Password Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_cmf_status"
 					name="hcaptcha_cmf_status"
 				 checked=\'checked\'/>
@@ -476,11 +481,75 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_lpf_status"
-					name="hcaptcha_lpf_status"
+					id="hcaptcha_bbp_new_topic_status"
+					name="hcaptcha_bbp_new_topic_status"
 				 checked=\'checked\'/>
 			&nbsp;
-			<span>Enable hCaptcha on Lost Password Form</span>
+			<span>Enable hCaptcha on bbPress New Topic Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bbp_reply_status"
+					name="hcaptcha_bbp_reply_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on bbPress Reply Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bp_reg_status"
+					name="hcaptcha_bp_reg_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Buddypress Registration Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bp_create_group_status"
+					name="hcaptcha_bp_create_group_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on BuddyPress Create Group Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_cf7_status"
+					name="hcaptcha_cf7_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Contact Form 7</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_jetpack_cf_status"
+					name="hcaptcha_jetpack_cf_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Jetpack Contact Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_mc4wp_status"
+					name="hcaptcha_mc4wp_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Mailchimp for WP Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_nf_status"
+					name="hcaptcha_nf_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Ninja Forms</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_subscribers_status"
+					name="hcaptcha_subscribers_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Subscribers Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -516,35 +585,11 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_bp_reg_status"
-					name="hcaptcha_bp_reg_status"
+					id="hcaptcha_wc_wl_create_list_status"
+					name="hcaptcha_wc_wl_create_list_status"
 				 checked=\'checked\'/>
 			&nbsp;
-			<span>Enable hCaptcha on Buddypress Registration Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_bp_create_group_status"
-					name="hcaptcha_bp_create_group_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on BuddyPress Create Group Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_bbp_new_topic_status"
-					name="hcaptcha_bbp_new_topic_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on bbPress New Topic Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_bbp_reply_status"
-					name="hcaptcha_bbp_reply_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on bbPress Reply Form</span>
+			<span>Enable hCaptcha on WooCommerce Wishlists Create List Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -577,38 +622,6 @@ class SettingsTest extends HCaptchaWPTestCase {
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on WPForo Reply Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_mc4wp_status"
-					name="hcaptcha_mc4wp_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on Mailchimp for WP Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_jetpack_cf_status"
-					name="hcaptcha_jetpack_cf_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on Jetpack Contact Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_subscribers_status"
-					name="hcaptcha_subscribers_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on Subscribers Form</span>
-			<br><br>
-						<input
-					type="checkbox"
-					id="hcaptcha_wc_wl_create_list_status"
-					name="hcaptcha_wc_wl_create_list_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on WooCommerce Wishlists Create List Form</span>
 			<br><br>
 						<p>
 				<input
