@@ -112,7 +112,7 @@ class DelayedScriptTest extends HCaptchaPluginWPTestCase {
 							const t = document.getElementsByTagName( \'script\' )[0];
 		const s = document.createElement(\'script\');
 		s.type  = \'text/javascript\';
-		s[\'src\'] = \'https://hcaptcha.com/1/api.js\';
+		s[\'src\'] = \'https://js.hcaptcha.com/1/api.js\';
 		s.async = true;
 		t.parentNode.insertBefore( s, t );
 						}
@@ -146,7 +146,7 @@ class DelayedScriptTest extends HCaptchaPluginWPTestCase {
 
 		';
 
-		$src  = 'https://hcaptcha.com/1/api.js';
+		$src  = 'https://js.hcaptcha.com/1/api.js';
 		$args = [ 'src' => $src ];
 
 		ob_start();

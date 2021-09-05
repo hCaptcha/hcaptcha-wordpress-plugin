@@ -301,11 +301,11 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_print_footer_scripts() {
 		return [
-			'no options'    => [ false, false, 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
-			'empty options' => [ '', '', 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
-			'compat only'   => [ 'on', false, 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off' ],
-			'language only' => [ false, 'ru', 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru' ],
-			'both options'  => [ 'on', 'ru', 'https://hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&hl=ru' ],
+			'no options'    => [ false, false, 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
+			'empty options' => [ '', '', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
+			'compat only'   => [ 'on', false, 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off' ],
+			'language only' => [ false, 'ru', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru' ],
+			'both options'  => [ 'on', 'ru', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&hl=ru' ],
 		];
 	}
 

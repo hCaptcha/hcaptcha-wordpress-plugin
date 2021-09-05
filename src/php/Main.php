@@ -114,7 +114,7 @@ class Main {
 		}
 
 		$src_params = add_query_arg( $params, '' );
-		$src        = 'https://hcaptcha.com/1/api.js' . $src_params;
+		$src        = 'https://js.hcaptcha.com/1/api.js' . $src_params;
 
 		?>
 		<style>
