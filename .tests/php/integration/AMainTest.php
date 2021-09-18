@@ -78,6 +78,14 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertSame(
+			- PHP_INT_MAX + 1,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_modules' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
+		);
+		self::assertSame(
 			10,
 			has_filter(
 				'wp_resource_hints',
@@ -89,19 +97,11 @@ class AMainTest extends HCaptchaWPTestCase {
 			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 		);
 		self::assertSame(
-			- PHP_INT_MAX + 1,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_modules' ] )
-		);
-		self::assertSame(
 			10,
 			has_filter(
 				'woocommerce_login_credentials',
 				[ $hcaptcha_wordpress_plugin, 'remove_filter_wp_authenticate_user' ]
 			)
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
 		);
 
 		unset( $current_user );
