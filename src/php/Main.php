@@ -51,13 +51,11 @@ class Main {
 			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
 			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 
-			if ( ! is_admin() ) {
-				add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
-				add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
-				add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
-				$this->auto_verify = new AutoVerify();
-				$this->auto_verify->init();
-			}
+			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+			add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+			$this->auto_verify = new AutoVerify();
+			$this->auto_verify->init();
 		}
 
 		( new FixDivi() )->init();
