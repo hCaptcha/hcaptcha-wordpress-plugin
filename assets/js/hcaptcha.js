@@ -109,8 +109,4 @@ window.hCaptchaGetWidgetId = hCaptcha.getWidgetId;
 window.hCaptchaBindEvents = hCaptcha.bindEvents;
 window.hCaptchaSubmit = hCaptcha.submit;
 
-window.hCaptchaOnLoad = () => {
-	if ( typeof hCaptchaBindEvents !== 'undefined' ) {
-		hCaptchaBindEvents();
-	}
-};
+window.hCaptchaOnLoad = hCaptchaBindEvents;

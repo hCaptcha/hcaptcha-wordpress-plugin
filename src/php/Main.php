@@ -11,6 +11,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
+use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\NF\NF;
 
 /**
@@ -47,13 +48,16 @@ class Main {
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
 		if ( $this->activate_hcaptcha() ) {
-			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
-			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
-			add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
-			$this->auto_verify = new AutoVerify();
-			$this->auto_verify->init();
+
+			if ( ! is_admin() ) {
+				add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+				add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+				add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+				$this->auto_verify = new AutoVerify();
+				$this->auto_verify->init();
+			}
 		}
 
 		( new FixDivi() )->init();
@@ -90,13 +94,32 @@ class Main {
 	}
 
 	/**
-	 * Add the hcaptcha script to footer.
+	 * Print inline styles.
 	 */
-	public function print_footer_scripts() {
-		if ( ! $this->form_shown ) {
-			return;
-		}
+	public function print_inline_styles() {
+		?>
+		<style>
+			.h-captcha:not([data-size="invisible"]) {
+				margin-bottom: 2rem;
+			}
 
+			.elementor-field-type-hcaptcha .elementor-field {
+				background: transparent !important;
+			}
+
+			.elementor-field-type-hcaptcha .h-captcha {
+				margin-bottom: -9px;
+			}
+		</style>
+		<?php
+	}
+
+	/**
+	 * Get API source url.
+	 *
+	 * @return string
+	 */
+	public function get_api_src() {
 		$params = [
 			'onload' => 'hCaptchaOnLoad',
 			'render' => 'explicit',
@@ -114,15 +137,23 @@ class Main {
 		}
 
 		$src_params = add_query_arg( $params, '' );
-		$src        = 'https://js.hcaptcha.com/1/api.js' . $src_params;
 
-		?>
-		<style>
-			.h-captcha:not([data-size="invisible"]) {
-				margin-bottom: 2rem;
-			}
-		</style>
-		<?php
+		return 'https://js.hcaptcha.com/1/api.js' . $src_params;
+	}
+
+	/**
+	 * Add the hcaptcha script to footer.
+	 */
+	public function print_footer_scripts() {
+		if ( is_admin() ) {
+			return;
+		}
+
+		if ( ! $this->form_shown ) {
+			return;
+		}
+
+		$this->print_inline_styles();
 
 		/**
 		 * Filter delay time for hcaptcha API script.
@@ -131,7 +162,7 @@ class Main {
 		 * This significantly improves Google Pagespeed Insights score.
 		 */
 		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
-		DelayedScript::launch( [ 'src' => $src ], $delay );
+		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
 		wp_enqueue_script(
 			'hcaptcha',
@@ -147,16 +178,6 @@ class Main {
 	 */
 	public function load_modules() {
 		$modules = [
-			'Ninja Forms'               => [
-				'hcaptcha_nf_status',
-				'ninja-forms/ninja-forms.php',
-				NF::class,
-			],
-			'Contact Form 7'            => [
-				'hcaptcha_cf7_status',
-				'contact-form-7/wp-contact-form-7.php',
-				CF7::class,
-			],
 			'Login Form'                => [
 				'hcaptcha_lf_status',
 				'',
@@ -167,15 +188,65 @@ class Main {
 				'',
 				'default/register-form.php',
 			],
+			'Lost Password Form'        => [
+				'hcaptcha_lpf_status',
+				'',
+				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+			],
 			'Comment Form'              => [
 				'hcaptcha_cmf_status',
 				'',
 				'default/comment-form.php',
 			],
-			'Lost Password Form'        => [
-				'hcaptcha_lpf_status',
-				'',
-				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+			'BB Press New Topic'        => [
+				'hcaptcha_bbp_new_topic_status',
+				'bbpress/bbpress.php',
+				'bbp/bbp-new-topic.php',
+			],
+			'BB Press Reply'            => [
+				'hcaptcha_bbp_reply_status',
+				'bbpress/bbpress.php',
+				'bbp/bbp-reply.php',
+			],
+			'BuddyPress Register'       => [
+				'hcaptcha_bp_reg_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-register.php',
+			],
+			'BuddyPress Create Group'   => [
+				'hcaptcha_bp_create_group_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-create-group.php',
+			],
+			'Contact Form 7'            => [
+				'hcaptcha_cf7_status',
+				'contact-form-7/wp-contact-form-7.php',
+				CF7::class,
+			],
+			'Elementor Pro Form'        => [
+				'hcaptcha_elementor__pro_form_status',
+				'elementor-pro/elementor-pro.php',
+				HCaptchaHandler::class,
+			],
+			'Jetpack'                   => [
+				'hcaptcha_jetpack_cf_status',
+				'jetpack/jetpack.php',
+				'jetpack/jetpack.php',
+			],
+			'MailChimp'                 => [
+				'hcaptcha_mc4wp_status',
+				'mailchimp-for-wp/mailchimp-for-wp.php',
+				'mailchimp/mailchimp-for-wp.php',
+			],
+			'Ninja Forms'               => [
+				'hcaptcha_nf_status',
+				'ninja-forms/ninja-forms.php',
+				NF::class,
+			],
+			'Subscriber'                => [
+				'hcaptcha_subscribers_status',
+				'subscriber/subscriber.php',
+				'subscriber/subscriber.php',
 			],
 			'WooCommerce Login'         => [
 				'hcaptcha_wc_login_status',
@@ -197,25 +268,10 @@ class Main {
 				'woocommerce/woocommerce.php',
 				'wc/wc-checkout.php',
 			],
-			'BuddyPress Register'       => [
-				'hcaptcha_bp_reg_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
-			],
-			'BuddyPress Create Group'   => [
-				'hcaptcha_bp_create_group_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
-			],
-			'BB Press New Topic'        => [
-				'hcaptcha_bbp_new_topic_status',
-				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
-			],
-			'BB Press Reply'            => [
-				'hcaptcha_bbp_reply_status',
-				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+			'WC Wishlist'               => [
+				'hcaptcha_wc_wl_create_list_status',
+				'woocommerce-wishlists/woocommerce-wishlists.php',
+				'wc_wl/wc-wl-create-list.php',
 			],
 			'WPForms Lite'              => [
 				'hcaptcha_wpforms_status',
@@ -236,26 +292,6 @@ class Main {
 				'hcaptcha_wpforo_reply_status',
 				'wpforo/wpforo.php',
 				'wpforo/wpforo-reply.php',
-			],
-			'MailChimp'                 => [
-				'hcaptcha_mc4wp_status',
-				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
-			],
-			'Jetpack'                   => [
-				'hcaptcha_jetpack_cf_status',
-				'jetpack/jetpack.php',
-				'jetpack/jetpack.php',
-			],
-			'Subscriber'                => [
-				'hcaptcha_subscribers_status',
-				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
-			],
-			'WC Wishlist'               => [
-				'hcaptcha_wc_wl_create_list_status',
-				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
 			],
 		];
 
