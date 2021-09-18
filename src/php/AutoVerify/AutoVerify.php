@@ -35,7 +35,7 @@ class AutoVerify {
 	}
 
 	/**
-	 * Filter page content and modify the form for auto verification.
+	 * Filter page content and register the form for auto verification.
 	 *
 	 * @param string $content Content.
 	 *
