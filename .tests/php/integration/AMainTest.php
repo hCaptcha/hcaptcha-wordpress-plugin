@@ -16,6 +16,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
+use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use ReflectionClass;
 use ReflectionException;
 
@@ -36,7 +37,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		global $hcaptcha_wordpress_plugin;
 
-		unset( $GLOBALS['current_user'] );
+		unset( $GLOBALS['current_user'], $GLOBALS['current_screen'] );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -222,6 +223,14 @@ class AMainTest extends HCaptchaWPTestCase {
 			.h-captcha:not([data-size="invisible"]) {
 				margin-bottom: 2rem;
 			}
+
+			.elementor-field-type-hcaptcha .elementor-field {
+				background: transparent !important;
+			}
+
+			.elementor-field-type-hcaptcha .h-captcha {
+				margin-bottom: -9px;
+			}
 		</style>
 		
 		<script type="text/javascript" async>
@@ -307,6 +316,24 @@ class AMainTest extends HCaptchaWPTestCase {
 			'language only' => [ false, 'ru', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru' ],
 			'both options'  => [ 'on', 'ru', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&hl=ru' ],
 		];
+	}
+
+	/**
+	 * Test print_footer_scripts() in admin.
+	 */
+	public function test_print_footer_scripts_in_admin(): void {
+		set_current_screen( 'edit-post' );
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		$scripts = ob_get_clean();
+
+		self::assertFalse( strpos( $scripts, '<style>' ) );
+		self::assertFalse( strpos( $scripts, 'api.js' ) );
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 	}
 
 	/**
@@ -398,16 +425,6 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_load_modules() {
 		$modules = [
-			'Ninja Forms'               => [
-				'hcaptcha_nf_status',
-				'ninja-forms/ninja-forms.php',
-				NF::class,
-			],
-			'Contact Form 7'            => [
-				'hcaptcha_cf7_status',
-				'contact-form-7/wp-contact-form-7.php',
-				CF7::class,
-			],
 			'Login Form'                => [
 				'hcaptcha_lf_status',
 				'',
@@ -418,15 +435,65 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				'default/register-form.php',
 			],
+			'Lost Password Form'        => [
+				'hcaptcha_lpf_status',
+				'',
+				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+			],
 			'Comment Form'              => [
 				'hcaptcha_cmf_status',
 				'',
 				'default/comment-form.php',
 			],
-			'Lost Password Form'        => [
-				'hcaptcha_lpf_status',
-				'',
-				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+			'BB Press New Topic'        => [
+				'hcaptcha_bbp_new_topic_status',
+				'bbpress/bbpress.php',
+				'bbp/bbp-new-topic.php',
+			],
+			'BB Press Reply'            => [
+				'hcaptcha_bbp_reply_status',
+				'bbpress/bbpress.php',
+				'bbp/bbp-reply.php',
+			],
+			'BuddyPress Register'       => [
+				'hcaptcha_bp_reg_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-register.php',
+			],
+			'BuddyPress Create Group'   => [
+				'hcaptcha_bp_create_group_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-create-group.php',
+			],
+			'Contact Form 7'            => [
+				'hcaptcha_cf7_status',
+				'contact-form-7/wp-contact-form-7.php',
+				CF7::class,
+			],
+			'Elementor Pro Form'        => [
+				'hcaptcha_elementor__pro_form_status',
+				'elementor-pro/elementor-pro.php',
+				HCaptchaHandler::class,
+			],
+			'Jetpack'                   => [
+				'hcaptcha_jetpack_cf_status',
+				'jetpack/jetpack.php',
+				'jetpack/jetpack.php',
+			],
+			'MailChimp'                 => [
+				'hcaptcha_mc4wp_status',
+				'mailchimp-for-wp/mailchimp-for-wp.php',
+				'mailchimp/mailchimp-for-wp.php',
+			],
+			'Ninja Forms'               => [
+				'hcaptcha_nf_status',
+				'ninja-forms/ninja-forms.php',
+				NF::class,
+			],
+			'Subscriber'                => [
+				'hcaptcha_subscribers_status',
+				'subscriber/subscriber.php',
+				'subscriber/subscriber.php',
 			],
 			'WooCommerce Login'         => [
 				'hcaptcha_wc_login_status',
@@ -448,25 +515,10 @@ class AMainTest extends HCaptchaWPTestCase {
 				'woocommerce/woocommerce.php',
 				'wc/wc-checkout.php',
 			],
-			'BuddyPress Register'       => [
-				'hcaptcha_bp_reg_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
-			],
-			'BuddyPress Create Group'   => [
-				'hcaptcha_bp_create_group_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
-			],
-			'BB Press New Topic'        => [
-				'hcaptcha_bbp_new_topic_status',
-				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
-			],
-			'BB Press Reply'            => [
-				'hcaptcha_bbp_reply_status',
-				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+			'WC Wishlist'               => [
+				'hcaptcha_wc_wl_create_list_status',
+				'woocommerce-wishlists/woocommerce-wishlists.php',
+				'wc_wl/wc-wl-create-list.php',
 			],
 			'WPForms Lite'              => [
 				'hcaptcha_wpforms_status',
@@ -487,26 +539,6 @@ class AMainTest extends HCaptchaWPTestCase {
 				'hcaptcha_wpforo_reply_status',
 				'wpforo/wpforo.php',
 				'wpforo/wpforo-reply.php',
-			],
-			'MailChimp'                 => [
-				'hcaptcha_mc4wp_status',
-				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
-			],
-			'Jetpack'                   => [
-				'hcaptcha_jetpack_cf_status',
-				'jetpack/jetpack.php',
-				'jetpack/jetpack.php',
-			],
-			'Subscriber'                => [
-				'hcaptcha_subscribers_status',
-				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
-			],
-			'WC Wishlist'               => [
-				'hcaptcha_wc_wl_create_list_status',
-				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
 			],
 		];
 

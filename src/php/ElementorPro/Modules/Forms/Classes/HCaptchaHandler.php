@@ -30,7 +30,7 @@ class HCaptchaHandler {
 	 *
 	 * @var Main
 	 */
-	private $main;
+	protected $main;
 
 	/**
 	 * Class constructor.
@@ -195,7 +195,7 @@ class HCaptchaHandler {
 	/**
 	 * Register scripts.
 	 */
-	public function register_scripts() {
+	private function register_scripts() {
 		$src = $this->main->get_api_src();
 
 		wp_register_script(
@@ -303,11 +303,9 @@ class HCaptchaHandler {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	protected function add_render_attributes( $item, $item_index, $widget ) {
-		$hcaptcha_name = static::get_hcaptcha_name();
-
 		$widget->add_render_attribute(
 			[
-				$hcaptcha_name . $item_index => [
+				static::get_hcaptcha_name() . $item_index => [
 					'class'        => 'elementor-hcaptcha',
 					'data-sitekey' => static::get_site_key(),
 					'data-theme'   => static::get_hcaptcha_theme(),
@@ -338,15 +336,15 @@ class HCaptchaHandler {
 	 * The dynamic portions of the hook name, `$stack_name` and `$section_id`, refers to the section name and section
 	 * ID, respectively.
 	 *
-	 * @param Controls_Stack $control_stack The control.
-	 * @param array          $args          Section arguments.
+	 * @param Controls_Stack $controls_stack The controls stack.
+	 * @param array          $args           Section arguments.
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function modify_controls( $control_stack, $args ) {
+	public function modify_controls( $controls_stack, $args ) {
 		$control_id   = 'form_fields';
 		$control_data = Plugin::$instance->controls_manager->get_control_from_stack(
-			$control_stack->get_unique_name(),
+			$controls_stack->get_unique_name(),
 			$control_id
 		);
 
@@ -362,7 +360,7 @@ class HCaptchaHandler {
 		$control_data['fields']['required']['conditions']['terms'][]     = $term;
 
 		Plugin::$instance->controls_manager->update_control_in_stack(
-			$control_stack,
+			$controls_stack,
 			$control_id,
 			$control_data,
 			[ 'recursive' => true ]
