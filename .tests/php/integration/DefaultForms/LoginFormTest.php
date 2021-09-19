@@ -17,6 +17,27 @@ use WP_User;
 class LoginFormTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Test login_head().
+	 */
+	public function test_hcap_login_head() {
+		$expected = '	<style>
+		.h-captcha {
+			display: flex;
+			justify-content: center;
+		}
+		.h-captcha[data-size="normal"] iframe {
+			transform: scale( 0.89 );
+		}
+	</style>
+	';
+		ob_start();
+
+		hcaptcha_login_head();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
 	 * Test hcap_wp_login_form().
 	 */
 	public function test_hcap_wp_login_form() {

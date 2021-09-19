@@ -13,6 +13,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Print styles to fit hcaptcha widget to the login form.
+ */
+function hcaptcha_login_head() {
+	?>
+	<style>
+		.h-captcha {
+			display: flex;
+			justify-content: center;
+		}
+		.h-captcha[data-size="normal"] iframe {
+			transform: scale( 0.89 );
+		}
+	</style>
+	<?php
+}
+
+add_action( 'login_head', 'hcaptcha_login_head' );
+
+/**
  * Login form.
  */
 function hcap_wp_login_form() {
