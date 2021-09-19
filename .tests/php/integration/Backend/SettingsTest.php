@@ -194,6 +194,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_elementor__pro_form_status"
+					name="hcaptcha_elementor__pro_form_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Elementor Pro Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_jetpack_cf_status"
 					name="hcaptcha_jetpack_cf_status"
 				/>
@@ -518,6 +526,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Contact Form 7</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_elementor__pro_form_status"
+					name="hcaptcha_elementor__pro_form_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Elementor Pro Form</span>
 			<br><br>
 						<input
 					type="checkbox"

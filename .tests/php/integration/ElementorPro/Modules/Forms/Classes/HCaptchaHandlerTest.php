@@ -28,6 +28,28 @@ use ReflectionException;
 class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down test.
+	 *
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
+	 */
+	public function tearDown(): void {
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
+
+		wp_dequeue_script( 'hcaptcha-elementor-pro' );
+		wp_deregister_script( 'hcaptcha-elementor-pro' );
+
+		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
+		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
+
+		wp_dequeue_script( 'elementor-hcaptcha-api' );
+		wp_deregister_script( 'elementor-hcaptcha-api' );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test constructor.
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -167,8 +189,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_init() {
 		return [
-			'not enabled' => false,
-			'enabled'     => true,
+			'not enabled' => [ false ],
+			'enabled'     => [ true ],
 		];
 	}
 
