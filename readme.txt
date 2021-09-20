@@ -156,6 +156,10 @@ Please see the hCaptcha privacy policy at:
  
 == Changelog ==
 
+= 1.13.0 =
+* Added support for Elementor Pro forms.
+* Fix layout on the WP login form.
+
 = 1.12.0 =
 * Added Invisible hCaptcha feature.
 * Added delayed rendering of hCaptcha to improve Google PageSpeed Insights score.
