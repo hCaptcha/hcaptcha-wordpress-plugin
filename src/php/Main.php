@@ -67,16 +67,16 @@ class Main {
 	 * @return bool
 	 */
 	private function activate_hcaptcha() {
-		// Do not load hcaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
+		// Do not load hCaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
 		$activate = ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) );
 
 		return (bool) apply_filters( 'hcap_activate', $activate );
 	}
 
 	/**
-	 * Prefetch hcaptcha dns.
-	 * We cannot control if hcaptcha form is shown here, as this is hooked on wp_head.
-	 * So, we always prefetch hcaptcha dns if hcaptcha is active, but it is a small overhead.
+	 * Prefetch hCaptcha dns.
+	 * We cannot control if hCaptcha form is shown here, as this is hooked on wp_head.
+	 * So, we always prefetch hCaptcha dns if hCaptcha is active, but it is a small overhead.
 	 *
 	 * @param array  $urls          URLs to print for resource hints.
 	 * @param string $relation_type The relation type the URLs are printed for.
