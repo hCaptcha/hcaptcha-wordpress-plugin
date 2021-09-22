@@ -159,6 +159,7 @@ Please see the hCaptcha privacy policy at:
 = 1.13.0 =
 * Added support for Elementor Pro forms.
 * Fix layout on the WP login form.
+* Fix issue with insertion of hcaptcha not only to Jetpack forms.
 
 = 1.12.0 =
 * Added Invisible hCaptcha feature.
