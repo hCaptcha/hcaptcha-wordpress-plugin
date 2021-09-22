@@ -13,7 +13,6 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackContactForm;
-use HCaptcha\Jetpack\JetpackSearchForm;
 use HCaptcha\NF\NF;
 
 /**
@@ -232,11 +231,6 @@ class Main {
 				'hcaptcha_jetpack_cf_status',
 				'jetpack/jetpack.php',
 				JetpackContactForm::class,
-			],
-			'Jetpack Search'            => [
-				'hcaptcha_jetpack_sf_status',
-				'jetpack/jetpack.php',
-				JetpackSearchForm::class,
 			],
 			'MailChimp'                 => [
 				'hcaptcha_mc4wp_status',

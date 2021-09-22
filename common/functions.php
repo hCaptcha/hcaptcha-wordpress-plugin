@@ -169,10 +169,6 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on Jetpack Contact Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
-		'hcaptcha_jetpack_sf_status'          => [
-			'label' => __( 'Enable hCaptcha on Jetpack Search Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
 		'hcaptcha_mc4wp_status'               => [
 			'label' => __( 'Enable hCaptcha on Mailchimp for WP Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
