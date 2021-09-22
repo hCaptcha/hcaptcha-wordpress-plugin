@@ -12,6 +12,8 @@ use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
+use HCaptcha\Jetpack\JetpackContactForm;
+use HCaptcha\Jetpack\JetpackSearchForm;
 use HCaptcha\NF\NF;
 
 /**
@@ -229,7 +231,12 @@ class Main {
 			'Jetpack'                   => [
 				'hcaptcha_jetpack_cf_status',
 				'jetpack/jetpack.php',
+				JetpackContactForm::class,
+			],
+			'Jetpack Search'            => [
+				'hcaptcha_jetpack_sf_status',
 				'jetpack/jetpack.php',
+				JetpackSearchForm::class,
 			],
 			'MailChimp'                 => [
 				'hcaptcha_mc4wp_status',
@@ -311,7 +318,9 @@ class Main {
 
 			foreach ( (array) $module[2] as $component ) {
 				if ( false === strpos( $component, '.php' ) ) {
-					new $component();
+					if ( ! class_exists( $component, false ) ) {
+						new $component();
+					}
 					continue;
 				}
 
