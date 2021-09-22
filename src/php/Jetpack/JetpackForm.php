@@ -10,7 +10,7 @@ namespace HCaptcha\Jetpack;
 /**
  * Class JetpackContactForm
  */
-class JetpackContactForm extends JetpackBase {
+class JetpackForm extends JetpackBase {
 
 	/**
 	 * Add hCaptcha to Jetpack contact form.
@@ -22,7 +22,7 @@ class JetpackContactForm extends JetpackBase {
 	public function jetpack_form( $content ) {
 		// Jetpack classic form.
 		$content = preg_replace_callback(
-			'~(\[contact-form[\s\S]*?][\s\S]*?)(\[/contact-form])~U',
+			'~(\[contact-form[\s\S]*?][\s\S]*?)(\[/contact-form])~',
 			[ $this, 'classic_callback' ],
 			$content
 		);

@@ -24,12 +24,12 @@ abstract class JetpackBase {
 	/**
 	 * Init hooks.
 	 */
-	public function init_hooks() {
+	private function init_hooks() {
 		add_filter( 'the_content', [ $this, 'jetpack_form' ] );
 		add_filter( 'widget_text', [ $this, 'jetpack_form' ], 0 );
 
-		add_filter( 'widget_text', [ $this, 'shortcode_unautop' ] );
-		add_filter( 'widget_text', [ $this, 'do_shortcode' ] );
+		add_filter( 'widget_text', 'shortcode_unautop' );
+		add_filter( 'widget_text', 'do_shortcode' );
 
 		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'jetpack_verify' ], 100, 2 );
 	}
@@ -51,7 +51,10 @@ abstract class JetpackBase {
 	 * @return bool|WP_Error
 	 */
 	public function jetpack_verify( $is_spam = false ) {
-		$error_message = hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+		$error_message = hcaptcha_get_verify_message(
+			'hcaptcha_jetpack_nonce',
+			'hcaptcha_jetpack'
+		);
 
 		if ( null === $error_message ) {
 			return $is_spam;

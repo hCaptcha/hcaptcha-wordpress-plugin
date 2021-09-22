@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
+use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
@@ -26,7 +27,6 @@ use ReflectionException;
  * @group main
  *
  * @group bp
- * @group jetpack
  * @group subscriber
  */
 class AMainTest extends HCaptchaWPTestCase {
@@ -478,7 +478,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Jetpack'                   => [
 				'hcaptcha_jetpack_cf_status',
 				'jetpack/jetpack.php',
-				'jetpack/jetpack.php',
+				JetpackForm::class,
 			],
 			'MailChimp'                 => [
 				'hcaptcha_mc4wp_status',
