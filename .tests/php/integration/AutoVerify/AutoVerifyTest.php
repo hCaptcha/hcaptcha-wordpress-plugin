@@ -84,7 +84,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$content     = $this->get_test_content();
 		$content     = str_replace(
 			'<form method="post">',
-			'<form method="post" action="http://test.test' . $request_uri . '">',
+			'<form action="http://test.test' . $request_uri . '" method="post">',
 			$content
 		);
 
@@ -412,7 +412,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		return '
 <form method="post">
-	<input type="text" name="test_input">
+	<input type="text" name="test_input" id="test_input">
 	<input type="submit" value="Send">
 	<div
 			class="h-captcha"

@@ -209,7 +209,7 @@ class AutoVerify {
 	private function get_form_action( $form ) {
 		$form_action = '';
 
-		if ( preg_match( '#<form [\S\s]*?action="(.*)"[\S\s]*?>#', $form, $m ) ) {
+		if ( preg_match( '#<form [\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
 			$form_action = wp_parse_url( $m[1], PHP_URL_PATH );
 		}
 
@@ -272,7 +272,7 @@ class AutoVerify {
 	 * @return string|null
 	 */
 	private function get_input_name( $input ) {
-		if ( preg_match( '#name[\s]*?=[\s]*?["\'](.+)["\']#', $input, $matches ) ) {
+		if ( preg_match( '#name[\s]*?=[\s]*?["\'](.+?)["\']#', $input, $matches ) ) {
 			return $matches[1];
 		}
 
