@@ -158,8 +158,10 @@ Please see the hCaptcha privacy policy at:
 
 = 1.13.0 =
 * Added support for Elementor Pro forms.
-* Fix layout on the WP login form.
-* Fix issue with insertion of hcaptcha not only to Jetpack forms.
+* Added support for WooCommerce Order Tracking form.
+* Fixed layout on the WP login form.
+* Fixed issue with insertion of hcaptcha not only to Jetpack forms.
+* Fixed regex bug in auto verify feature, which prevented registering of forms.
 
 = 1.12.0 =
 * Added Invisible hCaptcha feature.

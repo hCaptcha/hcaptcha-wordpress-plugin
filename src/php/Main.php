@@ -13,6 +13,7 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\WC\OrderTracking;
 use HCaptcha\NF\NF;
 
 /**
@@ -177,117 +178,122 @@ class Main {
 	 */
 	public function load_modules() {
 		$modules = [
-			'Login Form'                => [
+			'Login Form'                 => [
 				'hcaptcha_lf_status',
 				'',
 				'default/login-form.php',
 			],
-			'Register Form'             => [
+			'Register Form'              => [
 				'hcaptcha_rf_status',
 				'',
 				'default/register-form.php',
 			],
-			'Lost Password Form'        => [
+			'Lost Password Form'         => [
 				'hcaptcha_lpf_status',
 				'',
 				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
 			],
-			'Comment Form'              => [
+			'Comment Form'               => [
 				'hcaptcha_cmf_status',
 				'',
 				'default/comment-form.php',
 			],
-			'BB Press New Topic'        => [
+			'BB Press New Topic'         => [
 				'hcaptcha_bbp_new_topic_status',
 				'bbpress/bbpress.php',
 				'bbp/bbp-new-topic.php',
 			],
-			'BB Press Reply'            => [
+			'BB Press Reply'             => [
 				'hcaptcha_bbp_reply_status',
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
 			],
-			'BuddyPress Register'       => [
+			'BuddyPress Register'        => [
 				'hcaptcha_bp_reg_status',
 				'buddypress/bp-loader.php',
 				'bp/bp-register.php',
 			],
-			'BuddyPress Create Group'   => [
+			'BuddyPress Create Group'    => [
 				'hcaptcha_bp_create_group_status',
 				'buddypress/bp-loader.php',
 				'bp/bp-create-group.php',
 			],
-			'Contact Form 7'            => [
+			'Contact Form 7'             => [
 				'hcaptcha_cf7_status',
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
-			'Elementor Pro Form'        => [
+			'Elementor Pro Form'         => [
 				'hcaptcha_elementor__pro_form_status',
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
-			'Jetpack'                   => [
+			'Jetpack'                    => [
 				'hcaptcha_jetpack_cf_status',
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
-			'MailChimp'                 => [
+			'MailChimp'                  => [
 				'hcaptcha_mc4wp_status',
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'mailchimp/mailchimp-for-wp.php',
 			],
-			'Ninja Forms'               => [
+			'Ninja Forms'                => [
 				'hcaptcha_nf_status',
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
-			'Subscriber'                => [
+			'Subscriber'                 => [
 				'hcaptcha_subscribers_status',
 				'subscriber/subscriber.php',
 				'subscriber/subscriber.php',
 			],
-			'WooCommerce Login'         => [
+			'WooCommerce Login'          => [
 				'hcaptcha_wc_login_status',
 				'woocommerce/woocommerce.php',
 				'wc/wc-login.php',
 			],
-			'WooCommerce Register'      => [
+			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',
 				'woocommerce/woocommerce.php',
 				'wc/wc-register.php',
 			],
-			'WooCommerce Lost Password' => [
+			'WooCommerce Lost Password'  => [
 				'hcaptcha_wc_lost_pass_status',
 				'woocommerce/woocommerce.php',
 				[ 'common/lost-password-form.php', 'wc/wc-lost-password.php' ],
 			],
-			'WooCommerce Checkout'      => [
+			'WooCommerce Checkout'       => [
 				'hcaptcha_wc_checkout_status',
 				'woocommerce/woocommerce.php',
 				'wc/wc-checkout.php',
 			],
-			'WC Wishlist'               => [
+			'WooCommerce Order Tracking' => [
+				'hcaptcha_wc_order_tracking_status',
+				'woocommerce/woocommerce.php',
+				OrderTracking::class,
+			],
+			'WC Wishlist'                => [
 				'hcaptcha_wc_wl_create_list_status',
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				'wc_wl/wc-wl-create-list.php',
 			],
-			'WPForms Lite'              => [
+			'WPForms Lite'               => [
 				'hcaptcha_wpforms_status',
 				'wpforms-lite/wpforms.php',
 				'wpforms/wpforms.php',
 			],
-			'WPForms Pro'               => [
+			'WPForms Pro'                => [
 				'hcaptcha_wpforms_pro_status',
 				'wpforms/wpforms.php',
 				'wpforms/wpforms.php',
 			],
-			'wpForo New Topic'          => [
+			'wpForo New Topic'           => [
 				'hcaptcha_wpforo_new_topic_status',
 				'wpforo/wpforo.php',
 				'wpforo/wpforo-new-topic.php',
 			],
-			'wpForo Reply'              => [
+			'wpForo Reply'               => [
 				'hcaptcha_wpforo_reply_status',
 				'wpforo/wpforo.php',
 				'wpforo/wpforo-reply.php',

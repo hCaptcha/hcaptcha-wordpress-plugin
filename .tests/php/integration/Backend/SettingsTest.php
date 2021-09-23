@@ -266,6 +266,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_wc_order_tracking_status"
+					name="hcaptcha_wc_order_tracking_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on WooCommerce Order Tracking Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_wc_wl_create_list_status"
 					name="hcaptcha_wc_wl_create_list_status"
 				/>
@@ -598,6 +606,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on WooCommerce Checkout Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_wc_order_tracking_status"
+					name="hcaptcha_wc_order_tracking_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on WooCommerce Order Tracking Form</span>
 			<br><br>
 						<input
 					type="checkbox"

@@ -25,6 +25,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
  *
  * @requires PHP >= 7.0
  * @requires PHP < 8.0
+ * @group    wc
  */
 class WCCheckoutTest extends HCaptchaPluginWPTestCase {
 

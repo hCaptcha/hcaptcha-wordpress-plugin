@@ -12,6 +12,8 @@ use WP_Error;
 
 /**
  * Test wc-register.php file.
+ *
+ * @group wc
  */
 class WCRegisterTest extends HCaptchaWPTestCase {
 

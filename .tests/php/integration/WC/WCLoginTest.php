@@ -12,6 +12,8 @@ use WP_Error;
 
 /**
  * Test wc-login.php file.
+ *
+ * @group wc
  */
 class WCLoginTest extends HCaptchaWPTestCase {
 

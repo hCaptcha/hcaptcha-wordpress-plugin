@@ -266,6 +266,11 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on WooCommerce Checkout Form',
 					'type'  => 'checkbox',
 				],
+			'hcaptcha_wc_order_tracking_status'   =>
+				[
+					'label' => 'Enable hCaptcha on WooCommerce Order Tracking Form',
+					'type'  => 'checkbox',
+				],
 			'hcaptcha_wc_wl_create_list_status'   =>
 				[
 					'label' => 'Enable hCaptcha on WooCommerce Wishlists Create List Form',

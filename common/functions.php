@@ -197,6 +197,10 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on WooCommerce Checkout Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
+		'hcaptcha_wc_order_tracking_status'   => [
+			'label' => __( 'Enable hCaptcha on WooCommerce Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
 		'hcaptcha_wc_wl_create_list_status'   => [
 			'label' => __( 'Enable hCaptcha on WooCommerce Wishlists Create List Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
