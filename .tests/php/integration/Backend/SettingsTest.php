@@ -218,6 +218,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_memberpress_register_status"
+					name="hcaptcha_memberpress_register_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on MemberPress Registration Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_nf_status"
 					name="hcaptcha_nf_status"
 				/>
@@ -558,6 +566,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on Mailchimp for WP Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_memberpress_register_status"
+					name="hcaptcha_memberpress_register_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on MemberPress Registration Form</span>
 			<br><br>
 						<input
 					type="checkbox"
