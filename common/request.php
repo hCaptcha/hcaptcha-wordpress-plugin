@@ -5,6 +5,51 @@
  * @package hcaptcha-wp
  */
 
+/**
+ * Determines the user's actual IP address and attempts to partially
+ * anonymize an IP address by converting it to a network ID.
+ *
+ * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
+ *
+ * @return false|string
+ */
+function hcap_get_user_ip() {
+	$client_ip = false;
+
+	// In order of preference, with the best ones for this purpose first.
+	$address_headers = [
+		'HTTP_CLIENT_IP',
+		'HTTP_X_FORWARDED_FOR',
+		'HTTP_X_FORWARDED',
+		'HTTP_X_CLUSTER_CLIENT_IP',
+		'HTTP_FORWARDED_FOR',
+		'HTTP_FORWARDED',
+		'REMOTE_ADDR',
+	];
+
+	foreach ( $address_headers as $header ) {
+		if ( array_key_exists( $header, $_SERVER ) ) {
+			$address_chain = explode(
+				',',
+				filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_STRING )
+			);
+			$client_ip     = trim( $address_chain[0] );
+
+			break;
+		}
+	}
+
+	if ( ! $client_ip ) {
+		return false;
+	}
+
+	if ( '0.0.0.0' === $client_ip || '::' === $client_ip ) {
+		return false;
+	}
+
+	return $client_ip;
+}
+
 if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	/**
 	 * Verify hCaptcha response.
@@ -40,6 +85,12 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			'secret'   => get_option( 'hcaptcha_secret_key' ),
 			'response' => $hcaptcha_response_sanitized,
 		];
+
+		$ip = hcap_get_user_ip();
+
+		if ( $ip ) {
+			$params['remoteip'] = $ip;
+		}
 
 		$url          = add_query_arg( $params, 'https://hcaptcha.com/siteverify' );
 		$raw_response = wp_remote_get( $url );
