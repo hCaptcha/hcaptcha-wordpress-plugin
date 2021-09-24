@@ -488,6 +488,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'mailchimp/mailchimp-for-wp.php',
 			],
+			'MemberPress Register'       => [
+				'hcaptcha_memberpress_register_status',
+				'memberpress/memberpress.php',
+				MemberPress\Register::class,
+			],
 			'Ninja Forms'                => [
 				'hcaptcha_nf_status',
 				'ninja-forms/ninja-forms.php',
@@ -506,7 +511,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',
 				'woocommerce/woocommerce.php',
-				'wc/wc-register.php',
+				WC\Register::class,
 			],
 			'WooCommerce Lost Password'  => [
 				'hcaptcha_wc_lost_pass_status',

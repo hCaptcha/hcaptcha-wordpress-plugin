@@ -13,7 +13,6 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
-use HCaptcha\MemberPress\Register;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\Login;
 use HCaptcha\WC\OrderTracking;
@@ -242,7 +241,7 @@ class Main {
 			'MemberPress Register'       => [
 				'hcaptcha_memberpress_register_status',
 				'memberpress/memberpress.php',
-				Register::class,
+				MemberPress\Register::class,
 			],
 			'Ninja Forms'                => [
 				'hcaptcha_nf_status',
@@ -262,7 +261,7 @@ class Main {
 			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',
 				'woocommerce/woocommerce.php',
-				'wc/wc-register.php',
+				WC\Register::class,
 			],
 			'WooCommerce Lost Password'  => [
 				'hcaptcha_wc_lost_pass_status',
