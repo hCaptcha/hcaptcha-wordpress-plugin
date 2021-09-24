@@ -49,7 +49,7 @@ class HCaptcha {
 	 * @returns {boolean}
 	 */
 	isDescendant( parent, child ) {
-		let node = child.parentElement;
+		let node = child;
 		while ( node ) {
 			if ( node === parent ) {
 				return true;
