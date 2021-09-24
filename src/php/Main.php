@@ -14,6 +14,7 @@ use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\MemberPress\Register;
+use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\NF\NF;
 
@@ -270,7 +271,7 @@ class Main {
 			'WooCommerce Checkout'       => [
 				'hcaptcha_wc_checkout_status',
 				'woocommerce/woocommerce.php',
-				'wc/wc-checkout.php',
+				Checkout::class,
 			],
 			'WooCommerce Order Tracking' => [
 				'hcaptcha_wc_order_tracking_status',

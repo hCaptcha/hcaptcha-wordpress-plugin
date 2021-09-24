@@ -18,6 +18,7 @@ use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
+use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use ReflectionClass;
 use ReflectionException;
@@ -514,7 +515,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Checkout'       => [
 				'hcaptcha_wc_checkout_status',
 				'woocommerce/woocommerce.php',
-				'wc/wc-checkout.php',
+				Checkout::class,
 			],
 			'WooCommerce Order Tracking' => [
 				'hcaptcha_wc_order_tracking_status',

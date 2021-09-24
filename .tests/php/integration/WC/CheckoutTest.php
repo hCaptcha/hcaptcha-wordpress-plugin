@@ -1,6 +1,6 @@
 <?php
 /**
- * WCCheckoutTest class file.
+ * CheckoutTest class file.
  *
  * @package HCaptcha\Tests
  */
@@ -13,9 +13,10 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\WC\Checkout;
 
 /**
- * Test wc-checkout.php file.
+ * Test Checkout class.
  *
  * WooCommerce requires PHP 7.0.
  *
@@ -25,9 +26,11 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
  *
  * @requires PHP >= 7.0
  * @requires PHP < 8.0
+ *
+ * @group    wc-checkout
  * @group    wc
  */
-class WCCheckoutTest extends HCaptchaPluginWPTestCase {
+class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Plugin relative path.
@@ -48,9 +51,25 @@ class WCCheckoutTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Tests hcap_display_wc_checkout().
+	 * Test constructor and init_hooks().
 	 */
-	public function test_hcap_display_wc_checkout() {
+	public function test_constructor_and_init_hooks() {
+		$subject = new Checkout();
+
+		self::assertSame(
+			10,
+			has_action( 'woocommerce_after_checkout_billing_form', [ $subject, 'add_captcha' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'woocommerce_checkout_process', [ $subject, 'verify' ] )
+		);
+	}
+
+	/**
+	 * Tests add_captcha().
+	 */
+	public function test_add_captcha() {
 		$expected =
 			$this->get_hcap_form() .
 			wp_nonce_field(
@@ -60,31 +79,34 @@ class WCCheckoutTest extends HCaptchaPluginWPTestCase {
 				false
 			);
 
+		$subject = new Checkout();
+
 		ob_start();
 
-		hcap_display_wc_checkout();
+		$subject->add_captcha();
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
-	 * Test hcap_verify_wc_checkout_captcha().
+	 * Test verify().
 	 */
-	public function test_hcap_verify_wc_checkout_captcha() {
+	public function test_verify() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
 
 		WC()->init();
 		wc_clear_notices();
 
-		hcap_verify_wc_checkout_captcha();
+		$subject = new Checkout();
+		$subject->verify();
 
 		self::assertSame( [], wc_get_notices() );
 	}
 
 	/**
-	 * Test hcap_subscriber_verify() not verified.
+	 * Test verify() not verified.
 	 */
-	public function test_hcap_subscriber_verify_not_verified() {
+	public function test_verify_not_verified() {
 		$expected = [
 			'error' => [
 				[
@@ -99,7 +121,8 @@ class WCCheckoutTest extends HCaptchaPluginWPTestCase {
 		WC()->init();
 		wc_clear_notices();
 
-		hcap_verify_wc_checkout_captcha();
+		$subject = new Checkout();
+		$subject->verify();
 
 		self::assertSame( $expected, wc_get_notices() );
 	}
