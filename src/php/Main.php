@@ -13,6 +13,7 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\MemberPress\Register;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\NF\NF;
 
@@ -238,6 +239,11 @@ class Main {
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'mailchimp/mailchimp-for-wp.php',
 			],
+			'MemberPress Register'       => [
+				'hcaptcha_memberpress_register_status',
+				'memberpress/memberpress.php',
+				Register::class,
+			],
 			'Ninja Forms'                => [
 				'hcaptcha_nf_status',
 				'ninja-forms/ninja-forms.php',
@@ -318,9 +324,7 @@ class Main {
 
 			foreach ( (array) $module[2] as $component ) {
 				if ( false === strpos( $component, '.php' ) ) {
-					if ( ! class_exists( $component, false ) ) {
-						new $component();
-					}
+					new $component();
 					continue;
 				}
 
