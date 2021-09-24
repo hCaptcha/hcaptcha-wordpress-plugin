@@ -42,13 +42,13 @@ class HCaptcha {
 	};
 
 	/**
-	 * Check if child is a descendant of parent.
+	 * Check if child is same or a descendant of parent.
 	 *
 	 * @param {HTMLDivElement} parent Parent element.
 	 * @param {HTMLDivElement} child Child element.
 	 * @returns {boolean}
 	 */
-	isDescendant( parent, child ) {
+	isSameOrDescendant( parent, child ) {
 		let node = child;
 		while ( node ) {
 			if ( node === parent ) {
@@ -71,7 +71,7 @@ class HCaptcha {
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = formElement.querySelector( form.submitButtonSelector );
 
-		if ( ! this.isDescendant( submitButtonElement, event.target ) ) {
+		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
 			return;
 		}
 
