@@ -19,6 +19,7 @@ use HCaptcha\Main;
 use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\WC\Checkout;
+use HCaptcha\WC\Login;
 use HCaptcha\WC\OrderTracking;
 use ReflectionClass;
 use ReflectionException;
@@ -500,7 +501,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Login'          => [
 				'hcaptcha_wc_login_status',
 				'woocommerce/woocommerce.php',
-				'wc/wc-login.php',
+				Login::class,
 			],
 			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',
