@@ -16,11 +16,13 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
+use HCaptcha\MemberPress\Register;
 use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\Login;
 use HCaptcha\WC\OrderTracking;
+use HCaptcha\WP\LostPassword;
 use ReflectionClass;
 use ReflectionException;
 
@@ -441,7 +443,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Lost Password Form'         => [
 				'hcaptcha_lpf_status',
 				'',
-				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+				LostPassword::class,
 			],
 			'Comment Form'               => [
 				'hcaptcha_cmf_status',
@@ -491,7 +493,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'MemberPress Register'       => [
 				'hcaptcha_memberpress_register_status',
 				'memberpress/memberpress.php',
-				MemberPress\Register::class,
+				Register::class,
 			],
 			'Ninja Forms'                => [
 				'hcaptcha_nf_status',
@@ -511,12 +513,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',
 				'woocommerce/woocommerce.php',
-				WC\Register::class,
+				\HCaptcha\WC\Register::class,
 			],
 			'WooCommerce Lost Password'  => [
 				'hcaptcha_wc_lost_pass_status',
 				'woocommerce/woocommerce.php',
-				[ 'common/lost-password-form.php', 'wc/wc-lost-password.php' ],
+				[ LostPassword::class, \HCaptcha\WC\LostPassword::class ],
 			],
 			'WooCommerce Checkout'       => [
 				'hcaptcha_wc_checkout_status',

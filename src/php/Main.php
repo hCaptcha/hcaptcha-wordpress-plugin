@@ -191,7 +191,7 @@ class Main {
 			'Lost Password Form'         => [
 				'hcaptcha_lpf_status',
 				'',
-				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+				WP\LostPassword::class,
 			],
 			'Comment Form'               => [
 				'hcaptcha_cmf_status',
@@ -266,7 +266,7 @@ class Main {
 			'WooCommerce Lost Password'  => [
 				'hcaptcha_wc_lost_pass_status',
 				'woocommerce/woocommerce.php',
-				[ 'common/lost-password-form.php', 'wc/wc-lost-password.php' ],
+				[ WP\LostPassword::class, WC\LostPassword::class ],
 			],
 			'WooCommerce Checkout'       => [
 				'hcaptcha_wc_checkout_status',
@@ -323,7 +323,9 @@ class Main {
 
 			foreach ( (array) $module[2] as $component ) {
 				if ( false === strpos( $component, '.php' ) ) {
-					new $component();
+					if ( ! class_exists( $component, false ) ) {
+						new $component();
+					}
 					continue;
 				}
 
