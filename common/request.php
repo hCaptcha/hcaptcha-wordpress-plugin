@@ -92,8 +92,9 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$params['remoteip'] = $ip;
 		}
 
-		$url          = add_query_arg( $params, 'https://hcaptcha.com/siteverify' );
-		$raw_response = wp_remote_get( $url );
+		$raw_response = wp_remote_get(
+			add_query_arg( $params, 'https://hcaptcha.com/siteverify' )
+		);
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 

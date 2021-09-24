@@ -137,9 +137,7 @@ class Main {
 			$params['hl'] = $language;
 		}
 
-		$src_params = add_query_arg( $params, '' );
-
-		return 'https://js.hcaptcha.com/1/api.js' . $src_params;
+		return add_query_arg( $params, 'https://js.hcaptcha.com/1/api.js' );
 	}
 
 	/**
