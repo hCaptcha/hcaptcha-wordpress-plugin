@@ -32,16 +32,19 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_STRING )
 		);
 
-		if ( '' === $hcaptcha_response ) {
+		if ( '' === $hcaptcha_response_sanitized ) {
 			return 'fail';
 		}
 
-		$hcaptcha_secret_key = get_option( 'hcaptcha_secret_key' );
-		$raw_response        = wp_remote_get(
-			'https://hcaptcha.com/siteverify?secret=' .
-			esc_html( $hcaptcha_secret_key ) . '&response=' . $hcaptcha_response_sanitized
-		);
-		$raw_body            = wp_remote_retrieve_body( $raw_response );
+		$params = [
+			'secret'   => get_option( 'hcaptcha_secret_key' ),
+			'response' => $hcaptcha_response_sanitized,
+		];
+
+		$url          = add_query_arg( $params, 'https://hcaptcha.com/siteverify' );
+		$raw_response = wp_remote_get( $url );
+
+		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
 			return 'fail';
