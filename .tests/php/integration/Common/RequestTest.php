@@ -17,6 +17,107 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 class RequestTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down the test.
+	 */
+	public function tearDown(): void {
+		unset(
+			$_SERVER['HTTP_CLIENT_IP'],
+			$_SERVER['HTTP_X_FORWARDED_FOR'],
+			$_SERVER['HTTP_X_FORWARDED'],
+			$_SERVER['HTTP_X_CLUSTER_CLIENT_IP'],
+			$_SERVER['HTTP_FORWARDED_FOR'],
+			$_SERVER['HTTP_FORWARDED'],
+			$_SERVER['REMOTE_ADDR'],
+		);
+		parent::tearDown();
+	}
+
+	/**
+	 * Test hcap_get_user_ip().
+	 *
+	 * @param array        $headers  $_SERVER headers.
+	 * @param string|false $expected User IP.
+	 *
+	 * @dataProvider dp_test_hcap_get_user_ip
+	 */
+	public function test_hcap_get_user_ip( $headers, $expected ) {
+		unset(
+			$_SERVER['HTTP_CLIENT_IP'],
+			$_SERVER['HTTP_X_FORWARDED_FOR'],
+			$_SERVER['HTTP_X_FORWARDED'],
+			$_SERVER['HTTP_X_CLUSTER_CLIENT_IP'],
+			$_SERVER['HTTP_FORWARDED_FOR'],
+			$_SERVER['HTTP_FORWARDED'],
+			$_SERVER['REMOTE_ADDR'],
+		);
+
+		foreach ( $headers as $header => $ip ) {
+			$_SERVER[ $header ] = $ip;
+		}
+
+		self::assertSame( $expected, hcap_get_user_ip() );
+	}
+
+	/**
+	 * Data provider for test_hcap_get_user_ip().
+	 */
+	public function dp_test_hcap_get_user_ip() {
+		return [
+			'HTTP_CLIENT_IP'           => [
+				[ 'HTTP_CLIENT_IP' => '7.7.7.1' ],
+				'7.7.7.1',
+			],
+			'HTTP_X_FORWARDED_FOR'     => [
+				[ 'HTTP_X_FORWARDED_FOR' => '7.7.7.2' ],
+				'7.7.7.2',
+			],
+			'HTTP_X_FORWARDED'         => [
+				[ 'HTTP_X_FORWARDED' => '7.7.7.3' ],
+				'7.7.7.3',
+			],
+			'HTTP_X_CLUSTER_CLIENT_IP' => [
+				[ 'HTTP_X_CLUSTER_CLIENT_IP' => '7.7.7.4' ],
+				'7.7.7.4',
+			],
+			'HTTP_FORWARDED_FOR'       => [
+				[ 'HTTP_FORWARDED_FOR' => '7.7.7.5' ],
+				'7.7.7.5',
+			],
+			'HTTP_FORWARDED'           => [
+				[ 'HTTP_FORWARDED' => '7.7.7.6' ],
+				'7.7.7.6',
+			],
+			'REMOTE_ADDR'              => [
+				[ 'REMOTE_ADDR' => '7.7.7.7' ],
+				'7.7.7.7',
+			],
+			'Order'                    => [
+				[
+					'HTTP_FORWARDED' => '7.7.7.8',
+					'REMOTE_ADDR'    => '7.7.7.9',
+				],
+				'7.7.7.8',
+			],
+			'empty'                    => [
+				[],
+				false,
+			],
+			'zero IPv4'                => [
+				[ 'REMOTE_ADDR' => '0.0.0.0' ],
+				false,
+			],
+			'empty IPv6'               => [
+				[ 'REMOTE_ADDR' => '::' ],
+				false,
+			],
+			'address chain'            => [
+				[ 'REMOTE_ADDR' => '7.7.7.10, 7.7.7.11' ],
+				'7.7.7.10',
+			],
+		];
+	}
+
+	/**
 	 * Test hcaptcha_request_verify().
 	 */
 	public function test_hcaptcha_request_verify() {
