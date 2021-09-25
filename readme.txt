@@ -153,6 +153,44 @@ Once you activate this plugin, the hCaptcha-answering user's personal data, incl
 Please see the hCaptcha privacy policy at: 
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
+
+=== Forms and Plugins Supported ==
+
+* Login Form
+* Register Form
+* Lost Password Form
+* Comment Form
+* bbPress New Topic Form
+* bbPress Reply Form
+* BuddyPress Create Group Form
+* Buddypress Registration Form
+* Contact Form 7
+* Elementor Pro Form
+* Jetpack Form
+* Mailchimp for WP Form
+* MemberPress Register
+* Ninja Forms
+* Subscriber Form
+* WooCommerce Login Form
+* WooCommerce Registration Form
+* WooCommerce Lost Password Form
+* WooCommerce Checkout Form
+* WooCommerce Order Tracking Form
+* WooCommerce Wishlist
+* WPForms Lite
+* wpForo New Topic Form
+* wpForo Reply Form
+
+=== Please note ===
+
+Some plugins listed have been superseded by native support, and are included only for legacy purposes.
+
+You should always use native hCaptcha support if available for your plugin.
+Please check with your plugin author if native support is not yet available.
+
+Instructions for native integrations are below:
+
+* [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
 
@@ -253,38 +291,3 @@ Please see the hCaptcha privacy policy at:
 
 = 1.0 =
 * Plugin Created
-
-=== Forms and Plugins Supported ==
-
-* Ninja Forms Addon
-* Contact Form 7 Addon
-* Login Form
-* Register Form
-* Comment Form
-* Lost Password Form
-* WooCommerce Login Form
-* WooCommerce Registration Form
-* WooCommerce Lost Password Form
-* WooCommerce Checkout Form
-* WooCommerce Wishlists (see notes in wc_wl/wc-wl-create-list.php)
-* Buddypress Registration Form
-* BuddyPress Create Group Form
-* bbpress new topic Form
-* bbpress reply Form
-* WPForms Lite
-* WPForo new topic Form
-* WPForo Reply Form
-* Mailchimp for WP Form
-* Jetpack Contact Form
-* Subscribers Form
-
-=== Please note ===
-
-Some plugins listed have been superseded by native support, and are included only for legacy purposes.
-
-You should always use native hCaptcha support if available for your plugin.
-Please check with your plugin author if native support is not yet available.
-
-Instructions for native integrations are below:
-
-* [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
