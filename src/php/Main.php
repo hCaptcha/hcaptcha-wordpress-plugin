@@ -14,7 +14,6 @@ use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\WC\Checkout;
-use HCaptcha\WC\Login;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\NF\NF;
 
@@ -181,7 +180,7 @@ class Main {
 			'Login Form'                 => [
 				'hcaptcha_lf_status',
 				'',
-				'default/login-form.php',
+				WP\Login::class,
 			],
 			'Register Form'              => [
 				'hcaptcha_rf_status',
@@ -256,7 +255,7 @@ class Main {
 			'WooCommerce Login'          => [
 				'hcaptcha_wc_login_status',
 				'woocommerce/woocommerce.php',
-				Login::class,
+				WC\Login::class,
 			],
 			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',

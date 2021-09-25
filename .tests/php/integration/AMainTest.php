@@ -20,8 +20,8 @@ use HCaptcha\MemberPress\Register;
 use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\WC\Checkout;
-use HCaptcha\WC\Login;
 use HCaptcha\WC\OrderTracking;
+use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use ReflectionClass;
 use ReflectionException;
@@ -433,7 +433,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Login Form'                 => [
 				'hcaptcha_lf_status',
 				'',
-				'default/login-form.php',
+				Login::class,
 			],
 			'Register Form'              => [
 				'hcaptcha_rf_status',
@@ -508,7 +508,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Login'          => [
 				'hcaptcha_wc_login_status',
 				'woocommerce/woocommerce.php',
-				Login::class,
+				\HCaptcha\WC\Login::class,
 			],
 			'WooCommerce Register'       => [
 				'hcaptcha_wc_reg_status',
