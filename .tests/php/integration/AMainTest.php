@@ -16,13 +16,13 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
-use HCaptcha\MemberPress\Register;
 use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
+use HCaptcha\WP\Register;
 use ReflectionClass;
 use ReflectionException;
 
@@ -35,6 +35,13 @@ use ReflectionException;
  * @group subscriber
  */
 class AMainTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Included components in test_load_modules().
+	 *
+	 * @var array
+	 */
+	private static $included_components = [];
 
 	/**
 	 * Tear down test.
@@ -363,7 +370,6 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @param array $module Module to load.
 	 *
 	 * @dataProvider dp_test_load_modules
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_load_modules( $module ): void {
 		$subject = new Main();
@@ -387,27 +393,26 @@ class AMainTest extends HCaptchaWPTestCase {
 			$component,
 			function ( &$value ) {
 				if ( false === strpos( $value, '.php' ) ) {
-					$reflection = new ReflectionClass( $value );
-					$value      = $reflection->getFileName();
+					$value = str_replace( 'HCaptcha\\', HCAPTCHA_PATH . '/src/php/', $value );
+
+					$value .= '.php';
 				} else {
-					$value = WP_PLUGIN_DIR . '\\' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '\\' . $value;
+					$value = HCAPTCHA_PATH . '/' . $value;
 				}
 
 				$value = $this->normalize_path( $value );
 			}
 		);
 
-		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
-		if ( ! empty( $intersect ) ) {
-			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
-		}
+		$this->check_component_loaded( $component );
 
+		// Test with plugin not active.
 		$subject->load_modules();
 
-		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
-		if ( ! empty( $intersect ) ) {
-			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
+		if ( ! $module[1] ) {
+			self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
 		}
+		$this->check_component_loaded( $component );
 
 		add_filter(
 			'pre_option_active_plugins',
@@ -418,9 +423,11 @@ class AMainTest extends HCaptchaWPTestCase {
 			3
 		);
 
+		// Test with plugin active.
 		$subject->load_modules();
 
-		self::assertSame( $component, array_intersect( $component, $this->normalize_path( get_included_files() ) ) );
+		self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
+		$this->check_component_loaded( $component );
 	}
 
 	/**
@@ -438,7 +445,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Register Form'              => [
 				'hcaptcha_rf_status',
 				'',
-				'default/register-form.php',
+				Register::class,
 			],
 			'Lost Password Form'         => [
 				'hcaptcha_lpf_status',
@@ -493,7 +500,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'MemberPress Register'       => [
 				'hcaptcha_memberpress_register_status',
 				'memberpress/memberpress.php',
-				Register::class,
+				\HCaptcha\MemberPress\Register::class,
 			],
 			'Ninja Forms'                => [
 				'hcaptcha_nf_status',
@@ -637,5 +644,16 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	private function normalize_path( $path ) {
 		return str_replace( '\\', '/', $path );
+	}
+
+	/**
+	 * Check that component is loaded.
+	 *
+	 * @param array $component Component.
+	 */
+	public function check_component_loaded( array $component ) {
+		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
+		$included  = array_intersect( $component, self::$included_components );
+		self::assertSame( $included, $intersect );
 	}
 }
