@@ -170,19 +170,19 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_bp_reg_status"
-					name="hcaptcha_bp_reg_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on Buddypress Registration Form</span>
-			<br><br>
-						<input
-					type="checkbox"
 					id="hcaptcha_bp_create_group_status"
 					name="hcaptcha_bp_create_group_status"
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on BuddyPress Create Group Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bp_reg_status"
+					name="hcaptcha_bp_reg_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on BuddyPress Registration Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -521,19 +521,19 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_bp_reg_status"
-					name="hcaptcha_bp_reg_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on Buddypress Registration Form</span>
-			<br><br>
-						<input
-					type="checkbox"
 					id="hcaptcha_bp_create_group_status"
 					name="hcaptcha_bp_create_group_status"
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on BuddyPress Create Group Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_bp_reg_status"
+					name="hcaptcha_bp_reg_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on BuddyPress Registration Form</span>
 			<br><br>
 						<input
 					type="checkbox"

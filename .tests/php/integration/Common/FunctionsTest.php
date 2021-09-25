@@ -207,14 +207,14 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on bbPress Reply Form',
 					'type'  => 'checkbox',
 				],
-			'hcaptcha_bp_reg_status'               =>
-				[
-					'label' => 'Enable hCaptcha on Buddypress Registration Form',
-					'type'  => 'checkbox',
-				],
 			'hcaptcha_bp_create_group_status'      =>
 				[
 					'label' => 'Enable hCaptcha on BuddyPress Create Group Form',
+					'type'  => 'checkbox',
+				],
+			'hcaptcha_bp_reg_status'               =>
+				[
+					'label' => 'Enable hCaptcha on BuddyPress Registration Form',
 					'type'  => 'checkbox',
 				],
 			'hcaptcha_cf7_status'                  =>

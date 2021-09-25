@@ -450,25 +450,25 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				'default/comment-form.php',
 			],
-			'BB Press New Topic'         => [
+			'bbPress New Topic'          => [
 				'hcaptcha_bbp_new_topic_status',
 				'bbpress/bbpress.php',
 				'bbp/bbp-new-topic.php',
 			],
-			'BB Press Reply'             => [
+			'bbPress Reply'              => [
 				'hcaptcha_bbp_reply_status',
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
-			],
-			'BuddyPress Register'        => [
-				'hcaptcha_bp_reg_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
 			],
 			'BuddyPress Create Group'    => [
 				'hcaptcha_bp_create_group_status',
 				'buddypress/bp-loader.php',
 				'bp/bp-create-group.php',
+			],
+			'BuddyPress Register'        => [
+				'hcaptcha_bp_reg_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-register.php',
 			],
 			'Contact Form 7'             => [
 				'hcaptcha_cf7_status',
@@ -530,7 +530,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				'woocommerce/woocommerce.php',
 				OrderTracking::class,
 			],
-			'WC Wishlist'                => [
+			'WooCommerce Wishlists'      => [
 				'hcaptcha_wc_wl_create_list_status',
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				'wc_wl/wc-wl-create-list.php',

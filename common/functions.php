@@ -149,12 +149,12 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on bbPress Reply Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
-		'hcaptcha_bp_reg_status'               => [
-			'label' => __( 'Enable hCaptcha on Buddypress Registration Form', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
 		'hcaptcha_bp_create_group_status'      => [
 			'label' => __( 'Enable hCaptcha on BuddyPress Create Group Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_bp_reg_status'               => [
+			'label' => __( 'Enable hCaptcha on BuddyPress Registration Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_cf7_status'                  => [
