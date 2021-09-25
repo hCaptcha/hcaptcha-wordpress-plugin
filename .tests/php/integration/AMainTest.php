@@ -17,7 +17,7 @@ use HCaptcha\CF7\CF7;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
-use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
+use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WP\Login;

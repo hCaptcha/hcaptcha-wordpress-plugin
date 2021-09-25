@@ -11,7 +11,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\FixDivi;
-use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
+use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;

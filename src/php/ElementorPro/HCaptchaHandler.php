@@ -5,7 +5,7 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\ElementorPro\Modules\Forms\Classes;
+namespace HCaptcha\ElementorPro;
 
 use Elementor\Controls_Stack;
 use Elementor\Plugin;

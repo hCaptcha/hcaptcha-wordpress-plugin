@@ -5,7 +5,7 @@
  * @package HCaptcha\Tests
  */
 
-namespace HCaptcha\Tests\Integration\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
+namespace HCaptcha\Tests\Integration\ElementorPro;
 
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
@@ -14,7 +14,7 @@ use Elementor\Controls_Manager;
 use Elementor\Controls_Stack;
 use Elementor\Plugin;
 use Elementor\Widget_Base;
-use HCaptcha\ElementorPro\Modules\Forms\Classes\HCaptchaHandler;
+use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Main;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
