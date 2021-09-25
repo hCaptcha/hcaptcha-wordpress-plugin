@@ -27,7 +27,7 @@ class RequestTest extends HCaptchaWPTestCase {
 			$_SERVER['HTTP_X_CLUSTER_CLIENT_IP'],
 			$_SERVER['HTTP_FORWARDED_FOR'],
 			$_SERVER['HTTP_FORWARDED'],
-			$_SERVER['REMOTE_ADDR'],
+			$_SERVER['REMOTE_ADDR']
 		);
 		parent::tearDown();
 	}
