@@ -23,7 +23,6 @@ use HCaptcha\WC\OrderTracking;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
-use ReflectionClass;
 use ReflectionException;
 
 /**
