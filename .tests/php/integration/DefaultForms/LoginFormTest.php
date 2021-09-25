@@ -21,12 +21,16 @@ class LoginFormTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcap_login_head() {
 		$expected = '	<style>
-		.h-captcha {
-			display: flex;
-			justify-content: center;
+		@media (max-width: 349px) {
+			.h-captcha {
+				display: flex;
+				justify-content: center;
+			}
 		}
-		.h-captcha[data-size="normal"] iframe {
-			transform: scale( 0.89 );
+		@media (min-width: 350px) {
+			#login {
+				width: 350px;
+			}
 		}
 	</style>
 	';

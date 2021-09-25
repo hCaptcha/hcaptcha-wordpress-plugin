@@ -18,12 +18,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 function hcaptcha_login_head() {
 	?>
 	<style>
-		.h-captcha {
-			display: flex;
-			justify-content: center;
+		@media (max-width: 349px) {
+			.h-captcha {
+				display: flex;
+				justify-content: center;
+			}
 		}
-		.h-captcha[data-size="normal"] iframe {
-			transform: scale( 0.89 );
+		@media (min-width: 350px) {
+			#login {
+				width: 350px;
+			}
 		}
 	</style>
 	<?php
