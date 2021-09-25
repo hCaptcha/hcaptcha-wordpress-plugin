@@ -92,7 +92,7 @@ function hcap_display_options() {
 
 	array_walk(
 		$options,
-		function ( $option, $option_name ) {
+		static function ( $option, $option_name ) {
 			if ( 'checkbox' !== $option['type'] ) {
 				hcap_display_option( $option_name, $option );
 			}

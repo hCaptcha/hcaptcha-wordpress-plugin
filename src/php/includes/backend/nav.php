@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Admin menu slug.
  */
-define( 'HCAPTCHA_MENU_SLUG', 'hcaptcha-options' );
+const HCAPTCHA_MENU_SLUG = 'hcaptcha-options';
 
 /**
  * Add admin options page.
@@ -34,6 +34,8 @@ add_action( 'admin_menu', 'hcaptcha_options_nav' );
 
 /**
  * Settings page.
+ *
+ * @noinspection ForgottenDebugOutputInspection
  */
 function hcaptcha_options() {
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -46,7 +48,7 @@ function hcaptcha_options() {
 		);
 	}
 
-	require_once HCAPTCHA_PATH . '/backend/settings.php';
+	require_once HCAPTCHA_INC . '/backend/settings.php';
 }
 
 /**

@@ -75,7 +75,7 @@ require HCAPTCHA_INC . '/common/functions.php';
 
 // Add admin page.
 if ( is_admin() ) {
-	require 'backend/nav.php';
+	require HCAPTCHA_INC . '/backend/nav.php';
 }
 
 if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
