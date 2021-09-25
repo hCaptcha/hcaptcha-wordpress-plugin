@@ -20,6 +20,7 @@ use HCaptcha\NF\NF;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
+use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
@@ -454,7 +455,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Comment Form'               => [
 				'hcaptcha_cmf_status',
 				'',
-				'default/comment-form.php',
+				Comment::class,
 			],
 			'bbPress New Topic'          => [
 				'hcaptcha_bbp_new_topic_status',

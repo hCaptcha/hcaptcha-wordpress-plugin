@@ -16,6 +16,7 @@ use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\NF\NF;
+use HCaptcha\WP\Comment;
 
 /**
  * Class Main.
@@ -195,7 +196,7 @@ class Main {
 			'Comment Form'               => [
 				'hcaptcha_cmf_status',
 				'',
-				'default/comment-form.php',
+				Comment::class,
 			],
 			'bbPress New Topic'          => [
 				'hcaptcha_bbp_new_topic_status',

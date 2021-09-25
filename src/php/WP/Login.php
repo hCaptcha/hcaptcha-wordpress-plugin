@@ -59,7 +59,7 @@ class Login {
 			return $user;
 		}
 
-		return new WP_Error( __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' ), $error_message );
+		return new WP_Error( 'invalid_hcaptcha', __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' ), 400 );
 	}
 
 	/**
