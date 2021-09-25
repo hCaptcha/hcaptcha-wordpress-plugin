@@ -185,7 +185,7 @@ class Main {
 			'Register Form'              => [
 				'hcaptcha_rf_status',
 				'',
-				'default/register-form.php',
+				WP\Register::class,
 			],
 			'Lost Password Form'         => [
 				'hcaptcha_lpf_status',

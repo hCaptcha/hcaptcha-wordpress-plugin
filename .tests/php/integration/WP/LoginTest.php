@@ -21,6 +21,27 @@ use WP_User;
 class LoginTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Test constructor and init_hooks().
+	 */
+	public function test_constructor_and_init_hooks() {
+		$subject = new Login();
+
+		self::assertSame(
+			10,
+			has_action( 'login_form', [ $subject, 'add_captcha' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'wp_authenticate_user', [ $subject, 'verify' ] )
+		);
+
+		self::assertSame(
+			10,
+			has_action( 'login_head', [ $subject, 'login_head' ] )
+		);
+	}
+
+	/**
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
