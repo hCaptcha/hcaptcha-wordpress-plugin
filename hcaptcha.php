@@ -44,6 +44,11 @@ const HCAPTCHA_VERSION = '1.12.0';
 const HCAPTCHA_PATH = __DIR__;
 
 /**
+ * Path to the plugin dir.
+ */
+const HCAPTCHA_INC = HCAPTCHA_PATH . '/src/php/includes';
+
+/**
  * Plugin dir url.
  */
 define( 'HCAPTCHA_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
@@ -65,8 +70,8 @@ const HCAPTCHA_NONCE = 'hcaptcha_nonce';
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
-require 'common/request.php';
-require 'common/functions.php';
+require HCAPTCHA_INC . '/common/request.php';
+require HCAPTCHA_INC . '/common/functions.php';
 
 // Add admin page.
 if ( is_admin() ) {
