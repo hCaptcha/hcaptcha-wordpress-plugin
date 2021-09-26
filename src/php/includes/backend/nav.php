@@ -57,7 +57,7 @@ function hcaptcha_options() {
 function hcap_admin_enqueue_scripts() {
 	wp_enqueue_style(
 		'hcaptcha-admin',
-		HCAPTCHA_URL . '/css/admin.css',
+		HCAPTCHA_URL . '/assets/css/admin.css',
 		[],
 		HCAPTCHA_VERSION
 	);
