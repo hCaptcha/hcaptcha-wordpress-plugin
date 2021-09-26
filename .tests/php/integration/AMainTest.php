@@ -397,7 +397,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 					$value .= '.php';
 				} else {
-					$value = HCAPTCHA_PATH . '/' . $value;
+					$value = HCAPTCHA_INC . '/' . $value;
 				}
 
 				$value = $this->normalize_path( $value );

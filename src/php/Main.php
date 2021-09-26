@@ -329,7 +329,7 @@ class Main {
 					continue;
 				}
 
-				require_once HCAPTCHA_PATH . '/' . $component;
+				require_once HCAPTCHA_INC . '/' . $component;
 			}
 		}
 	}
