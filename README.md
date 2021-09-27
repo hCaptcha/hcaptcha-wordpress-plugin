@@ -44,6 +44,12 @@ composer phpcs
 composer integration
 ```
 
+## Run unit tests
+
+```
+composer unit
+```
+
 ## Frequently Asked Questions
 
 Q: Where can I get more information about hCaptcha?  
@@ -60,28 +66,31 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 
 ## Support
 
-* Ninja Forms Addon
-* Contact Form 7 Addon
 * Login Form
 * Register Form
-* Comment Form
 * Lost Password Form
+* Comment Form
+* bbPress New Topic Form
+* bbPress Reply Form
+* BuddyPress Create Group Form
+* Buddypress Registration Form
+* Contact Form 7
+* Divi Contact Form
+* Elementor Pro Form
+* Jetpack Forms
+* Mailchimp for WP Form
+* MemberPress Register Form
+* Ninja Forms
+* Subscriber Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
 * WooCommerce Checkout Form
-* WooCommerce Wishlists (see notes in wc_wl/wc-wl-create-list.php)
-* Buddypress Registration Form
-* BuddyPress Create Group Form
-* bbpress new topic Form
-* bbpress reply Form
+* WooCommerce Order Tracking Form
+* WooCommerce Wishlist
 * WPForms Lite
-* WPForms Pro
-* WPForo new topic Form
-* WPForo Reply Form
-* Mailchimp for WP Form
-* Jetpack Contact Form
-* Subscribers Form
+* wpForo New Topic Form
+* wpForo Reply Form
 
 **Please note**
 
