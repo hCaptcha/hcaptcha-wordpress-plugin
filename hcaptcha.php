@@ -10,7 +10,7 @@
  * Plugin Name:          hCaptcha for Forms and More
  * Plugin URI:           https://hcaptcha.com/
  * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version:              1.12.0
+ * Version:              1.13.0
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      5.6
+ * WC tested up to:      5.7
  */
 
 use HCaptcha\Main;
@@ -36,12 +36,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-const HCAPTCHA_VERSION = '1.12.0';
+const HCAPTCHA_VERSION = '1.13.0';
 
 /**
  * Path to the plugin dir.
  */
 const HCAPTCHA_PATH = __DIR__;
+
+/**
+ * Path to the plugin dir.
+ */
+const HCAPTCHA_INC = HCAPTCHA_PATH . '/src/php/includes';
 
 /**
  * Plugin dir url.
@@ -65,12 +70,12 @@ const HCAPTCHA_NONCE = 'hcaptcha_nonce';
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
-require 'common/request.php';
-require 'common/functions.php';
+require HCAPTCHA_INC . '/common/request.php';
+require HCAPTCHA_INC . '/common/functions.php';
 
 // Add admin page.
 if ( is_admin() ) {
-	require 'backend/nav.php';
+	require HCAPTCHA_INC . '/backend/nav.php';
 }
 
 if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {

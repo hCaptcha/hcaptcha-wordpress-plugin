@@ -22,7 +22,7 @@ class AMainPluginFileAdminTest extends HCaptchaWPTestCase {
 	 */
 	public function setUp(): void {
 		set_current_screen( 'edit-post' );
-		require_once HCAPTCHA_PATH . '/backend/nav.php';
+		require_once HCAPTCHA_INC . '/backend/nav.php';
 
 		parent::setUp();
 	}

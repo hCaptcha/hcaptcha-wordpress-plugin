@@ -43,7 +43,10 @@
       "HCaptcha\\Tests\\Acceptance\\": ".tests/php/acceptance",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
-    }
+    },
+    "classmap": [
+      ".tests/php/integration/Stubs"
+    ]
   },
   "bin": [
     "bin/update-tests"

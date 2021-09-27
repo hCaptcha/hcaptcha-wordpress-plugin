@@ -42,6 +42,26 @@ class HCaptcha {
 	};
 
 	/**
+	 * Check if child is same or a descendant of parent.
+	 *
+	 * @param {HTMLDivElement} parent Parent element.
+	 * @param {HTMLDivElement} child Child element.
+	 * @returns {boolean}
+	 */
+	isSameOrDescendant( parent, child ) {
+		let node = child;
+		while ( node ) {
+			if ( node === parent ) {
+				return true;
+			}
+
+			node = node.parentElement;
+		}
+
+		return false;
+	};
+
+	/**
 	 * Validate hCaptcha widget.
 	 *
 	 * @param {CustomEvent} event Event.
@@ -51,7 +71,7 @@ class HCaptcha {
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = formElement.querySelector( form.submitButtonSelector );
 
-		if ( event.target !== submitButtonElement ) {
+		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
 			return;
 		}
 
@@ -109,8 +129,4 @@ window.hCaptchaGetWidgetId = hCaptcha.getWidgetId;
 window.hCaptchaBindEvents = hCaptcha.bindEvents;
 window.hCaptchaSubmit = hCaptcha.submit;
 
-window.hCaptchaOnLoad = () => {
-	if ( typeof hCaptchaBindEvents !== 'undefined' ) {
-		hCaptchaBindEvents();
-	}
-};
+window.hCaptchaOnLoad = hCaptchaBindEvents;

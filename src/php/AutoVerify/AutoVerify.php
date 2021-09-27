@@ -35,7 +35,7 @@ class AutoVerify {
 	}
 
 	/**
-	 * Filter page content and modify the form for auto verification.
+	 * Filter page content and register the form for auto verification.
 	 *
 	 * @param string $content Content.
 	 *
@@ -86,6 +86,8 @@ class AutoVerify {
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
 			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
 			'';
+
+		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
 
 		if ( ! $request_uri ) {
 			return;
@@ -209,8 +211,8 @@ class AutoVerify {
 	private function get_form_action( $form ) {
 		$form_action = '';
 
-		if ( preg_match( '#<form [\S\s]*?action="(.*)"[\S\s]*?>#', $form, $m ) ) {
-			$form_action = wp_parse_url( $m[1], PHP_URL_PATH );
+		if ( preg_match( '#<form [\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
+			$form_action = $m[1];
 		}
 
 		if ( ! $form_action ) {
@@ -218,6 +220,8 @@ class AutoVerify {
 				filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
 				'';
 		}
+
+		$form_action = wp_parse_url( $form_action, PHP_URL_PATH );
 
 		return untrailingslashit( $form_action );
 	}
@@ -272,7 +276,7 @@ class AutoVerify {
 	 * @return string|null
 	 */
 	private function get_input_name( $input ) {
-		if ( preg_match( '#name[\s]*?=[\s]*?["\'](.+)["\']#', $input, $matches ) ) {
+		if ( preg_match( '#name[\s]*?=[\s]*?["\'](.+?)["\']#', $input, $matches ) ) {
 			return $matches[1];
 		}
 

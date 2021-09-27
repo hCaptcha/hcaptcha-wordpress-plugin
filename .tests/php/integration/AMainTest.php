@@ -14,9 +14,17 @@ namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
+use HCaptcha\Divi\Contact;
+use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
-use ReflectionClass;
+use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\WC\Checkout;
+use HCaptcha\WC\OrderTracking;
+use HCaptcha\WP\Comment;
+use HCaptcha\WP\Login;
+use HCaptcha\WP\LostPassword;
+use HCaptcha\WP\Register;
 use ReflectionException;
 
 /**
@@ -25,10 +33,16 @@ use ReflectionException;
  * @group main
  *
  * @group bp
- * @group jetpack
  * @group subscriber
  */
 class AMainTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Included components in test_load_modules().
+	 *
+	 * @var array
+	 */
+	private static $included_components = [];
 
 	/**
 	 * Tear down test.
@@ -36,7 +50,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		global $hcaptcha_wordpress_plugin;
 
-		unset( $GLOBALS['current_user'] );
+		unset( $GLOBALS['current_user'], $GLOBALS['current_screen'] );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -78,6 +92,14 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertSame(
+			- PHP_INT_MAX + 1,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_modules' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
+		);
+		self::assertSame(
 			10,
 			has_filter(
 				'wp_resource_hints',
@@ -89,19 +111,11 @@ class AMainTest extends HCaptchaWPTestCase {
 			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 		);
 		self::assertSame(
-			- PHP_INT_MAX + 1,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_modules' ] )
-		);
-		self::assertSame(
 			10,
 			has_filter(
 				'woocommerce_login_credentials',
 				[ $hcaptcha_wordpress_plugin, 'remove_filter_wp_authenticate_user' ]
 			)
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
 		);
 
 		unset( $current_user );
@@ -222,6 +236,14 @@ class AMainTest extends HCaptchaWPTestCase {
 			.h-captcha:not([data-size="invisible"]) {
 				margin-bottom: 2rem;
 			}
+
+			.elementor-field-type-hcaptcha .elementor-field {
+				background: transparent !important;
+			}
+
+			.elementor-field-type-hcaptcha .h-captcha {
+				margin-bottom: -9px;
+			}
 		</style>
 		
 		<script type="text/javascript" async>
@@ -310,6 +332,24 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test print_footer_scripts() in admin.
+	 */
+	public function test_print_footer_scripts_in_admin(): void {
+		set_current_screen( 'edit-post' );
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		$scripts = ob_get_clean();
+
+		self::assertFalse( strpos( $scripts, '<style>' ) );
+		self::assertFalse( strpos( $scripts, 'api.js' ) );
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+	}
+
+	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown(): void {
@@ -331,7 +371,6 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @param array $module Module to load.
 	 *
 	 * @dataProvider dp_test_load_modules
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_load_modules( $module ): void {
 		$subject = new Main();
@@ -347,7 +386,20 @@ class AMainTest extends HCaptchaWPTestCase {
 			3
 		);
 
-		$plugin_path = $module[1];
+		$plugin_path = '';
+		$template    = '';
+
+		if (
+			$module[1] &&
+			false !== strpos( $module[1], '.php' ) ) {
+			$plugin_path = $module[1];
+		}
+
+		if (
+			$module[1] &&
+			false === strpos( $module[1], '.php' ) ) {
+			$template = $module[1];
+		}
 
 		$component = (array) $module[2];
 
@@ -355,40 +407,53 @@ class AMainTest extends HCaptchaWPTestCase {
 			$component,
 			function ( &$value ) {
 				if ( false === strpos( $value, '.php' ) ) {
-					$reflection = new ReflectionClass( $value );
-					$value      = $reflection->getFileName();
+					$value = str_replace( 'HCaptcha\\', HCAPTCHA_PATH . '/src/php/', $value );
+
+					$value .= '.php';
 				} else {
-					$value = WP_PLUGIN_DIR . '\\' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '\\' . $value;
+					$value = HCAPTCHA_INC . '/' . $value;
 				}
 
 				$value = $this->normalize_path( $value );
 			}
 		);
 
-		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
-		if ( ! empty( $intersect ) ) {
-			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
-		}
+		$this->check_component_loaded( $component );
 
+		// Test with plugin not active.
 		$subject->load_modules();
 
-		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
-		if ( ! empty( $intersect ) ) {
-			self::assertSame( $intersect, array_intersect( $intersect, $component ) );
+		if ( ! $module[1] ) {
+			self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
+		}
+		$this->check_component_loaded( $component );
+
+		if ( $plugin_path ) {
+			add_filter(
+				'pre_option_active_plugins',
+				function () use ( &$plugin_path ) {
+					return [ $plugin_path ];
+				},
+				10,
+				3
+			);
 		}
 
-		add_filter(
-			'pre_option_active_plugins',
-			function () use ( &$plugin_path ) {
-				return [ $plugin_path ];
-			},
-			10,
-			3
-		);
+		if ( $template ) {
+			add_filter(
+				'template',
+				function () use ( $template ) {
+					return $template;
+				},
+				20
+			);
+		}
 
+		// Test with plugin active.
 		$subject->load_modules();
 
-		self::assertSame( $component, array_intersect( $component, $this->normalize_path( get_included_files() ) ) );
+		self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
+		$this->check_component_loaded( $component );
 	}
 
 	/**
@@ -398,115 +463,135 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_load_modules() {
 		$modules = [
-			'Ninja Forms'               => [
-				'hcaptcha_nf_status',
-				'ninja-forms/ninja-forms.php',
-				NF::class,
-			],
-			'Contact Form 7'            => [
-				'hcaptcha_cf7_status',
-				'contact-form-7/wp-contact-form-7.php',
-				CF7::class,
-			],
-			'Login Form'                => [
+			'Login Form'                 => [
 				'hcaptcha_lf_status',
 				'',
-				'default/login-form.php',
+				Login::class,
 			],
-			'Register Form'             => [
+			'Register Form'              => [
 				'hcaptcha_rf_status',
 				'',
-				'default/register-form.php',
+				Register::class,
 			],
-			'Comment Form'              => [
-				'hcaptcha_cmf_status',
-				'',
-				'default/comment-form.php',
-			],
-			'Lost Password Form'        => [
+			'Lost Password Form'         => [
 				'hcaptcha_lpf_status',
 				'',
-				[ 'common/lost-password-form.php', 'default/lost-password.php' ],
+				LostPassword::class,
 			],
-			'WooCommerce Login'         => [
-				'hcaptcha_wc_login_status',
-				'woocommerce/woocommerce.php',
-				'wc/wc-login.php',
+			'Comment Form'               => [
+				'hcaptcha_cmf_status',
+				'',
+				Comment::class,
 			],
-			'WooCommerce Register'      => [
-				'hcaptcha_wc_reg_status',
-				'woocommerce/woocommerce.php',
-				'wc/wc-register.php',
-			],
-			'WooCommerce Lost Password' => [
-				'hcaptcha_wc_lost_pass_status',
-				'woocommerce/woocommerce.php',
-				[ 'common/lost-password-form.php', 'wc/wc-lost-password.php' ],
-			],
-			'WooCommerce Checkout'      => [
-				'hcaptcha_wc_checkout_status',
-				'woocommerce/woocommerce.php',
-				'wc/wc-checkout.php',
-			],
-			'BuddyPress Register'       => [
-				'hcaptcha_bp_reg_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
-			],
-			'BuddyPress Create Group'   => [
-				'hcaptcha_bp_create_group_status',
-				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
-			],
-			'BB Press New Topic'        => [
+			'bbPress New Topic'          => [
 				'hcaptcha_bbp_new_topic_status',
 				'bbpress/bbpress.php',
 				'bbp/bbp-new-topic.php',
 			],
-			'BB Press Reply'            => [
+			'bbPress Reply'              => [
 				'hcaptcha_bbp_reply_status',
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
 			],
-			'WPForms Lite'              => [
-				'hcaptcha_wpforms_status',
-				'wpforms-lite/wpforms.php',
-				'wpforms/wpforms.php',
+			'BuddyPress Create Group'    => [
+				'hcaptcha_bp_create_group_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-create-group.php',
 			],
-			'WPForms Pro'               => [
-				'hcaptcha_wpforms_pro_status',
-				'wpforms/wpforms.php',
-				'wpforms/wpforms.php',
+			'BuddyPress Register'        => [
+				'hcaptcha_bp_reg_status',
+				'buddypress/bp-loader.php',
+				'bp/bp-register.php',
 			],
-			'wpForo New Topic'          => [
-				'hcaptcha_wpforo_new_topic_status',
-				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+			'Contact Form 7'             => [
+				'hcaptcha_cf7_status',
+				'contact-form-7/wp-contact-form-7.php',
+				CF7::class,
 			],
-			'wpForo Reply'              => [
-				'hcaptcha_wpforo_reply_status',
-				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+			'Divi Contact Form'          => [
+				'hcaptcha_divi_cf_status',
+				'Divi',
+				Contact::class,
 			],
-			'MailChimp'                 => [
+			'Elementor Pro Form'         => [
+				'hcaptcha_elementor__pro_form_status',
+				'elementor-pro/elementor-pro.php',
+				HCaptchaHandler::class,
+			],
+			'Jetpack'                    => [
+				'hcaptcha_jetpack_cf_status',
+				'jetpack/jetpack.php',
+				JetpackForm::class,
+			],
+			'MailChimp'                  => [
 				'hcaptcha_mc4wp_status',
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'mailchimp/mailchimp-for-wp.php',
 			],
-			'Jetpack'                   => [
-				'hcaptcha_jetpack_cf_status',
-				'jetpack/jetpack.php',
-				'jetpack/jetpack.php',
+			'MemberPress Register'       => [
+				'hcaptcha_memberpress_register_status',
+				'memberpress/memberpress.php',
+				\HCaptcha\MemberPress\Register::class,
 			],
-			'Subscriber'                => [
+			'Ninja Forms'                => [
+				'hcaptcha_nf_status',
+				'ninja-forms/ninja-forms.php',
+				NF::class,
+			],
+			'Subscriber'                 => [
 				'hcaptcha_subscribers_status',
 				'subscriber/subscriber.php',
 				'subscriber/subscriber.php',
 			],
-			'WC Wishlist'               => [
+			'WooCommerce Login'          => [
+				'hcaptcha_wc_login_status',
+				'woocommerce/woocommerce.php',
+				\HCaptcha\WC\Login::class,
+			],
+			'WooCommerce Register'       => [
+				'hcaptcha_wc_reg_status',
+				'woocommerce/woocommerce.php',
+				\HCaptcha\WC\Register::class,
+			],
+			'WooCommerce Lost Password'  => [
+				'hcaptcha_wc_lost_pass_status',
+				'woocommerce/woocommerce.php',
+				[ LostPassword::class, \HCaptcha\WC\LostPassword::class ],
+			],
+			'WooCommerce Checkout'       => [
+				'hcaptcha_wc_checkout_status',
+				'woocommerce/woocommerce.php',
+				Checkout::class,
+			],
+			'WooCommerce Order Tracking' => [
+				'hcaptcha_wc_order_tracking_status',
+				'woocommerce/woocommerce.php',
+				OrderTracking::class,
+			],
+			'WooCommerce Wishlists'      => [
 				'hcaptcha_wc_wl_create_list_status',
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				'wc_wl/wc-wl-create-list.php',
+			],
+			'WPForms Lite'               => [
+				'hcaptcha_wpforms_status',
+				'wpforms-lite/wpforms.php',
+				'wpforms/wpforms.php',
+			],
+			'WPForms Pro'                => [
+				'hcaptcha_wpforms_pro_status',
+				'wpforms/wpforms.php',
+				'wpforms/wpforms.php',
+			],
+			'wpForo New Topic'           => [
+				'hcaptcha_wpforo_new_topic_status',
+				'wpforo/wpforo.php',
+				'wpforo/wpforo-new-topic.php',
+			],
+			'wpForo Reply'               => [
+				'hcaptcha_wpforo_reply_status',
+				'wpforo/wpforo.php',
+				'wpforo/wpforo-reply.php',
 			],
 		];
 
@@ -590,5 +675,16 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	private function normalize_path( $path ) {
 		return str_replace( '\\', '/', $path );
+	}
+
+	/**
+	 * Check that component is loaded.
+	 *
+	 * @param array $component Component.
+	 */
+	public function check_component_loaded( array $component ) {
+		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
+		$included  = array_intersect( $component, self::$included_components );
+		self::assertSame( $included, $intersect );
 	}
 }

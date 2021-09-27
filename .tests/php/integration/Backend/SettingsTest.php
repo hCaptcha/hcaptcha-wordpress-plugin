@@ -170,14 +170,6 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_bp_reg_status"
-					name="hcaptcha_bp_reg_status"
-				/>
-			&nbsp;
-			<span>Enable hCaptcha on Buddypress Registration Form</span>
-			<br><br>
-						<input
-					type="checkbox"
 					id="hcaptcha_bp_create_group_status"
 					name="hcaptcha_bp_create_group_status"
 				/>
@@ -186,11 +178,35 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_bp_reg_status"
+					name="hcaptcha_bp_reg_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on BuddyPress Registration Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_cf7_status"
 					name="hcaptcha_cf7_status"
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Contact Form 7</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_divi_cf_status"
+					name="hcaptcha_divi_cf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Divi Contact Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_elementor__pro_form_status"
+					name="hcaptcha_elementor__pro_form_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Elementor Pro Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -207,6 +223,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Mailchimp for WP Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_memberpress_register_status"
+					name="hcaptcha_memberpress_register_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on MemberPress Registration Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -255,6 +279,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on WooCommerce Checkout Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_wc_order_tracking_status"
+					name="hcaptcha_wc_order_tracking_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on WooCommerce Order Tracking Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -497,14 +529,6 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
-					id="hcaptcha_bp_reg_status"
-					name="hcaptcha_bp_reg_status"
-				 checked=\'checked\'/>
-			&nbsp;
-			<span>Enable hCaptcha on Buddypress Registration Form</span>
-			<br><br>
-						<input
-					type="checkbox"
 					id="hcaptcha_bp_create_group_status"
 					name="hcaptcha_bp_create_group_status"
 				 checked=\'checked\'/>
@@ -513,11 +537,35 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_bp_reg_status"
+					name="hcaptcha_bp_reg_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on BuddyPress Registration Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_cf7_status"
 					name="hcaptcha_cf7_status"
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Contact Form 7</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_divi_cf_status"
+					name="hcaptcha_divi_cf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Divi Contact Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_elementor__pro_form_status"
+					name="hcaptcha_elementor__pro_form_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Elementor Pro Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -534,6 +582,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on Mailchimp for WP Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_memberpress_register_status"
+					name="hcaptcha_memberpress_register_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on MemberPress Registration Form</span>
 			<br><br>
 						<input
 					type="checkbox"
@@ -582,6 +638,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on WooCommerce Checkout Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_wc_order_tracking_status"
+					name="hcaptcha_wc_order_tracking_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on WooCommerce Order Tracking Form</span>
 			<br><br>
 						<input
 					type="checkbox"
