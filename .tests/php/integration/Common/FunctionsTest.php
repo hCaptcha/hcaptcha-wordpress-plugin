@@ -169,14 +169,16 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'type'        => 'text',
 					'description' => 'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>.',
 				],
-			'hcaptcha_off_when_logged_in'          => [
-				'label' => 'Turn off when logged in',
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_recaptchacompat'             => [
-				'label' => 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)',
-				'type'  => 'checkbox',
-			],
+			'hcaptcha_off_when_logged_in'          =>
+				[
+					'label' => 'Turn off when logged in',
+					'type'  => 'checkbox',
+				],
+			'hcaptcha_recaptchacompat'             =>
+				[
+					'label' => 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)',
+					'type'  => 'checkbox',
+				],
 			'hcaptcha_lf_status'                   =>
 				[
 					'label' => 'Enable hCaptcha on Login Form',
@@ -222,10 +224,16 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on Contact Form 7',
 					'type'  => 'checkbox',
 				],
-			'hcaptcha_elementor__pro_form_status'  => [
-				'label' => 'Enable hCaptcha on Elementor Pro Form',
-				'type'  => 'checkbox',
-			],
+			'hcaptcha_divi_cf_status'              =>
+				[
+					'label' => 'Enable hCaptcha on Divi Contact Form',
+					'type'  => 'checkbox',
+				],
+			'hcaptcha_elementor__pro_form_status'  =>
+				[
+					'label' => 'Enable hCaptcha on Elementor Pro Form',
+					'type'  => 'checkbox',
+				],
 			'hcaptcha_jetpack_cf_status'           =>
 				[
 					'label' => 'Enable hCaptcha on Jetpack Contact Form',

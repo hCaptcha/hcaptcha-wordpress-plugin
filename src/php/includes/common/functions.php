@@ -161,6 +161,10 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on Contact Form 7', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
+		'hcaptcha_divi_cf_status'              => [
+			'label' => __( 'Enable hCaptcha on Divi Contact Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
 		'hcaptcha_elementor__pro_form_status'  => [
 			'label' => __( 'Enable hCaptcha on Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',

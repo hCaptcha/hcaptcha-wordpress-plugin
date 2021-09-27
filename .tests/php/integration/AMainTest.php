@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
+use HCaptcha\Divi\Contact;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
@@ -385,7 +386,21 @@ class AMainTest extends HCaptchaWPTestCase {
 			3
 		);
 
-		$plugin_path = $module[1];
+		$plugin_path = '';
+		$template    = '';
+
+		if (
+			$module[1] &&
+			false !== strpos( $module[1], '.php' ) ) {
+			$plugin_path = $module[1];
+		}
+
+		if (
+			$module[1] &&
+			false === strpos( $module[1], '.php' ) ) {
+			$template = $module[1];
+		}
+
 
 		$component = (array) $module[2];
 
@@ -414,14 +429,26 @@ class AMainTest extends HCaptchaWPTestCase {
 		}
 		$this->check_component_loaded( $component );
 
-		add_filter(
-			'pre_option_active_plugins',
-			function () use ( &$plugin_path ) {
-				return [ $plugin_path ];
-			},
-			10,
-			3
-		);
+		if ( $plugin_path ) {
+			add_filter(
+				'pre_option_active_plugins',
+				function () use ( &$plugin_path ) {
+					return [ $plugin_path ];
+				},
+				10,
+				3
+			);
+		}
+
+		if ( $template ) {
+			add_filter(
+				'template',
+				function () use ( $template ) {
+					return $template;
+				},
+				20
+			);
+		}
 
 		// Test with plugin active.
 		$subject->load_modules();
@@ -481,6 +508,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'hcaptcha_cf7_status',
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
+			],
+			'Divi Contact Form'          => [
+				'hcaptcha_divi_cf_status',
+				'Divi',
+				Contact::class,
 			],
 			'Elementor Pro Form'         => [
 				'hcaptcha_elementor__pro_form_status',

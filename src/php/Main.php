@@ -10,6 +10,7 @@ namespace HCaptcha;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
+use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\FixDivi;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
@@ -223,6 +224,11 @@ class Main {
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
+			'Divi Contact Form'          => [
+				'hcaptcha_divi_cf_status',
+				'Divi',
+				Contact::class,
+			],
 			'Elementor Pro Form'         => [
 				'hcaptcha_elementor__pro_form_status',
 				'elementor-pro/elementor-pro.php',
@@ -317,7 +323,21 @@ class Main {
 				continue;
 			}
 
-			if ( ( $module[1] && ! is_plugin_active( $module[1] ) ) ) {
+			if (
+				$module[1] &&
+				false !== strpos( $module[1], '.php' ) &&
+				! is_plugin_active( $module[1] )
+			) {
+				// Plugin is not active.
+				continue;
+			}
+
+			if (
+				$module[1] &&
+				false === strpos( $module[1], '.php' ) &&
+				get_template() !== $module[1]
+			) {
+				// Theme is not active.
 				continue;
 			}
 

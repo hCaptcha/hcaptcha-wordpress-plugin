@@ -165,10 +165,11 @@ Please see the hCaptcha privacy policy at:
 * BuddyPress Create Group Form
 * Buddypress Registration Form
 * Contact Form 7
+* Divi Contact Form
 * Elementor Pro Form
-* Jetpack Form
+* Jetpack Forms
 * Mailchimp for WP Form
-* MemberPress Register
+* MemberPress Register Form
 * Ninja Forms
 * Subscriber Form
 * WooCommerce Login Form
@@ -195,9 +196,10 @@ Instructions for native integrations are below:
 == Changelog ==
 
 = 1.13.0 =
-* Added support for Elementor Pro forms.
-* Added support for WooCommerce Order Tracking form.
+* Added support for Divi Contact form.
+* Added support for Elementor Pro form.
 * Added support for MemberPress Register form.
+* Added support for WooCommerce Order Tracking form.
 * Fixed layout on the WP login form.
 * Fixed issue with insertion of hcaptcha not only to Jetpack forms.
 * Fixed regex bug in auto verify feature, which prevented registering of forms.
