@@ -118,7 +118,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * Test content_filter() when no input in form (really?).
 	 */
 	public function test_content_filter_without_form_inputs() {
-		$request_uri = $this->get_test_request_uri();
+		$request_uri = wp_parse_url( $this->get_test_request_uri(), PHP_URL_PATH );
 		$content     = $this->get_test_content();
 		$content     = preg_replace( '#<input[\S\s]+?>#', '', $content );
 		$expected    = $this->get_test_registered_forms();
@@ -154,9 +154,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		self::assertSame( $content, $subject->content_filter( $content ) );
 		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
 
-		$registered_forms                              = $this->get_test_registered_forms();
-		$expected                                      = $registered_forms;
-		$expected[ untrailingslashit( $request_uri ) ] = [];
+		$registered_forms = $this->get_test_registered_forms();
+		$expected         = $registered_forms;
+
+		$expected[ untrailingslashit( wp_parse_url( $request_uri, PHP_URL_PATH ) ) ] = [];
 
 		// Test update existing transient.
 		set_transient( AutoVerify::TRANSIENT, $registered_forms );
@@ -245,8 +246,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI']    = $request_uri;
 
 		$registered_forms             = $this->get_test_registered_forms();
-		$registered_forms['some_uri'] = $registered_forms[ untrailingslashit( $request_uri ) ];
-		unset( $registered_forms[ untrailingslashit( $request_uri ) ] );
+		$registered_forms['some_uri'] = $registered_forms[ untrailingslashit( wp_parse_url( $request_uri, PHP_URL_PATH ) ) ];
+		unset( $registered_forms[ untrailingslashit( wp_parse_url( $request_uri, PHP_URL_PATH ) ) ] );
 
 		set_transient( AutoVerify::TRANSIENT, $registered_forms );
 
@@ -389,7 +390,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * @return string
 	 */
 	private function get_test_request_uri() {
-		return '/hcaptcha-arbitrary-form/';
+		return '/hcaptcha-arbitrary-form/?some_argument=22';
 	}
 
 	/**
@@ -445,6 +446,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 */
 	private function get_test_registered_forms() {
 		$request_uri = $this->get_test_request_uri();
+		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
 
 		return [
 			untrailingslashit( $request_uri ) =>

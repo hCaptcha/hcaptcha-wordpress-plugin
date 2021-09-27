@@ -87,6 +87,8 @@ class AutoVerify {
 			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
 			'';
 
+		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
+
 		if ( ! $request_uri ) {
 			return;
 		}
@@ -210,7 +212,7 @@ class AutoVerify {
 		$form_action = '';
 
 		if ( preg_match( '#<form [\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
-			$form_action = wp_parse_url( $m[1], PHP_URL_PATH );
+			$form_action = $m[1];
 		}
 
 		if ( ! $form_action ) {
@@ -218,6 +220,8 @@ class AutoVerify {
 				filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
 				'';
 		}
+
+		$form_action = wp_parse_url( $form_action, PHP_URL_PATH );
 
 		return untrailingslashit( $form_action );
 	}
