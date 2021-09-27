@@ -21,6 +21,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset(
+			$_SERVER['HTTP_CF_CONNECTING_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
 			$_SERVER['HTTP_X_FORWARDED_FOR'],
 			$_SERVER['HTTP_X_FORWARDED'],
@@ -42,6 +43,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcap_get_user_ip( $headers, $expected ) {
 		unset(
+			$_SERVER['HTTP_CF_CONNECTING_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
 			$_SERVER['HTTP_X_FORWARDED_FOR'],
 			$_SERVER['HTTP_X_FORWARDED'],
@@ -63,40 +65,44 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_hcap_get_user_ip() {
 		return [
-			'HTTP_CLIENT_IP'           => [
+			'HTTP_CF_CONNECTING_IP'    => [
 				[ 'HTTP_CLIENT_IP' => '7.7.7.1' ],
 				'7.7.7.1',
 			],
-			'HTTP_X_FORWARDED_FOR'     => [
-				[ 'HTTP_X_FORWARDED_FOR' => '7.7.7.2' ],
+			'HTTP_CLIENT_IP'           => [
+				[ 'HTTP_CLIENT_IP' => '7.7.7.2' ],
 				'7.7.7.2',
 			],
-			'HTTP_X_FORWARDED'         => [
-				[ 'HTTP_X_FORWARDED' => '7.7.7.3' ],
+			'HTTP_X_FORWARDED_FOR'     => [
+				[ 'HTTP_X_FORWARDED_FOR' => '7.7.7.3' ],
 				'7.7.7.3',
 			],
-			'HTTP_X_CLUSTER_CLIENT_IP' => [
-				[ 'HTTP_X_CLUSTER_CLIENT_IP' => '7.7.7.4' ],
+			'HTTP_X_FORWARDED'         => [
+				[ 'HTTP_X_FORWARDED' => '7.7.7.4' ],
 				'7.7.7.4',
 			],
-			'HTTP_FORWARDED_FOR'       => [
-				[ 'HTTP_FORWARDED_FOR' => '7.7.7.5' ],
+			'HTTP_X_CLUSTER_CLIENT_IP' => [
+				[ 'HTTP_X_CLUSTER_CLIENT_IP' => '7.7.7.5' ],
 				'7.7.7.5',
 			],
-			'HTTP_FORWARDED'           => [
-				[ 'HTTP_FORWARDED' => '7.7.7.6' ],
+			'HTTP_FORWARDED_FOR'       => [
+				[ 'HTTP_FORWARDED_FOR' => '7.7.7.6' ],
 				'7.7.7.6',
 			],
-			'REMOTE_ADDR'              => [
-				[ 'REMOTE_ADDR' => '7.7.7.7' ],
+			'HTTP_FORWARDED'           => [
+				[ 'HTTP_FORWARDED' => '7.7.7.7' ],
 				'7.7.7.7',
+			],
+			'REMOTE_ADDR'              => [
+				[ 'REMOTE_ADDR' => '7.7.7.8' ],
+				'7.7.7.8',
 			],
 			'Order'                    => [
 				[
-					'HTTP_FORWARDED' => '7.7.7.8',
-					'REMOTE_ADDR'    => '7.7.7.9',
+					'HTTP_FORWARDED' => '7.7.7.9',
+					'REMOTE_ADDR'    => '7.7.7.10',
 				],
-				'7.7.7.8',
+				'7.7.7.9',
 			],
 			'empty'                    => [
 				[],
@@ -106,13 +112,17 @@ class RequestTest extends HCaptchaWPTestCase {
 				[ 'REMOTE_ADDR' => '0.0.0.0' ],
 				false,
 			],
+			'local IPv4'               => [
+				[ 'REMOTE_ADDR' => '127.0.0.1' ],
+				false,
+			],
 			'empty IPv6'               => [
 				[ 'REMOTE_ADDR' => '::' ],
 				false,
 			],
 			'address chain'            => [
-				[ 'REMOTE_ADDR' => '7.7.7.10, 7.7.7.11' ],
-				'7.7.7.10',
+				[ 'REMOTE_ADDR' => '7.7.7.11, 7.7.7.12' ],
+				'7.7.7.11',
 			],
 		];
 	}

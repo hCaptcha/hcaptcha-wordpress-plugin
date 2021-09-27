@@ -18,6 +18,7 @@ function hcap_get_user_ip() {
 
 	// In order of preference, with the best ones for this purpose first.
 	$address_headers = [
+		'HTTP_CF_CONNECTING_IP',
 		'HTTP_CLIENT_IP',
 		'HTTP_X_FORWARDED_FOR',
 		'HTTP_X_FORWARDED',
@@ -39,15 +40,12 @@ function hcap_get_user_ip() {
 		}
 	}
 
-	if ( ! $client_ip ) {
-		return false;
-	}
-
-	if ( '0.0.0.0' === $client_ip || '::' === $client_ip ) {
-		return false;
-	}
-
-	return $client_ip;
+	// Filter out local addresses.
+	return filter_var(
+		$client_ip,
+		FILTER_VALIDATE_IP,
+		FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+	);
 }
 
 if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
