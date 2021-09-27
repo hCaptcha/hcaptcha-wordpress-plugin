@@ -401,7 +401,6 @@ class AMainTest extends HCaptchaWPTestCase {
 			$template = $module[1];
 		}
 
-
 		$component = (array) $module[2];
 
 		array_walk(
