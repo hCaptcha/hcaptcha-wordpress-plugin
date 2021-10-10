@@ -1,19 +1,15 @@
 <?php
 /**
- * Parameters example
+ * Local parameters.
  *
- * @since   {VERSION}
- * @link    {URL}
- * @license GPLv2 or later
- * @package PluginName
- * @author  {AUTHOR}
+ * @package hcaptcha-wp
  */
 
 return [
 	'WP_URL'            => 'test.test',
 	'WP_ADMIN_USERNAME' => 'admin',
 	'WP_ADMIN_PASSWORD' => 'admin',
-	'WP_ROOT_PATH'      => __DIR__ . '/../../../../../',
+	'WP_ROOT_PATH'      => __DIR__ . '/../../../../test/',
 	'WP_ADMIN_PATH'     => '/wp-admin',
 	'DB_HOST'           => '127.0.0.1',
 	'DB_NAME'           => 'wp-tests',

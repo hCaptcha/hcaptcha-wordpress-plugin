@@ -1,12 +1,8 @@
 <?php
 /**
- * GH Actions parameters
+ * GitHub Actions parameters.
  *
- * @since   {VERSION}
- * @link    {URL}
- * @license GPLv2 or later
- * @package PluginName
- * @author  {AUTHOR}
+ * @package hcaptcha-wp
  */
 
 return [
