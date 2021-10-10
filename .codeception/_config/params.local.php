@@ -17,4 +17,3 @@ return [
 	'DB_PASSWORD'       => 'root',
 	'DB_TABLE_PREFIX'   => 'wp_',
 ];
-
