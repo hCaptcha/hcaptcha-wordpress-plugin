@@ -11,7 +11,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Contact;
-use HCaptcha\Divi\FixDivi;
+use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\WC\Checkout;
@@ -63,7 +63,7 @@ class Main {
 			$this->auto_verify->init();
 		}
 
-		( new FixDivi() )->init();
+		( new Fix() )->init();
 	}
 
 	/**

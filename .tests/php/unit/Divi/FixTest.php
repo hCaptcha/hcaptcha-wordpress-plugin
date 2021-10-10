@@ -1,6 +1,6 @@
 <?php
 /**
- * FixDiviTest class file.
+ * FixTest class file.
  *
  * @package HCaptcha\Tests
  */
@@ -9,26 +9,26 @@
 /** @noinspection PhpUndefinedMethodInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-namespace HCaptcha\Tests\Unit\FixDivi;
+namespace HCaptcha\Tests\Unit\Fix;
 
-use HCaptcha\Divi\FixDivi;
+use HCaptcha\Divi\Fix;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
 
 /**
- * Test FixDivi class.
+ * Test Fix class.
  *
  * @group divi
  */
-class FixDiviTest extends HCaptchaTestCase {
+class FixTest extends HCaptchaTestCase {
 
 	/**
 	 * Test init().
 	 */
 	public function test_init() {
-		$mock = Mockery::mock( FixDivi::class )->makePartial();
+		$mock = Mockery::mock( Fix::class )->makePartial();
 		$mock->shouldReceive( 'init_hooks' )->with()->once();
 
 		$mock->init();
@@ -38,7 +38,7 @@ class FixDiviTest extends HCaptchaTestCase {
 	 * Test init_hooks().
 	 */
 	public function test_init_hooks() {
-		$subject = new FixDivi();
+		$subject = new Fix();
 
 		WP_Mock::expectActionAdded( 'init', [ $subject, 'register_autoload' ], - PHP_INT_MAX );
 
@@ -58,7 +58,7 @@ class FixDiviTest extends HCaptchaTestCase {
 			}
 		);
 
-		$subject = new FixDivi();
+		$subject = new Fix();
 		$subject->register_autoload();
 
 		$autoload->wasCalledOnce();
@@ -70,7 +70,7 @@ class FixDiviTest extends HCaptchaTestCase {
 	public function test_register_autoload_without_divi_theme() {
 		$autoload = FunctionMocker::replace( 'spl_autoload_register' );
 
-		$subject = new FixDivi();
+		$subject = new Fix();
 		$subject->register_autoload();
 
 		$autoload->wasNotCalled();
@@ -80,7 +80,7 @@ class FixDiviTest extends HCaptchaTestCase {
 	 * Test prevent_loading_of_wp_test_case().
 	 */
 	public function test_prevent_loading_of_wp_test_case() {
-		$subject = new FixDivi();
+		$subject = new Fix();
 
 		$codeception_wp_test_case = 'Codeception\TestCase\WPTestCase';
 		self::assertFalse( class_exists( $codeception_wp_test_case, false ) );
