@@ -9,7 +9,7 @@
 /** @noinspection PhpUndefinedMethodInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-namespace HCaptcha\Tests\Unit\Fix;
+namespace HCaptcha\Tests\Unit\Divi;
 
 use HCaptcha\Divi\Fix;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
