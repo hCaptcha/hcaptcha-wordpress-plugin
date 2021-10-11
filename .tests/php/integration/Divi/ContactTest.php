@@ -130,6 +130,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				</div> <!-- .et_pb_contact -->
 			</div> <!-- .et_pb_contact_form_container -->
 			';
+
 		$module_slug = 'et_pb_contact_form';
 
 		$expected = '
