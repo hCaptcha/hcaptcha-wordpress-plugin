@@ -42,5 +42,3 @@ FunctionMocker::init(
 		],
 	]
 );
-
-require_once HCAPTCHA_PATH . '/.tests/php/integration/Stubs/bp-groups-template.php';

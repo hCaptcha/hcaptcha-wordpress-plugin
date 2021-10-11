@@ -109,6 +109,8 @@ class BPTest extends HCaptchaPluginWPTestCase {
 			2
 		);
 
+		FunctionMocker::replace( 'bp_get_groups_root_slug', '' );
+
 		self::assertFalse( hcap_hcaptcha_bp_group_verify( null ) );
 
 		$bp = buddypress();
