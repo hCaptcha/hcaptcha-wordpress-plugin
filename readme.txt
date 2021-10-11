@@ -195,6 +195,9 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
+= 1.13.1 =
+* Fixed Divi Contact form in frontend builder.
+
 = 1.13.0 =
 * Added support for Divi Contact form.
 * Added support for Elementor Pro form.

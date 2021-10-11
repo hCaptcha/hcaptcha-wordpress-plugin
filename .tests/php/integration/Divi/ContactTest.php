@@ -88,7 +88,9 @@ class ContactTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_captcha() {
-		$output      = '
+		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
+
+		$output = '
 			<div id="et_pb_contact_form_0" class="et_pb_module et_pb_contact_form_0 et_pb_contact_form_container clearfix" data-form_unique_num="0">
 				
 				
@@ -174,6 +176,24 @@ class ContactTest extends HCaptchaWPTestCase {
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
 		self::assertSame( $expected, $subject->add_captcha( $output, $module_slug ) );
 		self::assertSame( 1, $this->get_protected_property( $subject, 'render_count' ) );
+	}
+
+	/**
+	 * Test add_captcha() in frontend builder.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_captcha_in_frontend_builder() {
+		FunctionMocker::replace( 'et_core_is_fb_enabled', true );
+
+		$output      = [ 'some array' ];
+		$module_slug = 'et_pb_contact_form';
+
+		$subject = new Contact();
+
+		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
+		self::assertSame( $output, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
 	}
 
 	/**
@@ -334,8 +354,9 @@ class ContactTest extends HCaptchaWPTestCase {
 			$props['captcha'] = $captcha;
 		}
 
-		$expected            = $props;
-		$expected['captcha'] = $own_captcha;
+		$expected                     = $props;
+		$expected['captcha']          = $own_captcha;
+		$expected['use_spam_service'] = $own_captcha;
 
 		$subject = new Contact();
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );

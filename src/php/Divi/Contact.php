@@ -52,13 +52,19 @@ class Contact {
 	/**
 	 * Add hCaptcha to the Contact form.
 	 *
-	 * @param string $output      Module output.
-	 * @param string $module_slug Module slug.
+	 * @param string|string[] $output      Module output.
+	 * @param string          $module_slug Module slug.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $output, $module_slug ) {
+		if ( et_core_is_fb_enabled() ) {
+			// Do not add captcha in frontend builder.
+
+			return $output;
+		}
+
 		$search  = '<div class="et_contact_bottom_container">';
 		$replace =
 			'<div style="float:right;">' .
@@ -159,8 +165,9 @@ class Contact {
 			return $props;
 		}
 
-		$props['captcha'] = $this->captcha;
-		$this->captcha    = 'off';
+		$props['captcha']          = $this->captcha;
+		$props['use_spam_service'] = $this->captcha;
+		$this->captcha             = 'off';
 
 		return $props;
 	}
