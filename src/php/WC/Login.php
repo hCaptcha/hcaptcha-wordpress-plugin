@@ -27,6 +27,7 @@ class Login {
 	private function init_hooks() {
 		add_action( 'woocommerce_login_form', [ $this, 'add_captcha' ] );
 		add_action( 'woocommerce_process_login_errors', [ $this, 'verify' ] );
+		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 	}
 
 	/**
@@ -56,5 +57,27 @@ class Login {
 		$validation_error->add( 'hcaptcha_error', $error_message );
 
 		return $validation_error;
+	}
+
+	/**
+	 * Remove standard WP login captcha if we do logging in via WC.
+	 *
+	 * @param array $credentials Credentials.
+	 *
+	 * @return array
+	 */
+	public function remove_filter_wp_authenticate_user( $credentials ) {
+		global $hcaptcha_wordpress_plugin;
+
+		$wp_login_class = \HCaptcha\WP\Login::class;
+
+		if ( array_key_exists( $wp_login_class, $hcaptcha_wordpress_plugin->loaded_classes ) ) {
+			remove_filter(
+				'wp_authenticate_user',
+				[ $hcaptcha_wordpress_plugin->loaded_classes[ $wp_login_class ], 'verify' ]
+			);
+		}
+
+		return $credentials;
 	}
 }

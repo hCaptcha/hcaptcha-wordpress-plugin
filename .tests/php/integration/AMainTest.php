@@ -110,13 +110,6 @@ class AMainTest extends HCaptchaWPTestCase {
 			0,
 			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 		);
-		self::assertSame(
-			10,
-			has_filter(
-				'woocommerce_login_credentials',
-				[ $hcaptcha_wordpress_plugin, 'remove_filter_wp_authenticate_user' ]
-			)
-		);
 
 		unset( $current_user );
 		if ( $logged_in ) {
@@ -150,13 +143,6 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 			self::assertSame(
 				10,
-				has_filter(
-					'woocommerce_login_credentials',
-					[ $subject, 'remove_filter_wp_authenticate_user' ]
-				)
-			);
-			self::assertSame(
-				10,
 				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 			);
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
@@ -172,12 +158,6 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 			self::assertFalse(
 				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-			);
-			self::assertFalse(
-				has_filter(
-					'woocommerce_login_credentials',
-					[ $subject, 'remove_filter_wp_authenticate_user' ]
-				)
 			);
 			self::assertFalse(
 				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
@@ -379,7 +359,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'pre_option_' . $plugin_option,
-			function () {
+			static function () {
 				return 'on';
 			},
 			10,
@@ -403,10 +383,17 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$component = (array) $module[2];
 
+		$expected_loaded_classes = [];
+		self::assertSame( $expected_loaded_classes, $subject->loaded_classes );
+
 		array_walk(
 			$component,
-			function ( &$value ) {
+			function ( &$value ) use ( &$expected_loaded_classes ) {
 				if ( false === strpos( $value, '.php' ) ) {
+					if ( ! class_exists( $value, false ) ) {
+						$expected_loaded_classes[] = $value;
+					}
+
 					$value = str_replace( 'HCaptcha\\', HCAPTCHA_PATH . '/src/php/', $value );
 
 					$value .= '.php';
@@ -431,7 +418,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		if ( $plugin_path ) {
 			add_filter(
 				'pre_option_active_plugins',
-				function () use ( &$plugin_path ) {
+				static function () use ( &$plugin_path ) {
 					return [ $plugin_path ];
 				},
 				10,
@@ -442,7 +429,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		if ( $template ) {
 			add_filter(
 				'template',
-				function () use ( $template ) {
+				static function () use ( $template ) {
 					return $template;
 				},
 				20
@@ -454,6 +441,12 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
 		$this->check_component_loaded( $component );
+
+		self::assertSame( $expected_loaded_classes, array_keys( $subject->loaded_classes ) );
+
+		foreach ( $subject->loaded_classes as $class_name => $loaded_class ) {
+			self::assertInstanceOf( $class_name, $loaded_class );
+		}
 	}
 
 	/**
@@ -603,31 +596,6 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 
 		return $modules;
-	}
-
-	/**
-	 * Test remove_filter_wp_authenticate_user().
-	 *
-	 * Must be after test_load_modules().
-	 */
-	public function test_remove_filter_wp_authenticate_user(): void {
-		add_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha', 10, 2 );
-
-		self::assertSame(
-			10,
-			has_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' )
-		);
-
-		$credentials = [
-			'user_login'    => 'KAGG',
-			'user_password' => 'Design',
-			'remember'      => false,
-		];
-		self::assertSame( $credentials, apply_filters( 'woocommerce_login_credentials', $credentials ) );
-
-		self::assertFalse(
-			has_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' )
-		);
 	}
 
 	/**

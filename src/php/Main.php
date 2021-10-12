@@ -32,6 +32,13 @@ class Main {
 	public $form_shown = false;
 
 	/**
+	 * Loaded classes.
+	 *
+	 * @var array
+	 */
+	public $loaded_classes = [];
+
+	/**
 	 * Instance of AutoVerify.
 	 *
 	 * @var AutoVerify
@@ -58,7 +65,7 @@ class Main {
 
 			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
 			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
-			add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+
 			$this->auto_verify = new AutoVerify();
 			$this->auto_verify->init();
 		}
@@ -344,7 +351,7 @@ class Main {
 			foreach ( (array) $module[2] as $component ) {
 				if ( false === strpos( $component, '.php' ) ) {
 					if ( ! class_exists( $component, false ) ) {
-						new $component();
+						$this->loaded_classes[ $component ] = new $component();
 					}
 					continue;
 				}
@@ -352,19 +359,6 @@ class Main {
 				require_once HCAPTCHA_INC . '/' . $component;
 			}
 		}
-	}
-
-	/**
-	 * Remove standard WP login captcha if we do logging in via WC.
-	 *
-	 * @param array $credentials Credentials.
-	 *
-	 * @return array
-	 */
-	public function remove_filter_wp_authenticate_user( $credentials ) {
-		remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
-
-		return $credentials;
 	}
 
 	/**
