@@ -199,6 +199,7 @@ Instructions for native integrations are below:
 * Fixed Divi Contact form in frontend builder.
 * Fixed WooCommerce login form.
 * Fixed css and js to pass W3C validation.
+* Fixed issue with Safari and invisible recaptcha on auto-verify form.
 
 = 1.13.0 =
 * Added support for Divi Contact form.
