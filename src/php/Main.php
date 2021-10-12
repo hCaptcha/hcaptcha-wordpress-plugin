@@ -64,6 +64,7 @@ class Main {
 			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 
 			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+			add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 
 			$this->auto_verify = new AutoVerify();
@@ -112,11 +113,9 @@ class Main {
 			.h-captcha:not([data-size="invisible"]) {
 				margin-bottom: 2rem;
 			}
-
 			.elementor-field-type-hcaptcha .elementor-field {
 				background: transparent !important;
 			}
-
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: -9px;
 			}
@@ -160,8 +159,6 @@ class Main {
 		if ( ! $this->form_shown ) {
 			return;
 		}
-
-		$this->print_inline_styles();
 
 		/**
 		 * Filter delay time for hcaptcha API script.

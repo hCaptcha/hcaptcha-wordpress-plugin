@@ -99,6 +99,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			10,
 			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
 		);
+
 		self::assertSame(
 			10,
 			has_filter(
@@ -107,9 +108,15 @@ class AMainTest extends HCaptchaWPTestCase {
 			)
 		);
 		self::assertSame(
+			10,
+			has_action( 'wp_head', [ $hcaptcha_wordpress_plugin, 'print_inline_styles' ] )
+		);
+		self::assertSame(
 			0,
 			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 		);
+
+		self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $hcaptcha_wordpress_plugin, 'auto_verify' ) );
 
 		unset( $current_user );
 		if ( $logged_in ) {
@@ -127,17 +134,6 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		if ( $hcaptcha_active ) {
 			self::assertSame(
-				10,
-				has_filter(
-					'wp_resource_hints',
-					[ $hcaptcha_wordpress_plugin, 'prefetch_hcaptcha_dns' ]
-				)
-			);
-			self::assertSame(
-				0,
-				has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
-			);
-			self::assertSame(
 				- PHP_INT_MAX + 1,
 				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 			);
@@ -145,8 +141,32 @@ class AMainTest extends HCaptchaWPTestCase {
 				10,
 				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 			);
+
+			self::assertSame(
+				10,
+				has_filter(
+					'wp_resource_hints',
+					[ $subject, 'prefetch_hcaptcha_dns' ]
+				)
+			);
+			self::assertSame(
+				10,
+				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertSame(
+				0,
+				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			);
+
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
+			self::assertFalse(
+				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
+			);
+			self::assertFalse(
+				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
+			);
+
 			self::assertFalse(
 				has_filter(
 					'wp_resource_hints',
@@ -154,14 +174,12 @@ class AMainTest extends HCaptchaWPTestCase {
 				)
 			);
 			self::assertFalse(
+				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertFalse(
 				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 			);
-			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-			);
-			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
-			);
+
 			self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 		}
 	}
@@ -199,6 +217,31 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test print_inline_styles().
+	 */
+	public function test_print_inline_styles() {
+		$expected = '		<style>
+			.h-captcha:not([data-size="invisible"]) {
+				margin-bottom: 2rem;
+			}
+			.elementor-field-type-hcaptcha .elementor-field {
+				background: transparent !important;
+			}
+			.elementor-field-type-hcaptcha .h-captcha {
+				margin-bottom: -9px;
+			}
+		</style>
+		';
+		$subject  = new Main();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
 	 * Test print_footer_scripts().
 	 *
 	 * @param string|false $compat              Compat option value.
@@ -212,21 +255,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
 
-		$expected_scripts = '<style>
-			.h-captcha:not([data-size="invisible"]) {
-				margin-bottom: 2rem;
-			}
-
-			.elementor-field-type-hcaptcha .elementor-field {
-				background: transparent !important;
-			}
-
-			.elementor-field-type-hcaptcha .h-captcha {
-				margin-bottom: -9px;
-			}
-		</style>
-		
-		<script type="text/javascript" async>
+		$expected_scripts = '<script>
 			( () => {
 				\'use strict\';
 
