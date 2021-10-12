@@ -197,6 +197,8 @@ Instructions for native integrations are below:
 
 = 1.13.1 =
 * Fixed Divi Contact form in frontend builder.
+* Fixed WooCommerce login form.
+* Fixed css and js to pass W3C validation.
 
 = 1.13.0 =
 * Added support for Divi Contact form.
