@@ -35,12 +35,9 @@ FunctionMocker::init(
 			realpath( HCAPTCHA_PATH . '/.tests/php/integration/Stubs' ),
 		],
 		'redefinable-internals' => [
-			'constant',
 			'defined',
 			'filter_input',
 			'uniqid',
 		],
 	]
 );
-
-require_once HCAPTCHA_PATH . '/.tests/php/integration/Stubs/bp-groups-template.php';

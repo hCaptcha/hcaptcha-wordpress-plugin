@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.8
 Requires PHP: 5.6  
-Stable tag: 1.13.0
+Stable tag: 1.13.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -194,6 +194,13 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.13.1 =
+* Fixed Divi Contact form in frontend builder.
+* Fixed WooCommerce login form.
+* Fixed css and js to pass W3C validation.
+* Fixed issue with Safari and invisible hCaptcha on auto-verify form.
+* Fixed issue with login via XML-RPC.
 
 = 1.13.0 =
 * Added support for Divi Contact form.

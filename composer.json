@@ -11,6 +11,11 @@
     {
       "name": "hCaptcha",
       "homepage": "https://hCaptcha.com/"
+    },
+    {
+      "name": "KAGG Design",
+      "email": "info@kagg.eu",
+      "homepage": "https://kagg.eu/en/"
     }
   ],
   "support": {
@@ -18,7 +23,9 @@
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
-  "require": {},
+  "require": {
+    "ext-json": "*"
+  },
   "require-dev": {
     "10up/wp_mock": "0.2 - 0.4",
     "codeception/codeception": "^4.1",

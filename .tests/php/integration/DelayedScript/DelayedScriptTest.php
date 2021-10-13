@@ -24,7 +24,7 @@ class DelayedScriptTest extends HCaptchaPluginWPTestCase {
 		$js = 'some js script';
 
 		$expected = '
-		<script type="text/javascript" async>
+		<script>
 			( () => {
 				\'use strict\';
 
@@ -88,7 +88,7 @@ class DelayedScriptTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_launch() {
 		$expected = '
-		<script type="text/javascript" async>
+		<script>
 			( () => {
 				\'use strict\';
 

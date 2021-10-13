@@ -11,7 +11,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Contact;
-use HCaptcha\Divi\FixDivi;
+use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\WC\Checkout;
@@ -32,6 +32,13 @@ class Main {
 	public $form_shown = false;
 
 	/**
+	 * Loaded classes.
+	 *
+	 * @var array
+	 */
+	public $loaded_classes = [];
+
+	/**
 	 * Instance of AutoVerify.
 	 *
 	 * @var AutoVerify
@@ -42,6 +49,10 @@ class Main {
 	 * Input class.
 	 */
 	public function init() {
+		if ( $this->is_xml_rpc() ) {
+			return;
+		}
+
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
 	}
 
@@ -57,13 +68,14 @@ class Main {
 			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 
 			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+			add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
-			add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+
 			$this->auto_verify = new AutoVerify();
 			$this->auto_verify->init();
 		}
 
-		( new FixDivi() )->init();
+		( new Fix() )->init();
 	}
 
 	/**
@@ -105,11 +117,9 @@ class Main {
 			.h-captcha:not([data-size="invisible"]) {
 				margin-bottom: 2rem;
 			}
-
 			.elementor-field-type-hcaptcha .elementor-field {
 				background: transparent !important;
 			}
-
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: -9px;
 			}
@@ -153,8 +163,6 @@ class Main {
 		if ( ! $this->form_shown ) {
 			return;
 		}
-
-		$this->print_inline_styles();
 
 		/**
 		 * Filter delay time for hcaptcha API script.
@@ -344,7 +352,7 @@ class Main {
 			foreach ( (array) $module[2] as $component ) {
 				if ( false === strpos( $component, '.php' ) ) {
 					if ( ! class_exists( $component, false ) ) {
-						new $component();
+						$this->loaded_classes[ $component ] = new $component();
 					}
 					continue;
 				}
@@ -352,19 +360,6 @@ class Main {
 				require_once HCAPTCHA_INC . '/' . $component;
 			}
 		}
-	}
-
-	/**
-	 * Remove standard WP login captcha if we do logging in via WC.
-	 *
-	 * @param array $credentials Credentials.
-	 *
-	 * @return array
-	 */
-	public function remove_filter_wp_authenticate_user( $credentials ) {
-		remove_filter( 'wp_authenticate_user', 'hcap_verify_login_captcha' );
-
-		return $credentials;
 	}
 
 	/**
@@ -376,5 +371,14 @@ class Main {
 			false,
 			dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/'
 		);
+	}
+
+	/**
+	 * Check of it is a xml-rpc request
+	 *
+	 * @return bool
+	 */
+	protected function is_xml_rpc() {
+		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }

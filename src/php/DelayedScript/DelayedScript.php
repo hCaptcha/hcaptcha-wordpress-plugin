@@ -25,7 +25,7 @@ class DelayedScript {
 
 		?>
 
-		<script type="text/javascript" async>
+		<script>
 			( () => {
 				'use strict';
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * FixDivi class file.
+ * Fix class file.
  *
  * @package hcaptcha-wp
  */
@@ -8,9 +8,9 @@
 namespace HCaptcha\Divi;
 
 /**
- * Class FixDivi.
+ * Class Fix.
  */
-class FixDivi {
+class Fix {
 
 	/**
 	 * Init.

@@ -5,11 +5,7 @@
  * Don't modify this file directly.
  * Create and use 'params.local.php' instead.
  *
- * @since   {VERSION}
- * @link    {URL}
- * @license GPLv2 or later
- * @package PluginName
- * @author  {AUTHOR}
+ * @package hcaptcha-wp
  */
 
 global $argv;
