@@ -49,6 +49,10 @@ class Main {
 	 * Input class.
 	 */
 	public function init() {
+		if ( $this->is_xml_rpc() ) {
+			return;
+		}
+
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
 	}
 
@@ -367,5 +371,14 @@ class Main {
 			false,
 			dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/'
 		);
+	}
+
+	/**
+	 * Check of it is a xml-rpc request
+	 *
+	 * @return bool
+	 */
+	protected function is_xml_rpc() {
+		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }

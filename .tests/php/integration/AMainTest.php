@@ -26,6 +26,7 @@ use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Main class.
@@ -196,6 +197,41 @@ class AMainTest extends HCaptchaWPTestCase {
 			'logged in, not set'     => [ true, 'off', true ],
 			'logged in, set'         => [ true, 'on', false ],
 		];
+	}
+
+	/**
+	 * Test init() and init_hooks() on XMLRPC_REQUEST.
+	 *
+	 * @noinspection PhpUndefinedMethodInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_and_init_hooks_on_xml_rpc_request() {
+		$subject = \Mockery::mock( Main::class )->shouldAllowMockingProtectedMethods()->makePartial();
+		$subject->shouldReceive( 'is_xml_rpc' )->andReturn( true );
+
+		$subject->init();
+
+		self::assertFalse(
+			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
+		);
+		self::assertFalse(
+			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
+		);
+
+		self::assertFalse(
+			has_filter(
+				'wp_resource_hints',
+				[ $subject, 'prefetch_hcaptcha_dns' ]
+			)
+		);
+		self::assertFalse(
+			has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+		);
+		self::assertFalse(
+			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+		);
+
+		self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 	}
 
 	/**

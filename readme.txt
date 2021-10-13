@@ -200,6 +200,7 @@ Instructions for native integrations are below:
 * Fixed WooCommerce login form.
 * Fixed css and js to pass W3C validation.
 * Fixed issue with Safari and invisible recaptcha on auto-verify form.
+* Fixed issue with login via XML-RPC.
 
 = 1.13.0 =
 * Added support for Divi Contact form.
