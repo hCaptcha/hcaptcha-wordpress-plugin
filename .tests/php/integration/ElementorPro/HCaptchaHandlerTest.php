@@ -136,7 +136,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_action( 'elementor_pro/forms/register_action', [ $subject, 'register_action' ] )
+			has_action( 'elementor_pro/forms/register/action', [ $subject, 'register_action' ] )
 		);
 
 		self::assertSame(
