@@ -195,6 +195,9 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
+= 1.13.2 =
+* Fixed fatal error with Elementor Pro 3.5.
+
 = 1.13.1 =
 * Fixed Divi Contact form in frontend builder.
 * Fixed WooCommerce login form.
