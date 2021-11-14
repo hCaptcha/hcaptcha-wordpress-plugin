@@ -204,6 +204,7 @@ Instructions for native integrations are below:
 == Changelog ==
 
 = 1.13.2 =
+* Added support for non-standard WC Order Tracking form.
 * Fixed fatal error with Elementor Pro 3.5.
 
 = 1.13.1 =
