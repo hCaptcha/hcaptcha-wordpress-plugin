@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.8
 Requires PHP: 5.6  
-Stable tag: 1.13.1
+Stable tag: 1.13.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -42,17 +42,33 @@ hCaptcha allows websites to earn rewards while serving this demand while blockin
  
 == Frequently Asked Questions ==
 
+= How to use the hCaptcha plugin? =
+
+The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha plugin settings page.
+
+For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the plugin.
+
+We support Contact Forms 7 automatically. Sometimes, however, a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
+
 = You don't support plugin X. How can I get support for it added? =
 
 [Open a PR on GitHub](https://github.com/hCaptcha/hcaptcha-wordpress-plugin): or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
 
-= Where can I get more information about hCaptcha? =
+= Does the [hcaptcha] shortcode have arguments? =
 
-Please see our [website](https://hcaptcha.com/).
+The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
-= Why isn't my WPForms Lite installation working? =
+`
+[hcaptcha action="my_hcap_action" name="my_hcap_name"]
+`
 
-Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
+and in the verification:
+
+`
+$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
+`
+
+See also the section *"How to automatically verify an arbitrary form"*
 
 = How to add hCaptcha to an arbitrary form =
 
@@ -80,25 +96,9 @@ Secondly, verify the result of hcaptcha challenge.
 $result = hcaptcha_request_verify();
 
 if ( 'success' !== $result ) {
-    // Block processing of the form.
+// Block processing of the form.
 }
 `
-
-= Does the [hcaptcha] shortcode have arguments? =
-
-The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
-
-`
-[hcaptcha action="my_hcap_action" name="my_hcap_name"]
-`
-
-and in the verification:
-
-`
-$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
-`
-
-See also the section *"How to automatically verify an arbitrary form"*
 
 = How to automatically verify an arbitrary form =
 
@@ -110,7 +110,7 @@ Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"
 
 and insert this shortcode into your form.
 
-Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but this will be extended soon.
+Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but we have plans to extend the functionality.
 
 = How to block hcaptcha on specific page? =
 
@@ -118,26 +118,34 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
 
 `
 /**
- * Filter hCaptcha activation flag.
- *
- * @param bool $activate Activate flag.
- *
- * @return bool
- */
-function my_hcap_activate( $activate ) {
-	$url = isset( $_SERVER['REQUEST_URI'] ) ?
-		filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
-		'';
+* Filter hCaptcha activation flag.
+*
+* @param bool $activate Activate flag.
+*
+* @return bool
+  */
+  function my_hcap_activate( $activate ) {
+  $url = isset( $_SERVER['REQUEST_URI'] ) ?
+  filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
+  '';
 
-	if ( '/my-account/' === $url ) {
-		return false;
-	}
+  if ( '/my-account/' === $url ) {
+  return false;
+  }
 
-	return $activate;
-}
+  return $activate;
+  }
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
+
+= Why isn't my WPForms Lite installation working? =
+
+Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
+
+= Where can I get more information about hCaptcha? =
+
+Please see our [website](https://hcaptcha.com/).
 
 == Privacy Notices ==
 
@@ -194,6 +202,10 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.13.2 =
+* Added support for non-standard WC Order Tracking form.
+* Fixed fatal error with Elementor Pro 3.5.
 
 = 1.13.1 =
 * Fixed Divi Contact form in frontend builder.

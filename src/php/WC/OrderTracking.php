@@ -42,13 +42,16 @@ class OrderTracking {
 			return $output;
 		}
 
-		$search  = '<p class="form-row"><button type="submit"';
-		$replace =
+		$hcap_form =
 			'<div class="form-row"  style="margin-top: 2rem;">' .
 			hcap_form( '', '', true ) .
-			'</div>' .
-			$search;
+			'</div>';
 
-		return str_replace( $search, $replace, $output );
+		return preg_replace(
+			'/(<p class="form-row"><button type="submit"|<p class="form-actions">[\S\s]+?<button type="submit")/i',
+			$hcap_form . '$1',
+			$output,
+			1
+		);
 	}
 }

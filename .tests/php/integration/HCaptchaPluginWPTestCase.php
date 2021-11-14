@@ -51,18 +51,20 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 * Setup test.
 	 */
 	public function setUp(): void {
-		$plugins_requiring_php_7 = [
-			'ninja-forms/ninja-forms.php',
-			'woocommerce/woocommerce.php',
+		$plugins_requiring_php = [
+			'7.0' => [ 'woocommerce/woocommerce.php' ],
+			'7.1' => [ 'ninja-forms/ninja-forms.php' ],
 		];
 
-		if (
-			in_array( static::$plugin, $plugins_requiring_php_7, true ) &&
-			version_compare( PHP_VERSION, '7.0', '<' )
-		) {
-			self::markTestSkipped(
-				'This test requires PHP 7.0 at least.'
-			);
+		foreach ( $plugins_requiring_php as $php_version => $plugins_requiring_php_version ) {
+			if (
+				in_array( static::$plugin, $plugins_requiring_php_version, true ) &&
+				version_compare( PHP_VERSION, $php_version, '<' )
+			) {
+				self::markTestSkipped(
+					'This test requires PHP ' . $php_version . ' at least.'
+				);
+			}
 		}
 
 		parent::setUp();

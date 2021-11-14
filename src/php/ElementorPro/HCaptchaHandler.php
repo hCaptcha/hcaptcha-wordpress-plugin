@@ -63,7 +63,7 @@ class HCaptchaHandler {
 	public function init() {
 		$this->register_scripts();
 
-		add_action( 'elementor_pro/forms/register_action', [ $this, 'register_action' ] );
+		add_action( 'elementor_pro/forms/register/action', [ $this, 'register_action' ] );
 
 		add_filter( 'elementor_pro/forms/field_types', [ $this, 'add_field_type' ] );
 		add_action(
