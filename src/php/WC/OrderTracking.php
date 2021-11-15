@@ -48,7 +48,7 @@ class OrderTracking {
 			'</div>';
 
 		return preg_replace(
-			'/(<p class="form-row"><button type="submit"|<p class="form-actions">[\S\s]+?<button type="submit")/i',
+			'/(<p class="form-row"><button type="submit"|<p class="form-actions"><button type="submit")/i',
 			$hcap_form . '$1',
 			$output,
 			1
