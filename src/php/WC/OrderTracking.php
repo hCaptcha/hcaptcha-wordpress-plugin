@@ -45,6 +45,7 @@ class OrderTracking {
 		$hcap_form =
 			'<div class="form-row"  style="margin-top: 2rem;">' .
 			hcap_form( '', '', true ) .
+			wp_nonce_field(HCAPTCHA_ACTION, HCAPTCHA_NONCE) .
 			'</div>';
 
 		return preg_replace(
