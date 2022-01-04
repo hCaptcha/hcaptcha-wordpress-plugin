@@ -53,7 +53,7 @@ composer unit
 ## Frequently Asked Questions
 
 Q: Where can I get more information about hCaptcha?  
-A: Please see our website at: https://hcaptcha.com/
+A: Please see our website at: https://www.hcaptcha.com/
  
 ## Screenshots
 
@@ -61,8 +61,9 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 
 ## Credits
 
-* Initial version: Alex Vilchynskyy + intercrypt team
-* Current version and maintainer: hCaptcha team
+* Initial version: Alex V. + intercrypt team
+* Major upgrade + 100% test coverage: kaggdesign
+* Current version and maintainer: hCaptcha team + community
 
 ## Support
 
@@ -94,7 +95,7 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 
 **Please note**
 
-Some plugins listed have been superseded by native support, and are included only for legacy purposes.
+Some plugins listed have been superseded by native support, and are included only for legacy compatibility purposes.
 
 You should always use native hCaptcha support if available for your plugin.
 Please check with your plugin author if native support is not yet available.
