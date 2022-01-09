@@ -71,6 +71,34 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test init().
+	 *
+	 * @return void
+	 */
+	public function test_init() {
+		global $hcaptcha_wordpress_plugin;
+
+		// Plugin was loaded by codeception.
+		self::assertSame(
+			- PHP_INT_MAX,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
+
+		remove_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ], -PHP_INT_MAX );
+
+		self::assertFalse(
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
+
+		$hcaptcha_wordpress_plugin->init();
+
+		self::assertSame(
+			- PHP_INT_MAX,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
+	}
+
+	/**
 	 * Test init() and init_hooks().
 	 *
 	 * @param boolean $logged_in                   User is logged in.
