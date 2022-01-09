@@ -112,6 +112,9 @@ class Main {
 	 * Print inline styles.
 	 */
 	public function print_inline_styles() {
+		if ( ! $this->form_shown ) {
+			return;
+		}
 		?>
 		<style>
 			.h-captcha:not([data-size="invisible"]) {
@@ -306,6 +309,11 @@ class Main {
 				'hcaptcha_wpforms_pro_status',
 				'wpforms/wpforms.php',
 				'wpforms/wpforms.php',
+			],
+			'Fluent Forms'               => [
+				'hcaptcha_fluent_status',
+				'fluentform/fluentform.php',
+				FluentForm\Form::class,
 			],
 			'wpForo New Topic'           => [
 				'hcaptcha_wpforo_new_topic_status',
