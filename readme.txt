@@ -205,6 +205,7 @@ Instructions for native integrations are below:
 
 = 1.13.3 =
 * Tested with WodPress 5.9 and WooCommerce 6.0.
+* Added support for WP Fluent Forms.
 * Fixed regex for non-standard Order Tracking form.
 
 = 1.13.2 =
