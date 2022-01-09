@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.4
-Tested up to: 5.8
+Tested up to: 5.9
 Requires PHP: 5.6  
-Stable tag: 1.13.2
+Stable tag: 1.13.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -202,6 +202,10 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.13.3 =
+* Tested with WodPress 5.9 and WooCommerce 6.0.
+* Fixed regex for non-standard Order Tracking form.
 
 = 1.13.2 =
 * Added support for non-standard WC Order Tracking form.
