@@ -221,7 +221,7 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on WPForms Pro', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
-        'hcaptcha_fluentform_status'          => [
+		'hcaptcha_fluentform_status'           => [
 			'label' => __( 'Enable hCaptcha on Fluent Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],

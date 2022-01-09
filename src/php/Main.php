@@ -310,7 +310,7 @@ class Main {
 				'wpforms/wpforms.php',
 				'wpforms/wpforms.php',
 			],
-			'Fluent Forms'                => [
+			'Fluent Forms'               => [
 				'hcaptcha_fluent_status',
 				'fluentform/fluentform.php',
 				FluentForm\Form::class,
