@@ -53,6 +53,9 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $insert_data, $data, $form ) {
+		$_POST['hcaptcha_fluentform_nonce'] = $data['hcaptcha_fluentform_nonce'];
+		$_POST['h-captcha-response']        = $data['h-captcha-response'];
+
 		$error_message = hcaptcha_get_verify_message(
 			'hcaptcha_fluentform_nonce',
 			'hcaptcha_fluentform'
