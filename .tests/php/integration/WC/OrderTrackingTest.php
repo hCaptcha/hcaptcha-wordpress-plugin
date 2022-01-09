@@ -78,6 +78,11 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, [], [] ) );
 
+		$output   = str_replace( '<p class="form-row"><button type="submit"', '<p class="form-actions"><button type="submit"', $output );
+		$expected = str_replace( '<p class="form-row"><button type="submit"', '<p class="form-actions"><button type="submit"', $expected );
+
+		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, [], [] ) );
+
 		$output   = str_replace( '<p class="form-row"><button type="submit"', "<p class=\"form-actions\"> \t\n <button type=\"submit\"", $output );
 		$expected = str_replace( '<p class="form-row"><button type="submit"', "<p class=\"form-actions\"> \t\n <button type=\"submit\"", $expected );
 
