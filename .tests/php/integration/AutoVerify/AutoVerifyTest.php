@@ -14,7 +14,6 @@ namespace HCaptcha\Tests\Integration\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use WPDieException;
 
 /**
  * Test AutoVerify class.
@@ -22,20 +21,13 @@ use WPDieException;
  * @group auto-verify
  */
 class AutoVerifyTest extends HCaptchaWPTestCase {
-	/**
-	 * Disable wp_die.
-	 *
-	 * @var bool
-	 */
-	private $disable_wp_die = false;
 
 	/**
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['_wp_die_disabled'], $GLOBALS['current_screen'] );
+		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );
 		delete_transient( AutoVerify::TRANSIENT );
-		$this->disable_wp_die = false;
 
 		parent::tearDown();
 	}
@@ -284,16 +276,34 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI']    = $request_uri;
 
 		$_POST['test_input'] = 'some input';
+		$die_arr             = [];
+		$expected            = [
+			'Please complete the captcha.',
+			'hCaptcha',
+			[
+				'back_link' => true,
+				'response'  => 403,
+			],
+		];
 
 		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
 
-		$this->disable_wp_die = true;
+		add_filter(
+			'wp_die_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
 
 		$subject = new AutoVerify();
 		$subject->verify_form();
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( [], $_POST );
+
+		self::assertSame( $expected, $die_arr );
 	}
 
 	/**
@@ -324,21 +334,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( $expected, $_POST );
-	}
-
-	/**
-	 * WP die handler.
-	 *
-	 * @param string $message Message.
-	 *
-	 * @throws WPDieException WPDieException.
-	 */
-	public function wp_die_handler( $message ) {
-		if ( $this->disable_wp_die ) {
-			return;
-		}
-
-		parent::wp_die_handler( $message );
 	}
 
 	/**
