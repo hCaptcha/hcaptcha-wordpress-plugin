@@ -1,6 +1,6 @@
 <?php
 /**
- * Register class file.
+ * Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -30,27 +30,31 @@ class Form {
 	/**
 	 * Action that fires immediately before the submit button element is displayed.
 	 *
-	 * @link  https://fluentforms.com/docs/fluentform_after_form_render
-	 * @param array $form Form data and settings...
+	 * @link         https://fluentforms.com/docs/fluentform_after_form_render
+	 *
+	 * @param array $form Form data and settings.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $form ) {
-		hcap_form_display( 'hcaptcha_fluentform', 'hcaptcha_fluentform_nounce' );
+		hcap_form_display( 'hcaptcha_fluentform', 'hcaptcha_fluentform_nonce' );
 	}
 
 	/**
 	 * Action that fires during form entry processing after initial field validation.
 	 *
-	 * @link  https://fluentforms.com/docs/fluentform_before_insert_submission
+	 * @link         https://fluentforms.com/docs/fluentform_before_insert_submission
 	 *
-	 * @param  array $insertData    Sanitized entry field. values/properties.
-	 * @param  array $data          Original $_POST global.
-	 * @param  array $form          Form data and settings.
+	 * @param array $insert_data Sanitized entry field. values/properties.
+	 * @param array $data        Original $_POST global.
+	 * @param array $form        Form data and settings.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $insertData, $data, $form ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+	public function verify( $insert_data, $data, $form ) {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_fluentform_nounce',
+			'hcaptcha_fluentform_nonce',
 			'hcaptcha_fluentform'
 		);
 
@@ -61,9 +65,7 @@ class Form {
 		wp_send_json(
 			[
 				'errors' => [
-					'g-recaptcha-response' => [
-						$error_message,
-					],
+					'g-recaptcha-response' => [ $error_message ],
 				],
 			],
 			422

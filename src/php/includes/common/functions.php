@@ -169,6 +169,10 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
+		'hcaptcha_fluentform_status'           => [
+			'label' => __( 'Enable hCaptcha on Fluent Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
 		'hcaptcha_jetpack_cf_status'           => [
 			'label' => __( 'Enable hCaptcha on Jetpack Contact Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
@@ -219,10 +223,6 @@ function hcap_options() {
 		],
 		'hcaptcha_wpforms_pro_status'          => [
 			'label' => __( 'Enable hCaptcha on WPForms Pro', 'hcaptcha-for-forms-and-more' ),
-			'type'  => 'checkbox',
-		],
-		'hcaptcha_fluentform_status'           => [
-			'label' => __( 'Enable hCaptcha on Fluent Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_wpforo_new_topic_status'     => [
