@@ -210,6 +210,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_fluentform_status"
+					name="hcaptcha_fluentform_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Fluent Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_jetpack_cf_status"
 					name="hcaptcha_jetpack_cf_status"
 				/>
@@ -566,6 +574,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Elementor Pro Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_fluentform_status"
+					name="hcaptcha_fluentform_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Fluent Form</span>
 			<br><br>
 						<input
 					type="checkbox"
