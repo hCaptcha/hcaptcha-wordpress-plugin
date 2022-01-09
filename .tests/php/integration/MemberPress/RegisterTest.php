@@ -11,7 +11,7 @@ use HCaptcha\MemberPress\Register;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
- * Test RegisterTest class.
+ * Test Register class.
  *
  * @group memberpress
  */
