@@ -23,7 +23,7 @@ class Form {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_action( 'fluentform_form_element_start', [ $this, 'add_captcha' ], 10, 1 );
+		add_action( 'fluentform_render_item_submit_button', [ $this, 'add_captcha' ] );
 		add_action( 'fluentform_before_insert_submission', [ $this, 'verify' ], 10, 3 );
 	}
 
