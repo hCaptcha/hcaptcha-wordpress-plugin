@@ -10,6 +10,7 @@
 /CHANGELOG.md
 /README.md
 /Thumbs.db
+/auth.json
 /composer.json
 /composer.lock
 /phpcs.xml

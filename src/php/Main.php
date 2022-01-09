@@ -13,10 +13,11 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\NF\NF;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
-use HCaptcha\NF\NF;
 use HCaptcha\WP\Comment;
 
 /**
@@ -241,6 +242,11 @@ class Main {
 				'hcaptcha_elementor__pro_form_status',
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
+			],
+			'Fluent Forms'               => [
+				'hcaptcha_fluentform_status',
+				'fluentform/fluentform.php',
+				Form::class,
 			],
 			'Jetpack'                    => [
 				'hcaptcha_jetpack_cf_status',

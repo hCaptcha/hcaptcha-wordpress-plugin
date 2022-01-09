@@ -44,11 +44,11 @@ class OrderTracking {
 
 		$hcap_form =
 			'<div class="form-row"  style="margin-top: 2rem;">' .
-			hcap_form( '', '', true ) .
+			hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true ) .
 			'</div>';
 
 		return preg_replace(
-			'/(<p class="form-row"><button type="submit"|<p class="form-actions">[\S\s]+?<button type="submit")/i',
+			'/(<p class="form-row"><button type="submit"|<p class="form-actions">[\S\s]*?<button type="submit")/i',
 			$hcap_form . '$1',
 			$output,
 			1

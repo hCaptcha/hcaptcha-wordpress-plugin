@@ -36,6 +36,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 		$site_key = 'some api key';
 		$theme    = 'some theme';
 		$size     = 'some size';
+		$nonce    = wp_nonce_field( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true, false );
 
 		update_option( 'hcaptcha_api_key', $site_key );
 		update_option( 'hcaptcha_theme', $theme );
@@ -69,12 +70,17 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 			data-size="' . $size . '"
 						data-auto="true">
 	</div>
-	</div><p class="form-row"><button type="submit" class="button" name="track" value="Track">Track</button></p>
+	' . $nonce . '</div><p class="form-row"><button type="submit" class="button" name="track" value="Track">Track</button></p>
 	<input type="hidden" id="woocommerce-order-tracking-nonce" name="woocommerce-order-tracking-nonce" value="3f0f69409a" /><input type="hidden" name="_wp_http_referer" value="/wc-order-tracking/" />
 </form>
 </div>';
 
 		$subject = new OrderTracking();
+
+		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, [], [] ) );
+
+		$output   = str_replace( '<p class="form-row"><button type="submit"', '<p class="form-actions"><button type="submit"', $output );
+		$expected = str_replace( '<p class="form-row"><button type="submit"', '<p class="form-actions"><button type="submit"', $expected );
 
 		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, [], [] ) );
 
