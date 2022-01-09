@@ -181,6 +181,14 @@ class Main {
 			HCAPTCHA_VERSION,
 			true
 		);
+
+		wp_enqueue_script(
+			'hcaptcha-elementor-pro-frontend',
+			HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
+			[ 'jquery', 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

@@ -203,6 +203,9 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
+= 1.13.4 =
+* Added support for hCaptcha in Elementor Popup.
+
 = 1.13.3 =
 * Tested with WodPress 5.9 and WooCommerce 6.0.
 * Added support for WP Fluent Forms.
