@@ -32,6 +32,8 @@ class NavTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test hcaptcha_options() with non-privileged user.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcaptcha_options_no_priv(): void {
 		self::assertFalse( function_exists( 'hcap_display_options_page' ) );
@@ -49,8 +51,8 @@ class NavTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'wp_die_handler',
-			function ( $name ) use ( &$die_arr ) {
-				return function ( $message, $title, $args ) use ( &$die_arr ) {
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
 					$die_arr = [ $message, $title, $args ];
 				};
 			}
