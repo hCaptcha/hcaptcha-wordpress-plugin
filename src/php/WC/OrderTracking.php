@@ -44,7 +44,7 @@ class OrderTracking {
 
 		$hcap_form =
 			'<div class="form-row"  style="margin-top: 2rem;">' .
-			hcap_form( '', '', true ) .
+			hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true ) .
 			'</div>';
 
 		return preg_replace(
