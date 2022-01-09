@@ -49,4 +49,42 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
+
+	/**
+	 * Test verify().
+	 *
+	 * @return void
+	 */
+	public function test_verify() {
+		$subject = new Register();
+
+		$errors = [ 'some errors' ];
+
+		$this->prepare_hcaptcha_get_verify_message(
+			'hcaptcha_memberpress_register_nonce',
+			'hcaptcha_memberpress_register'
+		);
+
+		self::assertSame( $errors, $subject->verify( $errors ) );
+	}
+
+	/**
+	 * Test verify().
+	 *
+	 * @return void
+	 */
+	public function test_verify_no_success() {
+		$subject = new Register();
+
+		$errors        = [ 'some errors' ];
+		$error_message = array_merge( $errors, [ 'The Captcha is invalid.' ] );
+
+		$this->prepare_hcaptcha_get_verify_message(
+			'hcaptcha_memberpress_register_nonce',
+			'hcaptcha_memberpress_register',
+			false
+		);
+
+		self::assertSame( $error_message, $subject->verify( $errors ) );
+	}
 }
