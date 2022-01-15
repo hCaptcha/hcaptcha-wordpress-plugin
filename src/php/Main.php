@@ -157,6 +157,8 @@ class Main {
 	 * Add the hcaptcha script to footer.
 	 */
 	public function print_footer_scripts() {
+		global $hcaptcha_wordpress_plugin;
+
 		if ( is_admin() ) {
 			return;
 		}
@@ -182,13 +184,15 @@ class Main {
 			true
 		);
 
-		wp_enqueue_script(
-			'hcaptcha-elementor-pro-frontend',
-			HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
-			[ 'jquery', 'hcaptcha' ],
-			HCAPTCHA_VERSION,
-			true
-		);
+		if ( array_key_exists( HCaptchaHandler::class, $hcaptcha_wordpress_plugin->loaded_classes ) ) {
+			wp_enqueue_script(
+				'hcaptcha-elementor-pro-frontend',
+				HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
+				[ 'jquery', 'hcaptcha' ],
+				HCAPTCHA_VERSION,
+				true
+			);
+		}
 	}
 
 	/**
