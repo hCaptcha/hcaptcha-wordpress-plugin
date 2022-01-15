@@ -186,6 +186,7 @@ Please see the hCaptcha privacy policy at:
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
+* WP Fluent Forms
 * WPForms Lite
 * wpForo New Topic Form
 * wpForo Reply Form
@@ -204,7 +205,9 @@ Instructions for native integrations are below:
 == Changelog ==
 
 = 1.13.4 =
+* Tested with WooCommerce 6.1.
 * Added support for hCaptcha in Elementor Popup.
+* Fixed WooCommerce login when hCaptcha for WP login is active.
 
 = 1.13.3 =
 * Tested with WodPress 5.9 and WooCommerce 6.0.
