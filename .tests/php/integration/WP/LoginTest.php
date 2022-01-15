@@ -34,10 +34,16 @@ class LoginTest extends HCaptchaWPTestCase {
 			10,
 			has_action( 'wp_authenticate_user', [ $subject, 'verify' ] )
 		);
-
 		self::assertSame(
 			10,
 			has_action( 'login_head', [ $subject, 'login_head' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter(
+				'woocommerce_login_credentials',
+				[ $subject, 'remove_filter_wp_authenticate_user' ]
+			)
 		);
 	}
 
@@ -112,4 +118,30 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
+
+	/**
+	 * Test remove_filter_wp_authenticate_user().
+	 *
+	 * Must be after test_load_modules().
+	 */
+	public function test_remove_filter_wp_authenticate_user() {
+		$subject = new Login();
+
+		self::assertSame(
+			10,
+			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
+		);
+
+		$credentials = [
+			'user_login'    => 'KAGG',
+			'user_password' => 'Design',
+			'remember'      => false,
+		];
+		self::assertSame( $credentials, apply_filters( 'woocommerce_login_credentials', $credentials ) );
+
+		self::assertFalse(
+			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
+		);
+	}
+
 }

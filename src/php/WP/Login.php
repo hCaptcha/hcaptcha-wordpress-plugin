@@ -28,8 +28,8 @@ class Login {
 	private function init_hooks() {
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-
 		add_action( 'login_head', [ $this, 'login_head' ] );
+		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 	}
 
 	/**
@@ -81,5 +81,18 @@ class Login {
 			}
 		</style>
 		<?php
+	}
+
+	/**
+	 * Remove standard WP login captcha if we do logging in via WC.
+	 *
+	 * @param array $credentials Credentials.
+	 *
+	 * @return array
+	 */
+	public function remove_filter_wp_authenticate_user( $credentials ) {
+		remove_filter( 'wp_authenticate_user', [ $this, 'verify' ] );
+
+		return $credentials;
 	}
 }
