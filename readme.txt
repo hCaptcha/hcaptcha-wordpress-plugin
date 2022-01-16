@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.9
 Requires PHP: 5.6  
-Stable tag: 1.13.3
+Stable tag: 1.13.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -186,6 +186,7 @@ Please see the hCaptcha privacy policy at:
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
+* WP Fluent Forms
 * WPForms Lite
 * wpForo New Topic Form
 * wpForo Reply Form
@@ -203,8 +204,15 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
+= 1.13.4 =
+* Tested with WooCommerce 6.1.
+* Added support for hCaptcha in Elementor Popup.
+* Fixed WooCommerce login when hCaptcha for WP login is active.
+* Fixed issue with Safari version < 14.
+
 = 1.13.3 =
 * Tested with WodPress 5.9 and WooCommerce 6.0.
+* Added support for WP Fluent Forms.
 * Fixed regex for non-standard Order Tracking form.
 
 = 1.13.2 =

@@ -44,7 +44,7 @@ const HCAPTCHA_TEST_URL = 'https://site.org/wp-content/plugins/hcaptcha-wordpres
 /**
  * Main plugin file.
  */
-const CYR_TO_LAT_TEST_FILE = PLUGIN_MAIN_FILE;
+const HCAPTCHA_TEST_FILE = PLUGIN_MAIN_FILE;
 
 FunctionMocker::init(
 	[

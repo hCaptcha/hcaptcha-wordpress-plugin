@@ -48,13 +48,6 @@ class LoginTest extends HCaptchaWPTestCase {
 			10,
 			has_action( 'woocommerce_process_login_errors', [ $subject, 'verify' ] )
 		);
-		self::assertSame(
-			10,
-			has_filter(
-				'woocommerce_login_credentials',
-				[ $subject, 'remove_filter_wp_authenticate_user' ]
-			)
-		);
 	}
 
 	/**
@@ -100,39 +93,5 @@ class LoginTest extends HCaptchaWPTestCase {
 		$subject = new Login();
 
 		self::assertEquals( $expected, $subject->verify( $validation_error ) );
-	}
-
-	/**
-	 * Test remove_filter_wp_authenticate_user().
-	 *
-	 * Must be after test_load_modules().
-	 */
-	public function test_remove_filter_wp_authenticate_user() {
-		global $hcaptcha_wordpress_plugin;
-
-		$wp_login_class = \HCaptcha\WP\Login::class;
-		$wp_login       = new $wp_login_class();
-
-		$hcaptcha_wordpress_plugin->loaded_classes[ $wp_login_class ] = $wp_login;
-
-		new Login();
-
-		add_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ], 10, 2 );
-
-		self::assertSame(
-			10,
-			has_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] )
-		);
-
-		$credentials = [
-			'user_login'    => 'KAGG',
-			'user_password' => 'Design',
-			'remember'      => false,
-		];
-		self::assertSame( $credentials, apply_filters( 'woocommerce_login_credentials', $credentials ) );
-
-		self::assertFalse(
-			has_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] )
-		);
 	}
 }

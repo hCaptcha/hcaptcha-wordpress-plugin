@@ -1,0 +1,13 @@
+{
+  "env": {
+    "browser": true,
+    "jest": true,
+    "es2017": true
+  },
+  "extends": [
+    "plugin:@wordpress/eslint-plugin/recommended"
+  ],
+  "parserOptions": {
+    "sourceType": "module"
+  }
+}

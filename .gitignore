@@ -1,5 +1,7 @@
 .codeception/_output/
 .idea/
+assets/js/hcaptcha/
+node_modules/
 vendor/
 
 *.lock

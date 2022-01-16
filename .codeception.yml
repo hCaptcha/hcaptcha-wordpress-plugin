@@ -20,17 +20,5 @@ coverage:
     high_limit: 90
     show_only_summary: true
     include:
-        - ./backend/*
-        - ./bbp/*
-        - ./bp/*
-        - ./common/*
-        - ./default/*
-        - ./jetpack/*
-        - ./mailchimp/*
         - ./src/php/*
-        - ./subscriber/*
-        - ./wc/*
-        - ./wc_wl/*
-        - ./wpforms/*
-        - ./wpforo/*
         - ./hcaptcha.php

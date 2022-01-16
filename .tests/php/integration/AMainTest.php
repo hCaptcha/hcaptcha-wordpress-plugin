@@ -25,8 +25,9 @@ use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
+use Mockery;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
+use stdClass;
 
 /**
  * Test Main class.
@@ -51,10 +52,20 @@ class AMainTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		global $hcaptcha_wordpress_plugin;
 
-		unset( $GLOBALS['current_user'], $GLOBALS['current_screen'] );
+		unset(
+			$GLOBALS['current_user'],
+			$GLOBALS['current_screen'],
+			$hcaptcha_wordpress_plugin->loaded_classes[ HCaptchaHandler::class ]
+		);
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
+
+		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
+		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
+
+		wp_dequeue_script( 'jquery' );
+		wp_deregister_script( 'jquery' );
 
 		delete_option( 'hcaptcha_recaptchacompat' );
 		delete_option( 'hcaptcha_language' );
@@ -62,6 +73,34 @@ class AMainTest extends HCaptchaWPTestCase {
 		$hcaptcha_wordpress_plugin->form_shown = false;
 
 		parent::tearDown();
+	}
+
+	/**
+	 * Test init().
+	 *
+	 * @return void
+	 */
+	public function test_init() {
+		global $hcaptcha_wordpress_plugin;
+
+		// Plugin was loaded by codeception.
+		self::assertSame(
+			- PHP_INT_MAX,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
+
+		remove_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ], -PHP_INT_MAX );
+
+		self::assertFalse(
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
+
+		$hcaptcha_wordpress_plugin->init();
+
+		self::assertSame(
+			- PHP_INT_MAX,
+			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
+		);
 	}
 
 	/**
@@ -206,7 +245,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_and_init_hooks_on_xml_rpc_request() {
-		$subject = \Mockery::mock( Main::class )->shouldAllowMockingProtectedMethods()->makePartial();
+		$subject = Mockery::mock( Main::class )->shouldAllowMockingProtectedMethods()->makePartial();
 		$subject->shouldReceive( 'is_xml_rpc' )->andReturn( true );
 
 		$subject->init();
@@ -350,13 +389,60 @@ class AMainTest extends HCaptchaWPTestCase {
 		update_option( 'hcaptcha_recaptchacompat', $compat );
 		update_option( 'hcaptcha_language', $language );
 
+		// Test when Elementor Pro is not loaded.
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		$scripts = ob_get_clean();
 
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
+
+		$hcaptcha = wp_scripts()->registered['hcaptcha'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha/app.js', $hcaptcha->src );
+		self::assertSame( [], $hcaptcha->deps );
+		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
+		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
+
+		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
+
+		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
+
+		// Test when Elementor Pro is loaded.
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
+
+		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
+		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
+
+		wp_dequeue_script( 'jquery' );
+		wp_deregister_script( 'jquery' );
+
+		$hcaptcha_wordpress_plugin->loaded_classes[ HCaptchaHandler::class ] = new stdClass();
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		$scripts = ob_get_clean();
+
+		self::assertTrue( wp_script_is( 'hcaptcha' ) );
+
+		$hcaptcha = wp_scripts()->registered['hcaptcha'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha/app.js', $hcaptcha->src );
+		self::assertSame( [], $hcaptcha->deps );
+		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
+		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
+
+		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
+
+		$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro-frontend'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js', $hcaptcha_elementor_pro_frontend->src );
+		self::assertSame( [ 'jquery', 'hcaptcha' ], $hcaptcha_elementor_pro_frontend->deps );
+		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro_frontend->ver );
+		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro_frontend->extra );
 
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 	}
