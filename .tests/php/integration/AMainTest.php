@@ -400,7 +400,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 
 		$hcaptcha = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha.js', $hcaptcha->src );
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha/app.js', $hcaptcha->src );
 		self::assertSame( [], $hcaptcha->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
@@ -431,7 +431,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 
 		$hcaptcha = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha.js', $hcaptcha->src );
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha/app.js', $hcaptcha->src );
 		self::assertSame( [], $hcaptcha->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
