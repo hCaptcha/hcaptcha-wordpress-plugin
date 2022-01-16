@@ -208,6 +208,7 @@ Instructions for native integrations are below:
 * Tested with WooCommerce 6.1.
 * Added support for hCaptcha in Elementor Popup.
 * Fixed WooCommerce login when hCaptcha for WP login is active.
+* Fixed issue with Safari version < 14.
 
 = 1.13.3 =
 * Tested with WodPress 5.9 and WooCommerce 6.0.

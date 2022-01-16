@@ -5,15 +5,20 @@
 /.codeception.yml
 /.distignore
 /.editorconfig
+/.eslintrc.json
 /.gitignore
 /.phpcs.cache
 /CHANGELOG.md
 /README.md
 /Thumbs.db
 /auth.json
+/babel.config.json
 /composer.json
 /composer.lock
+/package.json
 /phpcs.xml
+/webpack.config.js
+/yarn.lock
 
 # Directories
 /.codeception
@@ -23,3 +28,4 @@
 /.tests
 /.wordpress-org
 /bin
+/node_modules
