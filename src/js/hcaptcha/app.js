@@ -8,8 +8,8 @@ import HCaptcha from './hcaptcha';
 
 const hCaptcha = new HCaptcha();
 
-window.hCaptchaGetWidgetId = () => {
-	hCaptcha.getWidgetId();
+window.hCaptchaGetWidgetId = ( el ) => {
+	hCaptcha.getWidgetId( el );
 };
 
 window.hCaptchaBindEvents = () => {
