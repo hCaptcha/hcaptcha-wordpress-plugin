@@ -229,6 +229,11 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on Divi Contact Form',
 					'type'  => 'checkbox',
 				],
+			'hcaptcha_divi_lf_status'              =>
+				[
+					'label' => 'Enable hCaptcha on Divi Login Form',
+					'type'  => 'checkbox',
+				],
 			'hcaptcha_elementor__pro_form_status'  =>
 				[
 					'label' => 'Enable hCaptcha on Elementor Pro Form',

@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
+use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\NF\NF;
@@ -657,10 +658,20 @@ class AMainTest extends HCaptchaWPTestCase {
 				'Divi',
 				Contact::class,
 			],
+			'Divi Login Form'            => [
+				'hcaptcha_divi_lf_status',
+				'Divi',
+				\HCaptcha\Divi\Login::class,
+			],
 			'Elementor Pro Form'         => [
 				'hcaptcha_elementor__pro_form_status',
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
+			],
+			'Fluent Forms'               => [
+				'hcaptcha_fluentform_status',
+				'fluentform/fluentform.php',
+				Form::class,
 			],
 			'Jetpack'                    => [
 				'hcaptcha_jetpack_cf_status',

@@ -250,6 +250,11 @@ class Main {
 				'Divi',
 				Contact::class,
 			],
+			'Divi Login Form'            => [
+				'hcaptcha_divi_lf_status',
+				'Divi',
+				Divi\Login::class,
+			],
 			'Elementor Pro Form'         => [
 				'hcaptcha_elementor__pro_form_status',
 				'elementor-pro/elementor-pro.php',

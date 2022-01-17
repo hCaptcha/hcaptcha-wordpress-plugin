@@ -18,6 +18,16 @@ class Contact {
 	const TAG = 'et_pb_contact_form';
 
 	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_divi_cf';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_divi_cf_nonce';
+
+	/**
 	 * Render counter.
 	 *
 	 * @var int
@@ -68,7 +78,7 @@ class Contact {
 		$search  = '<div class="et_contact_bottom_container">';
 		$replace =
 			'<div style="float:right;">' .
-			hcap_form( 'hcaptcha_divi_cf', 'hcaptcha_divi_cf_nonce' ) .
+			hcap_form( self::ACTION, self::NONCE ) .
 			'</div>' .
 			"\n" .
 			'<div style="clear: both;"></div>' .
@@ -133,11 +143,7 @@ class Contact {
 				$_POST[ $current_form_field ] = $fields_data_json;
 			}
 
-			$error_message = hcaptcha_get_verify_message(
-				'hcaptcha_divi_cf_nonce',
-				'hcaptcha_divi_cf'
-			);
-
+			$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
 			if ( null !== $error_message ) {
 				// Simulate captcha error.
 				$this->captcha = 'on';

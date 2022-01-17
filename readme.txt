@@ -174,6 +174,7 @@ Please see the hCaptcha privacy policy at:
 * Buddypress Registration Form
 * Contact Form 7
 * Divi Contact Form
+* Divi Login Form
 * Elementor Pro Form
 * Jetpack Forms
 * Mailchimp for WP Form
@@ -203,6 +204,9 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.14.0 =
+* Added support for Divi Login form.
 
 = 1.13.4 =
 * Tested with WooCommerce 6.1.
