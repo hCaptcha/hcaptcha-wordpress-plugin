@@ -318,6 +318,30 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hcap_language filter in get_api_src().
+	 *
+	 * @return void
+	 */
+	public function test_hcap_language_filter_in_get_api_scr() {
+		$language          = 'en';
+		$filtered_language = 'de';
+		$expected          = 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=' . $filtered_language;
+
+		update_option( 'hcaptcha_language', $language );
+
+		add_filter(
+			'hcap_language',
+			static function ( $language ) use ( $filtered_language ) {
+				return $filtered_language;
+			}
+		);
+
+		$subject = new Main();
+
+		self::assertSame( $expected, $subject->get_api_src() );
+	}
+
+	/**
 	 * Test print_footer_scripts().
 	 *
 	 * @param string|false $compat              Compat option value.

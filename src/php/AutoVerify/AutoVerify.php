@@ -345,6 +345,7 @@ class AutoVerify {
 		set_transient(
 			self::TRANSIENT,
 			$registered_forms,
+			/** This filter is documented in wp-includes/pluggable.php. */
 			apply_filters( 'nonce_life', DAY_IN_SECONDS )
 		);
 	}

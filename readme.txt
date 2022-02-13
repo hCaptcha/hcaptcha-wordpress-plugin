@@ -35,7 +35,7 @@ hCaptcha allows websites to earn rewards while serving this demand while blockin
  
 == Installation ==
  
-1. Upload `hcaptcha-wp` folder to the `/wp-content/plugins/` directory  
+1. Upload `hcaptcha-wordpress-plugin` folder to the `/wp-content/plugins/` directory  
 2. Activate the plugin through the 'Plugins' menu in WordPress  
 3. Enter your site key and SECRET in the Settings -> hCaptcha menu in WordPress  
 4. Enable desired Integrations  
@@ -90,7 +90,7 @@ If you create the form programmatically, insert the following statement inside i
 do_shortcode( 'hcaptcha' );
 `
 
-Secondly, verify the result of hcaptcha challenge.
+Secondly, verify the result of hCaptcha challenge.
 
 `
 $result = hcaptcha_request_verify();
@@ -112,7 +112,7 @@ and insert this shortcode into your form.
 
 Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but we have plans to extend the functionality.
 
-= How to block hcaptcha on specific page? =
+= How to block hCaptcha on specific page? =
 
 hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add this code to your theme's `functions.php` file:
 
@@ -126,7 +126,7 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
   */
   function my_hcap_activate( $activate ) {
   $url = isset( $_SERVER['REQUEST_URI'] ) ?
-  filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
+  filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
   '';
 
   if ( '/my-account/' === $url ) {
@@ -137,6 +137,49 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
   }
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
+`
+
+= How to show hCaptcha widget instantly? =
+
+The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.
+
+To load the hCaptcha widget instantly, you can use the following filter:
+`
+/**
+* Filters delay time for hCaptcha API script.
+*
+* Any negative value will prevent API script from loading at all,
+* until user interaction: mouseenter, click, scroll or touch.
+* This significantly improves Google Pagespeed Insights score.
+*
+* @param int $delay Number of milliseconds to delay hCaptcha API script.
+*                   Any negative value means delay until user interaction.
+*/
+function my_hcap_delay_api( $delay ) {
+  return 0;
+}
+
+add_filter( 'hcap_delay_api', 'my_hcap_delay_api' );
+`
+
+= How to set hCaptcha language programmatically? =
+
+On multilingual sites it is needed to set hCaptcha language depending on the current page language. For this, you can use the following filter:
+
+`
+/**
+* Filters hCaptcha language.
+*
+* @param string $language Language.
+*/
+function my_hcap_language( $language ) {
+  // Detect page language and return it.
+  $page_language = 'some lang'; // Detection depends on the multilingual plugin used.
+
+  return $page_language;
+  }
+
+add_filter( 'hcap_language', 'my_hcap_language' );
 `
 
 = Why isn't my WPForms Lite installation working? =
@@ -209,6 +252,7 @@ Instructions for native integrations are below:
 * Tested with WooCommerce 6.2.
 * Added support for PHP 8.1.
 * Added support for Divi Login form.
+* Added hCaptcha language filter.
 
 = 1.13.4 =
 * Tested with WooCommerce 6.1.
@@ -238,7 +282,7 @@ Instructions for native integrations are below:
 * Added support for MemberPress Register form.
 * Added support for WooCommerce Order Tracking form.
 * Fixed layout on the WP login form.
-* Fixed issue with insertion of hcaptcha not only to Jetpack forms.
+* Fixed issue with insertion of hCaptcha not only to Jetpack forms.
 * Fixed regex bug in auto verify feature, which prevented registering of forms.
 
 = 1.12.0 =
@@ -263,13 +307,13 @@ Instructions for native integrations are below:
 * Fixed issue with WC login form when WP login form option is on.
 * Added feature to turn off the plugin for logged in users.
 * Added hook to disable the plugin on specific pages.
-* Added feature to run hcaptcha script and styles on pages where it is used only.
+* Added feature to run hCaptcha script and styles on pages where it is used only.
 
 = 1.9.2 =
 * Fixed issue with WooCommerce on my-account page - captcha was requested even if solved properly.
 
 = 1.9.1 =
-* Fixed issue with Contact Form 7 - reset hcaptcha widget when form is not validated.
+* Fixed issue with Contact Form 7 - reset hCaptcha widget when form is not validated.
 
 = 1.9.0 =
 * Tested with WordPress 5.7 and WooCommerce 5.0

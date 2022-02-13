@@ -74,6 +74,11 @@ function hcap_shortcode( $atts ) {
 
 	$atts['auto'] = filter_var( $atts['auto'], FILTER_VALIDATE_BOOLEAN );
 
+	/**
+	 * Filters the content of the hcaptcha form.
+	 *
+	 * @param string $form The hcaptcha form.
+	 */
 	return apply_filters( 'hcap_hcaptcha_content', hcap_form( $atts['action'], $atts['name'], $atts['auto'] ) );
 }
 
