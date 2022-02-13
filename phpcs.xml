@@ -9,8 +9,8 @@
 	<exclude-pattern>*/\.wordpress-org/*</exclude-pattern>
 	<exclude-pattern>*/assets/*</exclude-pattern>
 	<exclude-pattern>*/bin/*</exclude-pattern>
-	<exclude-pattern>*/css/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 
 	<!-- How to scan -->

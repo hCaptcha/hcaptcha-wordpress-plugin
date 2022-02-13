@@ -32,7 +32,7 @@ function hcap_get_user_ip() {
 		if ( array_key_exists( $header, $_SERVER ) ) {
 			$address_chain = explode(
 				',',
-				filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_STRING )
+				filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 			);
 			$client_ip     = trim( $address_chain[0] );
 
@@ -61,18 +61,18 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			if (
 				! isset( $_POST[ HCAPTCHA_NONCE ], $_POST['h-captcha-response'] ) ||
 				empty( $_POST['h-captcha-response'] ) ||
-				! wp_verify_nonce( filter_var( wp_unslash( $_POST[ HCAPTCHA_NONCE ] ), FILTER_SANITIZE_STRING ), HCAPTCHA_ACTION )
+				! wp_verify_nonce( filter_var( wp_unslash( $_POST[ HCAPTCHA_NONCE ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ), HCAPTCHA_ACTION )
 			) {
 				return 'empty';
 			}
 
 			$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-				filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_STRING ) :
+				filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 				'';
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(
-			filter_var( $hcaptcha_response, FILTER_SANITIZE_STRING )
+			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
 
 		if ( '' === $hcaptcha_response_sanitized ) {
@@ -127,13 +127,13 @@ if ( ! function_exists( 'hcaptcha_verify_POST' ) ) {
 		if (
 			! isset( $_POST[ $nonce_field_name ], $_POST['h-captcha-response'] ) ||
 			empty( $_POST['h-captcha-response'] ) ||
-			! wp_verify_nonce( filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_STRING ), $nonce_action_name )
+			! wp_verify_nonce( filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ), $nonce_action_name )
 		) {
 			return 'empty';
 		}
 
 		return hcaptcha_request_verify(
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_STRING )
+			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
 	}
 }

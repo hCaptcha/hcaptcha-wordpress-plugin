@@ -23,14 +23,14 @@ function hcap_display_options_page() {
 	if (
 		isset( $_POST['hcaptcha_settings_nonce'], $_POST['submit'] ) &&
 		wp_verify_nonce(
-			filter_var( wp_unslash( $_POST['hcaptcha_settings_nonce'] ), FILTER_SANITIZE_STRING ),
+			filter_var( wp_unslash( $_POST['hcaptcha_settings_nonce'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
 			'hcaptcha_settings'
 		)
 	) {
 		foreach ( hcap_options() as $option_name => $option ) {
 			$option_value = filter_var(
 				wp_unslash( isset( $_POST[ $option_name ] ) ? $_POST[ $option_name ] : '' ),
-				FILTER_SANITIZE_STRING
+				FILTER_SANITIZE_FULL_SPECIAL_CHARS
 			);
 
 			if ( ! $option_value && 'checkbox' === $option['type'] ) {

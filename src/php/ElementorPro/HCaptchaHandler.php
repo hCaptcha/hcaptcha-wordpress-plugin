@@ -250,7 +250,7 @@ class HCaptchaHandler {
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_STRING ) :
+			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
