@@ -206,6 +206,8 @@ Instructions for native integrations are below:
 == Changelog ==
 
 = 1.14.0 =
+* Tested with WooCommerce 6.2.
+* Added support for PHP 8.1.
 * Added support for Divi Login form.
 
 = 1.13.4 =
