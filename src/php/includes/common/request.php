@@ -113,7 +113,11 @@ if ( ! function_exists( 'hcaptcha_verify_POST' ) ) {
 		if (
 			! isset( $_POST[ $nonce_field_name ], $_POST['h-captcha-response'] ) ||
 			empty( $_POST['h-captcha-response'] ) ||
-			! wp_verify_nonce( filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ), $nonce_action_name )
+			(
+				// Verify nonce for logged-in users only.
+				is_user_logged_in() &&
+				! wp_verify_nonce( filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ), $nonce_action_name )
+			)
 		) {
 			return 'empty';
 		}

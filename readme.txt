@@ -253,6 +253,7 @@ Instructions for native integrations are below:
 * Added support for PHP 8.1.
 * Added support for Divi Login form.
 * Added hCaptcha language filter.
+* Changed nonce verification. Now nonce is verified for logged-in users only.
 
 = 1.13.4 =
 * Tested with WooCommerce 6.1.
