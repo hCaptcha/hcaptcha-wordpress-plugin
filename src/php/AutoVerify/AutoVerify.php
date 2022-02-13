@@ -97,7 +97,7 @@ class AutoVerify {
 			return;
 		}
 
-		if ( 'success' !== hcaptcha_request_verify() ) {
+		if ( 'success' !== hcaptcha_verify_post() ) {
 			$_POST = [];
 			wp_die(
 				esc_html__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
@@ -371,7 +371,7 @@ class AutoVerify {
 		}
 
 		foreach ( $registered_forms[ $request_uri ] as $registered_form ) {
-			// Nonce is verified later, in hcaptcha_request_verify().
+			// Nonce is verified later, in hcaptcha_verify_post().
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( ! empty( array_intersect( array_keys( $_POST ), $registered_form ) ) ) {
 				return true;

@@ -139,24 +139,6 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_request_verify() with no argument.
-	 */
-	public function test_hcaptcha_request_verify_default_success() {
-		$hcaptcha_response = 'some response';
-
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
-
-		self::assertSame( 'success', hcaptcha_request_verify() );
-	}
-
-	/**
-	 * Test hcaptcha_request_verify() with no argument.
-	 */
-	public function test_hcaptcha_request_verify_default_empty() {
-		self::assertSame( 'empty', hcaptcha_request_verify() );
-	}
-
-	/**
 	 * Test hcaptcha_request_verify() with no empty string as argument.
 	 */
 	public function test_hcaptcha_request_verify_default_fail() {
@@ -183,6 +165,24 @@ class RequestTest extends HCaptchaWPTestCase {
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, null );
 
 		self::assertSame( 'fail', hcaptcha_request_verify( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test hcaptcha_verify_POST() with no argument.
+	 */
+	public function test_hcaptcha_verify_POST_default_success() {
+		$hcaptcha_response = 'some response';
+
+		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+
+		self::assertSame( 'success', hcaptcha_verify_POST() );
+	}
+
+	/**
+	 * Test hcaptcha_verify_POST() with no argument.
+	 */
+	public function test_hcaptcha_verify_POST_default_empty() {
+		self::assertSame( 'empty', hcaptcha_verify_POST() );
 	}
 
 	/**

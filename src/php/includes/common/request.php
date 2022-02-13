@@ -56,21 +56,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 *
 	 * @return string fail|success
 	 */
-	function hcaptcha_request_verify( $hcaptcha_response = null ) {
-		if ( null === $hcaptcha_response ) {
-			if (
-				! isset( $_POST[ HCAPTCHA_NONCE ], $_POST['h-captcha-response'] ) ||
-				empty( $_POST['h-captcha-response'] ) ||
-				! wp_verify_nonce( filter_var( wp_unslash( $_POST[ HCAPTCHA_NONCE ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ), HCAPTCHA_ACTION )
-			) {
-				return 'empty';
-			}
-
-			$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-				filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-				'';
-		}
-
+	function hcaptcha_request_verify( $hcaptcha_response ) {
 		$hcaptcha_response_sanitized = htmlspecialchars(
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
@@ -121,7 +107,7 @@ if ( ! function_exists( 'hcaptcha_verify_POST' ) ) {
 	 *
 	 * @return string fail|success|empty
 	 */
-	function hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) {
+	function hcaptcha_verify_POST( $nonce_field_name = HCAPTCHA_NONCE, $nonce_action_name = HCAPTCHA_ACTION ) {
 		// phpcs:enable WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 
 		if (
