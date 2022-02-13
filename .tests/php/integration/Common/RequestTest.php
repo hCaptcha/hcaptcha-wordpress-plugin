@@ -29,7 +29,7 @@ class RequestTest extends HCaptchaWPTestCase {
 			$_SERVER['HTTP_FORWARDED_FOR'],
 			$_SERVER['HTTP_FORWARDED'],
 			$_SERVER['REMOTE_ADDR'],
-			$GLOBALS['current_user'],
+			$GLOBALS['current_user']
 		);
 
 		parent::tearDown();
