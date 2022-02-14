@@ -88,6 +88,11 @@ class Main {
 		// Do not load hCaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
 		$activate = ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) );
 
+		/**
+		 * Filters the hcaptcha activation flag.
+		 *
+		 * @param bool $activate Activate the hcaptcha functionality.
+		 */
 		return (bool) apply_filters( 'hcap_activate', $activate );
 	}
 
@@ -139,12 +144,18 @@ class Main {
 			'render' => 'explicit',
 		];
 
-		$compat   = get_option( 'hcaptcha_recaptchacompat' );
-		$language = get_option( 'hcaptcha_language' );
+		$compat = get_option( 'hcaptcha_recaptchacompat' );
 
 		if ( $compat ) {
 			$params['recaptchacompat'] = 'off';
 		}
+
+		/**
+		 * Filters hCaptcha language.
+		 *
+		 * @param string $language Language.
+		 */
+		$language = (string) apply_filters( 'hcap_language', get_option( 'hcaptcha_language' ) );
 
 		if ( $language ) {
 			$params['hl'] = $language;
@@ -154,7 +165,7 @@ class Main {
 	}
 
 	/**
-	 * Add the hcaptcha script to footer.
+	 * Add the hCaptcha script to footer.
 	 */
 	public function print_footer_scripts() {
 		global $hcaptcha_wordpress_plugin;
@@ -168,12 +179,17 @@ class Main {
 		}
 
 		/**
-		 * Filter delay time for hcaptcha API script.
+		 * Filters delay time for hCaptcha API script.
+		 *
 		 * Any negative value will prevent API script from loading at all,
 		 * until user interaction: mouseenter, click, scroll or touch.
 		 * This significantly improves Google Pagespeed Insights score.
+		 *
+		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
+		 *                   Any negative value means delay until user interaction.
 		 */
 		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
+
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
 		wp_enqueue_script(
@@ -249,6 +265,11 @@ class Main {
 				'hcaptcha_divi_cf_status',
 				'Divi',
 				Contact::class,
+			],
+			'Divi Login Form'            => [
+				'hcaptcha_divi_lf_status',
+				'Divi',
+				Divi\Login::class,
 			],
 			'Elementor Pro Form'         => [
 				'hcaptcha_elementor__pro_form_status',

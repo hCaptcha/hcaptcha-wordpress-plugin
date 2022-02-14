@@ -28,8 +28,10 @@ class RequestTest extends HCaptchaWPTestCase {
 			$_SERVER['HTTP_X_CLUSTER_CLIENT_IP'],
 			$_SERVER['HTTP_FORWARDED_FOR'],
 			$_SERVER['HTTP_FORWARDED'],
-			$_SERVER['REMOTE_ADDR']
+			$_SERVER['REMOTE_ADDR'],
+			$GLOBALS['current_user']
 		);
+
 		parent::tearDown();
 	}
 
@@ -139,24 +141,6 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_request_verify() with no argument.
-	 */
-	public function test_hcaptcha_request_verify_default_success() {
-		$hcaptcha_response = 'some response';
-
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
-
-		self::assertSame( 'success', hcaptcha_request_verify() );
-	}
-
-	/**
-	 * Test hcaptcha_request_verify() with no argument.
-	 */
-	public function test_hcaptcha_request_verify_default_empty() {
-		self::assertSame( 'empty', hcaptcha_request_verify() );
-	}
-
-	/**
 	 * Test hcaptcha_request_verify() with no empty string as argument.
 	 */
 	public function test_hcaptcha_request_verify_default_fail() {
@@ -186,11 +170,37 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hcaptcha_verify_POST() with no argument.
+	 */
+	public function test_hcaptcha_verify_POST_default_success() {
+		$hcaptcha_response = 'some response';
+
+		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+
+		self::assertSame( 'success', hcaptcha_verify_POST() );
+	}
+
+	/**
+	 * Test hcaptcha_verify_POST() with no argument.
+	 */
+	public function test_hcaptcha_verify_POST_default_empty() {
+		self::assertSame( 'empty', hcaptcha_verify_POST() );
+	}
+
+	/**
 	 * Test hcaptcha_verify_POST().
 	 */
 	public function test_hcaptcha_verify_POST() {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
+
+		// Not logged in.
+		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name );
+
+		self::assertSame( 'success', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+
+		// Logged in.
+		wp_set_current_user( 1 );
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name );
 
@@ -217,6 +227,21 @@ class RequestTest extends HCaptchaWPTestCase {
 		$nonce_action_name = 'some nonce action';
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, null );
+
+		self::assertSame( 'empty', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+	}
+
+	/**
+	 * Test hcaptcha_verify_POST() not verified with logged-in user.
+	 */
+	public function test_hcaptcha_verify_POST_not_verified_logged_in() {
+		$nonce_field_name  = 'some nonce field';
+		$nonce_action_name = 'some nonce action';
+
+		$_POST[ $nonce_field_name ]  = 'wrong nonce';
+		$_POST['h-captcha-response'] = 'some response';
+
+		wp_set_current_user( 1 );
 
 		self::assertSame( 'empty', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
 	}

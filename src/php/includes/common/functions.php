@@ -74,6 +74,11 @@ function hcap_shortcode( $atts ) {
 
 	$atts['auto'] = filter_var( $atts['auto'], FILTER_VALIDATE_BOOLEAN );
 
+	/**
+	 * Filters the content of the hcaptcha form.
+	 *
+	 * @param string $form The hcaptcha form.
+	 */
 	return apply_filters( 'hcap_hcaptcha_content', hcap_form( $atts['action'], $atts['name'], $atts['auto'] ) );
 }
 
@@ -163,6 +168,10 @@ function hcap_options() {
 		],
 		'hcaptcha_divi_cf_status'              => [
 			'label' => __( 'Enable hCaptcha on Divi Contact Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_divi_lf_status'              => [
+			'label' => __( 'Enable hCaptcha on Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
 		'hcaptcha_elementor__pro_form_status'  => [

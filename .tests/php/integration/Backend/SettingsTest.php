@@ -202,6 +202,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_divi_lf_status"
+					name="hcaptcha_divi_lf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Divi Login Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_elementor__pro_form_status"
 					name="hcaptcha_elementor__pro_form_status"
 				/>
@@ -566,6 +574,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Divi Contact Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_divi_lf_status"
+					name="hcaptcha_divi_lf_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Divi Login Form</span>
 			<br><br>
 						<input
 					type="checkbox"

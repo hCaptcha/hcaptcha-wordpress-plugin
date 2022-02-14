@@ -18,6 +18,16 @@ class Contact {
 	const TAG = 'et_pb_contact_form';
 
 	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_divi_cf';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_divi_cf_nonce';
+
+	/**
 	 * Render counter.
 	 *
 	 * @var int
@@ -68,7 +78,7 @@ class Contact {
 		$search  = '<div class="et_contact_bottom_container">';
 		$replace =
 			'<div style="float:right;">' .
-			hcap_form( 'hcaptcha_divi_cf', 'hcaptcha_divi_cf_nonce' ) .
+			hcap_form( self::ACTION, self::NONCE ) .
 			'</div>' .
 			"\n" .
 			'<div style="clear: both;"></div>' .
@@ -107,7 +117,7 @@ class Contact {
 		}
 
 		$cf_nonce_field = '_wpnonce-et-pb-contact-form-submitted-' . $this->render_count;
-		$cf_nonce       = filter_input( INPUT_POST, $cf_nonce_field, FILTER_SANITIZE_STRING );
+		$cf_nonce       = filter_input( INPUT_POST, $cf_nonce_field, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$nonce_result   = isset( $cf_nonce ) && wp_verify_nonce( $cf_nonce, 'et-pb-contact-form-submit' );
 
 		$submit_field = 'et_pb_contactform_submit_' . $this->render_count;
@@ -117,7 +127,7 @@ class Contact {
 		if ( $nonce_result && isset( $_POST[ $submit_field ] ) && empty( $_POST[ $number_field ] ) ) {
 			// Remove hcaptcha from current form fields, because Divi compares current and submitted fields.
 			$current_form_field  = 'et_pb_contact_email_fields_' . $this->render_count;
-			$current_form_fields = filter_input( INPUT_POST, $current_form_field, FILTER_SANITIZE_STRING );
+			$current_form_fields = filter_input( INPUT_POST, $current_form_field, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 			if ( $current_form_fields ) {
 				$fields_data_json             = htmlspecialchars_decode( str_replace( '\\', '', $current_form_fields ) );
@@ -133,11 +143,7 @@ class Contact {
 				$_POST[ $current_form_field ] = $fields_data_json;
 			}
 
-			$error_message = hcaptcha_get_verify_message(
-				'hcaptcha_divi_cf_nonce',
-				'hcaptcha_divi_cf'
-			);
-
+			$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
 			if ( null !== $error_message ) {
 				// Simulate captcha error.
 				$this->captcha = 'on';

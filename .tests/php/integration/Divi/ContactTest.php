@@ -223,7 +223,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				if (
 					INPUT_POST === $type &&
 					$this->cf_nonce_field === $var_name &&
-					FILTER_SANITIZE_STRING === $filter
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
 				) {
 					return $nonce;
 				}
@@ -231,7 +231,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				if (
 					INPUT_POST === $type &&
 					$this->current_form_field === $var_name &&
-					FILTER_SANITIZE_STRING === $filter
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
 				) {
 					return $current_form_fields;
 				}
@@ -286,7 +286,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				if (
 					INPUT_POST === $type &&
 					$this->cf_nonce_field === $var_name &&
-					FILTER_SANITIZE_STRING === $filter
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
 				) {
 					return $nonce;
 				}
@@ -294,7 +294,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				if (
 					INPUT_POST === $type &&
 					$this->current_form_field === $var_name &&
-					FILTER_SANITIZE_STRING === $filter
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
 				) {
 					return $current_form_fields;
 				}

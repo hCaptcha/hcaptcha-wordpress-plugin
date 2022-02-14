@@ -76,7 +76,7 @@ class AutoVerify {
 		}
 
 		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_STRING ) :
+			filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
 		if ( 'POST' !== $request_method ) {
@@ -84,7 +84,7 @@ class AutoVerify {
 		}
 
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
+			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
 		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
@@ -97,7 +97,7 @@ class AutoVerify {
 			return;
 		}
 
-		if ( 'success' !== hcaptcha_request_verify() ) {
+		if ( 'success' !== hcaptcha_verify_post() ) {
 			$_POST = [];
 			wp_die(
 				esc_html__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
@@ -145,7 +145,7 @@ class AutoVerify {
 		// Case #2.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$rest_route = isset( $_GET['rest_route'] ) ?
-			filter_input( INPUT_GET, 'rest_route', FILTER_SANITIZE_STRING ) :
+			filter_input( INPUT_GET, 'rest_route', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
 		if ( 0 === strpos( trim( $rest_route, '\\/' ), rest_get_url_prefix() ) ) {
@@ -217,7 +217,7 @@ class AutoVerify {
 
 		if ( ! $form_action ) {
 			$form_action = isset( $_SERVER['REQUEST_URI'] ) ?
-				filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_STRING ) :
+				filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 				'';
 		}
 
@@ -345,6 +345,7 @@ class AutoVerify {
 		set_transient(
 			self::TRANSIENT,
 			$registered_forms,
+			/** This filter is documented in wp-includes/pluggable.php. */
 			apply_filters( 'nonce_life', DAY_IN_SECONDS )
 		);
 	}
@@ -370,7 +371,7 @@ class AutoVerify {
 		}
 
 		foreach ( $registered_forms[ $request_uri ] as $registered_form ) {
-			// Nonce is verified later, in hcaptcha_request_verify().
+			// Nonce is verified later, in hcaptcha_verify_post().
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( ! empty( array_intersect( array_keys( $_POST ), $registered_form ) ) ) {
 				return true;
