@@ -10,11 +10,16 @@
  * anonymize an IP address by converting it to a network ID.
  *
  * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
+ * Returns a string with the IP address or false for local IPs.
  *
  * @return false|string
  */
 function hcap_get_user_ip() {
-	$client_ip = false;
+	static $client_ip = null;
+
+	if ( null !== $client_ip ) {
+		return $client_ip;
+	}
 
 	// In order of preference, with the best ones for this purpose first.
 	$address_headers = [
@@ -41,11 +46,13 @@ function hcap_get_user_ip() {
 	}
 
 	// Filter out local addresses.
-	return filter_var(
+	$client_ip = filter_var(
 		$client_ip,
 		FILTER_VALIDATE_IP,
 		FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
 	);
+
+	return $client_ip;
 }
 
 if ( ! function_exists( 'hcaptcha_request_verify' ) ) {

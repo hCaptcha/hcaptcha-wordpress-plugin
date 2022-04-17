@@ -86,7 +86,10 @@ class Main {
 	 */
 	private function activate_hcaptcha() {
 		// Do not load hCaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
-		$activate = ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) );
+		$activate = ! (
+			( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ||
+			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
+		);
 
 		/**
 		 * Filters the hcaptcha activation flag.
