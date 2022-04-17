@@ -107,16 +107,25 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init() and init_hooks().
 	 *
-	 * @param boolean $logged_in                   User is logged in.
-	 * @param boolean $hcaptcha_off_when_logged_in Option 'hcaptcha_off_when_logged_in' is set.
-	 * @param boolean $hcaptcha_active             Plugin should be active.
+	 * @param boolean        $logged_in                   User is logged in.
+	 * @param boolean        $hcaptcha_off_when_logged_in Option 'hcaptcha_off_when_logged_in' is set.
+	 * @param boolean|string $whitelisted                 Whether IP is whitelisted.
+	 * @param boolean        $hcaptcha_active             Plugin should be active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_and_init_hooks( $logged_in, $hcaptcha_off_when_logged_in, $hcaptcha_active ) {
+	public function test_init_and_init_hooks( $logged_in, $hcaptcha_off_when_logged_in, $whitelisted, $hcaptcha_active ) {
 		global $current_user, $hcaptcha_wordpress_plugin;
+
+		add_filter(
+			'hcap_whitelist_ip',
+			static function () use ( $whitelisted ) {
+				return $whitelisted;
+			},
+			10
+		);
 
 		// Plugin was loaded by codeception.
 		self::assertTrue(
@@ -232,10 +241,14 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_init() {
 		return [
-			'not logged in, not set' => [ false, 'off', true ],
-			'not logged in, set'     => [ false, 'on', true ],
-			'logged in, not set'     => [ true, 'off', true ],
-			'logged in, set'         => [ true, 'on', false ],
+			'not logged in, not set, not whitelisted' => [ false, 'off', false, true ],
+			'not logged in, set, not whitelisted'     => [ false, 'on', false, true ],
+			'logged in, not set, not whitelisted'     => [ true, 'off', false, true ],
+			'logged in, set, not whitelisted'         => [ true, 'on', false, false ],
+			'not logged in, not set, whitelisted'     => [ false, 'off', true, false ],
+			'not logged in, set, whitelisted'         => [ false, 'on', true, false ],
+			'logged in, not set, whitelisted'         => [ true, 'off', true, false ],
+			'logged in, set, whitelisted'             => [ true, 'on', true, false ],
 		];
 	}
 
