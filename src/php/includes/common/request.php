@@ -15,11 +15,7 @@
  * @return false|string
  */
 function hcap_get_user_ip() {
-	static $client_ip = null;
-
-	if ( null !== $client_ip ) {
-		return $client_ip;
-	}
+	$client_ip = false;
 
 	// In order of preference, with the best ones for this purpose first.
 	$address_headers = [
@@ -46,13 +42,11 @@ function hcap_get_user_ip() {
 	}
 
 	// Filter out local addresses.
-	$client_ip = filter_var(
+	return filter_var(
 		$client_ip,
 		FILTER_VALIDATE_IP,
 		FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
 	);
-
-	return $client_ip;
 }
 
 if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
