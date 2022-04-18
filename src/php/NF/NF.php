@@ -66,6 +66,7 @@ class NF {
 	public function localize_field( $field ) {
 		global $hcaptcha_wordpress_plugin;
 
+		$field['settings']['hcaptcha_id']    = uniqid( 'hcaptcha-nf-', true );
 		$field['settings']['hcaptcha_key']   = get_option( 'hcaptcha_api_key' );
 		$field['settings']['hcaptcha_theme'] = get_option( 'hcaptcha_theme' );
 		$hcaptcha_size                       = get_option( 'hcaptcha_size' );

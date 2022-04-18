@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\NF;
 use HCaptcha\NF\Fields;
 use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test ninja-forms-hcaptcha.php file.
@@ -98,13 +99,26 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			true,
 			false
 		);
+		$uniqid         = 'hcaptcha-nf-625d3b9b318fc0.86180601';
 
 		update_option( 'hcaptcha_api_key', $hcaptcha_key );
 		update_option( 'hcaptcha_theme', $hcaptcha_theme );
 		update_option( 'hcaptcha_size', $hcaptcha_size );
 
+		FunctionMocker::replace(
+			'uniqid',
+			static function ( $prefix, $more_entropy ) use ( $uniqid ) {
+				if ( 'hcaptcha-nf-' === $prefix && $more_entropy ) {
+					return $uniqid;
+				}
+
+				return null;
+			}
+		);
+
 		$expected = $field;
 
+		$expected['settings']['hcaptcha_id']          = $uniqid;
 		$expected['settings']['hcaptcha_key']         = $hcaptcha_key;
 		$expected['settings']['hcaptcha_theme']       = $hcaptcha_theme;
 		$expected['settings']['hcaptcha_size']        = $hcaptcha_size;

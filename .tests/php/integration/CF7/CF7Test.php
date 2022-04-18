@@ -85,7 +85,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		FunctionMocker::replace(
 			'uniqid',
-			function ( $prefix, $more_entropy ) use ( $uniqid ) {
+			static function ( $prefix, $more_entropy ) use ( $uniqid ) {
 				if ( 'hcap_cf7-' === $prefix && $more_entropy ) {
 					return $uniqid;
 				}
