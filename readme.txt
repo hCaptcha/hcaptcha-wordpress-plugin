@@ -251,6 +251,7 @@ Please see the hCaptcha privacy policy at:
 * Divi Contact Form
 * Divi Login Form
 * Elementor Pro Form
+* Gravity Forms
 * Jetpack Forms
 * Mailchimp for WP Form
 * MemberPress Register Form
@@ -282,6 +283,7 @@ Instructions for native integrations are below:
 
 = 1.15.0 =
 * Tested with WooCommerce 6.4.
+* Added Gravity Forms support.
 * Added filter to whitelist IPs.
 * Added support for multiple Ninja forms on the page.
 
