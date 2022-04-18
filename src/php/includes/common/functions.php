@@ -182,6 +182,10 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on Fluent Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
+		'hcaptcha_gravityform_status'          => [
+			'label' => __( 'Enable hCaptcha on Gravity Form', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
 		'hcaptcha_jetpack_cf_status'           => [
 			'label' => __( 'Enable hCaptcha on Jetpack Contact Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',

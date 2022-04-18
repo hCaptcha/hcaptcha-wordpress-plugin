@@ -710,6 +710,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'fluentform/fluentform.php',
 				Form::class,
 			],
+			'Gravity Forms'              => [
+				'hcaptcha_gravityform_status',
+				'gravityforms/gravityforms.php',
+				\HCaptcha\GravityForms\Form::class,
+			],
 			'Jetpack'                    => [
 				'hcaptcha_jetpack_cf_status',
 				'jetpack/jetpack.php',
