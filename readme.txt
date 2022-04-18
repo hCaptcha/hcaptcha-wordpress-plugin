@@ -283,6 +283,7 @@ Instructions for native integrations are below:
 = 1.15.0 =
 * Tested with WooCommerce 6.4.
 * Added filter to whitelist IPs.
+* Added support for multiple Ninja forms on the page.
 
 = 1.14.0 =
 * Tested with WooCommerce 6.2.
