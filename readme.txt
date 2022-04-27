@@ -182,7 +182,7 @@ function my_hcap_language( $language ) {
 add_filter( 'hcap_language', 'my_hcap_language' );
 `
 
-= How to whitelist certain IPs? =
+= How to whitelist certain IPs =
 
 You can use the following filter:
 
