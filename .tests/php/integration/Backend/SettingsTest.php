@@ -226,6 +226,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_gravityform_status"
+					name="hcaptcha_gravityform_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Gravity Form</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_jetpack_cf_status"
 					name="hcaptcha_jetpack_cf_status"
 				/>
@@ -598,6 +606,14 @@ class SettingsTest extends HCaptchaWPTestCase {
 				/>
 			&nbsp;
 			<span>Enable hCaptcha on Fluent Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_gravityform_status"
+					name="hcaptcha_gravityform_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Gravity Form</span>
 			<br><br>
 						<input
 					type="checkbox"

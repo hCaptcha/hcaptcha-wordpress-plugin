@@ -10,6 +10,7 @@
  * anonymize an IP address by converting it to a network ID.
  *
  * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
+ * Returns a string with the IP address or false for local IPs.
  *
  * @return false|string
  */

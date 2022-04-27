@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 5.9
 Requires PHP: 5.6.20
-Stable tag: 1.14.0
+Stable tag: 1.15.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -177,9 +177,41 @@ function my_hcap_language( $language ) {
   $page_language = 'some lang'; // Detection depends on the multilingual plugin used.
 
   return $page_language;
-  }
+}
 
 add_filter( 'hcap_language', 'my_hcap_language' );
+`
+
+= How to whitelist certain IPs =
+
+You can use the following filter:
+
+`
+/**
+* Filter user IP to check if it is whitelisted.
+* For whitelisted IPs, hCaptcha will not be shown.
+*
+* @param bool   $whitelisted Whether IP is whitelisted.
+* @param string $ip          IP.
+*
+* @return bool
+*/
+function my_hcap_whitelist_ip( $whitelisted, $ip ) {
+
+  // Whitelist local IPs.
+  if ( false === $ip ) {
+    return true;
+  }
+
+  // Whitelist some other IPs.
+  if ( '1.1.1.1' === $ip ) {
+    return true;
+  }
+
+  return $whitelisted;
+}
+
+add_filter( 'hcap_whitelist_ip', 'my_hcap_whitelist_ip', 10, 2 );
 `
 
 = Why isn't my WPForms Lite installation working? =
@@ -219,6 +251,7 @@ Please see the hCaptcha privacy policy at:
 * Divi Contact Form
 * Divi Login Form
 * Elementor Pro Form
+* Gravity Forms
 * Jetpack Forms
 * Mailchimp for WP Form
 * MemberPress Register Form
@@ -247,6 +280,12 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.15.0 =
+* Tested with WooCommerce 6.4.
+* Added Gravity Forms support.
+* Added filter to whitelist IPs.
+* Added support for multiple Ninja forms on a single page.
 
 = 1.14.0 =
 * Tested with WooCommerce 6.2.

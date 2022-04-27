@@ -34,7 +34,11 @@ const HCaptchaFieldController = Marionette.Object.extend( {
 				'required-error'
 			);
 		} else {
-			const hcapResponse = hcaptcha.getResponse();
+			const fieldId = model.get( 'id' );
+			const widgetId = document.querySelector(
+				'.h-captcha[data-fieldid="' + fieldId + '"] iframe'
+			).dataset.hcaptchaWidgetId;
+			const hcapResponse = hcaptcha.getResponse( widgetId );
 			model.set( 'value', hcapResponse );
 		}
 	},

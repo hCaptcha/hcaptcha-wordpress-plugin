@@ -244,6 +244,11 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on Fluent Form',
 					'type'  => 'checkbox',
 				],
+			'hcaptcha_gravityform_status'          =>
+				[
+					'label' => 'Enable hCaptcha on Gravity Form',
+					'type'  => 'checkbox',
+				],
 			'hcaptcha_jetpack_cf_status'           =>
 				[
 					'label' => 'Enable hCaptcha on Jetpack Contact Form',

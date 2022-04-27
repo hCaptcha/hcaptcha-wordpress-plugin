@@ -13,7 +13,6 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
-use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\NF\NF;
 use HCaptcha\WC\Checkout;
@@ -86,7 +85,10 @@ class Main {
 	 */
 	private function activate_hcaptcha() {
 		// Do not load hCaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
-		$activate = ! ( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) );
+		$activate = ! (
+			( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ||
+			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
+		);
 
 		/**
 		 * Filters the hcaptcha activation flag.
@@ -279,7 +281,12 @@ class Main {
 			'Fluent Forms'               => [
 				'hcaptcha_fluentform_status',
 				'fluentform/fluentform.php',
-				Form::class,
+				FluentForm\Form::class,
+			],
+			'Gravity Forms'              => [
+				'hcaptcha_gravityform_status',
+				'gravityforms/gravityforms.php',
+				GravityForms\Form::class,
 			],
 			'Jetpack'                    => [
 				'hcaptcha_jetpack_cf_status',
