@@ -285,7 +285,7 @@ Instructions for native integrations are below:
 * Tested with WooCommerce 6.4.
 * Added Gravity Forms support.
 * Added filter to whitelist IPs.
-* Added support for multiple Ninja forms on the page.
+* Added support for multiple Ninja forms on a single page.
 
 = 1.14.0 =
 * Tested with WooCommerce 6.2.
