@@ -189,7 +189,7 @@ You can use the following filter:
 `
 /**
 * Filter user IP to check if it is whitelisted.
-* For whitelisted IPs, hcaptcha will not be shown.
+* For whitelisted IPs, hCaptcha will not be shown.
 *
 * @param bool   $whitelisted Whether IP is whitelisted.
 * @param string $ip          IP.
