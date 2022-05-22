@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
 Requires at least: 4.4
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 5.6.20
-Stable tag: 1.15.0
+Stable tag: 1.16.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -281,7 +281,11 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
-= 1.15.0 =
+= 1.16.0 =
+* Tested with WordPress 6.0.
+* Tested with WooCommerce 6.5.
+
+* = 1.15.0 =
 * Tested with WooCommerce 6.4.
 * Added Gravity Forms support.
 * Added filter to whitelist IPs.

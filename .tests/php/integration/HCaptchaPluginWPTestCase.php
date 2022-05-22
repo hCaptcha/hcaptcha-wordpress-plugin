@@ -52,7 +52,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 */
 	public function setUp(): void {
 		$plugins_requiring_php = [
-			'7.0' => [ 'woocommerce/woocommerce.php' ],
+			'7.2' => [ 'woocommerce/woocommerce.php' ],
 			'7.1' => [ 'ninja-forms/ninja-forms.php' ],
 		];
 
