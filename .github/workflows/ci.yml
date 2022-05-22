@@ -99,7 +99,7 @@ jobs:
         run: wp plugin install bbpress buddypress contact-form-7 ninja-forms wpforms-lite wpforo
 
       - name: Install WooCommerce plugin
-        if: ${{ matrix.php-version != '5.6' }}
+        if: ${{ matrix.php-version >= '7.2' }}
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install woocommerce
 
