@@ -257,6 +257,9 @@ Please see the hCaptcha privacy policy at:
 * MemberPress Register Form
 * Ninja Forms
 * Subscriber Form
+* Ultimate Member Login Form
+* Ultimate Member Lost Password Form
+* Ultimate Member Register Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form

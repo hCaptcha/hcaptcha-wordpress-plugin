@@ -274,6 +274,30 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_um_login_status"
+					name="hcaptcha_um_login_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Login</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_lost_pass_status"
+					name="hcaptcha_um_lost_pass_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Lost Password</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_register_status"
+					name="hcaptcha_um_register_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Register</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_wc_login_status"
 					name="hcaptcha_wc_login_status"
 				/>

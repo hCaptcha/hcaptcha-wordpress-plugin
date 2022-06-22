@@ -740,6 +740,21 @@ class AMainTest extends HCaptchaWPTestCase {
 				'subscriber/subscriber.php',
 				'subscriber/subscriber.php',
 			],
+			'Ultimate Member Login'      => [
+				'hcaptcha_um_login_status',
+				'ultimate-member/ultimate-member.php',
+				\HCaptcha\UM\Login::class,
+			],
+			'Ultimate Member LostPassword'=> [
+				'hcaptcha_um_lost_pass_status',
+				'ultimate-member/ultimate-member.php',
+				\HCaptcha\UM\LostPassword::class,
+			],
+			'Ultimate Member Register'   => [
+				'hcaptcha_um_register_status',
+				'ultimate-member/ultimate-member.php',
+				\HCaptcha\UM\Register::class,
+			],
 			'WooCommerce Login'          => [
 				'hcaptcha_wc_login_status',
 				'woocommerce/woocommerce.php',

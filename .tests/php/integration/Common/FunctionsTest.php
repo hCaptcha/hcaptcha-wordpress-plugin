@@ -274,6 +274,21 @@ class FunctionsTest extends HCaptchaWPTestCase {
 					'label' => 'Enable hCaptcha on Subscribers Form',
 					'type'  => 'checkbox',
 				],
+			'hcaptcha_um_login_status'             =>
+				[
+					'label' => 'Enable hCaptcha on Ultimate Member Login',
+					'type'  => 'checkbox',
+				],
+			'hcaptcha_um_lost_pass_status'         =>
+				[
+					'label' => 'Enable hCaptcha on Ultimate Member Lost Password',
+					'type'  => 'checkbox',
+				],
+			'hcaptcha_um_register_status'          =>
+				[
+					'label' => 'Enable hCaptcha on Ultimate Member Register',
+					'type'  => 'checkbox',
+				],
 			'hcaptcha_wc_login_status'             =>
 				[
 					'label' => 'Enable hCaptcha on WooCommerce Login Form',
