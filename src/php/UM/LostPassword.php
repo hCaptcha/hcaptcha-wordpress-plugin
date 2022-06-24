@@ -37,18 +37,23 @@ class LostPassword {
 	/**
 	 * Verify lost password form.
 	 *
-	 * @param WP_Error $error Error.
+	 * @param array $post Form submitted.
 	 *
-	 * @return WP_Error
+	 * @return void
 	 */
 	public function verify( $post ) {
-		if ( isset( $post['mode'] ) && $post['mode'] == 'password') {
-			$error_message = $error_message = hcaptcha_request_verify($post['h-captcha-response']);
+		$um = UM();
 
-			if ( 'success' !== $error_message ) {
-				UM()->form()->add_error( 'hcaptcha_error', $error_message );
-				return;
-			}
+		if ( ! $um || ! isset( $post['mode'] ) || 'password' !== $post['mode'] ) {
+			return;
 		}
+
+		$error_message = hcaptcha_request_verify( $post['h-captcha-response'] );
+
+		if ( 'success' === $error_message ) {
+			return;
+		}
+
+		$um->form()->add_error( 'hcaptcha_error', $error_message );
 	}
 }

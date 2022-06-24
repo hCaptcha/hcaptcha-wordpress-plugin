@@ -47,7 +47,7 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, $sanitized_user_login, $user_email ) {
-		if(null === $_POST['hcaptcha_registration_nonce']) {
+		if ( null === $_POST['hcaptcha_registration_nonce'] ) {
 			return $errors;
 		}
 

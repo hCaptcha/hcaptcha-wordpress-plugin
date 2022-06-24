@@ -37,18 +37,23 @@ class Register {
 	/**
 	 * Verify register form.
 	 *
-	 * @param WP_Error $validation_error Validation error.
+	 * @param array $args Form arguments.
 	 *
-	 * @return WP_Error
+	 * @return void
 	 */
-	public function verify( $post ) {
-        if ( isset( $post['mode'] ) && $post['mode'] == 'register') {
-            $error_message = $error_message = hcaptcha_request_verify($post['h-captcha-response']);
+	public function verify( $args ) {
+		$um = UM();
 
-            if ( 'success' !== $error_message ) {
-                UM()->form()->add_error( 'hcaptcha_error', $error_message );
-                return;
-            }
-        }
+		if ( ! $um || ! isset( $args['mode'] ) || 'register' !== $args['mode'] ) {
+			return;
+		}
+
+		$error_message = hcaptcha_request_verify( $args['h-captcha-response'] );
+
+		if ( 'success' === $error_message ) {
+			return;
+		}
+
+		$um->form()->add_error( 'hcaptcha_error', $error_message );
 	}
 }
