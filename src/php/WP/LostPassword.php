@@ -44,6 +44,10 @@ class LostPassword {
 	 * @return WP_Error
 	 */
 	public function verify( $error ) {
+		if(null === $_POST['hcaptcha_lost_password_nonce']) {
+			return $error;
+		}
+
 		$error_message = hcaptcha_get_verify_message_html(
 			'hcaptcha_lost_password_nonce',
 			'hcaptcha_lost_password'

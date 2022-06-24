@@ -50,6 +50,10 @@ class Login {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, $password ) {
+		if(null === $_POST['hcaptcha_login_nonce']) {
+			return $user;
+		}
+		
 		$error_message = hcaptcha_get_verify_message_html(
 			'hcaptcha_login_nonce',
 			'hcaptcha_login'

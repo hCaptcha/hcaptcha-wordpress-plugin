@@ -47,6 +47,10 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, $sanitized_user_login, $user_email ) {
+		if(null === $_POST['hcaptcha_registration_nonce']) {
+			return $errors;
+		}
+
 		$error_message = hcaptcha_get_verify_message_html(
 			'hcaptcha_registration_nonce',
 			'hcaptcha_registration'
