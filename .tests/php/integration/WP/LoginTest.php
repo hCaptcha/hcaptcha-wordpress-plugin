@@ -45,6 +45,13 @@ class LoginTest extends HCaptchaWPTestCase {
 				[ $subject, 'remove_filter_wp_authenticate_user' ]
 			)
 		);
+		self::assertSame(
+			10,
+			has_filter(
+				'um_submit_form_errors_hook_login',
+				[ $subject, 'remove_filter_wp_authenticate_user' ]
+			)
+		);
 	}
 
 	/**
