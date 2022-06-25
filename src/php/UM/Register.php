@@ -15,7 +15,7 @@ class Register extends Base {
 	/**
 	 * UM action.
 	 */
-	const UM_ACTION = 'registration';
+	const UM_ACTION = '_registration';
 
 	/**
 	 * UM mode.

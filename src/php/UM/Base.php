@@ -81,7 +81,7 @@ abstract class Base {
 	private function init_hooks() {
 		add_filter( 'um_get_form_fields', [ $this, 'add_captcha' ], 100 );
 		add_filter( "um_{$this->key}_form_edit_field", [ $this, 'display_captcha' ], 10, 2 );
-		add_action( "um_submit_form_errors_hook__$this->um_action", [ $this, 'verify' ] );
+		add_action( "um_submit_form_errors_hook_$this->um_action", [ $this, 'verify' ] );
 	}
 
 	/**
