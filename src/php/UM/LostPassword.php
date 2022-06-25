@@ -10,50 +10,37 @@ namespace HCaptcha\UM;
 /**
  * Class LostPassword
  */
-class LostPassword {
+class LostPassword extends Base {
 
 	/**
-	 * Constructor.
+	 * UM action.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	const UM_ACTION = 'um_reset_password_errors_hook';
+
+	/**
+	 * UM mode.
+	 */
+	const UM_MODE = 'password';
 
 	/**
 	 * Init hooks.
 	 */
-	private function init_hooks() {
-		add_action( 'um_after_password_reset_fields', [ $this, 'add_captcha' ] );
-		add_action( 'um_reset_password_errors_hook', [ $this, 'verify' ] );
+	protected function init_hooks() {
+		parent::init_hooks();
+
+		add_action( 'um_after_password_reset_fields', [ $this, 'um_after_password_reset_fields' ] );
 	}
 
 	/**
-	 * Add captcha.
-	 */
-	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_um_lost_password', 'hcaptcha_um_lost_password_nonce' );
-	}
-
-	/**
-	 * Verify lost password form.
+	 * Display hCaptcha after password reset fields.
 	 *
-	 * @param array $post Form submitted.
+	 * @param array $args Arguments.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $post ) {
-		$um = UM();
-
-		if ( ! $um || ! isset( $post['mode'] ) || 'password' !== $post['mode'] ) {
-			return;
-		}
-
-		$error_message = hcaptcha_request_verify( $post['h-captcha-response'] );
-
-		if ( 'success' === $error_message ) {
-			return;
-		}
-
-		$um->form()->add_error( 'hcaptcha_error', $error_message );
+	public function um_after_password_reset_fields( $args ) {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $this->display_captcha( '', self::UM_MODE );
 	}
 }

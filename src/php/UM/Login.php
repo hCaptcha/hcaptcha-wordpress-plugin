@@ -15,7 +15,7 @@ class Login extends Base {
 	/**
 	 * UM action.
 	 */
-	const UM_ACTION = 'login';
+	const UM_ACTION = 'um_submit_form_errors_hook_login';
 
 	/**
 	 * UM mode.

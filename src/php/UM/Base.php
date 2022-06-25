@@ -35,13 +35,6 @@ abstract class Base {
 	private $key;
 
 	/**
-	 * UM action.
-	 *
-	 * @var string
-	 */
-	private $um_action;
-
-	/**
 	 * UM mode.
 	 *
 	 * @var string
@@ -67,10 +60,9 @@ abstract class Base {
 	 */
 	public function __construct() {
 		$this->key             = self::KEY;
-		$this->um_action       = static::UM_ACTION;
 		$this->um_mode         = static::UM_MODE;
-		$this->hcaptcha_action = "hcaptcha_um_$this->um_action";
-		$this->hcaptcha_nonce  = "hcaptcha_um_{$this->um_action}_nonce";
+		$this->hcaptcha_action = "hcaptcha_um_$this->um_mode";
+		$this->hcaptcha_nonce  = "hcaptcha_um_{$this->um_mode}_nonce";
 
 		$this->init_hooks();
 	}
@@ -81,7 +73,7 @@ abstract class Base {
 	protected function init_hooks() {
 		add_filter( 'um_get_form_fields', [ $this, 'add_captcha' ], 100 );
 		add_filter( "um_{$this->key}_form_edit_field", [ $this, 'display_captcha' ], 10, 2 );
-		add_action( "um_submit_form_errors_hook_$this->um_action", [ $this, 'verify' ] );
+		add_action( static::UM_ACTION, [ $this, 'verify' ] );
 	}
 
 	/**
@@ -92,14 +84,24 @@ abstract class Base {
 	 * @return array
 	 */
 	public function add_captcha( $fields ) {
+		$um = UM();
+
+		if ( ! $um ) {
+			return $fields;
+		}
+
+		if ( static::UM_MODE !== $um->fields()->set_mode ) {
+			return $fields;
+		}
+
+		$fields       = $fields ?: [];
 		$max_position = 0;
-		$last_key     = '';
-		$in_row       = '';
-		$in_sub_row   = '';
-		$in_column    = '';
+		$in_row       = '_um_row_1';
+		$in_sub_row   = '0';
+		$in_column    = '1';
 		$in_group     = '';
 
-		foreach ( $fields as $key => $field ) {
+		foreach ( $fields as $field ) {
 			if ( ! isset( $field['position'] ) ) {
 				continue;
 			}
@@ -109,15 +111,10 @@ abstract class Base {
 			}
 
 			$max_position = $field['position'];
-			$last_key     = $key;
 			$in_row       = $field['in_row'];
 			$in_sub_row   = $field['in_sub_row'];
 			$in_column    = $field['in_column'];
 			$in_group     = $field['in_group'];
-		}
-
-		if ( ! $last_key ) {
-			return $fields;
 		}
 
 		$fields[ self::KEY ] = [
