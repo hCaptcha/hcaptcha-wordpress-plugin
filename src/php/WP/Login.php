@@ -30,6 +30,7 @@ class Login {
 		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+		add_filter( 'um_submit_form_errors_hook_login', [ $this, 'remove_filter_wp_authenticate_user' ] );
 	}
 
 	/**
@@ -50,11 +51,6 @@ class Login {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, $password ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['hcaptcha_login_nonce'] ) ) {
-			return $user;
-		}
-
 		$error_message = hcaptcha_get_verify_message_html(
 			'hcaptcha_login_nonce',
 			'hcaptcha_login'
