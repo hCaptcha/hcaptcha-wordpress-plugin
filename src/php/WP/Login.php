@@ -50,7 +50,8 @@ class Login {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, $password ) {
-		if ( null === $_POST['hcaptcha_login_nonce'] ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['hcaptcha_login_nonce'] ) ) {
 			return $user;
 		}
 

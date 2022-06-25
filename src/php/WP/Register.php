@@ -47,7 +47,8 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, $sanitized_user_login, $user_email ) {
-		if ( null === $_POST['hcaptcha_registration_nonce'] ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['hcaptcha_registration_nonce'] ) ) {
 			return $errors;
 		}
 

@@ -44,7 +44,8 @@ class LostPassword {
 	 * @return WP_Error
 	 */
 	public function verify( $error ) {
-		if ( null === $_POST['hcaptcha_lost_password_nonce'] ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['hcaptcha_lost_password_nonce'] ) ) {
 			return $error;
 		}
 
