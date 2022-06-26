@@ -9,8 +9,6 @@ namespace HCaptcha\Tests\Integration\UM;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UM\Login;
-use WP_Error;
-use WP_User;
 
 /**
  * Class LoginTest.
@@ -42,7 +40,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test constructor and init_hooks().
 	 */
 	public function test_constructor_and_init_hooks() {
-		$subject = new Login();
+		$subject = $this->get_subject();
 
 		self::assertSame(
 			100,
@@ -236,7 +234,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$expected =
 			'<div class="um-field um-field-hcaptcha">' .
 			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_um_login', 'hcaptcha_um_login_nonce', true, false ) .
+			wp_nonce_field( "hcaptcha_um_$mode", "hcaptcha_um_{$mode}_nonce", true, false ) .
 			'</div>';
 
 		self::assertSame( $expected, $subject->display_captcha( $output, $mode ) );
@@ -254,12 +252,11 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify() {
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_um_login_nonce', 'hcaptcha_um_login' );
+		$subject = $this->get_subject();
+		$mode    = $subject::UM_MODE;
+		$args    = [];
 
-		$subject = new Login();
-
-		$args = [];
-
+		$this->prepare_hcaptcha_get_verify_message( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
 		$subject->verify( $args );
 
 		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
@@ -281,9 +278,10 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified() {
-		$subject = new Login();
+		$subject = $this->get_subject();
+		$mode    = $subject::UM_MODE;
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_um_login_nonce', 'hcaptcha_um_login', false );
+		$this->prepare_hcaptcha_get_verify_message( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode", false );
 
 		$args['mode'] = $subject::UM_MODE;
 
@@ -299,7 +297,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_mute_login_hcaptcha_notice() {
-		$subject = new Login();
+		$subject = $this->get_subject();
 
 		$message   = 'some error message';
 		$error_key = 'wrong key';
