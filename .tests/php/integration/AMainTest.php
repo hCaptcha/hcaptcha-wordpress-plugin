@@ -319,6 +319,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: -9px;
 			}
+			div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
+				border-style: none;
+			}
 		</style>
 		';
 		$subject  = new Main();

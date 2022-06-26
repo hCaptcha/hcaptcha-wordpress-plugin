@@ -284,6 +284,10 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
+= 1.17.0 =
+* Added support for Ultimate Member plugin (Login, Register, LostPassword forms).
+* Fixed weird black bordered rectangle to the left of hCaptcha challenge. 
+
 = 1.16.0 =
 * Tested with WordPress 6.0.
 * Tested with WooCommerce 6.5.
