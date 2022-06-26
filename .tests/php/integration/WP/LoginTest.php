@@ -47,7 +47,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_filter(
+			has_action(
 				'um_submit_form_errors_hook_login',
 				[ $subject, 'remove_filter_wp_authenticate_user' ]
 			)
@@ -149,6 +149,14 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertFalse(
 			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
 		);
-	}
 
+		remove_action( 'um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login', 10 );
+		do_action( 'um_submit_form_errors_hook_login' );
+
+		self::assertFalse(
+			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
+		);
+
+		add_action( 'um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login', 10 );
+	}
 }
