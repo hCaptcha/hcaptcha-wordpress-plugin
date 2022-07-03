@@ -10,7 +10,7 @@
  * Plugin Name:          hCaptcha for Forms and More
  * Plugin URI:           https://hcaptcha.com/
  * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
- * Version:              1.16.0
+ * Version:              1.17.0
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-const HCAPTCHA_VERSION = '1.16.0';
+const HCAPTCHA_VERSION = '1.17.0';
 
 /**
  * Path to the plugin dir.
