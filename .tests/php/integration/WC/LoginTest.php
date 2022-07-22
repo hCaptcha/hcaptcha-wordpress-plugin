@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Tests\Integration\WC;
 
-use HCaptcha\Main;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\Login;
 use WP_Error;

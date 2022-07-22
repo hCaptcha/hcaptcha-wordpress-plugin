@@ -13,7 +13,6 @@
 namespace HCaptcha\Tests\Integration\Backend;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test settings file.
@@ -274,6 +273,30 @@ class SettingsTest extends HCaptchaWPTestCase {
 			<br><br>
 						<input
 					type="checkbox"
+					id="hcaptcha_um_login_status"
+					name="hcaptcha_um_login_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Login</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_lost_pass_status"
+					name="hcaptcha_um_lost_pass_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Lost Password</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_register_status"
+					name="hcaptcha_um_register_status"
+				/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Register</span>
+			<br><br>
+						<input
+					type="checkbox"
 					id="hcaptcha_wc_login_status"
 					name="hcaptcha_wc_login_status"
 				/>
@@ -397,6 +420,9 @@ class SettingsTest extends HCaptchaWPTestCase {
 				'hcaptcha_rf_status'                => 'on',
 				'hcaptcha_cmf_status'               => 'on',
 				'hcaptcha_lpf_status'               => 'on',
+				'hcaptcha_um_login_status'          => 'on',
+				'hcaptcha_um_register_status'       => 'on',
+				'hcaptcha_um_lost_pass_status'      => 'on',
 				'hcaptcha_wc_login_status'          => 'on',
 				'hcaptcha_wc_reg_status'            => 'on',
 				'hcaptcha_wc_lost_pass_status'      => 'on',
@@ -654,6 +680,30 @@ class SettingsTest extends HCaptchaWPTestCase {
 				 checked=\'checked\'/>
 			&nbsp;
 			<span>Enable hCaptcha on Subscribers Form</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_login_status"
+					name="hcaptcha_um_login_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Login</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_lost_pass_status"
+					name="hcaptcha_um_lost_pass_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Lost Password</span>
+			<br><br>
+						<input
+					type="checkbox"
+					id="hcaptcha_um_register_status"
+					name="hcaptcha_um_register_status"
+				 checked=\'checked\'/>
+			&nbsp;
+			<span>Enable hCaptcha on Ultimate Member Register</span>
 			<br><br>
 						<input
 					type="checkbox"

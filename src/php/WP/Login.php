@@ -30,6 +30,7 @@ class Login {
 		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+		add_action( 'um_submit_form_errors_hook_login', [ $this, 'remove_filter_wp_authenticate_user' ] );
 	}
 
 	/**

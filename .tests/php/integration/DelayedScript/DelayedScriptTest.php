@@ -8,14 +8,14 @@
 namespace HCaptcha\Tests\Integration\DelayedScript;
 
 use HCaptcha\DelayedScript\DelayedScript;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
  * Test DelayedScriptTest class.
  *
  * @group delayed-script
  */
-class DelayedScriptTest extends HCaptchaPluginWPTestCase {
+class DelayedScriptTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test create().

@@ -206,6 +206,18 @@ function hcap_options() {
 			'label' => __( 'Enable hCaptcha on Subscribers Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',
 		],
+		'hcaptcha_um_login_status'             => [
+			'label' => __( 'Enable hCaptcha on Ultimate Member Login', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_um_lost_pass_status'         => [
+			'label' => __( 'Enable hCaptcha on Ultimate Member Lost Password', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
+		'hcaptcha_um_register_status'          => [
+			'label' => __( 'Enable hCaptcha on Ultimate Member Register', 'hcaptcha-for-forms-and-more' ),
+			'type'  => 'checkbox',
+		],
 		'hcaptcha_wc_login_status'             => [
 			'label' => __( 'Enable hCaptcha on WooCommerce Login Form', 'hcaptcha-for-forms-and-more' ),
 			'type'  => 'checkbox',

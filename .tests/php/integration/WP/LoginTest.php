@@ -45,6 +45,13 @@ class LoginTest extends HCaptchaWPTestCase {
 				[ $subject, 'remove_filter_wp_authenticate_user' ]
 			)
 		);
+		self::assertSame(
+			10,
+			has_action(
+				'um_submit_form_errors_hook_login',
+				[ $subject, 'remove_filter_wp_authenticate_user' ]
+			)
+		);
 	}
 
 	/**
@@ -120,11 +127,11 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test remove_filter_wp_authenticate_user().
+	 * Test remove_filter_wp_authenticate_user() for WooCommerce.
 	 *
 	 * Must be after test_load_modules().
 	 */
-	public function test_remove_filter_wp_authenticate_user() {
+	public function test_remove_filter_wp_authenticate_user_for_wc() {
 		$subject = new Login();
 
 		self::assertSame(
@@ -144,4 +151,26 @@ class LoginTest extends HCaptchaWPTestCase {
 		);
 	}
 
+	/**
+	 * Test remove_filter_wp_authenticate_user() for Ultimate Member.
+	 *
+	 * Must be after test_load_modules().
+	 */
+	public function test_remove_filter_wp_authenticate_user_for_um() {
+		$subject = new Login();
+
+		self::assertSame(
+			10,
+			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
+		);
+
+		remove_action( 'um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login', 10 );
+		do_action( 'um_submit_form_errors_hook_login' );
+
+		self::assertFalse(
+			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
+		);
+
+		add_action( 'um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login', 10 );
+	}
 }

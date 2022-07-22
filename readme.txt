@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 6.0
 Requires PHP: 5.6.20
-Stable tag: 1.16.0
+Stable tag: 1.17.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -257,6 +257,9 @@ Please see the hCaptcha privacy policy at:
 * MemberPress Register Form
 * Ninja Forms
 * Subscriber Form
+* Ultimate Member Login Form
+* Ultimate Member Lost Password Form
+* Ultimate Member Register Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
@@ -280,6 +283,11 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.17.0 =
+* Tested with WooCommerce 6.6.
+* Added support for Ultimate Member plugin (Login, Register, LostPassword forms).
+* Fixed weird black bordered rectangle to the left of hCaptcha challenge. 
 
 = 1.16.0 =
 * Tested with WordPress 6.0.
