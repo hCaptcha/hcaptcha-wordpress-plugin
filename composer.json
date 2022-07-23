@@ -21,6 +21,11 @@
   "support": {
     "issues": "https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more"
   },
+  "config": {
+    "allow-plugins": {
+      "kylekatarnls/update-helper": true
+    }
+  },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
