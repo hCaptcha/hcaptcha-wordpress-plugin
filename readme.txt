@@ -87,7 +87,7 @@ If you create the form as an HTML block in the post content, just insert the sho
 If you create the form programmatically, insert the following statement inside it:
 
 `
-do_shortcode( '[hcaptcha]' );
+echo do_shortcode( '[hcaptcha]' );
 `
 
 Secondly, verify the result of hCaptcha challenge.
