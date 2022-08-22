@@ -37,8 +37,6 @@ class WPForoTest extends HCaptchaPluginWPTestCase {
 		parent::setUp();
 
 		WPF()->notice = new Notices();
-
-//		do_action( 'after_setup_theme' );
 	}
 
 	/**
