@@ -10,14 +10,10 @@ namespace HCaptcha;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
-use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\NF\NF;
-use HCaptcha\WC\Checkout;
-use HCaptcha\WC\OrderTracking;
-use HCaptcha\WP\Comment;
 
 /**
  * Class Main.
@@ -241,7 +237,7 @@ class Main {
 			'Comment Form'                 => [
 				'hcaptcha_cmf_status',
 				'',
-				Comment::class,
+				WP\Comment::class,
 			],
 			'bbPress New Topic'            => [
 				'hcaptcha_bbp_new_topic_status',
@@ -268,10 +264,15 @@ class Main {
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
+			'Divi Comment Form'            => [
+				'hcaptcha_divi_cmf_status',
+				'Divi',
+				[ Divi\Comment::class, WP\Comment::class ],
+			],
 			'Divi Contact Form'            => [
 				'hcaptcha_divi_cf_status',
 				'Divi',
-				Contact::class,
+				Divi\Contact::class,
 			],
 			'Divi Login Form'              => [
 				'hcaptcha_divi_lf_status',
@@ -351,12 +352,12 @@ class Main {
 			'WooCommerce Checkout'         => [
 				'hcaptcha_wc_checkout_status',
 				'woocommerce/woocommerce.php',
-				Checkout::class,
+				WC\Checkout::class,
 			],
 			'WooCommerce Order Tracking'   => [
 				'hcaptcha_wc_order_tracking_status',
 				'woocommerce/woocommerce.php',
-				OrderTracking::class,
+				WC\OrderTracking::class,
 			],
 			'WooCommerce Wishlists'        => [
 				'hcaptcha_wc_wl_create_list_status',
@@ -393,6 +394,7 @@ class Main {
 
 		foreach ( $modules as $module ) {
 			$status = get_option( $module[0] );
+
 			if ( 'on' !== $status ) {
 				continue;
 			}
