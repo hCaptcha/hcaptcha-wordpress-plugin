@@ -52,6 +52,13 @@ class LoginTest extends HCaptchaWPTestCase {
 				[ $subject, 'remove_filter_wp_authenticate_user' ]
 			)
 		);
+		self::assertSame(
+			10,
+			has_filter(
+				'wpforms_user_registration_process_login_process_credentials',
+				[ $subject, 'remove_filter_wp_authenticate_user' ]
+			)
+		);
 	}
 
 	/**
