@@ -127,10 +127,8 @@ class Main {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: -9px;
 			}
-			div[style*="z-index: 2147483647"] {
-				div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
-					border-style: none;
-				}
+			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
+				border-style: none;
 			}
 		</style>
 		<?php
