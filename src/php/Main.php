@@ -80,11 +80,17 @@ class Main {
 	 * @return bool
 	 */
 	private function activate_hcaptcha() {
-		// Do not load hCaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
-		$activate = ! (
+		/**
+		 * Do not load hCaptcha functionality:
+		 * - if user is logged in and the option 'hcaptcha_off_when_logged_in' is set;
+		 * - for whitelisted IPs.
+		 */
+		$deactivate = (
 			( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ||
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
 		);
+
+		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
 
 		/**
 		 * Filters the hcaptcha activation flag.
@@ -92,6 +98,34 @@ class Main {
 		 * @param bool $activate Activate the hcaptcha functionality.
 		 */
 		return (bool) apply_filters( 'hcap_activate', $activate );
+	}
+
+	/**
+	 * Whether we are on the Elementor Pro edit post page and hCaptcha for Elementor Pro is active.
+	 *
+	 * @return bool
+	 */
+	private function is_elementor_pro_edit_page() {
+		if ( 'on' !== get_option( 'hcaptcha_elementor__pro_form_status' ) ) {
+			return false;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+		$request1 = (
+			isset( $_SERVER['REQUEST_URI'], $_GET['post'], $_GET['action'] ) &&
+			0 === strpos( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '/wp-admin/post.php' ) &&
+			'elementor' === $_GET['action']
+		);
+		$request2 = (
+			isset( $_SERVER['REQUEST_URI'], $_GET['elementor-preview'] ) &&
+			0 === strpos( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '/elementor' )
+		);
+		$request3 = (
+			isset( $_POST['action'] ) && 'elementor_ajax' === $_POST['action']
+		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+
+		return $request1 || $request2 || $request3;
 	}
 
 	/**
