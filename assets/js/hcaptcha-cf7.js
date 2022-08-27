@@ -1,4 +1,4 @@
-/* global hcaptcha, hCaptchaGetWidgetId */
+/* global hCaptchaReset */
 
 document.addEventListener( 'DOMContentLoaded', function () {
 	/**
@@ -7,8 +7,7 @@ document.addEventListener( 'DOMContentLoaded', function () {
 	 * @param {CustomEvent} event Event.
 	 */
 	const hCaptchaResetCF7 = function ( event ) {
-		// noinspection JSVoidFunctionReturnValueUsed
-		hcaptcha.reset( hCaptchaGetWidgetId( event.target ) );
+		hCaptchaReset( event.target );
 	};
 
 	[ ...document.querySelectorAll( '.wpcf7' ) ].map( ( form ) => {
