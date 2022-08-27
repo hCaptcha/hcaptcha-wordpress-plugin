@@ -284,6 +284,12 @@ Instructions for native integrations are below:
  
 == Changelog ==
 
+= 1.18.0 =
+* Tested with WooCommerce 6.8.
+* Added Divi Comment Form support. 
+* Fixed WPForms Login form support.
+* Fixed not valid CSS to prevent a black box issue.
+
 = 1.17.0 =
 * Tested with WooCommerce 6.6.
 * Added support for Ultimate Member plugin (Login, Register, LostPassword forms).
