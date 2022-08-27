@@ -64,6 +64,10 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 			10,
 			has_action( 'woocommerce_checkout_process', [ $subject, 'verify' ] )
 		);
+		self::assertSame(
+			10,
+			has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
+		);
 	}
 
 	/**
@@ -126,4 +130,18 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame( $expected, wc_get_notices() );
 	}
+
+	/**
+	 * Test enqueue_scripts().
+	 */
+	public function test_enqueue_scripts() {
+		$subject = new Checkout();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-wc' ) );
+
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( 'hcaptcha-wc' ) );
+	}
+
 }
