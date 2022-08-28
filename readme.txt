@@ -1,6 +1,6 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, captcha, recaptcha, human captcha  
+Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
 Tested up to: 6.0
 Requires PHP: 5.6.20
