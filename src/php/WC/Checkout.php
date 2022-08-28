@@ -25,6 +25,7 @@ class Checkout {
 	private function init_hooks() {
 		add_action( 'woocommerce_after_checkout_billing_form', [ $this, 'add_captcha' ] );
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
@@ -46,5 +47,18 @@ class Checkout {
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );
 		}
+	}
+
+	/**
+	 * Enqueue scripts.
+	 */
+	public function enqueue_scripts() {
+		wp_enqueue_script(
+			'hcaptcha-wc',
+			HCAPTCHA_URL . '/assets/js/hcaptcha-wc.js',
+			[ 'jquery', 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 }

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha
 Requires at least: 4.4
 Tested up to: 6.0
 Requires PHP: 5.6.20
-Stable tag: 1.17.0
+Stable tag: 1.18.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -87,7 +87,7 @@ If you create the form as an HTML block in the post content, just insert the sho
 If you create the form programmatically, insert the following statement inside it:
 
 `
-do_shortcode( 'hcaptcha' );
+echo do_shortcode( '[hcaptcha]' );
 `
 
 Secondly, verify the result of hCaptcha challenge.
@@ -283,6 +283,14 @@ Instructions for native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.18.0 =
+* Tested with WooCommerce 6.8.
+* Added Divi Comment Form support. 
+* Fixed WPForms Login form support.
+* Fixed not valid CSS to prevent a black box issue.
+* Fixed invalid hCaptcha error after correction of wrong input on Checkout page.
+* Fixed hCaptcha functionality on Elementor Pro edit page when hCaptcha is off for logged-in users.
 
 = 1.17.0 =
 * Tested with WooCommerce 6.6.

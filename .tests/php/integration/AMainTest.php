@@ -53,11 +53,18 @@ class AMainTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		global $hcaptcha_wordpress_plugin;
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 		unset(
 			$GLOBALS['current_user'],
 			$GLOBALS['current_screen'],
-			$hcaptcha_wordpress_plugin->loaded_classes[ HCaptchaHandler::class ]
+			$hcaptcha_wordpress_plugin->loaded_classes[ HCaptchaHandler::class ],
+			$_SERVER['REQUEST_URI'],
+			$_GET['post'],
+			$_GET['action'],
+			$_GET['elementor-preview'],
+			$_POST['action']
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -253,14 +260,157 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test init() and init_hooks() on Elementor Pro edit page.
+	 *
+	 * @param boolean $hcaptcha_elementor__pro_form_status Option 'hcaptcha_elementor__pro_form_status' is set.
+	 * @param array   $server                              $_SERVER variable.
+	 * @param array   $get                                 $_GET variable.
+	 * @param array   $post                                $_POST variable.
+	 * @param boolean $hcaptcha_active                     Plugin should be active.
+	 *
+	 * @dataProvider dp_test_init_and_init_hooks_on_elementor_pro_edit_page
+	 * @noinspection PhpUnitTestsInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
+		$hcaptcha_elementor__pro_form_status, $server, $get, $post, $hcaptcha_active
+	) {
+		global $current_user;
+
+		add_filter(
+			'hcap_whitelist_ip',
+			static function () {
+				return true;
+			},
+			10
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+
+		if ( 'on' === $hcaptcha_elementor__pro_form_status ) {
+			update_option( 'hcaptcha_elementor__pro_form_status', 'on' );
+		} else {
+			update_option( 'hcaptcha_elementor__pro_form_status', 'off' );
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+		$_SERVER = array_merge( $_SERVER, $server );
+		$_GET    = array_merge( $_GET, $get );
+		$_POST   = array_merge( $_POST, $post );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+
+		$subject = new Main();
+		$subject->init_hooks();
+
+		if ( $hcaptcha_active ) {
+			self::assertSame(
+				- PHP_INT_MAX + 1,
+				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
+			);
+			self::assertSame(
+				10,
+				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
+			);
+
+			self::assertSame(
+				10,
+				has_filter(
+					'wp_resource_hints',
+					[ $subject, 'prefetch_hcaptcha_dns' ]
+				)
+			);
+			self::assertSame(
+				10,
+				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertSame(
+				0,
+				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			);
+
+			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
+		} else {
+			self::assertFalse(
+				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
+			);
+			self::assertFalse(
+				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
+			);
+
+			self::assertFalse(
+				has_filter(
+					'wp_resource_hints',
+					[ $subject, 'prefetch_hcaptcha_dns' ]
+				)
+			);
+			self::assertFalse(
+				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertFalse(
+				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			);
+
+			self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
+		}
+	}
+
+	/**
+	 * Data provider for test_init_and_init_hooks_on_elementor_pro_edit_page().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_and_init_hooks_on_elementor_pro_edit_page() {
+		return [
+			'elementor option off' => [
+				'off',
+				[],
+				[],
+				[],
+				false,
+			],
+			'request1'             => [
+				'on',
+				[ 'REQUEST_URI' => '/wp-admin/post.php?post=23&action=elementor' ],
+				[
+					'post'   => 23,
+					'action' => 'elementor',
+				],
+				[],
+				true,
+			],
+			'request2'             => [
+				'on',
+				[ 'REQUEST_URI' => '/elementor?elementor-preview=23' ],
+				[ 'elementor-preview' => 23 ],
+				[],
+				true,
+			],
+			'request3'             => [
+				'on',
+				[],
+				[],
+				[ 'action' => 'elementor_ajax' ],
+				true,
+			],
+			'other request'        => [
+				'on',
+				[],
+				[],
+				[ 'action' => 'some_ajax' ],
+				false,
+			],
+		];
+	}
+
+	/**
 	 * Test init() and init_hooks() on XMLRPC_REQUEST.
 	 *
-	 * @noinspection PhpUndefinedMethodInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_and_init_hooks_on_xml_rpc_request() {
-		$subject = Mockery::mock( Main::class )->shouldAllowMockingProtectedMethods()->makePartial();
-		$subject->shouldReceive( 'is_xml_rpc' )->andReturn( true );
+		$subject = Mockery::mock( Main::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods()->shouldReceive( 'is_xml_rpc' )->andReturn( true );
 
 		$subject->init();
 
@@ -319,10 +469,8 @@ class AMainTest extends HCaptchaWPTestCase {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: -9px;
 			}
-			div[style*="z-index: 2147483647"] {
-				div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
-					border-style: none;
-				}
+			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
+				border-style: none;
 			}
 		</style>
 		';

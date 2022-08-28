@@ -163,14 +163,16 @@ class HCaptchaWPTestCase extends WPTestCase {
 
 		add_filter(
 			'pre_http_request',
-			function ( $preempt, $parsed_args, $url ) use ( $hcaptcha_secret_key, $hcaptcha_response, $raw_response, $ip ) {
-				$expected_url =
-					'https://hcaptcha.com/siteverify' .
-					'?secret=' . $hcaptcha_secret_key .
-					'&response=' . $hcaptcha_response .
-					'&remoteip=' . $ip;
+			static function ( $preempt, $parsed_args, $url ) use ( $hcaptcha_secret_key, $hcaptcha_response, $raw_response, $ip ) {
+				$expected_url  =
+					'https://hcaptcha.com/siteverify';
+				$expected_body = [
+					'secret'   => $hcaptcha_secret_key,
+					'response' => $hcaptcha_response,
+					'remoteip' => $ip,
+				];
 
-				if ( $expected_url === $url ) {
+				if ( $expected_url === $url && $expected_body === $parsed_args['body'] ) {
 					return [
 						'body' => $raw_response,
 					];

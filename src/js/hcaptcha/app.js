@@ -12,6 +12,10 @@ window.hCaptchaGetWidgetId = ( el ) => {
 	hCaptcha.getWidgetId( el );
 };
 
+window.hCaptchaReset = ( el ) => {
+	hCaptcha.reset( el );
+};
+
 window.hCaptchaBindEvents = () => {
 	hCaptcha.bindEvents();
 };

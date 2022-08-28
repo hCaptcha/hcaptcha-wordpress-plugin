@@ -266,7 +266,7 @@ class HCaptchaHandler {
 			return;
 		}
 
-		// If success - remove the field form list (don't send it in emails etc. ).
+		// If success - remove the field form list (don't send it in emails etc.).
 		$record->remove_field( $field['id'] );
 	}
 

@@ -10,14 +10,10 @@ namespace HCaptcha;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
-use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\NF\NF;
-use HCaptcha\WC\Checkout;
-use HCaptcha\WC\OrderTracking;
-use HCaptcha\WP\Comment;
 
 /**
  * Class Main.
@@ -84,11 +80,17 @@ class Main {
 	 * @return bool
 	 */
 	private function activate_hcaptcha() {
-		// Do not load hCaptcha functionality if user is logged in and the option 'hcaptcha_off_when_logged_in' is set.
-		$activate = ! (
+		/**
+		 * Do not load hCaptcha functionality:
+		 * - if user is logged in and the option 'hcaptcha_off_when_logged_in' is set;
+		 * - for whitelisted IPs.
+		 */
+		$deactivate = (
 			( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ||
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
 		);
+
+		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
 
 		/**
 		 * Filters the hcaptcha activation flag.
@@ -96,6 +98,34 @@ class Main {
 		 * @param bool $activate Activate the hcaptcha functionality.
 		 */
 		return (bool) apply_filters( 'hcap_activate', $activate );
+	}
+
+	/**
+	 * Whether we are on the Elementor Pro edit post page and hCaptcha for Elementor Pro is active.
+	 *
+	 * @return bool
+	 */
+	private function is_elementor_pro_edit_page() {
+		if ( 'on' !== get_option( 'hcaptcha_elementor__pro_form_status' ) ) {
+			return false;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+		$request1 = (
+			isset( $_SERVER['REQUEST_URI'], $_GET['post'], $_GET['action'] ) &&
+			0 === strpos( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '/wp-admin/post.php' ) &&
+			'elementor' === $_GET['action']
+		);
+		$request2 = (
+			isset( $_SERVER['REQUEST_URI'], $_GET['elementor-preview'] ) &&
+			0 === strpos( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '/elementor' )
+		);
+		$request3 = (
+			isset( $_POST['action'] ) && 'elementor_ajax' === $_POST['action']
+		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+
+		return $request1 || $request2 || $request3;
 	}
 
 	/**
@@ -131,10 +161,8 @@ class Main {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: -9px;
 			}
-			div[style*="z-index: 2147483647"] {
-				div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
-					border-style: none;
-				}
+			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
+				border-style: none;
 			}
 		</style>
 		<?php
@@ -241,7 +269,7 @@ class Main {
 			'Comment Form'                 => [
 				'hcaptcha_cmf_status',
 				'',
-				Comment::class,
+				WP\Comment::class,
 			],
 			'bbPress New Topic'            => [
 				'hcaptcha_bbp_new_topic_status',
@@ -268,10 +296,15 @@ class Main {
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
+			'Divi Comment Form'            => [
+				'hcaptcha_divi_cmf_status',
+				'Divi',
+				[ Divi\Comment::class, WP\Comment::class ],
+			],
 			'Divi Contact Form'            => [
 				'hcaptcha_divi_cf_status',
 				'Divi',
-				Contact::class,
+				Divi\Contact::class,
 			],
 			'Divi Login Form'              => [
 				'hcaptcha_divi_lf_status',
@@ -351,12 +384,12 @@ class Main {
 			'WooCommerce Checkout'         => [
 				'hcaptcha_wc_checkout_status',
 				'woocommerce/woocommerce.php',
-				Checkout::class,
+				WC\Checkout::class,
 			],
 			'WooCommerce Order Tracking'   => [
 				'hcaptcha_wc_order_tracking_status',
 				'woocommerce/woocommerce.php',
-				OrderTracking::class,
+				WC\OrderTracking::class,
 			],
 			'WooCommerce Wishlists'        => [
 				'hcaptcha_wc_wl_create_list_status',
@@ -393,6 +426,7 @@ class Main {
 
 		foreach ( $modules as $module ) {
 			$status = get_option( $module[0] );
+
 			if ( 'on' !== $status ) {
 				continue;
 			}

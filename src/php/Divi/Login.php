@@ -1,6 +1,6 @@
 <?php
 /**
- * Divi class file.
+ * Login class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,7 +10,7 @@ namespace HCaptcha\Divi;
 use WP_Error;
 
 /**
- * Class Login
+ * Class Login.
  */
 class Login {
 
@@ -44,7 +44,7 @@ class Login {
 	}
 
 	/**
-	 * Add hCaptcha to the Login form.
+	 * Add hCaptcha to the login form.
 	 *
 	 * @param string|string[] $output      Module output.
 	 * @param string          $module_slug Module slug.

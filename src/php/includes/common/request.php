@@ -77,8 +77,9 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$params['remoteip'] = $ip;
 		}
 
-		$raw_response = wp_remote_get(
-			add_query_arg( $params, 'https://hcaptcha.com/siteverify' )
+		$raw_response = wp_remote_post(
+			'https://hcaptcha.com/siteverify',
+			[ 'body' => $params ]
 		);
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
