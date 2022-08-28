@@ -289,7 +289,8 @@ Instructions for native integrations are below:
 * Added Divi Comment Form support. 
 * Fixed WPForms Login form support.
 * Fixed not valid CSS to prevent a black box issue.
-* Fixed invalid hCaptcha error after fixing wrong input on Checkout page. 
+* Fixed invalid hCaptcha error after correction of wrong input on Checkout page.
+* Fixed hCaptcha functionality on Elementor Pro edit page when hCaptcha is off for logged-in users.
 
 = 1.17.0 =
 * Tested with WooCommerce 6.6.
