@@ -393,6 +393,13 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'action' => 'elementor_ajax' ],
 				true,
 			],
+			'other request'        => [
+				'on',
+				[],
+				[],
+				[ 'action' => 'some_ajax' ],
+				false,
+			],
 		];
 	}
 
