@@ -14,6 +14,7 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\NF\NF;
+use HCaptcha\Settings\Settings;
 
 /**
  * Class Main.
@@ -72,6 +73,10 @@ class Main {
 		}
 
 		( new Fix() )->init();
+
+		if ( is_admin() ) {
+			new Settings();
+		}
 	}
 
 	/**

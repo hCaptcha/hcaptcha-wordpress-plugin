@@ -1,0 +1,25 @@
+.hcaptcha-settings-tabs {
+	line-height: 4.5em;
+	background: #fff;
+	margin: 10px -20px 0 -20px;
+	padding: 0 20px;
+}
+
+.hcaptcha-settings-tab {
+	display: inline-block;
+	font-size: 1.1em;
+	text-decoration: none;
+	margin-right: 30px;
+	color: #646970;
+	border-bottom: 2px solid transparent;
+}
+
+.hcaptcha-settings-tab:hover {
+	color: #666;
+	border-color: #646970;
+	border-bottom: 2px solid;
+}
+
+.hcaptcha-settings-tab.active {
+	border-bottom: 2px solid #4f94d4;
+}

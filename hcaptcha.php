@@ -73,11 +73,6 @@ require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 require HCAPTCHA_INC . '/common/request.php';
 require HCAPTCHA_INC . '/common/functions.php';
 
-// Add admin page.
-if ( is_admin() ) {
-	require HCAPTCHA_INC . '/backend/nav.php';
-}
-
 if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	/**
 	 * Print error message.

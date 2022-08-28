@@ -1,0 +1,314 @@
+<?php
+/**
+ * General class file.
+ *
+ * @package hcaptcha-wp
+ */
+
+namespace HCaptcha\Settings;
+
+/**
+ * Class General
+ *
+ * Settings page "General".
+ */
+class General extends PluginSettingsBase {
+
+	/**
+	 * Admin script handle.
+	 */
+	const HANDLE = 'hcaptcha-general';
+
+	/**
+	 * Get screen id.
+	 *
+	 * @return string
+	 */
+	public function screen_id() {
+		return 'settings_page_hcaptcha';
+	}
+
+	/**
+	 * Get option group.
+	 *
+	 * @return string
+	 */
+	protected function option_group() {
+		return 'hcaptcha_group';
+	}
+
+	/**
+	 * Get option page.
+	 *
+	 * @return string
+	 */
+	protected function option_page() {
+		return 'hcaptcha';
+	}
+
+	/**
+	 * Get option name.
+	 *
+	 * @return string
+	 */
+	protected function option_name() {
+		return 'hcaptcha_settings';
+	}
+
+	/**
+	 * Get page title.
+	 *
+	 * @return string
+	 */
+	protected function page_title() {
+		return __( 'General', 'hcaptcha-for-forms-and-more' );
+	}
+
+	/**
+	 * Get menu title.
+	 *
+	 * @return string
+	 */
+	protected function menu_title() {
+		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
+	}
+
+	/**
+	 * Get section title.
+	 *
+	 * @return string
+	 */
+	protected function section_title() {
+		return '';
+	}
+
+	/**
+	 * Init form fields.
+	 */
+	public function init_form_fields() {
+		$this->form_fields = [
+			'hcaptcha_api_key'            => [
+				'label' => __( 'hCaptcha Site Key', 'hcaptcha-for-forms-and-more' ),
+				'type'  => 'text',
+			],
+			'hcaptcha_secret_key'         => [
+				'label' => __( 'hCaptcha Secret Key', 'hcaptcha-for-forms-and-more' ),
+				'type'  => 'password',
+			],
+			'hcaptcha_theme'              => [
+				'label'   => __( 'hCaptcha Theme', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'options' => [
+					'light' => __( 'Light', 'hcaptcha-for-forms-and-more' ),
+					'dark'  => __( 'Dark', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'hcaptcha_size'               => [
+				'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'options' => [
+					'normal'    => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
+					'compact'   => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
+					'invisible' => __( 'Invisible', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'hcaptcha_language'           => [
+				'label'        => __( 'Override Language Detection', 'hcaptcha-for-forms-and-more' ),
+				'type'         => 'select',
+				'options'      => [
+					''      => '--- Auto-Detect ---',
+					'af'    => 'Afrikaans',
+					'sq'    => 'Albanian',
+					'am'    => 'Amharic',
+					'ar'    => 'Arabic',
+					'hy'    => 'Armenian',
+					'az'    => 'Azerbaijani',
+					'eu'    => 'Basque',
+					'be'    => 'Belarusian',
+					'bn'    => 'Bengali',
+					'bg'    => 'Bulgarian',
+					'bs'    => 'Bosnian',
+					'my'    => 'Burmese',
+					'ca'    => 'Catalan',
+					'ceb'   => 'Cebuano',
+					'zh'    => 'Chinese',
+					'zh-CN' => 'Chinese Simplified',
+					'zh-TW' => 'Chinese Traditional',
+					'co'    => 'Corsican',
+					'hr'    => 'Croatian',
+					'cs'    => 'Czech',
+					'da'    => 'Danish',
+					'nl'    => 'Dutch',
+					'en'    => 'English',
+					'eo'    => 'Esperanto',
+					'et'    => 'Estonian',
+					'fa'    => 'Persian',
+					'fi'    => 'Finnish',
+					'fr'    => 'French',
+					'fy'    => 'Frisian',
+					'gd'    => 'Gaelic',
+					'gl'    => 'Galacian',
+					'ka'    => 'Georgian',
+					'de'    => 'German',
+					'el'    => 'Greek',
+					'gu'    => 'Gujurati',
+					'ht'    => 'Haitian',
+					'ha'    => 'Hausa',
+					'haw'   => 'Hawaiian',
+					'he'    => 'Hebrew',
+					'hi'    => 'Hindi',
+					'hmn'   => 'Hmong',
+					'hu'    => 'Hungarian',
+					'is'    => 'Icelandic',
+					'ig'    => 'Igbo',
+					'id'    => 'Indonesian',
+					'ga'    => 'Irish',
+					'it'    => 'Italian',
+					'ja'    => 'Japanese',
+					'jw'    => 'Javanese',
+					'kn'    => 'Kannada',
+					'kk'    => 'Kazakh',
+					'km'    => 'Khmer',
+					'rw'    => 'Kinyarwanda',
+					'ky'    => 'Kirghiz',
+					'ko'    => 'Korean',
+					'ku'    => 'Kurdish',
+					'lo'    => 'Lao',
+					'la'    => 'Latin',
+					'lv'    => 'Latvian',
+					'lt'    => 'Lithuanian',
+					'lb'    => 'Luxembourgish',
+					'mk'    => 'Macedonian',
+					'mg'    => 'Malagasy',
+					'ms'    => 'Malay',
+					'ml'    => 'Malayalam',
+					'mt'    => 'Maltese',
+					'mi'    => 'Maori',
+					'mr'    => 'Marathi',
+					'mn'    => 'Mongolian',
+					'ne'    => 'Nepali',
+					'no'    => 'Norwegian',
+					'ny'    => 'Nyanja',
+					'or'    => 'Oriya',
+					'pl'    => 'Polish',
+					'pt'    => 'Portuguese',
+					'ps'    => 'Pashto',
+					'pa'    => 'Punjabi',
+					'ro'    => 'Romanian',
+					'ru'    => 'Russian',
+					'sm'    => 'Samoan',
+					'sn'    => 'Shona',
+					'sd'    => 'Sindhi',
+					'si'    => 'Singhalese',
+					'sr'    => 'Serbian',
+					'sk'    => 'Slovak',
+					'sl'    => 'Slovenian',
+					'so'    => 'Somani',
+					'st'    => 'Southern Sotho',
+					'es'    => 'Spanish',
+					'su'    => 'Sundanese',
+					'sw'    => 'Swahili',
+					'sv'    => 'Swedish',
+					'tl'    => 'Tagalog',
+					'tg'    => 'Tajik',
+					'ta'    => 'Tamil',
+					'tt'    => 'Tatar',
+					'te'    => 'Teluga',
+					'th'    => 'Thai',
+					'tr'    => 'Turkish',
+					'tk'    => 'Turkmen',
+					'ug'    => 'Uyghur',
+					'uk'    => 'Ukrainian',
+					'ur'    => 'Urdu',
+					'uz'    => 'Uzbek',
+					'vi'    => 'Vietnamese',
+					'cy'    => 'Welsh',
+					'xh'    => 'Xhosa',
+					'yi'    => 'Yiddish',
+					'yo'    => 'Yoruba',
+					'zu'    => 'Zulu',
+				],
+				'supplemental' => __(
+					"By default, hCaptcha will automatically detect the user's locale and localize widgets accordingly.",
+					'hcaptcha-for-forms-and-more'
+				),
+			],
+			'hcaptcha_off_when_logged_in' => [
+				'label' => __( 'Turn Off When Logged In', 'hcaptcha-for-forms-and-more' ),
+				'type'  => 'checkbox',
+			],
+			'hcaptcha_recaptchacompat'    => [
+				'label'        => __( 'Disable reCAPTCHA Compatibility', 'hcaptcha-for-forms-and-more' ),
+				'type'         => 'checkbox',
+				'supplemental' => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
+			],
+		];
+	}
+
+	/**
+	 * Show settings page.
+	 */
+	public function settings_page() {
+		?>
+		<div class="wrap">
+			<h1>
+				<?php
+				esc_html_e( 'hCaptcha Plugin Options', 'hcaptcha-for-forms-and-more' );
+				?>
+			</h1>
+
+			<form id="hcaptcha-options" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>" method="post">
+				<?php
+				do_settings_sections( $this->option_page() ); // Sections with options.
+				settings_fields( $this->option_group() ); // Hidden protection fields.
+				submit_button();
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Section callback.
+	 *
+	 * @param array $arguments Section arguments.
+	 */
+	public function section_callback( $arguments ) {
+		?>
+		<h2>
+			<?php
+			echo wp_kses_post(
+				__(
+					'To use <a href="https://www.hcaptcha.com/?r=wp" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp" target="_blank">here</a> to get your site and secret keys.',
+					'hcaptcha-for-forms-and-more'
+				)
+			);
+			?>
+		</h2>
+		<?php
+	}
+
+	/**
+	 * Enqueue class scripts.
+	 */
+	public function admin_enqueue_scripts() {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/general/app$this->min_prefix.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_enqueue_style(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_prefix.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+	}
+}
