@@ -1,6 +1,6 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, make money with captcha, recaptcha, human captcha  
+Tags: captcha, hcaptcha, captcha, recaptcha, human captcha  
 Requires at least: 4.4
 Tested up to: 6.0
 Requires PHP: 5.6.20
@@ -12,43 +12,39 @@ Enables hCaptcha.com integration with WordPress.
 
 == Description ==
  
-hCaptcha is a drop-in replacement for reCAPTCHA that pays website owners while preserving user privacy.
+[hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
-Do you use a captcha to keep out bots? hCaptcha protects user privacy, rewards websites, and helps companies get their data labeled. Help build a better web. 
-
-**NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support. 
-
-If you see an integration that doesn't work, or one that's missing, please
-[open a pull request](https://github.com/hCaptcha/hcaptcha-wordpress-plugin):
-
-However, you may wish to email the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support if they choose to do so. This will simplify your use of hCaptcha, and is the best solution in the long run.
+Need to keep out bots? hCaptcha protects privacy while offering better protection than alternatives. Help build a better web. 
 
 == How hCaptcha Works ==
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots. 
 
-hCaptcha takes this idea and extends it by attempting to use those challenge answers for annotation, in an attempt to avoid simply wasting that effort. It is designed to solve the most labor-intensive problem in machine learning: labeling massive amounts of data in a timely, affordable, and reliable way.
+To use this plugin, just install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on [hCaptcha.com](https://www.hcaptcha.com/).
 
-More data generally produces better results in training machine learning models. The recent success of deep models has led to increasingly large datasets, almost always with some human review. However, creating large human-reviewed datasets via Mechanical Turk, Figure Eight, etc. is both slow and expensive.
+[hCaptcha Free](https://www.hcaptcha.com/) allows websites to earn rewards while blocking bots and other forms of abuse when a user needs to prove their humanity.
 
-hCaptcha allows websites to earn rewards while serving this demand while blocking bots and other forms of abuse when a user needs to prove their humanity.
+[hCaptcha Pro](https://www.hcaptcha.com/pro) takes this idea and extends it further through advanced machine learning, delivering high security and low friction along with more features like UI customization.
+
  
 == Installation ==
- 
-1. Upload `hcaptcha-wordpress-plugin` folder to the `/wp-content/plugins/` directory  
-2. Activate the plugin through the 'Plugins' menu in WordPress  
-3. Enter your site key and SECRET in the Settings -> hCaptcha menu in WordPress  
-4. Enable desired Integrations  
+
+Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
+
+1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
+2. Activate the hCaptcha plugin through the 'Plugins' menu in WordPress  
+3. Enter your site key and secret in the Settings -> hCaptcha menu in WordPress  
+4. Enable desired Integrations
  
 == Frequently Asked Questions ==
 
-= How to use the hCaptcha plugin? =
+= How do I use the hCaptcha plugin? =
 
 The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha plugin settings page.
 
 For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the plugin.
 
-We support Contact Forms 7 automatically. Sometimes, however, a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
+For example, we support Contact Forms 7 automatically. However, sometimes a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
 
 = You don't support plugin X. How can I get support for it added? =
 
@@ -164,7 +160,7 @@ add_filter( 'hcap_delay_api', 'my_hcap_delay_api' );
 
 = How to set hCaptcha language programmatically? =
 
-On multilingual sites it is needed to set hCaptcha language depending on the current page language. For this, you can use the following filter:
+hCaptcha defaults to using the user's language as reported by the browser. However, on multilingual sites you can override this to set the hCaptcha language to match the current page language. For this, you can use the following filter:
 
 `
 /**
@@ -224,6 +220,8 @@ Please see our [website](https://hcaptcha.com/).
 
 == Privacy Notices ==
 
+hCaptcha is designed to comply with privacy laws in every country, including GDPR, LGPD, CCPA, and more.
+
 With the default configuration, this plugin does not:
 
 * track users by stealth;
@@ -231,9 +229,9 @@ With the default configuration, this plugin does not:
 * send any data to external servers;
 * use cookies.
 
-Once you activate this plugin, the hCaptcha-answering user's personal data, including their IP address, may be sent to the hCaptcha service.
+Once you activate this plugin, the hCaptcha-answering user's IP address and browser data may be sent to the hCaptcha service on pages where you have activated hCaptcha protection. However, hCaptcha is designed to minimize data used, process it very close to the user, and rapidly discard it after analysis.
 
-Please see the hCaptcha privacy policy at: 
+For more details, please see the hCaptcha privacy policy at: 
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
 
@@ -273,12 +271,19 @@ Please see the hCaptcha privacy policy at:
 
 === Please note ===
 
+**NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support. 
+
+For feature requests and issue reports, please
+[open a pull request](https://github.com/hCaptcha/hcaptcha-wordpress-plugin).
+
+We also suggest emailing the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support. This will simplify your use of hCaptcha, and is the best solution in the long run.
+
 Some plugins listed have been superseded by native support, and are included only for legacy purposes.
 
 You should always use native hCaptcha support if available for your plugin.
 Please check with your plugin author if native support is not yet available.
 
-Instructions for native integrations are below:
+Instructions for popular native integrations are below:
 
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
