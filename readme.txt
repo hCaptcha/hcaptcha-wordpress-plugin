@@ -1,6 +1,6 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, captcha, recaptcha, human captcha  
+Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
 Tested up to: 6.0
 Requires PHP: 5.6.20
@@ -14,17 +14,17 @@ Enables hCaptcha.com integration with WordPress.
  
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
-Need to keep out bots? hCaptcha protects privacy while offering better protection than alternatives. Help build a better web. 
+Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web. 
 
 == How hCaptcha Works ==
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots. 
 
-To use this plugin, just install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on [hCaptcha.com](https://www.hcaptcha.com/).
+To use this plugin, just install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on hCaptcha.com.
 
-[hCaptcha Free](https://www.hcaptcha.com/) allows websites to earn rewards while blocking bots and other forms of abuse when a user needs to prove their humanity.
+[hCaptcha Free](https://www.hcaptcha.com/) lets websites earn rewards while blocking bots and other forms of abuse when a user needs to prove their humanity.
 
-[hCaptcha Pro](https://www.hcaptcha.com/pro) takes this idea and extends it further through advanced machine learning, delivering high security and low friction along with more features like UI customization.
+[hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
  
 == Installation ==
