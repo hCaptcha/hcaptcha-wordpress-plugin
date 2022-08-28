@@ -50,6 +50,15 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get hCaptcha widget id.
+	 *
+	 * @param {HTMLDivElement} el Form element.
+	 */
+	reset( el ) {
+		hcaptcha.reset( this.getWidgetId( el ) );
+	}
+
+	/**
 	 * Check if child is same or a descendant of parent.
 	 *
 	 * @param {HTMLDivElement} parent Parent element.

@@ -13,6 +13,8 @@
 namespace HCaptcha\Tests\Integration\WPForo;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
+use wpforo\classes\Notices;
 
 /**
  * Test wpforo files.
@@ -33,12 +35,15 @@ class WPForoTest extends HCaptchaPluginWPTestCase {
 		set_current_screen( 'edit-post' );
 
 		parent::setUp();
+
+		WPF()->notice = new Notices();
 	}
 
 	/**
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
+		WPF()->session_token = '';
 		WPF()->notice->clear();
 		WPF()->session_token = '';
 
@@ -81,10 +86,15 @@ class WPForoTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic', false );
 
+		FunctionMocker::replace( 'wpforo_is_ajax', true );
+
 		WPF()->session_token = '23';
 
 		self::assertSame( '', WPF()->notice->get_notices() );
 		self::assertFalse( hcap_verify_wpforo_topic_captcha( [] ) );
+
+		WPF()->session_token = '';
+
 		self::assertSame( $expected, WPF()->notice->get_notices() );
 	}
 
@@ -123,10 +133,15 @@ class WPForoTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply', false );
 
+		FunctionMocker::replace( 'wpforo_is_ajax', true );
+
 		WPF()->session_token = '23';
 
 		self::assertSame( '', WPF()->notice->get_notices() );
 		self::assertFalse( hcap_verify_wpforo_reply_captcha( [] ) );
+
+		WPF()->session_token = '';
+
 		self::assertSame( $expected, WPF()->notice->get_notices() );
 	}
 }

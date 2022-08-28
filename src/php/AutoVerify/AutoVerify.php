@@ -236,7 +236,7 @@ class AutoVerify {
 	private function get_visible_input_names( $form ) {
 		$names = [];
 
-		if ( ! (bool) preg_match_all( '#<input[\S\s]+?>#', $form, $matches ) ) {
+		if ( ! preg_match_all( '#<input[\S\s]+?>#', $form, $matches ) ) {
 			return $names;
 		}
 
