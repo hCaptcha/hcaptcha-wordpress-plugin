@@ -78,7 +78,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$raw_response = wp_remote_post(
-			'https://hcaptcha.com/siteverify',
+			'https://api.hcaptcha.com/siteverify',
 			[ 'body' => $params ]
 		);
 

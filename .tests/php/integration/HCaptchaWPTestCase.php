@@ -165,7 +165,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 			'pre_http_request',
 			static function ( $preempt, $parsed_args, $url ) use ( $hcaptcha_secret_key, $hcaptcha_response, $raw_response, $ip ) {
 				$expected_url  =
-					'https://hcaptcha.com/siteverify';
+					'https://api.hcaptcha.com/siteverify';
 				$expected_body = [
 					'secret'   => $hcaptcha_secret_key,
 					'response' => $hcaptcha_response,
