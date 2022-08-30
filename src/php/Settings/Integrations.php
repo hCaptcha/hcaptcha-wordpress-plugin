@@ -96,12 +96,12 @@ class Integrations extends PluginSettingsBase {
 				'label' => __( 'WP Login Form', 'hcaptcha-for-forms-and-more' ),
 				'type'  => 'checkbox',
 			],
-			'hcap_t' => [
-				'label' => __( 'Test multiple checkbox', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'hcap_t'                               => [
+				'label'   => __( 'Test multiple checkbox', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
 				'options' => [
-						'one' => 'One',
-						'two' => 'Two',
+					'one' => 'One',
+					'two' => 'Two',
 				],
 			],
 			'hcaptcha_rf_status'                   => [
