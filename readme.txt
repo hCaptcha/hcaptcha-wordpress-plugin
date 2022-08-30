@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
 Tested up to: 6.0
 Requires PHP: 5.6.20
-Stable tag: 1.18.0
+Stable tag: 1.19.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -288,6 +288,9 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 1.19.0 =
+* Fixed grey left sidebar issue on Elementor edit page.
 
 = 1.18.0 =
 * Tested with WooCommerce 6.8.
