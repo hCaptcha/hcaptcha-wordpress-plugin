@@ -354,10 +354,8 @@ class HCaptchaHandler {
 			'value'    => [ 'hcaptcha' ],
 		];
 
-		$control_data['fields']['width']['conditions']['terms'][]        = $term;
-		$control_data['fields']['width_tablet']['conditions']['terms'][] = $term;
-		$control_data['fields']['width_mobile']['conditions']['terms'][] = $term;
-		$control_data['fields']['required']['conditions']['terms'][]     = $term;
+		$control_data['fields']['width']['conditions']['terms'][]    = $term;
+		$control_data['fields']['required']['conditions']['terms'][] = $term;
 
 		Plugin::$instance->controls_manager->update_control_in_stack(
 			$controls_stack,
