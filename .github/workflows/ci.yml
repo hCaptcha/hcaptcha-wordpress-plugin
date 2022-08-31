@@ -12,7 +12,7 @@ jobs:
     env:
       wp-directory: wordpress
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
-      DB_HOST: mysql
+      DB_HOST: localhost
       DB_TABLE_PREFIX: wp_
       DB_NAME: wp-tests
       DB_USER: root
@@ -74,8 +74,8 @@ jobs:
 
       - name: Start mysql
         run: |
-          mysql -e "show variables where variable_name = 'hostname'" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
           sudo systemctl start mysql
+          mysql -e "show variables where variable_name = 'hostname'" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
           mysql -e "create database \`${{ env.DB_NAME }}\`" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
           mysql -e "set global character_set_server=\"utf8mb4\"" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
           mysql -e "set global sql_mode=\"ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES\"" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
