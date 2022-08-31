@@ -74,7 +74,8 @@ jobs:
 
       - name: Start mysql
         run: |
-          sed -i 's\127.0.0.1\0.0.0.0\' /etc/mysql/mysql.conf.d/mysqld.cnf
+          sudo sed -i 's\127.0.0.1\0.0.0.0\' /etc/mysql/mysql.conf.d/mysqld.cnf
+          hostname -i
           sudo systemctl start mysql
           mysql -e "show variables where variable_name = 'hostname'" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
           mysql -e "create database \`${{ env.DB_NAME }}\`" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
