@@ -36,6 +36,13 @@ class Main {
 	public $loaded_classes = [];
 
 	/**
+	 * Settings class instance.
+	 *
+	 * @var Settings
+	 */
+	public $settings;
+
+	/**
 	 * Instance of AutoVerify.
 	 *
 	 * @var AutoVerify
@@ -57,8 +64,7 @@ class Main {
 	 * Init hooks.
 	 */
 	public function init_hooks() {
-		// Make sure we can use is_user_logged_in().
-		require_once ABSPATH . 'wp-includes/pluggable.php';
+		$this->settings = new Settings();
 
 		if ( $this->activate_hcaptcha() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
@@ -73,10 +79,6 @@ class Main {
 		}
 
 		( new Fix() )->init();
-
-		if ( is_admin() ) {
-			new Settings();
-		}
 	}
 
 	/**
@@ -85,6 +87,9 @@ class Main {
 	 * @return bool
 	 */
 	private function activate_hcaptcha() {
+		// Make sure we can use is_user_logged_in().
+		require_once ABSPATH . 'wp-includes/pluggable.php';
+
 		/**
 		 * Do not load hCaptcha functionality:
 		 * - if user is logged in and the option 'hcaptcha_off_when_logged_in' is set;
@@ -256,168 +261,168 @@ class Main {
 	 */
 	public function load_modules() {
 		$modules = [
-			'Login Form'                   => [
-				'hcaptcha_lf_status',
-				'',
-				WP\Login::class,
-			],
-			'Register Form'                => [
-				'hcaptcha_rf_status',
-				'',
-				WP\Register::class,
-			],
-			'Lost Password Form'           => [
-				'hcaptcha_lpf_status',
-				'',
-				WP\LostPassword::class,
-			],
 			'Comment Form'                 => [
-				'hcaptcha_cmf_status',
+				[ 'wp_status', 'comment' ],
 				'',
 				WP\Comment::class,
 			],
+			'Login Form'                   => [
+				[ 'wp_status', 'login' ],
+				'',
+				WP\Login::class,
+			],
+			'Lost Password Form'           => [
+				[ 'wp_status', 'lost_pass' ],
+				'',
+				WP\LostPassword::class,
+			],
+			'Register Form'                => [
+				[ 'wp_status', 'register' ],
+				'',
+				WP\Register::class,
+			],
 			'bbPress New Topic'            => [
-				'hcaptcha_bbp_new_topic_status',
+				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
 				'bbp/bbp-new-topic.php',
 			],
 			'bbPress Reply'                => [
-				'hcaptcha_bbp_reply_status',
+				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
 			],
 			'BuddyPress Create Group'      => [
-				'hcaptcha_bp_create_group_status',
+				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
 				'bp/bp-create-group.php',
 			],
 			'BuddyPress Register'          => [
-				'hcaptcha_bp_reg_status',
+				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
 				'bp/bp-register.php',
 			],
 			'Contact Form 7'               => [
-				'hcaptcha_cf7_status',
+				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
 			'Divi Comment Form'            => [
-				'hcaptcha_divi_cmf_status',
+				[ 'divi_status', 'comment' ],
 				'Divi',
 				[ Divi\Comment::class, WP\Comment::class ],
 			],
 			'Divi Contact Form'            => [
-				'hcaptcha_divi_cf_status',
+				[ 'divi_status', 'contact' ],
 				'Divi',
 				Divi\Contact::class,
 			],
 			'Divi Login Form'              => [
-				'hcaptcha_divi_lf_status',
+				[ 'divi_status', 'login' ],
 				'Divi',
 				Divi\Login::class,
 			],
 			'Elementor Pro Form'           => [
-				'hcaptcha_elementor__pro_form_status',
+				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
 			'Fluent Forms'                 => [
-				'hcaptcha_fluentform_status',
+				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
 				FluentForm\Form::class,
 			],
 			'Gravity Forms'                => [
-				'hcaptcha_gravityform_status',
+				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
 				GravityForms\Form::class,
 			],
 			'Jetpack'                      => [
-				'hcaptcha_jetpack_cf_status',
+				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
 			'MailChimp'                    => [
-				'hcaptcha_mc4wp_status',
+				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'mailchimp/mailchimp-for-wp.php',
 			],
 			'MemberPress Register'         => [
-				'hcaptcha_memberpress_register_status',
+				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',
 				MemberPress\Register::class,
 			],
 			'Ninja Forms'                  => [
-				'hcaptcha_nf_status',
+				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
 			'Subscriber'                   => [
-				'hcaptcha_subscribers_status',
+				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
 				'subscriber/subscriber.php',
 			],
 			'Ultimate Member Login'        => [
-				'hcaptcha_um_login_status',
+				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
 				UM\Login::class,
 			],
 			'Ultimate Member LostPassword' => [
-				'hcaptcha_um_lost_pass_status',
+				[ 'ultimate_member_status', 'lost_pass' ],
 				'ultimate-member/ultimate-member.php',
 				UM\LostPassword::class,
 			],
 			'Ultimate Member Register'     => [
-				'hcaptcha_um_register_status',
+				[ 'ultimate_member_status', 'register' ],
 				'ultimate-member/ultimate-member.php',
 				UM\Register::class,
 			],
-			'WooCommerce Login'            => [
-				'hcaptcha_wc_login_status',
-				'woocommerce/woocommerce.php',
-				WC\Login::class,
-			],
-			'WooCommerce Register'         => [
-				'hcaptcha_wc_reg_status',
-				'woocommerce/woocommerce.php',
-				WC\Register::class,
-			],
-			'WooCommerce Lost Password'    => [
-				'hcaptcha_wc_lost_pass_status',
-				'woocommerce/woocommerce.php',
-				[ WP\LostPassword::class, WC\LostPassword::class ],
-			],
 			'WooCommerce Checkout'         => [
-				'hcaptcha_wc_checkout_status',
+				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
 				WC\Checkout::class,
 			],
+			'WooCommerce Login'            => [
+				[ 'woocommerce_status', 'login' ],
+				'woocommerce/woocommerce.php',
+				WC\Login::class,
+			],
+			'WooCommerce Lost Password'    => [
+				[ 'woocommerce_status', 'lost_pass' ],
+				'woocommerce/woocommerce.php',
+				[ WP\LostPassword::class, WC\LostPassword::class ],
+			],
 			'WooCommerce Order Tracking'   => [
-				'hcaptcha_wc_order_tracking_status',
+				[ 'woocommerce_status', 'order_tracking' ],
 				'woocommerce/woocommerce.php',
 				WC\OrderTracking::class,
 			],
+			'WooCommerce Register'         => [
+				[ 'woocommerce_status', 'register' ],
+				'woocommerce/woocommerce.php',
+				WC\Register::class,
+			],
 			'WooCommerce Wishlists'        => [
-				'hcaptcha_wc_wl_create_list_status',
+				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				'wc_wl/wc-wl-create-list.php',
 			],
 			'WPForms Lite'                 => [
-				'hcaptcha_wpforms_status',
+				[ 'wpforms_status', 'lite' ],
 				'wpforms-lite/wpforms.php',
 				'wpforms/wpforms.php',
 			],
 			'WPForms Pro'                  => [
-				'hcaptcha_wpforms_pro_status',
+				[ 'wpforms_status', 'pro' ],
 				'wpforms/wpforms.php',
 				'wpforms/wpforms.php',
 			],
 			'wpForo New Topic'             => [
-				'hcaptcha_wpforo_new_topic_status',
+				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
 				'wpforo/wpforo-new-topic.php',
 			],
 			'wpForo Reply'                 => [
-				'hcaptcha_wpforo_reply_status',
+				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
 				'wpforo/wpforo-reply.php',
 			],
@@ -430,9 +435,9 @@ class Main {
 		}
 
 		foreach ( $modules as $module ) {
-			$status = get_option( $module[0] );
+			list( $option_name, $option_value ) = $module[0];
 
-			if ( 'on' !== $status ) {
+			if ( ! in_array( $option_value, (array) $this->settings->get( $option_name ), true ) ) {
 				continue;
 			}
 

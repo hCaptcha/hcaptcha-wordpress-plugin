@@ -308,33 +308,20 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get the form fields after initialization.
-	 *
-	 * @return array of options
-	 */
-	protected function form_fields() {
-		if ( empty( $this->form_fields ) ) {
-			$this->init_form_fields();
-			$this->form_fields = array_map( [ $this, 'set_defaults' ], $this->form_fields );
-		}
-
-		return $this->form_fields;
-	}
-
-	/**
 	 * Get all form fields.
 	 *
 	 * @return mixed
 	 */
 	protected function all_form_fields() {
 		$form_fields[] = $this->form_fields();
+		$tabs          = $this->tabs ?: [];
 
 		/**
 		 * Tab.
 		 *
 		 * @var SettingsBase $tab
 		 */
-		foreach ( $this->tabs as $tab ) {
+		foreach ( $tabs as $tab ) {
 			$form_fields[] = $tab->form_fields();
 		}
 
@@ -342,14 +329,29 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Get the form fields after initialization.
+	 *
+	 * @return array of options
+	 */
+	protected function form_fields() {
+		if ( empty( $this->form_fields ) ) {
+			$this->init_form_fields();
+			array_walk( $this->form_fields, [ $this, 'set_defaults' ] );
+		}
+
+		return $this->form_fields;
+	}
+
+	/**
 	 * Set default required properties for each field.
 	 *
-	 * @param array $field Settings field.
+	 * @param array  $field Settings field.
+	 * @param string $id    Settings field.
 	 *
-	 * @return array
+	 * @return void
 	 */
-	protected function set_defaults( $field ) {
-		return wp_parse_args(
+	protected function set_defaults( &$field, $id ) {
+		$field = wp_parse_args(
 			$field,
 			[
 				'default'  => '',
@@ -623,7 +625,7 @@ abstract class SettingsBase {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function print_checkbox_field( array $arguments ) {
-		$value = $this->get( $arguments['field_id'] );
+		$value = (array) $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
 			$arguments['options'] = [ 'yes' => '' ];
@@ -932,7 +934,7 @@ abstract class SettingsBase {
 
 		// Get option default if unset.
 		if ( ! isset( $this->settings[ $key ] ) ) {
-			$form_fields            = $this->form_fields();
+			$form_fields            = $this->all_form_fields();
 			$this->settings[ $key ] = isset( $form_fields[ $key ] ) ? $this->field_default( $form_fields[ $key ] ) : '';
 		}
 

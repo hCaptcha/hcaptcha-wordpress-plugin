@@ -92,145 +92,146 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [
-			'hcaptcha_lf_status'                   => [
-				'label' => __( 'WP Login Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcap_t'                               => [
-				'label'   => __( 'Test multiple checkbox', 'hcaptcha-for-forms-and-more' ),
+			'wp_status'                    => [
+				'label'   => __( 'WP Core', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'options' => [
-					'one' => 'One',
-					'two' => 'Two',
+					'comment'   => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'hcaptcha_rf_status'                   => [
-				'label' => __( 'WP Register Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'bbp_status'                   => [
+				'label'   => __( 'bbPress', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'new_topic' => __( 'New Topic Form', 'hcaptcha-for-forms-and-more' ),
+					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_lpf_status'                  => [
-				'label' => __( 'WP Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'bp_status'                    => [
+				'label'   => __( 'BuddyPress', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'create_group' => __( 'Create Group Form', 'hcaptcha-for-forms-and-more' ),
+					'registration' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_cmf_status'                  => [
-				'label' => __( 'WP Comment Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'cf7_status'                   => [
+				'label'   => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_bbp_new_topic_status'        => [
-				'label' => __( 'bbPress New Topic Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'divi_status'                  => [
+				'label'   => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'comment' => __( 'Divi Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'contact' => __( 'Divi Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'login'   => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_bbp_reply_status'            => [
-				'label' => __( 'bbPress Reply Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'elementor_pro_status'         => [
+				'label'   => __( 'Elementor Pro', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_bp_create_group_status'      => [
-				'label' => __( 'BuddyPress Create Group Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'fluent_status'                => [
+				'label'   => __( 'Fluent Forms', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_bp_reg_status'               => [
-				'label' => __( 'BuddyPress Registration Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'gravity_status'               => [
+				'label'   => __( 'Gravity Forms', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_cf7_status'                  => [
-				'label' => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'jetpack_status'               => [
+				'label'   => __( 'Jetpack', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_divi_cmf_status'             => [
-				'label' => __( 'Divi Comment Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'mailchimp_status'             => [
+				'label'   => __( 'Mailchimp for WP', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_divi_cf_status'              => [
-				'label' => __( 'Divi Contact Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'memberpress_status'           => [
+				'label'   => __( 'MemberPress', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'register' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_divi_lf_status'              => [
-				'label' => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'ninja_status'                 => [
+				'label'   => __( 'Ninja Forms', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_elementor__pro_form_status'  => [
-				'label' => __( 'Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'subscriber_status'            => [
+				'label'   => __( 'Subscriber', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_fluentform_status'           => [
-				'label' => __( 'Fluent Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'ultimate_member_status'       => [
+				'label'   => __( 'Ultimate Member', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_gravityform_status'          => [
-				'label' => __( 'Gravity Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'woocommerce_status'           => [
+				'label'   => __( 'WooCommerce', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout'       => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'          => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass'      => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'order_tracking' => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
+					'register'       => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_jetpack_cf_status'           => [
-				'label' => __( 'Jetpack Contact Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'woocommerce_wishlists_status' => [
+				'label'   => __( 'WooCommerce Wishlists', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'create_list' => __( 'Create List Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_mc4wp_status'                => [
-				'label' => __( 'Mailchimp for WP Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'wpforms_status'               => [
+				'label'   => __( 'WPForms', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'lite' => __( 'Lite', 'hcaptcha-for-forms-and-more' ),
+					'pro'  => __( 'Pro', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
-			'hcaptcha_memberpress_register_status' => [
-				'label' => __( 'MemberPress Registration Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_nf_status'                   => [
-				'label' => __( 'Ninja Forms', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_subscribers_status'          => [
-				'label' => __( 'Subscribers Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_um_login_status'             => [
-				'label' => __( 'Ultimate Member Login Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_um_lost_pass_status'         => [
-				'label' => __( 'Ultimate Member Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_um_register_status'          => [
-				'label' => __( 'Ultimate Member Register Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wc_login_status'             => [
-				'label' => __( 'WooCommerce Login Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wc_reg_status'               => [
-				'label' => __( 'WooCommerce Registration Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wc_lost_pass_status'         => [
-				'label' => __( 'WooCommerce Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wc_checkout_status'          => [
-				'label' => __( 'WooCommerce Checkout Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wc_order_tracking_status'    => [
-				'label' => __( 'WooCommerce Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wc_wl_create_list_status'    => [
-				'label' => __( 'WooCommerce Wishlists Create List Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wpforms_status'              => [
-				'label' => __( 'WPForms Lite', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wpforms_pro_status'          => [
-				'label' => __( 'WPForms Pro', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wpforo_new_topic_status'     => [
-				'label' => __( 'WPForo New Topic Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
-			],
-			'hcaptcha_wpforo_reply_status'         => [
-				'label' => __( 'WPForo Reply Form', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+			'wpforo_status'                => [
+				'label'   => __( 'WPForo', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'options' => [
+					'new_topic' => __( 'New Topic Form', 'hcaptcha-for-forms-and-more' ),
+					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
 		];
 	}
