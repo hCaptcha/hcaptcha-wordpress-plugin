@@ -548,14 +548,14 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			'section'     => 'section_form_fields',
 			'fields'      =>
 				[
-					'_id'          =>
+					'_id'      =>
 						[
 							'type'    => 'hidden',
 							'tab'     => 'content',
 							'name'    => '_id',
 							'default' => '',
 						],
-					'required'     =>
+					'required' =>
 						[
 							'type'         => 'switcher',
 							'tab'          => 'content',
@@ -591,12 +591,12 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 							'inner_tab'    => 'form_fields_content_tab',
 							'name'         => 'required',
 						],
-					'width'        =>
+					'width'    =>
 						[
-							'type'         => 'select',
-							'tab'          => 'content',
-							'label'        => 'Column Width',
-							'options'      =>
+							'type'          => 'select',
+							'tab'           => 'content',
+							'label'         => 'Column Width',
+							'options'       =>
 								[
 									''  => 'Default',
 									100 => '100%',
@@ -612,7 +612,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 									25  => '25%',
 									20  => '20%',
 								],
-							'conditions'   =>
+							'conditions'    =>
 								[
 									'terms' =>
 										[
@@ -630,109 +630,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 											],
 										],
 								],
-							'responsive'   =>
-								[
-									'max' => 'desktop',
-								],
-							'parent'       => null,
-							'default'      => '100',
-							'tabs_wrapper' => 'form_fields_tabs',
-							'inner_tab'    => 'form_fields_content_tab',
-							'name'         => 'width',
-							'inheritors'   =>
-								[
-									'width_tablet',
-								],
-						],
-					'width_tablet' =>
-						[
-							'type'         => 'select',
-							'tab'          => 'content',
-							'label'        => 'Column Width',
-							'options'      =>
-								[
-									''  => 'Default',
-									100 => '100%',
-									80  => '80%',
-									75  => '75%',
-									70  => '70%',
-									66  => '66%',
-									60  => '60%',
-									50  => '50%',
-									40  => '40%',
-									33  => '33%',
-									30  => '30%',
-									25  => '25%',
-									20  => '20%',
-								],
-							'conditions'   =>
-								[
-									'terms' =>
-										[
-											[
-												'name'     => 'field_type',
-												'operator' => '!in',
-												'value'    =>
-													[ 'hidden', 'recaptcha', 'step', 'recaptcha_v3' ],
-											],
-										],
-								],
-							'responsive'   =>
-								[
-									'max' => 'tablet',
-								],
-							'parent'       => 'width',
-							'tabs_wrapper' => 'form_fields_tabs',
-							'inner_tab'    => 'form_fields_content_tab',
-							'name'         => 'width_tablet',
-							'default'      => '',
-							'inheritors'   =>
-								[
-									'width_mobile',
-								],
-						],
-					'width_mobile' =>
-						[
-							'type'         => 'select',
-							'tab'          => 'content',
-							'label'        => 'Column Width',
-							'options'      =>
-								[
-									''  => 'Default',
-									100 => '100%',
-									80  => '80%',
-									75  => '75%',
-									70  => '70%',
-									66  => '66%',
-									60  => '60%',
-									50  => '50%',
-									40  => '40%',
-									33  => '33%',
-									30  => '30%',
-									25  => '25%',
-									20  => '20%',
-								],
-							'conditions'   =>
-								[
-									'terms' =>
-										[
-											[
-												'name'     => 'field_type',
-												'operator' => '!in',
-												'value'    =>
-													[ 'hidden', 'recaptcha', 'recaptcha_v3', 'step' ],
-											],
-										],
-								],
-							'responsive'   =>
-								[
-									'max' => 'mobile',
-								],
-							'parent'       => 'width_tablet',
-							'tabs_wrapper' => 'form_fields_tabs',
-							'inner_tab'    => 'form_fields_content_tab',
-							'name'         => 'width_mobile',
-							'default'      => '',
+							'responsive'    => [],
+							'is_responsive' => true,
+							'parent'        => null,
+							'default'       => '100',
+							'tabs_wrapper'  => 'form_fields_tabs',
+							'inner_tab'     => 'form_fields_content_tab',
+							'name'          => 'width',
 						],
 				],
 			'title_field' => '{{{ field_label }}}',
@@ -745,14 +649,14 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			'section'     => 'section_form_fields',
 			'fields'      =>
 				[
-					'_id'          =>
+					'_id'      =>
 						[
 							'type'    => 'hidden',
 							'tab'     => 'content',
 							'name'    => '_id',
 							'default' => '',
 						],
-					'required'     =>
+					'required' =>
 						[
 							'type'         => 'switcher',
 							'tab'          => 'content',
@@ -793,12 +697,12 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 							'inner_tab'    => 'form_fields_content_tab',
 							'name'         => 'required',
 						],
-					'width'        =>
+					'width'    =>
 						[
-							'type'         => 'select',
-							'tab'          => 'content',
-							'label'        => 'Column Width',
-							'options'      =>
+							'type'          => 'select',
+							'tab'           => 'content',
+							'label'         => 'Column Width',
+							'options'       =>
 								[
 									''  => 'Default',
 									100 => '100%',
@@ -814,7 +718,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 									25  => '25%',
 									20  => '20%',
 								],
-							'conditions'   =>
+							'conditions'    =>
 								[
 									'terms' =>
 										[
@@ -837,119 +741,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 											],
 										],
 								],
-							'responsive'   =>
-								[
-									'max' => 'desktop',
-								],
-							'parent'       => null,
-							'default'      => '100',
-							'tabs_wrapper' => 'form_fields_tabs',
-							'inner_tab'    => 'form_fields_content_tab',
-							'name'         => 'width',
-							'inheritors'   =>
-								[
-									'width_tablet',
-								],
-						],
-					'width_tablet' =>
-						[
-							'type'         => 'select',
-							'tab'          => 'content',
-							'label'        => 'Column Width',
-							'options'      =>
-								[
-									''  => 'Default',
-									100 => '100%',
-									80  => '80%',
-									75  => '75%',
-									70  => '70%',
-									66  => '66%',
-									60  => '60%',
-									50  => '50%',
-									40  => '40%',
-									33  => '33%',
-									30  => '30%',
-									25  => '25%',
-									20  => '20%',
-								],
-							'conditions'   =>
-								[
-									'terms' =>
-										[
-											[
-												'name'     => 'field_type',
-												'operator' => '!in',
-												'value'    =>
-													[ 'hidden', 'recaptcha', 'step', 'recaptcha_v3' ],
-											],
-											[
-												'name'     => 'field_type',
-												'operator' => '!in',
-												'value'    => [ 'hcaptcha' ],
-											],
-										],
-								],
-							'responsive'   =>
-								[
-									'max' => 'tablet',
-								],
-							'parent'       => 'width',
-							'tabs_wrapper' => 'form_fields_tabs',
-							'inner_tab'    => 'form_fields_content_tab',
-							'name'         => 'width_tablet',
-							'default'      => '',
-							'inheritors'   =>
-								[
-									'width_mobile',
-								],
-						],
-					'width_mobile' =>
-						[
-							'type'         => 'select',
-							'tab'          => 'content',
-							'label'        => 'Column Width',
-							'options'      =>
-								[
-									''  => 'Default',
-									100 => '100%',
-									80  => '80%',
-									75  => '75%',
-									70  => '70%',
-									66  => '66%',
-									60  => '60%',
-									50  => '50%',
-									40  => '40%',
-									33  => '33%',
-									30  => '30%',
-									25  => '25%',
-									20  => '20%',
-								],
-							'conditions'   =>
-								[
-									'terms' =>
-										[
-											[
-												'name'     => 'field_type',
-												'operator' => '!in',
-												'value'    =>
-													[ 'hidden', 'recaptcha', 'recaptcha_v3', 'step' ],
-											],
-											[
-												'name'     => 'field_type',
-												'operator' => '!in',
-												'value'    => [ 'hcaptcha' ],
-											],
-										],
-								],
-							'responsive'   =>
-								[
-									'max' => 'mobile',
-								],
-							'parent'       => 'width_tablet',
-							'tabs_wrapper' => 'form_fields_tabs',
-							'inner_tab'    => 'form_fields_content_tab',
-							'name'         => 'width_mobile',
-							'default'      => '',
+							'responsive'    => [],
+							'is_responsive' => true,
+							'parent'        => null,
+							'default'       => '100',
+							'tabs_wrapper'  => 'form_fields_tabs',
+							'inner_tab'     => 'form_fields_content_tab',
+							'name'          => 'width',
 						],
 				],
 			'title_field' => '{{{ field_label }}}',
