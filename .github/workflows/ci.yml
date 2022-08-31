@@ -12,7 +12,7 @@ jobs:
     env:
       wp-directory: wordpress
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
-      DB_HOST: localhost
+      DB_HOST: 127.0.0.1
       DB_TABLE_PREFIX: wp_
       DB_NAME: tests
       DB_USER: root
@@ -74,7 +74,6 @@ jobs:
 
       - name: Start mysql
         run: |
-          HOSTNAME=$(hostname -i)
           sudo cat /etc/mysql/mysql.conf.d/mysqld.cnf
           sudo systemctl start mysql
           mysql -e "show variables where variable_name = 'hostname'" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
@@ -94,7 +93,7 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: |
           wp core download
-          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="$HOSTNAME" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
+          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="127.0.0.1" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
       - name: Install plugins
