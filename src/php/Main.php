@@ -13,6 +13,7 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Settings\Settings;
 
@@ -56,6 +57,8 @@ class Main {
 		if ( $this->is_xml_rpc() ) {
 			return;
 		}
+
+		new Migrations();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
 	}
