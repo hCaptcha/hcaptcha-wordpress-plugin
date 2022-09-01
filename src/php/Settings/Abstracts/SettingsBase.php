@@ -984,21 +984,22 @@ abstract class SettingsBase {
 			return $value;
 		}
 
+		$value     = is_array( $value ) ? $value : [];
+		$old_value = is_array( $old_value ) ? $old_value : [];
+
 		$form_fields = $this->all_form_fields();
 
 		foreach ( $form_fields as $key => $form_field ) {
 			if ( 'checkbox' === $form_field['type'] ) {
-				$form_field_value = isset( $value[ $key ] ) ? $value[ $key ] : [];
-				$value[ $key ]    = $form_field_value;
+				$form_field_value     = isset( $value[ $key ] ) ? $value[ $key ] : [];
+				$old_form_field_value = isset( $old_value[ $key ] ) ? $old_value[ $key ] : [];
+				$form_field_value     = [] === $form_field_value ? $old_form_field_value : $form_field_value;
+				$value[ $key ]        = $form_field_value;
 			}
 		}
 
 		// We save only one tab, so merge with all existing tabs.
-		if ( is_array( $old_value ) && ( is_array( $value ) ) ) {
-			$value = array_merge( $old_value, $value );
-		}
-
-		return $value;
+		return array_merge( $old_value, $value );
 	}
 
 	/**
