@@ -87,15 +87,15 @@ class General extends PluginSettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [
-			'hcaptcha_api_key'            => [
+			'api_key'            => [
 				'label' => __( 'hCaptcha Site Key', 'hcaptcha-for-forms-and-more' ),
 				'type'  => 'text',
 			],
-			'hcaptcha_secret_key'         => [
+			'secret_key'         => [
 				'label' => __( 'hCaptcha Secret Key', 'hcaptcha-for-forms-and-more' ),
 				'type'  => 'password',
 			],
-			'hcaptcha_theme'              => [
+			'theme'              => [
 				'label'   => __( 'hCaptcha Theme', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'options' => [
@@ -103,7 +103,7 @@ class General extends PluginSettingsBase {
 					'dark'  => __( 'Dark', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'hcaptcha_size'               => [
+			'size'               => [
 				'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'options' => [
@@ -112,7 +112,7 @@ class General extends PluginSettingsBase {
 					'invisible' => __( 'Invisible', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'hcaptcha_language'           => [
+			'language'           => [
 				'label'        => __( 'Override Language Detection', 'hcaptcha-for-forms-and-more' ),
 				'type'         => 'select',
 				'options'      => [
@@ -233,11 +233,11 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
-			'hcaptcha_off_when_logged_in' => [
+			'off_when_logged_in' => [
 				'label' => __( 'Turn Off When Logged In', 'hcaptcha-for-forms-and-more' ),
 				'type'  => 'checkbox',
 			],
-			'hcaptcha_recaptchacompat'    => [
+			'recaptchacompat'    => [
 				'label'        => __( 'Disable reCAPTCHA Compatibility', 'hcaptcha-for-forms-and-more' ),
 				'type'         => 'checkbox',
 				'supplemental' => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),

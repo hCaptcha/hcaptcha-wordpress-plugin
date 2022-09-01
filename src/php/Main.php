@@ -95,7 +95,7 @@ class Main {
 
 		/**
 		 * Do not load hCaptcha functionality:
-		 * - if user is logged in and the option 'hcaptcha_off_when_logged_in' is set;
+		 * - if user is logged in and the option 'off_when_logged_in' is set;
 		 * - for whitelisted IPs.
 		 */
 		$deactivate = (
