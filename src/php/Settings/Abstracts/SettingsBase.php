@@ -494,6 +494,13 @@ abstract class SettingsBase {
 	protected function is_tab_active( $tab ) {
 		$current_tab_name = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
+		if ( null === $current_tab_name ) {
+			$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+			$query = $query ?: '';
+			wp_parse_str( $query, $args );
+			$current_tab_name = isset( $args['tab'] ) ? $args['tab'] : null;
+		}
+
 		if ( null === $current_tab_name && ! $tab->is_tab() ) {
 			return true;
 		}
@@ -987,14 +994,11 @@ abstract class SettingsBase {
 		$value     = is_array( $value ) ? $value : [];
 		$old_value = is_array( $old_value ) ? $old_value : [];
 
-		$form_fields = $this->all_form_fields();
+		$form_fields = $this->form_fields();
 
 		foreach ( $form_fields as $key => $form_field ) {
-			if ( 'checkbox' === $form_field['type'] ) {
-				$form_field_value     = isset( $value[ $key ] ) ? $value[ $key ] : [];
-				$old_form_field_value = isset( $old_value[ $key ] ) ? $old_value[ $key ] : [];
-				$form_field_value     = [] === $form_field_value ? $old_form_field_value : $form_field_value;
-				$value[ $key ]        = $form_field_value;
+			if ( 'checkbox' === $form_field['type'] && ! isset( $value[ $key ] ) ) {
+				$value[ $key ] = [];
 			}
 		}
 
