@@ -214,7 +214,7 @@ class Migrations {
 		$new_options = [];
 
 		foreach ( $options_map as $old_option_name => $new_option_name ) {
-			$old_option = get_option( $old_option_name );
+			$old_option = get_option( $old_option_name, '' );
 
 			if ( ! is_array( $new_option_name ) ) {
 				$new_options[ $new_option_name ] = $old_option;
