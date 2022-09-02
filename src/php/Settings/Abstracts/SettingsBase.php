@@ -635,7 +635,7 @@ abstract class SettingsBase {
 		$value = (array) $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
-			$arguments['options'] = [ 'yes' => '' ];
+			$arguments['options'] = [ 'on' => '' ];
 		}
 
 		$options_markup = '';
