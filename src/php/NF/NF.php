@@ -68,9 +68,9 @@ class NF {
 
 		$settings                            = $hcaptcha_wordpress_plugin->settings();
 		$field['settings']['hcaptcha_id']    = uniqid( 'hcaptcha-nf-', true );
-		$field['settings']['hcaptcha_key']   = $settings->get( 'hcaptcha_api_key' );
-		$field['settings']['hcaptcha_theme'] = $settings->get( 'hcaptcha_theme' );
-		$hcaptcha_size                       = $settings->get( 'hcaptcha_size' );
+		$field['settings']['hcaptcha_key']   = $settings->get( 'api_key' );
+		$field['settings']['hcaptcha_theme'] = $settings->get( 'theme' );
+		$hcaptcha_size                       = $settings->get( 'size' );
 
 		// Invisible is not supported by Ninja Forms so far.
 		$hcaptcha_size = 'invisible' === $hcaptcha_size ? 'normal' : $hcaptcha_size;

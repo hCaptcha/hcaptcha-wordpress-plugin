@@ -71,9 +71,9 @@ class CF7 {
 		global $hcaptcha_wordpress_plugin;
 
 		$settings            = $hcaptcha_wordpress_plugin->settings();
-		$hcaptcha_api_key    = $settings->get( 'hcaptcha_api_key' );
-		$hcaptcha_theme      = $settings->get( 'hcaptcha_theme' );
-		$this->hcaptcha_size = $settings->get( 'hcaptcha_size' );
+		$hcaptcha_api_key    = $settings->get( 'api_key' );
+		$hcaptcha_theme      = $settings->get( 'theme' );
+		$this->hcaptcha_size = $settings->get( 'size' );
 
 		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
@@ -124,6 +124,7 @@ class CF7 {
 
 		$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
 		$hcaptcha_api_key = $hcaptcha_wordpress_plugin->settings()->get( 'api_key' );
+
 		if ( empty( $hcaptcha_api_key ) || false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
 			return $result;
 		}
