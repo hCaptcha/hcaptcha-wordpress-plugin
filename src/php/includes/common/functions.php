@@ -31,9 +31,9 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
 function hcap_form_display( $action = '', $name = '', $auto = false ) {
 	global $hcaptcha_wordpress_plugin;
 
-	$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-	$hcaptcha_theme   = get_option( 'hcaptcha_theme' );
-	$hcaptcha_size    = get_option( 'hcaptcha_size' );
+	$hcaptcha_api_key = $hcaptcha_wordpress_plugin->settings()->get( 'hcaptcha_api_key' );
+	$hcaptcha_theme   = $hcaptcha_wordpress_plugin->settings()->get( 'hcaptcha_theme' );
+	$hcaptcha_size    = $hcaptcha_wordpress_plugin->settings()->get( 'hcaptcha_size' );
 
 	$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
 

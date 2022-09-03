@@ -40,7 +40,9 @@ class Comment {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->active = 'on' === get_option( 'hcaptcha_divi_cmf_status' );
+		global $hcaptcha_wordpress_plugin;
+
+		$this->active = $hcaptcha_wordpress_plugin->settings()->is_on( 'hcaptcha_divi_cmf_status' );
 
 		$this->init_hooks();
 	}

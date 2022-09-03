@@ -34,14 +34,14 @@ class Main {
 	 *
 	 * @var array
 	 */
-	public $loaded_classes = [];
+	protected $loaded_classes = [];
 
 	/**
 	 * Settings class instance.
 	 *
 	 * @var Settings
 	 */
-	public $settings;
+	private $settings;
 
 	/**
 	 * Instance of AutoVerify.
@@ -85,6 +85,15 @@ class Main {
 	}
 
 	/**
+	 * Get Settings instance.
+	 *
+	 * @return Settings
+	 */
+	public function settings() {
+		return $this->settings;
+	}
+
+	/**
 	 * Check if we have to activate the plugin.
 	 *
 	 * @return bool
@@ -99,7 +108,7 @@ class Main {
 		 * - for whitelisted IPs.
 		 */
 		$deactivate = (
-			( is_user_logged_in() && 'on' === get_option( 'hcaptcha_off_when_logged_in' ) ) ||
+			( is_user_logged_in() && $this->settings()->is_on( 'off_when_logged_in' ) ) ||
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
 		);
 
@@ -119,7 +128,7 @@ class Main {
 	 * @return bool
 	 */
 	private function is_elementor_pro_edit_page() {
-		if ( 'on' !== get_option( 'hcaptcha_elementor__pro_form_status' ) ) {
+		if ( ! $this->settings()->is_on( 'elementor_pro_status' ) ) {
 			return false;
 		}
 
@@ -192,10 +201,8 @@ class Main {
 			'render' => 'explicit',
 		];
 
-		$compat = get_option( 'hcaptcha_recaptchacompat' );
-
-		if ( $compat ) {
-			$params['recaptchacompat'] = 'off';
+		if ( $this->settings()->is_on( 'recaptcha_compat_off' ) ) {
+			$params['recaptcha_compat_off'] = 'off';
 		}
 
 		/**
@@ -203,7 +210,7 @@ class Main {
 		 *
 		 * @param string $language Language.
 		 */
-		$language = (string) apply_filters( 'hcap_language', get_option( 'hcaptcha_language' ) );
+		$language = (string) apply_filters( 'hcap_language', $this->settings()->get( 'language' ) );
 
 		if ( $language ) {
 			$params['hl'] = $language;
@@ -216,8 +223,6 @@ class Main {
 	 * Add the hCaptcha script to footer.
 	 */
 	public function print_footer_scripts() {
-		global $hcaptcha_wordpress_plugin;
-
 		if ( is_admin() ) {
 			return;
 		}
@@ -248,7 +253,7 @@ class Main {
 			true
 		);
 
-		if ( array_key_exists( HCaptchaHandler::class, $hcaptcha_wordpress_plugin->loaded_classes ) ) {
+		if ( array_key_exists( HCaptchaHandler::class, $this->loaded_classes ) ) {
 			wp_enqueue_script(
 				'hcaptcha-elementor-pro-frontend',
 				HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
@@ -440,7 +445,7 @@ class Main {
 		foreach ( $modules as $module ) {
 			list( $option_name, $option_value ) = $module[0];
 
-			if ( ! in_array( $option_value, (array) $this->settings->get( $option_name ), true ) ) {
+			if ( ! in_array( $option_value, (array) $this->settings()->get( $option_name ), true ) ) {
 				continue;
 			}
 

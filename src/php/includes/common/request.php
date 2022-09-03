@@ -58,6 +58,8 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @return string fail|success
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
+		global $hcaptcha_wordpress_plugin;
+
 		$hcaptcha_response_sanitized = htmlspecialchars(
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
@@ -67,7 +69,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$params = [
-			'secret'   => get_option( 'hcaptcha_secret_key' ),
+			'secret'   => $hcaptcha_wordpress_plugin->settings()->get( 'hcaptcha_secret_key' ),
 			'response' => $hcaptcha_response_sanitized,
 		];
 

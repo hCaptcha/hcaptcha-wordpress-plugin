@@ -117,4 +117,15 @@ class Settings implements SettingsInterface {
 
 		return $value;
 	}
+
+	/**
+	 * Check whether option value is on.
+	 *
+	 * @param string $key Setting name.
+	 *
+	 * @return bool
+	 */
+	public function is_on( $key ) {
+		return ! empty( $this->get( $key ) );
+	}
 }

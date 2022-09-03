@@ -108,43 +108,51 @@ class HCaptchaHandler {
 	/**
 	 * Get site key.
 	 *
-	 * @return false|mixed|void
+	 * @return array|string
 	 */
 	public static function get_site_key() {
-		return get_option( self::OPTION_NAME_SITE_KEY );
+		global $hcaptcha_wordpress_plugin;
+
+		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_SITE_KEY );
 	}
 
 	/**
 	 * Get secret key.
 	 *
-	 * @return false|mixed|void
+	 * @return array|string
 	 */
 	public static function get_secret_key() {
-		return get_option( self::OPTION_NAME_SECRET_KEY );
+		global $hcaptcha_wordpress_plugin;
+
+		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_SECRET_KEY );
 	}
 
 	/**
 	 * Get hCaptcha theme.
 	 *
-	 * @return false|mixed|void
+	 * @return array|string
 	 */
 	public static function get_hcaptcha_theme() {
-		return get_option( self::OPTION_NAME_THEME );
+		global $hcaptcha_wordpress_plugin;
+
+		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_THEME );
 	}
 
 	/**
 	 * Get hCaptcha size.
 	 *
-	 * @return false|mixed|void
+	 * @return array|string
 	 */
 	public static function get_hcaptcha_size() {
-		return get_option( self::OPTION_NAME_SIZE );
+		global $hcaptcha_wordpress_plugin;
+
+		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_SIZE );
 	}
 
 	/**
 	 * Get setup message.
 	 *
-	 * @return mixed|string|void
+	 * @return string
 	 */
 	public static function get_setup_message() {
 		return __( 'To use hCaptcha, you need to add the API Key and Secret Key.', 'hcaptcha-for-forms-and-more' );
@@ -164,7 +172,7 @@ class HCaptchaHandler {
 	 *
 	 * @param array $settings Settings.
 	 *
-	 * @return array|mixed
+	 * @return array
 	 */
 	public function localize_settings( $settings ) {
 		return array_replace_recursive(

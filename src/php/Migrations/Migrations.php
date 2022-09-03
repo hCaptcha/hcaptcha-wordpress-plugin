@@ -175,7 +175,7 @@ class Migrations {
 			'hcaptcha_size'                        => 'size',
 			'hcaptcha_language'                    => 'language',
 			'hcaptcha_off_when_logged_in'          => [ 'off_when_logged_in', 'on' ],
-			'hcaptcha_recaptchacompat'             => [ 'recaptchacompat', 'on' ],
+			'hcaptcha_recaptchacompat'             => [ 'recaptcha_compat_off', 'on' ],
 			'hcaptcha_cmf_status'                  => [ 'wp_status', 'comment' ],
 			'hcaptcha_lf_status'                   => [ 'wp_status', 'login' ],
 			'hcaptcha_lpf_status'                  => [ 'wp_status', 'lost_pass' ],
