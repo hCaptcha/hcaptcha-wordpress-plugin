@@ -4,6 +4,29 @@ on: [ push, pull_request ]
 
 jobs:
   cs_and_tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        php-version: [ '8.0' ]
+
+    env:
+      wp-directory: wordpress
+      wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
+      DB_HOST: 127.0.0.1
+      DB_TABLE_PREFIX: wp_
+      DB_NAME: wp-tests
+      DB_USER: test
+      DB_PASSWORD: test
+      WP_URL: http://test.test
+      WP_DOMAIN: test.test
+      WP_ADMIN_USERNAME: admin
+      WP_ADMIN_PASSWORD: admin
+      WP_ADMIN_EMAIL: admin@test.test
+
+    runs-on: ${{ matrix.os }}
+
+    name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
