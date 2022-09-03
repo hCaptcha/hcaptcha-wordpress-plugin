@@ -20,10 +20,10 @@ use HCaptcha\Main;
  */
 class HCaptchaHandler {
 
-	const OPTION_NAME_SITE_KEY   = 'hcaptcha_api_key';
-	const OPTION_NAME_SECRET_KEY = 'hcaptcha_secret_key';
-	const OPTION_NAME_THEME      = 'hcaptcha_theme';
-	const OPTION_NAME_SIZE       = 'hcaptcha_size';
+	const OPTION_NAME_SITE_KEY   = 'api_key';
+	const OPTION_NAME_SECRET_KEY = 'secret_key';
+	const OPTION_NAME_THEME      = 'theme';
+	const OPTION_NAME_SIZE       = 'size';
 
 	/**
 	 * Main class instance.

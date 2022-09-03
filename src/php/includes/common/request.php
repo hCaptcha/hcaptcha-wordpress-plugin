@@ -69,7 +69,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$params = [
-			'secret'   => $hcaptcha_wordpress_plugin->settings()->get( 'hcaptcha_secret_key' ),
+			'secret'   => $hcaptcha_wordpress_plugin->settings()->get( 'secret_key' ),
 			'response' => $hcaptcha_response_sanitized,
 		];
 
