@@ -3,30 +3,7 @@ name: hCaptcha CI
 on: [ push, pull_request ]
 
 jobs:
-  run:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        php-version: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
-
-    env:
-      wp-directory: wordpress
-      wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
-      DB_HOST: 127.0.0.1
-      DB_TABLE_PREFIX: wp_
-      DB_NAME: wp-tests
-      DB_USER: test
-      DB_PASSWORD: test
-      WP_URL: http://test.test
-      WP_DOMAIN: test.test
-      WP_ADMIN_USERNAME: admin
-      WP_ADMIN_PASSWORD: admin
-      WP_ADMIN_EMAIL: admin@test.test
-
-    runs-on: ${{ matrix.os }}
-
-    name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
-
+  cs_and_tests:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
