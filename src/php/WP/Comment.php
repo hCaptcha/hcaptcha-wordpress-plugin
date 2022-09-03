@@ -38,7 +38,7 @@ class Comment {
 	public function __construct() {
 		global $hcaptcha_wordpress_plugin;
 
-		$this->active = $hcaptcha_wordpress_plugin->settings()->is_on( 'hcaptcha_cmf_status' );
+		$this->active = $hcaptcha_wordpress_plugin->settings()->is( 'wp_status', 'comment' );
 
 		$this->init_hooks();
 	}

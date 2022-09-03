@@ -119,7 +119,25 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Check whether option value is on.
+	 * Check whether option value equals to the compared.
+	 *
+	 * @param string $key     Setting name.
+	 * @param string $compare Compared value.
+	 *
+	 * @return bool
+	 */
+	public function is( $key, $compare ) {
+		$value = $this->get( $key );
+
+		if ( is_array( $value ) ) {
+			return in_array( $compare, $value, true );
+		}
+
+		return $value === $compare;
+	}
+
+	/**
+	 * Check whether option value is 'on' or just non-empty.
 	 *
 	 * @param string $key Setting name.
 	 *
