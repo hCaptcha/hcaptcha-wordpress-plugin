@@ -14,7 +14,7 @@ jobs:
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
       DB_HOST: 127.0.0.1
       DB_TABLE_PREFIX: wp_
-      DB_NAME: wp-tests
+      DB_NAME: wp_tests
       DB_USER: test
       DB_PASSWORD: test
       WP_URL: http://test.test
@@ -75,7 +75,7 @@ jobs:
       - name: Start mysql
         run: |
           sudo systemctl start mysql
-          mysql -e "CREATE DATABASE \`${{ env.DB_NAME }}\`" -uroot -proot 2>/dev/null
+          mysql -e 'CREATE DATABASE ${{ env.DB_NAME }}' -uroot -proot 2>/dev/null
           mysql -e "CREATE USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
           mysql -e "GRANT ALL PRIVILEGES ON * . * TO '${{ env.DB_USER }}'@'${{ env.DB_HOST }}'" -uroot -proot 2>/dev/null
           mysql -e 'FLUSH PRIVILEGES' -uroot -proot 2>/dev/null
@@ -92,7 +92,7 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: |
           wp core download
-          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="127.0.0.1" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
+          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="${{ env.DB_HOST }}" --dbprefix="${{ env.DB_TABLE_PREFIX }}" --skip-check
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
       - name: Install plugins
