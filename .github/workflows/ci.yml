@@ -12,7 +12,7 @@ jobs:
     env:
       wp-directory: wordpress
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
-      DB_HOST: 127.0.0.1
+      DB_HOST: localhost
       DB_TABLE_PREFIX: wp_
       DB_NAME: wp_tests
       DB_USER: test
