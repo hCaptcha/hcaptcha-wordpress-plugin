@@ -6,7 +6,7 @@ jobs:
   cs_and_tests:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
         php-version: [ '7.2' ]
 
     env:
