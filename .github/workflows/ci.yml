@@ -35,8 +35,8 @@ jobs:
 
       - name: Start mysql
         run: |
-          sudo ls -lsa /etc/mysql/my.cnf
-          sudo cat /etc/mysql/my.cnf
+          sudo ls -lsa /etc/alternatives/my.cnf
+          sudo cat /etc/alternatives/my.cnf
           echo '-----'
 
           sudo ls -lsa /etc/mysql/mysql.conf.d/mysql.cnf
@@ -47,9 +47,9 @@ jobs:
           sudo cat /etc/mysql/mysql.conf.d/mysqld.cnf
           echo '-----'
 
-          sudo echo '[mysqld]' >> /etc/mysql/my.cnf
+          sudo echo '[mysqld]' >> /etc/alternatives/my.cnf
           sudo echo 'default_authentication_plugin=mysql_native_password' >> ~/my.cnf
-          sudo cat /etc/mysql/my.cnf
+          sudo cat /etc/alternatives/my.cnf
           echo '-----'
           
           systemctl start mysql
