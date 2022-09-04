@@ -16,26 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Filter hcap_hcaptcha_content.
- *
- * @param string $content Content.
- *
- * @return string
- */
-function hcap_woocommerce_wishlists_hcaptcha_content_filter( $content ) {
-	$content .= wp_nonce_field(
-		'hcaptcha_wc_create_wishlist',
-		'hcaptcha_wc_create_wishlist_nonce',
-		true,
-		false
-	);
-
-	return $content;
-}
-
-add_filter( 'hcap_hcaptcha_content', 'hcap_woocommerce_wishlists_hcaptcha_content_filter' );
-
-/**
  * Before WooCommerce Wishlist wrapper action.
  */
 function hcap_woocommerce_wishlists_before_wrapper_action() {
@@ -52,7 +32,11 @@ function hcap_woocommerce_wishlists_after_wrapper_action() {
 
 	// Find last $search string and insert hcaptcha before it.
 	$search  = '<p class="form-row">';
-	$replace = "\n" . hcap_form() . "\n" . $search;
+	$replace =
+		"\n" .
+		hcap_form( 'hcaptcha_wc_create_wishlist', 'hcaptcha_wc_create_wishlist_nonce' ) .
+		"\n" .
+		$search;
 
 	$wrapper = preg_replace(
 		'/(' . $search . ')(?!.*' . $search . ')/is',
