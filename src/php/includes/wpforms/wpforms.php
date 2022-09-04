@@ -20,8 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param array $form_data Form data and settings...
  */
 function hcaptcha_wpforms_display( $form_data ) {
-	hcap_form_display();
-	wp_nonce_field( 'hcaptcha_wpforms', 'hcaptcha_wpforms_nonce' );
+	hcap_form_display( 'hcaptcha_wpforms', 'hcaptcha_wpforms_nonce' );
 }
 
 add_filter( 'wpforms_display_submit_before', 'hcaptcha_wpforms_display', 10, 1 );
