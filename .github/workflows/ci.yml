@@ -79,8 +79,6 @@ jobs:
           mysql -e "CREATE USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
           mysql -e "GRANT ALL PRIVILEGES ON * . * TO '${{ env.DB_USER }}'@'${{ env.DB_HOST }}'" -uroot -proot 2>/dev/null
           mysql -e 'FLUSH PRIVILEGES' -uroot -proot 2>/dev/null
-          mysql -e "SET GLOBAL CHARACTER_SET_SERVER=\"utf8mb4\"" -uroot -proot 2>/dev/null
-          mysql -e "SET GLOBAL SQL_MODE=\"NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES\"" -uroot -proot 2>/dev/null
 
       - name: Install WP CLI
         run: |
