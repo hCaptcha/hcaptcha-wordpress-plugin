@@ -17,7 +17,7 @@ jobs:
       DB_NAME: wp_tests
       DB_USER: test
       DB_PASSWORD: test
-      WP_URL: http://test.test
+      WP_URL: https://test.test
       WP_DOMAIN: test.test
       WP_ADMIN_USERNAME: admin
       WP_ADMIN_PASSWORD: admin
