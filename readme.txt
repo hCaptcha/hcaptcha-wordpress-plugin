@@ -289,6 +289,10 @@ Instructions for popular native integrations are below:
  
 == Changelog ==
 
+= 2.0.0 =
+* Added Settings page with multiple tabs.
+* Fixed Divi contact form bug related to recaptcha compat.
+
 = 1.19.0 =
 * Fixed grey left sidebar issue on Elementor edit page.
 
