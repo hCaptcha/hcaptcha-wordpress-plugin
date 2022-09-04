@@ -36,15 +36,18 @@ jobs:
       - name: Start mysql
         run: |
           sudo cat /etc/mysql/my.cnf
-          sudo ls -lsa /etc/mysql/mysql.conf.d
+          echo '-----'
           sudo cat /etc/mysql/mysql.conf.d/mysql.cnf
+          echo '-----'
           sudo cat /etc/mysql/mysql.conf.d/mysqld.cnf
+          echo '-----'
 
-          sudo echo '[mysqld]' >> ~/my.cnf
+          sudo echo '[mysqld]' >> /etc/mysql/my.cnf
           sudo echo 'default_authentication_plugin=mysql_native_password' >> ~/my.cnf
-          sudo cat ~/my.cnf
+          sudo cat /etc/mysql/my.cnf
+          echo '-----'
           
-          sudo /etc/init.d/mysql start --default-auth=mysql_native_password
+          systemctl start mysql
           sudo mysqladmin variables -uroot -proot | grep auth
 
           mysql -e "CREATE USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
