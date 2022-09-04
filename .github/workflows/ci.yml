@@ -47,9 +47,9 @@ jobs:
           sudo cat /etc/mysql/mysql.conf.d/mysqld.cnf
           echo '-----'
 
-          sudo echo '[mysqld]' >> /etc/alternatives/my.cnf
-          sudo echo 'default_authentication_plugin=mysql_native_password' >> ~/my.cnf
-          sudo cat /etc/alternatives/my.cnf
+          sudo cp /etc/mysql/mysql.cnf /etc/mysql/my.cnf
+          sudo echo 'default_authentication_plugin=mysql_native_password' >> /etc/mysql/my.cnf
+          sudo cat /etc/mysql/my.cnf
           echo '-----'
           
           sudo systemctl start mysql
