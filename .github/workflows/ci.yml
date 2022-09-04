@@ -27,6 +27,8 @@ jobs:
 
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
 
+    continue-on-error: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
