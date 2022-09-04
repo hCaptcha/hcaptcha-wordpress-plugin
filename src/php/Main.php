@@ -202,7 +202,7 @@ class Main {
 		];
 
 		if ( $this->settings()->is_on( 'recaptcha_compat_off' ) ) {
-			$params['recaptcha_compat_off'] = 'off';
+			$params['recaptchacompat'] = 'off';
 		}
 
 		/**
