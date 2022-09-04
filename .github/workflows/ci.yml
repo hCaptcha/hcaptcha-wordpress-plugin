@@ -35,7 +35,6 @@ jobs:
 
       - name: Start mysql
         run: |
-          sudo cat /etc/my.cnf
           sudo echo 'default_authentication_plugin=mysql_native_password' >> /etc/my.cnf
           sudo cat /etc/my.cnf
           sudo cat /etc/mysql/mysql.conf.d/mysqld.cnf
