@@ -136,7 +136,7 @@ class Contact {
 				$fields_data_array            = array_filter(
 					$fields_data_array,
 					static function ( $item ) {
-						return false === strpos( $item['field_id'], 'h-captcha' );
+						return false === strpos( $item['field_id'], 'captcha' );
 					}
 				);
 				$fields_data_json             = wp_json_encode( $fields_data_array );
