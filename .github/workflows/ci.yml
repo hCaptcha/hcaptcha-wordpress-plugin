@@ -6,7 +6,7 @@ jobs:
   cs_and_tests:
     strategy:
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-latest]
         php-version: [ '7.2' ]
 
     env:
@@ -32,21 +32,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ${{ env.wp-plugin-directory }}
-
-      - name: Get Composer cache directory
-        working-directory: ${{ env.wp-plugin-directory }}
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Set up Composer caching
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
 
       - name: Start mysql
         run: |
@@ -79,6 +64,21 @@ jobs:
           wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="${{ env.DB_HOST }}" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
           wp db check
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
+
+      - name: Get Composer cache directory
+        working-directory: ${{ env.wp-plugin-directory }}
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Install dependencies
         working-directory: ${{ env.wp-plugin-directory }}
