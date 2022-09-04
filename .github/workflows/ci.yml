@@ -35,10 +35,15 @@ jobs:
 
       - name: Start mysql
         run: |
+          sudo ls -lsa /etc/mysql/my.cnf
           sudo cat /etc/mysql/my.cnf
           echo '-----'
+
+          sudo ls -lsa /etc/mysql/mysql.conf.d/mysql.cnf
           sudo cat /etc/mysql/mysql.conf.d/mysql.cnf
           echo '-----'
+
+          sudo ls -lsa /etc/mysql/mysql.conf.d/mysqld.cnf
           sudo cat /etc/mysql/mysql.conf.d/mysqld.cnf
           echo '-----'
 
