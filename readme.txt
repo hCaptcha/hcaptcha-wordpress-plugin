@@ -314,7 +314,7 @@ Instructions for popular native integrations are below:
 * Tested with WordPress 6.0.
 * Tested with WooCommerce 6.5.
 
-* = 1.15.0 =
+= 1.15.0 =
 * Tested with WooCommerce 6.4.
 * Added Gravity Forms support.
 * Added filter to whitelist IPs.
