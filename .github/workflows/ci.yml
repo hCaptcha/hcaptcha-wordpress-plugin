@@ -7,17 +7,17 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: [ '8.0' ]
+        php-version: [ '5.6' ]
 
     env:
       wp-directory: wordpress
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
-      DB_HOST: 127.0.0.1
+      DB_HOST: localhost
       DB_TABLE_PREFIX: wp_
-      DB_NAME: wp-tests
+      DB_NAME: wp_tests
       DB_USER: test
       DB_PASSWORD: test
-      WP_URL: http://test.test
+      WP_URL: https://test.test
       WP_DOMAIN: test.test
       WP_ADMIN_USERNAME: admin
       WP_ADMIN_PASSWORD: admin
@@ -32,6 +32,44 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ${{ env.wp-plugin-directory }}
+
+      - name: Start mysql
+        run: |
+          sudo echo '[mysqld]' >> ~/my.cnf
+          sudo echo 'default_authentication_plugin=mysql_native_password' >> ~/my.cnf
+          sudo cat ~/my.cnf
+          
+          sudo /etc/init.d/mysql start --default-auth=mysql_native_password
+          sudo mysqladmin variables -uroot -proot | grep auth
+
+          mysql -e "CREATE USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
+          mysql -e "ALTER USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED WITH mysql_native_password BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
+          mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${{ env.DB_USER }}'@'${{ env.DB_HOST }}'" -uroot -proot 2>/dev/null
+          mysql -e 'FLUSH PRIVILEGES' -uroot -proot 2>/dev/null
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: json, mysqli, mbstring, zip
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install WP CLI
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          chmod +x wp-cli.phar
+          mkdir -p wp-cli
+          sudo mv wp-cli.phar wp-cli/wp
+          echo "$GITHUB_WORKSPACE/wp-cli" >> $GITHUB_PATH
+
+      - name: Install WP
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          wp core download
+          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="${{ env.DB_HOST }}" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
+          wp db create
+          wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
       - name: Get Composer cache directory
         working-directory: ${{ env.wp-plugin-directory }}
@@ -48,14 +86,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          extensions: gd, mbstring, mysqlnd, zip
-        env:
-          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install dependencies
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
@@ -71,31 +101,6 @@ jobs:
       - name: Run unit tests
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer unit
-
-      - name: Start mysql
-        run: |
-          sudo systemctl start mysql
-          mysql -e "CREATE DATABASE \`${{ env.DB_NAME }}\`" -uroot -proot 2>/dev/null
-          mysql -e "CREATE USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
-          mysql -e "GRANT ALL PRIVILEGES ON * . * TO '${{ env.DB_USER }}'@'${{ env.DB_HOST }}'" -uroot -proot 2>/dev/null
-          mysql -e 'FLUSH PRIVILEGES' -uroot -proot 2>/dev/null
-          mysql -e "SET GLOBAL CHARACTER_SET_SERVER=\"utf8mb4\"" -uroot -proot 2>/dev/null
-          mysql -e "SET GLOBAL SQL_MODE=\"NO_ENGINE_SUBSTITUTION,ALLOW_INVALID_DATES\"" -uroot -proot 2>/dev/null
-
-      - name: Install WP CLI
-        run: |
-          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-          chmod +x wp-cli.phar
-          mkdir -p wp-cli
-          sudo mv wp-cli.phar wp-cli/wp
-          echo "$GITHUB_WORKSPACE/wp-cli" >> $GITHUB_PATH
-
-      - name: Install WP
-        working-directory: ${{ env.wp-directory }}
-        run: |
-          wp core download
-          wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="127.0.0.1" --dbprefix="${{ env.DB_TABLE_PREFIX }}"
-          wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
