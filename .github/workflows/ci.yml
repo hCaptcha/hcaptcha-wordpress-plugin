@@ -77,7 +77,7 @@ jobs:
         run: |
           wp core download
           wp config create --dbname="${{ env.DB_NAME }}" --dbuser="${{ env.DB_USER }}" --dbpass="${{ env.DB_PASSWORD }}" --dbhost="${{ env.DB_HOST }}" --dbprefix="${{ env.DB_TABLE_PREFIX }}" --skip-check
-          cat ${{ env.wp-directory }}/config.php
+          cat ${{ env.wp-directory }}/wp-config.php
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
       - name: Install dependencies
