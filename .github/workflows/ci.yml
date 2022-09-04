@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: [ '5.6' ]
+        php-version: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1' ]
 
     env:
       wp-directory: wordpress
@@ -35,12 +35,10 @@ jobs:
 
       - name: Start mysql
         run: |
-          sudo echo '[mysqld]' >> ~/my.cnf
-          sudo echo 'default_authentication_plugin=mysql_native_password' >> ~/my.cnf
-          sudo cat ~/my.cnf
+          echo '[mysqld]' | sudo tee -a /etc/mysql/my.cnf
+          echo 'default_authentication_plugin=mysql_native_password' | sudo tee -a /etc/mysql/my.cnf
           
-          sudo /etc/init.d/mysql start --default-auth=mysql_native_password
-          sudo mysqladmin variables -uroot -proot | grep auth
+          sudo systemctl start mysql
 
           mysql -e "CREATE USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
           mysql -e "ALTER USER '${{ env.DB_USER }}'@'${{ env.DB_HOST }}' IDENTIFIED WITH mysql_native_password BY '${{ env.DB_PASSWORD }}'" -uroot -proot 2>/dev/null
