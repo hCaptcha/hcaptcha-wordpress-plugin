@@ -66,18 +66,17 @@ class CF7 {
 	 * @param array $atts Attributes.
 	 *
 	 * @return string
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function cf7_hcaptcha_shortcode( $atts ) {
-		global $hcaptcha_wordpress_plugin;
-
-		$settings            = $hcaptcha_wordpress_plugin->settings();
+		$settings            = hcaptcha()->settings();
 		$hcaptcha_api_key    = $settings->get( 'api_key' );
 		$hcaptcha_theme      = $settings->get( 'theme' );
 		$this->hcaptcha_size = $settings->get( 'size' );
 
 		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
-		$hcaptcha_wordpress_plugin->form_shown = true;
+		hcaptcha()->form_shown = true;
 
 		/**
 		 * CF7 works via REST API, where current user is set to 0 (not logged in) if nonce is not present.
@@ -102,10 +101,9 @@ class CF7 {
 	 * @param WPCF7_Validation $result Result.
 	 *
 	 * @return WPCF7_Validation
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function verify_hcaptcha( $result ) {
-		global $hcaptcha_wordpress_plugin;
-
 		$submission = WPCF7_Submission::get_instance();
 		if ( null === $submission ) {
 			return $result;
@@ -123,7 +121,7 @@ class CF7 {
 		}
 
 		$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
-		$hcaptcha_api_key = $hcaptcha_wordpress_plugin->settings()->get( 'api_key' );
+		$hcaptcha_api_key = hcaptcha()->settings()->get( 'api_key' );
 
 		if ( empty( $hcaptcha_api_key ) || false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
 			return $result;
@@ -160,9 +158,7 @@ class CF7 {
 	 * Enqueue CF7 scripts.
 	 */
 	public function enqueue_scripts() {
-		global $hcaptcha_wordpress_plugin;
-
-		if ( ! $hcaptcha_wordpress_plugin->form_shown ) {
+		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
 

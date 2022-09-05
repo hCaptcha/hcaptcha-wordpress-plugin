@@ -62,11 +62,11 @@ class NF {
 	 * @param array $field Field.
 	 *
 	 * @return array
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function localize_field( $field ) {
-		global $hcaptcha_wordpress_plugin;
 
-		$settings                            = $hcaptcha_wordpress_plugin->settings();
+		$settings                            = hcaptcha()->settings();
 		$field['settings']['hcaptcha_id']    = uniqid( 'hcaptcha-nf-', true );
 		$field['settings']['hcaptcha_key']   = $settings->get( 'api_key' );
 		$field['settings']['hcaptcha_theme'] = $settings->get( 'theme' );
@@ -83,7 +83,7 @@ class NF {
 			false
 		);
 
-		$hcaptcha_wordpress_plugin->form_shown = true;
+		hcaptcha()->form_shown = true;
 
 		return $field;
 	}

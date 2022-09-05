@@ -36,9 +36,7 @@ class HCaptchaHandler {
 	 * Class constructor.
 	 */
 	public function __construct() {
-		global $hcaptcha_wordpress_plugin;
-
-		$this->main = $hcaptcha_wordpress_plugin;
+		$this->main = hcaptcha();
 
 		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'after_enqueue_scripts' ] );
 		add_action( 'elementor/init', [ $this, 'init' ] );
@@ -109,44 +107,40 @@ class HCaptchaHandler {
 	 * Get site key.
 	 *
 	 * @return array|string
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_site_key() {
-		global $hcaptcha_wordpress_plugin;
-
-		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_SITE_KEY );
+		return hcaptcha()->settings()->get( self::OPTION_NAME_SITE_KEY );
 	}
 
 	/**
 	 * Get secret key.
 	 *
 	 * @return array|string
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_secret_key() {
-		global $hcaptcha_wordpress_plugin;
-
-		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_SECRET_KEY );
+		return hcaptcha()->settings()->get( self::OPTION_NAME_SECRET_KEY );
 	}
 
 	/**
 	 * Get hCaptcha theme.
 	 *
 	 * @return array|string
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_hcaptcha_theme() {
-		global $hcaptcha_wordpress_plugin;
-
-		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_THEME );
+		return hcaptcha()->settings()->get( self::OPTION_NAME_THEME );
 	}
 
 	/**
 	 * Get hCaptcha size.
 	 *
 	 * @return array|string
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_hcaptcha_size() {
-		global $hcaptcha_wordpress_plugin;
-
-		return $hcaptcha_wordpress_plugin->settings()->get( self::OPTION_NAME_SIZE );
+		return hcaptcha()->settings()->get( self::OPTION_NAME_SIZE );
 	}
 
 	/**

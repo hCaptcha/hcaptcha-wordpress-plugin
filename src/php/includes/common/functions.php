@@ -27,13 +27,14 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
  * @param string $action Action name for wp_nonce_field.
  * @param string $name   Nonce name for wp_nonce_field.
  * @param bool   $auto   This form has to be auto-verified.
+ *
+ * @noinspection NullPointerExceptionInspection
  */
 function hcap_form_display( $action = '', $name = '', $auto = false ) {
-	global $hcaptcha_wordpress_plugin;
-
-	$hcaptcha_api_key = $hcaptcha_wordpress_plugin->settings()->get( 'api_key' );
-	$hcaptcha_theme   = $hcaptcha_wordpress_plugin->settings()->get( 'theme' );
-	$hcaptcha_size    = $hcaptcha_wordpress_plugin->settings()->get( 'size' );
+	$settings         = hcaptcha()->settings();
+	$hcaptcha_api_key = $settings->get( 'api_key' );
+	$hcaptcha_theme   = $settings->get( 'theme' );
+	$hcaptcha_size    = $settings->get( 'size' );
 
 	$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
 
@@ -52,7 +53,7 @@ function hcap_form_display( $action = '', $name = '', $auto = false ) {
 		wp_nonce_field( $action, $name );
 	}
 
-	$hcaptcha_wordpress_plugin->form_shown = true;
+	hcaptcha()->form_shown = true;
 }
 
 /**

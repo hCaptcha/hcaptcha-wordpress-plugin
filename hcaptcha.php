@@ -91,7 +91,19 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	}
 }
 
-global $hcaptcha_wordpress_plugin;
+/**
+ * Get hCaptcha Main class instance.
+ *
+ * @return Main|object
+ */
+function hcaptcha() {
+	static $hcaptcha = null;
 
-$hcaptcha_wordpress_plugin = new Main();
-$hcaptcha_wordpress_plugin->init();
+	if ( null === $hcaptcha ) {
+		$hcaptcha = new Main();
+	}
+
+	return $hcaptcha;
+}
+
+hcaptcha()->init();

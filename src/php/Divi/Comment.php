@@ -38,11 +38,11 @@ class Comment {
 
 	/**
 	 * Constructor.
+	 *
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function __construct() {
-		global $hcaptcha_wordpress_plugin;
-
-		$this->active = $hcaptcha_wordpress_plugin->settings()->is( 'divi_status', 'comment' );
+		$this->active = hcaptcha()->settings()->is( 'divi_status', 'comment' );
 
 		$this->init_hooks();
 	}
