@@ -6,7 +6,7 @@
  */
 
 return [
-	'WP_URL'            => 'https://test.test',
+	'WP_URL'            => 'test.test',
 	'WP_ADMIN_USERNAME' => 'admin',
 	'WP_ADMIN_PASSWORD' => 'admin',
 	'WP_ROOT_PATH'      => __DIR__ . '/../../../../../',
