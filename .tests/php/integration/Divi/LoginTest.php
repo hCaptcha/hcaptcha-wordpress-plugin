@@ -107,32 +107,4 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $output, $subject->add_captcha( $output, $module_slug ) );
 	}
-
-	/**
-	 * Test verify().
-	 */
-	public function test_verify() {
-		$errors = new WP_Error();
-
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
-
-		$subject = new Login();
-
-		self::assertEquals( $errors, $subject->verify( $errors, '' ) );
-	}
-
-	/**
-	 * Test verify() not verified.
-	 */
-	public function test_verify_not_verified() {
-		$errors   = new WP_Error();
-		$expected = new WP_Error( 'invalid_hcaptcha', '<strong>Error</strong>: Invalid Captcha' );
-
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
-
-		$subject = new Login();
-
-		self::assertEquals( $expected, $subject->verify( $errors, '' ) );
-	}
-
 }
