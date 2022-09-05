@@ -45,8 +45,10 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_constructor_and_init_hooks( $active ) {
 		if ( $active ) {
-			update_option( 'hcaptcha_cmf_status', 'on' );
+			update_option( 'hcaptcha_settings', [ 'wp_status' => 'comment' ] );
 		}
+
+		hcaptcha()->init_hooks();
 
 		$subject = new Comment();
 
