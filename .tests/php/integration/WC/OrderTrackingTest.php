@@ -38,9 +38,16 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 		$size     = 'some size';
 		$nonce    = wp_nonce_field( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true, false );
 
-		update_option( 'hcaptcha_api_key', $site_key );
-		update_option( 'hcaptcha_theme', $theme );
-		update_option( 'hcaptcha_size', $size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_key' => $site_key,
+				'theme'   => $theme,
+				'size'    => $size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		$tag = 'woocommerce_order_tracking';
 
