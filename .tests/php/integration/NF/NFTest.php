@@ -101,9 +101,16 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		);
 		$uniqid         = 'hcaptcha-nf-625d3b9b318fc0.86180601';
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_key );
-		update_option( 'hcaptcha_theme', $hcaptcha_theme );
-		update_option( 'hcaptcha_size', $hcaptcha_size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_key' => $hcaptcha_key,
+				'theme'   => $hcaptcha_theme,
+				'size'    => $hcaptcha_size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		FunctionMocker::replace(
 			'uniqid',
@@ -129,7 +136,17 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $expected, $subject->localize_field( $field ) );
 
 		// Test that invisible size is replaced by normal.
-		update_option( 'hcaptcha_size', 'invisible' );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_key' => $hcaptcha_key,
+				'theme'   => $hcaptcha_theme,
+				'size'    => 'invisible',
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
 		$expected['settings']['hcaptcha_size'] = 'normal';
 
 		$subject = new NF();
