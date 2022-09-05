@@ -59,7 +59,6 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertTrue( function_exists( 'hcap_form_display' ) );
 		self::assertTrue( function_exists( 'hcap_shortcode' ) );
 		self::assertTrue( shortcode_exists( 'hcaptcha' ) );
-		self::assertTrue( function_exists( 'hcap_options' ) );
 	}
 
 	/**
