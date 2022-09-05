@@ -186,7 +186,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		}
 
 		if ( 'on' === $hcaptcha_off_when_logged_in ) {
-			update_option( 'hcaptcha_settings', [ 'off_when_logged_in' => [ 'on'] ] );
+			update_option( 'hcaptcha_settings', [ 'off_when_logged_in' => [ 'on' ] ] );
 		} else {
 			update_option( 'hcaptcha_settings', [ 'off_when_logged_in' => [] ] );
 		}
@@ -267,18 +267,18 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init() and init_hooks() on Elementor Pro edit page.
 	 *
-	 * @param boolean $hcaptcha_elementor__pro_form_status Option 'hcaptcha_elementor__pro_form_status' is set.
-	 * @param array   $server                              $_SERVER variable.
-	 * @param array   $get                                 $_GET variable.
-	 * @param array   $post                                $_POST variable.
-	 * @param boolean $hcaptcha_active                     Plugin should be active.
+	 * @param boolean $elementor_pro_status Option 'elementor_pro_status' is set.
+	 * @param array   $server               $_SERVER variable.
+	 * @param array   $get                  $_GET variable.
+	 * @param array   $post                 $_POST variable.
+	 * @param boolean $hcaptcha_active      Plugin should be active.
 	 *
 	 * @dataProvider dp_test_init_and_init_hooks_on_elementor_pro_edit_page
 	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
-		$hcaptcha_elementor__pro_form_status, $server, $get, $post, $hcaptcha_active
+		$elementor_pro_status, $server, $get, $post, $hcaptcha_active
 	) {
 		global $current_user;
 
@@ -293,7 +293,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		unset( $current_user );
 		wp_set_current_user( 1 );
 
-		if ( 'on' === $hcaptcha_elementor__pro_form_status ) {
+		if ( 'on' === $elementor_pro_status ) {
 			update_option( 'hcaptcha_settings', [ 'elementor_pro_status' => [ 'on' ] ] );
 		} else {
 			update_option( 'hcaptcha_settings', [ 'elementor_pro_status' => [] ] );
@@ -1014,7 +1014,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'override_load_textdomain',
-			function ( $override, $domain, $mofile ) use ( &$override_filter_params ) {
+			static function ( $override, $domain, $mofile ) use ( &$override_filter_params ) {
 				$override_filter_params = [ $override, $domain, $mofile ];
 
 				return $override;
