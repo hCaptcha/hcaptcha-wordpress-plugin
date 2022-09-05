@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\CF7;
 
 use WPCF7_Submission;
@@ -16,13 +19,6 @@ use WPCF7_Validation;
 class CF7 {
 	const HANDLE    = 'hcaptcha-cf7';
 	const SHORTCODE = 'cf7-hcaptcha';
-
-	/**
-	 * Widget size.
-	 *
-	 * @var false|string
-	 */
-	private $hcaptcha_size;
 
 	/**
 	 * CF7 constructor.
@@ -67,14 +63,15 @@ class CF7 {
 	 *
 	 * @return string
 	 * @noinspection NullPointerExceptionInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function cf7_hcaptcha_shortcode( $atts ) {
-		$settings            = hcaptcha()->settings();
-		$hcaptcha_api_key    = $settings->get( 'api_key' );
-		$hcaptcha_theme      = $settings->get( 'theme' );
-		$this->hcaptcha_size = $settings->get( 'size' );
+		$settings         = hcaptcha()->settings();
+		$hcaptcha_api_key = $settings->get( 'api_key' );
+		$hcaptcha_theme   = $settings->get( 'theme' );
+		$hcaptcha_size    = $settings->get( 'size' );
 
-		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
+		$callback = 'invisible' === $hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
 		hcaptcha()->form_shown = true;
 
@@ -88,7 +85,7 @@ class CF7 {
 			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
 			'" data-theme="' . esc_html( $hcaptcha_theme ) .
 			$callback .
-			'" data-size="' . esc_html( $this->hcaptcha_size ) . '">' .
+			'" data-size="' . esc_html( $hcaptcha_size ) . '">' .
 			'</span>' .
 			'</span>' .
 			wp_nonce_field( 'wp_rest', '_wpnonce', true, false )

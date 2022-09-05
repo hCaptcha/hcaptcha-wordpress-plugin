@@ -5,6 +5,11 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUnused */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\NF;
 
 use NF_Fields_Recaptcha;
@@ -37,6 +42,13 @@ class Fields extends NF_Fields_recaptcha {
 	 */
 	protected $_templates = 'hcaptcha';
 
+	/**
+	 * Nice name of the field.
+	 *
+	 * @var string
+	 */
+	protected $_nicename = '';
+
 	// phpcs:enable PSR2.Classes.PropertyDeclaration.Underscore
 
 	/**
@@ -55,6 +67,7 @@ class Fields extends NF_Fields_recaptcha {
 	 * @param mixed $data  Data.
 	 *
 	 * @return array|mixed|string|void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function validate( $field, $data ) {
 		if ( empty( $field['value'] ) ) {

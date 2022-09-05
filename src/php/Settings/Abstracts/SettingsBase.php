@@ -346,9 +346,10 @@ abstract class SettingsBase {
 	 * Set default required properties for each field.
 	 *
 	 * @param array  $field Settings field.
-	 * @param string $id    Settings field.
+	 * @param string $id    Settings field id.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	protected function set_defaults( &$field, $id ) {
 		$field = wp_parse_args(

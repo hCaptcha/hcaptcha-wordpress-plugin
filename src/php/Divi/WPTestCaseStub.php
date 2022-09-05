@@ -6,6 +6,8 @@
  * @noinspection AutoloadingIssuesInspection
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpIllegalPsrClassPathInspection */
 namespace Codeception\TestCase;
 
 /**

@@ -7,8 +7,6 @@
 
 namespace HCaptcha\Divi;
 
-use WP_Error;
-
 /**
  * Class Login.
  */
