@@ -38,6 +38,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		hcaptcha()->init_hooks();
+
 		$subject = new Form();
 
 		$expected = $this->get_hcap_form(
