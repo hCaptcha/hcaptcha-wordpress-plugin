@@ -32,7 +32,6 @@ class CommentTest extends HCaptchaWPTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $GLOBALS['current_screen'], $_POST[ Origin::NAME ] );
 
-		delete_option( 'hcaptcha_cmf_status' );
 		delete_transient( Origin::TRANSIENT );
 
 		parent::tearDown();

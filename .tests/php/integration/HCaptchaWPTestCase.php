@@ -41,6 +41,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 
+		delete_option( 'hcaptcha_settings' );
+
 		Mockery::close();
 		parent::tearDown();
 		FunctionMocker::tearDown();

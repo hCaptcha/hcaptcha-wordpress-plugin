@@ -77,9 +77,16 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$hcaptcha_api_key = 'some api key';
 		$hcaptcha_theme   = 'some theme';
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
-		update_option( 'hcaptcha_theme', $hcaptcha_theme );
-		update_option( 'hcaptcha_size', $hcaptcha_size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_key' => $hcaptcha_api_key,
+				'theme'   => $hcaptcha_theme,
+				'size'    => $hcaptcha_size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		FunctionMocker::replace(
 			'uniqid',
@@ -162,7 +169,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
+		update_option( 'hcaptcha_settings', [ 'api_key' => $hcaptcha_api_key ] );
+
+		hcaptcha()->init_hooks();
 
 		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'] );
 
@@ -273,7 +282,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
+		update_option( 'hcaptcha_settings', [ 'api_key' => $hcaptcha_api_key ] );
+
+		hcaptcha()->init_hooks();
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 		$result
@@ -324,7 +335,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
+		update_option( 'hcaptcha_settings', [ 'api_key' => $hcaptcha_api_key ] );
+
+		hcaptcha()->init_hooks();
 
 		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'], false );
 
@@ -363,7 +376,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		self::assertFalse( wp_script_is( CF7::HANDLE ) );
 
-		update_option( 'hcaptcha_size', $hcaptcha_size );
+		update_option( 'hcaptcha_settings', [ 'size' => $hcaptcha_size ] );
+
+		hcaptcha()->init_hooks();
+
 		do_shortcode( '[cf7-hcaptcha]' );
 
 		ob_start();

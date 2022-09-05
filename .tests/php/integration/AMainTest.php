@@ -81,8 +81,6 @@ class AMainTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'jquery' );
 		wp_deregister_script( 'jquery' );
 
-		delete_option( 'hcaptcha_settings' );
-
 		$hcaptcha_wordpress_plugin->form_shown = false;
 
 		parent::tearDown();
