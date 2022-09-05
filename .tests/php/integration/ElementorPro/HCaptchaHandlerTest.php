@@ -55,12 +55,10 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_constructor() {
-		global $hcaptcha_wordpress_plugin;
-
 		$subject = new HCaptchaHandler();
 
 		self::assertInstanceOf( Main::class, $this->get_protected_property( $subject, 'main' ) );
-		self::assertSame( $hcaptcha_wordpress_plugin, $this->get_protected_property( $subject, 'main' ) );
+		self::assertSame( hcaptcha(), $this->get_protected_property( $subject, 'main' ) );
 
 		self::assertSame(
 			10,
@@ -345,14 +343,12 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test enqueue_scripts().
 	 */
 	public function test_enqueue_scripts() {
-		global $hcaptcha_wordpress_plugin;
-
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
 		ob_start();
-		$hcaptcha_wordpress_plugin->print_inline_styles();
+		hcaptcha()->print_inline_styles();
 		$expected = ob_get_clean();
 
 		ob_start();

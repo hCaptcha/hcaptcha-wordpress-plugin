@@ -25,9 +25,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		global $hcaptcha_wordpress_plugin;
-
-		$hcaptcha_wordpress_plugin->form_shown = false;
+		hcaptcha()->form_shown = false;
 
 		parent::tearDown();
 	}
@@ -49,14 +47,12 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * Test hcap_form_display().
 	 */
 	public function test_hcap_form_display() {
-		global $hcaptcha_wordpress_plugin;
-
-		self::assertFalse( $hcaptcha_wordpress_plugin->form_shown );
+		self::assertFalse( hcaptcha()->form_shown );
 
 		ob_start();
 		hcap_form_display();
 		self::assertSame( $this->get_hcap_form(), ob_get_clean() );
-		self::assertTrue( $hcaptcha_wordpress_plugin->form_shown );
+		self::assertTrue( hcaptcha()->form_shown );
 
 		$action = 'some_action';
 		$name   = 'some_name';
