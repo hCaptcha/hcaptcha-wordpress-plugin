@@ -97,9 +97,16 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_init( $enabled ) {
 		if ( $enabled ) {
-			update_option( 'hcaptcha_api_key', 'some api key' );
-			update_option( 'hcaptcha_secret_key', 'some secret key' );
+			update_option(
+				'hcaptcha_settings',
+				[
+					'api_key'    => 'some api key',
+					'secret_key' => 'some secret key',
+				]
+			);
 		}
+
+		hcaptcha()->init_hooks();
 
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
@@ -209,7 +216,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_site_key() {
 		$site_key = 'some api key';
-		update_option( 'hcaptcha_api_key', $site_key );
+
+		update_option( 'hcaptcha_settings', [ 'api_key' => $site_key ] );
+		hcaptcha()->init_hooks();
 
 		self::assertSame( $site_key, HCaptchaHandler::get_site_key() );
 	}
@@ -219,7 +228,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_secret_key() {
 		$secret_key = 'some secret key';
-		update_option( 'hcaptcha_secret_key', $secret_key );
+
+		update_option( 'hcaptcha_settings', [ 'secret_key' => $secret_key ] );
+		hcaptcha()->init_hooks();
 
 		self::assertSame( $secret_key, HCaptchaHandler::get_secret_key() );
 	}
@@ -229,7 +240,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_hcaptcha_theme() {
 		$theme = 'some theme';
-		update_option( 'hcaptcha_theme', $theme );
+
+		update_option( 'hcaptcha_settings', [ 'theme' => $theme ] );
+		hcaptcha()->init_hooks();
 
 		self::assertSame( $theme, HCaptchaHandler::get_hcaptcha_theme() );
 	}
@@ -239,7 +252,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_hcaptcha_size() {
 		$size = 'some size';
-		update_option( 'hcaptcha_size', $size );
+
+		update_option( 'hcaptcha_settings', [ 'size' => $size ] );
+		hcaptcha()->init_hooks();
 
 		self::assertSame( $size, HCaptchaHandler::get_hcaptcha_size() );
 	}
@@ -264,13 +279,21 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_is_enabled
 	 */
 	public function test_is_enabled( $site_key, $secret_key, $expected ) {
+		$settings = [];
+
 		if ( $site_key ) {
-			update_option( 'hcaptcha_api_key', $site_key );
+			$settings['api_key'] = $site_key;
 		}
 
 		if ( $secret_key ) {
-			update_option( 'hcaptcha_secret_key', $secret_key );
+			$settings['secret_key'] = $secret_key;
 		}
+
+		if ( $settings ) {
+			update_option( 'hcaptcha_settings', $settings );
+		}
+
+		hcaptcha()->init_hooks();
 
 		self::assertSame( $expected, HCaptchaHandler::is_enabled() );
 	}
@@ -312,10 +335,17 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$theme      = 'some theme';
 		$size       = 'some size';
 
-		update_option( 'hcaptcha_api_key', $site_key );
-		update_option( 'hcaptcha_secret_key', $secret_key );
-		update_option( 'hcaptcha_theme', $theme );
-		update_option( 'hcaptcha_size', $size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_key'    => $site_key,
+				'secret_key' => $secret_key,
+				'theme'      => $theme,
+				'size'       => $size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		$expected = [
 			'forms' => [
@@ -478,9 +508,16 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$theme    = 'some theme';
 		$size     = 'some size';
 
-		update_option( 'hcaptcha_api_key', $site_key );
-		update_option( 'hcaptcha_theme', $theme );
-		update_option( 'hcaptcha_size', $size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_key' => $site_key,
+				'theme'   => $theme,
+				'size'    => $size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		$custom_id         = '_014ea7c';
 		$item['custom_id'] = $custom_id;
