@@ -34,6 +34,8 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * Test hcap_form().
 	 */
 	public function test_hcap_form() {
+		hcaptcha()->init_hooks();
+
 		self::assertSame( $this->get_hcap_form(), hcap_form() );
 
 		$action = 'some_action';
