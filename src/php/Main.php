@@ -58,6 +58,7 @@ class Main {
 			return;
 		}
 
+		( new Fix() )->init();
 		new Migrations();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
@@ -80,8 +81,6 @@ class Main {
 			$this->auto_verify = new AutoVerify();
 			$this->auto_verify->init();
 		}
-
-		( new Fix() )->init();
 	}
 
 	/**
