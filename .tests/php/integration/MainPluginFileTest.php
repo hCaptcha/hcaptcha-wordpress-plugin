@@ -62,16 +62,6 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_hcaptcha_error_message().
-	 */
-	public function test_hcap_hcaptcha_error_message(): void {
-		$hcaptcha_content = 'Some content';
-		$expected         = '<p id="hcap_error" class="error hcap_error">The Captcha is invalid.</p>' . $hcaptcha_content;
-
-		self::assertSame( $expected, hcap_hcaptcha_error_message( $hcaptcha_content ) );
-	}
-
-	/**
 	 * Test that readme.txt contains proper stable tag.
 	 */
 	public function test_readme_txt(): void {

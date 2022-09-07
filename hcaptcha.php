@@ -73,24 +73,6 @@ require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 require HCAPTCHA_INC . '/common/request.php';
 require HCAPTCHA_INC . '/common/functions.php';
 
-if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
-	/**
-	 * Print error message.
-	 *
-	 * @param string $hcaptcha_content Content of hCaptcha.
-	 *
-	 * @return string
-	 */
-	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
-		$message = sprintf(
-			'<p id="hcap_error" class="error hcap_error">%s</p>',
-			__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
-		);
-
-		return $message . $hcaptcha_content;
-	}
-}
-
 /**
  * Get hCaptcha Main class instance.
  *
