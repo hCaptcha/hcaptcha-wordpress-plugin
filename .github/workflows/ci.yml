@@ -99,7 +99,7 @@ jobs:
         run: composer phpcs
 
       - name: Run ESLint
-        if: ${{ matrix.php-version = '8.1' }}
+        if: ${{ matrix.php-version == '8.1' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
           npx eslint ./src/js/**/*.js
