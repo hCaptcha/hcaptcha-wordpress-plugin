@@ -34,7 +34,7 @@ jobs:
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
           composer install --no-dev
           yarn
-          yarn run build:prod
+          yarn prod
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

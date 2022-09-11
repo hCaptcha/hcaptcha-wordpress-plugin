@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "webpack --mode development",
     "prod": "webpack --env production --mode production",
+    "lint": "npx eslint ./src/js/**/*.js ./assets/js/*.js",
     "test": "jest",
     "coveralls": "jest --coverage && cat coverage/lcov.info | coveralls"
   },

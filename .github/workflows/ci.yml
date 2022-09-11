@@ -102,8 +102,7 @@ jobs:
         run: |
           yarn
           yarn dev
-          npx eslint ./src/js/**/*.js
-          npx eslint ./assets/js/*.js
+          yarn lint
 
       - name: Run unit tests
         working-directory: ${{ env.wp-plugin-directory }}
