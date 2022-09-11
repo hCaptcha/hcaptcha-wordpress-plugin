@@ -89,8 +89,6 @@ jobs:
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
           composer install
-          yarn
-          yarn dev
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -102,6 +100,8 @@ jobs:
         if: ${{ matrix.php-version == '8.1' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
+          yarn
+          yarn dev
           npx eslint ./src/js/**/*.js
           npx eslint ./assets/js/*.js
 
