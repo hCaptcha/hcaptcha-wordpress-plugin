@@ -12,11 +12,7 @@ const HCaptchaFieldController = Marionette.Object.extend({
 
 		// On the Field's model value change.
 		const fieldsChannel = Backbone.Radio.channel('fields');
-		this.listenTo(
-			fieldsChannel,
-			'change:modelValue',
-			this.updateHcaptcha
-		);
+		this.listenTo(fieldsChannel, 'change:modelValue', this.updateHcaptcha);
 	},
 
 	updateHcaptcha(model) {

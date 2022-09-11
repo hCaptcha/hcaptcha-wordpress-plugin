@@ -1,12 +1,12 @@
 /* global hCaptchaReset */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 	/**
 	 * Reset hCaptcha widget.
 	 *
 	 * @param {CustomEvent} event Event.
 	 */
-	const hCaptchaResetCF7 = function(event) {
+	const hCaptchaResetCF7 = function (event) {
 		hCaptchaReset(event.target);
 	};
 
