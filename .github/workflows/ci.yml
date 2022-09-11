@@ -89,12 +89,18 @@ jobs:
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
           composer install
+          yarn
+          yarn dev
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run code sniffer
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer phpcs
+
+      - name: Run ESLint
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: npx eslint ./src/js/**/*.js
 
       - name: Run unit tests
         working-directory: ${{ env.wp-plugin-directory }}

@@ -1,32 +1,32 @@
-const path = require( 'path' );
+const path = require('path');
 
 const webPackModule = () => {
 	return {
 		rules: [
 			{
-				loader: 'babel-loader',
 				test: /\.js$/,
 				exclude: /node_modules/,
+				loader: 'babel-loader',
 				options: {
-					presets: [ 'env' ],
+					presets: ['@babel/preset-env'],
 				},
 			},
 		],
 	};
 };
 
-const hcaptcha = ( env ) => {
-	const isProduction = 'production' === env;
+const hcaptcha = (env) => {
+	const isProduction = env.production;
 
 	return {
-		entry: [ 'cross-fetch', './src/js/hcaptcha/app.js' ],
+		entry: ['./src/js/hcaptcha/app.js'],
 		output: {
-			path: path.join( __dirname, 'assets', 'js' ),
-			filename: path.join( 'hcaptcha', 'app.js' ),
+			path: path.join(__dirname, 'assets', 'js'),
+			filename: path.join('hcaptcha', 'app.js'),
 		},
-		module: webPackModule( ! isProduction ),
+		module: webPackModule(),
 		devtool: isProduction ? '' : 'inline-source-map',
 	};
 };
 
-module.exports = [ hcaptcha ];
+module.exports = hcaptcha;
