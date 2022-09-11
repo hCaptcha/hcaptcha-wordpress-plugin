@@ -16,8 +16,6 @@ const webPackModule = () => {
 };
 
 const hcaptcha = (env) => {
-	const isProduction = env.production;
-
 	return {
 		entry: ['./src/js/hcaptcha/app.js'],
 		output: {
@@ -25,7 +23,7 @@ const hcaptcha = (env) => {
 			filename: path.join('hcaptcha', 'app.js'),
 		},
 		module: webPackModule(),
-		devtool: isProduction ? '' : 'inline-source-map',
+		devtool: env.production ? false : 'eval-source-map',
 	};
 };
 
