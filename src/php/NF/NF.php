@@ -92,9 +92,11 @@ class NF {
 	 * Enqueue script.
 	 */
 	public function nf_captcha_script() {
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			'hcaptcha-nf',
-			HCAPTCHA_URL . '/assets/js/hcaptcha-nf.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-nf{$min}.js",
 			[ 'nf-front-end' ],
 			HCAPTCHA_VERSION,
 			true

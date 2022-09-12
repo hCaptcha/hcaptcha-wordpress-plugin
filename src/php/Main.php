@@ -252,10 +252,12 @@ class Main {
 			true
 		);
 
+		$min = hcap_min_suffix();
+
 		if ( array_key_exists( HCaptchaHandler::class, $this->loaded_classes ) ) {
 			wp_enqueue_script(
 				'hcaptcha-elementor-pro-frontend',
-				HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
+				HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro-frontend$min.js",
 				[ 'jquery', 'hcaptcha' ],
 				HCAPTCHA_VERSION,
 				true

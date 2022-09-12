@@ -182,9 +182,11 @@ class Contact {
 	 * Enqueue scripts.
 	 */
 	public function enqueue_scripts() {
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			'hcaptcha-divi',
-			HCAPTCHA_URL . '/assets/js/hcaptcha-divi.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-divi$min.js",
 			[ 'jquery' ],
 			HCAPTCHA_VERSION,
 			true

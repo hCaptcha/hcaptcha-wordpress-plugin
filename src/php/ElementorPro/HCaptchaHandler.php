@@ -49,9 +49,11 @@ class HCaptchaHandler {
 	 * Enqueue elementor support script.
 	 */
 	public function after_enqueue_scripts() {
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			'hcaptcha-elementor-pro',
-			HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro$min.js",
 			[ 'elementor-editor' ],
 			HCAPTCHA_VERSION,
 			true
@@ -202,6 +204,7 @@ class HCaptchaHandler {
 	 */
 	private function register_scripts() {
 		$src = $this->main->get_api_src();
+		$min = hcap_min_suffix();
 
 		wp_register_script(
 			static::get_script_handle(),
@@ -221,7 +224,7 @@ class HCaptchaHandler {
 
 		wp_register_script(
 			self::HANDLE,
-			HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro-frontend$min.js",
 			[ 'jquery', self::HCAPTCHA_HANDLE ],
 			HCAPTCHA_VERSION,
 			true

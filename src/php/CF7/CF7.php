@@ -159,9 +159,11 @@ class CF7 {
 			return;
 		}
 
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			self::HANDLE,
-			HCAPTCHA_URL . '/assets/js/hcaptcha-cf7.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
 			[],
 			HCAPTCHA_VERSION,
 			true

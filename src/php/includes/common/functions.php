@@ -106,3 +106,12 @@ if ( ! function_exists( 'wp_doing_ajax' ) ) :
 	}
 endif;
 // @codeCoverageIgnoreEnd
+
+/**
+ * Get min suffix.
+ *
+ * @return string
+ */
+function hcap_min_suffix() {
+	return defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
+}
