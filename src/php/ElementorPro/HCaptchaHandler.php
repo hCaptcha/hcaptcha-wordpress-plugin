@@ -24,6 +24,9 @@ class HCaptchaHandler {
 	const OPTION_NAME_SECRET_KEY = 'secret_key';
 	const OPTION_NAME_THEME      = 'theme';
 	const OPTION_NAME_SIZE       = 'size';
+	const FIELD_ID               = 'hcaptcha';
+	const HANDLE                 = 'hcaptcha-elementor-pro-frontend';
+	const HCAPTCHA_HANDLE        = 'hcaptcha';
 
 	/**
 	 * Main class instance.
@@ -91,7 +94,7 @@ class HCaptchaHandler {
 	 * @param Module $module Module.
 	 */
 	public function register_action( $module ) {
-		$module->add_component( 'hcaptcha', $this );
+		$module->add_component( self::FIELD_ID, $this );
 	}
 
 	/**
@@ -100,7 +103,7 @@ class HCaptchaHandler {
 	 * @return string
 	 */
 	protected static function get_hcaptcha_name() {
-		return 'hcaptcha';
+		return self::FIELD_ID;
 	}
 
 	/**
@@ -209,17 +212,17 @@ class HCaptchaHandler {
 		);
 
 		wp_register_script(
-			'hcaptcha',
-			HCAPTCHA_URL . '/assets/js/hcaptcha/app.js',
+			self::HCAPTCHA_HANDLE,
+			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
 			[],
 			HCAPTCHA_VERSION,
 			true
 		);
 
 		wp_register_script(
-			'hcaptcha-elementor-pro-frontend',
+			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js',
-			[ 'jquery', 'hcaptcha' ],
+			[ 'jquery', self::HCAPTCHA_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
@@ -231,8 +234,8 @@ class HCaptchaHandler {
 	public function enqueue_scripts() {
 		$this->main->print_inline_styles();
 		wp_enqueue_script( static::get_script_handle() );
-		wp_enqueue_script( 'hcaptcha' );
-		wp_enqueue_script( 'hcaptcha-elementor-pro-frontend' );
+		wp_enqueue_script( self::HCAPTCHA_HANDLE );
+		wp_enqueue_script( self::HANDLE );
 	}
 
 	/**
@@ -325,7 +328,7 @@ class HCaptchaHandler {
 	 * @return array
 	 */
 	public function add_field_type( $field_types ) {
-		$field_types['hcaptcha'] = __( 'hCaptcha', 'elementor-pro' );
+		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'elementor-pro' );
 
 		return $field_types;
 	}
@@ -353,7 +356,7 @@ class HCaptchaHandler {
 		$term = [
 			'name'     => 'field_type',
 			'operator' => '!in',
-			'value'    => [ 'hcaptcha' ],
+			'value'    => [ self::FIELD_ID ],
 		];
 
 		$control_data['fields']['width']['conditions']['terms'][]    = $term;

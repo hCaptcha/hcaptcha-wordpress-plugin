@@ -246,7 +246,7 @@ class Main {
 
 		wp_enqueue_script(
 			'hcaptcha',
-			HCAPTCHA_URL . '/assets/js/hcaptcha/app.js',
+			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
 			[],
 			HCAPTCHA_VERSION,
 			true

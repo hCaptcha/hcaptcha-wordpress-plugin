@@ -2,7 +2,7 @@
 .idea/
 assets/css/*.min.css
 assets/js/*.min.js
-assets/js/hcaptcha/
+assets/js/apps/
 node_modules/
 vendor/
 

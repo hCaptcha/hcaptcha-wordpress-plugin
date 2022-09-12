@@ -47,7 +47,7 @@ const hcaptcha = (env) => {
 		cssEntries[filename] = entry;
 		return entry;
 	});
-	glob.sync('./assets/js/hcaptcha-*.js').map((entry) => {
+	glob.sync('./assets/js/*.js').map((entry) => {
 		const filename = entry.replace(/^.*[\\\/]/, '').replace(/\..+$/, '');
 		jsEntries[filename] = entry;
 		return entry;
@@ -70,7 +70,7 @@ const hcaptcha = (env) => {
 			path: path.join(__dirname, 'assets'),
 			filename: (pathData) => {
 				return pathData.chunk.name === 'hcaptcha'
-					? 'js/[name]/app.js'
+					? 'js/apps/[name].js'
 					: 'js/[name].min.js';
 			},
 		},
