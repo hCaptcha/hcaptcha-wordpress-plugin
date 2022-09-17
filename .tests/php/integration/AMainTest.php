@@ -648,7 +648,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
 		$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro-frontend'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.js', $hcaptcha_elementor_pro_frontend->src );
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.min.js', $hcaptcha_elementor_pro_frontend->src );
 		self::assertSame( [ 'jquery', 'hcaptcha' ], $hcaptcha_elementor_pro_frontend->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro_frontend->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro_frontend->extra );
