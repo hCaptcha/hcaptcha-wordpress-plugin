@@ -84,7 +84,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return string
 	 */
 	protected function section_title() {
-		return '';
+		return 'integrations';
 	}
 
 	/**

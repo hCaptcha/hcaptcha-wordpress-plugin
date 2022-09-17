@@ -1,3 +1,7 @@
+.hcaptcha-logo {
+	width: 235px;
+}
+
 .hcaptcha-settings-tabs {
 	line-height: 4.5em;
 	background: #fff;
@@ -24,6 +28,57 @@
 	border-bottom: 2px solid #4f94d4;
 }
 
-.hcaptcha-logo {
-	width: 235px;
+.hcaptcha-integrations table tbody {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 10px 20px;
+	justify-content: space-between;
+}
+
+.hcaptcha-integrations table tr {
+	background: #fff;
+	flex-basis: calc((100% - 40px) / 3);
+	padding: 10px 20px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+}
+
+.hcaptcha-integrations table tr th {
+	font-size: 16px;
+}
+
+.hcaptcha-integrations table tr td {
+	padding: 0;
+	margin: 0;
+}
+
+.hcaptcha-integrations table tr td input[type="checkbox"] {
+	display: inline;
+	border: none;
+	box-shadow: none;
+	margin: 0 4px 0 0;
+	min-width: 0;
+	width: 0;
+}
+
+.hcaptcha-integrations table tr td input[type="checkbox"]::before {
+	background: no-repeat url('../images/checkbox-off.svg');
+	margin: 0;
+	width: 2.4792rem;
+	height: 1.3125rem;
+	content: '';
+	display: inline-block;
+	float: left;
+}
+
+.hcaptcha-integrations table tr td input[type="checkbox"]:checked::before {
+	background: no-repeat url('../images/checkbox-on.svg');
+}
+
+@media (max-width: 767px) {
+	.hcaptcha-integrations table tbody {
+		flex-direction: column;
+	}
 }

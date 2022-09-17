@@ -79,7 +79,7 @@ class General extends PluginSettingsBase {
 	 * @return string
 	 */
 	protected function section_title() {
-		return '';
+		return 'general';
 	}
 
 	/**
