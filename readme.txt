@@ -184,14 +184,14 @@ You can use the following filter:
 
 `
 /**
-* Filter user IP to check if it is whitelisted.
-* For whitelisted IPs, hCaptcha will not be shown.
-*
-* @param bool   $whitelisted Whether IP is whitelisted.
-* @param string $ip          IP.
-*
-* @return bool
-*/
+ * Filter user IP to check if it is whitelisted.
+ * For whitelisted IPs, hCaptcha will not be shown.
+ *
+ * @param bool   $whitelisted Whether IP is whitelisted.
+ * @param string $ip          IP.
+ *
+ * @return bool
+ */
 function my_hcap_whitelist_ip( $whitelisted, $ip ) {
 
   // Whitelist local IPs.
