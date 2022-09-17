@@ -104,7 +104,7 @@ class General extends PluginSettingsBase {
 				],
 			],
 			'custom_themes'        => [
-				'label' => sprintf(
+				'label'        => sprintf(
 				/* translators: 1: hCaptcha Pro link. */
 					__( 'Enable Custom Themes (%s)', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
@@ -112,7 +112,8 @@ class General extends PluginSettingsBase {
 						__( 'hCaptcha Pro', 'hcaptcha-for-forms-and-more' )
 					)
 				),
-				'type'  => 'checkbox',
+				'type'         => 'checkbox',
+				'supplemental' => __( 'Note: only works on hCaptcha Pro site keys.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'size'                 => [
 				'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
