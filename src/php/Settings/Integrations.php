@@ -250,12 +250,15 @@ class Integrations extends PluginSettingsBase {
 				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
 				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
 
+				$a_label = isset( $a['label'] ) ? strtolower( $a['label'] ) : '';
+				$b_label = isset( $b['label'] ) ? strtolower( $b['label'] ) : '';
+
 				if ( $a_disabled === $b_disabled ) {
-					return 0;
+					return strcmp( $a_label, $b_label );
 				}
 
 				if ( ! $a_disabled && $b_disabled ) {
-					return -1;
+					return - 1;
 				}
 
 				return 1;
