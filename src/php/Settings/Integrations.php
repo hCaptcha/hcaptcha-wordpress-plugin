@@ -281,6 +281,29 @@ class Integrations extends PluginSettingsBase {
 		<h2>
 			<?php esc_html_e( 'Enable hCaptcha on the Following Forms:', 'hcaptcha-for-forms-and-more' ); ?>
 		</h2>
+		<p>
+			<?php
+			$shortcode_url   = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F';
+			$integration_url = 'https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues';
+
+			echo wp_kses_post(
+				sprintf(
+				/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
+					__( 'Don\'t see your plugin here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$shortcode_url,
+						__( 'shortcode', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$integration_url,
+						__( 'request an integration', 'hcaptcha-for-forms-and-more' )
+					)
+				)
+			);
+			?>
+		</p>
 		<?php
 	}
 
