@@ -518,12 +518,13 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @param string|false $compat              Compat option value.
 	 * @param string|false $language            Language option value.
+	 * @param string|false $custom_themes       Compat option value.
 	 * @param string       $expected_script_src Expected script source.
 	 *
 	 * @dataProvider dp_test_print_footer_scripts
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_print_footer_scripts( $compat, $language, $expected_script_src ): void {
+	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ): void {
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
@@ -589,6 +590,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			[
 				'recaptcha_compat_off' => $compat ? [ $compat ] : [],
 				'language'             => $language ?: '',
+				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
 			]
 		);
 
@@ -663,11 +665,42 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_print_footer_scripts() {
 		return [
-			'no options'    => [ false, false, 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
-			'empty options' => [ '', '', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit' ],
-			'compat only'   => [ 'on', false, 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off' ],
-			'language only' => [ false, 'ru', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru' ],
-			'both options'  => [ 'on', 'ru', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&hl=ru' ],
+			'no options'         => [
+				false,
+				false,
+				false,
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit',
+			],
+			'empty options'      => [
+				'',
+				'',
+				'',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit',
+			],
+			'compat only'        => [
+				'on',
+				false,
+				false,
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off',
+			],
+			'language only'      => [
+				false,
+				'ru',
+				false,
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru',
+			],
+			'custom themes only' => [
+				false,
+				false,
+				'on',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&custom=1',
+			],
+			'all options'        => [
+				'on',
+				'ru',
+				'on',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=1&hl=ru',
+			],
 		];
 	}
 

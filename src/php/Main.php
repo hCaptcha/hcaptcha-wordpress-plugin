@@ -204,6 +204,10 @@ class Main {
 			$params['recaptchacompat'] = 'off';
 		}
 
+		if ( $this->settings()->is_on( 'custom_themes' ) ) {
+			$params['custom'] = 1;
+		}
+
 		/**
 		 * Filters hCaptcha language.
 		 *
