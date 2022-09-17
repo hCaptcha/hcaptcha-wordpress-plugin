@@ -258,29 +258,6 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
-	 * Show settings page.
-	 */
-	public function settings_page() {
-		?>
-		<div class="wrap">
-			<h1>
-				<?php
-				esc_html_e( 'hCaptcha Plugin Options', 'hcaptcha-for-forms-and-more' );
-				?>
-			</h1>
-
-			<form id="hcaptcha-options" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>" method="post">
-				<?php
-				do_settings_sections( $this->option_page() ); // Sections with options.
-				settings_fields( $this->option_group() ); // Hidden protection fields.
-				submit_button();
-				?>
-			</form>
-		</div>
-		<?php
-	}
-
-	/**
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
