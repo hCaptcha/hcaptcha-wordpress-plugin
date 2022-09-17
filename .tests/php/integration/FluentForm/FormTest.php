@@ -76,7 +76,19 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$this->expectException( WPDieException::class );
 
+		ob_start();
 		$subject->verify( [], $data, [] );
+	}
+
+	/**
+	 * The wp_die handler.
+	 *
+	 * @return array
+	 */
+	public function get_wp_die_handler() {
+		self::assertSame( '{"errors":{"g-recaptcha-response":["The Captcha is invalid."]}}', ob_get_clean() );
+
+		return parent::get_wp_die_handler();
 	}
 
 	/**
