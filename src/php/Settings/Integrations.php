@@ -237,6 +237,35 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Setup settings fields.
+	 */
+	public function setup_fields() {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
+		uasort(
+			$this->form_fields,
+			static function ( $a, $b ) {
+				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
+				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
+
+				if ( $a_disabled === $b_disabled ) {
+					return 0;
+				}
+
+				if ( ! $a_disabled && $b_disabled ) {
+					return -1;
+				}
+
+				return 1;
+			}
+		);
+
+		parent::setup_fields();
+	}
+
+	/**
 	 * Show settings page.
 	 */
 	public function settings_page() {
