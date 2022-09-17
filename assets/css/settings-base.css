@@ -47,6 +47,20 @@
 
 .hcaptcha-integrations table tr th {
 	font-size: 16px;
+	padding: 5px 0 20px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.hcaptcha-integrations table tr th img {
+	height: 28px;
+}
+
+.hcaptcha-integrations table tr th .hcaptcha-integration-logo {
+	line-height: 28px;
+	display: flex;
 }
 
 .hcaptcha-integrations table tr td {

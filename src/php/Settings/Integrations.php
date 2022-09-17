@@ -93,7 +93,7 @@ class Integrations extends PluginSettingsBase {
 	public function init_form_fields() {
 		$this->form_fields = [
 			'wp_status'                    => [
-				'label'   => __( 'WP Core', 'hcaptcha-for-forms-and-more' ),
+				'label'   => $this->logo( 'WP Core' ) . __( 'WP Core', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'options' => [
 					'comment'   => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
@@ -103,7 +103,7 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 			'bbp_status'                   => [
-				'label'   => __( 'bbPress', 'hcaptcha-for-forms-and-more' ),
+				'label'   => $this->logo( 'bbPress' ) . __( 'bbPress', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'options' => [
 					'new_topic' => __( 'New Topic Form', 'hcaptcha-for-forms-and-more' ),
@@ -111,7 +111,7 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 			'bp_status'                    => [
-				'label'   => __( 'BuddyPress', 'hcaptcha-for-forms-and-more' ),
+				'label'   => $this->logo( 'BuddyPress' ) . __( 'BuddyPress', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'options' => [
 					'create_group' => __( 'Create Group Form', 'hcaptcha-for-forms-and-more' ),
@@ -119,14 +119,14 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 			'cf7_status'                   => [
-				'label'   => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
+				'label'   => $this->logo( 'Contact Form 7' ) . __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                  => [
-				'label'   => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
+				'label'   => $this->logo( 'Divi' ) . __( 'Divi', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'options' => [
 					'comment' => __( 'Divi Comment Form', 'hcaptcha-for-forms-and-more' ),
@@ -237,6 +237,23 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Get logo image.
+	 *
+	 * @param string $label Label.
+	 *
+	 * @return string
+	 */
+	private function logo( $label ) {
+		$logo_file = sanitize_file_name( $label . '-logo.png' );
+
+		return sprintf(
+			'<div class="hcaptcha-integration-logo"><img src="%1$s" alt="%2$s Logo"></div>',
+			esc_url( HCAPTCHA_URL . "/assets/images/$logo_file" ),
+			$label
+		);
+	}
+
+	/**
 	 * Setup settings fields.
 	 */
 	public function setup_fields() {
@@ -250,8 +267,12 @@ class Integrations extends PluginSettingsBase {
 				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
 				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
 
-				$a_label = isset( $a['label'] ) ? strtolower( $a['label'] ) : '';
-				$b_label = isset( $b['label'] ) ? strtolower( $b['label'] ) : '';
+				$a_label = isset( $a['label'] ) ?
+					preg_replace( '/<div.+<\/div>/', '', strtolower( $a['label'] ) ) :
+					'';
+				$b_label = isset( $b['label'] ) ?
+					preg_replace( '/<div.+<\/div>/', '', strtolower( $b['label'] ) ) :
+					'';
 
 				if ( $a_disabled === $b_disabled ) {
 					return strcmp( $a_label, $b_label );
