@@ -108,6 +108,12 @@ class Main {
 		 */
 		$deactivate = (
 			( is_user_logged_in() && $this->settings()->is_on( 'off_when_logged_in' ) ) ||
+			/**
+			 * Filters the user IP to check whether it is whitelisted.
+			 *
+			 * @param bool         $whitelisted IP is whitelisted.
+			 * @param string|false $ip          IP string or false for local addresses.
+			 */
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
 		);
 
@@ -450,9 +456,7 @@ class Main {
 		foreach ( $modules as $module ) {
 			list( $option_name, $option_value ) = $module[0];
 
-			if ( ! in_array( $option_value, (array) $this->settings()->get( $option_name ), true ) ) {
-				continue;
-			}
+			$option = (array) $this->settings()->get( $option_name );
 
 			if (
 				$module[1] &&
@@ -460,6 +464,7 @@ class Main {
 				! is_plugin_active( $module[1] )
 			) {
 				// Plugin is not active.
+				$this->settings()->disable_field( $option_name );
 				continue;
 			}
 
@@ -469,6 +474,11 @@ class Main {
 				get_template() !== $module[1]
 			) {
 				// Theme is not active.
+				$this->settings()->disable_field( $option_name );
+				continue;
+			}
+
+			if ( ! in_array( $option_value, $option, true ) ) {
 				continue;
 			}
 
