@@ -21,7 +21,7 @@ class Settings implements SettingsInterface {
 	 * Menu pages classes.
 	 */
 	const MENU_PAGES = [
-		[ Integrations::class, General::class ],
+		[ General::class, Integrations::class ],
 	];
 
 	/**
