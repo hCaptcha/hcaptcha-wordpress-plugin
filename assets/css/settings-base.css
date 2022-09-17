@@ -38,11 +38,11 @@
 
 .hcaptcha-integrations table tr {
 	background: #fff;
-	flex-basis: calc((100% - 40px) / 3);
 	padding: 10px 20px;
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
+	flex-basis: auto;
 }
 
 .hcaptcha-integrations table tr th {
@@ -75,10 +75,4 @@
 
 .hcaptcha-integrations table tr td input[type="checkbox"]:checked::before {
 	background: no-repeat url('../images/checkbox-on.svg');
-}
-
-@media (max-width: 767px) {
-	.hcaptcha-integrations table tbody {
-		flex-direction: column;
-	}
 }
