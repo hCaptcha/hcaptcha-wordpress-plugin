@@ -356,6 +356,7 @@ abstract class SettingsBase {
 			$field,
 			[
 				'default'  => '',
+				'disabled' => false,
 				'field_id' => '',
 				'label'    => '',
 				'section'  => '',
@@ -570,8 +571,9 @@ abstract class SettingsBase {
 		$value = $this->get( $arguments['field_id'] );
 
 		printf(
-			'<input name="%1$s[%2$s]" id="%2$s" type="%3$s"' .
-			' placeholder="%4$s" value="%5$s" class="regular-text" />',
+			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .
+			' placeholder="%5$s" value="%6$s" class="regular-text" />',
+			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['type'] ),
@@ -593,8 +595,9 @@ abstract class SettingsBase {
 		$max   = $arguments['max'];
 
 		printf(
-			'<input name="%1$s[%2$s]" id="%2$s" type="%3$s"' .
-			' placeholder="%4$s" value="%5$s" class="regular-text" min="%6$s" max="%7$s" />',
+			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .
+			' placeholder="%5$s" value="%6$s" class="regular-text" min="%7$s" max="%8$s" />',
+			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['type'] ),
@@ -616,7 +619,8 @@ abstract class SettingsBase {
 		$value = $this->get( $arguments['field_id'] );
 
 		printf(
-			'<textarea name="%1$s[%2$s]" id="%2$s" placeholder="%3$s" rows="5" cols="50">%4$s</textarea>',
+			'<textarea %1$s name="%2$s[%3$s]" id="%3$s" placeholder="%4$s" rows="5" cols="50">%5$s</textarea>',
+			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['placeholder'] ),
@@ -661,7 +665,7 @@ abstract class SettingsBase {
 		}
 
 		printf(
-			'<fieldset %s>%s</fieldset>',
+			'<fieldset %1$s>%2$s</fieldset>',
 			disabled( $arguments['disabled'], true, false ),
 			wp_kses(
 				$options_markup,
@@ -719,7 +723,8 @@ abstract class SettingsBase {
 		}
 
 		printf(
-			'<fieldset>%s</fieldset>',
+			'<fieldset %1$s>%2$s</fieldset>',
+			disabled( $arguments['disabled'], true, false ),
 			wp_kses(
 				$options_markup,
 				[
@@ -765,7 +770,8 @@ abstract class SettingsBase {
 		}
 
 		printf(
-			'<select name="%1$s[%2$s]">%3$s</select>',
+			'<select %1$s name="%2$s[%3$s]">%4$s</select>',
+			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_html( $arguments['field_id'] ),
 			wp_kses(
@@ -810,7 +816,8 @@ abstract class SettingsBase {
 		}
 
 		printf(
-			'<select multiple="multiple" name="%1$s[%2$s][]">%3$s</select>',
+			'<select %1$s multiple="multiple" name="%2$s[%3$s][]">%4$s</select>',
+			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_html( $arguments['field_id'] ),
 			wp_kses(
@@ -839,7 +846,13 @@ abstract class SettingsBase {
 			return;
 		}
 
+		printf(
+			'<fieldset %s>',
+			disabled( $arguments['disabled'], true, false )
+		);
+
 		$iterator = 0;
+
 		foreach ( $value as $key => $cell_value ) {
 			$id = $arguments['field_id'] . '-' . $iterator;
 
@@ -864,6 +877,8 @@ abstract class SettingsBase {
 
 			$iterator ++;
 		}
+
+		echo '</fieldset>';
 	}
 
 	/**
