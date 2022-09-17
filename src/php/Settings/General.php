@@ -288,6 +288,9 @@ class General extends PluginSettingsBase {
 	public function section_callback( $arguments ) {
 		?>
 		<h2>
+			<?php echo esc_html( $this->page_title() ); ?>
+		</h2>
+		<p>
 			<?php
 			echo wp_kses_post(
 				__(
@@ -296,7 +299,7 @@ class General extends PluginSettingsBase {
 				)
 			);
 			?>
-		</h2>
+		</p>
 		<?php
 	}
 

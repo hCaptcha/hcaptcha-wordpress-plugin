@@ -308,8 +308,11 @@ class Integrations extends PluginSettingsBase {
 	public function section_callback( $arguments ) {
 		?>
 		<h2>
-			<?php esc_html_e( 'Enable hCaptcha on the Following Forms:', 'hcaptcha-for-forms-and-more' ); ?>
+			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
+		<p>
+			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
+		</p>
 		<p>
 			<?php
 			$shortcode_url   = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F';
