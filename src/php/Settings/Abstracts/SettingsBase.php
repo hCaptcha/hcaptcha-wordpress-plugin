@@ -661,7 +661,8 @@ abstract class SettingsBase {
 		}
 
 		printf(
-			'<fieldset>%s</fieldset>',
+			'<fieldset %s>%s</fieldset>',
+			disabled( $arguments['disabled'], true, false ),
 			wp_kses(
 				$options_markup,
 				[
@@ -962,6 +963,23 @@ abstract class SettingsBase {
 	 */
 	protected function field_default( array $field ) {
 		return empty( $field['default'] ) ? '' : $field['default'];
+	}
+
+	/**
+	 * Get plugin option.
+	 *
+	 * @param string $key Setting name.
+	 *
+	 * @return bool True if done.
+	 */
+	public function disable_field( $key ) {
+		if ( array_key_exists( $key, $this->form_fields ) ) {
+			$this->form_fields[ $key ]['disabled'] = true;
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

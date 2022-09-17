@@ -147,4 +147,37 @@ class Settings implements SettingsInterface {
 	public function is_on( $key ) {
 		return ! empty( $this->get( $key ) );
 	}
+
+	/**
+	 * Check whether option value is 'on' or just non-empty.
+	 *
+	 * @param string $key Setting name.
+	 *
+	 * @return void
+	 */
+	public function disable_field( $key ) {
+		foreach ( $this->menu_pages as $menu_page ) {
+			/**
+			 * Menu page.
+			 *
+			 * @var SettingsBase $menu_page
+			 */
+			if ( $menu_page->disable_field( $key ) ) {
+				break;
+			}
+
+			$tabs = $menu_page->get_tabs();
+
+			foreach ( $tabs as $tab ) {
+				/**
+				 * Tab.
+				 *
+				 * @var SettingsBase $tab
+				 */
+				if ( $tab->disable_field( $key ) ) {
+					break 2;
+				}
+			}
+		}
+	}
 }
