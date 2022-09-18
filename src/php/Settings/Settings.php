@@ -25,11 +25,11 @@ class Settings implements SettingsInterface {
 	protected $menu_pages_classes;
 
 	/**
-	 * Menu pages class instances.
+	 * Menu pages and tabs in one flat array.
 	 *
 	 * @var array
 	 */
-	protected $menu_pages = [];
+	protected $tabs = [];
 
 	/**
 	 * Settings constructor.
@@ -70,8 +70,13 @@ class Settings implements SettingsInterface {
 			 *
 			 * @var PluginSettingsBase $page_class
 			 */
-			$this->menu_pages[] = new $page_class( $tabs );
+			$menu_page = new $page_class( $tabs );
+
+			$this->tabs[] = [ $menu_page ];
+			$this->tabs[] = $tabs;
 		}
+
+		$this->tabs = array_merge( [], ...$this->tabs );
 	}
 
 	/**
@@ -85,29 +90,16 @@ class Settings implements SettingsInterface {
 	public function get( $key, $empty_value = null ) {
 		$value = '';
 
-		foreach ( $this->menu_pages as $menu_page ) {
+		foreach ( $this->tabs as $tab ) {
 			/**
-			 * Menu page.
+			 * Page / Tab.
 			 *
-			 * @var SettingsBase $menu_page
+			 * @var SettingsBase $tab
 			 */
-			$value = $menu_page->get( $key, $empty_value );
+			$value = $tab->get( $key, $empty_value );
+
 			if ( ! empty( $value ) ) {
 				break;
-			}
-
-			$tabs = $menu_page->get_tabs();
-
-			foreach ( $tabs as $tab ) {
-				/**
-				 * Tab.
-				 *
-				 * @var SettingsBase $tab
-				 */
-				$value = $tab->get( $key, $empty_value );
-				if ( ! empty( $value ) ) {
-					break 2;
-				}
 			}
 		}
 
@@ -155,27 +147,14 @@ class Settings implements SettingsInterface {
 	 * @return void
 	 */
 	public function disable_field( $key ) {
-		foreach ( $this->menu_pages as $menu_page ) {
+		foreach ( $this->tabs as $tab ) {
 			/**
-			 * Menu page.
+			 * Page / Tab.
 			 *
-			 * @var SettingsBase $menu_page
+			 * @var SettingsBase $tab
 			 */
-			if ( $menu_page->disable_field( $key ) ) {
+			if ( $tab->disable_field( $key ) ) {
 				break;
-			}
-
-			$tabs = $menu_page->get_tabs();
-
-			foreach ( $tabs as $tab ) {
-				/**
-				 * Tab.
-				 *
-				 * @var SettingsBase $tab
-				 */
-				if ( $tab->disable_field( $key ) ) {
-					break 2;
-				}
 			}
 		}
 	}
