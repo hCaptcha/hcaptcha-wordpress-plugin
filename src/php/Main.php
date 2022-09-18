@@ -464,13 +464,15 @@ class Main {
 
 			$option = (array) $this->settings()->get( $option_name );
 
+			$this->settings()->set_field( $option_name, 'disabled', false );
+
 			if (
 				$module[1] &&
 				false !== strpos( $module[1], '.php' ) &&
 				! is_plugin_active( $module[1] )
 			) {
 				// Plugin is not active.
-				$this->settings()->disable_field( $option_name );
+				$this->settings()->set_field( $option_name, 'disabled', true );
 				continue;
 			}
 
@@ -480,7 +482,7 @@ class Main {
 				get_template() !== $module[1]
 			) {
 				// Theme is not active.
-				$this->settings()->disable_field( $option_name );
+				$this->settings()->set_field( $option_name, 'disabled', true );
 				continue;
 			}
 

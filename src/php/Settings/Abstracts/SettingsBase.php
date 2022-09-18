@@ -981,20 +981,22 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get plugin option.
+	 * Set field.
 	 *
-	 * @param string $key Setting name.
+	 * @param string $key       Setting name.
+	 * @param string $field_key Field key.
+	 * @param mixed  $value     Value.
 	 *
 	 * @return bool True if done.
 	 */
-	public function disable_field( $key ) {
-		if ( array_key_exists( $key, $this->form_fields ) ) {
-			$this->form_fields[ $key ]['disabled'] = true;
-
-			return true;
+	public function set_field( $key, $field_key, $value ) {
+		if ( ! array_key_exists( $key, $this->form_fields ) ) {
+			return false;
 		}
 
-		return false;
+		$this->form_fields[ $key ][ $field_key ] = $value;
+
+		return true;
 	}
 
 	/**

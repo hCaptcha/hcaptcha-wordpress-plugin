@@ -140,20 +140,22 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Check whether option value is 'on' or just non-empty.
+	 * Set field.
 	 *
-	 * @param string $key Setting name.
+	 * @param string $key       Setting name.
+	 * @param string $field_key Field key.
+	 * @param mixed  $value     Value.
 	 *
 	 * @return void
 	 */
-	public function disable_field( $key ) {
+	public function set_field( $key, $field_key, $value ) {
 		foreach ( $this->tabs as $tab ) {
 			/**
 			 * Page / Tab.
 			 *
 			 * @var SettingsBase $tab
 			 */
-			if ( $tab->disable_field( $key ) ) {
+			if ( $tab->set_field( $key, $field_key, $value ) ) {
 				break;
 			}
 		}
