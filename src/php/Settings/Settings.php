@@ -18,11 +18,11 @@ use HCaptcha\Settings\Abstracts\SettingsInterface;
 class Settings implements SettingsInterface {
 
 	/**
-	 * Menu pages classes.
+	 * Menu pages class names.
+	 *
+	 * @var array
 	 */
-	const MENU_PAGES = [
-		[ General::class, Integrations::class ],
-	];
+	protected $menu_pages_classes;
 
 	/**
 	 * Menu pages class instances.
@@ -33,23 +33,22 @@ class Settings implements SettingsInterface {
 
 	/**
 	 * Settings constructor.
+	 *
+	 * @param array $menu_pages_classes Menu pages.
 	 */
-	public function __construct() {
+	public function __construct( $menu_pages_classes = [] ) {
+		// Allow to specify $menu_pages_classes item as one class, not an array.
+		$this->menu_pages_classes = (array) $menu_pages_classes;
+
 		$this->init();
 	}
 
 	/**
 	 * Init class.
-	 *
-	 * @noinspection UnnecessaryCastingInspection
-	 * @noinspection PhpCastIsUnnecessaryInspection
 	 */
 	protected function init() {
-		// Allow to specify MENU_PAGES item as one class, not an array.
-		$menu_pages = (array) self::MENU_PAGES;
-
-		foreach ( $menu_pages as $menu_page ) {
-			$tab_classes = (array) $menu_page;
+		foreach ( $this->menu_pages_classes as $menu_page_classes ) {
+			$tab_classes = (array) $menu_page_classes;
 
 			// Allow to specify menu page as one class, without tabs.
 			$page_class  = $tab_classes[0];

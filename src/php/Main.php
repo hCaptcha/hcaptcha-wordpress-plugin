@@ -15,6 +15,8 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
+use HCaptcha\Settings\General;
+use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
 
 /**
@@ -68,7 +70,11 @@ class Main {
 	 * Init hooks.
 	 */
 	public function init_hooks() {
-		$this->settings = new Settings();
+		$this->settings = new Settings(
+			[
+				'hCaptcha' => [ General::class, Integrations::class ],
+			]
+		);
 
 		if ( $this->activate_hcaptcha() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
