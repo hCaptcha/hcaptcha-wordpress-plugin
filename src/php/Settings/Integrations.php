@@ -25,6 +25,11 @@ class Integrations extends PluginSettingsBase {
 	const OBJECT = 'HCaptchaIntegrationsObject';
 
 	/**
+	 * Disabled section id.
+	 */
+	const DISABLED_SECTION_ID = 'disabled';
+
+	/**
 	 * Get screen id.
 	 *
 	 * @return string
@@ -267,12 +272,8 @@ class Integrations extends PluginSettingsBase {
 				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
 				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
 
-				$a_label = isset( $a['label'] ) ?
-					strtolower( $a['label'] ) :
-					'';
-				$b_label = isset( $b['label'] ) ?
-					strtolower( $b['label'] ) :
-					'';
+				$a_label = isset( $a['label'] ) ? strtolower( $a['label'] ) : '';
+				$b_label = isset( $b['label'] ) ? strtolower( $b['label'] ) : '';
 
 				if ( $a_disabled === $b_disabled ) {
 					return strcmp( $a_label, $b_label );
@@ -286,13 +287,29 @@ class Integrations extends PluginSettingsBase {
 			}
 		);
 
+		$has_disabled = false;
+
 		foreach ( $this->form_fields as &$form_field ) {
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field['label'] );
 			}
+
+			if ( $form_field['disabled'] ) {
+				$form_field['section'] = self::DISABLED_SECTION_ID;
+				$has_disabled          = true;
+			}
 		}
 
 		unset( $form_field );
+
+		if ( $has_disabled ) {
+			add_settings_section(
+				self::DISABLED_SECTION_ID,
+				'',
+				[ $this, 'section_callback' ],
+				$this->option_page()
+			);
+		}
 
 		parent::setup_fields();
 	}
@@ -303,6 +320,15 @@ class Integrations extends PluginSettingsBase {
 	 * @param array $arguments Section arguments.
 	 */
 	public function section_callback( $arguments ) {
+		if ( self::DISABLED_SECTION_ID === $arguments['id'] ) {
+			?>
+			<hr class="hcaptcha-disabled-section">
+			<h3><?php esc_html_e( 'Not active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
+			<?php
+
+			return;
+		}
+
 		?>
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
@@ -333,6 +359,7 @@ class Integrations extends PluginSettingsBase {
 			);
 			?>
 		</p>
+		<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
 		<?php
 	}
 
