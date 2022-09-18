@@ -992,8 +992,8 @@ class AMainTest extends HCaptchaWPTestCase {
 				'woocommerce/woocommerce.php',
 				\HCaptcha\WC\Register::class,
 			],
-			'WooCommerce Wishlists'        => [
-				[ 'woocommerce_wishlists_status', 'create_list' ],
+			'WooCommerce Wishlist'         => [
+				[ 'woocommerce_wishlist_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				'wc_wl/wc-wl-create-list.php',
 			],
