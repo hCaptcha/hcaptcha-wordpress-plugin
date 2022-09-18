@@ -433,12 +433,12 @@ class Main {
 			],
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
-				'wpforms-lite/wpforms.php',
+				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
 				'wpforms/wpforms.php',
 			],
 			'WPForms Pro'                  => [
 				[ 'wpforms_status', 'pro' ],
-				'wpforms/wpforms.php',
+				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
 				'wpforms/wpforms.php',
 			],
 			'wpForo New Topic'             => [
@@ -464,24 +464,7 @@ class Main {
 
 			$option = (array) $this->settings()->get( $option_name );
 
-			$this->settings()->set_field( $option_name, 'disabled', false );
-
-			if (
-				$module[1] &&
-				false !== strpos( $module[1], '.php' ) &&
-				! is_plugin_active( $module[1] )
-			) {
-				// Plugin is not active.
-				$this->settings()->set_field( $option_name, 'disabled', true );
-				continue;
-			}
-
-			if (
-				$module[1] &&
-				false === strpos( $module[1], '.php' ) &&
-				get_template() !== $module[1]
-			) {
-				// Theme is not active.
+			if ( ! $this->plugin_or_theme_active( $module[1] ) ) {
 				$this->settings()->set_field( $option_name, 'disabled', true );
 				continue;
 			}
@@ -501,6 +484,40 @@ class Main {
 				require_once HCAPTCHA_INC . '/' . $component;
 			}
 		}
+	}
+
+	/**
+	 * Check whether one of the plugins or themes is active.
+	 *
+	 * @param string|array $plugin_or_theme_names Plugin or theme names.
+	 *
+	 * @return bool
+	 */
+	private function plugin_or_theme_active( $plugin_or_theme_names ) {
+		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
+			if ( '' === $plugin_or_theme_name ) {
+				// WP Core is always active.
+				return true;
+			}
+
+			if (
+				false !== strpos( $plugin_or_theme_name, '.php' ) &&
+				is_plugin_active( $plugin_or_theme_name )
+			) {
+				// Plugin is active.
+				return true;
+			}
+
+			if (
+				false === strpos( $plugin_or_theme_name, '.php' ) &&
+				get_template() === $plugin_or_theme_name
+			) {
+				// Theme is active.
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
