@@ -585,12 +585,19 @@ class AMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
+		$config_params  = '{}';
+		$expected_extra = [
+			'group' => 1,
+			'data'  => 'var HCaptchaMainObject = {"params":"' . $config_params . '"};',
+		];
+
 		update_option(
 			'hcaptcha_settings',
 			[
 				'recaptcha_compat_off' => $compat ? [ $compat ] : [],
 				'language'             => $language ?: '',
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
+				'config_params'        => $config_params,
 			]
 		);
 
@@ -610,7 +617,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $hcaptcha->src );
 		self::assertSame( [], $hcaptcha->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
-		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
+		self::assertSame( $expected_extra, $hcaptcha->extra );
 
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
@@ -645,7 +652,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $hcaptcha->src );
 		self::assertSame( [], $hcaptcha->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
-		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
+		self::assertSame( $expected_extra, $hcaptcha->extra );
 
 		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
@@ -693,13 +700,13 @@ class AMainTest extends HCaptchaWPTestCase {
 				false,
 				false,
 				'on',
-				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&custom=1',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&custom=true',
 			],
 			'all options'        => [
 				'on',
 				'ru',
 				'on',
-				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=1&hl=ru',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=true&hl=ru',
 			],
 		];
 	}

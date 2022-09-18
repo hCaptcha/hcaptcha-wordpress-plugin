@@ -115,6 +115,18 @@ class General extends PluginSettingsBase {
 				'type'         => 'checkbox',
 				'supplemental' => __( 'Note: only works on hCaptcha Pro site keys.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'config_params'        => [
+				'label'        => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
+				'type'         => 'textarea',
+				'supplemental' => sprintf(
+				/* translators: 1: hCaptcha render params doc link. */
+					__( 'hCaptcha render %s (optional). Must be a valid JSON.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params" target="_blank">%s</a>',
+						__( 'parameters', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+			],
 			'size'                 => [
 				'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',

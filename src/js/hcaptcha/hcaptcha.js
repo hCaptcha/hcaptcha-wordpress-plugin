@@ -2,7 +2,7 @@
  * @file class HCaptcha.
  */
 
-/* global hcaptcha */
+/* global hcaptcha, HCaptchaMainObject */
 
 class HCaptcha {
 	constructor() {
@@ -116,6 +116,14 @@ class HCaptcha {
 		this.getForms().map((formElement) => {
 			const hcaptchaElement = formElement.querySelector('.h-captcha');
 
+			let params;
+
+			try {
+				params = JSON.parse(HCaptchaMainObject.params);
+			} catch (e) {
+				params = {};
+			}
+
 			// Ignore forms not having hcaptcha.
 			if (null === hcaptchaElement) {
 				return formElement;
@@ -126,7 +134,7 @@ class HCaptcha {
 				return formElement;
 			}
 
-			hcaptcha.render(hcaptchaElement);
+			hcaptcha.render(hcaptchaElement, params);
 
 			if ('invisible' !== hcaptchaElement.dataset.size) {
 				return formElement;

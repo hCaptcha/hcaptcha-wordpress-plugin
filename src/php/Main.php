@@ -23,6 +23,15 @@ use HCaptcha\Settings\Settings;
  * Class Main.
  */
 class Main {
+	/**
+	 * Main script handle.
+	 */
+	const HANDLE = 'hcaptcha';
+
+	/**
+	 * Main script localization object.
+	 */
+	const OBJECT = 'HCaptchaMainObject';
 
 	/**
 	 * Form shown somewhere, use this flag to run the script.
@@ -217,7 +226,7 @@ class Main {
 		}
 
 		if ( $this->settings()->is_on( 'custom_themes' ) ) {
-			$params['custom'] = 1;
+			$params['custom'] = 'true';
 		}
 
 		/**
@@ -261,11 +270,17 @@ class Main {
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
 		wp_enqueue_script(
-			'hcaptcha',
+			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
 			[],
 			HCAPTCHA_VERSION,
 			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[ 'params' => $this->settings()->get( 'config_params' ) ]
 		);
 
 		$min = hcap_min_suffix();
@@ -274,7 +289,7 @@ class Main {
 			wp_enqueue_script(
 				'hcaptcha-elementor-pro-frontend',
 				HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro-frontend$min.js",
-				[ 'jquery', 'hcaptcha' ],
+				[ 'jquery', self::HANDLE ],
 				HCAPTCHA_VERSION,
 				true
 			);
