@@ -38,7 +38,7 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 		$row      = '<p class="form-row">';
 		$expected =
 			"\n" .
-			$this->get_hcap_form( 'hcaptcha_wc_create_wishlist', 'hcaptcha_wc_create_wishlist_nonce' ) .
+			$this->get_hcap_form( 'hcaptcha_wc_create_wishlists_action', 'hcaptcha_wc_create_wishlists_nonce' ) .
 			"\n" .
 			$row;
 
@@ -58,7 +58,7 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 	public function test_hcap_verify_wc_wl_create_list_captcha() {
 		$valid_captcha = 'some captcha';
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlist_nonce', 'hcaptcha_wc_create_wishlist' );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
 
 		WC()->init();
 
@@ -81,7 +81,7 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 			],
 		];
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlist_nonce', 'hcaptcha_wc_create_wishlist', false );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action', false );
 
 		WC()->init();
 
