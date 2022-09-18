@@ -40,10 +40,9 @@
 .hcaptcha-integrations table tr {
 	background: #fff;
 	padding: 10px 20px;
-	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
-	flex-basis: auto;
+	flex: auto;
 }
 
 .hcaptcha-integrations table tr th {
