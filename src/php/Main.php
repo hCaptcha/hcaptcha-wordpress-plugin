@@ -420,8 +420,8 @@ class Main {
 				'woocommerce/woocommerce.php',
 				WC\Register::class,
 			],
-			'WooCommerce Wishlist'         => [
-				[ 'woocommerce_wishlist_status', 'create_list' ],
+			'WooCommerce Wishlists'        => [
+				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				'wc_wl/wc-wl-create-list.php',
 			],

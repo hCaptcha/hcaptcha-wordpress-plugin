@@ -1,6 +1,6 @@
 <?php
 /**
- * WooCommerce Wishlist file.
+ * WooCommerce Wishlists file.
  *
  * Add integration for WooCommerce Wishlists plugin.
  * See: https://woocommerce.com/products/woocommerce-wishlists/
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Before WooCommerce Wishlist wrapper action.
+ * Before WooCommerce Wishlists wrapper action.
  */
 function hcap_woocommerce_wishlists_before_wrapper_action() {
 	ob_start();
@@ -25,7 +25,7 @@ function hcap_woocommerce_wishlists_before_wrapper_action() {
 add_action( 'woocommerce_wishlists_before_wrapper', 'hcap_woocommerce_wishlists_before_wrapper_action' );
 
 /**
- * After WooCommerce Wishlist wrapper action.
+ * After WooCommerce Wishlists wrapper action.
  */
 function hcap_woocommerce_wishlists_after_wrapper_action() {
 	$wrapper = ob_get_clean();
@@ -34,7 +34,7 @@ function hcap_woocommerce_wishlists_after_wrapper_action() {
 	$search  = '<p class="form-row">';
 	$replace =
 		"\n" .
-		hcap_form( 'hcaptcha_wc_create_wishlist', 'hcaptcha_wc_create_wishlist_nonce' ) .
+		hcap_form( 'hcaptcha_wc_create_wishlists_action', 'hcaptcha_wc_create_wishlists_nonce' ) .
 		"\n" .
 		$search;
 
@@ -51,7 +51,7 @@ function hcap_woocommerce_wishlists_after_wrapper_action() {
 add_action( 'woocommerce_wishlists_after_wrapper', 'hcap_woocommerce_wishlists_after_wrapper_action' );
 
 /**
- * WC Wishlist form.
+ * WC Wishlists form.
  *
  * @param mixed $valid_captcha Valid captcha.
  *
@@ -59,8 +59,8 @@ add_action( 'woocommerce_wishlists_after_wrapper', 'hcap_woocommerce_wishlists_a
  */
 function hcap_verify_wc_wl_create_list_captcha( $valid_captcha ) {
 	$error_message = hcaptcha_get_verify_message(
-		'hcaptcha_wc_create_wishlist_nonce',
-		'hcaptcha_wc_create_wishlist'
+		'hcaptcha_wc_create_wishlists_nonce',
+		'hcaptcha_wc_create_wishlists_action'
 	);
 
 	if ( null === $error_message ) {
