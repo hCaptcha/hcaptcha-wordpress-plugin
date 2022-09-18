@@ -90,3 +90,9 @@
 .hcaptcha-integrations table tr td input[type="checkbox"]:checked::before {
 	background: no-repeat url('../images/checkbox-on.svg');
 }
+
+@media (max-width: 782px) {
+	.hcaptcha-integrations table tbody {
+		flex-direction: column;
+	}
+}
