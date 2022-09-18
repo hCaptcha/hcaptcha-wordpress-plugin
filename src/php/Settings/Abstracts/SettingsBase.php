@@ -1031,7 +1031,11 @@ abstract class SettingsBase {
 		$form_fields = $this->form_fields();
 
 		foreach ( $form_fields as $key => $form_field ) {
-			if ( 'checkbox' === $form_field['type'] && ! isset( $value[ $key ] ) ) {
+			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
+				continue;
+			}
+
+			if ( ! $form_field['disabled'] || ! isset( $old_value[ $key ] ) ) {
 				$value[ $key ] = [];
 			}
 		}

@@ -247,7 +247,7 @@ class Integrations extends PluginSettingsBase {
 		$logo_file = sanitize_file_name( $label . '-logo.png' );
 
 		return sprintf(
-			'<div class="hcaptcha-integration-logo""><img src="%1$s" alt="%2$s Logo"></div>',
+			'<img src="%1$s" alt="%2$s Logo">',
 			esc_url( HCAPTCHA_URL . "/assets/images/$logo_file" ),
 			$label
 		);
