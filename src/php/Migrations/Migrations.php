@@ -204,7 +204,7 @@ class Migrations {
 			'hcaptcha_wc_lost_pass_status'         => [ 'woocommerce_status', 'lost_pass' ],
 			'hcaptcha_wc_order_tracking_status'    => [ 'woocommerce_status', 'order_tracking' ],
 			'hcaptcha_wc_reg_status'               => [ 'woocommerce_status', 'register' ],
-			'hcaptcha_wc_wl_create_list_status'    => [ 'woocommerce_wishlists_status', 'create_list' ],
+			'hcaptcha_wc_wl_create_list_status'    => [ 'woocommerce_wishlist_status', 'create_list' ],
 			'hcaptcha_wpforms_status'              => [ 'wpforms_status', 'lite' ],
 			'hcaptcha_wpforms_pro_status'          => [ 'wpforms_status', 'pro' ],
 			'hcaptcha_wpforo_new_topic_status'     => [ 'wpforo_status', 'new_topic' ],
