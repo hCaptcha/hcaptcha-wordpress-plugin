@@ -8,13 +8,13 @@
  * @wordpress-plugin
  *
  * Plugin Name:          hCaptcha for Forms and More
- * Plugin URI:           https://hcaptcha.com/
- * Description:          hCaptcha is a new way to monetize your site traffic while keeping out bots and spam. It is a drop-in replacement for reCAPTCHA.
+ * Plugin URI:           https://www.hcaptcha.com/
+ * Description:          hCaptcha keeps out bots and spam while putting privacy first. It is a drop-in replacement for reCAPTCHA.
  * Version:              1.19.0
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
- * Author URI:           https://hcaptcha.com/
+ * Author URI:           https://www.hcaptcha.com/
  * License:              GPL v2 or later
  * License URI:          https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:          hcaptcha-for-forms-and-more
