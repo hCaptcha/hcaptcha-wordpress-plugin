@@ -104,7 +104,7 @@ class General extends PluginSettingsBase {
 				],
 			],
 			'custom_themes'        => [
-				'label'        => __( 'Enable Custom Themes.', 'hcaptcha-for-forms-and-more' ),
+				'label'        => __( 'Enable Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				'type'         => 'checkbox',
 				'supplemental' => sprintf(
 				/* translators: 1: hCaptcha Pro link. */
