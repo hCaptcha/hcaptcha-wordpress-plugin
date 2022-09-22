@@ -34,19 +34,14 @@
 }
 
 .hcaptcha-integrations table tbody {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
+	display: grid;
 	gap: 10px 20px;
-	justify-content: space-between;
+	grid-template-columns: repeat(3, 1fr);
 }
 
 .hcaptcha-integrations table tr {
 	background: #fff;
 	padding: 10px 20px;
-	display: flex;
-	flex-direction: column;
-	flex: auto;
 }
 
 .hcaptcha-integrations table tr th {
@@ -100,6 +95,6 @@ fieldset:disabled {
 
 @media (max-width: 782px) {
 	.hcaptcha-integrations table tbody {
-		flex-direction: column;
+		grid-template-columns: 1fr;
 	}
 }
