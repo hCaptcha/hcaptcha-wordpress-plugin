@@ -88,15 +88,15 @@ class General extends PluginSettingsBase {
 	public function init_form_fields() {
 		$this->form_fields = [
 			'api_key'              => [
-				'label' => __( 'hCaptcha Site Key', 'hcaptcha-for-forms-and-more' ),
+				'label' => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
 				'type'  => 'text',
 			],
 			'secret_key'           => [
-				'label' => __( 'hCaptcha Secret Key', 'hcaptcha-for-forms-and-more' ),
+				'label' => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
 				'type'  => 'password',
 			],
 			'theme'                => [
-				'label'   => __( 'hCaptcha Theme', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Theme', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'options' => [
 					'light' => __( 'Light', 'hcaptcha-for-forms-and-more' ),
@@ -128,7 +128,7 @@ class General extends PluginSettingsBase {
 				),
 			],
 			'size'                 => [
-				'label'   => __( 'hCaptcha Size', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Size', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'options' => [
 					'normal'    => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
