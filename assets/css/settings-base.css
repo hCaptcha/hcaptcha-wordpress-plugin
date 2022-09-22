@@ -36,7 +36,7 @@
 .hcaptcha-integrations table tbody {
 	display: grid;
 	gap: 10px 20px;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 }
 
 .hcaptcha-integrations table tr {
@@ -93,7 +93,19 @@ fieldset:disabled {
 	margin: 20px 0;
 }
 
-@media (max-width: 782px) {
+@media (max-width: 1279px) {
+	.hcaptcha-integrations table tbody {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+@media (max-width: 1023px) {
+	.hcaptcha-integrations table tbody {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 600px) {
 	.hcaptcha-integrations table tbody {
 		grid-template-columns: 1fr;
 	}
