@@ -287,8 +287,6 @@ class Integrations extends PluginSettingsBase {
 			}
 		);
 
-		$has_disabled = false;
-
 		foreach ( $this->form_fields as &$form_field ) {
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field['label'] );
@@ -296,7 +294,6 @@ class Integrations extends PluginSettingsBase {
 
 			if ( $form_field['disabled'] ) {
 				$form_field['section'] = self::DISABLED_SECTION_ID;
-				$has_disabled          = true;
 			}
 		}
 
