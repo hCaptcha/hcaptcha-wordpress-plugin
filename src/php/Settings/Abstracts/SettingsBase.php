@@ -204,8 +204,8 @@ abstract class SettingsBase {
 		);
 
 		add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
-		add_action( 'current_screen', [ $this, 'setup_sections' ] );
 		add_action( 'current_screen', [ $this, 'setup_fields' ] );
+		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 

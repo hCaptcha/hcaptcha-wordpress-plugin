@@ -302,15 +302,6 @@ class Integrations extends PluginSettingsBase {
 
 		unset( $form_field );
 
-		if ( $has_disabled ) {
-			add_settings_section(
-				self::DISABLED_SECTION_ID,
-				'',
-				[ $this, 'section_callback' ],
-				$this->option_page()
-			);
-		}
-
 		parent::setup_fields();
 	}
 
