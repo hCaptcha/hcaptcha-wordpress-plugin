@@ -306,4 +306,20 @@
 	.hcaptcha-integrations table tbody {
 		grid-template-columns: 1fr;
 	}
+
+	.hcaptcha-general table tbody {
+		grid-template-columns: 1fr;
+	}
+
+	.hcaptcha-section-appearance + table tbody tr th {
+		padding: 10px 0;
+	}
+
+	.hcaptcha-section-appearance + table tbody tr {
+		margin: 0 !important;
+	}
+
+	.hcaptcha-section-custom + table tbody tr:nth-child(2) td {
+		width: auto;
+	}
 }
