@@ -20,6 +20,26 @@ class General extends PluginSettingsBase {
 	const HANDLE = 'hcaptcha-general';
 
 	/**
+	 * Keys section id.
+	 */
+	const SECTION_KEYS = 'keys';
+
+	/**
+	 * Appearance section id.
+	 */
+	const SECTION_APPEARANCE = 'appearance';
+
+	/**
+	 * Custom section id.
+	 */
+	const SECTION_CUSTOM = 'custom';
+
+	/**
+	 * Other section id.
+	 */
+	const SECTION_OTHER = 'other';
+
+	/**
 	 * Get screen id.
 	 *
 	 * @return string
@@ -88,48 +108,28 @@ class General extends PluginSettingsBase {
 	public function init_form_fields() {
 		$this->form_fields = [
 			'api_key'              => [
-				'label' => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'text',
+				'label'   => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_KEYS,
 			],
 			'secret_key'           => [
-				'label' => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'password',
+				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'password',
+				'section' => self::SECTION_KEYS,
 			],
 			'theme'                => [
 				'label'   => __( 'Theme', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
+				'section' => self::SECTION_APPEARANCE,
 				'options' => [
 					'light' => __( 'Light', 'hcaptcha-for-forms-and-more' ),
 					'dark'  => __( 'Dark', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'custom_themes'        => [
-				'label'        => __( 'Enable Custom Themes', 'hcaptcha-for-forms-and-more' ),
-				'type'         => 'checkbox',
-				'supplemental' => sprintf(
-				/* translators: 1: hCaptcha Pro link. */
-					__( 'Note: only works on %s site keys.', 'hcaptcha-for-forms-and-more' ),
-					sprintf(
-						'<a href="https://www.hcaptcha.com/pro" target="_blank">%s</a>',
-						__( 'hCaptcha Pro', 'hcaptcha-for-forms-and-more' )
-					)
-				),
-			],
-			'config_params'        => [
-				'label'        => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
-				'type'         => 'textarea',
-				'supplemental' => sprintf(
-				/* translators: 1: hCaptcha render params doc link. */
-					__( 'hCaptcha render %s (optional). Must be a valid JSON.', 'hcaptcha-for-forms-and-more' ),
-					sprintf(
-						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params" target="_blank">%s</a>',
-						__( 'parameters', 'hcaptcha-for-forms-and-more' )
-					)
-				),
-			],
 			'size'                 => [
 				'label'   => __( 'Size', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
+				'section' => self::SECTION_APPEARANCE,
 				'options' => [
 					'normal'    => __( 'Normal', 'hcaptcha-for-forms-and-more' ),
 					'compact'   => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
@@ -137,9 +137,10 @@ class General extends PluginSettingsBase {
 				],
 			],
 			'language'             => [
-				'label'        => __( 'Override Language Detection', 'hcaptcha-for-forms-and-more' ),
-				'type'         => 'select',
-				'options'      => [
+				'label'   => __( 'Override Language Detection', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'section' => self::SECTION_APPEARANCE,
+				'options' => [
 					''      => '--- Auto-Detect ---',
 					'af'    => 'Afrikaans',
 					'sq'    => 'Albanian',
@@ -252,19 +253,53 @@ class General extends PluginSettingsBase {
 					'yo'    => 'Yoruba',
 					'zu'    => 'Zulu',
 				],
-				'supplemental' => __(
+				'helper'  => __(
 					"By default, hCaptcha will automatically detect the user's locale and localize widgets accordingly.",
 					'hcaptcha-for-forms-and-more'
 				),
 			],
+			'custom_themes'        => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_CUSTOM,
+				'options' => [
+					'on' => __( 'Enable Custom Themes', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => sprintf(
+				/* translators: 1: hCaptcha Pro link. */
+					__( 'Note: only works on %s site keys.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="https://www.hcaptcha.com/pro" target="_blank">%s</a>',
+						__( 'hCaptcha Pro', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+			],
+			'config_params'        => [
+				'label'   => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'textarea',
+				'section' => self::SECTION_CUSTOM,
+				'helper'  => sprintf(
+				/* translators: 1: hCaptcha render params doc link. */
+					__( 'hCaptcha render %s (optional). Must be a valid JSON.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params" target="_blank">%s</a>',
+						__( 'parameters', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+			],
 			'off_when_logged_in'   => [
-				'label' => __( 'Turn Off When Logged In', 'hcaptcha-for-forms-and-more' ),
-				'type'  => 'checkbox',
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Turn Off When Logged In', 'hcaptcha-for-forms-and-more' ),
+				],
 			],
 			'recaptcha_compat_off' => [
-				'label'        => __( 'Disable reCAPTCHA Compatibility', 'hcaptcha-for-forms-and-more' ),
-				'type'         => 'checkbox',
-				'supplemental' => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Disable reCAPTCHA Compatibility', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
 			],
 		];
 	}
@@ -275,20 +310,50 @@ class General extends PluginSettingsBase {
 	 * @param array $arguments Section arguments.
 	 */
 	public function section_callback( $arguments ) {
+		switch ( $arguments['id'] ) {
+			case self::SECTION_KEYS:
+				?>
+				<h2>
+					<?php echo esc_html( $this->page_title() ); ?>
+				</h2>
+				<p>
+					<?php
+					echo wp_kses_post(
+						__(
+							'To use <a href="https://www.hcaptcha.com/?r=wp" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp" target="_blank">here</a> to get your site and secret keys.',
+							'hcaptcha-for-forms-and-more'
+						)
+					);
+					?>
+				</p>
+				<?php
+				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			case self::SECTION_APPEARANCE:
+				$this->print_section_header( $arguments['id'], __( 'Appearance', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			case self::SECTION_CUSTOM:
+				$this->print_section_header( $arguments['id'], __( 'Custom', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			case self::SECTION_OTHER:
+				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			default:
+				break;
+		}
+	}
+
+	/**
+	 * Print section header.
+	 *
+	 * @param string $id    Section id.
+	 * @param string $title Section title.
+	 *
+	 * @return void
+	 */
+	private function print_section_header( $id, $title ) {
 		?>
-		<h2>
-			<?php echo esc_html( $this->page_title() ); ?>
-		</h2>
-		<p>
-			<?php
-			echo wp_kses_post(
-				__(
-					'To use <a href="https://www.hcaptcha.com/?r=wp" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp" target="_blank">here</a> to get your site and secret keys.',
-					'hcaptcha-for-forms-and-more'
-				)
-			);
-			?>
-		</p>
+		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $title ); ?></h3>
 		<?php
 	}
 

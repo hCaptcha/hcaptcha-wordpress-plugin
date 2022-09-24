@@ -924,23 +924,10 @@ abstract class SettingsBase {
 			]
 		);
 
-		// Print help text if it exists.
-		if ( $arguments['helper'] ) {
-			printf(
-				'<span class="helper"><span class="helper-content">%s</span></span>',
-				wp_kses_post( $arguments['helper'] )
-			);
-		}
-
 		$this->{$types[ $type ]}( $arguments );
 
-		// Print supplemental id it exists.
-		if ( $arguments['supplemental'] ) {
-			printf(
-				'<p class="description">%s</p>',
-				wp_kses_post( $arguments['supplemental'] )
-			);
-		}
+		$this->print_helper( $arguments['helper'] );
+		$this->print_supplemental( $arguments['supplemental'] );
 	}
 
 	/**
@@ -1075,5 +1062,41 @@ abstract class SettingsBase {
 		}
 
 		return $current_screen && ( 'options' === $current_screen->id || $screen_id === $current_screen->id );
+	}
+
+	/**
+	 * Print help text if it exists.
+	 *
+	 * @param string $helper Helper.
+	 *
+	 * @return void
+	 */
+	private function print_helper( $helper ) {
+		if ( ! $helper ) {
+			return;
+		}
+
+		printf(
+			'<span class="helper"><span class="helper-content">%s</span></span>',
+			wp_kses_post( $helper )
+		);
+	}
+
+	/**
+	 * Print supplemental id it exists.
+	 *
+	 * @param string $supplemental Supplemental.
+	 *
+	 * @return void
+	 */
+	private function print_supplemental( $supplemental ) {
+		if ( ! $supplemental ) {
+			return;
+		}
+
+		printf(
+			'<p class="description">%s</p>',
+			wp_kses_post( $supplemental )
+		);
 	}
 }

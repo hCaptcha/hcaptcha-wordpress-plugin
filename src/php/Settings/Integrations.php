@@ -27,7 +27,7 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Disabled section id.
 	 */
-	const DISABLED_SECTION_ID = 'disabled';
+	const SECTION_DISABLED = 'disabled';
 
 	/**
 	 * Get screen id.
@@ -293,7 +293,7 @@ class Integrations extends PluginSettingsBase {
 			}
 
 			if ( $form_field['disabled'] ) {
-				$form_field['section'] = self::DISABLED_SECTION_ID;
+				$form_field['section'] = self::SECTION_DISABLED;
 			}
 		}
 
@@ -308,7 +308,7 @@ class Integrations extends PluginSettingsBase {
 	 * @param array $arguments Section arguments.
 	 */
 	public function section_callback( $arguments ) {
-		if ( self::DISABLED_SECTION_ID === $arguments['id'] ) {
+		if ( self::SECTION_DISABLED === $arguments['id'] ) {
 			?>
 			<hr class="hcaptcha-disabled-section">
 			<h3><?php esc_html_e( 'Not active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
