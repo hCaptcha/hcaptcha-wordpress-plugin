@@ -188,6 +188,10 @@
 	background: #fff;
 }
 
+.hcaptcha-section-custom + table tbody tr:nth-child(1) {
+	align-self: center;
+}
+
 .hcaptcha-section-custom + table tbody tr th {
 	display: flex;
 	padding: 0 0 10px 0;
