@@ -292,6 +292,7 @@ class General extends PluginSettingsBase {
 				'options' => [
 					'on' => __( 'Turn Off When Logged In', 'hcaptcha-for-forms-and-more' ),
 				],
+				'helper'  => __( 'Do not show hCaptcha to logged-in users.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'recaptcha_compat_off' => [
 				'type'    => 'checkbox',
