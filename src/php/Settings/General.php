@@ -308,7 +308,7 @@ class General extends PluginSettingsBase {
 				'label'   => __( 'Whitelisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP per line.', 'hcaptcha-for-forms-and-more' ),
+				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),
 			],
 		];
 	}

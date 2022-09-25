@@ -62,6 +62,13 @@ class Main {
 	protected $auto_verify;
 
 	/**
+	 * Whether hCaptcha is active.
+	 *
+	 * @var bool
+	 */
+	private $active;
+
+	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -85,17 +92,22 @@ class Main {
 			]
 		);
 
-		if ( $this->activate_hcaptcha() ) {
-			add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
-			add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
+		add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
+		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
+		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], - PHP_INT_MAX, 2 );
 
-			add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
-			add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
-			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+		$this->active = $this->activate_hcaptcha();
 
-			$this->auto_verify = new AutoVerify();
-			$this->auto_verify->init();
+		if ( ! $this->active ) {
+			return;
 		}
+
+		add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+
+		$this->auto_verify = new AutoVerify();
+		$this->auto_verify->init();
 	}
 
 	/**
@@ -297,6 +309,54 @@ class Main {
 	}
 
 	/**
+	 * Filter user IP to check if it is whitelisted.
+	 * For whitelisted IPs, hCaptcha will not be shown.
+	 *
+	 * @param bool   $whitelisted Whether IP is whitelisted.
+	 * @param string $client_ip   Client IP.
+	 *
+	 * @return bool
+	 */
+	public function whitelist_ip( $whitelisted, $client_ip ) {
+
+		$ips = explode(
+			"\n",
+			$this->settings()->get( 'whitelisted_ips' )
+		);
+
+		// Remove invalid IPs.
+		$ips = array_filter(
+			array_map(
+				static function ( $ip ) {
+					return filter_var(
+						trim( $ip ),
+						FILTER_VALIDATE_IP
+					);
+				},
+				$ips
+			)
+		);
+
+		// Convert local IPs to false.
+		$ips = array_map(
+			static function ( $ip ) {
+				return filter_var(
+					trim( $ip ),
+					FILTER_VALIDATE_IP,
+					FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+				);
+			},
+			$ips
+		);
+
+		if ( in_array( $client_ip, $ips, true ) ) {
+			return true;
+		}
+
+		return $whitelisted;
+	}
+
+	/**
 	 * Load plugin modules.
 	 */
 	public function load_modules() {
@@ -485,6 +545,10 @@ class Main {
 			}
 
 			if ( ! in_array( $option_value, $option, true ) ) {
+				continue;
+			}
+
+			if ( ! $this->active ) {
 				continue;
 			}
 
