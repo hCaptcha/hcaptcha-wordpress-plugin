@@ -194,16 +194,23 @@ class AMainTest extends HCaptchaWPTestCase {
 		$subject = new Main();
 		$subject->init_hooks();
 
-		if ( $hcaptcha_active ) {
-			self::assertSame(
-				- PHP_INT_MAX + 1,
-				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-			);
-			self::assertSame(
-				10,
-				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
-			);
+		self::assertSame(
+			- PHP_INT_MAX + 1,
+			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
+		);
+		self::assertSame(
+			- PHP_INT_MAX,
+			has_filter(
+				'hcap_whitelist_ip',
+				[ $subject, 'whitelist_ip' ]
+			)
+		);
 
+		if ( $hcaptcha_active ) {
 			self::assertSame(
 				10,
 				has_filter(
@@ -222,13 +229,6 @@ class AMainTest extends HCaptchaWPTestCase {
 
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
-			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-			);
-			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
-			);
-
 			self::assertFalse(
 				has_filter(
 					'wp_resource_hints',
@@ -308,16 +308,23 @@ class AMainTest extends HCaptchaWPTestCase {
 		$subject = new Main();
 		$subject->init_hooks();
 
-		if ( $hcaptcha_active ) {
-			self::assertSame(
-				- PHP_INT_MAX + 1,
-				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-			);
-			self::assertSame(
-				10,
-				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
-			);
+		self::assertSame(
+			- PHP_INT_MAX + 1,
+			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
+		);
+		self::assertSame(
+			- PHP_INT_MAX,
+			has_filter(
+				'hcap_whitelist_ip',
+				[ $subject, 'whitelist_ip' ]
+			)
+		);
 
+		if ( $hcaptcha_active ) {
 			self::assertSame(
 				10,
 				has_filter(
@@ -336,13 +343,6 @@ class AMainTest extends HCaptchaWPTestCase {
 
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
-			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-			);
-			self::assertFalse(
-				has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
-			);
-
 			self::assertFalse(
 				has_filter(
 					'wp_resource_hints',
