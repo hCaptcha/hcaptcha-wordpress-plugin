@@ -294,6 +294,7 @@ Instructions for popular native integrations are below:
 * Added setting for whitelisted IPs.
 * Fixed Divi contact form bug related to recaptcha compat.
 * Fixed bug with WC Wishlist create list form.
+* Fixed styles on WordPress Register page.
 
 = 1.19.0 =
 * Fixed grey left sidebar issue on Elementor edit page.
