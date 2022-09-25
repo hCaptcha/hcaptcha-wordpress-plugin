@@ -174,6 +174,10 @@ class AMainTest extends HCaptchaWPTestCase {
 			has_action( 'wp_head', [ $hcaptcha_wordpress_plugin, 'print_inline_styles' ] )
 		);
 		self::assertSame(
+			10,
+			has_action( 'login_head', [ $hcaptcha_wordpress_plugin, 'login_head' ] )
+		);
+		self::assertSame(
 			0,
 			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
 		);
@@ -223,6 +227,10 @@ class AMainTest extends HCaptchaWPTestCase {
 				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
 			);
 			self::assertSame(
+				10,
+				has_action( 'login_head', [ $subject, 'login_head' ] )
+			);
+			self::assertSame(
 				0,
 				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 			);
@@ -237,6 +245,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 			self::assertFalse(
 				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertFalse(
+				has_action( 'login_head', [ $subject, 'login_head' ] )
 			);
 			self::assertFalse(
 				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
@@ -337,6 +348,10 @@ class AMainTest extends HCaptchaWPTestCase {
 				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
 			);
 			self::assertSame(
+				10,
+				has_action( 'login_head', [ $subject, 'login_head' ] )
+			);
+			self::assertSame(
 				0,
 				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 			);
@@ -351,6 +366,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 			self::assertFalse(
 				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertFalse(
+				has_action( 'login_head', [ $subject, 'login_head' ] )
 			);
 			self::assertFalse(
 				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
@@ -436,6 +454,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
 		);
 		self::assertFalse(
+			has_action( 'login_head', [ $subject, 'login_head' ] )
+		);
+		self::assertFalse(
 			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 		);
 
@@ -484,6 +505,34 @@ class AMainTest extends HCaptchaWPTestCase {
 		ob_start();
 
 		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test login_head().
+	 */
+	public function test_login_head() {
+		$expected = '		<style>
+			@media (max-width: 349px) {
+				.h-captcha {
+					display: flex;
+					justify-content: center;
+				}
+			}
+			@media (min-width: 350px) {
+				#login {
+					width: 350px;
+				}
+			}
+		</style>
+		';
+
+		$subject = new Main();
+
+		ob_start();
+
+		$subject->login_head();
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
