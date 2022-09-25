@@ -104,6 +104,7 @@ class Main {
 
 		add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 
 		$this->auto_verify = new AutoVerify();
@@ -217,6 +218,27 @@ class Main {
 			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
+			}
+		</style>
+		<?php
+	}
+
+	/**
+	 * Print styles to fit hcaptcha widget to the login form.
+	 */
+	public function login_head() {
+		?>
+		<style>
+			@media (max-width: 349px) {
+				.h-captcha {
+					display: flex;
+					justify-content: center;
+				}
+			}
+			@media (min-width: 350px) {
+				#login {
+					width: 350px;
+				}
 			}
 		</style>
 		<?php
