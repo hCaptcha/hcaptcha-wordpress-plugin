@@ -291,6 +291,7 @@ Instructions for popular native integrations are below:
 
 = 2.0.0 =
 * Added Settings page with multiple tabs.
+* Added setting for whitelisted IPs.
 * Fixed Divi contact form bug related to recaptcha compat.
 * Fixed bug with WC Wishlist create list form.
 
