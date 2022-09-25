@@ -22,6 +22,11 @@ abstract class SettingsBase {
 	const HANDLE = 'hcaptcha-settings-base';
 
 	/**
+	 * Network-wide option suffix.
+	 */
+	const NETWORK_WIDE = '_network_wide';
+
+	/**
 	 * Form fields.
 	 *
 	 * @var array
@@ -208,6 +213,7 @@ abstract class SettingsBase {
 		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
+		add_filter( 'pre_update_site_option_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
 	}
@@ -290,7 +296,17 @@ abstract class SettingsBase {
 	 * or the settings stored in the database.
 	 */
 	protected function init_settings() {
-		$this->settings = get_option( $this->option_name(), null );
+		$network_wide = get_site_option( $this->option_name() . self::NETWORK_WIDE, [] );
+
+		if ( empty( $network_wide ) ) {
+			$this->settings = get_option( $this->option_name(), null );
+		} else {
+			$this->settings = get_site_option( $this->option_name(), null );
+		}
+
+		$this->settings[ self::NETWORK_WIDE ] = array_key_exists( self::NETWORK_WIDE, (array) $this->settings ) ?
+			$this->settings[ self::NETWORK_WIDE ] :
+			$network_wide;
 
 		$form_fields = $this->form_fields();
 
@@ -1030,7 +1046,18 @@ abstract class SettingsBase {
 		}
 
 		// We save only one tab, so merge with all existing tabs.
-		return array_merge( $old_value, $value );
+		$value                       = array_merge( $old_value, $value );
+		$value[ self::NETWORK_WIDE ] = array_key_exists( self::NETWORK_WIDE, $value ) ? $value[ self::NETWORK_WIDE ] : [];
+
+		update_site_option( $this->option_name() . self::NETWORK_WIDE, $value[ self::NETWORK_WIDE ] );
+
+		if ( empty( $value[ self::NETWORK_WIDE ] ) ) {
+			return $value;
+		}
+
+		update_site_option( $this->option_name(), $value );
+
+		return $old_value;
 	}
 
 	/**

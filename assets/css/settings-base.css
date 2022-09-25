@@ -217,8 +217,9 @@
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
 		"logged whitelisted"
-		"recaptcha whitelisted";
-	gap: 10px 20px;
+		"recaptcha whitelisted"
+		"network whitelisted";
+	gap: 0 20px;
 	padding: 15px 20px;
 	background: #fff;
 }
@@ -239,10 +240,18 @@
 	grid-area: whitelisted;
 }
 
+.hcaptcha-section-other + table tbody tr:nth-child(4) {
+	grid-area: network;
+}
+
 .hcaptcha-section-other + table tbody tr th {
 	display: flex;
 	padding: 0 0 10px 0;
 	width: auto;
+}
+
+.hcaptcha-section-other + table tbody tr:not(:first-child) th {
+	padding: 0;
 }
 
 .hcaptcha-section-other + table tbody tr td {
