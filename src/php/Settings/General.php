@@ -259,6 +259,7 @@ class General extends PluginSettingsBase {
 				),
 			],
 			'custom_themes'        => [
+				'label'   => __( 'Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_CUSTOM,
 				'options' => [
@@ -287,6 +288,7 @@ class General extends PluginSettingsBase {
 				),
 			],
 			'off_when_logged_in'   => [
+				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
@@ -301,6 +303,12 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Disable reCAPTCHA Compatibility', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'whitelisted_ips'      => [
+				'label'   => __( 'Whitelisted IPs', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'textarea',
+				'section' => self::SECTION_OTHER,
+				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP per line.', 'hcaptcha-for-forms-and-more' ),
 			],
 		];
 	}

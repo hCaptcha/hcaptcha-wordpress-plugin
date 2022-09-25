@@ -137,7 +137,8 @@
 
 .hcaptcha-section-appearance + table tbody {
 	display: grid;
-	grid-template-columns: 1fr 1fr 2fr;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px 20px;
 	padding: 15px 20px;
 	background: #fff;
 }
@@ -147,15 +148,15 @@
 }
 
 .hcaptcha-section-appearance + table tbody tr:nth-child(1) {
-	margin-right: 10px;
+	/*margin-right: 10px;*/
 }
 
 .hcaptcha-section-appearance + table tbody tr:nth-child(2) {
-	margin-right: 10px;
+	/*margin-right: 10px;*/
 }
 
 .hcaptcha-section-appearance + table tbody tr:nth-child(3) {
-	margin-left: 10px;
+	grid-column: 3/span 2;
 }
 
 .hcaptcha-section-appearance + table tbody tr th {
@@ -192,10 +193,6 @@
 	background: #fff;
 }
 
-.hcaptcha-section-custom + table tbody tr:nth-child(1) {
-	align-self: center;
-}
-
 .hcaptcha-section-custom + table tbody tr th {
 	display: flex;
 	padding: 0 0 10px 0;
@@ -218,6 +215,9 @@
 .hcaptcha-section-other + table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"logged whitelisted"
+		"recaptcha whitelisted";
 	gap: 10px 20px;
 	padding: 15px 20px;
 	background: #fff;
@@ -225,6 +225,18 @@
 
 .hcaptcha-section-other + table tbody tr {
 	background: #fff;
+}
+
+.hcaptcha-section-other + table tbody tr:nth-child(1) {
+	grid-area: logged;
+}
+
+.hcaptcha-section-other + table tbody tr:nth-child(2) {
+	grid-area: recaptcha;
+}
+
+.hcaptcha-section-other + table tbody tr:nth-child(3) {
+	grid-area: whitelisted;
 }
 
 .hcaptcha-section-other + table tbody tr th {
@@ -311,23 +323,27 @@
 }
 
 @media (max-width: 600px) {
-	.hcaptcha-integrations table tbody {
+	#hcaptcha-options table tbody {
 		grid-template-columns: 1fr;
 	}
 
-	.hcaptcha-general table tbody {
-		grid-template-columns: 1fr;
-	}
-
-	.hcaptcha-section-appearance + table tbody tr th {
-		padding: 10px 0;
-	}
-
-	.hcaptcha-section-appearance + table tbody tr {
-		margin: 0 !important;
+	.hcaptcha-section-appearance + table tbody tr:nth-child(3) {
+		grid-column: unset;
 	}
 
 	.hcaptcha-section-custom + table tbody tr:nth-child(2) td {
+		width: auto;
+	}
+
+	.hcaptcha-section-other + table tbody {
+		grid-template-areas: unset;
+	}
+
+	.hcaptcha-section-other + table tbody tr {
+		grid-area: unset !important;
+	}
+
+	.hcaptcha-section-other + table tbody tr:nth-child(3) td {
 		width: auto;
 	}
 }
