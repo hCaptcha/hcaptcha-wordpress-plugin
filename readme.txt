@@ -296,6 +296,7 @@ Instructions for popular native integrations are below:
 * Fixed Divi contact form bug related to recaptcha compat.
 * Fixed bug with WC Wishlist create list form.
 * Fixed styles on WordPress Register page.
+* Fixed shifting of hCaptcha layout during load.
 
 = 1.19.0 =
 * Fixed grey left sidebar issue on Elementor edit page.

@@ -251,7 +251,7 @@
 }
 
 .hcaptcha-section-other + table tbody tr:not(:first-child) th {
-	padding: 0;
+	/* padding: 0; */
 }
 
 .hcaptcha-section-other + table tbody tr td {
