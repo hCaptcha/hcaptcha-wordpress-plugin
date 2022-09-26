@@ -485,9 +485,55 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 */
 	public function test_print_inline_styles() {
+		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+
 		$expected = '		<style>
-			.h-captcha:not([data-size="invisible"]) {
+			.h-captcha, .h-captcha iframe {
+				position: relative;
+			}
+			.h-captcha[data-size="normal"] {
+				width: 303px;
+				height: 78px;
 				margin-bottom: 2rem;
+			}
+			.h-captcha[data-size="compact"] {
+				width: 164px;
+				height: 144px;
+				margin-bottom: 2rem;
+			}
+			.h-captcha[data-size="invisible"] {
+				display: none;
+			}
+			.h-captcha::before {
+				content: \'\';
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+				background: url(' . $url . ') no-repeat;
+				border: 1px solid transparent;
+				border-radius: 4px;
+			}
+			.h-captcha[data-size="normal"]::before {
+				width: 300px;
+				height: 74px;
+				background-position: 94% 27%;
+			}
+			.h-captcha[data-size="compact"]::before {
+				width: 156px;
+				height: 136px;
+				background-position: 50% 77%;
+			}
+			.h-captcha[data-theme="light"]::before {
+				background-color: #fafafa;
+				border: 1px solid #e0e0e0;
+			}
+			.h-captcha[data-theme="dark"]::before {
+				background-color: #333;
+				border: 1px solid #f5f5f5;
+			}
+			.h-captcha[data-size="invisible"]::before {
+				display: none;
 			}
 			.elementor-field-type-hcaptcha .elementor-field {
 				background: transparent !important;
