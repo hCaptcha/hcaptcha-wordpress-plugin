@@ -238,6 +238,7 @@ class Main {
 				width: 300px;
 				height: 74px;
 				background-position: 94% 27%;
+				border: 1px solid transparent;
 			}
 			.h-captcha[data-size="compact"]::before {
 				width: 156px;
