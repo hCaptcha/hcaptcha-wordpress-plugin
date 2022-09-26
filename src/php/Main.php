@@ -232,13 +232,13 @@ class Main {
 				top: 0;
 				left: 0;
 				background: url(<?php echo esc_url( $url ); ?>) no-repeat;
+				border: 1px solid transparent;
 				border-radius: 4px;
 			}
 			.h-captcha[data-size="normal"]::before {
 				width: 300px;
 				height: 74px;
 				background-position: 94% 27%;
-				border: 1px solid transparent;
 			}
 			.h-captcha[data-size="compact"]::before {
 				width: 156px;
