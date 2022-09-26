@@ -250,8 +250,9 @@
 	width: auto;
 }
 
-.hcaptcha-section-other + table tbody tr:not(:first-child) th {
-	/* padding: 0; */
+.hcaptcha-section-other + table tbody tr:nth-child(2) th,
+.hcaptcha-section-other + table tbody tr:nth-child(4) th {
+	padding: 0;
 }
 
 .hcaptcha-section-other + table tbody tr td {
