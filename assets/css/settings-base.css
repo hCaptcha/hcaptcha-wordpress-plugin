@@ -125,4 +125,12 @@
 	#hcaptcha-options table tbody {
 		grid-template-columns: 1fr;
 	}
+
+	#hcaptcha-options fieldset + .helper::before {
+		transform: translate(0px, -0.7em);
+	}
+
+	#hcaptcha-options fieldset + .helper .helper-content {
+		transform: translate(0, 25px);
+	}
 }

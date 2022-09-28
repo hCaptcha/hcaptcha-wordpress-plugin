@@ -1,3 +1,7 @@
+.hcaptcha-general table tbody tr td {
+	width: fit-content;
+}
+
 /* Section Keys */
 
 .hcaptcha-section-keys + table {
@@ -105,7 +109,6 @@
 	margin: 0;
 	position: relative;
 	display: grid;
-	width: fit-content;
 }
 
 /* Section Other */
@@ -161,10 +164,13 @@
 	margin: 0;
 	position: relative;
 	display: grid;
-	width: fit-content;
 }
 
 @media (max-width: 600px) {
+	.hcaptcha-general table tbody tr td {
+		width: auto;
+	}
+
 	.hcaptcha-section-appearance + table tbody tr:nth-child(3) {
 		grid-column: unset;
 	}
