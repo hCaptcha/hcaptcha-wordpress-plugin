@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Settings\Abstracts\SettingsBase;
+
 /**
  * Class Tables
  *
@@ -353,35 +355,16 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
-	 *
-	 * @todo Update with proper scripts and styles.
 	 */
 	public function admin_enqueue_scripts() {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
 
-		wp_enqueue_script(
-			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/integrations/app$this->min_prefix.js",
-			[],
-			constant( 'HCAPTCHA_VERSION' ),
-			true
-		);
-
-		wp_localize_script(
-			self::HANDLE,
-			self::OBJECT,
-			[
-				'optionsSaveSuccessMessage' => __( 'Options saved.', 'hcaptcha-for-forms-and-more' ),
-				'optionsSaveErrorMessage'   => __( 'Error saving options.', 'hcaptcha-for-forms-and-more' ),
-			]
-		);
-
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/integrations$this->min_prefix.css",
-			[],
+			[ SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}

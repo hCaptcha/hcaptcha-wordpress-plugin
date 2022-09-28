@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Settings\Abstracts\SettingsBase;
+
 /**
  * Class General
  *
@@ -379,26 +381,16 @@ class General extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
-	 *
-	 * @todo Update with proper scripts and styles.
 	 */
 	public function admin_enqueue_scripts() {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
 
-		wp_enqueue_script(
-			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/general/app$this->min_prefix.js",
-			[],
-			constant( 'HCAPTCHA_VERSION' ),
-			true
-		);
-
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_prefix.css",
-			[],
+			[ SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
