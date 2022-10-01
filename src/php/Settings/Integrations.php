@@ -313,7 +313,7 @@ class Integrations extends PluginSettingsBase {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
 			?>
 			<hr class="hcaptcha-disabled-section">
-			<h3><?php esc_html_e( 'Not active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
+			<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
 			<?php
 
 			return;
