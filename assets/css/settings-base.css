@@ -103,8 +103,13 @@
 	width: calc(100% + 25px);
 }
 
+#hcaptcha-options .helper:hover {
+	cursor: help;
+}
+
 #hcaptcha-options .helper:hover .helper-content {
 	display: block;
+	z-index: 1;
 }
 
 #hcaptcha-options .helper .helper-content::after {
