@@ -80,7 +80,7 @@
 }
 
 #hcaptcha-options fieldset + .helper::before {
-	transform: translate(25px, -0.7em);
+	transform: translate(25px, -0.8em);
 	top: 50%;
 }
 

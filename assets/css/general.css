@@ -1,9 +1,20 @@
-.hcaptcha-general table tbody tr td {
-	width: fit-content;
+
+#hcaptcha-options table tbody {
+	background: #fff;
+}
+
+#hcaptcha-options table tbody tr {
+	display: grid;
+	align-self: start;
+}
+
+#hcaptcha-options table tbody tr td {
+	padding: 0;
+	margin: 0;
+	position: relative;
 }
 
 /* Section Keys */
-
 .hcaptcha-section-keys + table {
 	max-width: 760px;
 }
@@ -13,22 +24,10 @@
 	grid-template-columns: repeat(2, 1fr);
 	gap: 10px 20px;
 	padding: 15px 20px;
-	background: #fff;
-}
-
-.hcaptcha-section-keys + table tbody tr {
-	background: #fff;
 }
 
 .hcaptcha-section-keys + table tbody tr th {
-	display: flex;
 	padding: 0 0 10px 0;
-}
-
-.hcaptcha-section-keys + table tbody tr td {
-	padding: 0;
-	margin: 0;
-	display: grid;
 }
 
 .hcaptcha-section-keys + table tbody tr td input {
@@ -45,19 +44,6 @@
 	grid-template-columns: repeat(4, 1fr);
 	gap: 10px 20px;
 	padding: 15px 20px;
-	background: #fff;
-}
-
-.hcaptcha-section-appearance + table tbody tr {
-	background: #fff;
-}
-
-.hcaptcha-section-appearance + table tbody tr:nth-child(1) {
-	/*margin-right: 10px;*/
-}
-
-.hcaptcha-section-appearance + table tbody tr:nth-child(2) {
-	/*margin-right: 10px;*/
 }
 
 .hcaptcha-section-appearance + table tbody tr:nth-child(3) {
@@ -65,16 +51,8 @@
 }
 
 .hcaptcha-section-appearance + table tbody tr th {
-	display: flex;
 	padding: 0 0 10px 0;
 	width: auto;
-}
-
-.hcaptcha-section-appearance + table tbody tr td {
-	padding: 0;
-	margin: 0;
-	display: grid;
-	position: relative;
 }
 
 .hcaptcha-section-appearance + table tbody tr td select {
@@ -91,24 +69,15 @@
 	grid-template-columns: repeat(2, 1fr);
 	gap: 10px 20px;
 	padding: 15px 20px;
-	background: #fff;
-}
-
-.hcaptcha-section-custom + table tbody tr {
-	background: #fff;
 }
 
 .hcaptcha-section-custom + table tbody tr th {
-	display: flex;
 	padding: 0 0 10px 0;
 	width: auto;
 }
 
 .hcaptcha-section-custom + table tbody tr td {
-	padding: 0;
-	margin: 0;
-	position: relative;
-	display: grid;
+	width: max-content;
 }
 
 /* Section Other */
@@ -125,11 +94,6 @@
 		"network whitelisted";
 	gap: 0 20px;
 	padding: 15px 20px;
-	background: #fff;
-}
-
-.hcaptcha-section-other + table tbody tr {
-	background: #fff;
 }
 
 .hcaptcha-section-other + table tbody tr:nth-child(1) {
@@ -149,7 +113,6 @@
 }
 
 .hcaptcha-section-other + table tbody tr th {
-	display: flex;
 	padding: 0 0 10px 0;
 	width: auto;
 }
@@ -160,10 +123,7 @@
 }
 
 .hcaptcha-section-other + table tbody tr td {
-	padding: 0;
-	margin: 0;
-	position: relative;
-	display: grid;
+	width: max-content;
 }
 
 @media (max-width: 600px) {
