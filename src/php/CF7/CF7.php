@@ -80,7 +80,7 @@ class CF7 {
 		 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
 		 */
 		return (
-			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
+			'<span class="wpcf7-form-control-wrap">' .
 			'<span id="' . uniqid( 'hcap_cf7-', true ) .
 			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_site_key ) .
 			'" data-theme="' . esc_html( $hcaptcha_theme ) .

@@ -103,7 +103,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$expected =
 			'<form>' .
-			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
+			'<span class="wpcf7-form-control-wrap">' .
 			'<span id="' . $uniqid .
 			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key .
 			'" data-theme="' . $hcaptcha_theme .
