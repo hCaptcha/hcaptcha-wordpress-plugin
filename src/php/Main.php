@@ -208,7 +208,7 @@ class Main {
 	 *
 	 * @param array $headers Headers.
 	 *
-	 * @return mixed
+	 * @return array
 	 */
 	public function csp_headers( $headers ) {
 		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
