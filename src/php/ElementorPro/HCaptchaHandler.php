@@ -20,7 +20,7 @@ use HCaptcha\Main;
  */
 class HCaptchaHandler {
 
-	const OPTION_NAME_SITE_KEY   = 'api_key';
+	const OPTION_NAME_SITE_KEY   = 'site_key';
 	const OPTION_NAME_SECRET_KEY = 'secret_key';
 	const OPTION_NAME_THEME      = 'theme';
 	const OPTION_NAME_SIZE       = 'size';
@@ -154,7 +154,7 @@ class HCaptchaHandler {
 	 * @return string
 	 */
 	public static function get_setup_message() {
-		return __( 'To use hCaptcha, you need to add the API Key and Secret Key.', 'hcaptcha-for-forms-and-more' );
+		return __( 'To use hCaptcha, you need to add the Site and Secret keys.', 'hcaptcha-for-forms-and-more' );
 	}
 
 	/**

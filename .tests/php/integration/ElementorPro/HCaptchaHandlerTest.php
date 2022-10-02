@@ -100,7 +100,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			update_option(
 				'hcaptcha_settings',
 				[
-					'api_key'    => 'some api key',
+					'site_key'   => 'some site key',
 					'secret_key' => 'some secret key',
 				]
 			);
@@ -215,9 +215,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test get_site_key().
 	 */
 	public function test_get_site_key() {
-		$site_key = 'some api key';
+		$site_key = 'some site key';
 
-		update_option( 'hcaptcha_settings', [ 'api_key' => $site_key ] );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $site_key ] );
 		hcaptcha()->init_hooks();
 
 		self::assertSame( $site_key, HCaptchaHandler::get_site_key() );
@@ -264,7 +264,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_setup_message() {
 		self::assertSame(
-			'To use hCaptcha, you need to add the API Key and Secret Key.',
+			'To use hCaptcha, you need to add the Site and Secret keys.',
 			HCaptchaHandler::get_setup_message()
 		);
 	}
@@ -282,7 +282,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$settings = [];
 
 		if ( $site_key ) {
-			$settings['api_key'] = $site_key;
+			$settings['site_key'] = $site_key;
 		}
 
 		if ( $secret_key ) {
@@ -330,7 +330,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		$site_key   = 'some api key';
+		$site_key   = 'some site key';
 		$secret_key = 'some secret key';
 		$theme      = 'some theme';
 		$size       = 'some size';
@@ -338,7 +338,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		update_option(
 			'hcaptcha_settings',
 			[
-				'api_key'    => $site_key,
+				'site_key'   => $site_key,
 				'secret_key' => $secret_key,
 				'theme'      => $theme,
 				'size'       => $size,
@@ -354,7 +354,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 					'site_key'       => $site_key,
 					'hcaptcha_theme' => $theme,
 					'hcaptcha_size'  => $size,
-					'setup_message'  => 'To use hCaptcha, you need to add the API Key and Secret Key.',
+					'setup_message'  => 'To use hCaptcha, you need to add the Site and Secret keys.',
 				],
 				'recaptcha' => [
 					'enabled'       => false,
@@ -504,16 +504,16 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test render_field.
 	 */
 	public function test_render_field() {
-		$site_key = 'some api key';
+		$site_key = 'some site key';
 		$theme    = 'some theme';
 		$size     = 'some size';
 
 		update_option(
 			'hcaptcha_settings',
 			[
-				'api_key' => $site_key,
-				'theme'   => $theme,
-				'size'    => $size,
+				'site_key' => $site_key,
+				'theme'    => $theme,
+				'size'     => $size,
 			]
 		);
 
@@ -532,7 +532,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		];
 		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">	<div
 			class="h-captcha"
-			data-sitekey="some api key"
+			data-sitekey="some site key"
 			data-theme="some theme"
 			data-size="some size"
 						data-auto="false">

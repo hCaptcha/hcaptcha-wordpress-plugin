@@ -169,7 +169,7 @@ class Migrations {
 	 */
 	private function migrate_200() {
 		$options_map = [
-			'hcaptcha_api_key'                     => 'api_key',
+			'hcaptcha_api_key'                     => 'site_key',
 			'hcaptcha_secret_key'                  => 'secret_key',
 			'hcaptcha_theme'                       => 'theme',
 			'hcaptcha_size'                        => 'size',

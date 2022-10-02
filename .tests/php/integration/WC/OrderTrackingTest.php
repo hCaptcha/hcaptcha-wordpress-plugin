@@ -33,7 +33,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 	 * Test do_shortcode_tag().
 	 */
 	public function test_do_shortcode_tag() {
-		$site_key = 'some api key';
+		$site_key = 'some site key';
 		$theme    = 'some theme';
 		$size     = 'some size';
 		$nonce    = wp_nonce_field( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true, false );
@@ -41,9 +41,9 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 		update_option(
 			'hcaptcha_settings',
 			[
-				'api_key' => $site_key,
-				'theme'   => $theme,
-				'size'    => $size,
+				'site_key' => $site_key,
+				'theme'    => $theme,
+				'size'     => $size,
 			]
 		);
 

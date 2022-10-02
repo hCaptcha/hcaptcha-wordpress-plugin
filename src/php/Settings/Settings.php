@@ -151,29 +151,30 @@ class Settings implements SettingsInterface {
 		// phpcs:disable Generic.Strings.UnnecessaryStringConcat.Found
 		switch ( $mode ) {
 			case General::MODE_LIVE:
-				$api_key    = $this->get( 'api_key' );
+				$site_key   = $this->get( 'site_key' );
 				$secret_key = $this->get( 'secret_key' );
 				break;
 			case General::MODE_TEST_PUBLISHER:
-				$api_key    = '10000000-ffff-ffff-ffff-000000000001';
+				$site_key   = '10000000-ffff-ffff-ffff-000000000001';
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			case General::MODE_TEST_ENTERPRISE_SAFE_END_USER:
-				$api_key    = '20000000-ffff-ffff-ffff-000000000002';
+				$site_key   = '20000000-ffff-ffff-ffff-000000000002';
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			case General::MODE_TEST_ENTERPRISE_BOT_DETECTED:
-				$api_key    = '30000000-ffff-ffff-ffff-000000000003';
+				$site_key   = '30000000-ffff-ffff-ffff-000000000003';
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			default:
-				$api_key    = '';
+				$site_key   = '';
 				$secret_key = '';
 		}
+
 		// phpcs:enable Generic.Strings.UnnecessaryStringConcat.Found
 
 		return [
-			'api_key'    => $api_key,
+			'site_key'   => $site_key,
 			'secret_key' => $secret_key,
 		];
 	}
@@ -184,7 +185,7 @@ class Settings implements SettingsInterface {
 	 * @return string
 	 */
 	public function get_site_key() {
-		return $this->get_keys()['api_key'];
+		return $this->get_keys()['site_key'];
 	}
 
 	/**

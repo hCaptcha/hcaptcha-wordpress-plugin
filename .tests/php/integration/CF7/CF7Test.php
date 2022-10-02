@@ -74,15 +74,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$nonce = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
 
-		$hcaptcha_api_key = 'some api key';
-		$hcaptcha_theme   = 'some theme';
+		$hcaptcha_site_key = 'some site key';
+		$hcaptcha_theme    = 'some theme';
 
 		update_option(
 			'hcaptcha_settings',
 			[
-				'api_key' => $hcaptcha_api_key,
-				'theme'   => $hcaptcha_theme,
-				'size'    => $hcaptcha_size,
+				'site_key' => $hcaptcha_site_key,
+				'theme'    => $hcaptcha_theme,
+				'size'     => $hcaptcha_size,
 			]
 		);
 
@@ -105,7 +105,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap">' .
 			'<span id="' . $uniqid .
-			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key .
+			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_site_key .
 			'" data-theme="' . $hcaptcha_theme .
 			$callback .
 			'" data-size="' . $hcaptcha_size . '">' .
@@ -143,13 +143,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha() {
-		$data             = [ 'h-captcha-response' => 'some response' ];
-		$wpcf7_id         = 23;
-		$hcaptcha_api_key = 'some api key';
-		$cf7_text         =
+		$data              = [ 'h-captcha-response' => 'some response' ];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$cf7_text          =
 			'<form>' .
 			'<input type="submit" value="Send">' .
-			$hcaptcha_api_key .
+			$hcaptcha_site_key .
 			'</form>';
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -169,7 +169,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_settings', [ 'api_key' => $hcaptcha_api_key ] );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
 		hcaptcha()->init_hooks();
 
@@ -214,11 +214,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test hcap_cf7_verify_recaptcha() without api key.
+	 * Test hcap_cf7_verify_recaptcha() without site key.
 	 *
 	 * @noinspection PhpParamsInspection
 	 */
-	public function test_hcap_cf7_verify_recaptcha_without_api_key() {
+	public function test_hcap_cf7_verify_recaptcha_without_site_key() {
 		$data     = [];
 		$wpcf7_id = 23;
 		$cf7_text =
@@ -256,13 +256,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_response() {
-		$data             = [];
-		$wpcf7_id         = 23;
-		$hcaptcha_api_key = 'some api key';
-		$cf7_text         =
+		$data              = [];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$cf7_text          =
 			'<form>' .
 			'<input type="submit" value="Send">' .
-			$hcaptcha_api_key .
+			$hcaptcha_site_key .
 			'</form>';
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -282,7 +282,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_settings', [ 'api_key' => $hcaptcha_api_key ] );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
 		hcaptcha()->init_hooks();
 
@@ -309,13 +309,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_not_verified() {
-		$data             = [ 'h-captcha-response' => 'some response' ];
-		$wpcf7_id         = 23;
-		$hcaptcha_api_key = 'some api key';
-		$cf7_text         =
+		$data              = [ 'h-captcha-response' => 'some response' ];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$cf7_text          =
 			'<form>' .
 			'<input type="submit" value="Send">' .
-			$hcaptcha_api_key .
+			$hcaptcha_site_key .
 			'</form>';
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -335,7 +335,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_settings', [ 'api_key' => $hcaptcha_api_key ] );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
 		hcaptcha()->init_hooks();
 

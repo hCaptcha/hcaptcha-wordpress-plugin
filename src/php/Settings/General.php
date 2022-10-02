@@ -129,7 +129,7 @@ class General extends PluginSettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [
-			'api_key'              => [
+			'site_key'             => [
 				'label'   => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_KEYS,
@@ -379,7 +379,7 @@ class General extends PluginSettingsBase {
 		$mode = $this->get( 'mode' );
 
 		if ( self::MODE_LIVE !== $mode ) {
-			$this->form_fields['api_key']['disabled']    = true;
+			$this->form_fields['site_key']['disabled']   = true;
 			$this->form_fields['secret_key']['disabled'] = true;
 		}
 
