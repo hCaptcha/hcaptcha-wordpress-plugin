@@ -103,6 +103,7 @@ class Main {
 		}
 
 		add_filter( 'wp_resource_hints', [ $this, 'prefetch_hcaptcha_dns' ], 10, 2 );
+		add_filter( 'wp_headers', [ $this, 'csp_headers' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
@@ -200,6 +201,28 @@ class Main {
 		}
 
 		return $urls;
+	}
+
+	/**
+	 * Add Content Security Policy (CSP) headers.
+	 *
+	 * @param array $headers Headers.
+	 *
+	 * @return mixed
+	 */
+	public function csp_headers( $headers ) {
+		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
+
+		$headers['X-Content-Security-Policy'] =
+			"default-src 'self'; " .
+			"script-src $hcap_csp; " .
+			"frame-src $hcap_csp; " .
+			"style-src $hcap_csp; " .
+			"connect-src $hcap_csp; " .
+			"unsafe-eval $hcap_csp; " .
+			"unsafe-inline $hcap_csp;";
+
+		return $headers;
 	}
 
 	/**
