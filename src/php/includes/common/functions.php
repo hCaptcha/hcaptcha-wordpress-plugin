@@ -31,17 +31,17 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
  * @noinspection NullPointerExceptionInspection
  */
 function hcap_form_display( $action = '', $name = '', $auto = false ) {
-	$settings         = hcaptcha()->settings();
-	$hcaptcha_api_key = $settings->get( 'api_key' );
-	$hcaptcha_theme   = $settings->get( 'theme' );
-	$hcaptcha_size    = $settings->get( 'size' );
+	$settings          = hcaptcha()->settings();
+	$hcaptcha_site_key = $settings->get_site_key();
+	$hcaptcha_theme    = $settings->get( 'theme' );
+	$hcaptcha_size     = $settings->get( 'size' );
 
 	$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
 
 	?>
 	<div
 			class="h-captcha"
-			data-sitekey="<?php echo esc_attr( $hcaptcha_api_key ); ?>"
+			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $hcaptcha_size ); ?>"
 			<?php echo wp_kses_post( $callback ); ?>

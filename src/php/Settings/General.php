@@ -42,6 +42,26 @@ class General extends PluginSettingsBase {
 	const SECTION_OTHER = 'other';
 
 	/**
+	 * Live mode.
+	 */
+	const MODE_LIVE = 'live';
+
+	/**
+	 * Test publisher mode.
+	 */
+	const MODE_TEST_PUBLISHER = 'test:publisher';
+
+	/**
+	 * Test enterprise safe end user mode.
+	 */
+	const MODE_TEST_ENTERPRISE_SAFE_END_USER = 'test:enterprise_safe_end_user';
+
+	/**
+	 * Test enterprise bot detected mode.
+	 */
+	const MODE_TEST_ENTERPRISE_BOT_DETECTED = 'test:enterprise_bot_detected';
+
+	/**
 	 * Get screen id.
 	 *
 	 * @return string
@@ -139,7 +159,7 @@ class General extends PluginSettingsBase {
 				],
 			],
 			'language'             => [
-				'label'   => __( 'Override Language Detection', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Language', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_APPEARANCE,
 				'options' => [
@@ -260,6 +280,24 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
+			'mode'                 => [
+				'label'   => __( 'Mode', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'section' => self::SECTION_APPEARANCE,
+				// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+				'options' => [
+					self::MODE_LIVE                          => 'Live',
+					self::MODE_TEST_PUBLISHER                => 'Test: Publisher Account',
+					self::MODE_TEST_ENTERPRISE_SAFE_END_USER => 'Test: Enterprise Account (Safe End User)',
+					self::MODE_TEST_ENTERPRISE_BOT_DETECTED  => 'Test: Enterprise Account (Bot Detected)',
+				],
+				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+				'default' => self::MODE_LIVE,
+				'helper'  => __(
+					'Select live or test mode.',
+					'hcaptcha-for-forms-and-more'
+				),
+			],
 			'custom_themes'        => [
 				'label'   => __( 'Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
@@ -328,6 +366,24 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
 			];
 		}
+	}
+
+	/**
+	 * Setup settings fields.
+	 */
+	public function setup_fields() {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
+		$mode = $this->get( 'mode' );
+
+		if ( self::MODE_LIVE !== $mode ) {
+			$this->form_fields['api_key']['disabled']    = true;
+			$this->form_fields['secret_key']['disabled'] = true;
+		}
+
+		parent::setup_fields();
 	}
 
 	/**

@@ -68,7 +68,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$params = [
-			'secret'   => hcaptcha()->settings()->get( 'secret_key' ),
+			'secret'   => hcaptcha()->settings()->get_secret_key(),
 			'response' => $hcaptcha_response_sanitized,
 		];
 

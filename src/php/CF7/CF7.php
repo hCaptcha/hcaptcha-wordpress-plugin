@@ -66,10 +66,10 @@ class CF7 {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function cf7_hcaptcha_shortcode( $atts ) {
-		$settings         = hcaptcha()->settings();
-		$hcaptcha_api_key = $settings->get( 'api_key' );
-		$hcaptcha_theme   = $settings->get( 'theme' );
-		$hcaptcha_size    = $settings->get( 'size' );
+		$settings          = hcaptcha()->settings();
+		$hcaptcha_site_key = $settings->get_site_key();
+		$hcaptcha_theme    = $settings->get( 'theme' );
+		$hcaptcha_size     = $settings->get( 'size' );
 
 		$callback = 'invisible' === $hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
@@ -82,7 +82,7 @@ class CF7 {
 		return (
 			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
 			'<span id="' . uniqid( 'hcap_cf7-', true ) .
-			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
+			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_site_key ) .
 			'" data-theme="' . esc_html( $hcaptcha_theme ) .
 			$callback .
 			'" data-size="' . esc_html( $hcaptcha_size ) . '">' .
@@ -117,10 +117,10 @@ class CF7 {
 			return $result;
 		}
 
-		$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
-		$hcaptcha_api_key = hcaptcha()->settings()->get( 'api_key' );
+		$cf7_text          = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
+		$hcaptcha_site_key = hcaptcha()->settings()->get_site_key();
 
-		if ( empty( $hcaptcha_api_key ) || false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
+		if ( empty( $hcaptcha_site_key ) || false === strpos( $cf7_text, $hcaptcha_site_key ) ) {
 			return $result;
 		}
 

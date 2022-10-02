@@ -140,6 +140,63 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get keys.
+	 *
+	 * @return array
+	 */
+	private function get_keys() {
+		$mode = $this->get( 'mode' );
+
+		// String concat is used for the PHP 5.6 compatibility.
+		// phpcs:disable Generic.Strings.UnnecessaryStringConcat.Found
+		switch ( $mode ) {
+			case General::MODE_LIVE:
+				$api_key    = $this->get( 'api_key' );
+				$secret_key = $this->get( 'secret_key' );
+				break;
+			case General::MODE_TEST_PUBLISHER:
+				$api_key    = '10000000-ffff-ffff-ffff-000000000001';
+				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+				break;
+			case General::MODE_TEST_ENTERPRISE_SAFE_END_USER:
+				$api_key    = '20000000-ffff-ffff-ffff-000000000002';
+				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+				break;
+			case General::MODE_TEST_ENTERPRISE_BOT_DETECTED:
+				$api_key    = '30000000-ffff-ffff-ffff-000000000003';
+				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+				break;
+			default:
+				$api_key    = '';
+				$secret_key = '';
+		}
+		// phpcs:enable Generic.Strings.UnnecessaryStringConcat.Found
+
+		return [
+			'api_key'    => $api_key,
+			'secret_key' => $secret_key,
+		];
+	}
+
+	/**
+	 * Get site key.
+	 *
+	 * @return string
+	 */
+	public function get_site_key() {
+		return $this->get_keys()['api_key'];
+	}
+
+	/**
+	 * Get secret key.
+	 *
+	 * @return string
+	 */
+	public function get_secret_key() {
+		return $this->get_keys()['secret_key'];
+	}
+
+	/**
 	 * Set field.
 	 *
 	 * @param string $key       Setting name.

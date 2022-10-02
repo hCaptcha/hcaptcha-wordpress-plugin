@@ -46,10 +46,6 @@
 	padding: 15px 20px;
 }
 
-.hcaptcha-section-appearance + table tbody tr:nth-child(3) {
-	grid-column: 3/span 2;
-}
-
 .hcaptcha-section-appearance + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
