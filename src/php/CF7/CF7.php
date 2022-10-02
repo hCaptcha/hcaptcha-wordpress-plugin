@@ -101,6 +101,7 @@ class CF7 {
 	 *
 	 * @return WPCF7_Validation
 	 * @noinspection NullPointerExceptionInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify_hcaptcha( $result, $tag ) {
 		$submission = WPCF7_Submission::get_instance();

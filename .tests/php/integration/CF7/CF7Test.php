@@ -103,16 +103,16 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$expected =
 			'<form>' .
-			'<span class="wpcf7-form-control-wrap">' .
+			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
 			'<span id="' . $uniqid .
-			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_site_key .
+			'" class="wpcf7-form-control h-captcha" data-sitekey="' . $hcaptcha_site_key .
 			'" data-theme="' . $hcaptcha_theme .
 			$callback .
 			'" data-size="' . $hcaptcha_size . '">' .
 			'</span>' .
 			'</span>' .
 			$nonce .
-			'<br><input type="submit" value="Send">' .
+			'<input type="submit" value="Send">' .
 			'</form>';
 
 		$subject = new CF7();
@@ -176,10 +176,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'] );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -189,10 +190,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -207,10 +209,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -244,10 +247,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$_POST['_wpcf7'] = 23;
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -287,12 +291,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
+
 		$result
 			->shouldReceive( 'invalidate' )
 			->with(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => 'hcap-cf7',
 				],
 				'Please complete the captcha.'
 			)
@@ -300,7 +306,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -342,12 +348,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'], false );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
+
 		$result
 			->shouldReceive( 'invalidate' )
 			->with(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => 'hcap-cf7',
 				],
 				'The Captcha is invalid.'
 			)
@@ -355,7 +363,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
