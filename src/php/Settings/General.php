@@ -147,6 +147,7 @@ class General extends PluginSettingsBase {
 					'light' => __( 'Light', 'hcaptcha-for-forms-and-more' ),
 					'dark'  => __( 'Dark', 'hcaptcha-for-forms-and-more' ),
 				],
+				'helper'  => __( 'Select hCaptcha theme.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'size'                 => [
 				'label'   => __( 'Size', 'hcaptcha-for-forms-and-more' ),
@@ -157,6 +158,7 @@ class General extends PluginSettingsBase {
 					'compact'   => __( 'Compact', 'hcaptcha-for-forms-and-more' ),
 					'invisible' => __( 'Invisible', 'hcaptcha-for-forms-and-more' ),
 				],
+				'helper'  => __( 'Select hCaptcha size.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'language'             => [
 				'label'   => __( 'Language', 'hcaptcha-for-forms-and-more' ),
@@ -294,7 +296,7 @@ class General extends PluginSettingsBase {
 				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 				'default' => self::MODE_LIVE,
 				'helper'  => __(
-					'Select live or test mode.',
+					'Select live or test mode. In test mode, predefined keys are used.',
 					'hcaptcha-for-forms-and-more'
 				),
 			],
