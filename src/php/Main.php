@@ -237,9 +237,6 @@ class Main {
 				display: block;
 				margin-bottom: 2rem;
 			}
-			.h-captcha.hcap_cf7-h-captcha {
-				margin-bottom: 0;
-			}
 			.h-captcha[data-size="normal"] {
 				width: 303px;
 				height: 78px;
@@ -284,6 +281,12 @@ class Main {
 			}
 			.h-captcha iframe {
 				position: relative;
+			}
+			span[data-name="hcap-cf7"] .h-captcha {
+				margin-bottom: 0;
+			}
+			span[data-name="hcap-cf7"] ~ input[type="submit"] {
+				margin-top: 2rem;
 			}
 			.elementor-field-type-hcaptcha .elementor-field {
 				background: transparent !important;

@@ -19,6 +19,7 @@ use WPCF7_Validation;
 class CF7 {
 	const HANDLE    = 'hcaptcha-cf7';
 	const SHORTCODE = 'cf7-hcaptcha';
+	const DATA_NAME = 'hcap-cf7';
 
 	/**
 	 * CF7 constructor.
@@ -48,7 +49,7 @@ class CF7 {
 		if ( strpos( $form, '[' . self::SHORTCODE . ']' ) === false ) {
 			$form = str_replace(
 				'<input type="submit"',
-				'[' . self::SHORTCODE . ']<br><input type="submit"',
+				'[' . self::SHORTCODE . ']<input type="submit"',
 				$form
 			);
 		}
@@ -80,9 +81,9 @@ class CF7 {
 		 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
 		 */
 		return (
-			'<span class="wpcf7-form-control-wrap">' .
+			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
 			'<span id="' . uniqid( 'hcap_cf7-', true ) .
-			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_site_key ) .
+			'" class="wpcf7-form-control h-captcha" data-sitekey="' . esc_html( $hcaptcha_site_key ) .
 			'" data-theme="' . esc_html( $hcaptcha_theme ) .
 			$callback .
 			'" data-size="' . esc_html( $hcaptcha_size ) . '">' .
@@ -96,12 +97,14 @@ class CF7 {
 	 * Verify CF7 recaptcha.
 	 *
 	 * @param WPCF7_Validation $result Result.
+	 * @param WPCF7_FormTag    $tag    Tag.
 	 *
 	 * @return WPCF7_Validation
 	 * @noinspection NullPointerExceptionInspection
 	 */
-	public function verify_hcaptcha( $result ) {
+	public function verify_hcaptcha( $result, $tag ) {
 		$submission = WPCF7_Submission::get_instance();
+
 		if ( null === $submission ) {
 			return $result;
 		}
@@ -127,8 +130,8 @@ class CF7 {
 		if ( empty( $data['h-captcha-response'] ) ) {
 			$result->invalidate(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => self::DATA_NAME,
 				],
 				__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' )
 			);
@@ -141,8 +144,8 @@ class CF7 {
 		if ( 'fail' === $captcha_result ) {
 			$result->invalidate(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => self::DATA_NAME,
 				],
 				__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
 			);
