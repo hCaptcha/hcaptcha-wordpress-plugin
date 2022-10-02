@@ -548,7 +548,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				background: transparent !important;
 			}
 			.elementor-field-type-hcaptcha .h-captcha {
-				margin-bottom: -9px;
+				margin-bottom: unset;
 			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
