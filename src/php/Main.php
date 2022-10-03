@@ -233,10 +233,14 @@ class Main {
 		?>
 		<style>
 			div.wpforms-container-full .wpforms-form .h-captcha,
+			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
 				position: relative;
 				display: block;
 				margin-bottom: 2rem;
+			}
+			#wpforo #wpforo-wrap div .h-captcha {
+				margin: 0 -20px;
 			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
