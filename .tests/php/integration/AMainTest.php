@@ -488,19 +488,23 @@ class AMainTest extends HCaptchaWPTestCase {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 
 		$expected = '		<style>
+			div.wpforms-container-full .wpforms-form .h-captcha,
 			.h-captcha {
 				position: relative;
 				display: block;
 				margin-bottom: 2rem;
 			}
+			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
 				width: 303px;
 				height: 78px;
 			}
+			div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"],
 			.h-captcha[data-size="compact"] {
 				width: 164px;
 				height: 144px;
 			}
+			div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"],
 			.h-captcha[data-size="invisible"] {
 				display: none;
 			}
@@ -535,6 +539,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			.h-captcha[data-size="invisible"]::before {
 				display: none;
 			}
+			div.wpforms-container-full .wpforms-form .h-captcha iframe,
 			.h-captcha iframe {
 				position: relative;
 			}
