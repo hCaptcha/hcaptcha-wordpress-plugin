@@ -48,9 +48,6 @@ if ( ! function_exists( 'hcap_verify_wpforo_topic_captcha' ) ) {
 
 add_filter( 'wpforo_add_topic_data_filter', 'hcap_verify_wpforo_topic_captcha', 10, 1 );
 
-
-//add_action( 'wpforo_template_forum_head_bar_action_links',  )
-
 /**
  * Enqueue WPForo script.
  *
