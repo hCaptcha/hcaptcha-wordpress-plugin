@@ -239,7 +239,7 @@ class Main {
 				display: block;
 				margin-bottom: 2rem;
 			}
-			#wpforo #wpforo-wrap div .h-captcha {
+			#wpforo #wpforo-wrap.wpft-topic div .h-captcha {
 				margin: 0 -20px;
 			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
