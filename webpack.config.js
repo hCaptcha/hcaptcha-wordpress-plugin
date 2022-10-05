@@ -38,24 +38,30 @@ const webPackModule = (production) => {
 };
 
 const hcaptcha = (env) => {
-	const production = env.production;
+	const production = env.production ? env.production : false;
 	const cssEntries = {};
 	const jsEntries = {};
+	const appEntries = {
+		hcaptcha: './src/js/hcaptcha/app.js',
+	};
 
 	glob.sync('./assets/css/*.css').map((entry) => {
+		if (entry.includes('.min.css')) {
+			return entry;
+		}
 		const filename = entry.replace(/^.*[\\\/]/, '').replace(/\..+$/, '');
 		cssEntries[filename] = entry;
 		return entry;
 	});
 	glob.sync('./assets/js/*.js').map((entry) => {
+		if (entry.includes('.min.js')) {
+			return entry;
+		}
 		const filename = entry.replace(/^.*[\\\/]/, '').replace(/\..+$/, '');
 		jsEntries[filename] = entry;
 		return entry;
 	});
 
-	const appEntries = {
-		hcaptcha: './src/js/hcaptcha/app.js',
-	};
 	const entries = {
 		...cssEntries,
 		...jsEntries,
