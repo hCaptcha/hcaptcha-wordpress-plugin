@@ -373,7 +373,7 @@ class Main {
 			return;
 		}
 
-		if ( ! $this->form_shown ) {
+		if ( ! ( $this->form_shown || did_action( 'wpforo_template_forum_head_bar_action_links' ) ) ) {
 			return;
 		}
 

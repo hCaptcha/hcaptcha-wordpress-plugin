@@ -47,3 +47,25 @@ if ( ! function_exists( 'hcap_verify_wpforo_topic_captcha' ) ) {
 }
 
 add_filter( 'wpforo_add_topic_data_filter', 'hcap_verify_wpforo_topic_captcha', 10, 1 );
+
+
+//add_action( 'wpforo_template_forum_head_bar_action_links',  )
+
+/**
+ * Enqueue WPForo script.
+ *
+ * @return void
+ */
+function hcap_wpforo_topic_enqueue_scripts() {
+	$min = hcap_min_suffix();
+
+	wp_enqueue_script(
+		'hcaptcha-wpforo',
+		HCAPTCHA_URL . "/assets/js/hcaptcha-wpforo$min.js",
+		[ 'jquery', 'wpforo-frontend-js' ],
+		HCAPTCHA_VERSION,
+		true
+	);
+}
+
+add_action( 'wp_enqueue_scripts', 'hcap_wpforo_topic_enqueue_scripts' );
