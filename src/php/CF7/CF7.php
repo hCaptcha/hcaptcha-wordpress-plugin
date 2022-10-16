@@ -63,7 +63,6 @@ class CF7 {
 	 * @param array $atts Attributes.
 	 *
 	 * @return string
-	 * @noinspection NullPointerExceptionInspection
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function cf7_hcaptcha_shortcode( $atts ) {
@@ -100,7 +99,6 @@ class CF7 {
 	 * @param WPCF7_FormTag    $tag    Tag.
 	 *
 	 * @return WPCF7_Validation
-	 * @noinspection NullPointerExceptionInspection
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify_hcaptcha( $result, $tag ) {

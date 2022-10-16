@@ -190,6 +190,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'quform_status'                => [
+				'label'   => 'Quform',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'subscriber_status'            => [
 				'label'   => 'Subscriber',
 				'type'    => 'checkbox',

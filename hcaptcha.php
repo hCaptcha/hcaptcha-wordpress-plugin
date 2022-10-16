@@ -76,10 +76,10 @@ require HCAPTCHA_INC . '/common/functions.php';
 /**
  * Get hCaptcha Main class instance.
  *
- * @return Main|object
+ * @return Main
  */
 function hcaptcha() {
-	static $hcaptcha = null;
+	static $hcaptcha;
 
 	if ( null === $hcaptcha ) {
 		$hcaptcha = new Main();

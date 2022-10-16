@@ -49,14 +49,45 @@ function hcap_get_user_ip() {
 	);
 }
 
+/**
+ * Get hCaptcha error message.
+ *
+ * @param array $error_codes Error codes.
+ *
+ * @return string
+ */
+function hcap_get_error_message( $error_codes ) {
+	$errors = [
+		'missing-input-secret'             => __( 'Your secret key is missing.', 'hcaptcha-for-forms-and-more' ),
+		'invalid-input-secret'             => __( 'Your secret key is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
+		'missing-input-response'           => __( 'The response parameter (verification token) is missing.', 'hcaptcha-for-forms-and-more' ),
+		'invalid-input-response'           => __( 'The response parameter (verification token) is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
+		'bad-request'                      => __( 'The request is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
+		'invalid-or-already-seen-response' => __( 'The response parameter has already been checked, or has another issue.', 'hcaptcha-for-forms-and-more' ),
+		'not-using-dummy-passcode'         => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
+		'sitekey-secret-mismatch'          => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
+	];
+
+	$message_arr = [];
+
+	foreach ( $error_codes as $error_code ) {
+		if ( array_key_exists( $error_code, $errors ) ) {
+			$message_arr[] = $errors[ $error_code ];
+		}
+	}
+
+	$header = _n( 'hCaptcha error:', 'hCaptcha errors:', count( $message_arr ), 'hcaptcha-for-forms-and-more' );
+
+	return $header . ' ' . implode( '; ', $message_arr );
+}
+
 if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	/**
 	 * Verify hCaptcha response.
 	 *
 	 * @param string|null $hcaptcha_response hCaptcha response.
 	 *
-	 * @return string fail|success
-	 * @noinspection NullPointerExceptionInspection
+	 * @return string fail|success|error message
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
 		$hcaptcha_response_sanitized = htmlspecialchars(
@@ -92,7 +123,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$body = json_decode( $raw_body, true );
 
 		if ( true !== (bool) $body['success'] ) {
-			return 'fail';
+			return isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : 'fail';
 		}
 
 		return 'success';
@@ -151,7 +182,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_output' ) ) {
 			case 'fail':
 				return $fail_message;
 			default:
-				return null;
+				return $result ?: null;
 		}
 	}
 }

@@ -15,6 +15,7 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
+use HCaptcha\Quform\Quform;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
@@ -565,6 +566,11 @@ class Main {
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
+			],
+			'Quform'                       => [
+				[ 'quform_status', 'form' ],
+				'quform/quform.php',
+				Quform::class,
 			],
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],
