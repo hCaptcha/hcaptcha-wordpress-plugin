@@ -38,8 +38,6 @@ class Comment {
 
 	/**
 	 * Constructor.
-	 *
-	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function __construct() {
 		$this->active = hcaptcha()->settings()->is( 'divi_status', 'comment' );

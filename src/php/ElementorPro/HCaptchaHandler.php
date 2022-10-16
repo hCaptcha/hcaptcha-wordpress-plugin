@@ -112,7 +112,6 @@ class HCaptchaHandler {
 	 * Get site key.
 	 *
 	 * @return array|string
-	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_site_key() {
 		return hcaptcha()->settings()->get( self::OPTION_NAME_SITE_KEY );
@@ -122,7 +121,6 @@ class HCaptchaHandler {
 	 * Get secret key.
 	 *
 	 * @return array|string
-	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_secret_key() {
 		return hcaptcha()->settings()->get( self::OPTION_NAME_SECRET_KEY );
@@ -132,7 +130,6 @@ class HCaptchaHandler {
 	 * Get hCaptcha theme.
 	 *
 	 * @return array|string
-	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_hcaptcha_theme() {
 		return hcaptcha()->settings()->get( self::OPTION_NAME_THEME );
@@ -142,7 +139,6 @@ class HCaptchaHandler {
 	 * Get hCaptcha size.
 	 *
 	 * @return array|string
-	 * @noinspection NullPointerExceptionInspection
 	 */
 	public static function get_hcaptcha_size() {
 		return hcaptcha()->settings()->get( self::OPTION_NAME_SIZE );
