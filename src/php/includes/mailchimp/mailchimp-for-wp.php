@@ -41,6 +41,7 @@ if ( ! function_exists( 'hcap_mailchimp_wp_form' ) ) {
 	 * @param string $element Element.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	function hcap_mailchimp_wp_form( $content = '', $form = '', $element = '' ) {
 		return str_replace(

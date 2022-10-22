@@ -95,7 +95,7 @@ class NF {
 
 		wp_enqueue_script(
 			'hcaptcha-nf',
-			HCAPTCHA_URL . "/assets/js/hcaptcha-nf{$min}.js",
+			HCAPTCHA_URL . "/assets/js/hcaptcha-nf$min.js",
 			[ 'nf-front-end' ],
 			HCAPTCHA_VERSION,
 			true

@@ -65,7 +65,7 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
 
-		$expected = 'Captcha Failed';
+		$expected = 'The hCaptcha is invalid.';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nounce', 'hcaptcha_wpforms', false );
 

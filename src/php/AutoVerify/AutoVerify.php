@@ -128,7 +128,7 @@ class AutoVerify {
 	 * Case #3: It can happen that WP_Rewrite is not yet initialized,
 	 *          so do this (wp-settings.php)
 	 * Case #4: URL Path begins with wp-json/ (your REST prefix)
-	 *          Also supports WP installations in subfolders
+	 *          Also supports WP installations in sub folders
 	 *
 	 * @return bool
 	 * @author matzeeable
@@ -266,7 +266,7 @@ class AutoVerify {
 	 * @return bool
 	 */
 	private function is_input_visible( $input ) {
-		return ! (bool) preg_match( '#type[\s]*?=[\s]*?["\']hidden["\']#', $input );
+		return ! preg_match( '#type[\s]*?=[\s]*?["\']hidden["\']#', $input );
 	}
 
 	/**

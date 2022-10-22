@@ -145,6 +145,7 @@ class Migrations {
 	 *
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function log( $message, $item = null ) {
 		if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
