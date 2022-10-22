@@ -62,6 +62,7 @@ class NF {
 	 * @param array $field Field.
 	 *
 	 * @return array
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function localize_field( $field ) {
 

@@ -27,6 +27,8 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
  * @param string $action Action name for wp_nonce_field.
  * @param string $name   Nonce name for wp_nonce_field.
  * @param bool   $auto   This form has to be auto-verified.
+ *
+ * @noinspection NullPointerExceptionInspection
  */
 function hcap_form_display( $action = '', $name = '', $auto = false ) {
 	$settings          = hcaptcha()->settings();
