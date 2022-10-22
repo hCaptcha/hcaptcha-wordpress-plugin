@@ -29,6 +29,7 @@ const webPackModule = (production) => {
 						loader: 'css-loader',
 						options: {
 							sourceMap: !production,
+							url: false,
 						},
 					},
 				],

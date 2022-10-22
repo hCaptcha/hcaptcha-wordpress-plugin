@@ -251,7 +251,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return string
 	 */
 	private function logo( $label ) {
-		$logo_file = sanitize_file_name( $label . '-logo.png' );
+		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
 
 		return sprintf(
 			'<img src="%1$s" alt="%2$s Logo">',
