@@ -22,10 +22,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @noinspection PhpUnusedParameterInspection
  */
 function hcap_add_mc4wp_error_message( $messages, $form ) {
-	$messages['invalid_hcaptcha'] = array(
-		'type' => 'error',
-		'text' => __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ),
-	);
+	foreach ( hcap_get_error_messages() as $error_code => $error_message ) {
+		$messages[ $error_code ] = [
+			'type' => 'error',
+			'text' => $error_message,
+		];
+	}
 
 	return $messages;
 }
@@ -65,13 +67,15 @@ add_action( 'mc4wp_form_content', 'hcap_mailchimp_wp_form', 20, 3 );
  * @noinspection PhpUnusedParameterInspection
  */
 function hcap_mc4wp_error( $valid, $data ) {
-	$verify = hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+	$error_message = hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+	$error_message = preg_replace( '/(.+: )?/', '', $error_message );
+	$error_code    = false;
 
-	if ( null !== $verify ) {
-		return $verify;
+	if ( null !== $error_message ) {
+		$error_code = array_search( $error_message, hcap_get_error_messages(), true );
 	}
 
-	return $valid;
+	return $error_code ?: $valid;
 }
 
 add_filter( 'mc4wp_valid_form_request', 'hcap_mc4wp_error', 10, 2 );

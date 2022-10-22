@@ -50,14 +50,13 @@ function hcap_get_user_ip() {
 }
 
 /**
- * Get hCaptcha error message.
+ * Get error messages provided by API and the plugin.
  *
- * @param array $error_codes Error codes.
- *
- * @return string
+ * @return array
  */
-function hcap_get_error_message( $error_codes ) {
-	$errors = [
+function hcap_get_error_messages() {
+	return [
+		// API messages.
 		'missing-input-secret'             => __( 'Your secret key is missing.', 'hcaptcha-for-forms-and-more' ),
 		'invalid-input-secret'             => __( 'Your secret key is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 		'missing-input-response'           => __( 'The response parameter (verification token) is missing.', 'hcaptcha-for-forms-and-more' ),
@@ -66,7 +65,22 @@ function hcap_get_error_message( $error_codes ) {
 		'invalid-or-already-seen-response' => __( 'The response parameter has already been checked, or has another issue.', 'hcaptcha-for-forms-and-more' ),
 		'not-using-dummy-passcode'         => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
 		'sitekey-secret-mismatch'          => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
+		// Plugin messages.
+		'empty'                            => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+		'fail'                             => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
+		'bad-nonce'                        => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
 	];
+}
+
+/**
+ * Get hCaptcha error message.
+ *
+ * @param array $error_codes Error codes.
+ *
+ * @return string
+ */
+function hcap_get_error_message( $error_codes ) {
+	$errors = hcap_get_error_messages();
 
 	$message_arr = [];
 
@@ -98,8 +112,10 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
 
-		$empty_message = __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' );
-		$fail_message  = __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' );
+		$errors = hcap_get_error_messages();
+
+		$empty_message = $errors['empty'];
+		$fail_message  = $errors['fail'];
 
 		if ( '' === $hcaptcha_response_sanitized ) {
 			return $empty_message;
@@ -159,7 +175,9 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 
 		// Verify nonce for logged-in users only.
 		if ( is_user_logged_in() && ! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) ) {
-			return __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' );
+			$errors = hcap_get_error_messages();
+
+			return $errors['bad-nonce'];
 		}
 
 		return hcaptcha_request_verify( $hcaptcha_response );
