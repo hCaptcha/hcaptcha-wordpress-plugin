@@ -288,7 +288,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$subject->verify( $args );
 
 		self::assertTrue( UM()->form()->has_error( 'hcaptcha' ) );
-		self::assertSame( 'The Captcha is invalid.', UM()->form()->errors['hcaptcha'] );
+		self::assertSame( 'The hCaptcha is invalid.', UM()->form()->errors['hcaptcha'] );
 	}
 
 	/**

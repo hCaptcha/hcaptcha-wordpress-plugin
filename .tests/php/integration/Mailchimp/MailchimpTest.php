@@ -54,7 +54,7 @@ class MailchimpTest extends HCaptchaWPTestCase {
 	public function test_hcap_mc4wp_error() {
 		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
-		self::assertSame( 1, hcap_mc4wp_error() );
+		self::assertTrue( hcap_mc4wp_error( true, [] ) );
 	}
 
 	/**
@@ -63,6 +63,6 @@ class MailchimpTest extends HCaptchaWPTestCase {
 	public function test_hcap_mc4wp_error_not_verified() {
 		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 
-		self::assertSame( 'invalid_hcaptcha', hcap_mc4wp_error() );
+		self::assertSame( 'The hCaptcha is invalid.', hcap_mc4wp_error( true, [] ) );
 	}
 }

@@ -82,7 +82,7 @@ class WPForoTest extends HCaptchaPluginWPTestCase {
 	 * Test hcap_verify_wpforo_topic_captcha() when not verified.
 	 */
 	public function test_hcap_verify_wpforo_topic_captcha_not_verified() {
-		$expected = '<p class="error">The Captcha is invalid.</p>';
+		$expected = '<p class="error">The hCaptcha is invalid.</p>';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic', false );
 
@@ -129,7 +129,7 @@ class WPForoTest extends HCaptchaPluginWPTestCase {
 	 * Test hcap_verify_wpforo_reply_captcha() when not verified.
 	 */
 	public function test_hcap_verify_wpforo_reply_captcha_not_verified() {
-		$expected = '<p class="error">The Captcha is invalid.</p>';
+		$expected = '<p class="error">The hCaptcha is invalid.</p>';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply', false );
 

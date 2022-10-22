@@ -67,6 +67,6 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Fields();
 
-		self::assertSame( [ 'The Captcha is invalid.' ], $subject->validate( $field, null ) );
+		self::assertSame( 'The hCaptcha is invalid.', $subject->validate( $field, null ) );
 	}
 }
