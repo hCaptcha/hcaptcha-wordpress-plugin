@@ -71,6 +71,6 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 		$subject = new JetpackForm();
 
 		self::assertEquals( $error, $subject->jetpack_verify() );
-		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message' ) );
+		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', [ $subject, 'error_message' ] ) );
 	}
 }

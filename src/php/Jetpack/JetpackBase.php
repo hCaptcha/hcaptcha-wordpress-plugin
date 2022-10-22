@@ -15,6 +15,13 @@ use WP_Error;
 abstract class JetpackBase {
 
 	/**
+	 * Error message.
+	 *
+	 * @var string|null
+	 */
+	private $error_message = null;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -51,19 +58,39 @@ abstract class JetpackBase {
 	 * @return bool|WP_Error
 	 */
 	public function jetpack_verify( $is_spam = false ) {
-		$error_message = hcaptcha_get_verify_message(
+		$this->error_message = hcaptcha_get_verify_message(
 			'hcaptcha_jetpack_nonce',
 			'hcaptcha_jetpack'
 		);
 
-		if ( null === $error_message ) {
+		if ( null === $this->error_message ) {
 			return $is_spam;
 		}
 
 		$error = new WP_Error();
-		$error->add( 'invalid_hcaptcha', $error_message );
-		add_filter( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message', 10, 1 );
+		$error->add( 'invalid_hcaptcha', $this->error_message );
+		add_filter( 'hcap_hcaptcha_content', [ $this, 'error_message' ] );
 
 		return $error;
+	}
+
+	/**
+	 * Print error message.
+	 *
+	 * @param string $hcaptcha_content Content of hCaptcha.
+	 *
+	 * @return string
+	 */
+	public function error_message( $hcaptcha_content = '' ) {
+		if ( null === $this->error_message ) {
+			return $hcaptcha_content;
+		}
+
+		$message = sprintf(
+			'<p id="hcap_error" class="error hcap_error">%s</p>',
+			esc_html( $this->error_message )
+		);
+
+		return $message . $hcaptcha_content;
 	}
 }

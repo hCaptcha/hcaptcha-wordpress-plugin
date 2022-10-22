@@ -55,19 +55,35 @@ add_action( 'mc4wp_form_content', 'hcap_mailchimp_wp_form', 20, 3 );
 /**
  * Verify MailChimp captcha.
  *
- * @return int|string
+ * @param bool  $valid Whether request is valid.
+ * @param array $data  Form data.
+ *
+ * @return null|string
+ * @noinspection PhpUnusedParameterInspection
  */
-function hcap_mc4wp_error() {
-	$error_message = hcaptcha_verify_POST(
-		'hcaptcha_mailchimp_nonce',
-		'hcaptcha_mailchimp'
-	);
+function hcap_mc4wp_error( $valid, $data ) {
+	$verify = hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
-	if ( 'success' !== $error_message ) {
-		return 'invalid_hcaptcha';
+	if ( null !== $verify ) {
+		return $verify;
 	}
 
-	return 1;
+	return $valid;
 }
 
 add_filter( 'mc4wp_valid_form_request', 'hcap_mc4wp_error', 10, 2 );
+
+/**
+ * Filters the form messages
+ *
+ * @param array      $messages Messages.
+ * @param MC4WP_Form $form     Form.
+ *
+ * @return array
+ * @noinspection PhpUnusedParameterInspection
+ */
+function hcap_mc4wp_messages( $messages, $form ) {
+	return $messages;
+}
+
+add_filter( 'mc4wp_form_messages', 'hcap_mc4wp_messages', 10, 2 );

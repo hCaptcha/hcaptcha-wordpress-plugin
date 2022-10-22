@@ -254,6 +254,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Mailchimp for WP Form
 * MemberPress Register Form
 * Ninja Forms
+* Quform Forms
 * Subscriber Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
@@ -288,6 +289,11 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 2.1.0 =
+* Added Quform support.
+* Added proper error messages from hcaptcha.com.
+* Fixed error messaging in Ninja Forms.
 
 = 2.0.0 =
 * Tested with WordPress 6.1.

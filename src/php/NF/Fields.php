@@ -65,16 +65,15 @@ class Fields extends NF_Fields_recaptcha {
 	 * @param array $field Field.
 	 * @param mixed $data  Data.
 	 *
-	 * @return array|mixed|string|void
+	 * @return null|string
 	 */
 	public function validate( $field, $data ) {
-		if ( empty( $field['value'] ) ) {
-			return __( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' );
+		$result = hcaptcha_request_verify( $field['value'] );
+
+		if ( null !== $result ) {
+			return $result;
 		}
 
-		$result = hcaptcha_request_verify( $field['value'] );
-		if ( 'fail' === $result ) {
-			return array( __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ) );
-		}
+		return null;
 	}
 }

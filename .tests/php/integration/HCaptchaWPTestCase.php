@@ -153,6 +153,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 		}
 
 		$raw_response = wp_json_encode( [ 'success' => $result ] );
+
 		if ( null === $result ) {
 			$raw_response = '';
 		}

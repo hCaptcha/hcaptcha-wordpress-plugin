@@ -126,27 +126,17 @@ class CF7 {
 			return $result;
 		}
 
-		if ( empty( $data['h-captcha-response'] ) ) {
+		$response = empty( $data['h-captcha-response'] ) ? '' : $data['h-captcha-response'];
+
+		$captcha_result = hcaptcha_request_verify( $response );
+
+		if ( null !== $captcha_result ) {
 			$result->invalidate(
 				[
 					'type' => 'hcaptcha',
 					'name' => self::DATA_NAME,
 				],
-				__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' )
-			);
-
-			return $result;
-		}
-
-		$captcha_result = hcaptcha_request_verify( $data['h-captcha-response'] );
-
-		if ( 'fail' === $captcha_result ) {
-			$result->invalidate(
-				[
-					'type' => 'hcaptcha',
-					'name' => self::DATA_NAME,
-				],
-				__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
+				$captcha_result
 			);
 		}
 

@@ -97,10 +97,11 @@ class AutoVerify {
 			return;
 		}
 
-		if ( 'success' !== hcaptcha_verify_post() ) {
+		$result = hcaptcha_verify_post();
+		if ( null !== $result ) {
 			$_POST = [];
 			wp_die(
-				esc_html__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
+				esc_html( $result ),
 				'hCaptcha',
 				[
 					'back_link' => true,

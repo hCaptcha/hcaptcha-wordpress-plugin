@@ -137,14 +137,27 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
 
-		self::assertSame( 'success', hcaptcha_request_verify( $hcaptcha_response ) );
+		self::assertNull( hcaptcha_request_verify( $hcaptcha_response ) );
 	}
 
 	/**
-	 * Test hcaptcha_request_verify() with no empty string as argument.
+	 * Test hcaptcha_request_verify() with empty string as argument.
 	 */
-	public function test_hcaptcha_request_verify_default_fail() {
-		self::assertSame( 'fail', hcaptcha_request_verify( '' ) );
+	public function test_hcaptcha_request_verify_empty() {
+		self::assertSame(
+			'Please complete the hCaptcha.',
+			hcaptcha_request_verify( '' )
+		);
+	}
+
+	/**
+	 * Test hcaptcha_request_verify() with not empty string as argument.
+	 */
+	public function test_hcaptcha_request_verify_not_empty() {
+		self::assertSame(
+			'hCaptcha error: The response parameter (verification token) is invalid or malformed.',
+			hcaptcha_request_verify( 'some response' )
+		);
 	}
 
 	/**
@@ -155,7 +168,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
 
-		self::assertSame( 'fail', hcaptcha_request_verify( $hcaptcha_response ) );
+		self::assertSame( 'The hCaptcha is invalid.', hcaptcha_request_verify( $hcaptcha_response ) );
 	}
 
 	/**
@@ -166,7 +179,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, null );
 
-		self::assertSame( 'fail', hcaptcha_request_verify( $hcaptcha_response ) );
+		self::assertSame( 'The hCaptcha is invalid.', hcaptcha_request_verify( $hcaptcha_response ) );
 	}
 
 	/**
@@ -177,14 +190,14 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
 
-		self::assertSame( 'success', hcaptcha_verify_POST() );
+		self::assertNull( hcaptcha_verify_post() );
 	}
 
 	/**
 	 * Test hcaptcha_verify_POST() with no argument.
 	 */
 	public function test_hcaptcha_verify_POST_default_empty() {
-		self::assertSame( 'empty', hcaptcha_verify_POST() );
+		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_verify_post() );
 	}
 
 	/**
@@ -197,14 +210,14 @@ class RequestTest extends HCaptchaWPTestCase {
 		// Not logged in.
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name );
 
-		self::assertSame( 'success', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+		self::assertNull( hcaptcha_verify_post( $nonce_field_name, $nonce_action_name ) );
 
 		// Logged in.
 		wp_set_current_user( 1 );
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name );
 
-		self::assertSame( 'success', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+		self::assertNull( hcaptcha_verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -216,7 +229,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, false );
 
-		self::assertSame( 'fail', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'The hCaptcha is invalid.', hcaptcha_verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -228,7 +241,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, null );
 
-		self::assertSame( 'empty', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -243,7 +256,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		wp_set_current_user( 1 );
 
-		self::assertSame( 'empty', hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'Bad hCaptcha nonce!', hcaptcha_verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -271,7 +284,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, false );
 
-		self::assertSame( $fail_message, hcaptcha_get_verify_output( $empty_message, $fail_message, $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'The hCaptcha is invalid.', hcaptcha_get_verify_output( $empty_message, $fail_message, $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -285,7 +298,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, null );
 
-		self::assertSame( $empty_message, hcaptcha_get_verify_output( $empty_message, $fail_message, $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_get_verify_output( $empty_message, $fail_message, $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -309,7 +322,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, false );
 
-		self::assertSame( 'The Captcha is invalid.', hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'The hCaptcha is invalid.', hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -321,7 +334,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, null );
 
-		self::assertSame( 'Please complete the captcha.', hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -345,7 +358,10 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name, false );
 
-		self::assertSame( '<strong>Error</strong>: The Captcha is invalid.', hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame(
+			'<strong>hCaptcha error:</strong> The hCaptcha is invalid.',
+			hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name )
+		);
 	}
 
 	/**
@@ -357,7 +373,7 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name, null );
 
-		self::assertSame( '<strong>Error</strong>: Please complete the captcha.', hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) );
+		self::assertSame( '<strong>hCaptcha error:</strong> Please complete the hCaptcha.', hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) );
 	}
 
 	/**
@@ -365,7 +381,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcap_hcaptcha_error_message() {
 		$hcaptcha_content = 'Some content';
-		$expected         = '<p id="hcap_error" class="error hcap_error">The Captcha is invalid.</p>' . $hcaptcha_content;
+		$expected         = '<p id="hcap_error" class="error hcap_error">The hCaptcha is invalid.</p>' . $hcaptcha_content;
 
 		self::assertSame( $expected, hcap_hcaptcha_error_message( $hcaptcha_content ) );
 	}

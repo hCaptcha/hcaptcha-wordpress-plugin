@@ -69,7 +69,7 @@ class BBPTest extends HCaptchaPluginWPTestCase {
 	 * Test hcap_verify_bbp_new_topic_captcha() when not verified.
 	 */
 	public function test_hcap_verify_bbp_new_topic_captcha_not_verified() {
-		$expected = new WP_Error( 'hcap_error', 'Please complete the captcha.' );
+		$expected = new WP_Error( 'hcap_error', 'Please complete the hCaptcha.' );
 
 		self::assertFalse( hcap_verify_bbp_new_topic_captcha() );
 
@@ -107,7 +107,7 @@ class BBPTest extends HCaptchaPluginWPTestCase {
 	 * Test hcap_verify_bbp_reply_captcha() when not verified.
 	 */
 	public function test_hcap_verify_bbp_reply_captcha_not_verified() {
-		$expected = new WP_Error( 'hcap_error', 'Please complete the captcha.' );
+		$expected = new WP_Error( 'hcap_error', 'Please complete the hCaptcha.' );
 
 		self::assertFalse( hcap_verify_bbp_reply_captcha() );
 

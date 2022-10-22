@@ -260,12 +260,8 @@ class HCaptchaHandler {
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
-		if ( 'success' !== $result ) {
-			$messages = [
-				'empty' => __( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
-				'fail'  => __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ),
-			];
-			$ajax_handler->add_error( $field['id'], $messages[ $result ] );
+		if ( null !== $result ) {
+			$ajax_handler->add_error( $field['id'], $result );
 
 			return;
 		}
