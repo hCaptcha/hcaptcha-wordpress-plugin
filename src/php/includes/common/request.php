@@ -246,22 +246,3 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 		return $message . $hcaptcha_content;
 	}
 }
-
-if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
-	/**
-	 * Print error message.
-	 *
-	 * @param string $hcaptcha_content Content of hCaptcha.
-	 *
-	 * @return string
-	 */
-	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
-		$message = sprintf(
-			'<p id="hcap_error" class="error hcap_error">%s</p>',
-			__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
-		);
-
-		return $message . $hcaptcha_content;
-	}
-}
-
