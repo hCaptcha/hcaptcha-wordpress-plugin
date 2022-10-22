@@ -36,7 +36,7 @@ add_filter( 'wpforms_display_submit_before', 'hcaptcha_wpforms_display', 10, 1 )
  * @param  array $entry     Original $_POST global.
  * @param  array $form_data Form data and settings.
  *
- * @return array|null
+ * @return void
  * @noinspection PhpUnusedParameterInspection
  */
 function hcaptcha_wpforms_validate( $fields, $entry, $form_data ) {
@@ -46,12 +46,10 @@ function hcaptcha_wpforms_validate( $fields, $entry, $form_data ) {
 	);
 
 	if ( null === $error_message ) {
-		return $fields;
+		return;
 	}
 
 	wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $error_message;
-
-	return null;
 }
 
-add_filter( 'wpforms_process', 'hcaptcha_wpforms_validate', 10, 3 );
+add_action( 'wpforms_process', 'hcaptcha_wpforms_validate', 10, 3 );
