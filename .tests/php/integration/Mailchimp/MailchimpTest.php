@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\Mailchimp;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 
 /**
  * Test mailchimp form file.
@@ -18,6 +19,8 @@ class MailchimpTest extends HCaptchaWPTestCase {
 	 * Test hcap_add_mc4wp_error_message().
 	 */
 	public function test_hcap_add_mc4wp_error_message() {
+		$form = Mockery::mock( 'MC4WP_Form' );
+
 		$messages = [
 			'foo' => 'bar',
 		];
@@ -32,7 +35,7 @@ class MailchimpTest extends HCaptchaWPTestCase {
 
 		$expected = array_merge( $messages, $expected );
 
-		self::assertSame( $expected, hcap_add_mc4wp_error_message( $messages ) );
+		self::assertSame( $expected, hcap_add_mc4wp_error_message( $messages, $form ) );
 	}
 
 	/**
