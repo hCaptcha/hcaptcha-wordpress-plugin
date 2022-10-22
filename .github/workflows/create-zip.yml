@@ -1,0 +1,53 @@
+name: Create zip file
+on: workflow_dispatch
+jobs:
+  tag:
+    name: New zip file
+
+    runs-on: ubuntu-latest
+
+    env:
+      SLUG: "hcaptcha-for-forms-and-more"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies in prod version
+        run: |
+          composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
+          composer install --no-dev
+          yarn
+          yarn prod
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create zip file
+        run: |
+          echo "➤ Copying files..."
+          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/ --delete --delete-excluded
+          echo "➤ Generating zip file..."
+          cd trunk
+          zip -r "${{github.workspace}}/${{ env.SLUG }}.zip" .
+          echo "✓ Zip file generated!"
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{github.workspace}}/${{ env.SLUG }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

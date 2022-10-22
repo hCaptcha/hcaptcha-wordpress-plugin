@@ -59,17 +59,6 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertTrue( function_exists( 'hcap_form_display' ) );
 		self::assertTrue( function_exists( 'hcap_shortcode' ) );
 		self::assertTrue( shortcode_exists( 'hcaptcha' ) );
-		self::assertTrue( function_exists( 'hcap_options' ) );
-	}
-
-	/**
-	 * Test hcap_hcaptcha_error_message().
-	 */
-	public function test_hcap_hcaptcha_error_message(): void {
-		$hcaptcha_content = 'Some content';
-		$expected         = '<p id="hcap_error" class="error hcap_error">The Captcha is invalid.</p>' . $hcaptcha_content;
-
-		self::assertSame( $expected, hcap_hcaptcha_error_message( $hcaptcha_content ) );
 	}
 
 	/**

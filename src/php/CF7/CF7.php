@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\CF7;
 
 use WPCF7_Submission;
@@ -16,13 +19,7 @@ use WPCF7_Validation;
 class CF7 {
 	const HANDLE    = 'hcaptcha-cf7';
 	const SHORTCODE = 'cf7-hcaptcha';
-
-	/**
-	 * Widget size.
-	 *
-	 * @var false|string
-	 */
-	private $hcaptcha_size;
+	const DATA_NAME = 'hcap-cf7';
 
 	/**
 	 * CF7 constructor.
@@ -52,7 +49,7 @@ class CF7 {
 		if ( strpos( $form, '[' . self::SHORTCODE . ']' ) === false ) {
 			$form = str_replace(
 				'<input type="submit"',
-				'[' . self::SHORTCODE . ']<br><input type="submit"',
+				'[' . self::SHORTCODE . ']<input type="submit"',
 				$form
 			);
 		}
@@ -66,29 +63,30 @@ class CF7 {
 	 * @param array $atts Attributes.
 	 *
 	 * @return string
+	 * @noinspection NullPointerExceptionInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function cf7_hcaptcha_shortcode( $atts ) {
-		global $hcaptcha_wordpress_plugin;
+		$settings          = hcaptcha()->settings();
+		$hcaptcha_site_key = $settings->get_site_key();
+		$hcaptcha_theme    = $settings->get( 'theme' );
+		$hcaptcha_size     = $settings->get( 'size' );
 
-		$hcaptcha_api_key    = get_option( 'hcaptcha_api_key' );
-		$hcaptcha_theme      = get_option( 'hcaptcha_theme' );
-		$this->hcaptcha_size = get_option( 'hcaptcha_size' );
+		$callback = 'invisible' === $hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
 
-		$callback = 'invisible' === $this->hcaptcha_size ? '" data-callback="hCaptchaSubmit' : '';
-
-		$hcaptcha_wordpress_plugin->form_shown = true;
+		hcaptcha()->form_shown = true;
 
 		/**
 		 * CF7 works via REST API, where current user is set to 0 (not logged in) if nonce is not present.
 		 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
 		 */
 		return (
-			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
+			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
 			'<span id="' . uniqid( 'hcap_cf7-', true ) .
-			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . esc_html( $hcaptcha_api_key ) .
+			'" class="wpcf7-form-control h-captcha" data-sitekey="' . esc_html( $hcaptcha_site_key ) .
 			'" data-theme="' . esc_html( $hcaptcha_theme ) .
 			$callback .
-			'" data-size="' . esc_html( $this->hcaptcha_size ) . '">' .
+			'" data-size="' . esc_html( $hcaptcha_size ) . '">' .
 			'</span>' .
 			'</span>' .
 			wp_nonce_field( 'wp_rest', '_wpnonce', true, false )
@@ -99,11 +97,15 @@ class CF7 {
 	 * Verify CF7 recaptcha.
 	 *
 	 * @param WPCF7_Validation $result Result.
+	 * @param WPCF7_FormTag    $tag    Tag.
 	 *
 	 * @return WPCF7_Validation
+	 * @noinspection NullPointerExceptionInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify_hcaptcha( $result ) {
+	public function verify_hcaptcha( $result, $tag ) {
 		$submission = WPCF7_Submission::get_instance();
+
 		if ( null === $submission ) {
 			return $result;
 		}
@@ -119,17 +121,18 @@ class CF7 {
 			return $result;
 		}
 
-		$cf7_text         = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
-		$hcaptcha_api_key = get_option( 'hcaptcha_api_key' );
-		if ( empty( $hcaptcha_api_key ) || false === strpos( $cf7_text, $hcaptcha_api_key ) ) {
+		$cf7_text          = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
+		$hcaptcha_site_key = hcaptcha()->settings()->get_site_key();
+
+		if ( empty( $hcaptcha_site_key ) || false === strpos( $cf7_text, $hcaptcha_site_key ) ) {
 			return $result;
 		}
 
 		if ( empty( $data['h-captcha-response'] ) ) {
 			$result->invalidate(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => self::DATA_NAME,
 				],
 				__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' )
 			);
@@ -142,8 +145,8 @@ class CF7 {
 		if ( 'fail' === $captcha_result ) {
 			$result->invalidate(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => self::DATA_NAME,
 				],
 				__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
 			);
@@ -156,15 +159,15 @@ class CF7 {
 	 * Enqueue CF7 scripts.
 	 */
 	public function enqueue_scripts() {
-		global $hcaptcha_wordpress_plugin;
-
-		if ( ! $hcaptcha_wordpress_plugin->form_shown ) {
+		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
 
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			self::HANDLE,
-			HCAPTCHA_URL . '/assets/js/hcaptcha-cf7.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
 			[],
 			HCAPTCHA_VERSION,
 			true

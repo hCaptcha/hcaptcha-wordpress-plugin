@@ -29,7 +29,7 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 			$this->get_hcap_form() .
 			wp_nonce_field(
 				'hcaptcha_wpforms',
-				'hcaptcha_wpforms_nounce',
+				'hcaptcha_wpforms_nonce',
 				true,
 				false
 			);
@@ -48,7 +48,7 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nounce', 'hcaptcha_wpforms' );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
 		wpforms()->objects();
 		wpforms()->process->errors = [];

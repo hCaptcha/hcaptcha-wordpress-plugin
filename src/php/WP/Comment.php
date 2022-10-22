@@ -34,9 +34,11 @@ class Comment {
 
 	/**
 	 * Constructor.
+	 *
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function __construct() {
-		$this->active = 'on' === get_option( 'hcaptcha_cmf_status' );
+		$this->active = hcaptcha()->settings()->is( 'wp_status', 'comment' );
 
 		$this->init_hooks();
 	}

@@ -143,6 +143,7 @@ abstract class Base {
 	 * @param string $mode   Mode.
 	 *
 	 * @return string
+	 * @noinspection PhpUnnecessaryCurlyVarSyntaxInspection
 	 */
 	public function display_captcha( $output, $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {

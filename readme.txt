@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
-Tested up to: 6.0
+Tested up to: 6.1
 Requires PHP: 5.6.20
-Stable tag: 1.19.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -184,14 +184,14 @@ You can use the following filter:
 
 `
 /**
-* Filter user IP to check if it is whitelisted.
-* For whitelisted IPs, hCaptcha will not be shown.
-*
-* @param bool   $whitelisted Whether IP is whitelisted.
-* @param string $ip          IP.
-*
-* @return bool
-*/
+ * Filter user IP to check if it is whitelisted.
+ * For whitelisted IPs, hCaptcha will not be shown.
+ *
+ * @param bool   $whitelisted Whether IP is whitelisted.
+ * @param string $ip          IP.
+ *
+ * @return bool
+ */
 function my_hcap_whitelist_ip( $whitelisted, $ip ) {
 
   // Whitelist local IPs.
@@ -289,6 +289,18 @@ Instructions for popular native integrations are below:
  
 == Changelog ==
 
+= 2.0.0 =
+* Tested with WordPress 6.1.
+* Tested with WooCommerce 7.0.
+* Added Settings page with multiple tabs.
+* Added setting for whitelisted IPs.
+* Added ability to set options network-wide on multisite. 
+* Fixed Divi contact form bug related to recaptcha compat.
+* Fixed bug with WC Wishlist create list form.
+* Fixed styles on WordPress Register page.
+* Fixed shifting of hCaptcha layout during load.
+* Fixed Contact Form hcaptcha invalidation messages.
+
 = 1.19.0 =
 * Fixed grey left sidebar issue on Elementor edit page.
 
@@ -309,7 +321,7 @@ Instructions for popular native integrations are below:
 * Tested with WordPress 6.0.
 * Tested with WooCommerce 6.5.
 
-* = 1.15.0 =
+= 1.15.0 =
 * Tested with WooCommerce 6.4.
 * Added Gravity Forms support.
 * Added filter to whitelist IPs.

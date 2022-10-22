@@ -28,7 +28,6 @@ class Login {
 	private function init_hooks() {
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 		add_action( 'um_submit_form_errors_hook_login', [ $this, 'remove_filter_wp_authenticate_user' ] );
 		add_filter( 'wpforms_user_registration_process_login_process_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
@@ -62,27 +61,6 @@ class Login {
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' ), 400 );
-	}
-
-	/**
-	 * Print styles to fit hcaptcha widget to the login form.
-	 */
-	public function login_head() {
-		?>
-		<style>
-			@media (max-width: 349px) {
-				.h-captcha {
-					display: flex;
-					justify-content: center;
-				}
-			}
-			@media (min-width: 350px) {
-				#login {
-					width: 350px;
-				}
-			}
-		</style>
-		<?php
 	}
 
 	/**

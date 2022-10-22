@@ -31,29 +31,16 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'woocommerce/woocommerce.php';
 
 	/**
-	 * Tests hcap_woocommerce_wishlists_hcaptcha_content_filter().
-	 */
-	public function test_hcap_woocommerce_wishlists_hcaptcha_content_filter() {
-		$content  = 'some content';
-		$expected =
-			$content .
-			wp_nonce_field(
-				'hcaptcha_wc_create_wishlist',
-				'hcaptcha_wc_create_wishlist_nonce',
-				true,
-				false
-			);
-
-		self::assertSame( $expected, hcap_woocommerce_wishlists_hcaptcha_content_filter( $content ) );
-	}
-
-	/**
 	 * Test hcap_woocommerce_wishlists_before_wrapper_action() and
 	 * hcap_woocommerce_wishlists_after_wrapper_action().
 	 */
 	public function test_hcap_woocommerce_wishlists_wrapper_action() {
 		$row      = '<p class="form-row">';
-		$expected = "\n" . $this->get_hcap_form() . "\n" . $row;
+		$expected =
+			"\n" .
+			$this->get_hcap_form( 'hcaptcha_wc_create_wishlists_action', 'hcaptcha_wc_create_wishlists_nonce' ) .
+			"\n" .
+			$row;
 
 		ob_start();
 
@@ -71,7 +58,7 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 	public function test_hcap_verify_wc_wl_create_list_captcha() {
 		$valid_captcha = 'some captcha';
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlist_nonce', 'hcaptcha_wc_create_wishlist' );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
 
 		WC()->init();
 
@@ -94,7 +81,7 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 			],
 		];
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlist_nonce', 'hcaptcha_wc_create_wishlist', false );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action', false );
 
 		WC()->init();
 

@@ -1,0 +1,46 @@
+.hcaptcha-integrations table tbody {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px 20px;
+}
+
+.hcaptcha-integrations table tr {
+	background: #fff;
+	padding: 10px 20px;
+}
+
+.hcaptcha-integrations table tr th {
+	font-size: 16px;
+	padding: 5px 0 20px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.hcaptcha-integrations table tr th img {
+	height: 28px;
+}
+
+.hcaptcha-integrations table tr td {
+	padding: 0;
+	margin: 0;
+}
+
+.hcaptcha-disabled-section {
+	margin: 20px 0;
+}
+
+@media (max-width: 1279px) {
+	.hcaptcha-integrations table tbody {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+@media (max-width: 1023px) {
+	.hcaptcha-integrations table tbody {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+

@@ -25,9 +25,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		global $hcaptcha_wordpress_plugin;
-
-		$hcaptcha_wordpress_plugin->form_shown = false;
+		hcaptcha()->form_shown = false;
 
 		parent::tearDown();
 	}
@@ -36,6 +34,8 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * Test hcap_form().
 	 */
 	public function test_hcap_form() {
+		hcaptcha()->init_hooks();
+
 		self::assertSame( $this->get_hcap_form(), hcap_form() );
 
 		$action = 'some_action';
@@ -49,14 +49,12 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * Test hcap_form_display().
 	 */
 	public function test_hcap_form_display() {
-		global $hcaptcha_wordpress_plugin;
-
-		self::assertFalse( $hcaptcha_wordpress_plugin->form_shown );
+		self::assertFalse( hcaptcha()->form_shown );
 
 		ob_start();
 		hcap_form_display();
 		self::assertSame( $this->get_hcap_form(), ob_get_clean() );
-		self::assertTrue( $hcaptcha_wordpress_plugin->form_shown );
+		self::assertTrue( hcaptcha()->form_shown );
 
 		$action = 'some_action';
 		$name   = 'some_name';
@@ -66,7 +64,10 @@ class FunctionsTest extends HCaptchaWPTestCase {
 		hcap_form_display( $action, $name, $auto );
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
 
-		update_option( 'hcaptcha_size', 'invisible' );
+		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
+
+		hcaptcha()->init_hooks();
+
 		ob_start();
 		hcap_form_display( $action, $name, $auto );
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto, true ), ob_get_clean() );
@@ -90,9 +91,11 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 		$expected = $filtered . $this->get_hcap_form( $form_action, $form_name, $form_auto );
 
+		hcaptcha()->init_hooks();
+
 		add_filter(
 			'hcap_hcaptcha_content',
-			function ( $hcaptcha_content ) use ( $filtered ) {
+			static function ( $hcaptcha_content ) use ( $filtered ) {
 				return $filtered . $hcaptcha_content;
 			}
 		);
@@ -125,227 +128,5 @@ class FunctionsTest extends HCaptchaWPTestCase {
 			'auto true'      => [ 'some_action', 'some_name', 'true' ],
 			'auto 1'         => [ 'some_action', 'some_name', '1' ],
 		];
-	}
-
-	/**
-	 * Test hcap_options().
-	 */
-	public function test_hcap_options() {
-		$expected = [
-			'hcaptcha_api_key'                     =>
-				[
-					'label' => 'hCaptcha Site Key',
-					'type'  => 'text',
-				],
-			'hcaptcha_secret_key'                  =>
-				[
-					'label' => 'hCaptcha Secret Key',
-					'type'  => 'password',
-				],
-			'hcaptcha_theme'                       =>
-				[
-					'label'   => 'hCaptcha Theme',
-					'type'    => 'select',
-					'options' =>
-						[
-							'light' => 'Light',
-							'dark'  => 'Dark',
-						],
-				],
-			'hcaptcha_size'                        =>
-				[
-					'label'   => 'hCaptcha Size',
-					'type'    => 'select',
-					'options' =>
-						[
-							'normal'    => 'Normal',
-							'compact'   => 'Compact',
-							'invisible' => 'Invisible',
-						],
-				],
-			'hcaptcha_language'                    =>
-				[
-					'label'       => 'Override Language Detection (optional)',
-					'type'        => 'text',
-					'description' => 'Info on <a href="https://hcaptcha.com/docs/languages" target="_blank">language codes</a>.',
-				],
-			'hcaptcha_off_when_logged_in'          =>
-				[
-					'label' => 'Turn off when logged in',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_recaptchacompat'             =>
-				[
-					'label' => 'Disable reCAPTCHA Compatibility (use if including both hCaptcha and reCAPTCHA on the same page)',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_lf_status'                   =>
-				[
-					'label' => 'Enable hCaptcha on Login Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_rf_status'                   =>
-				[
-					'label' => 'Enable hCaptcha on Register Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_lpf_status'                  =>
-				[
-					'label' => 'Enable hCaptcha on Lost Password Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_cmf_status'                  =>
-				[
-					'label' => 'Enable hCaptcha on Comment Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_bbp_new_topic_status'        =>
-				[
-					'label' => 'Enable hCaptcha on bbPress New Topic Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_bbp_reply_status'            =>
-				[
-					'label' => 'Enable hCaptcha on bbPress Reply Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_bp_create_group_status'      =>
-				[
-					'label' => 'Enable hCaptcha on BuddyPress Create Group Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_bp_reg_status'               =>
-				[
-					'label' => 'Enable hCaptcha on BuddyPress Registration Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_cf7_status'                  =>
-				[
-					'label' => 'Enable hCaptcha on Contact Form 7',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_divi_cmf_status'             =>
-				[
-					'label' => 'Enable hCaptcha on Divi Comment Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_divi_cf_status'              =>
-				[
-					'label' => 'Enable hCaptcha on Divi Contact Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_divi_lf_status'              =>
-				[
-					'label' => 'Enable hCaptcha on Divi Login Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_elementor__pro_form_status'  =>
-				[
-					'label' => 'Enable hCaptcha on Elementor Pro Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_fluentform_status'           =>
-				[
-					'label' => 'Enable hCaptcha on Fluent Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_gravityform_status'          =>
-				[
-					'label' => 'Enable hCaptcha on Gravity Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_jetpack_cf_status'           =>
-				[
-					'label' => 'Enable hCaptcha on Jetpack Contact Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_mc4wp_status'                =>
-				[
-					'label' => 'Enable hCaptcha on Mailchimp for WP Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_memberpress_register_status' =>
-				[
-					'label' => 'Enable hCaptcha on MemberPress Registration Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_nf_status'                   =>
-				[
-					'label' => 'Enable hCaptcha on Ninja Forms',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_subscribers_status'          =>
-				[
-					'label' => 'Enable hCaptcha on Subscribers Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_um_login_status'             =>
-				[
-					'label' => 'Enable hCaptcha on Ultimate Member Login',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_um_lost_pass_status'         =>
-				[
-					'label' => 'Enable hCaptcha on Ultimate Member Lost Password',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_um_register_status'          =>
-				[
-					'label' => 'Enable hCaptcha on Ultimate Member Register',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wc_login_status'             =>
-				[
-					'label' => 'Enable hCaptcha on WooCommerce Login Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wc_reg_status'               =>
-				[
-					'label' => 'Enable hCaptcha on WooCommerce Registration Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wc_lost_pass_status'         =>
-				[
-					'label' => 'Enable hCaptcha on WooCommerce Lost Password Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wc_checkout_status'          =>
-				[
-					'label' => 'Enable hCaptcha on WooCommerce Checkout Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wc_order_tracking_status'    =>
-				[
-					'label' => 'Enable hCaptcha on WooCommerce Order Tracking Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wc_wl_create_list_status'    =>
-				[
-					'label' => 'Enable hCaptcha on WooCommerce Wishlists Create List Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wpforms_status'              =>
-				[
-					'label' => 'Enable hCaptcha on WPForms Lite',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wpforms_pro_status'          =>
-				[
-					'label' => 'Enable hCaptcha on WPForms Pro',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wpforo_new_topic_status'     =>
-				[
-					'label' => 'Enable hCaptcha on WPForo New Topic Form',
-					'type'  => 'checkbox',
-				],
-			'hcaptcha_wpforo_reply_status'         =>
-				[
-					'label' => 'Enable hCaptcha on WPForo Reply Form',
-					'type'  => 'checkbox',
-				],
-		];
-
-		self::assertSame( $expected, hcap_options() );
 	}
 }

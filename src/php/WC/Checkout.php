@@ -53,9 +53,11 @@ class Checkout {
 	 * Enqueue scripts.
 	 */
 	public function enqueue_scripts() {
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			'hcaptcha-wc',
-			HCAPTCHA_URL . '/assets/js/hcaptcha-wc.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-wc$min.js",
 			[ 'jquery', 'hcaptcha' ],
 			HCAPTCHA_VERSION,
 			true

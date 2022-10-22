@@ -7,10 +7,10 @@
  * @license              GPL-2.0-or-later
  * @wordpress-plugin
  *
- * Plugin Name:          hCaptcha for Forms and More
+ * Plugin Name:          hCaptcha for WordPress
  * Plugin URI:           https://www.hcaptcha.com/
  * Description:          hCaptcha keeps out bots and spam while putting privacy first. It is a drop-in replacement for reCAPTCHA.
- * Version:              1.19.0
+ * Version:              2.0.0
  * Requires at least:    4.4
  * Requires PHP:         5.6
  * Author:               hCaptcha
@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      6.5
+ * WC tested up to:      7.0
  */
 
 use HCaptcha\Main;
@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-const HCAPTCHA_VERSION = '1.19.0';
+const HCAPTCHA_VERSION = '2.0.0';
 
 /**
  * Path to the plugin dir.
@@ -73,30 +73,19 @@ require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 require HCAPTCHA_INC . '/common/request.php';
 require HCAPTCHA_INC . '/common/functions.php';
 
-// Add admin page.
-if ( is_admin() ) {
-	require HCAPTCHA_INC . '/backend/nav.php';
-}
+/**
+ * Get hCaptcha Main class instance.
+ *
+ * @return Main|object
+ */
+function hcaptcha() {
+	static $hcaptcha = null;
 
-if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
-	/**
-	 * Print error message.
-	 *
-	 * @param string $hcaptcha_content Content of hCaptcha.
-	 *
-	 * @return string
-	 */
-	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
-		$message = sprintf(
-			'<p id="hcap_error" class="error hcap_error">%s</p>',
-			__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
-		);
-
-		return $message . $hcaptcha_content;
+	if ( null === $hcaptcha ) {
+		$hcaptcha = new Main();
 	}
+
+	return $hcaptcha;
 }
 
-global $hcaptcha_wordpress_plugin;
-
-$hcaptcha_wordpress_plugin = new Main();
-$hcaptcha_wordpress_plugin->init();
+hcaptcha()->init();

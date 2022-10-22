@@ -62,14 +62,15 @@ class NF {
 	 * @param array $field Field.
 	 *
 	 * @return array
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function localize_field( $field ) {
-		global $hcaptcha_wordpress_plugin;
 
+		$settings                            = hcaptcha()->settings();
 		$field['settings']['hcaptcha_id']    = uniqid( 'hcaptcha-nf-', true );
-		$field['settings']['hcaptcha_key']   = get_option( 'hcaptcha_api_key' );
-		$field['settings']['hcaptcha_theme'] = get_option( 'hcaptcha_theme' );
-		$hcaptcha_size                       = get_option( 'hcaptcha_size' );
+		$field['settings']['hcaptcha_key']   = $settings->get_site_key();
+		$field['settings']['hcaptcha_theme'] = $settings->get( 'theme' );
+		$hcaptcha_size                       = $settings->get( 'size' );
 
 		// Invisible is not supported by Ninja Forms so far.
 		$hcaptcha_size = 'invisible' === $hcaptcha_size ? 'normal' : $hcaptcha_size;
@@ -82,7 +83,7 @@ class NF {
 			false
 		);
 
-		$hcaptcha_wordpress_plugin->form_shown = true;
+		hcaptcha()->form_shown = true;
 
 		return $field;
 	}
@@ -91,9 +92,11 @@ class NF {
 	 * Enqueue script.
 	 */
 	public function nf_captcha_script() {
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			'hcaptcha-nf',
-			HCAPTCHA_URL . '/assets/js/hcaptcha-nf.js',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-nf{$min}.js",
 			[ 'nf-front-end' ],
 			HCAPTCHA_VERSION,
 			true

@@ -90,20 +90,27 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	public function test_localize_field() {
 		$field = [ 'some' ];
 
-		$hcaptcha_key   = 'some key';
-		$hcaptcha_theme = 'some theme';
-		$hcaptcha_size  = 'some size';
-		$nonce          = wp_nonce_field(
+		$hcaptcha_site_key = 'some key';
+		$hcaptcha_theme    = 'some theme';
+		$hcaptcha_size     = 'some size';
+		$nonce             = wp_nonce_field(
 			'hcaptcha_nf',
 			'hcaptcha_nf_nonce',
 			true,
 			false
 		);
-		$uniqid         = 'hcaptcha-nf-625d3b9b318fc0.86180601';
+		$uniqid            = 'hcaptcha-nf-625d3b9b318fc0.86180601';
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_key );
-		update_option( 'hcaptcha_theme', $hcaptcha_theme );
-		update_option( 'hcaptcha_size', $hcaptcha_size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key' => $hcaptcha_site_key,
+				'theme'    => $hcaptcha_theme,
+				'size'     => $hcaptcha_size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		FunctionMocker::replace(
 			'uniqid',
@@ -119,7 +126,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		$expected = $field;
 
 		$expected['settings']['hcaptcha_id']          = $uniqid;
-		$expected['settings']['hcaptcha_key']         = $hcaptcha_key;
+		$expected['settings']['hcaptcha_key']         = $hcaptcha_site_key;
 		$expected['settings']['hcaptcha_theme']       = $hcaptcha_theme;
 		$expected['settings']['hcaptcha_size']        = $hcaptcha_size;
 		$expected['settings']['hcaptcha_nonce_field'] = $nonce;
@@ -129,7 +136,17 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $expected, $subject->localize_field( $field ) );
 
 		// Test that invisible size is replaced by normal.
-		update_option( 'hcaptcha_size', 'invisible' );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key' => $hcaptcha_site_key,
+				'theme'    => $hcaptcha_theme,
+				'size'     => 'invisible',
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
 		$expected['settings']['hcaptcha_size'] = 'normal';
 
 		$subject = new NF();

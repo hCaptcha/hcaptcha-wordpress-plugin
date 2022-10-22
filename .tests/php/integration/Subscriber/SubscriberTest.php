@@ -20,6 +20,8 @@ class SubscriberTest extends HCaptchaWPTestCase {
 	 * Tests hcap_subscriber_form().
 	 */
 	public function test_hcap_subscriber_form() {
+		hcaptcha()->init_hooks();
+
 		$content  = '<!--some form content-->';
 		$expected =
 			$content .

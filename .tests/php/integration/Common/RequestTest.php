@@ -359,4 +359,14 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		self::assertSame( '<strong>Error</strong>: Please complete the captcha.', hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) );
 	}
+
+	/**
+	 * Test hcap_hcaptcha_error_message().
+	 */
+	public function test_hcap_hcaptcha_error_message() {
+		$hcaptcha_content = 'Some content';
+		$expected         = '<p id="hcap_error" class="error hcap_error">The Captcha is invalid.</p>' . $hcaptcha_content;
+
+		self::assertSame( $expected, hcap_hcaptcha_error_message( $hcaptcha_content ) );
+	}
 }

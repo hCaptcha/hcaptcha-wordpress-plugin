@@ -1,0 +1,150 @@
+.hcaptcha-logo {
+	width: 235px;
+	margin: 10px 0;
+}
+
+.hcaptcha-settings-tabs {
+	line-height: 4.5em;
+	background: #fff;
+	margin: 10px -20px 0 -20px;
+	padding: 0 20px;
+}
+
+.hcaptcha-settings-tab {
+	display: inline-block;
+	font-size: 1.1em;
+	text-decoration: none;
+	margin-right: 30px;
+	color: #646970;
+	border-bottom: 2px solid transparent;
+}
+
+.hcaptcha-settings-tab:hover {
+	color: #666;
+	border-color: #646970;
+	border-bottom: 2px solid;
+}
+
+.hcaptcha-settings-tab.active {
+	border-bottom: 2px solid #2271b1;
+}
+
+#hcaptcha-options h2 {
+	font-size: 1.5em;
+}
+
+#hcaptcha-options h3 {
+	margin: 1.5em 0 1em;
+}
+
+#hcaptcha-options table tr td input[type="checkbox"] {
+	display: inline;
+	border: none;
+	box-shadow: none;
+	margin: 0 4px 0 0;
+	min-width: 0;
+	width: 0;
+}
+
+#hcaptcha-options table tr td input[type="checkbox"]::before {
+	background: no-repeat url('../images/checkbox-off.svg');
+	margin: 0;
+	width: 2.4792rem;
+	height: 1.3125rem;
+	content: '';
+	display: inline-block;
+	float: left;
+}
+
+#hcaptcha-options table tr td input[type="checkbox"]:checked::before {
+	background: no-repeat url('../images/checkbox-on.svg');
+}
+
+#hcaptcha-options fieldset:disabled {
+	color: #dadada;
+}
+
+/* Helper */
+#hcaptcha-options .helper::before {
+	content: '?';
+	position: absolute;
+	right: 0;
+	top: 0;
+	transform: translate(0, -26px);
+	background: #000;
+	color: #fff;
+	width: 1.2em;
+	height: 1.2em;
+	text-align: center;
+	border-radius: 1.2em;
+}
+
+#hcaptcha-options fieldset + .helper::before {
+	transform: translate(25px, -0.8em);
+	top: 50%;
+}
+
+#hcaptcha-options .helper .helper-content {
+	display: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	transform: translate(1px, 10px);
+	background: #000;
+	color: #fff;
+	padding: 0.5em 1em;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#hcaptcha-options fieldset + .helper .helper-content {
+	top: 50%;
+	transform: translate(25px, 25px);
+	width: calc(100% + 25px);
+}
+
+#hcaptcha-options .helper:hover {
+	cursor: help;
+}
+
+#hcaptcha-options .helper:hover .helper-content {
+	display: block;
+	z-index: 1;
+}
+
+#hcaptcha-options .helper .helper-content::after {
+	content: '';
+	border: solid 10px transparent;
+	border-bottom-color: #000;
+	position: absolute;
+	top: 0;
+	right: 0;
+	transform: translateY(-100%);
+}
+
+#hcaptcha-options .helper .helper-content a {
+	color: #fff;
+}
+
+@media (max-width: 600px) {
+	#hcaptcha-options table tbody {
+		grid-template-columns: 1fr;
+	}
+
+	#hcaptcha-options table tbody tr {
+		position: relative;
+	}
+
+	#hcaptcha-options fieldset + .helper::before {
+		transform: translate(0px, -0.7em);
+	}
+
+	#hcaptcha-options fieldset + .helper .helper-content {
+		transform: translate(0, 25px);
+		width: 100%;
+	}
+
+	#hcaptcha-options .helper {
+		z-index: 1;
+	}
+}

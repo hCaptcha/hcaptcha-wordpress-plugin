@@ -7,8 +7,6 @@
 
 namespace HCaptcha\Divi;
 
-use WP_Error;
-
 /**
  * Class Login.
  */
@@ -64,26 +62,5 @@ class Login {
 
 		// Insert hcaptcha.
 		return preg_replace( $pattern, $replacement, $output );
-	}
-
-	/**
-	 * Verify login form.
-	 *
-	 * @param WP_Error $errors      WP Error object.
-	 * @param string   $redirect_to Redirect destination URL.
-	 *
-	 * @return WP_Error
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function verify( $errors, $redirect_to ) {
-		$error_message = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
-
-		if ( null === $error_message ) {
-			return $errors;
-		}
-
-		$errors->add( 'invalid_hcaptcha', __( '<strong>Error</strong>: Invalid Captcha', 'hcaptcha-for-forms-and-more' ) );
-
-		return $errors;
 	}
 }

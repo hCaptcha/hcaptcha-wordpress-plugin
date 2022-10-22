@@ -1,32 +1,100 @@
-const path = require( 'path' );
+const glob = require('glob');
+const path = require('path');
+const CssMinimizerWebpackPlugin = require('css-minimizer-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const WebpackRemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 
-const webPackModule = () => {
+const webPackModule = (production) => {
 	return {
 		rules: [
 			{
-				loader: 'babel-loader',
 				test: /\.js$/,
 				exclude: /node_modules/,
+				loader: 'babel-loader',
 				options: {
-					presets: [ 'env' ],
+					presets: ['@babel/preset-env'],
 				},
+			},
+			{
+				test: /\.s?css$/,
+				use: [
+					{
+						loader: MiniCssExtractPlugin.loader,
+						options: {
+							publicPath: path.join(__dirname, 'assets'),
+						},
+					},
+					{
+						loader: 'css-loader',
+						options: {
+							sourceMap: !production,
+						},
+					},
+				],
 			},
 		],
 	};
 };
 
-const hcaptcha = ( env ) => {
-	const isProduction = 'production' === env;
+const hcaptcha = (env) => {
+	const production = env.production ? env.production : false;
+	const cssEntries = {};
+	const jsEntries = {};
+	const appEntries = {
+		hcaptcha: './src/js/hcaptcha/app.js',
+	};
+
+	glob.sync('./assets/css/*.css').map((entry) => {
+		if (entry.includes('.min.css')) {
+			return entry;
+		}
+		const filename = entry.replace(/^.*[\\\/]/, '').replace(/\..+$/, '');
+		cssEntries[filename] = entry;
+		return entry;
+	});
+	glob.sync('./assets/js/*.js').map((entry) => {
+		if (entry.includes('.min.js')) {
+			return entry;
+		}
+		const filename = entry.replace(/^.*[\\\/]/, '').replace(/\..+$/, '');
+		jsEntries[filename] = entry;
+		return entry;
+	});
+
+	const entries = {
+		...cssEntries,
+		...jsEntries,
+		...appEntries,
+	};
 
 	return {
-		entry: [ 'cross-fetch', './src/js/hcaptcha/app.js' ],
+		devtool: production ? false : 'eval-source-map',
+		entry: entries,
+		module: webPackModule(production),
 		output: {
-			path: path.join( __dirname, 'assets', 'js' ),
-			filename: path.join( 'hcaptcha', 'app.js' ),
+			path: path.join(__dirname, 'assets'),
+			filename: (pathData) => {
+				return pathData.chunk.name === 'hcaptcha'
+					? 'js/apps/[name].js'
+					: 'js/[name].min.js';
+			},
 		},
-		module: webPackModule( ! isProduction ),
-		devtool: isProduction ? '' : 'inline-source-map',
+		plugins: [
+			new WebpackRemoveEmptyScriptsPlugin(),
+			new MiniCssExtractPlugin({
+				filename: 'css/[name].min.css',
+			}),
+		],
+		optimization: {
+			minimizer: [
+				new TerserPlugin({
+					extractComments: false,
+				}),
+				new CssMinimizerWebpackPlugin(),
+			],
+		},
 	};
 };
 
-module.exports = [ hcaptcha ];
+module.exports = hcaptcha;

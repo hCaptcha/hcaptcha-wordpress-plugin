@@ -11,6 +11,7 @@
 /CHANGELOG.md
 /README.md
 /Thumbs.db
+/assets/js/*.svg
 /auth.json
 /babel.config.json
 /composer.json

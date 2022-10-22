@@ -41,6 +41,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 
+		delete_option( 'hcaptcha_settings' );
+
 		Mockery::close();
 		parent::tearDown();
 		FunctionMocker::tearDown();
@@ -156,7 +158,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 		}
 
 		$hcaptcha_secret_key = 'some secret key';
-		update_option( 'hcaptcha_secret_key', $hcaptcha_secret_key );
+
+		update_option( 'hcaptcha_settings', [ 'secret_key' => $hcaptcha_secret_key ] );
+		hcaptcha()->init_hooks();
 
 		$ip                        = '7.7.7.7';
 		$_SERVER['HTTP_CLIENT_IP'] = $ip;
@@ -165,7 +169,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 			'pre_http_request',
 			static function ( $preempt, $parsed_args, $url ) use ( $hcaptcha_secret_key, $hcaptcha_response, $raw_response, $ip ) {
 				$expected_url  =
-					'https://hcaptcha.com/siteverify';
+					'https://api.hcaptcha.com/siteverify';
 				$expected_body = [
 					'secret'   => $hcaptcha_secret_key,
 					'response' => $hcaptcha_response,

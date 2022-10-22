@@ -37,9 +37,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		global $hcaptcha_wordpress_plugin;
-
-		$hcaptcha_wordpress_plugin->form_shown = false;
+		hcaptcha()->form_shown = false;
 
 		wp_deregister_script( 'hcaptcha-script' );
 		wp_dequeue_script( 'hcaptcha-script' );
@@ -76,12 +74,19 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$nonce = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
 
-		$hcaptcha_api_key = 'some api key';
-		$hcaptcha_theme   = 'some theme';
+		$hcaptcha_site_key = 'some site key';
+		$hcaptcha_theme    = 'some theme';
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
-		update_option( 'hcaptcha_theme', $hcaptcha_theme );
-		update_option( 'hcaptcha_size', $hcaptcha_size );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key' => $hcaptcha_site_key,
+				'theme'    => $hcaptcha_theme,
+				'size'     => $hcaptcha_size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
 
 		FunctionMocker::replace(
 			'uniqid',
@@ -98,16 +103,16 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$expected =
 			'<form>' .
-			'<span class="wpcf7-form-control-wrap hcap_cf7-h-captcha-invalid">' .
+			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
 			'<span id="' . $uniqid .
-			'" class="wpcf7-form-control h-captcha hcap_cf7-h-captcha" data-sitekey="' . $hcaptcha_api_key .
+			'" class="wpcf7-form-control h-captcha" data-sitekey="' . $hcaptcha_site_key .
 			'" data-theme="' . $hcaptcha_theme .
 			$callback .
 			'" data-size="' . $hcaptcha_size . '">' .
 			'</span>' .
 			'</span>' .
 			$nonce .
-			'<br><input type="submit" value="Send">' .
+			'<input type="submit" value="Send">' .
 			'</form>';
 
 		$subject = new CF7();
@@ -138,13 +143,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha() {
-		$data             = [ 'h-captcha-response' => 'some response' ];
-		$wpcf7_id         = 23;
-		$hcaptcha_api_key = 'some api key';
-		$cf7_text         =
+		$data              = [ 'h-captcha-response' => 'some response' ];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$cf7_text          =
 			'<form>' .
 			'<input type="submit" value="Send">' .
-			$hcaptcha_api_key .
+			$hcaptcha_site_key .
 			'</form>';
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -164,15 +169,18 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
+
+		hcaptcha()->init_hooks();
 
 		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'] );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -182,10 +190,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -200,18 +209,19 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
-	 * Test hcap_cf7_verify_recaptcha() without api key.
+	 * Test hcap_cf7_verify_recaptcha() without site key.
 	 *
 	 * @noinspection PhpParamsInspection
 	 */
-	public function test_hcap_cf7_verify_recaptcha_without_api_key() {
+	public function test_hcap_cf7_verify_recaptcha_without_site_key() {
 		$data     = [];
 		$wpcf7_id = 23;
 		$cf7_text =
@@ -237,10 +247,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$_POST['_wpcf7'] = 23;
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -249,13 +260,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_response() {
-		$data             = [];
-		$wpcf7_id         = 23;
-		$hcaptcha_api_key = 'some api key';
-		$cf7_text         =
+		$data              = [];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$cf7_text          =
 			'<form>' .
 			'<input type="submit" value="Send">' .
-			$hcaptcha_api_key .
+			$hcaptcha_site_key .
 			'</form>';
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -275,15 +286,19 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
+
+		hcaptcha()->init_hooks();
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
+
 		$result
 			->shouldReceive( 'invalidate' )
 			->with(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => 'hcap-cf7',
 				],
 				'Please complete the captcha.'
 			)
@@ -291,7 +306,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -300,13 +315,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_not_verified() {
-		$data             = [ 'h-captcha-response' => 'some response' ];
-		$wpcf7_id         = 23;
-		$hcaptcha_api_key = 'some api key';
-		$cf7_text         =
+		$data              = [ 'h-captcha-response' => 'some response' ];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$cf7_text          =
 			'<form>' .
 			'<input type="submit" value="Send">' .
-			$hcaptcha_api_key .
+			$hcaptcha_site_key .
 			'</form>';
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -326,17 +341,21 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$_POST['_wpcf7'] = 23;
 
-		update_option( 'hcaptcha_api_key', $hcaptcha_api_key );
+		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
+
+		hcaptcha()->init_hooks();
 
 		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'], false );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
+
 		$result
 			->shouldReceive( 'invalidate' )
 			->with(
 				[
-					'type' => 'captcha',
-					'name' => 'hcap_cf7-h-captcha-invalid',
+					'type' => 'hcaptcha',
+					'name' => 'hcap-cf7',
 				],
 				'The Captcha is invalid.'
 			)
@@ -344,7 +363,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$subject = new CF7();
 
-		self::assertSame( $result, $subject->verify_hcaptcha( $result ) );
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
 	}
 
 	/**
@@ -365,7 +384,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		self::assertFalse( wp_script_is( CF7::HANDLE ) );
 
-		update_option( 'hcaptcha_size', $hcaptcha_size );
+		update_option( 'hcaptcha_settings', [ 'size' => $hcaptcha_size ] );
+
+		hcaptcha()->init_hooks();
+
 		do_shortcode( '[cf7-hcaptcha]' );
 
 		ob_start();

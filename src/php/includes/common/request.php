@@ -56,6 +56,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @param string|null $hcaptcha_response hCaptcha response.
 	 *
 	 * @return string fail|success
+	 * @noinspection NullPointerExceptionInspection
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
 		$hcaptcha_response_sanitized = htmlspecialchars(
@@ -67,7 +68,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$params = [
-			'secret'   => get_option( 'hcaptcha_secret_key' ),
+			'secret'   => hcaptcha()->settings()->get_secret_key(),
 			'response' => $hcaptcha_response_sanitized,
 		];
 
@@ -78,7 +79,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$raw_response = wp_remote_post(
-			'https://hcaptcha.com/siteverify',
+			'https://api.hcaptcha.com/siteverify',
 			[ 'body' => $params ]
 		);
 
@@ -192,3 +193,22 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 		);
 	}
 }
+
+if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
+	/**
+	 * Print error message.
+	 *
+	 * @param string $hcaptcha_content Content of hCaptcha.
+	 *
+	 * @return string
+	 */
+	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
+		$message = sprintf(
+			'<p id="hcap_error" class="error hcap_error">%s</p>',
+			__( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' )
+		);
+
+		return $message . $hcaptcha_content;
+	}
+}
+

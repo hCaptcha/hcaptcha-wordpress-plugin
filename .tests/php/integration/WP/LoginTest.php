@@ -36,10 +36,6 @@ class LoginTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_action( 'login_head', [ $subject, 'login_head' ] )
-		);
-		self::assertSame(
-			10,
 			has_filter(
 				'woocommerce_login_credentials',
 				[ $subject, 'remove_filter_wp_authenticate_user' ]
@@ -103,34 +99,6 @@ class LoginTest extends HCaptchaWPTestCase {
 		$subject = new Login();
 
 		self::assertEquals( $expected, $subject->verify( $user, '' ) );
-	}
-
-	/**
-	 * Test login_head().
-	 */
-	public function test_hcap_login_head() {
-		$expected = '		<style>
-			@media (max-width: 349px) {
-				.h-captcha {
-					display: flex;
-					justify-content: center;
-				}
-			}
-			@media (min-width: 350px) {
-				#login {
-					width: 350px;
-				}
-			}
-		</style>
-		';
-
-		$subject = new Login();
-
-		ob_start();
-
-		$subject->login_head();
-
-		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
