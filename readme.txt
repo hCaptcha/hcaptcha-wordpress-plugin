@@ -292,7 +292,8 @@ Instructions for popular native integrations are below:
 
 = 2.1.0 =
 * Added Quform support.
-* Added proper error messages from hcaptcha.com.
+* Added actual messages from hcaptcha.com.
+* Added support for Multipage Gravity Form.
 * Fixed error messaging in Ninja Forms.
 
 = 2.0.0 =

@@ -98,6 +98,7 @@ class AutoVerify {
 		}
 
 		$result = hcaptcha_verify_post();
+
 		if ( null !== $result ) {
 			$_POST = [];
 			wp_die(
