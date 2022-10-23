@@ -495,6 +495,9 @@ class AMainTest extends HCaptchaWPTestCase {
 				display: block;
 				margin-bottom: 2rem;
 			}
+			.gform_previous_button + .h-captcha {
+				margin-top: 2rem;
+			}
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
