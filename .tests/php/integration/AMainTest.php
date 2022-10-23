@@ -20,6 +20,7 @@ use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
+use HCaptcha\Quform\Quform;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WP\Comment;
@@ -1046,6 +1047,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'fluentform/fluentform.php',
 				Form::class,
 			],
+			'Forminator'                   => [
+				[ 'forminator_status', 'form' ],
+				'forminator/forminator.php',
+				\HCaptcha\Forminator\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
@@ -1070,6 +1076,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
+			],
+			'Quform'                       => [
+				[ 'quform_status', 'form' ],
+				'quform/quform.php',
+				Quform::class,
 			],
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],
