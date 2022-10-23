@@ -545,6 +545,11 @@ class Main {
 				'fluentform/fluentform.php',
 				FluentForm\Form::class,
 			],
+			'Forminator'                   => [
+				[ 'forminator_status', 'form' ],
+				'forminator/forminator.php',
+				Forminator\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',

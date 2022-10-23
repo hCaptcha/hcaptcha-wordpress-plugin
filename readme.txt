@@ -249,6 +249,8 @@ For more details, please see the hCaptcha privacy policy at:
 * Divi Contact Form
 * Divi Login Form
 * Elementor Pro Form
+* Fluent Forms
+* Forminator
 * Gravity Forms
 * Jetpack Forms
 * Mailchimp for WP Form
@@ -291,6 +293,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.1.0 =
+* Added Forminator support.
 * Added Quform support.
 * Added actual messages from hcaptcha.com.
 * Added support for Multipage Gravity Form.
