@@ -119,18 +119,18 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
 * @param bool $activate Activate flag.
 *
 * @return bool
-  */
-  function my_hcap_activate( $activate ) {
+*/
+function my_hcap_activate( $activate ) {
   $url = isset( $_SERVER['REQUEST_URI'] ) ?
   filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
   '';
 
   if ( '/my-account/' === $url ) {
-  return false;
+    return false;
   }
 
   return $activate;
-  }
+}
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
