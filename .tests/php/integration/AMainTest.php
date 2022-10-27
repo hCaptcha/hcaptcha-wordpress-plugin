@@ -495,6 +495,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				position: relative;
 				display: block;
 				margin-bottom: 2rem;
+				padding: 0;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
