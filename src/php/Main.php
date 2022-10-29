@@ -240,6 +240,7 @@ class Main {
 				display: block;
 				margin-bottom: 2rem;
 				padding: 0;
+				clear: both;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
