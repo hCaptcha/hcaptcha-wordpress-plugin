@@ -16,6 +16,7 @@ use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
+use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
@@ -581,6 +582,11 @@ class Main {
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
 				Quform::class,
+			],
+			'Sendinblue'                   => [
+				[ 'sendinblue_status', 'form' ],
+				'mailin/sendinblue.php',
+				Sendinblue::class,
 			],
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],

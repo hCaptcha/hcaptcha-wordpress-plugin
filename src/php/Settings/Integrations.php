@@ -204,6 +204,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'sendinblue_status'            => [
+				'label'   => 'Sendinblue',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'subscriber_status'            => [
 				'label'   => 'Subscriber',
 				'type'    => 'checkbox',
