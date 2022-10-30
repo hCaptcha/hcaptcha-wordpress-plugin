@@ -103,10 +103,11 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WP Core',
 				'type'    => 'checkbox',
 				'options' => [
-					'comment'   => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
-					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'comment'            => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'login'              => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass'          => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'password_protected' => __( 'Post/Page Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'bbp_status'                   => [

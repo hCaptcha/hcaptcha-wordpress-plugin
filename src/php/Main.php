@@ -21,6 +21,7 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\WP\PasswordProtected;
 
 /**
  * Class Main.
@@ -500,6 +501,11 @@ class Main {
 				[ 'wp_status', 'lost_pass' ],
 				'',
 				WP\LostPassword::class,
+			],
+			'Post/Page Password Form'      => [
+				[ 'wp_status', 'password_protected' ],
+				'',
+				PasswordProtected::class,
 			],
 			'Register Form'                => [
 				[ 'wp_status', 'register' ],
