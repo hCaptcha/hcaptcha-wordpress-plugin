@@ -505,6 +505,13 @@ class AMainTest extends HCaptchaWPTestCase {
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
 			}
+			.wpdm-button-area + .h-captcha {
+				margin-bottom: 1rem;
+			}
+			.w3eden .btn-primary {
+				background-color: var(--color-primary) !important;
+				color: #fff !important;
+			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
 				width: 303px;
