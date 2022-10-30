@@ -35,7 +35,7 @@ class DownloadManager {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_action( 'wpdm_after_fetch_template', [ $this, 'add_hcaptcha' ], 10, 4 );
+		add_action( 'wpdm_after_fetch_template', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_action( 'wpdm_onstart_download', [ $this, 'verify' ], 10 );
 	}
 
@@ -65,7 +65,7 @@ class DownloadManager {
 	}
 
 	/**
-	 * Verify request filter.
+	 * Verify request.
 	 *
 	 * @param array|null $package Result of the hCaptcha verification.
 	 *
