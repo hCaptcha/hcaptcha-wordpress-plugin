@@ -71,15 +71,12 @@ class DownloadManager {
 			return;
 		}
 
-		$backlink = site_url( wp_get_referer() );
 		wp_die(
 			esc_html( $result ),
 			'hCaptcha error',
 			[
+				'back_link' => true,
 				'response'  => 303,
-				'backlink'  => esc_url( $backlink ),
-				'link_url'  => esc_url( $backlink ),
-				'link_text' => esc_html__( 'Go back', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 	}
