@@ -5,13 +5,7 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedClassInspection */
-
 namespace HCaptcha\DownloadManager;
-
-use WP_Post;
-use WPDM\__\Messages;
 
 /**
  * Class DownloadManager.
@@ -43,6 +37,7 @@ class DownloadManager {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function add_hcaptcha( $template, $vars ) {
 		$hcaptcha = hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true );
