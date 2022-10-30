@@ -13,6 +13,16 @@ namespace HCaptcha\DownloadManager;
 class DownloadManager {
 
 	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_download_manager';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_download_manager_nonce';
+
+	/**
 	 * DownloadManager constructor.
 	 */
 	public function __construct() {
@@ -40,7 +50,7 @@ class DownloadManager {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function add_hcaptcha( $template, $vars ) {
-		$hcaptcha = hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true );
+		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
 
 		$template = preg_replace( '/(<ul class="list-group ml)/', $hcaptcha . '$1', $template );
 		$template = preg_replace( '/<a (.+)?<\/a>/', '<button type="submit" $1</button>', $template );
@@ -65,7 +75,7 @@ class DownloadManager {
 	 */
 	public function verify( $package ) {
 
-		$result = hcaptcha_verify_post();
+		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {
 			return;
