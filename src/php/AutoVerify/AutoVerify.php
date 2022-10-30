@@ -103,10 +103,10 @@ class AutoVerify {
 			$_POST = [];
 			wp_die(
 				esc_html( $result ),
-				'hCaptcha',
+				'hCaptcha error',
 				[
 					'back_link' => true,
-					'response'  => 403,
+					'response'  => 303,
 				]
 			);
 		}
