@@ -1,6 +1,6 @@
 .hcaptcha-integrations table tbody {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(4, minmax(100px, 1fr));
 	gap: 10px 20px;
 }
 
@@ -16,6 +16,8 @@
 	align-items: center;
 	flex-wrap: wrap;
 	justify-content: space-between;
+	overflow: hidden;
+	width: unset;
 }
 
 .hcaptcha-integrations table tr th img {
@@ -33,13 +35,13 @@
 
 @media (max-width: 1279px) {
 	.hcaptcha-integrations table tbody {
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(100px, 1fr));
 	}
 }
 
 @media (max-width: 1023px) {
 	.hcaptcha-integrations table tbody {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(100px, 1fr));
 	}
 }
 

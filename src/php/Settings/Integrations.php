@@ -141,6 +141,13 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'download_manager_status'      => [
+				'label'   => 'Download Manager',
+				'type'    => 'checkbox',
+				'options' => [
+					'button' => __( 'Button', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'elementor_pro_status'         => [
 				'label'   => 'Elementor Pro',
 				'type'    => 'checkbox',

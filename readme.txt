@@ -248,6 +248,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Contact Form 7
 * Divi Contact Form
 * Divi Login Form
+* Download Manager Button
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
@@ -297,6 +298,7 @@ Instructions for popular native integrations are below:
 * Added Forminator support.
 * Added Quform support.
 * Added Sendinblue support.
+* Added Download Manager support.
 * Added actual messages from hcaptcha.com.
 * Added support for Multipage Gravity Form.
 * Fixed error messaging in Ninja Forms.

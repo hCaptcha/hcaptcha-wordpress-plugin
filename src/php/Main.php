@@ -11,6 +11,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
+use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
@@ -249,6 +250,9 @@ class Main {
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
+			}
+			.wpdm-button-area + .h-captcha {
+				margin-bottom: 1rem;
 			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
@@ -537,6 +541,11 @@ class Main {
 				[ 'divi_status', 'login' ],
 				'Divi',
 				Divi\Login::class,
+			],
+			'Download Manager'             => [
+				[ 'download_manager_status', 'button' ],
+				'download-manager/download-manager.php',
+				DownloadManager::class,
 			],
 			'Elementor Pro Form'           => [
 				[ 'elementor_pro_status', 'form' ],
