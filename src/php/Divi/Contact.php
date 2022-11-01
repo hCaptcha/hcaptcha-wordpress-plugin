@@ -144,6 +144,7 @@ class Contact {
 			}
 
 			$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
+
 			if ( null !== $error_message ) {
 				// Simulate captcha error.
 				$this->captcha = 'on';

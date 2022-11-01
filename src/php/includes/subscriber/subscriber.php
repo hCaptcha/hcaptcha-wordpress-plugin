@@ -44,6 +44,7 @@ if ( ! function_exists( 'hcap_subscriber_verify' ) ) {
 	 */
 	function hcap_subscriber_verify( $check_result = true ) {
 		$error_message = hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
+
 		if ( null === $error_message ) {
 			return $check_result;
 		}

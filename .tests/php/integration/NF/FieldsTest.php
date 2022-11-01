@@ -55,7 +55,7 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 	public function test_validate_without_field() {
 		$subject = new Fields();
 
-		self::assertSame( 'Please complete the captcha.', $subject->validate( [], null ) );
+		self::assertSame( 'Please complete the hCaptcha.', $subject->validate( [], null ) );
 	}
 
 	/**
@@ -67,6 +67,6 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Fields();
 
-		self::assertSame( [ 'The Captcha is invalid.' ], $subject->validate( $field, null ) );
+		self::assertSame( 'The hCaptcha is invalid.', $subject->validate( $field, null ) );
 	}
 }

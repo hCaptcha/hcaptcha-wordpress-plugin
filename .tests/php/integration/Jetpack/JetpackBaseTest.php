@@ -64,13 +64,13 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	 * Test jetpack_verify() not verified.
 	 */
 	public function test_jetpack_verify_not_verified() {
-		$error = new WP_Error( 'invalid_hcaptcha', 'The Captcha is invalid.' );
+		$error = new WP_Error( 'invalid_hcaptcha', 'The hCaptcha is invalid.' );
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
 
 		$subject = new JetpackForm();
 
 		self::assertEquals( $error, $subject->jetpack_verify() );
-		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', 'hcap_hcaptcha_error_message' ) );
+		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', [ $subject, 'error_message' ] ) );
 	}
 }

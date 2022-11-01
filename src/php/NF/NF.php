@@ -62,7 +62,6 @@ class NF {
 	 * @param array $field Field.
 	 *
 	 * @return array
-	 * @noinspection NullPointerExceptionInspection
 	 */
 	public function localize_field( $field ) {
 
@@ -96,7 +95,7 @@ class NF {
 
 		wp_enqueue_script(
 			'hcaptcha-nf',
-			HCAPTCHA_URL . "/assets/js/hcaptcha-nf{$min}.js",
+			HCAPTCHA_URL . "/assets/js/hcaptcha-nf$min.js",
 			[ 'nf-front-end' ],
 			HCAPTCHA_VERSION,
 			true

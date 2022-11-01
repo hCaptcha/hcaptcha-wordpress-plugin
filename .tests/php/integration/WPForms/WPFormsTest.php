@@ -51,11 +51,11 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
 		wpforms()->objects();
-		wpforms()->process->errors = [];
+		wpforms()->get( 'process' )->errors = [];
 
-		self::assertSame( $fields, hcaptcha_wpforms_validate( $fields, [], $form_data ) );
+		hcaptcha_wpforms_validate( $fields, [], $form_data );
 
-		self::assertSame( [], wpforms()->process->errors );
+		self::assertSame( [], wpforms()->get( 'process' )->errors );
 	}
 
 	/**
@@ -65,15 +65,15 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
 
-		$expected = 'Captcha Failed';
+		$expected = 'The hCaptcha is invalid.';
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nounce', 'hcaptcha_wpforms', false );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 
 		wpforms()->objects();
-		wpforms()->process->errors = [];
+		wpforms()->get( 'process' )->errors = [];
 
-		self::assertNull( hcaptcha_wpforms_validate( $fields, [], $form_data ) );
+		hcaptcha_wpforms_validate( $fields, [], $form_data );
 
-		self::assertSame( $expected, wpforms()->process->errors[ $form_data['id'] ]['footer'] );
+		self::assertSame( $expected, wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] );
 	}
 }

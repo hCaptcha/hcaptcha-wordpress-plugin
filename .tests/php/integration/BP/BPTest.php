@@ -114,7 +114,7 @@ class BPTest extends HCaptchaPluginWPTestCase {
 		self::assertFalse( hcap_hcaptcha_bp_group_verify( null ) );
 
 		$bp = buddypress();
-		self::assertSame( 'Please complete the captcha.', $bp->template_message );
+		self::assertSame( 'Please complete the hCaptcha.', $bp->template_message );
 		self::assertSame( 'error', $bp->template_message_type );
 	}
 
@@ -181,7 +181,7 @@ class BPTest extends HCaptchaPluginWPTestCase {
 
 		$expected = (object) [
 			'errors' => [
-				'hcaptcha_response_verify' => 'Please complete the captcha.',
+				'hcaptcha_response_verify' => 'Please complete the hCaptcha.',
 			],
 		];
 

@@ -103,10 +103,11 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WP Core',
 				'type'    => 'checkbox',
 				'options' => [
-					'comment'   => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
-					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'comment'            => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'login'              => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass'          => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'password_protected' => __( 'Post/Page Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'bbp_status'                   => [
@@ -141,6 +142,13 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'download_manager_status'      => [
+				'label'   => 'Download Manager',
+				'type'    => 'checkbox',
+				'options' => [
+					'button' => __( 'Button', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'elementor_pro_status'         => [
 				'label'   => 'Elementor Pro',
 				'type'    => 'checkbox',
@@ -150,6 +158,13 @@ class Integrations extends PluginSettingsBase {
 			],
 			'fluent_status'                => [
 				'label'   => 'Fluent Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'forminator_status'            => [
+				'label'   => 'Forminator',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -185,6 +200,20 @@ class Integrations extends PluginSettingsBase {
 			],
 			'ninja_status'                 => [
 				'label'   => 'Ninja Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'quform_status'                => [
+				'label'   => 'Quform',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'sendinblue_status'            => [
+				'label'   => 'Sendinblue',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),

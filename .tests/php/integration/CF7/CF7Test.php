@@ -300,7 +300,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 					'type' => 'hcaptcha',
 					'name' => 'hcap-cf7',
 				],
-				'Please complete the captcha.'
+				'Please complete the hCaptcha.'
 			)
 			->once();
 
@@ -357,7 +357,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 					'type' => 'hcaptcha',
 					'name' => 'hcap-cf7',
 				],
-				'The Captcha is invalid.'
+				'The hCaptcha is invalid.'
 			)
 			->once();
 

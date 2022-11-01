@@ -75,7 +75,7 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 		$expected      = [
 			'error' => [
 				[
-					'notice' => 'The Captcha is invalid.',
+					'notice' => 'The hCaptcha is invalid.',
 					'data'   => [],
 				],
 			],

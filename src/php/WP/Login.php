@@ -60,9 +60,8 @@ class Login {
 			return $user;
 		}
 
-		return new WP_Error( 'invalid_hcaptcha', __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' ), 400 );
+		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
 	}
-
 	/**
 	 * Remove standard WP login captcha if we do logging in via WC.
 	 *

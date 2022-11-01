@@ -53,6 +53,6 @@ class SubscriberTest extends HCaptchaWPTestCase {
 	public function test_hcap_subscriber_verify_not_verified() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form', false );
 
-		self::assertSame( 'The Captcha is invalid.', hcap_subscriber_verify() );
+		self::assertSame( 'The hCaptcha is invalid.', hcap_subscriber_verify() );
 	}
 }

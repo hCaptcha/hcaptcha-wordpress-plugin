@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
 Tested up to: 6.1
 Requires PHP: 5.6.20
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html  
  
@@ -119,18 +119,18 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
 * @param bool $activate Activate flag.
 *
 * @return bool
-  */
-  function my_hcap_activate( $activate ) {
+*/
+function my_hcap_activate( $activate ) {
   $url = isset( $_SERVER['REQUEST_URI'] ) ?
   filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
   '';
 
   if ( '/my-account/' === $url ) {
-  return false;
+    return false;
   }
 
   return $activate;
-  }
+}
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
@@ -241,6 +241,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Register Form
 * Lost Password Form
 * Comment Form
+* Post/Page Password Form
 * bbPress New Topic Form
 * bbPress Reply Form
 * BuddyPress Create Group Form
@@ -248,12 +249,17 @@ For more details, please see the hCaptcha privacy policy at:
 * Contact Form 7
 * Divi Contact Form
 * Divi Login Form
+* Download Manager Button
 * Elementor Pro Form
+* Fluent Forms
+* Forminator
 * Gravity Forms
 * Jetpack Forms
 * Mailchimp for WP Form
 * MemberPress Register Form
 * Ninja Forms
+* Quform Forms
+* Sendinblue Form
 * Subscriber Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
@@ -288,6 +294,16 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
  
 == Changelog ==
+
+= 2.1.0 =
+* Added Forminator support.
+* Added Quform support.
+* Added Sendinblue support.
+* Added Download Manager support.
+* Added support for password protected post/page.
+* Added actual messages from hcaptcha.com.
+* Added support for Multipage Gravity Form.
+* Fixed error messaging in Ninja Forms.
 
 = 2.0.0 =
 * Tested with WordPress 6.1.

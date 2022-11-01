@@ -18,6 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @link  https://wpforms.com/developers/wpforms_display_submit_before/
  *
  * @param array $form_data Form data and settings...
+ *
+ * @noinspection PhpUnusedParameterInspection
  */
 function hcaptcha_wpforms_display( $form_data ) {
 	hcap_form_display( 'hcaptcha_wpforms', 'hcaptcha_wpforms_nonce' );
@@ -34,7 +36,8 @@ add_filter( 'wpforms_display_submit_before', 'hcaptcha_wpforms_display', 10, 1 )
  * @param  array $entry     Original $_POST global.
  * @param  array $form_data Form data and settings.
  *
- * @return array|null
+ * @return void
+ * @noinspection PhpUnusedParameterInspection
  */
 function hcaptcha_wpforms_validate( $fields, $entry, $form_data ) {
 	$error_message = hcaptcha_get_verify_message(
@@ -43,12 +46,10 @@ function hcaptcha_wpforms_validate( $fields, $entry, $form_data ) {
 	);
 
 	if ( null === $error_message ) {
-		return $fields;
+		return;
 	}
 
-	wpforms()->process->errors[ $form_data['id'] ]['footer'] = __( 'Captcha Failed', 'hcaptcha-for-forms-and-more' );
-
-	return null;
+	wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $error_message;
 }
 
-add_filter( 'wpforms_process', 'hcaptcha_wpforms_validate', 10, 3 );
+add_action( 'wpforms_process', 'hcaptcha_wpforms_validate', 10, 3 );

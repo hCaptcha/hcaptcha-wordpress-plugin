@@ -86,7 +86,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return array
 	 */
 	public function get_wp_die_handler() {
-		self::assertSame( '{"errors":{"g-recaptcha-response":["The Captcha is invalid."]}}', ob_get_clean() );
+		self::assertSame( '{"errors":{"g-recaptcha-response":["hCaptcha errors: Your secret key is missing.; The response parameter (verification token) is invalid or malformed."]}}', ob_get_clean() );
 
 		return parent::get_wp_die_handler();
 	}

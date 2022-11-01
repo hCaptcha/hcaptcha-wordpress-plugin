@@ -20,6 +20,7 @@ use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
+use HCaptcha\Quform\Quform;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WP\Comment;
@@ -494,10 +495,22 @@ class AMainTest extends HCaptchaWPTestCase {
 				position: relative;
 				display: block;
 				margin-bottom: 2rem;
+				padding: 0;
+				clear: both;
+			}
+			.gform_previous_button + .h-captcha {
+				margin-top: 2rem;
 			}
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
+			}
+			.wpdm-button-area + .h-captcha {
+				margin-bottom: 1rem;
+			}
+			.w3eden .btn-primary {
+				background-color: var(--color-primary) !important;
+				color: #fff !important;
 			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
@@ -1043,6 +1056,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'fluentform/fluentform.php',
 				Form::class,
 			],
+			'Forminator'                   => [
+				[ 'forminator_status', 'form' ],
+				'forminator/forminator.php',
+				\HCaptcha\Forminator\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
@@ -1067,6 +1085,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
+			],
+			'Quform'                       => [
+				[ 'quform_status', 'form' ],
+				'quform/quform.php',
+				Quform::class,
 			],
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],

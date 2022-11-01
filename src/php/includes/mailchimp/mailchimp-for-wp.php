@@ -13,22 +13,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Add MailChimp form error message.
+ * Add MailChimp form error messages.
  *
- * @param array $messages Messages.
+ * @param array      $messages Messages.
+ * @param MC4WP_Form $form     Form.
  *
  * @return array
+ * @noinspection PhpUnusedParameterInspection
  */
-function hcap_add_mc4wp_error_message( $messages ) {
-	$messages['invalid_hcaptcha'] = array(
-		'type' => 'error',
-		'text' => __( 'The Captcha is invalid.', 'hcaptcha-for-forms-and-more' ),
-	);
+function hcap_add_mc4wp_error_message( $messages, $form ) {
+	foreach ( hcap_get_error_messages() as $error_code => $error_message ) {
+		$messages[ $error_code ] = [
+			'type' => 'error',
+			'text' => $error_message,
+		];
+	}
 
 	return $messages;
 }
 
-add_filter( 'mc4wp_form_messages', 'hcap_add_mc4wp_error_message' );
+add_filter( 'mc4wp_form_messages', 'hcap_add_mc4wp_error_message', 10, 2 );
 
 if ( ! function_exists( 'hcap_mailchimp_wp_form' ) ) {
 	/**
@@ -39,6 +43,7 @@ if ( ! function_exists( 'hcap_mailchimp_wp_form' ) ) {
 	 * @param string $element Element.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	function hcap_mailchimp_wp_form( $content = '', $form = '', $element = '' ) {
 		return str_replace(
@@ -55,19 +60,22 @@ add_action( 'mc4wp_form_content', 'hcap_mailchimp_wp_form', 20, 3 );
 /**
  * Verify MailChimp captcha.
  *
- * @return int|string
+ * @param bool  $valid Whether request is valid.
+ * @param array $data  Form data.
+ *
+ * @return null|string
+ * @noinspection PhpUnusedParameterInspection
  */
-function hcap_mc4wp_error() {
-	$error_message = hcaptcha_verify_POST(
-		'hcaptcha_mailchimp_nonce',
-		'hcaptcha_mailchimp'
-	);
+function hcap_mc4wp_error( $valid, $data ) {
+	$error_message = hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+	$error_message = preg_replace( '/(.+: )?/', '', $error_message );
+	$error_code    = false;
 
-	if ( 'success' !== $error_message ) {
-		return 'invalid_hcaptcha';
+	if ( null !== $error_message ) {
+		$error_code = array_search( $error_message, hcap_get_error_messages(), true );
 	}
 
-	return 1;
+	return $error_code ?: $valid;
 }
 
 add_filter( 'mc4wp_valid_form_request', 'hcap_mc4wp_error', 10, 2 );

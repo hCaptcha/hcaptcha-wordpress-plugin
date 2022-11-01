@@ -97,14 +97,16 @@ class AutoVerify {
 			return;
 		}
 
-		if ( 'success' !== hcaptcha_verify_post() ) {
+		$result = hcaptcha_verify_post();
+
+		if ( null !== $result ) {
 			$_POST = [];
 			wp_die(
-				esc_html__( 'Please complete the captcha.', 'hcaptcha-for-forms-and-more' ),
-				'hCaptcha',
+				esc_html( $result ),
+				esc_html__( 'hCaptcha error', 'hcaptcha-for-forms-and-more' ),
 				[
 					'back_link' => true,
-					'response'  => 403,
+					'response'  => 303,
 				]
 			);
 		}
@@ -127,7 +129,7 @@ class AutoVerify {
 	 * Case #3: It can happen that WP_Rewrite is not yet initialized,
 	 *          so do this (wp-settings.php)
 	 * Case #4: URL Path begins with wp-json/ (your REST prefix)
-	 *          Also supports WP installations in subfolders
+	 *          Also supports WP installations in sub folders
 	 *
 	 * @return bool
 	 * @author matzeeable
@@ -265,7 +267,7 @@ class AutoVerify {
 	 * @return bool
 	 */
 	private function is_input_visible( $input ) {
-		return ! (bool) preg_match( '#type[\s]*?=[\s]*?["\']hidden["\']#', $input );
+		return ! preg_match( '#type[\s]*?=[\s]*?["\']hidden["\']#', $input );
 	}
 
 	/**

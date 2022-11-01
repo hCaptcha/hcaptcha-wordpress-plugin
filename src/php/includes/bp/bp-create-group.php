@@ -34,6 +34,7 @@ if ( ! function_exists( 'hcap_hcaptcha_bp_group_verify' ) ) {
 	 * @param mixed $bp_group BuddyPress group.
 	 *
 	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	function hcap_hcaptcha_bp_group_verify( $bp_group ) {
 		if ( ! bp_is_group_creation_step( 'group-details' ) ) {

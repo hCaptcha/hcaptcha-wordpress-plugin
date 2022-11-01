@@ -463,7 +463,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$record->shouldReceive( 'remove_field' )->never();
 
 		$ajax_handler = Mockery::mock( Ajax_Handler::class );
-		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'The Captcha is invalid.' )->once();
+		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'The hCaptcha is invalid.' )->once();
 
 		$subject = new HCaptchaHandler();
 		$subject->validation( $record, $ajax_handler );
@@ -494,7 +494,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$record->shouldReceive( 'remove_field' )->never();
 
 		$ajax_handler = Mockery::mock( Ajax_Handler::class );
-		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'The Captcha is invalid.' )->once();
+		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'The hCaptcha is invalid.' )->once();
 
 		$subject = new HCaptchaHandler();
 		$subject->validation( $record, $ajax_handler );
