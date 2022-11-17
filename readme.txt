@@ -6,19 +6,19 @@ Tested up to: 6.1
 Requires PHP: 5.6.20
 Stable tag: 2.0.0
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html  
- 
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
 Enables hCaptcha.com integration with WordPress.
 
 == Description ==
- 
+
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
-Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web. 
+Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
 
 == How hCaptcha Works ==
 
-The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots. 
+The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
 
 To use this plugin, just install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on hCaptcha.com.
 
@@ -26,16 +26,16 @@ To use this plugin, just install it and enter your sitekey and secret in the Set
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
- 
+
 == Installation ==
 
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin through the 'Plugins' menu in WordPress  
-3. Enter your site key and secret in the Settings -> hCaptcha menu in WordPress  
+2. Activate the hCaptcha plugin through the 'Plugins' menu in WordPress
+3. Enter your site key and secret in the Settings -> hCaptcha menu in WordPress
 4. Enable desired Integrations
- 
+
 == Frequently Asked Questions ==
 
 = How do I use the hCaptcha plugin? =
@@ -231,7 +231,7 @@ With the default configuration, this plugin does not:
 
 Once you activate this plugin, the hCaptcha-answering user's IP address and browser data may be sent to the hCaptcha service on pages where you have activated hCaptcha protection. However, hCaptcha is designed to minimize data used, process it very close to the user, and rapidly discard it after analysis.
 
-For more details, please see the hCaptcha privacy policy at: 
+For more details, please see the hCaptcha privacy policy at:
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
 
@@ -274,7 +274,7 @@ For more details, please see the hCaptcha privacy policy at:
 
 === Please note ===
 
-**NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support. 
+**NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support.
 
 For feature requests and issue reports, please
 [open a pull request](https://github.com/hCaptcha/hcaptcha-wordpress-plugin).
@@ -289,7 +289,7 @@ Please check with your plugin author if native support is not yet available.
 Instructions for popular native integrations are below:
 
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
- 
+
 == Changelog ==
 
 = 2.1.0 =
@@ -298,13 +298,14 @@ Instructions for popular native integrations are below:
 * Added actual messages from hcaptcha.com.
 * Added support for Multipage Gravity Form.
 * Fixed error messaging in Ninja Forms.
+* Fixed 'hcaptcha is not defined' issue with Elementor.
 
 = 2.0.0 =
 * Tested with WordPress 6.1.
 * Tested with WooCommerce 7.0.
 * Added Settings page with multiple tabs.
 * Added setting for whitelisted IPs.
-* Added ability to set options network-wide on multisite. 
+* Added ability to set options network-wide on multisite.
 * Fixed Divi contact form bug related to recaptcha compat.
 * Fixed bug with WC Wishlist create list form.
 * Fixed styles on WordPress Register page.
@@ -316,7 +317,7 @@ Instructions for popular native integrations are below:
 
 = 1.18.0 =
 * Tested with WooCommerce 6.8.
-* Added Divi Comment Form support. 
+* Added Divi Comment Form support.
 * Fixed WPForms Login form support.
 * Fixed not valid CSS to prevent a black box issue.
 * Fixed invalid hCaptcha error after correction of wrong input on Checkout page.
@@ -325,7 +326,7 @@ Instructions for popular native integrations are below:
 = 1.17.0 =
 * Tested with WooCommerce 6.6.
 * Added support for Ultimate Member plugin (Login, Register, LostPassword forms).
-* Fixed weird black bordered rectangle to the left of hCaptcha challenge. 
+* Fixed weird black bordered rectangle to the left of hCaptcha challenge.
 
 = 1.16.0 =
 * Tested with WordPress 6.0.
@@ -427,7 +428,7 @@ Instructions for popular native integrations are below:
 
 = 1.6.1 =
 * WPCS coding standards and docs update
- 
+
 = 1.6.0 =
 * Tested with WordPress 5.5 and WooCommerce 4.4
 
@@ -447,7 +448,7 @@ Instructions for popular native integrations are below:
 = 1.5.0 =
 * Refactor to improve code hygiene, fixes for latest Ninja Forms.
 
-= 1.4.2 = 
+= 1.4.2 =
 * Fixed comment issue, added WooCommerce Wishlists
 
 = 1.4.1 =
