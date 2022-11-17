@@ -111,6 +111,10 @@ class HCaptcha {
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
+		if ('undefined' === typeof hcaptcha) {
+			return;
+		}
+
 		const submitButtonSelector = '*[type="submit"]';
 
 		this.getForms().map((formElement) => {
