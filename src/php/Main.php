@@ -11,14 +11,17 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
+use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
+use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\WP\PasswordProtected;
 
 /**
  * Class Main.
@@ -239,6 +242,8 @@ class Main {
 				position: relative;
 				display: block;
 				margin-bottom: 2rem;
+				padding: 0;
+				clear: both;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
@@ -246,6 +251,13 @@ class Main {
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
+			}
+			.wpdm-button-area + .h-captcha {
+				margin-bottom: 1rem;
+			}
+			.w3eden .btn-primary {
+				background-color: var(--color-primary) !important;
+				color: #fff !important;
 			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
@@ -490,6 +502,11 @@ class Main {
 				'',
 				WP\LostPassword::class,
 			],
+			'Post/Page Password Form'      => [
+				[ 'wp_status', 'password_protected' ],
+				'',
+				PasswordProtected::class,
+			],
 			'Register Form'                => [
 				[ 'wp_status', 'register' ],
 				'',
@@ -535,6 +552,11 @@ class Main {
 				'Divi',
 				Divi\Login::class,
 			],
+			'Download Manager'             => [
+				[ 'download_manager_status', 'button' ],
+				'download-manager/download-manager.php',
+				DownloadManager::class,
+			],
 			'Elementor Pro Form'           => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
@@ -579,6 +601,11 @@ class Main {
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
 				Quform::class,
+			],
+			'Sendinblue'                   => [
+				[ 'sendinblue_status', 'form' ],
+				'mailin/sendinblue.php',
+				Sendinblue::class,
 			],
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],

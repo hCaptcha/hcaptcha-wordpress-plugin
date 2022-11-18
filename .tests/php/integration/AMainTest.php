@@ -495,6 +495,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				position: relative;
 				display: block;
 				margin-bottom: 2rem;
+				padding: 0;
+				clear: both;
+			}
+			.gform_previous_button + .h-captcha {
+				margin-top: 2rem;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
@@ -502,6 +507,13 @@ class AMainTest extends HCaptchaWPTestCase {
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
+			}
+			.wpdm-button-area + .h-captcha {
+				margin-bottom: 1rem;
+			}
+			.w3eden .btn-primary {
+				background-color: var(--color-primary) !important;
+				color: #fff !important;
 			}
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {

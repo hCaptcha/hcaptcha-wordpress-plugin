@@ -181,7 +181,7 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 		if ( is_user_logged_in() && ! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) ) {
 			$errors = hcap_get_error_messages();
 
-			return $errors['bad-nonce'];
+			return apply_filters( 'hcap_verify_request', $errors['bad-nonce'], [ 'bad-nonce' ] );
 		}
 
 		return hcaptcha_request_verify( $hcaptcha_response );

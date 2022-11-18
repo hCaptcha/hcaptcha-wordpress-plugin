@@ -241,6 +241,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Register Form
 * Lost Password Form
 * Comment Form
+* Post/Page Password Form
 * bbPress New Topic Form
 * bbPress Reply Form
 * BuddyPress Create Group Form
@@ -248,6 +249,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Contact Form 7
 * Divi Contact Form
 * Divi Login Form
+* Download Manager Button
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
@@ -257,6 +259,7 @@ For more details, please see the hCaptcha privacy policy at:
 * MemberPress Register Form
 * Ninja Forms
 * Quform Forms
+* Sendinblue Form
 * Subscriber Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
@@ -296,6 +299,9 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 7.1.
 * Added Forminator support.
 * Added Quform support.
+* Added Sendinblue support.
+* Added Download Manager support.
+* Added support for password protected post/page.
 * Added actual messages from hcaptcha.com.
 * Added support for Multipage Gravity Form.
 * Fixed error messaging in Ninja Forms.
