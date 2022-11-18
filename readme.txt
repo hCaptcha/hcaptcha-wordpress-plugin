@@ -277,7 +277,7 @@ For more details, please see the hCaptcha privacy policy at:
 
 === Please note ===
 
-**NOTE:** This is a community-developed plugin. All integrations were submitted by developers who didn't want to wait for a particular plugin to add native hCaptcha support.
+**NOTE:** This is a community-developed plugin. Your PRs are welcome.
 
 For feature requests and issue reports, please
 [open a pull request](https://github.com/hCaptcha/hcaptcha-wordpress-plugin).
