@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      7.0
+ * WC tested up to:      7.1
  */
 
 use HCaptcha\Main;

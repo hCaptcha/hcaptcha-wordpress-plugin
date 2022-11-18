@@ -9,6 +9,7 @@
 /.eslintrc.json
 /.gitignore
 /.phpcs.cache
+/.yarnrc.yml
 /CHANGELOG.md
 /README.md
 /Thumbs.db
@@ -30,6 +31,7 @@
 /.idea
 /.tests
 /.wordpress-org
+/.yarn
 /bin
 /node_modules
 /src/js

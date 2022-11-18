@@ -279,10 +279,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$die_arr             = [];
 		$expected            = [
 			'Please complete the hCaptcha.',
-			'hCaptcha error',
+			'hCaptcha',
 			[
 				'back_link' => true,
-				'response'  => 303,
+				'response'  => 403,
 			],
 		];
 
