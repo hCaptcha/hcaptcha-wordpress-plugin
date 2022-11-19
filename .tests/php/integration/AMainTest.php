@@ -1006,6 +1006,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				Register::class,
 			],
+			'Avada Form'                   => [
+				[ 'avada_status', 'form' ],
+				'Avada',
+				[ \HCaptcha\Avada\Form::class ],
+			],
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
