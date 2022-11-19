@@ -110,6 +110,13 @@ class Integrations extends PluginSettingsBase {
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'avada_status'                 => [
+				'label'   => 'Avada',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Avada Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'bbp_status'                   => [
 				'label'   => 'bbPress',
 				'type'    => 'checkbox',

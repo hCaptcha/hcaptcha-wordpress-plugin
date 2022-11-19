@@ -512,6 +512,11 @@ class Main {
 				'',
 				WP\Register::class,
 			],
+			'Avada Form'                   => [
+				[ 'avada_status', 'form' ],
+				'Avada',
+				Avada\Form::class,
+			],
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
