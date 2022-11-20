@@ -125,6 +125,13 @@ class Integrations extends PluginSettingsBase {
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'beaver_builder_status'        => [
+				'label'   => 'Beaver Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'bp_status'                    => [
 				'label'   => 'BuddyPress',
 				'type'    => 'checkbox',

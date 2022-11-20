@@ -527,6 +527,11 @@ class Main {
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
 			],
+			'Beaver Builder Contact Form'  => [
+				[ 'beaver_builder_status', 'contact' ],
+				'bb-plugin/fl-builder.php',
+				BeaverBuilder\Contact::class,
+			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
