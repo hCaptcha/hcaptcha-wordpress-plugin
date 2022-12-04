@@ -295,6 +295,11 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.2.0 =
+* Added Avada theme support.
+* Added Beaver Builder support.
+* Fixed fatal error in standard login form with Ultimate Member active.
+
 = 2.1.0 =
 * Tested with WooCommerce 7.1.
 * Added Forminator support.
