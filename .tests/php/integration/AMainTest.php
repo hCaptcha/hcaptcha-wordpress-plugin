@@ -1026,6 +1026,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'bb-plugin/fl-builder.php',
 				\HCaptcha\BeaverBuilder\Contact::class,
 			],
+			'Beaver Builder Login Form'    => [
+				[ 'beaver_builder_status', 'login' ],
+				'bb-plugin/fl-builder.php',
+				[ \HCaptcha\BeaverBuilder\Login::class, Login::class ],
+			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',

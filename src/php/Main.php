@@ -532,6 +532,11 @@ class Main {
 				'bb-plugin/fl-builder.php',
 				BeaverBuilder\Contact::class,
 			],
+			'Beaver Builder Login Form'    => [
+				[ 'beaver_builder_status', 'login' ],
+				'bb-plugin/fl-builder.php',
+				[ BeaverBuilder\Login::class, WP\Login::class ],
+			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',

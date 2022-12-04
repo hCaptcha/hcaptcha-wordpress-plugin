@@ -130,6 +130,7 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'bp_status'                    => [
