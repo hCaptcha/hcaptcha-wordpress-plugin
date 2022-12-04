@@ -11,6 +11,7 @@
 
 .hcaptcha-integrations table tr th {
 	font-size: 16px;
+	height: 28px;
 	padding: 5px 0 20px;
 	display: flex;
 	align-items: center;
@@ -21,7 +22,8 @@
 }
 
 .hcaptcha-integrations table tr th img {
-	height: 28px;
+	max-width: 100%;
+	max-height: 28px;
 }
 
 .hcaptcha-integrations table tr td {
