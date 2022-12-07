@@ -214,7 +214,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				'type' => 'hcaptcha',
 				'name' => 'hcap-cf7',
 			],
-			'Please complete the hCaptcha.',
+			'Please complete the hCaptcha.'
 		);
 
 		$tag = Mockery::mock( WPCF7_FormTag::class );
@@ -242,7 +242,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				'type' => 'hcaptcha',
 				'name' => 'hcap-cf7',
 			],
-			'Please complete the hCaptcha.',
+			'Please complete the hCaptcha.'
 		);
 
 		$tag = Mockery::mock( WPCF7_FormTag::class );
