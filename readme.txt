@@ -299,7 +299,7 @@ Instructions for popular native integrations are below:
 * Added Avada theme support.
 * Added Beaver Builder support.
 * Fixed fatal error in standard login form with Ultimate Member active.
-* Fixed fatal error with jetpack sync.
+* Fixed fatal error with Jetpack sync.
 
 = 2.1.0 =
 * Tested with WooCommerce 7.1.
