@@ -108,26 +108,8 @@ class CF7 {
 			return $result;
 		}
 
-		$data     = $submission->get_posted_data();
-		$wpcf7_id = filter_var(
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			isset( $_POST['_wpcf7'] ) ? wp_unslash( $_POST['_wpcf7'] ) : 0,
-			FILTER_VALIDATE_INT
-		);
-
-		if ( empty( $wpcf7_id ) ) {
-			return $result;
-		}
-
-		$cf7_text          = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
-		$hcaptcha_site_key = hcaptcha()->settings()->get_site_key();
-
-		if ( empty( $hcaptcha_site_key ) || false === strpos( $cf7_text, $hcaptcha_site_key ) ) {
-			return $result;
-		}
-
-		$response = empty( $data['h-captcha-response'] ) ? '' : $data['h-captcha-response'];
-
+		$data           = $submission->get_posted_data();
+		$response       = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
 		$captcha_result = hcaptcha_request_verify( $response );
 
 		if ( null !== $captcha_result ) {
