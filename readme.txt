@@ -242,8 +242,11 @@ For more details, please see the hCaptcha privacy policy at:
 * Lost Password Form
 * Comment Form
 * Post/Page Password Form
+* Avada Form
 * bbPress New Topic Form
 * bbPress Reply Form
+* Beaver Builder Contact Form
+* Beaver Builder Login Form
 * BuddyPress Create Group Form
 * Buddypress Registration Form
 * Contact Form 7
