@@ -118,6 +118,18 @@ class Main {
 	}
 
 	/**
+	 * Get plugin class instance.
+	 *
+	 * @param string $class Class name.
+	 *
+	 * @return object|null
+	 */
+	public function get( $class ) {
+
+		return isset( $this->loaded_classes[ $class ] ) ? $this->loaded_classes[ $class ] : null;
+	}
+
+	/**
 	 * Get Settings instance.
 	 *
 	 * @return Settings
