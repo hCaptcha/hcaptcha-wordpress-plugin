@@ -167,8 +167,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$_POST['_wpcf7'] = 23;
-
 		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
 		hcaptcha()->init_hooks();
@@ -190,7 +188,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
-		$tag    = Mockery::mock( WPCF7_FormTag::class );
+		$result->shouldReceive( 'invalidate' )->with(
+			[
+				'type' => 'hcaptcha',
+				'name' => 'hcap-cf7',
+			],
+			'Please complete the hCaptcha.'
+		);
+
+		$tag = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
@@ -282,8 +288,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$_POST['_wpcf7'] = 23;
-
 		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
 		hcaptcha()->init_hooks();
@@ -336,8 +340,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				return '';
 			}
 		);
-
-		$_POST['_wpcf7'] = 23;
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
