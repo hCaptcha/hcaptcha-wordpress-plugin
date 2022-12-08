@@ -433,6 +433,10 @@ abstract class SettingsBase {
 	 * Setup settings sections.
 	 */
 	public function setup_sections() {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
 		$tab = $this->get_active_tab();
 
 		foreach ( $this->form_fields as $form_field ) {
@@ -449,12 +453,7 @@ abstract class SettingsBase {
 	 * Setup tabs section.
 	 */
 	public function setup_tabs_section() {
-		/**
-		 * Protection from the bug in \Automattic\Jetpack\Sync\Sender::get_items_to_send(),
-		 * which sets screen without loading of wp-admin/includes/template.php,
-		 * where add_settings_section() is defined.
-		 */
-		if ( ! function_exists( 'add_settings_section' ) ) {
+		if ( ! $this->is_options_screen() ) {
 			return;
 		}
 
@@ -1083,12 +1082,17 @@ abstract class SettingsBase {
 
 		$current_screen = get_current_screen();
 
+		if ( ! $current_screen ) {
+			return false;
+		}
+
 		$screen_id = $this->screen_id();
+
 		if ( $this->is_main_menu_page() ) {
 			$screen_id = str_replace( 'settings_page', 'toplevel_page', $screen_id );
 		}
 
-		return $current_screen && ( 'options' === $current_screen->id || $screen_id === $current_screen->id );
+		return 'options' === $current_screen->id || $screen_id === $current_screen->id;
 	}
 
 	/**

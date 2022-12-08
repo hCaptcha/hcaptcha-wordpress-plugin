@@ -1006,6 +1006,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				Register::class,
 			],
+			'Avada Form'                   => [
+				[ 'avada_status', 'form' ],
+				'Avada',
+				[ \HCaptcha\Avada\Form::class ],
+			],
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
@@ -1015,6 +1020,16 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
+			],
+			'Beaver Builder Contact Form'  => [
+				[ 'beaver_builder_status', 'contact' ],
+				'bb-plugin/fl-builder.php',
+				\HCaptcha\BeaverBuilder\Contact::class,
+			],
+			'Beaver Builder Login Form'    => [
+				[ 'beaver_builder_status', 'login' ],
+				'bb-plugin/fl-builder.php',
+				[ \HCaptcha\BeaverBuilder\Login::class, Login::class ],
 			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],

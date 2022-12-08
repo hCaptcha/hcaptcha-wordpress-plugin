@@ -52,8 +52,8 @@ class DownloadManager {
 	public function add_hcaptcha( $template, $vars ) {
 		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
 
-		$template = preg_replace( '/(<ul class="list-group ml)/', $hcaptcha . '$1', $template );
-		$template = preg_replace( '/<a (.+)?<\/a>/', '<button type="submit" $1</button>', $template );
+		$template = (string) preg_replace( '/(<ul class="list-group ml)/', $hcaptcha . '$1', $template );
+		$template = (string) preg_replace( '/<a (.+)?<\/a>/', '<button type="submit" $1</button>', $template );
 		$template = str_replace( 'download-on-click', '', $template );
 		$url      = '';
 

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
 Tested up to: 6.1
 Requires PHP: 5.6.20
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,8 +242,11 @@ For more details, please see the hCaptcha privacy policy at:
 * Lost Password Form
 * Comment Form
 * Post/Page Password Form
+* Avada Form
 * bbPress New Topic Form
 * bbPress Reply Form
+* Beaver Builder Contact Form
+* Beaver Builder Login Form
 * BuddyPress Create Group Form
 * Buddypress Registration Form
 * Contact Form 7
@@ -294,6 +297,14 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 2.2.0 =
+* Added Avada theme support.
+* Added Beaver Builder support.
+* Added compatibility with Wordfence login security.
+* Improved spam protection with Contact Form 7.
+* Fixed fatal error in standard login form with Ultimate Member active.
+* Fixed fatal error with Jetpack sync.
 
 = 2.1.0 =
 * Tested with WooCommerce 7.1.

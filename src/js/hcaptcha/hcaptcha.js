@@ -84,9 +84,9 @@ class HCaptcha {
 	validate(event) {
 		const formElement = event.currentTarget;
 		const form = this.getFoundFormById(formElement.dataset.hCaptchaId);
-		const submitButtonElement = formElement.querySelector(
+		const submitButtonElement = formElement.querySelectorAll(
 			form.submitButtonSelector
-		);
+		)[0];
 
 		if (!this.isSameOrDescendant(submitButtonElement, event.target)) {
 			return;
@@ -104,7 +104,7 @@ class HCaptcha {
 	 * @return {*[]} Forms.
 	 */
 	getForms() {
-		return [...document.querySelectorAll('form')];
+		return [...document.querySelectorAll('form, div.fl-login-form')];
 	}
 
 	/**
@@ -115,7 +115,7 @@ class HCaptcha {
 			return;
 		}
 
-		const submitButtonSelector = '*[type="submit"]';
+		const submitButtonSelector = '*[type="submit"], a.fl-button';
 
 		this.getForms().map((formElement) => {
 			const hcaptchaElement = formElement.querySelector('.h-captcha');

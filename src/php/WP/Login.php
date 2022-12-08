@@ -5,8 +5,14 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\WP;
 
+use WordfenceLS\Controller_WordfenceLS;
 use WP_Error;
 use WP_User;
 
@@ -31,6 +37,13 @@ class Login {
 		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 		add_action( 'um_submit_form_errors_hook_login', [ $this, 'remove_filter_wp_authenticate_user' ] );
 		add_filter( 'wpforms_user_registration_process_login_process_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
+
+		if ( ! class_exists( Controller_WordfenceLS::class ) ) {
+			return;
+		}
+
+		add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_scripts' ], 0 );
+		add_filter( 'wordfence_ls_require_captcha', [ $this, 'wordfence_ls_require_captcha' ] );
 	}
 
 	/**
@@ -73,5 +86,27 @@ class Login {
 		remove_filter( 'wp_authenticate_user', [ $this, 'verify' ] );
 
 		return $credentials;
+	}
+
+
+	/**
+	 * Remove Wordfence login scripts.
+	 *
+	 * @return void
+	 */
+	public function remove_wordfence_scripts() {
+		$controller_wordfence_ls = Controller_WordfenceLS::shared();
+
+		remove_action( 'login_enqueue_scripts', [ $controller_wordfence_ls, '_login_enqueue_scripts' ] );
+	}
+
+	/**
+	 * Do not require Wordfence captcha.
+	 *
+	 * @return false
+	 */
+	public function wordfence_ls_require_captcha() {
+
+		return false;
 	}
 }

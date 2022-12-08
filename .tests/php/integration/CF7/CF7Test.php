@@ -167,8 +167,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$_POST['_wpcf7'] = 23;
-
 		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
 		hcaptcha()->init_hooks();
@@ -190,7 +188,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
-		$tag    = Mockery::mock( WPCF7_FormTag::class );
+		$result->shouldReceive( 'invalidate' )->with(
+			[
+				'type' => 'hcaptcha',
+				'name' => 'hcap-cf7',
+			],
+			'Please complete the hCaptcha.'
+		);
+
+		$tag = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
@@ -209,7 +215,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
-		$tag    = Mockery::mock( WPCF7_FormTag::class );
+		$result->shouldReceive( 'invalidate' )->with(
+			[
+				'type' => 'hcaptcha',
+				'name' => 'hcap-cf7',
+			],
+			'Please complete the hCaptcha.'
+		);
+
+		$tag = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
@@ -222,32 +236,22 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_site_key() {
-		$data     = [];
-		$wpcf7_id = 23;
-		$cf7_text =
-			'<form>' .
-			'<input type="submit" value="Send">' .
-			'</form>';
+		$data = [];
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
 		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
-		add_shortcode(
-			'contact-form-7',
-			static function ( $content ) use ( $wpcf7_id, $cf7_text ) {
-				if ( $wpcf7_id === (int) $content['id'] ) {
-					return $cf7_text;
-				}
-
-				return '';
-			}
+		$result = Mockery::mock( WPCF7_Validation::class );
+		$result->shouldReceive( 'invalidate' )->with(
+			[
+				'type' => 'hcaptcha',
+				'name' => 'hcap-cf7',
+			],
+			'Please complete the hCaptcha.'
 		);
 
-		$_POST['_wpcf7'] = 23;
-
-		$result = Mockery::mock( WPCF7_Validation::class );
-		$tag    = Mockery::mock( WPCF7_FormTag::class );
+		$tag = Mockery::mock( WPCF7_FormTag::class );
 
 		$subject = new CF7();
 
@@ -283,8 +287,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				return '';
 			}
 		);
-
-		$_POST['_wpcf7'] = 23;
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 
@@ -338,8 +340,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				return '';
 			}
 		);
-
-		$_POST['_wpcf7'] = 23;
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
 

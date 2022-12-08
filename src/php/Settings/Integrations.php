@@ -110,12 +110,27 @@ class Integrations extends PluginSettingsBase {
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'avada_status'                 => [
+				'label'   => 'Avada',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Avada Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'bbp_status'                   => [
 				'label'   => 'bbPress',
 				'type'    => 'checkbox',
 				'options' => [
 					'new_topic' => __( 'New Topic Form', 'hcaptcha-for-forms-and-more' ),
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'beaver_builder_status'        => [
+				'label'   => 'Beaver Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'bp_status'                    => [

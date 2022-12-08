@@ -46,15 +46,18 @@ class CF7 {
 	 * @return string
 	 */
 	public function wpcf7_form_elements( $form ) {
-		if ( strpos( $form, '[' . self::SHORTCODE . ']' ) === false ) {
-			$form = str_replace(
-				'<input type="submit"',
-				'[' . self::SHORTCODE . ']<input type="submit"',
-				$form
-			);
+		if ( has_shortcode( $form, self::SHORTCODE ) ) {
+			return do_shortcode( $form );
 		}
 
-		return do_shortcode( $form );
+		$cf7_hcap_form = do_shortcode( '[' . self::SHORTCODE . ']' );
+		$submit_button = '<input type="submit"';
+
+		return str_replace(
+			$submit_button,
+			$cf7_hcap_form . $submit_button,
+			$form
+		);
 	}
 
 	/**
@@ -105,40 +108,40 @@ class CF7 {
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( null === $submission ) {
-			return $result;
+			return $this->get_invalidated_result( $result );
 		}
 
-		$data     = $submission->get_posted_data();
-		$wpcf7_id = filter_var(
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			isset( $_POST['_wpcf7'] ) ? wp_unslash( $_POST['_wpcf7'] ) : 0,
-			FILTER_VALIDATE_INT
-		);
-
-		if ( empty( $wpcf7_id ) ) {
-			return $result;
-		}
-
-		$cf7_text          = do_shortcode( '[contact-form-7 id="' . $wpcf7_id . '"]' );
-		$hcaptcha_site_key = hcaptcha()->settings()->get_site_key();
-
-		if ( empty( $hcaptcha_site_key ) || false === strpos( $cf7_text, $hcaptcha_site_key ) ) {
-			return $result;
-		}
-
-		$response = empty( $data['h-captcha-response'] ) ? '' : $data['h-captcha-response'];
-
+		$data           = $submission->get_posted_data();
+		$response       = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
 		$captcha_result = hcaptcha_request_verify( $response );
 
 		if ( null !== $captcha_result ) {
-			$result->invalidate(
-				[
-					'type' => 'hcaptcha',
-					'name' => self::DATA_NAME,
-				],
-				$captcha_result
-			);
+			return $this->get_invalidated_result( $result, $captcha_result );
 		}
+
+		return $result;
+	}
+
+	/**
+	 * Get invalidated result.
+	 *
+	 * @param WPCF7_Validation $result         Result.
+	 * @param string           $captcha_result hCaptcha result.
+	 *
+	 * @return WPCF7_Validation
+	 */
+	private function get_invalidated_result( $result, $captcha_result = '' ) {
+		if ( '' === $captcha_result ) {
+			$captcha_result = hcap_get_error_messages()['empty'];
+		}
+
+		$result->invalidate(
+			[
+				'type' => 'hcaptcha',
+				'name' => self::DATA_NAME,
+			],
+			$captcha_result
+		);
 
 		return $result;
 	}

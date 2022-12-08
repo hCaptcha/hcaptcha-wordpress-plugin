@@ -118,6 +118,18 @@ class Main {
 	}
 
 	/**
+	 * Get plugin class instance.
+	 *
+	 * @param string $class Class name.
+	 *
+	 * @return object|null
+	 */
+	public function get( $class ) {
+
+		return isset( $this->loaded_classes[ $class ] ) ? $this->loaded_classes[ $class ] : null;
+	}
+
+	/**
 	 * Get Settings instance.
 	 *
 	 * @return Settings
@@ -512,6 +524,11 @@ class Main {
 				'',
 				WP\Register::class,
 			],
+			'Avada Form'                   => [
+				[ 'avada_status', 'form' ],
+				'Avada',
+				Avada\Form::class,
+			],
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
@@ -521,6 +538,16 @@ class Main {
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
 				'bbp/bbp-reply.php',
+			],
+			'Beaver Builder Contact Form'  => [
+				[ 'beaver_builder_status', 'contact' ],
+				'bb-plugin/fl-builder.php',
+				BeaverBuilder\Contact::class,
+			],
+			'Beaver Builder Login Form'    => [
+				[ 'beaver_builder_status', 'login' ],
+				'bb-plugin/fl-builder.php',
+				[ BeaverBuilder\Login::class, WP\Login::class ],
 			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
