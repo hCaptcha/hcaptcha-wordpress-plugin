@@ -301,7 +301,7 @@ Instructions for popular native integrations are below:
 = 2.2.0 =
 * Added Avada theme support.
 * Added Beaver Builder support.
-* Added compatibility with the Wordfence login security.
+* Added compatibility with Wordfence login security.
 * Improved spam protection with Contact Form 7.
 * Fixed fatal error in standard login form with Ultimate Member active.
 * Fixed fatal error with Jetpack sync.
