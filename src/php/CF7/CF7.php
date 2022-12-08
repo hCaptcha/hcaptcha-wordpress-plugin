@@ -108,7 +108,7 @@ class CF7 {
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( null === $submission ) {
-			return $result;
+			return $this->get_invalidated_result( $result );
 		}
 
 		$data           = $submission->get_posted_data();
@@ -116,14 +116,32 @@ class CF7 {
 		$captcha_result = hcaptcha_request_verify( $response );
 
 		if ( null !== $captcha_result ) {
-			$result->invalidate(
-				[
-					'type' => 'hcaptcha',
-					'name' => self::DATA_NAME,
-				],
-				$captcha_result
-			);
+			return $this->get_invalidated_result( $result, $captcha_result );
 		}
+
+		return $result;
+	}
+
+	/**
+	 * Get invalidated result.
+	 *
+	 * @param WPCF7_Validation $result         Result.
+	 * @param string           $captcha_result hCaptcha result.
+	 *
+	 * @return WPCF7_Validation
+	 */
+	private function get_invalidated_result( $result, $captcha_result = '' ) {
+		if ( '' === $captcha_result ) {
+			$captcha_result = hcap_get_error_messages()['empty'];
+		}
+
+		$result->invalidate(
+			[
+				'type' => 'hcaptcha',
+				'name' => self::DATA_NAME,
+			],
+			$captcha_result
+		);
 
 		return $result;
 	}
