@@ -46,15 +46,18 @@ class CF7 {
 	 * @return string
 	 */
 	public function wpcf7_form_elements( $form ) {
-		if ( strpos( $form, '[' . self::SHORTCODE . ']' ) === false ) {
-			$form = str_replace(
-				'<input type="submit"',
-				'[' . self::SHORTCODE . ']<input type="submit"',
-				$form
-			);
+		if ( has_shortcode( $form, self::SHORTCODE ) ) {
+			return do_shortcode( $form );
 		}
 
-		return do_shortcode( $form );
+		$cf7_hcap_form = do_shortcode( '[' . self::SHORTCODE . ']' );
+		$submit_button = '<input type="submit"';
+
+		return str_replace(
+			$submit_button,
+			$cf7_hcap_form . $submit_button,
+			$form
+		);
 	}
 
 	/**
