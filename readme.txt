@@ -298,6 +298,10 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.3.0 =
+* Tested with WC 7.2.
+* Added compatibility with WC High-Performance order storage (COT) feature.
+
 = 2.2.0 =
 * Added Avada theme support.
 * Added Beaver Builder support.
