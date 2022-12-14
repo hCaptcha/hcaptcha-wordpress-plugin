@@ -26,7 +26,6 @@ To use this plugin, just install it and enter your sitekey and secret in the Set
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
-
 == Installation ==
 
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
@@ -61,7 +60,7 @@ The shortcode adds not only the hCaptcha div to the form, but also a nonce field
 and in the verification:
 
 `
-$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
+$result = hcaptcha_verify_post(  'my_hcap_name', 'my_hcap_action' );
 `
 
 See also the section *"How to automatically verify an arbitrary form"*
@@ -89,9 +88,9 @@ echo do_shortcode( '[hcaptcha]' );
 Secondly, verify the result of hCaptcha challenge.
 
 `
-$result = hcaptcha_request_verify();
+$result = hcaptcha_verify_post();
 
-if ( 'success' !== $result ) {
+if ( null !== $result ) {
 // Block processing of the form.
 }
 `
