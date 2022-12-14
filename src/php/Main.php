@@ -5,8 +5,12 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha;
 
+use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
@@ -112,6 +116,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -443,6 +448,17 @@ class Main {
 				HCAPTCHA_VERSION,
 				true
 			);
+		}
+	}
+
+	/**
+	 * Declare compatibility with WC features.
+	 *
+	 * @return void
+	 */
+	public function declare_wc_compatibility() {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
 		}
 	}
 
