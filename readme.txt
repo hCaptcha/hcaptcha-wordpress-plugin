@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 4.4
 Tested up to: 6.1
 Requires PHP: 5.6.20
-Stable tag: 2.2.0
+Stable tag: 2.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -297,6 +297,11 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 2.3.0 =
+* Tested with WC 7.2.
+* Added compatibility with WC High-Performance order storage (COT) feature.
+* Added compatibility with Contact Form 7 v5.7.
 
 = 2.2.0 =
 * Added Avada theme support.
