@@ -51,11 +51,11 @@ class CF7 {
 		}
 
 		$cf7_hcap_form = do_shortcode( '[' . self::SHORTCODE . ']' );
-		$submit_button = '<input type="submit"';
+		$submit_button = '/(<input .*?type="submit")/';
 
-		return str_replace(
+		return preg_replace(
 			$submit_button,
-			$cf7_hcap_form . $submit_button,
+			$cf7_hcap_form . '$1',
 			$form
 		);
 	}
