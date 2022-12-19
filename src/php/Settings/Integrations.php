@@ -220,6 +220,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'otter_status'                 => [
+				'label'   => 'Otter Blocks',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'quform_status'                => [
 				'label'   => 'Quform',
 				'type'    => 'checkbox',

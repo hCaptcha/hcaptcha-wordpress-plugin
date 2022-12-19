@@ -261,6 +261,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Mailchimp for WP Form
 * MemberPress Register Form
 * Ninja Forms
+* Otter Blocks Forms
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form

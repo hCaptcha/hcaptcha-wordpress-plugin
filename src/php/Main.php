@@ -20,6 +20,7 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
+use HCaptcha\Otter;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
@@ -639,6 +640,11 @@ class Main {
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
+			],
+			'Otter Blocks'                 => [
+				[ 'otter_status', 'form' ],
+				'otter-blocks/otter-blocks.php',
+				Otter\Form::class,
 			],
 			'Quform'                       => [
 				[ 'quform_status', 'form' ],

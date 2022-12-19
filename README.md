@@ -84,6 +84,7 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * Mailchimp for WP Form
 * MemberPress Register Form
 * Ninja Forms
+* Otter Blocks Forms
 * Subscriber Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
