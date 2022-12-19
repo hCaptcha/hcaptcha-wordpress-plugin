@@ -16,7 +16,7 @@ namespace HCaptcha\Otter;
 class Form {
 
 	/**
-	 * Quform constructor.
+	 * Otter Form constructor.
 	 */
 	public function __construct() {
 		$this->init_hooks();
@@ -42,9 +42,7 @@ class Form {
 	 * @return string
 	 */
 	public function replace_site_key() {
-		$settings = hcaptcha()->settings();
-		$site_key = $settings->get_site_key();
-		return $site_key;
+		return hcaptcha()->settings()->get_site_key();
 	}
 
 	/**
@@ -53,9 +51,7 @@ class Form {
 	 * @return string
 	 */
 	public function replace_secret_key() {
-		$settings   = hcaptcha()->settings();
-		$secret_key = $settings->get_secret_key();
-		return $secret_key;
+		return hcaptcha()->settings()->get_secret_key();
 	}
 
 	/**
