@@ -299,6 +299,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.4.0 =
+* Added compatibility with Otter Blocks Forms.
+
 = 2.3.0 =
 * Tested with WC 7.2.
 * Added compatibility with WC High-Performance order storage (COT) feature.
