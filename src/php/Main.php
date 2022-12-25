@@ -541,6 +541,11 @@ class Main {
 				'',
 				WP\Register::class,
 			],
+			'ACF Extended Form'            => [
+				[ 'acfe_status', 'form' ],
+				'acf-extended/acf-extended.php',
+				ACFE\Form::class,
+			],
 			'Avada Form'                   => [
 				[ 'avada_status', 'form' ],
 				'Avada',

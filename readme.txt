@@ -242,6 +242,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Lost Password Form
 * Comment Form
 * Post/Page Password Form
+* ACF Extended Form
 * Avada Form
 * bbPress New Topic Form
 * bbPress Reply Form
@@ -301,6 +302,7 @@ Instructions for popular native integrations are below:
 
 = 2.4.0 =
 * Added compatibility with Otter Blocks Forms.
+* Added compatibility with ACF Extended.
 
 = 2.3.0 =
 * Tested with WC 7.2.

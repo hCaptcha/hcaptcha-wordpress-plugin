@@ -110,6 +110,13 @@ class Integrations extends PluginSettingsBase {
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'acfe_status'                  => [
+				'label'   => 'ACF Extended',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'avada_status'                 => [
 				'label'   => 'Avada',
 				'type'    => 'checkbox',

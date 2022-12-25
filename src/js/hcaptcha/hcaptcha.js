@@ -7,6 +7,7 @@
 class HCaptcha {
 	constructor() {
 		this.foundForms = [];
+		this.params = null;
 	}
 
 	/**
@@ -108,6 +109,36 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get params.
+	 *
+	 * @return {{}} Params.
+	 */
+	getParams() {
+		if (this.params !== null) {
+			return this.params;
+		}
+
+		let params;
+
+		try {
+			params = JSON.parse(HCaptchaMainObject.params);
+		} catch (e) {
+			params = {};
+		}
+
+		return params;
+	}
+
+	/**
+	 * Set params.
+	 *
+	 * @param {{}} params Params.
+	 */
+	setParams(params) {
+		this.params = params;
+	}
+
+	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
@@ -117,16 +148,10 @@ class HCaptcha {
 
 		const submitButtonSelector = '*[type="submit"], a.fl-button';
 
+		const params = this.getParams();
+
 		this.getForms().map((formElement) => {
 			const hcaptchaElement = formElement.querySelector('.h-captcha');
-
-			let params;
-
-			try {
-				params = JSON.parse(HCaptchaMainObject.params);
-			} catch (e) {
-				params = {};
-			}
 
 			// Ignore forms not having hcaptcha.
 			if (null === hcaptchaElement) {
