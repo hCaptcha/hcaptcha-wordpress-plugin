@@ -4,7 +4,7 @@ function hCaptchaACFECallback(response, callback) {
 	});
 
 	if (callback !== undefined) {
-		callback();
+		callback(response);
 	}
 }
 
