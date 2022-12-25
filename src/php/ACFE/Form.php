@@ -48,6 +48,7 @@ class Form {
 	 * @param array $field Field.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function remove_recaptcha_render( $field ) {
 		if ( ! $this->is_recaptcha( $field ) ) {
@@ -91,6 +92,7 @@ class Form {
 	 *
 	 * @return bool
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function remove_recaptcha_verify( $valid, $value, $field, $input ) {
 		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
