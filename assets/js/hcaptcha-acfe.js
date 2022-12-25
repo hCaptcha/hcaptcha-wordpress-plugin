@@ -1,6 +1,11 @@
 function hCaptchaACFECallback(response, callback) {
-	[...document.querySelectorAll('.acfe-field-recaptcha input[type="hidden"]')].map((el) => {
+	[
+		...document.querySelectorAll(
+			'.acfe-field-recaptcha input[type="hidden"]'
+		),
+	].map((el) => {
 		el.value = response;
+		return el;
 	});
 
 	if (callback !== undefined) {
@@ -11,7 +16,7 @@ function hCaptchaACFECallback(response, callback) {
 function hCaptchaACFEOnLoad() {
 	window.hCaptchaOnLoad = hCaptchaACFEOnLoadSaved;
 	window.hCaptchaOnLoad();
-};
+}
 
 const params = window.hCaptcha.getParams();
 const savedCallback = params.callback;
