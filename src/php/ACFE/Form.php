@@ -114,6 +114,15 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $valid, $value, $field, $input ) {
+		if ( ! $field['required'] ) {
+			return $valid;
+		}
+
+		// Avoid duplicate token: do not process during ajax validation.
+		if ( wp_doing_ajax() ) {
+			return $valid;
+		}
+
 		return null === hcaptcha_request_verify( $value );
 	}
 
