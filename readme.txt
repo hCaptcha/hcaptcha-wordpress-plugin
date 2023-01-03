@@ -1,7 +1,7 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
-Requires at least: 4.4
+Requires at least: 5.0
 Tested up to: 6.1
 Requires PHP: 5.6.20
 Stable tag: 2.3.0
@@ -259,6 +259,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Forminator
 * Gravity Forms
 * Jetpack Forms
+* Kadence Form
 * Mailchimp for WP Form
 * MemberPress Register Form
 * Ninja Forms
@@ -301,8 +302,10 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.4.0 =
+* Plugin now requires WP 5.0.
 * Added compatibility with Otter Blocks Forms.
-* Added compatibility with ACF Extended.
+* Added compatibility with ACF Extended Form.
+* Added compatibility with Kadence Form.
 
 = 2.3.0 =
 * Tested with WC 7.2.

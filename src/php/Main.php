@@ -631,6 +631,11 @@ class Main {
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
+			'Kadence Form'                 => [
+				[ 'kadence_status', 'form' ],
+				'kadence-blocks/kadence-blocks.php',
+				Kadence\Form::class,
+			],
 			'MailChimp'                    => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',

@@ -206,6 +206,13 @@ class Integrations extends PluginSettingsBase {
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'kadence_status'               => [
+				'label'   => 'Kadence',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'mailchimp_status'             => [
 				'label'   => 'Mailchimp for WP',
 				'type'    => 'checkbox',
