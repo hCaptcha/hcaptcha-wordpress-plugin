@@ -83,6 +83,21 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
+	 * Setup settings fields.
+	 */
+	public function setup_fields() {
+		$prefix = static::option_page() . '-' . static::section_title() . '-';
+
+		foreach ( $this->form_fields as $key => $form_field ) {
+			if ( ! isset( $form_field['class'] ) ) {
+				$this->form_fields[ $key ]['class'] = str_replace( '_', '-', $prefix . $key );
+			}
+		}
+
+		parent::setup_fields();
+	}
+
+	/**
 	 * Show settings page.
 	 */
 	public function settings_page() {
