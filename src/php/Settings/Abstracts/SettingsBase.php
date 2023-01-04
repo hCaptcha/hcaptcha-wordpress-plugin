@@ -608,10 +608,11 @@ abstract class SettingsBase {
 		$value = $this->get( $arguments['field_id'] );
 		$min   = $arguments['min'];
 		$max   = $arguments['max'];
+		$step  = $arguments['step'];
 
 		printf(
 			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .
-			' placeholder="%5$s" value="%6$s" class="regular-text" min="%7$s" max="%8$s" />',
+			' placeholder="%5$s" value="%6$s" class="regular-text" min="%7$s" max="%8$s" step="%9$s" />',
 			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
@@ -619,7 +620,8 @@ abstract class SettingsBase {
 			esc_attr( $arguments['placeholder'] ),
 			esc_html( $value ),
 			esc_attr( $min ),
-			esc_attr( $max )
+			esc_attr( $max ),
+			esc_attr( $step )
 		);
 	}
 

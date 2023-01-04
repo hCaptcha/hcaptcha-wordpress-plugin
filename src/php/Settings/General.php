@@ -364,6 +364,15 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_OTHER,
 				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'delay'                => [
+				'label'   => __( 'Delay showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_OTHER,
+				'default' => - 100,
+				'min'     => - 100,
+				'step'    => 100,
+				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
+			],
 		];
 
 		if ( ! is_multisite() ) {

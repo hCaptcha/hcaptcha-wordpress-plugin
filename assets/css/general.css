@@ -95,7 +95,8 @@
 	grid-template-areas:
 		"logged whitelisted"
 		"recaptcha whitelisted"
-		"network whitelisted";
+		"network whitelisted"
+		". delay";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
@@ -116,6 +117,11 @@
 	grid-area: network;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay {
+	grid-area: delay;
+	padding-top: 15px;
+}
+
 .hcaptcha-section-other + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
@@ -130,11 +136,13 @@
 	width: max-content;
 }
 
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td {
 	width: auto;
 }
 
-.hcaptcha-section-other + table tbody tr td textarea {
+.hcaptcha-section-other + table tbody tr td textarea,
+.hcaptcha-section-other + table tbody tr td input {
 	width: 100%;
 }
 

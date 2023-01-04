@@ -412,16 +412,16 @@ class Main {
 		}
 
 		/**
-		 * Filters delay time for hCaptcha API script.
+		 * Filters delay time for the hCaptcha API script.
 		 *
-		 * Any negative value will prevent API script from loading at all,
+		 * Any negative value will prevent the API script from loading
 		 * until user interaction: mouseenter, click, scroll or touch.
 		 * This significantly improves Google Pagespeed Insights score.
 		 *
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) $this->settings()->get( 'delay' ) );
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
