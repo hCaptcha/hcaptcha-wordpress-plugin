@@ -302,6 +302,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.4.0 =
+* Tested with PHP 8.2.
 * Plugin now requires WP 5.0.
 * Added script loading delay time setting.
 * Added compatibility with Otter Blocks Forms.
