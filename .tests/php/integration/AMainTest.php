@@ -725,6 +725,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				'language'             => $language ?: '',
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
 				'config_params'        => $config_params,
+				'delay'                => - 100,
 			]
 		);
 
