@@ -350,6 +350,14 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
 			],
+			self::NETWORK_WIDE     => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Use network-wide settings', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'whitelisted_ips'      => [
 				'label'   => __( 'Whitelisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
@@ -358,15 +366,8 @@ class General extends PluginSettingsBase {
 			],
 		];
 
-		if ( is_multisite() ) {
-			$this->form_fields[ self::NETWORK_WIDE ] = [
-				'type'    => 'checkbox',
-				'section' => self::SECTION_OTHER,
-				'options' => [
-					'on' => __( 'Use network-wide settings', 'hcaptcha-for-forms-and-more' ),
-				],
-				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
-			];
+		if ( ! is_multisite() ) {
+			unset( $this->form_fields[ self::NETWORK_WIDE ] );
 		}
 	}
 
