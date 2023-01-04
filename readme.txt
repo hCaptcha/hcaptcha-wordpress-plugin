@@ -303,6 +303,7 @@ Instructions for popular native integrations are below:
 
 = 2.4.0 =
 * Plugin now requires WP 5.0.
+* Added script loading delay time setting.
 * Added compatibility with Otter Blocks Forms.
 * Added compatibility with ACF Extended Form.
 * Added compatibility with Kadence Form.
