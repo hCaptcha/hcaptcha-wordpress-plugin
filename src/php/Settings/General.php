@@ -364,6 +364,22 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_OTHER,
 				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'login_limit'          => [
+				'label'   => __( 'Login attempts before hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_OTHER,
+				'default' => 0,
+				'min'     => 0,
+				'helper'  => __( 'Maximum number of failed login attempts before showing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'login_interval'       => [
+				'label'   => __( 'Failed login attempts interval, min', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_OTHER,
+				'default' => 15,
+				'min'     => 1,
+				'helper'  => __( 'Time interval in minutes when failed login attempts are counted.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'delay'                => [
 				'label'   => __( 'Delay showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',

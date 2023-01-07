@@ -96,7 +96,8 @@
 		"logged whitelisted"
 		"recaptcha whitelisted"
 		"network whitelisted"
-		". delay";
+		"login-limit login-interval"
+		"delay .";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
@@ -107,6 +108,16 @@
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off {
 	grid-area: recaptcha;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
+	grid-area: login-limit;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval {
+	grid-area: login-interval;
+	padding-top: 15px;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
@@ -137,6 +148,8 @@
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td {
 	width: auto;
 }
