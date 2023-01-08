@@ -20,6 +20,7 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
+use HCaptcha\Otter;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
@@ -411,16 +412,16 @@ class Main {
 		}
 
 		/**
-		 * Filters delay time for hCaptcha API script.
+		 * Filters delay time for the hCaptcha API script.
 		 *
-		 * Any negative value will prevent API script from loading at all,
+		 * Any negative value will prevent the API script from loading
 		 * until user interaction: mouseenter, click, scroll or touch.
 		 * This significantly improves Google Pagespeed Insights score.
 		 *
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) $this->settings()->get( 'delay' ) );
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
@@ -540,6 +541,11 @@ class Main {
 				'',
 				WP\Register::class,
 			],
+			'ACF Extended Form'            => [
+				[ 'acfe_status', 'form' ],
+				'acf-extended/acf-extended.php',
+				ACFE\Form::class,
+			],
 			'Avada Form'                   => [
 				[ 'avada_status', 'form' ],
 				'Avada',
@@ -625,6 +631,11 @@ class Main {
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
+			'Kadence Form'                 => [
+				[ 'kadence_status', 'form' ],
+				'kadence-blocks/kadence-blocks.php',
+				Kadence\Form::class,
+			],
 			'MailChimp'                    => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
@@ -639,6 +650,11 @@ class Main {
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
+			],
+			'Otter Blocks'                 => [
+				[ 'otter_status', 'form' ],
+				'otter-blocks/otter-blocks.php',
+				Otter\Form::class,
 			],
 			'Quform'                       => [
 				[ 'quform_status', 'form' ],
@@ -709,6 +725,11 @@ class Main {
 				[ 'wpforms_status', 'pro' ],
 				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
 				'wpforms/wpforms.php',
+			],
+			'wpDiscuz'                     => [
+				[ 'wpdiscuz_status', 'comment_form' ],
+				[ 'wpdiscuz/class.WpdiscuzCore.php' ],
+				WPDiscuz\Form::class,
 			],
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],

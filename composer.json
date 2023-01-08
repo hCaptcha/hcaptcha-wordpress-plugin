@@ -32,13 +32,13 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "10up/wp_mock": "0.2 - 0.4",
-    "codeception/codeception": "^4.1",
-    "codeception/module-db": "^1.1",
+    "10up/wp_mock": "0.2 - 0.5",
+    "codeception/codeception": "^4.2",
+    "codeception/module-db": "^1.2",
     "codeception/module-webdriver": "^1.4",
     "lucatume/wp-browser": "^3.1",
     "lucatume/function-mocker": "dev-master",
-    "squizlabs/php_codesniffer": "^3.6",
+    "squizlabs/php_codesniffer": "^3.7",
     "phpcompatibility/php-compatibility": "9.3",
     "phpcompatibility/phpcompatibility-wp": "^2.1",
     "wp-coding-standards/wpcs": "^2.3"
@@ -54,10 +54,7 @@
       "HCaptcha\\Tests\\Acceptance\\": ".tests/php/acceptance",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
-    },
-    "classmap": [
-      ".tests/php/integration/Stubs"
-    ]
+    }
   },
   "bin": [
     "bin/update-tests"

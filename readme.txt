@@ -1,10 +1,10 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
-Requires at least: 4.4
+Requires at least: 5.0
 Tested up to: 6.1
 Requires PHP: 5.6.20
-Stable tag: 2.3.0
+Stable tag: 2.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Lost Password Form
 * Comment Form
 * Post/Page Password Form
+* ACF Extended Form
 * Avada Form
 * bbPress New Topic Form
 * bbPress Reply Form
@@ -258,9 +259,11 @@ For more details, please see the hCaptcha privacy policy at:
 * Forminator
 * Gravity Forms
 * Jetpack Forms
+* Kadence Form
 * Mailchimp for WP Form
 * MemberPress Register Form
 * Ninja Forms
+* Otter Blocks Forms
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
@@ -297,6 +300,17 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 2.4.0 =
+* Tested with PHP 8.2.
+* Plugin now requires WP 5.0.
+* Added script loading delay time setting.
+* Added compatibility with Otter Blocks Forms.
+* Added compatibility with ACF Extended Form.
+* Added compatibility with Kadence Form.
+* Added compatibility with wpDiscuz.
+* Added ability to show hCaptcha after certain number of failed logins.
+* Fixed hCaptcha placement in Avada form.
 
 = 2.3.0 =
 * Tested with WC 7.2.

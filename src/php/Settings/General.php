@@ -350,23 +350,49 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'whitelisted_ips'      => [
-				'label'   => __( 'Whitelisted IPs', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'textarea',
-				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),
-			],
-		];
-
-		if ( is_multisite() ) {
-			$this->form_fields[ self::NETWORK_WIDE ] = [
+			self::NETWORK_WIDE     => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
 					'on' => __( 'Use network-wide settings', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
-			];
+			],
+			'whitelisted_ips'      => [
+				'label'   => __( 'Whitelisted IPs', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'textarea',
+				'section' => self::SECTION_OTHER,
+				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'login_limit'          => [
+				'label'   => __( 'Login attempts before hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_OTHER,
+				'default' => 0,
+				'min'     => 0,
+				'helper'  => __( 'Maximum number of failed login attempts before showing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'login_interval'       => [
+				'label'   => __( 'Failed login attempts interval, min', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_OTHER,
+				'default' => 15,
+				'min'     => 1,
+				'helper'  => __( 'Time interval in minutes when failed login attempts are counted.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'delay'                => [
+				'label'   => __( 'Delay showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_OTHER,
+				'default' => - 100,
+				'min'     => - 100,
+				'step'    => 100,
+				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
+			],
+		];
+
+		if ( ! is_multisite() ) {
+			unset( $this->form_fields[ self::NETWORK_WIDE ] );
 		}
 	}
 

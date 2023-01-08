@@ -76,6 +76,14 @@
 	width: max-content;
 }
 
+.hcaptcha-section-custom + table tbody tr.hcaptcha-general-config-params td {
+	width: auto;
+}
+
+.hcaptcha-section-custom + table tbody tr td textarea {
+	width: 100%;
+}
+
 /* Section Other */
 .hcaptcha-section-other + table {
 	max-width: 760px;
@@ -87,25 +95,42 @@
 	grid-template-areas:
 		"logged whitelisted"
 		"recaptcha whitelisted"
-		"network whitelisted";
+		"network whitelisted"
+		"login-limit login-interval"
+		"delay .";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
 
-.hcaptcha-section-other + table tbody tr:nth-child(1) {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
 	grid-area: logged;
 }
 
-.hcaptcha-section-other + table tbody tr:nth-child(2) {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off {
 	grid-area: recaptcha;
 }
 
-.hcaptcha-section-other + table tbody tr:nth-child(3) {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
+	grid-area: login-limit;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval {
+	grid-area: login-interval;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
 	grid-area: whitelisted;
 }
 
-.hcaptcha-section-other + table tbody tr:nth-child(4) {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide {
 	grid-area: network;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay {
+	grid-area: delay;
+	padding-top: 15px;
 }
 
 .hcaptcha-section-other + table tbody tr th {
@@ -113,8 +138,8 @@
 	width: auto;
 }
 
-.hcaptcha-section-other + table tbody tr:nth-child(2) th,
-.hcaptcha-section-other + table tbody tr:nth-child(4) th {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
 	padding: 0;
 }
 
@@ -122,16 +147,20 @@
 	width: max-content;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td {
+	width: auto;
+}
+
+.hcaptcha-section-other + table tbody tr td textarea,
+.hcaptcha-section-other + table tbody tr td input {
+	width: 100%;
+}
+
 @media (max-width: 600px) {
 	.hcaptcha-general table tbody tr td {
-		width: auto;
-	}
-
-	.hcaptcha-section-appearance + table tbody tr:nth-child(3) {
-		grid-column: unset;
-	}
-
-	.hcaptcha-section-custom + table tbody tr:nth-child(2) td {
 		width: auto;
 	}
 
@@ -143,7 +172,7 @@
 		grid-area: unset !important;
 	}
 
-	.hcaptcha-section-other + table tbody tr:nth-child(3) td {
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td {
 		width: auto;
 	}
 }

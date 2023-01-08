@@ -698,7 +698,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 				function delayedLoad() {
 					window.addEventListener( \'scroll\', scrollHandler );
-					const delay = -1;
+					const delay = -100;
 
 					if ( delay >= 0 ) {
 						setTimeout( load, delay );
@@ -725,6 +725,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				'language'             => $language ?: '',
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
 				'config_params'        => $config_params,
+				'delay'                => - 100,
 			]
 		);
 

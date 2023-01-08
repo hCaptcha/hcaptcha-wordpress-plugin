@@ -110,6 +110,13 @@ class Integrations extends PluginSettingsBase {
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'acfe_status'                  => [
+				'label'   => 'ACF Extended',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'avada_status'                 => [
 				'label'   => 'Avada',
 				'type'    => 'checkbox',
@@ -199,6 +206,13 @@ class Integrations extends PluginSettingsBase {
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'kadence_status'               => [
+				'label'   => 'Kadence',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'mailchimp_status'             => [
 				'label'   => 'Mailchimp for WP',
 				'type'    => 'checkbox',
@@ -215,6 +229,13 @@ class Integrations extends PluginSettingsBase {
 			],
 			'ninja_status'                 => [
 				'label'   => 'Ninja Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'otter_status'                 => [
+				'label'   => 'Otter Blocks',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -274,6 +295,13 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'lite' => __( 'Lite', 'hcaptcha-for-forms-and-more' ),
 					'pro'  => __( 'Pro', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'wpdiscuz_status'              => [
+				'label'   => 'WPDiscuz',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment_form' => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wpforo_status'                => [
