@@ -297,6 +297,13 @@ class Integrations extends PluginSettingsBase {
 					'pro'  => __( 'Pro', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'wpdiscuz_status'              => [
+				'label'   => 'WPDiscuz',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment_form' => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'wpforo_status'                => [
 				'label'   => 'WPForo',
 				'type'    => 'checkbox',

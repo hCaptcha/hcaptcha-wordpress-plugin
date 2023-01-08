@@ -308,6 +308,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Otter Blocks Forms.
 * Added compatibility with ACF Extended Form.
 * Added compatibility with Kadence Form.
+* Added compatibility with wpDiscuz.
 * Added ability to show hCaptcha after certain number of failed logins.
 * Fixed hCaptcha placement in Avada form.
 

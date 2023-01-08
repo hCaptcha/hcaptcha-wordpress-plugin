@@ -726,6 +726,11 @@ class Main {
 				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
 				'wpforms/wpforms.php',
 			],
+			'wpDiscuz'                     => [
+				[ 'wpdiscuz_status', 'comment_form' ],
+				[ 'wpdiscuz/class.WpdiscuzCore.php' ],
+				WPDiscuz\Form::class,
+			],
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
