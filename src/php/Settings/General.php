@@ -311,11 +311,11 @@ class General extends PluginSettingsBase {
 				/* translators: 1: hCaptcha Pro link, 2: hCaptcha Enterprise link. */
 					__( 'Note: only works on hCaptcha %1$s and %2$s site keys.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
-						'<a href="https://www.hcaptcha.com/pro" target="_blank">%s</a>',
+						'<a href="https://www.hcaptcha.com/pro?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=upgrade" target="_blank">%s</a>',
 						__( 'Pro', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
-						'<a href="https://www.hcaptcha.com/enterprise" target="_blank">%s</a>',
+						'<a href="https://www.hcaptcha.com/enterprise?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=upgrade" target="_blank">%s</a>',
 						__( 'Enterprise', 'hcaptcha-for-forms-and-more' )
 					)
 				),
@@ -328,7 +328,7 @@ class General extends PluginSettingsBase {
 				/* translators: 1: hCaptcha render params doc link. */
 					__( 'hCaptcha render %s (optional). Must be a valid JSON.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
-						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params" target="_blank">%s</a>',
+						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=docs" target="_blank">%s</a>',
 						__( 'parameters', 'hcaptcha-for-forms-and-more' )
 					)
 				),
@@ -430,7 +430,7 @@ class General extends PluginSettingsBase {
 					<?php
 					echo wp_kses_post(
 						__(
-							'To use <a href="https://www.hcaptcha.com/?r=wp" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp" target="_blank">here</a> to get your site and secret keys.',
+							'To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.',
 							'hcaptcha-for-forms-and-more'
 						)
 					);
