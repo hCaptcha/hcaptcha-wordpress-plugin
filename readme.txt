@@ -301,6 +301,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.5.0 =
+* Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
+
 = 2.4.0 =
 * Tested with PHP 8.2.
 * Plugin now requires WP 5.0.
