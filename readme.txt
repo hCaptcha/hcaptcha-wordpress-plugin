@@ -302,6 +302,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.5.0 =
+* Tested with WooCommerce 7.3.
 * Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
 
 = 2.4.0 =
@@ -316,7 +317,7 @@ Instructions for popular native integrations are below:
 * Fixed hCaptcha placement in Avada form.
 
 = 2.3.0 =
-* Tested with WC 7.2.
+* Tested with WooCommerce 7.2.
 * Added compatibility with WC High-Performance order storage (COT) feature.
 * Added compatibility with Contact Form 7 v5.7.
 
