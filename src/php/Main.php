@@ -20,7 +20,6 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
-use HCaptcha\Mailchimp\Mailchimp;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Otter;
@@ -642,7 +641,7 @@ class Main {
 			'MailChimp'                    => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
-				Mailchimp::class,
+				Mailchimp\Form::class,
 			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],

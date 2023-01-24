@@ -1,20 +1,20 @@
 <?php
 /**
- * MailchimpTest class file.
+ * FormTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\Mailchimp;
 
-use HCaptcha\Mailchimp\Mailchimp;
+use HCaptcha\Mailchimp\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 
 /**
- * Test Mailchimp form file.
+ * Test Form class.
  */
-class MailchimpTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_hcap_error_messages().
@@ -77,7 +77,7 @@ class MailchimpTest extends HCaptchaWPTestCase {
 		];
 
 		$expected = array_merge( $messages, $hcap_errors );
-		$subject  = new Mailchimp();
+		$subject  = new Form();
 
 		self::assertSame( $expected, $subject->add_hcap_error_messages( $messages, $form ) );
 	}
@@ -91,7 +91,7 @@ class MailchimpTest extends HCaptchaWPTestCase {
 			$this->get_hcap_form() .
 			wp_nonce_field( 'hcaptcha_mailchimp', 'hcaptcha_mailchimp_nonce', true, false ) .
 			'<input type="submit">';
-		$subject  = new Mailchimp();
+		$subject  = new Form();
 
 		self::assertSame( $expected, $subject->add_captcha( $content, '', '' ) );
 	}
@@ -102,7 +102,7 @@ class MailchimpTest extends HCaptchaWPTestCase {
 	public function test_verify() {
 		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
-		$subject = new Mailchimp();
+		$subject = new Form();
 
 		self::assertTrue( $subject->verify( true, [] ) );
 	}
@@ -113,7 +113,7 @@ class MailchimpTest extends HCaptchaWPTestCase {
 	public function test_verify_not_verified() {
 		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 
-		$subject = new Mailchimp();
+		$subject = new Form();
 
 		self::assertSame( 'fail', $subject->verify( true, [] ) );
 	}

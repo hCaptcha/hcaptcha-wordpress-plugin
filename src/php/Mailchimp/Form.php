@@ -1,6 +1,6 @@
 <?php
 /**
- * Mailchimp class file.
+ * Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -11,9 +11,9 @@
 namespace HCaptcha\Mailchimp;
 
 /**
- * Class Mailchimp.
+ * Class Form.
  */
-class Mailchimp {
+class Form {
 
 	/**
 	 * Nonce action.
@@ -26,7 +26,7 @@ class Mailchimp {
 	const NAME = 'hcaptcha_mailchimp_nonce';
 
 	/**
-	 * Mailchimp constructor.
+	 * Form constructor.
 	 */
 	public function __construct() {
 		$this->init_hooks();
