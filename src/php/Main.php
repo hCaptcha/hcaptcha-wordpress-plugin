@@ -516,6 +516,8 @@ class Main {
 
 	/**
 	 * Load plugin modules.
+	 *
+	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
 		$modules = [
@@ -722,12 +724,12 @@ class Main {
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
 				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'WPForms Pro'                  => [
 				[ 'wpforms_status', 'pro' ],
 				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'wpDiscuz'                     => [
 				[ 'wpdiscuz_status', 'comment_form' ],
