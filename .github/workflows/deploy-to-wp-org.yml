@@ -40,18 +40,20 @@ jobs:
 
       - name: WordPress Plugin Deploy
         id: deploy
-        uses: kagg-design/action-wordpress-plugin-deploy@test
+        uses: 10up/action-wordpress-plugin-deploy@stable
         with:
           generate-zip: true
         env:
-          SVN_SERVER: ${{ secrets.SVN_SERVER }}
           SLUG: ${{ env.SLUG }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
 
       - name: Upload release asset
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{github.workspace}}/${{ env.SLUG }}.zip
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.deploy.outputs.zip-path }}
+          asset_name: ${{ github.event.repository.name }}.zip
+          asset_content_type: application/zip
