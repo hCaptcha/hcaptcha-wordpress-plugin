@@ -26,6 +26,7 @@ use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
+use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
@@ -1158,7 +1159,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Wishlists'        => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
+				CreateList::class,
 			],
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],

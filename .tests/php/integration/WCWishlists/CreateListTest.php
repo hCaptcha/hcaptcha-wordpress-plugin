@@ -1,16 +1,17 @@
 <?php
 /**
- * WCWLCreateListTest class file.
+ * CreateListTest class file.
  *
  * @package HCaptcha\Tests
  */
 
-namespace HCaptcha\Tests\Integration\WCWL;
+namespace HCaptcha\Tests\Integration\WCWishlists;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\WCWishlists\CreateList;
 
 /**
- * Test wc-wl-create-list.php file.
+ * Test CreateList class.
  *
  * WooCommerce requires PHP 7.0.
  *
@@ -21,7 +22,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
  * @requires PHP >= 7.0
  * @requires PHP < 8.0
  */
-class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
+class CreateListTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Plugin relative path.
@@ -31,46 +32,48 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'woocommerce/woocommerce.php';
 
 	/**
-	 * Test hcap_woocommerce_wishlists_before_wrapper_action() and
-	 * hcap_woocommerce_wishlists_after_wrapper_action().
+	 * Test before_wrapper() and after_wrapper().
 	 */
-	public function test_hcap_woocommerce_wishlists_wrapper_action() {
+	public function test_wrapper() {
 		$row      = '<p class="form-row">';
 		$expected =
 			"\n" .
 			$this->get_hcap_form( 'hcaptcha_wc_create_wishlists_action', 'hcaptcha_wc_create_wishlists_nonce' ) .
 			"\n" .
 			$row;
+		$subject  = new CreateList();
 
 		ob_start();
 
-		hcap_woocommerce_wishlists_before_wrapper_action();
+		$subject->before_wrapper();
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $row;
-		hcap_woocommerce_wishlists_after_wrapper_action();
+		$subject->after_wrapper();
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
-	 * Test hcap_verify_wc_wl_create_list_captcha().
+	 * Test verify().
 	 */
-	public function test_hcap_verify_wc_wl_create_list_captcha() {
+	public function verify() {
 		$valid_captcha = 'some captcha';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
 
+		$subject = new CreateList();
+
 		WC()->init();
 
-		self::assertSame( $valid_captcha, hcap_verify_wc_wl_create_list_captcha( $valid_captcha ) );
+		self::assertSame( $valid_captcha, $subject->verify( $valid_captcha ) );
 
 		self::assertSame( [], wc_get_notices() );
 	}
 
 	/**
-	 * Test test_hcap_verify_wc_wl_create_list_captcha() not verified.
+	 * Test verify() not verified.
 	 */
-	public function test_hcap_verify_wc_wl_create_list_captcha_not_verified() {
+	public function test_verify_not_verified() {
 		$valid_captcha = 'some captcha';
 		$expected      = [
 			'error' => [
@@ -83,9 +86,11 @@ class WCWLCreateListTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action', false );
 
+		$subject = new CreateList();
+
 		WC()->init();
 
-		self::assertFalse( hcap_verify_wc_wl_create_list_captcha( $valid_captcha ) );
+		self::assertFalse( $subject->verify( $valid_captcha ) );
 
 		self::assertSame( $expected, wc_get_notices() );
 	}
