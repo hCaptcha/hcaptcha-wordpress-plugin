@@ -20,6 +20,7 @@ use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\Mailchimp\Mailchimp;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
@@ -1093,7 +1094,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'MailChimp'                    => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
+				Mailchimp::class,
 			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],
