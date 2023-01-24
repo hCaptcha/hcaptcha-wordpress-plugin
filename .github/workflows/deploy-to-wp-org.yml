@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies in prod version
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install --no-dev
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
           yarn
           yarn prod
         env:
