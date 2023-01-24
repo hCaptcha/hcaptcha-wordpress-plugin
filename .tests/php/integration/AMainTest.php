@@ -1113,7 +1113,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
+				\HCaptcha\Subscriber\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],

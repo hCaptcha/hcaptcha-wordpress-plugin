@@ -1,25 +1,26 @@
 <?php
 /**
- * SubscriberTest class file.
+ * FormTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\Subscriber;
 
+use HCaptcha\Subscriber\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
- * Test subscriber.php file.
+ * Test Form class.
  *
  * @group subscriber
  */
-class SubscriberTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tests hcap_subscriber_form().
+	 * Tests add_captcha().
 	 */
-	public function test_hcap_subscriber_form() {
+	public function test_add_captcha() {
 		hcaptcha()->init_hooks();
 
 		$content  = '<!--some form content-->';
@@ -32,27 +33,31 @@ class SubscriberTest extends HCaptchaWPTestCase {
 				true,
 				false
 			);
+		$subject  = new Form();
 
-		self::assertSame( $expected, hcap_subscriber_form( $content ) );
+		self::assertSame( $expected, $subject->add_captcha( $content ) );
 	}
 
 	/**
-	 * Test hcap_subscriber_verify().
+	 * Test verify().
 	 */
-	public function test_hcap_subscriber_verify() {
+	public function test_verify() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
 
-		self::assertTrue( hcap_subscriber_verify() );
-		self::assertTrue( hcap_subscriber_verify( true ) );
-		self::assertFalse( hcap_subscriber_verify( false ) );
+		$subject = new Form();
+
+		self::assertTrue( $subject->verify( true ) );
+		self::assertFalse( $subject->verify( false ) );
 	}
 
 	/**
-	 * Test hcap_subscriber_verify() not verified.
+	 * Test verify() not verified.
 	 */
-	public function test_hcap_subscriber_verify_not_verified() {
+	public function test_verify_not_verified() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form', false );
 
-		self::assertSame( 'The hCaptcha is invalid.', hcap_subscriber_verify() );
+		$subject = new Form();
+
+		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( true ) );
 	}
 }
