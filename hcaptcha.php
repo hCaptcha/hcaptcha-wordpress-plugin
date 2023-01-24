@@ -24,6 +24,9 @@
  * WC tested up to:      7.3
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpParamsInspection */
+
 use HCaptcha\Main;
 
 // If this file is called directly, abort.
