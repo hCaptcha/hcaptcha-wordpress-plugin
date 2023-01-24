@@ -37,7 +37,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	private function init_hooks() {
 		add_filter( 'mc4wp_form_messages', [ $this, 'add_hcap_error_messages' ], 10, 2 );
 		add_action( 'mc4wp_form_content', [ $this, 'add_captcha' ], 20, 3 );
 		add_filter( 'mc4wp_valid_form_request', [ $this, 'verify' ], 10, 2 );

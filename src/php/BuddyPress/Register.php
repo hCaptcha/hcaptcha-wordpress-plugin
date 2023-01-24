@@ -34,7 +34,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	private function init_hooks() {
 		add_action( 'bp_before_registration_submit_buttons', [ $this, 'add_captcha' ] );
 		add_action( 'bp_signup_validate', [ $this, 'verify' ] );
 	}

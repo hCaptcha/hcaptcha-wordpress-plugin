@@ -34,7 +34,7 @@ class CreateGroup {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	private function init_hooks() {
 		add_action( 'bp_after_group_details_creation_step', [ $this, 'add_captcha' ] );
 		add_action( 'groups_group_before_save', [ $this, 'verify' ] );
 	}
