@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
+use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\FluentForm\Form;
@@ -1037,12 +1038,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
+				CreateGroup::class,
 			],
 			'BuddyPress Register'          => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
+				\HCaptcha\BuddyPress\Register::class,
 			],
 			'Contact Form 7'               => [
 				[ 'cf7_status', 'form' ],
