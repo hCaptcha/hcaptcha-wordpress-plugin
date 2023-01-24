@@ -305,6 +305,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 7.3.
 * Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
 * Added compatibility with ACF Extended Pro Form.
+* Added optimisation of autoloading to boost performance.
 
 = 2.4.0 =
 * Tested with PHP 8.2.
