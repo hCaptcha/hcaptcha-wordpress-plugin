@@ -28,6 +28,7 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
 
 /**
@@ -716,7 +717,7 @@ class Main {
 			'WooCommerce Wishlists'        => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
+				CreateList::class,
 			],
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
