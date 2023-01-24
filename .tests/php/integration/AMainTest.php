@@ -1164,12 +1164,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
 				'wpforms-lite/wpforms.php',
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'WPForms Pro'                  => [
 				[ 'wpforms_status', 'pro' ],
 				'wpforms/wpforms.php',
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],

@@ -1,6 +1,6 @@
 <?php
 /**
- * WPFormsTest class file.
+ * FormTest class file.
  *
  * @package HCaptcha\Tests
  */
@@ -8,11 +8,12 @@
 namespace HCaptcha\Tests\Integration\WPForms;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\WPForms\Form;
 
 /**
- * Test wpforms.php file.
+ * Test Forms class.
  */
-class WPFormsTest extends HCaptchaPluginWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Plugin relative path.
@@ -22,9 +23,9 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'wpforms-lite/wpforms.php';
 
 	/**
-	 * Tests hcaptcha_wpforms_display().
+	 * Tests add_captcha().
 	 */
-	public function test_hcaptcha_wpforms_display() {
+	public function test_add_captcha() {
 		$expected =
 			$this->get_hcap_form() .
 			wp_nonce_field(
@@ -33,37 +34,40 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 				true,
 				false
 			);
+		$subject  = new Form();
 
 		ob_start();
 
-		hcaptcha_wpforms_display( [] );
+		$subject->add_captcha( [] );
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
-	 * Test hcaptcha_wpforms_validate().
+	 * Test verify().
 	 */
-	public function test_hcaptcha_wpforms_validate() {
+	public function test_verify() {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
+		$subject   = new Form();
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
 		wpforms()->objects();
 		wpforms()->get( 'process' )->errors = [];
 
-		hcaptcha_wpforms_validate( $fields, [], $form_data );
+		$subject->verify( $fields, [], $form_data );
 
 		self::assertSame( [], wpforms()->get( 'process' )->errors );
 	}
 
 	/**
-	 * Test hcaptcha_wpforms_validate() not verified.
+	 * Test verify() not verified.
 	 */
-	public function test_hcaptcha_wpforms_validate_not_verified() {
+	public function test_verify_not_verified() {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
+		$subject   = new Form();
 
 		$expected = 'The hCaptcha is invalid.';
 
@@ -72,7 +76,7 @@ class WPFormsTest extends HCaptchaPluginWPTestCase {
 		wpforms()->objects();
 		wpforms()->get( 'process' )->errors = [];
 
-		hcaptcha_wpforms_validate( $fields, [], $form_data );
+		$subject->verify( $fields, [], $form_data );
 
 		self::assertSame( $expected, wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] );
 	}
