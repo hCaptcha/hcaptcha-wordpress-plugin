@@ -545,7 +545,7 @@ class Main {
 			],
 			'ACF Extended Form'            => [
 				[ 'acfe_status', 'form' ],
-				'acf-extended/acf-extended.php',
+				[ 'acf-extended/acf-extended.php', 'acf-extended-pro/acf-extended.php' ],
 				ACFE\Form::class,
 			],
 			'Avada Form'                   => [
