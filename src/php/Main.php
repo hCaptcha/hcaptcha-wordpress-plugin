@@ -556,12 +556,12 @@ class Main {
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
+				BBPress\NewTopic::class,
 			],
 			'bbPress Reply'                => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+				BBPress\Reply::class,
 			],
 			'Beaver Builder Contact Form'  => [
 				[ 'beaver_builder_status', 'contact' ],
