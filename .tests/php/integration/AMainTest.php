@@ -13,6 +13,8 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\BBPress\NewTopic;
+use HCaptcha\BBPress\Reply;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\FluentForm\Form;
@@ -1015,12 +1017,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
+				NewTopic::class,
 			],
 			'bbPress Reply'                => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+				Reply::class,
 			],
 			'Beaver Builder Contact Form'  => [
 				[ 'beaver_builder_status', 'contact' ],
