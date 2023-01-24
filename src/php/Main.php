@@ -576,12 +576,12 @@ class Main {
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
+				BuddyPress\CreateGroup::class,
 			],
 			'BuddyPress Register'          => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
+				BuddyPress\Register::class,
 			],
 			'Contact Form 7'               => [
 				[ 'cf7_status', 'form' ],
