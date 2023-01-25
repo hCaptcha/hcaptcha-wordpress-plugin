@@ -1174,12 +1174,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+				\HCaptcha\WPForo\NewTopic::class,
 			],
 			'wpForo Reply'                 => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+				\HCaptcha\WPForo\Reply::class,
 			],
 		];
 
