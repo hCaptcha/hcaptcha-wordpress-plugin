@@ -739,12 +739,12 @@ class Main {
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+				WPForo\NewTopic::class,
 			],
 			'wpForo Reply'                 => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+				WPForo\Reply::class,
 			],
 		];
 
