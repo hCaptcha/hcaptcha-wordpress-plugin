@@ -59,7 +59,7 @@ function hcap_wpforo_topic_enqueue_scripts() {
 	wp_enqueue_script(
 		'hcaptcha-wpforo',
 		HCAPTCHA_URL . "/assets/js/hcaptcha-wpforo$min.js",
-		[ 'jquery', 'wpforo-frontend-js' ],
+		[ 'jquery', 'wpforo-frontend-js', 'hcaptcha' ],
 		HCAPTCHA_VERSION,
 		true
 	);

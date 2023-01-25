@@ -306,6 +306,7 @@ Instructions for popular native integrations are below:
 * Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
 * Added compatibility with ACF Extended Pro Form.
 * Added optimisation of autoloading to boost performance.
+* Fixed showing the hCaptcha widget on wpForo community page.
 
 = 2.4.0 =
 * Tested with PHP 8.2.
