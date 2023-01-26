@@ -73,8 +73,8 @@ const HCAPTCHA_NONCE = 'hcaptcha_nonce';
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
-require HCAPTCHA_INC . '/common/request.php';
-require HCAPTCHA_INC . '/common/functions.php';
+require HCAPTCHA_INC . '/request.php';
+require HCAPTCHA_INC . '/functions.php';
 
 /**
  * Get hCaptcha Main class instance.
