@@ -54,11 +54,7 @@
       "HCaptcha\\Tests\\Acceptance\\": ".tests/php/acceptance",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
-    },
-    "files": [
-      "src/php/includes/functions.php",
-      "src/php/includes/request.php"
-    ]
+    }
   },
   "bin": [
     "bin/update-tests"
