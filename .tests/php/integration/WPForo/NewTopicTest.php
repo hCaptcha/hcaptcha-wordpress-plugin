@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpUndefinedFunctionInspection */
+<?php
 /**
  * NewTopicTest class file.
  *
@@ -9,6 +9,7 @@
 /** @noinspection PhpLanguageLevelInspection */
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedFunctionInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration\WPForo;
