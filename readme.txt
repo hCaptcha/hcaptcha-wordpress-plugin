@@ -46,6 +46,8 @@ For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the p
 
 For example, we support Contact Forms 7 automatically. However, sometimes a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
 
+To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> tag.
+
 = You don't support plugin X. How can I get support for it added? =
 
 [Open a PR on GitHub](https://github.com/hCaptcha/hcaptcha-wordpress-plugin): or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
@@ -83,7 +85,13 @@ If you create the form as an HTML block in the post content, just insert the sho
 If you create the form programmatically, insert the following statement inside it:
 
 `
-echo do_shortcode( '[hcaptcha]' );
+?>
+<form method="post">
+	<input type="text" name="test_input">
+	<input type="submit" value="Send">
+    <?php echo do_shortcode( '[hcaptcha]' ); ?>
+</form>
+<?php
 `
 
 Secondly, verify the result of hCaptcha challenge.
@@ -92,7 +100,7 @@ Secondly, verify the result of hCaptcha challenge.
 $result = hcaptcha_request_verify();
 
 if ( 'success' !== $result ) {
-// Block processing of the form.
+    // Block processing of the form.
 }
 `
 
