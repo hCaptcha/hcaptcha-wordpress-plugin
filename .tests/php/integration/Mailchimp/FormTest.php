@@ -18,6 +18,8 @@ class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_hcap_error_messages().
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_hcap_error_messages() {
 		$form = Mockery::mock( 'MC4WP_Form' );

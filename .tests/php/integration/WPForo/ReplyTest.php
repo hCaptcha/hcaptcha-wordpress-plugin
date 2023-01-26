@@ -32,8 +32,6 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Set up test.
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function setUp(): void {
 		set_current_screen( 'edit-post' );
@@ -45,8 +43,6 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function tearDown(): void {
 		WPF()->session_token = '';
@@ -73,8 +69,6 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify() {
 		$data    = [ 'some data' ];
@@ -89,8 +83,6 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() when not verified.
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$expected = '<p class="error">The hCaptcha is invalid.</p>';

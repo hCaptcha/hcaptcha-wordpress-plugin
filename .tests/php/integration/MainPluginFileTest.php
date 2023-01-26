@@ -21,6 +21,8 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test main plugin file content.
+	 *
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function test_main_file_content(): void {
 		$expected    = [

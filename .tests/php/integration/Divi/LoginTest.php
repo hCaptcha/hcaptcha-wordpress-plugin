@@ -7,12 +7,9 @@
 
 namespace HCaptcha\Tests\Integration\Divi;
 
-use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\Login;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
-use WP_Error;
 
 /**
  * Class LoginTest

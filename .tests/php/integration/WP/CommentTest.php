@@ -10,7 +10,7 @@
 /** @noinspection PhpUndefinedClassInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-namespace HCaptcha\Tests\Integration\DefaultForms;
+namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Helpers\Origin;

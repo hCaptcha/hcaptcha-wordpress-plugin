@@ -141,6 +141,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Test hcap_cf7_verify_recaptcha().
 	 *
 	 * @noinspection PhpParamsInspection
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha() {
 		$data              = [ 'h-captcha-response' => 'some response' ];
@@ -262,6 +263,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Test hcap_cf7_verify_recaptcha() without response.
 	 *
 	 * @noinspection PhpParamsInspection
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_response() {
 		$data              = [];
@@ -315,6 +317,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Test hcap_cf7_verify_recaptcha() not verified.
 	 *
 	 * @noinspection PhpParamsInspection
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_not_verified() {
 		$data              = [ 'h-captcha-response' => 'some response' ];

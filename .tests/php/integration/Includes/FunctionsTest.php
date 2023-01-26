@@ -10,7 +10,7 @@
 /** @noinspection PhpUndefinedClassInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-namespace HCaptcha\Tests\Integration\Common;
+namespace HCaptcha\Tests\Integration\Includes;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
@@ -32,6 +32,8 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test hcap_form().
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
 	public function test_hcap_form() {
 		hcaptcha()->init_hooks();
@@ -47,6 +49,8 @@ class FunctionsTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test hcap_form_display().
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
 	public function test_hcap_form_display() {
 		self::assertFalse( hcaptcha()->form_shown );

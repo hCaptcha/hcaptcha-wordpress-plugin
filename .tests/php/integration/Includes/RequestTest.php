@@ -5,7 +5,7 @@
  * @package HCaptcha\Tests
  */
 
-namespace HCaptcha\Tests\Integration\Common;
+namespace HCaptcha\Tests\Integration\Includes;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 

@@ -14,7 +14,6 @@ namespace HCaptcha\Tests\Integration\BuddyPress;
 
 use HCaptcha\BuddyPress\Register;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Register.

@@ -623,6 +623,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Test hcap_language filter in get_api_src().
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_hcap_language_filter_in_get_api_scr() {
 		$language          = 'en';
@@ -654,6 +655,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_print_footer_scripts
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ): void {
 		$hcaptcha_wordpress_plugin = hcaptcha();
