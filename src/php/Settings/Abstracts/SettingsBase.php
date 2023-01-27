@@ -934,6 +934,7 @@ abstract class SettingsBase {
 				'label'        => '',
 				'max'          => '',
 				'min'          => '',
+				'step'         => '',
 				'options'      => [],
 				'placeholder'  => '',
 				'supplemental' => '',
