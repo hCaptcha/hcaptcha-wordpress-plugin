@@ -172,6 +172,8 @@ class ContactTest extends HCaptchaWPTestCase {
 			</div> <!-- .et_pb_contact_form_container -->
 			';
 
+		hcaptcha()->init_hooks();
+
 		$subject = new Contact();
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
