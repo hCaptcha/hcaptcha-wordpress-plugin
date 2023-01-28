@@ -315,6 +315,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with ACF Extended Pro Form.
 * Added optimisation of autoloading to boost performance.
 * Fixed showing the hCaptcha widget on wpForo community page.
+* Fixed PHP notice on the General settings page.
 
 = 2.4.0 =
 * Tested with PHP 8.2.
