@@ -7,10 +7,12 @@
 
 namespace HCaptcha\UM;
 
+use HCaptcha\Abstracts\LoginBase;
+
 /**
  * Class Base
  */
-abstract class Base {
+abstract class Base extends LoginBase {
 
 	/**
 	 * Field key.
@@ -64,7 +66,7 @@ abstract class Base {
 		$this->hcaptcha_action = "hcaptcha_um_$this->um_mode";
 		$this->hcaptcha_nonce  = "hcaptcha_um_{$this->um_mode}_nonce";
 
-		$this->init_hooks();
+		parent::__construct();
 	}
 
 	/**
@@ -171,7 +173,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Verify register form.
+	 * Verify hCaptcha.
 	 *
 	 * @param array $args Form arguments.
 	 *
