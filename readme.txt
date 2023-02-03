@@ -316,6 +316,7 @@ Instructions for popular native integrations are below:
 * Added optimisation of autoloading to boost performance.
 * Fixed showing the hCaptcha widget on wpForo community page.
 * Fixed PHP notice on the General settings page.
+* Fixed bug with number of login attempts before showing the hCaptcha.
 
 = 2.4.0 =
 * Tested with PHP 8.2.
@@ -454,7 +455,7 @@ Instructions for popular native integrations are below:
 * Added feature to run hCaptcha script and styles on pages where it is used only.
 
 = 1.9.2 =
-* Fixed issue with WooCommerce on my-account page - captcha was requested even if solved properly.
+* Fixed issue with WooCommerce on my-account page - hCaptcha was requested even if solved properly.
 
 = 1.9.1 =
 * Fixed issue with Contact Form 7 - reset hCaptcha widget when form is not validated.
