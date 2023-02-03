@@ -58,11 +58,8 @@ class Login {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		if ( $this->is_login_limit_exceeded() ) {
-			add_action( 'login_form', [ $this, 'add_captcha' ] );
-			add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		}
-
+		add_action( 'login_form', [ $this, 'add_captcha' ] );
+		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
 		add_action( 'wp_login_failed', [ $this, 'login_failed' ], 10, 2 );
 		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
@@ -81,7 +78,9 @@ class Login {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_login', 'hcaptcha_login_nonce' );
+		if ( $this->is_login_limit_exceeded() ) {
+			hcap_form_display( 'hcaptcha_login', 'hcaptcha_login_nonce' );
+		}
 	}
 
 	/**
@@ -102,7 +101,7 @@ class Login {
 			)
 		);
 
-		return $count >= $login_limit - 1;
+		return $count >= $login_limit;
 	}
 
 	/**
@@ -116,6 +115,10 @@ class Login {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, $password ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return $user;
+		}
+
 		$error_message = hcaptcha_get_verify_message_html(
 			'hcaptcha_login_nonce',
 			'hcaptcha_login'
