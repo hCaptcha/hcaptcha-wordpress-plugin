@@ -313,6 +313,8 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 7.3.
 * Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
 * Added compatibility with ACF Extended Pro Form.
+* Added login attempts limit to WooCommerce login form.
+* Added login attempts limit to Divi login form.
 * Added optimisation of autoloading to boost performance.
 * Fixed showing the hCaptcha widget on wpForo community page.
 * Fixed PHP notice on the General settings page.

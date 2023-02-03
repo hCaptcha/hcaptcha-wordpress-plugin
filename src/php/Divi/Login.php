@@ -7,10 +7,12 @@
 
 namespace HCaptcha\Divi;
 
+use HCaptcha\Abstracts\LoginBase;
+
 /**
  * Class Login.
  */
-class Login {
+class Login extends LoginBase {
 
 	/**
 	 * Login form shortcode tag.
@@ -28,16 +30,11 @@ class Login {
 	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
-
-	/**
 	 * Init hooks.
 	 */
-	private function init_hooks() {
+	protected function init_hooks() {
+		parent::init_hooks();
+
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
 	}
 
@@ -49,11 +46,16 @@ class Login {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $output, $module_slug ) {
 		if ( et_core_is_fb_enabled() ) {
 			// Do not add captcha in frontend builder.
 
+			return $output;
+		}
+
+		if ( ! $this->is_login_limit_exceeded() ) {
 			return $output;
 		}
 
