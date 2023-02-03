@@ -10,21 +10,16 @@
 
 namespace HCaptcha\BeaverBuilder;
 
+use HCaptcha\Abstracts\LoginBase;
+
 /**
  * Class Base.
  */
-abstract class Base {
+abstract class Base extends LoginBase {
 	/**
 	 * Script handle.
 	 */
 	const HANDLE = 'hcaptcha-beaver-builder';
-
-	/**
-	 * Base constructor.
-	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
 
 	/**
 	 * Add hooks.
