@@ -604,7 +604,7 @@ class Main {
 			'Divi Login Form'              => [
 				[ 'divi_status', 'login' ],
 				'Divi',
-				[ Divi\Login::class, WP\Login::class ]
+				[ Divi\Login::class, WP\Login::class ],
 			],
 			'Download Manager'             => [
 				[ 'download_manager_status', 'button' ],
