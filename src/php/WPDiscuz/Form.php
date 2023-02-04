@@ -29,6 +29,7 @@ class Form {
 	public function init_hooks() {
 		add_action( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );
 	}
 
 	/**
@@ -93,5 +94,15 @@ class Form {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		wp_die( esc_html( $result ) );
+	}
+
+	/**
+	 * Dequeue recaptcha script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts() {
+		wp_dequeue_script( 'wpdiscuz-google-recaptcha' );
+		wp_deregister_script( 'wpdiscuz-google-recaptcha' );
 	}
 }
