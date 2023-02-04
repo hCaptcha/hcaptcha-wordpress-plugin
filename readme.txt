@@ -286,6 +286,7 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Wishlist
 * WP Fluent Forms
 * WPForms Lite
+* wpDiscuz
 * wpForo New Topic Form
 * wpForo Reply Form
 
