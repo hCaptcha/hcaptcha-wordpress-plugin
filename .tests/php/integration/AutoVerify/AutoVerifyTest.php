@@ -268,6 +268,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify_form() when verify is not successful.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_form_when_no_success() {
 		$request_uri = $this->get_test_request_uri();

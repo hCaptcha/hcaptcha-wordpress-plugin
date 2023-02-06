@@ -25,7 +25,7 @@ class Login extends Base {
 	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
-	 * Filters the Beaver Builder Contact Form submit button html and adds hcaptcha.
+	 * Filters the Beaver Builder Login Form submit button html and adds hcaptcha.
 	 *
 	 * @param string         $out    Button html.
 	 * @param FLButtonModule $module Button module.
@@ -33,6 +33,9 @@ class Login extends Base {
 	 * @return string
 	 */
 	public function add_hcaptcha( $out, $module ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return $out;
+		}
 
 		// Process login form only.
 		if ( false === strpos( $out, '<div class="fl-login-form' ) ) {

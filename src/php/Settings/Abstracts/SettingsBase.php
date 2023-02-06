@@ -204,8 +204,7 @@ abstract class SettingsBase {
 
 		add_filter(
 			'plugin_action_links_' . $this->plugin_basename(),
-			[ $this, 'add_settings_link' ],
-			10
+			[ $this, 'add_settings_link' ]
 		);
 
 		add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
@@ -934,6 +933,7 @@ abstract class SettingsBase {
 				'label'        => '',
 				'max'          => '',
 				'min'          => '',
+				'step'         => '',
 				'options'      => [],
 				'placeholder'  => '',
 				'supplemental' => '',

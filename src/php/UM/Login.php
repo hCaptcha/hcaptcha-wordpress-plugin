@@ -46,4 +46,34 @@ class Login extends Base {
 
 		return '';
 	}
+
+	/**
+	 * Add hCaptcha to form fields.
+	 *
+	 * @param array $fields Form fields.
+	 *
+	 * @return array
+	 */
+	public function add_captcha( $fields ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return $fields;
+		}
+
+		return parent::add_captcha( $fields );
+	}
+
+	/**
+	 * Verify hCaptcha.
+	 *
+	 * @param array $args Form arguments.
+	 *
+	 * @return void
+	 */
+	public function verify( $args ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return;
+		}
+
+		parent::verify( $args );
+	}
 }

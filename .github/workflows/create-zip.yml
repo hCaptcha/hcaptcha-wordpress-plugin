@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies in prod version
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install --no-dev
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
           yarn
           yarn prod
         env:
@@ -43,6 +43,7 @@ jobs:
           echo "➤ Generating zip file..."
           cd trunk
           zip -r "${{github.workspace}}/${{ env.SLUG }}.zip" .
+          echo "zip-path=${GITHUB_WORKSPACE}/${SLUG}.zip" >> "${GITHUB_OUTPUT}"
           echo "✓ Zip file generated!"
 
       - name: Upload release asset

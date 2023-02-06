@@ -13,6 +13,9 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\BBPress\NewTopic;
+use HCaptcha\BBPress\Reply;
+use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\FluentForm\Form;
@@ -23,6 +26,7 @@ use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
+use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
@@ -619,6 +623,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Test hcap_language filter in get_api_src().
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_hcap_language_filter_in_get_api_scr() {
 		$language          = 'en';
@@ -650,6 +655,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_print_footer_scripts
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ): void {
 		$hcaptcha_wordpress_plugin = hcaptcha();
@@ -1015,12 +1021,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
+				NewTopic::class,
 			],
 			'bbPress Reply'                => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+				Reply::class,
 			],
 			'Beaver Builder Contact Form'  => [
 				[ 'beaver_builder_status', 'contact' ],
@@ -1035,12 +1041,12 @@ class AMainTest extends HCaptchaWPTestCase {
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
+				CreateGroup::class,
 			],
 			'BuddyPress Register'          => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
+				\HCaptcha\BuddyPress\Register::class,
 			],
 			'Contact Form 7'               => [
 				[ 'cf7_status', 'form' ],
@@ -1090,7 +1096,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'MailChimp'                    => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
+				\HCaptcha\Mailchimp\Form::class,
 			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],
@@ -1110,7 +1116,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
+				\HCaptcha\Subscriber\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],
@@ -1155,27 +1161,27 @@ class AMainTest extends HCaptchaWPTestCase {
 			'WooCommerce Wishlists'        => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
+				CreateList::class,
 			],
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
 				'wpforms-lite/wpforms.php',
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'WPForms Pro'                  => [
 				[ 'wpforms_status', 'pro' ],
 				'wpforms/wpforms.php',
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+				\HCaptcha\WPForo\NewTopic::class,
 			],
 			'wpForo Reply'                 => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+				\HCaptcha\WPForo\Reply::class,
 			],
 		];
 

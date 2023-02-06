@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpParamsInspection */
+/** @noinspection PhpUnused */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 use tad\FunctionMocker\FunctionMocker;
 
 /**

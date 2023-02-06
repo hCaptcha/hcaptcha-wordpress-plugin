@@ -67,6 +67,7 @@ class Contact {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $output, $module_slug ) {
 		if ( et_core_is_fb_enabled() ) {

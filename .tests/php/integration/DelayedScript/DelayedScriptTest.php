@@ -19,6 +19,9 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test create().
+	 *
+	 * @noinspection BadExpressionStatementJS
+	 * @noinspection JSUnresolvedVariable
 	 */
 	public function test_create() {
 		$js = 'some js script';
@@ -85,6 +88,8 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test launch().
+	 *
+	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_launch() {
 		$expected = '

@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies in prod version
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install --no-dev
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
           yarn
           yarn prod
         env:
@@ -40,11 +40,10 @@ jobs:
 
       - name: WordPress Plugin Deploy
         id: deploy
-        uses: kagg-design/action-wordpress-plugin-deploy@test
+        uses: 10up/action-wordpress-plugin-deploy@stable
         with:
           generate-zip: true
         env:
-          SVN_SERVER: ${{ secrets.SVN_SERVER }}
           SLUG: ${{ env.SLUG }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}

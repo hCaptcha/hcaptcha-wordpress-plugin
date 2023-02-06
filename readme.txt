@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.1
 Requires PHP: 5.6.20
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,8 @@ For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the p
 
 For example, we support Contact Forms 7 automatically. However, sometimes a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
 
+To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> tag.
+
 = You don't support plugin X. How can I get support for it added? =
 
 [Open a PR on GitHub](https://github.com/hCaptcha/hcaptcha-wordpress-plugin): or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
@@ -83,7 +85,13 @@ If you create the form as an HTML block in the post content, just insert the sho
 If you create the form programmatically, insert the following statement inside it:
 
 `
-echo do_shortcode( '[hcaptcha]' );
+?>
+<form method="post">
+	<input type="text" name="test_input">
+	<input type="submit" value="Send">
+    <?php echo do_shortcode( '[hcaptcha]' ); ?>
+</form>
+<?php
 `
 
 Secondly, verify the result of hCaptcha challenge.
@@ -92,7 +100,7 @@ Secondly, verify the result of hCaptcha challenge.
 $result = hcaptcha_request_verify();
 
 if ( 'success' !== $result ) {
-// Block processing of the form.
+    // Block processing of the form.
 }
 `
 
@@ -278,6 +286,7 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Wishlist
 * WP Fluent Forms
 * WPForms Lite
+* wpDiscuz
 * wpForo New Topic Form
 * wpForo Reply Form
 
@@ -301,6 +310,20 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.5.0 =
+* Tested with WooCommerce 7.3.
+* Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
+* Added compatibility with ACF Extended Pro Form.
+* Added login attempts limit to Beaver Builder login form.
+* Added login attempts limit to Divi login form.
+* Added login attempts limit to Ultimate Member login form.
+* Added login attempts limit to WooCommerce login form.
+* Added optimisation of autoloading to boost performance.
+* Added block of launching recaptcha scripts by wpDiscuz.
+* Fixed showing the hCaptcha widget on wpForo community page.
+* Fixed PHP notice on the General settings page.
+* Fixed bug with number of login attempts before showing the hCaptcha.
+
 = 2.4.0 =
 * Tested with PHP 8.2.
 * Plugin now requires WP 5.0.
@@ -313,7 +336,7 @@ Instructions for popular native integrations are below:
 * Fixed hCaptcha placement in Avada form.
 
 = 2.3.0 =
-* Tested with WC 7.2.
+* Tested with WooCommerce 7.2.
 * Added compatibility with WC High-Performance order storage (COT) feature.
 * Added compatibility with Contact Form 7 v5.7.
 
@@ -438,7 +461,7 @@ Instructions for popular native integrations are below:
 * Added feature to run hCaptcha script and styles on pages where it is used only.
 
 = 1.9.2 =
-* Fixed issue with WooCommerce on my-account page - captcha was requested even if solved properly.
+* Fixed issue with WooCommerce on my-account page - hCaptcha was requested even if solved properly.
 
 = 1.9.1 =
 * Fixed issue with Contact Form 7 - reset hCaptcha widget when form is not validated.

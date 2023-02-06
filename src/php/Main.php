@@ -5,8 +5,10 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha;
 
@@ -26,6 +28,7 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
 
 /**
@@ -407,7 +410,7 @@ class Main {
 			return;
 		}
 
-		if ( ! ( $this->form_shown || did_action( 'wpforo_template_forum_head_bar_action_links' ) ) ) {
+		if ( ! ( $this->form_shown || did_filter( 'wpforo_template' ) ) ) {
 			return;
 		}
 
@@ -513,6 +516,8 @@ class Main {
 
 	/**
 	 * Load plugin modules.
+	 *
+	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
 		$modules = [
@@ -543,7 +548,7 @@ class Main {
 			],
 			'ACF Extended Form'            => [
 				[ 'acfe_status', 'form' ],
-				'acf-extended/acf-extended.php',
+				[ 'acf-extended/acf-extended.php', 'acf-extended-pro/acf-extended.php' ],
 				ACFE\Form::class,
 			],
 			'Avada Form'                   => [
@@ -554,12 +559,12 @@ class Main {
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
+				BBPress\NewTopic::class,
 			],
 			'bbPress Reply'                => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+				BBPress\Reply::class,
 			],
 			'Beaver Builder Contact Form'  => [
 				[ 'beaver_builder_status', 'contact' ],
@@ -574,12 +579,12 @@ class Main {
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
+				BuddyPress\CreateGroup::class,
 			],
 			'BuddyPress Register'          => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
+				BuddyPress\Register::class,
 			],
 			'Contact Form 7'               => [
 				[ 'cf7_status', 'form' ],
@@ -599,7 +604,7 @@ class Main {
 			'Divi Login Form'              => [
 				[ 'divi_status', 'login' ],
 				'Divi',
-				Divi\Login::class,
+				[ Divi\Login::class, WP\Login::class ],
 			],
 			'Download Manager'             => [
 				[ 'download_manager_status', 'button' ],
@@ -639,7 +644,7 @@ class Main {
 			'MailChimp'                    => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
+				Mailchimp\Form::class,
 			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],
@@ -669,12 +674,12 @@ class Main {
 			'Subscriber'                   => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
+				Subscriber\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
-				UM\Login::class,
+				[ UM\Login::class, WP\Login::class ],
 			],
 			'Ultimate Member LostPassword' => [
 				[ 'ultimate_member_status', 'lost_pass' ],
@@ -714,17 +719,17 @@ class Main {
 			'WooCommerce Wishlists'        => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
+				CreateList::class,
 			],
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
 				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'WPForms Pro'                  => [
 				[ 'wpforms_status', 'pro' ],
 				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
 			'wpDiscuz'                     => [
 				[ 'wpdiscuz_status', 'comment_form' ],
@@ -734,12 +739,12 @@ class Main {
 			'wpForo New Topic'             => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+				WPForo\NewTopic::class,
 			],
 			'wpForo Reply'                 => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+				WPForo\Reply::class,
 			],
 		];
 
