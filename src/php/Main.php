@@ -81,6 +81,13 @@ class Main {
 	private $active;
 
 	/**
+	 * Whether wpforo_template filter was used.
+	 *
+	 * @var bool
+	 */
+	private $did_wpforo_template_filter = false;
+
+	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -121,6 +128,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
+		add_filter( 'wpforo_template', [ $this, 'wpforo_template_filter' ] );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -410,7 +418,7 @@ class Main {
 			return;
 		}
 
-		if ( ! ( $this->form_shown || did_filter( 'wpforo_template' ) ) ) {
+		if ( ! ( $this->form_shown || $this->did_wpforo_template_filter ) ) {
 			return;
 		}
 
@@ -464,6 +472,19 @@ class Main {
 		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
 		}
+	}
+
+	/**
+	 * Catch wpForo template filter.
+	 *
+	 * @param array|string $template Template.
+	 *
+	 * @return array|string
+	 */
+	public function wpforo_template_filter( $template ) {
+		$this->did_wpforo_template_filter = true;
+
+		return $template;
 	}
 
 	/**
