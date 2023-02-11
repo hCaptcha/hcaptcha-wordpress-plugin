@@ -97,9 +97,10 @@ If you create the form programmatically, insert the following statement inside i
 Secondly, verify the result of hCaptcha challenge.
 
 `
-$result = hcaptcha_request_verify();
+$result = hcaptcha_verify_post();
 
-if ( 'success' !== $result ) {
+if ( null !== $result ) {
+    echo esc_html( $result );
     // Block processing of the form.
 }
 `
