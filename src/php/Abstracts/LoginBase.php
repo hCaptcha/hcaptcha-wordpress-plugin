@@ -79,8 +79,8 @@ abstract class LoginBase {
 	/**
 	 * Update attempts data on failed login.
 	 *
-	 * @param string   $username   Username or email address.
-	 * @param WP_Error $error|null A WP_Error object with the authentication failure details.
+	 * @param string        $username Username or email address.
+	 * @param WP_Error|null $error    A WP_Error object with the authentication failure details.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
