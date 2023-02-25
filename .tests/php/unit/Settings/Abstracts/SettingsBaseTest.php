@@ -14,7 +14,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings\Abstracts;
 
-use HCaptcha\Tests\Unit\Stubs\Settings\Abstracts\SettingsBase;
+use HCaptcha\Settings\Abstracts\SettingsBase;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use PHPUnit\Runner\Version;
