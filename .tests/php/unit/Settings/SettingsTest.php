@@ -23,7 +23,6 @@ use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Class SettingsTest
@@ -209,7 +208,7 @@ class SettingsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'get' )->with( $key )->andReturn( $value );
 
 		$expected = ! empty( $value );
-		assertSame( $expected, $subject->is_on( $key ) );
+		self::assertSame( $expected, $subject->is_on( $key ) );
 	}
 
 	/**
@@ -244,8 +243,8 @@ class SettingsTest extends HCaptchaTestCase {
 			$subject->shouldReceive( 'get' )->with( 'secret_key' )->andReturn( $expected['secret_key'] );
 		}
 
-		assertSame( $expected['site_key'], $subject->get_site_key() );
-		assertSame( $expected['secret_key'], $subject->get_secret_key() );
+		self::assertSame( $expected['site_key'], $subject->get_site_key() );
+		self::assertSame( $expected['secret_key'], $subject->get_secret_key() );
 	}
 
 	/**
