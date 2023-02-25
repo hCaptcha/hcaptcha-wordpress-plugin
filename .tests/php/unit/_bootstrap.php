@@ -77,6 +77,7 @@ FunctionMocker::init(
 			'constant',
 			'defined',
 			'filter_input',
+			'function_exists',
 			'uniqid',
 		],
 	]
