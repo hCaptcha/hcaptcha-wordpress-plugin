@@ -21,10 +21,8 @@ use HCaptcha\Tests\Unit\Stubs\Settings\GeneralStub;
 use HCaptcha\Tests\Unit\Stubs\Settings\IntegrationsStub;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
-use PHPUnit\Runner\Version;
 use ReflectionClass;
 use ReflectionException;
-use WP_Mock;
 use function PHPUnit\Framework\assertSame;
 
 /**
@@ -301,8 +299,8 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test set_field().
 	 *
-	 * @param array $tabs     Tabs.
-	 * @param array $expected Expected.
+	 * @param array $has_field Tab has field.
+	 * @param array $called    Tab set_field should be called.
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
