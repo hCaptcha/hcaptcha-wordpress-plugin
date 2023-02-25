@@ -12,7 +12,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
-use HCaptcha\Tests\Unit\Stubs\Settings\PluginSettingsBase;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionClass;
