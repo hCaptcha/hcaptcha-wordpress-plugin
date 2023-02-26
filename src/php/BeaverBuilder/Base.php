@@ -59,6 +59,7 @@ abstract class Base extends LoginBase {
 	 * @param FLButtonModule $module Button module.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	protected function add_hcap_form( $out, $module ) {
 		$hcaptcha =

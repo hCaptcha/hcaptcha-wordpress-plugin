@@ -264,6 +264,7 @@ class Main {
 	public function print_inline_styles() {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		?>
+		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
 		<style>
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
@@ -469,7 +470,7 @@ class Main {
 	 * @return void
 	 */
 	public function declare_wc_compatibility() {
-		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
 		}
 	}

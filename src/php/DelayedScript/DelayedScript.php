@@ -24,7 +24,7 @@ class DelayedScript {
 		ob_start();
 
 		?>
-
+		<!--suppress JSUnusedAssignment -->
 		<script>
 			( () => {
 				'use strict';

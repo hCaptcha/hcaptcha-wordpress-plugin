@@ -44,7 +44,6 @@ class Base {
 	 * @param mixed $data Data.
 	 *
 	 * @return mixed|bool
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $data ) {
 		$error_message = hcaptcha_get_verify_message(
