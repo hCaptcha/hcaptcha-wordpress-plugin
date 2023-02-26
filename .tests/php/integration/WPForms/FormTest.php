@@ -45,6 +45,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify() {
 		$fields    = [ 'some field' ];
@@ -63,6 +65,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$fields    = [ 'some field' ];

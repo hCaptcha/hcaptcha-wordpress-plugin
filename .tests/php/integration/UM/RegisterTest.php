@@ -29,6 +29,9 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function tearDown(): void {
 		UM()->form()->errors = null;
@@ -60,6 +63,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * Get subject.
 	 *
 	 * @return Register
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function get_subject() {
 		$subject = new Register();

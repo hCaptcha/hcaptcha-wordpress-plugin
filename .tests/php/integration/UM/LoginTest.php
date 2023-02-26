@@ -29,6 +29,9 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function tearDown(): void {
 		UM()->form()->errors = null;
@@ -215,6 +218,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test display_captcha().
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_display_captcha() {
 		$subject = $this->get_subject();
@@ -250,6 +254,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify() {
 		$subject = $this->get_subject();
@@ -276,6 +282,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$subject = $this->get_subject();
@@ -313,6 +321,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Get subject.
 	 *
 	 * @return Login
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function get_subject() {
 		$subject = new Login();

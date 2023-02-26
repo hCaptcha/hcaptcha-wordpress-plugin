@@ -41,6 +41,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test tear down.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function tearDown(): void {
 		if ( function_exists( 'wc_clear_notices' ) ) {
@@ -94,6 +96,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
@@ -109,6 +113,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$expected = [

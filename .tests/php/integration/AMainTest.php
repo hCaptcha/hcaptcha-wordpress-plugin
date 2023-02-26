@@ -8,6 +8,7 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpLanguageLevelInspection */
 /** @noinspection PhpUndefinedClassInspection */
+/** @noinspection CssUnresolvedCustomProperty */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration;

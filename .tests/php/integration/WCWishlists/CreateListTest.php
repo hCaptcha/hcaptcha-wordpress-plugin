@@ -55,6 +55,8 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify() {
 		$valid_captcha = 'some captcha';
@@ -72,6 +74,8 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$valid_captcha = 'some captcha';
