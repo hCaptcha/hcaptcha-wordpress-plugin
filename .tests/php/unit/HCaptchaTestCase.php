@@ -12,6 +12,8 @@
 
 namespace HCaptcha\Tests\Unit;
 
+use HCaptcha\Settings\Abstracts\SettingsBase;
+use HCaptcha\Settings\General;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -232,20 +234,332 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * Get test form fields.
 	 *
-	 * @return array
+	 * @return array|array[]
 	 */
 	protected function get_test_form_fields() {
+		$test_general_form_fields      = $this->get_test_general_form_fields();
+		$test_integrations_form_fields = $this->get_test_integrations_form_fields();
+
+		$test_form_fields = array_merge( $test_general_form_fields, $test_integrations_form_fields );
+
+		array_walk( $test_form_fields, [ $this, 'set_defaults' ] );
+
+		return $test_form_fields;
+	}
+
+	/**
+	 * Set default required properties for each field.
+	 *
+	 * @param array  $field Settings field.
+	 * @param string $id    Settings field id.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	protected function set_defaults( &$field, $id ) {
+		$field = array_merge(
+			[
+				'default'  => '',
+				'disabled' => false,
+				'field_id' => '',
+				'label'    => '',
+				'section'  => '',
+				'title'    => '',
+			],
+			$field
+		);
+	}
+
+	/**
+	 * Get test form fields of General class.
+	 *
+	 * @return array
+	 */
+	protected function get_test_general_form_fields() {
+		$form_fields = [
+			'site_key'                 => [
+				'label'   => 'Site Key',
+				'type'    => 'text',
+				'section' => General::SECTION_KEYS,
+			],
+			'secret_key'               => [
+				'label'   => 'Secret Key',
+				'type'    => 'password',
+				'section' => General::SECTION_KEYS,
+			],
+			'theme'                    => [
+				'label'   => 'Theme',
+				'type'    => 'select',
+				'section' => General::SECTION_APPEARANCE,
+				'options' => [
+					'light' => 'Light',
+					'dark'  => 'Dark',
+				],
+				'helper'  => 'Select hCaptcha theme.',
+			],
+			'size'                     => [
+				'label'   => 'Size',
+				'type'    => 'select',
+				'section' => General::SECTION_APPEARANCE,
+				'options' => [
+					'normal'    => 'Normal',
+					'compact'   => 'Compact',
+					'invisible' => 'Invisible',
+				],
+				'helper'  => 'Select hCaptcha size.',
+			],
+			'language'                 => [
+				'label'   => 'Language',
+				'type'    => 'select',
+				'section' => General::SECTION_APPEARANCE,
+				'options' => [
+					''      => '--- Auto-Detect ---',
+					'af'    => 'Afrikaans',
+					'sq'    => 'Albanian',
+					'am'    => 'Amharic',
+					'ar'    => 'Arabic',
+					'hy'    => 'Armenian',
+					'az'    => 'Azerbaijani',
+					'eu'    => 'Basque',
+					'be'    => 'Belarusian',
+					'bn'    => 'Bengali',
+					'bg'    => 'Bulgarian',
+					'bs'    => 'Bosnian',
+					'my'    => 'Burmese',
+					'ca'    => 'Catalan',
+					'ceb'   => 'Cebuano',
+					'zh'    => 'Chinese',
+					'zh-CN' => 'Chinese Simplified',
+					'zh-TW' => 'Chinese Traditional',
+					'co'    => 'Corsican',
+					'hr'    => 'Croatian',
+					'cs'    => 'Czech',
+					'da'    => 'Danish',
+					'nl'    => 'Dutch',
+					'en'    => 'English',
+					'eo'    => 'Esperanto',
+					'et'    => 'Estonian',
+					'fa'    => 'Persian',
+					'fi'    => 'Finnish',
+					'fr'    => 'French',
+					'fy'    => 'Frisian',
+					'gd'    => 'Gaelic',
+					'gl'    => 'Galacian',
+					'ka'    => 'Georgian',
+					'de'    => 'German',
+					'el'    => 'Greek',
+					'gu'    => 'Gujurati',
+					'ht'    => 'Haitian',
+					'ha'    => 'Hausa',
+					'haw'   => 'Hawaiian',
+					'he'    => 'Hebrew',
+					'hi'    => 'Hindi',
+					'hmn'   => 'Hmong',
+					'hu'    => 'Hungarian',
+					'is'    => 'Icelandic',
+					'ig'    => 'Igbo',
+					'id'    => 'Indonesian',
+					'ga'    => 'Irish',
+					'it'    => 'Italian',
+					'ja'    => 'Japanese',
+					'jw'    => 'Javanese',
+					'kn'    => 'Kannada',
+					'kk'    => 'Kazakh',
+					'km'    => 'Khmer',
+					'rw'    => 'Kinyarwanda',
+					'ky'    => 'Kirghiz',
+					'ko'    => 'Korean',
+					'ku'    => 'Kurdish',
+					'lo'    => 'Lao',
+					'la'    => 'Latin',
+					'lv'    => 'Latvian',
+					'lt'    => 'Lithuanian',
+					'lb'    => 'Luxembourgish',
+					'mk'    => 'Macedonian',
+					'mg'    => 'Malagasy',
+					'ms'    => 'Malay',
+					'ml'    => 'Malayalam',
+					'mt'    => 'Maltese',
+					'mi'    => 'Maori',
+					'mr'    => 'Marathi',
+					'mn'    => 'Mongolian',
+					'ne'    => 'Nepali',
+					'no'    => 'Norwegian',
+					'ny'    => 'Nyanja',
+					'or'    => 'Oriya',
+					'pl'    => 'Polish',
+					'pt'    => 'Portuguese',
+					'ps'    => 'Pashto',
+					'pa'    => 'Punjabi',
+					'ro'    => 'Romanian',
+					'ru'    => 'Russian',
+					'sm'    => 'Samoan',
+					'sn'    => 'Shona',
+					'sd'    => 'Sindhi',
+					'si'    => 'Singhalese',
+					'sr'    => 'Serbian',
+					'sk'    => 'Slovak',
+					'sl'    => 'Slovenian',
+					'so'    => 'Somani',
+					'st'    => 'Southern Sotho',
+					'es'    => 'Spanish',
+					'su'    => 'Sundanese',
+					'sw'    => 'Swahili',
+					'sv'    => 'Swedish',
+					'tl'    => 'Tagalog',
+					'tg'    => 'Tajik',
+					'ta'    => 'Tamil',
+					'tt'    => 'Tatar',
+					'te'    => 'Teluga',
+					'th'    => 'Thai',
+					'tr'    => 'Turkish',
+					'tk'    => 'Turkmen',
+					'ug'    => 'Uyghur',
+					'uk'    => 'Ukrainian',
+					'ur'    => 'Urdu',
+					'uz'    => 'Uzbek',
+					'vi'    => 'Vietnamese',
+					'cy'    => 'Welsh',
+					'xh'    => 'Xhosa',
+					'yi'    => 'Yiddish',
+					'yo'    => 'Yoruba',
+					'zu'    => 'Zulu',
+				],
+				'helper'  => __(
+					"By default, hCaptcha will automatically detect the user's locale and localize widgets accordingly.",
+					'hcaptcha-for-forms-and-more'
+				),
+			],
+			'mode'                     => [
+				'label'   => 'Mode',
+				'type'    => 'select',
+				'section' => General::SECTION_APPEARANCE,
+				// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+				'options' => [
+					General::MODE_LIVE                          => 'Live',
+					General::MODE_TEST_PUBLISHER                => 'Test: Publisher Account',
+					General::MODE_TEST_ENTERPRISE_SAFE_END_USER => 'Test: Enterprise Account (Safe End User)',
+					General::MODE_TEST_ENTERPRISE_BOT_DETECTED  => 'Test: Enterprise Account (Bot Detected)',
+				],
+				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+				'default' => General::MODE_LIVE,
+				'helper'  => __(
+					'Select live or test mode. In test mode, predefined keys are used.',
+					'hcaptcha-for-forms-and-more'
+				),
+			],
+			'custom_themes'            => [
+				'label'   => 'Custom Themes',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_CUSTOM,
+				'options' => [
+					'on' => 'Enable Custom Themes',
+				],
+				'helper'  => sprintf(
+				/* translators: 1: hCaptcha Pro link, 2: hCaptcha Enterprise link. */
+					'Note: only works on hCaptcha %1$s and %2$s site keys.',
+					sprintf(
+						'<a href="https://www.hcaptcha.com/pro?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=upgrade" target="_blank">%s</a>',
+						'Pro'
+					),
+					sprintf(
+						'<a href="https://www.hcaptcha.com/enterprise?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=upgrade" target="_blank">%s</a>',
+						'Enterprise'
+					)
+				),
+			],
+			'config_params'            => [
+				'label'   => 'Config Params',
+				'type'    => 'textarea',
+				'section' => General::SECTION_CUSTOM,
+				'helper'  => sprintf(
+				/* translators: 1: hCaptcha render params doc link. */
+					'hCaptcha render %s (optional). Must be a valid JSON.',
+					sprintf(
+						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=docs" target="_blank">%s</a>',
+						'parameters'
+					)
+				),
+			],
+			'off_when_logged_in'       => [
+				'label'   => 'Other Settings',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_OTHER,
+				'options' => [
+					'on' => 'Turn Off When Logged In',
+				],
+				'helper'  => 'Do not show hCaptcha to logged-in users.',
+			],
+			'recaptcha_compat_off'     => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_OTHER,
+				'options' => [
+					'on' => 'Disable reCAPTCHA Compatibility',
+				],
+				'helper'  => 'Use if including both hCaptcha and reCAPTCHA on the same page.',
+			],
+			SettingsBase::NETWORK_WIDE => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_OTHER,
+				'options' => [
+					'on' => 'Use network-wide settings',
+				],
+				'helper'  => 'On multisite, use same settings for all sites of the network.',
+			],
+			'whitelisted_ips'          => [
+				'label'   => 'Whitelisted IPs',
+				'type'    => 'textarea',
+				'section' => General::SECTION_OTHER,
+				'helper'  => 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.',
+			],
+			'login_limit'              => [
+				'label'   => 'Login attempts before hCaptcha',
+				'type'    => 'number',
+				'section' => General::SECTION_OTHER,
+				'default' => 0,
+				'min'     => 0,
+				'helper'  => 'Maximum number of failed login attempts before showing hCaptcha.',
+			],
+			'login_interval'           => [
+				'label'   => 'Failed login attempts interval, min',
+				'type'    => 'number',
+				'section' => General::SECTION_OTHER,
+				'default' => 15,
+				'min'     => 1,
+				'helper'  => 'Time interval in minutes when failed login attempts are counted.',
+			],
+			'delay'                    => [
+				'label'   => 'Delay showing hCaptcha, ms',
+				'type'    => 'number',
+				'section' => General::SECTION_OTHER,
+				'default' => - 100,
+				'min'     => - 100,
+				'step'    => 100,
+				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
+			],
+		];
+
+		$is_multisite = function_exists( 'is_multisite' ) && is_multisite();
+
+		if ( ! $is_multisite ) {
+			unset( $form_fields[ SettingsBase::NETWORK_WIDE ] );
+		}
+
+		return $form_fields;
+	}
+
+	/**
+	 * Get test form fields of Integrations class.
+	 *
+	 * @return array
+	 */
+	protected function get_test_integrations_form_fields() {
 		return [
 			'wp_status'                    =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'WP Core',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'WP Core',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'comment'            => 'Comment Form',
 							'login'              => 'Login Form',
@@ -256,42 +570,27 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'acfe_status'                  =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'ACF Extended',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'ACF Extended',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'ACF Extended Form',
 						],
 				],
 			'avada_status'                 =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Avada',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Avada',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Avada Form',
 						],
 				],
 			'bbp_status'                   =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'bbPress',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'bbPress',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'new_topic' => 'New Topic Form',
 							'reply'     => 'Reply Form',
@@ -299,14 +598,9 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'beaver_builder_status'        =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Beaver Builder',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Beaver Builder',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'contact' => 'Contact Form',
 							'login'   => 'Login Form',
@@ -314,14 +608,9 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'bp_status'                    =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'BuddyPress',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'BuddyPress',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'create_group' => 'Create Group Form',
 							'registration' => 'Registration Form',
@@ -329,28 +618,18 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'cf7_status'                   =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Contact Form 7',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Contact Form 7',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'divi_status'                  =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Divi',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Divi',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'comment' => 'Divi Comment Form',
 							'contact' => 'Divi Contact Form',
@@ -359,210 +638,135 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'download_manager_status'      =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Download Manager',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Download Manager',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'button' => 'Button',
 						],
 				],
 			'elementor_pro_status'         =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Elementor Pro',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Elementor Pro',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'fluent_status'                =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Fluent Forms',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Fluent Forms',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'forminator_status'            =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Forminator',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Forminator',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'gravity_status'               =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Gravity Forms',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Gravity Forms',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'jetpack_status'               =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Jetpack',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Jetpack',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'contact' => 'Contact Form',
 						],
 				],
 			'kadence_status'               =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Kadence',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Kadence',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Kadence Form',
 						],
 				],
 			'mailchimp_status'             =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Mailchimp for WP',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Mailchimp for WP',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'memberpress_status'           =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'MemberPress',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'MemberPress',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'register' => 'Registration Form',
 						],
 				],
 			'ninja_status'                 =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Ninja Forms',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Ninja Forms',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'otter_status'                 =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Otter Blocks',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Otter Blocks',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'quform_status'                =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Quform',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Quform',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'sendinblue_status'            =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Sendinblue',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Sendinblue',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'subscriber_status'            =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Subscriber',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Subscriber',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'form' => 'Form',
 						],
 				],
 			'ultimate_member_status'       =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'Ultimate Member',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'Ultimate Member',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'login'     => 'Login Form',
 							'lost_pass' => 'Lost Password Form',
@@ -571,14 +775,9 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'woocommerce_status'           =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'WooCommerce',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'WooCommerce',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'checkout'       => 'Checkout Form',
 							'login'          => 'Login Form',
@@ -589,28 +788,18 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'woocommerce_wishlists_status' =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'WooCommerce Wishlists',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'WooCommerce Wishlists',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'create_list' => 'Create List Form',
 						],
 				],
 			'wpforms_status'               =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'WPForms',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'WPForms',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'lite' => 'Lite',
 							'pro'  => 'Pro',
@@ -618,28 +807,18 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'wpdiscuz_status'              =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'WPDiscuz',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'WPDiscuz',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'comment_form' => 'Comment Form',
 						],
 				],
 			'wpforo_status'                =>
 				[
-					'default'  => '',
-					'disabled' => false,
-					'field_id' => '',
-					'label'    => 'WPForo',
-					'section'  => '',
-					'title'    => '',
-					'type'     => 'checkbox',
-					'options'  =>
+					'label'   => 'WPForo',
+					'type'    => 'checkbox',
+					'options' =>
 						[
 							'new_topic' => 'New Topic Form',
 							'reply'     => 'Reply Form',
