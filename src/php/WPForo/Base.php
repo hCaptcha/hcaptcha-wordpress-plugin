@@ -10,10 +10,10 @@ namespace HCaptcha\WPForo;
 /**
  * Class Base.
  */
-class Base {
+abstract class Base {
 
 	/**
-	 * NewTopic constructor.
+	 * Base constructor.
 	 */
 	public function __construct() {
 		$this->init_hooks();
@@ -44,6 +44,7 @@ class Base {
 	 * @param mixed $data Data.
 	 *
 	 * @return mixed|bool
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $data ) {
 		$error_message = hcaptcha_get_verify_message(
