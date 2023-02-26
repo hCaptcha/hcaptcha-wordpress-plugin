@@ -241,6 +241,7 @@ abstract class SettingsBase {
 	 * Get tab name.
 	 *
 	 * @return string
+	 * @noinspection PhpUnused
 	 */
 	protected function tab_name() {
 		return $this->get_class_name();
