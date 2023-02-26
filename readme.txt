@@ -312,10 +312,11 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.6.0 =
-* Fixed error during login with WordPress < 5.4
+* Tested with WooCommerce 7.4.
+* Fixed error during login with WordPress < 5.4.
 
 = 2.5.1 =
-* Fixed fatal error with WordPress < 6.1
+* Fixed fatal error with WordPress < 6.1.
 
 = 2.5.0 =
 * Tested with WooCommerce 7.3.
