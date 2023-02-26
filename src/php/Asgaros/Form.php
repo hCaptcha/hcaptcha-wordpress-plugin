@@ -9,6 +9,7 @@ namespace HCaptcha\Asgaros;
 
 /**
  * Class Form.
+ * Supports New Topic and Reply forms.
  */
 class Form extends Base {
 
