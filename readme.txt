@@ -252,6 +252,8 @@ For more details, please see the hCaptcha privacy policy at:
 * Comment Form
 * Post/Page Password Form
 * ACF Extended Form
+* Asgaros Forum New Topic Form
+* Asgaros Forum Reply Form
 * Avada Form
 * bbPress New Topic Form
 * bbPress Reply Form
@@ -276,6 +278,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
+* Support Candy New Ticket Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
 * Ultimate Member Register Form
@@ -315,6 +318,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 7.4.
 * Added compatibility with Asgaros Forum.
 * Added compatibility with Support Candy.
+* Added Login Form support for MemberPress.
 * Fixed error during login with WordPress < 5.4.
 
 = 2.5.1 =
