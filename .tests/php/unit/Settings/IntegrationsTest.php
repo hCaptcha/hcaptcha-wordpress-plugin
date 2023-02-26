@@ -160,7 +160,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_enqueue_scripts().
 	 *
-	 * @throws ReflectionException
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_admin_enqueue_scripts() {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
