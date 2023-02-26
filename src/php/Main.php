@@ -275,6 +275,13 @@ class Main {
 				padding: 0;
 				clear: both;
 			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha {
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+				margin-bottom: 0;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}
@@ -572,6 +579,11 @@ class Main {
 				[ 'acfe_status', 'form' ],
 				[ 'acf-extended/acf-extended.php', 'acf-extended-pro/acf-extended.php' ],
 				ACFE\Form::class,
+			],
+			'Asgaros Form'                 => [
+				[ 'asgaros_status', 'form' ],
+				'asgaros-forum/asgaros-forum.php',
+				Asgaros\Form::class,
 			],
 			'Avada Form'                   => [
 				[ 'avada_status', 'form' ],
