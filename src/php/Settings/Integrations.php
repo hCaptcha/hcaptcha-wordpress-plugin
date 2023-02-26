@@ -269,6 +269,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'supportcandy_status'          => [
+				'label'   => 'Support Candy',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'ultimate_member_status'       => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',

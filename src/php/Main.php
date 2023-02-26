@@ -88,6 +88,13 @@ class Main {
 	private $did_wpforo_template_filter = false;
 
 	/**
+	 * Whether supportcandy shortcode was used.
+	 *
+	 * @var bool
+	 */
+	private $did_support_candy_shortcode_tag_filter = false;
+
+	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -129,6 +136,7 @@ class Main {
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 		add_filter( 'wpforo_template', [ $this, 'wpforo_template_filter' ] );
+		add_filter( 'do_shortcode_tag', [ $this, 'support_candy_shortcode_tag' ], 10, 4 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -287,6 +295,9 @@ class Main {
 			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
 				margin-bottom: 0;
 			}
+			form.wpsc-create-ticket .h-captcha {
+				margin: 0 15px 15px 15px;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}
@@ -431,7 +442,7 @@ class Main {
 			return;
 		}
 
-		if ( ! ( $this->form_shown || $this->did_wpforo_template_filter ) ) {
+		if ( ! ( $this->form_shown || $this->did_wpforo_template_filter || $this->did_support_candy_shortcode_tag_filter ) ) {
 			return;
 		}
 
@@ -498,6 +509,24 @@ class Main {
 		$this->did_wpforo_template_filter = true;
 
 		return $template;
+	}
+
+	/**
+	 * Catch Support Candy do shortcode tag filter.
+	 *
+	 * @param string       $output Shortcode output.
+	 * @param string       $tag    Shortcode name.
+	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array        $m      Regular expression match array.
+	 *
+	 * @return string
+	 */
+	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ) {
+		if ( 'supportcandy' === $tag ) {
+			$this->did_support_candy_shortcode_tag_filter = true;
+		}
+
+		return $output;
 	}
 
 	/**
@@ -714,6 +743,11 @@ class Main {
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
 				Subscriber\Form::class,
+			],
+			'Support Candy Form'           => [
+				[ 'supportcandy_status', 'form' ],
+				'supportcandy/supportcandy.php',
+				SupportCandy\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],
