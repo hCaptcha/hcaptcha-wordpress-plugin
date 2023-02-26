@@ -714,6 +714,11 @@ class Main {
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				Mailchimp\Form::class,
 			],
+			'MemberPress Login'            => [
+				[ 'memberpress_status', 'login' ],
+				'memberpress/memberpress.php',
+				[ MemberPress\Login::class, WP\Login::class ],
+			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',

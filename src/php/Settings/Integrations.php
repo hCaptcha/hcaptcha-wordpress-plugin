@@ -231,6 +231,7 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'MemberPress',
 				'type'    => 'checkbox',
 				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'register' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
