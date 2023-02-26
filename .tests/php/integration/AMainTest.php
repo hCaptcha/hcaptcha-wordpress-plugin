@@ -510,6 +510,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
 				margin-bottom: 0;
 			}
+			form.wpsc-create-ticket .h-captcha {
+				margin: 0 15px 15px 15px;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}
@@ -1021,6 +1024,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				Register::class,
 			],
+			'Asgaros Form'                 => [
+				[ 'asgaros_status', 'form' ],
+				'asgaros-forum/asgaros-forum.php',
+				\HCaptcha\Asgaros\Form::class,
+			],
 			'Avada Form'                   => [
 				[ 'avada_status', 'form' ],
 				'Avada',
@@ -1125,6 +1133,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
 				\HCaptcha\Subscriber\Form::class,
+			],
+			'Support Candy Form'           => [
+				[ 'supportcandy_status', 'form' ],
+				'supportcandy/supportcandy.php',
+				\HCaptcha\SupportCandy\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],

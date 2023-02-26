@@ -425,10 +425,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'yo'    => 'Yoruba',
 					'zu'    => 'Zulu',
 				],
-				'helper'  => __(
-					"By default, hCaptcha will automatically detect the user's locale and localize widgets accordingly.",
-					'hcaptcha-for-forms-and-more'
-				),
+				'helper'  => "By default, hCaptcha will automatically detect the user's locale and localize widgets accordingly.",
 			],
 			'mode'                     => [
 				'label'   => 'Mode',
@@ -443,10 +440,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 				'default' => General::MODE_LIVE,
-				'helper'  => __(
-					'Select live or test mode. In test mode, predefined keys are used.',
-					'hcaptcha-for-forms-and-more'
-				),
+				'helper'  => 'Select live or test mode. In test mode, predefined keys are used.',
 			],
 			'custom_themes'            => [
 				'label'   => 'Custom Themes',
@@ -769,6 +763,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'Form',
 						],
 				],
+			'supportcandy_status'          => [
+				'label'   => 'Support Candy',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'ultimate_member_status'       =>
 				[
 					'label'   => 'Ultimate Member',
