@@ -314,6 +314,7 @@ Instructions for popular native integrations are below:
 = 2.6.0 =
 * Tested with WooCommerce 7.4.
 * Added compatibility with Asgaros Forum.
+* Added compatibility with Support Candy.
 * Fixed error during login with WordPress < 5.4.
 
 = 2.5.1 =
