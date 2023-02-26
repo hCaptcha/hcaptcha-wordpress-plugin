@@ -14,7 +14,6 @@ namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
-use HCaptcha\Tests\Unit\Stubs\Settings\Tables;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
