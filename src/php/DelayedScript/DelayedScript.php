@@ -22,9 +22,12 @@ class DelayedScript {
 	 */
 	public static function create( $js, $delay = 3000 ) {
 		ob_start();
-
 		?>
 		<!--suppress JSUnusedAssignment -->
+		<?php
+		ob_get_clean();
+		ob_start();
+		?>
 		<script>
 			( () => {
 				'use strict';

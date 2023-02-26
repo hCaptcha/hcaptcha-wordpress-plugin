@@ -503,6 +503,13 @@ class AMainTest extends HCaptchaWPTestCase {
 				padding: 0;
 				clear: both;
 			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha {
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+				margin-bottom: 0;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}

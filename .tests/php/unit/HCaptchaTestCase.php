@@ -577,6 +577,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'ACF Extended Form',
 						],
 				],
+			'asgaros_status'               => [
+				'label'   => 'Asgaros',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'avada_status'                 =>
 				[
 					'label'   => 'Avada',

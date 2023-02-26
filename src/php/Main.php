@@ -263,8 +263,13 @@ class Main {
 	 */
 	public function print_inline_styles() {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+
+		ob_start();
 		?>
 		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
+		<?php
+		ob_get_clean();
+		?>
 		<style>
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
