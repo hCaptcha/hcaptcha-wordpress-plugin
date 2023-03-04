@@ -26,7 +26,6 @@ class Form extends Base {
 	/**
 	 * Add captcha hook.
 	 */
-//	const ADD_CAPTCHA_HOOK = 'give_donation_form_after_personal_info';
 	const ADD_CAPTCHA_HOOK = 'give_donation_form_user_info';
 
 	/**
