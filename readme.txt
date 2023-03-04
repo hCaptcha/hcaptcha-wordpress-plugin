@@ -268,6 +268,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
+* GiveWP Form
 * Gravity Forms
 * Jetpack Forms
 * Kadence Form
@@ -320,6 +321,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Asgaros Forum.
 * Added compatibility with Support Candy.
 * Added Login Form support for MemberPress.
+* Added compatibility with GiveWP.
 * Fixed error during login with WordPress < 5.4.
 
 = 2.5.1 =

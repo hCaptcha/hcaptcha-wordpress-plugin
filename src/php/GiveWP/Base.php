@@ -5,7 +5,7 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\SupportCandy;
+namespace HCaptcha\GiveWP;
 
 /**
  * Class Base.
@@ -26,9 +26,7 @@ abstract class Base {
 	 */
 	private function init_hooks() {
 		add_action( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ] );
-		add_action( 'wp_ajax_' . static::VERIFY_HOOK, [ $this, 'verify' ], 9 );
-		add_action( 'wp_ajax_nopriv_' . static::VERIFY_HOOK, [ $this, 'verify' ], 9 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( static::VERIFY_HOOK, [ $this, 'verify' ] );
 	}
 
 	/**
@@ -40,32 +38,20 @@ abstract class Base {
 
 	/**
 	 * Verify captcha.
+	 *
+	 * @param bool|array $valid_data Validate fields.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify() {
+	public function verify( $valid_data ) {
 		$error_message = hcaptcha_get_verify_message(
 			static::NAME,
 			static::ACTION
 		);
 
 		if ( null !== $error_message ) {
-			wp_send_json_error( $error_message, 400 );
+			give_set_error( 'invalid_hcaptcha', $error_message );
 		}
-	}
-
-	/**
-	 * Enqueue Support Candy script.
-	 *
-	 * @return void
-	 */
-	public function enqueue_scripts() {
-		$min = hcap_min_suffix();
-
-		wp_enqueue_script(
-			'hcaptcha-support-candy',
-			HCAPTCHA_URL . "/assets/js/hcaptcha-support-candy$min.js",
-			[ 'jquery', 'hcaptcha' ],
-			HCAPTCHA_VERSION,
-			true
-		);
 	}
 }

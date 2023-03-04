@@ -199,6 +199,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'give_wp_status'               => [
+				'label'   => 'GiveWP',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'gravity_status'               => [
 				'label'   => 'Gravity Forms',
 				'type'    => 'checkbox',

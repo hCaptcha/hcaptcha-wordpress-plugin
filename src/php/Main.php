@@ -694,6 +694,11 @@ class Main {
 				'forminator/forminator.php',
 				Forminator\Form::class,
 			],
+			'GiveWP'                       => [
+				[ 'give_wp_status', 'form' ],
+				'give/give.php',
+				GiveWP\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
