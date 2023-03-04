@@ -53,6 +53,13 @@ class Main {
 	public $form_shown = false;
 
 	/**
+	 * Plugin modules.
+	 *
+	 * @var array
+	 */
+	public $modules = [];
+
+	/**
 	 * Loaded classes.
 	 *
 	 * @var array
@@ -583,7 +590,7 @@ class Main {
 	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
-		$modules = [
+		$this->modules = [
 			'Comment Form'                 => [
 				[ 'wp_status', 'comment' ],
 				'',
@@ -837,7 +844,7 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
-		foreach ( $modules as $module ) {
+		foreach ( $this->modules as $module ) {
 			list( $option_name, $option_value ) = $module[0];
 
 			$option = (array) $this->settings()->get( $option_name );

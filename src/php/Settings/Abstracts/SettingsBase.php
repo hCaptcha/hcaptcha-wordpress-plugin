@@ -516,7 +516,12 @@ abstract class SettingsBase {
 		$current_tab_name = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( null === $current_tab_name ) {
-			$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+			if ( wp_doing_ajax() ) {
+				$query = wp_get_referer();
+			} else {
+				$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+			}
+
 			$query = $query ?: '';
 			$args  = $this->wp_parse_str( $query );
 
