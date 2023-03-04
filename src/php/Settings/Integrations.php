@@ -530,10 +530,10 @@ class Integrations extends PluginSettingsBase {
 
 		$plugins = array_merge( [], ...$plugins );
 
+		ob_start();
+
 		if ( $activate ) {
-			ob_start();
 			activate_plugins( $plugins );
-			ob_get_clean();
 
 			$message = sprintf(
 			/* translators: 1: Plugin(s) name(s). */
@@ -541,9 +541,7 @@ class Integrations extends PluginSettingsBase {
 				$plugin_name
 			);
 		} else {
-			ob_start();
 			deactivate_plugins( $plugins );
-			ob_get_clean();
 
 			$message = sprintf(
 			/* translators: 1: Plugin(s) name(s). */
@@ -552,6 +550,10 @@ class Integrations extends PluginSettingsBase {
 			);
 		}
 
+		ob_get_clean();
+
+		header_remove( 'Location' );
+		http_response_code( 200 );
 		wp_send_json_success( esc_html( $message ) );
 	}
 }
