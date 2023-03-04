@@ -1099,6 +1099,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'forminator/forminator.php',
 				\HCaptcha\Forminator\Form::class,
 			],
+			'GiveWP'                       => [
+				[ 'give_wp_status', 'form' ],
+				'give/give.php',
+				\HCaptcha\GiveWP\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',

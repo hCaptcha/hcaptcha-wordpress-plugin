@@ -153,6 +153,8 @@ abstract class HCaptchaTestCase extends TestCase {
 				[ 0 => 'form' ],
 			'forminator_status'            =>
 				[],
+			'give_wp_status'               =>
+				[ 0 => 'form' ],
 			'gravity_status'               =>
 				[ 0 => 'form' ],
 			'jetpack_status'               =>
@@ -673,6 +675,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'Form',
 						],
 				],
+			'give_wp_status'               => [
+				'label'   => 'GiveWP',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'gravity_status'               =>
 				[
 					'label'   => 'Gravity Forms',
