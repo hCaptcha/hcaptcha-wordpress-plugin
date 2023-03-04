@@ -272,6 +272,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Jetpack Forms
 * Kadence Form
 * Mailchimp for WP Form
+* MemberPress Login Form
 * MemberPress Register Form
 * Ninja Forms
 * Otter Blocks Forms
