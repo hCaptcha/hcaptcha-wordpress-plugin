@@ -322,6 +322,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Support Candy.
 * Added Login Form support for MemberPress.
 * Added compatibility with GiveWP.
+* Added compatibility with Brizy.
 * Added activation and deactivation of plugins from the Integrations admin page.
 * Fixed error during login with WordPress < 5.4.
 

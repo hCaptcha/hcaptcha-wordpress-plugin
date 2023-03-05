@@ -609,6 +609,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'   => 'Login Form',
 						],
 				],
+			'brizy_status'                 => [
+				'label'   => 'Brizy',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'bp_status'                    =>
 				[
 					'label'   => 'BuddyPress',

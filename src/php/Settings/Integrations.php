@@ -161,6 +161,13 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'brizy_status'                 => [
+				'label'   => 'Brizy',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'bp_status'                    => [
 				'label'   => 'BuddyPress',
 				'type'    => 'checkbox',

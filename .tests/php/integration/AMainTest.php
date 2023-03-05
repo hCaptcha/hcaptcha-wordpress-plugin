@@ -1054,6 +1054,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'bb-plugin/fl-builder.php',
 				[ \HCaptcha\BeaverBuilder\Login::class, Login::class ],
 			],
+			'Brizy Form'                   => [
+				[ 'brizy_status', 'form' ],
+				'brizy/brizy.php',
+				[ \HCaptcha\Brizy\Form::class ],
+			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',

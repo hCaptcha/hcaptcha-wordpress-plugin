@@ -651,6 +651,11 @@ class Main {
 				'bb-plugin/fl-builder.php',
 				[ BeaverBuilder\Login::class, WP\Login::class ],
 			],
+			'Brizy Form'                   => [
+				[ 'brizy_status', 'form' ],
+				'brizy/brizy.php',
+				[ Brizy\Form::class ],
+			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
