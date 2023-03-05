@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
-Tested up to: 6.1
+Tested up to: 6.2
 Requires PHP: 5.6.20
 Stable tag: 2.6.0
 License: GPLv2 or later
@@ -317,6 +317,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.6.0 =
+* Tested with WordPress 6.2.
 * Tested with WooCommerce 7.4.
 * Added compatibility with Asgaros Forum.
 * Added compatibility with Support Candy.
