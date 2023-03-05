@@ -147,6 +147,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 				'',
 				'		<h2>
 			Integrations		</h2>
+		<div id="hcaptcha-integrations-message"></div>
 		<p>
 			Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.		</p>
 		<p>
@@ -166,6 +167,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min_prefix     = '.min';
+		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
+		$nonce          = 'some_nonce';
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -186,6 +189,40 @@ class IntegrationsTest extends HCaptchaTestCase {
 				return '';
 			}
 		);
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				Integrations::HANDLE,
+				$plugin_url . "/assets/js/integrations$min_prefix.js",
+				[ 'jquery' ],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'admin_url' )
+			->with( 'admin-ajax.php' )
+			->andReturn( $ajax_url )
+			->once();
+
+		WP_Mock::userFunction( 'wp_create_nonce' )
+			->with( Integrations::ACTIVATE_ACTION )
+			->andReturn( $nonce )
+			->once();
+
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				Integrations::HANDLE,
+				Integrations::OBJECT,
+				[
+					'ajaxUrl'       => $ajax_url,
+					'action'        => Integrations::ACTIVATE_ACTION,
+					'nonce'         => $nonce,
+					'activateMsg'   => 'Activate %s plugin?',
+					'deactivateMsg' => 'Deactivate %s plugin?',
+				]
+			)
+			->once();
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
