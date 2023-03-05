@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedMethodInspection */
+
 namespace HCaptcha\ElementorPro;
 
 use Elementor\Controls_Stack;

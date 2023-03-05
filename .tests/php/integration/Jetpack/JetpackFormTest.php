@@ -35,6 +35,7 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	 * Data provider for test_hcap_hcaptcha_jetpack_form().
 	 *
 	 * @return array
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function dp_test_jetpack_form() {
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';

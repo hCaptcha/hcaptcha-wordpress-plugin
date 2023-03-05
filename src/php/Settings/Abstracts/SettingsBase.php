@@ -241,6 +241,7 @@ abstract class SettingsBase {
 	 * Get tab name.
 	 *
 	 * @return string
+	 * @noinspection PhpUnused
 	 */
 	protected function tab_name() {
 		return $this->get_class_name();
@@ -303,14 +304,18 @@ abstract class SettingsBase {
 			$this->settings = get_site_option( $this->option_name(), null );
 		}
 
-		$this->settings[ self::NETWORK_WIDE ] = array_key_exists( self::NETWORK_WIDE, (array) $this->settings ) ?
+		$settings_exist                       = is_array( $this->settings );
+		$form_fields                          = $this->form_fields();
+		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, (array) $this->settings ) ?
 			$this->settings[ self::NETWORK_WIDE ] :
 			$network_wide;
+		$this->settings[ self::NETWORK_WIDE ] = $network_wide_setting;
 
-		$form_fields = $this->form_fields();
-
-		if ( is_array( $this->settings ) ) {
-			$this->settings = array_merge( wp_list_pluck( $form_fields, 'default' ), $this->settings );
+		if ( $settings_exist ) {
+			$this->settings = array_merge(
+				wp_list_pluck( $form_fields, 'default' ),
+				$this->settings
+			);
 
 			return;
 		}
@@ -511,9 +516,15 @@ abstract class SettingsBase {
 		$current_tab_name = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( null === $current_tab_name ) {
-			$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+			if ( wp_doing_ajax() ) {
+				$query = wp_get_referer();
+			} else {
+				$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+			}
+
 			$query = $query ?: '';
-			wp_parse_str( $query, $args );
+			$args  = $this->wp_parse_str( $query );
+
 			$current_tab_name = isset( $args['tab'] ) ? $args['tab'] : null;
 		}
 
@@ -522,6 +533,20 @@ abstract class SettingsBase {
 		}
 
 		return strtolower( $tab->get_class_name() ) === $current_tab_name;
+	}
+
+	/**
+	 * Polyfill of the wp_parse_str().
+	 * Added for test reasons.
+	 *
+	 * @param string $input_string Input string.
+	 *
+	 * @return array
+	 */
+	protected function wp_parse_str( $input_string ) {
+		wp_parse_str( $input_string, $result );
+
+		return $result;
 	}
 
 	/**
@@ -903,7 +928,7 @@ abstract class SettingsBase {
 	 * @param array $arguments Field arguments.
 	 */
 	public function field_callback( array $arguments ) {
-		if ( ! $arguments['field_id'] ) {
+		if ( empty( $arguments['field_id'] ) ) {
 			return;
 		}
 
@@ -1031,9 +1056,8 @@ abstract class SettingsBase {
 			return $value;
 		}
 
-		$value     = is_array( $value ) ? $value : [];
-		$old_value = is_array( $old_value ) ? $old_value : [];
-
+		$value       = is_array( $value ) ? $value : [];
+		$old_value   = is_array( $old_value ) ? $old_value : [];
 		$form_fields = $this->form_fields();
 
 		foreach ( $form_fields as $key => $form_field ) {

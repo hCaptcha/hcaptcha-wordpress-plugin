@@ -22,6 +22,11 @@ class Integrations extends PluginSettingsBase {
 	const HANDLE = 'hcaptcha-integrations';
 
 	/**
+	 * Activate plugin ajax action.
+	 */
+	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
+
+	/**
 	 * Script localization object.
 	 */
 	const OBJECT = 'HCaptchaIntegrationsObject';
@@ -95,6 +100,15 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Init class hooks.
+	 */
+	protected function init_hooks() {
+		parent::init_hooks();
+
+		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
+	}
+
+	/**
 	 * Init form fields.
 	 */
 	public function init_form_fields() {
@@ -115,6 +129,13 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'asgaros_status'               => [
+				'label'   => 'Asgaros',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'avada_status'                 => [
@@ -138,6 +159,13 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'brizy_status'                 => [
+				'label'   => 'Brizy',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'bp_status'                    => [
@@ -192,6 +220,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'give_wp_status'               => [
+				'label'   => 'GiveWP',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'gravity_status'               => [
 				'label'   => 'Gravity Forms',
 				'type'    => 'checkbox',
@@ -224,6 +259,7 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'MemberPress',
 				'type'    => 'checkbox',
 				'options' => [
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'register' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -257,6 +293,13 @@ class Integrations extends PluginSettingsBase {
 			],
 			'subscriber_status'            => [
 				'label'   => 'Subscriber',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'supportcandy_status'          => [
+				'label'   => 'Support Candy',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -395,8 +438,12 @@ class Integrations extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
+		<div id="hcaptcha-integrations-message"></div>
 		<p>
 			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
+		</p>
+		<p>
+			<?php esc_html_e( 'You can activate and deactivate a plugin by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
 		<p>
 			<?php
@@ -433,11 +480,90 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/integrations$this->min_prefix.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
+				'action'        => self::ACTIVATE_ACTION,
+				'nonce'         => wp_create_nonce( self::ACTIVATE_ACTION ),
+				/* translators: 1: Plugin name. */
+				'activateMsg'   => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Plugin name. */
+				'deactivateMsg' => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+			]
+		);
+
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/integrations$this->min_prefix.css",
 			[ SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
+	}
+
+	/**
+	 * Ajax action to activate/deactivate plugin.
+	 *
+	 * @return void
+	 */
+	public function activate() {
+		// Run a security check.
+		if ( ! check_ajax_referer( self::ACTIVATE_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		$activate    = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
+		$status      = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status      = str_replace( '-', '_', $status );
+		$plugin_name = $this->form_fields[ $status ]['label'];
+		$plugins     = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $module[0][0] === $status ) {
+				$plugins[] = (array) $module[1];
+			}
+		}
+
+		$plugins = array_merge( [], ...$plugins );
+
+		ob_start();
+
+		if ( $activate ) {
+			activate_plugins( $plugins );
+
+			$message = sprintf(
+			/* translators: 1: Plugin(s) name(s). */
+				__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
+				$plugin_name
+			);
+		} else {
+			deactivate_plugins( $plugins );
+
+			$message = sprintf(
+			/* translators: 1: Plugin(s) name(s). */
+				__( '%s plugin is deactivated.', 'hcaptcha-for-forms-and-more' ),
+				$plugin_name
+			);
+		}
+
+		ob_get_clean();
+
+		header_remove( 'Location' );
+		http_response_code( 200 );
+		wp_send_json_success( esc_html( $message ) );
 	}
 }

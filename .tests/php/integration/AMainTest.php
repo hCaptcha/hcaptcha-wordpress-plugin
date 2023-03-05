@@ -8,6 +8,7 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpLanguageLevelInspection */
 /** @noinspection PhpUndefinedClassInspection */
+/** @noinspection CssUnresolvedCustomProperty */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration;
@@ -501,6 +502,16 @@ class AMainTest extends HCaptchaWPTestCase {
 				margin-bottom: 2rem;
 				padding: 0;
 				clear: both;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha {
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+				margin-bottom: 0;
+			}
+			form.wpsc-create-ticket .h-captcha {
+				margin: 0 15px 15px 15px;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
@@ -1013,6 +1024,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				Register::class,
 			],
+			'Asgaros Form'                 => [
+				[ 'asgaros_status', 'form' ],
+				'asgaros-forum/asgaros-forum.php',
+				\HCaptcha\Asgaros\Form::class,
+			],
 			'Avada Form'                   => [
 				[ 'avada_status', 'form' ],
 				'Avada',
@@ -1037,6 +1053,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
 				[ \HCaptcha\BeaverBuilder\Login::class, Login::class ],
+			],
+			'Brizy Form'                   => [
+				[ 'brizy_status', 'form' ],
+				'brizy/brizy.php',
+				[ \HCaptcha\Brizy\Form::class ],
 			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
@@ -1083,6 +1104,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'forminator/forminator.php',
 				\HCaptcha\Forminator\Form::class,
 			],
+			'GiveWP'                       => [
+				[ 'give_wp_status', 'form' ],
+				'give/give.php',
+				\HCaptcha\GiveWP\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
@@ -1097,6 +1123,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				\HCaptcha\Mailchimp\Form::class,
+			],
+			'MemberPress Login'            => [
+				[ 'memberpress_status', 'login' ],
+				'memberpress/memberpress.php',
+				[ \HCaptcha\MemberPress\Login::class, Login::class ],
 			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],
@@ -1117,6 +1148,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
 				\HCaptcha\Subscriber\Form::class,
+			],
+			'Support Candy Form'           => [
+				[ 'supportcandy_status', 'form' ],
+				'supportcandy/supportcandy.php',
+				\HCaptcha\SupportCandy\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],

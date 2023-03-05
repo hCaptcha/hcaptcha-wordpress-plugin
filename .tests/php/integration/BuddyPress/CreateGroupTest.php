@@ -91,8 +91,8 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify() when not verified.
 	 *
-	 * @noinspection PhpUndefinedFieldInspection
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		FunctionMocker::replace(

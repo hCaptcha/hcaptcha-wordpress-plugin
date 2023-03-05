@@ -18,7 +18,7 @@ use WP_User;
 /**
  * Class LoginBase
  */
-class LoginBase {
+abstract class LoginBase {
 
 	/**
 	 * Login attempts data option name.
@@ -58,7 +58,7 @@ class LoginBase {
 	 */
 	protected function init_hooks() {
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
-		add_action( 'wp_login_failed', [ $this, 'login_failed' ], 10, 2 );
+		add_action( 'wp_login_failed', [ $this, 'login_failed' ], 10 );
 	}
 
 	/**
@@ -79,13 +79,13 @@ class LoginBase {
 	/**
 	 * Update attempts data on failed login.
 	 *
-	 * @param string   $username Username or email address.
-	 * @param WP_Error $error    A WP_Error object with the authentication failure details.
+	 * @param string        $username Username or email address.
+	 * @param WP_Error|null $error    A WP_Error object with the authentication failure details.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function login_failed( $username, $error ) {
+	public function login_failed( $username, $error = null ) {
 		$this->login_data[ $this->ip ][] = time();
 
 		update_option( self::LOGIN_DATA, $this->login_data );

@@ -18,6 +18,9 @@ class RequestTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down the test.
+	 *
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function tearDown(): void {
 		unset(

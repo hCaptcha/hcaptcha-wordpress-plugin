@@ -42,7 +42,6 @@ abstract class Base {
 	 * Verify captcha.
 	 *
 	 * @return bool
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify() {
 		$error_message = hcaptcha_get_verify_message( static::NAME, static::ACTION );

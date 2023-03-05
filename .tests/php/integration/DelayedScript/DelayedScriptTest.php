@@ -26,8 +26,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	public function test_create() {
 		$js = 'some js script';
 
-		$expected = '
-		<script>
+		$expected = '		<script>
 			( () => {
 				\'use strict\';
 
@@ -92,8 +91,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_launch() {
-		$expected = '
-		<script>
+		$expected = '		<script>
 			( () => {
 				\'use strict\';
 

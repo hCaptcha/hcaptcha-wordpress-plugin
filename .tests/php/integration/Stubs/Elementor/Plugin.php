@@ -5,8 +5,10 @@
  * @package HCaptcha\Tests
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpIllegalPsrClassPathInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace Elementor;
 

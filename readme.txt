@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
-Tested up to: 6.1
+Tested up to: 6.2
 Requires PHP: 5.6.20
-Stable tag: 2.5.1
+Stable tag: 2.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,9 +97,10 @@ If you create the form programmatically, insert the following statement inside i
 Secondly, verify the result of hCaptcha challenge.
 
 `
-$result = hcaptcha_request_verify();
+$result = hcaptcha_verify_post();
 
-if ( 'success' !== $result ) {
+if ( null !== $result ) {
+    echo esc_html( $result );
     // Block processing of the form.
 }
 `
@@ -251,6 +252,8 @@ For more details, please see the hCaptcha privacy policy at:
 * Comment Form
 * Post/Page Password Form
 * ACF Extended Form
+* Asgaros Forum New Topic Form
+* Asgaros Forum Reply Form
 * Avada Form
 * bbPress New Topic Form
 * bbPress Reply Form
@@ -265,16 +268,19 @@ For more details, please see the hCaptcha privacy policy at:
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
+* GiveWP Form
 * Gravity Forms
 * Jetpack Forms
 * Kadence Form
 * Mailchimp for WP Form
+* MemberPress Login Form
 * MemberPress Register Form
 * Ninja Forms
 * Otter Blocks Forms
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
+* Support Candy New Ticket Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
 * Ultimate Member Register Form
@@ -310,8 +316,19 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.6.0 =
+* Tested with WordPress 6.2.
+* Tested with WooCommerce 7.4.
+* Added compatibility with Asgaros Forum.
+* Added compatibility with Support Candy.
+* Added Login Form support for MemberPress.
+* Added compatibility with GiveWP.
+* Added compatibility with Brizy.
+* Added activation and deactivation of plugins from the Integrations admin page.
+* Fixed error during login with WordPress < 5.4.
+
 = 2.5.1 =
-* Fixed fatal error with WordPress < 6.1
+* Fixed fatal error with WordPress < 6.1.
 
 = 2.5.0 =
 * Tested with WooCommerce 7.3.

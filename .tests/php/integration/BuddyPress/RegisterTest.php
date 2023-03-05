@@ -57,8 +57,6 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test add_captcha() with error.
-	 *
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_register_error() {
 		global $bp;
@@ -99,8 +97,6 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
-	 *
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_verify_not_verified() {
 		global $bp;

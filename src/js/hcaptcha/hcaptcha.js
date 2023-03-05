@@ -189,12 +189,7 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		// noinspection JSUnresolvedVariable
-		if (this.currentForm.formElement.requestSubmit) {
-			this.currentForm.formElement.requestSubmit();
-		} else {
-			this.currentForm.formElement.submit();
-		}
+		this.currentForm.formElement.requestSubmit();
 	}
 }
 

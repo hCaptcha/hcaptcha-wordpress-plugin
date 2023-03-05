@@ -29,6 +29,9 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function tearDown(): void {
 		UM()->form()->errors = null;
@@ -79,6 +82,7 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	 * Get subject.
 	 *
 	 * @return LostPassword
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function get_subject() {
 		$subject = new LostPassword();

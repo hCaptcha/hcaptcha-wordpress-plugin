@@ -10,10 +10,10 @@ namespace HCaptcha\WPForo;
 /**
  * Class Base.
  */
-class Base {
+abstract class Base {
 
 	/**
-	 * NewTopic constructor.
+	 * Base constructor.
 	 */
 	public function __construct() {
 		$this->init_hooks();

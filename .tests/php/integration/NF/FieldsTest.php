@@ -30,6 +30,8 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test __construct().
+	 *
+	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function test_constructor() {
 		$subject = new Fields();

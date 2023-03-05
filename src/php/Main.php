@@ -53,6 +53,13 @@ class Main {
 	public $form_shown = false;
 
 	/**
+	 * Plugin modules.
+	 *
+	 * @var array
+	 */
+	public $modules = [];
+
+	/**
 	 * Loaded classes.
 	 *
 	 * @var array
@@ -86,6 +93,13 @@ class Main {
 	 * @var bool
 	 */
 	private $did_wpforo_template_filter = false;
+
+	/**
+	 * Whether supportcandy shortcode was used.
+	 *
+	 * @var bool
+	 */
+	private $did_support_candy_shortcode_tag_filter = false;
 
 	/**
 	 * Input class.
@@ -129,6 +143,7 @@ class Main {
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 		add_filter( 'wpforo_template', [ $this, 'wpforo_template_filter' ] );
+		add_filter( 'do_shortcode_tag', [ $this, 'support_candy_shortcode_tag' ], 10, 4 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -263,6 +278,12 @@ class Main {
 	 */
 	public function print_inline_styles() {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+
+		ob_start();
+		?>
+		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
+		<?php
+		ob_get_clean();
 		?>
 		<style>
 			div.wpforms-container-full .wpforms-form .h-captcha,
@@ -273,6 +294,16 @@ class Main {
 				margin-bottom: 2rem;
 				padding: 0;
 				clear: both;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha {
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+				margin-bottom: 0;
+			}
+			form.wpsc-create-ticket .h-captcha {
+				margin: 0 15px 15px 15px;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
@@ -418,7 +449,7 @@ class Main {
 			return;
 		}
 
-		if ( ! ( $this->form_shown || $this->did_wpforo_template_filter ) ) {
+		if ( ! ( $this->form_shown || $this->did_wpforo_template_filter || $this->did_support_candy_shortcode_tag_filter ) ) {
 			return;
 		}
 
@@ -469,7 +500,7 @@ class Main {
 	 * @return void
 	 */
 	public function declare_wc_compatibility() {
-		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
 		}
 	}
@@ -485,6 +516,24 @@ class Main {
 		$this->did_wpforo_template_filter = true;
 
 		return $template;
+	}
+
+	/**
+	 * Catch Support Candy do shortcode tag filter.
+	 *
+	 * @param string       $output Shortcode output.
+	 * @param string       $tag    Shortcode name.
+	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array        $m      Regular expression match array.
+	 *
+	 * @return string
+	 */
+	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ) {
+		if ( 'supportcandy' === $tag ) {
+			$this->did_support_candy_shortcode_tag_filter = true;
+		}
+
+		return $output;
 	}
 
 	/**
@@ -541,7 +590,7 @@ class Main {
 	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
-		$modules = [
+		$this->modules = [
 			'Comment Form'                 => [
 				[ 'wp_status', 'comment' ],
 				'',
@@ -572,6 +621,11 @@ class Main {
 				[ 'acf-extended/acf-extended.php', 'acf-extended-pro/acf-extended.php' ],
 				ACFE\Form::class,
 			],
+			'Asgaros Form'                 => [
+				[ 'asgaros_status', 'form' ],
+				'asgaros-forum/asgaros-forum.php',
+				Asgaros\Form::class,
+			],
 			'Avada Form'                   => [
 				[ 'avada_status', 'form' ],
 				'Avada',
@@ -596,6 +650,11 @@ class Main {
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
 				[ BeaverBuilder\Login::class, WP\Login::class ],
+			],
+			'Brizy Form'                   => [
+				[ 'brizy_status', 'form' ],
+				'brizy/brizy.php',
+				[ Brizy\Form::class ],
 			],
 			'BuddyPress Create Group'      => [
 				[ 'bp_status', 'create_group' ],
@@ -647,6 +706,11 @@ class Main {
 				'forminator/forminator.php',
 				Forminator\Form::class,
 			],
+			'GiveWP'                       => [
+				[ 'give_wp_status', 'form' ],
+				'give/give.php',
+				GiveWP\Form::class,
+			],
 			'Gravity Forms'                => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
@@ -666,6 +730,11 @@ class Main {
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				Mailchimp\Form::class,
+			],
+			'MemberPress Login'            => [
+				[ 'memberpress_status', 'login' ],
+				'memberpress/memberpress.php',
+				[ MemberPress\Login::class, WP\Login::class ],
 			],
 			'MemberPress Register'         => [
 				[ 'memberpress_status', 'register' ],
@@ -696,6 +765,11 @@ class Main {
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
 				Subscriber\Form::class,
+			],
+			'Support Candy Form'           => [
+				[ 'supportcandy_status', 'form' ],
+				'supportcandy/supportcandy.php',
+				SupportCandy\Form::class,
 			],
 			'Ultimate Member Login'        => [
 				[ 'ultimate_member_status', 'login' ],
@@ -775,7 +849,7 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
-		foreach ( $modules as $module ) {
+		foreach ( $this->modules as $module ) {
 			list( $option_name, $option_value ) = $module[0];
 
 			$option = (array) $this->settings()->get( $option_name );
