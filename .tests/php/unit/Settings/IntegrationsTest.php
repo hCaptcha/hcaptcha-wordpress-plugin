@@ -151,6 +151,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		<p>
 			Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.		</p>
 		<p>
+			You can activate and deactivate a plugin by clicking on its logo.		</p>
+		<p>
 			Don\'t see your plugin here? Use the `[hcaptcha]` <a href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F" target="_blank">shortcode</a> or <a href="https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues" target="_blank">request an integration</a>.		</p>
 		<h3>Active plugins and themes</h3>
 		',
