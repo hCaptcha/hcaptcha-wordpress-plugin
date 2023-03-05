@@ -9,19 +9,19 @@ namespace HCaptcha\GiveWP;
 
 /**
  * Class Form.
- * Supports New Ticket form.
+ * Supports Donation form.
  */
 class Form extends Base {
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_support_give_wp_form';
+	const ACTION = 'hcaptcha_give_wp_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_support_give_wp_form_nonce';
+	const NAME = 'hcaptcha_give_wp_form_nonce';
 
 	/**
 	 * Add captcha hook.
