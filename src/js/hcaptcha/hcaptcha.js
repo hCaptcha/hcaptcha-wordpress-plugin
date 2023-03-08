@@ -4,6 +4,8 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
+import 'form-request-submit-polyfill/form-request-submit-polyfill';
+
 class HCaptcha {
 	constructor() {
 		this.foundForms = [];
