@@ -41,15 +41,15 @@ To use this plugin, just install it and enter your sitekey and secret in the Set
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin through the 'Plugins' menu in WordPress
-3. Enter your site key and secret in the Settings -> hCaptcha menu in WordPress
-4. Enable desired Integrations
+2. Activate the hCaptcha plugin on the 'Plugins' admin page
+3. Enter your site key and secret on the Settings->hCaptcha->General page
+4. Enable desired Integrations on the Settings->hCaptcha->Integrations page
 
 == Frequently Asked Questions ==
 
 = How do I use the hCaptcha plugin? =
 
-The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha plugin settings page.
+The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha Integrations settings page.
 
 For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the plugin.
 
@@ -485,7 +485,7 @@ Instructions for popular native integrations are below:
 
 = 1.10.0 =
 * Fixed issue with WC login form when WP login form option is on.
-* Added feature to turn off the plugin for logged in users.
+* Added feature to turn off the plugin for logged-in users.
 * Added hook to disable the plugin on specific pages.
 * Added feature to run hCaptcha script and styles on pages where it is used only.
 
@@ -503,7 +503,7 @@ Instructions for popular native integrations are below:
 
 = 1.7.0 =
 * 100% covered by WordPress integration tests.
-* Tests run on CI with PHP 5.6 - 8.0, latest WordPress core and latest related plugins.
+* Tests run on CI with PHP 5.6 - 8.0, the latest WordPress core and latest related plugins.
 
 = 1.6.4 =
 * Make any Jetpack contact form working with Block Editor
