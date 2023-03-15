@@ -26,6 +26,15 @@ To use this plugin, just install it and enter your sitekey and secret in the Set
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
+== Screenshots ==
+
+1. Login page with hCaptcha widget
+2. Login page with hCaptcha challenge
+3. WooCommerce Login/Register page
+4. Contact From 7 with hCaptcha
+5. General settings page
+6. Integrations settings page
+7. Activating plugin from the Integration settings page
 
 == Installation ==
 
