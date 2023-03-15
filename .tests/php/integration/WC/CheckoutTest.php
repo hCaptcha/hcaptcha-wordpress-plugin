@@ -60,7 +60,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			10,
-			has_action( 'woocommerce_after_checkout_billing_form', [ $subject, 'add_captcha' ] )
+			has_action( 'woocommerce_review_order_before_submit', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
 			10,

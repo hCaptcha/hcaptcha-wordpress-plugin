@@ -23,7 +23,7 @@ class Checkout {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_action( 'woocommerce_after_checkout_billing_form', [ $this, 'add_captcha' ] );
+		add_action( 'woocommerce_review_order_before_submit', [ $this, 'add_captcha' ] );
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
