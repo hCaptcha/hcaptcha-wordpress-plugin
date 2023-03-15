@@ -325,6 +325,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.7.0 =
+* Tested with WooCommerce 7.5.
+
 = 2.6.0 =
 * Tested with WordPress 6.2.
 * Tested with WooCommerce 7.4.
