@@ -30,9 +30,6 @@ class Login extends LoginBase {
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
-		add_action( 'um_submit_form_errors_hook_login', [ $this, 'remove_filter_wp_authenticate_user' ] );
-		add_filter( 'wpforms_user_registration_process_login_process_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 
 		if ( ! class_exists( Controller_WordfenceLS::class ) ) {
 			return;
@@ -62,6 +59,10 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, $password ) {
+		if ( false === strpos( wp_get_raw_referer(), '/wp-login.php' ) ) {
+			return $user;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}
@@ -76,19 +77,6 @@ class Login extends LoginBase {
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
-	}
-
-	/**
-	 * Remove standard WP login captcha if we do logging in via WC.
-	 *
-	 * @param array $credentials Credentials.
-	 *
-	 * @return array
-	 */
-	public function remove_filter_wp_authenticate_user( $credentials ) {
-		remove_filter( 'wp_authenticate_user', [ $this, 'verify' ] );
-
-		return $credentials;
 	}
 
 	/**
