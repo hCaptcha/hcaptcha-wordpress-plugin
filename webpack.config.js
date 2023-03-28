@@ -39,6 +39,9 @@ const webPackModule = (production) => {
 };
 
 const hcaptcha = (env) => {
+	/**
+	 * @param  env.production
+	 */
 	const production = env.production ? env.production : false;
 	const cssEntries = {};
 	const jsEntries = {};
