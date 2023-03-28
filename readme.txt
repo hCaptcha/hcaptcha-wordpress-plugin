@@ -327,6 +327,8 @@ Instructions for popular native integrations are below:
 
 = 2.7.0 =
 * Tested with WooCommerce 7.5.
+* Added compatibility with 3rd-party login plugins.
+* Changed position of hCaptcha widget on WooCommerce Place Order button.
 
 = 2.6.0 =
 * Tested with WordPress 6.2.
