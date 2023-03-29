@@ -105,11 +105,6 @@ class Main {
 	 * Input class.
 	 */
 	public function init() {
-		if ( $this->is_xml_rpc() ) {
-			return;
-		}
-
-		( new Fix() )->init();
 		new Migrations();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
