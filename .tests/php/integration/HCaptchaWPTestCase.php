@@ -126,7 +126,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 			$nonce_field = wp_nonce_field( $action, $name, true, false );
 		}
 
-		$data_size = $invisible ? 'invisible' : 'normal';
+		$data_size = $invisible ? 'invisible' : '';
 		$data_auto = $auto ? 'true' : 'false';
 
 		return '		<div

@@ -51,12 +51,16 @@ function hcap_form_display( $action = '', $name = '', $auto = false ) {
  * @return string
  */
 function hcap_shortcode( $atts ) {
+	/**
+	 * Do not set default size here.
+	 * If size is not normal|compact|invisible, it will be taken from plugin settings in HCaptcha::form().
+	 */
 	$atts = shortcode_atts(
 		[
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => false,
-			'size'   => 'normal',
+			'size'   => '',
 		],
 		$atts
 	);

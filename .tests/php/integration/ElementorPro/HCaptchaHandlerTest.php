@@ -539,7 +539,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			class="h-captcha"
 			data-sitekey="some site key"
 			data-theme="some theme"
-			data-size="normal"
+			data-size="some size"
 						data-auto="false">
 		</div>
 		</div></div>';

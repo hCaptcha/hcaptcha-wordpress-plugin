@@ -49,7 +49,7 @@ class HCaptcha {
 		);
 
 		$args['auto'] = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
-		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : 'normal';
+		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
 		$callback     = 'invisible' === $args['size'] ? 'data-callback="hCaptchaSubmit"' : '';
 
 		?>
