@@ -63,6 +63,12 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 
 = Does the [hcaptcha] shortcode have arguments? =
 
+Full list of arguments:
+
+`
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" size="normal|compact|invisible"]
+`
+
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
 `
@@ -75,7 +81,9 @@ and in the verification:
 $result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
 `
 
-See also the section *"How to automatically verify an arbitrary form"*
+For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, auto="false".
+
+The argument size="normal|compact|invisible" allows to set the size of hCaptcha widget. size="normal" by default.
 
 = How to add hCaptcha to an arbitrary form =
 
