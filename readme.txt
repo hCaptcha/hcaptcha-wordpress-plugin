@@ -329,6 +329,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 7.5.
 * Added compatibility with 3rd-party login plugins.
 * Changed position of hCaptcha widget on WooCommerce Place Order button.
+* Fixed uncaught type error during the login with PHP 8.0.
 
 = 2.6.0 =
 * Tested with WordPress 6.2.
