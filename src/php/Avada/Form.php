@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Avada;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form.
  */
@@ -43,7 +45,7 @@ class Form {
 			return $html;
 		}
 
-		$hcaptcha = hcap_form();
+		$hcaptcha = HCaptcha::form();
 
 		return $hcaptcha . $html;
 	}

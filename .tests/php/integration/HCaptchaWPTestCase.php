@@ -108,7 +108,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Return hcap_form_display() content.
+	 * Return HCaptcha::form_display() content.
 	 *
 	 * @param string $action    Action name for wp_nonce_field.
 	 * @param string $name      Nonce name for wp_nonce_field.

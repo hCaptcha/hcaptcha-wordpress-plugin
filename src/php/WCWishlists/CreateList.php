@@ -10,6 +10,8 @@
 
 namespace HCaptcha\WCWishlists;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Create List.
  */
@@ -46,11 +48,16 @@ class CreateList {
 	public function after_wrapper() {
 		$wrapper = ob_get_clean();
 
+		$args = [
+			'action' => 'hcaptcha_wc_create_wishlists_action',
+			'name'   => 'hcaptcha_wc_create_wishlists_nonce',
+		];
+
 		// Find last $search string and insert hcaptcha before it.
 		$search  = '<p class="form-row">';
 		$replace =
 			"\n" .
-			hcap_form( 'hcaptcha_wc_create_wishlists_action', 'hcaptcha_wc_create_wishlists_nonce' ) .
+			HCaptcha::form( $args ) .
 			"\n" .
 			$search;
 

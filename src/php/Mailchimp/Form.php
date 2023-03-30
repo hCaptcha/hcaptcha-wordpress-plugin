@@ -10,6 +10,8 @@
 
 namespace HCaptcha\Mailchimp;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form.
  */
@@ -74,9 +76,14 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $content, $form, $element ) {
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+		];
+
 		return str_replace(
 			'<input type="submit"',
-			hcap_form( self::ACTION, self::NAME ) .
+			HCaptcha::form( $args ) .
 			'<input type="submit"',
 			$content
 		);

@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Brizy;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Post;
 
 /**
@@ -49,10 +50,15 @@ abstract class Base {
 			return $content;
 		}
 
+		$args = [
+			'action' => static::ACTION,
+			'name'   => static::NAME,
+		];
+
 		$search  = '<div class="brz-forms2 brz-forms2__item brz-forms2__item-button">';
 		$replace =
 			'<div class="brz-forms2 brz-forms2__item">' .
-			hcap_form( static::ACTION, static::NAME ) .
+			HCaptcha::form( $args ) .
 			'</div>' .
 			$search;
 

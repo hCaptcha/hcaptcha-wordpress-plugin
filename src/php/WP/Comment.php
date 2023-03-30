@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Origin;
 use WP_Error;
 
@@ -58,15 +59,17 @@ class Comment {
 	 * Add captcha.
 	 *
 	 * @param string $submit_button HTML markup for the submit button.
-	 * @param array  $args          Arguments passed to comment_form().
+	 * @param array  $comment_args  Arguments passed to comment_form().
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_button, $args ) {
-		return (
-			hcap_form( self::ACTION, self::NONCE ) .
-			$submit_button
-		);
+	public function add_captcha( $submit_button, $comment_args ) {
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
+		return HCaptcha::form( $args ) . $submit_button;
 	}
 
 	/**

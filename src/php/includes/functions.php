@@ -15,8 +15,12 @@ use HCaptcha\Helpers\HCaptcha;
  * @param bool   $auto   This form has to be auto-verified.
  *
  * @return string
+ * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form()
  */
 function hcap_form( $action = '', $name = '', $auto = false ) {
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form()' );
+
 	$args = [
 		'action' => $action,
 		'name'   => $name,

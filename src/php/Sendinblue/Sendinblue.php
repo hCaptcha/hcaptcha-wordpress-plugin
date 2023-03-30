@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Sendinblue;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Sendinblue.
  */
@@ -45,7 +47,13 @@ class Sendinblue {
 			return $output;
 		}
 
-		$hcaptcha = hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true );
+		$args = [
+			'action' => HCAPTCHA_ACTION,
+			'name'   => HCAPTCHA_NONCE,
+			'auto'   => true,
+		];
+
+		$hcaptcha = HCaptcha::form( $args );
 
 		return preg_replace( '/(<input type="submit")/', $hcaptcha . '$1', $output );
 	}

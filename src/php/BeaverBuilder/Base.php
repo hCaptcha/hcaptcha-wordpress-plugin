@@ -11,6 +11,7 @@
 namespace HCaptcha\BeaverBuilder;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class Base.
@@ -62,9 +63,14 @@ abstract class Base extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	protected function add_hcap_form( $out, $module ) {
+		$args = [
+			'action' => static::ACTION,
+			'name'   => static::NONCE,
+		];
+
 		$hcaptcha =
 			'<div class="fl-input-group fl-hcaptcha">' .
-			hcap_form( static::ACTION, static::NONCE ) .
+			HCaptcha::form( $args ) .
 			'</div>';
 
 		$button_pattern = '<div class="fl-button-wrap';

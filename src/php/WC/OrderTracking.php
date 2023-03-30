@@ -7,6 +7,8 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class OrderTracking
  */
@@ -42,9 +44,15 @@ class OrderTracking {
 			return $output;
 		}
 
+		$args = [
+			'action' => HCAPTCHA_ACTION,
+			'name'   => HCAPTCHA_NONCE,
+			'auto'   => true,
+		];
+
 		$hcap_form =
 			'<div class="form-row"  style="margin-top: 2rem;">' .
-			hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true ) .
+			HCaptcha::form( $args ) .
 			'</div>';
 
 		return preg_replace(

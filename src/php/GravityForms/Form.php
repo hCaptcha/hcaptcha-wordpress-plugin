@@ -7,6 +7,8 @@
 
 namespace HCaptcha\GravityForms;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form
  */
@@ -36,7 +38,13 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $button_input, $form ) {
-		return hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true ) . $button_input;
+		$args = [
+			'action' => HCAPTCHA_ACTION,
+			'name'   => HCAPTCHA_NONCE,
+			'auto'   => true,
+		];
+
+		return HCaptcha::form( $args ) . $button_input;
 	}
 
 	/**

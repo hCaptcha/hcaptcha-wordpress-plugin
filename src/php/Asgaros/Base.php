@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Asgaros;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Base.
  */
@@ -43,12 +45,16 @@ abstract class Base {
 		}
 
 		$search = '<div class="editor-row editor-row-submit">';
+		$args   = [
+			'action' => static::ACTION,
+			'name'   => static::NAME,
+		];
 
 		return str_replace(
 			$search,
 			'<div class="editor-row editor-row-hcaptcha">' .
 			'<div class="right">' .
-			hcap_form( static::ACTION, static::NAME ) .
+			HCaptcha::form( $args ) .
 			'</div>' .
 			'</div>' .
 			$search,

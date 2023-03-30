@@ -8,6 +8,7 @@
 namespace HCaptcha\UM;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class Base
@@ -154,7 +155,12 @@ abstract class Base extends LoginBase {
 
 		$output = "<div class=\"um-field um-field-{$this->key}\">";
 
-		$output .= hcap_form( $this->hcaptcha_action, $this->hcaptcha_nonce );
+		$args = [
+			'action' => $this->hcaptcha_action,
+			'name'   => $this->hcaptcha_nonce,
+		];
+
+		$output .= HCaptcha::form( $args );
 		$output .= '</div>';
 
 		$um = UM();

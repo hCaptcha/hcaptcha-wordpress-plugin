@@ -7,6 +7,8 @@
 
 namespace HCaptcha\ACFE;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form.
  */
@@ -74,7 +76,7 @@ class Form {
 
 		$form =
 			'<div class="acf-input-wrap acfe-field-recaptcha"> ' .
-			'<div>' . hcap_form() . '</div>' .
+			'<div>' . HCaptcha::form() . '</div>' .
 			'<input type="hidden" id="acf-' . $field['key'] . '" name="' . $field['name'] . '">' .
 			'</div>';
 
