@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Quform;
 
+use HCaptcha\Helpers\HCaptcha;
 use Quform_Element_Page;
 use Quform_Form;
 
@@ -74,7 +75,14 @@ class Quform {
 			<div class="quform-spacer">
 				<div class="quform-inner quform-inner-hcaptcha quform-inner-<?php echo esc_attr( $max_id ); ?>">
 					<div class="quform-input quform-input-hcaptcha quform-input-<?php echo esc_attr( $max_id ); ?> quform-cf">
-						<?php hcap_form_display( self::ACTION, self::NONCE ); ?>
+						<?php
+						$args = [
+							'action' => self::ACTION,
+							'name'   => self::NONCE,
+						];
+
+						HCaptcha::form_display( $args );
+						?>
 						<noscript><?php esc_html_e( 'Please enable JavaScript to submit this form.', 'hcaptcha-for-forms-and-more' ); ?></noscript>
 					</div>
 				</div>

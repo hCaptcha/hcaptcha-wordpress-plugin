@@ -7,6 +7,8 @@
 
 namespace HCaptcha\WPForms;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form.
  */
@@ -49,7 +51,12 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $form_data ) {
-		hcap_form_display( self::ACTION, self::NAME );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**

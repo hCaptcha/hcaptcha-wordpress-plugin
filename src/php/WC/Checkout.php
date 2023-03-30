@@ -7,6 +7,8 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Checkout
  */
@@ -32,7 +34,12 @@ class Checkout {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_wc_checkout', 'hcaptcha_wc_checkout_nonce' );
+		$args = [
+			'action' => 'hcaptcha_wc_checkout',
+			'name'   => 'hcaptcha_wc_checkout_nonce',
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**

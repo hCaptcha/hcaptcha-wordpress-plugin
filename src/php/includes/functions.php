@@ -36,8 +36,13 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
  * @param string $action Action name for wp_nonce_field.
  * @param string $name   Nonce name for wp_nonce_field.
  * @param bool   $auto   This form has to be auto-verified.
+ *
+ * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form_display()
  */
 function hcap_form_display( $action = '', $name = '', $auto = false ) {
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form_display()' );
+
 	$args = [
 		'action' => $action,
 		'name'   => $name,

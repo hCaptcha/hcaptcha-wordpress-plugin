@@ -7,6 +7,8 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class LostPassword
  *
@@ -32,6 +34,11 @@ class LostPassword {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_lost_password', 'hcaptcha_lost_password_nonce' );
+		$args = [
+			'action' => 'hcaptcha_lost_password',
+			'name'   => 'hcaptcha_lost_password_nonce',
+		];
+
+		HCaptcha::form_display( $args );
 	}
 }

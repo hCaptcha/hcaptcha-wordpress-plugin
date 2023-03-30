@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
@@ -33,7 +34,12 @@ class Register {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_wc_register', 'hcaptcha_wc_register_nonce' );
+		$args = [
+			'action' => 'hcaptcha_wc_register',
+			'name'   => 'hcaptcha_wc_register_nonce',
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**

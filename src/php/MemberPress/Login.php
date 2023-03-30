@@ -7,6 +7,8 @@
 
 namespace HCaptcha\MemberPress;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Login
  */
@@ -30,6 +32,11 @@ class Login {
 	 * Add hCaptcha to the Register form.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_memberpress_register', 'hcaptcha_memberpress_register_nonce' );
+		$args = [
+			'action' => 'hcaptcha_memberpress_register',
+			'name'   => 'hcaptcha_memberpress_register_nonce',
+		];
+
+		HCaptcha::form_display( $args );
 	}
 }

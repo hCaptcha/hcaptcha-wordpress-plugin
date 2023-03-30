@@ -7,6 +7,8 @@
 
 namespace HCaptcha\FluentForm;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form
  */
@@ -37,7 +39,12 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $form ) {
-		hcap_form_display( 'hcaptcha_fluentform', 'hcaptcha_fluentform_nonce' );
+		$args = [
+			'action' => 'hcaptcha_fluentform',
+			'name'   => 'hcaptcha_fluentform_nonce',
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**
