@@ -49,11 +49,12 @@ class Form {
 	 * @return string
 	 */
 	public function add_captcha( $content ) {
-		$output = HCaptcha::form();
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+		];
 
-		$output .= wp_nonce_field( self::ACTION, self::NAME, true, false );
-
-		return $content . $output;
+		return $content . HCaptcha::form( $args );
 	}
 
 	/**

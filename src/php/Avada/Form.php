@@ -45,9 +45,7 @@ class Form {
 			return $html;
 		}
 
-		$hcaptcha = HCaptcha::form();
-
-		return $hcaptcha . $html;
+		return HCaptcha::form() . $html;
 	}
 
 	/**
