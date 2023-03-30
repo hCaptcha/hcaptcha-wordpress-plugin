@@ -86,6 +86,7 @@ class CreateList {
 	 * @param mixed $valid_captcha Valid captcha.
 	 *
 	 * @return mixed|bool
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $valid_captcha ) {
 		$error_message = hcaptcha_get_verify_message(

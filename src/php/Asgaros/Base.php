@@ -38,6 +38,8 @@ abstract class Base {
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $output, $tag, $attr, $m ) {
 		if ( 'forum' !== $tag ) {

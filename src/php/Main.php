@@ -522,6 +522,7 @@ class Main {
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ) {
 		if ( 'supportcandy' === $tag ) {
