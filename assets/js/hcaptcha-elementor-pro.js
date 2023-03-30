@@ -1,6 +1,23 @@
 /* global _, elementor, elementorPro, elementorModules */
 
+/**
+ * @param  config.setup_message
+ * @param  config.site_key
+ * @param  config.hcaptcha_theme
+ * @param  config.hcaptcha_size
+ * @param  item.field_type
+ * @param  item.custom_id
+ * @param  item.css_classes
+ */
+
 class HCaptchaElementor extends elementorModules.editor.utils.Module {
+	/**
+	 * Get hCaptcha form.
+	 *
+	 * @param {Object} item
+	 *
+	 * @return {string} hCaptcha form.
+	 */
 	static getHCaptchaForm(item) {
 		const config = elementorPro.config.forms[item.field_type];
 
