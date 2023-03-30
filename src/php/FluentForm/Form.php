@@ -13,6 +13,15 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Form
  */
 class Form {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_fluentform';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_fluentform_nonce';
 
 	/**
 	 * Constructor.
@@ -40,8 +49,8 @@ class Form {
 	 */
 	public function add_captcha( $form ) {
 		$args = [
-			'action' => 'hcaptcha_fluentform',
-			'name'   => 'hcaptcha_fluentform_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		HCaptcha::form_display( $args );
@@ -60,12 +69,12 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $insert_data, $data, $form ) {
-		$_POST['hcaptcha_fluentform_nonce'] = $data['hcaptcha_fluentform_nonce'];
-		$_POST['h-captcha-response']        = $data['h-captcha-response'];
+		$_POST[ self::NONCE ]        = $data[ self::NONCE ];
+		$_POST['h-captcha-response'] = $data['h-captcha-response'];
 
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_fluentform_nonce',
-			'hcaptcha_fluentform'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null === $error_message ) {

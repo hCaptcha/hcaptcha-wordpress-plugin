@@ -15,6 +15,15 @@ use HCaptcha\Helpers\HCaptcha;
  * This class uses verify hook in WP\LostPassword.
  */
 class LostPassword {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_lost_password';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_lost_password_nonce';
 
 	/**
 	 * Constructor.
@@ -35,8 +44,8 @@ class LostPassword {
 	 */
 	public function add_captcha() {
 		$args = [
-			'action' => 'hcaptcha_lost_password',
-			'name'   => 'hcaptcha_lost_password_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		HCaptcha::form_display( $args );

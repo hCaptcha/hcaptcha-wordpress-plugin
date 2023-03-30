@@ -16,6 +16,15 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Create List.
  */
 class CreateList {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_wc_create_wishlists_action';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_wc_create_wishlists_nonce';
 
 	/**
 	 * Create List constructor.
@@ -49,8 +58,8 @@ class CreateList {
 		$wrapper = ob_get_clean();
 
 		$args = [
-			'action' => 'hcaptcha_wc_create_wishlists_action',
-			'name'   => 'hcaptcha_wc_create_wishlists_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		// Find last $search string and insert hcaptcha before it.
@@ -80,8 +89,8 @@ class CreateList {
 	 */
 	public function verify( $valid_captcha ) {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_wc_create_wishlists_nonce',
-			'hcaptcha_wc_create_wishlists_action'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {

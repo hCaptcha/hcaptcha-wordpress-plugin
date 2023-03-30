@@ -14,6 +14,15 @@ use WP_Error;
  * Class Register
  */
 class Register {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_registration';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_registration_nonce';
 
 	/**
 	 * Constructor.
@@ -35,8 +44,8 @@ class Register {
 	 */
 	public function add_captcha() {
 		$args = [
-			'action' => 'hcaptcha_registration',
-			'name'   => 'hcaptcha_registration_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		HCaptcha::form_display( $args );
@@ -54,8 +63,8 @@ class Register {
 	 */
 	public function verify( $errors, $sanitized_user_login, $user_email ) {
 		$error_message = hcaptcha_get_verify_message_html(
-			'hcaptcha_registration_nonce',
-			'hcaptcha_registration'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null === $error_message ) {

@@ -13,6 +13,15 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Checkout
  */
 class Checkout {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_wc_checkout';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_wc_checkout_nonce';
 
 	/**
 	 * Constructor.
@@ -35,8 +44,8 @@ class Checkout {
 	 */
 	public function add_captcha() {
 		$args = [
-			'action' => 'hcaptcha_wc_checkout',
-			'name'   => 'hcaptcha_wc_checkout_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		HCaptcha::form_display( $args );
@@ -47,8 +56,8 @@ class Checkout {
 	 */
 	public function verify() {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_wc_checkout_nonce',
-			'hcaptcha_wc_checkout'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {

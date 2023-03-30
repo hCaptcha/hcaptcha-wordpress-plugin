@@ -13,6 +13,15 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Register
  */
 class Register {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_memberpress_register';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_memberpress_register_nonce';
 
 	/**
 	 * Constructor.
@@ -34,8 +43,8 @@ class Register {
 	 */
 	public function add_captcha() {
 		$args = [
-			'action' => 'hcaptcha_memberpress_register',
-			'name'   => 'hcaptcha_memberpress_register_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		HCaptcha::form_display( $args );
@@ -50,8 +59,8 @@ class Register {
 	 */
 	public function verify( $errors ) {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_memberpress_register_nonce',
-			'hcaptcha_memberpress_register'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {

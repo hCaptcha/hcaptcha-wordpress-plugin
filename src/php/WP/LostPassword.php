@@ -14,6 +14,15 @@ use WP_Error;
  * Class LostPassword
  */
 class LostPassword {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_lost_password';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_lost_password_nonce';
 
 	/**
 	 * Constructor.
@@ -35,8 +44,8 @@ class LostPassword {
 	 */
 	public function add_captcha() {
 		$args = [
-			'action' => 'hcaptcha_lost_password',
-			'name'   => 'hcaptcha_lost_password_nonce',
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 		];
 
 		HCaptcha::form_display( $args );
@@ -51,8 +60,8 @@ class LostPassword {
 	 */
 	public function verify( $error ) {
 		$error_message = hcaptcha_get_verify_message_html(
-			'hcaptcha_lost_password_nonce',
-			'hcaptcha_lost_password'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {
