@@ -41,8 +41,8 @@ class HCaptcha {
 		$args = wp_parse_args(
 			$args,
 			[
-				'action' => HCAPTCHA_ACTION, // Action name for wp_nonce_field.
-				'name'   => HCAPTCHA_NONCE, // Nonce name for wp_nonce_field.
+				'action' => '', // Action name for wp_nonce_field.
+				'name'   => '', // Nonce name for wp_nonce_field.
 				'auto'   => false, // Whether a form has to be auto-verified.
 				'size'   => $hcaptcha_size, // The hCaptcha widget size.
 			]
