@@ -125,3 +125,9 @@ jobs:
       - name: Run WP tests
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer integration -- --env github-actions
+
+      - name: Run Jest
+        if: ${{ matrix.php-version == '8.1' }}
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: |
+          yarn jest
