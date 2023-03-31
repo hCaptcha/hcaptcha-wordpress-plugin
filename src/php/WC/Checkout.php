@@ -53,7 +53,6 @@ class Checkout {
 
 	/**
 	 * Verify checkout form.
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify() {
 		$error_message = hcaptcha_get_verify_message(
