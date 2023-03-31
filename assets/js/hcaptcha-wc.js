@@ -1,16 +1,16 @@
 /* global jQuery, hCaptchaReset */
 
-jQuery(document).ready(function ($) {
+jQuery( document ).ready( function( $ ) {
 	function reset() {
-		hCaptchaReset(document.querySelector('form.woocommerce-checkout'));
+		hCaptchaReset( document.querySelector( 'form.woocommerce-checkout' ) );
 	}
 
-	$(document.body).on('checkout_error', function () {
+	$( document.body ).on( 'checkout_error', function() {
 		reset();
-	});
+	} );
 
-	$(document.body).on('updated_checkout', function () {
+	$( document.body ).on( 'updated_checkout', function() {
 		window.hCaptchaBindEvents();
 		reset();
-	});
-});
+	} );
+} );
