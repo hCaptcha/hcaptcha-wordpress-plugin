@@ -1,6 +1,6 @@
 /* global jQuery, hCaptchaReset */
 
-jQuery( document ).ready( function( $ ) {
+const wc = function( $ ) {
 	function reset() {
 		hCaptchaReset( document.querySelector( 'form.woocommerce-checkout' ) );
 	}
@@ -13,4 +13,8 @@ jQuery( document ).ready( function( $ ) {
 		window.hCaptchaBindEvents();
 		reset();
 	} );
-} );
+};
+
+window.hCaptchaWC = wc;
+
+jQuery( document ).ready( wc );
