@@ -40,6 +40,7 @@
       ]
     }
   },
+  "packageManager": "yarn@3.5.0",
   "dependencies": {
     "form-request-submit-polyfill": "^2.0.0"
   },
@@ -63,6 +64,5 @@
     "webpack": "^5.77.0",
     "webpack-cli": "^5.0.1",
     "webpack-remove-empty-scripts": "^1.0.1"
-  },
-  "packageManager": "yarn@3.5.0"
+  }
 }
