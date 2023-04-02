@@ -98,7 +98,6 @@ jobs:
 
       - name: Run ESLint
         if: ${{ matrix.php-version == '8.2' }}
-        working-directory: ${{ env.wp-plugin-directory }}
         run: |
           yarn set version stable
           yarn
