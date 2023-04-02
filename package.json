@@ -40,6 +40,7 @@
       ]
     }
   },
+  "packageManager": "yarn@3.5.0",
   "dependencies": {
     "form-request-submit-polyfill": "^2.0.0"
   },
