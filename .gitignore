@@ -7,6 +7,7 @@ assets/js/apps/
 assets/js/*.min.js
 assets/js/*.min.js.map
 assets/*.svg
+/coverage/
 node_modules/
 vendor/
 

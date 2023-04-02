@@ -141,6 +141,4 @@ describe('integrations', () => {
 		$($img.get(1)).trigger('click');
 		expect(postSpy).toHaveBeenCalled();
 	});
-
-	// Add more tests as needed
 });
