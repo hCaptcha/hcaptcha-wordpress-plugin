@@ -69,6 +69,7 @@ jobs:
         run: composer phpcs
 
       - name: Run ESLint
+        working-directory: ${{ env.wp-plugin-directory }}
         if: ${{ matrix.php-version == '8.2' }}
         run: |
           yarn set version stable
