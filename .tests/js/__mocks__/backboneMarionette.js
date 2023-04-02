@@ -20,16 +20,16 @@ class MarionetteBase {
 // Mock Marionette
 const Marionette = {
 	Object: class extends MarionetteBase {
-		static extend(protoProps) {
+		static extend( protoProps ) {
 			const parent = this;
-			const child = function (...args) {
-				return Reflect.construct(parent, args, this.constructor);
+			const child = function( ...args ) {
+				return Reflect.construct( parent, args, this.constructor );
 			};
-			child.prototype = Object.create(parent.prototype);
+			child.prototype = Object.create( parent.prototype );
 			child.prototype.constructor = child;
 
-			for (const prop in protoProps) {
-				child.prototype[prop] = protoProps[prop];
+			for ( const prop in protoProps ) {
+				child.prototype[ prop ] = protoProps[ prop ];
 			}
 
 			return child;

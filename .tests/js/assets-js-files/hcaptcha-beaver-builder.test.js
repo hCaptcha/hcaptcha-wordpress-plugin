@@ -1,13 +1,13 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-import jquery from 'jquery';
+import $ from 'jquery';
 
-global.jQuery = jquery;
-global.$ = jquery;
+global.jQuery = $;
+global.$ = $;
 
 describe( 'hCaptcha Beaver Builder', () => {
 	let ajaxPrefilterCallback;
-	let options = {
+	const options = {
 		data: '',
 	};
 

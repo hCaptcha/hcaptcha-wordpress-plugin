@@ -1,7 +1,7 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
 import jquery from 'jquery';
-import {hooks as elementorFrontendHooks} from '../__mocks__/elementorFrontend';
+import { hooks as elementorFrontendHooks } from '../__mocks__/elementorFrontend';
 
 // Set up global variables
 global.jQuery = jquery;

@@ -1,9 +1,9 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-import jquery from 'jquery';
+import $ from 'jquery';
 
-global.jQuery = jquery;
-global.$ = jquery;
+global.jQuery = $;
+global.$ = $;
 
 // Import the script you want to test
 require( '../../../assets/js/hcaptcha-wc' );
@@ -21,7 +21,7 @@ describe( 'hCaptcha WooCommerce', () => {
 
 		hCaptchaBindEvents = jest.fn();
 		global.hCaptchaBindEvents = hCaptchaBindEvents;
-	});
+	} );
 
 	afterEach( () => {
 		global.hCaptchaReset.mockRestore();

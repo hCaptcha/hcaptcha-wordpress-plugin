@@ -1,5 +1,7 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
+/* global Backbone */
+
 import '../__mocks__/backboneMarionette';
 import '../__mocks__/backboneRadio';
 import '../../../assets/js/hcaptcha-nf';
@@ -13,7 +15,7 @@ describe( 'Ninja Forms hCaptcha', () => {
 		controller = window.hCaptchaFieldController;
 
 		// Reset the request mock function
-		Backbone.Radio.channel('fields').request.mockReset();
+		Backbone.Radio.channel( 'fields' ).request.mockReset();
 	} );
 
 	test( 'initialize registers listeners', () => {

@@ -1,26 +1,26 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-import jquery from 'jquery';
+import $ from 'jquery';
 
-global.jQuery = jquery;
-global.$ = jquery;
+global.jQuery = $;
+global.$ = $;
 
-describe('hCaptcha ajaxStop binding', () => {
+describe( 'hCaptcha ajaxStop binding', () => {
 	let hCaptchaBindEvents;
 
-	beforeEach(() => {
+	beforeEach( () => {
 		hCaptchaBindEvents = jest.fn();
 		global.hCaptchaBindEvents = hCaptchaBindEvents;
 
-		require('../../../assets/js/hcaptcha-divi.js');
-	});
+		require( '../../../assets/js/hcaptcha-divi.js' );
+	} );
 
-	afterEach(() => {
+	afterEach( () => {
 		global.hCaptchaBindEvents.mockRestore();
-	});
+	} );
 
-	test('hCaptchaBindEvents is called when ajaxStop event is triggered', () => {
-		$(document).trigger('ajaxStop');
-		expect(hCaptchaBindEvents).toHaveBeenCalledTimes(1);
-	});
-});
+	test( 'hCaptchaBindEvents is called when ajaxStop event is triggered', () => {
+		$( document ).trigger( 'ajaxStop' );
+		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+	} );
+} );

@@ -1,11 +1,11 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-import jquery from 'jquery';
+import $ from 'jquery';
 
-global.jQuery = jquery;
-global.$ = jquery;
+global.jQuery = $;
+global.$ = $;
 
-require('../../../assets/js/integrations.js');
+require( '../../../assets/js/integrations.js' );
 
 // Mock HCaptchaIntegrationsObject
 global.HCaptchaIntegrationsObject = {
@@ -82,16 +82,16 @@ function getDom() {
     `;
 }
 
-describe('integrations', () => {
+describe( 'integrations', () => {
 	const successMessage = 'Success.';
 	const errorMessage = 'Error.';
 	let postSpy;
 
-	beforeEach(() => {
+	beforeEach( () => {
 		document.body.innerHTML = getDom();
 
 		// Simulate jQuery.ready event
-		window.hCaptchaIntegrations(jQuery);
+		window.hCaptchaIntegrations( $ );
 
 		const mockSuccessResponse = {
 			data: successMessage,
@@ -102,43 +102,43 @@ describe('integrations', () => {
 			success: false,
 		};
 		const mockPostPromise = {
-			done: jest.fn().mockImplementation((callback) => {
-				callback(mockSuccessResponse);
+			done: jest.fn().mockImplementation( ( callback ) => {
+				callback( mockSuccessResponse );
 				return mockPostPromise;
-			}),
-			fail: jest.fn().mockImplementation((callback) => {
-				callback(mockErrorResponse);
+			} ),
+			fail: jest.fn().mockImplementation( ( callback ) => {
+				callback( mockErrorResponse );
 				return mockPostPromise;
-			}),
+			} ),
 		};
 
-		postSpy = jest.spyOn($, 'post').mockImplementation(() => {
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => {
 			const deferred = $.Deferred();
 
 			// To fire the done callback, resolve the deferred object with the mockSuccessResponse
-			deferred.resolve(mockSuccessResponse);
+			deferred.resolve( mockSuccessResponse );
 
 			// Comment the following line if you don't want the fail callback to be fired
 			// deferred.reject(mockErrorResponse);
 
 			return deferred;
-		});
-	});
+		} );
+	} );
 
-	afterEach(() => {
+	afterEach( () => {
 		postSpy.mockRestore();
-	});
+	} );
 
-	test('clicking on an image sends an AJAX request', () => {
-		const $img = $('.form-table img');
+	test( 'clicking on an image sends an AJAX request', () => {
+		const $img = $( '.form-table img' );
 
 		// No ajax call on click at WP Core.
-		$($img.get(0)).trigger('click');
-		expect(postSpy).not.toHaveBeenCalled();
+		$( $img.get( 0 ) ).trigger( 'click' );
+		expect( postSpy ).not.toHaveBeenCalled();
 
-		jest.spyOn(global, 'confirm').mockReturnValueOnce(true);
+		jest.spyOn( global, 'confirm' ).mockReturnValueOnce( true );
 
-		$($img.get(1)).trigger('click');
-		expect(postSpy).toHaveBeenCalled();
-	});
-});
+		$( $img.get( 1 ) ).trigger( 'click' );
+		expect( postSpy ).toHaveBeenCalled();
+	} );
+} );
