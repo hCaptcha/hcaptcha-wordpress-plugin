@@ -91,7 +91,7 @@ describe('integrations', () => {
 		document.body.innerHTML = getDom();
 
 		// Simulate jQuery.ready event
-		window.hCaptcha.integrations(jQuery);
+		window.hCaptchaIntegrations(jQuery);
 
 		const mockSuccessResponse = {
 			data: successMessage,

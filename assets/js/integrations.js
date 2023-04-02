@@ -101,7 +101,6 @@ const integrations = function( $ ) {
 	} );
 };
 
-window.hCaptcha = window.hCaptcha || {};
-window.hCaptcha.integrations = integrations;
+window.hCaptchaIntegrations = integrations;
 
 jQuery( document ).ready( integrations );
