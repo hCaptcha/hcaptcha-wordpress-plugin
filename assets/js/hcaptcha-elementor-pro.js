@@ -74,4 +74,4 @@ class HCaptchaElementor extends elementorModules.editor.utils.Module {
 	}
 }
 
-new HCaptchaElementor();
+window.hCaptchaElementorPro = new HCaptchaElementor();
