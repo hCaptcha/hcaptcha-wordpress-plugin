@@ -337,6 +337,8 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 7.5.
 * Added size argument to the shortcode.
 * Added compatibility with 3rd-party login plugins.
+* Added autocomplete="off" attribute to the Secret Key field to prevent its autocompleting by the browser.
+* Added 'hcap_error_messages' filter allowing to modify hCaptcha error messages.
 * Changed position of hCaptcha widget on WooCommerce Place Order button.
 * Fixed uncaught type error during the login with PHP 8.0.
 
