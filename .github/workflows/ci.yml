@@ -100,9 +100,10 @@ jobs:
         if: ${{ matrix.php-version == '8.1' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
+          yarn set version stable
           yarn
           yarn dev
-          npx eslint "./webpack.config.js" "./src/js/**/*.js" "./assets/js/*.js"
+          yarn lint
 
       - name: Run unit tests
         working-directory: ${{ env.wp-plugin-directory }}
