@@ -13,4 +13,5 @@ vendor/
 *.lock
 .DS_Store
 .phpcs.cache
+package-lock.json
 Thumbs.db
