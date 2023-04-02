@@ -1,15 +1,15 @@
-function hCaptchaACFECallback(response, callback) {
+function hCaptchaACFECallback( response, callback ) {
 	[
 		...document.querySelectorAll(
 			'.acfe-field-recaptcha input[type="hidden"]'
 		),
-	].map((el) => {
+	].map( ( el ) => {
 		el.value = response;
 		return el;
-	});
+	} );
 
-	if (callback !== undefined) {
-		callback(response);
+	if ( callback !== undefined ) {
+		callback( response );
 	}
 }
 
@@ -20,20 +20,20 @@ function hCaptchaACFEOnLoad() {
 
 const params = window.hCaptcha.getParams();
 const savedCallback = params.callback;
-const savedErrorCallback = params['error-callback'];
-const savedExpiredCallback = params['expired-callback'];
+const savedErrorCallback = params[ 'error-callback' ];
+const savedExpiredCallback = params[ 'expired-callback' ];
 
-params.callback = (response) => {
-	hCaptchaACFECallback(response, savedCallback);
+params.callback = ( response ) => {
+	hCaptchaACFECallback( response, savedCallback );
 };
-params['error-callback'] = () => {
-	hCaptchaACFECallback('', savedErrorCallback);
+params[ 'error-callback' ] = () => {
+	hCaptchaACFECallback( '', savedErrorCallback );
 };
-params['expired-callback'] = () => {
-	hCaptchaACFECallback('', savedExpiredCallback);
+params[ 'expired-callback' ] = () => {
+	hCaptchaACFECallback( '', savedExpiredCallback );
 };
 
-window.hCaptcha.setParams(params);
+window.hCaptcha.setParams( params );
 
 const hCaptchaACFEOnLoadSaved = window.hCaptchaOnLoad;
 
