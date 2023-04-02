@@ -11,6 +11,7 @@ node_modules/
 vendor/
 
 *.lock
+!yarn.lock
 .DS_Store
 .phpcs.cache
 package-lock.json
