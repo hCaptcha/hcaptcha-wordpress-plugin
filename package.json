@@ -5,7 +5,7 @@
     "dev": "webpack --mode development",
     "prod": "webpack --env production --mode production",
     "watch": "webpack --mode development --watch",
-    "lint": "npx eslint \"./webpack.config.js\" \"./src/js/**/*.js\" \"./assets/js/*.js\"",
+    "lint": "npx eslint \"webpack.config.js\" \"src/js/**/*.js\" \"assets/js/*.js\"",
     "test": "jest",
     "coveralls": "jest --coverage && cat coverage/lcov.info | coveralls"
   },
