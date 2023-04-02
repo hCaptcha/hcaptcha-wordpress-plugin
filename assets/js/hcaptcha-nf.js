@@ -43,5 +43,5 @@ const HCaptchaFieldController = Marionette.Object.extend( {
 // On Document Ready.
 document.addEventListener( 'DOMContentLoaded', function() {
 	// Instantiate our custom field's controller, defined above.
-	new HCaptchaFieldController();
+	window.hCaptchaFieldController = new HCaptchaFieldController();
 } );
