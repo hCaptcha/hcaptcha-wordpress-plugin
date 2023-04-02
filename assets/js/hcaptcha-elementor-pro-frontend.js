@@ -1,6 +1,6 @@
 /* global jQuery, hCaptchaBindEvents, elementorFrontend */
 
-jQuery( document ).ready( function() {
+const elementorProFrontend = function() {
 	if ( 'undefined' === typeof elementorFrontend ) {
 		return;
 	}
@@ -14,4 +14,8 @@ jQuery( document ).ready( function() {
 			}
 		}
 	);
-} );
+};
+
+window.hCaptchaElementorProFrontend = elementorProFrontend;
+
+jQuery( document ).ready( elementorProFrontend );
