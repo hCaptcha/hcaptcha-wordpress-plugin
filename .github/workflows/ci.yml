@@ -103,7 +103,7 @@ jobs:
           yarn set version stable
           yarn
           yarn dev
-          npm run lint
+          npx eslint webpack.config.js src/js/**/*.js assets/js/*.js
 
       - name: Run unit tests
         working-directory: ${{ env.wp-plugin-directory }}
