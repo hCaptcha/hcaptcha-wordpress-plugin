@@ -103,7 +103,7 @@ jobs:
           yarn set version stable
           yarn
           yarn dev
-          yarn lint
+          npm run lint
 
       - name: Run unit tests
         working-directory: ${{ env.wp-plugin-directory }}
