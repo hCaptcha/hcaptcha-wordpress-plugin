@@ -1,5 +1,5 @@
 /* global jQuery */
 
-jQuery( document ).ajaxStop( function() {
+jQuery(document).ajaxStop(function () {
 	window.hCaptchaBindEvents();
-} );
+});
