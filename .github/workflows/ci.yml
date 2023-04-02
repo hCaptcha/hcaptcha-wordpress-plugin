@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: [ '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
+        php-version: [ '8.2' ]
 
     env:
       wp-directory: wordpress
@@ -97,7 +97,7 @@ jobs:
         run: composer phpcs
 
       - name: Run ESLint
-        if: ${{ matrix.php-version == '8.1' }}
+        if: ${{ matrix.php-version == '8.2' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
           yarn set version stable
@@ -128,7 +128,7 @@ jobs:
         run: composer integration -- --env github-actions
 
       - name: Run Jest
-        if: ${{ matrix.php-version == '8.1' }}
+        if: ${{ matrix.php-version == '8.2' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
           yarn jest
