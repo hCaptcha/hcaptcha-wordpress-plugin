@@ -607,17 +607,19 @@ abstract class SettingsBase {
 	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_text_field( array $arguments ) {
-		$value = $this->get( $arguments['field_id'] );
+		$value        = $this->get( $arguments['field_id'] );
+		$autocomplete = 'password' === $arguments['type'] ? 'off' : '';
 
 		printf(
 			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .
-			' placeholder="%5$s" value="%6$s" class="regular-text" />',
+			' placeholder="%5$s" value="%6$s" autocomplete="%7$s" class="regular-text" />',
 			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['type'] ),
 			esc_attr( $arguments['placeholder'] ),
-			esc_html( $value )
+			esc_html( $value ),
+			esc_attr( $autocomplete )
 		);
 	}
 
