@@ -172,7 +172,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
 
-		self::assertSame( 'wp_status', array_key_first( $form_fields ) );
+		reset( $form_fields );
+		$first_key = key( $form_fields );
+
+		self::assertSame( 'wp_status', $first_key );
 
 		foreach ( $form_fields as $form_field ) {
 			$section = $form_field['disabled'] ? Integrations::SECTION_DISABLED : '';
