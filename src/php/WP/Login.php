@@ -13,6 +13,7 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use WordfenceLS\Controller_WordfenceLS;
 use WP_Error;
 use WP_User;
@@ -21,6 +22,15 @@ use WP_User;
  * Class Login
  */
 class Login extends LoginBase {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_login';
+
+	/**
+	 * Nonce action.
+	 */
+	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Init hooks.
@@ -30,9 +40,6 @@ class Login extends LoginBase {
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		add_filter( 'woocommerce_login_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
-		add_action( 'um_submit_form_errors_hook_login', [ $this, 'remove_filter_wp_authenticate_user' ] );
-		add_filter( 'wpforms_user_registration_process_login_process_credentials', [ $this, 'remove_filter_wp_authenticate_user' ] );
 
 		if ( ! class_exists( Controller_WordfenceLS::class ) ) {
 			return;
@@ -47,7 +54,12 @@ class Login extends LoginBase {
 	 */
 	public function add_captcha() {
 		if ( $this->is_login_limit_exceeded() ) {
-			hcap_form_display( 'hcaptcha_login', 'hcaptcha_login_nonce' );
+			$args = [
+				'action' => self::ACTION,
+				'name'   => self::NONCE,
+			];
+
+			HCaptcha::form_display( $args );
 		}
 	}
 
@@ -62,13 +74,17 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, $password ) {
+		if ( false === strpos( wp_get_raw_referer(), '/wp-login.php' ) ) {
+			return $user;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}
 
 		$error_message = hcaptcha_get_verify_message_html(
-			'hcaptcha_login_nonce',
-			'hcaptcha_login'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null === $error_message ) {
@@ -76,19 +92,6 @@ class Login extends LoginBase {
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
-	}
-
-	/**
-	 * Remove standard WP login captcha if we do logging in via WC.
-	 *
-	 * @param array $credentials Credentials.
-	 *
-	 * @return array
-	 */
-	public function remove_filter_wp_authenticate_user( $credentials ) {
-		remove_filter( 'wp_authenticate_user', [ $this, 'verify' ] );
-
-		return $credentials;
 	}
 
 	/**

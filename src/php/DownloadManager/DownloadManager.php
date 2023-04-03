@@ -7,6 +7,8 @@
 
 namespace HCaptcha\DownloadManager;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class DownloadManager.
  */
@@ -50,7 +52,12 @@ class DownloadManager {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function add_hcaptcha( $template, $vars ) {
-		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
+		$hcaptcha = HCaptcha::form( $args );
 
 		$template = (string) preg_replace( '/(<ul class="list-group ml)/', $hcaptcha . '$1', $template );
 		$template = (string) preg_replace( '/<a (.+)?<\/a>/', '<button type="submit" $1</button>', $template );

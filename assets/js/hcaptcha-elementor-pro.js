@@ -1,10 +1,27 @@
 /* global _, elementor, elementorPro, elementorModules */
 
-class HCaptchaElementor extends elementorModules.editor.utils.Module {
-	static getHCaptchaForm(item) {
-		const config = elementorPro.config.forms[item.field_type];
+/**
+ * @param config.setup_message
+ * @param config.site_key
+ * @param config.hcaptcha_theme
+ * @param config.hcaptcha_size
+ * @param item.field_type
+ * @param item.custom_id
+ * @param item.css_classes
+ */
 
-		if (!config.enabled) {
+class HCaptchaElementor extends elementorModules.editor.utils.Module {
+	/**
+	 * Get hCaptcha form.
+	 *
+	 * @param {Object} item
+	 *
+	 * @return {string} hCaptcha form.
+	 */
+	static getHCaptchaForm( item ) {
+		const config = elementorPro.config.forms[ item.field_type ];
+
+		if ( ! config.enabled ) {
 			return (
 				'<div class="elementor-alert elementor-alert-info">' +
 				config.setup_message +
@@ -20,23 +37,23 @@ class HCaptchaElementor extends elementorModules.editor.utils.Module {
 		return '<div class="h-captcha" ' + hCaptchaData + '></div>';
 	}
 
-	renderField(inputField, item) {
+	renderField( inputField, item ) {
 		inputField +=
 			'<div class="elementor-field" id="form-field-' +
 			item.custom_id +
 			'">';
 		inputField +=
 			'<div class="elementor-hcaptcha' +
-			_.escape(item.css_classes) +
+			_.escape( item.css_classes ) +
 			'">';
-		inputField += HCaptchaElementor.getHCaptchaForm(item);
+		inputField += HCaptchaElementor.getHCaptchaForm( item );
 		inputField += '</div>';
 		inputField += '</div>';
 		return inputField;
 	}
 
-	filterItem(item) {
-		if ('hcaptcha' === item.field_type) {
+	filterItem( item ) {
+		if ( 'hcaptcha' === item.field_type ) {
 			item.field_label = false;
 		}
 
@@ -57,4 +74,4 @@ class HCaptchaElementor extends elementorModules.editor.utils.Module {
 	}
 }
 
-new HCaptchaElementor();
+window.hCaptchaElementorPro = new HCaptchaElementor();

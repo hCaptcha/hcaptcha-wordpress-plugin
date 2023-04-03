@@ -7,10 +7,21 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Checkout
  */
 class Checkout {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_wc_checkout';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_wc_checkout_nonce';
 
 	/**
 	 * Constructor.
@@ -23,7 +34,7 @@ class Checkout {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_action( 'woocommerce_after_checkout_billing_form', [ $this, 'add_captcha' ] );
+		add_action( 'woocommerce_review_order_before_submit', [ $this, 'add_captcha' ] );
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
@@ -32,7 +43,12 @@ class Checkout {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_wc_checkout', 'hcaptcha_wc_checkout_nonce' );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**
@@ -40,8 +56,8 @@ class Checkout {
 	 */
 	public function verify() {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_wc_checkout_nonce',
-			'hcaptcha_wc_checkout'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {

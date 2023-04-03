@@ -46,7 +46,7 @@ abstract class LoginBase {
 		$this->ip         = hcap_get_user_ip();
 		$this->login_data = get_option( self::LOGIN_DATA, [] );
 
-		if ( ! isset( $this->login_data[ $this->ip ] ) ) {
+		if ( ! isset( $this->login_data[ $this->ip ] ) || ! is_array( $this->login_data[ $this->ip ] ) ) {
 			$this->login_data[ $this->ip ] = [];
 		}
 

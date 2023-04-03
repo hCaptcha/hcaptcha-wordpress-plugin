@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Kadence;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 
 /**
@@ -91,7 +92,7 @@ class Form {
 
 		return preg_replace(
 			'/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/',
-			'$1' . hcap_form() . '$2',
+			'$1' . HCaptcha::form() . '$2',
 			$block_content
 		);
 	}

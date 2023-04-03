@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.2
 Requires PHP: 5.6.20
-Stable tag: 2.6.0
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,21 +26,30 @@ To use this plugin, just install it and enter your sitekey and secret in the Set
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
+== Screenshots ==
+
+1. Login page with hCaptcha widget
+2. Login page with hCaptcha challenge
+3. WooCommerce Login/Register page
+4. Contact From 7 with hCaptcha
+5. General settings page
+6. Integrations settings page
+7. Activating plugin from the Integration settings page
 
 == Installation ==
 
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin through the 'Plugins' menu in WordPress
-3. Enter your site key and secret in the Settings -> hCaptcha menu in WordPress
-4. Enable desired Integrations
+2. Activate the hCaptcha plugin on the 'Plugins' admin page
+3. Enter your site key and secret on the Settings->hCaptcha->General page
+4. Enable desired Integrations on the Settings->hCaptcha->Integrations page
 
 == Frequently Asked Questions ==
 
 = How do I use the hCaptcha plugin? =
 
-The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha plugin settings page.
+The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha Integrations settings page.
 
 For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the plugin.
 
@@ -54,6 +63,12 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 
 = Does the [hcaptcha] shortcode have arguments? =
 
+Full list of arguments:
+
+`
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" size="normal|compact|invisible"]
+`
+
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
 `
@@ -66,7 +81,9 @@ and in the verification:
 $result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
 `
 
-See also the section *"How to automatically verify an arbitrary form"*
+For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, auto="false".
+
+The argument size="normal|compact|invisible" allows to set the size of hCaptcha widget. size="normal" by default.
 
 = How to add hCaptcha to an arbitrary form =
 
@@ -316,6 +333,15 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.7.0 =
+* Tested with WooCommerce 7.5.
+* Added size argument to the shortcode.
+* Added compatibility with 3rd-party login plugins.
+* Added autocomplete="off" attribute to the Secret Key field to prevent its autocompleting by the browser.
+* Added 'hcap_error_messages' filter allowing to modify hCaptcha error messages.
+* Changed position of hCaptcha widget on WooCommerce Place Order button.
+* Fixed uncaught type error during the login with PHP 8.0.
+
 = 2.6.0 =
 * Tested with WordPress 6.2.
 * Tested with WooCommerce 7.4.
@@ -476,7 +502,7 @@ Instructions for popular native integrations are below:
 
 = 1.10.0 =
 * Fixed issue with WC login form when WP login form option is on.
-* Added feature to turn off the plugin for logged in users.
+* Added feature to turn off the plugin for logged-in users.
 * Added hook to disable the plugin on specific pages.
 * Added feature to run hCaptcha script and styles on pages where it is used only.
 
@@ -494,7 +520,7 @@ Instructions for popular native integrations are below:
 
 = 1.7.0 =
 * 100% covered by WordPress integration tests.
-* Tests run on CI with PHP 5.6 - 8.0, latest WordPress core and latest related plugins.
+* Tests run on CI with PHP 5.6 - 8.0, the latest WordPress core and latest related plugins.
 
 = 1.6.4 =
 * Make any Jetpack contact form working with Block Editor

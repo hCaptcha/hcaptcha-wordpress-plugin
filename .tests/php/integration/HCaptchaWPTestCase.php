@@ -108,7 +108,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Return hcap_form_display() content.
+	 * Return HCaptcha::form_display() content.
 	 *
 	 * @param string $action    Action name for wp_nonce_field.
 	 * @param string $name      Nonce name for wp_nonce_field.
@@ -129,14 +129,14 @@ class HCaptchaWPTestCase extends WPTestCase {
 		$data_size = $invisible ? 'invisible' : '';
 		$data_auto = $auto ? 'true' : 'false';
 
-		return '	<div
+		return '		<div
 			class="h-captcha"
 			data-sitekey=""
 			data-theme=""
 			data-size="' . $data_size . '"
 			' . $callback . '			data-auto="' . $data_auto . '">
-	</div>
-	' . $nonce_field;
+		</div>
+		' . $nonce_field;
 	}
 
 	/**

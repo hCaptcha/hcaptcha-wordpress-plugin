@@ -5,6 +5,8 @@
  * @package hcaptcha-wp
  */
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Get hCaptcha form.
  *
@@ -12,13 +14,20 @@
  * @param string $name   Nonce name for wp_nonce_field.
  * @param bool   $auto   This form has to be auto-verified.
  *
- * @return false|string
+ * @return string
+ * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form()
  */
 function hcap_form( $action = '', $name = '', $auto = false ) {
-	ob_start();
-	hcap_form_display( $action, $name, $auto );
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form()' );
 
-	return ob_get_clean();
+	$args = [
+		'action' => $action,
+		'name'   => $name,
+		'auto'   => $auto,
+	];
+
+	return HCaptcha::form( $args );
 }
 
 /**
@@ -27,31 +36,20 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
  * @param string $action Action name for wp_nonce_field.
  * @param string $name   Nonce name for wp_nonce_field.
  * @param bool   $auto   This form has to be auto-verified.
+ *
+ * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form_display()
  */
 function hcap_form_display( $action = '', $name = '', $auto = false ) {
-	$settings          = hcaptcha()->settings();
-	$hcaptcha_site_key = $settings->get_site_key();
-	$hcaptcha_theme    = $settings->get( 'theme' );
-	$hcaptcha_size     = $settings->get( 'size' );
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form_display()' );
 
-	$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
+	$args = [
+		'action' => $action,
+		'name'   => $name,
+		'auto'   => $auto,
+	];
 
-	?>
-	<div
-			class="h-captcha"
-			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
-			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
-			data-size="<?php echo esc_attr( $hcaptcha_size ); ?>"
-			<?php echo wp_kses_post( $callback ); ?>
-			data-auto="<?php echo $auto ? 'true' : 'false'; ?>">
-	</div>
-	<?php
-
-	if ( ! empty( $action ) && ! empty( $name ) ) {
-		wp_nonce_field( $action, $name );
-	}
-
-	hcaptcha()->form_shown = true;
+	HCaptcha::form_display( $args );
 }
 
 /**
@@ -62,11 +60,16 @@ function hcap_form_display( $action = '', $name = '', $auto = false ) {
  * @return string
  */
 function hcap_shortcode( $atts ) {
+	/**
+	 * Do not set default size here.
+	 * If size is not normal|compact|invisible, it will be taken from plugin settings in HCaptcha::form().
+	 */
 	$atts = shortcode_atts(
 		[
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => false,
+			'size'   => '',
 		],
 		$atts
 	);
@@ -78,7 +81,7 @@ function hcap_shortcode( $atts ) {
 	 *
 	 * @param string $form The hcaptcha form.
 	 */
-	return apply_filters( 'hcap_hcaptcha_content', hcap_form( $atts['action'], $atts['name'], $atts['auto'] ) );
+	return apply_filters( 'hcap_hcaptcha_content', HCaptcha::form( $atts ) );
 }
 
 add_shortcode( 'hcaptcha', 'hcap_shortcode' );

@@ -8,12 +8,22 @@
 namespace HCaptcha\WC;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
  * Class Login
  */
 class Login extends LoginBase {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_login';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Init hooks.
@@ -30,7 +40,12 @@ class Login extends LoginBase {
 	 */
 	public function add_captcha() {
 		if ( $this->is_login_limit_exceeded() ) {
-			hcap_form_display( 'hcaptcha_login', 'hcaptcha_login_nonce' );
+			$args = [
+				'action' => self::ACTION,
+				'name'   => self::NONCE,
+			];
+
+			HCaptcha::form_display( $args );
 		}
 	}
 
@@ -47,8 +62,8 @@ class Login extends LoginBase {
 		}
 
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_login_nonce',
-			'hcaptcha_login'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null === $error_message ) {

@@ -113,6 +113,67 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test setup_fields().
+	 *
+	 * @param string $mode hCaptcha mode.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 * @dataProvider dp_test_setup_fields
+	 */
+	public function test_setup_fields( $mode ) {
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'get' )->andReturn( $mode );
+		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
+
+		WP_Mock::passthruFunction( 'register_setting' );
+		WP_Mock::passthruFunction( 'add_settings_field' );
+
+		$subject->setup_fields();
+
+		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
+
+		foreach ( $form_fields as $form_field ) {
+			self::assertArrayHasKey( 'class', $form_field );
+		}
+
+		if ( General::MODE_LIVE === $mode ) {
+			$form_fields['site_key']['disabled']   = true;
+			$form_fields['secret_key']['disabled'] = true;
+		} else {
+			$form_fields['site_key']['disabled']   = false;
+			$form_fields['secret_key']['disabled'] = false;
+		}
+	}
+
+	/**
+	 * Data provider for test_setup_fields().
+	 *
+	 * @return array
+	 */
+	public function dp_test_setup_fields() {
+		return [
+			[ General::MODE_LIVE ],
+			[ 'other_mode' ],
+		];
+	}
+
+	/**
+	 * Test setup_fields() not on options screen.
+	 *
+	 * @return void
+	 */
+	public function test_setup_fields_not_on_options_screen() {
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
+
+		$subject->setup_fields();
+	}
+
+	/**
 	 * Test section_callback().
 	 *
 	 * @param string $section_id Section id.

@@ -16,6 +16,7 @@ use Elementor\Widget_Base;
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
 use ElementorPro\Modules\Forms\Module;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
 
 /**
@@ -287,7 +288,7 @@ class HCaptchaHandler {
 
 		$hcaptcha_html .=
 			'<div class="elementor-hcaptcha">' .
-			hcap_form() .
+			HCaptcha::form() .
 			'</div>';
 
 		$hcaptcha_html .= '</div>';

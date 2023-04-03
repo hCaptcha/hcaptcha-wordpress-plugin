@@ -7,6 +7,8 @@
 
 namespace HCaptcha\BBPress;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Base.
  */
@@ -33,8 +35,12 @@ abstract class Base {
 	 * Add captcha to the form.
 	 */
 	public function add_captcha() {
-		hcap_form_display();
-		wp_nonce_field( static::ACTION, static::NAME );
+		$args = [
+			'action' => static::ACTION,
+			'name'   => static::NAME,
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 

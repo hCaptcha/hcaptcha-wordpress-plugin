@@ -7,6 +7,8 @@
 
 namespace HCaptcha\BuddyPress;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Register.
  */
@@ -56,8 +58,12 @@ class Register {
 			echo wp_kses_post( $output );
 		}
 
-		hcap_form_display();
-		wp_nonce_field( self::ACTION, self::NAME );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**

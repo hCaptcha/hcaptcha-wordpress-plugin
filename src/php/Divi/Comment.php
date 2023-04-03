@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Divi;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Origin;
 
 /**
@@ -92,8 +93,13 @@ class Comment {
 			return $output;
 		}
 
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
 		$pattern     = '/(<button name="submit")/';
-		$replacement = hcap_form( self::ACTION, self::NONCE ) . "\n" . '$1';
+		$replacement = HCaptcha::form( $args ) . "\n" . '$1';
 
 		// Insert hcaptcha.
 		return preg_replace( $pattern, $replacement, $output );

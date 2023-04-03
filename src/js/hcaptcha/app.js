@@ -10,12 +10,12 @@ const hCaptcha = new HCaptcha();
 
 window.hCaptcha = hCaptcha;
 
-window.hCaptchaGetWidgetId = (el) => {
-	hCaptcha.getWidgetId(el);
+window.hCaptchaGetWidgetId = ( el ) => {
+	hCaptcha.getWidgetId( el );
 };
 
-window.hCaptchaReset = (el) => {
-	hCaptcha.reset(el);
+window.hCaptchaReset = ( el ) => {
+	hCaptcha.reset( el );
 };
 
 window.hCaptchaBindEvents = () => {

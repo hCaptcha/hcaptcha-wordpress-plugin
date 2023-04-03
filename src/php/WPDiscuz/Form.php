@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WPDiscuz;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_User;
 
 /**
@@ -53,7 +54,7 @@ class Form {
 		?>
 		<div class="wpd-field-hcaptcha wpdiscuz-item">
 			<div class="wpdiscuz-hcaptcha" id='wpdiscuz-hcaptcha-<?php echo esc_attr( $unique_id ); ?>'></div>
-			<?php hcap_form_display(); ?>
+			<?php HCaptcha::form_display(); ?>
 			<div class="clearfix"></div>
 		</div>
 		<?php

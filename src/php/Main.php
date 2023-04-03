@@ -110,6 +110,7 @@ class Main {
 		}
 
 		( new Fix() )->init();
+
 		new Migrations();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
@@ -527,6 +528,7 @@ class Main {
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ) {
 		if ( 'supportcandy' === $tag ) {
@@ -590,6 +592,19 @@ class Main {
 	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
+		/**
+		 * Plugins modules.
+		 *
+		 * @var                  $modules      {
+		 *
+		 * @type string[]        $module0      {
+		 * @type string          $option_name  Option name.
+		 * @type string          $option_value Option value.
+		 *                                     }
+		 * @type string|string[] $module1      Plugins to be active. For WP core features, an empty string.
+		 * @type string|string[] $module2      Required hCaptcha plugin classes.
+		 *                                     }
+		 */
 		$this->modules = [
 			'Comment Form'                 => [
 				[ 'wp_status', 'comment' ],
@@ -618,7 +633,7 @@ class Main {
 			],
 			'ACF Extended Form'            => [
 				[ 'acfe_status', 'form' ],
-				[ 'acf-extended/acf-extended.php', 'acf-extended-pro/acf-extended.php' ],
+				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
 				ACFE\Form::class,
 			],
 			'Asgaros Form'                 => [
@@ -818,12 +833,12 @@ class Main {
 			],
 			'WPForms Lite'                 => [
 				[ 'wpforms_status', 'lite' ],
-				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
+				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
 				\HCaptcha\WPForms\Form::class,
 			],
 			'WPForms Pro'                  => [
 				[ 'wpforms_status', 'pro' ],
-				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
+				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
 				\HCaptcha\WPForms\Form::class,
 			],
 			'wpDiscuz'                     => [

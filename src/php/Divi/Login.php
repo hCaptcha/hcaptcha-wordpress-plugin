@@ -8,6 +8,7 @@
 namespace HCaptcha\Divi;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class Login.
@@ -59,8 +60,13 @@ class Login extends LoginBase {
 			return $output;
 		}
 
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
 		$pattern     = '/(<p>[\s]*?<button)/';
-		$replacement = hcap_form( self::ACTION, self::NONCE ) . "\n" . '$1';
+		$replacement = HCaptcha::form( $args ) . "\n" . '$1';
 
 		// Insert hcaptcha.
 		return preg_replace( $pattern, $replacement, $output );

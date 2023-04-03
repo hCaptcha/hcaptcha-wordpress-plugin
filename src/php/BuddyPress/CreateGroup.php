@@ -7,6 +7,8 @@
 
 namespace HCaptcha\BuddyPress;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Create Group.
  */
@@ -45,8 +47,12 @@ class CreateGroup {
 	public function add_captcha() {
 		echo '<div class="hcap_buddypress_group_form">';
 
-		hcap_form_display();
-		wp_nonce_field( self::ACTION, self::NAME );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+		];
+
+		HCaptcha::form_display( $args );
 
 		echo '</div>';
 	}

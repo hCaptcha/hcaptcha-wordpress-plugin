@@ -10,10 +10,21 @@
 
 namespace HCaptcha\WCWishlists;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Create List.
  */
 class CreateList {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_wc_create_wishlists_action';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_wc_create_wishlists_nonce';
 
 	/**
 	 * Create List constructor.
@@ -46,11 +57,16 @@ class CreateList {
 	public function after_wrapper() {
 		$wrapper = ob_get_clean();
 
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
 		// Find last $search string and insert hcaptcha before it.
 		$search  = '<p class="form-row">';
 		$replace =
 			"\n" .
-			hcap_form( 'hcaptcha_wc_create_wishlists_action', 'hcaptcha_wc_create_wishlists_nonce' ) .
+			HCaptcha::form( $args ) .
 			"\n" .
 			$search;
 
@@ -70,11 +86,12 @@ class CreateList {
 	 * @param mixed $valid_captcha Valid captcha.
 	 *
 	 * @return mixed|bool
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $valid_captcha ) {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_wc_create_wishlists_nonce',
-			'hcaptcha_wc_create_wishlists_action'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {

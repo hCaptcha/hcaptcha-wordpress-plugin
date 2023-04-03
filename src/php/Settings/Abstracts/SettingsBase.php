@@ -516,16 +516,7 @@ abstract class SettingsBase {
 		$current_tab_name = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( null === $current_tab_name ) {
-			if ( wp_doing_ajax() ) {
-				$query = wp_get_referer();
-			} else {
-				$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
-			}
-
-			$query = $query ?: '';
-			$args  = $this->wp_parse_str( $query );
-
-			$current_tab_name = isset( $args['tab'] ) ? $args['tab'] : null;
+			$current_tab_name = $this->get_tab_name_from_referer();
 		}
 
 		if ( null === $current_tab_name && ! $tab->is_tab() ) {
@@ -534,6 +525,26 @@ abstract class SettingsBase {
 
 		return strtolower( $tab->get_class_name() ) === $current_tab_name;
 	}
+
+	/**
+	 * Get tab name from referer.
+	 *
+	 * @return string|null
+	 */
+	protected function get_tab_name_from_referer() {
+		if ( wp_doing_ajax() ) {
+			$query = wp_get_referer();
+		} else {
+			$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+		}
+
+		$query = $query ?: '';
+		$args  = $this->wp_parse_str( $query );
+
+		return isset( $args['tab'] ) ? $args['tab'] : null;
+	}
+
+	// @codeCoverageIgnoreStart
 
 	/**
 	 * Polyfill of the wp_parse_str().
@@ -548,6 +559,8 @@ abstract class SettingsBase {
 
 		return $result;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Get tabs.
@@ -607,17 +620,19 @@ abstract class SettingsBase {
 	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_text_field( array $arguments ) {
-		$value = $this->get( $arguments['field_id'] );
+		$value        = $this->get( $arguments['field_id'] );
+		$autocomplete = 'password' === $arguments['type'] ? 'off' : '';
 
 		printf(
 			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .
-			' placeholder="%5$s" value="%6$s" class="regular-text" />',
+			' placeholder="%5$s" value="%6$s" autocomplete="%7$s" class="regular-text" />',
 			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['type'] ),
 			esc_attr( $arguments['placeholder'] ),
-			esc_html( $value )
+			esc_html( $value ),
+			esc_attr( $autocomplete )
 		);
 	}
 

@@ -7,12 +7,23 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class LostPassword
  *
  * This class uses verify hook in WP\LostPassword.
  */
 class LostPassword {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_lost_password';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_lost_password_nonce';
 
 	/**
 	 * Constructor.
@@ -32,6 +43,11 @@ class LostPassword {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_lost_password', 'hcaptcha_lost_password_nonce' );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
+		HCaptcha::form_display( $args );
 	}
 }

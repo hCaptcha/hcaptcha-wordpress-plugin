@@ -535,14 +535,14 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'data-size'    => $size,
 			],
 		];
-		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">	<div
+		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">		<div
 			class="h-captcha"
 			data-sitekey="some site key"
 			data-theme="some theme"
 			data-size="some size"
 						data-auto="false">
-	</div>
-	</div></div>';
+		</div>
+		</div></div>';
 
 		$widget = Mockery::mock( Widget_Base::class );
 		$widget->shouldReceive( 'add_render_attribute' )->with( $render_attributes )->once();

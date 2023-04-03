@@ -8,6 +8,7 @@
 namespace HCaptcha\UM;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class Base
@@ -84,6 +85,7 @@ abstract class Base extends LoginBase {
 	 * @param array $fields Form fields.
 	 *
 	 * @return array
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $fields ) {
 		$um = UM();
@@ -146,6 +148,7 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnnecessaryCurlyVarSyntaxInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function display_captcha( $output, $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
@@ -154,7 +157,12 @@ abstract class Base extends LoginBase {
 
 		$output = "<div class=\"um-field um-field-{$this->key}\">";
 
-		$output .= hcap_form( $this->hcaptcha_action, $this->hcaptcha_nonce );
+		$args = [
+			'action' => $this->hcaptcha_action,
+			'name'   => $this->hcaptcha_nonce,
+		];
+
+		$output .= HCaptcha::form( $args );
 		$output .= '</div>';
 
 		$um = UM();
@@ -178,6 +186,7 @@ abstract class Base extends LoginBase {
 	 * @param array $args Form arguments.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $args ) {
 		$um = UM();

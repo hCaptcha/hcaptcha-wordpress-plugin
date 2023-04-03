@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Forminator;
 
+use HCaptcha\Helpers\HCaptcha;
 use Quform_Element_Page;
 use Quform_Form;
 
@@ -55,7 +56,12 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $html, $button ) {
-		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
+		$hcaptcha = HCaptcha::form( $args );
 
 		return str_replace( '<button ', $hcaptcha . '<button ', $html );
 	}

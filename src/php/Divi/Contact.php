@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Divi;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Contact
  */
@@ -76,10 +78,15 @@ class Contact {
 			return $output;
 		}
 
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
 		$search  = '<div class="et_contact_bottom_container">';
 		$replace =
 			'<div style="float:right;">' .
-			hcap_form( self::ACTION, self::NONCE ) .
+			HCaptcha::form( $args ) .
 			'</div>' .
 			"\n" .
 			'<div style="clear: both;"></div>' .

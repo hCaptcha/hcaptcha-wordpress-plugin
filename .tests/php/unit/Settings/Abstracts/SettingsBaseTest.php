@@ -74,7 +74,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 *
-	 * @param bool $is_active Is this an active tab.
+	 * @param bool $is_active    Is this an active tab.
 	 * @param bool $script_debug Is script debug active.
 	 *
 	 * @dataProvider dp_test_init
@@ -325,7 +325,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$method = 'init_settings';
 		$this->set_method_accessibility( $subject, $method );
 
-		WP_Mock::userFunction( 'get_site_option' )->with( $option_name . '_network_wide', [] )->once()->andReturn( $network_wide );
+		WP_Mock::userFunction( 'get_site_option' )->with( $option_name . '_network_wide', [] )->once()
+			->andReturn( $network_wide );
 
 		if ( empty( $network_wide ) ) {
 			WP_Mock::userFunction( 'get_option' )->with( $option_name, null )->once()->andReturn( $settings );
@@ -424,7 +425,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		}
 
 		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
-			static function( $args, $defaults ) {
+			static function ( $args, $defaults ) {
 				return array_merge( $defaults, $args );
 			}
 		);
@@ -688,15 +689,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test is_tab_active().
 	 *
-	 * @param string|null $input      $_GET['tab'].
-	 * @param string|null $referer    $_POST['_wp_http_referer'].
-	 * @param bool        $is_tab     Is tab.
-	 * @param string      $class_name Class name.
-	 * @param bool        $expected   Expected.
+	 * @param string|null $input       $_GET['tab'].
+	 * @param string|null $referer_tab Tab name from referer.
+	 * @param bool        $is_tab      Is tab.
+	 * @param string      $class_name  Class name.
+	 * @param bool        $expected    Expected.
 	 *
 	 * @dataProvider dp_test_is_tab_active
 	 */
-	public function test_is_tab_active( $input, $referer, $is_tab, $class_name, $expected ) {
+	public function test_is_tab_active( $input, $referer_tab, $is_tab, $class_name, $expected ) {
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
 		$tab->shouldReceive( 'is_tab' )->with()->andReturn( $is_tab );
@@ -704,31 +705,17 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'wp_parse_str' )->andReturnUsing(
-			static function ( $input_string ) {
-				parse_str( (string) $input_string, $result );
-
-				return $result;
-			}
-		);
+		$subject->shouldReceive( 'get_tab_name_from_referer' )->andReturn( $referer_tab );
 
 		FunctionMocker::replace(
 			'filter_input',
-			static function ( $type, $name, $filter ) use ( $input, $referer ) {
+			static function ( $type, $name, $filter ) use ( $input ) {
 				if (
 					INPUT_GET === $type &&
 					'tab' === $name &&
 					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
 				) {
 					return $input;
-				}
-
-				if (
-					INPUT_POST === $type &&
-					'_wp_http_referer' === $name &&
-					FILTER_SANITIZE_URL === $filter
-				) {
-					return $referer;
 				}
 
 				return null;
@@ -745,12 +732,99 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_is_tab_active() {
 		return [
-			'No input, not a tab'     => [ null, 'https://test.test/wp-admin/options-general.php?page=hcaptcha', false, 'any_class_name', true ],
-			'No input, tab'           => [ null, 'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations', true, 'any_class_name', false ],
+			'No input, not a tab'     => [ null, null, false, 'any_class_name', true ],
+			'No input, tab'           => [ null, 'integrations', true, 'any_class_name', false ],
 			'Wrong input, not a tab'  => [ 'wrong', null, false, 'General', false ],
-			'Wrong input, tab'        => [ 'wrong', null, true, 'General', false ],
+			'Wrong input, tab'        => [ 'wrong', 'integrations', true, 'General', false ],
 			'Proper input, not a tab' => [ 'general', null, false, 'General', true ],
-			'Proper input, tab'       => [ 'general', null, true, 'General', true ],
+			'Proper input, tab'       => [ 'general', 'integrations', true, 'General', true ],
+		];
+	}
+
+	/**
+	 * Test get_tab_name_from_referer().
+	 *
+	 * @param bool        $doing_ajax Whether we are in the ajax request.
+	 * @param string      $referer    Referer.
+	 * @param string|null $expected   Expected result.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_tab_name_from_referer
+	 */
+	public function test_get_tab_name_from_referer( $doing_ajax, $referer, $expected ) {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'wp_parse_str' )->andReturnUsing(
+			static function ( $input_string ) {
+				parse_str( (string) $input_string, $result );
+
+				return $result;
+			}
+		);
+
+		WP_Mock::userFunction( 'wp_doing_ajax' )->with()->once()->andReturn( $doing_ajax );
+
+		if ( $doing_ajax ) {
+			WP_Mock::userFunction( 'wp_get_referer' )->with()->once()->andReturn( $referer );
+		} else {
+			WP_Mock::userFunction( 'wp_get_referer' )->never();
+		}
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $name, $filter ) use ( $referer ) {
+				if (
+					INPUT_POST === $type &&
+					'_wp_http_referer' === $name &&
+					FILTER_SANITIZE_URL === $filter
+				) {
+					return $referer;
+				}
+
+				return null;
+			}
+		);
+
+		self::assertSame( $expected, $subject->get_tab_name_from_referer() );
+	}
+
+	/**
+	 * Data provider for test_get_tab_name_from_referer().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_tab_name_from_referer() {
+		return [
+			'Not ajax, not a tab'  => [
+				false,
+				'https://test.test/wp-admin/options-general.php?page=hcaptcha',
+				null,
+			],
+			'Not ajax, tab'        => [
+				false,
+				'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+				'integrations',
+			],
+			'Not ajax, no referer' => [
+				false,
+				null,
+				null,
+			],
+			'Ajax, not a tab'      => [
+				true,
+				'https://test.test/wp-admin/options-general.php?page=hcaptcha',
+				null,
+			],
+			'Ajax, tab'            => [
+				true,
+				'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+				'integrations',
+			],
+			'Ajax, no referer'     => [
+				true,
+				null,
+				null,
+			],
 		];
 	}
 
@@ -935,7 +1009,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		);
 
 		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
-			static function( $args, $defaults ) {
+			static function ( $args, $defaults ) {
 				return array_merge( $defaults, $args );
 			}
 		);
@@ -1008,7 +1082,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" class="regular-text" />',
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" class="regular-text" />',
 			],
 			'Text with helper'       => [
 				[
@@ -1023,7 +1097,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" class="regular-text" />' .
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" class="regular-text" />' .
 				'<span class="helper"><span class="helper-content">This is helper</span></span>',
 			],
 			'Text with supplemental' => [
@@ -1039,7 +1113,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" class="regular-text" />' .
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" class="regular-text" />' .
 				'<p class="description">This is supplemental</p>',
 			],
 		];
@@ -1065,7 +1139,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="password" placeholder="" value="some password" class="regular-text" />',
+				' id="some_id" type="password" placeholder="" value="some password" autocomplete="off" class="regular-text" />',
 			],
 		];
 	}
@@ -1496,10 +1570,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_get( array $settings, $key, $empty_value, $expected ) {
+		$tab = Mockery::mock( SettingsBase::class )->makePartial();
+		$tab->shouldAllowMockingProtectedMethods();
+		$tab->shouldReceive( 'form_fields' )->andReturn( [] );
+
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'init_settings' )->never();
 		$this->set_protected_property( $subject, 'settings', $settings );
+		$this->set_protected_property( $subject, 'tabs', [ $tab ] );
 
 		if ( ! isset( $settings[ $key ] ) ) {
 			$subject->shouldReceive( 'form_fields' )->andReturn( $this->get_test_settings() )->once();
@@ -1574,6 +1653,27 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			'Empty field'        => [ [], '' ],
 			'With default value' => [ [ 'default' => 'default_value' ], 'default_value' ],
 		];
+	}
+
+	/**
+	 * Test set_field().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_set_field() {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
+
+		$field_key = 'title';
+		$value     = 'Some title';
+
+		self::assertFalse( $subject->set_field( 'non_existent_field', $field_key, $value ) );
+		self::assertTrue( $subject->set_field( 'size', $field_key, $value ) );
+
+		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
+		self::assertSame( $value, $form_fields['size'][ $field_key ] );
 	}
 
 	/**
@@ -1696,7 +1796,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 
-		WP_Mock::userFunction( 'update_site_option' )->with( $option_name . $network_wide, $merged_value[ $network_wide ] );
+		WP_Mock::userFunction( 'update_site_option' )
+			->with( $option_name . $network_wide, $merged_value[ $network_wide ] );
 		WP_Mock::userFunction( 'update_site_option' )->with( $option_name, $merged_value );
 
 		self::assertSame( $expected, $subject->pre_update_option_filter( $value, $old_value ) );
@@ -1783,6 +1884,48 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 			],
 			[
+				[
+					'some_checkbox' => [
+						'label'        => 'some field',
+						'section'      => 'some_section',
+						'type'         => 'checkbox',
+						'placeholder'  => '',
+						'helper'       => '',
+						'supplemental' => '',
+						'default'      => [ '' ],
+						'disabled'     => true,
+					],
+				],
+				[ 'another_value' => '1' ],
+				[ 'some_checkbox' => '0' ],
+				[
+					'some_checkbox' => '0',
+					'another_value' => '1',
+					'_network_wide' => [],
+				],
+			],
+			[
+				[
+					'some_checkbox' => [
+						'label'        => 'some field',
+						'section'      => 'some_section',
+						'type'         => 'checkbox',
+						'placeholder'  => '',
+						'helper'       => '',
+						'supplemental' => '',
+						'default'      => [ '' ],
+						'disabled'     => false,
+					],
+				],
+				[ 'another_value' => '1' ],
+				[ 'some_checkbox' => '0' ],
+				[
+					'some_checkbox' => [],
+					'another_value' => '1',
+					'_network_wide' => [],
+				],
+			],
+			[
 				[],
 				[
 					'bel' => [ 'Б' => 'B1' ],
@@ -1795,6 +1938,21 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'iso9'          => [ 'Б' => 'B' ],
 					'bel'           => [ 'Б' => 'B1' ],
 					'_network_wide' => [],
+				],
+			],
+			[
+				[],
+				[
+					'bel'           => [ 'Б' => 'B1' ],
+					'_network_wide' => [ 'on' ],
+				],
+				[
+					'iso9' => [ 'Б' => 'B' ],
+					'bel'  => [ 'Б' => 'B' ],
+				],
+				[
+					'iso9' => [ 'Б' => 'B' ],
+					'bel'  => [ 'Б' => 'B' ],
 				],
 			],
 		];

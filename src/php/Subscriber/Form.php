@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Subscriber;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form.
  */
@@ -47,11 +49,12 @@ class Form {
 	 * @return string
 	 */
 	public function add_captcha( $content ) {
-		$output = hcap_form();
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+		];
 
-		$output .= wp_nonce_field( self::ACTION, self::NAME, true, false );
-
-		return $content . $output;
+		return $content . HCaptcha::form( $args );
 	}
 
 	/**

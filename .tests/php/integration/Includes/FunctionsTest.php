@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Includes;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
@@ -31,41 +32,51 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_form().
+	 * Test HCaptcha::form().
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
-	public function test_hcap_form() {
+	public function test_form() {
 		hcaptcha()->init_hooks();
 
-		self::assertSame( $this->get_hcap_form(), hcap_form() );
+		self::assertSame( $this->get_hcap_form(), HCaptcha::form() );
 
 		$action = 'some_action';
 		$name   = 'some_name';
 		$auto   = true;
+		$args   = [
+			'action' => $action,
+			'name'   => $name,
+			'auto'   => $auto,
+		];
 
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), hcap_form( $action, $name, $auto ) );
+		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), HCaptcha::form( $args ) );
 	}
 
 	/**
-	 * Test hcap_form_display().
+	 * Test HCaptcha::form_display().
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
-	public function test_hcap_form_display() {
+	public function test_form_display() {
 		self::assertFalse( hcaptcha()->form_shown );
 
 		ob_start();
-		hcap_form_display();
+		hCaptcha::form_display();
 		self::assertSame( $this->get_hcap_form(), ob_get_clean() );
 		self::assertTrue( hcaptcha()->form_shown );
 
 		$action = 'some_action';
 		$name   = 'some_name';
 		$auto   = true;
+		$args   = [
+			'action' => $action,
+			'name'   => $name,
+			'auto'   => $auto,
+		];
 
 		ob_start();
-		hcap_form_display( $action, $name, $auto );
+		hCaptcha::form_display( $args );
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
 
 		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
@@ -73,7 +84,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 
 		ob_start();
-		hcap_form_display( $action, $name, $auto );
+		hCaptcha::form_display( $args );
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto, true ), ob_get_clean() );
 	}
 

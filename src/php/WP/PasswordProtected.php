@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Post;
 
 /**
@@ -51,7 +52,12 @@ class PasswordProtected {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $output, $post ) {
-		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+		];
+
+		$hcaptcha = HCaptcha::form( $args );
 
 		return preg_replace( '/(<\/form>)/', $hcaptcha . '$1', $output );
 	}
