@@ -371,7 +371,7 @@ class Integrations extends PluginSettingsBase {
 
 		return sprintf(
 			'<img src="%1$s" alt="%2$s Logo">',
-			esc_url( HCAPTCHA_URL . "/assets/images/$logo_file" ),
+			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/$logo_file" ),
 			$label
 		);
 	}

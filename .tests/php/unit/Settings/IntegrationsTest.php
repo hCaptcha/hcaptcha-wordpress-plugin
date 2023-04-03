@@ -98,6 +98,23 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test init_hooks().
+	 *
+	 * @return void
+	 */
+	public function test_init_hooks() {
+		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
+
+		WP_Mock::expectActionAdded( 'wp_ajax_' . Integrations::ACTIVATE_ACTION, [ $subject, 'activate' ] );
+
+		$subject->init_hooks();
+	}
+
+	/**
 	 * Test init_form_fields().
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -110,6 +127,73 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$mock->init_form_fields();
 
 		self::assertSame( $expected, $this->get_protected_property( $mock, 'form_fields' ) );
+	}
+
+	/**
+	 * Test setup_fields().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_setup_fields() {
+		$plugin_url  = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
+		$form_fields = $this->get_test_form_fields();
+
+		foreach ( $form_fields as &$form_field ) {
+			$form_field['disabled'] = true;
+		}
+
+		unset( $form_field );
+
+		$form_fields['wp_status']['disabled'] = false;
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
+
+		WP_Mock::passthruFunction( 'register_setting' );
+		WP_Mock::passthruFunction( 'add_settings_field' );
+		WP_Mock::passthruFunction( 'sanitize_file_name' );
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $plugin_url ) {
+				if ( 'HCAPTCHA_URL' === $name ) {
+					return $plugin_url;
+				}
+
+				return '';
+			}
+		);
+
+		$subject->setup_fields();
+
+		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
+
+		self::assertSame( 'wp_status', array_key_first( $form_fields ) );
+
+		foreach ( $form_fields as $form_field ) {
+			$section = $form_field['disabled'] ? Integrations::SECTION_DISABLED : '';
+
+			self::assertTrue( (bool) preg_match( '<img src="' . $plugin_url . '/assets/images/.+?" alt=".+?">', $form_field['label'] ) );
+			self::assertArrayHasKey( 'class', $form_field );
+			self::assertSame( $section, $form_field['section'] );
+		}
+	}
+
+	/**
+	 * Test setup_fields() not on options screen.
+	 *
+	 * @return void
+	 */
+	public function test_setup_fields_not_on_options_screen() {
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
+
+		$subject->setup_fields();
 	}
 
 	/**

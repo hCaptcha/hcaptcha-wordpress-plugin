@@ -115,12 +115,14 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test setup_fields().
 	 *
+	 * @param string $mode hCaptcha mode.
+	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_setup_fields
 	 */
 	public function test_setup_fields( $mode ) {
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 		$subject->shouldReceive( 'get' )->andReturn( $mode );
@@ -164,7 +166,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_setup_fields_not_on_options_screen() {
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
 
