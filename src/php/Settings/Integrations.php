@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Settings\Abstracts\SettingsBase;
+use WP_Error;
 
 /**
  * Class Tables
@@ -540,16 +541,22 @@ class Integrations extends PluginSettingsBase {
 
 		$plugins = array_merge( [], ...$plugins );
 
-		ob_start();
-
 		if ( $activate ) {
-			activate_plugins( $plugins );
+			$result = $this->activate_plugins( $plugins );
 
-			$message = sprintf(
-			/* translators: 1: Plugin(s) name(s). */
-				__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
-				$plugin_name
-			);
+			if ( $result ) {
+				$message = sprintf(
+				/* translators: 1: Plugin(s) name(s). */
+					__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
+					$plugin_name
+				);
+			} else {
+				$message = sprintf(
+				/* translators: 1: Plugin(s) name(s). */
+					__( 'Error activating plugin %s.', 'hcaptcha-for-forms-and-more' ),
+					$plugin_name
+				);
+			}
 		} else {
 			deactivate_plugins( $plugins );
 
@@ -560,10 +567,35 @@ class Integrations extends PluginSettingsBase {
 			);
 		}
 
-		ob_get_clean();
-
 		header_remove( 'Location' );
 		http_response_code( 200 );
 		wp_send_json_success( esc_html( $message ) );
+	}
+
+	/**
+	 * Activate plugins.
+	 *
+	 * We activate the first available plugin in the list only,
+	 * assuming that Pro plugins are placed earlier in the list.
+	 *
+	 * @param array $plugins      Plugins to activate.
+	 *
+	 * @return bool
+	 */
+	private function activate_plugins( $plugins ) {
+		foreach ( $plugins as $plugin ) {
+			ob_start();
+
+			$result = activate_plugin( $plugin );
+
+			ob_get_clean();
+
+			if ( null === $result ) {
+				// Activate the first available plugin only.
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
