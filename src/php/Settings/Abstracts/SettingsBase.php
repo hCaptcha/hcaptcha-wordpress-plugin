@@ -516,16 +516,7 @@ abstract class SettingsBase {
 		$current_tab_name = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( null === $current_tab_name ) {
-			if ( wp_doing_ajax() ) {
-				$query = wp_get_referer();
-			} else {
-				$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
-			}
-
-			$query = $query ?: '';
-			$args  = $this->wp_parse_str( $query );
-
-			$current_tab_name = isset( $args['tab'] ) ? $args['tab'] : null;
+			$current_tab_name = $this->get_tab_name_from_referer();
 		}
 
 		if ( null === $current_tab_name && ! $tab->is_tab() ) {
@@ -534,6 +525,26 @@ abstract class SettingsBase {
 
 		return strtolower( $tab->get_class_name() ) === $current_tab_name;
 	}
+
+	/**
+	 * Get tab name from referer.
+	 *
+	 * @return string|null
+	 */
+	protected function get_tab_name_from_referer() {
+		if ( wp_doing_ajax() ) {
+			$query = wp_get_referer();
+		} else {
+			$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+		}
+
+		$query = $query ?: '';
+		$args  = $this->wp_parse_str( $query );
+
+		return isset( $args['tab'] ) ? $args['tab'] : null;
+	}
+
+	// @codeCoverageIgnoreStart
 
 	/**
 	 * Polyfill of the wp_parse_str().
@@ -548,6 +559,8 @@ abstract class SettingsBase {
 
 		return $result;
 	}
+
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Get tabs.
