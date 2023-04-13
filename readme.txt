@@ -333,6 +333,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.8.0 =
+* Fixed error processing during plugin activation.
+
 = 2.7.0 =
 * Tested with WooCommerce 7.5.
 * Added size argument to the shortcode.
