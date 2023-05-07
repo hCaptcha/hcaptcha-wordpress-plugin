@@ -168,7 +168,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function has_own_hcaptcha( $form ) {
+	protected function has_own_hcaptcha( $form ) {
 		$auto_include = apply_filters( 'ff_has_auto_hcaptcha', false );
 
 		if ( $auto_include ) {
