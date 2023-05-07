@@ -336,6 +336,7 @@ Instructions for popular native integrations are below:
 * Fixed error processing during plugin activation.
 * Fixed issue with invisible hCaptcha in Fluent Forms.
 * Fixed multiple issues related to Fluent Forms.
+* Fixed login issue with invisible hCaptcha on WooCommerce /my-account page.
 
 = 2.7.0 =
 * Tested with WooCommerce 7.5.
