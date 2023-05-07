@@ -307,7 +307,6 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
-* WP Fluent Forms
 * WPForms Lite
 * wpDiscuz
 * wpForo New Topic Form
@@ -335,6 +334,8 @@ Instructions for popular native integrations are below:
 
 = 2.8.0 =
 * Fixed error processing during plugin activation.
+* Fixed issue with invisible hCaptcha in Fluent Forms.
+* Fixed multiple issues related to Fluent Forms.
 
 = 2.7.0 =
 * Tested with WooCommerce 7.5.

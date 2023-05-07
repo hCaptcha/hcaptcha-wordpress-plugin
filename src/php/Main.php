@@ -60,6 +60,13 @@ class Main {
 	public $modules = [];
 
 	/**
+	 * Whether fluentform(s) without own hCaptcha were loaded.
+	 *
+	 * @var bool
+	 */
+	public $fluentform_support_required = false;
+
+	/**
 	 * Loaded classes.
 	 *
 	 * @var array
@@ -450,7 +457,14 @@ class Main {
 			return;
 		}
 
-		if ( ! ( $this->form_shown || $this->did_wpforo_template_filter || $this->did_support_candy_shortcode_tag_filter ) ) {
+		if (
+			! (
+				$this->form_shown ||
+				$this->did_wpforo_template_filter ||
+				$this->did_support_candy_shortcode_tag_filter ||
+				$this->fluentform_support_required
+			)
+		) {
 			return;
 		}
 
