@@ -191,7 +191,7 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		this.currentForm.formElement.requestSubmit();
+		this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
 	}
 }
 
