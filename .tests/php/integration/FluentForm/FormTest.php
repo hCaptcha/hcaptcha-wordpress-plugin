@@ -120,7 +120,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( true );
 
-		assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 
 	/**
@@ -146,6 +146,6 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_request_verify( $response, false );
 
-		assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 }
