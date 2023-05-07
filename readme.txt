@@ -333,6 +333,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.8.0 =
+* Tested with WooCommerce 7.6.
 * Fixed error processing during plugin activation.
 * Fixed issue with invisible hCaptcha in Fluent Forms.
 * Fixed multiple issues related to Fluent Forms.
