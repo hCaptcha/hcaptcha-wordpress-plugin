@@ -126,7 +126,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$fail_message  = $errors['fail'];
 
 		if ( '' === $hcaptcha_response_sanitized ) {
-			return apply_filters( 'hcap_verify_request', $empty_message, [] );
+			return apply_filters( 'hcap_verify_request', $empty_message, [ 'empty' ] );
 		}
 
 		$params = [
@@ -148,7 +148,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
-			return apply_filters( 'hcap_verify_request', $fail_message, [] );
+			return apply_filters( 'hcap_verify_request', $fail_message, [ 'fail' ] );
 		}
 
 		$body = json_decode( $raw_body, true );
@@ -162,7 +162,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
 		}
 
-		return apply_filters( 'hcap_verify_request', $result, $error_codes );
+		return apply_filters( 'c', $result, $error_codes );
 	}
 }
 
