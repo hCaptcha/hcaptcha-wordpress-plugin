@@ -162,7 +162,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
 		}
 
-		return apply_filters( 'c', $result, $error_codes );
+		return apply_filters( 'hcap_verify_request', $result, $error_codes );
 	}
 }
 
