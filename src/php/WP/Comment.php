@@ -80,7 +80,7 @@ class Comment {
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
 			'id'     => [
-				'source'  => 'comment',
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => $post_id,
 			],
 		];
