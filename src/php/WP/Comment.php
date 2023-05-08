@@ -46,10 +46,10 @@ class Comment {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_filter( 'comment_form_submit_button', [ $this, 'add_origin' ], PHP_INT_MAX, 2 );
+		add_filter( 'comment_form_submit_field', [ $this, 'add_origin' ], PHP_INT_MAX, 2 );
 
 		if ( $this->active ) {
-			add_filter( 'comment_form_submit_button', [ $this, 'add_captcha' ], 10, 2 );
+			add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
 		}
 
 		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 10, 2 );
@@ -58,40 +58,54 @@ class Comment {
 	/**
 	 * Add captcha.
 	 *
-	 * @param string $submit_button HTML markup for the submit button.
+	 * @param string $submit_field HTML markup for the submit field.
 	 * @param array  $comment_args  Arguments passed to comment_form().
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_button, $comment_args ) {
+	public function add_captcha( $submit_field, $comment_args ) {
+		$post_id = 0;
+
+		if (
+			preg_match(
+				"<input type='hidden' name='comment_post_ID' value='(.+)?' id='comment_post_ID' />",
+				$submit_field,
+				$m
+			)
+		) {
+			$post_id = $m[1];
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => 'comment',
+				'form_id' => $post_id,
+			],
 		];
 
-		return HCaptcha::form( $args ) . $submit_button;
+		return HCaptcha::form( $args ) . $submit_field;
 	}
 
 	/**
 	 * Add origin.
 	 *
-	 * @param string $submit_button HTML markup for the submit button.
-	 * @param array  $args          Arguments passed to comment_form().
-	 *
-	 * @noinspection PhpUnusedParameterInspection
+	 * @param string $submit_field HTML markup for the submit field.
+	 * @param array  $comment_args Arguments passed to comment_form().
 	 */
-	public function add_origin( $submit_button, $args ) {
-		if ( false !== strpos( $submit_button, Origin::NAME ) ) {
-			return $submit_button;
+	public function add_origin( $submit_field, $comment_args ) {
+		if ( false !== strpos( $submit_field, Origin::NAME ) ) {
+			return $submit_field;
 		}
 
-		$wp_comment_form = isset( $args['id_submit'] ) && ( 'submit' === $args['id_submit'] );
+		$wp_comment_form = isset( $comment_args['id_submit'] ) && ( 'submit' === $comment_args['id_submit'] );
 
 		$origin = $this->active && $wp_comment_form ?
 			Origin::create( self::ACTION, self::NONCE ) :
 			Origin::create();
 
-		return $origin . $submit_button;
+		return $origin . $submit_field;
 	}
 
 	/**
