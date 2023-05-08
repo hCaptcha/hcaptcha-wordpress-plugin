@@ -44,7 +44,7 @@ class Form {
 			'auto'   => true,
 			'id'     => [
 				'plugins' => 'gravityforms/gravityforms.php',
-				'form_id' => $form['id'],
+				'form_id' => isset( $form['id'] ) ? $form['id'] : 0,
 			],
 		];
 
