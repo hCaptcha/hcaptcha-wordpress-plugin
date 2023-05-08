@@ -42,6 +42,10 @@ class Form {
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => true,
+			'id'     => [
+				'plugins' => 'gravityforms/gravityforms.php',
+				'form_id' => $form['id'],
+			],
 		];
 
 		return HCaptcha::form( $args ) . $button_input;

@@ -5,6 +5,8 @@
  * @package hcaptcha-wp
  */
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Determines the user's actual IP address and attempts to partially
  * anonymize an IP address by converting it to a network ID.
@@ -116,6 +118,16 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
+		if ( ! HCaptcha::is_protection_enabled() ) {
+			/**
+			 * Filters the result of request verification.
+			 *
+			 * @param string|null $result      The result of verification. The null means success.
+			 * @param string[]    $error_codes Error code(s). Empty array on success.
+			 */
+			return apply_filters( 'hcap_verify_request', null, [] );
+		}
+
 		$hcaptcha_response_sanitized = htmlspecialchars(
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
@@ -126,6 +138,9 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$fail_message  = $errors['fail'];
 
 		if ( '' === $hcaptcha_response_sanitized ) {
+			/**
+			 * This filter is documented above.
+			 */
 			return apply_filters( 'hcap_verify_request', $empty_message, [ 'empty' ] );
 		}
 
@@ -148,6 +163,9 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
+			/**
+			 * This filter is documented above.
+			 */
 			return apply_filters( 'hcap_verify_request', $fail_message, [ 'fail' ] );
 		}
 
@@ -162,6 +180,9 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
 		}
 
+		/**
+		 * This filter is documented above.
+		 */
 		return apply_filters( 'hcap_verify_request', $result, $error_codes );
 	}
 }
@@ -189,6 +210,9 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 		if ( is_user_logged_in() && ! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) ) {
 			$errors = hcap_get_error_messages();
 
+			/**
+			 * This filter is documented above.
+			 */
 			return apply_filters( 'hcap_verify_request', $errors['bad-nonce'], [ 'bad-nonce' ] );
 		}
 
