@@ -161,7 +161,7 @@ function my_hcap_activate( $activate ) {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
-= How to block hCaptcha on specific form? =
+= How to block hCaptcha on a specific form? =
 
 The plugin has a filter to block adding and verifying hCaptcha on a specific form. Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1. The check for the plugin name should be provided against the plugin's slug (directory/main-plugin-file.php).
 
