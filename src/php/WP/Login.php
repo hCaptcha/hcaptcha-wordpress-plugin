@@ -57,6 +57,10 @@ class Login extends LoginBase {
 			$args = [
 				'action' => self::ACTION,
 				'name'   => self::NONCE,
+				'id'     => [
+					'source'  => HCaptcha::get_class_source( __CLASS__ ),
+					'form_id' => 0,
+				],
 			];
 
 			HCaptcha::form_display( $args );
