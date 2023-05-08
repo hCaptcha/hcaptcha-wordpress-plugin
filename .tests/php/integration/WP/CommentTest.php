@@ -54,13 +54,13 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			PHP_INT_MAX,
-			has_filter( 'comment_form_submit_button', [ $subject, 'add_origin' ] )
+			has_filter( 'comment_form_submit_field', [ $subject, 'add_origin' ] )
 		);
 
 		if ( $active ) {
 			self::assertSame(
 				10,
-				has_filter( 'comment_form_submit_button', [ $subject, 'add_captcha' ] )
+				has_filter( 'comment_form_submit_field', [ $subject, 'add_captcha' ] )
 			);
 		}
 
