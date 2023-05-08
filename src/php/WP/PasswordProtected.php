@@ -55,6 +55,10 @@ class PasswordProtected {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 0,
+			],
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
