@@ -138,9 +138,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$fail_message  = $errors['fail'];
 
 		if ( '' === $hcaptcha_response_sanitized ) {
-			/**
-			 * This filter is documented above.
-			 */
+			/** This filter is documented above. */
 			return apply_filters( 'hcap_verify_request', $empty_message, [ 'empty' ] );
 		}
 
@@ -163,9 +161,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
-			/**
-			 * This filter is documented above.
-			 */
+			/** This filter is documented above. */
 			return apply_filters( 'hcap_verify_request', $fail_message, [ 'fail' ] );
 		}
 
@@ -180,9 +176,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
 		}
 
-		/**
-		 * This filter is documented above.
-		 */
+		/** This filter is documented above. */
 		return apply_filters( 'hcap_verify_request', $result, $error_codes );
 	}
 }
@@ -210,9 +204,7 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 		if ( is_user_logged_in() && ! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) ) {
 			$errors = hcap_get_error_messages();
 
-			/**
-			 * This filter is documented above.
-			 */
+			/** This filter is documented above. */
 			return apply_filters( 'hcap_verify_request', $errors['bad-nonce'], [ 'bad-nonce' ] );
 		}
 
