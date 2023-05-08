@@ -43,7 +43,7 @@ class Form {
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => true,
 			'id'     => [
-				'plugins' => 'gravityforms/gravityforms.php',
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => isset( $form['id'] ) ? $form['id'] : 0,
 			],
 		];

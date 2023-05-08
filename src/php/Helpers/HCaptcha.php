@@ -47,23 +47,29 @@ class HCaptcha {
 				'auto'   => false, // Whether a form has to be auto-verified.
 				'size'   => $hcaptcha_size, // The hCaptcha widget size.
 				'id'     => [], // hCaptcha widget id.
-				// Example of id: [ 'plugins' => ['gravityforms/gravityforms.php'], $form_id => 23 ].
+				/**
+				 * Example of id:
+				 * [
+				 *   'source' => ['gravityforms/gravityforms.php'],
+				 *   $form_id => 23
+				 * ]
+				 */
 			]
 		);
 
 		if ( $args['id'] ) {
 			$id            = (array) $args['id'];
-			$id['plugins'] = isset( $id['plugins'] ) ? (array) $id['plugins'] : [];
+			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
 			$id['form_id'] = isset( $id['form_id'] ) ? $id['form_id'] : 0;
 
 			/**
 			 * Filters the protection status of a form.
 			 *
 			 * @param string     $value   The protection status of a form.
-			 * @param string[]   $plugins Plugin(s) serving the form.
+			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
 			 * @param int|string $form_id Form id.
 			 */
-			if ( ! apply_filters( 'hcap_protect_form', true, $id['plugins'], $id['form_id'] ) ) {
+			if ( ! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] ) ) {
 				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				$encoded_id = base64_encode( wp_json_encode( $id ) );
 				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
@@ -123,5 +129,25 @@ class HCaptcha {
 		list( $encoded_id, $hash ) = explode( '-', $widget_id );
 
 		return wp_hash( $encoded_id ) !== $hash;
+	}
+
+	/**
+	 * Get source which class serves.
+	 *
+	 * @param string $class Class name.
+	 *
+	 * @return array
+	 */
+	public static function get_class_source( $class ) {
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( in_array( $class, (array) $module[2], true ) ) {
+				$source = $module[1];
+
+				// For WP Core (empty $source string), return option value.
+				return '' === $source ? (array) $module[0][1] : (array) $source;
+			}
+		}
+
+		return [];
 	}
 }

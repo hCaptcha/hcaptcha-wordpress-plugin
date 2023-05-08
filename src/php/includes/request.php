@@ -201,7 +201,11 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 			'';
 
 		// Verify nonce for logged-in users only.
-		if ( is_user_logged_in() && ! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) ) {
+		if (
+			is_user_logged_in() &&
+			! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) &&
+			HCaptcha::is_protection_enabled()
+		) {
 			$errors = hcap_get_error_messages();
 
 			/** This filter is documented above. */

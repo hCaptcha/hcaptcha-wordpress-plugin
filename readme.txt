@@ -163,21 +163,25 @@ add_filter( 'hcap_activate', 'my_hcap_activate' );
 
 = How to block hCaptcha on a specific form? =
 
-The plugin has a filter to block adding and verifying hCaptcha on a specific form. Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1. The check for the plugin name should be provided against the plugin's slug (directory/main-plugin-file.php).
+The plugin has a filter to block adding and verifying hCaptcha on a specific form. Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1. The source, like the plugin/theme name, should be checked against the plugin's slug (like 'directory/main-plugin-file.php') or the theme name (like 'Avada').
+
+For forms provided by WordPress Core, the filter receives form names (like ['comment'], ['login'], ['lost_pass'], ['password_protected'], ['register']). We cannot distinguish most of WordPress Core's forms, so the filter receives $form_id = 0 for them.
+
+The only exclusion is the comment form provided by WordPress Core. The filter receives the post id as $form_id.
 
 `
 /**
  * Filters the protection status of a form.
  *
  * @param string     $value   The protection status of a form.
- * @param string[]   $plugins Plugin(s) serving the form.
+ * @param string[]   $source  Plugin(s) serving the form.
  * @param int|string $form_id Form id.
  *
  * @return bool
  */
-function hcap_protect_form_filter( $value, $plugins, $form_id ) {
-	if ( ! in_array( 'gravityforms/gravityforms.php', $plugins, true ) ) {
-		// The form is not by Gravity Forms plugin.
+function hcap_protect_form_filter( $value, $source, $form_id ) {
+	if ( ! in_array( 'gravityforms/gravityforms.php', $source, true ) ) {
+		// The form is not sourced by Gravity Forms plugin.
 		return $value;
 	}
 
