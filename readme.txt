@@ -161,6 +161,38 @@ function my_hcap_activate( $activate ) {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
+= How to block hCaptcha on specific form? =
+
+The plugin has a filter to block adding and verifying hCaptcha on a specific form. Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1. The check for the plugin name should be provided against the plugin's slug (directory/main-plugin-file.php).
+
+`
+/**
+ * Filters the protection status of a form.
+ *
+ * @param string     $value   The protection status of a form.
+ * @param string[]   $plugins Plugin(s) serving the form.
+ * @param int|string $form_id Form id.
+ *
+ * @return bool
+ */
+function hcap_protect_form_filter( $value, $plugins, $form_id ) {
+	if ( ! in_array( 'gravityforms/gravityforms.php', $plugins, true ) ) {
+		// The form is not by Gravity Forms plugin.
+		return $value;
+	}
+
+	if ( 1 !== (int) $form_id ) {
+		// The form has id !== 1.
+		return $value;
+	}
+
+	// Turn off protection for Gravity form with id = 1.
+	return false;
+}
+
+add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
+`
+
 = How to show hCaptcha widget instantly? =
 
 The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.
