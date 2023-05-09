@@ -45,10 +45,7 @@ class Comment {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		if ( $this->active ) {
-			add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
-		}
-
+		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
 		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 10, 2 );
 	}
 
@@ -82,7 +79,17 @@ class Comment {
 			],
 		];
 
-		return HCaptcha::form( $args ) . $submit_field;
+		if (
+			! $this->active ||
+			false !== strpos( $submit_field, 'et_pb_submit' )
+		) {
+			// If not active or Divi comment form, just add a signature.
+			$args['protect'] = false;
+		}
+
+		$form = HCaptcha::form( $args );
+
+		return $form . $submit_field;
 	}
 
 	/**

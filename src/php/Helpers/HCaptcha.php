@@ -42,11 +42,11 @@ class HCaptcha {
 		$args = wp_parse_args(
 			$args,
 			[
-				'action' => '', // Action name for wp_nonce_field.
-				'name'   => '', // Nonce name for wp_nonce_field.
-				'auto'   => false, // Whether a form has to be auto-verified.
-				'size'   => $hcaptcha_size, // The hCaptcha widget size.
-				'id'     => [], // hCaptcha widget id.
+				'action'  => '', // Action name for wp_nonce_field.
+				'name'    => '', // Nonce name for wp_nonce_field.
+				'auto'    => false, // Whether a form has to be auto-verified.
+				'size'    => $hcaptcha_size, // The hCaptcha widget size.
+				'id'      => [], // hCaptcha widget id.
 				/**
 				 * Example of id:
 				 * [
@@ -54,6 +54,7 @@ class HCaptcha {
 				 *   $form_id => 23
 				 * ]
 				 */
+				'protect' => true,
 			]
 		);
 
@@ -69,7 +70,10 @@ class HCaptcha {
 			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
 			 * @param int|string $form_id Form id.
 			 */
-			if ( ! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] ) ) {
+			if (
+				! $args['protect'] ||
+				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
+			) {
 				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				$encoded_id = base64_encode( wp_json_encode( $id ) );
 				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
