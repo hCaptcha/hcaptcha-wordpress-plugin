@@ -8,7 +8,6 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Origin;
 use WP_Error;
 
 /**
@@ -46,29 +45,11 @@ class Comment {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_filter( 'comment_form_submit_field', [ $this, 'add_origin' ], 10, 2 );
-
 		if ( $this->active ) {
 			add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
 		}
 
 		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 10, 2 );
-	}
-
-	/**
-	 * Add origin.
-	 *
-	 * @param string $submit_field HTML markup for the submit field.
-	 * @param array  $comment_args Arguments passed to comment_form().
-	 */
-	public function add_origin( $submit_field, $comment_args ) {
-		$wp_comment_form = isset( $comment_args['id_submit'] ) && ( 'submit' === $comment_args['id_submit'] );
-
-		$origin = $this->active && $wp_comment_form ?
-			Origin::create( self::ACTION, self::NONCE ) :
-			Origin::create();
-
-		return $origin . $submit_field;
 	}
 
 	/**
@@ -118,35 +99,11 @@ class Comment {
 			return $approved;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$origin_id = isset( $_POST[ Origin::NAME ] ) ?
-			sanitize_text_field( wp_unslash( $_POST[ Origin::NAME ] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		$origin_data = Origin::get_verification_data( $origin_id );
-
-		if ( false === $origin_data ) {
-			// A hacking attempt. The comment form must have known origin here.
-			return $this->invalid_captcha_error( $approved );
-		}
-
-		if ( '' === $origin_data['action'] && '' === $origin_data['nonce'] ) {
-			// Reduce transient size.
-			Origin::delete( $origin_id );
-
-			// We do not need to verify hCaptcha for this form.
-			return $approved;
-		}
-
-		$error_message = hcaptcha_get_verify_message_html( $origin_data['nonce'], $origin_data['action'] );
+		$error_message = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			return $this->invalid_captcha_error( $approved, $error_message );
 		}
-
-		// Reduce transient size.
-		Origin::delete( $origin_id );
 
 		return $approved;
 	}

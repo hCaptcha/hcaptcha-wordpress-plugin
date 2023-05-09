@@ -8,7 +8,6 @@
 namespace HCaptcha\Divi;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Origin;
 
 /**
  * Class Comment.
@@ -50,34 +49,9 @@ class Comment {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_filter( 'comment_form_submit_field', [ $this, 'add_origin' ], 20, 2 );
-
 		if ( $this->active ) {
 			add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
 		}
-	}
-
-	/**
-	 * Add origin.
-	 *
-	 * @param string $submit_field HTML markup for the submit field.
-	 * @param array  $comment_args Arguments passed to comment_form().
-	 *
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_origin( $submit_field, $comment_args ) {
-		if ( false !== strpos( $submit_field, Origin::NAME ) ) {
-			// Origin can be added by \HCaptcha\WP\Comment.
-			return $submit_field;
-		}
-
-		$divi_comment_form = isset( $comment_args['id_submit'] ) && ( 'et_pb_submit' === $comment_args['id_submit'] );
-
-		$origin = $this->active && $divi_comment_form ?
-			Origin::create( self::ACTION, self::NONCE ) :
-			'';
-
-		return $origin . $submit_field;
 	}
 
 	/**
