@@ -53,18 +53,20 @@ class Login extends LoginBase {
 	 * Add captcha.
 	 */
 	public function add_captcha() {
-		if ( $this->is_login_limit_exceeded() ) {
-			$args = [
-				'action' => self::ACTION,
-				'name'   => self::NONCE,
-				'id'     => [
-					'source'  => HCaptcha::get_class_source( __CLASS__ ),
-					'form_id' => 0,
-				],
-			];
-
-			HCaptcha::form_display( $args );
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return;
 		}
+
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 0,
+			],
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**

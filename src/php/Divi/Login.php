@@ -9,6 +9,8 @@ namespace HCaptcha\Divi;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
+use WP_Error;
+use WP_User;
 
 /**
  * Class Login.
@@ -37,6 +39,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
+		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
 	}
 
 	/**
@@ -63,6 +66,10 @@ class Login extends LoginBase {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'login',
+			],
 		];
 
 		$pattern     = '/(<p>[\s]*?<button)/';
@@ -70,5 +77,32 @@ class Login extends LoginBase {
 
 		// Insert hcaptcha.
 		return preg_replace( $pattern, $replacement, $output );
+	}
+
+	/**
+	 * Verify login form.
+	 *
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous
+	 *                                   callback failed authentication.
+	 * @param string           $password Password to check against the user.
+	 *
+	 * @return WP_User|WP_Error
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function verify( $user, $password ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return $user;
+		}
+
+		$error_message = hcaptcha_get_verify_message_html(
+			self::NONCE,
+			self::ACTION
+		);
+
+		if ( null === $error_message ) {
+			return $user;
+		}
+
+		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
 	}
 }
