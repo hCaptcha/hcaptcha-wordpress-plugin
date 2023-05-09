@@ -30,7 +30,7 @@ class Comment {
 	 *
 	 * @var bool
 	 */
-	private $active;
+	protected $active;
 
 	/**
 	 * Constructor.
