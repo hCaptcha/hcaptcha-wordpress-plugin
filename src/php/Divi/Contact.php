@@ -81,6 +81,10 @@ class Contact {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 0,
+			],
 		];
 
 		$search  = '<div class="et_contact_bottom_container">';
