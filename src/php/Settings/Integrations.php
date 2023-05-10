@@ -8,7 +8,6 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Settings\Abstracts\SettingsBase;
-use WP_Error;
 
 /**
  * Class Tables
