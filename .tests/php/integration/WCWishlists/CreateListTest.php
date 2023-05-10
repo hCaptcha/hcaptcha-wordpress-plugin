@@ -13,13 +13,13 @@ use HCaptcha\WCWishlists\CreateList;
 /**
  * Test CreateList class.
  *
- * WooCommerce requires PHP 7.0.
+ * WooCommerce requires PHP 7.3.
  *
  * Cannot activate WooCommerce plugin with php 8.0
  * due to some bug with usort() in \WC_Install::needs_db_update()
  * caused by antecedent/patchwork.
  *
- * @requires PHP >= 7.0
+ * @requires PHP >= 7.3
  * @requires PHP < 8.0
  */
 class CreateListTest extends HCaptchaPluginWPTestCase {
@@ -55,8 +55,6 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify() {
 		$valid_captcha = 'some captcha';
@@ -74,8 +72,6 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$valid_captcha = 'some captcha';
