@@ -57,7 +57,7 @@ class PasswordProtected {
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 0,
+				'form_id' => 'password_protected',
 			],
 		];
 

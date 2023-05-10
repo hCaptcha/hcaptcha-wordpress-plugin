@@ -148,7 +148,7 @@ class HCaptcha {
 				$source = $module[1];
 
 				// For WP Core (empty $source string), return option value.
-				return '' === $source ? (array) $module[0][1] : (array) $source;
+				return '' === $source ? [ 'WordPress' ] : (array) $source;
 			}
 		}
 
