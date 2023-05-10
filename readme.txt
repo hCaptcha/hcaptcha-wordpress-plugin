@@ -369,14 +369,17 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.8.0 =
-* Tested with WooCommerce 7.6.
+* Tested with WooCommerce 7.7.
 * Added general ability to turn off hCaptcha on a specific form.
 * Added filter `hcap_protect_form`, allowing to filter the protection status of a specific form.
 * Added support to turn off hCaptcha on a specific Gravity Form.
+* Added support to turn off hCaptcha on a specific WordPress Core form.
+* Added support to turn off hCaptcha on a specific Divi form.
 * Fixed error processing during plugin activation.
 * Fixed issue with invisible hCaptcha in Fluent Forms.
 * Fixed multiple issues related to Fluent Forms.
 * Fixed login issue with invisible hCaptcha on WooCommerce /my-account page.
+* Fixed Divi login form.
 
 = 2.7.0 =
 * Tested with WooCommerce 7.5.
