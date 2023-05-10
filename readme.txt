@@ -163,11 +163,15 @@ add_filter( 'hcap_activate', 'my_hcap_activate' );
 
 = How to block hCaptcha on a specific form? =
 
-The plugin has a filter to block adding and verifying hCaptcha on a specific form. Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1. The source, like the plugin/theme name, should be checked against the plugin's slug (like 'directory/main-plugin-file.php') or the theme name (like 'Avada').
+The plugin has a filter to block adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source and form_id.
 
-For forms provided by WordPress Core, the filter receives form names (like ['comment'], ['login'], ['lost_pass'], ['password_protected'], ['register']). We cannot distinguish most of WordPress Core's forms, so the filter receives $form_id = 0 for them.
+The source is the plugin's slug (like 'directory/main-plugin-file.php'), the theme name (like 'Avada') or the WordPress core (like 'WordPress').
 
-The only exclusion is the comment form provided by WordPress Core. The filter receives the post id as $form_id.
+The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
+
+For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
+
+Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1.
 
 `
 /**
