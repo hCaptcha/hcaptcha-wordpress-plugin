@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.2
 Requires PHP: 5.6.20
-Stable tag: 2.7.0
+Stable tag: 2.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -161,6 +161,46 @@ function my_hcap_activate( $activate ) {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
+= Skipping hCaptcha verification on a specific form =
+
+The plugin has a filter to skip adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source and form_id.
+
+The source is the plugin's slug (like 'directory/main-plugin-file.php'), the theme name (like 'Avada') or the WordPress core (like 'WordPress').
+
+The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
+
+For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
+
+Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
+
+`
+/**
+ * Filters the protection status of a form.
+ *
+ * @param string     $value   The protection status of a form.
+ * @param string[]   $source  Plugin(s) serving the form.
+ * @param int|string $form_id Form id.
+ *
+ * @return bool
+ */
+function hcap_protect_form_filter( $value, $source, $form_id ) {
+	if ( ! in_array( 'gravityforms/gravityforms.php', $source, true ) ) {
+		// The form is not sourced by Gravity Forms plugin.
+		return $value;
+	}
+
+	if ( 1 !== (int) $form_id ) {
+		// The form has id !== 1.
+		return $value;
+	}
+
+	// Turn off protection for Gravity form with id = 1.
+	return false;
+}
+
+add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
+`
+
 = How to show hCaptcha widget instantly? =
 
 The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.
@@ -307,7 +347,6 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
-* WP Fluent Forms
 * WPForms Lite
 * wpDiscuz
 * wpForo New Topic Form
@@ -332,6 +371,20 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 2.8.0 =
+* Tested with WooCommerce 7.7.
+* Added general ability to turn off hCaptcha on a specific form.
+* Added filter `hcap_protect_form`, allowing to filter the protection status of a specific form.
+* Added support to turn off hCaptcha on a specific WordPress Core form.
+* Added support to turn off hCaptcha on a specific WooCommerce form.
+* Added support to turn off hCaptcha on a specific Gravity Form.
+* Added support to turn off hCaptcha on a specific Divi form.
+* Fixed error processing during plugin activation.
+* Fixed issue with invisible hCaptcha in Fluent Forms.
+* Fixed multiple issues related to Fluent Forms.
+* Fixed login issue with invisible hCaptcha on WooCommerce /my-account page.
+* Fixed Divi login form.
 
 = 2.7.0 =
 * Tested with WooCommerce 7.5.

@@ -148,7 +148,7 @@ class HCaptcha {
 			return;
 		}
 
-		const submitButtonSelector = '*[type="submit"], a.fl-button';
+		const submitButtonSelector = '*[type="submit"], a.fl-button, button[type="button"].ff-btn';
 
 		const params = this.getParams();
 
@@ -191,7 +191,7 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		this.currentForm.formElement.requestSubmit();
+		this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
 	}
 }
 

@@ -118,8 +118,8 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install ninja-forms
 
-      - name: Install plugins requiring 7.2
-        if: ${{ matrix.php-version >= '7.2' }}
+      - name: Install plugins requiring 7.3
+        if: ${{ matrix.php-version >= '7.3' }}
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install woocommerce
 

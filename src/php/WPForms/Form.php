@@ -70,7 +70,6 @@ class Form {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $fields, $entry, $form_data ) {
 		$error_message = hcaptcha_get_verify_message(

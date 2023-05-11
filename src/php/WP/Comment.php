@@ -8,7 +8,6 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Origin;
 use WP_Error;
 
 /**
@@ -31,7 +30,7 @@ class Comment {
 	 *
 	 * @var bool
 	 */
-	private $active;
+	protected $active;
 
 	/**
 	 * Constructor.
@@ -46,52 +45,51 @@ class Comment {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_filter( 'comment_form_submit_button', [ $this, 'add_origin' ], PHP_INT_MAX, 2 );
-
-		if ( $this->active ) {
-			add_filter( 'comment_form_submit_button', [ $this, 'add_captcha' ], 10, 2 );
-		}
-
+		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
 		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
 	 * Add captcha.
 	 *
-	 * @param string $submit_button HTML markup for the submit button.
+	 * @param string $submit_field HTML markup for the submit field.
 	 * @param array  $comment_args  Arguments passed to comment_form().
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_button, $comment_args ) {
+	public function add_captcha( $submit_field, $comment_args ) {
+		$post_id = 0;
+
+		if (
+			preg_match(
+				"<input type='hidden' name='comment_post_ID' value='(.+)?' id='comment_post_ID' />",
+				$submit_field,
+				$m
+			)
+		) {
+			$post_id = $m[1];
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $post_id,
+			],
 		];
 
-		return HCaptcha::form( $args ) . $submit_button;
-	}
-
-	/**
-	 * Add origin.
-	 *
-	 * @param string $submit_button HTML markup for the submit button.
-	 * @param array  $args          Arguments passed to comment_form().
-	 *
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_origin( $submit_button, $args ) {
-		if ( false !== strpos( $submit_button, Origin::NAME ) ) {
-			return $submit_button;
+		if (
+			! $this->active ||
+			false !== strpos( $submit_field, 'et_pb_submit' )
+		) {
+			// If not active or Divi comment form, just add a signature.
+			$args['protect'] = false;
 		}
 
-		$wp_comment_form = isset( $args['id_submit'] ) && ( 'submit' === $args['id_submit'] );
+		$form = HCaptcha::form( $args );
 
-		$origin = $this->active && $wp_comment_form ?
-			Origin::create( self::ACTION, self::NONCE ) :
-			Origin::create();
-
-		return $origin . $submit_button;
+		return $form . $submit_field;
 	}
 
 	/**
@@ -108,35 +106,11 @@ class Comment {
 			return $approved;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$origin_id = isset( $_POST[ Origin::NAME ] ) ?
-			sanitize_text_field( wp_unslash( $_POST[ Origin::NAME ] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		$origin_data = Origin::get_verification_data( $origin_id );
-
-		if ( false === $origin_data ) {
-			// A hacking attempt. The comment form must have known origin here.
-			return $this->invalid_captcha_error( $approved );
-		}
-
-		if ( '' === $origin_data['action'] && '' === $origin_data['nonce'] ) {
-			// Reduce transient size.
-			Origin::delete( $origin_id );
-
-			// We do not need to verify hCaptcha for this form.
-			return $approved;
-		}
-
-		$error_message = hcaptcha_get_verify_message_html( $origin_data['nonce'], $origin_data['action'] );
+		$error_message = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
-			return $this->invalid_captcha_error( $approved );
+			return $this->invalid_captcha_error( $approved, $error_message );
 		}
-
-		// Reduce transient size.
-		Origin::delete( $origin_id );
 
 		return $approved;
 	}
@@ -144,14 +118,16 @@ class Comment {
 	/**
 	 * Invalid captcha error.
 	 *
-	 * @param int|string|WP_Error $approved The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
+	 * @param int|string|WP_Error $approved      The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
+	 * @param string              $error_message The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
 	 *
 	 * @return WP_Error
 	 */
-	private function invalid_captcha_error( $approved ) {
-		$approved = is_wp_error( $approved ) ? $approved : new WP_Error();
+	private function invalid_captcha_error( $approved, $error_message = '' ) {
+		$error_message = $error_message ?: __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' );
+		$approved      = is_wp_error( $approved ) ? $approved : new WP_Error();
 
-		$approved->add( 'invalid_hcaptcha', __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' ), 400 );
+		$approved->add( 'invalid_hcaptcha', $error_message, 400 );
 
 		return $approved;
 	}

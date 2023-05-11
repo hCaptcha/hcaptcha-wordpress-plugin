@@ -15,14 +15,11 @@ const integrations = function( $ ) {
 	}
 
 	function showSuccessMessage( response ) {
-		showMessage(
-			typeof response.data !== 'undefined' ? response.data : response,
-			'hcaptcha-integrations-success'
-		);
+		showMessage( response, 'hcaptcha-integrations-success' );
 	}
 
 	function showErrorMessage( response ) {
-		showMessage( response.responseText, 'hcaptcha-integrations-error' );
+		showMessage( response, 'hcaptcha-integrations-error' );
 	}
 
 	function insertIntoTable( $table, key, $element ) {
@@ -89,14 +86,19 @@ const integrations = function( $ ) {
 			data,
 		} )
 			.done( function( response ) {
+				if ( ! response.success ) {
+					showErrorMessage( response.data );
+					return;
+				}
+
 				const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
 
 				$tr.find( 'fieldset' ).attr( 'disabled', ! activate );
-				showSuccessMessage( response );
+				showSuccessMessage( response.data );
 				insertIntoTable( $table, 'hcaptcha-integrations-' + status, $tr );
 			} )
 			.fail( function( response ) {
-				showErrorMessage( response );
+				showErrorMessage( response.statusText );
 			} );
 	} );
 };

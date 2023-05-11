@@ -48,6 +48,10 @@ class OrderTracking {
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => true,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'order_tracking',
+			],
 		];
 
 		$hcap_form =

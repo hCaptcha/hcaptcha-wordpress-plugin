@@ -8,7 +8,6 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Settings\Abstracts\SettingsBase;
-use WP_Error;
 
 /**
  * Class Tables
@@ -541,34 +540,39 @@ class Integrations extends PluginSettingsBase {
 
 		$plugins = array_merge( [], ...$plugins );
 
+		header_remove( 'Location' );
+		http_response_code( 200 );
+
 		if ( $activate ) {
 			$result = $this->activate_plugins( $plugins );
 
-			if ( $result ) {
+			if ( ! $result ) {
 				$message = sprintf(
 				/* translators: 1: Plugin(s) name(s). */
-					__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
+					__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
 					$plugin_name
 				);
-			} else {
-				$message = sprintf(
-				/* translators: 1: Plugin(s) name(s). */
-					__( 'Error activating plugin %s.', 'hcaptcha-for-forms-and-more' ),
-					$plugin_name
-				);
+
+				wp_send_json_error( esc_html( $message ) );
 			}
-		} else {
-			deactivate_plugins( $plugins );
 
 			$message = sprintf(
 			/* translators: 1: Plugin(s) name(s). */
-				__( '%s plugin is deactivated.', 'hcaptcha-for-forms-and-more' ),
+				__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
 				$plugin_name
 			);
+
+			wp_send_json_success( esc_html( $message ) );
 		}
 
-		header_remove( 'Location' );
-		http_response_code( 200 );
+		deactivate_plugins( $plugins );
+
+		$message = sprintf(
+		/* translators: 1: Plugin(s) name(s). */
+			__( '%s plugin is deactivated.', 'hcaptcha-for-forms-and-more' ),
+			$plugin_name
+		);
+
 		wp_send_json_success( esc_html( $message ) );
 	}
 

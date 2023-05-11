@@ -42,6 +42,10 @@ class Form {
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => true,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => isset( $form['id'] ) ? $form['id'] : 0,
+			],
 		];
 
 		return HCaptcha::form( $args ) . $button_input;

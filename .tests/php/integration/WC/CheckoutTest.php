@@ -18,13 +18,13 @@ use HCaptcha\WC\Checkout;
 /**
  * Test Checkout class.
  *
- * WooCommerce requires PHP 7.0.
+ * WooCommerce requires PHP 7.3.
  *
  * Cannot activate WooCommerce plugin with php 8.0
  * due to some bug with usort() in \WC_Install::needs_db_update()
  * caused by antecedent/patchwork.
  *
- * @requires PHP >= 7.0
+ * @requires PHP >= 7.3
  * @requires PHP < 8.0
  *
  * @group    wc-checkout
@@ -41,8 +41,6 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test tear down.
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function tearDown(): void {
 		if ( function_exists( 'wc_clear_notices' ) ) {
@@ -96,8 +94,6 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify().
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
@@ -113,8 +109,6 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test verify() not verified.
-	 *
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified() {
 		$expected = [
