@@ -161,9 +161,9 @@ function my_hcap_activate( $activate ) {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
-= How to block hCaptcha on a specific form? =
+= Skipping hCaptcha verification on a specific form =
 
-The plugin has a filter to block adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source and form_id.
+The plugin has a filter to skip adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source and form_id.
 
 The source is the plugin's slug (like 'directory/main-plugin-file.php'), the theme name (like 'Avada') or the WordPress core (like 'WordPress').
 
@@ -171,7 +171,7 @@ The form_id is the form_id for plugins like Gravity Forms or WPForms, the post i
 
 For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
 
-Below is an example of how to block the hCaptcha widget on the Gravity Form with id = 1.
+Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
 
 `
 /**
