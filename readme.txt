@@ -372,6 +372,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.9.0 =
+* Fixed ignoring hCaptcha on comments with Akismet.
+
 = 2.8.0 =
 * Tested with WooCommerce 7.7.
 * Added general ability to turn off hCaptcha on a specific form.

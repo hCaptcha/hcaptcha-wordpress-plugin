@@ -59,7 +59,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		}
 
 		self::assertSame(
-			10,
+			20,
 			has_filter( 'pre_comment_approved', [ $subject, 'verify' ] )
 		);
 	}
