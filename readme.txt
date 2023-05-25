@@ -373,6 +373,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.9.0 =
+* Added visualisation of plugins available for activation and deactivation.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 
