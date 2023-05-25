@@ -25,7 +25,6 @@ use HCaptcha\WC\Checkout;
  * caused by antecedent/patchwork.
  *
  * @requires PHP >= 7.3
- * @requires PHP < 8.0
  *
  * @group    wc-checkout
  * @group    wc

@@ -20,7 +20,8 @@ use HCaptcha\WCWishlists\CreateList;
  * caused by antecedent/patchwork.
  *
  * @requires PHP >= 7.3
- * @requires PHP < 8.0
+ *
+ * @group    wcwishlist
  */
 class CreateListTest extends HCaptchaPluginWPTestCase {
 
