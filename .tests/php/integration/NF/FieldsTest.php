@@ -12,12 +12,6 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test Fields class.
- *
- * Cannot activate Ninja Forms plugin with php 8.0
- * due to some bug with uksort() in \Ninja_Forms::plugins_loaded()
- * caused by antecedent/patchwork.
- *
- * @requires PHP < 8.0
  */
 class FieldsTest extends HCaptchaPluginWPTestCase {
 
@@ -30,8 +24,6 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test __construct().
-	 *
-	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function test_constructor() {
 		$subject = new Fields();

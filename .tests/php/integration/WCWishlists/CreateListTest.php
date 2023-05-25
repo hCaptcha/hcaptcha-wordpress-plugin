@@ -15,10 +15,6 @@ use HCaptcha\WCWishlists\CreateList;
  *
  * WooCommerce requires PHP 7.3.
  *
- * Cannot activate WooCommerce plugin with php 8.0
- * due to some bug with usort() in \WC_Install::needs_db_update()
- * caused by antecedent/patchwork.
- *
  * @requires PHP >= 7.3
  *
  * @group    wcwishlist
