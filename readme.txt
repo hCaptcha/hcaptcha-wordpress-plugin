@@ -374,6 +374,7 @@ Instructions for popular native integrations are below:
 
 = 2.9.0 =
 * Fixed ignoring hCaptcha on comments with Akismet.
+* Fixed interfering of WordPress and WooCommerce lost password settings.
 
 = 2.8.0 =
 * Tested with WooCommerce 7.7.
