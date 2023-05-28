@@ -376,6 +376,7 @@ Instructions for popular native integrations are below:
 
 = 2.9.0 =
 * Added visualisation of plugins available for activation and deactivation.
+* Added the ability to filter hCaptcha on CF7.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 
