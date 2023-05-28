@@ -25,6 +25,13 @@ class Form {
 	const VALIDATION_HOOK = 'acf/validate_value/type=acfe_recaptcha';
 
 	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	private $form_id = 0;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -37,11 +44,23 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
+		add_action( 'acfe/form/render/before_fields', [ $this, 'before_fields' ] );
 		add_action( self::RENDER_HOOK, [ $this, 'remove_recaptcha_render' ], 8 );
 		add_action( self::RENDER_HOOK, [ $this, 'add_hcaptcha' ], 11 );
 		add_filter( self::VALIDATION_HOOK, [ $this, 'remove_recaptcha_verify' ], 9, 4 );
 		add_filter( self::VALIDATION_HOOK, [ $this, 'verify' ], 11, 4 );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+	}
+
+	/**
+	 * Store form_id on before_fields hook.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return void
+	 */
+	public function before_fields( $args ) {
+		$this->form_id = $args['ID'];
 	}
 
 	/**
@@ -74,9 +93,16 @@ class Form {
 			return;
 		}
 
+		$args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
+		];
+
 		$form =
 			'<div class="acf-input-wrap acfe-field-recaptcha"> ' .
-			'<div>' . HCaptcha::form() . '</div>' .
+			'<div>' . HCaptcha::form( $args ) . '</div>' .
 			'<input type="hidden" id="acf-' . $field['key'] . '" name="' . $field['name'] . '">' .
 			'</div>';
 
@@ -120,8 +146,17 @@ class Form {
 			return $valid;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$this->form_id = isset( $_POST['_acf_post_id'] ) ?
+			(int) sanitize_text_field( wp_unslash( $_POST['_acf_post_id'] ) ) :
+			0;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$id = HCaptcha::get_widget_id();
+
 		// Avoid duplicate token: do not process during ajax validation.
-		if ( wp_doing_ajax() ) {
+		// Process hcaptcha widget check when form protection is skipped.
+		if ( wp_doing_ajax() && apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] ) ) {
 			return $valid;
 		}
 

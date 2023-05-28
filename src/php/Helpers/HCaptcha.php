@@ -136,6 +136,38 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get hcaptcha widget id from $_POST.
+	 *
+	 * @return array
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 */
+	public static function get_widget_id() {
+		$default_id = [
+			'source'  => [],
+			'form_id' => 0,
+		];
+
+		// Nonce is checked in hcaptcha_verify_post().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
+			filter_var( wp_unslash( $_POST[ self::HCAPTCHA_WIDGET_ID ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! $widget_id ) {
+			return $default_id;
+		}
+
+		list( $encoded_id, $hash ) = explode( '-', $widget_id );
+
+		return wp_parse_args(
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			(array) json_decode( base64_decode( $encoded_id ), true ),
+			$default_id
+		);
+	}
+
+	/**
 	 * Get source which class serves.
 	 *
 	 * @param string $class Class name.
