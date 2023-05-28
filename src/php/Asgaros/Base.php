@@ -47,7 +47,7 @@ abstract class Base {
 			return $output;
 		}
 
-		$form_id = isset( $attr['id'] ) ? $attr['id'] : 0;
+		$form_id = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
 		$search  = '<div class="editor-row editor-row-submit">';
 		$args    = [
 			'action' => static::ACTION,
