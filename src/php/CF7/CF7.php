@@ -166,11 +166,12 @@ class CF7 {
 
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
-			'<span id="' . uniqid( 'hcap_cf7-', true ) .
-			'" class="wpcf7-form-control h-captcha" data-sitekey="' . esc_attr( $hcaptcha_site_key ) .
-			'" data-theme="' . esc_attr( $hcaptcha_theme ) .
-			wp_kses_post( $callback ) .
-			'" data-size="' . esc_attr( $args['size'] ) . '">' .
+			'<span id="' . uniqid( 'hcap_cf7-', true ) . '"' .
+			' class="wpcf7-form-control h-captcha"' .
+			' data-sitekey="' . esc_attr( $hcaptcha_site_key ) . '"' .
+			' data-theme="' . esc_attr( $hcaptcha_theme ) . '"' .
+			' data-size="' . esc_attr( $args['size'] ) . '"' .
+			' ' . wp_kses_post( $callback ) . '>' .
 			'</span>' .
 			'</span>' .
 			wp_nonce_field( $args['action'], $args['name'], true, false )
