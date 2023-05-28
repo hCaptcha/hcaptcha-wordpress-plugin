@@ -124,8 +124,8 @@ class HCaptcha {
 	 * Whether form protection is enabled/disabled via hCaptcha widget id.
 	 *
 	 * Return false(protection disabled) in only one case:
-	 * when $_POST['hcaptcha-widget-id'] contains encoded id array with proper hash
-	 * and hcap_protect_form filter confirms that form in widget id is not protected.
+	 * when $_POST['hcaptcha-widget-id'] contains encoded id with proper hash
+	 * and hcap_protect_form filter confirms that form referenced in widget id is not protected.
 	 *
 	 * @return bool
 	 */
