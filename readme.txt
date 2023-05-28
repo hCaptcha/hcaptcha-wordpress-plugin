@@ -378,6 +378,7 @@ Instructions for popular native integrations are below:
 * Added visualisation of plugins available for activation and deactivation.
 * Added support to turn off hCaptcha on a specific ACF Extended form.
 * Added support to turn off hCaptcha on a specific Asgaros forum form.
+* Added support to turn off hCaptcha on a specific Avada form.
 * Added support to turn off hCaptcha on a specific Contact 7 form.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
