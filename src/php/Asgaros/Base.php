@@ -40,16 +40,22 @@ abstract class Base {
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection RegExpUnnecessaryNonCapturingGroup
 	 */
 	public function add_captcha( $output, $tag, $attr, $m ) {
 		if ( 'forum' !== $tag ) {
 			return $output;
 		}
 
-		$search = '<div class="editor-row editor-row-submit">';
-		$args   = [
+		$form_id = isset( $attr['id'] ) ? $attr['id'] : 0;
+		$search  = '<div class="editor-row editor-row-submit">';
+		$args    = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $form_id,
+			],
 		];
 
 		return str_replace(
