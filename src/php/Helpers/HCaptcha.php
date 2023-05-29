@@ -94,6 +94,9 @@ class HCaptcha {
 					name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
 					value="<?php echo esc_attr( $widget_id ); ?>">
 				<?php
+
+				hcaptcha()->form_shown = true;
+
 				return;
 			}
 		}
