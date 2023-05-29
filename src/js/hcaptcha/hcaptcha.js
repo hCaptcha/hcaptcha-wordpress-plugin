@@ -4,8 +4,6 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
-import 'form-request-submit-polyfill/form-request-submit-polyfill';
-
 class HCaptcha {
 	constructor() {
 		this.foundForms = [];
@@ -191,7 +189,11 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
+		if ( this.currentForm.formElement.requestSubmit ) {
+			this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
+		} else {
+			this.currentForm.formElement.submit();
+		}
 	}
 }
 

@@ -41,9 +41,6 @@
     }
   },
   "packageManager": "yarn@3.5.0",
-  "dependencies": {
-    "form-request-submit-polyfill": "^2.0.0"
-  },
   "devDependencies": {
     "@babel/core": "^7.21.3",
     "@babel/preset-env": "^7.20.2",
