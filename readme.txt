@@ -169,6 +169,8 @@ The source is the plugin's slug (like 'directory/main-plugin-file.php'), the the
 
 The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
 
+For forms provided by BBPress, the filter receives the source as 'bbpress/bbpress.php' and form_id as 'new_topic', or 'reply'.
+
 For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
 
 For forms provided by WooCommerce, the filter receives the source as 'woocommerce/woocommerce.php' and form_id as 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'.
