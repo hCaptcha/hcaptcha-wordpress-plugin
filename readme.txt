@@ -173,6 +173,8 @@ For forms provided by BBPress, the filter receives the source as 'bbpress/bbpres
 
 For forms provided by Beaver Builder, the filter receives the source as 'bb-plugin/fl-builder.php' and form_id as 'contact', or 'login'.
 
+For forms provided by Brizy, the filter receives the source as 'brizy/brizy.php' and form_id as 'form'.
+
 For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
 
 For forms provided by WooCommerce, the filter receives the source as 'woocommerce/woocommerce.php' and form_id as 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'.
