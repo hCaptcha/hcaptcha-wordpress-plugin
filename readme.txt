@@ -169,15 +169,31 @@ The source is the plugin's slug (like 'directory/main-plugin-file.php'), the the
 
 The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
 
-For forms provided by BBPress, the filter receives the source as 'bbpress/bbpress.php' and form_id as 'new_topic', or 'reply'.
+Filter arguments for some plugins/forms are listed below.
 
-For forms provided by Beaver Builder, the filter receives the source as 'bb-plugin/fl-builder.php' and form_id as 'contact', or 'login'.
+BBPress
+$source: 'bbpress/bbpress.php'
+$form_id: 'new_topic', or 'reply'
 
-For forms provided by Brizy, the filter receives the source as 'brizy/brizy.php' and form_id as 'form'.
+Beaver Builder
+$source: 'bb-plugin/fl-builder.php'
+$form_id: 'contact', or 'login'
 
-For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
+Brizy
+$source: 'brizy/brizy.php'
+$form_id: 'form'
 
-For forms provided by WooCommerce, the filter receives the source as 'woocommerce/woocommerce.php' and form_id as 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'.
+Divi
+$source: 'Divi'
+$form_id: post_id for comment form, 'contact', or 'login'
+
+WordPress Core
+$source: 'WordPress'
+$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
+
+WooCommerce
+$source: 'woocommerce/woocommerce.php'
+$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'
 
 Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
 
