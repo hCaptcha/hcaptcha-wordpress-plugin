@@ -183,6 +183,10 @@ Brizy
 $source: 'brizy/brizy.php'
 $form_id: 'form'
 
+BuddyPress
+$source: 'buddypress/bp-loader.php'
+$form_id: 'create_group' or 'register'
+
 Divi
 $source: 'Divi'
 $form_id: post_id for comment form, 'contact', or 'login'

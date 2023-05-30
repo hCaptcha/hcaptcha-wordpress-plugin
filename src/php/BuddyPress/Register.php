@@ -61,6 +61,10 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'register',
+			],
 		];
 
 		HCaptcha::form_display( $args );

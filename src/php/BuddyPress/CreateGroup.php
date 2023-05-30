@@ -50,6 +50,10 @@ class CreateGroup {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'create_group',
+			],
 		];
 
 		HCaptcha::form_display( $args );
