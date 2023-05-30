@@ -510,6 +510,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
 				margin-bottom: 0;
 			}
+			.brz-forms2.brz-forms2__item .h-captcha {
+				margin-bottom: 0;
+			}
 			form.wpsc-create-ticket .h-captcha {
 				margin: 0 15px 15px 15px;
 			}

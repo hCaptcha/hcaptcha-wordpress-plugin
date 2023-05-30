@@ -55,7 +55,7 @@ abstract class Base {
 			'name'   => static::NAME,
 		];
 
-		$search  = '<div class="brz-forms2 brz-forms2__item brz-forms2__item-button">';
+		$search  = '<div class="brz-forms2 brz-forms2__item brz-forms2__item-button"';
 		$replace =
 			'<div class="brz-forms2 brz-forms2__item">' .
 			HCaptcha::form( $args ) .
