@@ -52,12 +52,6 @@ abstract class Base extends LoginBase {
 			],
 		];
 
-//		$out = preg_replace(
-//			'#<span class="fl-button-text">(.*)?</span>#',
-//			'<button class="fl-button-text" type="submit">$1</button>',
-//			$out
-//		);
-
 		$hcaptcha =
 			'<div class="fl-input-group fl-hcaptcha">' .
 			HCaptcha::form( $args ) .
