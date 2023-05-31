@@ -6,6 +6,7 @@
 
 class HCaptcha {
 	constructor() {
+		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form';
 		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn';
 		this.foundForms = [];
 		this.params = null;
@@ -85,7 +86,7 @@ class HCaptcha {
 	 * @param {CustomEvent} event Event.
 	 */
 	validate( event ) {
-		const formElement = event.currentTarget.closest( 'form' );
+		const formElement = event.currentTarget.closest( this.formSelector );
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = form.submitButtonElement;
 
@@ -106,7 +107,7 @@ class HCaptcha {
 	 * @return {*[]} Forms.
 	 */
 	getForms() {
-		return [ ...document.querySelectorAll( 'form, div.fl-login-form, section.cwginstock-subscribe-form' ) ];
+		return [ ...document.querySelectorAll( this.formSelector ) ];
 	}
 
 	/**
@@ -191,7 +192,10 @@ class HCaptcha {
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
 
-		if ( 'submit' !== submitButtonElement.getAttribute( 'type' ) ) {
+		if (
+			'form' !== submitButtonElement.tagName ||
+			'submit' !== submitButtonElement.getAttribute( 'type' )
+		) {
 			submitButtonElement.removeEventListener( 'click', this.validate );
 			submitButtonElement.click();
 

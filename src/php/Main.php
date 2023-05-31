@@ -663,6 +663,11 @@ class Main {
 				'Avada',
 				Avada\Form::class,
 			],
+			'Back In Stock Notifier Form'  => [
+				[ 'back_in_stock_notifier_status', 'form' ],
+				'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php',
+				BackInStockNotifier\Form::class,
+			],
 			'bbPress New Topic'            => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',

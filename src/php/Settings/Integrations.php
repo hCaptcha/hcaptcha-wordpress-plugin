@@ -113,7 +113,7 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [
-			'wp_status'                    => [
+			'wp_status'                     => [
 				'label'   => 'WP Core',
 				'type'    => 'checkbox',
 				'options' => [
@@ -124,28 +124,35 @@ class Integrations extends PluginSettingsBase {
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'acfe_status'                  => [
+			'acfe_status'                   => [
 				'label'   => 'ACF Extended',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'asgaros_status'               => [
+			'asgaros_status'                => [
 				'label'   => 'Asgaros',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'avada_status'                 => [
+			'avada_status'                  => [
 				'label'   => 'Avada',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Avada Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'bbp_status'                   => [
+			'back_in_stock_notifier_status' => [
+				'label'   => 'Back In Stock Notifier',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Back In Stock Notifier Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'bbp_status'                    => [
 				'label'   => 'bbPress',
 				'type'    => 'checkbox',
 				'options' => [
@@ -153,7 +160,7 @@ class Integrations extends PluginSettingsBase {
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'beaver_builder_status'        => [
+			'beaver_builder_status'         => [
 				'label'   => 'Beaver Builder',
 				'type'    => 'checkbox',
 				'options' => [
@@ -161,14 +168,14 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'brizy_status'                 => [
+			'brizy_status'                  => [
 				'label'   => 'Brizy',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'bp_status'                    => [
+			'bp_status'                     => [
 				'label'   => 'BuddyPress',
 				'type'    => 'checkbox',
 				'options' => [
@@ -176,14 +183,14 @@ class Integrations extends PluginSettingsBase {
 					'registration' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'cf7_status'                   => [
+			'cf7_status'                    => [
 				'label'   => 'Contact Form 7',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'divi_status'                  => [
+			'divi_status'                   => [
 				'label'   => 'Divi',
 				'type'    => 'checkbox',
 				'options' => [
@@ -192,70 +199,70 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'download_manager_status'      => [
+			'download_manager_status'       => [
 				'label'   => 'Download Manager',
 				'type'    => 'checkbox',
 				'options' => [
 					'button' => __( 'Button', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'elementor_pro_status'         => [
+			'elementor_pro_status'          => [
 				'label'   => 'Elementor Pro',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'fluent_status'                => [
+			'fluent_status'                 => [
 				'label'   => 'Fluent Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'forminator_status'            => [
+			'forminator_status'             => [
 				'label'   => 'Forminator',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'give_wp_status'               => [
+			'give_wp_status'                => [
 				'label'   => 'GiveWP',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'gravity_status'               => [
+			'gravity_status'                => [
 				'label'   => 'Gravity Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'jetpack_status'               => [
+			'jetpack_status'                => [
 				'label'   => 'Jetpack',
 				'type'    => 'checkbox',
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'kadence_status'               => [
+			'kadence_status'                => [
 				'label'   => 'Kadence',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'mailchimp_status'             => [
+			'mailchimp_status'              => [
 				'label'   => 'Mailchimp for WP',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'memberpress_status'           => [
+			'memberpress_status'            => [
 				'label'   => 'MemberPress',
 				'type'    => 'checkbox',
 				'options' => [
@@ -263,49 +270,49 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'ninja_status'                 => [
+			'ninja_status'                  => [
 				'label'   => 'Ninja Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'otter_status'                 => [
+			'otter_status'                  => [
 				'label'   => 'Otter Blocks',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'quform_status'                => [
+			'quform_status'                 => [
 				'label'   => 'Quform',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'sendinblue_status'            => [
+			'sendinblue_status'             => [
 				'label'   => 'Sendinblue',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'subscriber_status'            => [
+			'subscriber_status'             => [
 				'label'   => 'Subscriber',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'supportcandy_status'          => [
+			'supportcandy_status'           => [
 				'label'   => 'Support Candy',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'ultimate_member_status'       => [
+			'ultimate_member_status'        => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',
 				'options' => [
@@ -314,7 +321,7 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'woocommerce_status'           => [
+			'woocommerce_status'            => [
 				'label'   => 'WooCommerce',
 				'type'    => 'checkbox',
 				'options' => [
@@ -325,14 +332,14 @@ class Integrations extends PluginSettingsBase {
 					'register'       => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'woocommerce_wishlists_status' => [
+			'woocommerce_wishlists_status'  => [
 				'label'   => 'WooCommerce Wishlists',
 				'type'    => 'checkbox',
 				'options' => [
 					'create_list' => __( 'Create List Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wpforms_status'               => [
+			'wpforms_status'                => [
 				'label'   => 'WPForms',
 				'type'    => 'checkbox',
 				'options' => [
@@ -340,14 +347,14 @@ class Integrations extends PluginSettingsBase {
 					'pro'  => __( 'Pro', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wpdiscuz_status'              => [
+			'wpdiscuz_status'               => [
 				'label'   => 'WPDiscuz',
 				'type'    => 'checkbox',
 				'options' => [
 					'comment_form' => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wpforo_status'                => [
+			'wpforo_status'                 => [
 				'label'   => 'WPForo',
 				'type'    => 'checkbox',
 				'options' => [

@@ -171,6 +171,10 @@ The form_id is the form_id for plugins like Gravity Forms or WPForms, the post i
 
 Filter arguments for some plugins/forms are listed below.
 
+Back In Stock Notifier
+$source: 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'
+$form_id: product_id
+
 BBPress
 $source: 'bbpress/bbpress.php'
 $form_id: 'new_topic', or 'reply'
@@ -340,6 +344,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Asgaros Forum New Topic Form
 * Asgaros Forum Reply Form
 * Avada Form
+* Back In Stock Notifier
 * bbPress New Topic Form
 * bbPress Reply Form
 * Beaver Builder Contact Form
@@ -401,6 +406,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.9.0 =
+* Added compatibility with Back In Stock Notifier.
 * Added visualisation of plugins available for activation and deactivation.
 * Added support to turn off hCaptcha on a specific ACF Extended form.
 * Added support to turn off hCaptcha on a specific Asgaros forum form.
