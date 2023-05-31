@@ -6,8 +6,10 @@
 
 class HCaptcha {
 	constructor() {
+		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn';
 		this.foundForms = [];
 		this.params = null;
+		this.validate = this.validate.bind( this );
 	}
 
 	/**
@@ -83,17 +85,16 @@ class HCaptcha {
 	 * @param {CustomEvent} event Event.
 	 */
 	validate( event ) {
-		const formElement = event.currentTarget;
+		const formElement = event.currentTarget.closest( 'form' );
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
-		const submitButtonElement = formElement.querySelectorAll(
-			form.submitButtonSelector
-		)[ 0 ];
+		const submitButtonElement = form.submitButtonElement;
 
 		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
 			return;
 		}
 
 		event.preventDefault();
+		event.stopPropagation();
 
 		this.currentForm = { formElement, submitButtonElement };
 		hcaptcha.execute( this.getWidgetId( formElement ) );
@@ -105,7 +106,7 @@ class HCaptcha {
 	 * @return {*[]} Forms.
 	 */
 	getForms() {
-		return [ ...document.querySelectorAll( 'form, div.fl-login-form' ) ];
+		return [ ...document.querySelectorAll( 'form, div.fl-login-form, section.cwginstock-subscribe-form' ) ];
 	}
 
 	/**
@@ -146,8 +147,6 @@ class HCaptcha {
 			return;
 		}
 
-		const submitButtonSelector = '*[type="submit"], a.fl-button, button[type="button"].ff-btn';
-
 		const params = this.getParams();
 
 		this.getForms().map( ( formElement ) => {
@@ -170,14 +169,14 @@ class HCaptcha {
 			}
 
 			const hCaptchaId = this.generateID();
-			this.foundForms.push( { hCaptchaId, submitButtonSelector } );
+			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
+
+			this.foundForms.push( { hCaptchaId, submitButtonElement } );
 
 			formElement.dataset.hCaptchaId = hCaptchaId;
-			formElement.addEventListener(
+			submitButtonElement.addEventListener(
 				'click',
-				( event ) => {
-					this.validate( event );
-				},
+				this.validate,
 				false
 			);
 
@@ -189,10 +188,20 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		if ( this.currentForm.formElement.requestSubmit ) {
-			this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
+		const formElement = this.currentForm.formElement;
+		const submitButtonElement = this.currentForm.submitButtonElement;
+
+		if ( 'submit' !== submitButtonElement.getAttribute( 'type' ) ) {
+			submitButtonElement.removeEventListener( 'click', this.validate );
+			submitButtonElement.click();
+
+			return;
+		}
+
+		if ( formElement.requestSubmit ) {
+			formElement.requestSubmit( submitButtonElement );
 		} else {
-			this.currentForm.formElement.submit();
+			formElement.submit();
 		}
 	}
 }
