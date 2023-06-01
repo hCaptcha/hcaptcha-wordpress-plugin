@@ -414,6 +414,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Contact 7 form.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
+* Fixed Divi login issue.
 
 = 2.8.0 =
 * Tested with WooCommerce 7.7.

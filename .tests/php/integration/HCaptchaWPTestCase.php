@@ -31,6 +31,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 		FunctionMocker::setUp();
 		parent::setUp();
 
+		hcaptcha()->has_result  = false;
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 	}
 

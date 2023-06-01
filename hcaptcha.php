@@ -84,7 +84,7 @@ require HCAPTCHA_INC . '/functions.php';
 function hcaptcha() {
 	static $hcaptcha;
 
-	if ( null === $hcaptcha ) {
+	if ( ! $hcaptcha ) {
 		$hcaptcha = new Main();
 	}
 

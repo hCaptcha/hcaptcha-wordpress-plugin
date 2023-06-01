@@ -53,6 +53,14 @@ class Main {
 	public $form_shown = false;
 
 	/**
+	 * We have the verification result of the hCaptcha widget.
+	 * Use this flag to send remote request only once.
+	 *
+	 * @var boolean
+	 */
+	public $has_result = false;
+
+	/**
 	 * Plugin modules.
 	 *
 	 * @var array
