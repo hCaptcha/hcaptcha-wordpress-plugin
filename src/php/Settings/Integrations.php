@@ -183,6 +183,15 @@ class Integrations extends PluginSettingsBase {
 					'registration' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'colorlib_customizer_status'    => [
+				'label'   => 'Colorlib Login Customizer',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'cf7_status'                    => [
 				'label'   => 'Contact Form 7',
 				'type'    => 'checkbox',
