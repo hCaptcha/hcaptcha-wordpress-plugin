@@ -407,6 +407,7 @@ Instructions for popular native integrations are below:
 
 = 2.9.0 =
 * Added compatibility with Back In Stock Notifier.
+* Added compatibility with Colorlib Login Customizer.
 * Added visualisation of plugins available for activation and deactivation.
 * Added support to turn off hCaptcha on a specific ACF Extended form.
 * Added support to turn off hCaptcha on a specific Asgaros forum form.

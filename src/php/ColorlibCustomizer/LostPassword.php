@@ -7,51 +7,48 @@
 
 namespace HCaptcha\ColorlibCustomizer;
 
-use HCaptcha\Helpers\HCaptcha;
-
 /**
  * Class LostPassword
- *
- * This class uses verify hook in WP\LostPassword.
  */
-class LostPassword {
-	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_lost_password';
+class LostPassword extends Base {
 
 	/**
-	 * Nonce name.
+	 * Get login style.
+	 *
+	 * @param string $hcaptcha_size hCaptcha widget size.
+	 *
+	 * @return string
 	 */
-	const NONCE = 'hcaptcha_lost_password_nonce';
+	protected function get_style( $hcaptcha_size ) {
+		ob_start();
 
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+		switch ( $hcaptcha_size ) {
+			case 'normal':
+				?>
+				<style>
+					.ml-container #login {
+						min-width: 350px;
+					}
+					.ml-container #lostpasswordform {
+						height: unset;
+					}
+				</style>
+				<?php
+				break;
+			case 'compact':
+				?>
+				<style>
+					.ml-container #lostpasswordform {
+						height: unset;
+					}
+				</style>
+				<?php
+				break;
+			case 'invisible':
+			default:
+				break;
+		}
 
-	/**
-	 * Init hooks.
-	 */
-	private function init_hooks() {
-//		add_action( 'woocommerce_lostpassword_form', [ $this, 'add_captcha' ] );
-	}
-
-	/**
-	 * Add captcha.
-	 */
-	public function add_captcha() {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
-			],
-		];
-
-		HCaptcha::form_display( $args );
+		return ob_get_clean();
 	}
 }

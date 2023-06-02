@@ -7,73 +7,48 @@
 
 namespace HCaptcha\ColorlibCustomizer;
 
-use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-
 /**
  * Class Register
  */
-class Register {
-	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_wc_register';
+class Register extends Base {
 
 	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_wc_register_nonce';
-
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
-
-	/**
-	 * Init hooks.
-	 */
-	private function init_hooks() {
-//		add_action( 'woocommerce_register_form', [ $this, 'add_captcha' ] );
-//		add_action( 'woocommerce_process_registration_errors', [ $this, 'verify' ] );
-	}
-
-	/**
-	 * Add captcha.
-	 */
-	public function add_captcha() {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
-		];
-
-		HCaptcha::form_display( $args );
-	}
-
-	/**
-	 * Verify register form.
+	 * Get register style.
 	 *
-	 * @param WP_Error $validation_error Validation error.
+	 * @param string $hcaptcha_size hCaptcha widget size.
 	 *
-	 * @return WP_Error
+	 * @return string
 	 */
-	public function verify( $validation_error ) {
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
+	protected function get_style( $hcaptcha_size ) {
+		ob_start();
 
-		if ( null === $error_message ) {
-			return $validation_error;
+		switch ( $hcaptcha_size ) {
+			case 'normal':
+				?>
+				<style>
+					.ml-container #login {
+						min-width: 350px;
+					}
+					.ml-container #registerform {
+						height: unset;
+					}
+				</style>
+				<?php
+				break;
+			case 'compact':
+				?>
+				<style>
+					.ml-container #registerform {
+						height: unset;
+					}
+				</style>
+				<?php
+				break;
+			case 'invisible':
+			default:
+				break;
 		}
 
-		$validation_error->add( 'hcaptcha_error', $error_message );
-
-		return $validation_error;
+		return ob_get_clean();
 	}
 }

@@ -7,76 +7,48 @@
 
 namespace HCaptcha\ColorlibCustomizer;
 
-use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-
 /**
  * Class Login
  */
-class Login extends LoginBase {
-	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
+class Login extends Base {
 
 	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
-
-	/**
-	 * Init hooks.
-	 */
-	protected function init_hooks() {
-//		parent::init_hooks();
-//
-//		add_action( 'woocommerce_login_form', [ $this, 'add_captcha' ] );
-//		add_action( 'woocommerce_process_login_errors', [ $this, 'verify' ] );
-	}
-
-	/**
-	 * Add captcha.
-	 */
-	public function add_captcha() {
-		if ( $this->is_login_limit_exceeded() ) {
-			$args = [
-				'action' => self::ACTION,
-				'name'   => self::NONCE,
-				'id'     => [
-					'source'  => HCaptcha::get_class_source( __CLASS__ ),
-					'form_id' => 'login',
-				],
-
-			];
-
-			HCaptcha::form_display( $args );
-		}
-	}
-
-	/**
-	 * Verify login form.
+	 * Get login style.
 	 *
-	 * @param WP_Error $validation_error Validation error.
+	 * @param string $hcaptcha_size hCaptcha widget size.
 	 *
-	 * @return WP_Error
+	 * @return string
 	 */
-	public function verify( $validation_error ) {
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $validation_error;
+	protected function get_style( $hcaptcha_size ) {
+		ob_start();
+
+		switch ( $hcaptcha_size ) {
+			case 'normal':
+				?>
+				<style>
+					.ml-container #login {
+						min-width: 350px;
+					}
+					.ml-container #loginform {
+						height: unset;
+					}
+				</style>
+				<?php
+				break;
+			case 'compact':
+				?>
+				<style>
+					.ml-container #loginform {
+						height: unset;
+					}
+				</style>
+				<?php
+				break;
+			case 'invisible':
+			default:
+				break;
 		}
 
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null === $error_message ) {
-			return $validation_error;
-		}
-
-		$validation_error->add( 'hcaptcha_error', $error_message );
-
-		return $validation_error;
+		return ob_get_clean();
 	}
 }
