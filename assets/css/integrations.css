@@ -8,6 +8,10 @@
 	border-left-width: 4px;
 }
 
+#hcaptcha-integrations-message {
+	z-index: 1;
+}
+
 #hcaptcha-integrations-message p {
 	font-size: 13px;
 	font-weight: 600;
@@ -30,8 +34,63 @@
 }
 
 .hcaptcha-integrations table tr {
+	position: relative;
 	background: #fff;
 	padding: 10px 20px;
+}
+
+.hcaptcha-integrations table tr:before {
+	visibility: hidden;
+	position: absolute;
+	content: '';
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #f0f0f0;
+	opacity: 0;
+	transition: all 1.5s;
+}
+
+.hcaptcha-integrations table tr.on:before,
+.hcaptcha-integrations table tr.off:before {
+	visibility: visible;
+	opacity: 0.7;
+	transition: all 1.5s;
+}
+
+.hcaptcha-integrations table tr:after {
+	visibility: hidden;
+	position: absolute;
+	content: '';
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	opacity: 0;
+	transition: all 1.5s;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: auto 80%;
+	background-image: url( '../images/spinner-white.svg' );
+}
+
+.hcaptcha-integrations table tr.on:after,
+.hcaptcha-integrations table tr.off:after {
+	visibility: visible;
+	opacity: 1;
+	transition: all 1.5s;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: auto 80%;
+}
+
+.hcaptcha-integrations table tr.on:after {
+	background-image: url( '../images/spinner-green.svg' );
+}
+
+.hcaptcha-integrations table tr.off:after {
+	background-image: url( '../images/spinner-red.svg' );
 }
 
 .hcaptcha-integrations table tr th {

@@ -2,16 +2,41 @@
 
 const integrations = function( $ ) {
 	const msgSelector = '#hcaptcha-integrations-message';
+	const $message = $( msgSelector );
+	const $wpwrap = $( '#wpwrap' );
+	const $adminmenuwrap = $( '#adminmenuwrap' );
+	const width = $wpwrap.width() + $adminmenuwrap.width();
+	const top = $wpwrap.position().top;
+	const left = $adminmenuwrap.width();
 
 	function clearMessage() {
-		$( msgSelector ).removeClass();
-		$( msgSelector ).html( '' );
+		$message.removeClass();
+		$message.html( '' );
 	}
 
 	function showMessage( message, msgClass ) {
-		$( msgSelector ).removeClass();
-		$( msgSelector ).addClass( msgClass );
-		$( msgSelector ).html( `<p>${ message }</p>` );
+		$message.removeClass();
+		$message.addClass( msgClass );
+		$message.html( `<p>${ message }</p>` );
+
+		const $fixed = $message.clone();
+
+		$message.css( 'visibility', 'hidden' );
+
+		$fixed.css( 'margin', '0px' );
+		$fixed.css( 'top', top );
+		$fixed.css( 'left', left );
+		$fixed.width( width );
+		$fixed.css( 'position', 'fixed' );
+		$( 'body' ).append( $fixed );
+
+		setTimeout(
+			() => {
+				$message.css( 'visibility', 'unset' );
+				$fixed.remove();
+			},
+			3000
+		);
 	}
 
 	function showSuccessMessage( response ) {
@@ -70,16 +95,20 @@ const integrations = function( $ ) {
 		}
 
 		// eslint-disable-next-line no-alert
-		if ( ! confirm( msg.replace( '%s', alt ) ) ) {
+		if ( ! event.ctrlKey && ! confirm( msg.replace( '%s', alt ) ) ) {
 			return;
 		}
 
+		const activateClass = activate ? 'on' : 'off';
 		const data = {
 			action: HCaptchaIntegrationsObject.action,
 			nonce: HCaptchaIntegrationsObject.nonce,
 			activate,
 			status,
 		};
+
+		$tr.find( 'fieldset' ).attr( 'disabled', ! activate );
+		$tr.addClass( activateClass );
 
 		$.post( {
 			url: HCaptchaIntegrationsObject.ajaxUrl,
@@ -93,12 +122,20 @@ const integrations = function( $ ) {
 
 				const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
 
-				$tr.find( 'fieldset' ).attr( 'disabled', ! activate );
 				showSuccessMessage( response.data );
 				insertIntoTable( $table, 'hcaptcha-integrations-' + status, $tr );
+				$( 'html, body' ).animate(
+					{
+						scrollTop: $tr.offset().top - top - $message.outerHeight(),
+					},
+					1000
+				);
 			} )
 			.fail( function( response ) {
 				showErrorMessage( response.statusText );
+			} )
+			.always( function() {
+				$tr.removeClass( 'on off' );
 			} );
 	} );
 };

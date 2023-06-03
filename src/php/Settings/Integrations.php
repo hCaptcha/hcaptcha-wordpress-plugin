@@ -599,7 +599,7 @@ class Integrations extends PluginSettingsBase {
 	 * We activate the first available plugin in the list only,
 	 * assuming that Pro plugins are placed earlier in the list.
 	 *
-	 * @param array $plugins      Plugins to activate.
+	 * @param array $plugins Plugins to activate.
 	 *
 	 * @return bool
 	 */
