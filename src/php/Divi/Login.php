@@ -75,7 +75,7 @@ class Login extends LoginBase {
 		$pattern     = '/(<p>[\s]*?<button)/';
 		$replacement = HCaptcha::form( $args ) . "\n" . '$1';
 
-		// Insert hcaptcha.
+		// Insert hCaptcha.
 		return preg_replace( $pattern, $replacement, $output );
 	}
 

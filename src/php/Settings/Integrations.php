@@ -203,9 +203,10 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Divi',
 				'type'    => 'checkbox',
 				'options' => [
-					'comment' => __( 'Divi Comment Form', 'hcaptcha-for-forms-and-more' ),
-					'contact' => __( 'Divi Contact Form', 'hcaptcha-for-forms-and-more' ),
-					'login'   => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
+					'comment'     => __( 'Divi Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'contact'     => __( 'Divi Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'email_optin' => __( 'Divi Email Optin Form', 'hcaptcha-for-forms-and-more' ),
+					'login'       => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'download_manager_status'       => [

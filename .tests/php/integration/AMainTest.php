@@ -19,6 +19,7 @@ use HCaptcha\BBPress\Reply;
 use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
+use HCaptcha\Divi\EmailOptin;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
@@ -1086,6 +1087,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'divi_status', 'contact' ],
 				'Divi',
 				Contact::class,
+			],
+			'Divi Email Optin Form'        => [
+				[ 'divi_status', 'email_optin' ],
+				'Divi',
+				EmailOptin::class,
 			],
 			'Divi Login Form'              => [
 				[ 'divi_status', 'login' ],

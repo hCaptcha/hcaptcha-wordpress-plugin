@@ -193,7 +193,7 @@ $form_id: 'create_group' or 'register'
 
 Divi
 $source: 'Divi'
-$form_id: post_id for comment form, 'contact', or 'login'
+$form_id: post_id for comment form, 'contact', 'email_optin', or 'login'
 
 WordPress Core
 $source: 'WordPress'
@@ -352,7 +352,9 @@ For more details, please see the hCaptcha privacy policy at:
 * BuddyPress Create Group Form
 * Buddypress Registration Form
 * Contact Form 7
+* Divi Comment Form
 * Divi Contact Form
+* Divi Email Optin Form
 * Divi Login Form
 * Download Manager Button
 * Elementor Pro Form
@@ -408,6 +410,7 @@ Instructions for popular native integrations are below:
 = 2.9.0 =
 * Added compatibility with Back In Stock Notifier.
 * Added compatibility with Colorlib Login Customizer.
+* Added compatibility with Divi Email Optin Form.
 * Added visualisation of plugins available for activation and deactivation.
 * Added support to turn off hCaptcha on a specific ACF Extended form.
 * Added support to turn off hCaptcha on a specific Asgaros forum form.

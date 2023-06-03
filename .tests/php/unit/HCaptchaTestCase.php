@@ -657,9 +657,10 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'comment' => 'Divi Comment Form',
-							'contact' => 'Divi Contact Form',
-							'login'   => 'Divi Login Form',
+							'comment'     => 'Divi Comment Form',
+							'contact'     => 'Divi Contact Form',
+							'email_optin' => 'Divi Email Optin Form',
+							'login'       => 'Divi Login Form',
 						],
 				],
 			'download_manager_status'       =>

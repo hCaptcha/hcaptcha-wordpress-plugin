@@ -102,7 +102,7 @@ describe( 'HCaptcha', () => {
 		expect( global.hcaptcha.render ).toHaveBeenCalledTimes( 2 );
 
 		// Check that an event listener was added to form1 for invisible hCaptcha
-		expect( submit1ClickHandler ).toHaveBeenCalledWith( 'click', expect.any( Function ), false );
+		expect( submit1ClickHandler ).toHaveBeenCalledWith( 'click', expect.any( Function ), true );
 
 		// Simulate click event on form1
 		const clickEvent = new Event( 'click', { bubbles: true } );

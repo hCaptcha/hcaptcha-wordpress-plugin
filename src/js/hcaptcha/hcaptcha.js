@@ -7,7 +7,7 @@
 class HCaptcha {
 	constructor() {
 		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form';
-		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn';
+		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button';
 		this.foundForms = [];
 		this.params = null;
 		this.validate = this.validate.bind( this );
@@ -178,7 +178,7 @@ class HCaptcha {
 			submitButtonElement.addEventListener(
 				'click',
 				this.validate,
-				false
+				true
 			);
 
 			return formElement;
@@ -191,12 +191,14 @@ class HCaptcha {
 	submit() {
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
+		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
+		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute ? submitButtonElementTypeAttribute.toLowerCase() : '';
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||
-			'submit' !== submitButtonElement.getAttribute( 'type' ).toLowerCase()
+			'submit' !== submitButtonElementTypeAttribute
 		) {
-			submitButtonElement.removeEventListener( 'click', this.validate );
+			submitButtonElement.removeEventListener( 'click', this.validate, true );
 			submitButtonElement.click();
 
 			return;

@@ -741,6 +741,11 @@ class Main {
 				'Divi',
 				Divi\Contact::class,
 			],
+			'Divi Email Optin Form'             => [
+				[ 'divi_status', 'email_optin' ],
+				'Divi',
+				Divi\EmailOptin::class,
+			],
 			'Divi Login Form'                   => [
 				[ 'divi_status', 'login' ],
 				'Divi',
