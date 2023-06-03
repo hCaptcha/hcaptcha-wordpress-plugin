@@ -193,8 +193,8 @@ class HCaptcha {
 		const submitButtonElement = this.currentForm.submitButtonElement;
 
 		if (
-			'form' !== submitButtonElement.tagName ||
-			'submit' !== submitButtonElement.getAttribute( 'type' )
+			'form' !== formElement.tagName.toLowerCase() ||
+			'submit' !== submitButtonElement.getAttribute( 'type' ).toLowerCase()
 		) {
 			submitButtonElement.removeEventListener( 'click', this.validate );
 			submitButtonElement.click();
