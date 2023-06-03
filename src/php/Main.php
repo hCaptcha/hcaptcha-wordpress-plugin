@@ -714,7 +714,7 @@ class Main {
 			'Colorlib Customizer Login'         => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				[ ColorlibCustomizer\Login::class ],
+				ColorlibCustomizer\Login::class,
 			],
 			'Colorlib Customizer Lost Password' => [
 				[ 'colorlib_customizer_status', 'lost_pass' ],
