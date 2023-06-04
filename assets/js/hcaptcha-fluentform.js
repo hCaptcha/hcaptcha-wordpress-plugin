@@ -58,14 +58,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 						const form = document.createElement( 'form' );
 						form.setAttribute( 'method', 'POST' );
 
-						if ( 'invisible' === hCaptcha.dataset.size ) {
-							// Clone submit button to remove all click events on it.
-							const newSubmitButton = submitBtn.cloneNode( true );
-							submitBtn.before( newSubmitButton );
-							submitBtn.remove();
-							submitBtn = newSubmitButton;
-						}
-
 						// Wrap submit button by form.
 						submitBtn.parentNode.insertBefore( form, submitBtn );
 						form.appendChild( submitBtn );
@@ -95,23 +87,31 @@ document.addEventListener( 'DOMContentLoaded', function() {
 const { fetch: originalFetch } = window;
 
 // Intercept fluent form fetch to add hCaptcha data.
-window.fetch = async ( ...args ) => {
+window.fetch = async( ...args ) => {
 	const [ resource, config ] = args;
 
 	// @param {FormData} body
 	const body = config.body;
 	const formId = body.get( 'form_id' );
 	const inputName = 'h-captcha-response';
+	const widgetName = 'hcaptcha-widget-id';
 	let data = body.get( 'data' );
 
 	if ( 'fluentform_submit' === body.get( 'action' ) && ! data.includes( inputName ) ) {
 		const hCaptchaResponse =
 			document.querySelector( '.ff_conv_app_' + formId + ' [name="' + inputName + '"]' );
+		const id =
+			document.querySelector( '.ff_conv_app_' + formId + ' [name="' + widgetName + '"]' );
 
-		data = data + '&' + inputName + '=' + hCaptchaResponse.value;
+		if ( hCaptchaResponse ) {
+			data = data + '&' + inputName + '=' + hCaptchaResponse.value;
+		}
+
+		if ( id ) {
+			data = data + '&' + widgetName + '=' + id.value;
+		}
 
 		body.set( 'data', data );
-
 		config.body = body;
 	}
 

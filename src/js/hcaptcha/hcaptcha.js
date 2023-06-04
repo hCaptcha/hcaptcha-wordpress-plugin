@@ -163,6 +163,11 @@ class HCaptcha {
 				return formElement;
 			}
 
+			// Do not deal with skipped hCaptcha.
+			if ( hcaptchaElement.classList.contains( 'hcaptcha-widget-id' ) ) {
+				return formElement;
+			}
+
 			hcaptcha.render( hcaptchaElement, params );
 
 			if ( 'invisible' !== hcaptchaElement.dataset.size ) {

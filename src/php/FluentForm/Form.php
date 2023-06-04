@@ -37,6 +37,13 @@ class Form {
 	const HANDLE = 'hcaptcha-fluentform';
 
 	/**
+	 * Conversational form id.
+	 *
+	 * @var int
+	 */
+	private $form_id;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -70,6 +77,10 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => (int) $form->id,
+			],
 		];
 
 		?>
@@ -100,8 +111,9 @@ class Form {
 			return $errors;
 		}
 
-		$hcaptcha_response = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
-		$error_message     = hcaptcha_request_verify( $hcaptcha_response );
+		$hcaptcha_response           = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
+		$_POST['hcaptcha-widget-id'] = isset( $data['hcaptcha-widget-id'] ) ? $data['hcaptcha-widget-id'] : '';
+		$error_message               = hcaptcha_request_verify( $hcaptcha_response );
 
 		if ( null !== $error_message ) {
 			$errors['h-captcha-response'] = [ $error_message ];
@@ -129,12 +141,22 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
 		];
 
 		$form = HCaptcha::form( $args );
 		$form = str_replace(
-			'class="h-captcha"',
-			'class="h-captcha-hidden" style="display: none;"',
+			[
+				'class="h-captcha"',
+				'class="hcaptcha-widget-id"',
+			],
+			[
+				'class="h-captcha-hidden" style="display: none;"',
+				'class="h-captcha-hidden hcaptcha-widget-id"',
+			],
 			$form
 		);
 
@@ -155,6 +177,8 @@ class Form {
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			$has_own_captcha = true;
 		}
+
+		$this->form_id = (int) $form->id;
 
 		hcaptcha()->fluentform_support_required = ! $has_own_captcha;
 
