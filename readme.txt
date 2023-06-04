@@ -430,6 +430,7 @@ Instructions for popular native integrations are below:
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 * Fixed Divi login issue.
 * Fixed Download Manager issue caused by the plugin update.
+* Fixed Elementor issue caused by the plugin update.
 
 = 2.8.0 =
 * Tested with WooCommerce 7.7.
