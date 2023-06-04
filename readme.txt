@@ -427,6 +427,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Download Manager form.
 * Added support to turn off hCaptcha on a specific Elementor form.
 * Added support to turn off hCaptcha on a specific Fluent form.
+* Added support to turn off hCaptcha on a specific Forminator form.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 * Fixed Divi login issue.

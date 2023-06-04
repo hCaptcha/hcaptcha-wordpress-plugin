@@ -7,7 +7,7 @@
 class HCaptcha {
 	constructor() {
 		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form';
-		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button';
+		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit';
 		this.foundForms = [];
 		this.params = null;
 		this.validate = this.validate.bind( this );
@@ -174,12 +174,18 @@ class HCaptcha {
 				return formElement;
 			}
 
-			const hCaptchaId = this.generateID();
 			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
+
+			if ( ! submitButtonElement ) {
+				return formElement;
+			}
+
+			const hCaptchaId = this.generateID();
 
 			this.foundForms.push( { hCaptchaId, submitButtonElement } );
 
 			formElement.dataset.hCaptchaId = hCaptchaId;
+
 			submitButtonElement.addEventListener(
 				'click',
 				this.validate,

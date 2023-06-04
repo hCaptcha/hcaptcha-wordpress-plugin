@@ -30,6 +30,13 @@ class Form {
 	const NONCE = 'hcaptcha_forminator_nonce';
 
 	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	private $form_id = 0;
+
+	/**
 	 * Quform constructor.
 	 */
 	public function __construct() {
@@ -42,8 +49,27 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
+		add_action( 'forminator_before_form_render', [ $this, 'before_form_render' ], 10, 5 );
 		add_action( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
+	}
+
+	/**
+	 * Get form id before render.
+	 *
+	 * @param int    $id            Form id.
+	 * @param string $form_type     Form type.
+	 * @param int    $post_id       Post id.
+	 * @param array  $form_fields   Form fields.
+	 * @param array  $form_settings Form settings.
+	 *
+	 * @return int
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function before_form_render( $id, $form_type, $post_id, $form_fields, $form_settings ) {
+		$this->form_id = $id;
+
+		return $id;
 	}
 
 	/**
@@ -59,6 +85,10 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
