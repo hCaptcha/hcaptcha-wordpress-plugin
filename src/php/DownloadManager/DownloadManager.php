@@ -52,9 +52,19 @@ class DownloadManager {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function add_hcaptcha( $template, $vars ) {
+		$form_id = 0;
+
+		if ( preg_match( '/wpdmdl=(\d+)/', $template, $m ) ) {
+			$form_id = (int) $m[1];
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $form_id,
+			],
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
@@ -64,7 +74,7 @@ class DownloadManager {
 		$template = str_replace( 'download-on-click', '', $template );
 		$url      = '';
 
-		if ( preg_match( '/href=\'(.+)?\'/', $template, $m ) ) {
+		if ( preg_match( '/data-downloadurl="(.+)?"/', $template, $m ) ) {
 			$url = $m[1];
 		}
 

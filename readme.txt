@@ -195,6 +195,10 @@ Divi
 $source: 'Divi'
 $form_id: post_id for comment form, 'contact', 'email_optin', or 'login'
 
+Download Manager
+$source: 'download-manager/download-manager.php'
+$form_id: post_id of download item in the admin.
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
@@ -416,6 +420,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Asgaros forum form.
 * Added support to turn off hCaptcha on a specific Avada form.
 * Added support to turn off hCaptcha on a specific Contact 7 form.
+* Added support to turn off hCaptcha on a specific Download Manager form.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 * Fixed Divi login issue.
