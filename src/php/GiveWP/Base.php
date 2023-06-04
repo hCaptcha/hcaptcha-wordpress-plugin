@@ -58,7 +58,10 @@ abstract class Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $valid_data ) {
-		if ( 'give_process_donation' !== $_POST['action'] ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$action = isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '';
+
+		if ( 'give_process_donation' !== $action ) {
 			return;
 		}
 
