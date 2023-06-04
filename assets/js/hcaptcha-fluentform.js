@@ -87,7 +87,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 const { fetch: originalFetch } = window;
 
 // Intercept fluent form fetch to add hCaptcha data.
-window.fetch = async( ...args ) => {
+window.fetch = async ( ...args ) => {
 	const [ resource, config ] = args;
 
 	// @param {FormData} body
