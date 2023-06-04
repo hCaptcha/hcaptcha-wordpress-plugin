@@ -50,7 +50,9 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_add_captcha() {
 		hcaptcha()->init_hooks();
 
-		$form = (object) [];
+		$form = (object) [
+			'id' => 1,
+		];
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
