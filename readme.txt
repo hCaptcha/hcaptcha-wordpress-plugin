@@ -199,6 +199,10 @@ Download Manager
 $source: 'download-manager/download-manager.php'
 $form_id: post_id of download item in the admin.
 
+Elementor Pro
+$source: 'elementor-pro/elementor-pro.php'
+$form_id: Form ID set for the form Content->Additional Options.
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
@@ -421,9 +425,11 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Avada form.
 * Added support to turn off hCaptcha on a specific Contact 7 form.
 * Added support to turn off hCaptcha on a specific Download Manager form.
+* Added support to turn off hCaptcha on a specific Elementor form.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 * Fixed Divi login issue.
+* Fixed Download Manager issue caused by the plugin update.
 
 = 2.8.0 =
 * Tested with WooCommerce 7.7.

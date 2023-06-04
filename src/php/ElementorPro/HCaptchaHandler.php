@@ -286,9 +286,19 @@ class HCaptchaHandler {
 
 		$this->add_render_attributes( $item, $item_index, $widget );
 
+		$data    = $widget->get_raw_data();
+		$form_id = isset( $data['settings']['form_id'] ) ? $data['settings']['form_id'] : 0;
+
+		$args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $form_id,
+			],
+		];
+
 		$hcaptcha_html .=
 			'<div class="elementor-hcaptcha">' .
-			HCaptcha::form() .
+			HCaptcha::form( $args ) .
 			'</div>';
 
 		$hcaptcha_html .= '</div>';
