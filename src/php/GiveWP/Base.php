@@ -33,11 +33,17 @@ abstract class Base {
 
 	/**
 	 * Add captcha to the form.
+	 *
+	 * @param int $form_id Form id.
 	 */
-	public function add_captcha() {
+	public function add_captcha( $form_id ) {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $form_id,
+			],
 		];
 
 		HCaptcha::form_display( $args );
@@ -52,6 +58,10 @@ abstract class Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $valid_data ) {
+		if ( 'give_process_donation' !== $_POST['action'] ) {
+			return;
+		}
+
 		$error_message = hcaptcha_get_verify_message(
 			static::NAME,
 			static::ACTION

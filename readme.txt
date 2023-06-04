@@ -428,11 +428,13 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Elementor form.
 * Added support to turn off hCaptcha on a specific Fluent form.
 * Added support to turn off hCaptcha on a specific Forminator form.
+* Added support to turn off hCaptcha on a specific GiveWP form.
 * Fixed ignoring hCaptcha on comments with Akismet.
 * Fixed interfering of WordPress and WooCommerce lost password settings.
 * Fixed Divi login issue.
 * Fixed Download Manager issue caused by the plugin update.
 * Fixed Elementor issue caused by the plugin update.
+* Fixed GiveWP issue caused by the plugin update.
 
 = 2.8.0 =
 * Tested with WooCommerce 7.7.
