@@ -15,6 +15,13 @@ use HCaptcha\Helpers\HCaptcha;
 class Form {
 
 	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	private $form_id = 0;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -27,8 +34,21 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
+		add_action( 'fusion_form_after_open', [ $this, 'form_after_open' ], 10, 2 );
 		add_action( 'fusion_element_button_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'fusion_form_demo_mode', [ $this, 'verify' ] );
+	}
+
+	/**
+	 * Store form id after form open.
+	 *
+	 * @param array $args   Argument.
+	 * @param array $params Parameters.
+	 *
+	 * @return void
+	 */
+	public function form_after_open( $args, $params ) {
+		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
 	}
 
 	/**
@@ -45,7 +65,14 @@ class Form {
 			return $html;
 		}
 
-		return HCaptcha::form() . $html;
+		$hcap_args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
+		];
+
+		return HCaptcha::form( $hcap_args ) . $html;
 	}
 
 	/**
@@ -63,8 +90,10 @@ class Form {
 			filter_var( wp_unslash( $_POST['formData'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			[];
 
-		$form_data         = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
-		$hcaptcha_response = isset( $form_data['h-captcha-response'] ) ? $form_data['h-captcha-response'] : '';
+		$form_data                   = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
+		$hcaptcha_response           = isset( $form_data['h-captcha-response'] ) ? $form_data['h-captcha-response'] : '';
+		$hcaptcha_widget_id          = isset( $form_data['hcaptcha-widget-id'] ) ? $form_data['hcaptcha-widget-id'] : '';
+		$_POST['hcaptcha-widget-id'] = $hcaptcha_widget_id;
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );

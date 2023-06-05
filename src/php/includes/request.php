@@ -118,14 +118,26 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
-		if ( ! HCaptcha::is_protection_enabled() ) {
+		static $result;
+
+		// Do not make remote request more than once.
+		if ( hcaptcha()->has_result ) {
 			/**
 			 * Filters the result of request verification.
 			 *
 			 * @param string|null $result      The result of verification. The null means success.
 			 * @param string[]    $error_codes Error code(s). Empty array on success.
 			 */
-			return apply_filters( 'hcap_verify_request', null, [] );
+			return apply_filters( 'hcap_verify_request', $result, [] );
+		}
+
+		hcaptcha()->has_result = true;
+
+		if ( ! HCaptcha::is_protection_enabled() ) {
+			$result = null;
+
+			/** This filter is documented above. */
+			return apply_filters( 'hcap_verify_request', $result, [] );
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(
@@ -138,8 +150,10 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$fail_message  = $errors['fail'];
 
 		if ( '' === $hcaptcha_response_sanitized ) {
+			$result = $empty_message;
+
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $empty_message, [ 'empty' ] );
+			return apply_filters( 'hcap_verify_request', $result, [ 'empty' ] );
 		}
 
 		$params = [
@@ -161,8 +175,10 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
+			$result = $fail_message;
+
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $fail_message, [ 'fail' ] );
+			return apply_filters( 'hcap_verify_request', $result, [ 'fail' ] );
 		}
 
 		$body = json_decode( $raw_body, true );

@@ -39,7 +39,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
+		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
@@ -75,7 +75,7 @@ class Login extends LoginBase {
 		$pattern     = '/(<p>[\s]*?<button)/';
 		$replacement = HCaptcha::form( $args ) . "\n" . '$1';
 
-		// Insert hcaptcha.
+		// Insert hCaptcha.
 		return preg_replace( $pattern, $replacement, $output );
 	}
 

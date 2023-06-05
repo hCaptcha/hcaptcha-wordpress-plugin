@@ -18,67 +18,77 @@ global.HCaptchaIntegrationsObject = {
 
 function getDom() {
 	return `
-      <html lang="en">
-        <body>
-          <div id="hcaptcha-integrations-message"></div>
-          <table class="form-table">
-            <tbody>
-            	<tr class="hcaptcha-integrations-wp-status">
-            		<th scope="row">
-                        <img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/wp-core-logo.png" alt="WP Core Logo">
-                    </th>
-                    <td>
-                    	<fieldset>
-                    		<label for="wp_status_1">
-                    			<input id="wp_status_1" name="hcaptcha_settings[wp_status][]" type="checkbox" value="comment" checked="checked">
-                    			Comment Form
-                            </label>
-                            <br>
-                            <label for="wp_status_2">
-                            	<input id="wp_status_2" name="hcaptcha_settings[wp_status][]" type="checkbox" value="login" checked="checked">
-                            	Login Form
-                            </label>
-                            <br>
-                            <label for="wp_status_3">
-                            	<input id="wp_status_3" name="hcaptcha_settings[wp_status][]" type="checkbox" value="lost_pass" checked="checked">
-                            	Lost Password Form
-                            </label>
-                            <br>
-                            <label for="wp_status_4">
-                            	<input id="wp_status_4" name="hcaptcha_settings[wp_status][]" type="checkbox" value="password_protected" checked="checked">
-                                Post/Page Password Form
-                            </label>
-                            <br>
-                            <label for="wp_status_5">
-                            	<input id="wp_status_5" name="hcaptcha_settings[wp_status][]" type="checkbox" value="register" checked="checked">
-                            	Register Form
-                            </label>
-                            <br>
-                        </fieldset>
-                    </td>
-                </tr>
-			</tbody>
-          </table>
-          <table class="form-table">
-            <tbody>
-            	<tr class="hcaptcha-integrations-acfe-status">
-            		<th scope="row">
-            			<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/acf-extended-logo.png" alt="ACF Extended Logo">
-                    </th>
-                    <td>
-                    	<fieldset disabled="disabled">
-                    		<label for="acfe_status_1">
-                    			<input id="acfe_status_1" name="hcaptcha_settings[acfe_status][]" type="checkbox" value="form" checked="checked">
-                    			ACF Extended Form
-                            </label>
-                            <br>
-                        </fieldset>
-                    </td>
-                </tr>
-			</tbody>
-          </table>
-        </body>
-      </html>
+<html lang="en">
+<body>
+<div id="wpwrap">
+<div id="hcaptcha-integrations-message"></div>
+	<table class="form-table">
+		<tbody>
+		<tr class="hcaptcha-integrations-wp-status">
+			<th scope="row">
+				<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/wp-core-logo.png"
+					 alt="WP Core Logo">
+			</th>
+			<td>
+				<fieldset>
+					<label for="wp_status_1">
+						<input id="wp_status_1" name="hcaptcha_settings[wp_status][]" type="checkbox" value="comment"
+							   checked="checked">
+						Comment Form
+					</label>
+					<br>
+					<label for="wp_status_2">
+						<input id="wp_status_2" name="hcaptcha_settings[wp_status][]" type="checkbox" value="login"
+							   checked="checked">
+						Login Form
+					</label>
+					<br>
+					<label for="wp_status_3">
+						<input id="wp_status_3" name="hcaptcha_settings[wp_status][]" type="checkbox" value="lost_pass"
+							   checked="checked">
+						Lost Password Form
+					</label>
+					<br>
+					<label for="wp_status_4">
+						<input id="wp_status_4" name="hcaptcha_settings[wp_status][]" type="checkbox"
+							   value="password_protected" checked="checked">
+						Post/Page Password Form
+					</label>
+					<br>
+					<label for="wp_status_5">
+						<input id="wp_status_5" name="hcaptcha_settings[wp_status][]" type="checkbox" value="register"
+							   checked="checked">
+						Register Form
+					</label>
+					<br>
+				</fieldset>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+	<table class="form-table">
+		<tbody>
+		<tr class="hcaptcha-integrations-acfe-status">
+			<th scope="row">
+				<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/acf-extended-logo.png"
+					 alt="ACF Extended Logo">
+			</th>
+			<td>
+				<fieldset disabled="disabled">
+					<label for="acfe_status_1">
+						<input id="acfe_status_1" name="hcaptcha_settings[acfe_status][]" type="checkbox" value="form"
+							   checked="checked">
+						ACF Extended Form
+					</label>
+					<br>
+				</fieldset>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+</body>
+</html>
     `;
 }
 

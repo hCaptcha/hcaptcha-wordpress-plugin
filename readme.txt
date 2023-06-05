@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.2
 Requires PHP: 5.6.20
-Stable tag: 2.8.0
+Stable tag: 2.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -169,7 +169,47 @@ The source is the plugin's slug (like 'directory/main-plugin-file.php'), the the
 
 The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
 
-For forms provided by WordPress Core, the filter receives the source as 'WordPress' and form_id as post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'.
+Filter arguments for some plugins/forms are listed below.
+
+Back In Stock Notifier
+$source: 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'
+$form_id: product_id
+
+BBPress
+$source: 'bbpress/bbpress.php'
+$form_id: 'new_topic', or 'reply'
+
+Beaver Builder
+$source: 'bb-plugin/fl-builder.php'
+$form_id: 'contact', or 'login'
+
+Brizy
+$source: 'brizy/brizy.php'
+$form_id: 'form'
+
+BuddyPress
+$source: 'buddypress/bp-loader.php'
+$form_id: 'create_group' or 'register'
+
+Divi
+$source: 'Divi'
+$form_id: post_id for comment form, 'contact', 'email_optin', or 'login'
+
+Download Manager
+$source: 'download-manager/download-manager.php'
+$form_id: post_id of download item in the admin.
+
+Elementor Pro
+$source: 'elementor-pro/elementor-pro.php'
+$form_id: Form ID set for the form Content->Additional Options.
+
+WordPress Core
+$source: 'WordPress'
+$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
+
+WooCommerce
+$source: 'woocommerce/woocommerce.php'
+$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'
 
 Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
 
@@ -312,6 +352,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Asgaros Forum New Topic Form
 * Asgaros Forum Reply Form
 * Avada Form
+* Back In Stock Notifier
 * bbPress New Topic Form
 * bbPress Reply Form
 * Beaver Builder Contact Form
@@ -319,7 +360,9 @@ For more details, please see the hCaptcha privacy policy at:
 * BuddyPress Create Group Form
 * Buddypress Registration Form
 * Contact Form 7
+* Divi Comment Form
 * Divi Contact Form
+* Divi Email Optin Form
 * Divi Login Form
 * Download Manager Button
 * Elementor Pro Form
@@ -371,6 +414,27 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 2.9.0 =
+* Added compatibility with Back In Stock Notifier.
+* Added compatibility with Colorlib Login Customizer.
+* Added compatibility with Divi Email Optin Form.
+* Added visualisation of plugins available for activation and deactivation from Integrations page.
+* Added support to turn off hCaptcha on a specific ACF Extended form.
+* Added support to turn off hCaptcha on a specific Asgaros forum form.
+* Added support to turn off hCaptcha on a specific Avada form.
+* Added support to turn off hCaptcha on a specific Contact 7 form.
+* Added support to turn off hCaptcha on a specific Download Manager form.
+* Added support to turn off hCaptcha on a specific Elementor form.
+* Added support to turn off hCaptcha on a specific Fluent form.
+* Added support to turn off hCaptcha on a specific Forminator form.
+* Added support to turn off hCaptcha on a specific GiveWP form.
+* Fixed ignoring hCaptcha on comments with Akismet.
+* Fixed interfering of WordPress and WooCommerce lost password settings.
+* Fixed Divi login issue.
+* Fixed Download Manager issue caused by the plugin update.
+* Fixed Elementor issue caused by the plugin update.
+* Fixed GiveWP issue caused by the plugin update.
 
 = 2.8.0 =
 * Tested with WooCommerce 7.7.

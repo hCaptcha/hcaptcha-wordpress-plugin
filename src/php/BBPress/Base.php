@@ -35,14 +35,18 @@ abstract class Base {
 	 * Add captcha to the form.
 	 */
 	public function add_captcha() {
-		$args = [
+		$form_id = str_replace( 'hcaptcha_bbp_', '', static::ACTION );
+		$args    = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $form_id,
+			],
 		];
 
 		HCaptcha::form_display( $args );
 	}
-
 
 	/**
 	 * Verify captcha.

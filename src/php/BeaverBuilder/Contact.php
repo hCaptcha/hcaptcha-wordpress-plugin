@@ -71,7 +71,7 @@ class Contact extends Base {
 
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
-		if ( ! $result ) {
+		if ( null === $result ) {
 			return;
 		}
 

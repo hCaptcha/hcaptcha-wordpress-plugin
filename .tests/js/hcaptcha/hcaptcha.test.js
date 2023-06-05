@@ -94,7 +94,7 @@ describe( 'HCaptcha', () => {
 		document.body.appendChild( form3 );
 
 		// Spy on addEventListener before calling bindEvents
-		const form1ClickHandler = jest.spyOn( form1, 'addEventListener' );
+		const submit1ClickHandler = jest.spyOn( submit1, 'addEventListener' );
 
 		hCaptcha.bindEvents();
 
@@ -102,7 +102,7 @@ describe( 'HCaptcha', () => {
 		expect( global.hcaptcha.render ).toHaveBeenCalledTimes( 2 );
 
 		// Check that an event listener was added to form1 for invisible hCaptcha
-		expect( form1ClickHandler ).toHaveBeenCalledWith( 'click', expect.any( Function ), false );
+		expect( submit1ClickHandler ).toHaveBeenCalledWith( 'click', expect.any( Function ), true );
 
 		// Simulate click event on form1
 		const clickEvent = new Event( 'click', { bubbles: true } );

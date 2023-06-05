@@ -4,12 +4,13 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
-import 'form-request-submit-polyfill/form-request-submit-polyfill';
-
 class HCaptcha {
 	constructor() {
+		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form';
+		this.submitButtonSelector = '*[type="submit"], a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit';
 		this.foundForms = [];
 		this.params = null;
+		this.validate = this.validate.bind( this );
 	}
 
 	/**
@@ -85,17 +86,16 @@ class HCaptcha {
 	 * @param {CustomEvent} event Event.
 	 */
 	validate( event ) {
-		const formElement = event.currentTarget;
+		const formElement = event.currentTarget.closest( this.formSelector );
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
-		const submitButtonElement = formElement.querySelectorAll(
-			form.submitButtonSelector
-		)[ 0 ];
+		const submitButtonElement = form.submitButtonElement;
 
 		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
 			return;
 		}
 
 		event.preventDefault();
+		event.stopPropagation();
 
 		this.currentForm = { formElement, submitButtonElement };
 		hcaptcha.execute( this.getWidgetId( formElement ) );
@@ -107,7 +107,7 @@ class HCaptcha {
 	 * @return {*[]} Forms.
 	 */
 	getForms() {
-		return [ ...document.querySelectorAll( 'form, div.fl-login-form' ) ];
+		return [ ...document.querySelectorAll( this.formSelector ) ];
 	}
 
 	/**
@@ -148,8 +148,6 @@ class HCaptcha {
 			return;
 		}
 
-		const submitButtonSelector = '*[type="submit"], a.fl-button, button[type="button"].ff-btn';
-
 		const params = this.getParams();
 
 		this.getForms().map( ( formElement ) => {
@@ -165,22 +163,33 @@ class HCaptcha {
 				return formElement;
 			}
 
+			// Do not deal with skipped hCaptcha.
+			if ( hcaptchaElement.classList.contains( 'hcaptcha-widget-id' ) ) {
+				return formElement;
+			}
+
 			hcaptcha.render( hcaptchaElement, params );
 
 			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
 				return formElement;
 			}
 
+			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
+
+			if ( ! submitButtonElement ) {
+				return formElement;
+			}
+
 			const hCaptchaId = this.generateID();
-			this.foundForms.push( { hCaptchaId, submitButtonSelector } );
+
+			this.foundForms.push( { hCaptchaId, submitButtonElement } );
 
 			formElement.dataset.hCaptchaId = hCaptchaId;
-			formElement.addEventListener(
+
+			submitButtonElement.addEventListener(
 				'click',
-				( event ) => {
-					this.validate( event );
-				},
-				false
+				this.validate,
+				true
 			);
 
 			return formElement;
@@ -191,7 +200,26 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		this.currentForm.formElement.requestSubmit( this.currentForm.submitButtonElement );
+		const formElement = this.currentForm.formElement;
+		const submitButtonElement = this.currentForm.submitButtonElement;
+		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
+		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute ? submitButtonElementTypeAttribute.toLowerCase() : '';
+
+		if (
+			'form' !== formElement.tagName.toLowerCase() ||
+			'submit' !== submitButtonElementTypeAttribute
+		) {
+			submitButtonElement.removeEventListener( 'click', this.validate, true );
+			submitButtonElement.click();
+
+			return;
+		}
+
+		if ( formElement.requestSubmit ) {
+			formElement.requestSubmit( submitButtonElement );
+		} else {
+			formElement.submit();
+		}
 	}
 }
 

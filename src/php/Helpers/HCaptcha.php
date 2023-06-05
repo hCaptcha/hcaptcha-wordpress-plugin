@@ -14,6 +14,16 @@ class HCaptcha {
 	const HCAPTCHA_WIDGET_ID = 'hcaptcha-widget-id';
 
 	/**
+	 * Default widget id.
+	 *
+	 * @var array
+	 */
+	private static $default_id = [
+		'source'  => [],
+		'form_id' => 0,
+	];
+
+	/**
 	 * Get hCaptcha form.
 	 *
 	 * @param array $args Arguments.
@@ -84,6 +94,9 @@ class HCaptcha {
 					name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
 					value="<?php echo esc_attr( $widget_id ); ?>">
 				<?php
+
+				hcaptcha()->form_shown = true;
+
 				return;
 			}
 		}
@@ -114,7 +127,8 @@ class HCaptcha {
 	 * Whether form protection is enabled/disabled via hCaptcha widget id.
 	 *
 	 * Return false(protection disabled) in only one case:
-	 * when $_POST['hcaptcha-widget-id'] contains encoded id array with proper hash.
+	 * when $_POST['hcaptcha-widget-id'] contains encoded id with proper hash
+	 * and hcap_protect_form filter confirms that form referenced in widget id is not protected.
 	 *
 	 * @return bool
 	 */
@@ -132,7 +146,43 @@ class HCaptcha {
 
 		list( $encoded_id, $hash ) = explode( '-', $widget_id );
 
-		return wp_hash( $encoded_id ) !== $hash;
+		$id = wp_parse_args(
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			(array) json_decode( base64_decode( $encoded_id ), true ),
+			self::$default_id
+		);
+
+		return ! (
+			wp_hash( $encoded_id ) === $hash &&
+			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
+		);
+	}
+
+	/**
+	 * Get hcaptcha widget id from $_POST.
+	 *
+	 * @return array
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 */
+	public static function get_widget_id() {
+		// Nonce is checked in hcaptcha_verify_post().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
+			filter_var( wp_unslash( $_POST[ self::HCAPTCHA_WIDGET_ID ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! $widget_id ) {
+			return self::$default_id;
+		}
+
+		list( $encoded_id, $hash ) = explode( '-', $widget_id );
+
+		return wp_parse_args(
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			(array) json_decode( base64_decode( $encoded_id ), true ),
+			self::$default_id
+		);
 	}
 
 	/**

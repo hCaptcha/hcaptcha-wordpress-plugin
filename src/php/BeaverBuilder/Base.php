@@ -33,6 +33,36 @@ abstract class Base extends LoginBase {
 	}
 
 	/**
+	 * Add hcaptcha.
+	 *
+	 * @param string         $out    Button html.
+	 * @param FLButtonModule $module Button module.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	protected function add_hcap_form( $out, $module ) {
+		$form_id = false !== strpos( static::ACTION, 'login' ) ? 'login' : 'contact';
+		$args    = [
+			'action' => static::ACTION,
+			'name'   => static::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $form_id,
+			],
+		];
+
+		$hcaptcha =
+			'<div class="fl-input-group fl-hcaptcha">' .
+			HCaptcha::form( $args ) .
+			'</div>';
+
+		$button_pattern = '<div class="fl-button-wrap';
+
+		return str_replace( $button_pattern, $hcaptcha . $button_pattern, $out );
+	}
+
+	/**
 	 * Enqueue Beaver Builder script.
 	 *
 	 * @return void
@@ -51,30 +81,5 @@ abstract class Base extends LoginBase {
 			HCAPTCHA_VERSION,
 			true
 		);
-	}
-
-	/**
-	 * Add hcaptcha.
-	 *
-	 * @param string         $out    Button html.
-	 * @param FLButtonModule $module Button module.
-	 *
-	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	protected function add_hcap_form( $out, $module ) {
-		$args = [
-			'action' => static::ACTION,
-			'name'   => static::NONCE,
-		];
-
-		$hcaptcha =
-			'<div class="fl-input-group fl-hcaptcha">' .
-			HCaptcha::form( $args ) .
-			'</div>';
-
-		$button_pattern = '<div class="fl-button-wrap';
-
-		return str_replace( $button_pattern, $hcaptcha . $button_pattern, $out );
 	}
 }

@@ -53,9 +53,13 @@ abstract class Base {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'form',
+			],
 		];
 
-		$search  = '<div class="brz-forms2 brz-forms2__item brz-forms2__item-button">';
+		$search  = '<div class="brz-forms2 brz-forms2__item brz-forms2__item-button"';
 		$replace =
 			'<div class="brz-forms2 brz-forms2__item">' .
 			HCaptcha::form( $args ) .
@@ -79,12 +83,16 @@ abstract class Base {
 		$hcaptcha_response = '';
 
 		foreach ( $data_arr as $item ) {
-			if (
-				isset( $item['name'], $item['value'] ) &&
-				( 'g-recaptcha-response' === $item['name'] || 'h-captcha-response' === $item['name'] )
-			) {
+			if ( ! isset( $item['name'], $item['value'] ) ) {
+				continue;
+			}
+
+			if ( 'g-recaptcha-response' === $item['name'] || 'h-captcha-response' === $item['name'] ) {
 				$hcaptcha_response = $item['value'];
-				break;
+			}
+
+			if ( 'hcaptcha-widget-id' === $item['name'] ) {
+				$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $item['value'];
 			}
 		}
 

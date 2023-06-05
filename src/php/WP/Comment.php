@@ -46,7 +46,7 @@ class Comment {
 	 */
 	private function init_hooks() {
 		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
-		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 20, 2 );
 	}
 
 	/**

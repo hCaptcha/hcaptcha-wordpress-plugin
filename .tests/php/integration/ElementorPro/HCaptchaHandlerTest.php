@@ -535,6 +535,12 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'data-size'    => $size,
 			],
 		];
+		$form_id           = 'test_form';
+		$data              = [
+			'settings' => [
+				'form_id' => $form_id,
+			],
+		];
 		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">		<div
 			class="h-captcha"
 			data-sitekey="some site key"
@@ -546,6 +552,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$widget = Mockery::mock( Widget_Base::class );
 		$widget->shouldReceive( 'add_render_attribute' )->with( $render_attributes )->once();
+		$widget->shouldReceive( 'get_raw_data' )->with()->once()->andReturn( $data );
 
 		$subject = new HCaptchaHandler();
 
