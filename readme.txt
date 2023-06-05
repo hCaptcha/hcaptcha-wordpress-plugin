@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.2
 Requires PHP: 5.6.20
-Stable tag: 2.8.0
+Stable tag: 2.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -419,7 +419,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Back In Stock Notifier.
 * Added compatibility with Colorlib Login Customizer.
 * Added compatibility with Divi Email Optin Form.
-* Added visualisation of plugins available for activation and deactivation.
+* Added visualisation of plugins available for activation and deactivation from Integrations page.
 * Added support to turn off hCaptcha on a specific ACF Extended form.
 * Added support to turn off hCaptcha on a specific Asgaros forum form.
 * Added support to turn off hCaptcha on a specific Avada form.
