@@ -51,7 +51,9 @@ class Form {
 		add_action( 'cwg_instock_after_email_field', [ $this, 'after_email_field' ], 10, 2 );
 		add_action( 'cwginstock_after_submit_button', [ $this, 'after_submit_button' ], 10, 2 );
 		add_action( 'cwginstock_ajax_data', [ $this, 'verify' ], 0, 2 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+
+		// Fire it before same in Main, which is on 0.
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], - 1 );
 	}
 
 	/**
@@ -132,6 +134,14 @@ class Form {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
+		if ( is_shop() ) {
+			/**
+			 * The form will be loaded on Ajax.
+			 * Here we signal the Main class to load hcaptcha script.
+			 */
+			hcaptcha()->form_shown = true;
+		}
+
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
