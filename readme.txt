@@ -207,6 +207,10 @@ Jetpack
 $source: 'jetpack/jetpack.php'
 $form_id: 'contact'
 
+Kadence
+$source: 'kadence-blocks/kadence-blocks.php'
+$form_id: post_id
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
@@ -422,6 +426,7 @@ Instructions for popular native integrations are below:
 = 2.10.0 =
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.
+* Added support to turn off hCaptcha on a specific Kadence form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
