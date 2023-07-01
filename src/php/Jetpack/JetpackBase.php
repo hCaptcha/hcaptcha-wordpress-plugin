@@ -15,6 +15,16 @@ use WP_Error;
 abstract class JetpackBase {
 
 	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_jetpack';
+
+	/**
+	 * Nonce name.
+	 */
+	const NAME = 'hcaptcha_jetpack_nonce';
+
+	/**
 	 * Error message.
 	 *
 	 * @var string|null
@@ -32,13 +42,13 @@ abstract class JetpackBase {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_filter( 'the_content', [ $this, 'jetpack_form' ] );
-		add_filter( 'widget_text', [ $this, 'jetpack_form' ], 0 );
+		add_filter( 'the_content', [ $this, 'add_captcha' ] );
+		add_filter( 'widget_text', [ $this, 'add_captcha' ], 0 );
 
 		add_filter( 'widget_text', 'shortcode_unautop' );
 		add_filter( 'widget_text', 'do_shortcode' );
 
-		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'jetpack_verify' ], 100, 2 );
+		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'verify' ], 100, 2 );
 	}
 
 	/**
@@ -48,7 +58,7 @@ abstract class JetpackBase {
 	 *
 	 * @return string|string[]|null
 	 */
-	abstract public function jetpack_form( $content );
+	abstract public function add_captcha( $content );
 
 	/**
 	 * Verify hCaptcha answer from the Jetpack Contact Form.
@@ -57,10 +67,10 @@ abstract class JetpackBase {
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function jetpack_verify( $is_spam = false ) {
+	public function verify( $is_spam = false ) {
 		$this->error_message = hcaptcha_get_verify_message(
-			'hcaptcha_jetpack_nonce',
-			'hcaptcha_jetpack'
+			static::NAME,
+			static::ACTION
 		);
 
 		if ( null === $this->error_message ) {
