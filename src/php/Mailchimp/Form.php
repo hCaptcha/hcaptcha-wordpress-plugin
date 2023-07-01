@@ -42,7 +42,7 @@ class Form {
 	private function init_hooks() {
 		add_filter( 'mc4wp_form_messages', [ $this, 'add_hcap_error_messages' ], 10, 2 );
 		add_action( 'mc4wp_form_content', [ $this, 'add_captcha' ], 20, 3 );
-		add_filter( 'mc4wp_valid_form_request', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'mc4wp_form_errors', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
@@ -68,9 +68,9 @@ class Form {
 	/**
 	 * Add hcaptcha to MailChimp form.
 	 *
-	 * @param string $content Content.
-	 * @param string $form    Form.
-	 * @param string $element Element.
+	 * @param string             $content Content.
+	 * @param MC4WP_Form         $form    Form.
+	 * @param MC4WP_Form_Element $element Element.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
@@ -79,6 +79,10 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $form->ID,
+			],
 		];
 
 		return str_replace(
@@ -92,21 +96,21 @@ class Form {
 	/**
 	 * Verify MailChimp captcha.
 	 *
-	 * @param bool  $valid Whether request is valid.
-	 * @param array $data  Form data.
+	 * @param array      $errors Errors.
+	 * @param MC4WP_Form $form   Form.
 	 *
-	 * @return null|string
+	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $valid, $data ) {
+	public function verify( $errors, $form ) {
 		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
-		$error_message = preg_replace( '/(.+: )?/', '', $error_message );
-		$error_code    = false;
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true );
+			$error_code = $error_code ?: 'empty';
+			$errors[]   = $error_code;
 		}
 
-		return $error_code ?: $valid;
+		return $errors;
 	}
 }

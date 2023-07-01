@@ -86,37 +86,46 @@ class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_captcha() {
-		$content  = '<input type="submit">';
-		$expected =
+		$content    = '<input type="submit">';
+		$expected   =
 			$this->get_hcap_form() .
 			wp_nonce_field( 'hcaptcha_mailchimp', 'hcaptcha_mailchimp_nonce', true, false ) .
 			'<input type="submit">';
-		$subject  = new Form();
+		$mc4wp_form = (object) [
+			'ID' => 5,
+		];
+		$subject    = new Form();
 
-		self::assertSame( $expected, $subject->add_captcha( $content, '', '' ) );
+		self::assertSame( $expected, $subject->add_captcha( $content, $mc4wp_form, null ) );
 	}
 
 	/**
 	 * Test verify().
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_verify() {
 		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
 		$subject = new Form();
 
-		self::assertTrue( $subject->verify( true, [] ) );
+		self::assertSame( [], $subject->verify( [], null ) );
 	}
 
 	/**
 	 * Test verify() not verified.
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_verify_not_verified() {
 		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 
 		$subject = new Form();
 
-		self::assertSame( 'fail', $subject->verify( true, [] ) );
+		self::assertSame( [ 'fail' ], $subject->verify( [], null ) );
 	}
 }
