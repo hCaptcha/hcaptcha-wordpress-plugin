@@ -26,11 +26,11 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_filter( 'the_content', [ $subject, 'jetpack_form' ] )
+			has_filter( 'the_content', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
 			0,
-			has_filter( 'widget_text', [ $subject, 'jetpack_form' ] )
+			has_filter( 'widget_text', [ $subject, 'add_captcha' ] )
 		);
 
 		self::assertSame(
@@ -44,7 +44,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			100,
-			has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'jetpack_verify' ] )
+			has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] )
 		);
 	}
 
@@ -56,8 +56,8 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		$subject = new JetpackForm();
 
-		self::assertFalse( $subject->jetpack_verify() );
-		self::assertTrue( $subject->jetpack_verify( true ) );
+		self::assertFalse( $subject->verify() );
+		self::assertTrue( $subject->verify( true ) );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		$subject = new JetpackForm();
 
-		self::assertEquals( $error, $subject->jetpack_verify() );
+		self::assertEquals( $error, $subject->verify() );
 		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', [ $subject, 'error_message' ] ) );
 	}
 }
