@@ -427,6 +427,7 @@ Instructions for popular native integrations are below:
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.
 * Added support to turn off hCaptcha on a specific Kadence form.
+* Added support to turn off hCaptcha on a specific Mailchimp form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
