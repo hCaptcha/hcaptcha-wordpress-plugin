@@ -177,11 +177,11 @@ $form_id: product_id
 
 BBPress
 $source: 'bbpress/bbpress.php'
-$form_id: 'new_topic', or 'reply'
+$form_id: 'new_topic' or 'reply'
 
 Beaver Builder
 $source: 'bb-plugin/fl-builder.php'
-$form_id: 'contact', or 'login'
+$form_id: 'contact' or 'login'
 
 Brizy
 $source: 'brizy/brizy.php'
@@ -211,13 +211,17 @@ Kadence
 $source: 'kadence-blocks/kadence-blocks.php'
 $form_id: post_id
 
+MemberPress
+$source: 'memberpress/memberpress.php'
+$form_id: 'login' or 'register'
+
 WordPress Core
 $source: 'WordPress'
-$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
+$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
 
 WooCommerce
 $source: 'woocommerce/woocommerce.php'
-$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'
+$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', or 'register'
 
 Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
 
@@ -428,6 +432,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Jetpack form.
 * Added support to turn off hCaptcha on a specific Kadence form.
 * Added support to turn off hCaptcha on a specific Mailchimp form.
+* Added support to turn off hCaptcha on a specific MemberPress form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
