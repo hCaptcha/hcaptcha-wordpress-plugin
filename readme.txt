@@ -417,6 +417,7 @@ Instructions for popular native integrations are below:
 
 = 2.10.0 =
 * Added Back In Stock Notifier support in the popup window.
+* Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
 * Added compatibility with Back In Stock Notifier.
