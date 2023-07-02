@@ -30,6 +30,11 @@ class Quform {
 	const NONCE = 'hcaptcha_quform_nonce';
 
 	/**
+	 * Max form element id.
+	 */
+	const MAX_ID = '9999_9999';
+
+	/**
 	 * Quform constructor.
 	 */
 	public function __construct() {
@@ -55,14 +60,13 @@ class Quform {
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $output, $tag, $attr, $m ) {
 		if ( 'quform' !== $tag ) {
 			return $output;
 		}
 
-		$max_id = '9999_9999';
+		$max_id = self::MAX_ID;
 
 		if ( preg_match_all( '/quform-element-(\d+?)_(\d+)\D/', $output, $m ) ) {
 			$element_ids = array_map( 'intval', array_unique( $m[2] ) );
@@ -79,6 +83,10 @@ class Quform {
 						$args = [
 							'action' => self::ACTION,
 							'name'   => self::NONCE,
+							'id'     => [
+								'source'  => HCaptcha::get_class_source( static::class ),
+								'form_id' => (int) $attr['id'],
+							],
 						];
 
 						HCaptcha::form_display( $args );
@@ -140,7 +148,7 @@ class Quform {
 	 * @return string
 	 */
 	private function get_max_element_id( $page ) {
-		$max_id = '9999_9999';
+		$max_id = self::MAX_ID;
 
 		if ( null === $page ) {
 			return $max_id;
