@@ -44,17 +44,25 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $output, $comments_count, $current_user ) {
+		global $post;
+
 		if ( ! preg_match( "/id='wpdiscuz-recaptcha-(.+?)'/", $output, $m ) ) {
 			return $output;
 		}
 
 		$unique_id = $m[1];
+		$args      = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $post ? $post->ID : 0,
+			],
+		];
 
 		ob_start();
 		?>
 		<div class="wpd-field-hcaptcha wpdiscuz-item">
 			<div class="wpdiscuz-hcaptcha" id='wpdiscuz-hcaptcha-<?php echo esc_attr( $unique_id ); ?>'></div>
-			<?php HCaptcha::form_display(); ?>
+			<?php HCaptcha::form_display( $args ); ?>
 			<div class="clearfix"></div>
 		</div>
 		<?php

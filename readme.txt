@@ -231,6 +231,10 @@ WooCommerce Wishlist
 $source: 'woocommerce-wishlists/woocommerce-wishlists.php'
 $form_id: 'form'
 
+wpDiscuz
+$source: 'wpdiscuz/class.WpdiscuzCore.php'
+$form_id: post_id
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
@@ -456,6 +460,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Support Candy form.
 * Added support to turn off hCaptcha on a specific Ultimate Member form.
 * Added support to turn off hCaptcha on a specific WooCommerce Wishlist form.
+* Added support to turn off hCaptcha on a specific wpDiscuz form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
