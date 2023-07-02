@@ -227,6 +227,10 @@ Ultimate Member
 $source: 'ultimate-member/ultimate-member.php'
 $form_id: form_id or 'password'
 
+WooCommerce Wishlist
+$source: 'woocommerce-wishlists/woocommerce-wishlists.php'
+$form_id: 'form'
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
@@ -451,6 +455,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Subscriber form.
 * Added support to turn off hCaptcha on a specific Support Candy form.
 * Added support to turn off hCaptcha on a specific Ultimate Member form.
+* Added support to turn off hCaptcha on a specific WooCommerce Wishlist form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
