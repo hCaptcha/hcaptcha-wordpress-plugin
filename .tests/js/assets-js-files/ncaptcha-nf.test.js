@@ -1,15 +1,27 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-/* global Backbone */
+/* global Backbone, jQuery */
+
+import $ from 'jquery';
+
+global.jQuery = $;
+global.$ = $;
 
 import '../__mocks__/backboneMarionette';
 import '../__mocks__/backboneRadio';
-import '../../../assets/js/hcaptcha-nf';
 
 describe( 'Ninja Forms hCaptcha', () => {
 	let controller;
+	let ajaxPrefilterCallback;
 
 	beforeEach( () => {
+		// Mock jQuery.ajaxPrefilter
+		$.ajaxPrefilter = jest.fn( ( callback ) => {
+			ajaxPrefilterCallback = callback;
+		} );
+
+		require( '../../../assets/js/hcaptcha-nf.js' );
+
 		// Execute DOMContentLoaded event
 		document.dispatchEvent( new Event( 'DOMContentLoaded' ) );
 		controller = window.hCaptchaFieldController;
