@@ -34,7 +34,7 @@ class NF {
 	public function init_hooks() {
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
-		add_action( 'nf_get_form_id', [ $this, 'get_form_id' ] );
+		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $this, 'localize_field' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'nf_captcha_script' ] );
 	}
@@ -72,7 +72,7 @@ class NF {
 	 *
 	 * @return void
 	 */
-	public function get_form_id( $form_id ) {
+	public function set_form_id( $form_id ) {
 		$this->form_id = $form_id;
 	}
 
