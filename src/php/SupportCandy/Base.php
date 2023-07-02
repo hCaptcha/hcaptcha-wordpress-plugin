@@ -40,6 +40,10 @@ abstract class Base {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'form',
+			],
 		];
 
 		HCaptcha::form_display( $args );
