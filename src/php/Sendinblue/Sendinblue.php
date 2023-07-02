@@ -51,6 +51,10 @@ class Sendinblue {
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => true,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => (int) $attr['id'],
+			],
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
