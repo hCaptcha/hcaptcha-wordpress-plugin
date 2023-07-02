@@ -2,10 +2,5 @@
 	<input id="nf-field-{{{ data.id }}}" name="nf-field-{{{ data.id }}}" class="{{{ data.renderClasses() }}} nf-element"
 		   type="hidden" value="{{{ data.value }}}"/>
 
-	<div id="{{{ data.hcaptcha_id }}}" class="h-captcha" data-sitekey="{{{ data.hcaptcha_key }}}"
-		 data-theme="{{{ data.hcaptcha_theme }}}" data-size="{{{ data.hcaptcha_size }}}"
-		 data-fieldid="{{{ data.id }}}">
-	</div>
-
-	{{{ data.hcaptcha_nonce_field }}}
+	{{{ data.hcaptcha }}}
 </script>

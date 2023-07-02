@@ -433,6 +433,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Kadence form.
 * Added support to turn off hCaptcha on a specific Mailchimp form.
 * Added support to turn off hCaptcha on a specific MemberPress form.
+* Added support to turn off hCaptcha on a specific Ninja form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =
