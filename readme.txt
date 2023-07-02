@@ -215,6 +215,10 @@ MemberPress
 $source: 'memberpress/memberpress.php'
 $form_id: 'login' or 'register'
 
+Subscriber
+$source: 'subscriber/subscriber.php'
+$form_id: 'form'
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
@@ -436,6 +440,7 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific Ninja form.
 * Added support to turn off hCaptcha on a specific Quform form.
 * Added support to turn off hCaptcha on a specific Sendinblue form.
+* Added support to turn off hCaptcha on a specific Subscriber form.
 * Fixed messages dynamic styling on Integrations page.
 
 = 2.9.0 =

@@ -52,6 +52,10 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'form',
+			],
 		];
 
 		return $content . HCaptcha::form( $args );
