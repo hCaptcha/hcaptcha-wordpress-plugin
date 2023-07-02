@@ -40,6 +40,10 @@ class Login extends LoginBase {
 	 * Add hCaptcha to the Register form.
 	 */
 	public function add_captcha() {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return;
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
