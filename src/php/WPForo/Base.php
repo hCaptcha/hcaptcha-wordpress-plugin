@@ -35,7 +35,7 @@ abstract class Base {
 	/**
 	 * Add captcha to the new topic form.
 	 *
-	 * @param array $topic Topic info.
+	 * @param array|int $topic Topic info.
 	 */
 	public function add_captcha( $topic ) {
 		$form_id = 0;
