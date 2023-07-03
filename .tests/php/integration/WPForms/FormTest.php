@@ -26,7 +26,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * Tests add_captcha().
 	 */
 	public function test_add_captcha() {
-		$expected =
+		$form_data = [ 'id' => 5 ];
+		$expected  =
 			$this->get_hcap_form() .
 			wp_nonce_field(
 				'hcaptcha_wpforms',
@@ -34,11 +35,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 				true,
 				false
 			);
-		$subject  = new Form();
+		$subject   = new Form();
 
 		ob_start();
 
-		$subject->add_captcha( [] );
+		$subject->add_captcha( $form_data );
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
