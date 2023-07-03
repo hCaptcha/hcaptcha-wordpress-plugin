@@ -34,11 +34,27 @@ abstract class Base {
 
 	/**
 	 * Add captcha to the new topic form.
+	 *
+	 * @param array $topic Topic info.
 	 */
-	public function add_captcha() {
+	public function add_captcha( $topic ) {
+		$form_id = 0;
+
+		if ( current_action() === Reply::ADD_CAPTCHA_HOOK ) {
+			$form_id = (int) $topic['topicid'];
+		}
+
+		if ( current_action() === NewTopic::ADD_CAPTCHA_HOOK ) {
+			$form_id = 'new_topic';
+		}
+
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $form_id,
+			],
 		];
 
 		HCaptcha::form_display( $args );

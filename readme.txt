@@ -239,6 +239,10 @@ WPForms
 $source: 'wpforms-lite/wpforms.php' or 'wpforms/wpforms.php'
 $form_id: form_id
 
+wpForo
+$source: 'wpforo/wpforo.php'
+$form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
