@@ -360,8 +360,35 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
+		$this->form_fields  = $this->sort_fields( $this->form_fields );
+
+		foreach ( $this->form_fields as &$form_field ) {
+			if ( isset( $form_field['label'] ) ) {
+				$form_field['label'] = $this->logo( $form_field['label'] );
+			}
+
+			if ( $form_field['disabled'] ) {
+				$form_field['section'] = self::SECTION_DISABLED;
+			} else {
+				$form_field['section'] = self::SECTION_ENABLED;
+			}
+		}
+
+		unset( $form_field );
+
+		parent::setup_fields();
+	}
+
+	/**
+	 * Sort fields. First, by enabled status, then by label.
+	 *
+	 * @param array $fields Fields.
+	 *
+	 * @return array
+	 */
+	public function sort_fields( $fields ) {
 		uasort(
-			$this->form_fields,
+			$fields,
 			static function ( $a, $b ) {
 				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
 				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
@@ -381,21 +408,7 @@ class Integrations extends PluginSettingsBase {
 			}
 		);
 
-		foreach ( $this->form_fields as &$form_field ) {
-			if ( isset( $form_field['label'] ) ) {
-				$form_field['label'] = $this->logo( $form_field['label'] );
-			}
-
-			if ( $form_field['disabled'] ) {
-				$form_field['section'] = self::SECTION_DISABLED;
-			} else {
-				$form_field['section'] = self::SECTION_ENABLED;
-			}
-		}
-
-		unset( $form_field );
-
-		parent::setup_fields();
+		return $fields;
 	}
 
 	/**

@@ -43,7 +43,7 @@ abstract class SettingsBase {
 	/**
 	 * Tabs of this settings page.
 	 *
-	 * @var array|null
+	 * @var array
 	 */
 	protected $tabs;
 
@@ -583,7 +583,7 @@ abstract class SettingsBase {
 	/**
 	 * Get tabs.
 	 *
-	 * @return array|null
+	 * @return array
 	 */
 	public function get_tabs() {
 		return $this->tabs;

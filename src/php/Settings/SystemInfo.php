@@ -103,7 +103,7 @@ class SystemInfo extends PluginSettingsBase {
 	 */
 	private function hcaptcha_info() {
 		$settings = hcaptcha()->settings();
-		$data     = $this->header( '-- hCaptcha Info' );
+		$data     = $this->header( '-- hCaptcha Info --' );
 
 		$data .= $this->data( 'Version', HCAPTCHA_VERSION );
 		$data .= $this->data( 'Site key', $this->is_empty( $settings->get_site_key() ) );
@@ -121,7 +121,57 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Failed login attempts interval, min', $settings->get( 'login_interval' ) );
 		$data .= $this->data( 'Delay showing hCaptcha, ms', $settings->get( 'delay' ) );
 
+		list( $integration_fields, $integration_settings ) = $this->get_integrations();
+
+		$disabled = false;
+
+		$data .= $this->header( '--- Active plugins and themes ---' );
+
+		foreach ( $integration_fields as $field_key => $field ) {
+			if ( $field['disabled'] !== $disabled ) {
+				$disabled = true;
+
+				$data .= $this->header( '--- Inactive plugins and themes ---' );
+			}
+
+			$data .= $this->data( $field['label'], '' );
+
+			foreach ( $field['options'] as $option_key => $option ) {
+				$setting = isset( $integration_settings[ $field_key ] ) ? $integration_settings[ $field_key ] : [];
+				$value   = in_array( $option_key, $setting, true ) ? 'On' : 'Off';
+
+				$data .= $this->data( '  ' . $option, $value );
+			}
+		}
+
 		return $data;
+	}
+
+	/**
+	 * Get integrations.
+	 *
+	 * @return array
+	 */
+	private function get_integrations() {
+		$tabs = hcaptcha()->settings()->get_tabs();
+
+		$tabs = array_filter(
+			$tabs,
+			static function ( $tab ) {
+				return is_a( $tab, Integrations::class );
+			}
+		);
+
+		if ( ! $tabs ) {
+			return [];
+		}
+
+		$integrations_obj = array_shift( $tabs );
+		$fields           = $integrations_obj->form_fields();
+		$fields           = $integrations_obj->sort_fields( $fields );
+		$settings         = $integrations_obj->settings;
+
+		return [ $fields, $settings ];
 	}
 
 	/**
@@ -130,7 +180,7 @@ class SystemInfo extends PluginSettingsBase {
 	 * @return string
 	 */
 	private function site_info() {
-		$data = $this->header( '-- Site Info' );
+		$data = $this->header( '-- Site Info --' );
 
 		$data .= $this->data( 'Site URL', site_url() );
 		$data .= $this->data( 'Home URL', home_url() );
@@ -151,7 +201,7 @@ class SystemInfo extends PluginSettingsBase {
 		$theme_data = wp_get_theme();
 		$theme      = $theme_data->get( 'Name' ) . ' ' . $theme_data->get( 'Version' );
 
-		$data = $this->header( '-- WordPress Configuration' );
+		$data = $this->header( '-- WordPress Configuration --' );
 
 		$data .= $this->data( 'Version', get_bloginfo( 'version' ) );
 		$data .= $this->data( 'Language', get_locale() );
@@ -188,7 +238,7 @@ class SystemInfo extends PluginSettingsBase {
 	 * @noinspection NestedTernaryOperatorInspection
 	 */
 	private function uploads_info() {
-		$data = $this->header( '-- WordPress Uploads/Constants' );
+		$data = $this->header( '-- WordPress Uploads/Constants --' );
 
 		$data .= $this->data( 'WP_CONTENT_DIR', defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR ?: 'Disabled' : 'Not set' );
 		$data .= $this->data( 'WP_CONTENT_URL', defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL ?: 'Disabled' : 'Not set' );
@@ -232,7 +282,7 @@ class SystemInfo extends PluginSettingsBase {
 		$mu_plugins = get_mu_plugins();
 
 		if ( ! empty( $mu_plugins ) && count( $mu_plugins ) > 0 ) {
-			$data = $this->header( '-- Must-Use Plugins' );
+			$data = $this->header( '-- Must-Use Plugins --' );
 
 			$key_length = $this->get_max_key_length( $mu_plugins, 'Name' );
 
@@ -253,7 +303,7 @@ class SystemInfo extends PluginSettingsBase {
 		$updates = get_plugin_updates();
 
 		// WordPress active plugins.
-		$data = $this->header( '-- WordPress Active Plugins' );
+		$data = $this->header( '-- WordPress Active Plugins --' );
 
 		$plugins        = get_plugins();
 		$active_plugins = get_option( 'active_plugins', [] );
@@ -271,7 +321,7 @@ class SystemInfo extends PluginSettingsBase {
 		}
 
 		// WordPress inactive plugins.
-		$data .= $this->header( '-- WordPress Inactive Plugins' );
+		$data .= $this->header( '-- WordPress Inactive Plugins --' );
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
 			if ( in_array( $plugin_path, $active_plugins, true ) ) {
@@ -301,7 +351,7 @@ class SystemInfo extends PluginSettingsBase {
 		$updates = get_plugin_updates();
 
 		// WordPress Multisite active plugins.
-		$data = $this->header( '-- Network Active Plugins' );
+		$data = $this->header( '-- Network Active Plugins --' );
 
 		$plugins        = wp_get_active_network_plugins();
 		$active_plugins = get_site_option( 'active_sitewide_plugins', [] );
@@ -331,14 +381,14 @@ class SystemInfo extends PluginSettingsBase {
 		global $wpdb;
 
 		// Server configuration (really just versions).
-		$data = $this->header( '-- Webserver Configuration' );
+		$data = $this->header( '-- Webserver Configuration --' );
 
 		$data .= $this->data( 'PHP Version', PHP_VERSION );
 		$data .= $this->data( 'MySQL Version', $wpdb->db_version() );
 		$data .= $this->data( 'Webserver Info', isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '' );
 
 		// PHP configs... now we're getting to the important stuff.
-		$data .= $this->header( '-- PHP Configuration' );
+		$data .= $this->header( '-- PHP Configuration --' );
 		$data .= $this->data( 'Memory Limit', ini_get( 'memory_limit' ) );
 		$data .= $this->data( 'Upload Max Size', ini_get( 'upload_max_filesize' ) );
 		$data .= $this->data( 'Post Max Size', ini_get( 'post_max_size' ) );
@@ -348,14 +398,14 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Display Errors', ( ini_get( 'display_errors' ) ? 'On (' . ini_get( 'display_errors' ) . ')' : 'N/A' ) );
 
 		// PHP extensions and such.
-		$data .= $this->header( '-- PHP Extensions' );
+		$data .= $this->header( '-- PHP Extensions --' );
 		$data .= $this->data( 'cURL', ( function_exists( 'curl_init' ) ? 'Supported' : 'Not Supported' ) );
 		$data .= $this->data( 'fsockopen', ( function_exists( 'fsockopen' ) ? 'Supported' : 'Not Supported' ) );
 		$data .= $this->data( 'SOAP Client', ( class_exists( 'SoapClient', false ) ? 'Installed' : 'Not Installed' ) );
 		$data .= $this->data( 'Suhosin', ( extension_loaded( 'suhosin' ) ? 'Installed' : 'Not Installed' ) );
 
 		// Session stuff.
-		$data .= $this->header( '-- Session Configuration' );
+		$data .= $this->header( '-- Session Configuration --' );
 		$data .= $this->data( 'Session', isset( $_SESSION ) ? 'Enabled' : 'Disabled' );
 
 		// The rest of this is only relevant if session is enabled.
