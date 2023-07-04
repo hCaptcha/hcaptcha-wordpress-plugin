@@ -456,6 +456,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.10.0 =
+* Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.
 * Added support to turn off hCaptcha on a specific Kadence form.
