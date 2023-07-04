@@ -10,9 +10,9 @@ namespace HCaptcha\Settings;
 use HCaptcha\Settings\Abstracts\SettingsBase;
 
 /**
- * Class Tables
+ * Class Integrations
  *
- * Settings page "Integrations" (main).
+ * Settings page "Integrations".
  */
 class Integrations extends PluginSettingsBase {
 
@@ -32,45 +32,14 @@ class Integrations extends PluginSettingsBase {
 	const OBJECT = 'HCaptchaIntegrationsObject';
 
 	/**
+	 * Enabled section id.
+	 */
+	const SECTION_ENABLED = 'enabled';
+
+	/**
 	 * Disabled section id.
 	 */
 	const SECTION_DISABLED = 'disabled';
-
-	/**
-	 * Get screen id.
-	 *
-	 * @return string
-	 */
-	public function screen_id() {
-		return 'settings_page_hcaptcha';
-	}
-
-	/**
-	 * Get option group.
-	 *
-	 * @return string
-	 */
-	protected function option_group() {
-		return 'hcaptcha_group';
-	}
-
-	/**
-	 * Get option page.
-	 *
-	 * @return string
-	 */
-	protected function option_page() {
-		return 'hcaptcha';
-	}
-
-	/**
-	 * Get option name.
-	 *
-	 * @return string
-	 */
-	protected function option_name() {
-		return 'hcaptcha_settings';
-	}
 
 	/**
 	 * Get page title.
@@ -79,15 +48,6 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function page_title() {
 		return __( 'Integrations', 'hcaptcha-for-forms-and-more' );
-	}
-
-	/**
-	 * Get menu title.
-	 *
-	 * @return string
-	 */
-	protected function menu_title() {
-		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 	}
 
 	/**
@@ -428,6 +388,8 @@ class Integrations extends PluginSettingsBase {
 
 			if ( $form_field['disabled'] ) {
 				$form_field['section'] = self::SECTION_DISABLED;
+			} else {
+				$form_field['section'] = self::SECTION_ENABLED;
 			}
 		}
 
@@ -493,10 +455,6 @@ class Integrations extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
-		if ( ! $this->is_options_screen() ) {
-			return;
-		}
-
 		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/integrations$this->min_prefix.js",

@@ -31,7 +31,7 @@ abstract class SettingsBase {
 	 *
 	 * @var array
 	 */
-	protected $form_fields;
+	protected $form_fields = [];
 
 	/**
 	 * Plugin options.
@@ -118,11 +118,6 @@ abstract class SettingsBase {
 	abstract protected function settings_link_text();
 
 	/**
-	 * Init form fields.
-	 */
-	abstract protected function init_form_fields();
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -154,11 +149,6 @@ abstract class SettingsBase {
 	 * @param array $arguments Arguments.
 	 */
 	abstract public function section_callback( $arguments );
-
-	/**
-	 * Enqueue scripts in admin.
-	 */
-	abstract public function admin_enqueue_scripts();
 
 	/**
 	 * Get text domain.
@@ -215,6 +205,13 @@ abstract class SettingsBase {
 		add_filter( 'pre_update_site_option_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
+	}
+
+	/**
+	 * Init form fields.
+	 */
+	public function init_form_fields() {
+		$this->form_fields = [];
 	}
 
 	/**
@@ -419,10 +416,20 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Enqueue scripts in admin.
+	 */
+	public function admin_enqueue_scripts() {
+	}
+
+	/**
 	 * Enqueue relevant admin_enqueue_scripts() basing on tabs.
 	 * Enqueue admin style.
 	 */
 	public function base_admin_enqueue_scripts() {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
 		$this->get_active_tab()->admin_enqueue_scripts();
 
 		wp_enqueue_style(
@@ -442,6 +449,17 @@ abstract class SettingsBase {
 		}
 
 		$tab = $this->get_active_tab();
+
+		if ( empty( $this->form_fields ) ) {
+			add_settings_section(
+				$this->section_title(),
+				'',
+				[ $tab, 'section_callback' ],
+				$tab->option_page()
+			);
+
+			return;
+		}
 
 		foreach ( $this->form_fields as $form_field ) {
 			add_settings_section(
@@ -959,7 +977,7 @@ abstract class SettingsBase {
 			'table'    => 'print_table_field',
 		];
 
-		$type = $arguments['type'];
+		$type = isset( $arguments['type'] ) ? $arguments['type'] : '';
 
 		if ( ! array_key_exists( $type, $types ) ) {
 			return;

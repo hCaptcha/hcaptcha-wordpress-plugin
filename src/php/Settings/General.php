@@ -62,57 +62,12 @@ class General extends PluginSettingsBase {
 	const MODE_TEST_ENTERPRISE_BOT_DETECTED = 'test:enterprise_bot_detected';
 
 	/**
-	 * Get screen id.
-	 *
-	 * @return string
-	 */
-	public function screen_id() {
-		return 'settings_page_hcaptcha';
-	}
-
-	/**
-	 * Get option group.
-	 *
-	 * @return string
-	 */
-	protected function option_group() {
-		return 'hcaptcha_group';
-	}
-
-	/**
-	 * Get option page.
-	 *
-	 * @return string
-	 */
-	protected function option_page() {
-		return 'hcaptcha';
-	}
-
-	/**
-	 * Get option name.
-	 *
-	 * @return string
-	 */
-	protected function option_name() {
-		return 'hcaptcha_settings';
-	}
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
 	 */
 	protected function page_title() {
 		return __( 'General', 'hcaptcha-for-forms-and-more' );
-	}
-
-	/**
-	 * Get menu title.
-	 *
-	 * @return string
-	 */
-	protected function menu_title() {
-		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 	}
 
 	/**
@@ -471,10 +426,6 @@ class General extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
-		if ( ! $this->is_options_screen() ) {
-			return;
-		}
-
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_prefix.css",

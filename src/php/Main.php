@@ -28,6 +28,7 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
 
@@ -137,7 +138,11 @@ class Main {
 	public function init_hooks() {
 		$this->settings = new Settings(
 			[
-				'hCaptcha' => [ General::class, Integrations::class ],
+				'hCaptcha' => [
+					General::class,
+					Integrations::class,
+					SystemInfo::class,
+				],
 			]
 		);
 

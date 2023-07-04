@@ -1,0 +1,11 @@
+textarea.hcaptcha-system-info {
+	width: 100%;
+	max-width: 1000px;
+	height: 450px;
+	font-size: 12px;
+	font-family: Consolas, Monaco, monospace;
+	background: #fff;
+	white-space: pre;
+	overflow: auto;
+	padding: 20px;
+}

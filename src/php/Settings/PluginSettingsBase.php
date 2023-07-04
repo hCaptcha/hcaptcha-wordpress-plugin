@@ -29,6 +29,51 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
+	 * Get menu title.
+	 *
+	 * @return string
+	 */
+	protected function menu_title() {
+		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
+	}
+
+	/**
+	 * Get screen id.
+	 *
+	 * @return string
+	 */
+	public function screen_id() {
+		return 'settings_page_hcaptcha';
+	}
+
+	/**
+	 * Get option group.
+	 *
+	 * @return string
+	 */
+	protected function option_group() {
+		return 'hcaptcha_group';
+	}
+
+	/**
+	 * Get option page.
+	 *
+	 * @return string
+	 */
+	protected function option_page() {
+		return 'hcaptcha';
+	}
+
+	/**
+	 * Get option name.
+	 *
+	 * @return string
+	 */
+	protected function option_name() {
+		return 'hcaptcha_settings';
+	}
+
+	/**
 	 * Get plugin base name.
 	 *
 	 * @return string
@@ -86,7 +131,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * Setup settings fields.
 	 */
 	public function setup_fields() {
-		$prefix = static::option_page() . '-' . static::section_title() . '-';
+		$prefix = $this->option_page() . '-' . static::section_title() . '-';
 
 		foreach ( $this->form_fields as $key => $form_field ) {
 			if ( ! isset( $form_field['class'] ) ) {
@@ -117,7 +162,10 @@ abstract class PluginSettingsBase extends SettingsBase {
 				<?php
 				do_settings_sections( $this->option_page() ); // Sections with options.
 				settings_fields( $this->option_group() ); // Hidden protection fields.
-				submit_button();
+
+				if ( ! empty( $this->form_fields ) ) {
+					submit_button();
+				}
 				?>
 			</form>
 		</div>
