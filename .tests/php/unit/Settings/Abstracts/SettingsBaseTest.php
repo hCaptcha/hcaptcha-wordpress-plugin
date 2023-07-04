@@ -521,6 +521,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
 		$subject->shouldReceive( 'plugin_url' )->once()->andReturn( $plugin_url );
 		$subject->shouldReceive( 'plugin_version' )->once()->andReturn( $plugin_version );
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
