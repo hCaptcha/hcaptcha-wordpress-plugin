@@ -371,28 +371,6 @@ class SystemInfo extends PluginSettingsBase {
 	}
 
 	/**
-	 * Get Lite Connect status info string.
-	 *
-	 * @return string
-	 * @since 1.7.5
-	 *
-	 */
-	private function get_lite_connect_info() {
-
-		$lc_enabled       = wpforms_setting( 'lite-connect-enabled' );
-		$lc_enabled_since = wpforms_setting( 'lite-connect-enabled-since' );
-		$date             = date_i18n( 'M j, Y @ g:ia', $lc_enabled_since + get_option( 'gmt_offset' ) * 3600 );
-
-		if ( $lc_enabled ) {
-			$string = $lc_enabled_since ? 'Backup is enabled since ' . $date : 'Backup is enabled';
-		} else {
-			$string = $lc_enabled_since ? 'Backup is not enabled. Previously was enabled since ' . $date : 'Backup is not enabled';
-		}
-
-		return $string;
-	}
-
-	/**
 	 * Get header.
 	 *
 	 * @param string $header Header.
@@ -414,6 +392,7 @@ class SystemInfo extends PluginSettingsBase {
 	 */
 	private function data( $key, $value, $max_key_length = 0 ) {
 		$length = $max_key_length ? max( $max_key_length, self::DATA_KEY_LENGTH ) : self::DATA_KEY_LENGTH;
+
 		$length += 2;
 
 		return $this->mb_str_pad( $key . ': ', $length ) . $value . "\n";
