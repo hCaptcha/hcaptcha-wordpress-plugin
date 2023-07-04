@@ -360,7 +360,7 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
-		$this->form_fields  = $this->sort_fields( $this->form_fields );
+		$this->form_fields = $this->sort_fields( $this->form_fields );
 
 		foreach ( $this->form_fields as &$form_field ) {
 			if ( isset( $form_field['label'] ) ) {
