@@ -821,6 +821,11 @@ class Main {
 				'otter-blocks/otter-blocks.php',
 				Otter\Form::class,
 			],
+			'Paid Memberships Pro Login'        => [
+				[ 'paid_memberships_pro_status', 'login' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				PaidMembershipsPro\Login::class,
+			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',

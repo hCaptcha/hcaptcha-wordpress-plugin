@@ -417,6 +417,7 @@ For more details, please see the hCaptcha privacy policy at:
 * MemberPress Register Form
 * Ninja Forms
 * Otter Blocks Forms
+* Paid Memberships Pro Login Form
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
@@ -456,6 +457,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.10.0 =
+* Added compatibility with Paid Memberships Pro - Login Form.
 * Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.

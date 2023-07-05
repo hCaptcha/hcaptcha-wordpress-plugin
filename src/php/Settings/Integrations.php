@@ -254,6 +254,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'paid_memberships_pro_status'   => [
+				'label'   => 'Paid Memberships Pro',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'quform_status'                 => [
 				'label'   => 'Quform',
 				'type'    => 'checkbox',

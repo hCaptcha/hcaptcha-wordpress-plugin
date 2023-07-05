@@ -85,13 +85,13 @@ function hcap_get_error_messages() {
 /**
  * Get hCaptcha error message.
  *
- * @param array $error_codes Error codes.
+ * @param string|string[] $error_codes Error codes.
  *
  * @return string
  */
 function hcap_get_error_message( $error_codes ) {
-	$errors = hcap_get_error_messages();
-
+	$error_codes = (array) $error_codes;
+	$errors      = hcap_get_error_messages();
 	$message_arr = [];
 
 	foreach ( $error_codes as $error_code ) {
