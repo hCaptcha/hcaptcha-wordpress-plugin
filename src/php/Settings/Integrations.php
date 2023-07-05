@@ -258,7 +258,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Paid Memberships Pro',
 				'type'    => 'checkbox',
 				'options' => [
-					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'quform_status'                 => [

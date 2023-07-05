@@ -215,6 +215,10 @@ MemberPress
 $source: 'memberpress/memberpress.php'
 $form_id: 'login' or 'register'
 
+Paid Memberships Pro
+$source: 'paid-memberships-pro/paid-memberships-pro.php'
+$form_id: 'checkout' or 'login'
+
 Subscriber
 $source: 'subscriber/subscriber.php'
 $form_id: 'form'
@@ -417,6 +421,7 @@ For more details, please see the hCaptcha privacy policy at:
 * MemberPress Register Form
 * Ninja Forms
 * Otter Blocks Forms
+* Paid Memberships Pro Checkout Form
 * Paid Memberships Pro Login Form
 * Quform Forms
 * Sendinblue Form
@@ -457,7 +462,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 2.10.0 =
-* Added compatibility with Paid Memberships Pro - Login Form.
+* Added compatibility with Paid Memberships Pro.
 * Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.
