@@ -1148,6 +1148,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
+			'Paid Memberships Pro Login'   => [
+				[ 'paid_memberships_pro_status', 'login' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				\HCaptcha\PaidMembershipsPro\Login::class,
+			],
 			'Quform'                       => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
