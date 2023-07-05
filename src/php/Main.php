@@ -822,7 +822,7 @@ class Main {
 				Otter\Form::class,
 			],
 			'Paid Memberships Pro Checkout'     => [
-				[ 'paid_memberships_pro_status', 'login' ],
+				[ 'paid_memberships_pro_status', 'checkout' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Checkout::class,
 			],

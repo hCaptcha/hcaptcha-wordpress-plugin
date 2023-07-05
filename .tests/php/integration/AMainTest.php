@@ -1008,227 +1008,232 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_load_modules() {
 		$modules = [
-			'Comment Form'                 => [
+			'Comment Form'                  => [
 				[ 'wp_status', 'comment' ],
 				'',
 				Comment::class,
 			],
-			'Login Form'                   => [
+			'Login Form'                    => [
 				[ 'wp_status', 'login' ],
 				'',
 				Login::class,
 			],
-			'Lost Password Form'           => [
+			'Lost Password Form'            => [
 				[ 'wp_status', 'lost_pass' ],
 				'',
 				LostPassword::class,
 			],
-			'Register Form'                => [
+			'Register Form'                 => [
 				[ 'wp_status', 'register' ],
 				'',
 				Register::class,
 			],
-			'Asgaros Form'                 => [
+			'Asgaros Form'                  => [
 				[ 'asgaros_status', 'form' ],
 				'asgaros-forum/asgaros-forum.php',
 				\HCaptcha\Asgaros\Form::class,
 			],
-			'Avada Form'                   => [
+			'Avada Form'                    => [
 				[ 'avada_status', 'form' ],
 				'Avada',
 				[ \HCaptcha\Avada\Form::class ],
 			],
-			'bbPress New Topic'            => [
+			'bbPress New Topic'             => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
 				NewTopic::class,
 			],
-			'bbPress Reply'                => [
+			'bbPress Reply'                 => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
 				Reply::class,
 			],
-			'Beaver Builder Contact Form'  => [
+			'Beaver Builder Contact Form'   => [
 				[ 'beaver_builder_status', 'contact' ],
 				'bb-plugin/fl-builder.php',
 				\HCaptcha\BeaverBuilder\Contact::class,
 			],
-			'Beaver Builder Login Form'    => [
+			'Beaver Builder Login Form'     => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
 				[ \HCaptcha\BeaverBuilder\Login::class, Login::class ],
 			],
-			'Brizy Form'                   => [
+			'Brizy Form'                    => [
 				[ 'brizy_status', 'form' ],
 				'brizy/brizy.php',
 				[ \HCaptcha\Brizy\Form::class ],
 			],
-			'BuddyPress Create Group'      => [
+			'BuddyPress Create Group'       => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
 				CreateGroup::class,
 			],
-			'BuddyPress Register'          => [
+			'BuddyPress Register'           => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
 				\HCaptcha\BuddyPress\Register::class,
 			],
-			'Contact Form 7'               => [
+			'Contact Form 7'                => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
-			'Divi Comment Form'            => [
+			'Divi Comment Form'             => [
 				[ 'divi_status', 'comment' ],
 				'Divi',
 				[ \HCaptcha\Divi\Comment::class, Comment::class ],
 			],
-			'Divi Contact Form'            => [
+			'Divi Contact Form'             => [
 				[ 'divi_status', 'contact' ],
 				'Divi',
 				Contact::class,
 			],
-			'Divi Email Optin Form'        => [
+			'Divi Email Optin Form'         => [
 				[ 'divi_status', 'email_optin' ],
 				'Divi',
 				EmailOptin::class,
 			],
-			'Divi Login Form'              => [
+			'Divi Login Form'               => [
 				[ 'divi_status', 'login' ],
 				'Divi',
 				\HCaptcha\Divi\Login::class,
 			],
-			'Elementor Pro Form'           => [
+			'Elementor Pro Form'            => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
-			'Fluent Forms'                 => [
+			'Fluent Forms'                  => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
 				Form::class,
 			],
-			'Forminator'                   => [
+			'Forminator'                    => [
 				[ 'forminator_status', 'form' ],
 				'forminator/forminator.php',
 				\HCaptcha\Forminator\Form::class,
 			],
-			'GiveWP'                       => [
+			'GiveWP'                        => [
 				[ 'give_wp_status', 'form' ],
 				'give/give.php',
 				\HCaptcha\GiveWP\Form::class,
 			],
-			'Gravity Forms'                => [
+			'Gravity Forms'                 => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
 				\HCaptcha\GravityForms\Form::class,
 			],
-			'Jetpack'                      => [
+			'Jetpack'                       => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
-			'MailChimp'                    => [
+			'MailChimp'                     => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				\HCaptcha\Mailchimp\Form::class,
 			],
-			'MemberPress Login'            => [
+			'MemberPress Login'             => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',
 				[ \HCaptcha\MemberPress\Login::class, Login::class ],
 			],
-			'MemberPress Register'         => [
+			'MemberPress Register'          => [
 				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',
 				\HCaptcha\MemberPress\Register::class,
 			],
-			'Ninja Forms'                  => [
+			'Ninja Forms'                   => [
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
-			'Paid Memberships Pro Login'   => [
+			'Paid Memberships Pro Checkout' => [
+				[ 'paid_memberships_pro_status', 'checkout' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				\HCaptcha\PaidMembershipsPro\Checkout::class,
+			],
+			'Paid Memberships Pro Login'    => [
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				\HCaptcha\PaidMembershipsPro\Login::class,
 			],
-			'Quform'                       => [
+			'Quform'                        => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
 				Quform::class,
 			],
-			'Subscriber'                   => [
+			'Subscriber'                    => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
 				\HCaptcha\Subscriber\Form::class,
 			],
-			'Support Candy Form'           => [
+			'Support Candy Form'            => [
 				[ 'supportcandy_status', 'form' ],
 				'supportcandy/supportcandy.php',
 				\HCaptcha\SupportCandy\Form::class,
 			],
-			'Ultimate Member Login'        => [
+			'Ultimate Member Login'         => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\Login::class,
 			],
-			'Ultimate Member LostPassword' => [
+			'Ultimate Member LostPassword'  => [
 				[ 'ultimate_member_status', 'lost_pass' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\LostPassword::class,
 			],
-			'Ultimate Member Register'     => [
+			'Ultimate Member Register'      => [
 				[ 'ultimate_member_status', 'register' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\Register::class,
 			],
-			'WooCommerce Checkout'         => [
+			'WooCommerce Checkout'          => [
 				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
 				Checkout::class,
 			],
-			'WooCommerce Login'            => [
+			'WooCommerce Login'             => [
 				[ 'woocommerce_status', 'login' ],
 				'woocommerce/woocommerce.php',
 				\HCaptcha\WC\Login::class,
 			],
-			'WooCommerce Lost Password'    => [
+			'WooCommerce Lost Password'     => [
 				[ 'woocommerce_status', 'lost_pass' ],
 				'woocommerce/woocommerce.php',
 				[ LostPassword::class, \HCaptcha\WC\LostPassword::class ],
 			],
-			'WooCommerce Order Tracking'   => [
+			'WooCommerce Order Tracking'    => [
 				[ 'woocommerce_status', 'order_tracking' ],
 				'woocommerce/woocommerce.php',
 				OrderTracking::class,
 			],
-			'WooCommerce Register'         => [
+			'WooCommerce Register'          => [
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',
 				\HCaptcha\WC\Register::class,
 			],
-			'WooCommerce Wishlists'        => [
+			'WooCommerce Wishlists'         => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				CreateList::class,
 			],
-			'WPForms Lite'                 => [
+			'WPForms Lite'                  => [
 				[ 'wpforms_status', 'lite' ],
 				'wpforms-lite/wpforms.php',
 				\HCaptcha\WPForms\Form::class,
 			],
-			'WPForms Pro'                  => [
+			'WPForms Pro'                   => [
 				[ 'wpforms_status', 'pro' ],
 				'wpforms/wpforms.php',
 				\HCaptcha\WPForms\Form::class,
 			],
-			'wpForo New Topic'             => [
+			'wpForo New Topic'              => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
 				\HCaptcha\WPForo\NewTopic::class,
 			],
-			'wpForo Reply'                 => [
+			'wpForo Reply'                  => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
 				\HCaptcha\WPForo\Reply::class,

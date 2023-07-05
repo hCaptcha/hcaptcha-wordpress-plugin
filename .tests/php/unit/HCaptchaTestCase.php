@@ -775,7 +775,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'label'   => 'Paid Memberships Pro',
 					'type'    => 'checkbox',
 					'options' => [
-						'login' => 'Login Form',
+						'checkout' => 'Checkout Form',
+						'login'    => 'Login Form',
 					],
 				],
 			'quform_status'                 =>
