@@ -716,6 +716,11 @@ class Main {
 				'buddypress/bp-loader.php',
 				BuddyPress\Register::class,
 			],
+			'Classified Listing Contact'        => [
+				[ 'classified_listing_status', 'contact' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Contact::class,
+			],
 			'Classified Listing Login'          => [
 				[ 'classified_listing_status', 'login' ],
 				'classified-listing/classified-listing.php',

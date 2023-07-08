@@ -1073,10 +1073,20 @@ class AMainTest extends HCaptchaWPTestCase {
 				'buddypress/bp-loader.php',
 				\HCaptcha\BuddyPress\Register::class,
 			],
+			'Classified Listing Contact'        => [
+				[ 'classified_listing_status', 'contact' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\Contact::class,
+			],
 			'Classified Listing Login'          => [
 				[ 'classified_listing_status', 'login' ],
 				'classified-listing/classified-listing.php',
 				\HCaptcha\ClassifiedListing\Login::class,
+			],
+			'Classified Listing Lost Password'  => [
+				[ 'classified_listing_status', 'lost_pass' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\LostPassword::class,
 			],
 			'Classified Listing Register'       => [
 				[ 'classified_listing_status', 'register' ],

@@ -147,6 +147,7 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Classified Listing',
 				'type'    => 'checkbox',
 				'options' => [
+					'contact'   => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
