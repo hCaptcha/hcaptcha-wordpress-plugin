@@ -193,7 +193,7 @@ $form_id: 'create_group' or 'register'
 
 Classified Listing
 $source: 'classified-listing/classified-listing.php'
-$form_id: 'login', 'password' or 'register'
+$form_id: 'login', 'lost_password' or 'register'
 
 Divi
 $source: 'Divi'

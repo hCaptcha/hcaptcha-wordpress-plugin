@@ -41,7 +41,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	public function test_add_captcha() {
 		$expected =
 			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_lost_password', 'hcaptcha_lost_password_nonce', true, false );
+			wp_nonce_field( 'hcaptcha_wp_lost_password', 'hcaptcha_wp_lost_password_nonce', true, false );
 
 		$subject = new LostPassword();
 
@@ -59,7 +59,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = $validation_error;
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_lost_password_nonce', 'hcaptcha_lost_password' );
+		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password' );
 
 		$subject = new LostPassword();
 		$subject->verify( $validation_error );
@@ -76,7 +76,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 		$expected->add( 'hcaptcha_error', 'The Captcha is invalid.' );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_lost_password_nonce', 'hcaptcha_lost_password', false );
+		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password', false );
 
 		$subject = new LostPassword();
 		$subject->verify( $validation_error );

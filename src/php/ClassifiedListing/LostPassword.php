@@ -7,88 +7,35 @@
 
 namespace HCaptcha\ClassifiedListing;
 
-use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-use WP_User;
+use HCaptcha\Abstracts\LostPasswordBase;
 
 /**
  * Class LostPassword.
  */
-class LostPassword {
+class LostPassword extends LostPasswordBase {
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_classified_listing_lost_pass';
+	const ACTION = 'hcaptcha_classified_listing_lost_password';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_classified_listing_lost_pass_nonce';
+	const NONCE = 'hcaptcha_classified_listing_lost_password_nonce';
 
 	/**
-	 * Constructor.
+	 * Add hCaptcha action.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	const ADD_CAPTCHA_ACTION = 'rtcl_lost_password_form';
 
 	/**
-	 * Init hooks.
+	 * $_POST key to check.
 	 */
-	protected function init_hooks() {
-		add_action( 'rtcl_lost_password_form', [ $this, 'add_captcha' ] );
-		add_action( 'lostpassword_post', [ $this, 'verify' ] );
-	}
+	const POST_KEY = 'rtcl-lost-password';
 
 	/**
-	 * Add captcha.
-	 *
-	 * @return void
+	 * $_POST value to check.
 	 */
-	public function add_captcha() {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'password',
-			],
-		];
-
-		HCaptcha::form_display( $args );
-	}
-
-	/**
-	 * Verify lost password form.
-	 *
-	 * @param WP_Error $error Error.
-	 *
-	 * @return void
-	 */
-	public function verify( $error ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$rtcl_register = isset( $_POST['rtcl-lost-password'] ) ?
-			sanitize_text_field( wp_unslash( $_POST['rtcl-lost-password'] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( 'Reset Password' !== $rtcl_register ) {
-			return;
-		}
-
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null === $error_message ) {
-			return;
-		}
-
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
-
-		$error->add( $code, $error_message );
-	}
+	const POST_VALUE = 'Reset Password';
 }
