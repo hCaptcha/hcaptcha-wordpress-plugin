@@ -99,6 +99,7 @@ class Contact {
 	 * Verify contact form.
 	 *
 	 * @param WP_Error $error Error.
+	 * @param array    $data  Form data.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
