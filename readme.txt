@@ -471,7 +471,7 @@ Instructions for popular native integrations are below:
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
-* Added compatibility with Classified Listing (Contact, Login, Lost Password and Register forms).
+* Added compatibility with Classified Listing.
 * Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.
