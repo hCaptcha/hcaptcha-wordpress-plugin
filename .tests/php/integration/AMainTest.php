@@ -1073,6 +1073,31 @@ class AMainTest extends HCaptchaWPTestCase {
 				'buddypress/bp-loader.php',
 				\HCaptcha\BuddyPress\Register::class,
 			],
+			'Classified Listing Login'          => [
+				[ 'classified_listing_status', 'login' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\Login::class,
+			],
+			'Classified Listing Register'       => [
+				[ 'classified_listing_status', 'register' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\Register::class,
+			],
+			'Colorlib Customizer Login'         => [
+				[ 'colorlib_customizer_status', 'login' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				\HCaptcha\ColorlibCustomizer\Login::class,
+			],
+			'Colorlib Customizer Lost Password' => [
+				[ 'colorlib_customizer_status', 'lost_pass' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				\HCaptcha\ColorlibCustomizer\LostPassword::class,
+			],
+			'Colorlib Customizer Register'      => [
+				[ 'colorlib_customizer_status', 'register' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				\HCaptcha\ColorlibCustomizer\Register::class,
+			],
 			'Contact Form 7'                => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',

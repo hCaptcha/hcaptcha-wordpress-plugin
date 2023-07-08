@@ -633,6 +633,14 @@ abstract class HCaptchaTestCase extends TestCase {
 							'registration' => 'Registration Form',
 						],
 				],
+			'classified_listing_status'     => [
+				'label'   => 'Classified Listing',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'colorlib_customizer_status'    => [
 				'label'   => 'Colorlib Login Customizer',
 				'type'    => 'checkbox',

@@ -716,6 +716,16 @@ class Main {
 				'buddypress/bp-loader.php',
 				BuddyPress\Register::class,
 			],
+			'Classified Listing Login'          => [
+				[ 'classified_listing_status', 'login' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Login::class,
+			],
+			'Classified Listing Register'       => [
+				[ 'classified_listing_status', 'register' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Register::class,
+			],
 			'Colorlib Customizer Login'         => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
