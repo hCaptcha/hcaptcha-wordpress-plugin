@@ -445,7 +445,8 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
 * WPForms Lite
-* wpDiscuz
+* wpDiscuz Comment Form
+* wpDiscuz Support Form
 * wpForo New Topic Form
 * wpForo Reply Form
 
@@ -472,6 +473,7 @@ Instructions for popular native integrations are below:
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
 * Added compatibility with Classified Listing.
+* Added compatibility with wpDiscuz Subscribe Form.
 * Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.

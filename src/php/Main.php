@@ -307,6 +307,9 @@ class Main {
 		ob_get_clean();
 		?>
 		<style>
+			#wpdiscuz-subscribe-form .h-captcha {
+				margin-left: auto;
+			}
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
@@ -926,10 +929,15 @@ class Main {
 				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
 				\HCaptcha\WPForms\Form::class,
 			],
-			'wpDiscuz'                          => [
+			'wpDiscuz Comment'                  => [
 				[ 'wpdiscuz_status', 'comment_form' ],
-				[ 'wpdiscuz/class.WpdiscuzCore.php' ],
-				WPDiscuz\Form::class,
+				'wpdiscuz/class.WpdiscuzCore.php',
+				WPDiscuz\Comment::class,
+			],
+			'wpDiscuz Subscribe'                => [
+				[ 'wpdiscuz_status', 'subscribe_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				WPDiscuz\Subscribe::class,
 			],
 			'wpForo New Topic'                  => [
 				[ 'wpforo_status', 'new_topic' ],

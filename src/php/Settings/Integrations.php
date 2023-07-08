@@ -339,7 +339,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WPDiscuz',
 				'type'    => 'checkbox',
 				'options' => [
-					'comment_form' => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'comment_form'   => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'subscribe_form' => __( 'Subscribe Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wpforo_status'                 => [

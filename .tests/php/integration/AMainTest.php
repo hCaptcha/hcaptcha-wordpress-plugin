@@ -33,6 +33,7 @@ use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
+use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use ReflectionException;
 use stdClass;
@@ -495,6 +496,9 @@ class AMainTest extends HCaptchaWPTestCase {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 
 		$expected = '		<style>
+			#wpdiscuz-subscribe-form .h-captcha {
+				margin-left: auto;
+			}
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
@@ -1262,6 +1266,16 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'wpforms_status', 'pro' ],
 				'wpforms/wpforms.php',
 				\HCaptcha\WPForms\Form::class,
+			],
+			'wpDiscuz Comment'                  => [
+				[ 'wpdiscuz_status', 'comment_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				\HCaptcha\WPDiscuz\Comment::class,
+			],
+			'wpDiscuz Subscribe'                => [
+				[ 'wpdiscuz_status', 'subscribe_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				Subscribe::class,
 			],
 			'wpForo New Topic'                  => [
 				[ 'wpforo_status', 'new_topic' ],

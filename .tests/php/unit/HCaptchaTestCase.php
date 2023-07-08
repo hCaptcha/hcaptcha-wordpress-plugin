@@ -872,7 +872,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'comment_form' => 'Comment Form',
+							'comment_form'   => 'Comment Form',
+							'subscribe_form' => 'Subscribe Form',
 						],
 				],
 			'wpforo_status'                 =>

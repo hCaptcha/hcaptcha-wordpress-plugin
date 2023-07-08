@@ -13,14 +13,7 @@ use WP_User;
 /**
  * Class Form.
  */
-class Form {
-
-	/**
-	 * Form constructor.
-	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+class Comment extends Base {
 
 	/**
 	 * Add hooks.
@@ -28,28 +21,20 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_filter(
-			'wpdiscuz_recaptcha_site_key',
-			static function () {
-				// Block output of reCaptcha by wpDiscuz.
-				return '';
-			}
-		);
+		parent::init_hooks();
 
 		add_action( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );
 	}
 
 	/**
-	 * Replaces reCaptcha field by hCaptcha in wpDiscuz form.
+	 * Add hCaptcha to wpDiscuz form.
 	 *
 	 * @param string        $output         Output.
 	 * @param int|string    $comments_count Comments count.
 	 * @param WP_User|false $current_user   Current user.
 	 *
 	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $output, $comments_count, $current_user ) {
 		global $post;
@@ -82,7 +67,6 @@ class Form {
 	 * @param array $comment_data Comment data.
 	 *
 	 * @return array
-	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
@@ -108,15 +92,5 @@ class Form {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		wp_die( esc_html( $result ) );
-	}
-
-	/**
-	 * Dequeue recaptcha script.
-	 *
-	 * @return void
-	 */
-	public function enqueue_scripts() {
-		wp_dequeue_script( 'wpdiscuz-google-recaptcha' );
-		wp_deregister_script( 'wpdiscuz-google-recaptcha' );
 	}
 }
