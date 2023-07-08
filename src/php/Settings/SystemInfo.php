@@ -137,7 +137,7 @@ class SystemInfo extends PluginSettingsBase {
 			$data .= $this->data( $field['label'], '' );
 
 			foreach ( $field['options'] as $option_key => $option ) {
-				$setting = isset( $integration_settings[ $field_key ] ) ? $integration_settings[ $field_key ] : [];
+				$setting = isset( $integration_settings[ $field_key ] ) ? (array) $integration_settings[ $field_key ] : [];
 				$value   = in_array( $option_key, $setting, true ) ? 'On' : 'Off';
 
 				$data .= $this->data( '  ' . $option, $value );
