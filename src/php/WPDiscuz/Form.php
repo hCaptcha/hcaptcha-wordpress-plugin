@@ -28,6 +28,14 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
+		add_filter(
+			'wpdiscuz_recaptcha_site_key',
+			static function () {
+				// Block output of reCaptcha by wpDiscuz.
+				return '';
+			}
+		);
+
 		add_action( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );
@@ -46,12 +54,7 @@ class Form {
 	public function add_hcaptcha( $output, $comments_count, $current_user ) {
 		global $post;
 
-		if ( ! preg_match( "/id='wpdiscuz-recaptcha-(.+?)'/", $output, $m ) ) {
-			return $output;
-		}
-
-		$unique_id = $m[1];
-		$args      = [
+		$args = [
 			'id' => [
 				'source'  => HCaptcha::get_class_source( static::class ),
 				'form_id' => $post ? $post->ID : 0,
@@ -61,14 +64,16 @@ class Form {
 		ob_start();
 		?>
 		<div class="wpd-field-hcaptcha wpdiscuz-item">
-			<div class="wpdiscuz-hcaptcha" id='wpdiscuz-hcaptcha-<?php echo esc_attr( $unique_id ); ?>'></div>
+			<div class="wpdiscuz-hcaptcha" id='wpdiscuz-hcaptcha'></div>
 			<?php HCaptcha::form_display( $args ); ?>
 			<div class="clearfix"></div>
 		</div>
 		<?php
 		$form = ob_get_clean();
 
-		return preg_replace( '/<div class="wpd-field-captcha wpdiscuz-item"(.+?<\/div>){3}/s', $form, $output );
+		$search = '<div class="wc-field-submit">';
+
+		return str_replace( $search, $form . $search, $output );
 	}
 
 	/**
