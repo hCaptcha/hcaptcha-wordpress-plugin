@@ -1,29 +1,30 @@
 <?php
 /**
- * LostPassword class file.
+ * Register class file.
  *
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\WP;
+namespace HCaptcha\ClassifiedListing;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\WC\LostPassword as WCLostPassword;
 use WP_Error;
+use WP_User;
 
 /**
- * Class LostPassword
+ * Class LostPassword.
  */
 class LostPassword {
+
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_lost_password';
+	const ACTION = 'hcaptcha_classified_listing_lost_pass';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_lost_password_nonce';
+	const NONCE = 'hcaptcha_classified_listing_lost_pass_nonce';
 
 	/**
 	 * Constructor.
@@ -35,13 +36,15 @@ class LostPassword {
 	/**
 	 * Init hooks.
 	 */
-	private function init_hooks() {
-		add_action( 'lostpassword_form', [ $this, 'add_captcha' ] );
+	protected function init_hooks() {
+		add_action( 'rtcl_lost_password_form', [ $this, 'add_captcha' ] );
 		add_action( 'lostpassword_post', [ $this, 'verify' ] );
 	}
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [
@@ -49,7 +52,7 @@ class LostPassword {
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
+				'form_id' => 'password',
 			],
 		];
 
@@ -64,17 +67,13 @@ class LostPassword {
 	 * @return void
 	 */
 	public function verify( $error ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['wp-submit'] ) ) {
-			return;
-		}
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$rtcl_register = isset( $_POST['rtcl-lost-password'] ) ?
+			sanitize_text_field( wp_unslash( $_POST['rtcl-lost-password'] ) ) :
+			'';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		if (
-			// Nonce is checked by WC.
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			isset( $_POST['wc_reset_password'] ) &&
-			! hcaptcha()->settings()->is( 'woocommerce_status', 'lost_pass' )
-		) {
+		if ( 'Reset Password' !== $rtcl_register ) {
 			return;
 		}
 

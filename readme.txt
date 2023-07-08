@@ -193,7 +193,7 @@ $form_id: 'create_group' or 'register'
 
 Classified Listing
 $source: 'classified-listing/classified-listing.php'
-$form_id: 'login' or 'register'
+$form_id: 'login', 'password' or 'register'
 
 Divi
 $source: 'Divi'
@@ -408,6 +408,7 @@ For more details, please see the hCaptcha privacy policy at:
 * BuddyPress Create Group Form
 * Buddypress Registration Form
 * Classified Listing Login Form
+* Classified Listing Lost Password Form
 * Classified Listing Register Form
 * Contact Form 7
 * Divi Comment Form
@@ -469,7 +470,7 @@ Instructions for popular native integrations are below:
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
-* Added compatibility with Classified Listing (Login and Register forms).
+* Added compatibility with Classified Listing (Login, Lost Password and Register forms).
 * Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
 * Added support to turn off hCaptcha on a specific Jetpack form.

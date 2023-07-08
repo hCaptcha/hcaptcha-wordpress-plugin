@@ -57,11 +57,14 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify() {
 		$validation_error = new WP_Error( 'some error' );
+		$expected         = $validation_error;
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_lost_password_nonce', 'hcaptcha_lost_password' );
 
 		$subject = new LostPassword();
-		self::assertEquals( $validation_error, $subject->verify( $validation_error ) );
+		$subject->verify( $validation_error );
+
+		self::assertEquals( $expected, $validation_error );
 	}
 
 	/**
@@ -69,12 +72,15 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_not_verified() {
 		$validation_error = new WP_Error( 'some error' );
+		$expected         = $validation_error;
 
-		$validation_error->add( 'hcaptcha_error', 'The Captcha is invalid.' );
+		$expected->add( 'hcaptcha_error', 'The Captcha is invalid.' );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_lost_password_nonce', 'hcaptcha_lost_password', false );
 
 		$subject = new LostPassword();
-		self::assertEquals( $validation_error, $subject->verify( $validation_error ) );
+		$subject->verify( $validation_error );
+
+		self::assertEquals( $expected, $validation_error );
 	}
 }

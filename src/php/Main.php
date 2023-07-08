@@ -721,6 +721,11 @@ class Main {
 				'classified-listing/classified-listing.php',
 				ClassifiedListing\Login::class,
 			],
+			'Classified Listing Lost Password'  => [
+				[ 'classified_listing_status', 'lost_pass' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\LostPassword::class,
+			],
 			'Classified Listing Register'       => [
 				[ 'classified_listing_status', 'register' ],
 				'classified-listing/classified-listing.php',

@@ -9,7 +9,6 @@ namespace HCaptcha\ClassifiedListing;
 
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
-use WP_User;
 
 /**
  * Class Register.
