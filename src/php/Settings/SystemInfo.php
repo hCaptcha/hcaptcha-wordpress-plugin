@@ -22,6 +22,11 @@ class SystemInfo extends PluginSettingsBase {
 	const HANDLE = 'hcaptcha-system-info';
 
 	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaSystemInfoObject';
+
+	/**
 	 * Data key length.
 	 */
 	const DATA_KEY_LENGTH = 36;
@@ -48,6 +53,22 @@ class SystemInfo extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/system-info$this->min_prefix.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'copiedMsg' => __( 'System info copied to clipboard.', 'hcaptcha-for-forms-and-more' ),
+			]
+		);
+
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/system-info$this->min_prefix.css",
@@ -66,11 +87,17 @@ class SystemInfo extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html__( 'System Information', 'hcaptcha-for-forms-and-more' ); ?>
 		</h2>
-		<label>
+		<div id="hcaptcha-system-info-wrap">
+			<span class="helper">
+				<span class="helper-content"><?php esc_html_e( 'Copy system info to clipboard', '' ); ?></span>
+			</span>
+			<div class="dashicons-before dashicons-media-text" aria-hidden="true"></div>
+			<label>
 			<textarea
-					class="hcaptcha-system-info"
+					id="hcaptcha-system-info"
 					readonly><?php echo esc_textarea( $this->get_system_info() ); ?></textarea>
-		</label>
+			</label>
+		</div>
 		<?php
 	}
 
