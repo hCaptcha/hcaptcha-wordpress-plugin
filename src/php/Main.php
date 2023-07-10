@@ -794,6 +794,11 @@ class Main {
 				'fluentform/fluentform.php',
 				FluentForm\Form::class,
 			],
+			'Formidable Forms'                  => [
+				[ 'formidable_forms_status', 'form' ],
+				'formidable/formidable.php',
+				FormidableForms\Form::class,
+			],
 			'Forminator'                        => [
 				[ 'forminator_status', 'form' ],
 				'forminator/forminator.php',

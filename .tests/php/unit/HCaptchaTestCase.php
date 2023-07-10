@@ -637,10 +637,10 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Classified Listing',
 				'type'    => 'checkbox',
 				'options' => [
-					'contact'   => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
-					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'contact'   => 'Contact Form',
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
 				],
 			],
 			'colorlib_customizer_status'    => [
@@ -700,6 +700,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'Form',
 						],
 				],
+			'formidable_forms_status'       => [
+				'label'   => 'Formidable Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'forminator_status'             =>
 				[
 					'label'   => 'Forminator',

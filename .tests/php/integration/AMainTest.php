@@ -1147,6 +1147,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'fluentform/fluentform.php',
 				Form::class,
 			],
+			'Formidable Forms'                  => [
+				[ 'formidable_forms_status', 'form' ],
+				'formidable/formidable.php',
+				\HCaptcha\FormidableForms\Form::class,
+			],
 			'Forminator'                        => [
 				[ 'forminator_status', 'form' ],
 				'forminator/forminator.php',

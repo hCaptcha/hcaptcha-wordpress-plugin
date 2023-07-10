@@ -420,6 +420,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
+* Formidable Forms
 * GiveWP Form
 * Gravity Forms
 * Jetpack Forms
@@ -473,6 +474,7 @@ Instructions for popular native integrations are below:
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
 * Added compatibility with Classified Listing.
+* Added compatibility with Formidable Forms.
 * Added compatibility with wpDiscuz Subscribe Form.
 * Added System Info tab.
 * Added Back In Stock Notifier support in the popup window.
