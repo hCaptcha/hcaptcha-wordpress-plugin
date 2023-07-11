@@ -90,9 +90,16 @@ class Form {
 			return $block_content;
 		}
 
+		$args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => isset( $block['attrs']['postID'] ) ? (int) $block['attrs']['postID'] : 0,
+			],
+		];
+
 		return preg_replace(
 			'/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/',
-			'$1' . HCaptcha::form() . '$2',
+			'$1' . HCaptcha::form( $args ) . '$2',
 			$block_content
 		);
 	}

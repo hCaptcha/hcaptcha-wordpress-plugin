@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.2
 Requires PHP: 5.6.20
-Stable tag: 2.9.0
+Stable tag: 2.10.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -177,11 +177,11 @@ $form_id: product_id
 
 BBPress
 $source: 'bbpress/bbpress.php'
-$form_id: 'new_topic', or 'reply'
+$form_id: 'new_topic' or 'reply'
 
 Beaver Builder
 $source: 'bb-plugin/fl-builder.php'
-$form_id: 'contact', or 'login'
+$form_id: 'contact' or 'login'
 
 Brizy
 $source: 'brizy/brizy.php'
@@ -190,6 +190,10 @@ $form_id: 'form'
 BuddyPress
 $source: 'buddypress/bp-loader.php'
 $form_id: 'create_group' or 'register'
+
+Classified Listing
+$source: 'classified-listing/classified-listing.php'
+$form_id: 'contact', ''login', 'lost_password' or 'register'
 
 Divi
 $source: 'Divi'
@@ -203,13 +207,57 @@ Elementor Pro
 $source: 'elementor-pro/elementor-pro.php'
 $form_id: Form ID set for the form Content->Additional Options.
 
+Jetpack
+$source: 'jetpack/jetpack.php'
+$form_id: 'contact'
+
+Kadence
+$source: 'kadence-blocks/kadence-blocks.php'
+$form_id: post_id
+
+MemberPress
+$source: 'memberpress/memberpress.php'
+$form_id: 'login' or 'register'
+
+Paid Memberships Pro
+$source: 'paid-memberships-pro/paid-memberships-pro.php'
+$form_id: 'checkout' or 'login'
+
+Subscriber
+$source: 'subscriber/subscriber.php'
+$form_id: 'form'
+
+Support Candy
+$source: 'supportcandy/supportcandy.php'
+$form_id: 'form'
+
+Ultimate Member
+$source: 'ultimate-member/ultimate-member.php'
+$form_id: form_id or 'password'
+
+WooCommerce Wishlist
+$source: 'woocommerce-wishlists/woocommerce-wishlists.php'
+$form_id: 'form'
+
+wpDiscuz
+$source: 'wpdiscuz/class.WpdiscuzCore.php'
+$form_id: post_id
+
+WPForms
+$source: 'wpforms-lite/wpforms.php' or 'wpforms/wpforms.php'
+$form_id: form_id
+
+wpForo
+$source: 'wpforo/wpforo.php'
+$form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.
+
 WordPress Core
 $source: 'WordPress'
-$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', and 'register'
+$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
 
 WooCommerce
 $source: 'woocommerce/woocommerce.php'
-$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', and 'register'
+$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', or 'register'
 
 Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
 
@@ -359,6 +407,10 @@ For more details, please see the hCaptcha privacy policy at:
 * Beaver Builder Login Form
 * BuddyPress Create Group Form
 * Buddypress Registration Form
+* Classified Listing Contact Form
+* Classified Listing Login Form
+* Classified Listing Lost Password Form
+* Classified Listing Register Form
 * Contact Form 7
 * Divi Comment Form
 * Divi Contact Form
@@ -368,6 +420,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
+* Formidable Forms
 * GiveWP Form
 * Gravity Forms
 * Jetpack Forms
@@ -377,6 +430,8 @@ For more details, please see the hCaptcha privacy policy at:
 * MemberPress Register Form
 * Ninja Forms
 * Otter Blocks Forms
+* Paid Memberships Pro Checkout Form
+* Paid Memberships Pro Login Form
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
@@ -391,7 +446,8 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
 * WPForms Lite
-* wpDiscuz
+* wpDiscuz Comment Form
+* wpDiscuz Support Form
 * wpForo New Topic Form
 * wpForo Reply Form
 
@@ -415,6 +471,28 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 2.10.0 =
+* Added compatibility with Paid Memberships Pro.
+* Added compatibility with Classified Listing.
+* Added compatibility with Formidable Forms.
+* Added compatibility with wpDiscuz Subscribe Form.
+* Added System Info tab.
+* Added Back In Stock Notifier support in the popup window.
+* Added support to turn off hCaptcha on a specific Jetpack form.
+* Added support to turn off hCaptcha on a specific Kadence form.
+* Added support to turn off hCaptcha on a specific Mailchimp form.
+* Added support to turn off hCaptcha on a specific MemberPress form.
+* Added support to turn off hCaptcha on a specific Ninja form.
+* Added support to turn off hCaptcha on a specific Quform form.
+* Added support to turn off hCaptcha on a specific Sendinblue form.
+* Added support to turn off hCaptcha on a specific Subscriber form.
+* Added support to turn off hCaptcha on a specific Support Candy form.
+* Added support to turn off hCaptcha on a specific Ultimate Member form.
+* Added support to turn off hCaptcha on a specific WooCommerce Wishlist form.
+* Added support to turn off hCaptcha on a specific wpDiscuz form.
+* Added support to turn off hCaptcha on a specific wpForms form.
+* Fixed messages dynamic styling on Integrations page.
+
 = 2.9.0 =
 * Added compatibility with Back In Stock Notifier.
 * Added compatibility with Colorlib Login Customizer.
@@ -423,6 +501,10 @@ Instructions for popular native integrations are below:
 * Added support to turn off hCaptcha on a specific ACF Extended form.
 * Added support to turn off hCaptcha on a specific Asgaros forum form.
 * Added support to turn off hCaptcha on a specific Avada form.
+* Added support to turn off hCaptcha on a specific BBPress form.
+* Added support to turn off hCaptcha on a specific Beaver Builder form.
+* Added support to turn off hCaptcha on a specific Brizy form.
+* Added support to turn off hCaptcha on a specific Buddy Press form.
 * Added support to turn off hCaptcha on a specific Contact 7 form.
 * Added support to turn off hCaptcha on a specific Download Manager form.
 * Added support to turn off hCaptcha on a specific Elementor form.

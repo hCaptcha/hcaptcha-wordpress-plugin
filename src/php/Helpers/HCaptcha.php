@@ -60,8 +60,8 @@ class HCaptcha {
 				/**
 				 * Example of id:
 				 * [
-				 *   'source' => ['gravityforms/gravityforms.php'],
-				 *   $form_id => 23
+				 *   'source'  => ['gravityforms/gravityforms.php'],
+				 *   'form_id' => 23
 				 * ]
 				 */
 				'protect' => true,

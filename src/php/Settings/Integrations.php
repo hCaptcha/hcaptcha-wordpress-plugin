@@ -10,9 +10,9 @@ namespace HCaptcha\Settings;
 use HCaptcha\Settings\Abstracts\SettingsBase;
 
 /**
- * Class Tables
+ * Class Integrations
  *
- * Settings page "Integrations" (main).
+ * Settings page "Integrations".
  */
 class Integrations extends PluginSettingsBase {
 
@@ -32,45 +32,14 @@ class Integrations extends PluginSettingsBase {
 	const OBJECT = 'HCaptchaIntegrationsObject';
 
 	/**
+	 * Enabled section id.
+	 */
+	const SECTION_ENABLED = 'enabled';
+
+	/**
 	 * Disabled section id.
 	 */
 	const SECTION_DISABLED = 'disabled';
-
-	/**
-	 * Get screen id.
-	 *
-	 * @return string
-	 */
-	public function screen_id() {
-		return 'settings_page_hcaptcha';
-	}
-
-	/**
-	 * Get option group.
-	 *
-	 * @return string
-	 */
-	protected function option_group() {
-		return 'hcaptcha_group';
-	}
-
-	/**
-	 * Get option page.
-	 *
-	 * @return string
-	 */
-	protected function option_page() {
-		return 'hcaptcha';
-	}
-
-	/**
-	 * Get option name.
-	 *
-	 * @return string
-	 */
-	protected function option_name() {
-		return 'hcaptcha_settings';
-	}
 
 	/**
 	 * Get page title.
@@ -79,15 +48,6 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function page_title() {
 		return __( 'Integrations', 'hcaptcha-for-forms-and-more' );
-	}
-
-	/**
-	 * Get menu title.
-	 *
-	 * @return string
-	 */
-	protected function menu_title() {
-		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 	}
 
 	/**
@@ -183,6 +143,16 @@ class Integrations extends PluginSettingsBase {
 					'registration' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'classified_listing_status'     => [
+				'label'   => 'Classified Listing',
+				'type'    => 'checkbox',
+				'options' => [
+					'contact'   => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'colorlib_customizer_status'    => [
 				'label'   => 'Colorlib Login Customizer',
 				'type'    => 'checkbox',
@@ -225,6 +195,13 @@ class Integrations extends PluginSettingsBase {
 			],
 			'fluent_status'                 => [
 				'label'   => 'Fluent Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'formidable_forms_status'       => [
+				'label'   => 'Formidable Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -294,6 +271,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'paid_memberships_pro_status'   => [
+				'label'   => 'Paid Memberships Pro',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'quform_status'                 => [
 				'label'   => 'Quform',
 				'type'    => 'checkbox',
@@ -361,7 +346,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WPDiscuz',
 				'type'    => 'checkbox',
 				'options' => [
-					'comment_form' => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'comment_form'   => __( 'Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'subscribe_form' => __( 'Subscribe Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wpforo_status'                 => [
@@ -400,8 +386,35 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
+		$this->form_fields = $this->sort_fields( $this->form_fields );
+
+		foreach ( $this->form_fields as &$form_field ) {
+			if ( isset( $form_field['label'] ) ) {
+				$form_field['label'] = $this->logo( $form_field['label'] );
+			}
+
+			if ( $form_field['disabled'] ) {
+				$form_field['section'] = self::SECTION_DISABLED;
+			} else {
+				$form_field['section'] = self::SECTION_ENABLED;
+			}
+		}
+
+		unset( $form_field );
+
+		parent::setup_fields();
+	}
+
+	/**
+	 * Sort fields. First, by enabled status, then by label.
+	 *
+	 * @param array $fields Fields.
+	 *
+	 * @return array
+	 */
+	public function sort_fields( $fields ) {
 		uasort(
-			$this->form_fields,
+			$fields,
 			static function ( $a, $b ) {
 				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
 				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
@@ -421,19 +434,7 @@ class Integrations extends PluginSettingsBase {
 			}
 		);
 
-		foreach ( $this->form_fields as &$form_field ) {
-			if ( isset( $form_field['label'] ) ) {
-				$form_field['label'] = $this->logo( $form_field['label'] );
-			}
-
-			if ( $form_field['disabled'] ) {
-				$form_field['section'] = self::SECTION_DISABLED;
-			}
-		}
-
-		unset( $form_field );
-
-		parent::setup_fields();
+		return $fields;
 	}
 
 	/**
@@ -493,10 +494,6 @@ class Integrations extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
-		if ( ! $this->is_options_screen() ) {
-			return;
-		}
-
 		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/integrations$this->min_prefix.js",

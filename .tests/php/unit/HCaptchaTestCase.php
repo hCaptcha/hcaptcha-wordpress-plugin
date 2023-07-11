@@ -633,6 +633,16 @@ abstract class HCaptchaTestCase extends TestCase {
 							'registration' => 'Registration Form',
 						],
 				],
+			'classified_listing_status'     => [
+				'label'   => 'Classified Listing',
+				'type'    => 'checkbox',
+				'options' => [
+					'contact'   => 'Contact Form',
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
+				],
+			],
 			'colorlib_customizer_status'    => [
 				'label'   => 'Colorlib Login Customizer',
 				'type'    => 'checkbox',
@@ -690,6 +700,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'Form',
 						],
 				],
+			'formidable_forms_status'       => [
+				'label'   => 'Formidable Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'forminator_status'             =>
 				[
 					'label'   => 'Forminator',
@@ -769,6 +786,15 @@ abstract class HCaptchaTestCase extends TestCase {
 						[
 							'form' => 'Form',
 						],
+				],
+			'paid_memberships_pro_status'   =>
+				[
+					'label'   => 'Paid Memberships Pro',
+					'type'    => 'checkbox',
+					'options' => [
+						'checkout' => 'Checkout Form',
+						'login'    => 'Login Form',
+					],
 				],
 			'quform_status'                 =>
 				[
@@ -853,7 +879,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'comment_form' => 'Comment Form',
+							'comment_form'   => 'Comment Form',
+							'subscribe_form' => 'Subscribe Form',
 						],
 				],
 			'wpforo_status'                 =>

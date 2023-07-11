@@ -80,6 +80,15 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get tabs.
+	 *
+	 * @return array
+	 */
+	public function get_tabs() {
+		return $this->tabs;
+	}
+
+	/**
 	 * Get plugin option.
 	 *
 	 * @param string $key         Setting name.

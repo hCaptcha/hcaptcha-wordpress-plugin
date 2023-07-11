@@ -60,6 +60,10 @@ class CreateList {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'form',
+			],
 		];
 
 		// Find last $search string and insert hcaptcha before it.

@@ -65,15 +65,16 @@ class Login extends Base {
 	/**
 	 * Verify hCaptcha.
 	 *
-	 * @param array $args Form arguments.
+	 * @param array $submitted_data Submitted data.
+	 * @param array $form_data      Form data.
 	 *
 	 * @return void
 	 */
-	public function verify( $args ) {
+	public function verify( $submitted_data, $form_data = [] ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return;
 		}
 
-		parent::verify( $args );
+		parent::verify( $submitted_data, $form_data );
 	}
 }

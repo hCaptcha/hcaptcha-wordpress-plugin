@@ -178,7 +178,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		self::assertSame( 'wp_status', $first_key );
 
 		foreach ( $form_fields as $form_field ) {
-			$section = $form_field['disabled'] ? Integrations::SECTION_DISABLED : '';
+			$section = $form_field['disabled'] ? Integrations::SECTION_DISABLED : Integrations::SECTION_ENABLED;
 
 			self::assertTrue( (bool) preg_match( '<img src="' . $plugin_url . '/assets/images/.+?" alt=".+?">', $form_field['label'] ) );
 			self::assertArrayHasKey( 'class', $form_field );
@@ -321,19 +321,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 				$plugin_version
 			)
 			->once();
-
-		$subject->admin_enqueue_scripts();
-	}
-
-	/**
-	 * Test admin_enqueue_scripts() not on own screen.
-	 */
-	public function test_admin_enqueue_scripts_not_on_own_screen() {
-		$subject = Mockery::mock( Integrations::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( false );
-
-		WP_Mock::userFunction( 'wp_enqueue_style' )->never();
 
 		$subject->admin_enqueue_scripts();
 	}

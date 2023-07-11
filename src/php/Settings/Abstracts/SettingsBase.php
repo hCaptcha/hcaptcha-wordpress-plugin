@@ -31,7 +31,7 @@ abstract class SettingsBase {
 	 *
 	 * @var array
 	 */
-	protected $form_fields;
+	protected $form_fields = [];
 
 	/**
 	 * Plugin options.
@@ -43,7 +43,7 @@ abstract class SettingsBase {
 	/**
 	 * Tabs of this settings page.
 	 *
-	 * @var array|null
+	 * @var array
 	 */
 	protected $tabs;
 
@@ -118,11 +118,6 @@ abstract class SettingsBase {
 	abstract protected function settings_link_text();
 
 	/**
-	 * Init form fields.
-	 */
-	abstract protected function init_form_fields();
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -154,11 +149,6 @@ abstract class SettingsBase {
 	 * @param array $arguments Arguments.
 	 */
 	abstract public function section_callback( $arguments );
-
-	/**
-	 * Enqueue scripts in admin.
-	 */
-	abstract public function admin_enqueue_scripts();
 
 	/**
 	 * Get text domain.
@@ -215,6 +205,13 @@ abstract class SettingsBase {
 		add_filter( 'pre_update_site_option_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
+	}
+
+	/**
+	 * Init form fields.
+	 */
+	public function init_form_fields() {
+		$this->form_fields = [];
 	}
 
 	/**
@@ -419,10 +416,20 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Enqueue scripts in admin.
+	 */
+	public function admin_enqueue_scripts() {
+	}
+
+	/**
 	 * Enqueue relevant admin_enqueue_scripts() basing on tabs.
 	 * Enqueue admin style.
 	 */
 	public function base_admin_enqueue_scripts() {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
 		$this->get_active_tab()->admin_enqueue_scripts();
 
 		wp_enqueue_style(
@@ -442,6 +449,17 @@ abstract class SettingsBase {
 		}
 
 		$tab = $this->get_active_tab();
+
+		if ( empty( $this->form_fields ) ) {
+			add_settings_section(
+				$this->section_title(),
+				'',
+				[ $tab, 'section_callback' ],
+				$tab->option_page()
+			);
+
+			return;
+		}
 
 		foreach ( $this->form_fields as $form_field ) {
 			add_settings_section(
@@ -565,7 +583,7 @@ abstract class SettingsBase {
 	/**
 	 * Get tabs.
 	 *
-	 * @return array|null
+	 * @return array
 	 */
 	public function get_tabs() {
 		return $this->tabs;
@@ -621,18 +639,25 @@ abstract class SettingsBase {
 	 */
 	private function print_text_field( array $arguments ) {
 		$value        = $this->get( $arguments['field_id'] );
-		$autocomplete = 'password' === $arguments['type'] ? 'off' : '';
+		$autocomplete = '';
+		$lp_ignore    = 'false';
+
+		if ( 'password' === $arguments['type'] ) {
+			$autocomplete = 'new-password';
+			$lp_ignore    = 'true';
+		}
 
 		printf(
 			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .
-			' placeholder="%5$s" value="%6$s" autocomplete="%7$s" class="regular-text" />',
+			' placeholder="%5$s" value="%6$s" autocomplete="%7$s" data-lpignore="%8$s" class="regular-text" />',
 			disabled( $arguments['disabled'], true, false ),
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['type'] ),
 			esc_attr( $arguments['placeholder'] ),
 			esc_html( $value ),
-			esc_attr( $autocomplete )
+			esc_attr( $autocomplete ),
+			esc_attr( $lp_ignore )
 		);
 	}
 
@@ -959,7 +984,7 @@ abstract class SettingsBase {
 			'table'    => 'print_table_field',
 		];
 
-		$type = $arguments['type'];
+		$type = isset( $arguments['type'] ) ? $arguments['type'] : '';
 
 		if ( ! array_key_exists( $type, $types ) ) {
 			return;

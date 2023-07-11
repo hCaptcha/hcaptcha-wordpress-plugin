@@ -7,51 +7,36 @@
 
 namespace HCaptcha\WC;
 
-use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Abstracts\LostPasswordBase;
 
 /**
  * Class LostPassword
  *
  * This class uses verify hook in WP\LostPassword.
  */
-class LostPassword {
+class LostPassword extends LostPasswordBase {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_lost_password';
+	const ACTION = 'hcaptcha_wc_lost_password';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_lost_password_nonce';
+	const NONCE = 'hcaptcha_wc_lost_password_nonce';
 
 	/**
-	 * Constructor.
+	 * Add hCaptcha action.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	const ADD_CAPTCHA_ACTION = 'woocommerce_lostpassword_form';
 
 	/**
-	 * Init hooks.
+	 * $_POST key to check.
 	 */
-	private function init_hooks() {
-		add_action( 'woocommerce_lostpassword_form', [ $this, 'add_captcha' ] );
-	}
+	const POST_KEY = 'wc_reset_password';
 
 	/**
-	 * Add captcha.
+	 * $_POST value to check.
 	 */
-	public function add_captcha() {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
-			],
-		];
-
-		HCaptcha::form_display( $args );
-	}
+	const POST_VALUE = 'true';
 }

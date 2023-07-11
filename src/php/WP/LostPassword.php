@@ -7,81 +7,35 @@
 
 namespace HCaptcha\WP;
 
-use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\WC\LostPassword as WCLostPassword;
-use WP_Error;
+use HCaptcha\Abstracts\LostPasswordBase;
 
 /**
  * Class LostPassword
  */
-class LostPassword {
+class LostPassword extends LostPasswordBase {
+
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_lost_password';
+	const ACTION = 'hcaptcha_wp_lost_password';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_lost_password_nonce';
+	const NONCE = 'hcaptcha_wp_lost_password_nonce';
 
 	/**
-	 * Constructor.
+	 * Add hCaptcha action.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	const ADD_CAPTCHA_ACTION = 'lostpassword_form';
 
 	/**
-	 * Init hooks.
+	 * $_POST key to check.
 	 */
-	private function init_hooks() {
-		add_action( 'lostpassword_form', [ $this, 'add_captcha' ] );
-		add_action( 'lostpassword_post', [ $this, 'verify' ] );
-	}
+	const POST_KEY = 'wp-submit';
 
 	/**
-	 * Add captcha.
+	 * $_POST value to check.
 	 */
-	public function add_captcha() {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
-			],
-		];
-
-		HCaptcha::form_display( $args );
-	}
-
-	/**
-	 * Verify lost password form.
-	 *
-	 * @param WP_Error $error Error.
-	 *
-	 * @return WP_Error
-	 */
-	public function verify( $error ) {
-		if (
-			// Nonce is checked by WC.
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			isset( $_POST['wc_reset_password'] ) &&
-			! hcaptcha()->settings()->is( 'woocommerce_status', 'lost_pass' )
-		) {
-			return $error;
-		}
-
-		$error_message = hcaptcha_get_verify_message_html(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null !== $error_message ) {
-			$error->add( 'invalid_captcha', $error_message );
-		}
-
-		return $error;
-	}
+	const POST_VALUE = null;
 }

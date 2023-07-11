@@ -16,3 +16,7 @@
 			'&h-captcha-response=' + response + '&hcaptcha-widget-id=' + id + '&' + nonceName + '=' + nonce;
 	} );
 }( jQuery ) );
+
+jQuery( document ).ajaxStop( function() {
+	window.hCaptchaBindEvents();
+} );

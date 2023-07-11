@@ -521,6 +521,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
 		$subject->shouldReceive( 'plugin_url' )->once()->andReturn( $plugin_url );
 		$subject->shouldReceive( 'plugin_version' )->once()->andReturn( $plugin_version );
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
@@ -1082,7 +1083,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" class="regular-text" />',
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="false" class="regular-text" />',
 			],
 			'Text with helper'       => [
 				[
@@ -1097,7 +1098,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" class="regular-text" />' .
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="false" class="regular-text" />' .
 				'<span class="helper"><span class="helper-content">This is helper</span></span>',
 			],
 			'Text with supplemental' => [
@@ -1113,7 +1114,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" class="regular-text" />' .
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="false" class="regular-text" />' .
 				'<p class="description">This is supplemental</p>',
 			],
 		];
@@ -1139,7 +1140,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="password" placeholder="" value="some password" autocomplete="off" class="regular-text" />',
+				' id="some_id" type="password" placeholder="" value="some password" autocomplete="new-password" data-lpignore="true" class="regular-text" />',
 			],
 		];
 	}

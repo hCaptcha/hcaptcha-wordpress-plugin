@@ -27,7 +27,10 @@ class BlockParser extends WP_Block_Parser {
 	public function parse( $document ) {
 		$output = parent::parse( $document );
 
-		if ( 'kadence/form' === $output[0]['blockName'] && isset( $output[0]['attrs']['recaptcha'] ) ) {
+		if (
+			isset( $output[0]['blockName'], $output[0]['attrs']['recaptcha'] ) &&
+			'kadence/form' === $output[0]['blockName']
+		) {
 			$output[0]['attrs']['recaptcha'] = false;
 		}
 

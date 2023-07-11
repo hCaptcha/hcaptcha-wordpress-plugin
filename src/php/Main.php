@@ -28,6 +28,7 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
 
@@ -137,7 +138,11 @@ class Main {
 	public function init_hooks() {
 		$this->settings = new Settings(
 			[
-				'hCaptcha' => [ General::class, Integrations::class ],
+				'hCaptcha' => [
+					General::class,
+					Integrations::class,
+					SystemInfo::class,
+				],
 			]
 		);
 
@@ -302,6 +307,9 @@ class Main {
 		ob_get_clean();
 		?>
 		<style>
+			#wpdiscuz-subscribe-form .h-captcha {
+				margin-left: auto;
+			}
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
@@ -711,6 +719,26 @@ class Main {
 				'buddypress/bp-loader.php',
 				BuddyPress\Register::class,
 			],
+			'Classified Listing Contact'        => [
+				[ 'classified_listing_status', 'contact' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Contact::class,
+			],
+			'Classified Listing Login'          => [
+				[ 'classified_listing_status', 'login' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Login::class,
+			],
+			'Classified Listing Lost Password'  => [
+				[ 'classified_listing_status', 'lost_pass' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\LostPassword::class,
+			],
+			'Classified Listing Register'       => [
+				[ 'classified_listing_status', 'register' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Register::class,
+			],
 			'Colorlib Customizer Login'         => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
@@ -766,6 +794,11 @@ class Main {
 				'fluentform/fluentform.php',
 				FluentForm\Form::class,
 			],
+			'Formidable Forms'                  => [
+				[ 'formidable_forms_status', 'form' ],
+				'formidable/formidable.php',
+				FormidableForms\Form::class,
+			],
 			'Forminator'                        => [
 				[ 'forminator_status', 'form' ],
 				'forminator/forminator.php',
@@ -815,6 +848,16 @@ class Main {
 				[ 'otter_status', 'form' ],
 				'otter-blocks/otter-blocks.php',
 				Otter\Form::class,
+			],
+			'Paid Memberships Pro Checkout'     => [
+				[ 'paid_memberships_pro_status', 'checkout' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				PaidMembershipsPro\Checkout::class,
+			],
+			'Paid Memberships Pro Login'        => [
+				[ 'paid_memberships_pro_status', 'login' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				PaidMembershipsPro\Login::class,
 			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
@@ -891,10 +934,15 @@ class Main {
 				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
 				\HCaptcha\WPForms\Form::class,
 			],
-			'wpDiscuz'                          => [
+			'wpDiscuz Comment'                  => [
 				[ 'wpdiscuz_status', 'comment_form' ],
-				[ 'wpdiscuz/class.WpdiscuzCore.php' ],
-				WPDiscuz\Form::class,
+				'wpdiscuz/class.WpdiscuzCore.php',
+				WPDiscuz\Comment::class,
+			],
+			'wpDiscuz Subscribe'                => [
+				[ 'wpdiscuz_status', 'subscribe_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				WPDiscuz\Subscribe::class,
 			],
 			'wpForo New Topic'                  => [
 				[ 'wpforo_status', 'new_topic' ],

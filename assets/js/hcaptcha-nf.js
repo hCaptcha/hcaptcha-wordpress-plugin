@@ -9,6 +9,7 @@ const HCaptchaFieldController = Marionette.Object.extend( {
 		// On the Form Submission's field validation.
 		const submitChannel = Backbone.Radio.channel( 'submit' );
 		this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
+		this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
 
 		// On the Field's model value change.
 		const fieldsChannel = Backbone.Radio.channel( 'fields' );
@@ -31,9 +32,13 @@ const HCaptchaFieldController = Marionette.Object.extend( {
 			);
 		} else {
 			const fieldId = model.get( 'id' );
-			const widgetId = document.querySelector(
-				'.h-captcha[data-fieldid="' + fieldId + '"] iframe'
-			).dataset.hcaptchaWidgetId;
+			const widget = document.querySelector( '.h-captcha[data-fieldId="' + fieldId + '"] iframe' );
+
+			if ( ! widget ) {
+				return;
+			}
+
+			const widgetId = widget.dataset.hcaptchaWidgetId;
 			const hcapResponse = hcaptcha.getResponse( widgetId );
 			model.set( 'value', hcapResponse );
 		}
@@ -45,3 +50,23 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	// Instantiate our custom field's controller, defined above.
 	window.hCaptchaFieldController = new HCaptchaFieldController();
 } );
+
+/* global jQuery */
+
+( function( $ ) {
+	// noinspection JSCheckFunctionSignatures
+	$.ajaxPrefilter( function( options ) {
+		const data = options.data;
+
+		if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
+			return;
+		}
+
+		const urlParams = new URLSearchParams( data );
+		const formId = JSON.parse( urlParams.get( 'formData' ) ).id;
+		const $form = $( '#nf-form-' + formId + '-cont' );
+		let id = $form.find( '[name="hcaptcha-widget-id"]' ).val();
+		id = id ? id : '';
+		options.data += '&hcaptcha-widget-id=' + id;
+	} );
+}( jQuery ) );

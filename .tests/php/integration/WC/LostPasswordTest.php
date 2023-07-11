@@ -36,7 +36,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	public function test_add_captcha() {
 		$expected =
 			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_lost_password', 'hcaptcha_lost_password_nonce', true, false );
+			wp_nonce_field( 'hcaptcha_wc_lost_password', 'hcaptcha_wc_lost_password_nonce', true, false );
 
 		$subject = new LostPassword();
 

@@ -268,17 +268,4 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$subject->admin_enqueue_scripts();
 	}
-
-	/**
-	 * Test admin_enqueue_scripts() not on own screen.
-	 */
-	public function test_admin_enqueue_scripts_not_on_own_screen() {
-		$subject = Mockery::mock( General::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( false );
-
-		WP_Mock::userFunction( 'wp_enqueue_style' )->never();
-
-		$subject->admin_enqueue_scripts();
-	}
 }
