@@ -412,7 +412,11 @@ abstract class SettingsBase {
 	 * Invoke relevant settings_page() basing on tabs.
 	 */
 	public function settings_base_page() {
+		echo '<div class="wrap">';
+
 		$this->get_active_tab()->settings_page();
+
+		echo '</div>';
 	}
 
 	/**
@@ -727,11 +731,15 @@ abstract class SettingsBase {
 		$options_markup = '';
 		$iterator       = 0;
 
+		if ( is_bool( $arguments['disabled'] ) ) {
+			$arguments['disabled'] = $arguments['disabled'] ? $arguments['options'] : [];
+		}
+
 		foreach ( $arguments['options'] as $key => $label ) {
 			$iterator ++;
 			$options_markup .= sprintf(
 				'<label for="%2$s_%7$s">' .
-				'<input id="%2$s_%7$s" name="%1$s[%2$s][]" type="%3$s" value="%4$s" %5$s />' .
+				'<input id="%2$s_%7$s" name="%1$s[%2$s][]" type="%3$s" value="%4$s" %5$s %8$s />' .
 				' %6$s' .
 				'</label>' .
 				'<br/>',
@@ -741,13 +749,16 @@ abstract class SettingsBase {
 				$key,
 				checked( in_array( $key, $value, true ), true, false ),
 				$label,
-				$iterator
+				$iterator,
+				disabled( in_array( $label, $arguments['disabled'], true ), true, false )
 			);
 		}
 
+		$element_disabled = empty( array_diff( $arguments['options'], $arguments['disabled'] ) );
+
 		printf(
 			'<fieldset %1$s>%2$s</fieldset>',
-			disabled( $arguments['disabled'], true, false ),
+			disabled( $element_disabled, true, false ),
 			wp_kses(
 				$options_markup,
 				[
@@ -755,11 +766,12 @@ abstract class SettingsBase {
 						'for' => [],
 					],
 					'input' => [
-						'id'      => [],
-						'name'    => [],
-						'type'    => [],
-						'value'   => [],
-						'checked' => [],
+						'id'       => [],
+						'name'     => [],
+						'type'     => [],
+						'value'    => [],
+						'checked'  => [],
+						'disabled' => [],
 					],
 					'br'    => [],
 				]
@@ -785,11 +797,15 @@ abstract class SettingsBase {
 		$options_markup = '';
 		$iterator       = 0;
 
+		if ( is_bool( $arguments['disabled'] ) ) {
+			$arguments['disabled'] = $arguments['disabled'] ? $arguments['options'] : [];
+		}
+
 		foreach ( $arguments['options'] as $key => $label ) {
 			$iterator ++;
 			$options_markup .= sprintf(
 				'<label for="%2$s_%7$s">' .
-				'<input id="%2$s_%7$s" name="%1$s[%2$s]" type="%3$s" value="%4$s" %5$s />' .
+				'<input id="%2$s_%7$s" name="%1$s[%2$s]" type="%3$s" value="%4$s" %5$s %8$s />' .
 				' %6$s' .
 				'</label>' .
 				'<br/>',
@@ -799,13 +815,16 @@ abstract class SettingsBase {
 				$key,
 				checked( $value, $key, false ),
 				$label,
-				$iterator
+				$iterator,
+				disabled( in_array( $label, $arguments['disabled'], true ), true, false )
 			);
 		}
 
+		$element_disabled = empty( array_diff( $arguments['options'], $arguments['disabled'] ) );
+
 		printf(
 			'<fieldset %1$s>%2$s</fieldset>',
-			disabled( $arguments['disabled'], true, false ),
+			disabled( $element_disabled, true, false ),
 			wp_kses(
 				$options_markup,
 				[
@@ -813,11 +832,12 @@ abstract class SettingsBase {
 						'for' => [],
 					],
 					'input' => [
-						'id'      => [],
-						'name'    => [],
-						'type'    => [],
-						'value'   => [],
-						'checked' => [],
+						'id'       => [],
+						'name'     => [],
+						'type'     => [],
+						'value'    => [],
+						'checked'  => [],
+						'disabled' => [],
 					],
 					'br'    => [],
 				]
@@ -841,18 +861,26 @@ abstract class SettingsBase {
 		}
 
 		$options_markup = '';
+
+		if ( is_bool( $arguments['disabled'] ) ) {
+			$arguments['disabled'] = $arguments['disabled'] ? $arguments['options'] : [];
+		}
+
 		foreach ( $arguments['options'] as $key => $label ) {
 			$options_markup .= sprintf(
-				'<option value="%s" %s>%s</option>',
+				'<option value="%s" %s %s>%s</option>',
 				$key,
 				selected( $value, $key, false ),
+				disabled( in_array( $label, $arguments['disabled'], true ), true, false ),
 				$label
 			);
 		}
 
+		$element_disabled = empty( array_diff( $arguments['options'], $arguments['disabled'] ) );
+
 		printf(
 			'<select %1$s name="%2$s[%3$s]">%4$s</select>',
-			disabled( $arguments['disabled'], true, false ),
+			disabled( $element_disabled, true, false ),
 			esc_html( $this->option_name() ),
 			esc_html( $arguments['field_id'] ),
 			wp_kses(
@@ -861,6 +889,7 @@ abstract class SettingsBase {
 					'option' => [
 						'value'    => [],
 						'selected' => [],
+						'disabled' => [],
 					],
 				]
 			)
@@ -883,22 +912,32 @@ abstract class SettingsBase {
 		}
 
 		$options_markup = '';
+
+		if ( is_bool( $arguments['disabled'] ) ) {
+			$arguments['disabled'] = $arguments['disabled'] ? $arguments['options'] : [];
+		}
+
 		foreach ( $arguments['options'] as $key => $label ) {
 			$selected = '';
+
 			if ( is_array( $value ) && in_array( $key, $value, true ) ) {
 				$selected = selected( $key, $key, false );
 			}
+
 			$options_markup .= sprintf(
-				'<option value="%s" %s>%s</option>',
+				'<option value="%s" %s %s>%s</option>',
 				$key,
 				$selected,
+				disabled( in_array( $label, $arguments['disabled'], true ), true, false ),
 				$label
 			);
 		}
 
+		$element_disabled = empty( array_diff( $arguments['options'], $arguments['disabled'] ) );
+
 		printf(
 			'<select %1$s multiple="multiple" name="%2$s[%3$s][]">%4$s</select>',
-			disabled( $arguments['disabled'], true, false ),
+			disabled( $element_disabled, true, false ),
 			esc_html( $this->option_name() ),
 			esc_html( $arguments['field_id'] ),
 			wp_kses(
@@ -907,6 +946,7 @@ abstract class SettingsBase {
 					'option' => [
 						'value'    => [],
 						'selected' => [],
+						'disabled' => [],
 					],
 				]
 			)

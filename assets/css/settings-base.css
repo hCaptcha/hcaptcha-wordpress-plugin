@@ -1,6 +1,13 @@
+.wrap h1.hcaptcha-settings-header {
+	font-size: 34px;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+}
+
 .hcaptcha-logo {
-	width: 235px;
-	margin: 10px 0;
+	height: 64px;
+	margin: 10px 5px 10px 0;
 }
 
 .hcaptcha-settings-tabs {
@@ -35,6 +42,12 @@
 
 #hcaptcha-options h3 {
 	margin: 1.5em 0 1em;
+}
+
+#hcaptcha-options table tbody tr td {
+	padding: 0;
+	margin: 0;
+	position: relative;
 }
 
 #hcaptcha-options table tr td input[type="checkbox"] {

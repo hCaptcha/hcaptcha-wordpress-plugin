@@ -147,28 +147,26 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 */
 	public function settings_page() {
 		?>
-		<div class="wrap">
-			<img
+		<img
 				src="<?php echo esc_url( HCAPTCHA_URL . '/assets/images/hcaptcha-logo.svg' ); ?>"
 				alt="hCaptcha Logo"
 				class="hcaptcha-logo"
-			/>
+		/>
 
-			<form
-					id="hcaptcha-options"
-					class="hcaptcha-<?php echo esc_attr( $this->section_title() ); ?>"
-					action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>"
-					method="post">
-				<?php
-				do_settings_sections( $this->option_page() ); // Sections with options.
-				settings_fields( $this->option_group() ); // Hidden protection fields.
+		<form
+				id="hcaptcha-options"
+				class="hcaptcha-<?php echo esc_attr( $this->section_title() ); ?>"
+				action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>"
+				method="post">
+			<?php
+			do_settings_sections( $this->option_page() ); // Sections with options.
+			settings_fields( $this->option_group() ); // Hidden protection fields.
 
-				if ( ! empty( $this->form_fields ) ) {
-					submit_button();
-				}
-				?>
-			</form>
-		</div>
+			if ( ! empty( $this->form_fields ) ) {
+				submit_button();
+			}
+			?>
+		</form>
 		<?php
 	}
 
@@ -180,7 +178,6 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @return string
 	 */
 	public function admin_footer_text( $text ) {
-
 		if ( ! $this->is_options_screen() ) {
 			return $text;
 		}
@@ -189,7 +186,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 
 		return wp_kses(
 			sprintf(
-			/* translators: 1: hCaptcha plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
+			/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
 				__( 'Please rate %1$s %2$s on %3$s</a>. Thank you!', 'hcaptcha-for-forms-and-more' ),
 				'<strong>hCaptcha for WordPress</strong>',
 				sprintf(
@@ -212,7 +209,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
-	 * Show hCaptcha version in the update footer.
+	 * Show plugin version in the update footer.
 	 *
 	 * @param string $content The content that will be printed.
 	 *
@@ -224,7 +221,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 		}
 
 		return sprintf(
-		/* translators: 1: hCaptcha version. */
+		/* translators: 1: plugin version. */
 			__( 'Version %s', 'hcaptcha-for-forms-and-more' ),
 			HCAPTCHA_VERSION
 		);
