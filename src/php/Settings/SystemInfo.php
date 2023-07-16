@@ -1,6 +1,6 @@
 <?php
 /**
- * Integrations class file.
+ * SystemInfo class file.
  *
  * @package hcaptcha-wp
  */
