@@ -503,7 +503,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
 
+		$expected = '<div class="wrap"></div>';
+
+		ob_start();
 		$subject->settings_base_page();
+		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
