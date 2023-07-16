@@ -89,7 +89,7 @@ class SystemInfo extends PluginSettingsBase {
 		</h2>
 		<div id="hcaptcha-system-info-wrap">
 			<span class="helper">
-				<span class="helper-content"><?php esc_html_e( 'Copy system info to clipboard', '' ); ?></span>
+				<span class="helper-content"><?php esc_html_e( 'Copy system info to clipboard', 'hcaptcha-for-forms-and-more' ); ?></span>
 			</span>
 			<div class="dashicons-before dashicons-media-text" aria-hidden="true"></div>
 			<label>
