@@ -167,6 +167,7 @@ abstract class SettingsBase {
 
 		if ( ! $this->is_tab() ) {
 			add_action( 'current_screen', [ $this, 'setup_tabs_section' ], 9 );
+			add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
 		}
 
 		$this->init();
@@ -197,7 +198,6 @@ abstract class SettingsBase {
 			[ $this, 'add_settings_link' ]
 		);
 
-		add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
 		add_action( 'current_screen', [ $this, 'setup_fields' ] );
 		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
 
@@ -535,6 +535,12 @@ abstract class SettingsBase {
 	 * @return bool
 	 */
 	protected function is_tab_active( $tab ) {
+		$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		if ( $current_page_name !== $this->option_page() ) {
+			return false;
+		}
+
 		$current_tab_name = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		if ( null === $current_tab_name ) {
