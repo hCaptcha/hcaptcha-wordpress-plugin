@@ -326,6 +326,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$method = 'init_settings';
 		$this->set_method_accessibility( $subject, $method );
 
+		if ( $settings ) {
+			$settings['_network_wide'] = $network_wide;
+		}
+
 		WP_Mock::userFunction( 'get_site_option' )->with( $option_name . '_network_wide', [] )->once()
 			->andReturn( $network_wide );
 
@@ -338,36 +342,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$form_fields = $this->get_test_form_fields();
 		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
 
-		$form_fields_pluck = [
-			'wp_status'                    => '',
-			'acfe_status'                  => '',
-			'avada_status'                 => '',
-			'bbp_status'                   => '',
-			'beaver_builder_status'        => '',
-			'bp_status'                    => '',
-			'cf7_status'                   => '',
-			'divi_status'                  => '',
-			'download_manager_status'      => '',
-			'elementor_pro_status'         => '',
-			'fluent_status'                => '',
-			'forminator_status'            => '',
-			'gravity_status'               => '',
-			'jetpack_status'               => '',
-			'kadence_status'               => '',
-			'mailchimp_status'             => '',
-			'memberpress_status'           => '',
-			'ninja_status'                 => '',
-			'otter_status'                 => '',
-			'quform_status'                => '',
-			'sendinblue_status'            => '',
-			'subscriber_status'            => '',
-			'ultimate_member_status'       => '',
-			'woocommerce_status'           => '',
-			'woocommerce_wishlists_status' => '',
-			'wpforms_status'               => '',
-			'wpdiscuz_status'              => '',
-			'wpforo_status'                => '',
-		];
+		$form_fields_pluck = $this->wp_list_pluck( $form_fields, 'default' );
 
 		WP_Mock::userFunction( 'wp_list_pluck' )->with( $form_fields, 'default' )->once()
 			->andReturn( $form_fields_pluck );
@@ -715,7 +690,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'get_tab_name_from_referer' )->andReturn( $referer_tab );
+		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_tab );
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
 		FunctionMocker::replace(
@@ -751,13 +726,83 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_is_tab_active() {
 		return [
-			'No input, not on page'   => [ false, null, null, false, 'any_class_name', false ],
-			'No input, not a tab'     => [ true, null, null, false, 'any_class_name', true ],
-			'No input, tab'           => [ true, null, 'integrations', true, 'any_class_name', false ],
-			'Wrong input, not a tab'  => [ true, 'wrong', null, false, 'General', false ],
-			'Wrong input, tab'        => [ true, 'wrong', 'integrations', true, 'General', false ],
-			'Proper input, not a tab' => [ true, 'general', null, false, 'General', true ],
-			'Proper input, tab'       => [ true, 'general', 'integrations', true, 'General', true ],
+			'No input, not on page'   => [
+				false,
+				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'any_class_name',
+				true,
+			],
+			'No input, not a tab'     => [
+				true,
+				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'any_class_name',
+				true,
+			],
+			'No input, tab'           => [
+				true,
+				null,
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
+				true,
+				'any_class_name',
+				false,
+			],
+			'Wrong input, not a tab'  => [
+				true,
+				'wrong',
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'General',
+				false,
+			],
+			'Wrong input, tab'        => [
+				true,
+				'wrong',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
+				true,
+				'General',
+				false,
+			],
+			'Proper input, not a tab' => [
+				true,
+				'general',
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'General',
+				true,
+			],
+			'Proper input, tab'       => [
+				true,
+				'general',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
+				true,
+				'General',
+				true,
+			],
 		];
 	}
 
@@ -774,6 +819,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function test_get_tab_name_from_referer( $doing_ajax, $referer, $expected ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+
 		$subject->shouldReceive( 'wp_parse_str' )->andReturnUsing(
 			static function ( $input_string ) {
 				parse_str( (string) $input_string, $result );
@@ -805,7 +851,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			}
 		);
 
-		self::assertSame( $expected, $subject->get_tab_name_from_referer() );
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $url, $component ) {
+				return parse_url( $url, $component );
+			}
+		);
+
+		self::assertSame( $expected, $subject->get_names_from_referer() );
 	}
 
 	/**
@@ -817,33 +869,51 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		return [
 			'Not ajax, not a tab'  => [
 				false,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha',
-				null,
+				'/wp-admin/options-general.php?page=hcaptcha',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => null,
+				],
 			],
 			'Not ajax, tab'        => [
 				false,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
-				'integrations',
+				'/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
 			],
 			'Not ajax, no referer' => [
 				false,
 				null,
-				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
 			],
 			'Ajax, not a tab'      => [
 				true,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha',
-				null,
+				'/wp-admin/options-general.php?page=hcaptcha',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => null,
+				],
 			],
 			'Ajax, tab'            => [
 				true,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
-				'integrations',
+				'/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
 			],
 			'Ajax, no referer'     => [
 				true,
 				null,
-				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
 			],
 		];
 	}
