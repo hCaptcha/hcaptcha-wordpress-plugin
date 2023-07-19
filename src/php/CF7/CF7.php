@@ -179,7 +179,7 @@ class CF7 {
 	 * Verify CF7 recaptcha.
 	 *
 	 * @param WPCF7_Validation $result Result.
-	 * @param WPCF7_FormTag   $tag    Tag.
+	 * @param WPCF7_FormTag    $tag    Tag.
 	 *
 	 * @return WPCF7_Validation
 	 * @noinspection PhpUnusedParameterInspection
