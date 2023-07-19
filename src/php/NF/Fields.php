@@ -67,9 +67,8 @@ class Fields extends NF_Fields_recaptcha {
 	 * @param mixed $data  Data.
 	 *
 	 * @return null|string
-	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function validate( array $field, $data ) {
+	public function validate( $field, $data ) {
 		$value = $field['value'] ?? '';
 
 		return hcaptcha_request_verify( $value );

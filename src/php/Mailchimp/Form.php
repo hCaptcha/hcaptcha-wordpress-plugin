@@ -11,6 +11,8 @@
 namespace HCaptcha\Mailchimp;
 
 use HCaptcha\Helpers\HCaptcha;
+use MC4WP_Form;
+use MC4WP_Form_Element;
 
 /**
  * Class Form.
@@ -74,6 +76,7 @@ class Form {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function add_captcha( string $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
 		$args = [
