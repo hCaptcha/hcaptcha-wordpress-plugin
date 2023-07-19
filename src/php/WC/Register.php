@@ -62,7 +62,7 @@ class Register {
 	 *
 	 * @return WP_Error
 	 */
-	public function verify( $validation_error ): WP_Error {
+	public function verify( WP_Error $validation_error ): WP_Error {
 		$error_message = hcaptcha_get_verify_message(
 			self::NONCE,
 			self::ACTION

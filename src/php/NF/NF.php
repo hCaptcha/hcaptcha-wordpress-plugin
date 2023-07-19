@@ -46,7 +46,7 @@ class NF {
 	 *
 	 * @return array
 	 */
-	public function register_fields( $fields ): array {
+	public function register_fields( array $fields ): array {
 		$fields['hcaptcha-for-ninja-forms'] = new Fields();
 
 		return $fields;
@@ -59,7 +59,7 @@ class NF {
 	 *
 	 * @return array
 	 */
-	public function template_file_paths( $paths ): array {
+	public function template_file_paths( array $paths ): array {
 		$paths[] = __DIR__ . '/templates/';
 
 		return $paths;
@@ -72,7 +72,7 @@ class NF {
 	 *
 	 * @return void
 	 */
-	public function set_form_id( $form_id ) {
+	public function set_form_id( int $form_id ) {
 		$this->form_id = $form_id;
 	}
 
@@ -83,7 +83,7 @@ class NF {
 	 *
 	 * @return array
 	 */
-	public function localize_field( $field ): array {
+	public function localize_field( array $field ): array {
 
 		$settings                         = hcaptcha()->settings();
 		$hcaptcha_id                      = uniqid( 'hcaptcha-nf-', true );

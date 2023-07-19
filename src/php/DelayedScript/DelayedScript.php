@@ -19,8 +19,10 @@ class DelayedScript {
 	 * @param int    $delay Delay in ms.
 	 *
 	 * @return string
+	 * @noinspection PhpCastIsUnnecessaryInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
-	public static function create( $js, $delay = 3000 ): string {
+	public static function create( string $js, int $delay = 3000 ): string {
 		ob_start();
 		?>
 		<!--suppress JSUnusedAssignment -->
@@ -93,7 +95,7 @@ class DelayedScript {
 	 * @param array $args  Arguments.
 	 * @param int   $delay Delay in ms.
 	 */
-	public static function launch( array $args, $delay = 3000 ) {
+	public static function launch( array $args, int $delay = 3000 ) {
 		ob_start();
 
 		?>

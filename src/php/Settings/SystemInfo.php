@@ -82,7 +82,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 */
-	public function section_callback( $arguments ) {
+	public function section_callback( array $arguments ) {
 		?>
 		<h2>
 			<?php echo esc_html__( 'System Information', 'hcaptcha-for-forms-and-more' ); ?>
@@ -454,7 +454,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function header( $header ): string {
+	private function header( string $header ): string {
 		return "\n" . $header . "\n\n";
 	}
 
@@ -467,7 +467,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function data( $key, $value, $max_key_length = 0 ): string {
+	private function data( string $key, string $value, int $max_key_length = 0 ): string {
 		$length = $max_key_length ? max( $max_key_length, self::DATA_KEY_LENGTH ) : self::DATA_KEY_LENGTH;
 
 		$length += 2;
@@ -483,7 +483,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return int
 	 */
-	private function get_max_key_length( $array, $key ): int {
+	private function get_max_key_length( array $array, string $key ): int {
 		return array_reduce(
 			$array,
 			static function ( $carry, $item ) use ( $key ) {
@@ -505,7 +505,7 @@ class SystemInfo extends PluginSettingsBase {
 	 * @return string
 	 * @noinspection PhpSameParameterValueInspection
 	 */
-	private function mb_str_pad( $string, $length, $pad_string = ' ' ): string {
+	private function mb_str_pad( string $string, int $length, string $pad_string = ' ' ): string {
 		$pad_string = mb_substr( $pad_string, 0, 1 );
 		$times      = max( 0, $length - mb_strlen( $string ) );
 
@@ -530,7 +530,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function is_on( $key ): string {
+	private function is_on( string $key ): string {
 		return hcaptcha()->settings()->is_on( $key ) ? 'On' : 'Off';
 	}
 }

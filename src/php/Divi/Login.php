@@ -52,7 +52,7 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $output, $module_slug ) {
+	public function add_captcha( $output, string $module_slug ) {
 		if ( et_core_is_fb_enabled() ) {
 			// Do not add captcha in frontend builder.
 
@@ -89,7 +89,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

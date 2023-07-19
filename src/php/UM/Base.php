@@ -96,7 +96,7 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function set_form_id( $args ) {
+	public function set_form_id( array $args ) {
 		$this->form_id = isset( $args['form_id'] ) ? (int) $args['form_id'] : 0;
 	}
 
@@ -107,8 +107,9 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return array
 	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $fields ) {
+	public function add_captcha( array $fields ) {
 		$um = UM();
 
 		if ( ! $um ) {
@@ -168,8 +169,9 @@ abstract class Base extends LoginBase {
 	 * @param string $mode   Mode.
 	 *
 	 * @return string
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function display_captcha( $output, $mode ): string {
+	public function display_captcha( string $output, string $mode ): string {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
 			return $output;
 		}
@@ -210,8 +212,9 @@ abstract class Base extends LoginBase {
 	 * @param array $form_data      Form data.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $submitted_data, $form_data = [] ) {
+	public function verify( array $submitted_data, array $form_data = [] ) {
 		$um = UM();
 
 		if (

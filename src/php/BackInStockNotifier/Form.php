@@ -65,7 +65,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_email_field( $product_id, $variation_id ) {
+	public function after_email_field( int $product_id, int $variation_id ) {
 		$this->form_id = $product_id;
 
 		ob_start();
@@ -80,7 +80,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_submit_button( $product_id, $variation_id ) {
+	public function after_submit_button( int $product_id, int $variation_id ) {
 		$output = ob_get_clean();
 
 		$args = [
@@ -108,7 +108,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function verify( $post_data, $rest_api ) {
+	public function verify( array $post_data, bool $rest_api ) {
 
 		$hcaptcha_response = $post_data['h-captcha-response'] ?? '';
 

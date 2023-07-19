@@ -45,7 +45,7 @@ class Login extends Base {
 	 *
 	 * @return string
 	 */
-	public function add_hcaptcha( $out, $module ): string {
+	public function add_hcaptcha( string $out, FLButtonModule $module ): string {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $out;
 		}
@@ -73,7 +73,7 @@ class Login extends Base {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$action = isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '';
 

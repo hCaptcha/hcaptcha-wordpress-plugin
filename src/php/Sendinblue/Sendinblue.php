@@ -42,7 +42,7 @@ class Sendinblue {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $tag, $attr, $m ): string {
+	public function add_hcaptcha( string $output, string $tag, $attr, array $m ): string {
 		if ( 'sibwp_form' !== $tag ) {
 			return $output;
 		}
@@ -70,8 +70,9 @@ class Sendinblue {
 	 *
 	 * @return string|null
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function verify_request( $result, $error_codes ) {
+	public function verify_request( $result, array $error_codes ) {
 		// Nonce is checked in the hcaptcha_verify_post().
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing

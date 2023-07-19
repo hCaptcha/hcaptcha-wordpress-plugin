@@ -19,7 +19,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	/**
 	 * Constructor.
 	 *
-	 * @param array $tabs Tabs of this settings page.
+	 * @param array|null $tabs Tabs of this settings page.
 	 */
 	public function __construct( $tabs = [] ) {
 		add_filter( 'admin_footer_text', [ $this, 'admin_footer_text' ] );
@@ -177,7 +177,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	public function admin_footer_text( $text ): string {
+	public function admin_footer_text( string $text ): string {
 		if ( ! $this->is_options_screen() ) {
 			return $text;
 		}
@@ -215,7 +215,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	public function update_footer( $content ): string {
+	public function update_footer( string $content ): string {
 		if ( ! $this->is_options_screen() ) {
 			return $content;
 		}

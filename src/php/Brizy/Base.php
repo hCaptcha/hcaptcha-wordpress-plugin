@@ -45,7 +45,7 @@ abstract class Base {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $content, $project, $post, $type = '' ) {
+	public function add_captcha( string $content, Brizy_Editor_Project $project, WP_Post $post, string $type = '' ) {
 		if ( 'body' !== $type ) {
 			return $content;
 		}

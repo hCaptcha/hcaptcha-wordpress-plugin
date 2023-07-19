@@ -45,7 +45,7 @@ class Fix {
 	 *
 	 * @return true|null
 	 */
-	public function prevent_loading_of_wp_test_case( $classname ) {
+	public function prevent_loading_of_wp_test_case( string $classname ) {
 		if ( 'Codeception\TestCase\WPTestCase' === $classname ) {
 			require 'WPTestCaseStub.php';
 

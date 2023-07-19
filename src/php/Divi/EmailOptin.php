@@ -55,7 +55,7 @@ class EmailOptin {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $html, $single_name_field ): string {
+	public function add_captcha( string $html, string $single_name_field ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,

@@ -374,7 +374,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 */
-	public function section_callback( $arguments ) {
+	public function section_callback( array $arguments ) {
 		switch ( $arguments['id'] ) {
 			case self::SECTION_KEYS:
 				?>
@@ -416,7 +416,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function print_section_header( $id, $title ) {
+	private function print_section_header( string $id, string $title ) {
 		?>
 		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $title ); ?></h3>
 		<?php

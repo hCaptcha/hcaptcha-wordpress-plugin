@@ -44,7 +44,7 @@ class Login extends LoginBase {
 	 *
 	 * @param string $content Content of the PMPro login page.
 	 */
-	public function add_captcha( $content ) {
+	public function add_captcha( string $content ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $content;
 		}
@@ -88,7 +88,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$pmpro_login_form_used = isset( $_POST['pmpro_login_form_used'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['pmpro_login_form_used'] ) ) :

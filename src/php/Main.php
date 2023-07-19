@@ -177,7 +177,7 @@ class Main {
 	 *
 	 * @return object|null
 	 */
-	public function get( $class ) {
+	public function get( string $class ) {
 
 		return $this->loaded_classes[ $class ] ?? null;
 	}
@@ -264,7 +264,7 @@ class Main {
 	 *
 	 * @return array
 	 */
-	public function prefetch_hcaptcha_dns( $urls, $relation_type ): array {
+	public function prefetch_hcaptcha_dns( array $urls, string $relation_type ): array {
 		if ( 'dns-prefetch' === $relation_type ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
@@ -279,7 +279,7 @@ class Main {
 	 *
 	 * @return array
 	 */
-	public function csp_headers( $headers ): array {
+	public function csp_headers( array $headers ): array {
 		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
 
 		$headers['X-Content-Security-Policy'] =
@@ -563,7 +563,7 @@ class Main {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ): string {
+	public function support_candy_shortcode_tag( string $output, string $tag, $attr, array $m ): string {
 		if ( 'supportcandy' === $tag ) {
 			$this->did_support_candy_shortcode_tag_filter = true;
 		}
@@ -580,7 +580,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	public function whitelist_ip( $whitelisted, $client_ip ): bool {
+	public function whitelist_ip( bool $whitelisted, string $client_ip ): bool {
 
 		$ips = explode(
 			"\n",

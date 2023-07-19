@@ -68,7 +68,7 @@ class Form {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_button, $form ) {
+	public function add_captcha( array $submit_button, stdClass $form ) {
 		// Do not add if form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return;
@@ -105,7 +105,7 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $data, $form, $fields ): array {
+	public function verify( array $errors, array $data, stdClass $form, array $fields ): array {
 		// Do not verify if form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return $errors;
@@ -171,7 +171,7 @@ class Form {
 	 *
 	 * @return stdClass
 	 */
-	public function fluentform_rendering_form_filter( $form ): stdClass {
+	public function fluentform_rendering_form_filter( stdClass $form ): stdClass {
 		static $has_own_captcha = false;
 
 		if ( $this->has_own_hcaptcha( $form ) ) {
@@ -192,7 +192,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	protected function has_own_hcaptcha( $form ): bool {
+	protected function has_own_hcaptcha( stdClass $form ): bool {
 		$auto_include = apply_filters( 'ff_has_auto_hcaptcha', false );
 
 		if ( $auto_include ) {

@@ -7,6 +7,7 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUnused */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\NF;
@@ -66,8 +67,9 @@ class Fields extends NF_Fields_recaptcha {
 	 * @param mixed $data  Data.
 	 *
 	 * @return null|string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function validate( $field, $data ) {
+	public function validate( array $field, $data ) {
 		$value = $field['value'] ?? '';
 
 		return hcaptcha_request_verify( $value );

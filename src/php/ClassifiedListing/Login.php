@@ -69,7 +69,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$rtcl_login = isset( $_POST['rtcl-login'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['rtcl-login'] ) ) :

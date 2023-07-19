@@ -41,7 +41,7 @@ class AutoVerify {
 	 *
 	 * @return string
 	 */
-	public function content_filter( $content ): string {
+	public function content_filter( string $content ): string {
 		if ( ! $this->is_frontend() ) {
 			return $content;
 		}
@@ -182,7 +182,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms Forms found in the content.
 	 */
-	private function register_forms( $forms ) {
+	private function register_forms( array $forms ) {
 		$forms_data = [];
 
 		foreach ( $forms as $form ) {
@@ -210,7 +210,7 @@ class AutoVerify {
 	 *
 	 * @return string
 	 */
-	private function get_form_action( $form ): string {
+	private function get_form_action( string $form ): string {
 		$form_action = '';
 
 		if ( preg_match( '#<form [\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
@@ -235,7 +235,7 @@ class AutoVerify {
 	 *
 	 * @return array
 	 */
-	private function get_visible_input_names( $form ): array {
+	private function get_visible_input_names( string $form ): array {
 		$names = [];
 
 		if ( ! preg_match_all( '#<input[\S\s]+?>#', $form, $matches ) ) {
@@ -266,7 +266,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_input_visible( $input ): bool {
+	private function is_input_visible( string $input ): bool {
 		return ! preg_match( '#type\s*?=\s*?["\']hidden["\']#', $input );
 	}
 
@@ -277,7 +277,7 @@ class AutoVerify {
 	 *
 	 * @return string|null
 	 */
-	private function get_input_name( $input ) {
+	private function get_input_name( string $input ) {
 		if ( preg_match( '#name\s*?=\s*?["\'](.+?)["\']#', $input, $matches ) ) {
 			return $matches[1];
 		}
@@ -292,7 +292,7 @@ class AutoVerify {
 	 *
 	 * @return string|null
 	 */
-	private function get_form_auto( $form ) {
+	private function get_form_auto( string $form ) {
 		if ( preg_match( '#class="h-captcha"[\S\s]+?data-auto="(.*)"[\S\s]*?>#', $form, $matches ) ) {
 			return $matches[1];
 		}
@@ -307,7 +307,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_form_auto( $form ): bool {
+	private function is_form_auto( string $form ): bool {
 		return 'true' === $this->get_form_auto( $form );
 	}
 
@@ -316,7 +316,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms_data Forms data to update in transient.
 	 */
-	private function update_transient( $forms_data ) {
+	private function update_transient( array $forms_data ) {
 		$transient        = get_transient( self::TRANSIENT );
 		$registered_forms = $transient ?: [];
 
@@ -359,7 +359,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_form_registered( $request_uri ): bool {
+	private function is_form_registered( string $request_uri ): bool {
 		$registered_forms = get_transient( self::TRANSIENT );
 
 		if ( empty( $registered_forms ) ) {

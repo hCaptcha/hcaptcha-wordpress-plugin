@@ -66,7 +66,7 @@ class Form {
 	 * @return int
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_form_render( $id, $form_type, $post_id, $form_fields, $form_settings ): int {
+	public function before_form_render( int $id, string $form_type, int $post_id, array $form_fields, array $form_settings ): int {
 		$this->form_id = $id;
 
 		return $id;
@@ -81,7 +81,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, $button ): string {
+	public function add_hcaptcha( string $html, string $button ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -106,7 +106,7 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $can_show, $id, $form_settings ): array {
+	public function verify( array $can_show, int $id, array $form_settings ): array {
 		$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {

@@ -368,7 +368,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function logo( $label ): string {
+	private function logo( string $label ): string {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
 
 		return sprintf(
@@ -412,7 +412,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	public function sort_fields( $fields ): array {
+	public function sort_fields( array $fields ): array {
 		uasort(
 			$fields,
 			static function ( $a, $b ) {
@@ -442,7 +442,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 */
-	public function section_callback( $arguments ) {
+	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
 			?>
 			<hr class="hcaptcha-disabled-section">
@@ -600,7 +600,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function activate_plugins( $plugins ): bool {
+	private function activate_plugins( array $plugins ): bool {
 		foreach ( $plugins as $plugin ) {
 			ob_start();
 

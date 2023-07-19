@@ -45,7 +45,7 @@ class Contact extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $out, $module ): string {
+	public function add_hcaptcha( string $out, FLButtonModule $module ): string {
 
 		// Process contact form only.
 		if ( false === strpos( $out, '<form class="fl-contact-form"' ) ) {
@@ -67,7 +67,7 @@ class Contact extends Base {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $mailto, $subject, $template, $headers, $settings ) {
+	public function verify( string $mailto, string $subject, string $template, array $headers, stdClass $settings ) {
 
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 

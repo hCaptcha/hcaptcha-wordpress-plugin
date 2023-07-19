@@ -64,7 +64,7 @@ class Form {
 	 * @return mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function get_transient( $value, $transient ) {
+	public function get_transient( $value, string $transient ) {
 		if (
 			! $value ||
 			( isset( $value->active_captcha ) && 'hcaptcha' !== $value->active_captcha )
@@ -88,7 +88,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function add_captcha( $html, $field, $atts ): string {
+	public function add_captcha( string $html, array $field, array $atts ): string {
 		if ( 'captcha' !== $field['type'] ) {
 			return $html;
 		}
@@ -132,7 +132,7 @@ class Form {
 	 * @return bool
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function prevent_native_validation( $is_field_hidden, $field, $post ): bool {
+	public function prevent_native_validation( bool $is_field_hidden, stdClass $field, array $post ): bool {
 		if ( 'captcha' !== $field->type ) {
 			return $is_field_hidden;
 		}
@@ -159,7 +159,7 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $values, $validate_args ): array {
+	public function verify( array $errors, array $values, array $validate_args ): array {
 		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION

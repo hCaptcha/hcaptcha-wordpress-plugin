@@ -53,11 +53,11 @@ class Comment {
 	 * Add captcha.
 	 *
 	 * @param string $submit_field HTML markup for the submit field.
-	 * @param array  $comment_args  Arguments passed to comment_form().
+	 * @param array  $comment_args Arguments passed to comment_form().
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_field, $comment_args ): string {
+	public function add_captcha( string $submit_field, array $comment_args ): string {
 		$post_id = 0;
 
 		if (
@@ -101,7 +101,7 @@ class Comment {
 	 * @return int|string|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $approved, $commentdata ) {
+	public function verify( $approved, array $commentdata ) {
 		if ( is_admin() ) {
 			return $approved;
 		}
@@ -123,7 +123,7 @@ class Comment {
 	 *
 	 * @return WP_Error
 	 */
-	private function invalid_captcha_error( $approved, $error_message = '' ) {
+	private function invalid_captcha_error( $approved, string $error_message = '' ) {
 		$error_message = $error_message ?: __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' );
 		$approved      = is_wp_error( $approved ) ? $approved : new WP_Error();
 

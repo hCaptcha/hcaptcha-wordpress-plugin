@@ -39,7 +39,7 @@ class OrderTracking {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function do_shortcode_tag( $output, $tag, $attr, $m ): string {
+	public function do_shortcode_tag( string $output, string $tag, $attr, array $m ): string {
 		if ( 'woocommerce_order_tracking' !== $tag ) {
 			return $output;
 		}

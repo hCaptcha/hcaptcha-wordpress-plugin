@@ -54,7 +54,7 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcap_error_messages( $messages, $form ): array {
+	public function add_hcap_error_messages( array $messages, MC4WP_Form $form ): array {
 		foreach ( hcap_get_error_messages() as $error_code => $error_message ) {
 			$messages[ $error_code ] = [
 				'type' => 'error',
@@ -75,7 +75,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $content, $form, $element ): string {
+	public function add_captcha( string $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
@@ -102,7 +102,7 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $form ): array {
+	public function verify( array $errors, MC4WP_Form $form ): array {
 		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {

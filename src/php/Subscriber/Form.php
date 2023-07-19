@@ -48,7 +48,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function add_captcha( $content ): string {
+	public function add_captcha( string $content ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
@@ -69,7 +69,7 @@ class Form {
 	 * @return bool|string
 	 * @noinspection NullCoalescingOperatorCanBeUsedInspection
 	 */
-	public function verify( $check_result ) {
+	public function verify( bool $check_result ) {
 		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {

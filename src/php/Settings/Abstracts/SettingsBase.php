@@ -148,7 +148,7 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Arguments.
 	 */
-	abstract public function section_callback( $arguments );
+	abstract public function section_callback( array $arguments );
 
 	/**
 	 * Get text domain.
@@ -160,7 +160,9 @@ abstract class SettingsBase {
 	/**
 	 * SettingsBase constructor.
 	 *
-	 * @param array $tabs Tabs of this settings page.
+	 * @param array|null $tabs Tabs of this settings page.
+	 *
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function __construct( $tabs = [] ) {
 		$this->tabs = $tabs;
@@ -368,7 +370,7 @@ abstract class SettingsBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function set_defaults( &$field, $id ) {
+	protected function set_defaults( array &$field, string $id ) {
 		$field = wp_parse_args(
 			$field,
 			[
@@ -515,7 +517,7 @@ abstract class SettingsBase {
 	 *
 	 * @param SettingsBase $tab Tabs of the current settings page.
 	 */
-	private function tab_link( $tab ) {
+	private function tab_link( SettingsBase $tab ) {
 		$url    = menu_page_url( $this->option_page(), false );
 		$url    = add_query_arg( 'tab', strtolower( $tab->get_class_name() ), $url );
 		$active = $this->is_tab_active( $tab ) ? ' active' : '';
@@ -534,7 +536,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_tab_active( $tab ): bool {
+	protected function is_tab_active( SettingsBase $tab ): bool {
 		$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$current_tab_name  = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
@@ -585,7 +587,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array
 	 */
-	protected function wp_parse_str( $input_string ): array {
+	protected function wp_parse_str( string $input_string ): array {
 		wp_parse_str( $input_string, $result );
 
 		return $result;
@@ -1069,7 +1071,7 @@ abstract class SettingsBase {
 	 *
 	 * @return string|array The value specified for the option or a default value for the option.
 	 */
-	public function get( $key, $empty_value = null ) {
+	public function get( string $key, $empty_value = null ) {
 		if ( empty( $this->settings ) ) {
 			$this->init_settings();
 		}
@@ -1107,7 +1109,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool True if done.
 	 */
-	public function set_field( $key, $field_key, $value ): bool {
+	public function set_field( string $key, string $field_key, $value ): bool {
 		if ( ! array_key_exists( $key, $this->form_fields ) ) {
 			return false;
 		}
@@ -1123,7 +1125,7 @@ abstract class SettingsBase {
 	 * @param string $key   Setting name.
 	 * @param mixed  $value Setting value.
 	 */
-	public function update_option( $key, $value ) {
+	public function update_option( string $key, $value ) {
 		if ( empty( $this->settings ) ) {
 			$this->init_settings();
 		}
@@ -1217,7 +1219,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	private function print_helper( $helper ) {
+	private function print_helper( string $helper ) {
 		if ( ! $helper ) {
 			return;
 		}
@@ -1235,7 +1237,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	private function print_supplemental( $supplemental ) {
+	private function print_supplemental( string $supplemental ) {
 		if ( ! $supplemental ) {
 			return;
 		}

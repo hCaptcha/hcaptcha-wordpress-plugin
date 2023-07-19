@@ -48,7 +48,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function form_after_open( $args, $params ) {
+	public function form_after_open( array $args, array $params ) {
 		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
 	}
 
@@ -61,7 +61,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, $args ): string {
+	public function add_hcaptcha( string $html, array $args ): string {
 		if ( false === strpos( $html, '<button type="submit"' ) ) {
 			return $html;
 		}
@@ -83,7 +83,7 @@ class Form {
 	 *
 	 * @return bool|void
 	 */
-	public function verify( $demo_mode ) {
+	public function verify( bool $demo_mode ) {
 
 		// Nonce is checked by Avada.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing

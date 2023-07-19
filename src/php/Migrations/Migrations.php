@@ -128,7 +128,7 @@ class Migrations {
 	 *
 	 * @return string
 	 */
-	private function get_upgrade_version( $method ): string {
+	private function get_upgrade_version( string $method ): string {
 		// Find only the digits to get version number.
 		if ( ! preg_match( '/\d+/', $method, $matches ) ) {
 			return '';
@@ -147,7 +147,7 @@ class Migrations {
 	 * @noinspection ForgottenDebugOutputInspection
 	 * @noinspection PhpSameParameterValueInspection
 	 */
-	private function log( $message, $item = null ) {
+	private function log( string $message, $item = null ) {
 		if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
 			return;
 		}

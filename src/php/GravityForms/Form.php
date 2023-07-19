@@ -37,7 +37,7 @@ class Form {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $button_input, $form ): string {
+	public function add_captcha( string $button_input, array $form ): string {
 		$args = [
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
@@ -59,8 +59,9 @@ class Form {
 	 *
 	 * @return string|null
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function verify_request( $result, $error_codes ) {
+	public function verify_request( $result, array $error_codes ) {
 		// Nonce is checked in the hcaptcha_verify_post().
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing

@@ -36,7 +36,7 @@ abstract class Base {
 	 *
 	 * @param int $form_id Form id.
 	 */
-	public function add_captcha( $form_id ) {
+	public function add_captcha( int $form_id ) {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,

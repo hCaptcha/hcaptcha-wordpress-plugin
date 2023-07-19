@@ -70,7 +70,7 @@ abstract class LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function login( $user_login, $user ) {
+	public function login( string $user_login, WP_User $user ) {
 		unset( $this->login_data[ $this->ip ] );
 
 		update_option( self::LOGIN_DATA, $this->login_data );
@@ -85,7 +85,7 @@ abstract class LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function login_failed( $username, $error = null ) {
+	public function login_failed( string $username, WP_Error $error = null ) {
 		$this->login_data[ $this->ip ][] = time();
 
 		update_option( self::LOGIN_DATA, $this->login_data );

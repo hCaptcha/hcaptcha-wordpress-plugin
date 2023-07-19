@@ -80,7 +80,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		if ( false === strpos( wp_get_raw_referer(), '/wp-login.php' ) ) {
 			return $user;
 		}

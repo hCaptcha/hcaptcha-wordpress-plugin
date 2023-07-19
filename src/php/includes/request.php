@@ -116,6 +116,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @param string|null $hcaptcha_response hCaptcha response.
 	 *
 	 * @return null|string Null on success, error message on failure.
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
 		static $result;
@@ -206,7 +207,7 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	function hcaptcha_verify_post( $nonce_field_name = HCAPTCHA_NONCE, $nonce_action_name = HCAPTCHA_ACTION ) {
+	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ) {
 
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
@@ -243,7 +244,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_output' ) ) {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	function hcaptcha_get_verify_output( $empty_message, $fail_message, $nonce_field_name, $nonce_action_name ) {
+	function hcaptcha_get_verify_output( string $empty_message, string $fail_message, string $nonce_field_name, string $nonce_action_name ) {
 		if ( ! empty( $empty_message ) || ! empty( $fail_message ) ) {
 			_deprecated_argument( __FUNCTION__, '2.1.0' );
 		}
@@ -261,7 +262,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	function hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name ) {
+	function hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name ) {
 		return hcaptcha_get_verify_output( '', '', $nonce_field_name, $nonce_action_name );
 	}
 }
@@ -275,7 +276,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	function hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) {
+	function hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name ) {
 		$message = hcaptcha_get_verify_output( '', '', $nonce_field_name, $nonce_action_name );
 
 		if ( null === $message ) {
@@ -301,7 +302,7 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	 *
 	 * @return string
 	 */
-	function hcap_hcaptcha_error_message( $hcaptcha_content = '' ) {
+	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ) {
 		_deprecated_function( __FUNCTION__, '2.1.0' );
 
 		$message = sprintf(

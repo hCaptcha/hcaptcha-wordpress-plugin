@@ -30,7 +30,7 @@ class HCaptcha {
 	 *
 	 * @return string
 	 */
-	public static function form( $args = [] ): string {
+	public static function form( array $args = [] ): string {
 		ob_start();
 		self::form_display( $args );
 
@@ -42,7 +42,7 @@ class HCaptcha {
 	 *
 	 * @param array $args Arguments.
 	 */
-	public static function form_display( $args = [] ) {
+	public static function form_display( array $args = [] ) {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_theme    = $settings->get( 'theme' );
@@ -192,7 +192,7 @@ class HCaptcha {
 	 *
 	 * @return array
 	 */
-	public static function get_class_source( $class ): array {
+	public static function get_class_source( string $class ): array {
 		foreach ( hcaptcha()->modules as $module ) {
 			if ( in_array( $class, (array) $module[2], true ) ) {
 				$source = $module[1];

@@ -51,7 +51,7 @@ class PasswordProtected {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $post ): string {
+	public function add_hcaptcha( string $output, WP_Post $post ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -74,6 +74,7 @@ class PasswordProtected {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection ForgottenDebugOutputInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function verify( $package ) {
 

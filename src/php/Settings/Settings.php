@@ -36,9 +36,9 @@ class Settings implements SettingsInterface {
 	 *
 	 * @param array $menu_pages_classes Menu pages.
 	 */
-	public function __construct( $menu_pages_classes = [] ) {
+	public function __construct( array $menu_pages_classes = [] ) {
 		// Allow to specify $menu_pages_classes item as one class, not an array.
-		$this->menu_pages_classes = (array) $menu_pages_classes;
+		$this->menu_pages_classes = $menu_pages_classes;
 
 		$this->init();
 	}
@@ -96,7 +96,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return string|array The value specified for the option or a default value for the option.
 	 */
-	public function get( $key, $empty_value = null ) {
+	public function get( string $key, $empty_value = null ) {
 		$value = '';
 
 		foreach ( $this->tabs as $tab ) {
@@ -127,7 +127,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return bool
 	 */
-	public function is( $key, $compare ): bool {
+	public function is( string $key, string $compare ): bool {
 		$value = $this->get( $key );
 
 		if ( is_array( $value ) ) {
@@ -144,7 +144,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return bool
 	 */
-	public function is_on( $key ): bool {
+	public function is_on( string $key ): bool {
 		return ! empty( $this->get( $key ) );
 	}
 
@@ -215,7 +215,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return void
 	 */
-	public function set_field( $key, $field_key, $value ) {
+	public function set_field( string $key, string $field_key, $value ) {
 		foreach ( $this->tabs as $tab ) {
 			/**
 			 * Page / Tab.

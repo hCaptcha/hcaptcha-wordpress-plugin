@@ -59,7 +59,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function before_fields( $args ) {
+	public function before_fields( array $args ) {
 		$this->form_id = $args['ID'];
 	}
 
@@ -71,7 +71,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_render( $field ) {
+	public function remove_recaptcha_render( array $field ) {
 		if ( ! $this->is_recaptcha( $field ) ) {
 			return;
 		}
@@ -88,7 +88,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function add_hcaptcha( $field ) {
+	public function add_hcaptcha( array $field ) {
 		if ( ! $this->is_recaptcha( $field ) ) {
 			return;
 		}
@@ -122,7 +122,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_verify( $valid, $value, $field, $input ): bool {
+	public function remove_recaptcha_verify( bool $valid, string $value, array $field, string $input ): bool {
 		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
 
 		remove_filter( self::VALIDATION_HOOK, [ $recaptcha, 'validate_value' ] );
@@ -141,7 +141,7 @@ class Form {
 	 * @return bool
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $valid, $value, $field, $input ): bool {
+	public function verify( bool $valid, string $value, array $field, string $input ): bool {
 		if ( ! $field['required'] ) {
 			return $valid;
 		}
@@ -185,7 +185,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_recaptcha( $field ): bool {
+	private function is_recaptcha( array $field ): bool {
 		return isset( $field['type'] ) && 'acfe_recaptcha' === $field['type'];
 	}
 }

@@ -42,7 +42,7 @@ abstract class Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection RegExpUnnecessaryNonCapturingGroup
 	 */
-	public function add_captcha( $output, $tag, $attr, $m ) {
+	public function add_captcha( string $output, string $tag, $attr, array $m ) {
 		if ( 'forum' !== $tag ) {
 			return $output;
 		}
@@ -77,7 +77,7 @@ abstract class Base {
 	 *
 	 * @return bool
 	 */
-	public function verify( $verified ): bool {
+	public function verify( bool $verified ): bool {
 		global $asgarosforum;
 
 		$error_message = hcaptcha_get_verify_message(

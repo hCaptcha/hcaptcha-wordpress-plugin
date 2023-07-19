@@ -61,7 +61,7 @@ class Quform {
 	 *
 	 * @return string
 	 */
-	public function add_hcaptcha( $output, $tag, $attr, $m ): string {
+	public function add_hcaptcha( string $output, string $tag, $attr, array $m ): string {
 		if ( 'quform' !== $tag ) {
 			return $output;
 		}
@@ -110,7 +110,7 @@ class Quform {
 	 *
 	 * @return array
 	 */
-	public function verify( $result, $form ): array {
+	public function verify( array $result, Quform_Form $form ): array {
 		$page           = $form->getCurrentPage();
 		$page_id        = $page ? $page->getId() : 0;
 		$hcaptcha_name  = $this->get_max_element_id( $page );
@@ -146,6 +146,7 @@ class Quform {
 	 * @param Quform_Element_Page|null $page Current page.
 	 *
 	 * @return string
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	private function get_max_element_id( $page ): string {
 		$max_id = self::MAX_ID;

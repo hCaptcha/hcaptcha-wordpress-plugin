@@ -53,7 +53,7 @@ abstract class LostPasswordBase {
 	 *
 	 * @return void
 	 */
-	public function verify( $error ) {
+	public function verify( WP_Error $error ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_value = isset( $_POST[ static::POST_KEY ] ) ?
 			sanitize_text_field( wp_unslash( $_POST[ static::POST_KEY ] ) ) :

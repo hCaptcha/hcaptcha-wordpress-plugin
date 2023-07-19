@@ -37,7 +37,7 @@ class Comment extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $comments_count, $current_user ): string {
+	public function add_hcaptcha( string $output, $comments_count, $current_user ): string {
 		global $post;
 
 		$args = [
@@ -71,7 +71,7 @@ class Comment extends Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function verify( $comment_data ) {
+	public function verify( array $comment_data ) {
 		$wp_discuz = wpDiscuz();
 
 		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ], 10 );

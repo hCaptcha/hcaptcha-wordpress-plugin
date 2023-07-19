@@ -61,7 +61,7 @@ class Login extends LoginBase {
 	 *
 	 * @return WP_Error
 	 */
-	public function verify( $validation_error ): WP_Error {
+	public function verify( WP_Error $validation_error ): WP_Error {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $validation_error;
 		}

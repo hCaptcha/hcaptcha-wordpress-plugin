@@ -19,7 +19,7 @@ class Register extends Base {
 	 *
 	 * @return string
 	 */
-	protected function get_style( $hcaptcha_size ): string {
+	protected function get_style( string $hcaptcha_size ): string {
 		ob_start();
 
 		switch ( $hcaptcha_size ) {

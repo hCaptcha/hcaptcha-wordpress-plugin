@@ -48,7 +48,7 @@ class Form {
 	 *
 	 * @return array
 	 */
-	public function remove_recaptcha_from_block( $block ) {
+	public function remove_recaptcha_from_block( array $block ): array {
 		if ( 'kadence/form' !== $block['blockName'] ) {
 			return $block;
 		}
@@ -67,7 +67,7 @@ class Form {
 	 *
 	 * @return array
 	 */
-	public function remove_recaptcha_from_attributes( $attributes ) {
+	public function remove_recaptcha_from_attributes( array $attributes ): array {
 		if ( isset( $attributes['recaptcha'] ) ) {
 			$attributes['recaptcha'] = false;
 		}
@@ -85,7 +85,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function render_block( $block_content, $block, $instance ) {
+	public function render_block( string $block_content, array $block, WP_Block $instance ): string {
 		if ( 'kadence/form' !== $block['blockName'] ) {
 			return $block_content;
 		}

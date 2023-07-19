@@ -50,7 +50,7 @@ class Form {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $form_data ) {
+	public function add_captcha( array $form_data ) {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
@@ -74,8 +74,9 @@ class Form {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $fields, $entry, $form_data ) {
+	public function verify( array $fields, array $entry, array $form_data ) {
 		$error_message = hcaptcha_get_verify_message(
 			self::NAME,
 			self::ACTION

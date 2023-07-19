@@ -58,7 +58,7 @@ abstract class JetpackBase {
 	 *
 	 * @return string|string[]|null
 	 */
-	abstract public function add_captcha( $content );
+	abstract public function add_captcha( string $content );
 
 	/**
 	 * Verify hCaptcha answer from the Jetpack Contact Form.
@@ -67,7 +67,7 @@ abstract class JetpackBase {
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function verify( $is_spam = false ) {
+	public function verify( bool $is_spam = false ) {
 		$this->error_message = hcaptcha_get_verify_message(
 			static::NAME,
 			static::ACTION
@@ -91,7 +91,7 @@ abstract class JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function error_message( $hcaptcha_content = '' ): string {
+	public function error_message( string $hcaptcha_content = '' ): string {
 		if ( null === $this->error_message ) {
 			return $hcaptcha_content;
 		}

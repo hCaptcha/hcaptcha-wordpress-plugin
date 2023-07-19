@@ -66,7 +66,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

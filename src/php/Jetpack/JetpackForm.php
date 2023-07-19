@@ -21,7 +21,7 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string|string[]|null
 	 */
-	public function add_captcha( $content ) {
+	public function add_captcha( string $content ) {
 		// Jetpack classic form.
 		$content = preg_replace_callback(
 			'~(\[contact-form[\s\S]*?][\s\S]*?)(\[/contact-form])~',
@@ -44,7 +44,7 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function classic_callback( $matches ): string {
+	public function classic_callback( array $matches ): string {
 		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
 			return $matches[0];
 		}
@@ -68,7 +68,7 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function block_callback( $matches ): string {
+	public function block_callback( array $matches ): string {
 		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
 			return $matches[0];
 		}
