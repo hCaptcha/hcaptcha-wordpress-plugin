@@ -111,8 +111,8 @@ class Form {
 			return $errors;
 		}
 
-		$hcaptcha_response           = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
-		$_POST['hcaptcha-widget-id'] = isset( $data['hcaptcha-widget-id'] ) ? $data['hcaptcha-widget-id'] : '';
+		$hcaptcha_response           = $data['h-captcha-response'] ?? '';
+		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
 		$error_message               = hcaptcha_request_verify( $hcaptcha_response );
 
 		if ( null !== $error_message ) {

@@ -179,7 +179,7 @@ class Main {
 	 */
 	public function get( $class ) {
 
-		return isset( $this->loaded_classes[ $class ] ) ? $this->loaded_classes[ $class ] : null;
+		return $this->loaded_classes[ $class ] ?? null;
 	}
 
 	/**

@@ -68,7 +68,7 @@ class Fields extends NF_Fields_recaptcha {
 	 * @return null|string
 	 */
 	public function validate( $field, $data ) {
-		$value = isset( $field['value'] ) ? $field['value'] : '';
+		$value = $field['value'] ?? '';
 
 		return hcaptcha_request_verify( $value );
 	}

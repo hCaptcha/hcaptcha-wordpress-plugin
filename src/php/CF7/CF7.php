@@ -109,7 +109,7 @@ class CF7 {
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
 				'id'      => [
 					'source'  => HCaptcha::get_class_source( __CLASS__ ),
-					'form_id' => isset( $attr['form_id'] ) ? $attr['form_id'] : 0,
+					'form_id' => $attr['form_id'] ?? 0,
 				], // hCaptcha widget id.
 				/**
 				 * Example of id:
@@ -125,7 +125,7 @@ class CF7 {
 		if ( $args['id'] ) {
 			$id            = (array) $args['id'];
 			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
-			$id['form_id'] = isset( $id['form_id'] ) ? $id['form_id'] : 0;
+			$id['form_id'] = $id['form_id'] ?? 0;
 
 			/**
 			 * Filters the protection status of a form.
@@ -191,7 +191,7 @@ class CF7 {
 		}
 
 		$data           = $submission->get_posted_data();
-		$response       = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
+		$response       = $data['h-captcha-response'] ?? '';
 		$captcha_result = hcaptcha_request_verify( $response );
 
 		if ( null !== $captcha_result ) {
@@ -245,7 +245,7 @@ class CF7 {
 	}
 
 	/**
-	 * Add form_id to cf7_hcaptcha shortcode if it does not exists.
+	 * Add form_id to cf7_hcaptcha shortcode if it does not exist.
 	 * Replace to proper form_id if needed.
 	 *
 	 * @param string $output  CF7 form output.
@@ -273,7 +273,7 @@ class CF7 {
 		array_walk(
 			$atts,
 			static function ( &$value, $key ) {
-				$value = "{$key}=\"{$value}\"";
+				$value = "$key=\"$value\"";
 			}
 		);
 

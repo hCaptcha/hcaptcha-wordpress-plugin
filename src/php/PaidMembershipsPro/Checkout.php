@@ -8,8 +8,6 @@
 namespace HCaptcha\PaidMembershipsPro;
 
 use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-use WP_User;
 
 /**
  * Class Checkout.
@@ -61,6 +59,7 @@ class Checkout {
 	 * Verify login form.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify() {
 		global $pmpro_msg, $pmpro_msgt;

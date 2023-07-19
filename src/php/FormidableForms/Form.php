@@ -130,6 +130,7 @@ class Form {
 	 * @param array    $post            wp_unslash( $_POST ) content.
 	 *
 	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function prevent_native_validation( $is_field_hidden, $field, $post ) {
 		if ( 'captcha' !== $field->type ) {

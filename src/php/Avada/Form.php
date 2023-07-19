@@ -46,6 +46,7 @@ class Form {
 	 * @param array $params Parameters.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function form_after_open( $args, $params ) {
 		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
@@ -91,8 +92,8 @@ class Form {
 			[];
 
 		$form_data                   = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
-		$hcaptcha_response           = isset( $form_data['h-captcha-response'] ) ? $form_data['h-captcha-response'] : '';
-		$hcaptcha_widget_id          = isset( $form_data['hcaptcha-widget-id'] ) ? $form_data['hcaptcha-widget-id'] : '';
+		$hcaptcha_response           = $form_data['h-captcha-response'] ?? '';
+		$hcaptcha_widget_id          = $form_data['hcaptcha-widget-id'] ?? '';
 		$_POST['hcaptcha-widget-id'] = $hcaptcha_widget_id;
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 

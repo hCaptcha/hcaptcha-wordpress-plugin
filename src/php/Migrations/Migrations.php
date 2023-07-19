@@ -224,9 +224,7 @@ class Migrations {
 
 			list( $new_option_key, $new_option_value ) = $new_option_name;
 
-			$new_options[ $new_option_key ] = isset( $new_options[ $new_option_key ] ) ?
-				$new_options[ $new_option_key ] :
-				[];
+			$new_options[ $new_option_key ] = $new_options[ $new_option_key ] ?? [];
 
 			if ( 'on' === $old_option ) {
 				$new_options[ $new_option_key ][] = $new_option_value;

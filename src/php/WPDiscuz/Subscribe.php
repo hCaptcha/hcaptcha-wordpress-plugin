@@ -8,7 +8,6 @@
 namespace HCaptcha\WPDiscuz;
 
 use HCaptcha\Helpers\HCaptcha;
-use WP_User;
 
 /**
  * Class Subscribe.
@@ -39,7 +38,7 @@ class Subscribe extends Base {
 		$args = [
 			'id' => [
 				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $post ? $post->ID : 0,
+				'form_id' => $post->ID ?? 0,
 			],
 		];
 

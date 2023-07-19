@@ -44,7 +44,7 @@ class Form {
 			'auto'   => true,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => isset( $form['id'] ) ? $form['id'] : 0,
+				'form_id' => $form['id'] ?? 0,
 			],
 		];
 

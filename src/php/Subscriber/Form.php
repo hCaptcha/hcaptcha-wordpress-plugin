@@ -67,6 +67,7 @@ class Form {
 	 * @param bool $check_result Check result.
 	 *
 	 * @return bool|string
+	 * @noinspection NullCoalescingOperatorCanBeUsedInspection
 	 */
 	public function verify( $check_result ) {
 		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );

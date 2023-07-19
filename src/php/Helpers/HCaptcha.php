@@ -70,8 +70,8 @@ class HCaptcha {
 
 		if ( $args['id'] ) {
 			$id            = (array) $args['id'];
-			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
-			$id['form_id'] = isset( $id['form_id'] ) ? $id['form_id'] : 0;
+			$id['source']  = (array) ( $id['source'] ?? [] );
+			$id['form_id'] = $id['form_id'] ?? 0;
 
 			/**
 			 * Filters the protection status of a form.

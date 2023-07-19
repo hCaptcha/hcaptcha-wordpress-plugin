@@ -35,6 +35,7 @@ class Comment extends Base {
 	 * @param WP_User|false $current_user   Current user.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $output, $comments_count, $current_user ) {
 		global $post;
@@ -42,7 +43,7 @@ class Comment extends Base {
 		$args = [
 			'id' => [
 				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $post ? $post->ID : 0,
+				'form_id' => $post->ID ?? 0,
 			],
 		];
 

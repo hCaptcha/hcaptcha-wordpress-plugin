@@ -416,14 +416,14 @@ class Integrations extends PluginSettingsBase {
 		uasort(
 			$fields,
 			static function ( $a, $b ) {
-				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
-				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
+				$a_disabled = $a['disabled'] ?? false;
+				$b_disabled = $b['disabled'] ?? false;
 
-				$a_label = isset( $a['label'] ) ? strtolower( $a['label'] ) : '';
-				$b_label = isset( $b['label'] ) ? strtolower( $b['label'] ) : '';
+				$a_label = strtolower( $a['label'] ?? '' );
+				$b_label = strtolower( $b['label'] ?? '' );
 
 				if ( $a_disabled === $b_disabled ) {
-					return strcmp( $a_label, $b_label );
+					return $a_label <=> $b_label;
 				}
 
 				if ( ! $a_disabled && $b_disabled ) {

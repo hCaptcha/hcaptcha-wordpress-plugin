@@ -570,8 +570,8 @@ abstract class SettingsBase {
 		$args  = $this->wp_parse_str( $query );
 
 		return [
-			'page' => isset( $args['page'] ) ? $args['page'] : null,
-			'tab'  => isset( $args['tab'] ) ? $args['tab'] : null,
+			'page' => $args['page'] ?? null,
+			'tab'  => $args['tab'] ?? null,
 		];
 	}
 
@@ -1033,7 +1033,7 @@ abstract class SettingsBase {
 			'table'    => 'print_table_field',
 		];
 
-		$type = isset( $arguments['type'] ) ? $arguments['type'] : '';
+		$type = $arguments['type'] ?? '';
 
 		if ( ! array_key_exists( $type, $types ) ) {
 			return;

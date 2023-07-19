@@ -188,7 +188,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$error_codes = [];
 
 		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
-			$error_codes = isset( $body['error-codes'] ) ? $body['error-codes'] : [ 'fail' ];
+			$error_codes = $body['error-codes'] ?? [ 'fail' ];
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
 		}
 
