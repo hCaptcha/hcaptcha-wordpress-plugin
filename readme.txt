@@ -3,7 +3,7 @@ Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.2
-Requires PHP: 5.6.20
+Requires PHP: 7.0.0
 Stable tag: 2.10.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -470,6 +470,11 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 2.11.0 =
+* Tested with WordPress 6.3.
+* Tested with WooCommerce 7.9.
+* Dropped support of PHP 5.6. Minimum required PHP version is 7.0 now.
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
