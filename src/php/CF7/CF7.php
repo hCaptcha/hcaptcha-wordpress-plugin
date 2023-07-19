@@ -11,6 +11,7 @@
 namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\HCaptcha;
+use WPCF7_FormTag;
 use WPCF7_Submission;
 use WPCF7_Validation;
 
@@ -84,12 +85,12 @@ class CF7 {
 	/**
 	 * CF7 hCaptcha shortcode.
 	 *
-	 * @param array $attr Shortcode attributes.
+	 * @param array|string $attr Shortcode attributes.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function cf7_hcaptcha_shortcode( array $attr = [] ): string {
+	public function cf7_hcaptcha_shortcode( $attr = [] ): string {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_theme    = $settings->get( 'theme' );
@@ -178,7 +179,7 @@ class CF7 {
 	 * Verify CF7 recaptcha.
 	 *
 	 * @param WPCF7_Validation $result Result.
-	 * @param WPCF7_FormTag    $tag    Tag.
+	 * @param WPCF7_FormTag   $tag    Tag.
 	 *
 	 * @return WPCF7_Validation
 	 * @noinspection PhpUnusedParameterInspection
