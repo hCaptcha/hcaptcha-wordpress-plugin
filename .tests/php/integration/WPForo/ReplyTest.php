@@ -35,7 +35,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function setUp(): void {
+	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		set_current_screen( 'edit-post' );
 
 		parent::setUp();
@@ -48,7 +48,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		WPF()->session_token = '';
 		WPF()->notice->clear();
 		WPF()->session_token = '';

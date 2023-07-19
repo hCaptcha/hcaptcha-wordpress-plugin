@@ -33,7 +33,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST );
 		bbpress()->errors = new WP_Error();

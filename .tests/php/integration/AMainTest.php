@@ -60,7 +60,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$loaded_classes = $this->get_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes' );
@@ -676,7 +676,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection BadExpressionStatementJS
 	 */
-	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ): void {
+	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ) {
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
@@ -867,7 +867,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test print_footer_scripts() in admin.
 	 */
-	public function test_print_footer_scripts_in_admin(): void {
+	public function test_print_footer_scripts_in_admin() {
 		set_current_screen( 'edit-post' );
 
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
@@ -885,7 +885,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
-	public function test_print_footer_scripts_when_form_NOT_shown(): void {
+	public function test_print_footer_scripts_when_form_NOT_shown() {
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		ob_start();
@@ -906,7 +906,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_load_modules
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_load_modules( $module ): void {
+	public function test_load_modules( $module ) {
 		list( $option_name, $option_value ) = $module[0];
 
 		update_option(
@@ -1307,7 +1307,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test load_textdomain().
 	 */
-	public function test_load_textdomain(): void {
+	public function test_load_textdomain() {
 		$subject = new Main();
 		$subject->init_hooks();
 

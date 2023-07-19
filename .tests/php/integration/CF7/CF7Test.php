@@ -36,7 +36,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		hcaptcha()->form_shown = false;
 
 		wp_deregister_script( 'hcaptcha-script' );

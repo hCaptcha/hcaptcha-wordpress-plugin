@@ -22,7 +22,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpLanguageLevelInspection
 	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset(
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],

@@ -27,7 +27,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Setup test
 	 */
-	public function setUp(): void {
+	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		FunctionMocker::setUp();
 		parent::setUp();
 
@@ -38,7 +38,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * End test
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 

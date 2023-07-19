@@ -46,7 +46,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpLanguageLevelInspection
 	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		unset(
 			$_POST[ $this->cf_nonce_field ],

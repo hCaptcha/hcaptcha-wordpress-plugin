@@ -37,7 +37,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test tear down.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		if ( function_exists( 'wc_clear_notices' ) ) {
 			wc_clear_notices();
 		}
