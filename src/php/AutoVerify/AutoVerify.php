@@ -267,7 +267,7 @@ class AutoVerify {
 	 * @return bool
 	 */
 	private function is_input_visible( $input ) {
-		return ! preg_match( '#type[\s]*?=[\s]*?["\']hidden["\']#', $input );
+		return ! preg_match( '#type\s*?=\s*?["\']hidden["\']#', $input );
 	}
 
 	/**
@@ -278,7 +278,7 @@ class AutoVerify {
 	 * @return string|null
 	 */
 	private function get_input_name( $input ) {
-		if ( preg_match( '#name[\s]*?=[\s]*?["\'](.+?)["\']#', $input, $matches ) ) {
+		if ( preg_match( '#name\s*?=\s*?["\'](.+?)["\']#', $input, $matches ) ) {
 			return $matches[1];
 		}
 
