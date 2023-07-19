@@ -51,7 +51,7 @@ class DownloadManager {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	public function add_hcaptcha( $template, $vars ) {
+	public function add_hcaptcha( $template, $vars ): string {
 		$form_id = 0;
 
 		if ( preg_match( '/wpdmdl=(\d+)/', $template, $m ) ) {

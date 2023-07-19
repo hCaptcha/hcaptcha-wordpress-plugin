@@ -19,7 +19,7 @@ class Login extends Base {
 	 *
 	 * @return string
 	 */
-	protected function get_style( $hcaptcha_size ) {
+	protected function get_style( $hcaptcha_size ): string {
 		ob_start();
 
 		switch ( $hcaptcha_size ) {

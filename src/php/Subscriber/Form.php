@@ -48,7 +48,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function add_captcha( $content ) {
+	public function add_captcha( $content ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,

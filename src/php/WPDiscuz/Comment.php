@@ -37,7 +37,7 @@ class Comment extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $comments_count, $current_user ) {
+	public function add_hcaptcha( $output, $comments_count, $current_user ): string {
 		global $post;
 
 		$args = [

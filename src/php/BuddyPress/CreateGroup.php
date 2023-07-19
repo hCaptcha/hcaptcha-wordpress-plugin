@@ -71,7 +71,7 @@ class CreateGroup {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $bp_group ) {
+	public function verify( $bp_group ): bool {
 		if ( ! bp_is_group_creation_step( 'group-details' ) ) {
 			return false;
 		}

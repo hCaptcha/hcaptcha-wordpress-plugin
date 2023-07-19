@@ -39,7 +39,7 @@ class Login extends Base {
 	 *
 	 * @return string
 	 */
-	public function mute_login_hcaptcha_notice( $message, $error_key = '' ) {
+	public function mute_login_hcaptcha_notice( $message, $error_key = '' ): string {
 		if ( self::KEY !== $error_key ) {
 			return $message;
 		}
@@ -53,6 +53,7 @@ class Login extends Base {
 	 * @param array $fields Form fields.
 	 *
 	 * @return array
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function add_captcha( $fields ) {
 		if ( ! $this->is_login_limit_exceeded() ) {

@@ -30,7 +30,7 @@ class HCaptcha {
 	 *
 	 * @return string
 	 */
-	public static function form( $args = [] ) {
+	public static function form( $args = [] ): string {
 		ob_start();
 		self::form_display( $args );
 
@@ -132,7 +132,7 @@ class HCaptcha {
 	 *
 	 * @return bool
 	 */
-	public static function is_protection_enabled() {
+	public static function is_protection_enabled(): bool {
 		// Nonce is checked in hcaptcha_verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
@@ -164,7 +164,7 @@ class HCaptcha {
 	 * @return array
 	 * @noinspection PhpUnusedLocalVariableInspection
 	 */
-	public static function get_widget_id() {
+	public static function get_widget_id(): array {
 		// Nonce is checked in hcaptcha_verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
@@ -192,7 +192,7 @@ class HCaptcha {
 	 *
 	 * @return array
 	 */
-	public static function get_class_source( $class ) {
+	public static function get_class_source( $class ): array {
 		foreach ( hcaptcha()->modules as $module ) {
 			if ( in_array( $class, (array) $module[2], true ) ) {
 				$source = $module[1];

@@ -70,7 +70,7 @@ class Register {
 	 * @return WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $validation_error, $email, $username, $password, $post ) {
+	public function verify( $validation_error, $email, $username, $password, $post ): WP_Error {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$rtcl_register = isset( $_POST['rtcl-register'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['rtcl-register'] ) ) :

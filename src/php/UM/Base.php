@@ -106,6 +106,7 @@ abstract class Base extends LoginBase {
 	 * @param array $fields Form fields.
 	 *
 	 * @return array
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function add_captcha( $fields ) {
 		$um = UM();
@@ -168,7 +169,7 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return string
 	 */
-	public function display_captcha( $output, $mode ) {
+	public function display_captcha( $output, $mode ): string {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
 			return $output;
 		}

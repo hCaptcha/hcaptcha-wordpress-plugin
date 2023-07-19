@@ -122,7 +122,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_verify( $valid, $value, $field, $input ) {
+	public function remove_recaptcha_verify( $valid, $value, $field, $input ): bool {
 		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
 
 		remove_filter( self::VALIDATION_HOOK, [ $recaptcha, 'validate_value' ] );
@@ -141,7 +141,7 @@ class Form {
 	 * @return bool
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $valid, $value, $field, $input ) {
+	public function verify( $valid, $value, $field, $input ): bool {
 		if ( ! $field['required'] ) {
 			return $valid;
 		}
@@ -185,7 +185,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_recaptcha( $field ) {
+	private function is_recaptcha( $field ): bool {
 		return isset( $field['type'] ) && 'acfe_recaptcha' === $field['type'];
 	}
 }

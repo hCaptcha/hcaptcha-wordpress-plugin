@@ -41,7 +41,7 @@ class AutoVerify {
 	 *
 	 * @return string
 	 */
-	public function content_filter( $content ) {
+	public function content_filter( $content ): string {
 		if ( ! $this->is_frontend() ) {
 			return $content;
 		}
@@ -117,7 +117,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_frontend() {
+	private function is_frontend(): bool {
 		return ! ( $this->is_cli() || is_admin() || wp_doing_ajax() || $this->is_rest() );
 	}
 
@@ -134,7 +134,7 @@ class AutoVerify {
 	 * @return bool
 	 * @author matzeeable
 	 */
-	private function is_rest() {
+	private function is_rest(): bool {
 		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
 			return false;
 		}
@@ -173,7 +173,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_cli() {
+	private function is_cli(): bool {
 		return defined( 'WP_CLI' ) && constant( 'WP_CLI' );
 	}
 
@@ -210,7 +210,7 @@ class AutoVerify {
 	 *
 	 * @return string
 	 */
-	private function get_form_action( $form ) {
+	private function get_form_action( $form ): string {
 		$form_action = '';
 
 		if ( preg_match( '#<form [\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
@@ -235,7 +235,7 @@ class AutoVerify {
 	 *
 	 * @return array
 	 */
-	private function get_visible_input_names( $form ) {
+	private function get_visible_input_names( $form ): array {
 		$names = [];
 
 		if ( ! preg_match_all( '#<input[\S\s]+?>#', $form, $matches ) ) {
@@ -266,7 +266,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_input_visible( $input ) {
+	private function is_input_visible( $input ): bool {
 		return ! preg_match( '#type\s*?=\s*?["\']hidden["\']#', $input );
 	}
 
@@ -307,7 +307,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_form_auto( $form ) {
+	private function is_form_auto( $form ): bool {
 		return 'true' === $this->get_form_auto( $form );
 	}
 
@@ -359,7 +359,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_form_registered( $request_uri ) {
+	private function is_form_registered( $request_uri ): bool {
 		$registered_forms = get_transient( self::TRANSIENT );
 
 		if ( empty( $registered_forms ) ) {

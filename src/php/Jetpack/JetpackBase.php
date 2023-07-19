@@ -91,7 +91,7 @@ abstract class JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function error_message( $hcaptcha_content = '' ) {
+	public function error_message( $hcaptcha_content = '' ): string {
 		if ( null === $this->error_message ) {
 			return $hcaptcha_content;
 		}

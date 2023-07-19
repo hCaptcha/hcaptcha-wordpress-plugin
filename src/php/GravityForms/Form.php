@@ -37,7 +37,7 @@ class Form {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $button_input, $form ) {
+	public function add_captcha( $button_input, $form ): string {
 		$args = [
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,

@@ -20,7 +20,7 @@ class DelayedScript {
 	 *
 	 * @return string
 	 */
-	public static function create( $js, $delay = 3000 ) {
+	public static function create( $js, $delay = 3000 ): string {
 		ob_start();
 		?>
 		<!--suppress JSUnusedAssignment -->

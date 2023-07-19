@@ -108,7 +108,7 @@ class HCaptchaHandler {
 	 *
 	 * @return string
 	 */
-	protected static function get_hcaptcha_name() {
+	protected static function get_hcaptcha_name(): string {
 		return self::FIELD_ID;
 	}
 

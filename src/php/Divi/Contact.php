@@ -179,7 +179,7 @@ class Contact {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function shortcode_attributes( $props, $attrs, $slug, $_address, $content ) {
+	public function shortcode_attributes( $props, $attrs, $slug, $_address, $content ): array {
 		if ( self::TAG !== $slug ) {
 			return $props;
 		}

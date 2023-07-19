@@ -57,7 +57,7 @@ class Comment {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_field, $comment_args ) {
+	public function add_captcha( $submit_field, $comment_args ): string {
 		$post_id = 0;
 
 		if (

@@ -61,7 +61,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, $args ) {
+	public function add_hcaptcha( $html, $args ): string {
 		if ( false === strpos( $html, '<button type="submit"' ) ) {
 			return $html;
 		}

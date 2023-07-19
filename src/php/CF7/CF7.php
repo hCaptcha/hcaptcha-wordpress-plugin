@@ -50,7 +50,7 @@ class CF7 {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function wpcf7_shortcode( $output, $tag, $attr, $m ) {
+	public function wpcf7_shortcode( $output, $tag, $attr, $m ): string {
 		if ( 'contact-form-7' !== $tag ) {
 			return $output;
 		}
@@ -89,7 +89,7 @@ class CF7 {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function cf7_hcaptcha_shortcode( $attr = [] ) {
+	public function cf7_hcaptcha_shortcode( $attr = [] ): string {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_theme    = $settings->get( 'theme' );
@@ -183,7 +183,7 @@ class CF7 {
 	 * @return WPCF7_Validation
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify_hcaptcha( $result, $tag ) {
+	public function verify_hcaptcha( $result, $tag ): WPCF7_Validation {
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( null === $submission ) {
@@ -209,7 +209,7 @@ class CF7 {
 	 *
 	 * @return WPCF7_Validation
 	 */
-	private function get_invalidated_result( $result, $captcha_result = '' ) {
+	private function get_invalidated_result( $result, $captcha_result = '' ): WPCF7_Validation {
 		if ( '' === $captcha_result ) {
 			$captcha_result = hcap_get_error_messages()['empty'];
 		}
@@ -253,7 +253,7 @@ class CF7 {
 	 *
 	 * @return string
 	 */
-	private function add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) {
+	private function add_form_id_to_cf7_hcap_shortcode( $output, $form_id ): string {
 		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
 
 		if ( ! preg_match( "/$cf7_hcap_sc_regex/", $output, $matches ) ) {

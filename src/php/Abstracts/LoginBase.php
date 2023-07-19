@@ -96,7 +96,7 @@ abstract class LoginBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_login_limit_exceeded() {
+	protected function is_login_limit_exceeded(): bool {
 		$now            = time();
 		$login_limit    = (int) hcaptcha()->settings()->get( 'login_limit' );
 		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );

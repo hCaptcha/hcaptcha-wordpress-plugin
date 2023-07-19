@@ -59,77 +59,77 @@ abstract class SettingsBase {
 	 *
 	 * @return string
 	 */
-	abstract public function screen_id();
+	abstract public function screen_id(): string;
 
 	/**
 	 * Get option group.
 	 *
 	 * @return string
 	 */
-	abstract protected function option_group();
+	abstract protected function option_group(): string;
 
 	/**
 	 * Get option page.
 	 *
 	 * @return string
 	 */
-	abstract protected function option_page();
+	abstract protected function option_page(): string;
 
 	/**
 	 * Get option name.
 	 *
 	 * @return string
 	 */
-	abstract protected function option_name();
+	abstract protected function option_name(): string;
 
 	/**
 	 * Get plugin base name.
 	 *
 	 * @return string
 	 */
-	abstract protected function plugin_basename();
+	abstract protected function plugin_basename(): string;
 
 	/**
 	 * Get plugin url.
 	 *
 	 * @return string
 	 */
-	abstract protected function plugin_url();
+	abstract protected function plugin_url(): string;
 
 	/**
 	 * Get plugin version.
 	 *
 	 * @return string
 	 */
-	abstract protected function plugin_version();
+	abstract protected function plugin_version(): string;
 
 	/**
 	 * Get settings link label.
 	 *
 	 * @return string
 	 */
-	abstract protected function settings_link_label();
+	abstract protected function settings_link_label(): string;
 
 	/**
 	 * Get settings link text.
 	 *
 	 * @return string
 	 */
-	abstract protected function settings_link_text();
+	abstract protected function settings_link_text(): string;
 
 	/**
 	 * Get page title.
 	 *
 	 * @return string
 	 */
-	abstract protected function page_title();
+	abstract protected function page_title(): string;
 
 	/**
 	 * Get menu title.
 	 *
 	 * @return string
 	 */
-	abstract protected function menu_title();
+	abstract protected function menu_title(): string;
 
 	/**
 	 * Show setting page.
@@ -141,7 +141,7 @@ abstract class SettingsBase {
 	 *
 	 * @return string
 	 */
-	abstract protected function section_title();
+	abstract protected function section_title(): string;
 
 	/**
 	 * Show section.
@@ -155,7 +155,7 @@ abstract class SettingsBase {
 	 *
 	 * @return string
 	 */
-	abstract protected function text_domain();
+	abstract protected function text_domain(): string;
 
 	/**
 	 * SettingsBase constructor.
@@ -219,7 +219,7 @@ abstract class SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function parent_slug() {
+	protected function parent_slug(): string {
 		// By default, add menu pages to Options menu.
 		return 'options-general.php';
 	}
@@ -229,7 +229,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_main_menu_page() {
+	protected function is_main_menu_page(): bool {
 		// Main menu page should have empty string as parent slug.
 		return ! $this->parent_slug();
 	}
@@ -240,7 +240,7 @@ abstract class SettingsBase {
 	 * @return string
 	 * @noinspection PhpUnused
 	 */
-	protected function tab_name() {
+	protected function tab_name(): string {
 		return $this->get_class_name();
 	}
 
@@ -249,7 +249,7 @@ abstract class SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function get_class_name() {
+	protected function get_class_name(): string {
 		$path = explode( '\\', get_class( $this ) );
 
 		return array_pop( $path );
@@ -260,7 +260,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_tab() {
+	protected function is_tab(): bool {
 		// Tab has null in tabs property.
 		return null === $this->tabs;
 	}
@@ -274,7 +274,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array|string[] Plugin links
 	 */
-	public function add_settings_link( array $actions ) {
+	public function add_settings_link( array $actions ): array {
 		$new_actions = [
 			'settings' =>
 				'<a href="' . admin_url( $this->parent_slug() . '?page=' . $this->option_page() ) .
@@ -350,7 +350,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array of options
 	 */
-	protected function form_fields() {
+	protected function form_fields(): array {
 		if ( empty( $this->form_fields ) ) {
 			$this->init_form_fields();
 			array_walk( $this->form_fields, [ $this, 'set_defaults' ] );
@@ -534,7 +534,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_tab_active( $tab ) {
+	protected function is_tab_active( $tab ): bool {
 		$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$current_tab_name  = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
@@ -559,7 +559,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array
 	 */
-	protected function get_names_from_referer() {
+	protected function get_names_from_referer(): array {
 		if ( wp_doing_ajax() ) {
 			$query = wp_get_referer();
 		} else {
@@ -585,7 +585,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array
 	 */
-	protected function wp_parse_str( $input_string ) {
+	protected function wp_parse_str( $input_string ): array {
 		wp_parse_str( $input_string, $result );
 
 		return $result;
@@ -598,7 +598,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array
 	 */
-	public function get_tabs() {
+	public function get_tabs(): array {
 		return $this->tabs;
 	}
 
@@ -607,7 +607,7 @@ abstract class SettingsBase {
 	 *
 	 * @return SettingsBase
 	 */
-	protected function get_active_tab() {
+	protected function get_active_tab(): SettingsBase {
 		if ( ! empty( $this->tabs ) ) {
 			foreach ( $this->tabs as $tab ) {
 				if ( $this->is_tab_active( $tab ) ) {
@@ -1094,7 +1094,7 @@ abstract class SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function field_default( array $field ) {
+	protected function field_default( array $field ): string {
 		return empty( $field['default'] ) ? '' : $field['default'];
 	}
 
@@ -1107,7 +1107,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool True if done.
 	 */
-	public function set_field( $key, $field_key, $value ) {
+	public function set_field( $key, $field_key, $value ): bool {
 		if ( ! array_key_exists( $key, $this->form_fields ) ) {
 			return false;
 		}
@@ -1190,7 +1190,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_options_screen() {
+	protected function is_options_screen(): bool {
 		if ( ! function_exists( 'get_current_screen' ) ) {
 			return false;
 		}

@@ -117,7 +117,7 @@ class Login extends LoginBase {
 	 *
 	 * @return false
 	 */
-	public function wordfence_ls_require_captcha() {
+	public function wordfence_ls_require_captcha(): bool {
 
 		return false;
 	}

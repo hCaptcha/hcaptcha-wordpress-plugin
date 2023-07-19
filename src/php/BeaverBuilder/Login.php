@@ -45,7 +45,7 @@ class Login extends Base {
 	 *
 	 * @return string
 	 */
-	public function add_hcaptcha( $out, $module ) {
+	public function add_hcaptcha( $out, $module ): string {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $out;
 		}

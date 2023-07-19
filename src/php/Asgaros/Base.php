@@ -77,7 +77,7 @@ abstract class Base {
 	 *
 	 * @return bool
 	 */
-	public function verify( $verified ) {
+	public function verify( $verified ): bool {
 		global $asgarosforum;
 
 		$error_message = hcaptcha_get_verify_message(

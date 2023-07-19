@@ -51,7 +51,7 @@ class PasswordProtected {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $post ) {
+	public function add_hcaptcha( $output, $post ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,

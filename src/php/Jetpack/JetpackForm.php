@@ -44,7 +44,7 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function classic_callback( $matches ) {
+	public function classic_callback( $matches ): string {
 		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
 			return $matches[0];
 		}
@@ -68,7 +68,7 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function block_callback( $matches ) {
+	public function block_callback( $matches ): string {
 		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
 			return $matches[0];
 		}

@@ -33,7 +33,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function menu_title() {
+	protected function menu_title(): string {
 		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -42,7 +42,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	public function screen_id() {
+	public function screen_id(): string {
 		return 'settings_page_hcaptcha';
 	}
 
@@ -51,7 +51,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function option_group() {
+	protected function option_group(): string {
 		return 'hcaptcha_group';
 	}
 
@@ -60,7 +60,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function option_page() {
+	protected function option_page(): string {
 		return 'hcaptcha';
 	}
 
@@ -69,7 +69,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function option_name() {
+	protected function option_name(): string {
 		return 'hcaptcha_settings';
 	}
 
@@ -78,7 +78,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function plugin_basename() {
+	protected function plugin_basename(): string {
 		return plugin_basename( constant( 'HCAPTCHA_FILE' ) );
 	}
 
@@ -87,7 +87,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function plugin_url() {
+	protected function plugin_url(): string {
 		return constant( 'HCAPTCHA_URL' );
 	}
 
@@ -96,7 +96,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function plugin_version() {
+	protected function plugin_version(): string {
 		return constant( 'HCAPTCHA_VERSION' );
 	}
 
@@ -105,7 +105,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function settings_link_label() {
+	protected function settings_link_label(): string {
 		return __( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -114,7 +114,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function settings_link_text() {
+	protected function settings_link_text(): string {
 		return __( 'Settings', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -123,7 +123,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function text_domain() {
+	protected function text_domain(): string {
 		return 'hcaptcha-for-forms-and-more';
 	}
 
@@ -177,7 +177,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	public function admin_footer_text( $text ) {
+	public function admin_footer_text( $text ): string {
 		if ( ! $this->is_options_screen() ) {
 			return $text;
 		}
@@ -215,7 +215,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	public function update_footer( $content ) {
+	public function update_footer( $content ): string {
 		if ( ! $this->is_options_screen() ) {
 			return $content;
 		}

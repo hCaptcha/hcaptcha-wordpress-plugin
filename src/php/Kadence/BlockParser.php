@@ -24,7 +24,7 @@ class BlockParser extends WP_Block_Parser {
 	 * @param string $document Input document being parsed.
 	 * @return array[]
 	 */
-	public function parse( $document ) {
+	public function parse( $document ): array {
 		$output = parent::parse( $document );
 
 		if (

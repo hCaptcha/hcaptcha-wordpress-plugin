@@ -66,7 +66,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function page_title() {
+	protected function page_title(): string {
 		return __( 'General', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -75,7 +75,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function section_title() {
+	protected function section_title(): string {
 		return 'general';
 	}
 

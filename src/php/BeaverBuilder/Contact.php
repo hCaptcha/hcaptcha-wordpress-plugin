@@ -45,7 +45,7 @@ class Contact extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $out, $module ) {
+	public function add_hcaptcha( $out, $module ): string {
 
 		// Process contact form only.
 		if ( false === strpos( $out, '<form class="fl-contact-form"' ) ) {

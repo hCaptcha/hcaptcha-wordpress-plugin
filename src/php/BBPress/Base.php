@@ -53,7 +53,7 @@ abstract class Base {
 	 *
 	 * @return bool
 	 */
-	public function verify() {
+	public function verify(): bool {
 		$error_message = hcaptcha_get_verify_message( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {

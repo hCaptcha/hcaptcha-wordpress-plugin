@@ -65,7 +65,7 @@ class Register {
 	 * @return WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $sanitized_user_login, $user_email ) {
+	public function verify( $errors, $sanitized_user_login, $user_email ): WP_Error {
 		$error_message = hcaptcha_get_verify_message_html(
 			self::NONCE,
 			self::ACTION

@@ -112,7 +112,7 @@ class Migrations {
 	/**
 	 * Determine if migration is allowed.
 	 */
-	private function is_allowed() {
+	private function is_allowed(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['service-worker'] ) ) {
 			return false;
@@ -128,7 +128,7 @@ class Migrations {
 	 *
 	 * @return string
 	 */
-	private function get_upgrade_version( $method ) {
+	private function get_upgrade_version( $method ): string {
 		// Find only the digits to get version number.
 		if ( ! preg_match( '/\d+/', $method, $matches ) ) {
 			return '';

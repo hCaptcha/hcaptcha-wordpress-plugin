@@ -187,7 +187,7 @@ class Main {
 	 *
 	 * @return Settings
 	 */
-	public function settings() {
+	public function settings(): Settings {
 		return $this->settings;
 	}
 
@@ -196,7 +196,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function activate_hcaptcha() {
+	private function activate_hcaptcha(): bool {
 		// Make sure we can use is_user_logged_in().
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
@@ -231,7 +231,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function is_elementor_pro_edit_page() {
+	private function is_elementor_pro_edit_page(): bool {
 		if ( ! $this->settings()->is_on( 'elementor_pro_status' ) ) {
 			return false;
 		}
@@ -264,7 +264,7 @@ class Main {
 	 *
 	 * @return array
 	 */
-	public function prefetch_hcaptcha_dns( $urls, $relation_type ) {
+	public function prefetch_hcaptcha_dns( $urls, $relation_type ): array {
 		if ( 'dns-prefetch' === $relation_type ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
@@ -279,7 +279,7 @@ class Main {
 	 *
 	 * @return array
 	 */
-	public function csp_headers( $headers ) {
+	public function csp_headers( $headers ): array {
 		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
 
 		$headers['X-Content-Security-Policy'] =
@@ -440,7 +440,7 @@ class Main {
 	 *
 	 * @return string
 	 */
-	public function get_api_src() {
+	public function get_api_src(): string {
 		$params = [
 			'onload' => 'hCaptchaOnLoad',
 			'render' => 'explicit',
@@ -563,7 +563,7 @@ class Main {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ) {
+	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ): string {
 		if ( 'supportcandy' === $tag ) {
 			$this->did_support_candy_shortcode_tag_filter = true;
 		}
@@ -580,7 +580,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	public function whitelist_ip( $whitelisted, $client_ip ) {
+	public function whitelist_ip( $whitelisted, $client_ip ): bool {
 
 		$ips = explode(
 			"\n",
@@ -1000,7 +1000,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function plugin_or_theme_active( $plugin_or_theme_names ) {
+	private function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
 			if ( '' === $plugin_or_theme_name ) {
 				// WP Core is always active.
@@ -1043,7 +1043,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	protected function is_xml_rpc() {
+	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }

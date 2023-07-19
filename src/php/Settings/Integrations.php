@@ -46,7 +46,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function page_title() {
+	protected function page_title(): string {
 		return __( 'Integrations', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -55,7 +55,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function section_title() {
+	protected function section_title(): string {
 		return 'integrations';
 	}
 
@@ -368,7 +368,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function logo( $label ) {
+	private function logo( $label ): string {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
 
 		return sprintf(
@@ -412,7 +412,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	public function sort_fields( $fields ) {
+	public function sort_fields( $fields ): array {
 		uasort(
 			$fields,
 			static function ( $a, $b ) {
@@ -600,7 +600,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function activate_plugins( $plugins ) {
+	private function activate_plugins( $plugins ): bool {
 		foreach ( $plugins as $plugin ) {
 			ob_start();
 

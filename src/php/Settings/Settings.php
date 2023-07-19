@@ -84,7 +84,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return array
 	 */
-	public function get_tabs() {
+	public function get_tabs(): array {
 		return $this->tabs;
 	}
 
@@ -127,7 +127,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return bool
 	 */
-	public function is( $key, $compare ) {
+	public function is( $key, $compare ): bool {
 		$value = $this->get( $key );
 
 		if ( is_array( $value ) ) {
@@ -144,7 +144,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return bool
 	 */
-	public function is_on( $key ) {
+	public function is_on( $key ): bool {
 		return ! empty( $this->get( $key ) );
 	}
 
@@ -153,7 +153,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return array
 	 */
-	private function get_keys() {
+	private function get_keys(): array {
 		$mode = $this->get( 'mode' );
 
 		// String concat is used for the PHP 5.6 compatibility.
@@ -193,7 +193,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return string
 	 */
-	public function get_site_key() {
+	public function get_site_key(): string {
 		return $this->get_keys()['site_key'];
 	}
 
@@ -202,7 +202,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return string
 	 */
-	public function get_secret_key() {
+	public function get_secret_key(): string {
 		return $this->get_keys()['secret_key'];
 	}
 

@@ -88,7 +88,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function add_captcha( $html, $field, $atts ) {
+	public function add_captcha( $html, $field, $atts ): string {
 		if ( 'captcha' !== $field['type'] ) {
 			return $html;
 		}
@@ -132,7 +132,7 @@ class Form {
 	 * @return bool
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function prevent_native_validation( $is_field_hidden, $field, $post ) {
+	public function prevent_native_validation( $is_field_hidden, $field, $post ): bool {
 		if ( 'captcha' !== $field->type ) {
 			return $is_field_hidden;
 		}
@@ -159,7 +159,7 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $values, $validate_args ) {
+	public function verify( $errors, $values, $validate_args ): array {
 		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION

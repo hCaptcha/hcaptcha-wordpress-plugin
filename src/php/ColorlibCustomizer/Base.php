@@ -48,5 +48,5 @@ abstract class Base {
 	 *
 	 * @return string
 	 */
-	abstract protected function get_style( $hcaptcha_size );
+	abstract protected function get_style( $hcaptcha_size ): string;
 }
