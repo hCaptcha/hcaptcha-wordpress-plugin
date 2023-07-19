@@ -16,6 +16,7 @@ use HCaptcha\CF7\CF7;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
+use WPCF7_FormTag;
 use WPCF7_Submission;
 use WPCF7_Validation;
 
