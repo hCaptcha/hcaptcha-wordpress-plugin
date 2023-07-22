@@ -2,7 +2,7 @@
 # This file updates tests according to the phpunit library used for current php version, or php version in 1st argument.
 # Usage:
 #   update-tests - to update tests according to the phpunit library used for current php version.
-#   update-tests x.x - to update tests according to the phpunit library used for specific php version x.x, where x.x = 5.6|7.0|7.1|7.2|7.3|7.4|8.0.
+#   update-tests x.x - to update tests according to the phpunit library used for specific php version x.x, where x.x = 7.0|7.1|7.2|7.3|7.4|8.0|8.1|8.2.
 
 # Directory with phpunit tests.
 TEST_DIR=".tests"
