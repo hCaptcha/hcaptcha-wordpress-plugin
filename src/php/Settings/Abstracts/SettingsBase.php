@@ -304,6 +304,7 @@ abstract class SettingsBase {
 		}
 
 		$settings_exist                       = is_array( $this->settings );
+		$this->settings                       = (array) $this->settings;
 		$form_fields                          = $this->form_fields();
 		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, (array) $this->settings ) ?
 			$this->settings[ self::NETWORK_WIDE ] :
@@ -568,7 +569,7 @@ abstract class SettingsBase {
 			$query = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		}
 
-		$query = wp_parse_url( $query, PHP_URL_QUERY ) ?: '';
+		$query = wp_parse_url( (string) $query, PHP_URL_QUERY ) ?: '';
 		$args  = $this->wp_parse_str( $query );
 
 		return [
