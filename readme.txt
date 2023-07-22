@@ -471,10 +471,10 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
-= 2.11.0 =
+= 3.0.0 =
+* Dropped support of PHP 5.6. Minimum required PHP version is 7.0 now.
 * Tested with WordPress 6.3.
 * Tested with WooCommerce 7.9.
-* Dropped support of PHP 5.6. Minimum required PHP version is 7.0 now.
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
