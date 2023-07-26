@@ -270,13 +270,14 @@ abstract class SettingsBase {
 	/**
 	 * Add link to plugin setting page on plugins page.
 	 *
-	 * @param array $actions An array of plugin action links.
-	 *                       By default, this can include 'activate', 'deactivate', and 'delete'.
-	 *                       With Multisite active this can also include 'network_active' and 'network_only' items.
+	 * @param array|mixed $actions An array of plugin action links.
+	 *                             By default, this can include 'activate', 'deactivate', and 'delete'.
+	 *                             With Multisite active this can also include 'network_active' and 'network_only'
+	 *                             items.
 	 *
 	 * @return array|string[] Plugin links
 	 */
-	public function add_settings_link( array $actions ): array {
+	public function add_settings_link( $actions ): array {
 		$new_actions = [
 			'settings' =>
 				'<a href="' . admin_url( $this->parent_slug() . '?page=' . $this->option_page() ) .
@@ -284,7 +285,7 @@ abstract class SettingsBase {
 				esc_html( $this->settings_link_text() ) . '</a>',
 		];
 
-		return array_merge( $new_actions, $actions );
+		return array_merge( $new_actions, (array) $actions );
 	}
 
 	/**
@@ -306,7 +307,7 @@ abstract class SettingsBase {
 		$settings_exist                       = is_array( $this->settings );
 		$this->settings                       = (array) $this->settings;
 		$form_fields                          = $this->form_fields();
-		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, (array) $this->settings ) ?
+		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, $this->settings ) ?
 			$this->settings[ self::NETWORK_WIDE ] :
 			$network_wide;
 		$this->settings[ self::NETWORK_WIDE ] = $network_wide_setting;

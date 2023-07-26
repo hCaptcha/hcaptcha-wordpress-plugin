@@ -32,6 +32,13 @@ class Settings implements SettingsInterface {
 	protected $tabs = [];
 
 	/**
+	 * Screen ids of pages and tabs.
+	 *
+	 * @var array
+	 */
+	private $screen_ids = [];
+
+	/**
 	 * Settings constructor.
 	 *
 	 * @param array $menu_pages_classes Menu pages.
@@ -61,8 +68,9 @@ class Settings implements SettingsInterface {
 				 *
 				 * @var PluginSettingsBase $tab
 				 */
-				$tab    = new $tab_class( null );
-				$tabs[] = $tab;
+				$tab                = new $tab_class( null );
+				$tabs[]             = $tab;
+				$this->screen_ids[] = $tab->screen_id();
 			}
 
 			/**
@@ -226,5 +234,15 @@ class Settings implements SettingsInterface {
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Get screen ids of all settings pages and tabs.
+	 *
+	 * @return array
+	 * @noinspection PhpUnused
+	 */
+	public function screen_ids(): array {
+		return $this->screen_ids;
 	}
 }
