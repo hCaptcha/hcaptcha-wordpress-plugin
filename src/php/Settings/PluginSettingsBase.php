@@ -173,11 +173,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 	/**
 	 * When user is on the plugin admin page, display footer text that graciously asks them to rate us.
 	 *
-	 * @param string $text Footer text.
+	 * @param string|mixed $text Footer text.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function admin_footer_text( string $text ): string {
+	public function admin_footer_text( $text ) {
 		if ( ! $this->is_options_screen() ) {
 			return $text;
 		}
@@ -211,11 +211,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 	/**
 	 * Show plugin version in the update footer.
 	 *
-	 * @param string $content The content that will be printed.
+	 * @param string|mixed $content The content that will be printed.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function update_footer( string $content ): string {
+	public function update_footer( $content ) {
 		if ( ! $this->is_options_screen() ) {
 			return $content;
 		}
