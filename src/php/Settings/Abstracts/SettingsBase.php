@@ -1095,9 +1095,9 @@ abstract class SettingsBase {
 	 *
 	 * @param array $field Setting field default value.
 	 *
-	 * @return string
+	 * @return mixed
 	 */
-	protected function field_default( array $field ): string {
+	protected function field_default( array $field ) {
 		return empty( $field['default'] ) ? '' : $field['default'];
 	}
 
