@@ -388,6 +388,8 @@ abstract class SettingsBase {
 
 	/**
 	 * Add settings page to the menu.
+	 *
+	 * @return void
 	 */
 	public function add_settings_page() {
 		if ( $this->is_main_menu_page() ) {
@@ -432,6 +434,8 @@ abstract class SettingsBase {
 	/**
 	 * Enqueue relevant admin_enqueue_scripts() basing on tabs.
 	 * Enqueue admin style.
+	 *
+	 * @return void
 	 */
 	public function base_admin_enqueue_scripts() {
 		if ( ! $this->is_options_screen() ) {
@@ -450,6 +454,8 @@ abstract class SettingsBase {
 
 	/**
 	 * Setup settings sections.
+	 *
+	 * @return void
 	 */
 	public function setup_sections() {
 		if ( ! $this->is_options_screen() ) {
@@ -481,6 +487,8 @@ abstract class SettingsBase {
 
 	/**
 	 * Setup tabs section.
+	 *
+	 * @return void
 	 */
 	public function setup_tabs_section() {
 		if ( ! $this->is_options_screen() ) {
@@ -625,6 +633,8 @@ abstract class SettingsBase {
 
 	/**
 	 * Setup settings fields.
+	 *
+	 * @return void
 	 */
 	public function setup_fields() {
 		if ( ! $this->is_options_screen() ) {
@@ -1180,6 +1190,8 @@ abstract class SettingsBase {
 
 	/**
 	 * Load plugin text domain.
+	 *
+	 * @return void
 	 */
 	public function load_plugin_textdomain() {
 		load_plugin_textdomain(
