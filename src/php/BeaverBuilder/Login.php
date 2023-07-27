@@ -34,7 +34,7 @@ class Login extends Base {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
 	}
 
 	/**

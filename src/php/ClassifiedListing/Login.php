@@ -34,7 +34,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'rtcl_login_form', [ $this, 'add_captcha' ] );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
