@@ -57,11 +57,11 @@ class Register {
 	/**
 	 * Verify hCaptcha.
 	 *
-	 * @param array $errors Errors.
+	 * @param array|mixed $errors Errors.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
-	public function verify( array $errors ): array {
+	public function verify( $errors ) {
 		$error_message = hcaptcha_get_verify_message(
 			self::NONCE,
 			self::ACTION

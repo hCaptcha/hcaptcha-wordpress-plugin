@@ -71,8 +71,8 @@ class Contact {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $output, $module_slug ) {
-		if ( et_core_is_fb_enabled() ) {
+	public function add_captcha( $output, string $module_slug ) {
+		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
 			// Do not add captcha in frontend builder.
 
 			return $output;
@@ -116,14 +116,15 @@ class Contact {
 	 * Verify hcaptcha.
 	 * We use shortcode tag filter to make verification.
 	 *
-	 * @param false|string $return Short-circuit return value. Either false or the value to replace the shortcode with.
+	 * @param string|false $return Short-circuit return value. Either false or the value to replace the shortcode with.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
+	 * @return string|false
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $return, $tag, $attr, $m ) {
+	public function verify( $return, string $tag, $attr, array $m ) {
 		if ( self::TAG !== $tag ) {
 			return $return;
 		}
@@ -169,17 +170,17 @@ class Contact {
 	/**
 	 * Filters Module Props.
 	 *
-	 * @param array  $props    Array of processed props.
-	 * @param array  $attrs    Array of original shortcode attrs.
-	 * @param string $slug     Module slug.
-	 * @param string $_address Module Address.
-	 * @param string $content  Module content.
+	 * @param array|mixed $props    Array of processed props.
+	 * @param array       $attrs    Array of original shortcode attrs.
+	 * @param string      $slug     Module slug.
+	 * @param string      $_address Module Address.
+	 * @param string      $content  Module content.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function shortcode_attributes( $props, $attrs, $slug, $_address, $content ): array {
+	public function shortcode_attributes( $props, array $attrs, string $slug, string $_address, string $content ) {
 		if ( self::TAG !== $slug ) {
 			return $props;
 		}

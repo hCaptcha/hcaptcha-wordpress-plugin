@@ -39,20 +39,19 @@ class Contact extends Base {
 	/**
 	 * Filters the Beaver Builder Contact Form submit button html and adds hcaptcha.
 	 *
-	 * @param string         $out    Button html.
+	 * @param string|mixed   $out    Button html.
 	 * @param FLButtonModule $module Button module.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( string $out, FLButtonModule $module ): string {
-
+	public function add_hcaptcha( $out, FLButtonModule $module ) {
 		// Process contact form only.
-		if ( false === strpos( $out, '<form class="fl-contact-form"' ) ) {
+		if ( false === strpos( (string) $out, '<form class="fl-contact-form"' ) ) {
 			return $out;
 		}
 
-		return $this->add_hcap_form( $out, $module );
+		return $this->add_hcap_form( (string) $out, $module );
 	}
 
 	/**

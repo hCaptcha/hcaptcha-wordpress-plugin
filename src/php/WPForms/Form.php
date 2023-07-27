@@ -37,7 +37,7 @@ class Form {
 	 * @return void
 	 */
 	private function init_hooks() {
-		add_filter( 'wpforms_display_submit_before', [ $this, 'add_captcha' ] );
+		add_action( 'wpforms_display_submit_before', [ $this, 'add_captcha' ] );
 		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
 	}
 
@@ -46,11 +46,12 @@ class Form {
 	 *
 	 * @link         https://wpforms.com/developers/wpforms_display_submit_before/
 	 *
-	 * @param array $form_data Form data and settings.
+	 * @param array|mixed $form_data Form data and settings.
 	 *
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( array $form_data ) {
+	public function add_captcha( $form_data ) {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,

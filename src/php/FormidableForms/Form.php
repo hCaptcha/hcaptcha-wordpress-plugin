@@ -82,13 +82,13 @@ class Form {
 	/**
 	 * Filter field html created and add hcaptcha.
 	 *
-	 * @param string $html  Html code of the field.
-	 * @param array  $field Field.
-	 * @param array  $atts  Attributes.
+	 * @param string|mixed $html  Html code of the field.
+	 * @param array        $field Field.
+	 * @param array        $atts  Attributes.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function add_captcha( string $html, array $field, array $atts ): string {
+	public function add_captcha( $html, array $field, array $atts ) {
 		if ( 'captcha' !== $field['type'] ) {
 			return $html;
 		}
@@ -101,7 +101,7 @@ class Form {
 
 		// <div id="field_5l59" class="h-captcha" data-sitekey="ead4f33b-cd8a-49fb-aa16-51683d9cffc8"></div>
 
-		if ( ! preg_match( '#<div id="(.+)" class="h-captcha" .+></div>#', $html, $m ) ) {
+		if ( ! preg_match( '#<div id="(.+)" class="h-captcha" .+></div>#', (string) $html, $m ) ) {
 			return $html;
 		}
 
@@ -119,20 +119,20 @@ class Form {
 		$class = 'class="h-captcha"';
 		$form  = str_replace( $class, 'id="' . $div_id . '"' . $class, HCaptcha::form( $args ) );
 
-		return str_replace( $captcha_div, $form, $html );
+		return str_replace( $captcha_div, $form, (string) $html );
 	}
 
 	/**
 	 * Prevent native validation.
 	 *
-	 * @param bool     $is_field_hidden Whether field is hidden.
-	 * @param stdClass $field           Field.
-	 * @param array    $post            wp_unslash( $_POST ) content.
+	 * @param bool|mixed $is_field_hidden Whether field is hidden.
+	 * @param stdClass   $field           Field.
+	 * @param array      $post            wp_unslash( $_POST ) content.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function prevent_native_validation( bool $is_field_hidden, stdClass $field, array $post ): bool {
+	public function prevent_native_validation( $is_field_hidden, stdClass $field, array $post ): bool {
 		if ( 'captcha' !== $field->type ) {
 			return $is_field_hidden;
 		}
@@ -152,14 +152,14 @@ class Form {
 	/**
 	 * Verify.
 	 *
-	 * @param array $errors        Errors data.
-	 * @param array $values        Value data of the form.
-	 * @param array $validate_args Custom arguments. Contains `exclude` and `posted_fields`.
+	 * @param array|mixed $errors        Errors data.
+	 * @param array       $values        Value data of the form.
+	 * @param array       $validate_args Custom arguments. Contains `exclude` and `posted_fields`.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( array $errors, array $values, array $validate_args ): array {
+	public function verify( $errors, array $values, array $validate_args ) {
 		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
@@ -168,6 +168,8 @@ class Form {
 		if ( null === $error_message ) {
 			return $errors;
 		}
+
+		$errors = (array) $errors;
 
 		$field_id                      = $this->hcaptcha_field_id ?: 1;
 		$errors[ 'field' . $field_id ] = $error_message;

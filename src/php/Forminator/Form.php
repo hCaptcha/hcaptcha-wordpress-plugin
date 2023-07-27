@@ -99,14 +99,14 @@ class Form {
 	/**
 	 * Verify.
 	 *
-	 * @param array $can_show      Can show the form.
-	 * @param int   $id            Form id.
-	 * @param array $form_settings Form settings.
+	 * @param array|mixed $can_show      Can show the form.
+	 * @param int         $id            Form id.
+	 * @param array       $form_settings Form settings.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( array $can_show, int $id, array $form_settings ): array {
+	public function verify( $can_show, int $id, array $form_settings ) {
 		$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {

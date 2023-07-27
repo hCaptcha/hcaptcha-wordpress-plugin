@@ -167,11 +167,15 @@ class Form {
 	/**
 	 * Fluentform load form assets hook.
 	 *
-	 * @param stdClass $form Form.
+	 * @param stdClass|mixed $form Form.
 	 *
-	 * @return stdClass
+	 * @return stdClass|mixed
 	 */
-	public function fluentform_rendering_form_filter( stdClass $form ): stdClass {
+	public function fluentform_rendering_form_filter( $form ) {
+		if ( ! $form instanceof stdClass ) {
+			return $form;
+		}
+
 		static $has_own_captcha = false;
 
 		if ( $this->has_own_hcaptcha( $form ) ) {

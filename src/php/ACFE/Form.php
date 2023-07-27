@@ -113,16 +113,16 @@ class Form {
 	/**
 	 * Remove reCaptcha verify filter.
 	 *
-	 * @param bool   $valid Whether field is valid.
-	 * @param string $value Field Value.
-	 * @param array  $field Field.
-	 * @param string $input Input name.
+	 * @param bool|mixed $valid Whether field is valid.
+	 * @param string     $value Field Value.
+	 * @param array      $field Field.
+	 * @param string     $input Input name.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_verify( bool $valid, string $value, array $field, string $input ): bool {
+	public function remove_recaptcha_verify( $valid, string $value, array $field, string $input ) {
 		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
 
 		remove_filter( self::VALIDATION_HOOK, [ $recaptcha, 'validate_value' ] );
@@ -133,15 +133,15 @@ class Form {
 	/**
 	 * Verify request.
 	 *
-	 * @param bool   $valid Whether field is valid.
-	 * @param string $value Field Value.
-	 * @param array  $field Field.
-	 * @param string $input Input name.
+	 * @param bool|mixed $valid Whether field is valid.
+	 * @param string     $value Field Value.
+	 * @param array      $field Field.
+	 * @param string     $input Input name.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( bool $valid, string $value, array $field, string $input ): bool {
+	public function verify( $valid, string $value, array $field, string $input ) {
 		if ( ! $field['required'] ) {
 			return $valid;
 		}

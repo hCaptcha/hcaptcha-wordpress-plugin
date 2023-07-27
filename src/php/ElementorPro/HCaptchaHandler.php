@@ -172,11 +172,13 @@ class HCaptchaHandler {
 	/**
 	 * Localize settings.
 	 *
-	 * @param array $settings Settings.
+	 * @param array|mixed $settings Settings.
 	 *
 	 * @return array
 	 */
-	public function localize_settings( array $settings ): array {
+	public function localize_settings( $settings ): array {
+		$settings = (array) $settings;
+
 		return array_replace_recursive(
 			$settings,
 			[
@@ -335,11 +337,13 @@ class HCaptchaHandler {
 	/**
 	 * Add filed type.
 	 *
-	 * @param array $field_types Field types.
+	 * @param array|mixed $field_types Field types.
 	 *
 	 * @return array
 	 */
-	public function add_field_type( array $field_types ): array {
+	public function add_field_type( $field_types ): array {
+		$field_types = (array) $field_types;
+
 		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'elementor-pro' );
 
 		return $field_types;
@@ -385,12 +389,14 @@ class HCaptchaHandler {
 	/**
 	 * Filter field item/
 	 *
-	 * @param array $item Item.
+	 * @param array|mixed $item Item.
 	 *
 	 * @return array
 	 */
-	public function filter_field_item( array $item ): array {
-		if ( static::get_hcaptcha_name() === $item['field_type'] ) {
+	public function filter_field_item( $item ): array {
+		$item = (array) $item;
+
+		if ( isset( $item['field_type'] ) && static::get_hcaptcha_name() === $item['field_type'] ) {
 			$item['field_label'] = false;
 		}
 

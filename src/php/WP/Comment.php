@@ -52,13 +52,15 @@ class Comment {
 	/**
 	 * Add captcha.
 	 *
-	 * @param string $submit_field HTML markup for the submit field.
-	 * @param array  $comment_args Arguments passed to comment_form().
+	 * @param string|mixed $submit_field HTML markup for the submit field.
+	 * @param array        $comment_args Arguments passed to comment_form().
 	 *
+	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( string $submit_field, array $comment_args ): string {
-		$post_id = 0;
+	public function add_captcha( $submit_field, array $comment_args ): string {
+		$submit_field = (string) $submit_field;
+		$post_id      = 0;
 
 		if (
 			preg_match(

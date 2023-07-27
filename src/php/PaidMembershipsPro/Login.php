@@ -42,12 +42,16 @@ class Login extends LoginBase {
 	/**
 	 * Add captcha.
 	 *
-	 * @param string $content Content of the PMPro login page.
+	 * @param string|mixed $content Content of the PMPro login page.
+	 *
+	 * @return string|mixed
 	 */
-	public function add_captcha( string $content ) {
+	public function add_captcha( $content ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $content;
 		}
+
+		$content = (string) $content;
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$action = isset( $_GET['action'] ) ?

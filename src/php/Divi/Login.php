@@ -48,12 +48,12 @@ class Login extends LoginBase {
 	 * @param string|string[] $output      Module output.
 	 * @param string          $module_slug Module slug.
 	 *
-	 * @return string
+	 * @return string|string[]
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $output, string $module_slug ) {
-		if ( et_core_is_fb_enabled() ) {
+		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
 			// Do not add captcha in frontend builder.
 
 			return $output;

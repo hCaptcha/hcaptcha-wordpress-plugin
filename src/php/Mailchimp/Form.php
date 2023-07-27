@@ -50,13 +50,15 @@ class Form {
 	/**
 	 * Add hcaptcha error messages to MailChimp.
 	 *
-	 * @param array      $messages Messages.
-	 * @param MC4WP_Form $form     Form.
+	 * @param array|mixed $messages Messages.
+	 * @param MC4WP_Form  $form     Form.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcap_error_messages( array $messages, MC4WP_Form $form ): array {
+	public function add_hcap_error_messages( $messages, MC4WP_Form $form ) {
+		$messages = (array) $messages;
+
 		foreach ( hcap_get_error_messages() as $error_code => $error_message ) {
 			$messages[ $error_code ] = [
 				'type' => 'error',
@@ -99,18 +101,19 @@ class Form {
 	/**
 	 * Verify MailChimp captcha.
 	 *
-	 * @param array      $errors Errors.
-	 * @param MC4WP_Form $form   Form.
+	 * @param array|mixed $errors Errors.
+	 * @param MC4WP_Form  $form   Form.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( array $errors, MC4WP_Form $form ): array {
+	public function verify( $errors, MC4WP_Form $form ) {
 		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true );
 			$error_code = $error_code ?: 'empty';
+			$errors     = (array) $errors;
 			$errors[]   = $error_code;
 		}
 

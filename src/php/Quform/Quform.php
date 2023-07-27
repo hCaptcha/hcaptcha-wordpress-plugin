@@ -105,12 +105,12 @@ class Quform {
 	/**
 	 * Verify.
 	 *
-	 * @param array       $result Result.
+	 * @param array|mixed $result Result.
 	 * @param Quform_Form $form   Form.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
-	public function verify( array $result, Quform_Form $form ): array {
+	public function verify( $result, Quform_Form $form ) {
 		$page           = $form->getCurrentPage();
 		$page_id        = $page ? $page->getId() : 0;
 		$hcaptcha_name  = $this->get_max_element_id( $page );

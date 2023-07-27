@@ -48,14 +48,14 @@ class EmailOptin {
 	/**
 	 * Add hCaptcha to the email optin form.
 	 *
-	 * @param string $html              Submit button html.
-	 * @param string $single_name_field Whether a single name field is being used.
-	 *                                  Only applicable when "$field" is 'name'.
+	 * @param string|mixed $html              Submit button html.
+	 * @param string       $single_name_field Whether a single name field is being used.
+	 *                                        Only applicable when "$field" is 'name'.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( string $html, string $single_name_field ): string {
+	public function add_captcha( $html, string $single_name_field ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -69,7 +69,7 @@ class EmailOptin {
 		$replace = HCaptcha::form( $args ) . "\n" . $search;
 
 		// Insert hCaptcha.
-		return str_replace( $search, $replace, $html );
+		return str_replace( $search, $replace, (string) $html );
 	}
 
 	/**

@@ -65,13 +65,13 @@ class Comment extends Base {
 	/**
 	 * Verify request.
 	 *
-	 * @param array $comment_data Comment data.
+	 * @param array|mixed $comment_data Comment data.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function verify( array $comment_data ) {
+	public function verify( $comment_data ) {
 		$wp_discuz = wpDiscuz();
 
 		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ], 10 );

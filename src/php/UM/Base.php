@@ -103,13 +103,12 @@ abstract class Base extends LoginBase {
 	/**
 	 * Add hCaptcha to form fields.
 	 *
-	 * @param array $fields Form fields.
+	 * @param array|mixed $fields Form fields.
 	 *
-	 * @return array
-	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 * @return array|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( array $fields ) {
+	public function add_captcha( $fields ) {
 		$um = UM();
 
 		if ( ! $um ) {
@@ -120,7 +119,7 @@ abstract class Base extends LoginBase {
 			return $fields;
 		}
 
-		$fields       = $fields ?: [];
+		$fields       = $fields ? (array) $fields : [];
 		$max_position = 0;
 		$in_row       = '_um_row_1';
 		$in_sub_row   = '0';
@@ -165,13 +164,13 @@ abstract class Base extends LoginBase {
 	/**
 	 * Display hCaptcha.
 	 *
-	 * @param string $output Output.
-	 * @param string $mode   Mode.
+	 * @param string|mixed $output Output.
+	 * @param string       $mode   Mode.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function display_captcha( string $output, string $mode ): string {
+	public function display_captcha( $output, string $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
 			return $output;
 		}

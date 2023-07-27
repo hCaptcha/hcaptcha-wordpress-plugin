@@ -37,11 +37,11 @@ class AutoVerify {
 	/**
 	 * Filter page content and register the form for auto verification.
 	 *
-	 * @param string $content Content.
+	 * @param string|mixed $content Content.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function content_filter( string $content ): string {
+	public function content_filter( $content ) {
 		if ( ! $this->is_frontend() ) {
 			return $content;
 		}

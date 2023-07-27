@@ -79,11 +79,11 @@ class Form {
 	/**
 	 * Verify request.
 	 *
-	 * @param bool $demo_mode Demo mode.
+	 * @param bool|mixed $demo_mode Demo mode.
 	 *
-	 * @return bool|void
+	 * @return bool|mixed|void
 	 */
-	public function verify( bool $demo_mode ) {
+	public function verify( $demo_mode ) {
 
 		// Nonce is checked by Avada.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing

@@ -54,7 +54,7 @@ class Comment {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $output, string $module_slug ) {
-		if ( et_core_is_fb_enabled() || false !== strpos( $output, 'h-captcha' ) ) {
+		if ( ! is_string( $output ) || false !== strpos( $output, 'h-captcha' || et_core_is_fb_enabled() ) ) {
 			// Do not add captcha in frontend builder or if it already added by \HCaptcha\WP\Comment class.
 
 			return $output;

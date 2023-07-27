@@ -259,12 +259,14 @@ class Main {
 	 * We cannot control if hCaptcha form is shown here, as this is hooked on wp_head.
 	 * So, we always prefetch hCaptcha dns if hCaptcha is active, but it is a small overhead.
 	 *
-	 * @param array  $urls          URLs to print for resource hints.
-	 * @param string $relation_type The relation type the URLs are printed for.
+	 * @param array|mixed $urls          URLs to print for resource hints.
+	 * @param string      $relation_type The relation type the URLs are printed for.
 	 *
 	 * @return array
 	 */
-	public function prefetch_hcaptcha_dns( array $urls, string $relation_type ): array {
+	public function prefetch_hcaptcha_dns( $urls, string $relation_type ): array {
+		$urls = (array) $urls;
+
 		if ( 'dns-prefetch' === $relation_type ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
@@ -275,11 +277,12 @@ class Main {
 	/**
 	 * Add Content Security Policy (CSP) headers.
 	 *
-	 * @param array $headers Headers.
+	 * @param array|mixed $headers Headers.
 	 *
 	 * @return array
 	 */
-	public function csp_headers( array $headers ): array {
+	public function csp_headers( $headers ): array {
+		$headers  = (array) $headers;
 		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
 
 		$headers['X-Content-Security-Policy'] =
@@ -555,15 +558,15 @@ class Main {
 	/**
 	 * Catch Support Candy do shortcode tag filter.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function support_candy_shortcode_tag( string $output, string $tag, $attr, array $m ): string {
+	public function support_candy_shortcode_tag( $output, string $tag, $attr, array $m ) {
 		if ( 'supportcandy' === $tag ) {
 			$this->did_support_candy_shortcode_tag_filter = true;
 		}
@@ -575,13 +578,12 @@ class Main {
 	 * Filter user IP to check if it is whitelisted.
 	 * For whitelisted IPs, hCaptcha will not be shown.
 	 *
-	 * @param bool   $whitelisted Whether IP is whitelisted.
-	 * @param string $client_ip   Client IP.
+	 * @param bool|mixed   $whitelisted Whether IP is whitelisted.
+	 * @param string|false $client_ip   Client IP.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 */
-	public function whitelist_ip( bool $whitelisted, string $client_ip ): bool {
-
+	public function whitelist_ip( $whitelisted, $client_ip ) {
 		$ips = explode(
 			"\n",
 			$this->settings()->get( 'whitelisted_ips' )

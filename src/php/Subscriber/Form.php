@@ -44,11 +44,11 @@ class Form {
 	/**
 	 * Add captcha to the subscriber form.
 	 *
-	 * @param string $content Subscriber form content.
+	 * @param string|mixed $content Subscriber form content.
 	 *
 	 * @return string
 	 */
-	public function add_captcha( string $content ): string {
+	public function add_captcha( $content ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
@@ -64,12 +64,12 @@ class Form {
 	/**
 	 * Verify subscriber captcha.
 	 *
-	 * @param bool $check_result Check result.
+	 * @param bool|mixed $check_result Check result.
 	 *
-	 * @return bool|string
+	 * @return bool|string|mixed
 	 * @noinspection NullCoalescingOperatorCanBeUsedInspection
 	 */
-	public function verify( bool $check_result ) {
+	public function verify( $check_result ) {
 		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {

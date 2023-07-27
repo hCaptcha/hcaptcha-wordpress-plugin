@@ -42,11 +42,13 @@ class NF {
 	/**
 	 * Filter ninja_forms_register_fields.
 	 *
-	 * @param array $fields Fields.
+	 * @param array|mixed $fields Fields.
 	 *
 	 * @return array
 	 */
-	public function register_fields( array $fields ): array {
+	public function register_fields( $fields ): array {
+		$fields = (array) $fields;
+
 		$fields['hcaptcha-for-ninja-forms'] = new Fields();
 
 		return $fields;
@@ -55,11 +57,13 @@ class NF {
 	/**
 	 * Add template file path.
 	 *
-	 * @param array $paths Paths.
+	 * @param array|mixed $paths Paths.
 	 *
 	 * @return array
 	 */
-	public function template_file_paths( array $paths ): array {
+	public function template_file_paths( $paths ): array {
+		$paths = (array) $paths;
+
 		$paths[] = __DIR__ . '/templates/';
 
 		return $paths;
@@ -79,11 +83,12 @@ class NF {
 	/**
 	 * Filter ninja_forms_localize_field_hcaptcha-for-ninja-forms.
 	 *
-	 * @param array $field Field.
+	 * @param array|mixed $field Field.
 	 *
 	 * @return array
 	 */
-	public function localize_field( array $field ): array {
+	public function localize_field( $field ): array {
+		$field = (array) $field;
 
 		$settings                         = hcaptcha()->settings();
 		$hcaptcha_id                      = uniqid( 'hcaptcha-nf-', true );
@@ -103,9 +108,10 @@ class NF {
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
+		$id       = $field['id'] ?? 0;
 		$hcaptcha = str_replace(
 			'<div',
-			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $field['id'] . '"',
+			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $id . '"',
 			$hcaptcha
 		);
 

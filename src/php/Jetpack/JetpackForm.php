@@ -17,20 +17,22 @@ class JetpackForm extends JetpackBase {
 	/**
 	 * Add hCaptcha to Jetpack contact form.
 	 *
-	 * @param string $content Content.
+	 * @param string|mixed $content Content.
 	 *
-	 * @return string|string[]|null
+	 * @return string
 	 */
-	public function add_captcha( string $content ) {
+	public function add_captcha( $content ): string {
+		$content = (string) $content;
+
 		// Jetpack classic form.
-		$content = preg_replace_callback(
+		$content = (string) preg_replace_callback(
 			'~(\[contact-form[\s\S]*?][\s\S]*?)(\[/contact-form])~',
 			[ $this, 'classic_callback' ],
 			$content
 		);
 
 		// Jetpack block form.
-		return preg_replace_callback(
+		return (string) preg_replace_callback(
 			'~<form [\s\S]*?wp-block-jetpack-contact-form[\s\S]*?(<button [\s\S]*?type="submit"[\s\S]*?</button>)[\s\S]*?</form>~',
 			[ $this, 'block_callback' ],
 			$content

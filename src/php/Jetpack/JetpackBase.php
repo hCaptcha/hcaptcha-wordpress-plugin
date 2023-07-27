@@ -54,20 +54,20 @@ abstract class JetpackBase {
 	/**
 	 * Add hCaptcha to Jetpack form.
 	 *
-	 * @param string $content Content.
+	 * @param string|mixed $content Content.
 	 *
-	 * @return string|string[]|null
+	 * @return string
 	 */
-	abstract public function add_captcha( string $content );
+	abstract public function add_captcha( $content ): string;
 
 	/**
 	 * Verify hCaptcha answer from the Jetpack Contact Form.
 	 *
-	 * @param bool $is_spam Is spam.
+	 * @param bool|mixed $is_spam Is spam.
 	 *
-	 * @return bool|WP_Error
+	 * @return bool|WP_Error|mixed
 	 */
-	public function verify( bool $is_spam = false ) {
+	public function verify( $is_spam = false ) {
 		$this->error_message = hcaptcha_get_verify_message(
 			static::NAME,
 			static::ACTION
@@ -87,11 +87,11 @@ abstract class JetpackBase {
 	/**
 	 * Print error message.
 	 *
-	 * @param string $hcaptcha_content Content of hCaptcha.
+	 * @param string|mixed $hcaptcha_content Content of hCaptcha.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function error_message( string $hcaptcha_content = '' ): string {
+	public function error_message( $hcaptcha_content = '' ) {
 		if ( null === $this->error_message ) {
 			return $hcaptcha_content;
 		}

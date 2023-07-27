@@ -43,21 +43,22 @@ class CF7 {
 	/**
 	 * Add hCaptcha to CF7 form.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function wpcf7_shortcode( string $output, string $tag, $attr, array $m ): string {
+	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ) {
 		if ( 'contact-form-7' !== $tag ) {
 			return $output;
 		}
 
 		remove_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20 );
 
+		$output  = (string) $output;
 		$form_id = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
 
 		if ( has_shortcode( $output, self::SHORTCODE ) ) {
@@ -178,13 +179,13 @@ class CF7 {
 	/**
 	 * Verify CF7 recaptcha.
 	 *
-	 * @param WPCF7_Validation $result Result.
-	 * @param WPCF7_FormTag    $tag    Tag.
+	 * @param WPCF7_Validation|mixed $result Result.
+	 * @param WPCF7_FormTag          $tag    Tag.
 	 *
-	 * @return WPCF7_Validation
+	 * @return WPCF7_Validation|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify_hcaptcha( WPCF7_Validation $result, WPCF7_FormTag $tag ): WPCF7_Validation {
+	public function verify_hcaptcha( $result, WPCF7_FormTag $tag ) {
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( null === $submission ) {
