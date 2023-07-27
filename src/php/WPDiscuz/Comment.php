@@ -23,21 +23,21 @@ class Comment extends Base {
 	public function init_hooks() {
 		parent::init_hooks();
 
-		add_action( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
+		add_filter( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
 	}
 
 	/**
 	 * Add hCaptcha to wpDiscuz form.
 	 *
-	 * @param string        $output         Output.
+	 * @param string|mixed  $output         Output.
 	 * @param int|string    $comments_count Comments count.
 	 * @param WP_User|false $current_user   Current user.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( string $output, $comments_count, $current_user ): string {
+	public function add_hcaptcha( $output, $comments_count, $current_user ): string {
 		global $post;
 
 		$args = [
@@ -59,7 +59,7 @@ class Comment extends Base {
 
 		$search = '<div class="wc-field-submit">';
 
-		return str_replace( $search, $form . $search, $output );
+		return str_replace( $search, $form . $search, (string) $output );
 	}
 
 	/**

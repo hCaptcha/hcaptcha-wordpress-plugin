@@ -40,7 +40,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 
 		if ( ! class_exists( Controller_WordfenceLS::class ) ) {
 			return;
@@ -52,6 +52,8 @@ class Login extends LoginBase {
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		if ( ! $this->is_login_limit_exceeded() ) {

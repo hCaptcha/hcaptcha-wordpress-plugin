@@ -35,6 +35,8 @@ abstract class Base {
 	 * Add captcha to the form.
 	 *
 	 * @param int $form_id Form id.
+	 *
+	 * @return void
 	 */
 	public function add_captcha( int $form_id ) {
 		$args = [
@@ -54,6 +56,7 @@ abstract class Base {
 	 *
 	 * @param bool|array $valid_data Validate fields.
 	 *
+	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection PhpUnusedParameterInspection
 	 */

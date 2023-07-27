@@ -77,7 +77,6 @@ class PasswordProtected {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function verify( $package ) {
-
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {

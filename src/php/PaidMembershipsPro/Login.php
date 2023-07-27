@@ -36,7 +36,7 @@ class Login extends LoginBase {
 		$pmpro_page_name = 'login';
 
 		add_filter( 'pmpro_pages_shortcode_' . $pmpro_page_name, [ $this, 'add_captcha' ] );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**

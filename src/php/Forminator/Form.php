@@ -50,7 +50,7 @@ class Form {
 	 */
 	public function init_hooks() {
 		add_action( 'forminator_before_form_render', [ $this, 'before_form_render' ], 10, 5 );
-		add_action( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
+		add_filter( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
 	}
 
@@ -63,20 +63,18 @@ class Form {
 	 * @param array  $form_fields   Form fields.
 	 * @param array  $form_settings Form settings.
 	 *
-	 * @return int
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function before_form_render( int $id, string $form_type, int $post_id, array $form_fields, array $form_settings ): int {
 		$this->form_id = $id;
-
-		return $id;
 	}
 
 	/**
 	 * Add hCaptcha.
 	 *
-	 * @param string $html   Shortcode output.
-	 * @param string $button Shortcode name.
+	 * @param string|mixed $html   Shortcode output.
+	 * @param string       $button Shortcode name.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
@@ -93,7 +91,7 @@ class Form {
 
 		$hcaptcha = HCaptcha::form( $args );
 
-		return str_replace( '<button ', $hcaptcha . '<button ', $html );
+		return str_replace( '<button ', $hcaptcha . '<button ', (string) $html );
 	}
 
 	/**

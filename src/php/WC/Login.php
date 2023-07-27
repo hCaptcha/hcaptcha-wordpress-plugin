@@ -32,11 +32,13 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'woocommerce_login_form', [ $this, 'add_captcha' ] );
-		add_action( 'woocommerce_process_login_errors', [ $this, 'verify' ] );
+		add_filter( 'woocommerce_process_login_errors', [ $this, 'verify' ] );
 	}
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		if ( $this->is_login_limit_exceeded() ) {
@@ -57,11 +59,11 @@ class Login extends LoginBase {
 	/**
 	 * Verify login form.
 	 *
-	 * @param WP_Error $validation_error Validation error.
+	 * @param WP_Error|mixed $validation_error Validation error.
 	 *
-	 * @return WP_Error
+	 * @return WP_Error|mixed
 	 */
-	public function verify( WP_Error $validation_error ): WP_Error {
+	public function verify( $validation_error ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $validation_error;
 		}
@@ -73,6 +75,10 @@ class Login extends LoginBase {
 
 		if ( null === $error_message ) {
 			return $validation_error;
+		}
+
+		if ( ! is_wp_error( $validation_error ) ) {
+			$validation_error = new WP_Error();
 		}
 
 		$validation_error->add( 'hcaptcha_error', $error_message );

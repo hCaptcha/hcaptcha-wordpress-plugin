@@ -68,6 +68,7 @@ class AutoVerify {
 	/**
 	 * Verify a form automatically.
 	 *
+	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify_form() {

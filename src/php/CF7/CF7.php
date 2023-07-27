@@ -229,6 +229,8 @@ class CF7 {
 
 	/**
 	 * Enqueue CF7 scripts.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		if ( ! hcaptcha()->form_shown ) {

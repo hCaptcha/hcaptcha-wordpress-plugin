@@ -54,6 +54,8 @@ class HCaptchaHandler {
 
 	/**
 	 * Enqueue elementor support script.
+	 *
+	 * @return void
 	 */
 	public function after_enqueue_scripts() {
 		$min = hcap_min_suffix();
@@ -69,6 +71,8 @@ class HCaptchaHandler {
 
 	/**
 	 * Add hooks.
+	 *
+	 * @return void
 	 */
 	public function init() {
 		$this->register_scripts();
@@ -101,6 +105,8 @@ class HCaptchaHandler {
 	 * Register action.
 	 *
 	 * @param Module $module Module.
+	 *
+	 * @return void
 	 */
 	public function register_action( Module $module ) {
 		$module->add_component( self::FIELD_ID, $this );
@@ -238,6 +244,8 @@ class HCaptchaHandler {
 
 	/**
 	 * Enqueue scripts.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		$this->main->print_inline_styles();
@@ -251,6 +259,8 @@ class HCaptchaHandler {
 	 *
 	 * @param Form_Record  $record       Record.
 	 * @param Ajax_Handler $ajax_handler Ajax handler.
+	 *
+	 * @return void
 	 */
 	public function validation( Form_Record $record, Ajax_Handler $ajax_handler ) {
 		$fields = $record->get_field( [ 'type' => static::get_hcaptcha_name() ] );
@@ -285,6 +295,8 @@ class HCaptchaHandler {
 	 * @param array       $item       Item.
 	 * @param int         $item_index Item index.
 	 * @param Widget_Base $widget     Widget.
+	 *
+	 * @return void
 	 */
 	public function render_field( array $item, int $item_index, Widget_Base $widget ) {
 		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . $item['custom_id'] . '">';
@@ -360,6 +372,7 @@ class HCaptchaHandler {
 	 * @param Controls_Stack $controls_stack The controls stack.
 	 * @param array          $args           Section arguments.
 	 *
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function modify_controls( Controls_Stack $controls_stack, array $args ) {

@@ -124,6 +124,8 @@ class NF {
 
 	/**
 	 * Enqueue script.
+	 *
+	 * @return void
 	 */
 	public function nf_captcha_script() {
 		$min = hcap_min_suffix();

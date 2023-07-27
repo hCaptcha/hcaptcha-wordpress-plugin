@@ -132,6 +132,7 @@ class Form {
 	 * Enqueue Back In Stock Notifier script.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function enqueue_scripts() {
 		if ( is_shop() ) {

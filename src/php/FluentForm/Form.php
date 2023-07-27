@@ -66,6 +66,7 @@ class Form {
 	 * @param array    $submit_button Form data and settings.
 	 * @param stdClass $form          Form data and settings.
 	 *
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( array $submit_button, stdClass $form ) {

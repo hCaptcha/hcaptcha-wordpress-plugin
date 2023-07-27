@@ -28,6 +28,8 @@ abstract class Base {
 
 	/**
 	 * Print styles to fit hcaptcha widget to the login form.
+	 *
+	 * @return void
 	 */
 	public function login_head() {
 		$settings      = hcaptcha()->settings();

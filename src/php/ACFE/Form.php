@@ -165,6 +165,8 @@ class Form {
 
 	/**
 	 * Enqueue scripts.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		$min = hcap_min_suffix();

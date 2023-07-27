@@ -43,7 +43,7 @@ class Form {
 	 */
 	private function init_hooks() {
 		add_filter( 'mc4wp_form_messages', [ $this, 'add_hcap_error_messages' ], 10, 2 );
-		add_action( 'mc4wp_form_content', [ $this, 'add_captcha' ], 20, 3 );
+		add_filter( 'mc4wp_form_content', [ $this, 'add_captcha' ], 20, 3 );
 		add_filter( 'mc4wp_form_errors', [ $this, 'verify' ], 10, 2 );
 	}
 
@@ -72,15 +72,14 @@ class Form {
 	/**
 	 * Add hcaptcha to MailChimp form.
 	 *
-	 * @param string             $content Content.
+	 * @param string|mixed       $content Content.
 	 * @param MC4WP_Form         $form    Form.
 	 * @param MC4WP_Form_Element $element Element.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
-	public function add_captcha( string $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
+	public function add_captcha( $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
@@ -94,7 +93,7 @@ class Form {
 			'<input type="submit"',
 			HCaptcha::form( $args ) .
 			'<input type="submit"',
-			$content
+			(string) $content
 		);
 	}
 

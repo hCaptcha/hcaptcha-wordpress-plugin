@@ -28,6 +28,8 @@ class Fix {
 
 	/**
 	 * Register autoload.
+	 *
+	 * @return void
 	 */
 	public function register_autoload() {
 		if ( ! defined( 'ET_BUILDER_THEME' ) ) {

@@ -35,6 +35,8 @@ abstract class Base {
 
 	/**
 	 * Add captcha to the form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [
@@ -51,6 +53,8 @@ abstract class Base {
 
 	/**
 	 * Verify captcha.
+	 *
+	 * @return void
 	 */
 	public function verify() {
 		$error_message = hcaptcha_get_verify_message(

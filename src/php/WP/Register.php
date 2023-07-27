@@ -36,11 +36,13 @@ class Register {
 	 */
 	private function init_hooks() {
 		add_action( 'register_form', [ $this, 'add_captcha' ] );
-		add_action( 'registration_errors', [ $this, 'verify' ], 10, 3 );
+		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [
@@ -58,14 +60,15 @@ class Register {
 	/**
 	 * Verify register captcha.
 	 *
-	 * @param WP_Error $errors               A WP_Error object containing any errors encountered during registration.
-	 * @param string   $sanitized_user_login User's username after it has been sanitized.
-	 * @param string   $user_email           User's email.
+	 * @param WP_Error|mixed $errors               A WP_Error object containing any errors encountered during
+	 *                                             registration.
+	 * @param string         $sanitized_user_login User's username after it has been sanitized.
+	 * @param string         $user_email           User's email.
 	 *
-	 * @return WP_Error
+	 * @return WP_Error|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( WP_Error $errors, string $sanitized_user_login, string $user_email ): WP_Error {
+	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
 		$error_message = hcaptcha_get_verify_message_html(
 			self::NONCE,
 			self::ACTION
@@ -73,6 +76,10 @@ class Register {
 
 		if ( null === $error_message ) {
 			return $errors;
+		}
+
+		if ( ! is_wp_error( $errors ) ) {
+			$errors = new WP_Error();
 		}
 
 		$errors->add( 'invalid_captcha', $error_message );

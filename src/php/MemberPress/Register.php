@@ -40,6 +40,8 @@ class Register {
 
 	/**
 	 * Add hCaptcha to the Register form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [

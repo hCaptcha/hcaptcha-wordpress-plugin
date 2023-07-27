@@ -43,6 +43,8 @@ class CreateGroup {
 
 	/**
 	 * Add captcha to the group form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		echo '<div class="hcap_buddypress_group_form">';

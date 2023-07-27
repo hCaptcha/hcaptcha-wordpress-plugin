@@ -27,22 +27,22 @@ class Sendinblue {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_action( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
+		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'hcap_verify_request', [ $this, 'verify_request' ], 10, 2 );
 	}
 
 	/**
 	 * Filters the output created by a shortcode callback and adds hcaptcha.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( string $output, string $tag, $attr, array $m ): string {
+	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
 		if ( 'sibwp_form' !== $tag ) {
 			return $output;
 		}
@@ -59,7 +59,7 @@ class Sendinblue {
 
 		$hcaptcha = HCaptcha::form( $args );
 
-		return preg_replace( '/(<input type="submit")/', $hcaptcha . '$1', $output );
+		return (string) preg_replace( '/(<input type="submit")/', $hcaptcha . '$1', (string) $output );
 	}
 
 	/**

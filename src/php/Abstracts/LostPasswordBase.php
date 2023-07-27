@@ -32,6 +32,8 @@ abstract class LostPasswordBase {
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [

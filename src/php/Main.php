@@ -134,6 +134,8 @@ class Main {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
 	public function init_hooks() {
 		$this->settings = new Settings(
@@ -299,6 +301,8 @@ class Main {
 
 	/**
 	 * Print inline styles.
+	 *
+	 * @return void
 	 */
 	public function print_inline_styles() {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
@@ -419,6 +423,8 @@ class Main {
 
 	/**
 	 * Print styles to fit hcaptcha widget to the login form.
+	 *
+	 * @return void
 	 */
 	public function login_head() {
 		?>
@@ -473,6 +479,8 @@ class Main {
 
 	/**
 	 * Add the hCaptcha script to footer.
+	 *
+	 * @return void
 	 */
 	public function print_footer_scripts() {
 		if ( is_admin() ) {
@@ -624,6 +632,7 @@ class Main {
 	/**
 	 * Load plugin modules.
 	 *
+	 * @return void
 	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
@@ -1031,6 +1040,8 @@ class Main {
 
 	/**
 	 * Load plugin text domain.
+	 *
+	 * @return void
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain(
