@@ -475,6 +475,7 @@ Instructions for popular native integrations are below:
 * Dropped support of PHP 5.6. Minimum required PHP version is 7.0 now.
 * Tested with WordPress 6.3.
 * Tested with WooCommerce 7.9.
+* Added compatibility with Ajax Gravity Forms.
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
