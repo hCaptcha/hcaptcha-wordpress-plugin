@@ -22,6 +22,16 @@ class General extends PluginSettingsBase {
 	const HANDLE = 'hcaptcha-general';
 
 	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaGeneralObject';
+
+	/**
+	 * Check config ajax action.
+	 */
+	const CHECK_CONFIG_ACTION = 'hcaptcha-general-check-config';
+
+	/**
 	 * Keys section id.
 	 */
 	const SECTION_KEYS = 'keys';
@@ -80,6 +90,15 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
+	 * Init class hooks.
+	 */
+	protected function init_hooks() {
+		parent::init_hooks();
+
+		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
+	}
+
+	/**
 	 * Init form fields.
 	 */
 	public function init_form_fields() {
@@ -92,6 +111,12 @@ class General extends PluginSettingsBase {
 			'secret_key'           => [
 				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'password',
+				'section' => self::SECTION_KEYS,
+			],
+			'check_config'         => [
+				'label'   => __( 'Check Site Config', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'button',
+				'text'    => __( 'Check', 'hcaptcha-for-forms-and-more' ),
 				'section' => self::SECTION_KEYS,
 			],
 			'theme'                => [
@@ -381,6 +406,7 @@ class General extends PluginSettingsBase {
 				<h2>
 					<?php echo esc_html( $this->page_title() ); ?>
 				</h2>
+				<div id="hcaptcha-message"></div>
 				<p>
 					<?php
 					echo wp_kses_post(
@@ -426,11 +452,85 @@ class General extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/general$this->min_prefix.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'action'  => self::CHECK_CONFIG_ACTION,
+				'nonce'   => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
+			]
+		);
+
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_prefix.css",
 			[ SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
+		);
+	}
+
+	/**
+	 * Ajax action to check config.
+	 *
+	 * @return void
+	 */
+	public function check_config() {
+		// Run a security check.
+		if ( ! check_ajax_referer( self::CHECK_CONFIG_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		$settings = hcaptcha()->settings();
+
+		$params = [
+			'host'    => (string) wp_parse_url( site_url(), PHP_URL_HOST ),
+			'sitekey' => $settings->get_site_key(),
+			'sc'      => 1,
+			'swa'     => 1,
+			'spst'    => 0,
+		];
+
+		$url = add_query_arg( $params, 'https://hcaptcha.com/checksiteconfig' );
+
+		$raw_response = wp_remote_post( $url );
+
+		$raw_body = wp_remote_retrieve_body( $raw_response );
+
+		if ( empty( $raw_body ) ) {
+			wp_send_json_error( esc_html__( 'Error communicating with hCaptcha server', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		$body = json_decode( $raw_body, true );
+
+		if ( ! isset( $body['pass'] ) || ! $body['pass'] ) {
+			$error = $body['error'] ? (string) $body['error'] : '';
+			$error = $error ? ': ' . $error : '';
+
+			wp_send_json_error(
+				esc_html__( 'Site configuration error', 'hcaptcha-for-forms-and-more' ) . $error
+			);
+		}
+
+		$hcaptcha_response = $body['c']['req'] ?? '';
+
+		$result = hcaptcha_request_verify( $hcaptcha_response ); // Always error: token malformed.
+
+		wp_send_json_success(
+			esc_html__( 'Site key is valid.', 'hcaptcha-for-forms-and-more' )
 		);
 	}
 }

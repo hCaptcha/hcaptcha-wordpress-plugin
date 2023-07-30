@@ -21,7 +21,7 @@ function getDom() {
 <html lang="en">
 <body>
 <div id="wpwrap">
-<div id="hcaptcha-integrations-message"></div>
+<div id="hcaptcha-message"></div>
 	<table class="form-table">
 		<tbody>
 		<tr class="hcaptcha-integrations-wp-status">

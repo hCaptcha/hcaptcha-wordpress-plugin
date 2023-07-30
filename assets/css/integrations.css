@@ -1,32 +1,3 @@
-.hcaptcha-integrations-success,
-.hcaptcha-integrations-error {
-	background: #fff;
-	box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
-	margin: 5px 0 15px 0;
-	padding: 1px 12px;
-	border: 1px solid #c3c4c7;
-	border-left-width: 4px;
-}
-
-#hcaptcha-integrations-message {
-	z-index: 1;
-}
-
-#hcaptcha-integrations-message p {
-	font-size: 13px;
-	font-weight: 600;
-	line-height: 1.5;
-	margin: 0.7em 0;
-}
-
-.hcaptcha-integrations-success {
-	border-left-color: #00a32a;
-}
-
-.hcaptcha-integrations-error {
-	border-left-color: #d63638;
-}
-
 .hcaptcha-integrations table tbody {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(100px, 1fr));

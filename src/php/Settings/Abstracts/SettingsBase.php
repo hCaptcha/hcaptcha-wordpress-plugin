@@ -1026,6 +1026,26 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Print button field.
+	 *
+	 * @param array $arguments Field arguments.
+	 *
+	 * @noinspection PhpUnusedPrivateMethodInspection
+	 */
+	private function print_button_field( array $arguments ) {
+		$disabled = $arguments['disabled'] ?? '';
+		$field_id = $arguments['field_id'] ?? '';
+		$text     = $arguments['text'] ?? '';
+
+		printf(
+			'<button %1$s id="%2$s" class="button button-secondary" type="button"/>%3$s</button>',
+			disabled( $disabled, true, false ),
+			esc_attr( $field_id ),
+			esc_attr( $text )
+		);
+	}
+
+	/**
 	 * Output settings field.
 	 *
 	 * @param array $arguments Field arguments.
@@ -1045,6 +1065,7 @@ abstract class SettingsBase {
 			'select'   => 'print_select_field',
 			'multiple' => 'print_multiple_select_field',
 			'table'    => 'print_table_field',
+			'button'   => 'print_button_field',
 		];
 
 		$type = $arguments['type'] ?? '';

@@ -372,6 +372,12 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'password',
 				'section' => General::SECTION_KEYS,
 			],
+			'check_config'         => [
+				'label'   => 'Check Site Config',
+				'type'    => 'button',
+				'text'    => 'Check',
+				'section' => General::SECTION_KEYS,
+			],
 			'theme'                    => [
 				'label'   => 'Theme',
 				'type'    => 'select',

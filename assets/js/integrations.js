@@ -1,7 +1,7 @@
 /* global jQuery, HCaptchaIntegrationsObject */
 
 const integrations = function( $ ) {
-	const msgSelector = '#hcaptcha-integrations-message';
+	const msgSelector = '#hcaptcha-message';
 	const $message = $( msgSelector );
 	const $wpwrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
@@ -37,11 +37,11 @@ const integrations = function( $ ) {
 	}
 
 	function showSuccessMessage( response ) {
-		showMessage( response, 'hcaptcha-integrations-success' );
+		showMessage( response, 'hcaptcha-success' );
 	}
 
 	function showErrorMessage( response ) {
-		showMessage( response, 'hcaptcha-integrations-error' );
+		showMessage( response, 'hcaptcha-error' );
 	}
 
 	function insertIntoTable( $table, key, $element ) {
@@ -106,6 +106,7 @@ const integrations = function( $ ) {
 
 		$tr.addClass( activateClass );
 
+		// noinspection JSVoidFunctionReturnValueUsed
 		$.post( {
 			url: HCaptchaIntegrationsObject.ajaxUrl,
 			data,

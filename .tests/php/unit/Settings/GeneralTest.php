@@ -203,6 +203,7 @@ class GeneralTest extends HCaptchaTestCase {
 				General::SECTION_KEYS,
 				'				<h2>
 					General				</h2>
+				<div id="hcaptcha-message"></div>
 				<p>
 					To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.				</p>
 						<h3 class="hcaptcha-section-keys">Keys</h3>
@@ -236,6 +237,8 @@ class GeneralTest extends HCaptchaTestCase {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min_prefix     = '.min';
+		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
+		$nonce          = 'some_nonce';
 
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -256,6 +259,38 @@ class GeneralTest extends HCaptchaTestCase {
 				return '';
 			}
 		);
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				General::HANDLE,
+				$plugin_url . "/assets/js/general$min_prefix.js",
+				[ 'jquery' ],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'admin_url' )
+			->with( 'admin-ajax.php' )
+			->andReturn( $ajax_url )
+			->once();
+
+		WP_Mock::userFunction( 'wp_create_nonce' )
+			->with( General::CHECK_CONFIG_ACTION )
+			->andReturn( $nonce )
+			->once();
+
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				General::HANDLE,
+				General::OBJECT,
+				[
+					'ajaxUrl' => $ajax_url,
+					'action'  => General::CHECK_CONFIG_ACTION,
+					'nonce'   => $nonce,
+				]
+			)
+			->once();
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(

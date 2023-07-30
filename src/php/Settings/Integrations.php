@@ -22,14 +22,14 @@ class Integrations extends PluginSettingsBase {
 	const HANDLE = 'hcaptcha-integrations';
 
 	/**
-	 * Activate plugin ajax action.
-	 */
-	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
-
-	/**
 	 * Script localization object.
 	 */
 	const OBJECT = 'HCaptchaIntegrationsObject';
+
+	/**
+	 * Activate plugin ajax action.
+	 */
+	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
 	 * Enabled section id.
@@ -456,7 +456,7 @@ class Integrations extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
-		<div id="hcaptcha-integrations-message"></div>
+		<div id="hcaptcha-message"></div>
 		<p>
 			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
