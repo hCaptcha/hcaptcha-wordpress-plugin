@@ -1051,6 +1051,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_field_callback
 	 * @noinspection PhpUnusedParameterInspection
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_field_callback( $arguments, $expected ) {
 		$option_name = 'hcaptcha_settings';
@@ -1059,6 +1060,21 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 		$subject->shouldReceive( 'get' )->with( $arguments['field_id'] )->andReturn( $arguments['default'] );
+
+		$fields = [
+			'text'     => [ $subject, 'print_text_field' ],
+			'password' => [ $subject, 'print_text_field' ],
+			'number'   => [ $subject, 'print_number_field' ],
+			'textarea' => [ $subject, 'print_textarea_field' ],
+			'checkbox' => [ $subject, 'print_checkbox_field' ],
+			'radio'    => [ $subject, 'print_radio_field' ],
+			'select'   => [ $subject, 'print_select_field' ],
+			'multiple' => [ $subject, 'print_multiple_select_field' ],
+			'table'    => [ $subject, 'print_table_field' ],
+			'button'   => [ $subject, 'print_button_field' ],
+		];
+
+		$this->set_protected_property( $subject, 'fields', $fields );
 
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 		WP_Mock::passthruFunction( 'wp_kses' );

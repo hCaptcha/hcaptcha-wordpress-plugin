@@ -59,7 +59,7 @@ abstract class SettingsBase {
 	 *
 	 * @var array
 	 */
-	private $fields;
+	protected $fields;
 
 	/**
 	 * Get screen id.
@@ -689,7 +689,7 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 */
-	private function print_text_field( array $arguments ) {
+	protected function print_text_field( array $arguments ) {
 		$value        = $this->get( $arguments['field_id'] );
 		$autocomplete = '';
 		$lp_ignore    = 'false';
@@ -718,7 +718,7 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 */
-	private function print_number_field( array $arguments ) {
+	protected function print_number_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
 		$min   = $arguments['min'];
 		$max   = $arguments['max'];
@@ -744,7 +744,7 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 */
-	private function print_textarea_field( array $arguments ) {
+	protected function print_textarea_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
 
 		printf(
@@ -764,7 +764,7 @@ abstract class SettingsBase {
 	 *
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function print_checkbox_field( array $arguments ) {
+	protected function print_checkbox_field( array $arguments ) {
 		$value = (array) $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -829,7 +829,7 @@ abstract class SettingsBase {
 	 *
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function print_radio_field( array $arguments ) {
+	protected function print_radio_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -894,7 +894,7 @@ abstract class SettingsBase {
 	 *
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function print_select_field( array $arguments ) {
+	protected function print_select_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -944,7 +944,7 @@ abstract class SettingsBase {
 	 *
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function print_multiple_select_field( array $arguments ) {
+	protected function print_multiple_select_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -998,7 +998,7 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 */
-	private function print_table_field( array $arguments ) {
+	protected function print_table_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( ! is_array( $value ) ) {
@@ -1045,7 +1045,7 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 */
-	private function print_button_field( array $arguments ) {
+	protected function print_button_field( array $arguments ) {
 		$disabled = $arguments['disabled'] ?? '';
 		$field_id = $arguments['field_id'] ?? '';
 		$text     = $arguments['text'] ?? '';
@@ -1261,7 +1261,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	private function print_helper( string $helper ) {
+	protected function print_helper( string $helper ) {
 		if ( ! $helper ) {
 			return;
 		}
@@ -1279,7 +1279,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	private function print_supplemental( string $supplemental ) {
+	protected function print_supplemental( string $supplemental ) {
 		if ( ! $supplemental ) {
 			return;
 		}

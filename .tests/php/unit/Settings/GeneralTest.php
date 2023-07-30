@@ -12,8 +12,10 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Main;
 use HCaptcha\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
+use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
@@ -239,6 +241,13 @@ class GeneralTest extends HCaptchaTestCase {
 		$min_prefix     = '.min';
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
+		$site_key       = 'some key';
+
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_site_key' )->andReturn( $site_key );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
 
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -259,6 +268,8 @@ class GeneralTest extends HCaptchaTestCase {
 				return '';
 			}
 		);
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
@@ -285,9 +296,17 @@ class GeneralTest extends HCaptchaTestCase {
 				General::HANDLE,
 				General::OBJECT,
 				[
-					'ajaxUrl' => $ajax_url,
-					'action'  => General::CHECK_CONFIG_ACTION,
-					'nonce'   => $nonce,
+					'ajaxUrl'                              => $ajax_url,
+					'action'                               => General::CHECK_CONFIG_ACTION,
+					'nonce'                                => $nonce,
+					'modeLive'                             => General::MODE_LIVE,
+					'modeTestPublisher'                    => General::MODE_TEST_PUBLISHER,
+					'modeTestEnterpriseSafeEndUser'        => General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
+					'modeTestEnterpriseBotDetected'        => General::MODE_TEST_ENTERPRISE_BOT_DETECTED,
+					'siteKey'                              => $site_key,
+					'modeTestPublisherSiteKey'             => General::MODE_TEST_PUBLISHER_SITE_KEY,
+					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
+					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 				]
 			)
 			->once();

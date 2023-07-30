@@ -508,6 +508,9 @@ class AMainTest extends HCaptchaWPTestCase {
 				padding: 0;
 				clear: both;
 			}
+			#hcaptcha-options .h-captcha {
+				margin-bottom: 0;
+			}
 			#af-wrapper div.editor-row.editor-row-hcaptcha {
 				display: flex;
 				flex-direction: row-reverse;
@@ -705,6 +708,7 @@ class AMainTest extends HCaptchaWPTestCase {
 							const t = document.getElementsByTagName( \'script\' )[0];
 		const s = document.createElement(\'script\');
 		s.type  = \'text/javascript\';
+		s.id = \'hcaptcha-api\';
 		s[\'src\'] = \'' . $expected_script_src . '\';
 		s.async = true;
 		t.parentNode.insertBefore( s, t );
@@ -737,10 +741,11 @@ class AMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
-		$config_params  = '{}';
+		$config_params  = 'on' === $custom_themes ? '' : null;
 		$expected_extra = [
 			'group' => 1,
-			'data'  => 'var HCaptchaMainObject = {"params":"' . $config_params . '"};',
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'data'  => 'var HCaptchaMainObject = {"params":' . json_encode( $config_params ) . '};',
 		];
 
 		update_option(
