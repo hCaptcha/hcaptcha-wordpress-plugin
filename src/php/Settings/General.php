@@ -525,10 +525,6 @@ class General extends PluginSettingsBase {
 			);
 		}
 
-		$hcaptcha_response = $body['c']['req'] ?? '';
-
-		$result = hcaptcha_request_verify( $hcaptcha_response ); // Always error: token malformed.
-
 		wp_send_json_success(
 			esc_html__( 'Site key is valid.', 'hcaptcha-for-forms-and-more' )
 		);
