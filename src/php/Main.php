@@ -497,6 +497,8 @@ class Main {
 			return;
 		}
 
+		$settings = $this->settings();
+
 		/**
 		 * Filters delay time for the hCaptcha API script.
 		 *
@@ -507,7 +509,7 @@ class Main {
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', (int) $this->settings()->get( 'delay' ) );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) $settings->get( 'delay' ) );
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
@@ -519,10 +521,12 @@ class Main {
 			true
 		);
 
+		$params = $settings->is_on( 'custom_themes' ) ? $settings->get( 'config_params' ) : null;
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
-			[ 'params' => $this->settings()->get( 'config_params' ) ]
+			[ 'params' => $params ]
 		);
 
 		$min = hcap_min_suffix();
