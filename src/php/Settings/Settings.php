@@ -172,15 +172,15 @@ class Settings implements SettingsInterface {
 				$secret_key = $this->get( 'secret_key' );
 				break;
 			case General::MODE_TEST_PUBLISHER:
-				$site_key   = '10000000-ffff-ffff-ffff-000000000001';
+				$site_key   = General::MODE_TEST_PUBLISHER_SITE_KEY;
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			case General::MODE_TEST_ENTERPRISE_SAFE_END_USER:
-				$site_key   = '20000000-ffff-ffff-ffff-000000000002';
+				$site_key   = General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY;
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			case General::MODE_TEST_ENTERPRISE_BOT_DETECTED:
-				$site_key   = '30000000-ffff-ffff-ffff-000000000003';
+				$site_key   = General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY;
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			default:

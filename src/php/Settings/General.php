@@ -73,6 +73,21 @@ class General extends PluginSettingsBase {
 	const MODE_TEST_ENTERPRISE_BOT_DETECTED = 'test:enterprise_bot_detected';
 
 	/**
+	 * Test publisher mode site key.
+	 */
+	const MODE_TEST_PUBLISHER_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001';
+
+	/**
+	 * Test enterprise safe end user mode site key.
+	 */
+	const MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY = '20000000-ffff-ffff-ffff-000000000002';
+
+	/**
+	 * Test enterprise bot detected mode site key.
+	 */
+	const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -475,9 +490,17 @@ class General extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'action'  => self::CHECK_CONFIG_ACTION,
-				'nonce'   => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
+				'ajaxUrl'                              => admin_url( 'admin-ajax.php' ),
+				'action'                               => self::CHECK_CONFIG_ACTION,
+				'nonce'                                => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
+				'modeLive'                             => self::MODE_LIVE,
+				'modeTestPublisher'                    => self::MODE_TEST_PUBLISHER,
+				'modeTestEnterpriseSafeEndUser'        => self::MODE_TEST_ENTERPRISE_SAFE_END_USER,
+				'modeTestEnterpriseBotDetected'        => self::MODE_TEST_ENTERPRISE_BOT_DETECTED,
+				'siteKey'                              => hcaptcha()->settings()->get_site_key(),
+				'modeTestPublisherSiteKey'             => self::MODE_TEST_PUBLISHER_SITE_KEY,
+				'modeTestEnterpriseSafeEndUserSiteKey' => self::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
+				'modeTestEnterpriseBotDetectedSiteKey' => self::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 			]
 		);
 
@@ -511,9 +534,16 @@ class General extends PluginSettingsBase {
 	public function print_hcaptcha_field() {
 		HCaptcha::form_display();
 
+		$display = 'none';
+
 		if ( 'invisible' === hcaptcha()->settings()->get( 'size' ) ) {
-			esc_html_e( 'hCaptcha is in invisible mode.', 'hcaptcha-for-forms-and-more' );
+			$display = 'block';
 		}
+		?>
+		<div id="hcaptcha-invisible-notice" style="display: <?php echo esc_attr( $display ); ?>">
+			<?php esc_html_e( 'hCaptcha is in invisible mode.', 'hcaptcha-for-forms-and-more' ); ?>
+		</div>
+		<?php
 	}
 
 	/**

@@ -102,6 +102,7 @@ class DelayedScript {
 		const t = document.getElementsByTagName( 'script' )[0];
 		const s = document.createElement('script');
 		s.type  = 'text/javascript';
+		s.id = 'hcaptcha-api';
 		<?php
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		foreach ( $args as $key => $arg ) {
