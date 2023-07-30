@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\Abstracts\SettingsBase;
 
 /**
@@ -95,6 +96,11 @@ class General extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
+		$hcaptcha = hcaptcha();
+		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
+		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
+
+		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
 	}
 
@@ -111,6 +117,11 @@ class General extends PluginSettingsBase {
 			'secret_key'           => [
 				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'password',
+				'section' => self::SECTION_KEYS,
+			],
+			'sample_hcaptcha'      => [
+				'label'   => __( 'Sample hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'hcaptcha',
 				'section' => self::SECTION_KEYS,
 			],
 			'check_config'         => [
@@ -479,6 +490,33 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
+	 * Add custom hCaptcha field.
+	 *
+	 * @param array|mixed $fields Fields.
+	 *
+	 * @return array
+	 */
+	public function settings_fields( $fields ): array {
+		$fields             = (array) $fields;
+		$fields['hcaptcha'] = [ $this, 'print_hcaptcha_field' ];
+
+		return $fields;
+	}
+
+	/**
+	 * Print hCaptcha field.
+	 *
+	 * @return void
+	 */
+	public function print_hcaptcha_field() {
+		HCaptcha::form_display();
+
+		if ( 'invisible' === hcaptcha()->settings()->get( 'size' ) ) {
+			esc_html_e( 'hCaptcha is in invisible mode.', 'hcaptcha-for-forms-and-more' );
+		}
+	}
+
+	/**
 	 * Ajax action to check config.
 	 *
 	 * @return void
@@ -525,8 +563,18 @@ class General extends PluginSettingsBase {
 			);
 		}
 
+		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
+			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+
+		$result = hcaptcha_request_verify( $hcaptcha_response );
+
+		if ( $result ) {
+			wp_send_json_error( $result );
+		}
+
 		wp_send_json_success(
-			esc_html__( 'Site key is valid.', 'hcaptcha-for-forms-and-more' )
+			esc_html__( 'Site config is valid.', 'hcaptcha-for-forms-and-more' )
 		);
 	}
 }

@@ -326,6 +326,9 @@ class Main {
 				padding: 0;
 				clear: both;
 			}
+			#hcaptcha-options .h-captcha {
+				margin-bottom: 0;
+			}
 			#af-wrapper div.editor-row.editor-row-hcaptcha {
 				display: flex;
 				flex-direction: row-reverse;
@@ -483,10 +486,6 @@ class Main {
 	 * @return void
 	 */
 	public function print_footer_scripts() {
-		if ( is_admin() ) {
-			return;
-		}
-
 		if (
 			! (
 				$this->form_shown ||

@@ -865,24 +865,6 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test print_footer_scripts() in admin.
-	 */
-	public function test_print_footer_scripts_in_admin() {
-		set_current_screen( 'edit-post' );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		$scripts = ob_get_clean();
-
-		self::assertFalse( strpos( $scripts, '<style>' ) );
-		self::assertFalse( strpos( $scripts, 'api.js' ) );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-	}
-
-	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown() {

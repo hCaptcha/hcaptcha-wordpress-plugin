@@ -11,17 +11,22 @@ const general = function( $ ) {
 
 	function showMessage( message, msgClass ) {
 		$message.removeClass();
-		$message.addClass( msgClass );
+		$message.addClass( msgClass + ' notice settings-error is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
 		$message.show();
 	}
 
 	function showSuccessMessage( response ) {
-		showMessage( response, 'hcaptcha-success' );
+		showMessage( response, 'notice-success' );
 	}
 
 	function showErrorMessage( response ) {
-		showMessage( response, 'hcaptcha-error' );
+		showMessage( response, 'notice-error' );
+	}
+
+	function hCaptchaReset() {
+		$( '#hcaptcha-options .h-captcha' ).empty();
+		window.hCaptchaBindEvents();
 	}
 
 	$( '#check_config' ).on( 'click', function( event ) {
@@ -31,9 +36,10 @@ const general = function( $ ) {
 		const data = {
 			action: HCaptchaGeneralObject.action,
 			nonce: HCaptchaGeneralObject.nonce,
+			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
 		};
 
-		// noinspection JSVoidFunctionReturnValueUsed
+		// noinspection JSVoidFunctionReturnValueUsed,JSCheckFunctionSignatures
 		$.post( {
 			url: HCaptchaGeneralObject.ajaxUrl,
 			data,
@@ -48,6 +54,9 @@ const general = function( $ ) {
 			} )
 			.fail( function( response ) {
 				showErrorMessage( response.statusText );
+			} )
+			.always( function() {
+				hCaptchaReset();
 			} );
 	} );
 };

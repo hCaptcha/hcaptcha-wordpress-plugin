@@ -55,6 +55,13 @@ abstract class SettingsBase {
 	protected $min_prefix;
 
 	/**
+	 * Fields and their print methods.
+	 *
+	 * @var array
+	 */
+	private $fields;
+
+	/**
 	 * Get screen id.
 	 *
 	 * @return string
@@ -166,6 +173,19 @@ abstract class SettingsBase {
 	 */
 	public function __construct( $tabs = [] ) {
 		$this->tabs = $tabs;
+
+		$this->fields = [
+			'text'     => [ $this, 'print_text_field' ],
+			'password' => [ $this, 'print_text_field' ],
+			'number'   => [ $this, 'print_number_field' ],
+			'textarea' => [ $this, 'print_textarea_field' ],
+			'checkbox' => [ $this, 'print_checkbox_field' ],
+			'radio'    => [ $this, 'print_radio_field' ],
+			'select'   => [ $this, 'print_select_field' ],
+			'multiple' => [ $this, 'print_multiple_select_field' ],
+			'table'    => [ $this, 'print_table_field' ],
+			'button'   => [ $this, 'print_button_field' ],
+		];
 
 		if ( ! $this->is_tab() ) {
 			add_action( 'current_screen', [ $this, 'setup_tabs_section' ], 9 );
@@ -643,6 +663,13 @@ abstract class SettingsBase {
 
 		register_setting( $this->option_group(), $this->option_name() );
 
+		/**
+		 * Filters fields and their print methods to allow custom fields.
+		 *
+		 * @param array $fields Fields.
+		 */
+		$this->fields = apply_filters( 'kagg_settings_fields', $this->fields );
+
 		foreach ( $this->form_fields as $key => $field ) {
 			$field['field_id'] = $key;
 
@@ -661,8 +688,6 @@ abstract class SettingsBase {
 	 * Print text/password field.
 	 *
 	 * @param array $arguments Field arguments.
-	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_text_field( array $arguments ) {
 		$value        = $this->get( $arguments['field_id'] );
@@ -692,8 +717,6 @@ abstract class SettingsBase {
 	 * Print number field.
 	 *
 	 * @param array $arguments Field arguments.
-	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_number_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
@@ -720,8 +743,6 @@ abstract class SettingsBase {
 	 * Print textarea field.
 	 *
 	 * @param array $arguments Field arguments.
-	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_textarea_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
@@ -741,7 +762,6 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function print_checkbox_field( array $arguments ) {
@@ -807,7 +827,6 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function print_radio_field( array $arguments ) {
@@ -873,7 +892,6 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function print_select_field( array $arguments ) {
@@ -924,7 +942,6 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function print_multiple_select_field( array $arguments ) {
@@ -980,8 +997,6 @@ abstract class SettingsBase {
 	 * Print table field.
 	 *
 	 * @param array $arguments Field arguments.
-	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_table_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
@@ -1029,8 +1044,6 @@ abstract class SettingsBase {
 	 * Print button field.
 	 *
 	 * @param array $arguments Field arguments.
-	 *
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
 	private function print_button_field( array $arguments ) {
 		$disabled = $arguments['disabled'] ?? '';
@@ -1055,22 +1068,15 @@ abstract class SettingsBase {
 			return;
 		}
 
-		$types = [
-			'text'     => 'print_text_field',
-			'password' => 'print_text_field',
-			'number'   => 'print_number_field',
-			'textarea' => 'print_textarea_field',
-			'checkbox' => 'print_checkbox_field',
-			'radio'    => 'print_radio_field',
-			'select'   => 'print_select_field',
-			'multiple' => 'print_multiple_select_field',
-			'table'    => 'print_table_field',
-			'button'   => 'print_button_field',
-		];
-
 		$type = $arguments['type'] ?? '';
 
-		if ( ! array_key_exists( $type, $types ) ) {
+		if ( ! array_key_exists( $type, $this->fields ) ) {
+			return;
+		}
+
+		$method = $this->fields[ $type ];
+
+		if ( ! is_callable( $method ) ) {
 			return;
 		}
 
@@ -1087,10 +1093,11 @@ abstract class SettingsBase {
 				'placeholder'  => '',
 				'supplemental' => '',
 				'type'         => '',
+				'text'         => '',
 			]
 		);
 
-		$this->{$types[ $type ]}( $arguments );
+		$method( $arguments );
 
 		$this->print_helper( $arguments['helper'] );
 		$this->print_supplemental( $arguments['supplemental'] );
