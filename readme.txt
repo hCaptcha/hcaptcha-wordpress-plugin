@@ -476,6 +476,7 @@ Instructions for popular native integrations are below:
 * Tested with WordPress 6.3.
 * Tested with WooCommerce 7.9.
 * Added hCaptcha config check to the General settings page.
+* Added dynamic display of settings in sample hCaptcha.
 * Added compatibility with Ajax Gravity Forms.
 
 = 2.10.0 =
