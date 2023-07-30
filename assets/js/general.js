@@ -1,4 +1,4 @@
-/* global jQuery, HCaptchaGeneralObject */
+/* global jQuery, HCaptchaGeneralObject, HCaptchaMainObject */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
@@ -12,6 +12,7 @@
  * @param HCaptchaGeneralObject.modeTestPublisherSiteKey
  * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
+ * @param HCaptchaMainObject.params
  */
 
 /**
@@ -23,6 +24,9 @@ const general = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 	const $message = $( msgSelector );
 	const $language = $( '[name="hcaptcha_settings[language]"]' );
+	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
+	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
+	const $submit = $( '#submit' );
 	const modes = {};
 
 	modes[ HCaptchaGeneralObject.modeLive ] = HCaptchaGeneralObject.siteKey;
@@ -80,6 +84,29 @@ const general = function( $ ) {
 		const t = document.getElementsByTagName( 'script' )[ 0 ];
 
 		t.parentNode.insertBefore( s, t );
+	}
+
+	function applyCustomThemes() {
+		let paramsJson = $configParams.val().trim();
+		let params;
+
+		paramsJson = paramsJson ? paramsJson : null;
+
+		try {
+			params = JSON.parse( paramsJson );
+		} catch ( e ) {
+			$configParams.css( 'background-color', '#ffabaf' );
+			$submit.attr( 'disabled', true );
+			showErrorMessage( 'Bad JSON!' );
+
+			return;
+		}
+
+		params = $customThemes.prop( 'checked' ) ? params : null;
+
+		HCaptchaMainObject.params = JSON.stringify( params );
+
+		hCaptchaGeneralReset();
 	}
 
 	$( '#check_config' ).on( 'click', function( event ) {
@@ -153,6 +180,19 @@ const general = function( $ ) {
 
 		$( '.h-captcha' ).attr( 'data-sitekey', modes[ mode ] );
 		hCaptchaGeneralReset();
+	} );
+
+	$customThemes.on( 'change', function() {
+		applyCustomThemes();
+	} );
+
+	$configParams.on( 'blur', function() {
+		applyCustomThemes();
+	} );
+
+	$configParams.on( 'focus', function() {
+		$configParams.css( 'background-color', 'unset' );
+		$submit.attr( 'disabled', false );
 	} );
 };
 
