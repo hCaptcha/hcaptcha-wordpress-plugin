@@ -881,6 +881,11 @@ class Main {
 				'profile-builder/index.php',
 				ProfileBuilder\Login::class,
 			],
+			'Profile Builder Register'          => [
+				[ 'profile_builder_status', 'register' ],
+				'profile-builder/index.php',
+				ProfileBuilder\Register::class,
+			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
