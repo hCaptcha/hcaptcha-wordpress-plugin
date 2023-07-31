@@ -203,6 +203,10 @@ Download Manager
 $source: 'download-manager/download-manager.php'
 $form_id: post_id of download item in the admin.
 
+Easy Digital Downloads
+$source: 'easy-digital-downloads/easy-digital-downloads.php'
+$form_id: checkout.
+
 Elementor Pro
 $source: 'elementor-pro/elementor-pro.php'
 $form_id: Form ID set for the form Content->Additional Options.
@@ -486,6 +490,7 @@ Instructions for popular native integrations are below:
 * Added dynamic display of settings in sample hCaptcha.
 * Added compatibility with Ajax Gravity Forms.
 * Added compatibility with Profile Builder.
+* Added compatibility with Easy Digital Downloads Checkout form.
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
