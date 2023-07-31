@@ -599,6 +599,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
 			}
+			#wppb-loginform .h-captcha {
+				margin-bottom: 14px;
+			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
 			}
@@ -1188,6 +1191,21 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				\HCaptcha\PaidMembershipsPro\Login::class,
+			],
+			'Profile Builder Login'             => [
+				[ 'profile_builder_status', 'login' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\Login::class,
+			],
+			'Profile Builder Register'          => [
+				[ 'profile_builder_status', 'register' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\Register::class,
+			],
+			'Profile Builder Recover Password'  => [
+				[ 'profile_builder_status', 'lost_pass' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\LostPassword::class,
 			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],

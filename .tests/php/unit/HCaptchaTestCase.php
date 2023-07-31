@@ -890,6 +890,15 @@ abstract class HCaptchaTestCase extends TestCase {
 						'login'    => 'Login Form',
 					],
 				],
+			'profile_builder_status'        => [
+				'label'   => 'Profile Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => 'Login Form',
+					'lost_pass' => 'Recover Password Form',
+					'register'  => 'Register Form',
+				],
+			],
 			'quform_status'                 =>
 				[
 					'label'   => 'Quform',
