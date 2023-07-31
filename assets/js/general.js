@@ -22,7 +22,7 @@
  */
 const general = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
-	const $message = $( msgSelector );
+	let $message = $( msgSelector );
 	const $language = $( '[name="hcaptcha_settings[language]"]' );
 	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
@@ -35,8 +35,9 @@ const general = function( $ ) {
 	modes[ HCaptchaGeneralObject.modeTestEnterpriseBotDetected ] = HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey;
 
 	function clearMessage() {
-		$message.removeClass();
-		$message.html( '' );
+		$message.remove();
+		$( '<div id="hcaptcha-message"></div>' ).insertAfter( '#hcaptcha-options h2' );
+		$message = $( msgSelector );
 	}
 
 	function showMessage( message, msgClass ) {
@@ -44,6 +45,7 @@ const general = function( $ ) {
 		$message.addClass( msgClass + ' notice settings-error is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
 		$message.show();
+		$( document ).trigger( 'wp-updates-notice-added' );
 	}
 
 	function showSuccessMessage( response ) {
