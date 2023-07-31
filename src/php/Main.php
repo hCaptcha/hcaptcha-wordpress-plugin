@@ -801,6 +801,11 @@ class Main {
 				'download-manager/download-manager.php',
 				DownloadManager::class,
 			],
+			'Easy Digital Downloads Checkout'   => [
+				[ 'easy_digital_downloads_status', 'checkout' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				EasyDigitalDownloads\Checkout::class,
+			],
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',

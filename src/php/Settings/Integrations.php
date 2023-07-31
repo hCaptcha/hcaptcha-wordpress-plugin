@@ -186,6 +186,13 @@ class Integrations extends PluginSettingsBase {
 					'button' => __( 'Button', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'easy_digital_downloads_status' => [
+				'label'   => 'Easy Digital Downloads',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'elementor_pro_status'          => [
 				'label'   => 'Elementor Pro',
 				'type'    => 'checkbox',
