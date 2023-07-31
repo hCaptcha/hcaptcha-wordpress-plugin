@@ -193,7 +193,7 @@ $form_id: 'create_group' or 'register'
 
 Classified Listing
 $source: 'classified-listing/classified-listing.php'
-$form_id: 'contact', ''login', 'lost_password' or 'register'
+$form_id: 'contact', 'login', 'lost_password' or 'register'
 
 Divi
 $source: 'Divi'
@@ -222,6 +222,10 @@ $form_id: 'login' or 'register'
 Paid Memberships Pro
 $source: 'paid-memberships-pro/paid-memberships-pro.php'
 $form_id: 'checkout' or 'login'
+
+Profile Builder
+$source: 'profile-builder/index.php'
+$form_id: 'login', 'lost_password' or 'register'
 
 Subscriber
 $source: 'subscriber/subscriber.php'
@@ -432,6 +436,9 @@ For more details, please see the hCaptcha privacy policy at:
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout Form
 * Paid Memberships Pro Login Form
+* Profile Builder Login Form
+* Profile Builder Recover Password Form
+* Profile Builder Register Form
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
@@ -478,6 +485,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha config check to the General settings page.
 * Added dynamic display of settings in sample hCaptcha.
 * Added compatibility with Ajax Gravity Forms.
+* Added compatibility with Profile Builder.
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.
