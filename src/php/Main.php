@@ -417,6 +417,9 @@ class Main {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
 			}
+			#wppb-loginform .h-captcha {
+				margin-bottom: 14px;
+			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
 			}
@@ -872,6 +875,11 @@ class Main {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Login::class,
+			],
+			'Profile Builder Login'             => [
+				[ 'profile_builder_status', 'login' ],
+				'profile-builder/index.php',
+				ProfileBuilder\Login::class,
 			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
