@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
-Tested up to: 6.2
+Tested up to: 6.3
 Requires PHP: 7.0.0
 Stable tag: 2.10.0
 License: GPLv2 or later
