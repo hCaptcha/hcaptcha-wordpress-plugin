@@ -8,7 +8,6 @@
 namespace HCaptcha\EasyDigitalDownloads;
 
 use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
 
 /**
  * Class Checkout.

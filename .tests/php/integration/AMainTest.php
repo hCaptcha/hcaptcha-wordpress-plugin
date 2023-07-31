@@ -20,6 +20,7 @@ use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
+use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
@@ -1126,6 +1127,16 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'divi_status', 'login' ],
 				'Divi',
 				\HCaptcha\Divi\Login::class,
+			],
+			'Download Manager'                  => [
+				[ 'download_manager_status', 'button' ],
+				'download-manager/download-manager.php',
+				DownloadManager::class,
+			],
+			'Easy Digital Downloads Checkout'   => [
+				[ 'easy_digital_downloads_status', 'checkout' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				\HCaptcha\EasyDigitalDownloads\Checkout::class,
 			],
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],

@@ -776,6 +776,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'button' => 'Button',
 						],
 				],
+			'easy_digital_downloads_status' => [
+				'label'   => 'Easy Digital Downloads',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => 'Checkout Form',
+				],
+			],
 			'elementor_pro_status'          =>
 				[
 					'label'   => 'Elementor Pro',
