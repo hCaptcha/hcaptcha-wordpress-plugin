@@ -2,19 +2,21 @@
 
 const integrations = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
-	const $message = $( msgSelector );
+	let $message = $( msgSelector );
 	const $wpwrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 
 	function clearMessage() {
-		$message.removeClass();
-		$message.html( '' );
+		$message.remove();
+		$( '<div id="hcaptcha-message"></div>' ).insertAfter( '#hcaptcha-options h2' );
+		$message = $( msgSelector );
 	}
 
 	function showMessage( message, msgClass ) {
 		$message.removeClass();
-		$message.addClass( msgClass );
+		$message.addClass( msgClass + ' notice settings-error is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
+		$( document ).trigger( 'wp-updates-notice-added' );
 
 		const $fixed = $message.clone();
 
@@ -37,11 +39,11 @@ const integrations = function( $ ) {
 	}
 
 	function showSuccessMessage( response ) {
-		showMessage( response, 'hcaptcha-success' );
+		showMessage( response, 'notice-success' );
 	}
 
 	function showErrorMessage( response ) {
-		showMessage( response, 'hcaptcha-error' );
+		showMessage( response, 'notice-error' );
 	}
 
 	function insertIntoTable( $table, key, $element ) {

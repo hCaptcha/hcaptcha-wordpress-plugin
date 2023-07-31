@@ -44,7 +44,6 @@ const general = function( $ ) {
 		$message.removeClass();
 		$message.addClass( msgClass + ' notice settings-error is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
-		$message.show();
 		$( document ).trigger( 'wp-updates-notice-added' );
 	}
 
