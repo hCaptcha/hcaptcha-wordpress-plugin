@@ -886,6 +886,11 @@ class Main {
 				'profile-builder/index.php',
 				ProfileBuilder\Register::class,
 			],
+			'Profile Builder Recover Password'  => [
+				[ 'profile_builder_status', 'lost_pass' ],
+				'profile-builder/index.php',
+				ProfileBuilder\LostPassword::class,
+			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',

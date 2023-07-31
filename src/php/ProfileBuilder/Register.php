@@ -30,7 +30,7 @@ class Register {
 	 *
 	 * @var string|null
 	 */
-	private $error_message = null;
+	private $error_message;
 
 	/**
 	 * Constructor.
@@ -65,6 +65,7 @@ class Register {
 			],
 		];
 
+		// Do not close this tag.
 		$search = '<p class="form-submit"';
 
 		return str_replace( $search, HCaptcha::form( $args ) . $search, $form_content );

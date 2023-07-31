@@ -283,8 +283,9 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
 				'options' => [
-					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Recover Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'quform_status'                 => [
