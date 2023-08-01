@@ -853,6 +853,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
 			static function ( $url, $component ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 				return parse_url( $url, $component );
 			}
 		);

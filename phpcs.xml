@@ -31,7 +31,7 @@
 	<rule ref="PHPCompatibilityWP"/>
 
 	<!-- Rules: WordPress Coding Standards -->
-	<config name="minimum_supported_wp_version" value="4.4"/>
+	<config name="minimum_supported_wp_version" value="5.0"/>
 	<rule ref="WordPress"/>
 
 	<!-- Allow only short array syntax -->
