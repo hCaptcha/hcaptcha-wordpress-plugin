@@ -1,6 +1,6 @@
 .codeception/_output/
 .idea/
-.yarn
+.yarn/
 assets/css/*.min.css
 assets/css/*.min.css.map
 assets/js/apps/
