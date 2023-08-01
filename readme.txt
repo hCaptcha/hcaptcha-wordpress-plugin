@@ -483,7 +483,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.0.0 =
-* Dropped support of PHP 5.6. Minimum required PHP version is 7.0 now.
+* Dropped support for PHP 5.6. Minimum required PHP version is now 7.0.
 * Tested with WordPress 6.3.
 * Tested with WooCommerce 7.9.
 * Added hCaptcha config check to the General settings page.
