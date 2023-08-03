@@ -5,8 +5,14 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha;
 
+use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
@@ -16,11 +22,14 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
+use HCaptcha\Otter;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
+use HCaptcha\Settings\SystemInfo;
+use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
 
 /**
@@ -43,6 +52,28 @@ class Main {
 	 * @var boolean
 	 */
 	public $form_shown = false;
+
+	/**
+	 * We have the verification result of the hCaptcha widget.
+	 * Use this flag to send remote request only once.
+	 *
+	 * @var boolean
+	 */
+	public $has_result = false;
+
+	/**
+	 * Plugin modules.
+	 *
+	 * @var array
+	 */
+	public $modules = [];
+
+	/**
+	 * Whether fluentform(s) without own hCaptcha were loaded.
+	 *
+	 * @var bool
+	 */
+	public $fluentform_support_required = false;
 
 	/**
 	 * Loaded classes.
@@ -73,6 +104,20 @@ class Main {
 	private $active;
 
 	/**
+	 * Whether wpforo_template filter was used.
+	 *
+	 * @var bool
+	 */
+	private $did_wpforo_template_filter = false;
+
+	/**
+	 * Whether supportcandy shortcode was used.
+	 *
+	 * @var bool
+	 */
+	private $did_support_candy_shortcode_tag_filter = false;
+
+	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -81,6 +126,7 @@ class Main {
 		}
 
 		( new Fix() )->init();
+
 		new Migrations();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], - PHP_INT_MAX );
@@ -88,11 +134,17 @@ class Main {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
 	public function init_hooks() {
 		$this->settings = new Settings(
 			[
-				'hCaptcha' => [ General::class, Integrations::class ],
+				'hCaptcha' => [
+					General::class,
+					Integrations::class,
+					SystemInfo::class,
+				],
 			]
 		);
 
@@ -112,6 +164,9 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
+		add_filter( 'wpforo_template', [ $this, 'wpforo_template_filter' ] );
+		add_filter( 'do_shortcode_tag', [ $this, 'support_candy_shortcode_tag' ], 10, 4 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -124,9 +179,9 @@ class Main {
 	 *
 	 * @return object|null
 	 */
-	public function get( $class ) {
+	public function get( string $class ) {
 
-		return isset( $this->loaded_classes[ $class ] ) ? $this->loaded_classes[ $class ] : null;
+		return $this->loaded_classes[ $class ] ?? null;
 	}
 
 	/**
@@ -134,7 +189,7 @@ class Main {
 	 *
 	 * @return Settings
 	 */
-	public function settings() {
+	public function settings(): Settings {
 		return $this->settings;
 	}
 
@@ -143,7 +198,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function activate_hcaptcha() {
+	private function activate_hcaptcha(): bool {
 		// Make sure we can use is_user_logged_in().
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
@@ -178,7 +233,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function is_elementor_pro_edit_page() {
+	private function is_elementor_pro_edit_page(): bool {
 		if ( ! $this->settings()->is_on( 'elementor_pro_status' ) ) {
 			return false;
 		}
@@ -206,12 +261,14 @@ class Main {
 	 * We cannot control if hCaptcha form is shown here, as this is hooked on wp_head.
 	 * So, we always prefetch hCaptcha dns if hCaptcha is active, but it is a small overhead.
 	 *
-	 * @param array  $urls          URLs to print for resource hints.
-	 * @param string $relation_type The relation type the URLs are printed for.
+	 * @param array|mixed $urls          URLs to print for resource hints.
+	 * @param string      $relation_type The relation type the URLs are printed for.
 	 *
 	 * @return array
 	 */
-	public function prefetch_hcaptcha_dns( $urls, $relation_type ) {
+	public function prefetch_hcaptcha_dns( $urls, string $relation_type ): array {
+		$urls = (array) $urls;
+
 		if ( 'dns-prefetch' === $relation_type ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
@@ -222,11 +279,12 @@ class Main {
 	/**
 	 * Add Content Security Policy (CSP) headers.
 	 *
-	 * @param array $headers Headers.
+	 * @param array|mixed $headers Headers.
 	 *
 	 * @return array
 	 */
-	public function csp_headers( $headers ) {
+	public function csp_headers( $headers ): array {
+		$headers  = (array) $headers;
 		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
 
 		$headers['X-Content-Security-Policy'] =
@@ -243,11 +301,22 @@ class Main {
 
 	/**
 	 * Print inline styles.
+	 *
+	 * @return void
 	 */
 	public function print_inline_styles() {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+
+		ob_start();
+		?>
+		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
+		<?php
+		ob_get_clean();
 		?>
 		<style>
+			#wpdiscuz-subscribe-form .h-captcha {
+				margin-left: auto;
+			}
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
@@ -256,6 +325,22 @@ class Main {
 				margin-bottom: 2rem;
 				padding: 0;
 				clear: both;
+			}
+			#hcaptcha-options .h-captcha {
+				margin-bottom: 0;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha {
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+				margin-bottom: 0;
+			}
+			.brz-forms2.brz-forms2__item .h-captcha {
+				margin-bottom: 0;
+			}
+			form.wpsc-create-ticket .h-captcha {
+				margin: 0 15px 15px 15px;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
@@ -323,7 +408,8 @@ class Main {
 			span[data-name="hcap-cf7"] .h-captcha {
 				margin-bottom: 0;
 			}
-			span[data-name="hcap-cf7"] ~ input[type="submit"] {
+			span[data-name="hcap-cf7"] ~ input[type="submit"],
+			span[data-name="hcap-cf7"] ~ button[type="submit"] {
 				margin-top: 2rem;
 			}
 			.elementor-field-type-hcaptcha .elementor-field {
@@ -331,6 +417,9 @@ class Main {
 			}
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
+			}
+			#wppb-loginform .h-captcha {
+				margin-bottom: 14px;
 			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
@@ -341,6 +430,8 @@ class Main {
 
 	/**
 	 * Print styles to fit hcaptcha widget to the login form.
+	 *
+	 * @return void
 	 */
 	public function login_head() {
 		?>
@@ -365,7 +456,7 @@ class Main {
 	 *
 	 * @return string
 	 */
-	public function get_api_src() {
+	public function get_api_src(): string {
 		$params = [
 			'onload' => 'hCaptchaOnLoad',
 			'render' => 'explicit',
@@ -395,27 +486,34 @@ class Main {
 
 	/**
 	 * Add the hCaptcha script to footer.
+	 *
+	 * @return void
 	 */
 	public function print_footer_scripts() {
-		if ( is_admin() ) {
+		if (
+			! (
+				$this->form_shown ||
+				$this->did_wpforo_template_filter ||
+				$this->did_support_candy_shortcode_tag_filter ||
+				$this->fluentform_support_required
+			)
+		) {
 			return;
 		}
 
-		if ( ! ( $this->form_shown || did_action( 'wpforo_template_forum_head_bar_action_links' ) ) ) {
-			return;
-		}
+		$settings = $this->settings();
 
 		/**
-		 * Filters delay time for hCaptcha API script.
+		 * Filters delay time for the hCaptcha API script.
 		 *
-		 * Any negative value will prevent API script from loading at all,
+		 * Any negative value will prevent the API script from loading
 		 * until user interaction: mouseenter, click, scroll or touch.
 		 * This significantly improves Google Pagespeed Insights score.
 		 *
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', - 1 );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) $settings->get( 'delay' ) );
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
@@ -427,10 +525,12 @@ class Main {
 			true
 		);
 
+		$params = $settings->is_on( 'custom_themes' ) ? $settings->get( 'config_params' ) : null;
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
-			[ 'params' => $this->settings()->get( 'config_params' ) ]
+			[ 'params' => $params ]
 		);
 
 		$min = hcap_min_suffix();
@@ -447,16 +547,58 @@ class Main {
 	}
 
 	/**
+	 * Declare compatibility with WC features.
+	 *
+	 * @return void
+	 */
+	public function declare_wc_compatibility() {
+		if ( class_exists( FeaturesUtil::class ) ) {
+			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
+		}
+	}
+
+	/**
+	 * Catch wpForo template filter.
+	 *
+	 * @param array|string $template Template.
+	 *
+	 * @return array|string
+	 */
+	public function wpforo_template_filter( $template ) {
+		$this->did_wpforo_template_filter = true;
+
+		return $template;
+	}
+
+	/**
+	 * Catch Support Candy do shortcode tag filter.
+	 *
+	 * @param string|mixed $output Shortcode output.
+	 * @param string       $tag    Shortcode name.
+	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array        $m      Regular expression match array.
+	 *
+	 * @return string|mixed
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function support_candy_shortcode_tag( $output, string $tag, $attr, array $m ) {
+		if ( 'supportcandy' === $tag ) {
+			$this->did_support_candy_shortcode_tag_filter = true;
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Filter user IP to check if it is whitelisted.
 	 * For whitelisted IPs, hCaptcha will not be shown.
 	 *
-	 * @param bool   $whitelisted Whether IP is whitelisted.
-	 * @param string $client_ip   Client IP.
+	 * @param bool|mixed   $whitelisted Whether IP is whitelisted.
+	 * @param string|false $client_ip   Client IP.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 */
 	public function whitelist_ip( $whitelisted, $client_ip ) {
-
 		$ips = explode(
 			"\n",
 			$this->settings()->get( 'whitelisted_ips' )
@@ -496,213 +638,359 @@ class Main {
 
 	/**
 	 * Load plugin modules.
+	 *
+	 * @return void
+	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
-		$modules = [
-			'Comment Form'                 => [
+		/**
+		 * Plugins modules.
+		 *
+		 * @var                  $modules      {
+		 *
+		 * @type string[]        $module0      {
+		 * @type string          $option_name  Option name.
+		 * @type string          $option_value Option value.
+		 *                                     }
+		 * @type string|string[] $module1      Plugins to be active. For WP core features, an empty string.
+		 * @type string|string[] $module2      Required hCaptcha plugin classes.
+		 *                                     }
+		 */
+		$this->modules = [
+			'Comment Form'                      => [
 				[ 'wp_status', 'comment' ],
 				'',
 				WP\Comment::class,
 			],
-			'Login Form'                   => [
+			'Login Form'                        => [
 				[ 'wp_status', 'login' ],
 				'',
 				WP\Login::class,
 			],
-			'Lost Password Form'           => [
+			'Lost Password Form'                => [
 				[ 'wp_status', 'lost_pass' ],
 				'',
 				WP\LostPassword::class,
 			],
-			'Post/Page Password Form'      => [
+			'Post/Page Password Form'           => [
 				[ 'wp_status', 'password_protected' ],
 				'',
 				PasswordProtected::class,
 			],
-			'Register Form'                => [
+			'Register Form'                     => [
 				[ 'wp_status', 'register' ],
 				'',
 				WP\Register::class,
 			],
-			'Avada Form'                   => [
+			'ACF Extended Form'                 => [
+				[ 'acfe_status', 'form' ],
+				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
+				ACFE\Form::class,
+			],
+			'Asgaros Form'                      => [
+				[ 'asgaros_status', 'form' ],
+				'asgaros-forum/asgaros-forum.php',
+				Asgaros\Form::class,
+			],
+			'Avada Form'                        => [
 				[ 'avada_status', 'form' ],
 				'Avada',
 				Avada\Form::class,
 			],
-			'bbPress New Topic'            => [
+			'Back In Stock Notifier Form'       => [
+				[ 'back_in_stock_notifier_status', 'form' ],
+				'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php',
+				BackInStockNotifier\Form::class,
+			],
+			'bbPress New Topic'                 => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
+				BBPress\NewTopic::class,
 			],
-			'bbPress Reply'                => [
+			'bbPress Reply'                     => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+				BBPress\Reply::class,
 			],
-			'Beaver Builder Contact Form'  => [
+			'Beaver Builder Contact Form'       => [
 				[ 'beaver_builder_status', 'contact' ],
 				'bb-plugin/fl-builder.php',
 				BeaverBuilder\Contact::class,
 			],
-			'Beaver Builder Login Form'    => [
+			'Beaver Builder Login Form'         => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
 				[ BeaverBuilder\Login::class, WP\Login::class ],
 			],
-			'BuddyPress Create Group'      => [
+			'Brizy Form'                        => [
+				[ 'brizy_status', 'form' ],
+				'brizy/brizy.php',
+				[ Brizy\Form::class ],
+			],
+			'BuddyPress Create Group'           => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
+				BuddyPress\CreateGroup::class,
 			],
-			'BuddyPress Register'          => [
+			'BuddyPress Register'               => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
+				BuddyPress\Register::class,
 			],
-			'Contact Form 7'               => [
+			'Classified Listing Contact'        => [
+				[ 'classified_listing_status', 'contact' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Contact::class,
+			],
+			'Classified Listing Login'          => [
+				[ 'classified_listing_status', 'login' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Login::class,
+			],
+			'Classified Listing Lost Password'  => [
+				[ 'classified_listing_status', 'lost_pass' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\LostPassword::class,
+			],
+			'Classified Listing Register'       => [
+				[ 'classified_listing_status', 'register' ],
+				'classified-listing/classified-listing.php',
+				ClassifiedListing\Register::class,
+			],
+			'Colorlib Customizer Login'         => [
+				[ 'colorlib_customizer_status', 'login' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				ColorlibCustomizer\Login::class,
+			],
+			'Colorlib Customizer Lost Password' => [
+				[ 'colorlib_customizer_status', 'lost_pass' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				ColorlibCustomizer\LostPassword::class,
+			],
+			'Colorlib Customizer Register'      => [
+				[ 'colorlib_customizer_status', 'register' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				ColorlibCustomizer\Register::class,
+			],
+			'Contact Form 7'                    => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
-			'Divi Comment Form'            => [
+			'Divi Comment Form'                 => [
 				[ 'divi_status', 'comment' ],
 				'Divi',
 				[ Divi\Comment::class, WP\Comment::class ],
 			],
-			'Divi Contact Form'            => [
+			'Divi Contact Form'                 => [
 				[ 'divi_status', 'contact' ],
 				'Divi',
 				Divi\Contact::class,
 			],
-			'Divi Login Form'              => [
+			'Divi Email Optin Form'             => [
+				[ 'divi_status', 'email_optin' ],
+				'Divi',
+				Divi\EmailOptin::class,
+			],
+			'Divi Login Form'                   => [
 				[ 'divi_status', 'login' ],
 				'Divi',
-				Divi\Login::class,
+				[ Divi\Login::class, WP\Login::class ],
 			],
-			'Download Manager'             => [
+			'Download Manager'                  => [
 				[ 'download_manager_status', 'button' ],
 				'download-manager/download-manager.php',
 				DownloadManager::class,
 			],
-			'Elementor Pro Form'           => [
+			'Easy Digital Downloads Checkout'   => [
+				[ 'easy_digital_downloads_status', 'checkout' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				EasyDigitalDownloads\Checkout::class,
+			],
+			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
-			'Fluent Forms'                 => [
+			'Fluent Forms'                      => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
 				FluentForm\Form::class,
 			],
-			'Forminator'                   => [
+			'Formidable Forms'                  => [
+				[ 'formidable_forms_status', 'form' ],
+				'formidable/formidable.php',
+				FormidableForms\Form::class,
+			],
+			'Forminator'                        => [
 				[ 'forminator_status', 'form' ],
 				'forminator/forminator.php',
 				Forminator\Form::class,
 			],
-			'Gravity Forms'                => [
+			'GiveWP'                            => [
+				[ 'give_wp_status', 'form' ],
+				'give/give.php',
+				GiveWP\Form::class,
+			],
+			'Gravity Forms'                     => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
 				GravityForms\Form::class,
 			],
-			'Jetpack'                      => [
+			'Jetpack'                           => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
-			'MailChimp'                    => [
+			'Kadence Form'                      => [
+				[ 'kadence_status', 'form' ],
+				'kadence-blocks/kadence-blocks.php',
+				Kadence\Form::class,
+			],
+			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
+				Mailchimp\Form::class,
 			],
-			'MemberPress Register'         => [
+			'MemberPress Login'                 => [
+				[ 'memberpress_status', 'login' ],
+				'memberpress/memberpress.php',
+				[ MemberPress\Login::class, WP\Login::class ],
+			],
+			'MemberPress Register'              => [
 				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',
 				MemberPress\Register::class,
 			],
-			'Ninja Forms'                  => [
+			'Ninja Forms'                       => [
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
-			'Quform'                       => [
+			'Otter Blocks'                      => [
+				[ 'otter_status', 'form' ],
+				'otter-blocks/otter-blocks.php',
+				Otter\Form::class,
+			],
+			'Paid Memberships Pro Checkout'     => [
+				[ 'paid_memberships_pro_status', 'checkout' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				PaidMembershipsPro\Checkout::class,
+			],
+			'Paid Memberships Pro Login'        => [
+				[ 'paid_memberships_pro_status', 'login' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				PaidMembershipsPro\Login::class,
+			],
+			'Profile Builder Login'             => [
+				[ 'profile_builder_status', 'login' ],
+				'profile-builder/index.php',
+				ProfileBuilder\Login::class,
+			],
+			'Profile Builder Register'          => [
+				[ 'profile_builder_status', 'register' ],
+				'profile-builder/index.php',
+				ProfileBuilder\Register::class,
+			],
+			'Profile Builder Recover Password'  => [
+				[ 'profile_builder_status', 'lost_pass' ],
+				'profile-builder/index.php',
+				ProfileBuilder\LostPassword::class,
+			],
+			'Quform'                            => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
 				Quform::class,
 			],
-			'Sendinblue'                   => [
+			'Sendinblue'                        => [
 				[ 'sendinblue_status', 'form' ],
 				'mailin/sendinblue.php',
 				Sendinblue::class,
 			],
-			'Subscriber'                   => [
+			'Subscriber'                        => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
+				Subscriber\Form::class,
 			],
-			'Ultimate Member Login'        => [
+			'Support Candy Form'                => [
+				[ 'supportcandy_status', 'form' ],
+				'supportcandy/supportcandy.php',
+				SupportCandy\Form::class,
+			],
+			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
-				UM\Login::class,
+				[ UM\Login::class, WP\Login::class ],
 			],
-			'Ultimate Member LostPassword' => [
+			'Ultimate Member LostPassword'      => [
 				[ 'ultimate_member_status', 'lost_pass' ],
 				'ultimate-member/ultimate-member.php',
 				UM\LostPassword::class,
 			],
-			'Ultimate Member Register'     => [
+			'Ultimate Member Register'          => [
 				[ 'ultimate_member_status', 'register' ],
 				'ultimate-member/ultimate-member.php',
 				UM\Register::class,
 			],
-			'WooCommerce Checkout'         => [
+			'WooCommerce Checkout'              => [
 				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
 				WC\Checkout::class,
 			],
-			'WooCommerce Login'            => [
+			'WooCommerce Login'                 => [
 				[ 'woocommerce_status', 'login' ],
 				'woocommerce/woocommerce.php',
 				WC\Login::class,
 			],
-			'WooCommerce Lost Password'    => [
+			'WooCommerce Lost Password'         => [
 				[ 'woocommerce_status', 'lost_pass' ],
 				'woocommerce/woocommerce.php',
 				[ WP\LostPassword::class, WC\LostPassword::class ],
 			],
-			'WooCommerce Order Tracking'   => [
+			'WooCommerce Order Tracking'        => [
 				[ 'woocommerce_status', 'order_tracking' ],
 				'woocommerce/woocommerce.php',
 				WC\OrderTracking::class,
 			],
-			'WooCommerce Register'         => [
+			'WooCommerce Register'              => [
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',
 				WC\Register::class,
 			],
-			'WooCommerce Wishlists'        => [
+			'WooCommerce Wishlists'             => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
+				CreateList::class,
 			],
-			'WPForms Lite'                 => [
+			'WPForms Lite'                      => [
 				[ 'wpforms_status', 'lite' ],
-				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
-				'wpforms/wpforms.php',
+				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
+				\HCaptcha\WPForms\Form::class,
 			],
-			'WPForms Pro'                  => [
+			'WPForms Pro'                       => [
 				[ 'wpforms_status', 'pro' ],
-				[ 'wpforms-lite/wpforms.php', 'wpforms/wpforms.php' ],
-				'wpforms/wpforms.php',
+				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
+				\HCaptcha\WPForms\Form::class,
 			],
-			'wpForo New Topic'             => [
+			'wpDiscuz Comment'                  => [
+				[ 'wpdiscuz_status', 'comment_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				WPDiscuz\Comment::class,
+			],
+			'wpDiscuz Subscribe'                => [
+				[ 'wpdiscuz_status', 'subscribe_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				WPDiscuz\Subscribe::class,
+			],
+			'wpForo New Topic'                  => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+				WPForo\NewTopic::class,
 			],
-			'wpForo Reply'                 => [
+			'wpForo Reply'                      => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+				WPForo\Reply::class,
 			],
 		];
 
@@ -712,7 +1000,7 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
-		foreach ( $modules as $module ) {
+		foreach ( $this->modules as $module ) {
 			list( $option_name, $option_value ) = $module[0];
 
 			$option = (array) $this->settings()->get( $option_name );
@@ -750,7 +1038,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function plugin_or_theme_active( $plugin_or_theme_names ) {
+	private function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
 			if ( '' === $plugin_or_theme_name ) {
 				// WP Core is always active.
@@ -779,6 +1067,8 @@ class Main {
 
 	/**
 	 * Load plugin text domain.
+	 *
+	 * @return void
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain(
@@ -793,7 +1083,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	protected function is_xml_rpc() {
+	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }

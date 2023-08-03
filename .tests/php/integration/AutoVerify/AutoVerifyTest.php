@@ -25,7 +25,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );
 		delete_transient( AutoVerify::TRANSIENT );
 
@@ -268,6 +268,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify_form() when verify is not successful.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_form_when_no_success() {
 		$request_uri = $this->get_test_request_uri();

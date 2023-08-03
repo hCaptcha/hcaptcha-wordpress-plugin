@@ -27,17 +27,18 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Setup test
 	 */
-	public function setUp(): void {
+	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		FunctionMocker::setUp();
 		parent::setUp();
 
+		hcaptcha()->has_result  = false;
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 	}
 
 	/**
 	 * End test
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 
@@ -108,7 +109,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Return hcap_form_display() content.
+	 * Return HCaptcha::form_display() content.
 	 *
 	 * @param string $action    Action name for wp_nonce_field.
 	 * @param string $name      Nonce name for wp_nonce_field.
@@ -129,14 +130,14 @@ class HCaptchaWPTestCase extends WPTestCase {
 		$data_size = $invisible ? 'invisible' : '';
 		$data_auto = $auto ? 'true' : 'false';
 
-		return '	<div
+		return '		<div
 			class="h-captcha"
 			data-sitekey=""
 			data-theme=""
 			data-size="' . $data_size . '"
 			' . $callback . '			data-auto="' . $data_auto . '">
-	</div>
-	' . $nonce_field;
+		</div>
+		' . $nonce_field;
 	}
 
 	/**

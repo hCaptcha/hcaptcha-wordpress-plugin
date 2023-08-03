@@ -7,10 +7,13 @@
 
 namespace HCaptcha\UM;
 
+use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Base
  */
-abstract class Base {
+abstract class Base extends LoginBase {
 
 	/**
 	 * Field key.
@@ -49,6 +52,13 @@ abstract class Base {
 	private $hcaptcha_action;
 
 	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	protected $form_id = 0;
+
+	/**
 	 * The hCaptcha nonce.
 	 *
 	 * @var string
@@ -64,24 +74,39 @@ abstract class Base {
 		$this->hcaptcha_action = "hcaptcha_um_$this->um_mode";
 		$this->hcaptcha_nonce  = "hcaptcha_um_{$this->um_mode}_nonce";
 
-		$this->init_hooks();
+		parent::__construct();
 	}
 
 	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
+		$mode = static::UM_MODE;
+
+		add_action( "um_main_{$mode}_fields", [ $this, 'set_form_id' ] );
 		add_filter( 'um_get_form_fields', [ $this, 'add_captcha' ], 100 );
 		add_filter( "um_{$this->key}_form_edit_field", [ $this, 'display_captcha' ], 10, 2 );
-		add_action( static::UM_ACTION, [ $this, 'verify' ] );
+		add_action( static::UM_ACTION, [ $this, 'verify' ], 10, 2 );
+	}
+
+	/**
+	 * Set form id.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return void
+	 */
+	public function set_form_id( array $args ) {
+		$this->form_id = isset( $args['form_id'] ) ? (int) $args['form_id'] : 0;
 	}
 
 	/**
 	 * Add hCaptcha to form fields.
 	 *
-	 * @param array $fields Form fields.
+	 * @param array|mixed $fields Form fields.
 	 *
-	 * @return array
+	 * @return array|mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $fields ) {
 		$um = UM();
@@ -94,7 +119,7 @@ abstract class Base {
 			return $fields;
 		}
 
-		$fields       = $fields ?: [];
+		$fields       = $fields ? (array) $fields : [];
 		$max_position = 0;
 		$in_row       = '_um_row_1';
 		$in_sub_row   = '0';
@@ -139,20 +164,29 @@ abstract class Base {
 	/**
 	 * Display hCaptcha.
 	 *
-	 * @param string $output Output.
-	 * @param string $mode   Mode.
+	 * @param string|mixed $output Output.
+	 * @param string       $mode   Mode.
 	 *
-	 * @return string
-	 * @noinspection PhpUnnecessaryCurlyVarSyntaxInspection
+	 * @return string|mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function display_captcha( $output, $mode ) {
+	public function display_captcha( $output, string $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
 			return $output;
 		}
 
-		$output = "<div class=\"um-field um-field-{$this->key}\">";
+		$output = "<div class=\"um-field um-field-$this->key\">";
 
-		$output .= hcap_form( $this->hcaptcha_action, $this->hcaptcha_nonce );
+		$args = [
+			'action' => $this->hcaptcha_action,
+			'name'   => $this->hcaptcha_nonce,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $this->form_id ?: $mode,
+			],
+		];
+
+		$output .= HCaptcha::form( $args );
 		$output .= '</div>';
 
 		$um = UM();
@@ -171,16 +205,21 @@ abstract class Base {
 	}
 
 	/**
-	 * Verify register form.
+	 * Verify hCaptcha.
 	 *
-	 * @param array $args Form arguments.
+	 * @param array $submitted_data Submitted data.
+	 * @param array $form_data      Form data.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $args ) {
+	public function verify( array $submitted_data, array $form_data = [] ) {
 		$um = UM();
 
-		if ( ! $um || ! isset( $args['mode'] ) || $this->um_mode !== $args['mode'] ) {
+		if (
+			! $um ||
+			( isset( $form_data['mode'] ) && $this->um_mode !== $form_data['mode'] )
+		) {
 			return;
 		}
 

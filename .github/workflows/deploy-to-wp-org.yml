@@ -13,14 +13,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get Composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Set up Composer caching
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies in prod version
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install --no-dev
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
           yarn
           yarn prod
         env:
@@ -40,11 +40,10 @@ jobs:
 
       - name: WordPress Plugin Deploy
         id: deploy
-        uses: kagg-design/action-wordpress-plugin-deploy@test
+        uses: 10up/action-wordpress-plugin-deploy@stable
         with:
           generate-zip: true
         env:
-          SVN_SERVER: ${{ secrets.SVN_SERVER }}
           SLUG: ${{ env.SLUG }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}

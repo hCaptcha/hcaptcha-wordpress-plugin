@@ -7,11 +7,19 @@
 
 namespace HCaptcha\NF;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class NF
  * Support Ninja Forms.
  */
 class NF {
+	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	private $form_id = 0;
 
 	/**
 	 * NF constructor.
@@ -26,6 +34,7 @@ class NF {
 	public function init_hooks() {
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
+		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $this, 'localize_field' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'nf_captcha_script' ] );
 	}
@@ -33,11 +42,13 @@ class NF {
 	/**
 	 * Filter ninja_forms_register_fields.
 	 *
-	 * @param array $fields Fields.
+	 * @param array|mixed $fields Fields.
 	 *
 	 * @return array
 	 */
-	public function register_fields( $fields ) {
+	public function register_fields( $fields ): array {
+		$fields = (array) $fields;
+
 		$fields['hcaptcha-for-ninja-forms'] = new Fields();
 
 		return $fields;
@@ -46,41 +57,65 @@ class NF {
 	/**
 	 * Add template file path.
 	 *
-	 * @param array $paths Paths.
+	 * @param array|mixed $paths Paths.
 	 *
 	 * @return array
 	 */
-	public function template_file_paths( $paths ) {
+	public function template_file_paths( $paths ): array {
+		$paths = (array) $paths;
+
 		$paths[] = __DIR__ . '/templates/';
 
 		return $paths;
 	}
 
 	/**
+	 * Get form id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return void
+	 */
+	public function set_form_id( int $form_id ) {
+		$this->form_id = $form_id;
+	}
+
+	/**
 	 * Filter ninja_forms_localize_field_hcaptcha-for-ninja-forms.
 	 *
-	 * @param array $field Field.
+	 * @param array|mixed $field Field.
 	 *
 	 * @return array
 	 */
-	public function localize_field( $field ) {
+	public function localize_field( $field ): array {
+		$field = (array) $field;
 
-		$settings                            = hcaptcha()->settings();
-		$field['settings']['hcaptcha_id']    = uniqid( 'hcaptcha-nf-', true );
-		$field['settings']['hcaptcha_key']   = $settings->get_site_key();
-		$field['settings']['hcaptcha_theme'] = $settings->get( 'theme' );
-		$hcaptcha_size                       = $settings->get( 'size' );
+		$settings                         = hcaptcha()->settings();
+		$hcaptcha_id                      = uniqid( 'hcaptcha-nf-', true );
+		$field['settings']['hcaptcha_id'] = $hcaptcha_id;
+		$hcaptcha_size                    = $settings->get( 'size' );
 
 		// Invisible is not supported by Ninja Forms so far.
 		$hcaptcha_size = 'invisible' === $hcaptcha_size ? 'normal' : $hcaptcha_size;
 
-		$field['settings']['hcaptcha_size']        = $hcaptcha_size;
-		$field['settings']['hcaptcha_nonce_field'] = wp_nonce_field(
-			'hcaptcha_nf',
-			'hcaptcha_nf_nonce',
-			true,
-			false
+		// Nonce is checked by Ninja forms.
+		$args = [
+			'id'   => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
+			'size' => $hcaptcha_size,
+		];
+
+		$hcaptcha = HCaptcha::form( $args );
+		$id       = $field['id'] ?? 0;
+		$hcaptcha = str_replace(
+			'<div',
+			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $id . '"',
+			$hcaptcha
 		);
+
+		$field['settings']['hcaptcha'] = $hcaptcha;
 
 		hcaptcha()->form_shown = true;
 
@@ -89,6 +124,8 @@ class NF {
 
 	/**
 	 * Enqueue script.
+	 *
+	 * @return void
 	 */
 	public function nf_captcha_script() {
 		$min = hcap_min_suffix();

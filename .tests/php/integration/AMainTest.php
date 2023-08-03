@@ -8,13 +8,19 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpLanguageLevelInspection */
 /** @noinspection PhpUndefinedClassInspection */
+/** @noinspection CssUnresolvedCustomProperty */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\BBPress\NewTopic;
+use HCaptcha\BBPress\Reply;
+use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
+use HCaptcha\Divi\EmailOptin;
+use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
@@ -23,10 +29,12 @@ use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
+use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
+use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use ReflectionException;
 use stdClass;
@@ -53,7 +61,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$loaded_classes = $this->get_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes' );
@@ -489,6 +497,9 @@ class AMainTest extends HCaptchaWPTestCase {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 
 		$expected = '		<style>
+			#wpdiscuz-subscribe-form .h-captcha {
+				margin-left: auto;
+			}
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
@@ -497,6 +508,22 @@ class AMainTest extends HCaptchaWPTestCase {
 				margin-bottom: 2rem;
 				padding: 0;
 				clear: both;
+			}
+			#hcaptcha-options .h-captcha {
+				margin-bottom: 0;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha {
+				display: flex;
+				flex-direction: row-reverse;
+			}
+			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+				margin-bottom: 0;
+			}
+			.brz-forms2.brz-forms2__item .h-captcha {
+				margin-bottom: 0;
+			}
+			form.wpsc-create-ticket .h-captcha {
+				margin: 0 15px 15px 15px;
 			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
@@ -564,7 +591,8 @@ class AMainTest extends HCaptchaWPTestCase {
 			span[data-name="hcap-cf7"] .h-captcha {
 				margin-bottom: 0;
 			}
-			span[data-name="hcap-cf7"] ~ input[type="submit"] {
+			span[data-name="hcap-cf7"] ~ input[type="submit"],
+			span[data-name="hcap-cf7"] ~ button[type="submit"] {
 				margin-top: 2rem;
 			}
 			.elementor-field-type-hcaptcha .elementor-field {
@@ -572,6 +600,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			}
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
+			}
+			#wppb-loginform .h-captcha {
+				margin-bottom: 14px;
 			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
@@ -619,6 +650,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Test hcap_language filter in get_api_src().
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_hcap_language_filter_in_get_api_scr() {
 		$language          = 'en';
@@ -650,8 +682,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_print_footer_scripts
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection BadExpressionStatementJS
 	 */
-	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ): void {
+	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ) {
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
@@ -680,6 +713,7 @@ class AMainTest extends HCaptchaWPTestCase {
 							const t = document.getElementsByTagName( \'script\' )[0];
 		const s = document.createElement(\'script\');
 		s.type  = \'text/javascript\';
+		s.id = \'hcaptcha-api\';
 		s[\'src\'] = \'' . $expected_script_src . '\';
 		s.async = true;
 		t.parentNode.insertBefore( s, t );
@@ -698,7 +732,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 				function delayedLoad() {
 					window.addEventListener( \'scroll\', scrollHandler );
-					const delay = -1;
+					const delay = -100;
 
 					if ( delay >= 0 ) {
 						setTimeout( load, delay );
@@ -712,10 +746,11 @@ class AMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
-		$config_params  = '{}';
+		$config_params  = 'on' === $custom_themes ? '' : null;
 		$expected_extra = [
 			'group' => 1,
-			'data'  => 'var HCaptchaMainObject = {"params":"' . $config_params . '"};',
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'data'  => 'var HCaptchaMainObject = {"params":' . json_encode( $config_params ) . '};',
 		];
 
 		update_option(
@@ -725,6 +760,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				'language'             => $language ?: '',
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
 				'config_params'        => $config_params,
+				'delay'                => - 100,
 			]
 		);
 
@@ -839,27 +875,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test print_footer_scripts() in admin.
-	 */
-	public function test_print_footer_scripts_in_admin(): void {
-		set_current_screen( 'edit-post' );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		$scripts = ob_get_clean();
-
-		self::assertFalse( strpos( $scripts, '<style>' ) );
-		self::assertFalse( strpos( $scripts, 'api.js' ) );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-	}
-
-	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
-	public function test_print_footer_scripts_when_form_NOT_shown(): void {
+	public function test_print_footer_scripts_when_form_NOT_shown() {
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		ob_start();
@@ -880,7 +898,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_load_modules
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_load_modules( $module ): void {
+	public function test_load_modules( $module ) {
 		list( $option_name, $option_value ) = $module[0];
 
 		update_option(
@@ -986,195 +1004,310 @@ class AMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_load_modules() {
 		$modules = [
-			'Comment Form'                 => [
+			'Comment Form'                      => [
 				[ 'wp_status', 'comment' ],
 				'',
 				Comment::class,
 			],
-			'Login Form'                   => [
+			'Login Form'                        => [
 				[ 'wp_status', 'login' ],
 				'',
 				Login::class,
 			],
-			'Lost Password Form'           => [
+			'Lost Password Form'                => [
 				[ 'wp_status', 'lost_pass' ],
 				'',
 				LostPassword::class,
 			],
-			'Register Form'                => [
+			'Register Form'                     => [
 				[ 'wp_status', 'register' ],
 				'',
 				Register::class,
 			],
-			'Avada Form'                   => [
+			'Asgaros Form'                      => [
+				[ 'asgaros_status', 'form' ],
+				'asgaros-forum/asgaros-forum.php',
+				\HCaptcha\Asgaros\Form::class,
+			],
+			'Avada Form'                        => [
 				[ 'avada_status', 'form' ],
 				'Avada',
 				[ \HCaptcha\Avada\Form::class ],
 			],
-			'bbPress New Topic'            => [
+			'bbPress New Topic'                 => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-new-topic.php',
+				NewTopic::class,
 			],
-			'bbPress Reply'                => [
+			'bbPress Reply'                     => [
 				[ 'bbp_status', 'reply' ],
 				'bbpress/bbpress.php',
-				'bbp/bbp-reply.php',
+				Reply::class,
 			],
-			'Beaver Builder Contact Form'  => [
+			'Beaver Builder Contact Form'       => [
 				[ 'beaver_builder_status', 'contact' ],
 				'bb-plugin/fl-builder.php',
 				\HCaptcha\BeaverBuilder\Contact::class,
 			],
-			'Beaver Builder Login Form'    => [
+			'Beaver Builder Login Form'         => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
 				[ \HCaptcha\BeaverBuilder\Login::class, Login::class ],
 			],
-			'BuddyPress Create Group'      => [
+			'Brizy Form'                        => [
+				[ 'brizy_status', 'form' ],
+				'brizy/brizy.php',
+				[ \HCaptcha\Brizy\Form::class ],
+			],
+			'BuddyPress Create Group'           => [
 				[ 'bp_status', 'create_group' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-create-group.php',
+				CreateGroup::class,
 			],
-			'BuddyPress Register'          => [
+			'BuddyPress Register'               => [
 				[ 'bp_status', 'registration' ],
 				'buddypress/bp-loader.php',
-				'bp/bp-register.php',
+				\HCaptcha\BuddyPress\Register::class,
 			],
-			'Contact Form 7'               => [
+			'Classified Listing Contact'        => [
+				[ 'classified_listing_status', 'contact' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\Contact::class,
+			],
+			'Classified Listing Login'          => [
+				[ 'classified_listing_status', 'login' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\Login::class,
+			],
+			'Classified Listing Lost Password'  => [
+				[ 'classified_listing_status', 'lost_pass' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\LostPassword::class,
+			],
+			'Classified Listing Register'       => [
+				[ 'classified_listing_status', 'register' ],
+				'classified-listing/classified-listing.php',
+				\HCaptcha\ClassifiedListing\Register::class,
+			],
+			'Colorlib Customizer Login'         => [
+				[ 'colorlib_customizer_status', 'login' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				\HCaptcha\ColorlibCustomizer\Login::class,
+			],
+			'Colorlib Customizer Lost Password' => [
+				[ 'colorlib_customizer_status', 'lost_pass' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				\HCaptcha\ColorlibCustomizer\LostPassword::class,
+			],
+			'Colorlib Customizer Register'      => [
+				[ 'colorlib_customizer_status', 'register' ],
+				'colorlib-login-customizer/colorlib-login-customizer.php',
+				\HCaptcha\ColorlibCustomizer\Register::class,
+			],
+			'Contact Form 7'                    => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
-			'Divi Comment Form'            => [
+			'Divi Comment Form'                 => [
 				[ 'divi_status', 'comment' ],
 				'Divi',
 				[ \HCaptcha\Divi\Comment::class, Comment::class ],
 			],
-			'Divi Contact Form'            => [
+			'Divi Contact Form'                 => [
 				[ 'divi_status', 'contact' ],
 				'Divi',
 				Contact::class,
 			],
-			'Divi Login Form'              => [
+			'Divi Email Optin Form'             => [
+				[ 'divi_status', 'email_optin' ],
+				'Divi',
+				EmailOptin::class,
+			],
+			'Divi Login Form'                   => [
 				[ 'divi_status', 'login' ],
 				'Divi',
 				\HCaptcha\Divi\Login::class,
 			],
-			'Elementor Pro Form'           => [
+			'Download Manager'                  => [
+				[ 'download_manager_status', 'button' ],
+				'download-manager/download-manager.php',
+				DownloadManager::class,
+			],
+			'Easy Digital Downloads Checkout'   => [
+				[ 'easy_digital_downloads_status', 'checkout' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				\HCaptcha\EasyDigitalDownloads\Checkout::class,
+			],
+			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
-			'Fluent Forms'                 => [
+			'Fluent Forms'                      => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
 				Form::class,
 			],
-			'Forminator'                   => [
+			'Formidable Forms'                  => [
+				[ 'formidable_forms_status', 'form' ],
+				'formidable/formidable.php',
+				\HCaptcha\FormidableForms\Form::class,
+			],
+			'Forminator'                        => [
 				[ 'forminator_status', 'form' ],
 				'forminator/forminator.php',
 				\HCaptcha\Forminator\Form::class,
 			],
-			'Gravity Forms'                => [
+			'GiveWP'                            => [
+				[ 'give_wp_status', 'form' ],
+				'give/give.php',
+				\HCaptcha\GiveWP\Form::class,
+			],
+			'Gravity Forms'                     => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
 				\HCaptcha\GravityForms\Form::class,
 			],
-			'Jetpack'                      => [
+			'Jetpack'                           => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
-			'MailChimp'                    => [
+			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
-				'mailchimp/mailchimp-for-wp.php',
+				\HCaptcha\Mailchimp\Form::class,
 			],
-			'MemberPress Register'         => [
+			'MemberPress Login'                 => [
+				[ 'memberpress_status', 'login' ],
+				'memberpress/memberpress.php',
+				[ \HCaptcha\MemberPress\Login::class, Login::class ],
+			],
+			'MemberPress Register'              => [
 				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',
 				\HCaptcha\MemberPress\Register::class,
 			],
-			'Ninja Forms'                  => [
+			'Ninja Forms'                       => [
 				[ 'ninja_status', 'form' ],
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
-			'Quform'                       => [
+			'Paid Memberships Pro Checkout'     => [
+				[ 'paid_memberships_pro_status', 'checkout' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				\HCaptcha\PaidMembershipsPro\Checkout::class,
+			],
+			'Paid Memberships Pro Login'        => [
+				[ 'paid_memberships_pro_status', 'login' ],
+				'paid-memberships-pro/paid-memberships-pro.php',
+				\HCaptcha\PaidMembershipsPro\Login::class,
+			],
+			'Profile Builder Login'             => [
+				[ 'profile_builder_status', 'login' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\Login::class,
+			],
+			'Profile Builder Register'          => [
+				[ 'profile_builder_status', 'register' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\Register::class,
+			],
+			'Profile Builder Recover Password'  => [
+				[ 'profile_builder_status', 'lost_pass' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\LostPassword::class,
+			],
+			'Quform'                            => [
 				[ 'quform_status', 'form' ],
 				'quform/quform.php',
 				Quform::class,
 			],
-			'Subscriber'                   => [
+			'Subscriber'                        => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
-				'subscriber/subscriber.php',
+				\HCaptcha\Subscriber\Form::class,
 			],
-			'Ultimate Member Login'        => [
+			'Support Candy Form'                => [
+				[ 'supportcandy_status', 'form' ],
+				'supportcandy/supportcandy.php',
+				\HCaptcha\SupportCandy\Form::class,
+			],
+			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\Login::class,
 			],
-			'Ultimate Member LostPassword' => [
+			'Ultimate Member LostPassword'      => [
 				[ 'ultimate_member_status', 'lost_pass' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\LostPassword::class,
 			],
-			'Ultimate Member Register'     => [
+			'Ultimate Member Register'          => [
 				[ 'ultimate_member_status', 'register' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\Register::class,
 			],
-			'WooCommerce Checkout'         => [
+			'WooCommerce Checkout'              => [
 				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
 				Checkout::class,
 			],
-			'WooCommerce Login'            => [
+			'WooCommerce Login'                 => [
 				[ 'woocommerce_status', 'login' ],
 				'woocommerce/woocommerce.php',
 				\HCaptcha\WC\Login::class,
 			],
-			'WooCommerce Lost Password'    => [
+			'WooCommerce Lost Password'         => [
 				[ 'woocommerce_status', 'lost_pass' ],
 				'woocommerce/woocommerce.php',
 				[ LostPassword::class, \HCaptcha\WC\LostPassword::class ],
 			],
-			'WooCommerce Order Tracking'   => [
+			'WooCommerce Order Tracking'        => [
 				[ 'woocommerce_status', 'order_tracking' ],
 				'woocommerce/woocommerce.php',
 				OrderTracking::class,
 			],
-			'WooCommerce Register'         => [
+			'WooCommerce Register'              => [
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',
 				\HCaptcha\WC\Register::class,
 			],
-			'WooCommerce Wishlists'        => [
+			'WooCommerce Wishlists'             => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
-				'wc_wl/wc-wl-create-list.php',
+				CreateList::class,
 			],
-			'WPForms Lite'                 => [
+			'WPForms Lite'                      => [
 				[ 'wpforms_status', 'lite' ],
 				'wpforms-lite/wpforms.php',
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
-			'WPForms Pro'                  => [
+			'WPForms Pro'                       => [
 				[ 'wpforms_status', 'pro' ],
 				'wpforms/wpforms.php',
-				'wpforms/wpforms.php',
+				\HCaptcha\WPForms\Form::class,
 			],
-			'wpForo New Topic'             => [
+			'wpDiscuz Comment'                  => [
+				[ 'wpdiscuz_status', 'comment_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				\HCaptcha\WPDiscuz\Comment::class,
+			],
+			'wpDiscuz Subscribe'                => [
+				[ 'wpdiscuz_status', 'subscribe_form' ],
+				'wpdiscuz/class.WpdiscuzCore.php',
+				Subscribe::class,
+			],
+			'wpForo New Topic'                  => [
 				[ 'wpforo_status', 'new_topic' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-new-topic.php',
+				\HCaptcha\WPForo\NewTopic::class,
 			],
-			'wpForo Reply'                 => [
+			'wpForo Reply'                      => [
 				[ 'wpforo_status', 'reply' ],
 				'wpforo/wpforo.php',
-				'wpforo/wpforo-reply.php',
+				\HCaptcha\WPForo\Reply::class,
 			],
 		];
 
@@ -1191,7 +1324,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test load_textdomain().
 	 */
-	public function test_load_textdomain(): void {
+	public function test_load_textdomain() {
 		$subject = new Main();
 		$subject->init_hooks();
 

@@ -33,10 +33,14 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		$form = [
+			'id' => 23,
+		];
+
 		$subject = new Form();
 
-		$expected = $this->get_hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true );
+		$expected = $this->get_hcap_form( Form::ACTION, Form::NONCE );
 
-		self::assertSame( $expected, $subject->add_captcha( '', [] ) );
+		self::assertSame( $expected, $subject->add_captcha( '', $form ) );
 	}
 }

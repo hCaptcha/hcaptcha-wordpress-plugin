@@ -14,12 +14,6 @@ use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test ninja-forms-hcaptcha.php file.
- *
- * Cannot activate Ninja Forms plugin with php 8.0
- * due to some bug with uksort() in \Ninja_Forms::plugins_loaded()
- * caused by antecedent/patchwork.
- *
- * @requires PHP < 8.0
  */
 class NFTest extends HCaptchaPluginWPTestCase {
 
@@ -88,17 +82,14 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 * Test localize_field().
 	 */
 	public function test_localize_field() {
-		$field = [ 'some' ];
+		$field = [
+			'id'       => 5,
+			'settings' => [],
+		];
 
 		$hcaptcha_site_key = 'some key';
 		$hcaptcha_theme    = 'some theme';
 		$hcaptcha_size     = 'some size';
-		$nonce             = wp_nonce_field(
-			'hcaptcha_nf',
-			'hcaptcha_nf_nonce',
-			true,
-			false
-		);
 		$uniqid            = 'hcaptcha-nf-625d3b9b318fc0.86180601';
 
 		update_option(
@@ -123,15 +114,19 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected = $field;
-
-		$expected['settings']['hcaptcha_id']          = $uniqid;
-		$expected['settings']['hcaptcha_key']         = $hcaptcha_site_key;
-		$expected['settings']['hcaptcha_theme']       = $hcaptcha_theme;
-		$expected['settings']['hcaptcha_size']        = $hcaptcha_size;
-		$expected['settings']['hcaptcha_nonce_field'] = $nonce;
+		$expected                            = $field;
+		$expected['settings']['hcaptcha_id'] = $uniqid;
+		$expected['settings']['hcaptcha']    = '		<div id="' . $uniqid . '" data-fieldId="5"
+			class="h-captcha"
+			data-sitekey="some key"
+			data-theme="some theme"
+			data-size="some size"
+						data-auto="false">
+		</div>
+		';
 
 		$subject = new NF();
+		$subject->set_form_id( 1 );
 
 		self::assertSame( $expected, $subject->localize_field( $field ) );
 
@@ -147,7 +142,11 @@ class NFTest extends HCaptchaPluginWPTestCase {
 
 		hcaptcha()->init_hooks();
 
-		$expected['settings']['hcaptcha_size'] = 'normal';
+		$expected['settings']['hcaptcha'] = str_replace(
+			'some size',
+			'normal',
+			$expected['settings']['hcaptcha']
+		);
 
 		$subject = new NF();
 

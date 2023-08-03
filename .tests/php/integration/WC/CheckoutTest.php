@@ -18,14 +18,9 @@ use HCaptcha\WC\Checkout;
 /**
  * Test Checkout class.
  *
- * WooCommerce requires PHP 7.0.
+ * WooCommerce requires PHP 7.3.
  *
- * Cannot activate WooCommerce plugin with php 8.0
- * due to some bug with usort() in \WC_Install::needs_db_update()
- * caused by antecedent/patchwork.
- *
- * @requires PHP >= 7.0
- * @requires PHP < 8.0
+ * @requires PHP >= 7.3
  *
  * @group    wc-checkout
  * @group    wc
@@ -42,7 +37,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test tear down.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		if ( function_exists( 'wc_clear_notices' ) ) {
 			wc_clear_notices();
 		}
@@ -58,7 +53,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			10,
-			has_action( 'woocommerce_after_checkout_billing_form', [ $subject, 'add_captcha' ] )
+			has_action( 'woocommerce_review_order_before_submit', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
 			10,

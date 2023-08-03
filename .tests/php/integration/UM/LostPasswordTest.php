@@ -29,8 +29,11 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		UM()->form()->errors = null;
 
 		parent::tearDown();
@@ -79,6 +82,7 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	 * Get subject.
 	 *
 	 * @return LostPassword
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function get_subject() {
 		$subject = new LostPassword();

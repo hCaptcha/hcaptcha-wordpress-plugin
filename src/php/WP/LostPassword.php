@@ -7,52 +7,35 @@
 
 namespace HCaptcha\WP;
 
-use WP_Error;
+use HCaptcha\Abstracts\LostPasswordBase;
 
 /**
  * Class LostPassword
  */
-class LostPassword {
+class LostPassword extends LostPasswordBase {
 
 	/**
-	 * Constructor.
+	 * Nonce action.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	const ACTION = 'hcaptcha_wp_lost_password';
 
 	/**
-	 * Init hooks.
+	 * Nonce name.
 	 */
-	private function init_hooks() {
-		add_action( 'lostpassword_form', [ $this, 'add_captcha' ] );
-		add_action( 'lostpassword_post', [ $this, 'verify' ] );
-	}
+	const NONCE = 'hcaptcha_wp_lost_password_nonce';
 
 	/**
-	 * Add captcha.
+	 * Add hCaptcha action.
 	 */
-	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_lost_password', 'hcaptcha_lost_password_nonce' );
-	}
+	const ADD_CAPTCHA_ACTION = 'lostpassword_form';
 
 	/**
-	 * Verify lost password form.
-	 *
-	 * @param WP_Error $error Error.
-	 *
-	 * @return WP_Error
+	 * $_POST key to check.
 	 */
-	public function verify( $error ) {
-		$error_message = hcaptcha_get_verify_message_html(
-			'hcaptcha_lost_password_nonce',
-			'hcaptcha_lost_password'
-		);
+	const POST_KEY = 'wp-submit';
 
-		if ( null !== $error_message ) {
-			$error->add( 'invalid_captcha', $error_message );
-		}
-
-		return $error;
-	}
+	/**
+	 * $_POST value to check.
+	 */
+	const POST_VALUE = null;
 }

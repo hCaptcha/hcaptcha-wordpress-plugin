@@ -21,8 +21,10 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test main plugin file content.
+	 *
+	 * @noinspection HttpUrlsUsage
 	 */
-	public function test_main_file_content(): void {
+	public function test_main_file_content() {
 		$expected    = [
 			'version' => HCAPTCHA_VERSION,
 		];
@@ -67,7 +69,7 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	/**
 	 * Test that readme.txt contains proper stable tag.
 	 */
-	public function test_readme_txt(): void {
+	public function test_readme_txt() {
 		$expected    = [
 			'stable_tag' => HCAPTCHA_VERSION,
 		];

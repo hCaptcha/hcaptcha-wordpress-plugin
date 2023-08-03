@@ -1,6 +1,6 @@
 <?php
 /**
- * Bootstrap file for unit tests that run before all tests.
+ * Bootstrap file for integration tests that run before all tests.
  *
  * @since   {VERSION}
  * @link    {URL}
@@ -10,6 +10,9 @@
  */
 
 use tad\FunctionMocker\FunctionMocker;
+
+$loader = require HCAPTCHA_PATH . '/vendor/autoload.php';
+$loader->add( '', HCAPTCHA_PATH . '/.tests/php/integration/Stubs' );
 
 FunctionMocker::init(
 	[

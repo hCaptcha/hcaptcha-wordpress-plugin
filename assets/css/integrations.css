@@ -5,25 +5,118 @@
 }
 
 .hcaptcha-integrations table tr {
+	position: relative;
 	background: #fff;
 	padding: 10px 20px;
+}
+
+.hcaptcha-integrations table tr:before {
+	visibility: hidden;
+	position: absolute;
+	content: '';
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #f0f0f0;
+	opacity: 0;
+	transition: all 1.5s;
+}
+
+.hcaptcha-integrations table tr.on:before,
+.hcaptcha-integrations table tr.off:before {
+	visibility: visible;
+	opacity: 0.7;
+	transition: all 1.5s;
+}
+
+.hcaptcha-integrations table tr:after {
+	visibility: hidden;
+	position: absolute;
+	content: '';
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	opacity: 0;
+	transition: all 1.5s;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: auto 80%;
+	background-image: url( '../images/spinner-white.svg' );
+}
+
+.hcaptcha-integrations table tr.on:after,
+.hcaptcha-integrations table tr.off:after {
+	visibility: visible;
+	opacity: 1;
+	transition: all 1.5s;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: auto 80%;
+}
+
+.hcaptcha-integrations table tr.on:after {
+	background-image: url( '../images/spinner-green.svg' );
+}
+
+.hcaptcha-integrations table tr.off:after {
+	background-image: url( '../images/spinner-red.svg' );
 }
 
 .hcaptcha-integrations table tr th {
 	font-size: 16px;
 	height: 28px;
-	padding: 5px 0 20px;
+	padding: 5px 0 0;
+	margin-bottom: 20px;
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	justify-content: space-between;
-	overflow: hidden;
 	width: unset;
+}
+
+.hcaptcha-integrations-logo {
+	position: relative;
+}
+
+.hcaptcha-integrations table tr th .hcaptcha-integrations-logo {
+	height: 28px;
+	cursor: pointer;
+}
+
+.hcaptcha-integrations table tr th .hcaptcha-integrations-logo:hover::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	width: 4px;
+	bottom: 0;
+	left: -14px;
+}
+
+.hcaptcha-integrations > table tr th .hcaptcha-integrations-logo:hover::before {
+	background-color: #d63638;
+}
+
+.hcaptcha-integrations > table ~ table tr th .hcaptcha-integrations-logo:hover::before {
+	background-color: #00a32a;
 }
 
 .hcaptcha-integrations table tr th img {
 	max-width: 100%;
 	max-height: 28px;
+}
+
+.hcaptcha-integrations table tr.hcaptcha-integrations-wp-status th .hcaptcha-integrations-logo,
+.hcaptcha-integrations table tr.hcaptcha-integrations-avada-status th .hcaptcha-integrations-logo,
+.hcaptcha-integrations table tr.hcaptcha-integrations-divi-status th .hcaptcha-integrations-logo {
+	cursor: unset;
+}
+
+.hcaptcha-integrations table tr.hcaptcha-integrations-wp-status th .hcaptcha-integrations-logo:hover::before,
+.hcaptcha-integrations table tr.hcaptcha-integrations-avada-status th .hcaptcha-integrations-logo:hover::before,
+.hcaptcha-integrations table tr.hcaptcha-integrations-divi-status th .hcaptcha-integrations-logo:hover::before {
+	display: none;
 }
 
 .hcaptcha-integrations table tr td {

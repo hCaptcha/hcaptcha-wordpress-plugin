@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Sendinblue;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Sendinblue.
  */
@@ -25,29 +27,39 @@ class Sendinblue {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_action( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
+		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'hcap_verify_request', [ $this, 'verify_request' ], 10, 2 );
 	}
 
 	/**
 	 * Filters the output created by a shortcode callback and adds hcaptcha.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $tag, $attr, $m ) {
+	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
 		if ( 'sibwp_form' !== $tag ) {
 			return $output;
 		}
 
-		$hcaptcha = hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true );
+		$args = [
+			'action' => HCAPTCHA_ACTION,
+			'name'   => HCAPTCHA_NONCE,
+			'auto'   => true,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => (int) $attr['id'],
+			],
+		];
 
-		return preg_replace( '/(<input type="submit")/', $hcaptcha . '$1', $output );
+		$hcaptcha = HCaptcha::form( $args );
+
+		return (string) preg_replace( '/(<input type="submit")/', $hcaptcha . '$1', (string) $output );
 	}
 
 	/**
@@ -58,8 +70,9 @@ class Sendinblue {
 	 *
 	 * @return string|null
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function verify_request( $result, $error_codes ) {
+	public function verify_request( $result, array $error_codes ) {
 		// Nonce is checked in the hcaptcha_verify_post().
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing

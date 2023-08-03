@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Jetpack;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class JetpackContactForm
  */
@@ -15,20 +17,22 @@ class JetpackForm extends JetpackBase {
 	/**
 	 * Add hCaptcha to Jetpack contact form.
 	 *
-	 * @param string $content Content.
+	 * @param string|mixed $content Content.
 	 *
-	 * @return string|string[]|null
+	 * @return string
 	 */
-	public function jetpack_form( $content ) {
+	public function add_captcha( $content ): string {
+		$content = (string) $content;
+
 		// Jetpack classic form.
-		$content = preg_replace_callback(
+		$content = (string) preg_replace_callback(
 			'~(\[contact-form[\s\S]*?][\s\S]*?)(\[/contact-form])~',
 			[ $this, 'classic_callback' ],
 			$content
 		);
 
 		// Jetpack block form.
-		return preg_replace_callback(
+		return (string) preg_replace_callback(
 			'~<form [\s\S]*?wp-block-jetpack-contact-form[\s\S]*?(<button [\s\S]*?type="submit"[\s\S]*?</button>)[\s\S]*?</form>~',
 			[ $this, 'block_callback' ],
 			$content
@@ -42,19 +46,21 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function classic_callback( $matches ) {
-		$hcaptcha_shortcode = '[hcaptcha]';
-
-		if ( preg_match( '~\[hcaptcha]~', $matches[0] ) ) {
-			$hcaptcha_shortcode = '';
+	public function classic_callback( array $matches ): string {
+		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
+			return $matches[0];
 		}
 
-		return (
-			$matches[1] .
-			$hcaptcha_shortcode .
-			wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false ) .
-			$matches[2]
-		);
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'contact',
+			],
+		];
+
+		return $matches[1] . $this->error_message( HCaptcha::form( $args ) ) . $matches[2];
 	}
 
 	/**
@@ -64,16 +70,23 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function block_callback( $matches ) {
-		$replace = $matches[1] . wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );
-
-		if ( ! preg_match( '~\[hcaptcha]~', $matches[0] ) ) {
-			$replace = '[hcaptcha]' . $replace;
+	public function block_callback( array $matches ): string {
+		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
+			return $matches[0];
 		}
+
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'contact',
+			],
+		];
 
 		return str_replace(
 			$matches[1],
-			$replace,
+			$this->error_message( HCaptcha::form( $args ) ) . $matches[1],
 			$matches[0]
 		);
 	}

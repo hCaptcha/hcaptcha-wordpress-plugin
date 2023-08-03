@@ -21,6 +21,16 @@ use WP_User;
 class LoginTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down test.
+	 */
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_REQUEST['_wp_http_referer'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test constructor and init_hooks().
 	 */
 	public function test_constructor_and_init_hooks() {
@@ -33,27 +43,6 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame(
 			10,
 			has_action( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
-		self::assertSame(
-			10,
-			has_filter(
-				'woocommerce_login_credentials',
-				[ $subject, 'remove_filter_wp_authenticate_user' ]
-			)
-		);
-		self::assertSame(
-			10,
-			has_action(
-				'um_submit_form_errors_hook_login',
-				[ $subject, 'remove_filter_wp_authenticate_user' ]
-			)
-		);
-		self::assertSame(
-			10,
-			has_filter(
-				'wpforms_user_registration_process_login_process_credentials',
-				[ $subject, 'remove_filter_wp_authenticate_user' ]
-			)
 		);
 	}
 
@@ -82,6 +71,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
+		$_REQUEST['_wp_http_referer'] = '/wp-login.php';
+
 		$subject = new Login();
 
 		self::assertEquals( $user, $subject->verify( $user, '' ) );
@@ -96,56 +87,10 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
+		$_REQUEST['_wp_http_referer'] = '/wp-login.php';
+
 		$subject = new Login();
 
 		self::assertEquals( $expected, $subject->verify( $user, '' ) );
-	}
-
-	/**
-	 * Test remove_filter_wp_authenticate_user() for WooCommerce.
-	 *
-	 * Must be after test_load_modules().
-	 */
-	public function test_remove_filter_wp_authenticate_user_for_wc() {
-		$subject = new Login();
-
-		self::assertSame(
-			10,
-			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
-
-		$credentials = [
-			'user_login'    => 'KAGG',
-			'user_password' => 'Design',
-			'remember'      => false,
-		];
-		self::assertSame( $credentials, apply_filters( 'woocommerce_login_credentials', $credentials ) );
-
-		self::assertFalse(
-			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
-	}
-
-	/**
-	 * Test remove_filter_wp_authenticate_user() for Ultimate Member.
-	 *
-	 * Must be after test_load_modules().
-	 */
-	public function test_remove_filter_wp_authenticate_user_for_um() {
-		$subject = new Login();
-
-		self::assertSame(
-			10,
-			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
-
-		remove_action( 'um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login', 10 );
-		do_action( 'um_submit_form_errors_hook_login' );
-
-		self::assertFalse(
-			has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
-
-		add_action( 'um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login', 10 );
 	}
 }

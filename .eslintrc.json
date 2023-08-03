@@ -9,5 +9,9 @@
   ],
   "parserOptions": {
     "sourceType": "module"
-  }
+  },
+  "ignorePatterns": [
+    "assets/js/apps/*.js",
+    "assets/js/*.min.js"
+  ]
 }

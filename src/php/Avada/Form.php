@@ -7,10 +7,19 @@
 
 namespace HCaptcha\Avada;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Form.
  */
 class Form {
+
+	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	private $form_id = 0;
 
 	/**
 	 * Form constructor.
@@ -25,8 +34,22 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
+		add_action( 'fusion_form_after_open', [ $this, 'form_after_open' ], 10, 2 );
 		add_action( 'fusion_element_button_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'fusion_form_demo_mode', [ $this, 'verify' ] );
+	}
+
+	/**
+	 * Store form id after form open.
+	 *
+	 * @param array $args   Argument.
+	 * @param array $params Parameters.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function form_after_open( array $args, array $params ) {
+		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
 	}
 
 	/**
@@ -38,18 +61,27 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, $args ) {
-		$hcaptcha = hcap_form();
+	public function add_hcaptcha( string $html, array $args ): string {
+		if ( false === strpos( $html, '<button type="submit"' ) ) {
+			return $html;
+		}
 
-		return $hcaptcha . $html;
+		$hcap_args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
+		];
+
+		return HCaptcha::form( $hcap_args ) . $html;
 	}
 
 	/**
 	 * Verify request.
 	 *
-	 * @param bool $demo_mode Demo mode.
+	 * @param bool|mixed $demo_mode Demo mode.
 	 *
-	 * @return bool|void
+	 * @return bool|mixed|void
 	 */
 	public function verify( $demo_mode ) {
 
@@ -59,8 +91,10 @@ class Form {
 			filter_var( wp_unslash( $_POST['formData'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			[];
 
-		$form_data         = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
-		$hcaptcha_response = isset( $form_data['h-captcha-response'] ) ? $form_data['h-captcha-response'] : '';
+		$form_data                   = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
+		$hcaptcha_response           = $form_data['h-captcha-response'] ?? '';
+		$hcaptcha_widget_id          = $form_data['hcaptcha-widget-id'] ?? '';
+		$_POST['hcaptcha-widget-id'] = $hcaptcha_widget_id;
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );

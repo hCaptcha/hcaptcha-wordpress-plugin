@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Post;
 
 /**
@@ -44,16 +45,25 @@ class PasswordProtected {
 	/**
 	 * Filters the template created by the Download Manager plugin and adds hcaptcha.
 	 *
-	 * @param string  $output The password form HTML output.
-	 * @param WP_Post $post   Post object.
+	 * @param string|mixed $output The password form HTML output.
+	 * @param WP_Post      $post   Post object.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, $post ) {
-		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
+	public function add_hcaptcha( $output, WP_Post $post ): string {
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'password_protected',
+			],
+		];
 
-		return preg_replace( '/(<\/form>)/', $hcaptcha . '$1', $output );
+		$hcaptcha = HCaptcha::form( $args );
+
+		return (string) preg_replace( '/(<\/form>)/', $hcaptcha . '$1', (string) $output );
 	}
 
 	/**
@@ -64,9 +74,9 @@ class PasswordProtected {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection ForgottenDebugOutputInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function verify( $package ) {
-
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {

@@ -10,11 +10,12 @@
 /** @noinspection PhpUndefinedClassInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-namespace HCaptcha\Tests\Integration\DefaultForms;
+namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use HCaptcha\Helpers\Origin;
 use HCaptcha\WP\Comment;
+use Mockery;
+use ReflectionException;
 use WP_Error;
 
 /**
@@ -28,11 +29,9 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		unset( $GLOBALS['current_screen'], $_POST[ Origin::NAME ] );
-
-		delete_transient( Origin::TRANSIENT );
+		unset( $GLOBALS['current_screen'] );
 
 		parent::tearDown();
 	}
@@ -52,20 +51,15 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame(
-			PHP_INT_MAX,
-			has_filter( 'comment_form_submit_button', [ $subject, 'add_origin' ] )
-		);
-
 		if ( $active ) {
 			self::assertSame(
 				10,
-				has_filter( 'comment_form_submit_button', [ $subject, 'add_captcha' ] )
+				has_filter( 'comment_form_submit_field', [ $subject, 'add_captcha' ] )
 			);
 		}
 
 		self::assertSame(
-			10,
+			20,
 			has_filter( 'pre_comment_approved', [ $subject, 'verify' ] )
 		);
 	}
@@ -84,45 +78,38 @@ class CommentTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_captcha() {
-		$submit_button = '<input name="submit" type="submit" id="submit" class="submit" value="Post Comment">';
+		$submit_field =
+			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
+			"<input type='hidden' name='comment_post_ID' value='1' id='comment_post_ID' />" .
+			"<input type='hidden' name='comment_parent' id='comment_parent' value='0' />" .
+			'</p>';
 
 		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_comment', 'hcaptcha_comment_nonce', true, false ) .
-			$submit_button;
+			$this->get_hcap_form( 'hcaptcha_comment', 'hcaptcha_comment_nonce' ) .
+			$submit_field;
 
-		$subject = new Comment();
+		$subject = Mockery::mock( Comment::class )->makePartial();
+		$this->set_protected_property( $subject, 'active', true );
 
-		self::assertSame( $expected, $subject->add_captcha( $submit_button, [] ) );
+		self::assertSame( $expected, $subject->add_captcha( $submit_field, [] ) );
 	}
 
 	/**
 	 * Test verify().
 	 */
 	public function test_verify() {
-		$approved              = 1;
-		$commentdata           = [ 'some comment data' ];
-		$time                  = time();
-		$new_id                = wp_hash( $time );
-		$transient_data        = [
-			$new_id => [
-				'time'   => $time,
-				'action' => 'hcaptcha_comment',
-				'nonce'  => 'hcaptcha_comment_nonce',
-			],
-		];
-		$_POST[ Origin::NAME ] = $new_id;
+		$approved    = 1;
+		$commentdata = [ 'some comment data' ];
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
-
-		set_transient( Origin::TRANSIENT, $transient_data );
 
 		$subject = new Comment();
 
 		self::assertSame( $approved, $subject->verify( $approved, $commentdata ) );
-		self::assertSame( [], get_transient( Origin::TRANSIENT ) );
 	}
 
 	/**
@@ -140,24 +127,12 @@ class CommentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() wrong origin, not in admin.
+	 * Test verify() do not need to verify, not in admin.
 	 */
-	public function test_verify_wrong_origin_not_admin() {
-		$approved              = 1;
-		$commentdata           = [ 'some comment data' ];
-		$time                  = time();
-		$new_id                = wp_hash( $time );
-		$transient_data        = [
-			$new_id => [
-				'time'   => $time,
-				'action' => 'hcaptcha_comment',
-				'nonce'  => 'hcaptcha_comment_nonce',
-			],
-		];
-		$_POST[ Origin::NAME ] = 'some id';
-		$expected              = new WP_Error( 'invalid_hcaptcha', 'Invalid Captcha', 400 );
-
-		set_transient( Origin::TRANSIENT, $transient_data );
+	public function test_verify_do_not_need_to_verify_not_admin() {
+		$approved    = 1;
+		$commentdata = [ 'some comment data' ];
+		$expected    = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> Please complete the hCaptcha.', 400 );
 
 		$subject = new Comment();
 
@@ -165,51 +140,14 @@ class CommentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() do not need to verify, not in admin.
-	 */
-	public function test_verify_do_not_need_to_verify_not_admin() {
-		$approved              = 1;
-		$commentdata           = [ 'some comment data' ];
-		$time                  = time();
-		$new_id                = wp_hash( $time );
-		$transient_data        = [
-			$new_id => [
-				'time'   => $time,
-				'action' => '',
-				'nonce'  => '',
-			],
-		];
-		$_POST[ Origin::NAME ] = $new_id;
-
-		set_transient( Origin::TRANSIENT, $transient_data );
-
-		$subject = new Comment();
-
-		self::assertSame( $approved, $subject->verify( $approved, $commentdata ) );
-		self::assertSame( [], get_transient( Origin::TRANSIENT ) );
-	}
-
-	/**
 	 * Test verify() not verified, not in admin.
 	 */
 	public function test_verify_not_verified_not_admin() {
-		$approved              = 1;
-		$commentdata           = [ 'some comment data' ];
-		$time                  = time();
-		$new_id                = wp_hash( $time );
-		$transient_data        = [
-			$new_id => [
-				'time'   => $time,
-				'action' => 'hcaptcha_comment',
-				'nonce'  => 'hcaptcha_comment_nonce',
-			],
-		];
-		$_POST[ Origin::NAME ] = $new_id;
-		$expected              = new WP_Error( 'invalid_hcaptcha', 'Invalid Captcha', 400 );
+		$approved    = 1;
+		$commentdata = [ 'some comment data' ];
+		$expected    = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> The hCaptcha is invalid.', 400 );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
-
-		set_transient( Origin::TRANSIENT, $transient_data );
 
 		$subject = new Comment();
 

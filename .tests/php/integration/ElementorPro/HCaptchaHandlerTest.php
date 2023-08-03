@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\ElementorPro;
 
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
@@ -33,7 +38,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpLanguageLevelInspection
 	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
@@ -530,17 +535,24 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'data-size'    => $size,
 			],
 		];
-		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">	<div
+		$form_id           = 'test_form';
+		$data              = [
+			'settings' => [
+				'form_id' => $form_id,
+			],
+		];
+		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">		<div
 			class="h-captcha"
 			data-sitekey="some site key"
 			data-theme="some theme"
 			data-size="some size"
 						data-auto="false">
-	</div>
-	</div></div>';
+		</div>
+		</div></div>';
 
 		$widget = Mockery::mock( Widget_Base::class );
 		$widget->shouldReceive( 'add_render_attribute' )->with( $render_attributes )->once();
+		$widget->shouldReceive( 'get_raw_data' )->with()->once()->andReturn( $data );
 
 		$subject = new HCaptchaHandler();
 

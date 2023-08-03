@@ -7,50 +7,78 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
  * Class Login
  */
-class Login {
+class Login extends LoginBase {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_login';
 
 	/**
-	 * Constructor.
+	 * Nonce name.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Init hooks.
 	 */
-	private function init_hooks() {
+	protected function init_hooks() {
+		parent::init_hooks();
+
 		add_action( 'woocommerce_login_form', [ $this, 'add_captcha' ] );
-		add_action( 'woocommerce_process_login_errors', [ $this, 'verify' ] );
+		add_filter( 'woocommerce_process_login_errors', [ $this, 'verify' ] );
 	}
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_login', 'hcaptcha_login_nonce' );
+		if ( $this->is_login_limit_exceeded() ) {
+			$args = [
+				'action' => self::ACTION,
+				'name'   => self::NONCE,
+				'id'     => [
+					'source'  => HCaptcha::get_class_source( __CLASS__ ),
+					'form_id' => 'login',
+				],
+
+			];
+
+			HCaptcha::form_display( $args );
+		}
 	}
 
 	/**
 	 * Verify login form.
 	 *
-	 * @param WP_Error $validation_error Validation error.
+	 * @param WP_Error|mixed $validation_error Validation error.
 	 *
-	 * @return WP_Error
+	 * @return WP_Error|mixed
 	 */
 	public function verify( $validation_error ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return $validation_error;
+		}
+
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_login_nonce',
-			'hcaptcha_login'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null === $error_message ) {
 			return $validation_error;
+		}
+
+		if ( ! is_wp_error( $validation_error ) ) {
+			$validation_error = new WP_Error();
 		}
 
 		$validation_error->add( 'hcaptcha_error', $error_message );

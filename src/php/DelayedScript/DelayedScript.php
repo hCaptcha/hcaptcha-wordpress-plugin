@@ -19,12 +19,17 @@ class DelayedScript {
 	 * @param int    $delay Delay in ms.
 	 *
 	 * @return string
+	 * @noinspection PhpCastIsUnnecessaryInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
-	public static function create( $js, $delay = 3000 ) {
+	public static function create( string $js, int $delay = 3000 ): string {
 		ob_start();
-
 		?>
-
+		<!--suppress JSUnusedAssignment -->
+		<?php
+		ob_get_clean();
+		ob_start();
+		?>
 		<script>
 			( () => {
 				'use strict';
@@ -90,13 +95,14 @@ class DelayedScript {
 	 * @param array $args  Arguments.
 	 * @param int   $delay Delay in ms.
 	 */
-	public static function launch( array $args, $delay = 3000 ) {
+	public static function launch( array $args, int $delay = 3000 ) {
 		ob_start();
 
 		?>
 		const t = document.getElementsByTagName( 'script' )[0];
 		const s = document.createElement('script');
 		s.type  = 'text/javascript';
+		s.id = 'hcaptcha-api';
 		<?php
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		foreach ( $args as $key => $arg ) {

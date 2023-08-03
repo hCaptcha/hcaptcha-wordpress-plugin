@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpIllegalPsrClassPathInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace Elementor;
 
 /**
@@ -19,7 +24,7 @@ class Plugin {
 	 *
 	 * @var Plugin
 	 */
-	public static $instance = null;
+	public static $instance;
 
 	/**
 	 * Controls manager.

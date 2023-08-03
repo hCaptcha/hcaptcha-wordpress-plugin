@@ -1,10 +1,10 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
-Requires at least: 4.4
-Tested up to: 6.1
-Requires PHP: 5.6.20
-Stable tag: 2.2.0
+Requires at least: 5.0
+Tested up to: 6.3
+Requires PHP: 7.0.0
+Stable tag: 3.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,34 +22,52 @@ The purpose of a CAPTCHA is to distinguish between people and machines via a cha
 
 To use this plugin, just install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on hCaptcha.com.
 
-[hCaptcha Free](https://www.hcaptcha.com/) lets websites earn rewards while blocking bots and other forms of abuse when a user needs to prove their humanity.
+[hCaptcha Free](https://www.hcaptcha.com/) lets websites block bots and other forms of abuse via humanity challenges.
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
+
+== Screenshots ==
+
+1. Login page with hCaptcha widget
+2. Login page with hCaptcha challenge
+3. WooCommerce Login/Register page
+4. Contact From 7 with hCaptcha
+5. General settings page
+6. Integrations settings page
+7. Activating plugin from the Integration settings page
 
 == Installation ==
 
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin through the 'Plugins' menu in WordPress
-3. Enter your site key and secret in the Settings -> hCaptcha menu in WordPress
-4. Enable desired Integrations
+2. Activate the hCaptcha plugin on the 'Plugins' admin page
+3. Enter your site key and secret on the Settings->hCaptcha->General page
+4. Enable desired Integrations on the Settings->hCaptcha->Integrations page
 
 == Frequently Asked Questions ==
 
 = How do I use the hCaptcha plugin? =
 
-The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha plugin settings page.
+The hCaptcha plugin supports WordPress core and many plugins with forms automatically. You should select the supported forms on the hCaptcha Integrations settings page.
 
 For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the plugin.
 
 For example, we support Contact Forms 7 automatically. However, sometimes a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
+
+To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> tag.
 
 = You don't support plugin X. How can I get support for it added? =
 
 [Open a PR on GitHub](https://github.com/hCaptcha/hcaptcha-wordpress-plugin): or just email the authors of plugin X. Adding hCaptcha support is typically quite a quick task for most plugins.
 
 = Does the [hcaptcha] shortcode have arguments? =
+
+Full list of arguments:
+
+`
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" size="normal|compact|invisible"]
+`
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
@@ -60,10 +78,12 @@ The shortcode adds not only the hCaptcha div to the form, but also a nonce field
 and in the verification:
 
 `
-$result = hcaptcha_verify_post(  'my_hcap_name', 'my_hcap_action' );
+$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
 `
 
-See also the section *"How to automatically verify an arbitrary form"*
+For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, auto="false".
+
+The argument size="normal|compact|invisible" allows to set the size of hCaptcha widget. size="normal" by default.
 
 = How to add hCaptcha to an arbitrary form =
 
@@ -82,7 +102,13 @@ If you create the form as an HTML block in the post content, just insert the sho
 If you create the form programmatically, insert the following statement inside it:
 
 `
-echo do_shortcode( '[hcaptcha]' );
+?>
+<form method="post">
+	<input type="text" name="test_input">
+	<input type="submit" value="Send">
+    <?php echo do_shortcode( '[hcaptcha]' ); ?>
+</form>
+<?php
 `
 
 Secondly, verify the result of hCaptcha challenge.
@@ -91,7 +117,8 @@ Secondly, verify the result of hCaptcha challenge.
 $result = hcaptcha_verify_post();
 
 if ( null !== $result ) {
-// Block processing of the form.
+    echo esc_html( $result );
+    // Block processing of the form.
 }
 `
 
@@ -132,6 +159,142 @@ function my_hcap_activate( $activate ) {
 }
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
+`
+
+= Skipping hCaptcha verification on a specific form =
+
+The plugin has a filter to skip adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source and form_id.
+
+The source is the plugin's slug (like 'directory/main-plugin-file.php'), the theme name (like 'Avada') or the WordPress core (like 'WordPress').
+
+The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
+
+Filter arguments for some plugins/forms are listed below.
+
+Back In Stock Notifier
+$source: 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'
+$form_id: product_id
+
+BBPress
+$source: 'bbpress/bbpress.php'
+$form_id: 'new_topic' or 'reply'
+
+Beaver Builder
+$source: 'bb-plugin/fl-builder.php'
+$form_id: 'contact' or 'login'
+
+Brizy
+$source: 'brizy/brizy.php'
+$form_id: 'form'
+
+BuddyPress
+$source: 'buddypress/bp-loader.php'
+$form_id: 'create_group' or 'register'
+
+Classified Listing
+$source: 'classified-listing/classified-listing.php'
+$form_id: 'contact', 'login', 'lost_password' or 'register'
+
+Divi
+$source: 'Divi'
+$form_id: post_id for comment form, 'contact', 'email_optin', or 'login'
+
+Download Manager
+$source: 'download-manager/download-manager.php'
+$form_id: post_id of download item in the admin.
+
+Easy Digital Downloads
+$source: 'easy-digital-downloads/easy-digital-downloads.php'
+$form_id: checkout.
+
+Elementor Pro
+$source: 'elementor-pro/elementor-pro.php'
+$form_id: Form ID set for the form Content->Additional Options.
+
+Jetpack
+$source: 'jetpack/jetpack.php'
+$form_id: 'contact'
+
+Kadence
+$source: 'kadence-blocks/kadence-blocks.php'
+$form_id: post_id
+
+MemberPress
+$source: 'memberpress/memberpress.php'
+$form_id: 'login' or 'register'
+
+Paid Memberships Pro
+$source: 'paid-memberships-pro/paid-memberships-pro.php'
+$form_id: 'checkout' or 'login'
+
+Profile Builder
+$source: 'profile-builder/index.php'
+$form_id: 'login', 'lost_password' or 'register'
+
+Subscriber
+$source: 'subscriber/subscriber.php'
+$form_id: 'form'
+
+Support Candy
+$source: 'supportcandy/supportcandy.php'
+$form_id: 'form'
+
+Ultimate Member
+$source: 'ultimate-member/ultimate-member.php'
+$form_id: form_id or 'password'
+
+WooCommerce Wishlist
+$source: 'woocommerce-wishlists/woocommerce-wishlists.php'
+$form_id: 'form'
+
+wpDiscuz
+$source: 'wpdiscuz/class.WpdiscuzCore.php'
+$form_id: post_id
+
+WPForms
+$source: 'wpforms-lite/wpforms.php' or 'wpforms/wpforms.php'
+$form_id: form_id
+
+wpForo
+$source: 'wpforo/wpforo.php'
+$form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.
+
+WordPress Core
+$source: 'WordPress'
+$form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
+
+WooCommerce
+$source: 'woocommerce/woocommerce.php'
+$form_id: 'checkout', 'login', 'lost_password', 'order_tracking', or 'register'
+
+Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
+
+`
+/**
+ * Filters the protection status of a form.
+ *
+ * @param string     $value   The protection status of a form.
+ * @param string[]   $source  Plugin(s) serving the form.
+ * @param int|string $form_id Form id.
+ *
+ * @return bool
+ */
+function hcap_protect_form_filter( $value, $source, $form_id ) {
+	if ( ! in_array( 'gravityforms/gravityforms.php', $source, true ) ) {
+		// The form is not sourced by Gravity Forms plugin.
+		return $value;
+	}
+
+	if ( 1 !== (int) $form_id ) {
+		// The form has id !== 1.
+		return $value;
+	}
+
+	// Turn off protection for Gravity form with id = 1.
+	return false;
+}
+
+add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
 `
 
 = How to show hCaptcha widget instantly? =
@@ -241,28 +404,49 @@ For more details, please see the hCaptcha privacy policy at:
 * Lost Password Form
 * Comment Form
 * Post/Page Password Form
+* ACF Extended Form
+* Asgaros Forum New Topic Form
+* Asgaros Forum Reply Form
 * Avada Form
+* Back In Stock Notifier
 * bbPress New Topic Form
 * bbPress Reply Form
 * Beaver Builder Contact Form
 * Beaver Builder Login Form
 * BuddyPress Create Group Form
 * Buddypress Registration Form
+* Classified Listing Contact Form
+* Classified Listing Login Form
+* Classified Listing Lost Password Form
+* Classified Listing Register Form
 * Contact Form 7
+* Divi Comment Form
 * Divi Contact Form
+* Divi Email Optin Form
 * Divi Login Form
 * Download Manager Button
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
+* Formidable Forms
+* GiveWP Form
 * Gravity Forms
 * Jetpack Forms
+* Kadence Form
 * Mailchimp for WP Form
+* MemberPress Login Form
 * MemberPress Register Form
 * Ninja Forms
+* Otter Blocks Forms
+* Paid Memberships Pro Checkout Form
+* Paid Memberships Pro Login Form
+* Profile Builder Login Form
+* Profile Builder Recover Password Form
+* Profile Builder Register Form
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
+* Support Candy New Ticket Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
 * Ultimate Member Register Form
@@ -272,8 +456,9 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
-* WP Fluent Forms
 * WPForms Lite
+* wpDiscuz Comment Form
+* wpDiscuz Support Form
 * wpForo New Topic Form
 * wpForo Reply Form
 
@@ -296,6 +481,134 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.0.1 =
+* Fixed error on Contact Form 7 validation.
+* Fixed checkboxes disabled status after activation of a plugin on the Integrations page.
+
+= 3.0.0 =
+* Dropped support for PHP 5.6. Minimum required PHP version is now 7.0.
+* Tested with WordPress 6.3.
+* Tested with WooCommerce 7.9.
+* Added hCaptcha config check to the General settings page.
+* Added dynamic display of settings in sample hCaptcha.
+* Added compatibility with Ajax Gravity Forms.
+* Added compatibility with Profile Builder.
+* Added compatibility with Easy Digital Downloads Checkout form.
+
+= 2.10.0 =
+* Added compatibility with Paid Memberships Pro.
+* Added compatibility with Classified Listing.
+* Added compatibility with Formidable Forms.
+* Added compatibility with wpDiscuz Subscribe Form.
+* Added System Info tab.
+* Added Back In Stock Notifier support in the popup window.
+* Added support to turn off hCaptcha on a specific Jetpack form.
+* Added support to turn off hCaptcha on a specific Kadence form.
+* Added support to turn off hCaptcha on a specific Mailchimp form.
+* Added support to turn off hCaptcha on a specific MemberPress form.
+* Added support to turn off hCaptcha on a specific Ninja form.
+* Added support to turn off hCaptcha on a specific Quform form.
+* Added support to turn off hCaptcha on a specific Sendinblue form.
+* Added support to turn off hCaptcha on a specific Subscriber form.
+* Added support to turn off hCaptcha on a specific Support Candy form.
+* Added support to turn off hCaptcha on a specific Ultimate Member form.
+* Added support to turn off hCaptcha on a specific WooCommerce Wishlist form.
+* Added support to turn off hCaptcha on a specific wpDiscuz form.
+* Added support to turn off hCaptcha on a specific wpForms form.
+* Fixed messages dynamic styling on Integrations page.
+
+= 2.9.0 =
+* Added compatibility with Back In Stock Notifier.
+* Added compatibility with Colorlib Login Customizer.
+* Added compatibility with Divi Email Optin Form.
+* Added visualisation of plugins available for activation and deactivation from Integrations page.
+* Added support to turn off hCaptcha on a specific ACF Extended form.
+* Added support to turn off hCaptcha on a specific Asgaros forum form.
+* Added support to turn off hCaptcha on a specific Avada form.
+* Added support to turn off hCaptcha on a specific BBPress form.
+* Added support to turn off hCaptcha on a specific Beaver Builder form.
+* Added support to turn off hCaptcha on a specific Brizy form.
+* Added support to turn off hCaptcha on a specific Buddy Press form.
+* Added support to turn off hCaptcha on a specific Contact 7 form.
+* Added support to turn off hCaptcha on a specific Download Manager form.
+* Added support to turn off hCaptcha on a specific Elementor form.
+* Added support to turn off hCaptcha on a specific Fluent form.
+* Added support to turn off hCaptcha on a specific Forminator form.
+* Added support to turn off hCaptcha on a specific GiveWP form.
+* Fixed ignoring hCaptcha on comments with Akismet.
+* Fixed interfering of WordPress and WooCommerce lost password settings.
+* Fixed Divi login issue.
+* Fixed Download Manager issue caused by the plugin update.
+* Fixed Elementor issue caused by the plugin update.
+* Fixed GiveWP issue caused by the plugin update.
+
+= 2.8.0 =
+* Tested with WooCommerce 7.7.
+* Added general ability to turn off hCaptcha on a specific form.
+* Added filter `hcap_protect_form`, allowing to filter the protection status of a specific form.
+* Added support to turn off hCaptcha on a specific WordPress Core form.
+* Added support to turn off hCaptcha on a specific WooCommerce form.
+* Added support to turn off hCaptcha on a specific Gravity Form.
+* Added support to turn off hCaptcha on a specific Divi form.
+* Fixed error processing during plugin activation.
+* Fixed issue with invisible hCaptcha in Fluent Forms.
+* Fixed multiple issues related to Fluent Forms.
+* Fixed login issue with invisible hCaptcha on WooCommerce /my-account page.
+* Fixed Divi login form.
+
+= 2.7.0 =
+* Tested with WooCommerce 7.5.
+* Added size argument to the shortcode.
+* Added compatibility with 3rd-party login plugins.
+* Added autocomplete="off" attribute to the Secret Key field to prevent its autocompleting by the browser.
+* Added 'hcap_error_messages' filter allowing to modify hCaptcha error messages.
+* Changed position of hCaptcha widget on WooCommerce Place Order button.
+* Fixed uncaught type error during the login with PHP 8.0.
+
+= 2.6.0 =
+* Tested with WordPress 6.2.
+* Tested with WooCommerce 7.4.
+* Added compatibility with Asgaros Forum.
+* Added compatibility with Support Candy.
+* Added Login Form support for MemberPress.
+* Added compatibility with GiveWP.
+* Added compatibility with Brizy.
+* Added activation and deactivation of plugins from the Integrations admin page.
+* Fixed error during login with WordPress < 5.4.
+
+= 2.5.1 =
+* Fixed fatal error with WordPress < 6.1.
+
+= 2.5.0 =
+* Tested with WooCommerce 7.3.
+* Added ability to use the HTMl tag '<button type="submit">Submit</button>' in the Contact Form 7.
+* Added compatibility with ACF Extended Pro Form.
+* Added login attempts limit to Beaver Builder login form.
+* Added login attempts limit to Divi login form.
+* Added login attempts limit to Ultimate Member login form.
+* Added login attempts limit to WooCommerce login form.
+* Added optimisation of autoloading to boost performance.
+* Added block of launching recaptcha scripts by wpDiscuz.
+* Fixed showing the hCaptcha widget on wpForo community page.
+* Fixed PHP notice on the General settings page.
+* Fixed bug with number of login attempts before showing the hCaptcha.
+
+= 2.4.0 =
+* Tested with PHP 8.2.
+* Plugin now requires WP 5.0.
+* Added script loading delay time setting.
+* Added compatibility with Otter Blocks Forms.
+* Added compatibility with ACF Extended Form.
+* Added compatibility with Kadence Form.
+* Added compatibility with wpDiscuz.
+* Added ability to show hCaptcha after certain number of failed logins.
+* Fixed hCaptcha placement in Avada form.
+
+= 2.3.0 =
+* Tested with WooCommerce 7.2.
+* Added compatibility with WC High-Performance order storage (COT) feature.
+* Added compatibility with Contact Form 7 v5.7.
 
 = 2.2.0 =
 * Added Avada theme support.
@@ -413,12 +726,12 @@ Instructions for popular native integrations are below:
 
 = 1.10.0 =
 * Fixed issue with WC login form when WP login form option is on.
-* Added feature to turn off the plugin for logged in users.
+* Added feature to turn off the plugin for logged-in users.
 * Added hook to disable the plugin on specific pages.
 * Added feature to run hCaptcha script and styles on pages where it is used only.
 
 = 1.9.2 =
-* Fixed issue with WooCommerce on my-account page - captcha was requested even if solved properly.
+* Fixed issue with WooCommerce on my-account page - hCaptcha was requested even if solved properly.
 
 = 1.9.1 =
 * Fixed issue with Contact Form 7 - reset hCaptcha widget when form is not validated.
@@ -431,7 +744,7 @@ Instructions for popular native integrations are below:
 
 = 1.7.0 =
 * 100% covered by WordPress integration tests.
-* Tests run on CI with PHP 5.6 - 8.0, latest WordPress core and latest related plugins.
+* Tests run on CI with PHP 5.6 - 8.0, the latest WordPress core and latest related plugins.
 
 = 1.6.4 =
 * Make any Jetpack contact form working with Block Editor

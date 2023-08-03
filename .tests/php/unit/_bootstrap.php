@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpParamsInspection */
+/** @noinspection PhpUnused */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -53,25 +58,13 @@ FunctionMocker::init(
 		],
 		'whitelist'             => [
 			realpath( PLUGIN_PATH . '/hcaptcha.php' ),
-			realpath( PLUGIN_PATH . '/backend' ),
-			realpath( PLUGIN_PATH . '/bbp' ),
-			realpath( PLUGIN_PATH . '/bp' ),
-			realpath( PLUGIN_PATH . '/common' ),
-			realpath( PLUGIN_PATH . '/default' ),
-			realpath( PLUGIN_PATH . '/jetpack' ),
-			realpath( PLUGIN_PATH . '/mailchimp' ),
-			realpath( PLUGIN_PATH . '/nf' ),
 			realpath( PLUGIN_PATH . '/src/php' ),
-			realpath( PLUGIN_PATH . '/subscriber' ),
-			realpath( PLUGIN_PATH . '/wc' ),
-			realpath( PLUGIN_PATH . '/wc_wl' ),
-			realpath( PLUGIN_PATH . '/wpforms' ),
-			realpath( PLUGIN_PATH . '/wpforo' ),
 		],
 		'redefinable-internals' => [
 			'constant',
 			'defined',
 			'filter_input',
+			'function_exists',
 			'uniqid',
 		],
 	]

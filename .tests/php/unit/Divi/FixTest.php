@@ -53,7 +53,7 @@ class FixTest extends HCaptchaTestCase {
 
 		FunctionMocker::replace(
 			'defined',
-			function ( $constant_name ) {
+			static function ( $constant_name ) {
 				return 'ET_BUILDER_THEME' === $constant_name;
 			}
 		);

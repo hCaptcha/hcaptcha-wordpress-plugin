@@ -19,12 +19,14 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test create().
+	 *
+	 * @noinspection BadExpressionStatementJS
+	 * @noinspection JSUnresolvedVariable
 	 */
 	public function test_create() {
 		$js = 'some js script';
 
-		$expected = '
-		<script>
+		$expected = '		<script>
 			( () => {
 				\'use strict\';
 
@@ -85,10 +87,11 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test launch().
+	 *
+	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_launch() {
-		$expected = '
-		<script>
+		$expected = '		<script>
 			( () => {
 				\'use strict\';
 
@@ -112,6 +115,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 							const t = document.getElementsByTagName( \'script\' )[0];
 		const s = document.createElement(\'script\');
 		s.type  = \'text/javascript\';
+		s.id = \'hcaptcha-api\';
 		s[\'src\'] = \'https://js.hcaptcha.com/1/api.js\';
 		s.async = true;
 		t.parentNode.insertBefore( s, t );

@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/hCaptcha/hcaptcha-wordpress-plugin/actions/workflows/ci.yml/badge.svg?branch=master)
 
-Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kaggdesign, publicarray
+Contributors: kaggdesign, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, publicarray, intercrypt, and many others
 
 Maintainers: hCaptcha team  
 
@@ -17,7 +17,9 @@ Enables hCaptcha integration with WordPress.
 
 Note that PRs should meet [WordPress Coding Standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/). This is automatically enforced by CI. 
 
-hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled, without giving your user data to an ad company. 
+hCaptcha is a drop-in replacement for reCAPTCHA that puts user privacy first.
+
+Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse.
 
 ## Installation
 
@@ -27,8 +29,9 @@ git clone https://github.com/hCaptcha/hcaptcha-wordpress-plugin.git
 cd hcaptcha-wordpress-plugin
 composer install
 yarn
-yarn run build:dev
+yarn dev
 ```
+
 1. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
 2. Activate the plugin through the 'Plugins' menu in WordPress  
 3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress  
@@ -59,13 +62,15 @@ A: Please see our website at: https://www.hcaptcha.com/
  
 ## Screenshots
 
-See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordpress-now-available-49765536c69f
+See the [official plugin page on wordpress.org](https://wordpress.org/plugins/hcaptcha-for-forms-and-more/).
 
 ## Credits
 
-* Initial version: Alex V. + intercrypt team
-* Major upgrade + 100% test coverage: kaggdesign
+This plugin has evolved thanks to the work of many contributors. A few highlights are listed below:
+
 * Current version and maintainer: hCaptcha team + community
+* Major upgrade + 100% test coverage: kaggdesign
+* Initial proof of concept: Alex V. + intercrypt team
 
 ## Support
 
@@ -73,18 +78,53 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * Register Form
 * Lost Password Form
 * Comment Form
+* Post/Page Password Form
+* ACF Extended Form
+* Asgaros Forum New Topic Form
+* Asgaros Forum Reply Form
+* Avada Form
+* Back In Stock Notifier
 * bbPress New Topic Form
 * bbPress Reply Form
+* Beaver Builder Contact Form
+* Beaver Builder Login Form
 * BuddyPress Create Group Form
 * Buddypress Registration Form
+* Classified Listing Contact Form
+* Classified Listing Login Form
+* Classified Listing Lost Password Form
+* Classified Listing Register Form
 * Contact Form 7
+* Divi Comment Form
 * Divi Contact Form
+* Divi Email Optin Form
+* Divi Login Form
+* Download Manager Button
 * Elementor Pro Form
+* Fluent Forms
+* Forminator
+* Formidable Forms
+* GiveWP Form
+* Gravity Forms
 * Jetpack Forms
+* Kadence Form
 * Mailchimp for WP Form
+* MemberPress Login Form
 * MemberPress Register Form
 * Ninja Forms
+* Otter Blocks Forms
+* Paid Memberships Pro Checkout Form
+* Paid Memberships Pro Login Form
+* Profile Builder Login Form
+* Profile Builder Recover Password Form
+* Profile Builder Register Form
+* Quform Forms
+* Sendinblue Form
 * Subscriber Form
+* Support Candy New Ticket Form
+* Ultimate Member Login Form
+* Ultimate Member Lost Password Form
+* Ultimate Member Register Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
@@ -92,6 +132,8 @@ See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordp
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
 * WPForms Lite
+* wpDiscuz Comment Form
+* wpDiscuz Support Form
 * wpForo New Topic Form
 * wpForo Reply Form
 

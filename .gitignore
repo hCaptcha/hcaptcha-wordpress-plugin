@@ -1,16 +1,19 @@
 .codeception/_output/
 .idea/
-.yarn
+.yarn/
 assets/css/*.min.css
 assets/css/*.min.css.map
 assets/js/apps/
 assets/js/*.min.js
 assets/js/*.min.js.map
 assets/*.svg
+/coverage/
 node_modules/
 vendor/
 
 *.lock
+!yarn.lock
 .DS_Store
 .phpcs.cache
+package-lock.json
 Thumbs.db

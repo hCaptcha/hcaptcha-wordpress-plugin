@@ -7,6 +7,8 @@
 
 namespace HCaptcha\DownloadManager;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class DownloadManager.
  */
@@ -49,15 +51,30 @@ class DownloadManager {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	public function add_hcaptcha( $template, $vars ) {
-		$hcaptcha = hcap_form( self::ACTION, self::NONCE );
+	public function add_hcaptcha( string $template, array $vars ): string {
+		$form_id = 0;
+
+		if ( preg_match( '/wpdmdl=(\d+)/', $template, $m ) ) {
+			$form_id = (int) $m[1];
+		}
+
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $form_id,
+			],
+		];
+
+		$hcaptcha = HCaptcha::form( $args );
 
 		$template = (string) preg_replace( '/(<ul class="list-group ml)/', $hcaptcha . '$1', $template );
 		$template = (string) preg_replace( '/<a (.+)?<\/a>/', '<button type="submit" $1</button>', $template );
 		$template = str_replace( 'download-on-click', '', $template );
 		$url      = '';
 
-		if ( preg_match( '/href=\'(.+)?\'/', $template, $m ) ) {
+		if ( preg_match( '/data-downloadurl="(.+)?"/', $template, $m ) ) {
 			$url = $m[1];
 		}
 
@@ -72,6 +89,7 @@ class DownloadManager {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection ForgottenDebugOutputInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function verify( $package ) {
 

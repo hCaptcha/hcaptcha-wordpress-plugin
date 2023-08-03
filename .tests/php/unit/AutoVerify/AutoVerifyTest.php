@@ -28,7 +28,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_GET['rest_route'] );
 
@@ -41,14 +41,14 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	public function test_content_filter_in_cli() {
 		FunctionMocker::replace(
 			'defined',
-			function ( $constant_name ) {
+			static function ( $constant_name ) {
 				return 'WP_CLI' === $constant_name;
 			}
 		);
 
 		FunctionMocker::replace(
 			'constant',
-			function ( $name ) {
+			static function ( $name ) {
 				return 'WP_CLI' === $name;
 			}
 		);
@@ -66,14 +66,14 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	public function test_verify_form_in_cli() {
 		FunctionMocker::replace(
 			'defined',
-			function ( $constant_name ) {
+			static function ( $constant_name ) {
 				return 'WP_CLI' === $constant_name;
 			}
 		);
 
 		FunctionMocker::replace(
 			'constant',
-			function ( $name ) {
+			static function ( $name ) {
 				return 'WP_CLI' === $name;
 			}
 		);

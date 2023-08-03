@@ -7,10 +7,21 @@
 
 namespace HCaptcha\MemberPress;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class Register
  */
 class Register {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_memberpress_register';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_memberpress_register_nonce';
 
 	/**
 	 * Constructor.
@@ -29,22 +40,33 @@ class Register {
 
 	/**
 	 * Add hCaptcha to the Register form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_memberpress_register', 'hcaptcha_memberpress_register_nonce' );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'register',
+			],
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**
 	 * Verify hCaptcha.
 	 *
-	 * @param array $errors Errors.
+	 * @param array|mixed $errors Errors.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
 	public function verify( $errors ) {
 		$error_message = hcaptcha_get_verify_message(
-			'hcaptcha_memberpress_register_nonce',
-			'hcaptcha_memberpress_register'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null !== $error_message ) {

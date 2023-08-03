@@ -9,7 +9,9 @@ namespace HCaptcha\Tests\Integration\FluentForm;
 
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 use WPDieException;
+use function PHPUnit\Framework\assertSame;
 
 /**
  * Test FluentForm.
@@ -30,7 +32,15 @@ class FormTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_action( 'fluentform_before_insert_submission', [ $subject, 'verify' ] )
+			has_action( 'fluentform_validation_errors', [ $subject, 'verify' ] )
+		);
+		self::assertSame(
+			9,
+			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'fluentform_rendering_form', [ $subject, 'fluentform_rendering_form_filter' ] )
 		);
 	}
 
@@ -40,17 +50,58 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_add_captcha() {
 		hcaptcha()->init_hooks();
 
-		$subject = new Form();
+		$form = (object) [
+			'id' => 1,
+		];
 
-		$expected = $this->get_hcap_form(
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
+
+		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( false );
+
+		$hcap_form = $this->get_hcap_form(
 			'hcaptcha_fluentform',
 			'hcaptcha_fluentform_nonce'
 		);
 
 		ob_start();
-		$subject->add_captcha( [] );
+		?>
+		<div class="ff-el-group">
+			<div class="ff-el-input--content">
+				<div name="h-captcha-response">
+					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $hcap_form;
+					?>
+				</div>
+			</div>
+		</div>
+		<?php
+		$expected = ob_get_clean();
+
+		ob_start();
+		$mock->add_captcha( [], $form );
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_captcha() with own captcha.
+	 */
+	public function test_add_captcha_with_own_captcha() {
+		hcaptcha()->init_hooks();
+
+		$form = (object) [];
+
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
+
+		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( true );
+
+		ob_start();
+		$mock->add_captcha( [], $form );
+
+		self::assertSame( '', ob_get_clean() );
 	}
 
 	/**
@@ -59,36 +110,19 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_no_success() {
-		$subject = new Form();
+		$errors = [
+			'some_error' => 'Some error description',
+		];
+		$data   = [];
+		$form   = (object) [];
+		$fields = [];
 
-		$data['hcaptcha_fluentform_nonce'] = 'some nonce';
-		$data['h-captcha-response']        = 'some response';
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
 
-		// Simulate ajax, as it is the only case to stop execution of wp_send_json() via wp_die().
-		add_filter(
-			'wp_doing_ajax',
-			static function() {
-				return true;
-			}
-		);
+		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( true );
 
-		add_filter( 'wp_die_ajax_handler', [ $this, 'get_wp_die_handler' ] );
-
-		$this->expectException( WPDieException::class );
-
-		ob_start();
-		$subject->verify( [], $data, [] );
-	}
-
-	/**
-	 * The wp_die handler.
-	 *
-	 * @return array
-	 */
-	public function get_wp_die_handler() {
-		self::assertSame( '{"errors":{"g-recaptcha-response":["hCaptcha errors: Your secret key is missing.; The response parameter (verification token) is invalid or malformed."]}}', ob_get_clean() );
-
-		return parent::get_wp_die_handler();
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 
 	/**
@@ -97,13 +131,23 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify() {
-		$subject = new Form();
+		$errors                         = [
+			'some_error' => 'Some error description',
+		];
+		$data                           = [];
+		$form                           = (object) [];
+		$fields                         = [];
+		$response                       = 'some response';
+		$expected                       = $errors;
+		$expected['h-captcha-response'] = [ 'Please complete the hCaptcha.' ];
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_fluentform_nonce', 'hcaptcha_fluentform' );
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
 
-		$data['hcaptcha_fluentform_nonce'] = wp_create_nonce( 'hcaptcha_fluentform' );
-		$data['h-captcha-response']        = 'some response';
+		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( false );
 
-		$subject->verify( [], $data, [] );
+		$this->prepare_hcaptcha_request_verify( $response, false );
+
+		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 }

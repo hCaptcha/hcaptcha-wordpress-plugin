@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Divi;
 
-use HCaptcha\Helpers\Origin;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class Comment.
@@ -22,26 +22,17 @@ class Comment {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_divi_comment';
+	const ACTION = 'hcaptcha_comment';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_divi_comment_nonce';
-
-	/**
-	 * Add captcha to the form.
-	 *
-	 * @var bool
-	 */
-	private $active;
+	const NONCE = 'hcaptcha_comment_nonce';
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->active = hcaptcha()->settings()->is( 'divi_status', 'comment' );
-
 		$this->init_hooks();
 	}
 
@@ -49,30 +40,7 @@ class Comment {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		// Add origin after forming of the submit button by Divi, which does it on 10.
-		add_filter( 'comment_form_submit_button', [ $this, 'add_origin' ], 20, 2 );
-
-		if ( $this->active ) {
-			add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
-		}
-	}
-
-	/**
-	 * Add origin.
-	 *
-	 * @param string $submit_button HTML markup for the submit button.
-	 * @param array  $args          Arguments passed to comment_form().
-	 *
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_origin( $submit_button, $args ) {
-		$divi_comment_form = isset( $args['id_submit'] ) && ( 'et_pb_submit' === $args['id_submit'] );
-
-		$origin = $this->active && $divi_comment_form ?
-			Origin::create( self::ACTION, self::NONCE ) :
-			'';
-
-		return $origin . $submit_button;
+		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
 	}
 
 	/**
@@ -83,16 +51,38 @@ class Comment {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $output, $module_slug ) {
-		if ( et_core_is_fb_enabled() ) {
-			// Do not add captcha in frontend builder.
+	public function add_captcha( $output, string $module_slug ) {
+		if ( ! is_string( $output ) || false !== strpos( $output, 'h-captcha' || et_core_is_fb_enabled() ) ) {
+			// Do not add captcha in frontend builder or if it already added by \HCaptcha\WP\Comment class.
 
 			return $output;
 		}
 
+		$post_id = 0;
+
+		if (
+			preg_match(
+				"<input type='hidden' name='comment_post_ID' value='(.+)?' id='comment_post_ID' />",
+				$output,
+				$m
+			)
+		) {
+			$post_id = $m[1];
+		}
+
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $post_id,
+			],
+		];
+
 		$pattern     = '/(<button name="submit")/';
-		$replacement = hcap_form( self::ACTION, self::NONCE ) . "\n" . '$1';
+		$replacement = HCaptcha::form( $args ) . "\n" . '$1';
 
 		// Insert hcaptcha.
 		return preg_replace( $pattern, $replacement, $output );

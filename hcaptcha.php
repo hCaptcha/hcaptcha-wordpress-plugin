@@ -10,9 +10,9 @@
  * Plugin Name:          hCaptcha for WordPress
  * Plugin URI:           https://www.hcaptcha.com/
  * Description:          hCaptcha keeps out bots and spam while putting privacy first. It is a drop-in replacement for reCAPTCHA.
- * Version:              2.2.0
- * Requires at least:    4.4
- * Requires PHP:         5.6
+ * Version:              3.0.1
+ * Requires at least:    5.0
+ * Requires PHP:         7.0
  * Author:               hCaptcha
  * Author URI:           https://www.hcaptcha.com/
  * License:              GPL v2 or later
@@ -21,8 +21,11 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      7.1
+ * WC tested up to:      7.9
  */
+
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpParamsInspection */
 
 use HCaptcha\Main;
 
@@ -36,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-const HCAPTCHA_VERSION = '2.2.0';
+const HCAPTCHA_VERSION = '3.0.1';
 
 /**
  * Path to the plugin dir.
@@ -70,8 +73,8 @@ const HCAPTCHA_NONCE = 'hcaptcha_nonce';
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
-require HCAPTCHA_INC . '/common/request.php';
-require HCAPTCHA_INC . '/common/functions.php';
+require HCAPTCHA_INC . '/request.php';
+require HCAPTCHA_INC . '/functions.php';
 
 /**
  * Get hCaptcha Main class instance.
@@ -81,7 +84,7 @@ require HCAPTCHA_INC . '/common/functions.php';
 function hcaptcha() {
 	static $hcaptcha;
 
-	if ( null === $hcaptcha ) {
+	if ( ! $hcaptcha ) {
 		$hcaptcha = new Main();
 	}
 

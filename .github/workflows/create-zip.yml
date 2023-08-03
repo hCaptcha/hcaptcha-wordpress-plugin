@@ -11,14 +11,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get Composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Set up Composer caching
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies in prod version
         run: |
           composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install --no-dev
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
           yarn
           yarn prod
         env:
@@ -43,6 +43,7 @@ jobs:
           echo "➤ Generating zip file..."
           cd trunk
           zip -r "${{github.workspace}}/${{ env.SLUG }}.zip" .
+          echo "zip-path=${GITHUB_WORKSPACE}/${SLUG}.zip" >> "${GITHUB_OUTPUT}"
           echo "✓ Zip file generated!"
 
       - name: Upload release asset

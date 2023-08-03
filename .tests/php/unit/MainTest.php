@@ -20,11 +20,11 @@ class MainTest extends HCaptchaTestCase {
 
 	/**
 	 * Test init().
-	 *
-	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function test_is_xml_rpc() {
-		$mock = Mockery::mock( Main::class )->shouldAllowMockingProtectedMethods()->makePartial();
+		$mock = Mockery::mock( Main::class )->makePartial();
+
+		$mock->shouldAllowMockingProtectedMethods();
 
 		self::assertFalse( $mock->is_xml_rpc() );
 

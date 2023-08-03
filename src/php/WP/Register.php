@@ -7,12 +7,22 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
  * Class Register
  */
 class Register {
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_registration';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_registration_nonce';
 
 	/**
 	 * Constructor.
@@ -26,34 +36,50 @@ class Register {
 	 */
 	private function init_hooks() {
 		add_action( 'register_form', [ $this, 'add_captcha' ] );
-		add_action( 'registration_errors', [ $this, 'verify' ], 10, 3 );
+		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
-		hcap_form_display( 'hcaptcha_registration', 'hcaptcha_registration_nonce' );
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'register',
+			],
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**
 	 * Verify register captcha.
 	 *
-	 * @param WP_Error $errors               A WP_Error object containing any errors encountered during registration.
-	 * @param string   $sanitized_user_login User's username after it has been sanitized.
-	 * @param string   $user_email           User's email.
+	 * @param WP_Error|mixed $errors               A WP_Error object containing any errors encountered during
+	 *                                             registration.
+	 * @param string         $sanitized_user_login User's username after it has been sanitized.
+	 * @param string         $user_email           User's email.
 	 *
-	 * @return WP_Error
+	 * @return WP_Error|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $sanitized_user_login, $user_email ) {
+	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
 		$error_message = hcaptcha_get_verify_message_html(
-			'hcaptcha_registration_nonce',
-			'hcaptcha_registration'
+			self::NONCE,
+			self::ACTION
 		);
 
 		if ( null === $error_message ) {
 			return $errors;
+		}
+
+		if ( ! is_wp_error( $errors ) ) {
+			$errors = new WP_Error();
 		}
 
 		$errors->add( 'invalid_captcha', $error_message );
