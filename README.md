@@ -29,7 +29,7 @@ git clone https://github.com/hCaptcha/hcaptcha-wordpress-plugin.git
 cd hcaptcha-wordpress-plugin
 composer install
 yarn
-yarn run build:dev
+yarn dev
 ```
 
 1. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
