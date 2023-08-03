@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/hCaptcha/hcaptcha-wordpress-plugin/actions/workflows/ci.yml/badge.svg?branch=master)
 
-Contributors: intercrypt, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, kaggdesign, publicarray
+Contributors: kaggdesign, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, publicarray, intercrypt, and many others
 
 Maintainers: hCaptcha team  
 
@@ -31,6 +31,7 @@ composer install
 yarn
 yarn run build:dev
 ```
+
 1. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
 2. Activate the plugin through the 'Plugins' menu in WordPress  
 3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress  
@@ -61,13 +62,15 @@ A: Please see our website at: https://www.hcaptcha.com/
  
 ## Screenshots
 
-See our blog post at: https://medium.com/hcaptcha-blog/hcaptcha-plugin-for-wordpress-now-available-49765536c69f
+See the [official plugin page on wordpress.org](https://wordpress.org/plugins/hcaptcha-for-forms-and-more/).
 
 ## Credits
 
-* Initial version: Alex V. + intercrypt team
-* Major upgrade + 100% test coverage: kaggdesign
+This plugin has evolved thanks to the work of many contributors. A few highlights are listed below:
+
 * Current version and maintainer: hCaptcha team + community
+* Major upgrade + 100% test coverage: kaggdesign
+* Initial proof of concept: Alex V. + intercrypt team
 
 ## Support
 
