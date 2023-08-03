@@ -484,6 +484,7 @@ Instructions for popular native integrations are below:
 
 = 3.0.1 =
 * Fixed error on Contact Form 7 validation.
+* Fixed checkboxes disabled status after activation of a plugin on the Integrations page.
 
 = 3.0.0 =
 * Dropped support for PHP 5.6. Minimum required PHP version is now 7.0.

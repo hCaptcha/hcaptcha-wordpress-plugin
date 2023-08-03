@@ -122,7 +122,8 @@ const integrations = function( $ ) {
 				const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
 				const top = $wpwrap.position().top;
 
-				$tr.find( 'fieldset' ).attr( 'disabled', ! activate );
+				$fieldset.attr( 'disabled', ! activate );
+				$fieldset.find( 'input' ).attr( 'disabled', ! activate );
 				showSuccessMessage( response.data );
 				insertIntoTable( $table, 'hcaptcha-integrations-' + status, $tr );
 				$( 'html, body' ).animate(
