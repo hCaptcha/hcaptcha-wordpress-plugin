@@ -17,7 +17,9 @@ Enables hCaptcha integration with WordPress.
 
 Note that PRs should meet [WordPress Coding Standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/). This is automatically enforced by CI. 
 
-hCaptcha is a drop-in replacement for reCAPTCHA that earns website owners money and helps companies get their data labeled, without giving your user data to an ad company. 
+hCaptcha is a drop-in replacement for reCAPTCHA that puts user privacy first.
+
+Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse.
 
 ## Installation
 
