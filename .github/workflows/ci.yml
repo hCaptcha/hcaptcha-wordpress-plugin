@@ -6,7 +6,7 @@ jobs:
   cs_and_tests:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ ubuntu-latest ]
         php-version: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2' ]
 
     env:
@@ -47,7 +47,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Set up Composer caching
-        uses: actions/cache@master
+        uses: actions/cache@v3
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -130,5 +130,4 @@ jobs:
       - name: Run Jest
         if: ${{ matrix.php-version == '8.2' }}
         working-directory: ${{ env.wp-plugin-directory }}
-        run: |
-          yarn jest
+        run: yarn jest
