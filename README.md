@@ -78,19 +78,53 @@ This plugin has evolved thanks to the work of many contributors. A few highlight
 * Register Form
 * Lost Password Form
 * Comment Form
+* Post/Page Password Form
+* ACF Extended Form
+* Asgaros Forum New Topic Form
+* Asgaros Forum Reply Form
+* Avada Form
+* Back In Stock Notifier
 * bbPress New Topic Form
 * bbPress Reply Form
+* Beaver Builder Contact Form
+* Beaver Builder Login Form
 * BuddyPress Create Group Form
 * Buddypress Registration Form
+* Classified Listing Contact Form
+* Classified Listing Login Form
+* Classified Listing Lost Password Form
+* Classified Listing Register Form
 * Contact Form 7
+* Divi Comment Form
 * Divi Contact Form
+* Divi Email Optin Form
+* Divi Login Form
+* Download Manager Button
 * Elementor Pro Form
+* Fluent Forms
+* Forminator
+* Formidable Forms
+* GiveWP Form
+* Gravity Forms
 * Jetpack Forms
+* Kadence Form
 * Mailchimp for WP Form
+* MemberPress Login Form
 * MemberPress Register Form
 * Ninja Forms
 * Otter Blocks Forms
+* Paid Memberships Pro Checkout Form
+* Paid Memberships Pro Login Form
+* Profile Builder Login Form
+* Profile Builder Recover Password Form
+* Profile Builder Register Form
+* Quform Forms
+* Sendinblue Form
 * Subscriber Form
+* Support Candy New Ticket Form
+* Ultimate Member Login Form
+* Ultimate Member Lost Password Form
+* Ultimate Member Register Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
@@ -98,6 +132,8 @@ This plugin has evolved thanks to the work of many contributors. A few highlight
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
 * WPForms Lite
+* wpDiscuz Comment Form
+* wpDiscuz Support Form
 * wpForo New Topic Form
 * wpForo Reply Form
 
