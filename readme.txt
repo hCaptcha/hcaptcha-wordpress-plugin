@@ -22,7 +22,7 @@ The purpose of a CAPTCHA is to distinguish between people and machines via a cha
 
 To use this plugin, just install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on hCaptcha.com.
 
-[hCaptcha Free](https://www.hcaptcha.com/) lets websites earn rewards while blocking bots and other forms of abuse when a user needs to prove their humanity.
+[hCaptcha Free](https://www.hcaptcha.com/) lets websites block bots and other forms of abuse via humanity challenges.
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
