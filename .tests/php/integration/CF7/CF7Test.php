@@ -16,6 +16,7 @@ use HCaptcha\CF7\CF7;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
+use WPCF7_FormTag;
 use WPCF7_Submission;
 use WPCF7_Validation;
 
@@ -36,7 +37,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		hcaptcha()->form_shown = false;
 
 		wp_deregister_script( 'hcaptcha-script' );

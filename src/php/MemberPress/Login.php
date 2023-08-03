@@ -33,11 +33,13 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'mepr-login-form-before-submit', [ $this, 'add_captcha' ] );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
 	 * Add hCaptcha to the Register form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		if ( ! $this->is_login_limit_exceeded() ) {
@@ -59,6 +61,8 @@ class Login extends LoginBase {
 	/**
 	 * Verify login form.
 	 *
+	 * @since        1.0
+	 *
 	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous
 	 *                                   callback failed authentication.
 	 * @param string           $password Password to check against the user.
@@ -66,7 +70,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

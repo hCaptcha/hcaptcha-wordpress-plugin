@@ -31,15 +31,15 @@ class OrderTracking {
 	/**
 	 * Filters the output created by a shortcode callback.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function do_shortcode_tag( $output, $tag, $attr, $m ) {
+	public function do_shortcode_tag( $output, string $tag, $attr, array $m ) {
 		if ( 'woocommerce_order_tracking' !== $tag ) {
 			return $output;
 		}
@@ -59,10 +59,10 @@ class OrderTracking {
 			HCaptcha::form( $args ) .
 			'</div>';
 
-		return preg_replace(
+		return (string) preg_replace(
 			'/(<p class="form-row"><button type="submit"|<p class="form-actions">[\S\s]*?<button type="submit")/i',
 			$hcap_form . '$1',
-			$output,
+			(string) $output,
 			1
 		);
 	}

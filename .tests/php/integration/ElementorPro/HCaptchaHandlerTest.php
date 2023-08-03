@@ -38,7 +38,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpLanguageLevelInspection
 	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 

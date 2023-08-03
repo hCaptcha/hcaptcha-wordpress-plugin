@@ -37,7 +37,7 @@ class Form {
 	 * @return void
 	 */
 	private function init_hooks() {
-		add_filter( 'wpforms_display_submit_before', [ $this, 'add_captcha' ] );
+		add_action( 'wpforms_display_submit_before', [ $this, 'add_captcha' ] );
 		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
 	}
 
@@ -46,8 +46,9 @@ class Form {
 	 *
 	 * @link         https://wpforms.com/developers/wpforms_display_submit_before/
 	 *
-	 * @param array $form_data Form data and settings.
+	 * @param array|mixed $form_data Form data and settings.
 	 *
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $form_data ) {
@@ -74,8 +75,9 @@ class Form {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $fields, $entry, $form_data ) {
+	public function verify( array $fields, array $entry, array $form_data ) {
 		$error_message = hcaptcha_get_verify_message(
 			self::NAME,
 			self::ACTION

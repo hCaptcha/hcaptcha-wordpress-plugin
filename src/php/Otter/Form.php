@@ -41,7 +41,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function replace_site_key() {
+	public function replace_site_key(): string {
 		return hcaptcha()->settings()->get_site_key();
 	}
 
@@ -50,7 +50,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function replace_secret_key() {
+	public function replace_secret_key(): string {
 		return hcaptcha()->settings()->get_secret_key();
 	}
 
@@ -59,7 +59,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function replace_verify_url() {
+	public function replace_verify_url(): string {
 		return 'https://hcaptcha.com/siteverify';
 	}
 
@@ -68,7 +68,7 @@ class Form {
 	 *
 	 * @return string
 	 */
-	public function replace_api_url() {
+	public function replace_api_url(): string {
 		return 'https://js.hcaptcha.com/1/api.js';
 	}
 }

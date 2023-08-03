@@ -112,7 +112,7 @@ class Migrations {
 	/**
 	 * Determine if migration is allowed.
 	 */
-	private function is_allowed() {
+	private function is_allowed(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['service-worker'] ) ) {
 			return false;
@@ -128,7 +128,7 @@ class Migrations {
 	 *
 	 * @return string
 	 */
-	private function get_upgrade_version( $method ) {
+	private function get_upgrade_version( string $method ): string {
 		// Find only the digits to get version number.
 		if ( ! preg_match( '/\d+/', $method, $matches ) ) {
 			return '';
@@ -147,7 +147,7 @@ class Migrations {
 	 * @noinspection ForgottenDebugOutputInspection
 	 * @noinspection PhpSameParameterValueInspection
 	 */
-	private function log( $message, $item = null ) {
+	private function log( string $message, $item = null ) {
 		if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
 			return;
 		}
@@ -224,9 +224,7 @@ class Migrations {
 
 			list( $new_option_key, $new_option_value ) = $new_option_name;
 
-			$new_options[ $new_option_key ] = isset( $new_options[ $new_option_key ] ) ?
-				$new_options[ $new_option_key ] :
-				[];
+			$new_options[ $new_option_key ] = $new_options[ $new_option_key ] ?? [];
 
 			if ( 'on' === $old_option ) {
 				$new_options[ $new_option_key ][] = $new_option_value;

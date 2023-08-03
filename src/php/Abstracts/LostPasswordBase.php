@@ -32,6 +32,8 @@ abstract class LostPasswordBase {
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [
@@ -49,7 +51,7 @@ abstract class LostPasswordBase {
 	/**
 	 * Verify lost password form.
 	 *
-	 * @param WP_Error $error Error.
+	 * @param WP_Error|mixed $error Error.
 	 *
 	 * @return void
 	 */
@@ -79,6 +81,8 @@ abstract class LostPasswordBase {
 
 		$code = array_search( $error_message, hcap_get_error_messages(), true );
 		$code = $code ?: 'fail';
+
+		$error = is_wp_error( $error ) ? $error : new WP_Error();
 
 		$error->add( $code, $error_message );
 	}

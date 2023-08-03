@@ -33,6 +33,8 @@ abstract class Base {
 
 	/**
 	 * Add captcha to the form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$form_id = str_replace( 'hcaptcha_bbp_', '', static::ACTION );
@@ -52,8 +54,9 @@ abstract class Base {
 	 * Verify captcha.
 	 *
 	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify() {
+	public function verify(): bool {
 		$error_message = hcaptcha_get_verify_message( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {

@@ -5,8 +5,11 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedMethodInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\ElementorPro;
 
@@ -51,6 +54,8 @@ class HCaptchaHandler {
 
 	/**
 	 * Enqueue elementor support script.
+	 *
+	 * @return void
 	 */
 	public function after_enqueue_scripts() {
 		$min = hcap_min_suffix();
@@ -66,6 +71,8 @@ class HCaptchaHandler {
 
 	/**
 	 * Add hooks.
+	 *
+	 * @return void
 	 */
 	public function init() {
 		$this->register_scripts();
@@ -98,8 +105,10 @@ class HCaptchaHandler {
 	 * Register action.
 	 *
 	 * @param Module $module Module.
+	 *
+	 * @return void
 	 */
-	public function register_action( $module ) {
+	public function register_action( Module $module ) {
 		$module->add_component( self::FIELD_ID, $this );
 	}
 
@@ -108,7 +117,7 @@ class HCaptchaHandler {
 	 *
 	 * @return string
 	 */
-	protected static function get_hcaptcha_name() {
+	protected static function get_hcaptcha_name(): string {
 		return self::FIELD_ID;
 	}
 
@@ -153,7 +162,7 @@ class HCaptchaHandler {
 	 *
 	 * @return string
 	 */
-	public static function get_setup_message() {
+	public static function get_setup_message(): string {
 		return __( 'To use hCaptcha, you need to add the Site and Secret keys.', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -162,18 +171,20 @@ class HCaptchaHandler {
 	 *
 	 * @return bool
 	 */
-	public static function is_enabled() {
+	public static function is_enabled(): bool {
 		return static::get_site_key() && static::get_secret_key();
 	}
 
 	/**
 	 * Localize settings.
 	 *
-	 * @param array $settings Settings.
+	 * @param array|mixed $settings Settings.
 	 *
 	 * @return array
 	 */
-	public function localize_settings( $settings ) {
+	public function localize_settings( $settings ): array {
+		$settings = (array) $settings;
+
 		return array_replace_recursive(
 			$settings,
 			[
@@ -195,7 +206,7 @@ class HCaptchaHandler {
 	 *
 	 * @return string
 	 */
-	protected static function get_script_handle() {
+	protected static function get_script_handle(): string {
 		return 'elementor-' . static::get_hcaptcha_name() . '-api';
 	}
 
@@ -233,6 +244,8 @@ class HCaptchaHandler {
 
 	/**
 	 * Enqueue scripts.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		$this->main->print_inline_styles();
@@ -246,8 +259,10 @@ class HCaptchaHandler {
 	 *
 	 * @param Form_Record  $record       Record.
 	 * @param Ajax_Handler $ajax_handler Ajax handler.
+	 *
+	 * @return void
 	 */
-	public function validation( $record, $ajax_handler ) {
+	public function validation( Form_Record $record, Ajax_Handler $ajax_handler ) {
 		$fields = $record->get_field( [ 'type' => static::get_hcaptcha_name() ] );
 
 		if ( empty( $fields ) ) {
@@ -280,14 +295,16 @@ class HCaptchaHandler {
 	 * @param array       $item       Item.
 	 * @param int         $item_index Item index.
 	 * @param Widget_Base $widget     Widget.
+	 *
+	 * @return void
 	 */
-	public function render_field( $item, $item_index, $widget ) {
+	public function render_field( array $item, int $item_index, Widget_Base $widget ) {
 		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . $item['custom_id'] . '">';
 
 		$this->add_render_attributes( $item, $item_index, $widget );
 
 		$data    = $widget->get_raw_data();
-		$form_id = isset( $data['settings']['form_id'] ) ? $data['settings']['form_id'] : 0;
+		$form_id = $data['settings']['form_id'] ?? 0;
 
 		$args = [
 			'id' => [
@@ -316,7 +333,7 @@ class HCaptchaHandler {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function add_render_attributes( $item, $item_index, $widget ) {
+	protected function add_render_attributes( array $item, int $item_index, Widget_Base $widget ) {
 		$widget->add_render_attribute(
 			[
 				static::get_hcaptcha_name() . $item_index => [
@@ -332,11 +349,13 @@ class HCaptchaHandler {
 	/**
 	 * Add filed type.
 	 *
-	 * @param array $field_types Field types.
+	 * @param array|mixed $field_types Field types.
 	 *
 	 * @return array
 	 */
-	public function add_field_type( $field_types ) {
+	public function add_field_type( $field_types ): array {
+		$field_types = (array) $field_types;
+
 		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'elementor-pro' );
 
 		return $field_types;
@@ -353,9 +372,10 @@ class HCaptchaHandler {
 	 * @param Controls_Stack $controls_stack The controls stack.
 	 * @param array          $args           Section arguments.
 	 *
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function modify_controls( $controls_stack, $args ) {
+	public function modify_controls( Controls_Stack $controls_stack, array $args ) {
 		$control_id   = 'form_fields';
 		$control_data = Plugin::$instance->controls_manager->get_control_from_stack(
 			$controls_stack->get_unique_name(),
@@ -382,12 +402,14 @@ class HCaptchaHandler {
 	/**
 	 * Filter field item/
 	 *
-	 * @param array $item Item.
+	 * @param array|mixed $item Item.
 	 *
 	 * @return array
 	 */
-	public function filter_field_item( $item ) {
-		if ( static::get_hcaptcha_name() === $item['field_type'] ) {
+	public function filter_field_item( $item ): array {
+		$item = (array) $item;
+
+		if ( isset( $item['field_type'] ) && static::get_hcaptcha_name() === $item['field_type'] ) {
 			$item['field_label'] = false;
 		}
 

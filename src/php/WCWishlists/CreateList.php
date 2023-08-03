@@ -46,6 +46,8 @@ class CreateList {
 
 	/**
 	 * Before WooCommerce Wishlists wrapper action.
+	 *
+	 * @return void
 	 */
 	public function before_wrapper() {
 		ob_start();
@@ -53,6 +55,8 @@ class CreateList {
 
 	/**
 	 * After WooCommerce Wishlists wrapper action.
+	 *
+	 * @return void
 	 */
 	public function after_wrapper() {
 		$wrapper = ob_get_clean();

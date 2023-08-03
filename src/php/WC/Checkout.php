@@ -41,6 +41,8 @@ class Checkout {
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [
@@ -57,6 +59,9 @@ class Checkout {
 
 	/**
 	 * Verify checkout form.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify() {
 		$error_message = hcaptcha_get_verify_message(
@@ -71,6 +76,8 @@ class Checkout {
 
 	/**
 	 * Enqueue scripts.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		$min = hcap_min_suffix();

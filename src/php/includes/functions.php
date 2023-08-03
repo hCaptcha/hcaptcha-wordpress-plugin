@@ -17,7 +17,7 @@ use HCaptcha\Helpers\HCaptcha;
  * @return string
  * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form()
  */
-function hcap_form( $action = '', $name = '', $auto = false ) {
+function hcap_form( string $action = '', string $name = '', bool $auto = false ) {
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form()' );
 
@@ -39,7 +39,7 @@ function hcap_form( $action = '', $name = '', $auto = false ) {
  *
  * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form_display()
  */
-function hcap_form_display( $action = '', $name = '', $auto = false ) {
+function hcap_form_display( string $action = '', string $name = '', bool $auto = false ) {
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form_display()' );
 

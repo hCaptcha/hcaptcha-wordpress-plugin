@@ -76,7 +76,7 @@ class Register {
 	 * @return bool
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
-	public function verify() {
+	public function verify(): bool {
 		global $bp;
 
 		$error_message = hcaptcha_get_verify_message(

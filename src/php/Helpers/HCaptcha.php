@@ -30,7 +30,7 @@ class HCaptcha {
 	 *
 	 * @return string
 	 */
-	public static function form( $args = [] ) {
+	public static function form( array $args = [] ): string {
 		ob_start();
 		self::form_display( $args );
 
@@ -42,7 +42,7 @@ class HCaptcha {
 	 *
 	 * @param array $args Arguments.
 	 */
-	public static function form_display( $args = [] ) {
+	public static function form_display( array $args = [] ) {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_theme    = $settings->get( 'theme' );
@@ -70,8 +70,8 @@ class HCaptcha {
 
 		if ( $args['id'] ) {
 			$id            = (array) $args['id'];
-			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
-			$id['form_id'] = isset( $id['form_id'] ) ? $id['form_id'] : 0;
+			$id['source']  = (array) ( $id['source'] ?? [] );
+			$id['form_id'] = $id['form_id'] ?? 0;
 
 			/**
 			 * Filters the protection status of a form.
@@ -132,7 +132,7 @@ class HCaptcha {
 	 *
 	 * @return bool
 	 */
-	public static function is_protection_enabled() {
+	public static function is_protection_enabled(): bool {
 		// Nonce is checked in hcaptcha_verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
@@ -164,7 +164,7 @@ class HCaptcha {
 	 * @return array
 	 * @noinspection PhpUnusedLocalVariableInspection
 	 */
-	public static function get_widget_id() {
+	public static function get_widget_id(): array {
 		// Nonce is checked in hcaptcha_verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
@@ -192,7 +192,7 @@ class HCaptcha {
 	 *
 	 * @return array
 	 */
-	public static function get_class_source( $class ) {
+	public static function get_class_source( string $class ): array {
 		foreach ( hcaptcha()->modules as $module ) {
 			if ( in_array( $class, (array) $module[2], true ) ) {
 				$source = $module[1];

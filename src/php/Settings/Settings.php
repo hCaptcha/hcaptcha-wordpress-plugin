@@ -32,13 +32,20 @@ class Settings implements SettingsInterface {
 	protected $tabs = [];
 
 	/**
+	 * Screen ids of pages and tabs.
+	 *
+	 * @var array
+	 */
+	private $screen_ids = [];
+
+	/**
 	 * Settings constructor.
 	 *
 	 * @param array $menu_pages_classes Menu pages.
 	 */
-	public function __construct( $menu_pages_classes = [] ) {
+	public function __construct( array $menu_pages_classes = [] ) {
 		// Allow to specify $menu_pages_classes item as one class, not an array.
-		$this->menu_pages_classes = (array) $menu_pages_classes;
+		$this->menu_pages_classes = $menu_pages_classes;
 
 		$this->init();
 	}
@@ -61,8 +68,9 @@ class Settings implements SettingsInterface {
 				 *
 				 * @var PluginSettingsBase $tab
 				 */
-				$tab    = new $tab_class( null );
-				$tabs[] = $tab;
+				$tab                = new $tab_class( null );
+				$tabs[]             = $tab;
+				$this->screen_ids[] = $tab->screen_id();
 			}
 
 			/**
@@ -84,7 +92,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return array
 	 */
-	public function get_tabs() {
+	public function get_tabs(): array {
 		return $this->tabs;
 	}
 
@@ -96,7 +104,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return string|array The value specified for the option or a default value for the option.
 	 */
-	public function get( $key, $empty_value = null ) {
+	public function get( string $key, $empty_value = null ) {
 		$value = '';
 
 		foreach ( $this->tabs as $tab ) {
@@ -127,7 +135,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return bool
 	 */
-	public function is( $key, $compare ) {
+	public function is( string $key, string $compare ): bool {
 		$value = $this->get( $key );
 
 		if ( is_array( $value ) ) {
@@ -144,7 +152,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return bool
 	 */
-	public function is_on( $key ) {
+	public function is_on( string $key ): bool {
 		return ! empty( $this->get( $key ) );
 	}
 
@@ -153,7 +161,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return array
 	 */
-	private function get_keys() {
+	private function get_keys(): array {
 		$mode = $this->get( 'mode' );
 
 		// String concat is used for the PHP 5.6 compatibility.
@@ -164,15 +172,15 @@ class Settings implements SettingsInterface {
 				$secret_key = $this->get( 'secret_key' );
 				break;
 			case General::MODE_TEST_PUBLISHER:
-				$site_key   = '10000000-ffff-ffff-ffff-000000000001';
+				$site_key   = General::MODE_TEST_PUBLISHER_SITE_KEY;
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			case General::MODE_TEST_ENTERPRISE_SAFE_END_USER:
-				$site_key   = '20000000-ffff-ffff-ffff-000000000002';
+				$site_key   = General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY;
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			case General::MODE_TEST_ENTERPRISE_BOT_DETECTED:
-				$site_key   = '30000000-ffff-ffff-ffff-000000000003';
+				$site_key   = General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY;
 				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 				break;
 			default:
@@ -193,7 +201,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return string
 	 */
-	public function get_site_key() {
+	public function get_site_key(): string {
 		return $this->get_keys()['site_key'];
 	}
 
@@ -202,7 +210,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return string
 	 */
-	public function get_secret_key() {
+	public function get_secret_key(): string {
 		return $this->get_keys()['secret_key'];
 	}
 
@@ -215,7 +223,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return void
 	 */
-	public function set_field( $key, $field_key, $value ) {
+	public function set_field( string $key, string $field_key, $value ) {
 		foreach ( $this->tabs as $tab ) {
 			/**
 			 * Page / Tab.
@@ -226,5 +234,15 @@ class Settings implements SettingsInterface {
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Get screen ids of all settings pages and tabs.
+	 *
+	 * @return array
+	 * @noinspection PhpUnused
+	 */
+	public function screen_ids(): array {
+		return $this->screen_ids;
 	}
 }

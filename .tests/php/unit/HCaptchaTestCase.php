@@ -30,7 +30,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * Setup test
 	 */
-	public function setUp(): void {
+	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		FunctionMocker::setUp();
 		parent::setUp();
 		WP_Mock::setUp();
@@ -39,7 +39,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * End test
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		WP_Mock::tearDown();
 		Mockery::close();
 		parent::tearDown();
@@ -103,6 +103,89 @@ abstract class HCaptchaTestCase extends TestCase {
 		$method->setAccessible( $accessible );
 
 		return $method;
+	}
+
+	/**
+	 * Plucks a certain field out of each object or array in an array.
+	 * Taken from WP Core.
+	 *
+	 * @param array      $input_list List of objects or arrays.
+	 * @param int|string $field      Field from the object to place instead of the entire object.
+	 * @param int|string $index_key  Optional. Field from the object to use as keys for the new array.
+	 *                               Default null.
+	 *
+	 * @return array Array of found values. If `$index_key` is set, an array of found values with keys
+	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
+	 *               `$input_list` will be preserved in the results.
+	 */
+	protected function wp_list_pluck( $input_list, $field, $index_key = null ) {
+		if ( ! is_array( $input_list ) ) {
+			return [];
+		}
+
+		return $this->pluck( $input_list, $field, $index_key );
+	}
+
+	/**
+	 * Plucks a certain field out of each element in the input array.
+	 * Taken from WP Core.
+	 *
+	 * @param array      $input_list List of objects or arrays.
+	 * @param int|string $field      Field to fetch from the object or array.
+	 * @param int|string $index_key  Optional. Field from the element to use as keys for the new array.
+	 *                               Default null.
+	 *
+	 * @return array Array of found values. If `$index_key` is set, an array of found values with keys
+	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
+	 *               `$list` will be preserved in the results.
+	 */
+	private function pluck( $input_list, $field, $index_key = null ) {
+		$output   = $input_list;
+		$new_list = [];
+
+		if ( ! $index_key ) {
+			/*
+			 * This is simple. Could at some point wrap array_column()
+			 * if we knew we had an array of arrays.
+			 */
+			foreach ( $output as $key => $value ) {
+				if ( is_object( $value ) ) {
+					$new_list[ $key ] = $value->$field;
+				} elseif ( is_array( $value ) ) {
+					$new_list[ $key ] = $value[ $field ];
+				} else {
+					// Error.
+					return [];
+				}
+			}
+
+			return $new_list;
+		}
+
+		/*
+		 * When index_key is not set for a particular item, push the value
+		 * to the end of the stack. This is how array_column() behaves.
+		 */
+		foreach ( $output as $value ) {
+			if ( is_object( $value ) ) {
+				if ( isset( $value->$index_key ) ) {
+					$new_list[ $value->$index_key ] = $value->$field;
+				} else {
+					$new_list[] = $value->$field;
+				}
+			} elseif ( is_array( $value ) ) {
+				if ( isset( $value[ $index_key ] ) ) {
+					$new_list[ $value[ $index_key ] ] = $value[ $field ];
+				} else {
+					$new_list[] = $value[ $field ];
+				}
+			} else {
+				// Error.
+				return [];
+			}
+		}
+
+		return $new_list;
 	}
 
 	/**
@@ -287,6 +370,17 @@ abstract class HCaptchaTestCase extends TestCase {
 			'secret_key'               => [
 				'label'   => 'Secret Key',
 				'type'    => 'password',
+				'section' => General::SECTION_KEYS,
+			],
+			'sample_hcaptcha'          => [
+				'label'   => 'Sample hCaptcha',
+				'type'    => 'hcaptcha',
+				'section' => General::SECTION_KEYS,
+			],
+			'check_config'             => [
+				'label'   => 'Check Site Config',
+				'type'    => 'button',
+				'text'    => 'Check',
 				'section' => General::SECTION_KEYS,
 			],
 			'theme'                    => [
@@ -682,6 +776,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'button' => 'Button',
 						],
 				],
+			'easy_digital_downloads_status' => [
+				'label'   => 'Easy Digital Downloads',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => 'Checkout Form',
+				],
+			],
 			'elementor_pro_status'          =>
 				[
 					'label'   => 'Elementor Pro',
@@ -796,6 +897,15 @@ abstract class HCaptchaTestCase extends TestCase {
 						'login'    => 'Login Form',
 					],
 				],
+			'profile_builder_status'        => [
+				'label'   => 'Profile Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => 'Login Form',
+					'lost_pass' => 'Recover Password Form',
+					'register'  => 'Register Form',
+				],
+			],
 			'quform_status'                 =>
 				[
 					'label'   => 'Quform',

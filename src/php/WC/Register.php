@@ -36,11 +36,13 @@ class Register {
 	 */
 	private function init_hooks() {
 		add_action( 'woocommerce_register_form', [ $this, 'add_captcha' ] );
-		add_action( 'woocommerce_process_registration_errors', [ $this, 'verify' ] );
+		add_filter( 'woocommerce_process_registration_errors', [ $this, 'verify' ] );
 	}
 
 	/**
 	 * Add captcha.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		$args = [
@@ -58,9 +60,9 @@ class Register {
 	/**
 	 * Verify register form.
 	 *
-	 * @param WP_Error $validation_error Validation error.
+	 * @param WP_Error|mixed $validation_error Validation error.
 	 *
-	 * @return WP_Error
+	 * @return WP_Error|mixed
 	 */
 	public function verify( $validation_error ) {
 		$error_message = hcaptcha_get_verify_message(
@@ -70,6 +72,10 @@ class Register {
 
 		if ( null === $error_message ) {
 			return $validation_error;
+		}
+
+		if ( ! is_wp_error( $validation_error ) ) {
+			$validation_error = new WP_Error();
 		}
 
 		$validation_error->add( 'hcaptcha_error', $error_message );

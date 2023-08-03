@@ -39,7 +39,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
-		$expected = $this->get_hcap_form( HCAPTCHA_ACTION, HCAPTCHA_NONCE, true );
+		$expected = $this->get_hcap_form( Form::ACTION, Form::NONCE );
 
 		self::assertSame( $expected, $subject->add_captcha( '', $form ) );
 	}

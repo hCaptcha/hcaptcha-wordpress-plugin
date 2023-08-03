@@ -7,9 +7,6 @@
 
 namespace HCaptcha\WPDiscuz;
 
-use HCaptcha\Helpers\HCaptcha;
-use WP_User;
-
 /**
  * Class Base.
  */

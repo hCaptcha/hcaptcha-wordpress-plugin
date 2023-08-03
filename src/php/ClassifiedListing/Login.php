@@ -34,7 +34,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'rtcl_login_form', [ $this, 'add_captcha' ] );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
@@ -69,7 +69,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$rtcl_login = isset( $_POST['rtcl-login'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['rtcl-login'] ) ) :

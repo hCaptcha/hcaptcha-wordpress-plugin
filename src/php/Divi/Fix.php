@@ -28,6 +28,8 @@ class Fix {
 
 	/**
 	 * Register autoload.
+	 *
+	 * @return void
 	 */
 	public function register_autoload() {
 		if ( ! defined( 'ET_BUILDER_THEME' ) ) {
@@ -45,7 +47,7 @@ class Fix {
 	 *
 	 * @return true|null
 	 */
-	public function prevent_loading_of_wp_test_case( $classname ) {
+	public function prevent_loading_of_wp_test_case( string $classname ) {
 		if ( 'Codeception\TestCase\WPTestCase' === $classname ) {
 			require 'WPTestCaseStub.php';
 

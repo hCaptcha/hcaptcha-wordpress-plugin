@@ -53,7 +53,7 @@ class Contact {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_template_part( $template_name, $located, $template_args ) {
+	public function before_template_part( string $template_name, string $located, array $template_args ) {
 		if ( 'listing/email-to-seller-form' !== $template_name ) {
 			return;
 		}
@@ -71,7 +71,7 @@ class Contact {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_template_part( $template_name, $located, $template_args ) {
+	public function after_template_part( string $template_name, string $located, array $template_args ) {
 		if ( 'listing/email-to-seller-form' !== $template_name ) {
 			return;
 		}
@@ -104,7 +104,7 @@ class Contact {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $error, $data ) {
+	public function verify( WP_Error $error, array $data ) {
 		$error_message = hcaptcha_verify_post(
 			static::NONCE,
 			static::ACTION

@@ -32,7 +32,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		global $bp;
 
 		unset( $bp->signup );

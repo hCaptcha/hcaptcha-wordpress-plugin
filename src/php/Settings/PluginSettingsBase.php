@@ -19,7 +19,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	/**
 	 * Constructor.
 	 *
-	 * @param array $tabs Tabs of this settings page.
+	 * @param array|null $tabs Tabs of this settings page.
 	 */
 	public function __construct( $tabs = [] ) {
 		add_filter( 'admin_footer_text', [ $this, 'admin_footer_text' ] );
@@ -33,7 +33,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function menu_title() {
+	protected function menu_title(): string {
 		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -42,7 +42,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	public function screen_id() {
+	public function screen_id(): string {
 		return 'settings_page_hcaptcha';
 	}
 
@@ -51,7 +51,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function option_group() {
+	protected function option_group(): string {
 		return 'hcaptcha_group';
 	}
 
@@ -60,7 +60,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function option_page() {
+	protected function option_page(): string {
 		return 'hcaptcha';
 	}
 
@@ -69,7 +69,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function option_name() {
+	protected function option_name(): string {
 		return 'hcaptcha_settings';
 	}
 
@@ -78,7 +78,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function plugin_basename() {
+	protected function plugin_basename(): string {
 		return plugin_basename( constant( 'HCAPTCHA_FILE' ) );
 	}
 
@@ -87,7 +87,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function plugin_url() {
+	protected function plugin_url(): string {
 		return constant( 'HCAPTCHA_URL' );
 	}
 
@@ -96,7 +96,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function plugin_version() {
+	protected function plugin_version(): string {
 		return constant( 'HCAPTCHA_VERSION' );
 	}
 
@@ -105,7 +105,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function settings_link_label() {
+	protected function settings_link_label(): string {
 		return __( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -114,7 +114,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function settings_link_text() {
+	protected function settings_link_text(): string {
 		return __( 'Settings', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -123,7 +123,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function text_domain() {
+	protected function text_domain(): string {
 		return 'hcaptcha-for-forms-and-more';
 	}
 
@@ -147,40 +147,37 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 */
 	public function settings_page() {
 		?>
-		<div class="wrap">
-			<img
+		<img
 				src="<?php echo esc_url( HCAPTCHA_URL . '/assets/images/hcaptcha-logo.svg' ); ?>"
 				alt="hCaptcha Logo"
 				class="hcaptcha-logo"
-			/>
+		/>
 
-			<form
-					id="hcaptcha-options"
-					class="hcaptcha-<?php echo esc_attr( $this->section_title() ); ?>"
-					action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>"
-					method="post">
-				<?php
-				do_settings_sections( $this->option_page() ); // Sections with options.
-				settings_fields( $this->option_group() ); // Hidden protection fields.
+		<form
+				id="hcaptcha-options"
+				class="hcaptcha-<?php echo esc_attr( $this->section_title() ); ?>"
+				action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>"
+				method="post">
+			<?php
+			do_settings_sections( $this->option_page() ); // Sections with options.
+			settings_fields( $this->option_group() ); // Hidden protection fields.
 
-				if ( ! empty( $this->form_fields ) ) {
-					submit_button();
-				}
-				?>
-			</form>
-		</div>
+			if ( ! empty( $this->form_fields ) ) {
+				submit_button();
+			}
+			?>
+		</form>
 		<?php
 	}
 
 	/**
 	 * When user is on the plugin admin page, display footer text that graciously asks them to rate us.
 	 *
-	 * @param string $text Footer text.
+	 * @param string|mixed $text Footer text.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
 	public function admin_footer_text( $text ) {
-
 		if ( ! $this->is_options_screen() ) {
 			return $text;
 		}
@@ -189,8 +186,8 @@ abstract class PluginSettingsBase extends SettingsBase {
 
 		return wp_kses(
 			sprintf(
-			/* translators: 1: hCaptcha plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
-				__( 'Please rate %1$s %2$s on %3$s</a>. Thank you!', 'hcaptcha-for-forms-and-more' ),
+			/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
+				__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
 				'<strong>hCaptcha for WordPress</strong>',
 				sprintf(
 					'<a href="%s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
@@ -212,11 +209,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
-	 * Show hCaptcha version in the update footer.
+	 * Show plugin version in the update footer.
 	 *
-	 * @param string $content The content that will be printed.
+	 * @param string|mixed $content The content that will be printed.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
 	public function update_footer( $content ) {
 		if ( ! $this->is_options_screen() ) {
@@ -224,7 +221,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 		}
 
 		return sprintf(
-		/* translators: 1: hCaptcha version. */
+		/* translators: 1: plugin version. */
 			__( 'Version %s', 'hcaptcha-for-forms-and-more' ),
 			HCAPTCHA_VERSION
 		);

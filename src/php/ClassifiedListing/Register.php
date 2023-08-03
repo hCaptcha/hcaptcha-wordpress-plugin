@@ -61,16 +61,16 @@ class Register {
 	/**
 	 * Verify login form.
 	 *
-	 * @param WP_Error $validation_error Validation error.
-	 * @param string   $email            Email.
-	 * @param string   $username         Username.
-	 * @param string   $password         Password.
-	 * @param array    $post             $_POST array.
+	 * @param WP_Error|mixed $validation_error Validation error.
+	 * @param string         $email            Email.
+	 * @param string         $username         Username.
+	 * @param string         $password         Password.
+	 * @param array          $post             $_POST array.
 	 *
-	 * @return WP_Error
+	 * @return WP_Error|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $validation_error, $email, $username, $password, $post ) {
+	public function verify( $validation_error, string $email, string $username, string $password, array $post ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$rtcl_register = isset( $_POST['rtcl-register'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['rtcl-register'] ) ) :

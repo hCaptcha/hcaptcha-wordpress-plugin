@@ -22,14 +22,14 @@ class Integrations extends PluginSettingsBase {
 	const HANDLE = 'hcaptcha-integrations';
 
 	/**
-	 * Activate plugin ajax action.
-	 */
-	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
-
-	/**
 	 * Script localization object.
 	 */
 	const OBJECT = 'HCaptchaIntegrationsObject';
+
+	/**
+	 * Activate plugin ajax action.
+	 */
+	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
 	 * Enabled section id.
@@ -46,7 +46,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function page_title() {
+	protected function page_title(): string {
 		return __( 'Integrations', 'hcaptcha-for-forms-and-more' );
 	}
 
@@ -55,7 +55,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function section_title() {
+	protected function section_title(): string {
 		return 'integrations';
 	}
 
@@ -186,6 +186,13 @@ class Integrations extends PluginSettingsBase {
 					'button' => __( 'Button', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'easy_digital_downloads_status' => [
+				'label'   => 'Easy Digital Downloads',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'elementor_pro_status'          => [
 				'label'   => 'Elementor Pro',
 				'type'    => 'checkbox',
@@ -279,6 +286,15 @@ class Integrations extends PluginSettingsBase {
 					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'profile_builder_status'        => [
+				'label'   => 'Profile Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Recover Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'quform_status'                 => [
 				'label'   => 'Quform',
 				'type'    => 'checkbox',
@@ -368,7 +384,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function logo( $label ) {
+	private function logo( string $label ): string {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
 
 		return sprintf(
@@ -412,18 +428,18 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	public function sort_fields( $fields ) {
+	public function sort_fields( array $fields ): array {
 		uasort(
 			$fields,
 			static function ( $a, $b ) {
-				$a_disabled = isset( $a['disabled'] ) ? $a['disabled'] : false;
-				$b_disabled = isset( $b['disabled'] ) ? $b['disabled'] : false;
+				$a_disabled = $a['disabled'] ?? false;
+				$b_disabled = $b['disabled'] ?? false;
 
-				$a_label = isset( $a['label'] ) ? strtolower( $a['label'] ) : '';
-				$b_label = isset( $b['label'] ) ? strtolower( $b['label'] ) : '';
+				$a_label = strtolower( $a['label'] ?? '' );
+				$b_label = strtolower( $b['label'] ?? '' );
 
 				if ( $a_disabled === $b_disabled ) {
-					return strcmp( $a_label, $b_label );
+					return $a_label <=> $b_label;
 				}
 
 				if ( ! $a_disabled && $b_disabled ) {
@@ -442,7 +458,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 */
-	public function section_callback( $arguments ) {
+	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
 			?>
 			<hr class="hcaptcha-disabled-section">
@@ -456,7 +472,7 @@ class Integrations extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
-		<div id="hcaptcha-integrations-message"></div>
+		<div id="hcaptcha-message"></div>
 		<p>
 			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
@@ -600,7 +616,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function activate_plugins( $plugins ) {
+	private function activate_plugins( array $plugins ): bool {
 		foreach ( $plugins as $plugin ) {
 			ob_start();
 

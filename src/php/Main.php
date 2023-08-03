@@ -134,6 +134,8 @@ class Main {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
 	public function init_hooks() {
 		$this->settings = new Settings(
@@ -177,9 +179,9 @@ class Main {
 	 *
 	 * @return object|null
 	 */
-	public function get( $class ) {
+	public function get( string $class ) {
 
-		return isset( $this->loaded_classes[ $class ] ) ? $this->loaded_classes[ $class ] : null;
+		return $this->loaded_classes[ $class ] ?? null;
 	}
 
 	/**
@@ -187,7 +189,7 @@ class Main {
 	 *
 	 * @return Settings
 	 */
-	public function settings() {
+	public function settings(): Settings {
 		return $this->settings;
 	}
 
@@ -196,7 +198,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function activate_hcaptcha() {
+	private function activate_hcaptcha(): bool {
 		// Make sure we can use is_user_logged_in().
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
@@ -231,7 +233,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function is_elementor_pro_edit_page() {
+	private function is_elementor_pro_edit_page(): bool {
 		if ( ! $this->settings()->is_on( 'elementor_pro_status' ) ) {
 			return false;
 		}
@@ -259,12 +261,14 @@ class Main {
 	 * We cannot control if hCaptcha form is shown here, as this is hooked on wp_head.
 	 * So, we always prefetch hCaptcha dns if hCaptcha is active, but it is a small overhead.
 	 *
-	 * @param array  $urls          URLs to print for resource hints.
-	 * @param string $relation_type The relation type the URLs are printed for.
+	 * @param array|mixed $urls          URLs to print for resource hints.
+	 * @param string      $relation_type The relation type the URLs are printed for.
 	 *
 	 * @return array
 	 */
-	public function prefetch_hcaptcha_dns( $urls, $relation_type ) {
+	public function prefetch_hcaptcha_dns( $urls, string $relation_type ): array {
+		$urls = (array) $urls;
+
 		if ( 'dns-prefetch' === $relation_type ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
@@ -275,11 +279,12 @@ class Main {
 	/**
 	 * Add Content Security Policy (CSP) headers.
 	 *
-	 * @param array $headers Headers.
+	 * @param array|mixed $headers Headers.
 	 *
 	 * @return array
 	 */
-	public function csp_headers( $headers ) {
+	public function csp_headers( $headers ): array {
+		$headers  = (array) $headers;
 		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
 
 		$headers['X-Content-Security-Policy'] =
@@ -296,6 +301,8 @@ class Main {
 
 	/**
 	 * Print inline styles.
+	 *
+	 * @return void
 	 */
 	public function print_inline_styles() {
 		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
@@ -318,6 +325,9 @@ class Main {
 				margin-bottom: 2rem;
 				padding: 0;
 				clear: both;
+			}
+			#hcaptcha-options .h-captcha {
+				margin-bottom: 0;
 			}
 			#af-wrapper div.editor-row.editor-row-hcaptcha {
 				display: flex;
@@ -407,6 +417,9 @@ class Main {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
 			}
+			#wppb-loginform .h-captcha {
+				margin-bottom: 14px;
+			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
 			}
@@ -416,6 +429,8 @@ class Main {
 
 	/**
 	 * Print styles to fit hcaptcha widget to the login form.
+	 *
+	 * @return void
 	 */
 	public function login_head() {
 		?>
@@ -440,7 +455,7 @@ class Main {
 	 *
 	 * @return string
 	 */
-	public function get_api_src() {
+	public function get_api_src(): string {
 		$params = [
 			'onload' => 'hCaptchaOnLoad',
 			'render' => 'explicit',
@@ -470,12 +485,10 @@ class Main {
 
 	/**
 	 * Add the hCaptcha script to footer.
+	 *
+	 * @return void
 	 */
 	public function print_footer_scripts() {
-		if ( is_admin() ) {
-			return;
-		}
-
 		if (
 			! (
 				$this->form_shown ||
@@ -487,6 +500,8 @@ class Main {
 			return;
 		}
 
+		$settings = $this->settings();
+
 		/**
 		 * Filters delay time for the hCaptcha API script.
 		 *
@@ -497,7 +512,7 @@ class Main {
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', (int) $this->settings()->get( 'delay' ) );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) $settings->get( 'delay' ) );
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
@@ -509,10 +524,12 @@ class Main {
 			true
 		);
 
+		$params = $settings->is_on( 'custom_themes' ) ? $settings->get( 'config_params' ) : null;
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
-			[ 'params' => $this->settings()->get( 'config_params' ) ]
+			[ 'params' => $params ]
 		);
 
 		$min = hcap_min_suffix();
@@ -555,15 +572,15 @@ class Main {
 	/**
 	 * Catch Support Candy do shortcode tag filter.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function support_candy_shortcode_tag( $output, $tag, $attr, $m ) {
+	public function support_candy_shortcode_tag( $output, string $tag, $attr, array $m ) {
 		if ( 'supportcandy' === $tag ) {
 			$this->did_support_candy_shortcode_tag_filter = true;
 		}
@@ -575,13 +592,12 @@ class Main {
 	 * Filter user IP to check if it is whitelisted.
 	 * For whitelisted IPs, hCaptcha will not be shown.
 	 *
-	 * @param bool   $whitelisted Whether IP is whitelisted.
-	 * @param string $client_ip   Client IP.
+	 * @param bool|mixed   $whitelisted Whether IP is whitelisted.
+	 * @param string|false $client_ip   Client IP.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 */
 	public function whitelist_ip( $whitelisted, $client_ip ) {
-
 		$ips = explode(
 			"\n",
 			$this->settings()->get( 'whitelisted_ips' )
@@ -622,6 +638,7 @@ class Main {
 	/**
 	 * Load plugin modules.
 	 *
+	 * @return void
 	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
@@ -784,6 +801,11 @@ class Main {
 				'download-manager/download-manager.php',
 				DownloadManager::class,
 			],
+			'Easy Digital Downloads Checkout'   => [
+				[ 'easy_digital_downloads_status', 'checkout' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				EasyDigitalDownloads\Checkout::class,
+			],
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
@@ -858,6 +880,21 @@ class Main {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Login::class,
+			],
+			'Profile Builder Login'             => [
+				[ 'profile_builder_status', 'login' ],
+				'profile-builder/index.php',
+				ProfileBuilder\Login::class,
+			],
+			'Profile Builder Register'          => [
+				[ 'profile_builder_status', 'register' ],
+				'profile-builder/index.php',
+				ProfileBuilder\Register::class,
+			],
+			'Profile Builder Recover Password'  => [
+				[ 'profile_builder_status', 'lost_pass' ],
+				'profile-builder/index.php',
+				ProfileBuilder\LostPassword::class,
 			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
@@ -1000,7 +1037,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	private function plugin_or_theme_active( $plugin_or_theme_names ) {
+	private function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
 			if ( '' === $plugin_or_theme_name ) {
 				// WP Core is always active.
@@ -1029,6 +1066,8 @@ class Main {
 
 	/**
 	 * Load plugin text domain.
+	 *
+	 * @return void
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain(
@@ -1043,7 +1082,7 @@ class Main {
 	 *
 	 * @return bool
 	 */
-	protected function is_xml_rpc() {
+	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }

@@ -34,15 +34,16 @@ abstract class Base {
 	/**
 	 * Add captcha to the new topic form.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection RegExpUnnecessaryNonCapturingGroup
 	 */
-	public function add_captcha( $output, $tag, $attr, $m ) {
+	public function add_captcha( $output, string $tag, $attr, array $m ) {
 		if ( 'forum' !== $tag ) {
 			return $output;
 		}
@@ -66,16 +67,16 @@ abstract class Base {
 			'</div>' .
 			'</div>' .
 			$search,
-			$output
+			(string) $output
 		);
 	}
 
 	/**
 	 * Verify new topic captcha.
 	 *
-	 * @param bool $verified Verified.
+	 * @param bool|mixed $verified Verified.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 */
 	public function verify( $verified ) {
 		global $asgarosforum;

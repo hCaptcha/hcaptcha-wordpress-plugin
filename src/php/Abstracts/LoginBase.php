@@ -70,7 +70,7 @@ abstract class LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function login( $user_login, $user ) {
+	public function login( string $user_login, WP_User $user ) {
 		unset( $this->login_data[ $this->ip ] );
 
 		update_option( self::LOGIN_DATA, $this->login_data );
@@ -84,8 +84,9 @@ abstract class LoginBase {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function login_failed( $username, $error = null ) {
+	public function login_failed( string $username, $error = null ) {
 		$this->login_data[ $this->ip ][] = time();
 
 		update_option( self::LOGIN_DATA, $this->login_data );
@@ -96,7 +97,7 @@ abstract class LoginBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_login_limit_exceeded() {
+	protected function is_login_limit_exceeded(): bool {
 		$now            = time();
 		$login_limit    = (int) hcaptcha()->settings()->get( 'login_limit' );
 		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );

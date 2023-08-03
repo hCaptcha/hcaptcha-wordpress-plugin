@@ -33,7 +33,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpLanguageLevelInspection
 	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		UM()->form()->errors = null;
 
 		parent::tearDown();

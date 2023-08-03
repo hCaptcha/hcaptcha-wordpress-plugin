@@ -41,7 +41,7 @@ abstract class Base extends LoginBase {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function add_hcap_form( $out, $module ) {
+	protected function add_hcap_form( string $out, FLButtonModule $module ): string {
 		$form_id = false !== strpos( static::ACTION, 'login' ) ? 'login' : 'contact';
 		$args    = [
 			'action' => static::ACTION,

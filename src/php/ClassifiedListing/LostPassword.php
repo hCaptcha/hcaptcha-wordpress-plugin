@@ -1,6 +1,6 @@
 <?php
 /**
- * Register class file.
+ * LostPassword class file.
  *
  * @package hcaptcha-wp
  */

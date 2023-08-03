@@ -39,7 +39,7 @@ class LostPassword extends Base {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function um_after_password_reset_fields( $args ) {
+	public function um_after_password_reset_fields( array $args ) {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $this->display_captcha( '', self::UM_MODE );
 	}

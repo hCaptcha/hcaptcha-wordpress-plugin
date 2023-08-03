@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
-Tested up to: 6.2
-Requires PHP: 5.6.20
-Stable tag: 2.10.0
+Tested up to: 6.3
+Requires PHP: 7.0.0
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -193,7 +193,7 @@ $form_id: 'create_group' or 'register'
 
 Classified Listing
 $source: 'classified-listing/classified-listing.php'
-$form_id: 'contact', ''login', 'lost_password' or 'register'
+$form_id: 'contact', 'login', 'lost_password' or 'register'
 
 Divi
 $source: 'Divi'
@@ -202,6 +202,10 @@ $form_id: post_id for comment form, 'contact', 'email_optin', or 'login'
 Download Manager
 $source: 'download-manager/download-manager.php'
 $form_id: post_id of download item in the admin.
+
+Easy Digital Downloads
+$source: 'easy-digital-downloads/easy-digital-downloads.php'
+$form_id: checkout.
 
 Elementor Pro
 $source: 'elementor-pro/elementor-pro.php'
@@ -222,6 +226,10 @@ $form_id: 'login' or 'register'
 Paid Memberships Pro
 $source: 'paid-memberships-pro/paid-memberships-pro.php'
 $form_id: 'checkout' or 'login'
+
+Profile Builder
+$source: 'profile-builder/index.php'
+$form_id: 'login', 'lost_password' or 'register'
 
 Subscriber
 $source: 'subscriber/subscriber.php'
@@ -432,6 +440,9 @@ For more details, please see the hCaptcha privacy policy at:
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout Form
 * Paid Memberships Pro Login Form
+* Profile Builder Login Form
+* Profile Builder Recover Password Form
+* Profile Builder Register Form
 * Quform Forms
 * Sendinblue Form
 * Subscriber Form
@@ -470,6 +481,16 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.0.0 =
+* Dropped support for PHP 5.6. Minimum required PHP version is now 7.0.
+* Tested with WordPress 6.3.
+* Tested with WooCommerce 7.9.
+* Added hCaptcha config check to the General settings page.
+* Added dynamic display of settings in sample hCaptcha.
+* Added compatibility with Ajax Gravity Forms.
+* Added compatibility with Profile Builder.
+* Added compatibility with Easy Digital Downloads Checkout form.
 
 = 2.10.0 =
 * Added compatibility with Paid Memberships Pro.

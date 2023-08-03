@@ -44,12 +44,14 @@ class Form {
 	/**
 	 * Remove recaptcha from block.
 	 *
-	 * @param array $block Block.
+	 * @param array|mixed $block Block.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
 	public function remove_recaptcha_from_block( $block ) {
-		if ( 'kadence/form' !== $block['blockName'] ) {
+		$block = (array) $block;
+
+		if ( isset( $block['blockName'] ) && 'kadence/form' !== $block['blockName'] ) {
 			return $block;
 		}
 
@@ -63,9 +65,9 @@ class Form {
 	/**
 	 * Remove recaptcha from attributes.
 	 *
-	 * @param array $attributes Attributes.
+	 * @param array|mixed $attributes Attributes.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
 	public function remove_recaptcha_from_attributes( $attributes ) {
 		if ( isset( $attributes['recaptcha'] ) ) {
@@ -78,14 +80,14 @@ class Form {
 	/**
 	 * Render block filter.
 	 *
-	 * @param string   $block_content Block content.
-	 * @param array    $block         Block.
-	 * @param WP_Block $instance      Instance.
+	 * @param string|mixed $block_content Block content.
+	 * @param array        $block         Block.
+	 * @param WP_Block     $instance      Instance.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function render_block( $block_content, $block, $instance ) {
+	public function render_block( $block_content, array $block, WP_Block $instance ) {
 		if ( 'kadence/form' !== $block['blockName'] ) {
 			return $block_content;
 		}
@@ -97,10 +99,10 @@ class Form {
 			],
 		];
 
-		return preg_replace(
+		return (string) preg_replace(
 			'/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/',
 			'$1' . HCaptcha::form( $args ) . '$2',
-			$block_content
+			(string) $block_content
 		);
 	}
 

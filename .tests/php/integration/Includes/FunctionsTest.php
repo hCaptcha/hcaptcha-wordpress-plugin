@@ -25,7 +25,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		hcaptcha()->form_shown = false;
 
 		parent::tearDown();

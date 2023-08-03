@@ -47,25 +47,26 @@ class Quform {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_action( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
+		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'quform_pre_validate', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
 	 * Filters the output created by a shortcode callback and adds hcaptcha.
 	 *
-	 * @param string       $output Shortcode output.
+	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function add_hcaptcha( $output, $tag, $attr, $m ) {
+	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
 		if ( 'quform' !== $tag ) {
 			return $output;
 		}
 
+		$output = (string) $output;
 		$max_id = self::MAX_ID;
 
 		if ( preg_match_all( '/quform-element-(\d+?)_(\d+)\D/', $output, $m ) ) {
@@ -99,18 +100,22 @@ class Quform {
 		<?php
 		$hcaptcha = ob_get_clean();
 
-		return preg_replace( '/(<div class="quform-element quform-element-submit)/', $hcaptcha . '$1', $output );
+		return (string) preg_replace(
+			'/(<div class="quform-element quform-element-submit)/',
+			$hcaptcha . '$1',
+			$output
+		);
 	}
 
 	/**
 	 * Verify.
 	 *
-	 * @param array       $result Result.
+	 * @param array|mixed $result Result.
 	 * @param Quform_Form $form   Form.
 	 *
-	 * @return array
+	 * @return array|mixed
 	 */
-	public function verify( $result, $form ) {
+	public function verify( $result, Quform_Form $form ) {
 		$page           = $form->getCurrentPage();
 		$page_id        = $page ? $page->getId() : 0;
 		$hcaptcha_name  = $this->get_max_element_id( $page );
@@ -146,8 +151,9 @@ class Quform {
 	 * @param Quform_Element_Page|null $page Current page.
 	 *
 	 * @return string
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	private function get_max_element_id( $page ) {
+	private function get_max_element_id( $page ): string {
 		$max_id = self::MAX_ID;
 
 		if ( null === $page ) {

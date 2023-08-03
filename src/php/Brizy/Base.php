@@ -38,14 +38,15 @@ abstract class Base {
 	/**
 	 * Add captcha to the form.
 	 *
-	 * @param string               $content Content of the current post.
+	 * @param string|mixed         $content Content of the current post.
 	 * @param Brizy_Editor_Project $project Brizy project.
 	 * @param WP_Post              $post    Post.
 	 * @param string               $type    Type of the content.
 	 *
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $content, $project, $post, $type = '' ) {
+	public function add_captcha( $content, Brizy_Editor_Project $project, WP_Post $post, string $type = '' ) {
 		if ( 'body' !== $type ) {
 			return $content;
 		}
@@ -66,7 +67,7 @@ abstract class Base {
 			'</div>' .
 			$search;
 
-		return str_replace( $search, $replace, $content );
+		return str_replace( $search, $replace, (string) $content );
 	}
 
 	/**

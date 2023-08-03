@@ -34,33 +34,33 @@ class Login extends Base {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
 	}
 
 	/**
 	 * Filters the Beaver Builder Login Form submit button html and adds hcaptcha.
 	 *
-	 * @param string         $out    Button html.
+	 * @param string|mixed   $out    Button html.
 	 * @param FLButtonModule $module Button module.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function add_hcaptcha( $out, $module ) {
+	public function add_hcaptcha( $out, FLButtonModule $module ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $out;
 		}
 
 		// Process login form only.
-		if ( false === strpos( $out, '<div class="fl-login-form' ) ) {
+		if ( false === strpos( (string) $out, '<div class="fl-login-form' ) ) {
 			return $out;
 		}
 
 		// Do not show hCaptcha on logout form.
-		if ( preg_match( '/<div class="fl-login-form.+?logout.*?>/', $out ) ) {
+		if ( preg_match( '/<div class="fl-login-form.+?logout.*?>/', (string) $out ) ) {
 			return $out;
 		}
 
-		return $this->add_hcap_form( $out, $module );
+		return $this->add_hcap_form( (string) $out, $module );
 	}
 
 	/**
@@ -73,7 +73,7 @@ class Login extends Base {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$action = isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '';
 

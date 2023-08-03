@@ -66,9 +66,10 @@ class Form {
 	 * @param array    $submit_button Form data and settings.
 	 * @param stdClass $form          Form data and settings.
 	 *
+	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $submit_button, $form ) {
+	public function add_captcha( array $submit_button, stdClass $form ) {
 		// Do not add if form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return;
@@ -105,14 +106,14 @@ class Form {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $errors, $data, $form, $fields ) {
+	public function verify( array $errors, array $data, stdClass $form, array $fields ): array {
 		// Do not verify if form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return $errors;
 		}
 
-		$hcaptcha_response           = isset( $data['h-captcha-response'] ) ? $data['h-captcha-response'] : '';
-		$_POST['hcaptcha-widget-id'] = isset( $data['hcaptcha-widget-id'] ) ? $data['hcaptcha-widget-id'] : '';
+		$hcaptcha_response           = $data['h-captcha-response'] ?? '';
+		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
 		$error_message               = hcaptcha_request_verify( $hcaptcha_response );
 
 		if ( null !== $error_message ) {
@@ -167,11 +168,15 @@ class Form {
 	/**
 	 * Fluentform load form assets hook.
 	 *
-	 * @param stdClass $form Form.
+	 * @param stdClass|mixed $form Form.
 	 *
-	 * @return stdClass
+	 * @return stdClass|mixed
 	 */
 	public function fluentform_rendering_form_filter( $form ) {
+		if ( ! $form instanceof stdClass ) {
+			return $form;
+		}
+
 		static $has_own_captcha = false;
 
 		if ( $this->has_own_hcaptcha( $form ) ) {
@@ -192,7 +197,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	protected function has_own_hcaptcha( $form ) {
+	protected function has_own_hcaptcha( stdClass $form ): bool {
 		$auto_include = apply_filters( 'ff_has_auto_hcaptcha', false );
 
 		if ( $auto_include ) {

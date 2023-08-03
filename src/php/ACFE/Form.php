@@ -59,7 +59,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function before_fields( $args ) {
+	public function before_fields( array $args ) {
 		$this->form_id = $args['ID'];
 	}
 
@@ -71,7 +71,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_render( $field ) {
+	public function remove_recaptcha_render( array $field ) {
 		if ( ! $this->is_recaptcha( $field ) ) {
 			return;
 		}
@@ -88,7 +88,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function add_hcaptcha( $field ) {
+	public function add_hcaptcha( array $field ) {
 		if ( ! $this->is_recaptcha( $field ) ) {
 			return;
 		}
@@ -113,16 +113,16 @@ class Form {
 	/**
 	 * Remove reCaptcha verify filter.
 	 *
-	 * @param bool   $valid Whether field is valid.
-	 * @param string $value Field Value.
-	 * @param array  $field Field.
-	 * @param string $input Input name.
+	 * @param bool|mixed $valid Whether field is valid.
+	 * @param string     $value Field Value.
+	 * @param array      $field Field.
+	 * @param string     $input Input name.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_verify( $valid, $value, $field, $input ) {
+	public function remove_recaptcha_verify( $valid, string $value, array $field, string $input ) {
 		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
 
 		remove_filter( self::VALIDATION_HOOK, [ $recaptcha, 'validate_value' ] );
@@ -133,15 +133,15 @@ class Form {
 	/**
 	 * Verify request.
 	 *
-	 * @param bool   $valid Whether field is valid.
-	 * @param string $value Field Value.
-	 * @param array  $field Field.
-	 * @param string $input Input name.
+	 * @param bool|mixed $valid Whether field is valid.
+	 * @param string     $value Field Value.
+	 * @param array      $field Field.
+	 * @param string     $input Input name.
 	 *
-	 * @return bool
+	 * @return bool|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $valid, $value, $field, $input ) {
+	public function verify( $valid, string $value, array $field, string $input ) {
 		if ( ! $field['required'] ) {
 			return $valid;
 		}
@@ -165,6 +165,8 @@ class Form {
 
 	/**
 	 * Enqueue scripts.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		$min = hcap_min_suffix();
@@ -185,7 +187,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_recaptcha( $field ) {
+	private function is_recaptcha( array $field ): bool {
 		return isset( $field['type'] ) && 'acfe_recaptcha' === $field['type'];
 	}
 }

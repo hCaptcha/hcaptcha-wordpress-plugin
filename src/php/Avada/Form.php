@@ -46,8 +46,9 @@ class Form {
 	 * @param array $params Parameters.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function form_after_open( $args, $params ) {
+	public function form_after_open( array $args, array $params ) {
 		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
 	}
 
@@ -60,7 +61,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, $args ) {
+	public function add_hcaptcha( string $html, array $args ): string {
 		if ( false === strpos( $html, '<button type="submit"' ) ) {
 			return $html;
 		}
@@ -78,9 +79,9 @@ class Form {
 	/**
 	 * Verify request.
 	 *
-	 * @param bool $demo_mode Demo mode.
+	 * @param bool|mixed $demo_mode Demo mode.
 	 *
-	 * @return bool|void
+	 * @return bool|mixed|void
 	 */
 	public function verify( $demo_mode ) {
 
@@ -91,8 +92,8 @@ class Form {
 			[];
 
 		$form_data                   = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
-		$hcaptcha_response           = isset( $form_data['h-captcha-response'] ) ? $form_data['h-captcha-response'] : '';
-		$hcaptcha_widget_id          = isset( $form_data['hcaptcha-widget-id'] ) ? $form_data['hcaptcha-widget-id'] : '';
+		$hcaptcha_response           = $form_data['h-captcha-response'] ?? '';
+		$hcaptcha_widget_id          = $form_data['hcaptcha-widget-id'] ?? '';
 		$_POST['hcaptcha-widget-id'] = $hcaptcha_widget_id;
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 

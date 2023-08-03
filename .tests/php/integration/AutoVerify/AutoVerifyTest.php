@@ -25,7 +25,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );
 		delete_transient( AutoVerify::TRANSIENT );
 

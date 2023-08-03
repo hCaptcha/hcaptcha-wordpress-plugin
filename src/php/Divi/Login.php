@@ -39,7 +39,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
@@ -48,12 +48,12 @@ class Login extends LoginBase {
 	 * @param string|string[] $output      Module output.
 	 * @param string          $module_slug Module slug.
 	 *
-	 * @return string
+	 * @return string|string[]
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $output, $module_slug ) {
-		if ( et_core_is_fb_enabled() ) {
+	public function add_captcha( $output, string $module_slug ) {
+		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
 			// Do not add captcha in frontend builder.
 
 			return $output;
@@ -89,7 +89,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

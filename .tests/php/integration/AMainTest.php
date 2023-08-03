@@ -20,6 +20,7 @@ use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
+use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
@@ -60,7 +61,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$loaded_classes = $this->get_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes' );
@@ -508,6 +509,9 @@ class AMainTest extends HCaptchaWPTestCase {
 				padding: 0;
 				clear: both;
 			}
+			#hcaptcha-options .h-captcha {
+				margin-bottom: 0;
+			}
 			#af-wrapper div.editor-row.editor-row-hcaptcha {
 				display: flex;
 				flex-direction: row-reverse;
@@ -596,6 +600,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
 			}
+			#wppb-loginform .h-captcha {
+				margin-bottom: 14px;
+			}
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
 			}
@@ -676,7 +683,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection BadExpressionStatementJS
 	 */
-	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ): void {
+	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ) {
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
@@ -705,6 +712,7 @@ class AMainTest extends HCaptchaWPTestCase {
 							const t = document.getElementsByTagName( \'script\' )[0];
 		const s = document.createElement(\'script\');
 		s.type  = \'text/javascript\';
+		s.id = \'hcaptcha-api\';
 		s[\'src\'] = \'' . $expected_script_src . '\';
 		s.async = true;
 		t.parentNode.insertBefore( s, t );
@@ -737,10 +745,11 @@ class AMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
-		$config_params  = '{}';
+		$config_params  = 'on' === $custom_themes ? '' : null;
 		$expected_extra = [
 			'group' => 1,
-			'data'  => 'var HCaptchaMainObject = {"params":"' . $config_params . '"};',
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'data'  => 'var HCaptchaMainObject = {"params":' . json_encode( $config_params ) . '};',
 		];
 
 		update_option(
@@ -865,27 +874,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test print_footer_scripts() in admin.
-	 */
-	public function test_print_footer_scripts_in_admin(): void {
-		set_current_screen( 'edit-post' );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		$scripts = ob_get_clean();
-
-		self::assertFalse( strpos( $scripts, '<style>' ) );
-		self::assertFalse( strpos( $scripts, 'api.js' ) );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-	}
-
-	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
-	public function test_print_footer_scripts_when_form_NOT_shown(): void {
+	public function test_print_footer_scripts_when_form_NOT_shown() {
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		ob_start();
@@ -906,7 +897,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_load_modules
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_load_modules( $module ): void {
+	public function test_load_modules( $module ) {
 		list( $option_name, $option_value ) = $module[0];
 
 		update_option(
@@ -1137,6 +1128,16 @@ class AMainTest extends HCaptchaWPTestCase {
 				'Divi',
 				\HCaptcha\Divi\Login::class,
 			],
+			'Download Manager'                  => [
+				[ 'download_manager_status', 'button' ],
+				'download-manager/download-manager.php',
+				DownloadManager::class,
+			],
+			'Easy Digital Downloads Checkout'   => [
+				[ 'easy_digital_downloads_status', 'checkout' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				\HCaptcha\EasyDigitalDownloads\Checkout::class,
+			],
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
@@ -1201,6 +1202,21 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				\HCaptcha\PaidMembershipsPro\Login::class,
+			],
+			'Profile Builder Login'             => [
+				[ 'profile_builder_status', 'login' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\Login::class,
+			],
+			'Profile Builder Register'          => [
+				[ 'profile_builder_status', 'register' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\Register::class,
+			],
+			'Profile Builder Recover Password'  => [
+				[ 'profile_builder_status', 'lost_pass' ],
+				'profile-builder/index.php',
+				\HCaptcha\ProfileBuilder\LostPassword::class,
 			],
 			'Quform'                            => [
 				[ 'quform_status', 'form' ],
@@ -1307,7 +1323,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test load_textdomain().
 	 */
-	public function test_load_textdomain(): void {
+	public function test_load_textdomain() {
 		$subject = new Main();
 		$subject->init_hooks();
 

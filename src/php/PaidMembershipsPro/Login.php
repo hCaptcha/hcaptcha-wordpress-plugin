@@ -36,18 +36,22 @@ class Login extends LoginBase {
 		$pmpro_page_name = 'login';
 
 		add_filter( 'pmpro_pages_shortcode_' . $pmpro_page_name, [ $this, 'add_captcha' ] );
-		add_action( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
 	 * Add captcha.
 	 *
-	 * @param string $content Content of the PMPro login page.
+	 * @param string|mixed $content Content of the PMPro login page.
+	 *
+	 * @return string|mixed
 	 */
 	public function add_captcha( $content ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $content;
 		}
+
+		$content = (string) $content;
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$action = isset( $_GET['action'] ) ?
@@ -88,7 +92,7 @@ class Login extends LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, $password ) {
+	public function verify( $user, string $password ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$pmpro_login_form_used = isset( $_POST['pmpro_login_form_used'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['pmpro_login_form_used'] ) ) :

@@ -48,8 +48,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		if ( $is_tab ) {
 			WP_Mock::expectActionNotAdded( 'current_screen', [ $subject, 'setup_tabs_section' ] );
+			WP_Mock::expectActionNotAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
 		} else {
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_tabs_section' ], 9 );
+			WP_Mock::expectActionAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
 		}
 
 		$subject->shouldReceive( 'init' )->once()->with();
@@ -154,7 +156,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			[ $subject, 'add_settings_link' ]
 		);
 
-		WP_Mock::expectActionAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
 		WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
 		WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
 
@@ -325,6 +326,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$method = 'init_settings';
 		$this->set_method_accessibility( $subject, $method );
 
+		if ( $settings ) {
+			$settings['_network_wide'] = $network_wide;
+		}
+
 		WP_Mock::userFunction( 'get_site_option' )->with( $option_name . '_network_wide', [] )->once()
 			->andReturn( $network_wide );
 
@@ -337,36 +342,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$form_fields = $this->get_test_form_fields();
 		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
 
-		$form_fields_pluck = [
-			'wp_status'                    => '',
-			'acfe_status'                  => '',
-			'avada_status'                 => '',
-			'bbp_status'                   => '',
-			'beaver_builder_status'        => '',
-			'bp_status'                    => '',
-			'cf7_status'                   => '',
-			'divi_status'                  => '',
-			'download_manager_status'      => '',
-			'elementor_pro_status'         => '',
-			'fluent_status'                => '',
-			'forminator_status'            => '',
-			'gravity_status'               => '',
-			'jetpack_status'               => '',
-			'kadence_status'               => '',
-			'mailchimp_status'             => '',
-			'memberpress_status'           => '',
-			'ninja_status'                 => '',
-			'otter_status'                 => '',
-			'quform_status'                => '',
-			'sendinblue_status'            => '',
-			'subscriber_status'            => '',
-			'ultimate_member_status'       => '',
-			'woocommerce_status'           => '',
-			'woocommerce_wishlists_status' => '',
-			'wpforms_status'               => '',
-			'wpdiscuz_status'              => '',
-			'wpforo_status'                => '',
-		];
+		$form_fields_pluck = $this->wp_list_pluck( $form_fields, 'default' );
 
 		WP_Mock::userFunction( 'wp_list_pluck' )->with( $form_fields, 'default' )->once()
 			->andReturn( $form_fields_pluck );
@@ -503,7 +479,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
 
+		$expected = '<div class="wrap"></div>';
+
+		ob_start();
 		$subject->settings_base_page();
+		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
@@ -690,7 +670,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test is_tab_active().
 	 *
-	 * @param string|null $input       $_GET['tab'].
+	 * @param string|null $on_page     $_GET['page'] === own option page.
+	 * @param string|null $input_tab   $_GET['tab'].
 	 * @param string|null $referer_tab Tab name from referer.
 	 * @param bool        $is_tab      Is tab.
 	 * @param string      $class_name  Class name.
@@ -698,7 +679,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_is_tab_active
 	 */
-	public function test_is_tab_active( $input, $referer_tab, $is_tab, $class_name, $expected ) {
+	public function test_is_tab_active( $on_page, $input_tab, $referer_tab, $is_tab, $class_name, $expected ) {
+		$option_page = 'own-option-page';
+		$input_page  = $on_page ? $option_page : 'some-page';
+
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
 		$tab->shouldReceive( 'is_tab' )->with()->andReturn( $is_tab );
@@ -706,17 +690,26 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'get_tab_name_from_referer' )->andReturn( $referer_tab );
+		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_tab );
+		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
 		FunctionMocker::replace(
 			'filter_input',
-			static function ( $type, $name, $filter ) use ( $input ) {
+			static function ( $type, $name, $filter ) use ( $input_page, $input_tab ) {
+				if (
+					INPUT_GET === $type &&
+					'page' === $name &&
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
+				) {
+					return $input_page;
+				}
+
 				if (
 					INPUT_GET === $type &&
 					'tab' === $name &&
 					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
 				) {
-					return $input;
+					return $input_tab;
 				}
 
 				return null;
@@ -733,12 +726,83 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_is_tab_active() {
 		return [
-			'No input, not a tab'     => [ null, null, false, 'any_class_name', true ],
-			'No input, tab'           => [ null, 'integrations', true, 'any_class_name', false ],
-			'Wrong input, not a tab'  => [ 'wrong', null, false, 'General', false ],
-			'Wrong input, tab'        => [ 'wrong', 'integrations', true, 'General', false ],
-			'Proper input, not a tab' => [ 'general', null, false, 'General', true ],
-			'Proper input, tab'       => [ 'general', 'integrations', true, 'General', true ],
+			'No input, not on page'   => [
+				false,
+				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'any_class_name',
+				true,
+			],
+			'No input, not a tab'     => [
+				true,
+				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'any_class_name',
+				true,
+			],
+			'No input, tab'           => [
+				true,
+				null,
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
+				true,
+				'any_class_name',
+				false,
+			],
+			'Wrong input, not a tab'  => [
+				true,
+				'wrong',
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'General',
+				false,
+			],
+			'Wrong input, tab'        => [
+				true,
+				'wrong',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
+				true,
+				'General',
+				false,
+			],
+			'Proper input, not a tab' => [
+				true,
+				'general',
+				[
+					'page' => null,
+					'tab'  => null,
+				],
+				false,
+				'General',
+				true,
+			],
+			'Proper input, tab'       => [
+				true,
+				'general',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
+				true,
+				'General',
+				true,
+			],
 		];
 	}
 
@@ -755,6 +819,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function test_get_tab_name_from_referer( $doing_ajax, $referer, $expected ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+
 		$subject->shouldReceive( 'wp_parse_str' )->andReturnUsing(
 			static function ( $input_string ) {
 				parse_str( (string) $input_string, $result );
@@ -786,7 +851,14 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			}
 		);
 
-		self::assertSame( $expected, $subject->get_tab_name_from_referer() );
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $url, $component ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $url, $component );
+			}
+		);
+
+		self::assertSame( $expected, $subject->get_names_from_referer() );
 	}
 
 	/**
@@ -798,33 +870,51 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		return [
 			'Not ajax, not a tab'  => [
 				false,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha',
-				null,
+				'/wp-admin/options-general.php?page=hcaptcha',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => null,
+				],
 			],
 			'Not ajax, tab'        => [
 				false,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
-				'integrations',
+				'/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
 			],
 			'Not ajax, no referer' => [
 				false,
 				null,
-				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
 			],
 			'Ajax, not a tab'      => [
 				true,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha',
-				null,
+				'/wp-admin/options-general.php?page=hcaptcha',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => null,
+				],
 			],
 			'Ajax, tab'            => [
 				true,
-				'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
-				'integrations',
+				'/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+				[
+					'page' => 'hcaptcha',
+					'tab'  => 'integrations',
+				],
 			],
 			'Ajax, no referer'     => [
 				true,
 				null,
-				null,
+				[
+					'page' => null,
+					'tab'  => null,
+				],
 			],
 		];
 	}
@@ -962,6 +1052,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_field_callback
 	 * @noinspection PhpUnusedParameterInspection
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_field_callback( $arguments, $expected ) {
 		$option_name = 'hcaptcha_settings';
@@ -970,6 +1061,21 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 		$subject->shouldReceive( 'get' )->with( $arguments['field_id'] )->andReturn( $arguments['default'] );
+
+		$fields = [
+			'text'     => [ $subject, 'print_text_field' ],
+			'password' => [ $subject, 'print_text_field' ],
+			'number'   => [ $subject, 'print_number_field' ],
+			'textarea' => [ $subject, 'print_textarea_field' ],
+			'checkbox' => [ $subject, 'print_checkbox_field' ],
+			'radio'    => [ $subject, 'print_radio_field' ],
+			'select'   => [ $subject, 'print_select_field' ],
+			'multiple' => [ $subject, 'print_multiple_select_field' ],
+			'table'    => [ $subject, 'print_table_field' ],
+			'button'   => [ $subject, 'print_button_field' ],
+		];
+
+		$this->set_protected_property( $subject, 'fields', $fields );
 
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 		WP_Mock::passthruFunction( 'wp_kses' );
@@ -1215,7 +1321,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
-				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"  />' .
+				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				' </label><br/></fieldset>',
 			],
 			'Checkbox not checked'      => [
@@ -1231,7 +1337,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
-				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"  />' .
+				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				' </label><br/></fieldset>',
 			],
 			'Checkbox checked'          => [
@@ -1247,7 +1353,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
-				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"  />' .
+				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				' </label><br/></fieldset>',
 			],
 		];
@@ -1325,13 +1431,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
-				' name="hcaptcha_settings[some_id]" type="radio" value="0"  />' .
+				' name="hcaptcha_settings[some_id]" type="radio" value="0"   />' .
 				' green</label><br/>' .
 				'<label for="some_id_2"><input id="some_id_2"' .
-				' name="hcaptcha_settings[some_id]" type="radio" value="1" checked="checked" />' .
+				' name="hcaptcha_settings[some_id]" type="radio" value="1" checked="checked"  />' .
 				' yellow</label><br/>' .
 				'<label for="some_id_3"><input id="some_id_3"' .
-				' name="hcaptcha_settings[some_id]" type="radio" value="2"  />' .
+				' name="hcaptcha_settings[some_id]" type="radio" value="2"   />' .
 				' red</label><br/></fieldset>',
 			],
 		];
@@ -1387,9 +1493,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<select  name="hcaptcha_settings[some_id]">' .
-				'<option value="0" >green</option>' .
-				'<option value="1" selected="selected">yellow</option>' .
-				'<option value="2" >red</option>' .
+				'<option value="0"  >green</option>' .
+				'<option value="1" selected="selected" >yellow</option>' .
+				'<option value="2"  >red</option>' .
 				'</select>',
 			],
 		];
@@ -1467,9 +1573,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<select  multiple="multiple" name="hcaptcha_settings[some_id][]">' .
-				'<option value="0" >green</option>' .
-				'<option value="1" >yellow</option>' .
-				'<option value="2" >red</option>' .
+				'<option value="0"  >green</option>' .
+				'<option value="1"  >yellow</option>' .
+				'<option value="2"  >red</option>' .
 				'</select>',
 			],
 			'Multiple with multiple selection' => [
@@ -1486,9 +1592,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<select  multiple="multiple" name="hcaptcha_settings[some_id][]">' .
-				'<option value="0" >green</option>' .
-				'<option value="1" selected="selected">yellow</option>' .
-				'<option value="2" selected="selected">red</option>' .
+				'<option value="0"  >green</option>' .
+				'<option value="1" selected="selected" >yellow</option>' .
+				'<option value="2" selected="selected" >red</option>' .
 				'</select>',
 			],
 		];

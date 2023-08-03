@@ -27,7 +27,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUndefinedClassInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function tearDown(): void {
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		$this->set_protected_property( hcaptcha(), 'loaded_classes', [] );
 
 		parent::tearDown();

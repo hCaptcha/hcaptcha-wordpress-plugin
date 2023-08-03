@@ -12,8 +12,10 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Main;
 use HCaptcha\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
+use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
@@ -203,6 +205,7 @@ class GeneralTest extends HCaptchaTestCase {
 				General::SECTION_KEYS,
 				'				<h2>
 					General				</h2>
+				<div id="hcaptcha-message"></div>
 				<p>
 					To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.				</p>
 						<h3 class="hcaptcha-section-keys">Keys</h3>
@@ -236,6 +239,15 @@ class GeneralTest extends HCaptchaTestCase {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min_prefix     = '.min';
+		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
+		$nonce          = 'some_nonce';
+		$site_key       = 'some key';
+
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_site_key' )->andReturn( $site_key );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
 
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -256,6 +268,48 @@ class GeneralTest extends HCaptchaTestCase {
 				return '';
 			}
 		);
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				General::HANDLE,
+				$plugin_url . "/assets/js/general$min_prefix.js",
+				[ 'jquery' ],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'admin_url' )
+			->with( 'admin-ajax.php' )
+			->andReturn( $ajax_url )
+			->once();
+
+		WP_Mock::userFunction( 'wp_create_nonce' )
+			->with( General::CHECK_CONFIG_ACTION )
+			->andReturn( $nonce )
+			->once();
+
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				General::HANDLE,
+				General::OBJECT,
+				[
+					'ajaxUrl'                              => $ajax_url,
+					'action'                               => General::CHECK_CONFIG_ACTION,
+					'nonce'                                => $nonce,
+					'modeLive'                             => General::MODE_LIVE,
+					'modeTestPublisher'                    => General::MODE_TEST_PUBLISHER,
+					'modeTestEnterpriseSafeEndUser'        => General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
+					'modeTestEnterpriseBotDetected'        => General::MODE_TEST_ENTERPRISE_BOT_DETECTED,
+					'siteKey'                              => $site_key,
+					'modeTestPublisherSiteKey'             => General::MODE_TEST_PUBLISHER_SITE_KEY,
+					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
+					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
+				]
+			)
+			->once();
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(

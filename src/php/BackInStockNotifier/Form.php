@@ -65,7 +65,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_email_field( $product_id, $variation_id ) {
+	public function after_email_field( int $product_id, int $variation_id ) {
 		$this->form_id = $product_id;
 
 		ob_start();
@@ -80,7 +80,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_submit_button( $product_id, $variation_id ) {
+	public function after_submit_button( int $product_id, int $variation_id ) {
 		$output = ob_get_clean();
 
 		$args = [
@@ -108,9 +108,9 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function verify( $post_data, $rest_api ) {
+	public function verify( array $post_data, bool $rest_api ) {
 
-		$hcaptcha_response = isset( $post_data['h-captcha-response'] ) ? $post_data['h-captcha-response'] : '';
+		$hcaptcha_response = $post_data['h-captcha-response'] ?? '';
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
@@ -132,6 +132,7 @@ class Form {
 	 * Enqueue Back In Stock Notifier script.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function enqueue_scripts() {
 		if ( is_shop() ) {

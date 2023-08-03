@@ -96,16 +96,17 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function set_form_id( $args ) {
+	public function set_form_id( array $args ) {
 		$this->form_id = isset( $args['form_id'] ) ? (int) $args['form_id'] : 0;
 	}
 
 	/**
 	 * Add hCaptcha to form fields.
 	 *
-	 * @param array $fields Form fields.
+	 * @param array|mixed $fields Form fields.
 	 *
-	 * @return array
+	 * @return array|mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha( $fields ) {
 		$um = UM();
@@ -118,7 +119,7 @@ abstract class Base extends LoginBase {
 			return $fields;
 		}
 
-		$fields       = $fields ?: [];
+		$fields       = $fields ? (array) $fields : [];
 		$max_position = 0;
 		$in_row       = '_um_row_1';
 		$in_sub_row   = '0';
@@ -163,12 +164,13 @@ abstract class Base extends LoginBase {
 	/**
 	 * Display hCaptcha.
 	 *
-	 * @param string $output Output.
-	 * @param string $mode   Mode.
+	 * @param string|mixed $output Output.
+	 * @param string       $mode   Mode.
 	 *
-	 * @return string
+	 * @return string|mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function display_captcha( $output, $mode ) {
+	public function display_captcha( $output, string $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
 			return $output;
 		}
@@ -209,8 +211,9 @@ abstract class Base extends LoginBase {
 	 * @param array $form_data      Form data.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $submitted_data, $form_data = [] ) {
+	public function verify( array $submitted_data, array $form_data = [] ) {
 		$um = UM();
 
 		if (

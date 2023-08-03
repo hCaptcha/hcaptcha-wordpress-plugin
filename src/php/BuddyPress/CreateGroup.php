@@ -43,6 +43,8 @@ class CreateGroup {
 
 	/**
 	 * Add captcha to the group form.
+	 *
+	 * @return void
 	 */
 	public function add_captcha() {
 		echo '<div class="hcap_buddypress_group_form">';
@@ -71,7 +73,7 @@ class CreateGroup {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $bp_group ) {
+	public function verify( $bp_group ): bool {
 		if ( ! bp_is_group_creation_step( 'group-details' ) ) {
 			return false;
 		}
