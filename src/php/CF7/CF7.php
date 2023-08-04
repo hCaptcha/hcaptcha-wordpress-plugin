@@ -99,7 +99,7 @@ class CF7 {
 		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
 
 		$args = wp_parse_args(
-			$attr,
+			(array) $attr,
 			/**
 			 * CF7 works via REST API, where current user is set to 0 (not logged in) if nonce is not present.
 			 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
@@ -180,12 +180,12 @@ class CF7 {
 	 * Verify CF7 recaptcha.
 	 *
 	 * @param WPCF7_Validation|mixed $result Result.
-	 * @param WPCF7_FormTag          $tag    Tag.
+	 * @param WPCF7_FormTag[]|mixed  $tag    Tag.
 	 *
 	 * @return WPCF7_Validation|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify_hcaptcha( $result, WPCF7_FormTag $tag ) {
+	public function verify_hcaptcha( $result, $tag ) {
 		$submission = WPCF7_Submission::get_instance();
 
 		if ( null === $submission ) {
@@ -206,12 +206,13 @@ class CF7 {
 	/**
 	 * Get invalidated result.
 	 *
-	 * @param WPCF7_Validation $result         Result.
-	 * @param string           $captcha_result hCaptcha result.
+	 * @param WPCF7_Validation|mixed $result         Result.
+	 * @param string|null            $captcha_result hCaptcha result.
 	 *
-	 * @return WPCF7_Validation
+	 * @return WPCF7_Validation|mixed
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	private function get_invalidated_result( WPCF7_Validation $result, string $captcha_result = '' ): WPCF7_Validation {
+	private function get_invalidated_result( $result, $captcha_result = '' ) {
 		if ( '' === $captcha_result ) {
 			$captcha_result = hcap_get_error_messages()['empty'];
 		}
