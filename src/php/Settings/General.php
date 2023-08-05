@@ -433,17 +433,8 @@ class General extends PluginSettingsBase {
 					<?php echo esc_html( $this->page_title() ); ?>
 				</h2>
 				<div id="hcaptcha-message"></div>
-				<p>
-					<?php
-					echo wp_kses_post(
-						__(
-							'To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.',
-							'hcaptcha-for-forms-and-more'
-						)
-					);
-					?>
-				</p>
 				<?php
+				hcaptcha()->notifications()->show();
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			case self::SECTION_APPEARANCE:
@@ -491,7 +482,7 @@ class General extends PluginSettingsBase {
 			self::OBJECT,
 			[
 				'ajaxUrl'                              => admin_url( 'admin-ajax.php' ),
-				'action'                               => self::CHECK_CONFIG_ACTION,
+				'checkConfigAction'                    => self::CHECK_CONFIG_ACTION,
 				'nonce'                                => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
 				'modeLive'                             => self::MODE_LIVE,
 				'modeTestPublisher'                    => self::MODE_TEST_PUBLISHER,
