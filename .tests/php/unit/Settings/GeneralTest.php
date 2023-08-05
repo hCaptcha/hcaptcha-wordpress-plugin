@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Admin\Notifications;
 use HCaptcha\Main;
 use HCaptcha\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
@@ -187,6 +188,18 @@ class GeneralTest extends HCaptchaTestCase {
 	public function test_section_callback( $section_id, $expected ) {
 		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
+		$notifications = Mockery::mock( Notifications::class )->makePartial();
+
+		if ( General::SECTION_KEYS === $section_id ) {
+			$notifications->shouldReceive( 'show' )->once();
+			$main = Mockery::mock( Main::class )->makePartial();
+			$main->shouldReceive( 'notifications' )->andReturn( $notifications );
+
+			WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+		} else {
+			WP_Mock::userFunction( 'hcaptcha' )->never();
+		}
+
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 
 		ob_start();
@@ -206,8 +219,6 @@ class GeneralTest extends HCaptchaTestCase {
 				'				<h2>
 					General				</h2>
 				<div id="hcaptcha-message"></div>
-				<p>
-					To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.				</p>
 						<h3 class="hcaptcha-section-keys">Keys</h3>
 		',
 			],
@@ -297,7 +308,7 @@ class GeneralTest extends HCaptchaTestCase {
 				General::OBJECT,
 				[
 					'ajaxUrl'                              => $ajax_url,
-					'action'                               => General::CHECK_CONFIG_ACTION,
+					'checkConfigAction'                    => General::CHECK_CONFIG_ACTION,
 					'nonce'                                => $nonce,
 					'modeLive'                             => General::MODE_LIVE,
 					'modeTestPublisher'                    => General::MODE_TEST_PUBLISHER,
