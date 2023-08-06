@@ -30,6 +30,11 @@ class Notifications {
 	const DISMISS_NOTIFICATION_ACTION = 'hcaptcha-dismiss-notification';
 
 	/**
+	 * Reset notifications ajax action.
+	 */
+	const RESET_NOTIFICATIONS_ACTION = 'hcaptcha-reset-notifications';
+
+	/**
 	 * Dismissed user meta.
 	 */
 	const HCAPTCHA_DISMISSED_META_KEY = 'hcaptcha_dismissed';
@@ -66,6 +71,7 @@ class Notifications {
 	private function init_hooks() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::DISMISS_NOTIFICATION_ACTION, [ $this, 'dismiss_notification' ] );
+		add_action( 'wp_ajax_' . self::RESET_NOTIFICATIONS_ACTION, [ $this, 'reset_notifications' ] );
 	}
 
 	/**
@@ -219,7 +225,9 @@ class Notifications {
 			[
 				'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
 				'dismissNotificationAction' => self::DISMISS_NOTIFICATION_ACTION,
-				'nonce'                     => wp_create_nonce( self::DISMISS_NOTIFICATION_ACTION ),
+				'dismissNotificationNonce'  => wp_create_nonce( self::DISMISS_NOTIFICATION_ACTION ),
+				'resetNotificationAction'   => self::RESET_NOTIFICATIONS_ACTION,
+				'resetNotificationNonce'    => wp_create_nonce( self::RESET_NOTIFICATIONS_ACTION ),
 			]
 		);
 
@@ -290,5 +298,43 @@ class Notifications {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Ajax action to reset notifications.
+	 *
+	 * @return void
+	 */
+	public function reset_notifications() {
+		// Run a security check.
+		if ( ! check_ajax_referer( self::RESET_NOTIFICATIONS_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		if ( ! $this->remove_dismissed() ) {
+			wp_send_json_error();
+		}
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Remove dismissed status for all notifications.
+	 *
+	 * @return bool
+	 */
+	private function remove_dismissed() {
+		$user = wp_get_current_user();
+
+		if ( ! $user ) {
+			return false;
+		}
+
+		return delete_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY );
 	}
 }

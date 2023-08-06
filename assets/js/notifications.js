@@ -3,7 +3,9 @@
 /**
  * @param HCaptchaNotificationsObject.ajaxUrl
  * @param HCaptchaNotificationsObject.dismissNotificationAction
- * @param HCaptchaNotificationsObject.nonce
+ * @param HCaptchaNotificationsObject.dismissNotificationNonce
+ * @param HCaptchaNotificationsObject.resetNotificationAction
+ * @param HCaptchaNotificationsObject.resetNotificationNonce
  */
 
 /**
@@ -78,7 +80,7 @@ const notifications = ( $ ) => {
 
 		const data = {
 			action: HCaptchaNotificationsObject.dismissNotificationAction,
-			nonce: HCaptchaNotificationsObject.nonce,
+			nonce: HCaptchaNotificationsObject.dismissNotificationNonce,
 			id: $notification.data( 'id' ),
 		};
 
@@ -120,7 +122,21 @@ const notifications = ( $ ) => {
 		}
 	} );
 
-	setButtons();
+	$( 'button#reset_notifications' ).on( 'click', function() {
+		const data = {
+			action: HCaptchaNotificationsObject.resetNotificationAction,
+			nonce: HCaptchaNotificationsObject.resetNotificationNonce,
+		};
+
+		// noinspection JSVoidFunctionReturnValueUsed,JSCheckFunctionSignatures
+		$.post( {
+			url: HCaptchaNotificationsObject.ajaxUrl,
+			data,
+		} ).success( function() {
+			// We can prepare notifications for display on backend only.
+			location.reload();
+		} );
+	} );
 };
 
 jQuery( document ).ready( notifications );

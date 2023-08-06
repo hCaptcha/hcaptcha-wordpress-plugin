@@ -145,6 +145,12 @@ class General extends PluginSettingsBase {
 				'text'    => __( 'Check', 'hcaptcha-for-forms-and-more' ),
 				'section' => self::SECTION_KEYS,
 			],
+			'reset_notifications'  => [
+				'label'   => __( 'Reset Notifications', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'button',
+				'text'    => __( 'Reset', 'hcaptcha-for-forms-and-more' ),
+				'section' => self::SECTION_KEYS,
+			],
 			'theme'                => [
 				'label'   => __( 'Theme', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',

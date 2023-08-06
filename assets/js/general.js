@@ -42,7 +42,7 @@ const general = function( $ ) {
 
 	function showMessage( message, msgClass ) {
 		$message.removeClass();
-		$message.addClass( msgClass + ' notice notice-error is-dismissible' );
+		$message.addClass( msgClass + ' notice is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
 		$( document ).trigger( 'wp-updates-notice-added' );
 	}
