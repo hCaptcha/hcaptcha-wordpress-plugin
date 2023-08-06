@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256"
+     height="256" viewBox="0 0 256 256" xml:space="preserve">
+
+<defs>
+</defs>
+    <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;"
+       transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+		<radialGradient
+                id="Gradient"
+                cx="53%"
+                cy="80%">
+			<stop offset="0%" stop-color="#0082BF" stop-opacity="1"/>
+            <stop offset="20%" stop-color="#008FBF" stop-opacity="0.9"/>
+            <stop offset="40%" stop-color="#009DBF" stop-opacity="0.8"/>
+            <stop offset="60%" stop-color="#00ABBF" stop-opacity="0.7"/>
+            <stop offset="80%" stop-color="#00B9BF" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="#00C6BF" stop-opacity="0.5"/>
+		</radialGradient>
+        <circle cx="45" cy="45" r="45"
+                style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;"
+                fill="url(#Gradient)"
+                transform="  matrix(1 0 0 1 0 0) "/>
+        <path d="M 48.677 68.442 c 0 3.73 -3.051 6.781 -6.781 6.781 h 0 c -3.73 0 -6.781 -3.051 -6.781 -6.781"
+              style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(27,167,173); fill-rule: nonzero; opacity: 1;"
+              transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+        <path d="M 67.856 63.283 c -0.521 -0.345 -1.171 -0.693 -1.985 -1.045 c -5.164 -2.352 -4.87 -15.543 -5.681 -23.584 c -1.239 -8.201 -5.178 -13.348 -11.816 -15.442 c -0.859 -2.761 -3.443 -4.781 -6.478 -4.781 s -5.619 2.02 -6.478 4.781 c -6.638 2.094 -10.577 7.241 -11.816 15.442 c -0.81 8.041 -0.517 21.232 -5.681 23.584 c -0.814 0.353 -1.464 0.701 -1.985 1.045 c -1.082 0.716 -0.574 2.398 0.723 2.398 h 25.212 h 0.049 h 25.212 C 68.43 65.68 68.938 63.999 67.856 63.283 z"
+              style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(27,167,173); fill-rule: nonzero; opacity: 1;"
+              transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+        <path d="M 51.885 65.234 c 0 3.73 -3.051 6.781 -6.781 6.781 h 0 c -3.73 0 -6.781 -3.051 -6.781 -6.781"
+              style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+        <path d="M 71.064 60.075 c -0.521 -0.345 -1.171 -0.693 -1.985 -1.045 c -5.164 -2.352 -4.87 -15.543 -5.681 -23.584 c -1.239 -8.201 -5.178 -13.348 -11.816 -15.442 c -0.859 -2.761 -3.443 -4.781 -6.478 -4.781 s -5.619 2.02 -6.478 4.781 c -6.638 2.094 -10.577 7.241 -11.816 15.442 c -0.81 8.041 -0.517 21.232 -5.681 23.584 c -0.814 0.353 -1.464 0.701 -1.985 1.045 c -1.082 0.716 -0.574 2.398 0.723 2.398 h 25.212 h 0.049 h 25.212 C 71.638 62.473 72.146 60.791 71.064 60.075 z"
+              style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+	</g>
+</svg>

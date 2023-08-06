@@ -6,6 +6,25 @@
 	box-sizing: border-box;
 }
 
+#hcaptcha-notifications-header {
+	display: flex;
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #c3c4c7;
+	line-height: 1.3;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+#hcaptcha-notifications-header::before {
+	content: '';
+	background-image: url('../images/notification-bell.svg');
+	background-size: cover;
+	position: relative;
+	width: 30px;
+	height: 30px;
+}
+
 #hcaptcha-notifications-footer {
 	display: flex;
 	justify-content: space-between;
@@ -25,8 +44,12 @@
 	font-weight: 600;
 }
 
-#hcaptcha-notifications .hcaptcha-notification:not(:first-child) {
+.hcaptcha-notification {
 	display: none;
+}
+
+#hcaptcha-notifications-header + .hcaptcha-notification {
+	display: block;
 }
 
 #hcaptcha-navigation {

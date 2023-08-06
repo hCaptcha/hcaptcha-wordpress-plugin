@@ -12,7 +12,6 @@
  * @param {Object} $ jQuery instance.
  */
 const notifications = ( $ ) => {
-	const sectionTitleSelector = 'h3#hcaptcha-section-notifications';
 	const optionsSelector = 'form#hcaptcha-options';
 	const notificationsSelector = 'div#hcaptcha-notifications';
 	const notificationSelector = 'div.hcaptcha-notification';
@@ -90,7 +89,6 @@ const notifications = ( $ ) => {
 		setButtons();
 
 		if ( $( notificationSelector ).length === 0 ) {
-			$( sectionTitleSelector ).remove();
 			$( notificationsSelector ).remove();
 		}
 

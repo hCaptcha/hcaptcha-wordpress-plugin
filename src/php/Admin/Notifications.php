@@ -145,10 +145,10 @@ class Notifications {
 		}
 
 		?>
-		<h3 id="hcaptcha-section-notifications">
-			<?php esc_html_e( 'Notifications', 'hcaptcha-for-forms-and-more' ); ?>
-		</h3>
 		<div id="hcaptcha-notifications">
+			<div id="hcaptcha-notifications-header">
+				<?php esc_html_e( 'Notifications', 'hcaptcha-for-forms-and-more' ); ?>
+			</div>
 			<?php
 
 			foreach ( $notifications as $id => $notification ) {
