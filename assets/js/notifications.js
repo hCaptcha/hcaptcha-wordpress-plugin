@@ -15,7 +15,7 @@
  */
 const notifications = ( $ ) => {
 	const optionsSelector = 'form#hcaptcha-options';
-	const messageSelector = 'div#hcaptcha-message';
+	const sectionKeysSelector = 'h3.hcaptcha-section-keys';
 	const notificationsSelector = 'div#hcaptcha-notifications';
 	const notificationSelector = 'div.hcaptcha-notification';
 	const dismissSelector = notificationsSelector + ' button.notice-dismiss';
@@ -140,7 +140,7 @@ const notifications = ( $ ) => {
 			}
 
 			$( notificationsSelector ).remove();
-			$( response.data ).insertAfter( messageSelector );
+			$( response.data ).insertBefore( sectionKeysSelector );
 
 			setButtons();
 		} );
