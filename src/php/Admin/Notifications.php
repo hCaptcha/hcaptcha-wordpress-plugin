@@ -87,7 +87,7 @@ class Notifications {
 
 		$this->notifications = [
 			'register'       => [
-				'title'   => __( 'Register hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha link, 2: register link. */
 					__( 'To use %1$s, please register %2$s to get your site and secret keys.', 'hcaptcha-for-forms-and-more' ),
@@ -104,7 +104,7 @@ class Notifications {
 				),
 				'button'  => [
 					'url'  => $register_url,
-					'text' => __( 'Register', 'hcaptcha-for-forms-and-more' ),
+					'text' => __( 'Get site keys', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'pro-free-trial' => [
