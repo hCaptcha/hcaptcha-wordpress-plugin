@@ -137,6 +137,8 @@ const notifications = ( $ ) => {
 			location.reload();
 		} );
 	} );
+
+	setButtons();
 };
 
 jQuery( document ).ready( notifications );
