@@ -15,6 +15,7 @@
  */
 const notifications = ( $ ) => {
 	const optionsSelector = 'form#hcaptcha-options';
+	const messageSelector = 'div#hcaptcha-message';
 	const notificationsSelector = 'div#hcaptcha-notifications';
 	const notificationSelector = 'div.hcaptcha-notification';
 	const dismissSelector = notificationsSelector + ' button.notice-dismiss';
@@ -22,6 +23,7 @@ const notifications = ( $ ) => {
 	const navNextSelector = '#hcaptcha-navigation .next';
 	const navSelectors = navPrevSelector + ', ' + navNextSelector;
 	const buttonsSelector = '.hcaptcha-notification-buttons';
+	const resetBtnSelector = 'button#reset_notifications';
 	const footerSelector = '#hcaptcha-notifications-footer';
 	let $notifications;
 
@@ -103,7 +105,7 @@ const notifications = ( $ ) => {
 		return false;
 	} );
 
-	$( navSelectors ).on( 'click', function( event ) {
+	$( optionsSelector ).on( 'click', navSelectors, function( event ) {
 		let direction = 1;
 
 		if ( $( event.target ).hasClass( 'prev' ) ) {
@@ -122,7 +124,7 @@ const notifications = ( $ ) => {
 		}
 	} );
 
-	$( 'button#reset_notifications' ).on( 'click', function() {
+	$( resetBtnSelector ).on( 'click', function() {
 		const data = {
 			action: HCaptchaNotificationsObject.resetNotificationAction,
 			nonce: HCaptchaNotificationsObject.resetNotificationNonce,
@@ -132,9 +134,15 @@ const notifications = ( $ ) => {
 		$.post( {
 			url: HCaptchaNotificationsObject.ajaxUrl,
 			data,
-		} ).success( function() {
-			// We can prepare notifications for display on backend only.
-			location.reload();
+		} ).success( function( response ) {
+			if ( ! response.success ) {
+				return;
+			}
+
+			$( notificationsSelector ).remove();
+			$( response.data ).insertAfter( messageSelector );
+
+			setButtons();
 		} );
 	} );
 

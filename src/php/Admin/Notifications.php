@@ -320,7 +320,10 @@ class Notifications {
 			wp_send_json_error();
 		}
 
-		wp_send_json_success();
+		ob_start();
+		$this->show();
+
+		wp_send_json_success( wp_kses_post( ob_get_clean() ) );
 	}
 
 	/**
