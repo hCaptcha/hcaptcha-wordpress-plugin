@@ -44,7 +44,18 @@ const general = function( $ ) {
 		$message.removeClass();
 		$message.addClass( msgClass + ' notice is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
+
 		$( document ).trigger( 'wp-updates-notice-added' );
+
+		const $wpwrap = $( '#wpwrap' );
+		const top = $wpwrap.position().top;
+
+		$( 'html, body' ).animate(
+			{
+				scrollTop: $message.offset().top - top,
+			},
+			1000
+		);
 	}
 
 	function showSuccessMessage( response ) {
