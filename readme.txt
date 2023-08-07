@@ -484,6 +484,7 @@ Instructions for popular native integrations are below:
 
 = 3.1.0 =
 * Added notification system.
+* Fixed mode selection for sample hCaptcha on the General settings page.
 
 = 3.0.1 =
 * Fixed error on Contact Form 7 validation.

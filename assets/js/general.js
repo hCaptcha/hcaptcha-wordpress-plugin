@@ -117,6 +117,7 @@ const general = function( $ ) {
 		const data = {
 			action: HCaptchaGeneralObject.checkConfigAction,
 			nonce: HCaptchaGeneralObject.nonce,
+			'ajax-mode': $( 'select[name="hcaptcha_settings[mode]"]' ).val(),
 			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
 		};
 

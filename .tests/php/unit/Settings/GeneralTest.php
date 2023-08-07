@@ -125,14 +125,21 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_setup_fields
 	 */
 	public function test_setup_fields( $mode ) {
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_mode' )->andReturn( $mode );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
-		$subject->shouldReceive( 'get' )->andReturn( $mode );
 		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
 
 		WP_Mock::passthruFunction( 'register_setting' );
 		WP_Mock::passthruFunction( 'add_settings_field' );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
 		$subject->setup_fields();
 
@@ -255,7 +262,7 @@ class GeneralTest extends HCaptchaTestCase {
 		$site_key       = 'some key';
 
 		$settings = Mockery::mock( Settings::class )->makePartial();
-		$settings->shouldReceive( 'get_site_key' )->andReturn( $site_key );
+		$settings->shouldReceive( 'get' )->with( 'site_key' )->andReturn( $site_key );
 
 		$main = Mockery::mock( Main::class )->makePartial();
 		$main->shouldReceive( 'settings' )->andReturn( $settings );

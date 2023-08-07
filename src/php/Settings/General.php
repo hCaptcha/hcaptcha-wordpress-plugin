@@ -416,7 +416,8 @@ class General extends PluginSettingsBase {
 			return;
 		}
 
-		$mode = $this->get( 'mode' );
+		// In Settings, a filter applied for mode.
+		$mode = hcaptcha()->settings()->get_mode();
 
 		if ( self::MODE_LIVE !== $mode ) {
 			$this->form_fields['site_key']['disabled']   = true;
@@ -494,7 +495,7 @@ class General extends PluginSettingsBase {
 				'modeTestPublisher'                    => self::MODE_TEST_PUBLISHER,
 				'modeTestEnterpriseSafeEndUser'        => self::MODE_TEST_ENTERPRISE_SAFE_END_USER,
 				'modeTestEnterpriseBotDetected'        => self::MODE_TEST_ENTERPRISE_BOT_DETECTED,
-				'siteKey'                              => hcaptcha()->settings()->get_site_key(),
+				'siteKey'                              => hcaptcha()->settings()->get( 'site_key' ),
 				'modeTestPublisherSiteKey'             => self::MODE_TEST_PUBLISHER_SITE_KEY,
 				'modeTestEnterpriseSafeEndUserSiteKey' => self::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 				'modeTestEnterpriseBotDetectedSiteKey' => self::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
@@ -547,6 +548,7 @@ class General extends PluginSettingsBase {
 	 * Ajax action to check config.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_config() {
 		// Run a security check.
@@ -559,17 +561,24 @@ class General extends PluginSettingsBase {
 			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$settings = hcaptcha()->settings();
+		$ajax_mode = isset( $_POST['ajax-mode'] ) ? sanitize_text_field( wp_unslash( $_POST['ajax-mode'] ) ) : '';
 
-		$params = [
+		add_filter(
+			'hcap_mode',
+			static function ( $mode ) use ( $ajax_mode ) {
+				return $ajax_mode;
+			}
+		);
+
+		$settings = hcaptcha()->settings();
+		$params   = [
 			'host'    => (string) wp_parse_url( site_url(), PHP_URL_HOST ),
 			'sitekey' => $settings->get_site_key(),
 			'sc'      => 1,
 			'swa'     => 1,
 			'spst'    => 0,
 		];
-
-		$url = add_query_arg( $params, 'https://hcaptcha.com/checksiteconfig' );
+		$url      = add_query_arg( $params, 'https://hcaptcha.com/checksiteconfig' );
 
 		$raw_response = wp_remote_post( $url );
 

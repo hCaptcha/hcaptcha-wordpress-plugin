@@ -81,7 +81,7 @@ require HCAPTCHA_INC . '/functions.php';
  *
  * @return Main
  */
-function hcaptcha() {
+function hcaptcha(): Main {
 	static $hcaptcha;
 
 	if ( ! $hcaptcha ) {
