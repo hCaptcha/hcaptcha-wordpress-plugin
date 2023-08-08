@@ -2,7 +2,7 @@
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
- * @param HCaptchaGeneralObject.action
+ * @param HCaptchaGeneralObject.checkConfigAction
  * @param HCaptchaGeneralObject.nonce
  * @param HCaptchaGeneralObject.modeLive
  * @param HCaptchaGeneralObject.modeTestPublisher
@@ -42,9 +42,20 @@ const general = function( $ ) {
 
 	function showMessage( message, msgClass ) {
 		$message.removeClass();
-		$message.addClass( msgClass + ' notice settings-error is-dismissible' );
+		$message.addClass( msgClass + ' notice is-dismissible' );
 		$message.html( `<p>${ message }</p>` );
+
 		$( document ).trigger( 'wp-updates-notice-added' );
+
+		const $wpwrap = $( '#wpwrap' );
+		const top = $wpwrap.position().top;
+
+		$( 'html, body' ).animate(
+			{
+				scrollTop: $message.offset().top - top,
+			},
+			1000
+		);
 	}
 
 	function showSuccessMessage( response ) {
@@ -115,8 +126,9 @@ const general = function( $ ) {
 		clearMessage();
 
 		const data = {
-			action: HCaptchaGeneralObject.action,
+			action: HCaptchaGeneralObject.checkConfigAction,
 			nonce: HCaptchaGeneralObject.nonce,
+			'ajax-mode': $( 'select[name="hcaptcha_settings[mode]"]' ).val(),
 			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
 		};
 

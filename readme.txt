@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.0.0
-Stable tag: 3.0.1
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -481,6 +481,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.1.0 =
+* Added notification system.
+* Fixed mode selection for sample hCaptcha on the General settings page.
 
 = 3.0.1 =
 * Fixed error on Contact Form 7 validation.

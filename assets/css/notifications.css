@@ -1,0 +1,95 @@
+#hcaptcha-notifications {
+	margin: 5px 0 15px;
+	background: #fff;
+	padding: 15px 20px;
+	max-width: 760px;
+	box-sizing: border-box;
+}
+
+#hcaptcha-notifications-header {
+	display: flex;
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #c3c4c7;
+	line-height: 1.3;
+	font-size: 14px;
+	font-weight: 600;
+	justify-content: flex-start;
+	align-items: center;
+	column-gap: 3px;
+}
+
+#hcaptcha-notifications-header::before {
+	content: '';
+	background-image: url('../images/notification-bell.svg');
+	background-size: cover;
+	position: relative;
+	width: 30px;
+	height: 30px;
+}
+
+#hcaptcha-notifications-footer {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid #c3c4c7;
+}
+
+#hcaptcha-notifications .hcaptcha-notification {
+	margin: 0;
+}
+
+.hcaptcha-notification .hcaptcha-notification-title {
+	margin: 7px 0;
+	padding: 2px;
+	line-height: 1.3;
+	font-weight: 600;
+}
+
+.hcaptcha-notification {
+	display: none;
+}
+
+#hcaptcha-notifications-header + .hcaptcha-notification {
+	display: block;
+}
+
+#hcaptcha-navigation {
+	display: flex;
+	justify-content: flex-end;
+	column-gap: 3px;
+}
+
+#hcaptcha-navigation a {
+	width: 30px;
+	height: 30px;
+	border: 1px solid #2271b1;
+	border-radius: 3px;
+	background: #f6f7f7;
+	font-size: 16px;
+	line-height: 25px;
+	text-align: center;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+#hcaptcha-navigation a.disabled {
+	color: #a7aaad;
+	border-color: #dcdcde;
+	background: #f6f7f7;
+	cursor: default;
+}
+
+#hcaptcha-navigation a.prev::after,
+#hcaptcha-navigation a.next::after {
+	font-size: 12px;
+}
+
+#hcaptcha-navigation a.prev::after {
+	content: '<'
+}
+
+#hcaptcha-navigation a.next::after {
+	content: '>';
+}

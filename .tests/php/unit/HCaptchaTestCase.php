@@ -383,6 +383,12 @@ abstract class HCaptchaTestCase extends TestCase {
 				'text'    => 'Check',
 				'section' => General::SECTION_KEYS,
 			],
+			'reset_notifications'      => [
+				'label'   => 'Reset Notifications',
+				'type'    => 'button',
+				'text'    => 'Reset',
+				'section' => General::SECTION_KEYS,
+			],
 			'theme'                    => [
 				'label'   => 'Theme',
 				'type'    => 'select',

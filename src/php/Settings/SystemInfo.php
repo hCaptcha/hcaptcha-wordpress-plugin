@@ -138,7 +138,7 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Theme', $settings->get( 'theme' ) );
 		$data .= $this->data( 'Size', $settings->get( 'size' ) );
 		$data .= $this->data( 'Language', $settings->get( 'language' ) );
-		$data .= $this->data( 'Mode', $settings->get( 'mode' ) );
+		$data .= $this->data( 'Mode', $settings->get_mode() );
 		$data .= $this->data( 'Custom Themes', $this->is_on( 'custom_themes' ) );
 		$data .= $this->data( 'Config Params', $this->is_empty( $settings->get( 'config_params' ) ) );
 		$data .= $this->data( 'Turn Off When Logged In', $this->is_on( 'off_when_logged_in' ) );

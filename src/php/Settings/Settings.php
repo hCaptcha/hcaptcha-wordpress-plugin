@@ -162,11 +162,10 @@ class Settings implements SettingsInterface {
 	 * @return array
 	 */
 	private function get_keys(): array {
-		$mode = $this->get( 'mode' );
 
 		// String concat is used for the PHP 5.6 compatibility.
 		// phpcs:disable Generic.Strings.UnnecessaryStringConcat.Found
-		switch ( $mode ) {
+		switch ( $this->get_mode() ) {
 			case General::MODE_LIVE:
 				$site_key   = $this->get( 'site_key' );
 				$secret_key = $this->get( 'secret_key' );
@@ -194,6 +193,20 @@ class Settings implements SettingsInterface {
 			'site_key'   => $site_key,
 			'secret_key' => $secret_key,
 		];
+	}
+
+	/**
+	 * Get mode.
+	 *
+	 * @return string
+	 */
+	public function get_mode(): string {
+		/**
+		 * Filters the current operating mode to get relevant key pair.
+		 *
+		 * @param string $mode Current operating mode.
+		 */
+		return (string) apply_filters( 'hcap_mode', $this->get( 'mode' ) );
 	}
 
 	/**

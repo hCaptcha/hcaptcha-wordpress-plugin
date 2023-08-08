@@ -13,6 +13,7 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use HCaptcha\Admin\Notifications;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
@@ -22,7 +23,6 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
-use HCaptcha\Otter;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\General;
@@ -90,6 +90,13 @@ class Main {
 	private $settings;
 
 	/**
+	 * Notifications class instance.
+	 *
+	 * @var Notifications
+	 */
+	private $notifications;
+
+	/**
 	 * Instance of AutoVerify.
 	 *
 	 * @var AutoVerify
@@ -138,6 +145,9 @@ class Main {
 	 * @return void
 	 */
 	public function init_hooks() {
+		$this->notifications = new Notifications();
+		$this->notifications->init();
+
 		$this->settings = new Settings(
 			[
 				'hCaptcha' => [
@@ -182,6 +192,15 @@ class Main {
 	public function get( string $class ) {
 
 		return $this->loaded_classes[ $class ] ?? null;
+	}
+
+	/**
+	 * Get Notifications instance.
+	 *
+	 * @return Notifications
+	 */
+	public function notifications(): Notifications {
+		return $this->notifications;
 	}
 
 	/**

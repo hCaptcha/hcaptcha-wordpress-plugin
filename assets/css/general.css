@@ -1,3 +1,9 @@
+#hcaptcha-message,
+#setting-error-settings_updated {
+	max-width: 760px;
+	box-sizing: border-box;
+}
+
 #hcaptcha-options table tbody {
 	background: #fff;
 }
@@ -20,9 +26,36 @@
 
 .hcaptcha-section-keys + table tbody {
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-areas:
+		"site-key site-key secret-key secret-key"
+		"sample-hcaptcha sample-hcaptcha check-config reset-notifications";
 	gap: 10px 20px;
 	padding: 15px 20px;
+}
+
+.hcaptcha-section-keys + table tbody th {
+	width: auto;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-site-key {
+	grid-area: site-key;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-secret-key {
+	grid-area: secret-key;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-sample-hcaptcha {
+	grid-area: sample-hcaptcha;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-check-config {
+	grid-area: check-config;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-reset-notifications {
+	grid-area: reset-notifications;
 }
 
 .hcaptcha-section-keys + table tbody tr th {
@@ -161,6 +194,14 @@
 @media (max-width: 600px) {
 	.hcaptcha-general table tbody tr td {
 		width: auto;
+	}
+
+	.hcaptcha-section-keys + table tbody {
+		grid-template-areas: unset;
+	}
+
+	.hcaptcha-section-keys + table tbody tr {
+		grid-area: unset !important;
 	}
 
 	.hcaptcha-section-other + table tbody {
