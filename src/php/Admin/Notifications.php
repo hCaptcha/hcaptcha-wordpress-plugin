@@ -83,7 +83,7 @@ class Notifications {
 		$hcaptcha_url  = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
 		$register_url  = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
 		$pro_url       = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$dashboard_url = 'https://dashboard.hcaptcha.com/';
+		$dashboard_url = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 
 		$this->notifications = [
 			'register'       => [
