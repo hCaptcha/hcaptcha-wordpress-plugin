@@ -52,6 +52,9 @@ class Form {
 		add_action( 'forminator_before_form_render', [ $this, 'before_form_render' ], 10, 5 );
 		add_filter( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
+
+		add_action( 'forminator_page_forminator-settings', [ $this, 'before_forminator_admin_page' ], 9 );
+		add_action( 'forminator_page_forminator-settings', [ $this, 'after_forminator_admin_page' ], 11 );
 	}
 
 	/**
@@ -115,5 +118,66 @@ class Form {
 		}
 
 		return $can_show;
+	}
+
+	/**
+	 * Start output buffer before Forminator admin page.
+	 *
+	 * @return void
+	 */
+	public function before_forminator_admin_page() {
+		ob_start();
+	}
+
+	/**
+	 * Get and modify output buffer after Forminator admin page.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 */
+	public function after_forminator_admin_page() {
+		$html = ob_get_clean();
+
+		ob_start();
+		?>
+		<style>
+			#hcaptcha-tab .sui-form-field {
+				display: none;
+			}
+		</style>
+		<?php
+		$style = ob_get_clean();
+
+		$label = esc_html__( 'hCaptcha plugin is active', 'hcaptcha-for-forms-and-more' );
+
+		$url         = admin_url( 'options-general.php?page=hcaptcha&tab=general' );
+		$description = sprintf(
+		/* translators: 1: link to the General setting page */
+			__( 'When hCaptcha plugin is active and integration with Forminator is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+			sprintf(
+				'<a href="%s" target="_blank">General settings page</a>',
+				esc_url( $url )
+			)
+		);
+
+		// phpcs:disable Generic.Commenting.DocComment.MissingShort
+		$search  = [
+			/** @lang PhpRegExp */
+			'/(<div .*id="hcaptcha-tab")/',
+			/** @lang PhpRegExp */
+			'#<span class="sui-settings-label">(.*?)</span>#',
+			/** @lang PhpRegExp */
+			'#<span class="sui-description".*?>.*?</span>#s',
+		];
+		$replace = [
+			$style . '$1',
+			'<span class="sui-settings-label">' . $label . '</span>',
+			'<span class="sui-description">' . $description . '</span>',
+		];
+
+		$html = preg_replace( $search, $replace, $html );
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $html;
 	}
 }
