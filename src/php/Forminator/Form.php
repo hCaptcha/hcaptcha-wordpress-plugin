@@ -57,16 +57,16 @@ class Form {
 	/**
 	 * Get form id before render.
 	 *
-	 * @param int    $id            Form id.
-	 * @param string $form_type     Form type.
-	 * @param int    $post_id       Post id.
-	 * @param array  $form_fields   Form fields.
-	 * @param array  $form_settings Form settings.
+	 * @param int|mixed $id            Form id.
+	 * @param string    $form_type     Form type.
+	 * @param int       $post_id       Post id.
+	 * @param array     $form_fields   Form fields.
+	 * @param array     $form_settings Form settings.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_form_render( int $id, string $form_type, int $post_id, array $form_fields, array $form_settings ): int {
+	public function before_form_render( $id, string $form_type, int $post_id, array $form_fields, array $form_settings ) {
 		$this->form_id = $id;
 	}
 
@@ -79,7 +79,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( string $html, string $button ): string {
+	public function add_hcaptcha( $html, string $button ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,

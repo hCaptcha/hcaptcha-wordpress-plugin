@@ -482,6 +482,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.1.1 =
+* Fixed Forminator form display error.
+
 = 3.1.0 =
 * Added notification system.
 * Fixed mode selection for sample hCaptcha on the General settings page.
