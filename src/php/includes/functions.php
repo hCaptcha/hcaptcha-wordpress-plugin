@@ -17,7 +17,7 @@ use HCaptcha\Helpers\HCaptcha;
  * @return string
  * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form()
  */
-function hcap_form( string $action = '', string $name = '', bool $auto = false ) {
+function hcap_form( string $action = '', string $name = '', bool $auto = false ): string {
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form()' );
 
@@ -59,7 +59,7 @@ function hcap_form_display( string $action = '', string $name = '', bool $auto =
  *
  * @return string
  */
-function hcap_shortcode( $atts ) {
+function hcap_shortcode( $atts ): string {
 	/**
 	 * Do not set default size here.
 	 * If size is not normal|compact|invisible, it will be taken from plugin settings in HCaptcha::form().
@@ -81,7 +81,7 @@ function hcap_shortcode( $atts ) {
 	 *
 	 * @param string $form The hcaptcha form.
 	 */
-	return apply_filters( 'hcap_hcaptcha_content', HCaptcha::form( $atts ) );
+	return (string) apply_filters( 'hcap_hcaptcha_content', HCaptcha::form( $atts ) );
 }
 
 add_shortcode( 'hcaptcha', 'hcap_shortcode' );
@@ -113,6 +113,6 @@ endif;
  *
  * @return string
  */
-function hcap_min_suffix() {
+function hcap_min_suffix(): string {
 	return defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
 }
