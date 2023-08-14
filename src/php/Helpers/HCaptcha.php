@@ -34,7 +34,7 @@ class HCaptcha {
 		ob_start();
 		self::form_display( $args );
 
-		return ob_get_clean();
+		return (string) ob_get_clean();
 	}
 
 	/**

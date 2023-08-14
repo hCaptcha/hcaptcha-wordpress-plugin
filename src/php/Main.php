@@ -509,14 +509,18 @@ class Main {
 	 * @return void
 	 */
 	public function print_footer_scripts() {
-		if (
-			! (
-				$this->form_shown ||
-				$this->did_wpforo_template_filter ||
-				$this->did_support_candy_shortcode_tag_filter ||
-				$this->fluentform_support_required
-			)
-		) {
+		$status =
+			$this->form_shown ||
+			$this->did_wpforo_template_filter ||
+			$this->did_support_candy_shortcode_tag_filter ||
+			$this->fluentform_support_required;
+
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ! apply_filters( 'hcap_print_hcaptcha_scripts', $status ) ) {
 			return;
 		}
 

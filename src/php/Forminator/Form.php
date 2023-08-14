@@ -10,6 +10,8 @@
 
 namespace HCaptcha\Forminator;
 
+use Forminator_CForm_Front;
+use Forminator_Front_Action;
 use HCaptcha\Helpers\HCaptcha;
 use Quform_Element_Page;
 use Quform_Form;
@@ -30,11 +32,23 @@ class Form {
 	const NONCE = 'hcaptcha_forminator_nonce';
 
 	/**
+	 * Admin script handle.
+	 */
+	const HANDLE = 'hcaptcha-forminator';
+
+	/**
 	 * Form id.
 	 *
 	 * @var int
 	 */
 	private $form_id = 0;
+
+	/**
+	 * Form has hCaptcha field.
+	 *
+	 * @var bool
+	 */
+	private $has_hcaptcha_field;
 
 	/**
 	 * Quform constructor.
@@ -55,6 +69,11 @@ class Form {
 
 		add_action( 'forminator_page_forminator-settings', [ $this, 'before_forminator_admin_page' ], 9 );
 		add_action( 'forminator_page_forminator-settings', [ $this, 'after_forminator_admin_page' ], 11 );
+
+		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+
+		add_filter( 'forminator_field_markup', [ $this, 'replace_hcaptcha_field' ], 10, 3 );
 	}
 
 	/**
@@ -70,7 +89,8 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function before_form_render( $id, string $form_type, int $post_id, array $form_fields, array $form_settings ) {
-		$this->form_id = $id;
+		$this->has_hcaptcha_field = $this->has_hcaptcha_field( $form_fields );
+		$this->form_id            = $id;
 	}
 
 	/**
@@ -79,22 +99,15 @@ class Form {
 	 * @param string|mixed $html   Shortcode output.
 	 * @param string       $button Shortcode name.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, string $button ): string {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $this->form_id,
-			],
-		];
+	public function add_hcaptcha( $html, string $button ) {
+		if ( $this->has_hcaptcha_field ) {
+			return $html;
+		}
 
-		$hcaptcha = HCaptcha::form( $args );
-
-		return str_replace( '<button ', $hcaptcha . '<button ', (string) $html );
+		return str_replace( '<button ', $this->get_hcaptcha() . '<button ', (string) $html );
 	}
 
 	/**
@@ -108,6 +121,16 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $can_show, int $id, array $form_settings ) {
+		$module_object = Forminator_Front_Action::$module_object;
+
+		foreach ( $module_object->fields as $key => $field ) {
+			if ( isset( $field->raw['captcha_provider'] ) && 'hcaptcha' === $field->raw['captcha_provider'] ) {
+				// Remove hCaptcha field from the form to prevent it from verifying by Forminator.
+				unset( $module_object->fields[ $key ] );
+				break;
+			}
+		}
+
 		$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
@@ -179,5 +202,131 @@ class Form {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $html;
+	}
+
+	/**
+	 * Filter print hCaptcha scripts status and return true on Forminator form wizard page.
+	 *
+	 * @param bool|mixed $status Print scripts status.
+	 *
+	 * @return bool|mixed
+	 */
+	public function print_hcaptcha_scripts( $status ) {
+		$forminator_api_handle = 'forminator-hcaptcha';
+
+		wp_dequeue_script( $forminator_api_handle );
+		wp_deregister_script( $forminator_api_handle );
+
+		if ( $this->has_hcaptcha_field ) {
+			return true;
+		}
+
+		$is_forminator_wizard_page = $this->is_forminator_wizard_page();
+
+		return $is_forminator_wizard_page ? true : $status;
+	}
+
+	/**
+	 * Enqueue script in admin.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( ! $this->is_forminator_wizard_page() ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/forminator$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+	}
+
+	/**
+	 * Replace Forminator hCaptcha field.
+	 *
+	 * @param string|mixed           $html           Field html.
+	 * @param array                  $field          Field.
+	 * @param Forminator_CForm_Front $front_instance Forminator_CForm_Front instance.
+	 *
+	 * @return string|mixed
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function replace_hcaptcha_field( $html, array $field, Forminator_CForm_Front $front_instance ) {
+		if ( ! $this->is_hcaptcha_field( $field ) ) {
+			return $html;
+		}
+
+		return $this->get_hcaptcha();
+	}
+
+	/**
+	 * Get hCaptcha.
+	 *
+	 * @return string
+	 */
+	private function get_hcaptcha(): string {
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $this->form_id,
+			],
+		];
+
+		return HCaptcha::form( $args );
+	}
+
+	/**
+	 * Whether we are on the Forminator admin wizard page.
+	 *
+	 * @return bool
+	 */
+	private function is_forminator_wizard_page(): bool {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return false;
+		}
+
+		return 'forminator_page_forminator-cform-wizard' === $screen->id;
+	}
+
+	/**
+	 * Whether the field is hCaptcha field.
+	 *
+	 * @param array $field Field.
+	 *
+	 * @return bool
+	 */
+	private function is_hcaptcha_field( array $field ): bool {
+		return ( 'captcha' === $field['type'] && 'hcaptcha' === $field['captcha_provider'] );
+	}
+
+	/**
+	 * Whether for has its own hCaptcha field.
+	 *
+	 * @param array $form_fields Form fields.
+	 *
+	 * @return bool
+	 */
+	private function has_hcaptcha_field( array $form_fields ): bool {
+		foreach ( $form_fields as $form_field ) {
+			if ( $this->is_hcaptcha_field( $form_field ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
