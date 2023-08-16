@@ -37,6 +37,11 @@ class Form {
 	const HANDLE = 'hcaptcha-forminator';
 
 	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaForminatorObject';
+
+	/**
 	 * Form id.
 	 *
 	 * @var int
@@ -156,7 +161,6 @@ class Form {
 	 * Get and modify output buffer after Forminator admin page.
 	 *
 	 * @return void
-	 * @noinspection HtmlUnknownTarget
 	 */
 	public function after_forminator_admin_page() {
 		$html = ob_get_clean();
@@ -171,17 +175,7 @@ class Form {
 		<?php
 		$style = ob_get_clean();
 
-		$label = esc_html__( 'hCaptcha plugin is active', 'hcaptcha-for-forms-and-more' );
-
-		$url         = admin_url( 'options-general.php?page=hcaptcha&tab=general' );
-		$description = sprintf(
-		/* translators: 1: link to the General setting page */
-			__( 'When hCaptcha plugin is active and integration with Forminator is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
-			sprintf(
-				'<a href="%s" target="_blank">General settings page</a>',
-				esc_url( $url )
-			)
-		);
+		$notice = $this->get_hcaptcha_plugin_notice();
 
 		// phpcs:disable Generic.Commenting.DocComment.MissingShort
 		$search  = [
@@ -194,8 +188,8 @@ class Form {
 		];
 		$replace = [
 			$style . '$1',
-			'<span class="sui-settings-label">' . $label . '</span>',
-			'<span class="sui-description">' . $description . '</span>',
+			'<span class="sui-settings-label">' . $notice['label'] . '</span>',
+			'<span class="sui-description">' . $notice['description'] . '</span>',
 		];
 
 		$html = preg_replace( $search, $replace, $html );
@@ -244,6 +238,17 @@ class Form {
 			[ 'jquery' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
+		);
+
+		$notice = $this->get_hcaptcha_plugin_notice();
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'notificationLabel'       => $notice['label'],
+				'notificationDescription' => $notice['description'],
+			]
 		);
 	}
 
@@ -328,5 +333,28 @@ class Form {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get hCaptcha plugin notice.
+	 *
+	 * @return string[]
+	 * @noinspection HtmlUnknownTarget
+	 */
+	private function get_hcaptcha_plugin_notice(): array {
+		$url                   = admin_url( 'options-general.php?page=hcaptcha&tab=general' );
+		$notice['label']       = esc_html__( 'hCaptcha plugin is active', 'hcaptcha-for-forms-and-more' );
+		$notice['description'] = wp_kses_post(
+			sprintf(
+			/* translators: 1: link to the General setting page */
+				__( 'When hCaptcha plugin is active and integration with Forminator is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				sprintf(
+					'<a href="%s" target="_blank">General settings page</a>',
+					esc_url( $url )
+				)
+			)
+		);
+
+		return $notice;
 	}
 }
