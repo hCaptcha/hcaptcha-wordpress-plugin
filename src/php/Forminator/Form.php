@@ -72,9 +72,6 @@ class Form {
 		add_filter( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
 
-		add_action( 'forminator_page_forminator-settings', [ $this, 'before_forminator_admin_page' ], 9 );
-		add_action( 'forminator_page_forminator-settings', [ $this, 'after_forminator_admin_page' ], 11 );
-
 		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 
@@ -149,56 +146,6 @@ class Form {
 	}
 
 	/**
-	 * Start output buffer before Forminator admin page.
-	 *
-	 * @return void
-	 */
-	public function before_forminator_admin_page() {
-		ob_start();
-	}
-
-	/**
-	 * Get and modify output buffer after Forminator admin page.
-	 *
-	 * @return void
-	 */
-	public function after_forminator_admin_page() {
-		$html = ob_get_clean();
-
-		ob_start();
-		?>
-		<style>
-			#hcaptcha-tab .sui-form-field {
-				display: none;
-			}
-		</style>
-		<?php
-		$style = ob_get_clean();
-
-		$notice = $this->get_hcaptcha_plugin_notice();
-
-		// phpcs:disable Generic.Commenting.DocComment.MissingShort
-		$search  = [
-			/** @lang PhpRegExp */
-			'/(<div .*id="hcaptcha-tab")/',
-			/** @lang PhpRegExp */
-			'#<span class="sui-settings-label">(.*?)</span>#',
-			/** @lang PhpRegExp */
-			'#<span class="sui-description".*?>.*?</span>#s',
-		];
-		$replace = [
-			$style . '$1',
-			'<span class="sui-settings-label">' . $notice['label'] . '</span>',
-			'<span class="sui-description">' . $notice['description'] . '</span>',
-		];
-
-		$html = preg_replace( $search, $replace, $html );
-
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $html;
-	}
-
-	/**
 	 * Filter print hCaptcha scripts status and return true on Forminator form wizard page.
 	 *
 	 * @param bool|mixed $status Print scripts status.
@@ -215,7 +162,7 @@ class Form {
 			return true;
 		}
 
-		$is_forminator_wizard_page = $this->is_forminator_wizard_page();
+		$is_forminator_wizard_page = $this->is_forminator_admin_page();
 
 		return $is_forminator_wizard_page ? true : $status;
 	}
@@ -226,7 +173,7 @@ class Form {
 	 * @return void
 	 */
 	public function admin_enqueue_scripts() {
-		if ( ! $this->is_forminator_wizard_page() ) {
+		if ( ! $this->is_forminator_admin_page() ) {
 			return;
 		}
 
@@ -246,9 +193,16 @@ class Form {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'notificationLabel'       => $notice['label'],
-				'notificationDescription' => $notice['description'],
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
 			]
+		);
+
+		wp_enqueue_style(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/forminator$min.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
 
@@ -289,11 +243,11 @@ class Form {
 	}
 
 	/**
-	 * Whether we are on the Forminator admin wizard page.
+	 * Whether we are on the Forminator admin pages.
 	 *
 	 * @return bool
 	 */
-	private function is_forminator_wizard_page(): bool {
+	private function is_forminator_admin_page(): bool {
 		if ( ! is_admin() ) {
 			return false;
 		}
@@ -304,7 +258,13 @@ class Form {
 			return false;
 		}
 
-		return 'forminator_page_forminator-cform-wizard' === $screen->id;
+		$forminator_admin_pages = [
+			'forminator_page_forminator-cform',
+			'forminator_page_forminator-cform-wizard',
+			'forminator_page_forminator-settings',
+		];
+
+		return in_array( $screen->id, $forminator_admin_pages, true );
 	}
 
 	/**

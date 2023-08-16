@@ -1,8 +1,8 @@
 /* global jQuery, HCaptchaForminatorObject */
 
 /**
- * @param HCaptchaForminatorObject.notificationLabel
- * @param HCaptchaForminatorObject.notificationDescription
+ * @param HCaptchaForminatorObject.noticeLabel
+ * @param HCaptchaForminatorObject.noticeDescription
  */
 jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 	const params = new URLSearchParams( settings.data );
@@ -14,12 +14,27 @@ jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 	window.hCaptchaBindEvents();
 } );
 
+jQuery( document ).ready( function( $ ) {
+	if ( ! window.location.href.includes( 'page=forminator-settings' ) ) {
+		return;
+	}
+
+	const $hcaptchaTab = $( '#hcaptcha-tab' );
+
+	$hcaptchaTab.find( '.sui-settings-label' ).first()
+		.html( HCaptchaForminatorObject.noticeLabel ).css( 'display', 'block' );
+	$hcaptchaTab.find( '.sui-description' ).first()
+		.html( HCaptchaForminatorObject.noticeDescription ).css( 'display', 'block' );
+} );
+
 document.addEventListener( 'DOMContentLoaded', function() {
+	if ( ! window.location.href.includes( 'page=forminator-cform' ) ) {
+		return;
+	}
+
 	const config = {
 		attributes: true,
-		childList: true,
 		subtree: true,
-		attributeOldValue: true,
 	};
 
 	// eslint-disable-next-line no-unused-vars
@@ -46,8 +61,8 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 			[ ...rows ].map( ( row, index ) => {
 				if ( index === 1 ) {
-					row.querySelector( '.sui-settings-label' ).innerHTML = HCaptchaForminatorObject.notificationLabel;
-					row.querySelector( '.sui-description' ).innerHTML = HCaptchaForminatorObject.notificationDescription;
+					row.querySelector( '.sui-settings-label' ).innerHTML = HCaptchaForminatorObject.noticeLabel;
+					row.querySelector( '.sui-description' ).innerHTML = HCaptchaForminatorObject.noticeDescription;
 					row.querySelector( '.sui-form-field' ).style.display = 'none';
 				}
 
