@@ -204,7 +204,7 @@ class Form {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin/forminator$min.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-forminator$min.js",
 			[ 'jquery' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
