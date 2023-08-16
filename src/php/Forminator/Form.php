@@ -73,6 +73,8 @@ class Form {
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
 
 		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 
 		add_filter( 'forminator_field_markup', [ $this, 'replace_hcaptcha_field' ], 10, 3 );
@@ -168,6 +170,27 @@ class Form {
 	}
 
 	/**
+	 * Enqueue frontend scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts() {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/forminator$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
 	 * Enqueue script in admin.
 	 *
 	 * @return void
@@ -181,7 +204,7 @@ class Form {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/hcaptcha-forminator$min.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin/forminator$min.js",
 			[ 'jquery' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
