@@ -483,6 +483,8 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.1.1 =
+* Added ability to use hCaptcha field provided by the Forminator form plugin.
+* Blocked hCaptcha settings on Forminator admin pages with a notice having a link to the hCaptcha plugin General settings page.
 * Fixed Forminator form display error.
 
 = 3.1.0 =
