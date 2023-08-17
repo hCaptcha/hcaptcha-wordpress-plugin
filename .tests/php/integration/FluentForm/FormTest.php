@@ -28,11 +28,11 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_action( 'fluentform_render_item_submit_button', [ $subject, 'add_captcha' ] )
+			has_action( 'fluentform/render_item_submit_button', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
 			10,
-			has_action( 'fluentform_validation_errors', [ $subject, 'verify' ] )
+			has_action( 'fluentform/validation_errors', [ $subject, 'verify' ] )
 		);
 		self::assertSame(
 			9,
