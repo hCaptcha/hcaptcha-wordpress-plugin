@@ -10,9 +10,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	let submitBtnVisible;
 	const config = {
 		attributes: true,
-		childList: true,
 		subtree: true,
-		attributeOldValue: true,
 	};
 
 	const isSubmitVisible = ( mutation ) => {
