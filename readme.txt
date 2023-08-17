@@ -488,6 +488,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha reset to allow sending Elementor form several times without reloading the page.
 * Blocked hCaptcha settings on Forminator admin pages with a notice having a link to the hCaptcha plugin General settings page.
 * Fixed Forminator form display error.
+* Fixed deprecation error in debug.log that occurred with Fluent Forms.
 
 = 3.1.0 =
 * Added notification system.

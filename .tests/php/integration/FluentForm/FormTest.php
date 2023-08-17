@@ -40,7 +40,7 @@ class FormTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_filter( 'fluentform_rendering_form', [ $subject, 'fluentform_rendering_form_filter' ] )
+			has_filter( 'fluentform/rendering_form', [ $subject, 'fluentform_rendering_form_filter' ] )
 		);
 	}
 

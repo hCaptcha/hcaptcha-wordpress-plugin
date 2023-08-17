@@ -57,7 +57,7 @@ class Form {
 		add_action( 'fluentform_render_item_submit_button', [ $this, 'add_captcha' ], 10, 2 );
 		add_action( 'fluentform_validation_errors', [ $this, 'verify' ], 10, 4 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
-		add_filter( 'fluentform_rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
+		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 	}
 
 	/**
