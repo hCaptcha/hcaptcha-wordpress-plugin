@@ -32,9 +32,14 @@ class Form {
 	const NONCE = 'hcaptcha_forminator_nonce';
 
 	/**
-	 * Admin script handle.
+	 * Script handle.
 	 */
 	const HANDLE = 'hcaptcha-forminator';
+
+	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'hcaptcha-forminator';
 
 	/**
 	 * Script localization object.
@@ -183,7 +188,7 @@ class Form {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			HCAPTCHA_URL . "/assets/js/forminator$min.js",
+			HCAPTCHA_URL . "/assets/js/hcaptcha-forminator$min.js",
 			[],
 			HCAPTCHA_VERSION,
 			true
@@ -203,7 +208,7 @@ class Form {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			self::HANDLE,
+			self::ADMIN_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-forminator$min.js",
 			[ 'jquery' ],
 			constant( 'HCAPTCHA_VERSION' ),
@@ -213,7 +218,7 @@ class Form {
 		$notice = $this->get_hcaptcha_plugin_notice();
 
 		wp_localize_script(
-			self::HANDLE,
+			self::ADMIN_HANDLE,
 			self::OBJECT,
 			[
 				'noticeLabel'       => $notice['label'],
@@ -222,8 +227,8 @@ class Form {
 		);
 
 		wp_enqueue_style(
-			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/forminator$min.css",
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/admin-forminator$min.css",
 			[],
 			constant( 'HCAPTCHA_VERSION' )
 		);
