@@ -33,6 +33,7 @@ class HCaptchaHandler {
 	const OPTION_NAME_SIZE       = 'size';
 	const FIELD_ID               = 'hcaptcha';
 	const HANDLE                 = 'hcaptcha-elementor-pro-frontend';
+	const ADMIN_HANDLE           = 'admin-elementor-pro';
 	const HCAPTCHA_HANDLE        = 'hcaptcha';
 
 	/**
@@ -61,8 +62,8 @@ class HCaptchaHandler {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'hcaptcha-elementor-pro',
-			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro$min.js",
+			self::ADMIN_HANDLE,
+			HCAPTCHA_URL . "/assets/js/admin-elementor-pro$min.js",
 			[ 'elementor-editor' ],
 			HCAPTCHA_VERSION,
 			true

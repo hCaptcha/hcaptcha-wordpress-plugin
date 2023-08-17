@@ -5,7 +5,7 @@ import '../__mocks__/elementorModules';
 import '../__mocks__/elementorPro';
 
 // Import subject
-import '../../../assets/js/hcaptcha-elementor-pro';
+import '../../../assets/js/admin-elementor-pro';
 
 describe( 'hCaptcha Elementor', () => {
 	let hooks;
@@ -31,7 +31,7 @@ describe( 'hCaptcha Elementor', () => {
 	} );
 
 	test( 'hooks are added and renderField is called with correct arguments', () => {
-		const hCaptchaElementorInstance = window.hCaptchaElementorPro;
+		const hCaptchaElementorInstance = window.hCaptchaAdminElementorPro;
 
 		hCaptchaElementorInstance.onInit();
 

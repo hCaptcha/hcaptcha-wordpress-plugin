@@ -10,7 +10,7 @@
  * @param item.css_classes
  */
 
-class HCaptchaElementor extends elementorModules.editor.utils.Module {
+class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 	/**
 	 * Get hCaptcha form.
 	 *
@@ -46,7 +46,7 @@ class HCaptchaElementor extends elementorModules.editor.utils.Module {
 			'<div class="elementor-hcaptcha' +
 			_.escape( item.css_classes ) +
 			'">';
-		inputField += HCaptchaElementor.getHCaptchaForm( item );
+		inputField += HCaptchaAdminElementorPro.getHCaptchaForm( item );
 		inputField += '</div>';
 		inputField += '</div>';
 		return inputField;
@@ -74,4 +74,4 @@ class HCaptchaElementor extends elementorModules.editor.utils.Module {
 	}
 }
 
-window.hCaptchaElementorPro = new HCaptchaElementor();
+window.hCaptchaAdminElementorPro = new HCaptchaAdminElementorPro();
