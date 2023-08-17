@@ -8,7 +8,7 @@ global.jQuery = jquery;
 global.$ = jquery;
 
 // Import the script to test
-require( '../../../assets/js/hcaptcha-elementor-pro-frontend' );
+require( '../../../assets/js/hcaptcha-elementor-pro' );
 
 describe( 'Elementor Frontend hCaptcha', () => {
 	beforeEach( () => {
@@ -17,7 +17,7 @@ describe( 'Elementor Frontend hCaptcha', () => {
 
 	test( 'addAction is called with correct arguments', () => {
 		// Simulate jQuery.ready
-		window.hCaptchaElementorProFrontend();
+		window.hCaptchaElementorPro();
 
 		expect( elementorFrontendHooks.addAction ).toHaveBeenCalledTimes( 1 );
 		expect( elementorFrontendHooks.addAction ).toHaveBeenCalledWith(

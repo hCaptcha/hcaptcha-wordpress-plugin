@@ -45,8 +45,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'admin-elementor-pro' );
 		wp_deregister_script( 'admin-elementor-pro' );
 
-		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
-		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
+		wp_dequeue_script( 'hcaptcha-elementor-pro' );
+		wp_deregister_script( 'hcaptcha-elementor-pro' );
 
 		wp_dequeue_script( 'elementor-hcaptcha-api' );
 		wp_deregister_script( 'elementor-hcaptcha-api' );
@@ -115,7 +115,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend', 'registered' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
 
 		$subject = new HCaptchaHandler();
 		$subject->init();
@@ -136,10 +136,10 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
 
-		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro-frontend', 'registered' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
 
-		$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro-frontend'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.min.js', $hcaptcha_elementor_pro_frontend->src );
+		$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $hcaptcha_elementor_pro_frontend->src );
 		self::assertSame( [ 'jquery', 'hcaptcha' ], $hcaptcha_elementor_pro_frontend->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro_frontend->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro_frontend->extra );
@@ -380,7 +380,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	public function test_enqueue_scripts() {
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro' ) );
 
 		ob_start();
 		hcaptcha()->print_inline_styles();
@@ -394,7 +394,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( wp_script_is( 'elementor-hcaptcha-api' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
-		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro' ) );
 	}
 
 	/**

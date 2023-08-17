@@ -32,7 +32,7 @@ class HCaptchaHandler {
 	const OPTION_NAME_THEME      = 'theme';
 	const OPTION_NAME_SIZE       = 'size';
 	const FIELD_ID               = 'hcaptcha';
-	const HANDLE                 = 'hcaptcha-elementor-pro-frontend';
+	const HANDLE                 = 'hcaptcha-elementor-pro';
 	const ADMIN_HANDLE           = 'admin-elementor-pro';
 	const HCAPTCHA_HANDLE        = 'hcaptcha';
 
@@ -236,7 +236,7 @@ class HCaptchaHandler {
 
 		wp_register_script(
 			self::HANDLE,
-			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro-frontend$min.js",
+			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro$min.js",
 			[ 'jquery', self::HCAPTCHA_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
