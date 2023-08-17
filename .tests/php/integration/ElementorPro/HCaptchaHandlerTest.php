@@ -42,8 +42,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
-		wp_dequeue_script( 'hcaptcha-elementor-pro' );
-		wp_deregister_script( 'hcaptcha-elementor-pro' );
+		wp_dequeue_script( 'admin-elementor-pro' );
+		wp_deregister_script( 'admin-elementor-pro' );
 
 		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
 		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
@@ -79,15 +79,15 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test after_enqueue_scripts().
 	 */
 	public function test_after_enqueue_scripts() {
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro' ) );
+		self::assertFalse( wp_script_is( 'admin-elementor-pro' ) );
 
 		$subject = new HCaptchaHandler();
 		$subject->after_enqueue_scripts();
 
-		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro' ) );
+		self::assertTrue( wp_script_is( 'admin-elementor-pro' ) );
 
-		$hcaptcha_elementor_pro = wp_scripts()->registered['hcaptcha-elementor-pro'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $hcaptcha_elementor_pro->src );
+		$hcaptcha_elementor_pro = wp_scripts()->registered['admin-elementor-pro'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/admin-elementor-pro.min.js', $hcaptcha_elementor_pro->src );
 		self::assertSame( [ 'elementor-editor' ], $hcaptcha_elementor_pro->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro->extra );
