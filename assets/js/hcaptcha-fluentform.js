@@ -1,20 +1,19 @@
 document.addEventListener( 'DOMContentLoaded', function() {
-	const convFormSelector = '.ffc_conv_form';
-	const convForms = document.querySelectorAll( convFormSelector );
+	const qFormSelector = '.ffc_conv_form .q-form';
+	const qForms = document.querySelectorAll( qFormSelector );
 
-	if ( convForms.length === 0 ) {
+	if ( qForms.length === 0 ) {
 		return;
 	}
 
 	let submitBtn = null;
-	let submitBtnVisible;
 	const config = {
 		attributes: true,
-		subtree: true,
+		attributeOldValue: true,
 	};
 
-	const isSubmitVisible = ( mutation ) => {
-		const form = mutation.target.closest( convFormSelector );
+	const isSubmitVisible = ( el ) => {
+		const form = el.closest( qFormSelector );
 
 		if ( form === null ) {
 			return false;
@@ -33,49 +32,47 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const callback = ( mutationList, observer ) => {
 		for ( const mutation of mutationList ) {
 			if (
-				mutation.type !== 'attributes' ||
-				! mutation.target.classList.contains( 'q-form' ) ||
-				! mutation.target.classList.contains( 'f-focused' )
+				! (
+					mutation.type === 'attributes' &&
+					mutation.attributeName === 'class' &&
+					mutation.oldValue && mutation.oldValue.includes( 'q-is-inactive' )
+				)
 			) {
 				continue;
 			}
 
-			const visible = isSubmitVisible( mutation );
+			if ( ! isSubmitVisible( mutation.target ) ) {
+				return;
+			}
 
-			if ( visible !== submitBtnVisible ) {
-				submitBtnVisible = visible;
+			const hCaptchaClass = 'h-captcha';
+			const hCaptchaHiddenClass = 'h-captcha-hidden';
+			const hiddenCaptcha = document.getElementsByClassName( hCaptchaHiddenClass )[ 0 ];
 
-				if ( visible ) {
-					const hCaptchaClass = 'h-captcha';
-					const hCaptchaHiddenClass = 'h-captcha-hidden';
-					const hiddenCaptcha = document.getElementsByClassName( hCaptchaHiddenClass )[ 0 ];
+			if ( hiddenCaptcha && submitBtn ) {
+				const hCaptcha = hiddenCaptcha.cloneNode( true );
 
-					if ( hiddenCaptcha && submitBtn ) {
-						const hCaptcha = hiddenCaptcha.cloneNode( true );
+				const form = document.createElement( 'form' );
+				form.setAttribute( 'method', 'POST' );
 
-						const form = document.createElement( 'form' );
-						form.setAttribute( 'method', 'POST' );
+				// Wrap submit button by form.
+				submitBtn.parentNode.insertBefore( form, submitBtn );
+				form.appendChild( submitBtn );
 
-						// Wrap submit button by form.
-						submitBtn.parentNode.insertBefore( form, submitBtn );
-						form.appendChild( submitBtn );
+				submitBtn.before( hCaptcha );
 
-						submitBtn.before( hCaptcha );
+				hCaptcha.classList.remove( hCaptchaHiddenClass );
+				hCaptcha.classList.add( hCaptchaClass );
+				hCaptcha.style.display = 'block';
 
-						hCaptcha.classList.remove( hCaptchaHiddenClass );
-						hCaptcha.classList.add( hCaptchaClass );
-						hCaptcha.style.display = 'block';
-
-						window.hCaptchaBindEvents();
-					}
-				}
+				window.hCaptchaBindEvents();
 			}
 
 			return;
 		}
 	};
 
-	[ ...convForms ].map( ( form ) => {
+	[ ...qForms ].map( ( form ) => {
 		const observer = new MutationObserver( callback );
 		observer.observe( form, config );
 		return form;

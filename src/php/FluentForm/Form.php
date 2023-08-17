@@ -57,8 +57,8 @@ class Form {
 	private function init_hooks() {
 		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_captcha' ], 10, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -199,7 +199,8 @@ class Form {
 	 * @return bool
 	 */
 	protected function has_own_hcaptcha( $form ): bool {
-		$auto_include = apply_filters( 'ff_has_auto_hcaptcha', false );
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		$auto_include = apply_filters( 'fluentform/has_hcaptcha', false );
 
 		if ( $auto_include ) {
 			return true;
