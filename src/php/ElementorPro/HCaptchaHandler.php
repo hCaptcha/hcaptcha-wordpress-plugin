@@ -51,6 +51,8 @@ class HCaptchaHandler {
 
 		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'after_enqueue_scripts' ] );
 		add_action( 'elementor/init', [ $this, 'init' ] );
+
+		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
 	}
 
 	/**
@@ -415,5 +417,22 @@ class HCaptchaHandler {
 		}
 
 		return $item;
+	}
+
+	/**
+	 * Add the hCaptcha Elementor Pro script to footer.
+	 *
+	 * @return void
+	 */
+	public function print_footer_scripts() {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro$min.js",
+			[ 'jquery', Main::HANDLE ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 }

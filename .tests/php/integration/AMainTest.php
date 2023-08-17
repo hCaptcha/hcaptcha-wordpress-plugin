@@ -84,9 +84,6 @@ class AMainTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
-		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
-		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
-
 		wp_dequeue_script( 'jquery' );
 		wp_deregister_script( 'jquery' );
 
@@ -768,7 +765,6 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		// Test when Elementor Pro is not loaded.
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
@@ -782,16 +778,11 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
 		self::assertSame( $expected_extra, $hcaptcha->extra );
 
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
-
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 
 		// Test when Elementor Pro is loaded.
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
-
-		wp_dequeue_script( 'hcaptcha-elementor-pro-frontend' );
-		wp_deregister_script( 'hcaptcha-elementor-pro-frontend' );
 
 		wp_dequeue_script( 'jquery' );
 		wp_deregister_script( 'jquery' );
@@ -803,7 +794,6 @@ class AMainTest extends HCaptchaWPTestCase {
 		$this->set_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes', $loaded_classes );
 
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
@@ -816,14 +806,6 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertSame( [], $hcaptcha->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
 		self::assertSame( $expected_extra, $hcaptcha->extra );
-
-		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro-frontend' ) );
-
-		$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro-frontend'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro-frontend.min.js', $hcaptcha_elementor_pro_frontend->src );
-		self::assertSame( [ 'jquery', 'hcaptcha' ], $hcaptcha_elementor_pro_frontend->deps );
-		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro_frontend->ver );
-		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro_frontend->extra );
 
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 	}

@@ -555,18 +555,6 @@ class Main {
 			self::OBJECT,
 			[ 'params' => $params ]
 		);
-
-		$min = hcap_min_suffix();
-
-		if ( array_key_exists( HCaptchaHandler::class, $this->loaded_classes ) ) {
-			wp_enqueue_script(
-				'hcaptcha-elementor-pro-frontend',
-				HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro-frontend$min.js",
-				[ 'jquery', self::HANDLE ],
-				HCAPTCHA_VERSION,
-				true
-			);
-		}
 	}
 
 	/**

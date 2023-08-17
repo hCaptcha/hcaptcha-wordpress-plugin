@@ -484,6 +484,8 @@ Instructions for popular native integrations are below:
 
 = 3.1.1 =
 * Added ability to use hCaptcha field provided by the Forminator form plugin.
+* Added hCaptcha reset to allow sending Forminator form several times without reloading the page.
+* Added hCaptcha reset to allow sending Elementor form several times without reloading the page.
 * Blocked hCaptcha settings on Forminator admin pages with a notice having a link to the hCaptcha plugin General settings page.
 * Fixed Forminator form display error.
 
