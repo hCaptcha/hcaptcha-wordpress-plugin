@@ -1,4 +1,5 @@
 document.addEventListener( 'DOMContentLoaded', function() {
+	const formSelector = '.ffc_conv_form';
 	const qFormSelector = '.ffc_conv_form .q-form';
 	const qForms = document.querySelectorAll( qFormSelector );
 
@@ -13,19 +14,25 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	};
 
 	const isSubmitVisible = ( el ) => {
-		const form = el.closest( qFormSelector );
+		const qForm = el.closest( qFormSelector );
 
-		if ( form === null ) {
+		if ( qForm === null ) {
 			return false;
 		}
 
-		submitBtn = form.querySelector( '.ff-btn' );
+		submitBtn = qForm.querySelector( '.ff-btn' );
 
 		if ( submitBtn === null ) {
 			return false;
 		}
 
 		return submitBtn.offsetParent !== null;
+	};
+
+	const hasOwnHCaptcha = ( el ) => {
+		const form = el.closest( formSelector );
+
+		return form.querySelector( '#hcaptcha-container' ) !== null;
 	};
 
 	// eslint-disable-next-line no-unused-vars
@@ -72,10 +79,14 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		}
 	};
 
-	[ ...qForms ].map( ( form ) => {
+	[ ...qForms ].map( ( qForm ) => {
+		if ( hasOwnHCaptcha( qForm ) ) {
+			return qForm;
+		}
+
 		const observer = new MutationObserver( callback );
-		observer.observe( form, config );
-		return form;
+		observer.observe( qForm, config );
+		return qForm;
 	} );
 } );
 
