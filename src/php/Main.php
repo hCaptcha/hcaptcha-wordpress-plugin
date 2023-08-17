@@ -361,6 +361,9 @@ class Main {
 			form.wpsc-create-ticket .h-captcha {
 				margin: 0 15px 15px 15px;
 			}
+			.frm-fluent-form .h-captcha {
+				margin-bottom: 0;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}

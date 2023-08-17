@@ -26,7 +26,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame(
-			10,
+			9,
 			has_action( 'fluentform/render_item_submit_button', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(

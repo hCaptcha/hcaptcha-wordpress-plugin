@@ -55,7 +55,7 @@ class Form {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_captcha' ], 10, 2 );
+		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_captcha' ], 9, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
