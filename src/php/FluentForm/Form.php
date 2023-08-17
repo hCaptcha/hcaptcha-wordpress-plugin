@@ -12,6 +12,7 @@
 
 namespace HCaptcha\FluentForm;
 
+use FluentForm\App\Models\Form as FluentForm;
 use FluentForm\App\Modules\Form\FormFieldsParser;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
@@ -98,15 +99,15 @@ class Form {
 	/**
 	 * Filter errors during form validation.
 	 *
-	 * @param array    $errors Errors.
-	 * @param array    $data   Sanitized entry fields.
-	 * @param stdClass $form   Form data and settings.
-	 * @param array    $fields Form fields.
+	 * @param array      $errors Errors.
+	 * @param array      $data   Sanitized entry fields.
+	 * @param FluentForm $form   Form data and settings.
+	 * @param array      $fields Form fields.
 	 *
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( array $errors, array $data, stdClass $form, array $fields ): array {
+	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
 		// Do not verify if form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return $errors;
@@ -193,11 +194,11 @@ class Form {
 	/**
 	 * Whether form has its own hcaptcha set in admin.
 	 *
-	 * @param stdClass $form Form data and settings.
+	 * @param FluentForm|stdClass $form Form data and settings.
 	 *
 	 * @return bool
 	 */
-	protected function has_own_hcaptcha( stdClass $form ): bool {
+	protected function has_own_hcaptcha( $form ): bool {
 		$auto_include = apply_filters( 'ff_has_auto_hcaptcha', false );
 
 		if ( $auto_include ) {

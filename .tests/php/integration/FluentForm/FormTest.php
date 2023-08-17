@@ -7,11 +7,10 @@
 
 namespace HCaptcha\Tests\Integration\FluentForm;
 
+use FluentForm\App\Models\Form as FluentForm;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
-use WPDieException;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test FluentForm.
@@ -114,7 +113,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$data   = [];
-		$form   = (object) [];
+		$form   = Mockery::mock( FluentForm::class );
 		$fields = [];
 
 		$mock = Mockery::mock( Form::class )->makePartial();
@@ -135,7 +134,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$data                           = [];
-		$form                           = (object) [];
+		$form                           = Mockery::mock( FluentForm::class );
 		$fields                         = [];
 		$response                       = 'some response';
 		$expected                       = $errors;
