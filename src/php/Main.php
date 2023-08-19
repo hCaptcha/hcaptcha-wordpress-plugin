@@ -69,13 +69,6 @@ class Main {
 	public $modules = [];
 
 	/**
-	 * Whether fluentform(s) without own hCaptcha were loaded.
-	 *
-	 * @var bool
-	 */
-	public $fluentform_support_required = false;
-
-	/**
 	 * Loaded classes.
 	 *
 	 * @var array
@@ -362,6 +355,7 @@ class Main {
 				margin: 0 15px 15px 15px;
 			}
 			.frm-fluent-form .h-captcha {
+				line-height: 0;
 				margin-bottom: 0;
 			}
 			.gform_previous_button + .h-captcha {
@@ -515,8 +509,7 @@ class Main {
 		$status =
 			$this->form_shown ||
 			$this->did_wpforo_template_filter ||
-			$this->did_support_candy_shortcode_tag_filter ||
-			$this->fluentform_support_required;
+			$this->did_support_candy_shortcode_tag_filter;
 
 		/**
 		 * Filters whether to print hCaptcha scripts.
@@ -551,12 +544,25 @@ class Main {
 			true
 		);
 
-		$params = $settings->is_on( 'custom_themes' ) ? $settings->get( 'config_params' ) : null;
+		$params = [
+			'sitekey' => $settings->get_site_key(),
+			'theme'   => $settings->get( 'theme' ),
+			'size'    => $settings->get( 'size' ),
+		];
+
+		$config_params = [];
+
+		if ( $settings->is_on( 'custom_themes' ) ) {
+			$config_params = json_decode( $settings->get( 'config_params' ), true );
+			$config_params = $config_params ?: [];
+		}
+
+		$params = array_merge( $params, $config_params );
 
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
-			[ 'params' => $params ]
+			[ 'params' => wp_json_encode( $params ) ]
 		);
 	}
 

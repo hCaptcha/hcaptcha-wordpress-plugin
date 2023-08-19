@@ -103,7 +103,6 @@ class HCaptcha {
 
 		$args['auto'] = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
 		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
-		$callback     = 'invisible' === $args['size'] ? 'data-callback="hCaptchaSubmit"' : '';
 
 		?>
 		<div
@@ -111,7 +110,6 @@ class HCaptcha {
 			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $args['size'] ); ?>"
-			<?php echo wp_kses_post( $callback ); ?>
 			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>">
 		</div>
 		<?php

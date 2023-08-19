@@ -1,92 +1,140 @@
-document.addEventListener( 'DOMContentLoaded', function() {
+/* global hcaptcha, HCaptchaFluentFormObject */
+
+/**
+ * @param HCaptchaFluentFormObject.id
+ * @param HCaptchaFluentFormObject.url
+ */
+
+document.addEventListener( 'hCaptchaLoaded', function() {
 	const formSelector = '.ffc_conv_form';
-	const qFormSelector = '.ffc_conv_form .q-form';
-	const qForms = document.querySelectorAll( qFormSelector );
 
-	if ( qForms.length === 0 ) {
-		return;
-	}
-
-	let submitBtn = null;
-	const config = {
-		attributes: true,
-		attributeOldValue: true,
+	const hasOwnCaptcha = () => {
+		return document.getElementById( 'hcaptcha-container' ) !== null;
 	};
 
-	const isSubmitVisible = ( el ) => {
-		const qForm = el.closest( qFormSelector );
+	/**
+	 * Process conversational form.
+	 */
+	const processForm = () => {
+		// We assume there should be only one conversational form on the page.
+		const form = document.querySelector( formSelector );
+		const submitBtnSelector = '.ff-btn';
 
-		if ( qForm === null ) {
-			return false;
-		}
+		const isSubmitVisible = ( qForm ) => {
+			return qForm.querySelector( submitBtnSelector ) !== null;
+		};
 
-		submitBtn = qForm.querySelector( '.ff-btn' );
-
-		if ( submitBtn === null ) {
-			return false;
-		}
-
-		return submitBtn.offsetParent !== null;
-	};
-
-	const hasOwnHCaptcha = ( el ) => {
-		const form = el.closest( formSelector );
-
-		return form.querySelector( '#hcaptcha-container' ) !== null;
-	};
-
-	// eslint-disable-next-line no-unused-vars
-	const callback = ( mutationList, observer ) => {
-		for ( const mutation of mutationList ) {
-			if (
-				! (
-					mutation.type === 'attributes' &&
-					mutation.attributeName === 'class' &&
-					mutation.oldValue && mutation.oldValue.includes( 'q-is-inactive' )
-				)
-			) {
-				continue;
-			}
-
-			if ( ! isSubmitVisible( mutation.target ) ) {
-				return;
-			}
-
-			const hCaptchaClass = 'h-captcha';
+		const addCaptcha = () => {
 			const hCaptchaHiddenClass = 'h-captcha-hidden';
+			const hCaptchaClass = 'h-captcha';
 			const hiddenCaptcha = document.getElementsByClassName( hCaptchaHiddenClass )[ 0 ];
+			const submitBtn = form.querySelector( submitBtnSelector );
+			const hCaptcha = hiddenCaptcha.cloneNode( true );
+			const wrappingForm = document.createElement( 'form' );
+			wrappingForm.setAttribute( 'method', 'POST' );
+			submitBtn.parentNode.insertBefore( wrappingForm, submitBtn );
+			wrappingForm.appendChild( submitBtn );
+			submitBtn.before( hCaptcha );
+			hCaptcha.classList.remove( hCaptchaHiddenClass );
+			hCaptcha.classList.add( hCaptchaClass );
+			hCaptcha.style.display = 'block';
+			window.hCaptchaBindEvents();
+		};
 
-			if ( hiddenCaptcha && submitBtn ) {
-				const hCaptcha = hiddenCaptcha.cloneNode( true );
+		// eslint-disable-next-line no-unused-vars
+		const mutationObserverCallback = ( mutationList, observer ) => {
+			for ( const mutation of mutationList ) {
+				if (
+					! (
+						mutation.type === 'attributes' &&
+						mutation.attributeName === 'class' &&
+						mutation.oldValue && mutation.oldValue.includes( 'q-is-inactive' )
+					)
+				) {
+					continue;
+				}
 
-				const form = document.createElement( 'form' );
-				form.setAttribute( 'method', 'POST' );
-
-				// Wrap submit button by form.
-				submitBtn.parentNode.insertBefore( form, submitBtn );
-				form.appendChild( submitBtn );
-
-				submitBtn.before( hCaptcha );
-
-				hCaptcha.classList.remove( hCaptchaHiddenClass );
-				hCaptcha.classList.add( hCaptchaClass );
-				hCaptcha.style.display = 'block';
-
-				window.hCaptchaBindEvents();
+				if ( isSubmitVisible( mutation.target ) ) {
+					addCaptcha();
+				}
 			}
+		};
 
+		if ( hasOwnCaptcha() ) {
 			return;
 		}
+
+		const qFormSelector = '.q-form';
+		const qForms = form.querySelectorAll( qFormSelector );
+		const config = {
+			attributes: true,
+			attributeOldValue: true,
+		};
+
+		[ ...qForms ].map( ( qForm ) => {
+			const observer = new MutationObserver( mutationObserverCallback );
+			observer.observe( qForm, config );
+			return qForm;
+		} );
 	};
 
-	[ ...qForms ].map( ( qForm ) => {
-		if ( hasOwnHCaptcha( qForm ) ) {
-			return qForm;
+	function waitForElement( selector ) {
+		return new Promise( ( resolve ) => {
+			if ( document.querySelector( selector ) ) {
+				return resolve( document.querySelector( selector ) );
+			}
+
+			// eslint-disable-next-line no-unused-vars
+			const observer = new MutationObserver( ( mutations ) => {
+				if ( document.querySelector( selector ) ) {
+					resolve( document.querySelector( selector ) );
+					observer.disconnect();
+				}
+			} );
+
+			observer.observe( document.body, {
+				childList: true,
+				subtree: true,
+			} );
+		} );
+	}
+
+	/**
+	 * Custom render function using Fluent Forms conversational callback.
+	 *
+	 * @param {string} container The hCaptcha container selector.
+	 * @param {Object} params    Parameters.
+	 */
+	const render = ( container, params ) => {
+		const renderParams = window.hCaptcha.getParams();
+
+		if ( hasOwnCaptcha() && renderParams.size === 'invisible' ) {
+			// Cannot use invisible hCaptcha with conversational form.
+			renderParams.size = 'normal';
 		}
 
-		const observer = new MutationObserver( callback );
-		observer.observe( qForm, config );
-		return qForm;
+		renderParams.callback = params.callback;
+		originalRender( container, renderParams );
+	};
+
+	// Intercept render request.
+	const originalRender = hcaptcha.render;
+	hcaptcha.render = render;
+
+	// Launch Fluent Forms conversational script.
+	const t = document.getElementsByTagName( 'script' )[ 0 ];
+	const s = document.createElement( 'script' );
+
+	s.type = 'text/javascript';
+	s.id = HCaptchaFluentFormObject.id;
+	s.src = HCaptchaFluentFormObject.url;
+	t.parentNode.insertBefore( s, t );
+
+	// Process form not having own hCaptcha.
+	// eslint-disable-next-line no-unused-vars
+	waitForElement( formSelector + ' .vff-footer' ).then( ( el ) => {
+		// Launch our form-related code when conversational form is rendered.
+		processForm();
 	} );
 } );
 
