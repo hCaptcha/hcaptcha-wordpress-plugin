@@ -121,7 +121,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			data-sitekey="some key"
 			data-theme="some theme"
 			data-size="some size"
-						data-auto="false">
+			data-auto="false">
 		</div>
 		';
 

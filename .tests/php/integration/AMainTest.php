@@ -523,6 +523,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				margin: 0 15px 15px 15px;
 			}
 			.frm-fluent-form .h-captcha {
+				line-height: 0;
 				margin-bottom: 0;
 			}
 			.gform_previous_button + .h-captcha {
@@ -746,11 +747,20 @@ class AMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
-		$config_params  = 'on' === $custom_themes ? '' : null;
+		$site_key       = 'some key';
+		$theme          = 'light';
+		$size           = 'normal';
+		$params         = [
+			'sitekey' => $site_key,
+			'theme'   => $theme,
+			'size'    => $size,
+		];
+		$config_params  = 'on' === $custom_themes ? [ 'theme' => [ 'some theme' ] ] : [];
+		$params         = array_merge( $params, $config_params );
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaMainObject = {"params":' . json_encode( $config_params ) . '};',
+			'data'  => 'var HCaptchaMainObject = {"params":"' . addslashes( json_encode( $params ) ) . '"};',
 		];
 
 		update_option(
@@ -758,8 +768,13 @@ class AMainTest extends HCaptchaWPTestCase {
 			[
 				'recaptcha_compat_off' => $compat ? [ $compat ] : [],
 				'language'             => $language ?: '',
+				'site_key'             => $site_key,
+				'mode'                 => 'live',
+				'theme'                => $theme,
+				'size'                 => $size,
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
-				'config_params'        => $config_params,
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+				'config_params'        => json_encode( $config_params ),
 				'delay'                => - 100,
 			]
 		);

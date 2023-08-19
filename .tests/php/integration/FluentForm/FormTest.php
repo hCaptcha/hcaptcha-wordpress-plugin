@@ -67,7 +67,7 @@ class FormTest extends HCaptchaWPTestCase {
 		?>
 		<div class="ff-el-group">
 			<div class="ff-el-input--content">
-				<div name="h-captcha-response">
+				<div data-fluent_id="<?php echo (int) $form->id; ?>" name="h-captcha-response">
 					<?php
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $hcap_form;
@@ -110,7 +110,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_no_success() {
 		$errors = [
-			'some_error' => 'Some error description',
+			'some_error'         => 'Some error description',
+			'h-captcha-response' => [ 'Please complete the hCaptcha.' ],
 		];
 		$data   = [];
 		$form   = Mockery::mock( FluentForm::class );

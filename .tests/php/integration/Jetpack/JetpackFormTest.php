@@ -47,7 +47,7 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-						data-auto="false">
+			data-auto="false">
 		</div>
 		' . $nonce_field;
 
