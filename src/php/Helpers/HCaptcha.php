@@ -202,4 +202,27 @@ class HCaptcha {
 
 		return [];
 	}
+
+	/**
+	 * Get hCaptcha plugin notice.
+	 *
+	 * @return string[]
+	 * @noinspection HtmlUnknownTarget
+	 */
+	public static function get_hcaptcha_plugin_notice(): array {
+		$url                   = admin_url( 'options-general.php?page=hcaptcha&tab=general' );
+		$notice['label']       = esc_html__( 'hCaptcha plugin is active', 'hcaptcha-for-forms-and-more' );
+		$notice['description'] = wp_kses_post(
+			sprintf(
+			/* translators: 1: link to the General setting page */
+				__( 'When hCaptcha plugin is active and integration with Forminator is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				sprintf(
+					'<a href="%s" target="_blank">General settings page</a>',
+					esc_url( $url )
+				)
+			)
+		);
+
+		return $notice;
+	}
 }

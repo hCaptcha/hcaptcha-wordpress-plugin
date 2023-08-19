@@ -38,6 +38,11 @@ class Form {
 	const HANDLE = 'hcaptcha-fluentform';
 
 	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-fluentform';
+
+	/**
 	 * Script localization object.
 	 */
 	const OBJECT = 'HCaptchaFluentFormObject';
@@ -65,8 +70,9 @@ class Form {
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 		add_filter( 'fluentform/has_hcaptcha', [ $this, 'fluentform_has_hcaptcha' ] );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
 	/**
@@ -206,6 +212,68 @@ class Form {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $form;
+	}
+
+	/**
+	 * Enqueue script in admin.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( ! $this->is_fluent_forms_admin_page() ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-fluentform$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
+			]
+		);
+
+		wp_enqueue_style(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/admin-fluentform$min.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+	}
+
+	/**
+	 * Whether we are on the Fluent Forms admin pages.
+	 *
+	 * @return bool
+	 */
+	private function is_fluent_forms_admin_page(): bool {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return false;
+		}
+
+		$fluent_forms_admin_pages = [
+			'fluent-forms_page_fluent_forms_settings',
+		];
+
+		return in_array( $screen->id, $fluent_forms_admin_pages, true );
 	}
 
 	/**

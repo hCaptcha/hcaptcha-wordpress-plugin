@@ -39,7 +39,7 @@ class Form {
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'hcaptcha-forminator';
+	const ADMIN_HANDLE = 'admin-forminator';
 
 	/**
 	 * Script localization object.
@@ -215,7 +215,7 @@ class Form {
 			true
 		);
 
-		$notice = $this->get_hcaptcha_plugin_notice();
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
 
 		wp_localize_script(
 			self::ADMIN_HANDLE,
@@ -321,28 +321,5 @@ class Form {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Get hCaptcha plugin notice.
-	 *
-	 * @return string[]
-	 * @noinspection HtmlUnknownTarget
-	 */
-	private function get_hcaptcha_plugin_notice(): array {
-		$url                   = admin_url( 'options-general.php?page=hcaptcha&tab=general' );
-		$notice['label']       = esc_html__( 'hCaptcha plugin is active', 'hcaptcha-for-forms-and-more' );
-		$notice['description'] = wp_kses_post(
-			sprintf(
-			/* translators: 1: link to the General setting page */
-				__( 'When hCaptcha plugin is active and integration with Forminator is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
-				sprintf(
-					'<a href="%s" target="_blank">General settings page</a>',
-					esc_url( $url )
-				)
-			)
-		);
-
-		return $notice;
 	}
 }
