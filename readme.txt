@@ -482,7 +482,7 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
-= 3.1.1 =
+= 3.2.0 =
 * Added ability to use hCaptcha field provided by the Fluent Forms plugin.
 * Added ability to use hCaptcha field provided by the Forminator plugin.
 * Added ability to use hCaptcha field provided by the Quform plugin.
