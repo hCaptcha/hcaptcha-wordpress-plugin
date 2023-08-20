@@ -1,4 +1,4 @@
-/* global jQuery, hcaptcha, hCaptcha, HCaptchaGeneralObject, HCaptchaMainObject */
+/* global jQuery, hCaptcha, HCaptchaGeneralObject */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
