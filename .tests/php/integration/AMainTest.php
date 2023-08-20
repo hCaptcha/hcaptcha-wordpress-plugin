@@ -651,32 +651,6 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_language filter in get_api_src().
-	 *
-	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function test_hcap_language_filter_in_get_api_scr() {
-		$language          = 'en';
-		$filtered_language = 'de';
-		$expected          = 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=' . $filtered_language;
-
-		update_option( 'hcaptcha_settings', [ 'language' => $language ] );
-
-		add_filter(
-			'hcap_language',
-			static function ( $language ) use ( $filtered_language ) {
-				return $filtered_language;
-			}
-		);
-
-		$subject = new Main();
-		$subject->init_hooks();
-
-		self::assertSame( $expected, $subject->get_api_src() );
-	}
-
-	/**
 	 * Test print_footer_scripts().
 	 *
 	 * @param string|false $compat              Compat option value.
@@ -753,10 +727,12 @@ class AMainTest extends HCaptchaWPTestCase {
 		$site_key       = 'some key';
 		$theme          = 'light';
 		$size           = 'normal';
+		$language       = $language ?: '';
 		$params         = [
 			'sitekey' => $site_key,
 			'theme'   => $theme,
 			'size'    => $size,
+			'hl'      => $language,
 		];
 		$config_params  = 'on' === $custom_themes ? [ 'theme' => [ 'some theme' ] ] : [];
 		$params         = array_merge( $params, $config_params );
@@ -770,7 +746,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'hcaptcha_settings',
 			[
 				'recaptcha_compat_off' => $compat ? [ $compat ] : [],
-				'language'             => $language ?: '',
+				'language'             => $language,
 				'site_key'             => $site_key,
 				'mode'                 => 'live',
 				'theme'                => $theme,
@@ -860,7 +836,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				false,
 				'ru',
 				false,
-				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&hl=ru',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit',
 			],
 			'custom themes only' => [
 				false,
@@ -872,7 +848,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				'on',
 				'ru',
 				'on',
-				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=true&hl=ru',
+				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=true',
 			],
 		];
 	}

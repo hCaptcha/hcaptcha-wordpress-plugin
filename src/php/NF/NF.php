@@ -8,6 +8,7 @@
 namespace HCaptcha\NF;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Main;
 
 /**
  * Class NF
@@ -36,7 +37,7 @@ class NF {
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $this, 'localize_field' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'nf_captcha_script' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
 	}
 
 	/**
@@ -133,7 +134,7 @@ class NF {
 		wp_enqueue_script(
 			'hcaptcha-nf',
 			HCAPTCHA_URL . "/assets/js/hcaptcha-nf$min.js",
-			[ 'nf-front-end' ],
+			[ 'jquery', Main::HANDLE, 'nf-front-end', 'nf-front-end-deps' ],
 			HCAPTCHA_VERSION,
 			true
 		);
