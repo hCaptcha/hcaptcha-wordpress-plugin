@@ -580,7 +580,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				border: 1px solid #e0e0e0;
 			}
 			.h-captcha[data-theme="dark"]::before {
-				background-image: url(' . $div_logo_url_white .');
+				background-image: url(' . $div_logo_url_white . ');
 				background-repeat: no-repeat;
 				background-color: #333;
 				border: 1px solid #f5f5f5;
