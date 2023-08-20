@@ -24,8 +24,13 @@ const integrations = function( $ ) {
 
 		$fixed.css( 'margin', '0px' );
 		$fixed.css( 'top', $wpwrap.position().top );
-		$fixed.css( 'left', $adminmenuwrap.width() );
-		$fixed.width( $( window ).width() - $adminmenuwrap.width() );
+
+		const adminMenuWrapWidth = $adminmenuwrap.css( 'display' ) === 'block'
+			? $adminmenuwrap.width()
+			: 0;
+
+		$fixed.css( 'left', adminMenuWrapWidth );
+		$fixed.width( $( window ).width() - adminMenuWrapWidth );
 		$fixed.css( 'position', 'fixed' );
 		$( 'body' ).append( $fixed );
 
