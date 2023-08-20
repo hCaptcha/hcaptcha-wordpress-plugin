@@ -561,12 +561,26 @@ class General extends PluginSettingsBase {
 			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$ajax_mode = isset( $_POST['ajax-mode'] ) ? sanitize_text_field( wp_unslash( $_POST['ajax-mode'] ) ) : '';
+		$ajax_mode       = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : '';
+		$ajax_site_key   = isset( $_POST['siteKey'] ) ? sanitize_text_field( wp_unslash( $_POST['siteKey'] ) ) : '';
+		$ajax_secret_key = isset( $_POST['secretKey'] ) ? sanitize_text_field( wp_unslash( $_POST['secretKey'] ) ) : '';
 
 		add_filter(
 			'hcap_mode',
 			static function ( $mode ) use ( $ajax_mode ) {
 				return $ajax_mode;
+			}
+		);
+		add_filter(
+			'hcap_site_key',
+			static function ( $site_key ) use ( $ajax_site_key ) {
+				return $ajax_site_key;
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function ( $secret_key ) use ( $ajax_secret_key ) {
+				return $ajax_secret_key;
 			}
 		);
 
@@ -589,6 +603,10 @@ class General extends PluginSettingsBase {
 		}
 
 		$body = json_decode( $raw_body, true );
+
+		if ( ! $body ) {
+			wp_send_json_error( $raw_body );
+		}
 
 		if ( ! isset( $body['pass'] ) || ! $body['pass'] ) {
 			$error = $body['error'] ? (string) $body['error'] : '';

@@ -120,7 +120,9 @@ const general = function( $ ) {
 		const data = {
 			action: HCaptchaGeneralObject.checkConfigAction,
 			nonce: HCaptchaGeneralObject.nonce,
-			'ajax-mode': $mode.val(),
+			mode: $mode.val(),
+			siteKey: $siteKey.val(),
+			secretKey: $secretKey.val(),
 			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
 		};
 
@@ -143,6 +145,11 @@ const general = function( $ ) {
 			.always( function() {
 				hCaptchaUpdate( {} );
 			} );
+	} );
+
+	$siteKey.on( 'change', function( e ) {
+		const sitekey = $( e.target ).val();
+		hCaptchaUpdate( { sitekey } );
 	} );
 
 	$theme.on( 'change', function( e ) {
