@@ -485,6 +485,7 @@ Instructions for popular native integrations are below:
 = 3.1.1 =
 * Added ability to use hCaptcha field provided by the Fluent Forms plugin.
 * Added ability to use hCaptcha field provided by the Forminator plugin.
+* Added ability to use hCaptcha field provided by the Quform plugin.
 * Added hCaptcha reset to allow sending Elementor form several times without reloading the page.
 * Added hCaptcha reset to allow sending Forminator form several times without reloading the page.
 * Added hCaptcha reset to allow sending Quform form several times without reloading the page.
