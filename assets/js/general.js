@@ -57,7 +57,7 @@ const general = function( $ ) {
 
 		$( 'html, body' ).animate(
 			{
-				scrollTop: $message.offset().top - top,
+				scrollTop: $message.offset().top - top - 15,
 			},
 			1000
 		);
