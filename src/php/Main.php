@@ -489,17 +489,6 @@ class Main {
 			$params['custom'] = 'true';
 		}
 
-		/**
-		 * Filters hCaptcha language.
-		 *
-		 * @param string $language Language.
-		 */
-		$language = (string) apply_filters( 'hcap_language', $this->settings()->get( 'language' ) );
-
-		if ( $language ) {
-			$params['hl'] = $language;
-		}
-
 		return add_query_arg( $params, 'https://js.hcaptcha.com/1/api.js' );
 	}
 
@@ -551,6 +540,7 @@ class Main {
 			'sitekey' => $settings->get_site_key(),
 			'theme'   => $settings->get( 'theme' ),
 			'size'    => $settings->get( 'size' ),
+			'hl'      => $settings->get_language(),
 		];
 
 		$config_params = [];

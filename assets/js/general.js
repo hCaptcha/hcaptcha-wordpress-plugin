@@ -1,4 +1,4 @@
-/* global jQuery, HCaptchaGeneralObject, HCaptchaMainObject */
+/* global jQuery, hcaptcha, hCaptcha, HCaptchaGeneralObject, HCaptchaMainObject */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
@@ -23,7 +23,12 @@
 const general = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
+	const $siteKey = $( '[name="hcaptcha_settings[site_key]"]' );
+	const $secretKey = $( '[name="hcaptcha_settings[secret_key]"]' );
+	const $theme = $( '[name="hcaptcha_settings[theme]"]' );
+	const $size = $( '[name="hcaptcha_settings[size]"]' );
 	const $language = $( '[name="hcaptcha_settings[language]"]' );
+	const $mode = $( '[name="hcaptcha_settings[mode]"]' );
 	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
 	const $submit = $( '#submit' );
@@ -66,46 +71,28 @@ const general = function( $ ) {
 		showMessage( response, 'notice-error' );
 	}
 
-	function hCaptchaGeneralReset() {
-		document.querySelector( '#hcaptcha-options .h-captcha' ).innerHTML = '';
-		window.hCaptchaBindEvents();
-	}
+	function hCaptchaUpdate( params ) {
+		const updatedParams = Object.assign( hCaptcha.getParams(), params );
+		hCaptcha.setParams( updatedParams );
 
-	function apiScriptReset() {
-		const id = 'hcaptcha-api';
-		const api = document.getElementById( id );
-		const url = new URL( api.src );
-		const urlSearchParams = url.searchParams;
-		const hl = $language.val();
+		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
+		sampleHCaptcha.innerHTML = '';
 
-		urlSearchParams.set( 'hl', hl );
-		api.parentNode.removeChild( api );
+		for ( const key in params ) {
+			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
+		}
 
-		const s = document.createElement( 'script' );
-
-		s.type = 'text/javascript';
-		s.id = id;
-		s.src = url.toString();
-		s.async = true;
-		s.onload = window.hCaptchaOnLoad;
-		s.render = 'explicit';
-		s.hl = hl;
-
-		document.querySelector( '#hcaptcha-options .h-captcha' ).innerHTML = '';
-
-		const t = document.getElementsByTagName( 'script' )[ 0 ];
-
-		t.parentNode.insertBefore( s, t );
+		hCaptcha.bindEvents();
 	}
 
 	function applyCustomThemes() {
-		let paramsJson = $configParams.val().trim();
-		let params;
+		let configParamsJson = $configParams.val().trim();
+		let configParams;
 
-		paramsJson = paramsJson ? paramsJson : null;
+		configParamsJson = configParamsJson ? configParamsJson : null;
 
 		try {
-			params = JSON.parse( paramsJson );
+			configParams = JSON.parse( configParamsJson );
 		} catch ( e ) {
 			$configParams.css( 'background-color', '#ffabaf' );
 			$submit.attr( 'disabled', true );
@@ -114,11 +101,16 @@ const general = function( $ ) {
 			return;
 		}
 
-		params = $customThemes.prop( 'checked' ) ? params : null;
+		if ( ! $customThemes.prop( 'checked' ) ) {
+			configParams = {
+				sitekey: $siteKey.val(),
+				theme: $theme.val(),
+				size: $size.val(),
+				hl: $language.val(),
+			};
+		}
 
-		HCaptchaMainObject.params = JSON.stringify( params );
-
-		hCaptchaGeneralReset();
+		hCaptchaUpdate( configParams );
 	}
 
 	$( '#check_config' ).on( 'click', function( event ) {
@@ -128,7 +120,7 @@ const general = function( $ ) {
 		const data = {
 			action: HCaptchaGeneralObject.checkConfigAction,
 			nonce: HCaptchaGeneralObject.nonce,
-			'ajax-mode': $( 'select[name="hcaptcha_settings[mode]"]' ).val(),
+			'ajax-mode': $mode.val(),
 			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
 		};
 
@@ -149,16 +141,16 @@ const general = function( $ ) {
 				showErrorMessage( response.statusText );
 			} )
 			.always( function() {
-				hCaptchaGeneralReset();
+				hCaptchaUpdate( {} );
 			} );
 	} );
 
-	$( '[name="hcaptcha_settings[theme]"]' ).on( 'change', function( e ) {
-		$( '.h-captcha' ).attr( 'data-theme', $( e.target ).val() );
-		hCaptchaGeneralReset();
+	$theme.on( 'change', function( e ) {
+		const theme = $( e.target ).val();
+		hCaptchaUpdate( { theme } );
 	} );
 
-	$( '[name="hcaptcha_settings[size]"]' ).on( 'change', function( e ) {
+	$size.on( 'change', function( e ) {
 		const $invisibleNotice = $( '#hcaptcha-invisible-notice' );
 		const size = $( e.target ).val();
 
@@ -168,15 +160,15 @@ const general = function( $ ) {
 			$invisibleNotice.hide();
 		}
 
-		$( '.h-captcha' ).attr( 'data-size', size );
-		hCaptchaGeneralReset();
+		hCaptchaUpdate( { size } );
 	} );
 
-	$language.on( 'change', function() {
-		apiScriptReset();
+	$language.on( 'change', function( e ) {
+		const hl = $( e.target ).val();
+		hCaptchaUpdate( { hl } );
 	} );
 
-	$( '[name="hcaptcha_settings[mode]"]' ).on( 'change', function( e ) {
+	$mode.on( 'change', function( e ) {
 		const mode = $( e.target ).val();
 
 		if ( ! modes.hasOwnProperty( mode ) ) {
@@ -184,15 +176,15 @@ const general = function( $ ) {
 		}
 
 		if ( mode === HCaptchaGeneralObject.modeLive ) {
-			$( '[name="hcaptcha_settings[site_key]"]' ).attr( 'disabled', false );
-			$( '[name="hcaptcha_settings[secret_key]"]' ).attr( 'disabled', false );
+			$siteKey.attr( 'disabled', false );
+			$secretKey.attr( 'disabled', false );
 		} else {
-			$( '[name="hcaptcha_settings[site_key]"]' ).attr( 'disabled', true );
-			$( '[name="hcaptcha_settings[secret_key]"]' ).attr( 'disabled', true );
+			$siteKey.attr( 'disabled', true );
+			$secretKey.attr( 'disabled', true );
 		}
 
-		$( '.h-captcha' ).attr( 'data-sitekey', modes[ mode ] );
-		hCaptchaGeneralReset();
+		const sitekey = modes[ mode ];
+		hCaptchaUpdate( { sitekey } );
 	} );
 
 	$customThemes.on( 'change', function() {

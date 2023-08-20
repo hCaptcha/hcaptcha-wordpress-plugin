@@ -493,6 +493,7 @@ Instructions for popular native integrations are below:
 * Fixed Fluent Forms submit error.
 * Fixed deprecation errors in debug.log that occurred with Fluent Forms.
 * Fixed positioning of hCaptcha in Fluent Form.
+* Fixed dynamic display of settings in sample hCaptcha.
 
 = 3.1.0 =
 * Added notification system.
