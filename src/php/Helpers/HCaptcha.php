@@ -215,7 +215,7 @@ class HCaptcha {
 		$notice['description'] = wp_kses_post(
 			sprintf(
 			/* translators: 1: link to the General setting page */
-				__( 'When hCaptcha plugin is active and integration with Forminator is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				__( 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
 					'<a href="%s" target="_blank">General settings page</a>',
 					esc_url( $url )

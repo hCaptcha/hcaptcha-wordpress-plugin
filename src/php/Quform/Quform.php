@@ -36,6 +36,16 @@ class Quform {
 	const HANDLE = 'hcaptcha-quform';
 
 	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-quform';
+
+	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaQuformObject';
+
+	/**
 	 * Max form element id.
 	 */
 	const MAX_ID = '9999_9999';
@@ -57,6 +67,7 @@ class Quform {
 		add_filter( 'quform_pre_validate', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'quform_element_valid', [ $this, 'element_valid' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
 	/**
@@ -205,6 +216,62 @@ class Quform {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Enqueue script in admin.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( ! $this->is_quform_admin_page() ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-quform$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
+			]
+		);
+	}
+
+	/**
+	 * Whether we are on the Quform admin pages.
+	 *
+	 * @return bool
+	 */
+	private function is_quform_admin_page(): bool {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return false;
+		}
+
+		$quform_admin_pages = [
+			'forms_page_quform.settings',
+			'forms_page_quform.forms',
+		];
+
+		return in_array( $screen->id, $quform_admin_pages, true );
 	}
 
 	/**
