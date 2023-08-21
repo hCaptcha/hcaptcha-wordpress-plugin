@@ -66,13 +66,13 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test add_captcha().
 	 *
-	 * @param array  $fields Fields.
-	 * @param string $expected Expected.
+	 * @param array $fields   Fields.
+	 * @param array $expected Expected.
 	 *
 	 * @dataProvider dp_test_add_captcha
 	 * @return void
 	 */
-	public function test_add_captcha( $fields, $expected ) {
+	public function test_add_captcha( array $fields, array $expected ) {
 		$subject = $this->get_subject();
 
 		self::assertSame( $expected, $subject->add_captcha( $fields ) );
@@ -83,7 +83,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_add_captcha() {
+	public function dp_test_add_captcha(): array {
 		return [
 			'empty fields' => [
 				[],
@@ -323,7 +323,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @return Login
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	private function get_subject() {
+	private function get_subject(): Login {
 		$subject = new Login();
 
 		UM()->fields()->set_mode = $subject::UM_MODE;

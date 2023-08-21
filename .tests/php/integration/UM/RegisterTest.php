@@ -65,7 +65,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * @return Register
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	private function get_subject() {
+	private function get_subject(): Register {
 		$subject = new Register();
 
 		UM()->fields()->set_mode = $subject::UM_MODE;

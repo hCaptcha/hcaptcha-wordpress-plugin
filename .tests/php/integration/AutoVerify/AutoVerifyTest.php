@@ -386,7 +386,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 *
 	 * @return string
 	 */
-	private function get_test_request_uri() {
+	private function get_test_request_uri(): string {
 		return '/hcaptcha-arbitrary-form/?some_argument=22';
 	}
 
@@ -395,7 +395,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 *
 	 * @return string
 	 */
-	private function get_test_nonce() {
+	private function get_test_nonce(): string {
 		return '5e9f1e63ed';
 	}
 
@@ -404,7 +404,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 *
 	 * @return string
 	 */
-	private function get_test_content() {
+	private function get_test_content(): string {
 		$request_uri = $this->get_test_request_uri();
 		$nonce       = $this->get_test_nonce();
 
@@ -441,7 +441,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 *
 	 * @return string[][][]
 	 */
-	private function get_test_registered_forms() {
+	private function get_test_registered_forms(): array {
 		$request_uri = $this->get_test_request_uri();
 		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
 

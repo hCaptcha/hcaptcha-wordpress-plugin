@@ -69,7 +69,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @dataProvider dp_test_wpcf7_shortcode
 	 */
-	public function test_wpcf7_shortcode( $hcaptcha_size ) {
+	public function test_wpcf7_shortcode( string $hcaptcha_size ) {
 		$output            =
 			'<form>' .
 			'<input type="submit" value="Send">' .
@@ -143,7 +143,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_wpcf7_shortcode() {
+	public function dp_test_wpcf7_shortcode(): array {
 		return [
 			'visible'   => [ 'normal' ],
 			'invisible' => [ 'invisible' ],
@@ -153,7 +153,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test hcap_cf7_verify_recaptcha().
 	 *
-	 * @noinspection PhpParamsInspection
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha() {
@@ -197,8 +196,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without submission.
-	 *
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
@@ -219,8 +216,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without posted data.
-	 *
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_posted_data() {
 		$data       = [];
@@ -246,8 +241,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without site key.
-	 *
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_site_key() {
 		$data = [];
@@ -275,7 +268,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without response.
 	 *
-	 * @noinspection PhpParamsInspection
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_response() {
@@ -329,7 +321,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test hcap_cf7_verify_recaptcha() not verified.
 	 *
-	 * @noinspection PhpParamsInspection
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha_not_verified() {

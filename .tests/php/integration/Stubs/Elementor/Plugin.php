@@ -43,7 +43,7 @@ class Plugin {
 	 *
 	 * @return Plugin An instance of the class.
 	 */
-	public static function instance() {
+	public static function instance(): Plugin {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 		}

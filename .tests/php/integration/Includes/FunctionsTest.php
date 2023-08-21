@@ -97,7 +97,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_hcap_shortcode
 	 */
-	public function test_hcap_shortcode( $action, $name, $auto ) {
+	public function test_hcap_shortcode( string $action, string $name, string $auto ) {
 		$filtered = ' filtered ';
 
 		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;
@@ -131,7 +131,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_hcap_shortcode() {
+	public function dp_test_hcap_shortcode(): array {
 		return [
 			'no arguments'   => [ '', '', '' ],
 			'action only'    => [ 'some_action', '', '' ],

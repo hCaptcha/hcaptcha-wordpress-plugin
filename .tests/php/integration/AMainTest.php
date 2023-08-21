@@ -124,7 +124,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Test init() and init_hooks().
 	 *
 	 * @param boolean        $logged_in                   User is logged in.
-	 * @param boolean        $hcaptcha_off_when_logged_in Option 'hcaptcha_off_when_logged_in' is set.
+	 * @param string         $hcaptcha_off_when_logged_in Option 'hcaptcha_off_when_logged_in' is set.
 	 * @param boolean|string $whitelisted                 Whether IP is whitelisted.
 	 * @param boolean        $hcaptcha_active             Plugin should be active.
 	 *
@@ -132,7 +132,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_and_init_hooks( $logged_in, $hcaptcha_off_when_logged_in, $whitelisted, $hcaptcha_active ) {
+	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $whitelisted, bool $hcaptcha_active ) {
 		global $current_user;
 
 		$hcaptcha_wordpress_plugin = hcaptcha();
@@ -141,8 +141,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'hcap_whitelist_ip',
 			static function () use ( $whitelisted ) {
 				return $whitelisted;
-			},
-			10
+			}
 		);
 
 		// Plugin was loaded by codeception.
@@ -268,7 +267,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function dp_test_init() {
+	public function dp_test_init(): array {
 		return [
 			'not logged in, not set, not whitelisted' => [ false, 'off', false, true ],
 			'not logged in, set, not whitelisted'     => [ false, 'on', false, true ],
@@ -284,7 +283,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init() and init_hooks() on Elementor Pro edit page.
 	 *
-	 * @param boolean $elementor_pro_status Option 'elementor_pro_status' is set.
+	 * @param string  $elementor_pro_status Option 'elementor_pro_status' is set.
 	 * @param array   $server               $_SERVER variable.
 	 * @param array   $get                  $_GET variable.
 	 * @param array   $post                 $_POST variable.
@@ -295,11 +294,11 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
-		$elementor_pro_status,
-		$server,
-		$get,
-		$post,
-		$hcaptcha_active
+		string $elementor_pro_status,
+		array $server,
+		array $get,
+		array $post,
+		bool $hcaptcha_active
 	) {
 		global $current_user;
 
@@ -307,8 +306,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'hcap_whitelist_ip',
 			static function () {
 				return true;
-			},
-			10
+			}
 		);
 
 		unset( $current_user );
@@ -393,7 +391,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_init_and_init_hooks_on_elementor_pro_edit_page() {
+	public function dp_test_init_and_init_hooks_on_elementor_pro_edit_page(): array {
 		return [
 			'elementor option off' => [
 				'off',
@@ -666,7 +664,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection BadExpressionStatementJS
 	 */
-	public function test_print_footer_scripts( $compat, $language, $custom_themes, $expected_script_src ) {
+	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ) {
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
 		$hcaptcha_wordpress_plugin->form_shown = true;
@@ -816,7 +814,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_print_footer_scripts() {
+	public function dp_test_print_footer_scripts(): array {
 		return [
 			'no options'         => [
 				false,
@@ -881,7 +879,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_load_modules
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_load_modules( $module ) {
+	public function test_load_modules( array $module ) {
 		list( $option_name, $option_value ) = $module[0];
 
 		update_option(
@@ -985,7 +983,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_load_modules() {
+	public function dp_test_load_modules(): array {
 		$modules = [
 			'Comment Form'                      => [
 				[ 'wp_status', 'comment' ],

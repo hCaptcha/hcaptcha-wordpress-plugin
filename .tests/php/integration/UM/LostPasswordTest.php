@@ -84,7 +84,7 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	 * @return LostPassword
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	private function get_subject() {
+	private function get_subject(): LostPassword {
 		$subject = new LostPassword();
 
 		UM()->fields()->set_mode = $subject::UM_MODE;

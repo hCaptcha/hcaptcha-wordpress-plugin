@@ -161,6 +161,6 @@ class NFTest extends HCaptchaPluginWPTestCase {
 
 		$subject->nf_captcha_script();
 
-		self::assertTrue( wp_script_is( 'hcaptcha-nf', 'enqueued' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-nf' ) );
 	}
 }

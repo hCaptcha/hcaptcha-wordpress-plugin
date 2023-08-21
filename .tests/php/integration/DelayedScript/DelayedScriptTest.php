@@ -21,7 +21,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	 * Test create().
 	 *
 	 * @noinspection BadExpressionStatementJS
-	 * @noinspection JSUnresolvedVariable
+	 * @noinspection JSUnresolvedReference
 	 */
 	public function test_create() {
 		$js = 'some js script';
