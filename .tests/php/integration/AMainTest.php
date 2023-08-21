@@ -295,7 +295,11 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
-		$elementor_pro_status, $server, $get, $post, $hcaptcha_active
+		$elementor_pro_status,
+		$server,
+		$get,
+		$post,
+		$hcaptcha_active
 	) {
 		global $current_user;
 

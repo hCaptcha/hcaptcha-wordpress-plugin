@@ -138,5 +138,4 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( wp_script_is( 'hcaptcha-wc' ) );
 	}
-
 }

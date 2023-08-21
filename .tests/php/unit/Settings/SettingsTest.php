@@ -109,7 +109,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$general = Mockery::mock( General::class );
 		$general->shouldReceive( 'get' )->andReturnUsing(
-			function( $key, $empty_value ) use ( $general_key, &$general_value ) {
+			function ( $key, $empty_value ) use ( $general_key, &$general_value ) {
 				if ( $key === $general_key ) {
 					return $general_value;
 				}
@@ -124,7 +124,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$integrations = Mockery::mock( Integrations::class );
 		$integrations->shouldReceive( 'get' )->andReturnUsing(
-			function( $key, $empty_value ) use ( $integrations_key, $integrations_value ) {
+			function ( $key, $empty_value ) use ( $integrations_key, $integrations_value ) {
 				if ( $key === $integrations_key ) {
 					return $integrations_value;
 				}
