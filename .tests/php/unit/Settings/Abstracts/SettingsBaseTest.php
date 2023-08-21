@@ -810,14 +810,14 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * Test get_tab_name_from_referer().
 	 *
 	 * @param bool        $doing_ajax Whether we are in the ajax request.
-	 * @param string      $referer    Referer.
+	 * @param string|null $referer    Referer.
 	 * @param string|null $expected   Expected result.
 	 *
 	 * @return void
 	 * @dataProvider dp_test_get_tab_name_from_referer
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_get_tab_name_from_referer( bool $doing_ajax, string $referer, $expected ) {
+	public function test_get_tab_name_from_referer( bool $doing_ajax, $referer, $expected ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
