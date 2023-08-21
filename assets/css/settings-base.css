@@ -91,6 +91,7 @@ body.settings_page_hcaptcha {
 #hcaptcha-options .button-primary {
 	background-color: #026593;
 	color: #ffffff;
+	border-color: #026593;
 }
 
 #hcaptcha-options .button-primary:hover {
