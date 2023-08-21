@@ -33,7 +33,7 @@ body.settings_page_hcaptcha {
 
 .hcaptcha-settings-tab:hover {
 	color: #666;
-	border-color: #025176;
+	border-bottom-color: #025176 !important;
 	border-bottom: 2px solid;
 }
 
