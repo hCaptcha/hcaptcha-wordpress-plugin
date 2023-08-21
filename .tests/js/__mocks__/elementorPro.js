@@ -1,3 +1,5 @@
+/* global global */
+
 const elementorPro = {
 	config: {
 		forms: {
@@ -14,4 +16,5 @@ const elementorPro = {
 
 global.elementorPro = elementorPro;
 
+// noinspection JSUnusedGlobalSymbols
 export default elementorPro;

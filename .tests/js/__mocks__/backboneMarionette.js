@@ -1,3 +1,5 @@
+/* global jest, global */
+
 // Mock Backbone
 const Backbone = {
 	Radio: {
