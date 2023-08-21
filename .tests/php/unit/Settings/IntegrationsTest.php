@@ -207,7 +207,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_section_callback
 	 */
-	public function test_section_callback( $id, $expected ) {
+	public function test_section_callback( string $id, string $expected ) {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
@@ -222,7 +222,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_section_callback() {
+	public function dp_test_section_callback(): array {
 		return [
 			'disabled' => [
 				Integrations::SECTION_DISABLED,

@@ -20,7 +20,7 @@ const PLUGIN_TESTS_DIR = __DIR__;
 /**
  * Plugin main file.
  */
-define( 'PLUGIN_MAIN_FILE', dirname( dirname( dirname( __DIR__ ) ) ) . '/hcaptcha.php' );
+define( 'PLUGIN_MAIN_FILE', dirname( __DIR__, 3 ) . '/hcaptcha.php' );
 
 /**
  * Plugin path.

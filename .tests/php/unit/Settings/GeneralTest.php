@@ -124,7 +124,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_setup_fields
 	 */
-	public function test_setup_fields( $mode ) {
+	public function test_setup_fields( string $mode ) {
 		$settings = Mockery::mock( Settings::class )->makePartial();
 		$settings->shouldReceive( 'get_mode' )->andReturn( $mode );
 
@@ -163,7 +163,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_setup_fields() {
+	public function dp_test_setup_fields(): array {
 		return [
 			[ General::MODE_LIVE ],
 			[ 'other_mode' ],
@@ -192,7 +192,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_section_callback
 	 */
-	public function test_section_callback( $section_id, $expected ) {
+	public function test_section_callback( string $section_id, string $expected ) {
 		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
@@ -219,7 +219,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_section_callback() {
+	public function dp_test_section_callback(): array {
 		return [
 			'keys'       => [
 				General::SECTION_KEYS,
