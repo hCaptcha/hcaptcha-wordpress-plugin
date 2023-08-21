@@ -478,14 +478,14 @@ class SystemInfo extends PluginSettingsBase {
 	/**
 	 * Get max key length.
 	 *
-	 * @param array  $array Array.
-	 * @param string $key   Key.
+	 * @param array  $data Data.
+	 * @param string $key  Key.
 	 *
 	 * @return int
 	 */
-	private function get_max_key_length( array $array, string $key ): int {
+	private function get_max_key_length( array $data, string $key ): int {
 		return array_reduce(
-			$array,
+			$data,
 			static function ( $carry, $item ) use ( $key ) {
 				$length = isset( $item[ $key ] ) ? mb_strlen( $item[ $key ] ) : 0;
 
@@ -498,18 +498,18 @@ class SystemInfo extends PluginSettingsBase {
 	/**
 	 * Multibyte str_pad.
 	 *
-	 * @param string $string     A string.
+	 * @param string $s          A string.
 	 * @param int    $length     Desired length.
 	 * @param string $pad_string Padding character.
 	 *
 	 * @return string
 	 * @noinspection PhpSameParameterValueInspection
 	 */
-	private function mb_str_pad( string $string, int $length, string $pad_string = ' ' ): string {
+	private function mb_str_pad( string $s, int $length, string $pad_string = ' ' ): string {
 		$pad_string = mb_substr( $pad_string, 0, 1 );
-		$times      = max( 0, $length - mb_strlen( $string ) );
+		$times      = max( 0, $length - mb_strlen( $s ) );
 
-		return $string . str_repeat( $pad_string, $times );
+		return $s . str_repeat( $pad_string, $times );
 	}
 
 	/**

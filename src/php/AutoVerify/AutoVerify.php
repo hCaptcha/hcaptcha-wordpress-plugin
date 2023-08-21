@@ -54,8 +54,8 @@ class AutoVerify {
 			)
 		) {
 			$forms = array_map(
-				static function ( $match ) {
-					return $match[0];
+				static function ( $match_item ) {
+					return $match_item[0];
 				},
 				$matches
 			);

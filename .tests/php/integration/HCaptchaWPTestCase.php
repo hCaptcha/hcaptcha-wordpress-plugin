@@ -52,19 +52,19 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Get an object protected property.
 	 *
-	 * @param object $object        Object.
+	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
 	 *
 	 * @return mixed
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function get_protected_property( $object, $property_name ) {
-		$reflection_class = new ReflectionClass( $object );
+	protected function get_protected_property( $subject, $property_name ) {
+		$reflection_class = new ReflectionClass( $subject );
 
 		$property = $reflection_class->getProperty( $property_name );
 		$property->setAccessible( true );
-		$value = $property->getValue( $object );
+		$value = $property->getValue( $subject );
 		$property->setAccessible( false );
 
 		return $value;
@@ -73,25 +73,25 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Set an object protected property.
 	 *
-	 * @param object $object        Object.
+	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
 	 * @param mixed  $value         Property vale.
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_protected_property( $object, $property_name, $value ) {
-		$reflection_class = new ReflectionClass( $object );
+	protected function set_protected_property( $subject, $property_name, $value ) {
+		$reflection_class = new ReflectionClass( $subject );
 
 		$property = $reflection_class->getProperty( $property_name );
 		$property->setAccessible( true );
-		$property->setValue( $object, $value );
+		$property->setValue( $subject, $value );
 		$property->setAccessible( false );
 	}
 
 	/**
 	 * Set an object protected method accessibility.
 	 *
-	 * @param object $object      Object.
+	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
 	 * @param bool   $accessible  Property vale.
 	 *
@@ -99,8 +99,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_method_accessibility( $object, $method_name, $accessible = true ) {
-		$reflection_class = new ReflectionClass( $object );
+	protected function set_method_accessibility( $subject, $method_name, $accessible = true ) {
+		$reflection_class = new ReflectionClass( $subject );
 
 		$method = $reflection_class->getMethod( $method_name );
 		$method->setAccessible( $accessible );

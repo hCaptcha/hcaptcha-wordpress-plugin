@@ -178,13 +178,13 @@ class Main {
 	/**
 	 * Get plugin class instance.
 	 *
-	 * @param string $class Class name.
+	 * @param string $class_name Class name.
 	 *
 	 * @return object|null
 	 */
-	public function get( string $class ) {
+	public function get( string $class_name ) {
 
-		return $this->loaded_classes[ $class ] ?? null;
+		return $this->loaded_classes[ $class_name ] ?? null;
 	}
 
 	/**
