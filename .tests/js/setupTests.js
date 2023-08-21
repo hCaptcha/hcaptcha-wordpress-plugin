@@ -1,4 +1,4 @@
-/* global global, require */
+// noinspection JSUnresolvedReference
 
 global.fetch = require( 'jest-fetch-mock' );
 

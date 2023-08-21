@@ -1,4 +1,4 @@
-/* global global */
+// noinspection JSUnresolvedReference
 
 const elementorPro = {
 	config: {

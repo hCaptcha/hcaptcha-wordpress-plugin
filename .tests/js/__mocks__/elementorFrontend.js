@@ -1,4 +1,4 @@
-/* global jest, global */
+// noinspection JSUnresolvedReference
 
 export const hooks = {
 	addAction: jest.fn(),

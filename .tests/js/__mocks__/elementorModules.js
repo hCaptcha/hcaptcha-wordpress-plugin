@@ -1,4 +1,4 @@
-/* global global */
+// noinspection JSUnresolvedReference
 
 const elementorModules = {
 	editor: {
