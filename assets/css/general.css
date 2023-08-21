@@ -13,6 +13,10 @@
 	align-self: start;
 }
 
+#hcaptcha-options table tbody tr th {
+	color: #5c6f8a;
+}
+
 #hcaptcha-options table tbody tr td {
 	padding: 0;
 	margin: 0;
