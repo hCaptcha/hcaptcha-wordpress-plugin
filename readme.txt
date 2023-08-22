@@ -482,6 +482,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.3.0 =
+* The color schema in admin changed to hCaptcha corporate.
+
 = 3.2.0 =
 * Tested with WooCommerce 8.0.
 * Added ability to use hCaptcha field provided by the Fluent Forms plugin.
