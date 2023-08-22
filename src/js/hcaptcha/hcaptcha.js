@@ -7,9 +7,11 @@
 class HCaptcha {
 	constructor() {
 		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form';
-		this.submitButtonSelector = '*[type="submit"], #check_config, a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit, .frm_button_submit';
+		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit), #check_config, a.fl-button span, button[type="button"].ff-btn,' +
+			' a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit, .frm_button_submit';
 		this.foundForms = [];
 		this.params = null;
+		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
 
@@ -128,6 +130,8 @@ class HCaptcha {
 			params = {};
 		}
 
+		params.callback = this.callback;
+
 		return params;
 	}
 
@@ -141,14 +145,31 @@ class HCaptcha {
 	}
 
 	/**
+	 * Called when the user submits a successful response.
+	 *
+	 * @param {string} token The h-captcha-response token.
+	 */
+	callback( token ) {
+		document.dispatchEvent(
+			new CustomEvent( 'hCaptchaSubmitted', {
+				detail: { token },
+			} )
+		);
+
+		const params = this.getParams();
+
+		if ( params.size === 'invisible' ) {
+			this.submit();
+		}
+	}
+
+	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
 		if ( 'undefined' === typeof hcaptcha ) {
 			return;
 		}
-
-		const params = this.getParams();
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
@@ -168,7 +189,7 @@ class HCaptcha {
 				return formElement;
 			}
 
-			hcaptcha.render( hcaptchaElement, params );
+			hcaptcha.render( hcaptchaElement, this.getParams() );
 
 			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
 				return formElement;

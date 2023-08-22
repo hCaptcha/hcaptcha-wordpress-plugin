@@ -1,77 +1,34 @@
-/* global _, elementor, elementorPro, elementorModules */
+/* global jQuery, hCaptchaBindEvents, elementorFrontend */
 
-/**
- * @param config.setup_message
- * @param config.site_key
- * @param config.hcaptcha_theme
- * @param config.hcaptcha_size
- * @param item.field_type
- * @param item.custom_id
- * @param item.css_classes
- */
+jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
+	const params = new URLSearchParams( settings.data );
 
-class HCaptchaElementor extends elementorModules.editor.utils.Module {
-	/**
-	 * Get hCaptcha form.
-	 *
-	 * @param {Object} item
-	 *
-	 * @return {string} hCaptcha form.
-	 */
-	static getHCaptchaForm( item ) {
-		const config = elementorPro.config.forms[ item.field_type ];
+	if ( params.get( 'action' ) !== 'elementor_pro_forms_send_form' ) {
+		return;
+	}
 
-		if ( ! config.enabled ) {
-			return (
-				'<div class="elementor-alert elementor-alert-info">' +
-				config.setup_message +
-				'</div>'
-			);
+	const formId = params.get( 'form_id' );
+	const form = jQuery( 'input[name="form_id"][value="' + formId + '"]' ).closest( 'form' );
+
+	window.hCaptchaReset( form[ 0 ] );
+} );
+
+const hcaptchaElementorPro = function() {
+	if ( 'undefined' === typeof elementorFrontend ) {
+		return;
+	}
+
+	elementorFrontend.hooks.addAction(
+		'frontend/element_ready/widget',
+		function( $scope ) {
+			if ( $scope[ 0 ].classList.contains( 'elementor-widget-form' ) ) {
+				// Elementor reinserts element during editing, so we need to bind events again.
+				hCaptchaBindEvents();
+			}
 		}
+	);
+};
 
-		let hCaptchaData = 'data-sitekey="' + config.site_key + '"';
-		hCaptchaData += ' data-theme="' + config.hcaptcha_theme + '"';
-		hCaptchaData += ' data-size="' + config.hcaptcha_size + '"';
-		hCaptchaData += ' data-auto="false"';
+window.hCaptchaElementorPro = hcaptchaElementorPro;
 
-		return '<div class="h-captcha" ' + hCaptchaData + '></div>';
-	}
-
-	renderField( inputField, item ) {
-		inputField +=
-			'<div class="elementor-field" id="form-field-' +
-			item.custom_id +
-			'">';
-		inputField +=
-			'<div class="elementor-hcaptcha' +
-			_.escape( item.css_classes ) +
-			'">';
-		inputField += HCaptchaElementor.getHCaptchaForm( item );
-		inputField += '</div>';
-		inputField += '</div>';
-		return inputField;
-	}
-
-	filterItem( item ) {
-		if ( 'hcaptcha' === item.field_type ) {
-			item.field_label = false;
-		}
-
-		return item;
-	}
-
-	onInit() {
-		elementor.hooks.addFilter(
-			'elementor_pro/forms/content_template/item',
-			this.filterItem
-		);
-		elementor.hooks.addFilter(
-			'elementor_pro/forms/content_template/field/hcaptcha',
-			this.renderField,
-			10,
-			2
-		);
-	}
-}
-
-window.hCaptchaElementorPro = new HCaptchaElementor();
+jQuery( document ).ready( hcaptchaElementorPro );

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.0.0
-Stable tag: 3.1.0
+Stable tag: 3.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -481,6 +481,23 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.2.0 =
+* Tested with WooCommerce 8.0.
+* Added ability to use hCaptcha field provided by the Fluent Forms plugin.
+* Added ability to use hCaptcha field provided by the Forminator plugin.
+* Added ability to use hCaptcha field provided by the Quform plugin.
+* Added hCaptcha reset to allow sending Elementor form several times without reloading the page.
+* Added hCaptcha reset to allow sending Forminator form several times without reloading the page.
+* Added hCaptcha reset to allow sending Quform form several times without reloading the page.
+* Blocked hCaptcha settings on Fluent Forms admin pages with a notice having a link to the hCaptcha plugin General settings page.
+* Blocked hCaptcha settings on Forminator admin pages with a notice having a link to the hCaptcha plugin General settings page.
+* Blocked hCaptcha settings on Quform admin pages with a notice having a link to the hCaptcha plugin General settings page.
+* Fixed Fluent Forms submit error.
+* Fixed positioning of hCaptcha in Fluent Form.
+* Fixed deprecation errors in debug.log that occurred with Fluent Forms.
+* Fixed Forminator form display error.
+* Fixed dynamic display of settings in sample hCaptcha.
 
 = 3.1.0 =
 * Added notification system.

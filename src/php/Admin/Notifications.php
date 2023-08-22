@@ -47,18 +47,9 @@ class Notifications {
 	private $notifications = [];
 
 	/**
-	 * Prefix for minified files.
-	 *
-	 * @var string
-	 */
-	private $min_prefix;
-
-	/**
 	 * Init class.
 	 */
 	public function init() {
-		$this->min_prefix = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
-
 		$this->init_notifications();
 		$this->init_hooks();
 	}
@@ -211,9 +202,11 @@ class Notifications {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
+		$min = hcap_min_suffix();
+
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/notifications$this->min_prefix.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/notifications$min.js",
 			[ 'jquery' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
@@ -233,7 +226,7 @@ class Notifications {
 
 		wp_enqueue_style(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/notifications$this->min_prefix.css",
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/notifications$min.css",
 			[],
 			constant( 'HCAPTCHA_VERSION' )
 		);
@@ -331,7 +324,7 @@ class Notifications {
 	 *
 	 * @return bool
 	 */
-	private function remove_dismissed() {
+	private function remove_dismissed(): bool {
 		$user = wp_get_current_user();
 
 		if ( ! $user ) {

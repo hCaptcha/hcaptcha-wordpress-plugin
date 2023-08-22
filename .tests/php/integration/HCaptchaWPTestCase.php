@@ -119,8 +119,6 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @return string
 	 */
 	protected function get_hcap_form( $action = '', $name = '', $auto = false, $invisible = false ) {
-		$callback = $invisible ? 'data-callback="hCaptchaSubmit"' : '';
-
 		$nonce_field = '';
 
 		if ( ! empty( $action ) && ! empty( $name ) ) {
@@ -135,7 +133,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 			data-sitekey=""
 			data-theme=""
 			data-size="' . $data_size . '"
-			' . $callback . '			data-auto="' . $data_auto . '">
+			data-auto="' . $data_auto . '">
 		</div>
 		' . $nonce_field;
 	}

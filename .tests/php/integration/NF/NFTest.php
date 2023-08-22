@@ -42,7 +42,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			10,
 			has_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $subject, 'localize_field' ] )
 		);
-		self::assertSame( 10, has_action( 'wp_enqueue_scripts', [ $subject, 'nf_captcha_script' ] ) );
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'nf_captcha_script' ] ) );
 	}
 
 	/**
@@ -121,7 +121,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			data-sitekey="some key"
 			data-theme="some theme"
 			data-size="some size"
-						data-auto="false">
+			data-auto="false">
 		</div>
 		';
 

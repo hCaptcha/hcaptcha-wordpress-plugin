@@ -69,13 +69,6 @@ class Main {
 	public $modules = [];
 
 	/**
-	 * Whether fluentform(s) without own hCaptcha were loaded.
-	 *
-	 * @var bool
-	 */
-	public $fluentform_support_required = false;
-
-	/**
 	 * Loaded classes.
 	 *
 	 * @var array
@@ -324,7 +317,8 @@ class Main {
 	 * @return void
 	 */
 	public function print_inline_styles() {
-		$url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
 		ob_start();
 		?>
@@ -361,6 +355,10 @@ class Main {
 			form.wpsc-create-ticket .h-captcha {
 				margin: 0 15px 15px 15px;
 			}
+			.frm-fluent-form .h-captcha {
+				line-height: 0;
+				margin-bottom: 0;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}
@@ -395,25 +393,27 @@ class Main {
 				position: absolute;
 				top: 0;
 				left: 0;
-				background: url(<?php echo esc_url( $url ); ?>) no-repeat;
+				background: url(<?php echo esc_url( $div_logo_url ); ?>) no-repeat;
 				border: 1px solid transparent;
 				border-radius: 4px;
 			}
 			.h-captcha[data-size="normal"]::before {
 				width: 300px;
 				height: 74px;
-				background-position: 94% 27%;
+				background-position: 94% 28%;
 			}
 			.h-captcha[data-size="compact"]::before {
 				width: 156px;
 				height: 136px;
-				background-position: 50% 77%;
+				background-position: 50% 79%;
 			}
 			.h-captcha[data-theme="light"]::before {
 				background-color: #fafafa;
 				border: 1px solid #e0e0e0;
 			}
 			.h-captcha[data-theme="dark"]::before {
+				background-image: url(<?php echo esc_url( $div_logo_white_url ); ?>);
+				background-repeat: no-repeat;
 				background-color: #333;
 				border: 1px solid #f5f5f5;
 			}
@@ -489,17 +489,6 @@ class Main {
 			$params['custom'] = 'true';
 		}
 
-		/**
-		 * Filters hCaptcha language.
-		 *
-		 * @param string $language Language.
-		 */
-		$language = (string) apply_filters( 'hcap_language', $this->settings()->get( 'language' ) );
-
-		if ( $language ) {
-			$params['hl'] = $language;
-		}
-
 		return add_query_arg( $params, 'https://js.hcaptcha.com/1/api.js' );
 	}
 
@@ -509,14 +498,17 @@ class Main {
 	 * @return void
 	 */
 	public function print_footer_scripts() {
-		if (
-			! (
-				$this->form_shown ||
-				$this->did_wpforo_template_filter ||
-				$this->did_support_candy_shortcode_tag_filter ||
-				$this->fluentform_support_required
-			)
-		) {
+		$status =
+			$this->form_shown ||
+			$this->did_wpforo_template_filter ||
+			$this->did_support_candy_shortcode_tag_filter;
+
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ! apply_filters( 'hcap_print_hcaptcha_scripts', $status ) ) {
 			return;
 		}
 
@@ -544,25 +536,27 @@ class Main {
 			true
 		);
 
-		$params = $settings->is_on( 'custom_themes' ) ? $settings->get( 'config_params' ) : null;
+		$params = [
+			'sitekey' => $settings->get_site_key(),
+			'theme'   => $settings->get( 'theme' ),
+			'size'    => $settings->get( 'size' ),
+			'hl'      => $settings->get_language(),
+		];
+
+		$config_params = [];
+
+		if ( $settings->is_on( 'custom_themes' ) ) {
+			$config_params = json_decode( $settings->get( 'config_params' ), true );
+			$config_params = $config_params ?: [];
+		}
+
+		$params = array_merge( $params, $config_params );
 
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
-			[ 'params' => $params ]
+			[ 'params' => wp_json_encode( $params ) ]
 		);
-
-		$min = hcap_min_suffix();
-
-		if ( array_key_exists( HCaptchaHandler::class, $this->loaded_classes ) ) {
-			wp_enqueue_script(
-				'hcaptcha-elementor-pro-frontend',
-				HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro-frontend$min.js",
-				[ 'jquery', self::HANDLE ],
-				HCAPTCHA_VERSION,
-				true
-			);
-		}
 	}
 
 	/**

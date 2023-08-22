@@ -34,7 +34,7 @@ class HCaptcha {
 		ob_start();
 		self::form_display( $args );
 
-		return ob_get_clean();
+		return (string) ob_get_clean();
 	}
 
 	/**
@@ -103,7 +103,6 @@ class HCaptcha {
 
 		$args['auto'] = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
 		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
-		$callback     = 'invisible' === $args['size'] ? 'data-callback="hCaptchaSubmit"' : '';
 
 		?>
 		<div
@@ -111,7 +110,6 @@ class HCaptcha {
 			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $args['size'] ); ?>"
-			<?php echo wp_kses_post( $callback ); ?>
 			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>">
 		</div>
 		<?php
@@ -203,5 +201,28 @@ class HCaptcha {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Get hCaptcha plugin notice.
+	 *
+	 * @return string[]
+	 * @noinspection HtmlUnknownTarget
+	 */
+	public static function get_hcaptcha_plugin_notice(): array {
+		$url                   = admin_url( 'options-general.php?page=hcaptcha&tab=general' );
+		$notice['label']       = esc_html__( 'hCaptcha plugin is active', 'hcaptcha-for-forms-and-more' );
+		$notice['description'] = wp_kses_post(
+			sprintf(
+			/* translators: 1: link to the General setting page */
+				__( 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				sprintf(
+					'<a href="%s" target="_blank">General settings page</a>',
+					esc_url( $url )
+				)
+			)
+		);
+
+		return $notice;
 	}
 }

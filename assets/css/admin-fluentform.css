@@ -1,0 +1,6 @@
+body.fluent-forms_page_fluent_forms_settings .ff_hcaptcha_wrap .ff_card_head h5,
+body.fluent-forms_page_fluent_forms_settings .ff_hcaptcha_wrap .ff_card_head p,
+body.fluent-forms_page_fluent_forms_settings .ff_hcaptcha_wrap .ff_card_body,
+body.fluent-forms_page_fluent_forms_settings .ff_hcaptcha_wrap .mt-4 {
+	display: none;
+}

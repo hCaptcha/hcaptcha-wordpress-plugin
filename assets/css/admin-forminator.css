@@ -1,0 +1,6 @@
+body.forminator_page_forminator-settings input[name="captcha_tab_saved"][value="hcaptcha"] + .sui-box-body .sui-tab-content.active .sui-settings-label,
+body.forminator_page_forminator-settings input[name="captcha_tab_saved"][value="hcaptcha"] + .sui-box-body .sui-tab-content.active .sui-description,
+body.forminator_page_forminator-settings input[name="captcha_tab_saved"][value="hcaptcha"] + .sui-box-body .sui-tab-content.active .sui-form-field,
+body.forminator_page_forminator-settings input[name="captcha_tab_saved"][value="hcaptcha"] + .sui-box-body .sui-form-field:last-child {
+	display: none;
+}

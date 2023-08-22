@@ -201,6 +201,7 @@ class Settings implements SettingsInterface {
 	 * @return string
 	 */
 	public function get_mode(): string {
+
 		/**
 		 * Filters the current operating mode to get relevant key pair.
 		 *
@@ -215,7 +216,13 @@ class Settings implements SettingsInterface {
 	 * @return string
 	 */
 	public function get_site_key(): string {
-		return $this->get_keys()['site_key'];
+
+		/**
+		 * Filters the current site key.
+		 *
+		 * @param string $mode Current site key.
+		 */
+		return (string) apply_filters( 'hcap_site_key', $this->get_keys()['site_key'] );
 	}
 
 	/**
@@ -224,7 +231,28 @@ class Settings implements SettingsInterface {
 	 * @return string
 	 */
 	public function get_secret_key(): string {
-		return $this->get_keys()['secret_key'];
+
+		/**
+		 * Filters the current secret key.
+		 *
+		 * @param string $mode Current secret key.
+		 */
+		return (string) apply_filters( 'hcap_secret_key', $this->get_keys()['secret_key'] );
+	}
+
+	/**
+	 * Get language.
+	 *
+	 * @return string
+	 */
+	public function get_language(): string {
+
+		/**
+		 * Filters hCaptcha language.
+		 *
+		 * @param string $language Language.
+		 */
+		return (string) apply_filters( 'hcap_language', $this->get( 'language' ) );
 	}
 
 	/**

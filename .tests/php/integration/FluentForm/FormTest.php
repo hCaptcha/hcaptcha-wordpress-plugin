@@ -7,11 +7,10 @@
 
 namespace HCaptcha\Tests\Integration\FluentForm;
 
+use FluentForm\App\Models\Form as FluentForm;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
-use WPDieException;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test FluentForm.
@@ -27,12 +26,12 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame(
-			10,
-			has_action( 'fluentform_render_item_submit_button', [ $subject, 'add_captcha' ] )
+			9,
+			has_action( 'fluentform/render_item_submit_button', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
 			10,
-			has_action( 'fluentform_validation_errors', [ $subject, 'verify' ] )
+			has_action( 'fluentform/validation_errors', [ $subject, 'verify' ] )
 		);
 		self::assertSame(
 			9,
@@ -40,7 +39,7 @@ class FormTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_filter( 'fluentform_rendering_form', [ $subject, 'fluentform_rendering_form_filter' ] )
+			has_filter( 'fluentform/rendering_form', [ $subject, 'fluentform_rendering_form_filter' ] )
 		);
 	}
 
@@ -68,7 +67,7 @@ class FormTest extends HCaptchaWPTestCase {
 		?>
 		<div class="ff-el-group">
 			<div class="ff-el-input--content">
-				<div name="h-captcha-response">
+				<div data-fluent_id="<?php echo (int) $form->id; ?>" name="h-captcha-response">
 					<?php
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $hcap_form;
@@ -111,10 +110,11 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_no_success() {
 		$errors = [
-			'some_error' => 'Some error description',
+			'some_error'         => 'Some error description',
+			'h-captcha-response' => [ 'Please complete the hCaptcha.' ],
 		];
 		$data   = [];
-		$form   = (object) [];
+		$form   = Mockery::mock( FluentForm::class );
 		$fields = [];
 
 		$mock = Mockery::mock( Form::class )->makePartial();
@@ -135,7 +135,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$data                           = [];
-		$form                           = (object) [];
+		$form                           = Mockery::mock( FluentForm::class );
 		$fields                         = [];
 		$response                       = 'some response';
 		$expected                       = $errors;

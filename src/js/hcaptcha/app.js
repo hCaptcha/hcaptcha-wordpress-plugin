@@ -26,4 +26,8 @@ window.hCaptchaSubmit = () => {
 	hCaptcha.submit();
 };
 
-window.hCaptchaOnLoad = window.hCaptchaBindEvents;
+window.hCaptchaOnLoad = () => {
+	window.hCaptchaBindEvents();
+
+	document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
+};
