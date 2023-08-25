@@ -150,8 +150,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test hcap_cf7_verify_recaptcha().
 	 *
-	 * @requires PHP >= 7.4
-	 *
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_hcap_cf7_verify_recaptcha() {
@@ -195,6 +193,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without submission.
+	 *
+	 * @requires PHP >= 7.4
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
