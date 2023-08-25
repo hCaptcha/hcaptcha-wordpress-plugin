@@ -524,6 +524,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.4.0 =
+* Fixed compatibility with HPOS in WooCommerce
+
 = 3.3.3 =
 * Added compatibility with LearnDash.
 * Added requirement to check the site config after changes in credentials.

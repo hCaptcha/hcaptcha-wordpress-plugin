@@ -140,6 +140,7 @@ class Main {
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], - PHP_INT_MAX + 1 );
 		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], - PHP_INT_MAX, 2 );
+		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
 		$this->active = $this->activate_hcaptcha();
 
@@ -153,7 +154,6 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
-		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
