@@ -24,6 +24,7 @@ use WPCF7_Validation;
  * Test CF7 class.
  *
  * @requires PHP >= 7.4
+ *
  * @group    cf7
  */
 class CF7Test extends HCaptchaPluginWPTestCase {
@@ -193,8 +194,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hcap_cf7_verify_recaptcha() without submission.
-	 *
-	 * @requires PHP >= 7.4
 	 */
 	public function test_hcap_cf7_verify_recaptcha_without_submission() {
 		$result = Mockery::mock( WPCF7_Validation::class );
