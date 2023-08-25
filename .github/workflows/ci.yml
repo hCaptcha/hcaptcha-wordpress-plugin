@@ -36,7 +36,8 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
+          extensions: json, mysqli, mbstring, zip
 
       - name: Setup Composer caching
         uses: ramsey/composer-install@v2
