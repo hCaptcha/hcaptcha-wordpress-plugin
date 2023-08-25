@@ -23,11 +23,8 @@ use WPCF7_Validation;
 /**
  * Test CF7 class.
  *
- * CF7 requires PHP 7.4.
- *
  * @requires PHP >= 7.4
- *
- * @group cf7
+ * @group    cf7
  */
 class CF7Test extends HCaptchaPluginWPTestCase {
 
