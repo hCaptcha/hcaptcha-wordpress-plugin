@@ -33,28 +33,13 @@ jobs:
         with:
           path: ${{ env.wp-plugin-directory }}
 
-      - name: Install PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
-          extensions: json, mysqli, mbstring, zip
-        env:
-          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          php-version: ${{ matrix.php-versions }}
 
-      - name: Get Composer cache directory
-        working-directory: ${{ env.wp-plugin-directory }}
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Set up Composer caching
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+      - name: Setup Composer caching
+        uses: ramsey/composer-install@v2
 
       - name: Install dependencies
         working-directory: ${{ env.wp-plugin-directory }}
