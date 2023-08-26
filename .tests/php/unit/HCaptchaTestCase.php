@@ -903,6 +903,13 @@ abstract class HCaptchaTestCase extends TestCase {
 						'login'    => 'Login Form',
 					],
 				],
+			'passster_status'               => [
+				'label'   => 'Passster',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => 'Protection Form',
+				],
+			],
 			'profile_builder_status'        => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',

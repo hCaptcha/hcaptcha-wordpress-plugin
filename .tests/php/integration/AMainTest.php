@@ -529,6 +529,9 @@ class AMainTest extends HCaptchaWPTestCase {
 				line-height: 0;
 				margin-bottom: 0;
 			}
+			.passster-form .h-captcha {
+				margin-bottom: 5px;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}

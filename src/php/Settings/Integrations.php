@@ -290,7 +290,7 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Passster',
 				'type'    => 'checkbox',
 				'options' => [
-					'protect' => __( 'Protected Area Form', 'hcaptcha-for-forms-and-more' ),
+					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'profile_builder_status'        => [
