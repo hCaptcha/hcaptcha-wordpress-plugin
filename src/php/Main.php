@@ -359,6 +359,9 @@ class Main {
 				line-height: 0;
 				margin-bottom: 0;
 			}
+			.passster-form .h-captcha {
+				margin-bottom: 5px;
+			}
 			.gform_previous_button + .h-captcha {
 				margin-top: 2rem;
 			}
@@ -894,6 +897,11 @@ class Main {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Login::class,
+			],
+			'Passster Protect'                  => [
+				[ 'passster_status', 'protect' ],
+				'content-protector/content-protector.php',
+				Passster\Protect::class,
 			],
 			'Profile Builder Login'             => [
 				[ 'profile_builder_status', 'login' ],

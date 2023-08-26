@@ -227,6 +227,10 @@ Paid Memberships Pro
 $source: 'paid-memberships-pro/paid-memberships-pro.php'
 $form_id: 'checkout' or 'login'
 
+Passster
+$source: 'content-protector/content-protector.php'
+$form_id: area_id
+
 Profile Builder
 $source: 'profile-builder/index.php'
 $form_id: 'login', 'lost_password' or 'register'
@@ -440,6 +444,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout Form
 * Paid Memberships Pro Login Form
+* Passster Protection Form
 * Profile Builder Login Form
 * Profile Builder Recover Password Form
 * Profile Builder Register Form
@@ -484,6 +489,7 @@ Instructions for popular native integrations are below:
 
 = 3.3.0 =
 * The color schema in admin changed to hCaptcha corporate.
+* Added compatibility with Passster.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.

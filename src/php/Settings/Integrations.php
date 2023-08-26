@@ -286,6 +286,13 @@ class Integrations extends PluginSettingsBase {
 					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'passster_status'               => [
+				'label'   => 'Passster',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => __( 'Protected Area Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'profile_builder_status'        => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
