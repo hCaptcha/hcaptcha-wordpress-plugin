@@ -482,6 +482,7 @@ class SystemInfo extends PluginSettingsBase {
 	 * @param string $key  Key.
 	 *
 	 * @return int
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function get_max_key_length( array $data, string $key ): int {
 		return array_reduce(

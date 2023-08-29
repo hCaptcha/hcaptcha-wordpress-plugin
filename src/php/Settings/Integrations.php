@@ -390,6 +390,7 @@ class Integrations extends PluginSettingsBase {
 	 * @param string $label Label.
 	 *
 	 * @return string
+	 * @noinspection HtmlUnknownTarget
 	 */
 	private function logo( string $label ): string {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
@@ -464,6 +465,9 @@ class Integrations extends PluginSettingsBase {
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
+	 *
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection DevelopmentDependenciesUsageInspection
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
@@ -581,9 +585,7 @@ class Integrations extends PluginSettingsBase {
 		http_response_code( 200 );
 
 		if ( $activate ) {
-			$result = $this->activate_plugins( $plugins );
-
-			if ( ! $result ) {
+			if ( ! $this->activate_plugins( $plugins ) ) {
 				$message = sprintf(
 				/* translators: 1: Plugin(s) name(s). */
 					__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
@@ -629,7 +631,7 @@ class Integrations extends PluginSettingsBase {
 
 			$result = activate_plugin( $plugin );
 
-			ob_get_clean();
+			ob_end_clean();
 
 			if ( null === $result ) {
 				// Activate the first available plugin only.

@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection ContractViolationInspection */
+
 namespace HCaptcha\Settings;
 
 use HCaptcha\Settings\Abstracts\SettingsBase;

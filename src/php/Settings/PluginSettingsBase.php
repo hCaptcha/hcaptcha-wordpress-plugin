@@ -176,6 +176,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @param string|mixed $text Footer text.
 	 *
 	 * @return string|mixed
+	 * @noinspection HtmlUnknownTarget
 	 */
 	public function admin_footer_text( $text ) {
 		if ( ! $this->is_options_screen() ) {
@@ -190,11 +191,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 				__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
 				'<strong>hCaptcha for WordPress</strong>',
 				sprintf(
-					'<a href="%s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
+					'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
 					$url
 				),
 				sprintf(
-					'<a href="%s" target="_blank" rel="noopener noreferrer">WordPress.org</a>',
+					'<a href="%1$s" target="_blank" rel="noopener noreferrer">WordPress.org</a>',
 					$url
 				)
 			),

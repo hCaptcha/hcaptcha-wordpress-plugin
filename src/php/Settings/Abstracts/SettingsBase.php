@@ -197,6 +197,8 @@ abstract class SettingsBase {
 
 	/**
 	 * Init class.
+	 *
+	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function init() {
 		$this->min_prefix = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
@@ -410,6 +412,7 @@ abstract class SettingsBase {
 	 * Add settings page to the menu.
 	 *
 	 * @return void
+	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function add_settings_page() {
 		if ( $this->is_main_menu_page() ) {
@@ -743,6 +746,8 @@ abstract class SettingsBase {
 	 * Print textarea field.
 	 *
 	 * @param array $arguments Field arguments.
+	 *
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	protected function print_textarea_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
@@ -763,6 +768,7 @@ abstract class SettingsBase {
 	 * @param array $arguments Field arguments.
 	 *
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection HtmlWrongAttributeValue
 	 */
 	protected function print_checkbox_field( array $arguments ) {
 		$value = (array) $this->get( $arguments['field_id'] );
@@ -828,6 +834,7 @@ abstract class SettingsBase {
 	 * @param array $arguments Field arguments.
 	 *
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection HtmlWrongAttributeValue
 	 */
 	protected function print_radio_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
@@ -997,6 +1004,8 @@ abstract class SettingsBase {
 	 * Print table field.
 	 *
 	 * @param array $arguments Field arguments.
+	 *
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	protected function print_table_field( array $arguments ) {
 		$value = $this->get( $arguments['field_id'] );
@@ -1044,6 +1053,8 @@ abstract class SettingsBase {
 	 * Print button field.
 	 *
 	 * @param array $arguments Field arguments.
+	 *
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	protected function print_button_field( array $arguments ) {
 		$disabled = $arguments['disabled'] ?? '';
@@ -1187,11 +1198,10 @@ abstract class SettingsBase {
 			return $value;
 		}
 
-		$value       = is_array( $value ) ? $value : [];
-		$old_value   = is_array( $old_value ) ? $old_value : [];
-		$form_fields = $this->form_fields();
+		$value     = is_array( $value ) ? $value : [];
+		$old_value = is_array( $old_value ) ? $old_value : [];
 
-		foreach ( $form_fields as $key => $form_field ) {
+		foreach ( $this->form_fields() as $key => $form_field ) {
 			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
 				continue;
 			}
