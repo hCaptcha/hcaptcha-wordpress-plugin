@@ -324,7 +324,7 @@ class Main {
 		?>
 		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
 		<?php
-		ob_get_clean();
+		ob_end_clean();
 		?>
 		<style>
 			#wpdiscuz-subscribe-form .h-captcha {
@@ -549,8 +549,7 @@ class Main {
 		$config_params = [];
 
 		if ( $settings->is_on( 'custom_themes' ) ) {
-			$config_params = json_decode( $settings->get( 'config_params' ), true );
-			$config_params = $config_params ?: [];
+			$config_params = json_decode( $settings->get( 'config_params' ), true ) ?: [];
 		}
 
 		$params = array_merge( $params, $config_params );
