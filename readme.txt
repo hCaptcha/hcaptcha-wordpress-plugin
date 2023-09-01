@@ -243,6 +243,10 @@ Support Candy
 $source: 'supportcandy/supportcandy.php'
 $form_id: 'form'
 
+Theme My Login
+$source: 'theme-my-login/theme-my-login.php'
+$form_id: 'login', 'lost_password' or 'register'
+
 Ultimate Member
 $source: 'ultimate-member/ultimate-member.php'
 $form_id: form_id or 'password'
@@ -452,6 +456,9 @@ For more details, please see the hCaptcha privacy policy at:
 * Sendinblue Form
 * Subscriber Form
 * Support Candy New Ticket Form
+* Theme My Login Login Form
+* Theme My Login Lost Password Form
+* Theme My Login Register Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
 * Ultimate Member Register Form
@@ -490,6 +497,7 @@ Instructions for popular native integrations are below:
 = 3.3.0 =
 * The color schema in admin changed to hCaptcha corporate.
 * Added compatibility with Passster.
+* Added compatibility with Theme My Login.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.
