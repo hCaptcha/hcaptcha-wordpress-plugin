@@ -54,12 +54,12 @@ class Login extends Base {
 	 *
 	 * @return array|mixed
 	 */
-	public function add_captcha( $fields ) {
+	public function add_um_captcha( $fields ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $fields;
 		}
 
-		return parent::add_captcha( $fields );
+		return parent::add_um_captcha( $fields );
 	}
 
 	/**

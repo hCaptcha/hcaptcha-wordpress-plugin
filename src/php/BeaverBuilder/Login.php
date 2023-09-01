@@ -16,15 +16,6 @@ use WP_Error;
  * Class Login.
  */
 class Login extends Base {
-	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Add hooks.
@@ -34,6 +25,7 @@ class Login extends Base {
 	protected function init_hooks() {
 		parent::init_hooks();
 
+		add_filter( 'fl_builder_render_module_content', [ $this, 'add_beaver_builder_captcha' ], 10, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
 	}
 
@@ -45,7 +37,7 @@ class Login extends Base {
 	 *
 	 * @return string|mixed
 	 */
-	public function add_hcaptcha( $out, FLButtonModule $module ) {
+	public function add_beaver_builder_captcha( $out, FLButtonModule $module ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $out;
 		}

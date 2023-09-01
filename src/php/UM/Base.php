@@ -84,7 +84,7 @@ abstract class Base extends LoginBase {
 		$mode = static::UM_MODE;
 
 		add_action( "um_main_{$mode}_fields", [ $this, 'set_form_id' ] );
-		add_filter( 'um_get_form_fields', [ $this, 'add_captcha' ], 100 );
+		add_filter( 'um_get_form_fields', [ $this, 'add_um_captcha' ], 100 );
 		add_filter( "um_{$this->key}_form_edit_field", [ $this, 'display_captcha' ], 10, 2 );
 		add_action( static::UM_ACTION, [ $this, 'verify' ], 10, 2 );
 	}
@@ -108,7 +108,7 @@ abstract class Base extends LoginBase {
 	 * @return array|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $fields ) {
+	public function add_um_captcha( $fields ) {
 		$um = UM();
 
 		if ( ! $um ) {

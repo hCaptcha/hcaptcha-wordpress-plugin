@@ -18,16 +18,6 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
-
-	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
@@ -35,7 +25,7 @@ class Login extends LoginBase {
 
 		$pmpro_page_name = 'login';
 
-		add_filter( 'pmpro_pages_shortcode_' . $pmpro_page_name, [ $this, 'add_captcha' ] );
+		add_filter( 'pmpro_pages_shortcode_' . $pmpro_page_name, [ $this, 'add_pmpro_captcha' ] );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
@@ -46,7 +36,7 @@ class Login extends LoginBase {
 	 *
 	 * @return string|mixed
 	 */
-	public function add_captcha( $content ) {
+	public function add_pmpro_captcha( $content ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $content;
 		}
@@ -60,9 +50,8 @@ class Login extends LoginBase {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		$error_messages = hcap_get_error_messages();
-		$hcap_error     = array_key_exists( $action, $error_messages );
 
-		if ( $hcap_error ) {
+		if ( array_key_exists( $action, $error_messages ) ) {
 			$search        = '<div class="pmpro_login_wrap">';
 			$error_message = '<div class="pmpro_message pmpro_error">' . $error_messages[ $action ] . '</div>';
 			$content       = str_replace( $search, $error_message . $search, $content );
@@ -116,8 +105,7 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
 	}

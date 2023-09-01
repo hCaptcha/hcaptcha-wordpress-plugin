@@ -8,7 +8,6 @@
 namespace HCaptcha\ClassifiedListing;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
 
@@ -18,16 +17,6 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
-
-	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
@@ -35,28 +24,6 @@ class Login extends LoginBase {
 
 		add_action( 'rtcl_login_form', [ $this, 'add_captcha' ] );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-	}
-
-	/**
-	 * Add captcha.
-	 *
-	 * @return void
-	 */
-	public function add_captcha() {
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return;
-		}
-
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
-			],
-		];
-
-		HCaptcha::form_display( $args );
 	}
 
 	/**
@@ -93,8 +60,7 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
 	}

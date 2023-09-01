@@ -23,22 +23,12 @@ class Login extends LoginBase {
 	const TAG = 'et_pb_login';
 
 	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
-
-	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
+		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_divi_captcha' ], 10, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
@@ -52,7 +42,7 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $output, string $module_slug ) {
+	public function add_divi_captcha( $output, string $module_slug ) {
 		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
 			// Do not add captcha in frontend builder.
 

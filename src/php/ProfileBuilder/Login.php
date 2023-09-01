@@ -18,22 +18,12 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
-
-	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_filter( 'wppb_login_form_before_content_output', [ $this, 'add_captcha' ], 10, 2 );
+		add_filter( 'wppb_login_form_before_content_output', [ $this, 'add_wppb_captcha' ], 10, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
@@ -46,7 +36,7 @@ class Login extends LoginBase {
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $login_form, array $form_args ) {
+	public function add_wppb_captcha( $login_form, array $form_args ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $login_form;
 		}
@@ -101,8 +91,7 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
 	}

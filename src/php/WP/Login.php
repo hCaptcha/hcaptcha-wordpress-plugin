@@ -13,7 +13,6 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
 use WordfenceLS\Controller_WordfenceLS;
 use WP_Error;
 use WP_User;
@@ -22,16 +21,6 @@ use WP_User;
  * Class Login
  */
 class Login extends LoginBase {
-
-	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Init hooks.
@@ -48,28 +37,6 @@ class Login extends LoginBase {
 
 		add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_scripts' ], 0 );
 		add_filter( 'wordfence_ls_require_captcha', [ $this, 'wordfence_ls_require_captcha' ] );
-	}
-
-	/**
-	 * Add captcha.
-	 *
-	 * @return void
-	 */
-	public function add_captcha() {
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return;
-		}
-
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
-			],
-		];
-
-		HCaptcha::form_display( $args );
 	}
 
 	/**

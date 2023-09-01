@@ -47,7 +47,7 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			100,
-			has_action( 'um_get_form_fields', [ $subject, 'add_captcha' ] )
+			has_action( 'um_get_form_fields', [ $subject, 'add_um_captcha' ] )
 		);
 		self::assertSame(
 			10,

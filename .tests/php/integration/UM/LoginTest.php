@@ -47,7 +47,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			100,
-			has_action( 'um_get_form_fields', [ $subject, 'add_captcha' ] )
+			has_action( 'um_get_form_fields', [ $subject, 'add_um_captcha' ] )
 		);
 		self::assertSame(
 			10,
@@ -64,26 +64,26 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha().
+	 * Test add_um_captcha().
 	 *
 	 * @param array $fields   Fields.
 	 * @param array $expected Expected.
 	 *
-	 * @dataProvider dp_test_add_captcha
+	 * @dataProvider dp_test_add_um_captcha
 	 * @return void
 	 */
-	public function test_add_captcha( array $fields, array $expected ) {
+	public function test_add_um_captcha( array $fields, array $expected ) {
 		$subject = $this->get_subject();
 
-		self::assertSame( $expected, $subject->add_captcha( $fields ) );
+		self::assertSame( $expected, $subject->add_um_captcha( $fields ) );
 	}
 
 	/**
-	 * Data provider for test_add_captcha().
+	 * Data provider for test_add_um_captcha().
 	 *
 	 * @return array
 	 */
-	public function dp_test_add_captcha(): array {
+	public function dp_test_add_um_captcha(): array {
 		return [
 			'empty fields' => [
 				[],
