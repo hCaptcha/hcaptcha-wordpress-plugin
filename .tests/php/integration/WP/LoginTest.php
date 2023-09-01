@@ -11,6 +11,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
 use WP_Error;
 use WP_User;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Class LoginTest.
@@ -58,6 +59,8 @@ class LoginTest extends HCaptchaWPTestCase {
 			wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce', true, false );
 
 		$subject = new Login();
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::did_filter', true );
 
 		ob_start();
 

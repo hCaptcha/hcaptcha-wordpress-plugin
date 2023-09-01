@@ -225,4 +225,21 @@ class HCaptcha {
 
 		return $notice;
 	}
+
+	/**
+	 * Retrieves the number of times a filter has been applied during the current request.
+	 *
+	 * Implemented in WordPress Core since 6.1.0.
+	 * Here is the duplicate of WP Core function.
+	 *
+	 * @global int[] $wp_filters Stores the number of times each filter was triggered.
+	 *
+	 * @param string $hook_name The name of the filter hook.
+	 * @return int The number of times the filter hook has been applied.
+	 */
+	public static function did_filter( string $hook_name ): int {
+		global $wp_filters;
+
+		return $wp_filters[ $hook_name ] ?? 0;
+	}
 }
