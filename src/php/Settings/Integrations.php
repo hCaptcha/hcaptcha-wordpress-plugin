@@ -330,6 +330,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'theme_my_login_status'         => [
+				'label'   => 'Theme My Login',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'ultimate_member_status'        => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',

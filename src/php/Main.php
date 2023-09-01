@@ -942,6 +942,11 @@ class Main {
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\General::class,
 			],
+			'Theme My Login Login'              => [
+				[ 'theme_my_login_status', 'login' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Login::class,
+			],
 			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',

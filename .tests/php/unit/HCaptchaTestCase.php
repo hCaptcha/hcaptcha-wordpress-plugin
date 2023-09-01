@@ -953,6 +953,13 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'theme_my_login_status'         => [
+				'label'   => 'Theme My Login',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => 'Login Form',
+				],
+			],
 			'ultimate_member_status'        =>
 				[
 					'label'   => 'Ultimate Member',
