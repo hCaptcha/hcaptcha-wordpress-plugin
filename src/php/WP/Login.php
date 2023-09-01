@@ -23,6 +23,11 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
+	 * WP login URL.
+	 */
+	const WP_LOGIN_URL = '/wp-login.php';
+
+	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
@@ -40,6 +45,25 @@ class Login extends LoginBase {
 	}
 
 	/**
+	 * Add captcha.
+	 *
+	 * @return void
+	 */
+	public function add_captcha() {
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
+			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+
+		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
+
+		if ( false === strpos( $request_uri, self::WP_LOGIN_URL ) ) {
+			return;
+		}
+
+		parent::add_captcha();
+	}
+
+	/**
 	 * Verify login form.
 	 *
 	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous
@@ -50,7 +74,7 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		if ( false === strpos( wp_get_raw_referer(), '/wp-login.php' ) ) {
+		if ( false === strpos( wp_get_raw_referer(), self::WP_LOGIN_URL ) ) {
 			return $user;
 		}
 

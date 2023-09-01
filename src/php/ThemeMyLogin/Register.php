@@ -5,7 +5,7 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\WP;
+namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
@@ -16,19 +16,14 @@ use WP_Error;
 class Register {
 
 	/**
-	 * WP login URL.
-	 */
-	const WP_LOGIN_URL = '/wp-login.php';
-
-	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_registration';
+	const ACTION = 'hcaptcha_theme_my_login_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_registration_nonce';
+	const NONCE = 'hcaptcha_theme_my_login_register_nonce';
 
 	/**
 	 * Constructor.
@@ -51,20 +46,7 @@ class Register {
 	 * @return void
 	 */
 	public function add_captcha() {
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
-
-		if ( false === strpos( $request_uri, self::WP_LOGIN_URL ) ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
-
-		if ( 'register' !== $action ) {
+		if ( ! did_action( 'tml_render_form' ) ) {
 			return;
 		}
 
@@ -92,14 +74,7 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
-		if ( false === strpos( wp_get_raw_referer(), self::WP_LOGIN_URL ) ) {
-			return $errors;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
-
-		if ( 'register' !== $action ) {
+		if ( ! doing_action( 'tml_action_register' ) ) {
 			return $errors;
 		}
 

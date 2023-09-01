@@ -937,15 +937,15 @@ class Main {
 				'supportcandy/supportcandy.php',
 				SupportCandy\Form::class,
 			],
-			'Theme My Login General'            => [
-				[ 'theme_my_login_status', null ],
-				'theme-my-login/theme-my-login.php',
-				ThemeMyLogin\General::class,
-			],
 			'Theme My Login Login'              => [
 				[ 'theme_my_login_status', 'login' ],
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\Login::class,
+			],
+			'Theme My Login Register'           => [
+				[ 'theme_my_login_status', 'register' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Register::class,
 			],
 			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],

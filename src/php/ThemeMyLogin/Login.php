@@ -27,6 +27,19 @@ class Login extends LoginBase {
 	}
 
 	/**
+	 * Add captcha.
+	 *
+	 * @return void
+	 */
+	public function add_captcha() {
+		if ( ! did_action( 'tml_render_form' ) ) {
+			return;
+		}
+
+		parent::add_captcha();
+	}
+
+	/**
 	 * Verify login form.
 	 *
 	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous
