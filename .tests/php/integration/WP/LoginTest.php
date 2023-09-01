@@ -60,8 +60,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::did_filter', true );
-
 		ob_start();
 
 		$subject->add_captcha();
