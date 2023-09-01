@@ -957,8 +957,9 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Theme My Login',
 				'type'    => 'checkbox',
 				'options' => [
-					'login'    => 'Login Form',
-					'register' => 'Register Form',
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
 				],
 			],
 			'ultimate_member_status'        =>

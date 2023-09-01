@@ -942,6 +942,11 @@ class Main {
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\Login::class,
 			],
+			'Theme My Login LostPassword'       => [
+				[ 'theme_my_login_status', 'lost_pass' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\LostPassword::class,
+			],
 			'Theme My Login Register'           => [
 				[ 'theme_my_login_status', 'register' ],
 				'theme-my-login/theme-my-login.php',

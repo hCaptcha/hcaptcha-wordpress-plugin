@@ -334,8 +334,9 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Theme My Login',
 				'type'    => 'checkbox',
 				'options' => [
-					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'ultimate_member_status'        => [
