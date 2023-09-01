@@ -56,11 +56,6 @@ class Login extends LoginBase {
 	 * @return void
 	 */
 	public function add_captcha() {
-		if ( did_action( 'tml_render_form' ) ) {
-			// Ignore login forms created not by wp-login.php.
-			return;
-		}
-
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return;
 		}

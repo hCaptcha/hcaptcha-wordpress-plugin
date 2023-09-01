@@ -937,6 +937,11 @@ class Main {
 				'supportcandy/supportcandy.php',
 				SupportCandy\Form::class,
 			],
+			'Theme My Login General'            => [
+				[ 'theme_my_login_status', null ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\General::class,
+			],
 			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
@@ -1030,7 +1035,7 @@ class Main {
 				continue;
 			}
 
-			if ( ! in_array( $option_value, $option, true ) ) {
+			if ( $option_value && ! in_array( $option_value, $option, true ) ) {
 				continue;
 			}
 
