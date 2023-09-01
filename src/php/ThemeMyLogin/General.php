@@ -8,6 +8,7 @@
 namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\WP\Login;
+use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\Register;
 
 /**
@@ -30,21 +31,23 @@ class General {
 	}
 
 	/**
-	 * Block WP captcha.
+	 * Block WP captcha when Theme My Login form is rendered.
 	 *
 	 * @return void
 	 */
 	public function block_wp_captcha() {
-		$wp_login = hcaptcha()->get( Login::class );
+		$hooks = [
+			'login_form'        => Login::class,
+			'register_form'     => Register::class,
+			'lostpassword_form' => LostPassword::class,
+		];
 
-		if ( $wp_login ) {
-			remove_action( 'login_form', [ $wp_login, 'add_captcha' ] );
-		}
+		foreach ( $hooks as $hook_name => $class_name ) {
+			$object = hcaptcha()->get( $class_name );
 
-		$wp_register = hcaptcha()->get( Register::class );
-
-		if ( $wp_register ) {
-			remove_action( 'register_form', [ $wp_register, 'add_captcha' ] );
+			if ( $object ) {
+				remove_action( $hook_name, [ $object, 'add_captcha' ] );
+			}
 		}
 	}
 }
