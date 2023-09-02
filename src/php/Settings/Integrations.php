@@ -492,7 +492,6 @@ class Integrations extends PluginSettingsBase {
 	 * @param array $arguments Section arguments.
 	 *
 	 * @noinspection HtmlUnknownTarget
-	 * @noinspection DevelopmentDependenciesUsageInspection
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {

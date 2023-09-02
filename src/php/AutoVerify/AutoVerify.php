@@ -53,12 +53,8 @@ class AutoVerify {
 				$matches
 			)
 		) {
-			$forms = array_map(
-				static function ( $match_item ) {
-					return $match_item[0];
-				},
-				$matches
-			);
+			$forms = array_column( $matches, 0 );
+
 			$this->register_forms( $forms );
 		}
 
@@ -243,9 +239,7 @@ class AutoVerify {
 			return $names;
 		}
 
-		$inputs = $matches[0];
-
-		foreach ( $inputs as $input ) {
+		foreach ( $matches[0] as $input ) {
 			if ( ! $this->is_input_visible( $input ) ) {
 				continue;
 			}

@@ -66,9 +66,7 @@ class Checkout {
 	public function verify() {
 		global $pmpro_msg, $pmpro_msgt;
 
-		$submit = pmpro_was_checkout_form_submitted();
-
-		if ( ! $submit ) {
+		if ( ! pmpro_was_checkout_form_submitted() ) {
 			return;
 		}
 

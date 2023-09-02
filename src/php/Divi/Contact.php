@@ -144,8 +144,7 @@ class Contact {
 
 			if ( $current_form_fields ) {
 				$fields_data_json             = htmlspecialchars_decode( str_replace( '\\', '', $current_form_fields ) );
-				$fields_data_array            = json_decode( $fields_data_json, true );
-				$fields_data_array            = $fields_data_array ?? [];
+				$fields_data_array            = json_decode( $fields_data_json, true ) ?? [];
 				$fields_data_array            = array_filter(
 					$fields_data_array,
 					static function ( $item ) {

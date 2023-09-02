@@ -114,8 +114,7 @@ class Contact {
 			return;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		$error->add( $code, $error_message );
 	}

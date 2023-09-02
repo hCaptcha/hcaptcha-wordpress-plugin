@@ -25,6 +25,7 @@ class LostPassword extends Base {
 		switch ( $hcaptcha_size ) {
 			case 'normal':
 				?>
+				<!--suppress CssUnusedSymbol -->
 				<style>
 					.ml-container #login {
 						min-width: 350px;

@@ -32,15 +32,18 @@ function hcap_get_user_ip() {
 	];
 
 	foreach ( $address_headers as $header ) {
-		if ( array_key_exists( $header, $_SERVER ) ) {
-			$address_chain = explode(
-				',',
-				filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
-			);
-			$client_ip     = trim( $address_chain[0] );
-
-			break;
+		if ( ! array_key_exists( $header, $_SERVER ) ) {
+			continue;
 		}
+
+		$address_chain = explode(
+			',',
+			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
+			2
+		);
+		$client_ip     = trim( $address_chain[0] );
+
+		break;
 	}
 
 	// Filter out local addresses.
@@ -117,6 +120,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection UnnecessaryBooleanExpressionInspection
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
 		static $result;
@@ -142,7 +146,8 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(
-			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
+			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
 		);
 
 		$errors = hcap_get_error_messages();
@@ -283,8 +288,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 			return null;
 		}
 
-		$message_arr = explode( ';', $message );
-		$header      = _n( 'hCaptcha error:', 'hCaptcha errors:', count( $message_arr ), 'hcaptcha-for-forms-and-more' );
+		$header = _n( 'hCaptcha error:', 'hCaptcha errors:', substr_count( $message, ';' ) + 1, 'hcaptcha-for-forms-and-more' );
 
 		if ( false === strpos( $message, $header ) ) {
 			$message = $header . ' ' . $message;

@@ -53,10 +53,10 @@ class Form {
 	 * @param array|mixed $messages Messages.
 	 * @param MC4WP_Form  $form     Form.
 	 *
-	 * @return array|mixed
+	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcap_error_messages( $messages, MC4WP_Form $form ) {
+	public function add_hcap_error_messages( $messages, MC4WP_Form $form ): array {
 		$messages = (array) $messages;
 
 		foreach ( hcap_get_error_messages() as $error_code => $error_message ) {
@@ -110,8 +110,7 @@ class Form {
 		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
-			$error_code = array_search( $error_message, hcap_get_error_messages(), true );
-			$error_code = $error_code ?: 'empty';
+			$error_code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'empty';
 			$errors     = (array) $errors;
 			$errors[]   = $error_code;
 		}

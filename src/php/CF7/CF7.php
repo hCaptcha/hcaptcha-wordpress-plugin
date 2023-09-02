@@ -62,9 +62,7 @@ class CF7 {
 		$form_id = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
 
 		if ( has_shortcode( $output, self::SHORTCODE ) ) {
-			$output = $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id );
-
-			$output = do_shortcode( $output );
+			$output = do_shortcode( $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) );
 
 			add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 

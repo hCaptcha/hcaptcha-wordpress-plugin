@@ -46,9 +46,9 @@ class Form {
 	 *
 	 * @param array|mixed $block Block.
 	 *
-	 * @return array|mixed
+	 * @return array
 	 */
-	public function remove_recaptcha_from_block( $block ) {
+	public function remove_recaptcha_from_block( $block ): array {
 		$block = (array) $block;
 
 		if ( isset( $block['blockName'] ) && 'kadence/form' !== $block['blockName'] ) {

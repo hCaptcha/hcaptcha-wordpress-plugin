@@ -257,6 +257,7 @@ class Form {
 	 * Whether we are on the Fluent Forms admin pages.
 	 *
 	 * @return bool
+	 * @noinspection InArrayMissUseInspection
 	 */
 	private function is_fluent_forms_admin_page(): bool {
 		if ( ! is_admin() ) {

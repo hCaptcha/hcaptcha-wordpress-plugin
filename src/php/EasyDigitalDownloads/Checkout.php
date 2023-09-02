@@ -25,13 +25,6 @@ class Checkout {
 	const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
 
 	/**
-	 * The hCaptcha validation error message.
-	 *
-	 * @var string|null
-	 */
-	private $error_message;
-
-	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -83,20 +76,19 @@ class Checkout {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$this->error_message = hcaptcha_verify_post(
+		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
 		);
 
-		if ( null === $this->error_message ) {
+		if ( null === $error_message ) {
 			return $errors;
 		}
 
-		$code = array_search( $this->error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		$errors          = $errors ? (array) $errors : [];
-		$errors[ $code ] = $this->error_message;
+		$errors[ $code ] = $error_message;
 
 		return $errors;
 	}
