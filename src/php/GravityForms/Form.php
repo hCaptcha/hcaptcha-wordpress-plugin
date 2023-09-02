@@ -104,6 +104,11 @@ class Form {
 			return $validation_result;
 		}
 
+		if ( isset( $_POST['gpnf_parent_form_id'] ) ) {
+			// Do not verify nested form.
+			return $validation_result;
+		}
+
 		$form_id     = (int) $_POST['gform_submit'];
 		$target_page = "gform_target_page_number_$form_id";
 
@@ -184,6 +189,7 @@ class Form {
 	 */
 	public function print_inline_styles() {
 		?>
+		<!--suppress CssUnusedSymbol -->
 		<style>
 		.gform_previous_button + .h-captcha {
 			margin-top: 2rem;
