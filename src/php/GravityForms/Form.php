@@ -194,11 +194,11 @@ class Form {
 		.gform_previous_button + .h-captcha {
 			margin-top: 2rem;
 		}
-		.gform_footer.before {
-			flex-direction: column;
+		.gform_footer.before .h-captcha[data-size="normal"] {
+			margin-bottom: 3px;
 		}
-		.gform_footer.before .h-captcha {
-			align-self: flex-end;
+		.gform_footer.before .h-captcha[data-size="compact"] {
+			margin-bottom: 0;
 		}
 		</style>
 		<?php
