@@ -496,7 +496,8 @@ class AMainTest extends HCaptchaWPTestCase {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_url_white = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
-		$expected = '		<style>
+		$expected = '		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
+		<style>
 			#wpdiscuz-subscribe-form .h-captcha {
 				margin-left: auto;
 			}
@@ -531,9 +532,6 @@ class AMainTest extends HCaptchaWPTestCase {
 			}
 			.passster-form .h-captcha {
 				margin-bottom: 5px;
-			}
-			.gform_previous_button + .h-captcha {
-				margin-top: 2rem;
 			}
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
