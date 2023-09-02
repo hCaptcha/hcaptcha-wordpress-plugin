@@ -50,6 +50,7 @@ class Form {
 		add_filter( 'gform_validation', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'gform_form_validation_errors', [ $this, 'form_validation_errors' ], 10, 2 );
 		add_filter( 'gform_form_validation_errors_markup', [ $this, 'form_validation_errors_markup' ], 10, 2 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
@@ -174,6 +175,27 @@ class Form {
 			'<div>' . $this->error_message . '</div>',
 			$validation_errors_markup
 		);
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 */
+	public function print_inline_styles() {
+		?>
+		<style>
+		.gform_previous_button + .h-captcha {
+			margin-top: 2rem;
+		}
+		.gform_footer.before {
+			flex-direction: column;
+		}
+		.gform_footer.before .h-captcha {
+			align-self: flex-end;
+		}
+		</style>
+		<?php
 	}
 
 	/**

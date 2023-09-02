@@ -8,6 +8,7 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
+/** @noinspection DevelopmentDependenciesUsageInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha;
@@ -320,12 +321,8 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
-		ob_start();
 		?>
 		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
-		<?php
-		ob_end_clean();
-		?>
 		<style>
 			#wpdiscuz-subscribe-form .h-captcha {
 				margin-left: auto;
@@ -361,9 +358,6 @@ class Main {
 			}
 			.passster-form .h-captcha {
 				margin-bottom: 5px;
-			}
-			.gform_previous_button + .h-captcha {
-				margin-top: 2rem;
 			}
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
