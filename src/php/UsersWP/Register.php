@@ -20,12 +20,12 @@ use WP_User;
 /**
  * Class Login
  */
-class Login extends LoginBase {
+class Register extends LoginBase {
 
 	/**
 	 * UsersWP action.
 	 */
-	const USERS_WP_ACTION = 'login';
+	const USERS_WP_ACTION = 'register';
 
 	/**
 	 * Init hooks.
@@ -72,7 +72,7 @@ class Login extends LoginBase {
 		$this->add_captcha();
 
 		$captcha = (string) ob_get_clean();
-		$search  = '<button type="submit"';
+		$search  = '<input type="submit"';
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo str_replace( $search, $captcha . $search, $template );

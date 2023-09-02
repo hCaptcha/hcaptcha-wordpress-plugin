@@ -966,6 +966,11 @@ class Main {
 				'userswp/userswp.php',
 				UsersWP\Login::class,
 			],
+			'UsersWP Register'                  => [
+				[ 'users_wp_status', 'register' ],
+				'userswp/userswp.php',
+				UsersWP\Register::class,
+			],
 			'WooCommerce Checkout'              => [
 				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
