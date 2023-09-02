@@ -251,6 +251,10 @@ Ultimate Member
 $source: 'ultimate-member/ultimate-member.php'
 $form_id: form_id or 'password'
 
+UsersWP
+$source: 'userswp/userswp.php'
+$form_id: 'forgot', 'login' or 'register'
+
 WooCommerce Wishlist
 $source: 'woocommerce-wishlists/woocommerce-wishlists.php'
 $form_id: 'form'
@@ -471,6 +475,9 @@ For more details, please see the hCaptcha privacy policy at:
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
 * Ultimate Member Register Form
+* UsersWP Forgot Password Form
+* UsersWP Login Form
+* UsersWP Register Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
@@ -512,6 +519,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Gravity Perks Nested Forms.
 * Added compatibility with Wordfence Login Security.
 * Added compatibility with Wordfence Security.
+* Added compatibility with UsersWP.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.
