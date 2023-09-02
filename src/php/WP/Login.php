@@ -35,13 +35,6 @@ class Login extends LoginBase {
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-
-//		if ( ! class_exists( Controller_WordfenceLS::class ) ) {
-//			return;
-//		}
-//
-//		add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_scripts' ], 20 );
-//		add_filter( 'wordfence_ls_require_captcha', [ $this, 'wordfence_ls_require_captcha' ] );
 	}
 
 	/**
@@ -92,25 +85,5 @@ class Login extends LoginBase {
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
-	}
-
-	/**
-	 * Remove Wordfence login scripts.
-	 *
-	 * @return void
-	 */
-	public function remove_wordfence_scripts() {
-		wp_dequeue_script( 'wordfence-ls-recaptcha' );
-		wp_deregister_script( 'wordfence-ls-recaptcha' );
-	}
-
-	/**
-	 * Do not require Wordfence captcha.
-	 *
-	 * @return false
-	 */
-	public function wordfence_ls_require_captcha(): bool {
-
-		return false;
 	}
 }
