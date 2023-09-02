@@ -90,7 +90,7 @@ class Register {
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify register form.
 	 *
 	 * @param array|WP_Error|mixed $result Validation result.
 	 * @param string               $action Action name.
