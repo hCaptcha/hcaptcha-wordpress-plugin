@@ -17,6 +17,16 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_users_wp_login';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_users_wp_login_nonce';
+
+	/**
 	 * UsersWP action.
 	 */
 	const USERS_WP_ACTION = 'login';
