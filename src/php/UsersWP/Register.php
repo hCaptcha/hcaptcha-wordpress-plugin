@@ -76,7 +76,7 @@ class Register {
 			'name'   => static::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'login',
+				'form_id' => 'register',
 			],
 		];
 
