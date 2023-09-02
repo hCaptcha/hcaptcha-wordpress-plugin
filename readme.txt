@@ -267,6 +267,14 @@ wpForo
 $source: 'wpforo/wpforo.php'
 $form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.
 
+Wordfence Login Security
+$source: 'wordfence-login-security/wordfence-login-security.php'
+$form_id: 'login'
+
+Wordfence Security
+$source: 'wordfence/wordfence.php'
+$form_id: 'login'
+
 WordPress Core
 $source: 'WordPress'
 $form_id: post_id for comment form, 'login', 'lost_password', 'password_protected', or 'register'
@@ -469,6 +477,8 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
+* Wordfence Security Login Form
+* Wordfence Login Security Login Form
 * WPForms Lite
 * wpDiscuz Comment Form
 * wpDiscuz Support Form
@@ -500,6 +510,8 @@ Instructions for popular native integrations are below:
 * Added compatibility with Passster.
 * Added compatibility with Theme My Login.
 * Added compatibility with Gravity Perks Nested Forms.
+* Added compatibility with Wordfence Login Security.
+* Added compatibility with Wordfence Security.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.

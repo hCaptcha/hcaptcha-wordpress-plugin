@@ -995,6 +995,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'create_list' => 'Create List Form',
 						],
 				],
+			'wordfence_status'              => [
+				'label'   => 'Wordfence',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => 'Login Form',
+				],
+			],
 			'wpforms_status'                =>
 				[
 					'label'   => 'WPForms',

@@ -366,6 +366,13 @@ class Integrations extends PluginSettingsBase {
 					'create_list' => __( 'Create List Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'wordfence_status'              => [
+				'label'   => 'Wordfence',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'wpforms_status'                => [
 				'label'   => 'WPForms',
 				'type'    => 'checkbox',

@@ -991,6 +991,11 @@ class Main {
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				CreateList::class,
 			],
+			'Wordfence Login'                   => [
+				[ 'wordfence_status', null ],
+				[ 'wordfence/wordfence.php', 'wordfence-login-security/wordfence-login-security.php' ],
+				Wordfence\General::class,
+			],
 			'WPForms Lite'                      => [
 				[ 'wpforms_status', 'lite' ],
 				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
