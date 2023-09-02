@@ -40,6 +40,7 @@ class Login extends LoginBase {
 		add_action( 'uwp_template_before', [ $this, 'uwp_template_before' ] );
 		add_action( 'uwp_template_after', [ $this, 'uwp_template_after' ] );
 		add_filter( 'uwp_validate_result', [ $this, 'verify' ], 10, 3 );
+		add_action( 'wp_enqueue_scripts', [ Common::class, 'enqueue_scripts' ] );
 	}
 
 	/**
