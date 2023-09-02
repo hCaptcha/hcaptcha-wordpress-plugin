@@ -97,7 +97,7 @@ class ForgotPassword {
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify forgot password form.
 	 *
 	 * @param array|WP_Error|mixed $result Validation result.
 	 * @param string               $action Action name.
