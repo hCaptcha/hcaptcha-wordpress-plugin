@@ -977,6 +977,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Users WP',
 				'type'    => 'checkbox',
 				'options' => [
+					'forgot'   => 'Forgot Password Form',
 					'login'    => 'Login Form',
 					'register' => 'Register Form',
 				],

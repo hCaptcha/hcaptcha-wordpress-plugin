@@ -961,6 +961,11 @@ class Main {
 				'ultimate-member/ultimate-member.php',
 				UM\Register::class,
 			],
+			'UsersWP Forgot Password'           => [
+				[ 'users_wp_status', 'forgot' ],
+				'userswp/userswp.php',
+				UsersWP\ForgotPassword::class,
+			],
 			'UsersWP Login'                     => [
 				[ 'users_wp_status', 'login' ],
 				'userswp/userswp.php',
