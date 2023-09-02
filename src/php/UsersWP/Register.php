@@ -32,6 +32,13 @@ class Register {
 	const USERS_WP_ACTION = 'register';
 
 	/**
+	 * Class constructor.
+	 */
+	public function __construct() {
+		$this->init_hooks();
+	}
+
+	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
