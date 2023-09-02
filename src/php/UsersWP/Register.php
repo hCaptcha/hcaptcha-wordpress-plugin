@@ -1,26 +1,30 @@
 <?php
 /**
- * Login class file.
+ * Register class file.
  *
  * @package hcaptcha-wp
  */
 
-// phpcs:disable Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedNamespaceInspection */
-/** @noinspection PhpUndefinedClassInspection */
-// phpcs:enable Generic.Commenting.DocComment.MissingShort
-
 namespace HCaptcha\UsersWP;
 
-use HCaptcha\Abstracts\LoginBase;
-use WordfenceLS\Controller_WordfenceLS;
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
 
 /**
- * Class Login
+ * Class Register
  */
-class Register extends LoginBase {
+class Register {
+
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_users_wp_register';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_users_wp_register_nonce';
 
 	/**
 	 * UsersWP action.
@@ -31,8 +35,6 @@ class Register extends LoginBase {
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
-		parent::init_hooks();
-
 		add_action( 'uwp_template_before', [ $this, 'uwp_template_before' ] );
 		add_action( 'uwp_template_after', [ $this, 'uwp_template_after' ] );
 		add_filter( 'uwp_validate_result', [ $this, 'verify' ], 10, 3 );
@@ -54,7 +56,7 @@ class Register extends LoginBase {
 	}
 
 	/**
-	 * Add captcha.
+	 * Get output buffer at the end of the template and add captcha.
 	 *
 	 * @param string $name Template name.
 	 *
@@ -69,7 +71,16 @@ class Register extends LoginBase {
 
 		ob_start();
 
-		$this->add_captcha();
+		$args = [
+			'action' => static::ACTION,
+			'name'   => static::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'login',
+			],
+		];
+
+		HCaptcha::form_display( $args );
 
 		$captcha = (string) ob_get_clean();
 		$search  = '<input type="submit"';
@@ -90,10 +101,6 @@ class Register extends LoginBase {
 	 */
 	public function verify( $result, $action, $data ) {
 		if ( self::USERS_WP_ACTION !== $action ) {
-			return $result;
-		}
-
-		if ( ! $this->is_login_limit_exceeded() ) {
 			return $result;
 		}
 
