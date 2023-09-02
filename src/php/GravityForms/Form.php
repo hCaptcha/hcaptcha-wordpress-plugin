@@ -62,6 +62,10 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $button_input, array $form ): string {
+		if ( is_admin() ) {
+			return $button_input;
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
