@@ -439,6 +439,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Formidable Forms
 * GiveWP Form
 * Gravity Forms
+* Gravity Perks Nested Forms
 * Jetpack Forms
 * Kadence Form
 * Mailchimp for WP Form
@@ -498,6 +499,7 @@ Instructions for popular native integrations are below:
 * The color schema in admin changed to hCaptcha corporate.
 * Added compatibility with Passster.
 * Added compatibility with Theme My Login.
+* Added compatibility with Gravity Perks Nested Forms.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.
