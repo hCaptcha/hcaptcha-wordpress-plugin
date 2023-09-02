@@ -13,7 +13,6 @@
 namespace HCaptcha\UsersWP;
 
 use HCaptcha\Abstracts\LoginBase;
-use WordfenceLS\Controller_WordfenceLS;
 use WP_Error;
 use WP_User;
 
