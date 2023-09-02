@@ -5,11 +5,6 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:disable Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedNamespaceInspection */
-/** @noinspection PhpUndefinedClassInspection */
-// phpcs:enable Generic.Commenting.DocComment.MissingShort
-
 namespace HCaptcha\UsersWP;
 
 use HCaptcha\Abstracts\LoginBase;
@@ -53,7 +48,7 @@ class Login extends LoginBase {
 	}
 
 	/**
-	 * Add captcha.
+	 * Get output buffer at the end of the template and add captcha.
 	 *
 	 * @param string $name Template name.
 	 *
