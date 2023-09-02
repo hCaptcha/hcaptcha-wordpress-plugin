@@ -348,6 +348,13 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'users_wp_status'               => [
+				'label'   => 'Users WP',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'woocommerce_status'            => [
 				'label'   => 'WooCommerce',
 				'type'    => 'checkbox',

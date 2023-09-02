@@ -973,6 +973,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'register'  => 'Register Form',
 						],
 				],
+			'users_wp_status'               => [
+				'label'   => 'Users WP',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => 'Login Form',
+				],
+			],
 			'woocommerce_status'            =>
 				[
 					'label'   => 'WooCommerce',

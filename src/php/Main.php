@@ -961,6 +961,11 @@ class Main {
 				'ultimate-member/ultimate-member.php',
 				UM\Register::class,
 			],
+			'UsersWP Login'                     => [
+				[ 'users_wp_status', 'login' ],
+				'userswp/userswp.php',
+				UsersWP\Login::class,
+			],
 			'WooCommerce Checkout'              => [
 				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
