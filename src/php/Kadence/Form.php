@@ -39,6 +39,7 @@ class Form {
 		);
 		add_action( 'wp_ajax_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
@@ -149,5 +150,22 @@ class Form {
 		];
 
 		wp_send_json_error( $data );
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public static function enqueue_scripts() {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			'hcaptcha-kadence',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-kadence$min.js",
+			[ 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 }
