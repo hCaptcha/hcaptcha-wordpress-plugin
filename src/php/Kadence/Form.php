@@ -99,10 +99,23 @@ class Form {
 			],
 		];
 
-		return (string) preg_replace(
-			'/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/',
-			'$1' . HCaptcha::form( $args ) . '$2',
-			(string) $block_content
+		$pattern       = '/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/';
+		$block_content = (string) $block_content;
+
+		if ( preg_match( $pattern, $block_content ) ) {
+			return (string) preg_replace(
+				$pattern,
+				'$1' . HCaptcha::form( $args ) . '$2',
+				$block_content
+			);
+		}
+
+		$search = '<div class="kadence-blocks-form-field kb-submit-field';
+
+		return (string) str_replace(
+			$search,
+			HCaptcha::form( $args ) . $search,
+			$block_content
 		);
 	}
 

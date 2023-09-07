@@ -520,6 +520,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Wordfence Login Security.
 * Added compatibility with Wordfence Security.
 * Added compatibility with UsersWP.
+* Improved support for Kadence simple form.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.
