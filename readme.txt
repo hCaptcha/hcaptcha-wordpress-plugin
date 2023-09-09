@@ -215,9 +215,13 @@ Jetpack
 $source: 'jetpack/jetpack.php'
 $form_id: 'contact'
 
-Kadence
+Kadence Form
 $source: 'kadence-blocks/kadence-blocks.php'
 $form_id: post_id
+
+Kadence Advanced Form
+$source: 'kadence-blocks/kadence-blocks.php'
+$form_id: form_id
 
 MemberPress
 $source: 'memberpress/memberpress.php'
@@ -454,6 +458,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Gravity Perks Nested Forms
 * Jetpack Forms
 * Kadence Form
+* Kadence Advanced Form
 * Mailchimp for WP Form
 * MemberPress Login Form
 * MemberPress Register Form
@@ -520,6 +525,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Wordfence Login Security.
 * Added compatibility with Wordfence Security.
 * Added compatibility with UsersWP.
+* Added compatibility with Kadence Advanced Form.
 * Improved support for Kadence simple form.
 
 = 3.2.0 =

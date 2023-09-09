@@ -246,7 +246,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Kadence',
 				'type'    => 'checkbox',
 				'options' => [
-					'form' => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
+					'form'          => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
+					'advanced_form' => __( 'Kadence Advanced Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'mailchimp_status'              => [

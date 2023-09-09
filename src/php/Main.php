@@ -855,6 +855,11 @@ class Main {
 				'kadence-blocks/kadence-blocks.php',
 				Kadence\Form::class,
 			],
+			'Kadence Advanced Form'             => [
+				[ 'kadence_status', 'advanced_form' ],
+				'kadence-blocks/kadence-blocks.php',
+				Kadence\AdvancedForm::class,
+			],
 			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',

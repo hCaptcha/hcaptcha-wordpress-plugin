@@ -854,7 +854,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'form' => 'Kadence Form',
+							'form'          => 'Kadence Form',
+							'advanced_form' => 'Kadence Advanced Form',
 						],
 				],
 			'mailchimp_status'              =>
