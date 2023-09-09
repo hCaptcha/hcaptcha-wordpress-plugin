@@ -8,6 +8,7 @@
 namespace HCaptcha\Kadence;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Block;
 
 /**
@@ -29,12 +30,18 @@ class AdvancedForm {
 	 */
 	public function init_hooks() {
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
+
+		if ( ! Request::is_frontend() ) {
+			return;
+		}
+
 		add_filter(
 			'block_parser_class',
 			static function () {
 				return AdvancedBlockParser::class;
 			}
 		);
+
 		add_action( 'wp_ajax_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
