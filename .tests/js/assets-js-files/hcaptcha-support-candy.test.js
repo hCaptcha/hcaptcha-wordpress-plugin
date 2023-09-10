@@ -20,7 +20,11 @@ describe( 'hCaptcha ajaxStop binding', () => {
 	} );
 
 	test( 'hCaptchaBindEvents is called when ajaxStop event is triggered', () => {
-		$( document ).trigger( 'ajaxStop' );
+		const xhr = {};
+		const settings = {};
+
+		settings.data = '?some_data&action=wpsc_get_ticket_form';
+		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
 		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 } );
