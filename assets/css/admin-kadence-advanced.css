@@ -1,0 +1,10 @@
+.hcaptcha-notice label {
+	display: inline-block;
+	font-weight: 500;
+	margin-bottom: 8px;
+}
+
+.hcaptcha-notice p {
+	background: #edf2f7;
+	padding: 8px;
+}

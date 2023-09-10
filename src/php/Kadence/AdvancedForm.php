@@ -17,6 +17,16 @@ use WP_Block;
 class AdvancedForm {
 
 	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-kadence-advanced';
+
+	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -30,21 +40,36 @@ class AdvancedForm {
 	 */
 	public function init_hooks() {
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'dequeue_kadence_hcaptcha_api' ], 8 );
 
-		if ( ! Request::is_frontend() ) {
+		if ( Request::is_frontend() ) {
+			add_filter(
+				'block_parser_class',
+				static function () {
+					return AdvancedBlockParser::class;
+				}
+			);
+
+			add_action( 'wp_ajax_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
+			add_action( 'wp_ajax_nopriv_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
+			add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+
 			return;
 		}
 
 		add_filter(
-			'block_parser_class',
+			'pre_option_kadence_blocks_hcaptcha_site_key',
 			static function () {
-				return AdvancedBlockParser::class;
+				return hcaptcha()->settings()->get_site_key();
 			}
 		);
-
-		add_action( 'wp_ajax_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
-		add_action( 'wp_ajax_nopriv_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter(
+			'pre_option_kadence_blocks_hcaptcha_secret_key',
+			static function () {
+				return hcaptcha()->settings()->get_secret_key();
+			}
+		);
+		add_action( 'enqueue_block_editor_assets', [ $this, 'editor_assets' ] );
 	}
 
 	/**
@@ -112,14 +137,21 @@ class AdvancedForm {
 	}
 
 	/**
+	 * Dequeue Kadence hcaptcha API script.
+	 *
+	 * @return void
+	 */
+	public function dequeue_kadence_hcaptcha_api() {
+		wp_dequeue_script( 'kadence-blocks-hcaptcha' );
+		wp_deregister_script( 'kadence-blocks-hcaptcha' );
+	}
+
+	/**
 	 * Enqueue scripts.
 	 *
 	 * @return void
 	 */
 	public static function enqueue_scripts() {
-		wp_dequeue_script( 'kadence-blocks-hcaptcha' );
-		wp_deregister_script( 'kadence-blocks-hcaptcha' );
-
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -128,6 +160,41 @@ class AdvancedForm {
 			[ 'hcaptcha', 'kadence-blocks-advanced-form' ],
 			HCAPTCHA_VERSION,
 			true
+		);
+	}
+
+	/**
+	 * Enqueue editor assets.
+	 *
+	 * @return void
+	 */
+	public function editor_assets() {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			HCAPTCHA_URL . "/assets/js/admin-kadence-advanced$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
+			]
+		);
+
+		wp_enqueue_style(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/admin-kadence-advanced$min.css",
+			[],
+			HCAPTCHA_VERSION
 		);
 	}
 }
