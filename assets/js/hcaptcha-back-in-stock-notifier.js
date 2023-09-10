@@ -17,6 +17,18 @@
 	} );
 }( jQuery ) );
 
-jQuery( document ).ajaxStop( function() {
-	window.hCaptchaBindEvents();
+jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
+	const params = new URLSearchParams( settings.data );
+
+	if ( params.get( 'action' ) !== 'cwginstock_product_subscribe' ) {
+		return;
+	}
+
+	const input = document.querySelector( 'input[name="cwg-product-id"][value="' + params.get( 'product_id' ) + '"]' );
+
+	if ( ! input ) {
+		return;
+	}
+
+	window.hCaptchaReset( input.closest( '.cwginstock-panel-body' ) );
 } );
