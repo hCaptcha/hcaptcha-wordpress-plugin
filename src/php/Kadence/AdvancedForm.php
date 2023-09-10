@@ -27,6 +27,13 @@ class AdvancedForm {
 	const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
 
 	/**
+	 * Whether hCaptcha was replaced.
+	 *
+	 * @var bool
+	 */
+	private $hcaptcha_found = false;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -50,13 +57,13 @@ class AdvancedForm {
 				}
 			);
 
-			add_action( 'wp_ajax_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
-			add_action( 'wp_ajax_nopriv_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
 			add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 
 			return;
 		}
 
+		add_action( 'wp_ajax_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
+		add_action( 'wp_ajax_nopriv_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
 		add_filter(
 			'pre_option_kadence_blocks_hcaptcha_site_key',
 			static function () {
@@ -84,25 +91,28 @@ class AdvancedForm {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function render_block( $block_content, array $block, WP_Block $instance ) {
+		if ( 'kadence/advanced-form-submit' === $block['blockName'] && ! $this->hcaptcha_found ) {
+
+			$search = '<div class="kb-adv-form-field kb-submit-field';
+
+			return str_replace( $search, $this->get_hcaptcha() . $search, $block_content );
+		}
+
 		if ( 'kadence/advanced-form-captcha' !== $block['blockName'] ) {
 			return $block_content;
 		}
 
-		$args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => AdvancedBlockParser::$form_id,
-			],
-		];
-
-		$pattern       = '#<div class="h-captcha" .*?></div>#';
-		$block_content = (string) $block_content;
-
-		return (string) preg_replace(
-			$pattern,
-			HCaptcha::form( $args ),
-			$block_content
+		$block_content = (string) preg_replace(
+			'#<div class="h-captcha" .*?></div>#',
+			$this->get_hcaptcha(),
+			(string) $block_content,
+			1,
+			$count
 		);
+
+		$this->hcaptcha_found = (bool) $count;
+
+		return $block_content;
 	}
 
 	/**
@@ -196,5 +206,21 @@ class AdvancedForm {
 			[],
 			HCAPTCHA_VERSION
 		);
+	}
+
+	/**
+	 * Get hCaptcha.
+	 *
+	 * @return string
+	 */
+	private function get_hcaptcha(): string {
+		$args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => AdvancedBlockParser::$form_id,
+			],
+		];
+
+		return HCaptcha::form( $args );
 	}
 }
