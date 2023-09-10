@@ -11,7 +11,6 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
 use WP_Error;
 use WP_User;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Class LoginTest.

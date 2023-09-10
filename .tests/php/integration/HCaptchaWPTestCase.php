@@ -60,11 +60,12 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	protected function get_protected_property( $subject, string $property_name ) {
-		$reflection_class = new ReflectionClass( $subject );
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 
-		$property = $reflection_class->getProperty( $property_name );
 		$property->setAccessible( true );
+
 		$value = $property->getValue( $subject );
+
 		$property->setAccessible( false );
 
 		return $value;
@@ -80,9 +81,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	protected function set_protected_property( $subject, string $property_name, $value ) {
-		$reflection_class = new ReflectionClass( $subject );
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 
-		$property = $reflection_class->getProperty( $property_name );
 		$property->setAccessible( true );
 		$property->setValue( $subject, $value );
 		$property->setAccessible( false );
@@ -100,9 +100,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	protected function set_method_accessibility( $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
-		$reflection_class = new ReflectionClass( $subject );
+		$method = ( new ReflectionClass( $subject ) )->getMethod( $method_name );
 
-		$method = $reflection_class->getMethod( $method_name );
 		$method->setAccessible( $accessible );
 
 		return $method;

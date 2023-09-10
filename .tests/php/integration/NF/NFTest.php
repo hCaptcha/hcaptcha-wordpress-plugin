@@ -51,9 +51,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	public function test_register_fields() {
 		$fields = [ 'some field' ];
 
-		$subject = new NF();
-
-		$fields = $subject->register_fields( $fields );
+		$fields = ( new NF() )->register_fields( $fields );
 
 		self::assertInstanceOf( Fields::class, $fields['hcaptcha-for-ninja-forms'] );
 	}
@@ -65,9 +63,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		$paths    = [ 'some path' ];
 		$expected = array_merge( $paths, [ str_replace( '\\', '/', HCAPTCHA_PATH . '/src/php/NF/templates/' ) ] );
 
-		$subject = new NF();
-
-		$paths = $subject->template_file_paths( $paths );
+		$paths = ( new NF() )->template_file_paths( $paths );
 		array_walk(
 			$paths,
 			static function ( &$item ) {

@@ -525,8 +525,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		hcaptcha()->init_hooks();
 
-		$custom_id         = '_014ea7c';
-		$item['custom_id'] = $custom_id;
+		$item['custom_id'] = '_014ea7c';
 		$item_index        = 5;
 		$render_attributes = [
 			'hcaptcha' . $item_index => [
