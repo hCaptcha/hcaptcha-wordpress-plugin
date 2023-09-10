@@ -31,7 +31,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			return;
 		}
 
-		const select = panel.querySelector( 'select' );
 		const config = {
 			childList: true,
 			subtree: true,
@@ -39,10 +38,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		const observer = new MutationObserver( observePanel );
 
 		observer.observe( panel, config );
-
-		// select.addEventListener( 'change', () => {
-		// 	updateInputs( panel );
-		// } );
 
 		updateInputs( panel );
 	}
