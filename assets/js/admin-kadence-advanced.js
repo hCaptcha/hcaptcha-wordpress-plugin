@@ -1,5 +1,6 @@
 /* global HCaptchaKadenceAdvancedFormObject */
 
+// noinspection JSUnusedLocalSymbols
 /**
  * @param HCaptchaKadenceAdvancedFormObject.noticeLabel
  * @param HCaptchaKadenceAdvancedFormObject.noticeDescription
@@ -7,8 +8,7 @@
 document.addEventListener( 'DOMContentLoaded', function() {
 	const panelClass = 'components-panel__body';
 
-	// eslint-disable-next-line no-unused-vars
-	const observeEditor = ( mutationList, observer ) => {
+	const observeEditor = ( mutationList ) => {
 		for ( const mutation of mutationList ) {
 			[ ...mutation.addedNodes ].map( ( node ) => {
 				if ( ! ( node.classList !== undefined && node.classList.contains( panelClass ) ) ) {
@@ -34,11 +34,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		updateInputs( panel );
 	}
 
-	// eslint-disable-next-line no-unused-vars
-	const observePanel = ( mutationList, observer ) => {
+	const observePanel = ( mutationList ) => {
 		for ( const mutation of mutationList ) {
 			[ ...mutation.addedNodes ].map( ( node ) => {
-				if ( ! node.querySelector( 'button' ) ) {
+				if ( ! ( node.hasOwnProperty( 'querySelector' ) && node.querySelector( 'button' ) ) ) {
 					return node;
 				}
 
