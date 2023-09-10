@@ -68,16 +68,6 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$wppb_login_form_used = isset( $_POST['wppb_login'] ) ?
-			sanitize_text_field( wp_unslash( $_POST['wppb_login'] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( ! $wppb_login_form_used ) {
-			return $user;
-		}
-
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

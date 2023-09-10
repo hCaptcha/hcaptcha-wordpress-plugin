@@ -37,16 +37,6 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$rtcl_login = isset( $_POST['rtcl-login'] ) ?
-			sanitize_text_field( wp_unslash( $_POST['rtcl-login'] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( 'login' !== $rtcl_login ) {
-			return $user;
-		}
-
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

@@ -66,13 +66,6 @@ class Login extends Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$action = isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '';
-
-		if ( 'fl_builder_login_form_submit' !== $action ) {
-			return $user;
-		}
-
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

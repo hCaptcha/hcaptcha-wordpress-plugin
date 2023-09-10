@@ -92,10 +92,6 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
-		if ( false === strpos( wp_get_raw_referer(), self::WP_LOGIN_URL ) ) {
-			return $errors;
-		}
-
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
 
