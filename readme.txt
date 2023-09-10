@@ -527,6 +527,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with UsersWP.
 * Added compatibility with Kadence Advanced Form.
 * Improved support for Kadence simple form.
+* Replaced deprecated ajaxStop events.
 * Fixed error on Classified Listing Login form.
 * Fixed admin page title.
 
