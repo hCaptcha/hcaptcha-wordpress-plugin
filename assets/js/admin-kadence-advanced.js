@@ -1,13 +1,11 @@
-/* global HCaptchaMainObject, HCaptchaKadenceAdvancedFormObject */
+/* global HCaptchaKadenceAdvancedFormObject */
 
 /**
- * @param HCaptchaMainObject.params
  * @param HCaptchaKadenceAdvancedFormObject.noticeLabel
  * @param HCaptchaKadenceAdvancedFormObject.noticeDescription
  */
 document.addEventListener( 'DOMContentLoaded', function() {
 	const panelClass = 'components-panel__body';
-	const siteKey = JSON.parse( HCaptchaMainObject.params ).sitekey;
 
 	// eslint-disable-next-line no-unused-vars
 	const observeEditor = ( mutationList, observer ) => {
@@ -25,12 +23,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	};
 
 	function updatePanel( panel ) {
-		const siteKeyInput = panel.querySelector( 'input[value="' + siteKey + '"]' );
-
-		if ( ! siteKeyInput ) {
-			return;
-		}
-
 		const config = {
 			childList: true,
 			subtree: true,
@@ -59,6 +51,22 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 	function updateInputs( panel ) {
 		const select = panel.querySelector( 'select' );
+
+		if ( ! select ) {
+			return;
+		}
+
+		const hasHCaptcha = [ ...select.options ].reduce(
+			( accumulator, currentOption ) => {
+				return accumulator || currentOption.value === 'hcaptcha';
+			},
+			false
+		);
+
+		if ( ! hasHCaptcha ) {
+			return;
+		}
+
 		const inputs = panel.querySelectorAll( 'input' );
 
 		[ ...inputs ].map( ( input ) => {
