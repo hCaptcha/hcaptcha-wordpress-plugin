@@ -8,6 +8,7 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
 /** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
+/** @noinspection TypoSafeNamingInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 // phpcs:disable WordPress.WP.AlternativeFunctions.json_encode_json_encode
@@ -56,8 +57,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject->shouldReceive( 'init' )->once()->with();
 
-		$reflected_class = new ReflectionClass( $classname );
-		$constructor     = $reflected_class->getConstructor();
+		$constructor = ( new ReflectionClass( $classname ) )->getConstructor();
+
+		self::assertNotNull( $constructor );
+
 		$constructor->invoke( $subject );
 	}
 
@@ -1892,6 +1895,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @param mixed $expected    Expected result.
 	 *
 	 * @dataProvider dp_test_pre_update_option_filter
+	 * @noinspection RepetitiveMethodCallsInspection
 	 */
 	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ) {
 		$option_name                   = 'hcaptcha_settings';

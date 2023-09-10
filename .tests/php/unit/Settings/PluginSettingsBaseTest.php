@@ -45,8 +45,10 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::expectFilterAdded( 'admin_footer_text', [ $subject, 'admin_footer_text' ] );
 		WP_Mock::expectFilterAdded( 'update_footer', [ $subject, 'update_footer' ], PHP_INT_MAX );
 
-		$reflected_class = new ReflectionClass( $classname );
-		$constructor     = $reflected_class->getConstructor();
+		$constructor = ( new ReflectionClass( $classname ) )->getConstructor();
+
+		self::assertNotNull( $constructor );
+
 		$constructor->invoke( $subject );
 	}
 

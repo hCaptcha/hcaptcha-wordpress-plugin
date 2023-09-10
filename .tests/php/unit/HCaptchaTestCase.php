@@ -57,9 +57,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	protected function get_protected_property( $subject, string $property_name ) {
-		$reflection_class = new ReflectionClass( $subject );
-
-		$property = $reflection_class->getProperty( $property_name );
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 		$property->setAccessible( true );
 		$value = $property->getValue( $subject );
 		$property->setAccessible( false );
@@ -77,9 +75,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	protected function set_protected_property( $subject, string $property_name, $value ) {
-		$reflection_class = new ReflectionClass( $subject );
-
-		$property = $reflection_class->getProperty( $property_name );
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 		$property->setAccessible( true );
 		$property->setValue( $subject, $value );
 		$property->setAccessible( false );
@@ -97,9 +93,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	protected function set_method_accessibility( $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
-		$reflection_class = new ReflectionClass( $subject );
-
-		$method = $reflection_class->getMethod( $method_name );
+		$method = ( new ReflectionClass( $subject ) )->getMethod( $method_name );
 		$method->setAccessible( $accessible );
 
 		return $method;
@@ -635,9 +629,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			],
 		];
 
-		$is_multisite = function_exists( 'is_multisite' ) && is_multisite();
-
-		if ( ! $is_multisite ) {
+		if ( ! ( function_exists( 'is_multisite' ) && is_multisite() ) ) {
 			unset( $form_fields[ SettingsBase::NETWORK_WIDE ] );
 		}
 

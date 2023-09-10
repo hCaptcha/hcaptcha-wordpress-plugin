@@ -48,8 +48,9 @@ class SettingsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( $class_name )->makePartial()->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'init' )->once();
 
-		$reflected_class = new ReflectionClass( $class_name );
-		$constructor     = $reflected_class->getConstructor();
+		$constructor = ( new ReflectionClass( $class_name ) )->getConstructor();
+
+		self::assertNotNull( $constructor );
 
 		if ( null === $menu_pages_classes ) {
 			$menu_pages_classes = [];
@@ -90,9 +91,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$subject->$method();
 
-		$tabs = $this->get_protected_property( $subject, 'tabs' );
-
-		foreach ( $tabs as $key => $tab ) {
+		foreach ( $this->get_protected_property( $subject, 'tabs' ) as $key => $tab ) {
 			self::assertInstanceOf( $expected[ $key ], $tab );
 		}
 	}
