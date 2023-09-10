@@ -518,7 +518,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.3.0 =
-* The color schema in admin changed to hCaptcha corporate.
+* Color scheme in admin UI has been updated.
 * Added compatibility with Passster.
 * Added compatibility with Theme My Login.
 * Added compatibility with Gravity Perks Nested Forms.
