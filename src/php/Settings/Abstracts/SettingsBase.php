@@ -429,7 +429,7 @@ abstract class SettingsBase {
 
 		add_submenu_page(
 			$this->parent_slug(),
-			$this->page_title(),
+			$this->get_active_tab()->page_title(),
 			$this->menu_title(),
 			'manage_options',
 			$this->option_page(),

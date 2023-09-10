@@ -528,6 +528,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Kadence Advanced Form.
 * Improved support for Kadence simple form.
 * Fixed error on Classified Listing Login form.
+* Fixed admin page title.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.
