@@ -608,7 +608,7 @@ class General extends PluginSettingsBase {
 			wp_send_json_error( $raw_body );
 		}
 
-		if ( ! isset( $body['pass'] ) || ! $body['pass'] ) {
+		if ( empty( $body['pass'] ) ) {
 			$error = $body['error'] ? (string) $body['error'] : '';
 			$error = $error ? ': ' . $error : '';
 

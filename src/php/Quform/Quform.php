@@ -131,6 +131,7 @@ class Quform {
 	 * @param int    $form_id Form id.
 	 *
 	 * @return string
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function replace_hcaptcha( string $output, int $form_id ): string {
 		return (string) preg_replace(
@@ -187,6 +188,7 @@ class Quform {
 	 * @param Quform_Element_Field $element Element instance.
 	 *
 	 * @return bool|mixed
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function element_valid( $valid, string $value, Quform_Element_Field $element ) {
 		$config = $element->config();

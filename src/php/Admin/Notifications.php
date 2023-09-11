@@ -69,6 +69,7 @@ class Notifications {
 	 * Init notifications.
 	 *
 	 * @return void
+	 * @noinspection HtmlUnknownTarget
 	 */
 	private function init_notifications() {
 		$hcaptcha_url  = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
@@ -275,8 +276,7 @@ class Notifications {
 			return false;
 		}
 
-		$dismissed = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true );
-		$dismissed = $dismissed ?: [];
+		$dismissed = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
 
 		if ( in_array( $id, $dismissed, true ) ) {
 			return false;

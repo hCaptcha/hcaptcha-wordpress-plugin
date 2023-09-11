@@ -28,7 +28,6 @@ abstract class Base extends LoginBase {
 	 * @return void
 	 */
 	protected function init_hooks() {
-		add_filter( 'fl_builder_render_module_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 

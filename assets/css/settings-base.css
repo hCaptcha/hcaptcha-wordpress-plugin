@@ -1,3 +1,8 @@
+body.settings_page_hcaptcha {
+	background: #f0f2f5;
+	color: #5c6f8a;
+}
+
 .wrap h1.hcaptcha-settings-header {
 	font-size: 34px;
 	font-weight: bold;
@@ -28,20 +33,26 @@
 
 .hcaptcha-settings-tab:hover {
 	color: #666;
-	border-color: #646970;
+	border-bottom-color: #025176 !important;
 	border-bottom: 2px solid;
 }
 
 .hcaptcha-settings-tab.active {
-	border-bottom: 2px solid #2271b1;
+	border-bottom: 2px solid #0075ab;
 }
 
 #hcaptcha-options h2 {
 	font-size: 1.5em;
+	color: #5c6f8a;
 }
 
 #hcaptcha-options h3 {
 	margin: 1.5em 0 1em;
+	color: #5c6f8a;
+}
+
+#hcaptcha-options .notice-dismiss:before {
+	color: #5c6f8a;
 }
 
 #hcaptcha-options table tbody tr td {
@@ -77,6 +88,38 @@
 	color: #dadada;
 }
 
+#hcaptcha-options .button-primary {
+	background-color: #026593;
+	color: #ffffff;
+	border-color: #026593;
+}
+
+#hcaptcha-options .button-primary:hover {
+	background-color: #025176;
+}
+
+#hcaptcha-options .button-secondary {
+	background-color: #ffffff;
+	color: #026593;
+	border-color: #026593;
+}
+
+#hcaptcha-options .button-secondary:hover {
+	background-color: #cccccc;
+}
+
+#hcaptcha-options a {
+	color: #0075ab;
+}
+
+#hcaptcha-navigation a {
+	border-color: #0075ab;
+}
+
+#hcaptcha-options a.hcaptcha-settings-tab {
+	color: #5c6f8a;
+}
+
 /* Helper */
 #hcaptcha-options .helper::before {
 	content: '?';
@@ -84,7 +127,7 @@
 	right: 0;
 	top: 0;
 	transform: translate(0, -26px);
-	background: #000;
+	background: #5c6f8a;
 	color: #fff;
 	width: 1.2em;
 	height: 1.2em;
@@ -103,8 +146,8 @@
 	top: 0;
 	right: 0;
 	transform: translate(1px, 10px);
-	background: #000;
-	color: #fff;
+	background: #5c6f8a;
+	color: #f0f2f5;
 	padding: 0.5em 1em;
 	width: 100%;
 	box-sizing: border-box;
@@ -128,7 +171,7 @@
 #hcaptcha-options .helper .helper-content::after {
 	content: '';
 	border: solid 10px transparent;
-	border-bottom-color: #000;
+	border-bottom-color: #5c6f8a;
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -137,16 +180,6 @@
 
 #hcaptcha-options .helper .helper-content a {
 	color: #fff;
-}
-
-.hcaptcha-success,
-.hcaptcha-error {
-	background: #fff;
-	box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
-	margin: 5px 0 15px 0;
-	padding: 1px 12px;
-	border: 1px solid #c3c4c7;
-	border-left-width: 4px;
 }
 
 #hcaptcha-message {
@@ -158,14 +191,6 @@
 	font-weight: 600;
 	line-height: 1.5;
 	margin: 0.5em 0;
-}
-
-.hcaptcha-success {
-	border-left-color: #00a32a;
-}
-
-.hcaptcha-error {
-	border-left-color: #d63638;
 }
 
 @media (max-width: 600px) {

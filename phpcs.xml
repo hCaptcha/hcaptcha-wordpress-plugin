@@ -23,7 +23,7 @@
 	<arg name="parallel" value="12"/><!-- Enables parallel processing when available for faster results. -->
 	<arg name="cache" value=".phpcs.cache"/>
 
-	<config name="installed_paths" value="vendor/phpcompatibility/php-compatibility,vendor/phpcompatibility/phpcompatibility-paragonie,vendor/phpcompatibility/phpcompatibility-wp,vendor/wp-coding-standards/wpcs"/>
+	<config name="installed_paths" value="vendor/phpcompatibility/php-compatibility,vendor/phpcompatibility/phpcompatibility-paragonie,vendor/phpcompatibility/phpcompatibility-wp,vendor/phpcsstandards/phpcsextra,vendor/phpcsstandards/phpcsutils,vendor/wp-coding-standards/wpcs"/>
 	<config name="testVersion" value="7.0-"/>
 
 	<!-- Rules: Check PHP version compatibility -->
@@ -32,24 +32,13 @@
 
 	<!-- Rules: WordPress Coding Standards -->
 	<config name="minimum_supported_wp_version" value="5.0"/>
-	<rule ref="WordPress"/>
-
-	<!-- Allow only short array syntax -->
-	<rule ref="Generic.Arrays.DisallowShortArraySyntax.Found">
-		<severity>0</severity>
-	</rule>
-	<rule ref="Generic.Arrays.DisallowLongArraySyntax.Found"/>
-
-	<!-- Allow short ternary syntax -->
-	<rule ref="WordPress.PHP.DisallowShortTernary.Found">
-		<severity>0</severity>
-	</rule>
-
-	<!-- Rules to follow PSR4 -->
-	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
-		<severity>0</severity>
-	</rule>
-	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
-		<severity>0</severity>
+	<rule ref="WordPress">
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found"/>
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found"/>
+		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
+		<!-- Rules to follow PSR4 -->
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
 	</rule>
 </ruleset>

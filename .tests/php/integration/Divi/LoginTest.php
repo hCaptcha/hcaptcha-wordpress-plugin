@@ -26,14 +26,14 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_captcha' ] )
+			has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_divi_captcha' ] )
 		);
 	}
 
 	/**
-	 * Test add_captcha().
+	 * Test add_divi_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_divi_captcha() {
 		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
 
 		$output = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
@@ -88,13 +88,13 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertSame( $expected, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( $expected, $subject->add_divi_captcha( $output, $module_slug ) );
 	}
 
 	/**
-	 * Test add_captcha() in frontend builder.
+	 * Test add_divi_captcha() in frontend builder.
 	 */
-	public function test_add_captcha_in_frontend_builder() {
+	public function test_add_divi_captcha_in_frontend_builder() {
 		FunctionMocker::replace( 'et_core_is_fb_enabled', true );
 
 		$output      = 'some string';
@@ -102,6 +102,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertSame( $output, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( $output, $subject->add_divi_captcha( $output, $module_slug ) );
 	}
 }

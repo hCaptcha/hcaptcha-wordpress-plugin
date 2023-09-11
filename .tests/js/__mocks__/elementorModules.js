@@ -1,3 +1,5 @@
+// noinspection JSUnresolvedReference
+
 const elementorModules = {
 	editor: {
 		utils: {
@@ -7,4 +9,6 @@ const elementorModules = {
 };
 
 global.elementorModules = elementorModules;
+
+// noinspection JSUnusedGlobalSymbols
 export default elementorModules;

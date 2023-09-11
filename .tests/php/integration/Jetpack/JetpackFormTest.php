@@ -25,7 +25,7 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_add_captcha
 	 */
-	public function test_add_captcha( $content, $expected ) {
+	public function test_add_captcha( string $content, string $expected ) {
 		$subject = new JetpackForm();
 
 		self::assertSame( $expected, $subject->add_captcha( $content ) );
@@ -37,7 +37,7 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	 * @return array
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	public function dp_test_add_captcha() {
+	public function dp_test_add_captcha(): array {
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 
 		$nonce_field = wp_nonce_field( 'hcaptcha_jetpack', 'hcaptcha_jetpack_nonce', true, false );

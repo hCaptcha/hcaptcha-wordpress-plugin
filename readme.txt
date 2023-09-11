@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.0.0
-Stable tag: 3.2.0
+Stable tag: 3.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -215,9 +215,13 @@ Jetpack
 $source: 'jetpack/jetpack.php'
 $form_id: 'contact'
 
-Kadence
+Kadence Form
 $source: 'kadence-blocks/kadence-blocks.php'
 $form_id: post_id
+
+Kadence Advanced Form
+$source: 'kadence-blocks/kadence-blocks.php'
+$form_id: form_id
 
 MemberPress
 $source: 'memberpress/memberpress.php'
@@ -226,6 +230,10 @@ $form_id: 'login' or 'register'
 Paid Memberships Pro
 $source: 'paid-memberships-pro/paid-memberships-pro.php'
 $form_id: 'checkout' or 'login'
+
+Passster
+$source: 'content-protector/content-protector.php'
+$form_id: area_id
 
 Profile Builder
 $source: 'profile-builder/index.php'
@@ -239,9 +247,17 @@ Support Candy
 $source: 'supportcandy/supportcandy.php'
 $form_id: 'form'
 
+Theme My Login
+$source: 'theme-my-login/theme-my-login.php'
+$form_id: 'login', 'lost_password' or 'register'
+
 Ultimate Member
 $source: 'ultimate-member/ultimate-member.php'
 $form_id: form_id or 'password'
+
+UsersWP
+$source: 'userswp/userswp.php'
+$form_id: 'forgot', 'login' or 'register'
 
 WooCommerce Wishlist
 $source: 'woocommerce-wishlists/woocommerce-wishlists.php'
@@ -258,6 +274,14 @@ $form_id: form_id
 wpForo
 $source: 'wpforo/wpforo.php'
 $form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.
+
+Wordfence Login Security
+$source: 'wordfence-login-security/wordfence-login-security.php'
+$form_id: 'login'
+
+Wordfence Security
+$source: 'wordfence/wordfence.php'
+$form_id: 'login'
 
 WordPress Core
 $source: 'WordPress'
@@ -431,8 +455,10 @@ For more details, please see the hCaptcha privacy policy at:
 * Formidable Forms
 * GiveWP Form
 * Gravity Forms
+* Gravity Perks Nested Forms
 * Jetpack Forms
 * Kadence Form
+* Kadence Advanced Form
 * Mailchimp for WP Form
 * MemberPress Login Form
 * MemberPress Register Form
@@ -440,6 +466,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout Form
 * Paid Memberships Pro Login Form
+* Passster Protection Form
 * Profile Builder Login Form
 * Profile Builder Recover Password Form
 * Profile Builder Register Form
@@ -447,15 +474,23 @@ For more details, please see the hCaptcha privacy policy at:
 * Sendinblue Form
 * Subscriber Form
 * Support Candy New Ticket Form
+* Theme My Login Login Form
+* Theme My Login Lost Password Form
+* Theme My Login Register Form
 * Ultimate Member Login Form
 * Ultimate Member Lost Password Form
 * Ultimate Member Register Form
+* UsersWP Forgot Password Form
+* UsersWP Login Form
+* UsersWP Register Form
 * WooCommerce Login Form
 * WooCommerce Registration Form
 * WooCommerce Lost Password Form
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
 * WooCommerce Wishlist
+* Wordfence Security Login Form
+* Wordfence Login Security Login Form
 * WPForms Lite
 * wpDiscuz Comment Form
 * wpDiscuz Support Form
@@ -481,6 +516,20 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.3.0 =
+* Color scheme in admin UI has been updated.
+* Added compatibility with Passster.
+* Added compatibility with Theme My Login.
+* Added compatibility with Gravity Perks Nested Forms.
+* Added compatibility with Wordfence Login Security.
+* Added compatibility with Wordfence Security.
+* Added compatibility with UsersWP.
+* Added compatibility with Kadence Advanced Form.
+* Improved support for Kadence simple form.
+* Replaced deprecated ajaxStop events.
+* Fixed error on Classified Listing Login form.
+* Fixed admin page title.
 
 = 3.2.0 =
 * Tested with WooCommerce 8.0.

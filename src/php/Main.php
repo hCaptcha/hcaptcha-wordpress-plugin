@@ -178,13 +178,13 @@ class Main {
 	/**
 	 * Get plugin class instance.
 	 *
-	 * @param string $class Class name.
+	 * @param string $class_name Class name.
 	 *
 	 * @return object|null
 	 */
-	public function get( string $class ) {
+	public function get( string $class_name ) {
 
-		return $this->loaded_classes[ $class ] ?? null;
+		return $this->loaded_classes[ $class_name ] ?? null;
 	}
 
 	/**
@@ -320,12 +320,8 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
-		ob_start();
 		?>
 		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
-		<?php
-		ob_get_clean();
-		?>
 		<style>
 			#wpdiscuz-subscribe-form .h-captcha {
 				margin-left: auto;
@@ -359,8 +355,8 @@ class Main {
 				line-height: 0;
 				margin-bottom: 0;
 			}
-			.gform_previous_button + .h-captcha {
-				margin-top: 2rem;
+			.passster-form .h-captcha {
+				margin-bottom: 5px;
 			}
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
@@ -546,8 +542,7 @@ class Main {
 		$config_params = [];
 
 		if ( $settings->is_on( 'custom_themes' ) ) {
-			$config_params = json_decode( $settings->get( 'config_params' ), true );
-			$config_params = $config_params ?: [];
+			$config_params = json_decode( $settings->get( 'config_params' ), true ) ?: [];
 		}
 
 		$params = array_merge( $params, $config_params );
@@ -860,6 +855,11 @@ class Main {
 				'kadence-blocks/kadence-blocks.php',
 				Kadence\Form::class,
 			],
+			'Kadence Advanced Form'             => [
+				[ 'kadence_status', 'advanced_form' ],
+				'kadence-blocks/kadence-blocks.php',
+				Kadence\AdvancedForm::class,
+			],
 			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
@@ -894,6 +894,11 @@ class Main {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Login::class,
+			],
+			'Passster Protect'                  => [
+				[ 'passster_status', 'protect' ],
+				'content-protector/content-protector.php',
+				Passster\Protect::class,
 			],
 			'Profile Builder Login'             => [
 				[ 'profile_builder_status', 'login' ],
@@ -930,6 +935,21 @@ class Main {
 				'supportcandy/supportcandy.php',
 				SupportCandy\Form::class,
 			],
+			'Theme My Login Login'              => [
+				[ 'theme_my_login_status', 'login' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Login::class,
+			],
+			'Theme My Login LostPassword'       => [
+				[ 'theme_my_login_status', 'lost_pass' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\LostPassword::class,
+			],
+			'Theme My Login Register'           => [
+				[ 'theme_my_login_status', 'register' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Register::class,
+			],
 			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
@@ -944,6 +964,21 @@ class Main {
 				[ 'ultimate_member_status', 'register' ],
 				'ultimate-member/ultimate-member.php',
 				UM\Register::class,
+			],
+			'UsersWP Forgot Password'           => [
+				[ 'users_wp_status', 'forgot' ],
+				'userswp/userswp.php',
+				UsersWP\ForgotPassword::class,
+			],
+			'UsersWP Login'                     => [
+				[ 'users_wp_status', 'login' ],
+				'userswp/userswp.php',
+				UsersWP\Login::class,
+			],
+			'UsersWP Register'                  => [
+				[ 'users_wp_status', 'register' ],
+				'userswp/userswp.php',
+				UsersWP\Register::class,
 			],
 			'WooCommerce Checkout'              => [
 				[ 'woocommerce_status', 'checkout' ],
@@ -974,6 +1009,11 @@ class Main {
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				CreateList::class,
+			],
+			'Wordfence Login'                   => [
+				[ 'wordfence_status', null ],
+				[ 'wordfence/wordfence.php', 'wordfence-login-security/wordfence-login-security.php' ],
+				Wordfence\General::class,
 			],
 			'WPForms Lite'                      => [
 				[ 'wpforms_status', 'lite' ],
@@ -1023,7 +1063,7 @@ class Main {
 				continue;
 			}
 
-			if ( ! in_array( $option_value, $option, true ) ) {
+			if ( $option_value && ! in_array( $option_value, $option, true ) ) {
 				continue;
 			}
 

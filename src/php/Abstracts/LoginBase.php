@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Abstracts;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
 
@@ -19,6 +20,16 @@ use WP_User;
  * Class LoginBase
  */
 abstract class LoginBase {
+
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_login';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Login attempts data option name.
@@ -90,6 +101,28 @@ abstract class LoginBase {
 		$this->login_data[ $this->ip ][] = time();
 
 		update_option( self::LOGIN_DATA, $this->login_data );
+	}
+
+	/**
+	 * Add captcha.
+	 *
+	 * @return void
+	 */
+	public function add_captcha() {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return;
+		}
+
+		$args = [
+			'action' => static::ACTION,
+			'name'   => static::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'login',
+			],
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**

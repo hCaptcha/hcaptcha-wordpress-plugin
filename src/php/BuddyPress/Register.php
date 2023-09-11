@@ -43,8 +43,6 @@ class Register {
 
 	/**
 	 * Add captcha to the register form.
-	 *
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function add_captcha() {
 		global $bp;
@@ -74,7 +72,6 @@ class Register {
 	 * Verify register form captcha.
 	 *
 	 * @return bool
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function verify(): bool {
 		global $bp;

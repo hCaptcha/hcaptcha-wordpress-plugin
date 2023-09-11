@@ -7,7 +7,7 @@
 
 namespace HCaptcha\AutoVerify;
 
-use WP_Rewrite;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class AutoVerify
@@ -42,7 +42,7 @@ class AutoVerify {
 	 * @return string|mixed
 	 */
 	public function content_filter( $content ) {
-		if ( ! $this->is_frontend() ) {
+		if ( ! Request::is_frontend() ) {
 			return $content;
 		}
 
@@ -53,12 +53,8 @@ class AutoVerify {
 				$matches
 			)
 		) {
-			$forms = array_map(
-				static function ( $match ) {
-					return $match[0];
-				},
-				$matches
-			);
+			$forms = array_column( $matches, 0 );
+
 			$this->register_forms( $forms );
 		}
 
@@ -72,7 +68,7 @@ class AutoVerify {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify_form() {
-		if ( ! $this->is_frontend() ) {
+		if ( ! Request::is_frontend() ) {
 			return;
 		}
 
@@ -111,71 +107,6 @@ class AutoVerify {
 				]
 			);
 		}
-	}
-
-	/**
-	 * Check if it is a frontend request.
-	 *
-	 * @return bool
-	 */
-	private function is_frontend(): bool {
-		return ! ( $this->is_cli() || is_admin() || wp_doing_ajax() || $this->is_rest() );
-	}
-
-	/**
-	 * Checks if the current request is a WP REST API request.
-	 *
-	 * Case #1: After WP_REST_Request initialisation
-	 * Case #2: Support "plain" permalink settings
-	 * Case #3: It can happen that WP_Rewrite is not yet initialized,
-	 *          so do this (wp-settings.php)
-	 * Case #4: URL Path begins with wp-json/ (your REST prefix)
-	 *          Also supports WP installations in sub folders
-	 *
-	 * @return bool
-	 * @author matzeeable
-	 */
-	private function is_rest(): bool {
-		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
-			return false;
-		}
-
-		// Case #1.
-		if ( defined( 'REST_REQUEST' ) && constant( 'REST_REQUEST' ) ) {
-			return true;
-		}
-
-		// Case #2.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$rest_route = isset( $_GET['rest_route'] ) ?
-			filter_input( INPUT_GET, 'rest_route', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		if ( 0 === strpos( trim( $rest_route, '\\/' ), rest_get_url_prefix() ) ) {
-			return true;
-		}
-
-		// Case #3.
-		global $wp_rewrite;
-		if ( null === $wp_rewrite ) {
-			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-			$wp_rewrite = new WP_Rewrite();
-		}
-
-		// Case #4.
-		$current_url = wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
-		$rest_url    = wp_parse_url( trailingslashit( rest_url() ), PHP_URL_PATH );
-
-		return 0 === strpos( $current_url, $rest_url );
-	}
-
-	/**
-	 * Check of it is a CLI request
-	 *
-	 * @return bool
-	 */
-	private function is_cli(): bool {
-		return defined( 'WP_CLI' ) && constant( 'WP_CLI' );
 	}
 
 	/**
@@ -243,9 +174,7 @@ class AutoVerify {
 			return $names;
 		}
 
-		$inputs = $matches[0];
-
-		foreach ( $inputs as $input ) {
+		foreach ( $matches[0] as $input ) {
 			if ( ! $this->is_input_visible( $input ) ) {
 				continue;
 			}

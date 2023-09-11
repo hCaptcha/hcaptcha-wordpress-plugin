@@ -47,7 +47,7 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			100,
-			has_action( 'um_get_form_fields', [ $subject, 'add_captcha' ] )
+			has_action( 'um_get_form_fields', [ $subject, 'add_um_captcha' ] )
 		);
 		self::assertSame(
 			10,
@@ -84,7 +84,7 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	 * @return LostPassword
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	private function get_subject() {
+	private function get_subject(): LostPassword {
 		$subject = new LostPassword();
 
 		UM()->fields()->set_mode = $subject::UM_MODE;

@@ -20,6 +20,19 @@ use WP_Error;
 class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down test.
+	 *
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
+	 */
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_SERVER['REQUEST_URI'], $_GET['action'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test constructor and init_hooks().
 	 */
 	public function test_constructor_and_init_hooks() {
@@ -39,6 +52,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+		$_GET['action']         = 'lostpassword';
+
 		$expected =
 			$this->get_hcap_form() .
 			wp_nonce_field( 'hcaptcha_wp_lost_password', 'hcaptcha_wp_lost_password_nonce', true, false );

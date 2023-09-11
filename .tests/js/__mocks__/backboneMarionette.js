@@ -1,4 +1,6 @@
 // Mock Backbone
+// noinspection JSUnresolvedReference
+
 const Backbone = {
 	Radio: {
 		channel() {

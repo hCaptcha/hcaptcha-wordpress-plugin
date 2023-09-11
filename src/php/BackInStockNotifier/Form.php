@@ -13,6 +13,7 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Form.
  */
 class Form {
+
 	/**
 	 * Script handle.
 	 */

@@ -8,6 +8,7 @@
 namespace HCaptcha\Kadence;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Block;
 
 /**
@@ -28,53 +29,15 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_filter( 'kadence_blocks_frontend_build_css', [ $this, 'remove_recaptcha_from_block' ] );
-		add_filter( 'kadence_blocks_form_render_block_attributes', [ $this, 'remove_recaptcha_from_attributes' ] );
-		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
-		add_filter(
-			'block_parser_class',
-			static function () {
-				return BlockParser::class;
-			}
-		);
 		add_action( 'wp_ajax_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
-	}
 
-	/**
-	 * Remove recaptcha from block.
-	 *
-	 * @param array|mixed $block Block.
-	 *
-	 * @return array|mixed
-	 */
-	public function remove_recaptcha_from_block( $block ) {
-		$block = (array) $block;
-
-		if ( isset( $block['blockName'] ) && 'kadence/form' !== $block['blockName'] ) {
-			return $block;
+		if ( ! Request::is_frontend() ) {
+			return;
 		}
 
-		if ( isset( $block['attrs']['recaptcha'] ) ) {
-			$block['attrs']['recaptcha'] = false;
-		}
-
-		return $block;
-	}
-
-	/**
-	 * Remove recaptcha from attributes.
-	 *
-	 * @param array|mixed $attributes Attributes.
-	 *
-	 * @return array|mixed
-	 */
-	public function remove_recaptcha_from_attributes( $attributes ) {
-		if ( isset( $attributes['recaptcha'] ) ) {
-			$attributes['recaptcha'] = false;
-		}
-
-		return $attributes;
+		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
@@ -99,10 +62,25 @@ class Form {
 			],
 		];
 
-		return (string) preg_replace(
-			'/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/',
-			'$1' . HCaptcha::form( $args ) . '$2',
-			(string) $block_content
+		$pattern       = '/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/';
+		$block_content = (string) $block_content;
+
+		if ( preg_match( $pattern, $block_content ) ) {
+			// Do not replace reCaptcha V2.
+			return $block_content;
+		}
+
+		if ( false !== strpos( $block_content, 'recaptcha_response' ) ) {
+			// Do not replace reCaptcha V3.
+			return $block_content;
+		}
+
+		$search = '<div class="kadence-blocks-form-field kb-submit-field';
+
+		return (string) str_replace(
+			$search,
+			HCaptcha::form( $args ) . $search,
+			$block_content
 		);
 	}
 
@@ -112,6 +90,10 @@ class Form {
 	 * @return void
 	 */
 	public function process_ajax() {
+		if ( $this->has_recaptcha() ) {
+			return;
+		}
+
 		// Nonce is checked by Kadence.
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -136,5 +118,55 @@ class Form {
 		];
 
 		wp_send_json_error( $data );
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public static function enqueue_scripts() {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			'hcaptcha-kadence',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-kadence$min.js",
+			[ 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Whether form has recaptcha.
+	 *
+	 * @return bool
+	 */
+	private function has_recaptcha(): bool {
+		// Nonce is checked by Kadence.
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$form_id = isset( $_POST['_kb_form_id'] ) ? sanitize_text_field( wp_unslash( $_POST['_kb_form_id'] ) ) : '';
+		$post_id = isset( $_POST['_kb_form_post_id'] ) ? sanitize_text_field( wp_unslash( $_POST['_kb_form_post_id'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$post = get_post( $post_id );
+
+		if ( ! $post ) {
+			return false;
+		}
+
+		foreach ( parse_blocks( $post->post_content ) as $block ) {
+			if (
+				isset( $block['blockName'], $block['attrs']['uniqueID'] ) &&
+				'kadence/form' === $block['blockName'] &&
+				$form_id === $block['attrs']['uniqueID'] &&
+				! empty( $block['attrs']['recaptcha'] )
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

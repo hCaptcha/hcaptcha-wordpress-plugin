@@ -22,10 +22,13 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
+	 *
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_REQUEST['_wp_http_referer'] );
+		unset( $_REQUEST['_wp_http_referer'], $_SERVER['REQUEST_URI'] );
 
 		parent::tearDown();
 	}
@@ -50,6 +53,8 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+
 		$expected =
 			$this->get_hcap_form() .
 			wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce', true, false );

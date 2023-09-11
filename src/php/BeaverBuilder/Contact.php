@@ -33,6 +33,8 @@ class Contact extends Base {
 	 */
 	public function init_hooks() {
 		parent::init_hooks();
+
+		add_filter( 'fl_builder_render_module_content', [ $this, 'add_beaver_builder_captcha' ], 10, 2 );
 		add_action( 'fl_module_contact_form_before_send', [ $this, 'verify' ], 10, 5 );
 	}
 
@@ -45,7 +47,7 @@ class Contact extends Base {
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $out, FLButtonModule $module ) {
+	public function add_beaver_builder_captcha( $out, FLButtonModule $module ) {
 		// Process contact form only.
 		if ( false === strpos( (string) $out, '<form class="fl-contact-form"' ) ) {
 			return $out;

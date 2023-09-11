@@ -47,7 +47,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			100,
-			has_action( 'um_get_form_fields', [ $subject, 'add_captcha' ] )
+			has_action( 'um_get_form_fields', [ $subject, 'add_um_captcha' ] )
 		);
 		self::assertSame(
 			10,
@@ -65,7 +65,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * @return Register
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	private function get_subject() {
+	private function get_subject(): Register {
 		$subject = new Register();
 
 		UM()->fields()->set_mode = $subject::UM_MODE;

@@ -345,8 +345,9 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_shortcode_attributes
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_shortcode_attributes( $captcha, $own_captcha ) {
+	public function test_shortcode_attributes( $captcha, string $own_captcha ) {
 		$props    = [ 'foo' => 'bar' ];
 		$attrs    = [];
 		$slug     = 'et_pb_contact_form';
@@ -374,7 +375,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_shortcode_attributes() {
+	public function dp_test_shortcode_attributes(): array {
 		return [
 			'in props no captcha, own off' => [ null, 'off' ],
 			'in props no captcha, own on'  => [ null, 'on' ],

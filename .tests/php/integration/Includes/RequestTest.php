@@ -46,7 +46,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_hcap_get_user_ip
 	 */
-	public function test_hcap_get_user_ip( $headers, $expected ) {
+	public function test_hcap_get_user_ip( array $headers, $expected ) {
 		unset(
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
@@ -68,7 +68,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Data provider for test_hcap_get_user_ip().
 	 */
-	public function dp_test_hcap_get_user_ip() {
+	public function dp_test_hcap_get_user_ip(): array {
 		return [
 			'HTTP_CF_CONNECTING_IP'    => [
 				[ 'HTTP_CLIENT_IP' => '7.7.7.1' ],

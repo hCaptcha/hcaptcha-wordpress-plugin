@@ -246,7 +246,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Kadence',
 				'type'    => 'checkbox',
 				'options' => [
-					'form' => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
+					'form'          => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
+					'advanced_form' => __( 'Kadence Advanced Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'mailchimp_status'              => [
@@ -286,6 +287,13 @@ class Integrations extends PluginSettingsBase {
 					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'passster_status'               => [
+				'label'   => 'Passster',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'profile_builder_status'        => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
@@ -323,6 +331,15 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'theme_my_login_status'         => [
+				'label'   => 'Theme My Login',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'ultimate_member_status'        => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',
@@ -330,6 +347,15 @@ class Integrations extends PluginSettingsBase {
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'users_wp_status'               => [
+				'label'   => 'Users WP',
+				'type'    => 'checkbox',
+				'options' => [
+					'forgot'   => __( 'Forgot Password Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'woocommerce_status'            => [
@@ -348,6 +374,13 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'create_list' => __( 'Create List Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'wordfence_status'              => [
+				'label'   => 'Wordfence',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wpforms_status'                => [
@@ -383,6 +416,7 @@ class Integrations extends PluginSettingsBase {
 	 * @param string $label Label.
 	 *
 	 * @return string
+	 * @noinspection HtmlUnknownTarget
 	 */
 	private function logo( string $label ): string {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
@@ -457,6 +491,8 @@ class Integrations extends PluginSettingsBase {
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
+	 *
+	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
@@ -574,9 +610,7 @@ class Integrations extends PluginSettingsBase {
 		http_response_code( 200 );
 
 		if ( $activate ) {
-			$result = $this->activate_plugins( $plugins );
-
-			if ( ! $result ) {
+			if ( ! $this->activate_plugins( $plugins ) ) {
 				$message = sprintf(
 				/* translators: 1: Plugin(s) name(s). */
 					__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
@@ -622,7 +656,7 @@ class Integrations extends PluginSettingsBase {
 
 			$result = activate_plugin( $plugin );
 
-			ob_get_clean();
+			ob_end_clean();
 
 			if ( null === $result ) {
 				// Activate the first available plugin only.

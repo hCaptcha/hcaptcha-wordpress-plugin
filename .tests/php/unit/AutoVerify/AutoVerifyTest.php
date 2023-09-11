@@ -98,7 +98,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 *
 	 * @return string
 	 */
-	private function get_test_request_uri() {
+	private function get_test_request_uri(): string {
 		return '/hcaptcha-arbitrary-form/';
 	}
 
@@ -107,7 +107,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 *
 	 * @return string
 	 */
-	private function get_test_nonce() {
+	private function get_test_nonce(): string {
 		return '5e9f1e63ed';
 	}
 
@@ -116,7 +116,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 *
 	 * @return string
 	 */
-	private function get_test_content() {
+	private function get_test_content(): string {
 		$request_uri = $this->get_test_request_uri();
 		$nonce       = $this->get_test_nonce();
 

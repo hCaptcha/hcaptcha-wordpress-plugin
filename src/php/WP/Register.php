@@ -14,6 +14,12 @@ use WP_Error;
  * Class Register
  */
 class Register {
+
+	/**
+	 * WP login URL.
+	 */
+	const WP_LOGIN_URL = '/wp-login.php';
+
 	/**
 	 * Nonce action.
 	 */
@@ -45,6 +51,23 @@ class Register {
 	 * @return void
 	 */
 	public function add_captcha() {
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
+			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+
+		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
+
+		if ( false === strpos( $request_uri, self::WP_LOGIN_URL ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+
+		if ( 'register' !== $action ) {
+			return;
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -69,6 +92,13 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+
+		if ( 'register' !== $action ) {
+			return $errors;
+		}
+
 		$error_message = hcaptcha_get_verify_message_html(
 			self::NONCE,
 			self::ACTION

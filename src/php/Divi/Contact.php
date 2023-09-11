@@ -107,7 +107,7 @@ class Contact {
 			$output
 		);
 
-		$this->render_count ++;
+		++$this->render_count;
 
 		return $output;
 	}
@@ -116,17 +116,17 @@ class Contact {
 	 * Verify hcaptcha.
 	 * We use shortcode tag filter to make verification.
 	 *
-	 * @param string|false $return Short-circuit return value. Either false or the value to replace the shortcode with.
-	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
-	 * @param array        $m      Regular expression match array.
+	 * @param string|false $value Short-circuit return value. Either false or the value to replace the shortcode with.
+	 * @param string       $tag   Shortcode name.
+	 * @param array|string $attr  Shortcode attributes array or empty string.
+	 * @param array        $m     Regular expression match array.
 	 *
 	 * @return string|false
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $return, string $tag, $attr, array $m ) {
+	public function verify( $value, string $tag, $attr, array $m ) {
 		if ( self::TAG !== $tag ) {
-			return $return;
+			return $value;
 		}
 
 		$cf_nonce_field = '_wpnonce-et-pb-contact-form-submitted-' . $this->render_count;
@@ -144,8 +144,7 @@ class Contact {
 
 			if ( $current_form_fields ) {
 				$fields_data_json             = htmlspecialchars_decode( str_replace( '\\', '', $current_form_fields ) );
-				$fields_data_array            = json_decode( $fields_data_json, true );
-				$fields_data_array            = $fields_data_array ?? [];
+				$fields_data_array            = json_decode( $fields_data_json, true ) ?? [];
 				$fields_data_array            = array_filter(
 					$fields_data_array,
 					static function ( $item ) {
@@ -164,7 +163,7 @@ class Contact {
 			}
 		}
 
-		return $return;
+		return $value;
 	}
 
 	/**

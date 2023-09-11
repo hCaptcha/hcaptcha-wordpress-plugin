@@ -49,19 +49,17 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * Get an object protected property.
 	 *
-	 * @param object $object        Object.
+	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
 	 *
 	 * @return mixed
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function get_protected_property( $object, $property_name ) {
-		$reflection_class = new ReflectionClass( $object );
-
-		$property = $reflection_class->getProperty( $property_name );
+	protected function get_protected_property( $subject, string $property_name ) {
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 		$property->setAccessible( true );
-		$value = $property->getValue( $object );
+		$value = $property->getValue( $subject );
 		$property->setAccessible( false );
 
 		return $value;
@@ -70,25 +68,23 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * Set an object protected property.
 	 *
-	 * @param object $object        Object.
+	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
 	 * @param mixed  $value         Property vale.
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_protected_property( $object, $property_name, $value ) {
-		$reflection_class = new ReflectionClass( $object );
-
-		$property = $reflection_class->getProperty( $property_name );
+	protected function set_protected_property( $subject, string $property_name, $value ) {
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 		$property->setAccessible( true );
-		$property->setValue( $object, $value );
+		$property->setValue( $subject, $value );
 		$property->setAccessible( false );
 	}
 
 	/**
 	 * Set an object protected method accessibility.
 	 *
-	 * @param object $object      Object.
+	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
 	 * @param bool   $accessible  Property vale.
 	 *
@@ -96,10 +92,8 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_method_accessibility( $object, $method_name, $accessible = true ) {
-		$reflection_class = new ReflectionClass( $object );
-
-		$method = $reflection_class->getMethod( $method_name );
+	protected function set_method_accessibility( $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
+		$method = ( new ReflectionClass( $subject ) )->getMethod( $method_name );
 		$method->setAccessible( $accessible );
 
 		return $method;
@@ -109,16 +103,16 @@ abstract class HCaptchaTestCase extends TestCase {
 	 * Plucks a certain field out of each object or array in an array.
 	 * Taken from WP Core.
 	 *
-	 * @param array      $input_list List of objects or arrays.
-	 * @param int|string $field      Field from the object to place instead of the entire object.
-	 * @param int|string $index_key  Optional. Field from the object to use as keys for the new array.
-	 *                               Default null.
+	 * @param array|mixed $input_list List of objects or arrays.
+	 * @param int|string  $field      Field from the object to place instead of the entire object.
+	 * @param int|string  $index_key  Optional. Field from the object to use as keys for the new array.
+	 *                                Default null.
 	 *
 	 * @return array Array of found values. If `$index_key` is set, an array of found values with keys
 	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
 	 *               `$input_list` will be preserved in the results.
 	 */
-	protected function wp_list_pluck( $input_list, $field, $index_key = null ) {
+	protected function wp_list_pluck( $input_list, $field, $index_key = null ): array {
 		if ( ! is_array( $input_list ) ) {
 			return [];
 		}
@@ -139,7 +133,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
 	 *               `$list` will be preserved in the results.
 	 */
-	private function pluck( $input_list, $field, $index_key = null ) {
+	private function pluck( array $input_list, $field, $index_key = null ): array {
 		$output   = $input_list;
 		$new_list = [];
 
@@ -193,7 +187,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @return array
 	 */
-	protected function get_test_settings() {
+	protected function get_test_settings(): array {
 		return [
 			'wp_status'                    =>
 				[
@@ -321,7 +315,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @return array|array[]
 	 */
-	protected function get_test_form_fields() {
+	protected function get_test_form_fields(): array {
 		$test_general_form_fields      = $this->get_test_general_form_fields();
 		$test_integrations_form_fields = $this->get_test_integrations_form_fields();
 
@@ -341,7 +335,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function set_defaults( &$field, $id ) {
+	protected function set_defaults( array &$field, string $id ) {
 		$field = array_merge(
 			[
 				'default'  => '',
@@ -360,7 +354,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @return array
 	 */
-	protected function get_test_general_form_fields() {
+	protected function get_test_general_form_fields(): array {
 		$form_fields = [
 			'site_key'                 => [
 				'label'   => 'Site Key',
@@ -635,9 +629,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			],
 		];
 
-		$is_multisite = function_exists( 'is_multisite' ) && is_multisite();
-
-		if ( ! $is_multisite ) {
+		if ( ! ( function_exists( 'is_multisite' ) && is_multisite() ) ) {
 			unset( $form_fields[ SettingsBase::NETWORK_WIDE ] );
 		}
 
@@ -649,7 +641,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @return array
 	 */
-	protected function get_test_integrations_form_fields() {
+	protected function get_test_integrations_form_fields(): array {
 		return [
 			'wp_status'                     =>
 				[
@@ -854,7 +846,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'form' => 'Kadence Form',
+							'form'          => 'Kadence Form',
+							'advanced_form' => 'Kadence Advanced Form',
 						],
 				],
 			'mailchimp_status'              =>
@@ -903,6 +896,13 @@ abstract class HCaptchaTestCase extends TestCase {
 						'login'    => 'Login Form',
 					],
 				],
+			'passster_status'               => [
+				'label'   => 'Passster',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => 'Protection Form',
+				],
+			],
 			'profile_builder_status'        => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
@@ -946,6 +946,15 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'theme_my_login_status'         => [
+				'label'   => 'Theme My Login',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
+				],
+			],
 			'ultimate_member_status'        =>
 				[
 					'label'   => 'Ultimate Member',
@@ -957,6 +966,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'register'  => 'Register Form',
 						],
 				],
+			'users_wp_status'               => [
+				'label'   => 'Users WP',
+				'type'    => 'checkbox',
+				'options' => [
+					'forgot'   => 'Forgot Password Form',
+					'login'    => 'Login Form',
+					'register' => 'Register Form',
+				],
+			],
 			'woocommerce_status'            =>
 				[
 					'label'   => 'WooCommerce',
@@ -979,6 +997,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'create_list' => 'Create List Form',
 						],
 				],
+			'wordfence_status'              => [
+				'label'   => 'Wordfence',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => 'Login Form',
+				],
+			],
 			'wpforms_status'                =>
 				[
 					'label'   => 'WPForms',

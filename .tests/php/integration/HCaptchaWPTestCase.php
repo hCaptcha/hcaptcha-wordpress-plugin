@@ -52,19 +52,20 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Get an object protected property.
 	 *
-	 * @param object $object        Object.
+	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
 	 *
 	 * @return mixed
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function get_protected_property( $object, $property_name ) {
-		$reflection_class = new ReflectionClass( $object );
+	protected function get_protected_property( $subject, string $property_name ) {
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 
-		$property = $reflection_class->getProperty( $property_name );
 		$property->setAccessible( true );
-		$value = $property->getValue( $object );
+
+		$value = $property->getValue( $subject );
+
 		$property->setAccessible( false );
 
 		return $value;
@@ -73,25 +74,24 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Set an object protected property.
 	 *
-	 * @param object $object        Object.
+	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
 	 * @param mixed  $value         Property vale.
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_protected_property( $object, $property_name, $value ) {
-		$reflection_class = new ReflectionClass( $object );
+	protected function set_protected_property( $subject, string $property_name, $value ) {
+		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 
-		$property = $reflection_class->getProperty( $property_name );
 		$property->setAccessible( true );
-		$property->setValue( $object, $value );
+		$property->setValue( $subject, $value );
 		$property->setAccessible( false );
 	}
 
 	/**
 	 * Set an object protected method accessibility.
 	 *
-	 * @param object $object      Object.
+	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
 	 * @param bool   $accessible  Property vale.
 	 *
@@ -99,10 +99,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_method_accessibility( $object, $method_name, $accessible = true ) {
-		$reflection_class = new ReflectionClass( $object );
+	protected function set_method_accessibility( $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
+		$method = ( new ReflectionClass( $subject ) )->getMethod( $method_name );
 
-		$method = $reflection_class->getMethod( $method_name );
 		$method->setAccessible( $accessible );
 
 		return $method;
@@ -118,7 +117,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @return string
 	 */
-	protected function get_hcap_form( $action = '', $name = '', $auto = false, $invisible = false ) {
+	protected function get_hcap_form( string $action = '', string $name = '', bool $auto = false, $invisible = false ): string {
 		$nonce_field = '';
 
 		if ( ! empty( $action ) && ! empty( $name ) ) {
@@ -143,8 +142,10 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @param string    $hcaptcha_response hCaptcha response.
 	 * @param bool|null $result            Desired result.
+	 *
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_request_verify( $hcaptcha_response, $result = true ) {
+	protected function prepare_hcaptcha_request_verify( string $hcaptcha_response, $result = true ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['h-captcha-response'] ) ) {
 			$_POST[ HCAPTCHA_NONCE ]     = wp_create_nonce( HCAPTCHA_ACTION );
@@ -195,8 +196,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @param string    $nonce_field_name  Nonce field name.
 	 * @param string    $nonce_action_name Nonce action name.
 	 * @param bool|null $result            Desired result.
-	 */
-	protected function prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, $result = true ) {
+	 *
+	 * @noinspection PhpMissingParamTypeInspection*/
+	protected function prepare_hcaptcha_verify_POST( string $nonce_field_name, string $nonce_action_name, $result = true ) {
 		if ( null === $result ) {
 			return;
 		}
@@ -212,22 +214,26 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Prepare response from hcaptcha_get_verify_message().
 	 *
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
-	 * @param bool   $result            Desired result.
+	 * @param string    $nonce_field_name  Nonce field name.
+	 * @param string    $nonce_action_name Nonce action name.
+	 * @param bool|null $result            Desired result.
+	 *
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, $result = true ) {
+	protected function prepare_hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name, $result = true ) {
 		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, $result );
 	}
 
 	/**
 	 * Prepare response from hcaptcha_get_verify_message_html().
 	 *
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
-	 * @param bool   $result            Desired result.
+	 * @param string    $nonce_field_name  Nonce field name.
+	 * @param string    $nonce_action_name Nonce action name.
+	 * @param bool|null $result            Desired result.
+	 *
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name, $result = true ) {
+	protected function prepare_hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name, $result = true ) {
 		$this->prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, $result );
 	}
 }

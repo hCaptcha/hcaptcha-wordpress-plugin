@@ -186,13 +186,13 @@ class HCaptcha {
 	/**
 	 * Get source which class serves.
 	 *
-	 * @param string $class Class name.
+	 * @param string $class_name Class name.
 	 *
 	 * @return array
 	 */
-	public static function get_class_source( string $class ): array {
+	public static function get_class_source( string $class_name ): array {
 		foreach ( hcaptcha()->modules as $module ) {
-			if ( in_array( $class, (array) $module[2], true ) ) {
+			if ( in_array( $class_name, (array) $module[2], true ) ) {
 				$source = $module[1];
 
 				// For WP Core (empty $source string), return option value.

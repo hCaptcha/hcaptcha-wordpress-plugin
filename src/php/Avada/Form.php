@@ -93,8 +93,7 @@ class Form {
 
 		$form_data                   = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
 		$hcaptcha_response           = $form_data['h-captcha-response'] ?? '';
-		$hcaptcha_widget_id          = $form_data['hcaptcha-widget-id'] ?? '';
-		$_POST['hcaptcha-widget-id'] = $hcaptcha_widget_id;
+		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );

@@ -79,8 +79,7 @@ abstract class LostPasswordBase {
 			return;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		$error = is_wp_error( $error ) ? $error : new WP_Error();
 

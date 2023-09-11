@@ -32,8 +32,7 @@ abstract class Base {
 	 * @return void
 	 */
 	public function login_head() {
-		$settings      = hcaptcha()->settings();
-		$hcaptcha_size = $settings->get( 'size' );
+		$hcaptcha_size = hcaptcha()->settings()->get( 'size' );
 
 		if ( 'invisible' === $hcaptcha_size ) {
 			return;

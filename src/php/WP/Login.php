@@ -13,7 +13,6 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
 use WordfenceLS\Controller_WordfenceLS;
 use WP_Error;
 use WP_User;
@@ -24,14 +23,9 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
-	 * Nonce action.
+	 * WP login URL.
 	 */
-	const ACTION = 'hcaptcha_login';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'hcaptcha_login_nonce';
+	const WP_LOGIN_URL = '/wp-login.php';
 
 	/**
 	 * Init hooks.
@@ -41,13 +35,6 @@ class Login extends LoginBase {
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-
-		if ( ! class_exists( Controller_WordfenceLS::class ) ) {
-			return;
-		}
-
-		add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_scripts' ], 0 );
-		add_filter( 'wordfence_ls_require_captcha', [ $this, 'wordfence_ls_require_captcha' ] );
 	}
 
 	/**
@@ -56,20 +43,17 @@ class Login extends LoginBase {
 	 * @return void
 	 */
 	public function add_captcha() {
-		if ( ! $this->is_login_limit_exceeded() ) {
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
+			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+
+		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
+
+		if ( false === strpos( $request_uri, self::WP_LOGIN_URL ) ) {
 			return;
 		}
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
-			],
-		];
-
-		HCaptcha::form_display( $args );
+		parent::add_captcha();
 	}
 
 	/**
@@ -83,10 +67,6 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		if ( false === strpos( wp_get_raw_referer(), '/wp-login.php' ) ) {
-			return $user;
-		}
-
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}
@@ -101,26 +81,5 @@ class Login extends LoginBase {
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
-	}
-
-	/**
-	 * Remove Wordfence login scripts.
-	 *
-	 * @return void
-	 */
-	public function remove_wordfence_scripts() {
-		$controller_wordfence_ls = Controller_WordfenceLS::shared();
-
-		remove_action( 'login_enqueue_scripts', [ $controller_wordfence_ls, '_login_enqueue_scripts' ] );
-	}
-
-	/**
-	 * Do not require Wordfence captcha.
-	 *
-	 * @return false
-	 */
-	public function wordfence_ls_require_captcha(): bool {
-
-		return false;
 	}
 }

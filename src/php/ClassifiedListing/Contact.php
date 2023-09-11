@@ -46,14 +46,14 @@ class Contact {
 	/**
 	 * Start output buffer before template part.
 	 *
-	 * @param string $template_name Template name.
-	 * @param string $located       Location.
-	 * @param array  $template_args Arguments.
+	 * @param string     $template_name Template name.
+	 * @param string     $located       Location.
+	 * @param array|null $template_args Arguments.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_template_part( string $template_name, string $located, array $template_args ) {
+	public function before_template_part( string $template_name, string $located, $template_args ) {
 		if ( 'listing/email-to-seller-form' !== $template_name ) {
 			return;
 		}
@@ -64,14 +64,14 @@ class Contact {
 	/**
 	 * Stop output buffer after template part and add captcha.
 	 *
-	 * @param string $template_name Template name.
-	 * @param string $located       Location.
-	 * @param array  $template_args Arguments.
+	 * @param string     $template_name Template name.
+	 * @param string     $located       Location.
+	 * @param array|null $template_args Arguments.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_template_part( string $template_name, string $located, array $template_args ) {
+	public function after_template_part( string $template_name, string $located, $template_args ) {
 		if ( 'listing/email-to-seller-form' !== $template_name ) {
 			return;
 		}
@@ -114,8 +114,7 @@ class Contact {
 			return;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true );
-		$code = $code ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		$error->add( $code, $error_message );
 	}

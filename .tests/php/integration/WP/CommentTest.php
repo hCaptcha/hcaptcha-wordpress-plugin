@@ -40,9 +40,10 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Test constructor and init_hooks().
 	 *
 	 * @param bool $active Active flag.
+	 *
 	 * @dataProvider dp_test_constructor_and_init_hooks
 	 */
-	public function test_constructor_and_init_hooks( $active ) {
+	public function test_constructor_and_init_hooks( bool $active ) {
 		if ( $active ) {
 			update_option( 'hcaptcha_settings', [ 'wp_status' => 'comment' ] );
 		}
@@ -69,7 +70,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_constructor_and_init_hooks() {
+	public function dp_test_constructor_and_init_hooks(): array {
 		return [
 			[ true ],
 			[ false ],

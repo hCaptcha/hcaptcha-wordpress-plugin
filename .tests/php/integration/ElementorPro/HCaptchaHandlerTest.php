@@ -100,7 +100,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_init
 	 */
-	public function test_init( $enabled ) {
+	public function test_init( bool $enabled ) {
 		if ( $enabled ) {
 			update_option(
 				'hcaptcha_settings',
@@ -197,7 +197,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_init() {
+	public function dp_test_init(): array {
 		return [
 			'not enabled' => [ false ],
 			'enabled'     => [ true ],
@@ -282,8 +282,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @param bool        $expected   Expected.
 	 *
 	 * @dataProvider dp_test_is_enabled
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_is_enabled( $site_key, $secret_key, $expected ) {
+	public function test_is_enabled( $site_key, $secret_key, bool $expected ) {
 		$settings = [];
 
 		if ( $site_key ) {
@@ -308,7 +309,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_is_enabled() {
+	public function dp_test_is_enabled(): array {
 		return [
 			[ null, null, false ],
 			[ null, 'some secret key', false ],
@@ -524,8 +525,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		hcaptcha()->init_hooks();
 
-		$custom_id         = '_014ea7c';
-		$item['custom_id'] = $custom_id;
+		$item['custom_id'] = '_014ea7c';
 		$item_index        = 5;
 		$render_attributes = [
 			'hcaptcha' . $item_index => [

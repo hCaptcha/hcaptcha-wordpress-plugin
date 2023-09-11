@@ -40,6 +40,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_constructor
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function test_constructor( $menu_pages_classes ) {
 		$class_name = Settings::class;
@@ -47,8 +48,9 @@ class SettingsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( $class_name )->makePartial()->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'init' )->once();
 
-		$reflected_class = new ReflectionClass( $class_name );
-		$constructor     = $reflected_class->getConstructor();
+		$constructor = ( new ReflectionClass( $class_name ) )->getConstructor();
+
+		self::assertNotNull( $constructor );
 
 		if ( null === $menu_pages_classes ) {
 			$menu_pages_classes = [];
@@ -66,7 +68,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_constructor() {
+	public function dp_test_constructor(): array {
 		return [
 			[ null ],
 			[ [] ],
@@ -89,9 +91,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$subject->$method();
 
-		$tabs = $this->get_protected_property( $subject, 'tabs' );
-
-		foreach ( $tabs as $key => $tab ) {
+		foreach ( $this->get_protected_property( $subject, 'tabs' ) as $key => $tab ) {
 			self::assertInstanceOf( $expected[ $key ], $tab );
 		}
 	}
@@ -109,7 +109,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$general = Mockery::mock( General::class );
 		$general->shouldReceive( 'get' )->andReturnUsing(
-			function( $key, $empty_value ) use ( $general_key, &$general_value ) {
+			function ( $key, $empty_value ) use ( $general_key, &$general_value ) {
 				if ( $key === $general_key ) {
 					return $general_value;
 				}
@@ -124,7 +124,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$integrations = Mockery::mock( Integrations::class );
 		$integrations->shouldReceive( 'get' )->andReturnUsing(
-			function( $key, $empty_value ) use ( $integrations_key, $integrations_value ) {
+			function ( $key, $empty_value ) use ( $integrations_key, $integrations_value ) {
 				if ( $key === $integrations_key ) {
 					return $integrations_value;
 				}
@@ -173,7 +173,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_is
 	 */
-	public function test_is( $key, $value, $compare, $expected ) {
+	public function test_is( string $key, $value, string $compare, bool $expected ) {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( $key )->andReturn( $value );
 
@@ -185,7 +185,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function dp_test_is() {
+	public function dp_test_is(): array {
 		return [
 			[ 'some key', 'some value', 'some value', true ],
 			[ 'some key', 'some value', 'not same value', false ],
@@ -203,7 +203,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_is_on
 	 */
-	public function test_is_on( $key, $value ) {
+	public function test_is_on( string $key, $value ) {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( $key )->andReturn( $value );
 
@@ -216,7 +216,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_is_on() {
+	public function dp_test_is_on(): array {
 		return [
 			[ 'some key', '' ],
 			[ 'some key', 'some value' ],
@@ -234,7 +234,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_get_keys
 	 */
-	public function test_get_keys( $mode, $expected ) {
+	public function test_get_keys( string $mode, array $expected ) {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( 'mode' )->andReturn( $mode );
 
@@ -252,7 +252,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_get_keys() {
+	public function dp_test_get_keys(): array {
 		// String concat is used for the PHP 5.6 compatibility.
 		// phpcs:disable Generic.Strings.UnnecessaryStringConcat.Found
 		return [
@@ -305,7 +305,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_set_field
 	 */
-	public function test_set_field( $has_field, $called ) {
+	public function test_set_field( array $has_field, array $called ) {
 		$general      = Mockery::mock( General::class );
 		$integrations = Mockery::mock( Integrations::class );
 		$tabs         = empty( $has_field ) ? [] : [ $general, $integrations ];
@@ -334,7 +334,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_set_field() {
+	public function dp_test_set_field(): array {
 		return [
 			[
 				[],
