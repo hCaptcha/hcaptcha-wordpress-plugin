@@ -33,6 +33,10 @@ class Login extends LoginBase {
 	 * @return WP_Error|mixed
 	 */
 	public function verify( $validation_error ) {
+		if ( ! doing_filter( 'woocommerce_process_login_errors' ) ) {
+			return $validation_error;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $validation_error;
 		}
