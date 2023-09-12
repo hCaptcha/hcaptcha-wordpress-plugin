@@ -517,6 +517,10 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.3.1 =
+* Improved Beaver Builder login sequence.
+* Fixed login error when WP Login form option was 'on' and WC Login form option was 'off'.
+
 = 3.3.0 =
 * Color scheme in admin UI has been updated.
 * Added compatibility with Passster.
