@@ -728,7 +728,7 @@ class Main {
 			'Beaver Builder Login Form'         => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
-				[ BeaverBuilder\Login::class, WP\Login::class ],
+				[ BeaverBuilder\Login::class ],
 			],
 			'Brizy Form'                        => [
 				[ 'brizy_status', 'form' ],
