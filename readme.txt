@@ -519,6 +519,7 @@ Instructions for popular native integrations are below:
 
 = 3.3.1 =
 * Improved Beaver Builder login sequence.
+* Improved Classified Listing login sequence.
 * Fixed login error when WP Login form option was 'on' and WC Login form option was 'off'.
 
 = 3.3.0 =
