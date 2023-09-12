@@ -61,6 +61,10 @@ class General {
 	public function remove_wp_login_hcaptcha_hooks() {
 		$wp_login = hcaptcha()->get( Login::class );
 
+		if ( ! $wp_login ) {
+			return;
+		}
+
 		remove_action( 'login_form', [ $wp_login, 'add_captcha' ] );
 		remove_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] );
 	}
