@@ -28,7 +28,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_REQUEST['_wp_http_referer'], $_SERVER['REQUEST_URI'] );
+		unset( $_SERVER['REQUEST_URI'], $_POST['log'], $_POST['pwd'] );
 
 		parent::tearDown();
 	}
@@ -76,8 +76,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
-		$_REQUEST['_wp_http_referer'] = '/wp-login.php';
-
 		$subject = new Login();
 
 		self::assertEquals( $user, $subject->verify( $user, '' ) );
@@ -92,7 +90,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
-		$_REQUEST['_wp_http_referer'] = '/wp-login.php';
+		$_POST['log'] = 'some login';
+		$_POST['pwd'] = 'some password';
 
 		$subject = new Login();
 

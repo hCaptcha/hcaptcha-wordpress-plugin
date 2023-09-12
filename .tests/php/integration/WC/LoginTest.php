@@ -91,6 +91,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $expected, $subject->verify( $validation_error ) );
+		self::assertEquals( $expected, apply_filters( 'woocommerce_process_login_errors', $validation_error ) );
 	}
 }
