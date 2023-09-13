@@ -76,7 +76,7 @@ class HCaptcha {
 			/**
 			 * Filters the protection status of a form.
 			 *
-			 * @param string     $value   The protection status of a form.
+			 * @param bool       $value   The protection status of a form.
 			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
 			 * @param int|string $form_id Form id.
 			 */
