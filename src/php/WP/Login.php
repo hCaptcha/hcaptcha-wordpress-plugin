@@ -24,11 +24,6 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
-	 * WP login URL.
-	 */
-	const WP_LOGIN_URL = '/wp-login.php';
-
-	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
@@ -44,13 +39,7 @@ class Login extends LoginBase {
 	 * @return void
 	 */
 	public function add_captcha() {
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
-
-		if ( false === strpos( $request_uri, self::WP_LOGIN_URL ) ) {
+		if ( ! $this->is_wp_login_form() ) {
 			return;
 		}
 
@@ -68,7 +57,13 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		if ( ! $this->is_wp_login_form() ) {
+		if (
+			! (
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing
+				isset( $_POST['log'], $_POST['pwd'] ) &&
+				$this->is_wp_login_form()
+			)
+		) {
 			return $user;
 		}
 
@@ -95,8 +90,6 @@ class Login extends LoginBase {
 	 */
 	private function is_wp_login_form(): bool {
 		return (
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			isset( $_POST['log'], $_POST['pwd'] ) &&
 			did_action( 'login_init' ) &&
 			did_action( 'login_form_login' ) &&
 			HCaptcha::did_filter( 'login_link_separator' )

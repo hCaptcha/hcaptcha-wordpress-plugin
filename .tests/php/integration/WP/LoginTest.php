@@ -29,7 +29,6 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset(
-			$_SERVER['REQUEST_URI'],
 			$_POST['log'],
 			$_POST['pwd'],
 			$GLOBALS['wp_action']['login_init'],
@@ -60,7 +59,11 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
-		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		$expected =
 			$this->get_hcap_form() .

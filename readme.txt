@@ -528,6 +528,9 @@ Instructions for popular native integrations are below:
 * Improved Wordfence login sequence.
 * Improved native WordPress login sequence.
 * Fixed login error when WP Login form option was 'on' and WC Login form option was 'off'.
+* Fixed compatibility with WPS Hide login.
+* Fixed compatibility with All-In-One Security.
+* Fixed compatibility with Rename wp-admin login.
 
 = 3.3.0 =
 * Color scheme in admin UI has been updated.
