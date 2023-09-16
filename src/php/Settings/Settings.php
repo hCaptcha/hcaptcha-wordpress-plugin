@@ -131,6 +131,29 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Set plugin option.
+	 *
+	 * @param string $key   Setting name.
+	 * @param mixed  $value Value for this setting.
+	 *
+	 * @return bool
+	 */
+	public function set( string $key, $value ): bool {
+		foreach ( $this->tabs as $tab ) {
+			/**
+			 * Page / Tab.
+			 *
+			 * @var SettingsBase $tab
+			 */
+			if ( $tab->set( $key, $value ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Check whether option value equals to the compared.
 	 *
 	 * @param string $key     Setting name.

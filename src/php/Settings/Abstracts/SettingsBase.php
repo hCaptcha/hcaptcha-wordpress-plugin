@@ -1141,6 +1141,24 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Set plugin option.
+	 *
+	 * @param string $key   Setting name.
+	 * @param mixed  $value Value for this setting.
+	 *
+	 * @return bool
+	 */
+	public function set( string $key, $value ): bool {
+		if ( ! isset( $this->settings[ $key ] ) ) {
+			return false;
+		}
+
+		$this->settings[ $key ] = $value;
+
+		return true;
+	}
+
+	/**
 	 * Get a field default value. Defaults to '' if not set.
 	 *
 	 * @param array $field Setting field default value.
