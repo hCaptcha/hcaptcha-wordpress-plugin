@@ -28,7 +28,14 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_SERVER['REQUEST_URI'], $_POST['log'], $_POST['pwd'] );
+		unset(
+			$_SERVER['REQUEST_URI'],
+			$_POST['log'],
+			$_POST['pwd'],
+			$GLOBALS['wp_action']['login_init'],
+			$GLOBALS['wp_action']['login_form_login'],
+			$GLOBALS['wp_filters']['login_link_separator']
+		);
 
 		parent::tearDown();
 	}
@@ -92,6 +99,10 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$_POST['log'] = 'some login';
 		$_POST['pwd'] = 'some password';
+
+		$GLOBALS['wp_action']['login_init']            = 1;
+		$GLOBALS['wp_action']['login_form_login']      = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
 
 		$subject = new Login();
 

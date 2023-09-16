@@ -13,6 +13,7 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use WordfenceLS\Controller_WordfenceLS;
 use WP_Error;
 use WP_User;
@@ -67,8 +68,7 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['log'], $_POST['pwd'] ) ) {
+		if ( ! $this->is_wp_login_form() ) {
 			return $user;
 		}
 
@@ -86,5 +86,20 @@ class Login extends LoginBase {
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
+	}
+
+	/**
+	 * Whether we process the native WP login form created in wp-login.php.
+	 *
+	 * @return bool
+	 */
+	private function is_wp_login_form(): bool {
+		return (
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			isset( $_POST['log'], $_POST['pwd'] ) &&
+			did_action( 'login_init' ) &&
+			did_action( 'login_form_login' ) &&
+			HCaptcha::did_filter( 'login_link_separator' )
+		);
 	}
 }
