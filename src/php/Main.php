@@ -801,9 +801,9 @@ class Main {
 				Divi\EmailOptin::class,
 			],
 			'Divi Login Form'                   => [
-				[ 'divi_status', 'login' ],
+				[ 'divi_status', null ],
 				'Divi',
-				[ Divi\Login::class, WP\Login::class ],
+				[ Divi\Login::class ],
 			],
 			'Download Manager'                  => [
 				[ 'download_manager_status', 'button' ],

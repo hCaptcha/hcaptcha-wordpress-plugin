@@ -86,6 +86,15 @@ class LoginTest extends HCaptchaWPTestCase {
 				</div>
 			</div>';
 
+		update_option(
+			'hcaptcha_settings',
+			[
+				'divi_status' => [ 'login' ],
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
 		$subject = new Login();
 
 		self::assertSame( $expected, $subject->add_divi_captcha( $output, $module_slug ) );
