@@ -10,6 +10,7 @@
 
 namespace HCaptcha\BeaverBuilder;
 
+use FLBuilderModule;
 use stdClass;
 
 /**
@@ -41,13 +42,13 @@ class Contact extends Base {
 	/**
 	 * Filters the Beaver Builder Contact Form submit button html and adds hcaptcha.
 	 *
-	 * @param string|mixed   $out    Button html.
-	 * @param FLButtonModule $module Button module.
+	 * @param string|mixed    $out    Button html.
+	 * @param FLBuilderModule $module Button module.
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_beaver_builder_captcha( $out, FLButtonModule $module ) {
+	public function add_beaver_builder_captcha( $out, FLBuilderModule $module ) {
 		// Process contact form only.
 		if ( false === strpos( (string) $out, '<form class="fl-contact-form"' ) ) {
 			return $out;

@@ -728,7 +728,7 @@ class Main {
 			'Beaver Builder Login Form'         => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
-				[ BeaverBuilder\Login::class, WP\Login::class ],
+				[ BeaverBuilder\Login::class ],
 			],
 			'Brizy Form'                        => [
 				[ 'brizy_status', 'form' ],
@@ -801,9 +801,9 @@ class Main {
 				Divi\EmailOptin::class,
 			],
 			'Divi Login Form'                   => [
-				[ 'divi_status', 'login' ],
+				[ 'divi_status', null ],
 				'Divi',
-				[ Divi\Login::class, WP\Login::class ],
+				[ Divi\Login::class ],
 			],
 			'Download Manager'                  => [
 				[ 'download_manager_status', 'button' ],
@@ -868,7 +868,7 @@ class Main {
 			'MemberPress Login'                 => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',
-				[ MemberPress\Login::class, WP\Login::class ],
+				[ MemberPress\Login::class ],
 			],
 			'MemberPress Register'              => [
 				[ 'memberpress_status', 'register' ],
@@ -891,7 +891,7 @@ class Main {
 				PaidMembershipsPro\Checkout::class,
 			],
 			'Paid Memberships Pro Login'        => [
-				[ 'paid_memberships_pro_status', 'login' ],
+				[ 'paid_memberships_pro_status', null ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Login::class,
 			],
@@ -953,7 +953,7 @@ class Main {
 			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
-				[ UM\Login::class, WP\Login::class ],
+				[ UM\Login::class ],
 			],
 			'Ultimate Member LostPassword'      => [
 				[ 'ultimate_member_status', 'lost_pass' ],

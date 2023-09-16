@@ -10,6 +10,7 @@
 
 namespace HCaptcha\BeaverBuilder;
 
+use FLBuilderModule;
 use WP_Error;
 
 /**
@@ -26,18 +27,18 @@ class Login extends Base {
 		parent::init_hooks();
 
 		add_filter( 'fl_builder_render_module_content', [ $this, 'add_beaver_builder_captcha' ], 10, 2 );
-		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 20, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
 	 * Filters the Beaver Builder Login Form submit button html and adds hcaptcha.
 	 *
-	 * @param string|mixed   $out    Button html.
-	 * @param FLButtonModule $module Button module.
+	 * @param string|mixed    $out    Button html.
+	 * @param FLBuilderModule $module Button module.
 	 *
 	 * @return string|mixed
 	 */
-	public function add_beaver_builder_captcha( $out, FLButtonModule $module ) {
+	public function add_beaver_builder_captcha( $out, FLBuilderModule $module ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $out;
 		}
@@ -66,6 +67,10 @@ class Login extends Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
+		if ( ! doing_action( 'wp_ajax_nopriv_fl_builder_login_form_submit' ) ) {
+			return $user;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

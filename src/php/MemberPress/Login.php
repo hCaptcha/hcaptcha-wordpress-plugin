@@ -8,6 +8,7 @@
 namespace HCaptcha\MemberPress;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
 
@@ -48,6 +49,10 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
+		if ( ! HCaptcha::did_filter( 'mepr-validate-login' ) ) {
+			return $user;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

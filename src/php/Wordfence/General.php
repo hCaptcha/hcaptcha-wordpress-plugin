@@ -26,6 +26,9 @@ class General {
 	 */
 	protected function init_hooks() {
 		if ( hcaptcha()->settings()->is( 'wordfence_status', 'login' ) ) {
+			// Disable recaptcha compatibility, otherwise Wordfence login script fails and cannot show 2FA.
+			hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
+
 			add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_recaptcha_script' ], 20 );
 			add_filter( 'wordfence_ls_require_captcha', [ $this, 'block_wordfence_recaptcha' ] );
 		} else {
@@ -60,6 +63,10 @@ class General {
 	 */
 	public function remove_wp_login_hcaptcha_hooks() {
 		$wp_login = hcaptcha()->get( Login::class );
+
+		if ( ! $wp_login ) {
+			return;
+		}
 
 		remove_action( 'login_form', [ $wp_login, 'add_captcha' ] );
 		remove_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] );

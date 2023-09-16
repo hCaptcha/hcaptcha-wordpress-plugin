@@ -76,7 +76,7 @@ class HCaptcha {
 			/**
 			 * Filters the protection status of a form.
 			 *
-			 * @param string     $value   The protection status of a form.
+			 * @param bool       $value   The protection status of a form.
 			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
 			 * @param int|string $form_id Form id.
 			 */
@@ -224,5 +224,21 @@ class HCaptcha {
 		);
 
 		return $notice;
+	}
+
+	/**
+	 * Retrieves the number of times a filter has been applied during the current request.
+	 *
+	 * Introduced in WP 6.1.0.
+	 *
+	 * @global int[] $wp_filters Stores the number of times each filter was triggered.
+	 *
+	 * @param string $hook_name The name of the filter hook.
+	 * @return int The number of times the filter hook has been applied.
+	 */
+	public static function did_filter( string $hook_name ): int {
+		global $wp_filters;
+
+		return $wp_filters[ $hook_name ] ?? 0;
 	}
 }

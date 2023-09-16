@@ -68,6 +68,10 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
+		if ( ! did_action( 'wppb_process_login_start' ) ) {
+			return $user;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

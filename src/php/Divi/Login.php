@@ -29,7 +29,13 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_divi_captcha' ], 10, 2 );
-		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+
+		// Check login status, because class is always loading when Divi theme is active.
+		if ( hcaptcha()->settings()->is( 'divi_status', 'login' ) ) {
+			add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		} else {
+			add_filter( 'hcap_protect_form', [ $this, 'protect_form' ], 10, 3 );
+		}
 	}
 
 	/**
@@ -80,6 +86,11 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['et_builder_submit_button'] ) ) {
+			return $user;
+		}
+
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}

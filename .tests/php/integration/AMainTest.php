@@ -907,6 +907,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		}
 
 		$component = (array) $module[2];
+		$component = isset( $module[3] ) ? (array) $module[3] : $component;
 
 		$expected_loaded_classes = [];
 		self::assertSame(
@@ -985,6 +986,8 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @return array
 	 */
 	public function dp_test_load_modules(): array {
+		// Return modules similar to defined in Main class.
+		// If $module[3] is set, it contains expected value.
 		$modules = [
 			'Comment Form'                      => [
 				[ 'wp_status', 'comment' ],
@@ -1095,6 +1098,7 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'divi_status', 'comment' ],
 				'Divi',
 				[ \HCaptcha\Divi\Comment::class, Comment::class ],
+				[ \HCaptcha\Divi\Comment::class, \HCaptcha\Divi\Login::class ],
 			],
 			'Divi Contact Form'                 => [
 				[ 'divi_status', 'contact' ],
@@ -1179,7 +1183,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Paid Memberships Pro Checkout'     => [
 				[ 'paid_memberships_pro_status', 'checkout' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
-				\HCaptcha\PaidMembershipsPro\Checkout::class,
+				[ \HCaptcha\PaidMembershipsPro\Checkout::class, \HCaptcha\PaidMembershipsPro\Login::class ],
 			],
 			'Paid Memberships Pro Login'        => [
 				[ 'paid_memberships_pro_status', 'login' ],

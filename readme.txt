@@ -517,6 +517,21 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.3.1 =
+* Improved Beaver Builder login sequence.
+* Improved Classified Listing login sequence.
+* Improved Divi login sequence.
+* Improved MemberPress login sequence.
+* Improved Paid Membership Pro login sequence.
+* Improved Profile Builder login sequence.
+* Improved Ultimate Member login sequence.
+* Improved Wordfence login sequence.
+* Improved native WordPress login sequence.
+* Fixed login error when WP Login form option was 'on' and WC Login form option was 'off'.
+* Fixed compatibility with WPS Hide Login.
+* Fixed compatibility with All-In-One Security.
+* Fixed compatibility with Rename wp-admin Login.
+
 = 3.3.0 =
 * Color scheme in admin UI has been updated.
 * Added compatibility with Passster.

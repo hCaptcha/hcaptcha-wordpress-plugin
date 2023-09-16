@@ -127,13 +127,6 @@ class CF7 {
 			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
 			$id['form_id'] = $id['form_id'] ?? 0;
 
-			/**
-			 * Filters the protection status of a form.
-			 *
-			 * @param string     $value   The protection status of a form.
-			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-			 * @param int|string $form_id Form id.
-			 */
 			if (
 				! $args['protect'] ||
 				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )

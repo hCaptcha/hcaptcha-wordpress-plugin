@@ -10,6 +10,7 @@
 
 namespace HCaptcha\BeaverBuilder;
 
+use FLBuilderModule;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
 
@@ -34,13 +35,13 @@ abstract class Base extends LoginBase {
 	/**
 	 * Add hcaptcha.
 	 *
-	 * @param string         $out    Button html.
-	 * @param FLButtonModule $module Button module.
+	 * @param string          $out    Button html.
+	 * @param FLBuilderModule $module Button module.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function add_hcap_form( string $out, FLButtonModule $module ): string {
+	protected function add_hcap_form( string $out, $module ): string {
 		$form_id = false !== strpos( static::ACTION, 'login' ) ? 'login' : 'contact';
 		$args    = [
 			'action' => static::ACTION,

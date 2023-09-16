@@ -28,7 +28,13 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_REQUEST['_wp_http_referer'], $_SERVER['REQUEST_URI'] );
+		unset(
+			$_POST['log'],
+			$_POST['pwd'],
+			$GLOBALS['wp_action']['login_init'],
+			$GLOBALS['wp_action']['login_form_login'],
+			$GLOBALS['wp_filters']['login_link_separator']
+		);
 
 		parent::tearDown();
 	}
@@ -53,7 +59,11 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
-		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		$expected =
 			$this->get_hcap_form() .
@@ -76,8 +86,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
-		$_REQUEST['_wp_http_referer'] = '/wp-login.php';
-
 		$subject = new Login();
 
 		self::assertEquals( $user, $subject->verify( $user, '' ) );
@@ -92,7 +100,14 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
-		$_REQUEST['_wp_http_referer'] = '/wp-login.php';
+		$_POST['log'] = 'some login';
+		$_POST['pwd'] = 'some password';
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		$subject = new Login();
 
