@@ -1183,7 +1183,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			'Paid Memberships Pro Checkout'     => [
 				[ 'paid_memberships_pro_status', 'checkout' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
-				\HCaptcha\PaidMembershipsPro\Checkout::class,
+				[ \HCaptcha\PaidMembershipsPro\Checkout::class, \HCaptcha\PaidMembershipsPro\Login::class ],
 			],
 			'Paid Memberships Pro Login'        => [
 				[ 'paid_memberships_pro_status', 'login' ],

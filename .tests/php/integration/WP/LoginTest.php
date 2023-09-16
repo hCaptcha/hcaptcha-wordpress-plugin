@@ -100,9 +100,11 @@ class LoginTest extends HCaptchaWPTestCase {
 		$_POST['log'] = 'some login';
 		$_POST['pwd'] = 'some password';
 
-		$GLOBALS['wp_action']['login_init']            = 1;
-		$GLOBALS['wp_action']['login_form_login']      = 1;
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
 		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		$subject = new Login();
 

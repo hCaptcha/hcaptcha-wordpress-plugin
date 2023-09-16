@@ -145,4 +145,21 @@ abstract class LoginBase {
 
 		return $count >= $login_limit;
 	}
+
+	/**
+	 * Protect form filter.
+	 *
+	 * @param bool|mixed $value   The protection status of a form.
+	 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return bool
+	 */
+	public function protect_form( $value, $source, $form_id ): bool {
+		if ( 'login' === $form_id && HCaptcha::get_class_source( static::class ) === $source ) {
+			return false;
+		}
+
+		return (bool) $value;
+	}
 }

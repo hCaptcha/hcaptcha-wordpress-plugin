@@ -891,7 +891,7 @@ class Main {
 				PaidMembershipsPro\Checkout::class,
 			],
 			'Paid Memberships Pro Login'        => [
-				[ 'paid_memberships_pro_status', 'login' ],
+				[ 'paid_memberships_pro_status', null ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				PaidMembershipsPro\Login::class,
 			],
