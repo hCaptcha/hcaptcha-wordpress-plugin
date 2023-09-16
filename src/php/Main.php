@@ -953,7 +953,7 @@ class Main {
 			'Ultimate Member Login'             => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
-				[ UM\Login::class, WP\Login::class ],
+				[ UM\Login::class ],
 			],
 			'Ultimate Member LostPassword'      => [
 				[ 'ultimate_member_status', 'lost_pass' ],
