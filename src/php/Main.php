@@ -868,7 +868,7 @@ class Main {
 			'MemberPress Login'                 => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',
-				[ MemberPress\Login::class, WP\Login::class ],
+				[ MemberPress\Login::class ],
 			],
 			'MemberPress Register'              => [
 				[ 'memberpress_status', 'register' ],
