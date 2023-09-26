@@ -125,9 +125,11 @@ class General extends PluginSettingsBase {
 	public function init_form_fields() {
 		$this->form_fields = [
 			'site_key'             => [
-				'label'   => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'text',
-				'section' => self::SECTION_KEYS,
+				'label'        => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
+				'type'         => 'text',
+				'autocomplete' => 'nickname',
+				'lp_ignore'    => 'true',
+				'section'      => self::SECTION_KEYS,
 			],
 			'secret_key'           => [
 				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
@@ -396,8 +398,8 @@ class General extends PluginSettingsBase {
 				'label'   => __( 'Delay showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_OTHER,
-				'default' => - 100,
-				'min'     => - 100,
+				'default' => -100,
+				'min'     => -100,
 				'step'    => 100,
 				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
 			],

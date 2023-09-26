@@ -177,6 +177,7 @@ abstract class SettingsBase {
 		$this->fields = [
 			'text'     => [ $this, 'print_text_field' ],
 			'password' => [ $this, 'print_text_field' ],
+			'hidden'   => [ $this, 'print_text_field' ],
 			'number'   => [ $this, 'print_number_field' ],
 			'textarea' => [ $this, 'print_textarea_field' ],
 			'checkbox' => [ $this, 'print_checkbox_field' ],
@@ -695,12 +696,15 @@ abstract class SettingsBase {
 	protected function print_text_field( array $arguments ) {
 		$value        = $this->get( $arguments['field_id'] );
 		$autocomplete = '';
-		$lp_ignore    = 'false';
+		$lp_ignore    = '';
 
 		if ( 'password' === $arguments['type'] ) {
 			$autocomplete = 'new-password';
 			$lp_ignore    = 'true';
 		}
+
+		$autocomplete = $arguments['autocomplete'] ?? $autocomplete;
+		$lp_ignore    = $arguments['lp_ignore'] ?? $lp_ignore;
 
 		printf(
 			'<input %1$s name="%2$s[%3$s]" id="%3$s" type="%4$s"' .

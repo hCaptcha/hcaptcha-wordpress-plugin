@@ -517,6 +517,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.3.3 =
+* Fixed autocomplete of the Site Key field by LasPass. 
+
 = 3.3.2 =
 * Improved Beaver Builder login sequence.
 * Improved Classified Listing login sequence.
