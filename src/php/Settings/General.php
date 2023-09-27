@@ -486,6 +486,10 @@ class General extends PluginSettingsBase {
 			true
 		);
 
+		$check_config_notice =
+			esc_html__( 'Credentials changed.', 'hcaptcha-for-forms-and-more' ) . "\n" .
+			esc_html__( 'Please complete hCaptcha and check the site config.', 'hcaptcha-for-forms-and-more' );
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
@@ -501,6 +505,7 @@ class General extends PluginSettingsBase {
 				'modeTestPublisherSiteKey'             => self::MODE_TEST_PUBLISHER_SITE_KEY,
 				'modeTestEnterpriseSafeEndUserSiteKey' => self::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 				'modeTestEnterpriseBotDetectedSiteKey' => self::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
+				'checkConfigNotice'                    => $check_config_notice,
 			]
 		);
 
@@ -539,9 +544,12 @@ class General extends PluginSettingsBase {
 		if ( 'invisible' === hcaptcha()->settings()->get( 'size' ) ) {
 			$display = 'block';
 		}
+
 		?>
 		<div id="hcaptcha-invisible-notice" style="display: <?php echo esc_attr( $display ); ?>">
-			<?php esc_html_e( 'hCaptcha is in invisible mode.', 'hcaptcha-for-forms-and-more' ); ?>
+			<p>
+				<?php esc_html_e( 'hCaptcha is in invisible mode.', 'hcaptcha-for-forms-and-more' ); ?>
+			</p>
 		</div>
 		<?php
 	}
@@ -601,22 +609,20 @@ class General extends PluginSettingsBase {
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
-			wp_send_json_error( esc_html__( 'Error communicating with hCaptcha server', 'hcaptcha-for-forms-and-more' ) );
+			$this->send_check_config_error( __( 'Cannot communicate with hCaptcha server.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 		$body = json_decode( $raw_body, true );
 
 		if ( ! $body ) {
-			wp_send_json_error( $raw_body );
+			$this->send_check_config_error( $raw_body );
 		}
 
 		if ( empty( $body['pass'] ) ) {
 			$error = $body['error'] ? (string) $body['error'] : '';
 			$error = $error ? ': ' . $error : '';
 
-			wp_send_json_error(
-				esc_html__( 'Site configuration error', 'hcaptcha-for-forms-and-more' ) . $error
-			);
+			$this->send_check_config_error( $error );
 		}
 
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
@@ -625,12 +631,25 @@ class General extends PluginSettingsBase {
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
-		if ( $result ) {
-			wp_send_json_error( $result );
+		if ( null !== $result ) {
+			$this->send_check_config_error( $result );
 		}
 
 		wp_send_json_success(
 			esc_html__( 'Site config is valid.', 'hcaptcha-for-forms-and-more' )
+		);
+	}
+
+	/**
+	 * Send check config error.
+	 *
+	 * @param string $error Error message.
+	 *
+	 * @return void
+	 */
+	private function send_check_config_error( $error ) {
+		wp_send_json_error(
+			esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' ) . $error
 		);
 	}
 }

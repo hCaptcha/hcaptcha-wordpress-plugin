@@ -518,7 +518,8 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.3.3 =
-* Fixed autocomplete of the Site Key field by LasPass. 
+* Added requirement to check the site config after changes in credentials.
+* Fixed autocomplete of the Site Key field by LasPass.
 
 = 3.3.2 =
 * Improved Beaver Builder login sequence.
