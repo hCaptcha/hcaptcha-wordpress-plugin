@@ -137,6 +137,12 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_wordpress_plugin = hcaptcha();
 
+		update_option( 'hcaptcha_settings', [ 'site_key' => 'some site key' ] );
+		update_option( 'hcaptcha_settings', [ 'secret_key' => 'some secret key' ] );
+
+		// Init plugin to update settings.
+		do_action( 'plugins_loaded' );
+
 		add_filter(
 			'hcap_whitelist_ip',
 			static function () use ( $whitelisted ) {
@@ -190,6 +196,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $hcaptcha_wordpress_plugin, 'auto_verify' ) );
 
 		unset( $current_user );
+
 		if ( $logged_in ) {
 			wp_set_current_user( 1 );
 		}
@@ -887,6 +894,9 @@ class AMainTest extends HCaptchaWPTestCase {
 			'hcaptcha_settings',
 			[ $option_name => [ $option_value ] ]
 		);
+
+		update_option( 'hcaptcha_settings', [ 'site_key' => 'some site key' ] );
+		update_option( 'hcaptcha_settings', [ 'secret_key' => 'some secret key' ] );
 
 		$subject = new Main();
 		$subject->init_hooks();

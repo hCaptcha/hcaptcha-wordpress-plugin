@@ -214,20 +214,24 @@ class Main {
 		// Make sure we can use is_user_logged_in().
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
+		$settings = $this->settings();
+
 		/**
 		 * Do not load hCaptcha functionality:
 		 * - if user is logged in and the option 'off_when_logged_in' is set;
-		 * - for whitelisted IPs.
+		 * - for whitelisted IPs;
+		 * - when site key and secret key are empty (after first plugin activation).
 		 */
 		$deactivate = (
-			( is_user_logged_in() && $this->settings()->is_on( 'off_when_logged_in' ) ) ||
+			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
 			/**
 			 * Filters the user IP to check whether it is whitelisted.
 			 *
 			 * @param bool         $whitelisted IP is whitelisted.
 			 * @param string|false $ip          IP string or false for local addresses.
 			 */
-			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
+			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() ) ||
+			( '' === $settings->get_site_key() && '' === $settings->get_secret_key() )
 		);
 
 		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
