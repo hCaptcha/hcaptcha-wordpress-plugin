@@ -521,6 +521,7 @@ Instructions for popular native integrations are below:
 * Added requirement to check the site config after changes in credentials.
 * Fixed activation of hCaptcha with empty keys.
 * Fixed autocomplete of the Site Key field by LasPass.
+* Changed Brevo (formely Sendinblue) logo.
 
 = 3.3.2 =
 * Improved Beaver Builder login sequence.
