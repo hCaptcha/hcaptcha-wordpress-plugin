@@ -867,7 +867,12 @@ class Main {
 			'LearnDash Login Form'              => [
 				[ 'learn_dash_status', null ],
 				'sfwd-lms/sfwd_lms.php',
-				[ LearnDash\Login::class ],
+				LearnDash\Login::class,
+			],
+			'LearnDash Registration Form'       => [
+				[ 'learn_dash_status', 'register' ],
+				'sfwd-lms/sfwd_lms.php',
+				LearnDash\Register::class,
 			],
 			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],

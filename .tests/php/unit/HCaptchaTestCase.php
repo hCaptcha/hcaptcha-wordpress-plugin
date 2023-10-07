@@ -858,7 +858,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'login' => 'Login',
+							'login'    => 'Login',
+							'register' => 'Register',
 						],
 				],
 			'mailchimp_status'              =>

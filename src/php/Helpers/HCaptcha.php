@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Helpers;
 
+use WP_Error;
+
 /**
  * Class HCaptcha.
  */
@@ -240,5 +242,25 @@ class HCaptcha {
 		global $wp_filters;
 
 		return $wp_filters[ $hook_name ] ?? 0;
+	}
+
+	/**
+	 * Add hCaptcha error message to WP_Error object.
+	 *
+	 * @param WP_Error|mixed $errors        A WP_Error object containing any errors.
+	 * @param string         $error_message Error message.
+	 *
+	 * @return WP_Error
+	 */
+	public static function add_error_message( $errors, string $error_message ): WP_Error {
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
+
+		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();
+
+		if ( ! isset( $errors->errors[ $code ] ) || ! in_array( $error_message, $errors->errors[ $code ], true ) ) {
+			$errors->add( $code, $error_message );
+		}
+
+		return $errors;
 	}
 }
