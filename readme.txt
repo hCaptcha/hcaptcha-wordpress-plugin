@@ -527,9 +527,10 @@ Instructions for popular native integrations are below:
 = 3.3.3 =
 * Added compatibility with LearnDash.
 * Added requirement to check the site config after changes in credentials.
+* Changed Brevo (formely Sendinblue) logo.
 * Fixed activation of hCaptcha with empty keys.
 * Fixed autocomplete of the Site Key field by LasPass.
-* Changed Brevo (formely Sendinblue) logo.
+* Fixed form detection for Auto-Verify.
 
 = 3.3.2 =
 * Improved Beaver Builder login sequence.

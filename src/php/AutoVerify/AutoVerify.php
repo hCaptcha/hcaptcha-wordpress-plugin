@@ -50,10 +50,11 @@ class AutoVerify {
 			preg_match_all(
 				'#<form [\S\s]+?class="h-captcha"[\S\s]+?</form>#',
 				$content,
-				$matches
+				$matches,
+				PREG_PATTERN_ORDER
 			)
 		) {
-			$forms = array_column( $matches, 0 );
+			$forms = $matches[0];
 
 			$this->register_forms( $forms );
 		}
@@ -263,10 +264,6 @@ class AutoVerify {
 
 			if ( $auto && ! $registered ) {
 				$registered_forms[ $action ][] = $inputs;
-			}
-
-			if ( $auto && $registered ) {
-				$registered_forms[ $action ][ $key ] = $inputs;
 			}
 
 			if ( ! $auto && $registered ) {
