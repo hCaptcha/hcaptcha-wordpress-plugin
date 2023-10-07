@@ -869,6 +869,11 @@ class Main {
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Login::class,
 			],
+			'Learn Dash Lost Password Form'     => [
+				[ 'learn_dash_status', 'lost_pass' ],
+				'sfwd-lms/sfwd_lms.php',
+				LearnDash\LostPassword::class,
+			],
 			'LearnDash Registration Form'       => [
 				[ 'learn_dash_status', 'register' ],
 				'sfwd-lms/sfwd_lms.php',
