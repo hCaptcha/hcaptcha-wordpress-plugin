@@ -225,7 +225,7 @@ $form_id: form_id
 
 LearnDash
 $source: 'sfwd-lms/sfwd_lms.php'
-$form_id: 'login' or 'register'
+$form_id: 'login', 'lost_password' or 'register'
 
 MemberPress
 $source: 'memberpress/memberpress.php'
@@ -464,6 +464,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Kadence Form
 * Kadence Advanced Form
 * LearnDash Login Form.
+* LearnDash Lost Password Form.
 * LearnDash Register Form.
 * Mailchimp for WP Form
 * MemberPress Login Form
