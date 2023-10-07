@@ -248,11 +248,16 @@ class HCaptcha {
 	 * Add hCaptcha error message to WP_Error object.
 	 *
 	 * @param WP_Error|mixed $errors        A WP_Error object containing any errors.
-	 * @param string         $error_message Error message.
+	 * @param string|null    $error_message Error message.
 	 *
 	 * @return WP_Error
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public static function add_error_message( $errors, string $error_message ): WP_Error {
+	public static function add_error_message( $errors, $error_message ): WP_Error {
+		if ( null === $error_message ) {
+			return $errors;
+		}
+
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();

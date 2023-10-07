@@ -83,7 +83,7 @@ class Register {
 			self::ACTION
 		);
 
-		return null === $error_message ? $errors : HCaptcha::add_error_message( $errors, $error_message );
+		return HCaptcha::add_error_message( $errors, $error_message );
 	}
 
 	/**
