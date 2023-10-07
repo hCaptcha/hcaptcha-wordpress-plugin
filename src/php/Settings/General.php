@@ -137,7 +137,7 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_KEYS,
 			],
 			'sample_hcaptcha'      => [
-				'label'   => __( 'Sample hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Active hCaptcha to Check Site Config', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'hcaptcha',
 				'section' => self::SECTION_KEYS,
 			],
