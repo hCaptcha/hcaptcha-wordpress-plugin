@@ -155,7 +155,7 @@ abstract class LoginBase {
 	 *
 	 * @return bool
 	 */
-	public function protect_form( $value, $source, $form_id ): bool {
+	public function protect_form( $value, array $source, $form_id ): bool {
 		if ( 'login' === $form_id && HCaptcha::get_class_source( static::class ) === $source ) {
 			return false;
 		}

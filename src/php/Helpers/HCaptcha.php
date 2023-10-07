@@ -64,7 +64,7 @@ class HCaptcha {
 				 *   'form_id' => 23
 				 * ]
 				 */
-				'protect' => true,
+				'protect' => true, // Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
 			]
 		);
 

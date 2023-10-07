@@ -223,6 +223,10 @@ Kadence Advanced Form
 $source: 'kadence-blocks/kadence-blocks.php'
 $form_id: form_id
 
+LearnDash Login
+$source: 'sfwd-lms/sfwd_lms.php'
+$form_id: 'login'
+
 MemberPress
 $source: 'memberpress/memberpress.php'
 $form_id: 'login' or 'register'
@@ -459,6 +463,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Jetpack Forms
 * Kadence Form
 * Kadence Advanced Form
+* LearnDash Login Form.
 * Mailchimp for WP Form
 * MemberPress Login Form
 * MemberPress Register Form
@@ -518,6 +523,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.3.3 =
+* Added compatibility with LearnDash Login form.
 * Added requirement to check the site config after changes in credentials.
 * Fixed activation of hCaptcha with empty keys.
 * Fixed autocomplete of the Site Key field by LasPass.

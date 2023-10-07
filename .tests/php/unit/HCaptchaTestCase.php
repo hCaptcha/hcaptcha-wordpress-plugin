@@ -852,6 +852,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'advanced_form' => 'Kadence Advanced Form',
 						],
 				],
+			'learn_dash_status'             =>
+				[
+					'label'   => 'LearnDash LMS',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login' => 'Login',
+						],
+				],
 			'mailchimp_status'              =>
 				[
 					'label'   => 'Mailchimp for WP',

@@ -864,6 +864,11 @@ class Main {
 				'kadence-blocks/kadence-blocks.php',
 				Kadence\AdvancedForm::class,
 			],
+			'LearnDash Login Form'              => [
+				[ 'learn_dash_status', null ],
+				'sfwd-lms/sfwd_lms.php',
+				[ LearnDash\Login::class ],
+			],
 			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
