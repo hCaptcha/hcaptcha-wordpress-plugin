@@ -38,14 +38,15 @@ class Login extends LoginBase {
 	 * @param string|mixed $content Content to display. Default empty.
 	 * @param array        $args    Array of login form arguments.
 	 *
-	 * @return string|mixed
+	 * @return string
 	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_learn_dash_captcha( $content, $args ) {
+	public function add_learn_dash_captcha( $content, $args ): string {
 		ob_start();
 		$this->add_captcha();
 
-		return ob_get_clean();
+		return (string) ob_get_clean();
 	}
 
 	/**
