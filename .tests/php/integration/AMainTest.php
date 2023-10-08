@@ -431,7 +431,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$subject = new Main();
 
-		assertSame( $expected, $subject->csp_headers( $headers ) );
+		self::assertSame( $expected, $subject->csp_headers( $headers ) );
 	}
 
 	/**
@@ -949,7 +949,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		foreach ( $loaded_classes as $class_name => $loaded_class ) {
 			self::assertInstanceOf( $class_name, $loaded_class );
-			assertSame( $loaded_class, $subject->get( $class_name ) );
+			self::assertSame( $loaded_class, $subject->get( $class_name ) );
 		}
 	}
 
