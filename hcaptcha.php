@@ -85,7 +85,9 @@ function hcaptcha(): Main {
 	static $hcaptcha;
 
 	if ( ! $hcaptcha ) {
+		// @codeCoverageIgnoreStart
 		$hcaptcha = new Main();
+		// @codeCoverageIgnoreEnd
 	}
 
 	return $hcaptcha;
