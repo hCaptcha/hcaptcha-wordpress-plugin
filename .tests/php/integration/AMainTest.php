@@ -251,6 +251,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_init_and_init_hooks_on_elementor_pro_edit_page
 	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
 		string $elementor_pro_status,
@@ -819,6 +820,42 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test whitelist_ip().
+	 *
+	 * @param mixed        $whitelisted_ips Settings.
+	 * @param string|false $client_ip       Client IP.
+	 * @param bool         $expected        Expected result.
+	 *
+	 * @dataProvider dp_test_whitelist_ip
+	 * @return void
+	 */
+	public function test_whitelist_ip( $whitelisted_ips, $client_ip, bool $expected ) {
+		update_option( 'hcaptcha_settings', [ 'whitelisted_ips' => $whitelisted_ips ] );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->whitelist_ip( false, $client_ip ) );
+	}
+
+	/**
+	 * Data provider for test_whitelist_ip().
+	 *
+	 * @return array
+	 */
+	public function dp_test_whitelist_ip(): array {
+		return [
+			'no settings, local ip'       => [ '', false, false ],
+			'some ips, local ip'          => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", false, false ],
+			'some ips, not matching ip'   => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.2', false ],
+			'some ips, matching ip'       => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.1', true ],
+			'some ips, matching wrong ip' => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '4444444.777.2', false ],
+			'with local, local ip'        => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n127.0.0.1\r\n", false, true ],
+		];
+	}
+
+	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown() {
@@ -858,10 +895,27 @@ class AMainTest extends HCaptchaWPTestCase {
 			[ $option_name => [ $option_value ] ]
 		);
 
-		update_option( 'hcaptcha_settings', [ 'site_key' => 'some site key' ] );
-		update_option( 'hcaptcha_settings', [ 'secret_key' => 'some secret key' ] );
+		$activate = false;
+
+		add_filter(
+			'hcap_activate',
+			static function () use ( &$activate ) {
+				return $activate;
+			}
+		);
 
 		$subject = new Main();
+		$subject->init_hooks();
+
+		// Test with hCaptcha plugin not active.
+		$subject->load_modules();
+		$expected_loaded_classes = [];
+		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
+
+		self::assertSame( $expected_loaded_classes, $loaded_classes );
+
+		// Activate hCaptcha.
+		$activate = true;
 		$subject->init_hooks();
 
 		$plugin_path = '';
@@ -882,8 +936,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		$component = (array) $module[2];
 		$component = isset( $module[3] ) ? (array) $module[3] : $component;
 
-		$expected_loaded_classes = [];
-		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
+		$loaded_classes = $this->get_protected_property( $subject, 'loaded_classes' );
 
 		self::assertSame( $expected_loaded_classes, $loaded_classes );
 
@@ -908,7 +961,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$this->check_component_loaded( $component );
 
-		// Test with plugin not active.
+		// Test with supported plugin not active.
 		$subject->load_modules();
 
 		if ( ! $module[1] ) {
@@ -937,7 +990,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			);
 		}
 
-		// Test with plugin active.
+		// Test with supported plugin active.
 		$subject->load_modules();
 
 		self::$included_components = array_unique( array_merge( self::$included_components, $component ) );

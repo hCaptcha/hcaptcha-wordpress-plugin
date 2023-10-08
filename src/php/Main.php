@@ -1040,14 +1040,9 @@ class Main {
 			}
 
 			foreach ( (array) $module[2] as $component ) {
-				if ( false === strpos( $component, '.php' ) ) {
-					if ( ! class_exists( $component, false ) ) {
-						$this->loaded_classes[ $component ] = new $component();
-					}
-					continue;
+				if ( ! class_exists( $component, false ) ) {
+					$this->loaded_classes[ $component ] = new $component();
 				}
-
-				require_once HCAPTCHA_INC . '/' . $component;
 			}
 		}
 	}
