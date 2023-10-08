@@ -57,10 +57,15 @@ class LostPassword {
 		$search  = '<input type="submit"';
 		$replace = HCaptcha::form( $args ) . $search;
 
-		return (string) str_replace(
+		$output = (string) str_replace(
 			$search,
 			$replace,
 			(string) $output
 		);
+
+		/** This action is documented in src/php/Sendinblue/Sendinblue.php */
+		do_action( 'hcap_auto_verify_register', $output );
+
+		return $output;
 	}
 }
