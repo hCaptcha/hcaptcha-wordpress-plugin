@@ -818,7 +818,7 @@ class Main {
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Login::class,
 			],
-			'Learn Dash Lost Password Form'     => [
+			'LearnDash Lost Password Form'      => [
 				[ 'learn_dash_status', 'lost_pass' ],
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\LostPassword::class,

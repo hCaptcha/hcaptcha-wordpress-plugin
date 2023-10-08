@@ -28,12 +28,14 @@ use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
+use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
 use HCaptcha\WP\LostPassword;
+use HCaptcha\WP\PasswordProtected;
 use HCaptcha\WP\Register;
 use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
@@ -920,17 +922,20 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$plugin_path = '';
 		$template    = '';
+		$module1_arr = (array) $module[1];
 
 		if (
 			$module[1] &&
-			false !== strpos( $module[1], '.php' ) ) {
-			$plugin_path = $module[1];
+			false !== strpos( implode( ' ', $module1_arr ), '.php' )
+		) {
+			$plugin_path = $module1_arr[0];
 		}
 
 		if (
 			$module[1] &&
-			false === strpos( $module[1], '.php' ) ) {
-			$template = $module[1];
+			false === strpos( implode( ' ', $module1_arr ), '.php' )
+		) {
+			$template = $module1_arr[0];
 		}
 
 		$component = (array) $module[2];
@@ -967,6 +972,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		if ( ! $module[1] ) {
 			self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
 		}
+
 		$this->check_component_loaded( $component );
 
 		if ( $plugin_path ) {
@@ -1010,6 +1016,7 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * Data provider for test_load_modules().
 	 *
 	 * @return array
+	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function dp_test_load_modules(): array {
 		// Return modules similar to defined in Main class.
@@ -1030,10 +1037,20 @@ class AMainTest extends HCaptchaWPTestCase {
 				'',
 				LostPassword::class,
 			],
+			'Post/Page Password Form'           => [
+				[ 'wp_status', 'password_protected' ],
+				'',
+				PasswordProtected::class,
+			],
 			'Register Form'                     => [
 				[ 'wp_status', 'register' ],
 				'',
 				Register::class,
+			],
+			'ACF Extended Form'                 => [
+				[ 'acfe_status', 'form' ],
+				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
+				\HCaptcha\ACFE\Form::class,
 			],
 			'Asgaros Form'                      => [
 				[ 'asgaros_status', 'form' ],
@@ -1044,6 +1061,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'avada_status', 'form' ],
 				'Avada',
 				[ \HCaptcha\Avada\Form::class ],
+			],
+			'Back In Stock Notifier Form'       => [
+				[ 'back_in_stock_notifier_status', 'form' ],
+				'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php',
+				\HCaptcha\BackInStockNotifier\Form::class,
 			],
 			'bbPress New Topic'                 => [
 				[ 'bbp_status', 'new_topic' ],
@@ -1186,6 +1208,31 @@ class AMainTest extends HCaptchaWPTestCase {
 				'jetpack/jetpack.php',
 				JetpackForm::class,
 			],
+			'Kadence Form'                      => [
+				[ 'kadence_status', 'form' ],
+				'kadence-blocks/kadence-blocks.php',
+				\HCaptcha\Kadence\Form::class,
+			],
+			'Kadence Advanced Form'             => [
+				[ 'kadence_status', 'advanced_form' ],
+				'kadence-blocks/kadence-blocks.php',
+				\HCaptcha\Kadence\AdvancedForm::class,
+			],
+			'LearnDash Login Form'              => [
+				[ 'learn_dash_status', null ],
+				'sfwd-lms/sfwd_lms.php',
+				\HCaptcha\LearnDash\Login::class,
+			],
+			'LearnDash Lost Password Form'      => [
+				[ 'learn_dash_status', 'lost_pass' ],
+				'sfwd-lms/sfwd_lms.php',
+				\HCaptcha\LearnDash\LostPassword::class,
+			],
+			'LearnDash Registration Form'       => [
+				[ 'learn_dash_status', 'register' ],
+				'sfwd-lms/sfwd_lms.php',
+				\HCaptcha\LearnDash\Register::class,
+			],
 			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
@@ -1206,6 +1253,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'ninja-forms/ninja-forms.php',
 				NF::class,
 			],
+			'Otter Blocks'                      => [
+				[ 'otter_status', 'form' ],
+				'otter-blocks/otter-blocks.php',
+				\HCaptcha\Otter\Form::class,
+			],
 			'Paid Memberships Pro Checkout'     => [
 				[ 'paid_memberships_pro_status', 'checkout' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
@@ -1215,6 +1267,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'paid_memberships_pro_status', 'login' ],
 				'paid-memberships-pro/paid-memberships-pro.php',
 				\HCaptcha\PaidMembershipsPro\Login::class,
+			],
+			'Passster Protect'                  => [
+				[ 'passster_status', 'protect' ],
+				'content-protector/content-protector.php',
+				\HCaptcha\Passster\Protect::class,
 			],
 			'Profile Builder Login'             => [
 				[ 'profile_builder_status', 'login' ],
@@ -1236,6 +1293,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				'quform/quform.php',
 				Quform::class,
 			],
+			'Sendinblue'                        => [
+				[ 'sendinblue_status', 'form' ],
+				'mailin/sendinblue.php',
+				Sendinblue::class,
+			],
 			'Subscriber'                        => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
@@ -1250,6 +1312,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'theme_my_login_status', 'login' ],
 				'theme-my-login/theme-my-login.php',
 				\HCaptcha\ThemeMyLogin\Login::class,
+			],
+			'Theme My Login LostPassword'       => [
+				[ 'theme_my_login_status', 'lost_pass' ],
+				'theme-my-login/theme-my-login.php',
+				\HCaptcha\ThemeMyLogin\LostPassword::class,
 			],
 			'Theme My Login Register'           => [
 				[ 'theme_my_login_status', 'register' ],
@@ -1270,6 +1337,21 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'ultimate_member_status', 'register' ],
 				'ultimate-member/ultimate-member.php',
 				\HCaptcha\UM\Register::class,
+			],
+			'UsersWP Forgot Password'           => [
+				[ 'users_wp_status', 'forgot' ],
+				'userswp/userswp.php',
+				\HCaptcha\UsersWP\ForgotPassword::class,
+			],
+			'UsersWP Login'                     => [
+				[ 'users_wp_status', 'login' ],
+				'userswp/userswp.php',
+				\HCaptcha\UsersWP\Login::class,
+			],
+			'UsersWP Register'                  => [
+				[ 'users_wp_status', 'register' ],
+				'userswp/userswp.php',
+				\HCaptcha\UsersWP\Register::class,
 			],
 			'WooCommerce Checkout'              => [
 				[ 'woocommerce_status', 'checkout' ],
@@ -1300,6 +1382,11 @@ class AMainTest extends HCaptchaWPTestCase {
 				[ 'woocommerce_wishlists_status', 'create_list' ],
 				'woocommerce-wishlists/woocommerce-wishlists.php',
 				CreateList::class,
+			],
+			'Wordfence Login'                   => [
+				[ 'wordfence_status', null ],
+				[ 'wordfence/wordfence.php', 'wordfence-login-security/wordfence-login-security.php' ],
+				\HCaptcha\Wordfence\General::class,
 			],
 			'WPForms Lite'                      => [
 				[ 'wpforms_status', 'lite' ],
