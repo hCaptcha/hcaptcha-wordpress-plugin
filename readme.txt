@@ -532,7 +532,7 @@ Instructions for popular native integrations are below:
 * Fixed autocomplete of the Site Key field by LasPass.
 * Fixed form detection for Auto-Verify.
 * Fixed SendInBlue form working in the post content only.
-* Fixed Passter form working in the post content only.
+* Fixed Passster form working in the post content only.
 * Fixed LearnDash form working in the post content only.
 * Fixed auto-verify form not working on the homepage.
 
