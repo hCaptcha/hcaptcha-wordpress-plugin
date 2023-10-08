@@ -104,13 +104,6 @@ class Main {
 	private $active;
 
 	/**
-	 * Whether supportcandy shortcode was used.
-	 *
-	 * @var bool
-	 */
-	private $did_support_candy_shortcode_tag_filter = false;
-
-	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -161,7 +154,6 @@ class Main {
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
-		add_filter( 'do_shortcode_tag', [ $this, 'support_candy_shortcode_tag' ], 10, 4 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -489,9 +481,7 @@ class Main {
 	 * @return void
 	 */
 	public function print_footer_scripts() {
-		$status =
-			$this->form_shown ||
-			$this->did_support_candy_shortcode_tag_filter;
+		$status = $this->form_shown;
 
 		/**
 		 * Filters whether to print hCaptcha scripts.
@@ -558,25 +548,6 @@ class Main {
 		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
 		}
-	}
-
-	/**
-	 * Catch Support Candy do shortcode tag filter.
-	 *
-	 * @param string|mixed $output Shortcode output.
-	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
-	 * @param array        $m      Regular expression match array.
-	 *
-	 * @return string|mixed
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function support_candy_shortcode_tag( $output, string $tag, $attr, array $m ) {
-		if ( 'supportcandy' === $tag ) {
-			$this->did_support_candy_shortcode_tag_filter = true;
-		}
-
-		return $output;
 	}
 
 	/**
