@@ -183,7 +183,6 @@ class Main {
 	 * @return object|null
 	 */
 	public function get( string $class_name ) {
-
 		return $this->loaded_classes[ $class_name ] ?? null;
 	}
 
@@ -562,6 +561,7 @@ class Main {
 	 * Declare compatibility with WC features.
 	 *
 	 * @return void
+	 * @noinspection PhpExpressionResultUnusedInspection
 	 */
 	public function declare_wc_compatibility() {
 		if ( class_exists( FeaturesUtil::class ) ) {

@@ -13,6 +13,7 @@
 
 namespace HCaptcha\Tests\Integration;
 
+use HCaptcha\Admin\Notifications;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -38,6 +39,8 @@ use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use ReflectionException;
 use stdClass;
+use tad\FunctionMocker\FunctionMocker;
+use function PHPUnit\Framework\assertSame;
 
 /**
  * Test Main class.
@@ -62,9 +65,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		$hcaptcha_wordpress_plugin = hcaptcha();
+		$hcaptcha = hcaptcha();
 
-		$loaded_classes = $this->get_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes' );
+		$loaded_classes = $this->get_protected_property( $hcaptcha, 'loaded_classes' );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 		unset(
@@ -79,7 +82,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 
-		$this->set_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes', $loaded_classes );
+		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -87,7 +90,7 @@ class AMainTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'jquery' );
 		wp_deregister_script( 'jquery' );
 
-		$hcaptcha_wordpress_plugin->form_shown = false;
+		$hcaptcha->form_shown = false;
 
 		parent::tearDown();
 	}
@@ -98,26 +101,18 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_init() {
-		$hcaptcha_wordpress_plugin = hcaptcha();
+		$hcaptcha = hcaptcha();
 
 		// Plugin was loaded by codeception.
-		self::assertSame(
-			- PHP_INT_MAX,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
-		);
+		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		remove_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ], -PHP_INT_MAX );
+		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], -PHP_INT_MAX );
 
-		self::assertFalse(
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
-		);
+		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		$hcaptcha_wordpress_plugin->init();
+		$hcaptcha->init();
 
-		self::assertSame(
-			- PHP_INT_MAX,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
-		);
+		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 	}
 
 	/**
@@ -129,13 +124,15 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @param boolean        $hcaptcha_active             Plugin should be active.
 	 *
 	 * @dataProvider dp_test_init
-	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUnitTestsInspection
+	 * @noinspection UnnecessaryAssertionInspection
+	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $whitelisted, bool $hcaptcha_active ) {
 		global $current_user;
 
-		$hcaptcha_wordpress_plugin = hcaptcha();
+		$hcaptcha = hcaptcha();
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => 'some site key' ] );
 		update_option( 'hcaptcha_settings', [ 'secret_key' => 'some secret key' ] );
@@ -159,41 +156,18 @@ class AMainTest extends HCaptchaWPTestCase {
 			)
 		);
 
-		self::assertSame(
-			- PHP_INT_MAX,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'init_hooks' ] )
-		);
+		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		self::assertSame(
-			- PHP_INT_MAX + 1,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_modules' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $hcaptcha_wordpress_plugin, 'load_textdomain' ] )
-		);
+		self::assertSame( - PHP_INT_MAX + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
+		self::assertSame( 10, has_action( 'plugins_loaded', [ $hcaptcha, 'load_textdomain' ] ) );
 
-		self::assertSame(
-			10,
-			has_filter(
-				'wp_resource_hints',
-				[ $hcaptcha_wordpress_plugin, 'prefetch_hcaptcha_dns' ]
-			)
-		);
-		self::assertSame(
-			10,
-			has_action( 'wp_head', [ $hcaptcha_wordpress_plugin, 'print_inline_styles' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'login_head', [ $hcaptcha_wordpress_plugin, 'login_head' ] )
-		);
-		self::assertSame(
-			0,
-			has_action( 'wp_print_footer_scripts', [ $hcaptcha_wordpress_plugin, 'print_footer_scripts' ] )
-		);
+		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
+		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
+		self::assertSame( 10, has_action( 'wp_head', [ $hcaptcha, 'print_inline_styles' ] ) );
+		self::assertSame( 10, has_action( 'login_head', [ $hcaptcha, 'login_head' ] ) );
+		self::assertSame( 0, has_action( 'wp_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ] ) );
 
-		self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $hcaptcha_wordpress_plugin, 'auto_verify' ) );
+		self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $hcaptcha, 'auto_verify' ) );
 
 		unset( $current_user );
 
@@ -209,6 +183,8 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$subject = new Main();
 		$subject->init_hooks();
+
+		self::assertInstanceOf( Notifications::class, $subject->notifications() );
 
 		self::assertSame(
 			- PHP_INT_MAX + 1,
@@ -227,43 +203,19 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 
 		if ( $hcaptcha_active ) {
-			self::assertSame(
-				10,
-				has_filter(
-					'wp_resource_hints',
-					[ $subject, 'prefetch_hcaptcha_dns' ]
-				)
-			);
-			self::assertSame(
-				10,
-				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
-			);
-			self::assertSame(
-				10,
-				has_action( 'login_head', [ $subject, 'login_head' ] )
-			);
-			self::assertSame(
-				0,
-				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
-			);
+			self::assertSame( 10, has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
+			self::assertSame( 10, has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
+			self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+			self::assertSame( 10, has_action( 'login_head', [ $subject, 'login_head' ] ) );
+			self::assertSame( 0, has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
 
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
-			self::assertFalse(
-				has_filter(
-					'wp_resource_hints',
-					[ $subject, 'prefetch_hcaptcha_dns' ]
-				)
-			);
-			self::assertFalse(
-				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
-			);
-			self::assertFalse(
-				has_action( 'login_head', [ $subject, 'login_head' ] )
-			);
-			self::assertFalse(
-				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
-			);
+			self::assertFalse( has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
+			self::assertFalse( has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
+			self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+			self::assertFalse( has_action( 'login_head', [ $subject, 'login_head' ] ) );
+			self::assertFalse( has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
 
 			self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 		}
@@ -351,43 +303,19 @@ class AMainTest extends HCaptchaWPTestCase {
 		);
 
 		if ( $hcaptcha_active ) {
-			self::assertSame(
-				10,
-				has_filter(
-					'wp_resource_hints',
-					[ $subject, 'prefetch_hcaptcha_dns' ]
-				)
-			);
-			self::assertSame(
-				10,
-				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
-			);
-			self::assertSame(
-				10,
-				has_action( 'login_head', [ $subject, 'login_head' ] )
-			);
-			self::assertSame(
-				0,
-				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
-			);
+			self::assertSame( 10, has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
+			self::assertSame( 10, has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
+			self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+			self::assertSame( 10, has_action( 'login_head', [ $subject, 'login_head' ] ) );
+			self::assertSame( 0, has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
 
 			self::assertInstanceOf( AutoVerify::class, $this->get_protected_property( $subject, 'auto_verify' ) );
 		} else {
-			self::assertFalse(
-				has_filter(
-					'wp_resource_hints',
-					[ $subject, 'prefetch_hcaptcha_dns' ]
-				)
-			);
-			self::assertFalse(
-				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
-			);
-			self::assertFalse(
-				has_action( 'login_head', [ $subject, 'login_head' ] )
-			);
-			self::assertFalse(
-				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
-			);
+			self::assertFalse( has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
+			self::assertFalse( has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
+			self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+			self::assertFalse( has_action( 'login_head', [ $subject, 'login_head' ] ) );
+			self::assertFalse( has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
 
 			self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 		}
@@ -452,28 +380,14 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		$subject->init();
 
-		self::assertFalse(
-			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-		);
-		self::assertFalse(
-			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
-		);
+		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_modules' ] ) );
+		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] ) );
 
-		self::assertFalse(
-			has_filter(
-				'wp_resource_hints',
-				[ $subject, 'prefetch_hcaptcha_dns' ]
-			)
-		);
-		self::assertFalse(
-			has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
-		);
-		self::assertFalse(
-			has_action( 'login_head', [ $subject, 'login_head' ] )
-		);
-		self::assertFalse(
-			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
-		);
+		self::assertFalse( has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
+		self::assertFalse( has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
+		self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+		self::assertFalse( has_action( 'login_head', [ $subject, 'login_head' ] ) );
+		self::assertFalse( has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
 
 		self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
 	}
@@ -494,6 +408,30 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'some-type' ) );
 		self::assertSame( $expected, $subject->prefetch_hcaptcha_dns( $urls, 'dns-prefetch' ) );
+	}
+
+	/**
+	 * Test csp_headers().
+	 *
+	 * @return void
+	 */
+	public function test_csp_headers() {
+		$headers  = [ 'some_header' => 'some header content' ];
+		$expected = $headers;
+		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
+
+		$expected['X-Content-Security-Policy'] =
+			"default-src 'self'; " .
+			"script-src $hcap_csp; " .
+			"frame-src $hcap_csp; " .
+			"style-src $hcap_csp; " .
+			"connect-src $hcap_csp; " .
+			"unsafe-eval $hcap_csp; " .
+			"unsafe-inline $hcap_csp;";
+
+		$subject = new Main();
+
+		assertSame( $expected, $subject->csp_headers( $headers ) );
 	}
 
 	/**
@@ -673,9 +611,9 @@ class AMainTest extends HCaptchaWPTestCase {
 	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ) {
-		$hcaptcha_wordpress_plugin = hcaptcha();
+		$hcaptcha = hcaptcha();
 
-		$hcaptcha_wordpress_plugin->form_shown = true;
+		$hcaptcha->form_shown = true;
 
 		$expected_scripts = '<script>
 			( () => {
@@ -768,7 +706,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			]
 		);
 
-		$hcaptcha_wordpress_plugin->init_hooks();
+		$hcaptcha->init_hooks();
 
 		// Test when Elementor Pro is not loaded.
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
@@ -779,11 +717,11 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 
-		$hcaptcha = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $hcaptcha->src );
-		self::assertSame( [], $hcaptcha->deps );
-		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
-		self::assertSame( $expected_extra, $hcaptcha->extra );
+		$script = wp_scripts()->registered['hcaptcha'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
+		self::assertSame( [], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+		self::assertSame( $expected_extra, $script->extra );
 
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 
@@ -794,11 +732,11 @@ class AMainTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'jquery' );
 		wp_deregister_script( 'jquery' );
 
-		$loaded_classes = $this->get_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes' );
+		$loaded_classes = $this->get_protected_property( $hcaptcha, 'loaded_classes' );
 
 		$loaded_classes[ HCaptchaHandler::class ] = new stdClass();
 
-		$this->set_protected_property( $hcaptcha_wordpress_plugin, 'loaded_classes', $loaded_classes );
+		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
 
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
@@ -808,11 +746,11 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 
-		$hcaptcha = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $hcaptcha->src );
-		self::assertSame( [], $hcaptcha->deps );
-		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
-		self::assertSame( $expected_extra, $hcaptcha->extra );
+		$script = wp_scripts()->registered['hcaptcha'];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
+		self::assertSame( [], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+		self::assertSame( $expected_extra, $script->extra );
 
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 	}
@@ -864,10 +802,35 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test declare_wc_compatibility().
+	 *
+	 * @return void
+	 */
+	public function test_declare_wc_compatibility() {
+		$declare_compatibility = FunctionMocker::replace(
+			'Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility',
+			true
+		);
+
+		$subject = new Main();
+		$subject->declare_wc_compatibility();
+
+		$declare_compatibility->wasCalledWithOnce( [ 'custom_order_tables', HCAPTCHA_FILE, true ] );
+	}
+
+	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown() {
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+
+		$site_key = 'some key';
+
+		update_option( 'hcaptcha_settings', [ 'site_key' => $site_key ] );
+
+		$hcaptcha = hcaptcha();
+
+		$hcaptcha->init_hooks();
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
@@ -920,10 +883,9 @@ class AMainTest extends HCaptchaWPTestCase {
 		$component = isset( $module[3] ) ? (array) $module[3] : $component;
 
 		$expected_loaded_classes = [];
-		self::assertSame(
-			$expected_loaded_classes,
-			$this->get_protected_property( $subject, 'loaded_classes' )
-		);
+		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
+
+		self::assertSame( $expected_loaded_classes, $loaded_classes );
 
 		array_walk(
 			$component,
@@ -987,6 +949,7 @@ class AMainTest extends HCaptchaWPTestCase {
 
 		foreach ( $loaded_classes as $class_name => $loaded_class ) {
 			self::assertInstanceOf( $class_name, $loaded_class );
+			assertSame( $loaded_class, $subject->get( $class_name ) );
 		}
 	}
 
