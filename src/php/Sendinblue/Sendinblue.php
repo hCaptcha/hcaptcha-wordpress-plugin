@@ -60,7 +60,7 @@ class Sendinblue {
 		$hcaptcha = HCaptcha::form( $args );
 
 		$output = (string) preg_replace(
-			'/(<input type="submit")/',
+			'/(<input type="submit"|<button .*?type="submit".*?>)/',
 			$hcaptcha . '$1',
 			(string) $output
 		);

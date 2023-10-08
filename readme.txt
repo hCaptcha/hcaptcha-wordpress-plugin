@@ -531,7 +531,8 @@ Instructions for popular native integrations are below:
 * Fixed activation of hCaptcha with empty keys.
 * Fixed autocomplete of the Site Key field by LasPass.
 * Fixed form detection for Auto-Verify.
-* Fixed SendInBlue form working in the post content only.
+* Fixed Brevo form working in the post content only.
+* Fixed hCaptcha not loading correctly for Brevo form.
 * Fixed Passster form working in the post content only.
 * Fixed LearnDash form working in the post content only.
 * Fixed auto-verify form not working on the homepage.
