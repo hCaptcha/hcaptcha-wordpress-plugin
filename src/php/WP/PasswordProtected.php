@@ -38,8 +38,8 @@ class PasswordProtected {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_filter( 'the_password_form', [ $this, 'add_hcaptcha' ], PHP_INT_MAX, 2 );
-		add_action( 'login_form_postpass', [ $this, 'verify' ], 10 );
+		add_filter( 'the_password_form', [ $this, 'add_captcha' ], PHP_INT_MAX, 2 );
+		add_action( 'login_form_postpass', [ $this, 'verify' ] );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class PasswordProtected {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $output, WP_Post $post ): string {
+	public function add_captcha( $output, WP_Post $post ): string {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -69,14 +69,11 @@ class PasswordProtected {
 	/**
 	 * Verify request.
 	 *
-	 * @param array|null $package Result of the hCaptcha verification.
-	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection ForgottenDebugOutputInspection
-	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function verify( $package ) {
+	public function verify() {
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {
@@ -85,7 +82,7 @@ class PasswordProtected {
 
 		wp_die(
 			esc_html( $result ),
-			esc_html__( 'hCaptcha error', 'hcaptcha-for-forms-and-more' ),
+			'hCaptcha',
 			[
 				'back_link' => true,
 				'response'  => 303,

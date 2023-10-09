@@ -16,6 +16,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Comment;
 use Mockery;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -95,6 +96,35 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = Mockery::mock( Comment::class )->makePartial();
 		$this->set_protected_property( $subject, 'active', true );
+
+		// Test when hCaptcha plugin is active.
+		self::assertSame( $expected, $subject->add_captcha( $submit_field, [] ) );
+	}
+
+	/**
+	 * Test add_captcha() when not active.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_captcha_when_NOT_active() {
+		$submit_field =
+			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
+			"<input type='hidden' name='comment_post_ID' value='1' id='comment_post_ID' />" .
+			"<input type='hidden' name='comment_parent' id='comment_parent' value='0' />" .
+			'</p>';
+		$encoded_id   = 'eyJzb3VyY2UiOlsiV29yZFByZXNzIl0sImZvcm1faWQiOiIxIn0=';
+		$hash         = wp_hash( $encoded_id );
+		$expected     = '				<input
+					type="hidden"
+					class="hcaptcha-widget-id"
+					name="hcaptcha-widget-id"
+					value="' . $encoded_id . '-' . $hash . '">
+				' . $submit_field;
+
+		$subject = Mockery::mock( Comment::class )->makePartial();
+
+		// Test when hCaptcha plugin is not active.
+		$this->set_protected_property( $subject, 'active', false );
 
 		self::assertSame( $expected, $subject->add_captcha( $submit_field, [] ) );
 	}

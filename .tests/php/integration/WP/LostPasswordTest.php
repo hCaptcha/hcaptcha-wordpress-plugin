@@ -69,6 +69,42 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_captcha() when not WP login url.
+	 */
+	public function test_add_captcha_when_NOT_wp_login_url() {
+		unset( $_SERVER['REQUEST_URI'] );
+
+		$_GET['action'] = 'lostpassword';
+
+		$expected = '';
+
+		$subject = new LostPassword();
+
+		ob_start();
+
+		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_captcha() when not WP login action.
+	 */
+	public function test_add_captcha_when_NOT_wp_login_action() {
+		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+
+		$expected = '';
+
+		$subject = new LostPassword();
+
+		ob_start();
+
+		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
 	 * Test verify().
 	 */
 	public function test_verify() {

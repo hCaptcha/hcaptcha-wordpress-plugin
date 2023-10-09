@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\WP;
 
+use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
 use WP_Error;
@@ -79,12 +80,71 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_captcha() when not WP login form.
+	 */
+	public function test_add_captcha_when_NOT_wp_login_form() {
+		$expected = '';
+
+		$subject = new Login();
+
+		ob_start();
+
+		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
 	 * Test verify().
 	 */
 	public function test_verify() {
 		$user = new WP_User( 1 );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+
+		$_POST['log'] = 'some login';
+		$_POST['pwd'] = 'some password';
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		$subject = new Login();
+
+		self::assertEquals( $user, $subject->verify( $user, '' ) );
+	}
+
+	/**
+	 * Test verify() when nto WP login form.
+	 */
+	public function test_verify_when_NOT_wp_login_form() {
+		$user = new WP_User( 1 );
+
+		$subject = new Login();
+
+		self::assertEquals( $user, $subject->verify( $user, '' ) );
+	}
+
+	/**
+	 * Test verify() when login limit is not exceeded.
+	 */
+	public function test_verify_NOT_limit_exceeded() {
+		$user = new WP_User( 1 );
+
+		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		update_option( 'hcaptcha_settings', [ 'login_limit' => 5 ] );
+		hcaptcha()->init_hooks();
+
+		$_POST['log'] = 'some login';
+		$_POST['pwd'] = 'some password';
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		$subject = new Login();
 
