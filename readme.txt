@@ -530,7 +530,7 @@ Instructions for popular native integrations are below:
 * Added filter `hcap_login_limit_exceeded`, allowing to filter the login limit exceeded status.
 * Changed Brevo (formerly Sendinblue) logo.
 * Fixed activation of hCaptcha with empty keys.
-* Fixed autocomplete of the Site Key field by LasPass.
+* Fixed autocomplete of the Site Key field by LastPass.
 * Fixed form detection for Auto-Verify.
 * Fixed Brevo form working in the post content only.
 * Fixed hCaptcha not loading correctly for Brevo form.
