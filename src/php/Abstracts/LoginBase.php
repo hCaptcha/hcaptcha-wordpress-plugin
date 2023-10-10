@@ -41,14 +41,14 @@ abstract class LoginBase {
 	 *
 	 * @var string
 	 */
-	private $ip;
+	protected $ip;
 
 	/**
 	 * Login attempts data.
 	 *
 	 * @var array
 	 */
-	private $login_data;
+	protected $login_data;
 
 	/**
 	 * Constructor.
@@ -143,7 +143,12 @@ abstract class LoginBase {
 			)
 		);
 
-		return $count >= $login_limit;
+		/**
+		 * Filters the login limit exceeded status.
+		 *
+		 * @param bool $is_login_limit_exceeded The protection status of a form.
+		 */
+		return apply_filters( 'hcap_login_limit_exceeded', $count >= $login_limit );
 	}
 
 	/**
@@ -155,7 +160,7 @@ abstract class LoginBase {
 	 *
 	 * @return bool
 	 */
-	public function protect_form( $value, $source, $form_id ): bool {
+	public function protect_form( $value, array $source, $form_id ): bool {
 		if ( 'login' === $form_id && HCaptcha::get_class_source( static::class ) === $source ) {
 			return false;
 		}

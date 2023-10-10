@@ -29,6 +29,7 @@ abstract class Base {
 	private function init_hooks() {
 		add_action( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ], 99 );
 		add_filter( static::VERIFY_HOOK, [ $this, 'verify' ] );
+		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
@@ -81,6 +82,17 @@ abstract class Base {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Filter print hCaptcha scripts status and return true if WPForo template filter was used.
+	 *
+	 * @param bool|mixed $status Print scripts status.
+	 *
+	 * @return bool|mixed
+	 */
+	public function print_hcaptcha_scripts( $status ) {
+		return HCaptcha::did_filter( 'wpforo_template' ) ? true : $status;
 	}
 
 	/**

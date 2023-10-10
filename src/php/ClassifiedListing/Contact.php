@@ -103,6 +103,7 @@ class Contact {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function verify( WP_Error $error, array $data ) {
 		$error_message = hcaptcha_verify_post(
@@ -110,12 +111,6 @@ class Contact {
 			static::ACTION
 		);
 
-		if ( null === $error_message ) {
-			return;
-		}
-
-		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
-		$error->add( $code, $error_message );
+		HCaptcha::add_error_message( $error, $error_message );
 	}
 }

@@ -70,13 +70,14 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified() {
-		$validation_error = new WP_Error( 'some error' );
+		$validation_error = 'some wrong error, to be replaced by WP_Error';
+		$expected         = new WP_Error();
 
-		$validation_error->add( 'hcaptcha_error', 'The Captcha is invalid.' );
+		$expected->add( 'hcaptcha_error', 'The hCaptcha is invalid.' );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_wc_register_nonce', 'hcaptcha_wc_register', false );
 
 		$subject = new Register();
-		self::assertEquals( $validation_error, $subject->verify( $validation_error ) );
+		self::assertEquals( $expected, $subject->verify( $validation_error ) );
 	}
 }

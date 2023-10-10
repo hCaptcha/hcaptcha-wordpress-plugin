@@ -104,20 +104,6 @@ class Main {
 	private $active;
 
 	/**
-	 * Whether wpforo_template filter was used.
-	 *
-	 * @var bool
-	 */
-	private $did_wpforo_template_filter = false;
-
-	/**
-	 * Whether supportcandy shortcode was used.
-	 *
-	 * @var bool
-	 */
-	private $did_support_candy_shortcode_tag_filter = false;
-
-	/**
 	 * Input class.
 	 */
 	public function init() {
@@ -168,8 +154,6 @@ class Main {
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
-		add_filter( 'wpforo_template', [ $this, 'wpforo_template_filter' ] );
-		add_filter( 'do_shortcode_tag', [ $this, 'support_candy_shortcode_tag' ], 10, 4 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -183,7 +167,6 @@ class Main {
 	 * @return object|null
 	 */
 	public function get( string $class_name ) {
-
 		return $this->loaded_classes[ $class_name ] ?? null;
 	}
 
@@ -214,20 +197,24 @@ class Main {
 		// Make sure we can use is_user_logged_in().
 		require_once ABSPATH . 'wp-includes/pluggable.php';
 
+		$settings = $this->settings();
+
 		/**
 		 * Do not load hCaptcha functionality:
 		 * - if user is logged in and the option 'off_when_logged_in' is set;
-		 * - for whitelisted IPs.
+		 * - for whitelisted IPs;
+		 * - when site key and secret key are empty (after first plugin activation).
 		 */
 		$deactivate = (
-			( is_user_logged_in() && $this->settings()->is_on( 'off_when_logged_in' ) ) ||
+			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
 			/**
 			 * Filters the user IP to check whether it is whitelisted.
 			 *
 			 * @param bool         $whitelisted IP is whitelisted.
 			 * @param string|false $ip          IP string or false for local addresses.
 			 */
-			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() )
+			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() ) ||
+			( '' === $settings->get_site_key() && '' === $settings->get_secret_key() )
 		);
 
 		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
@@ -494,10 +481,7 @@ class Main {
 	 * @return void
 	 */
 	public function print_footer_scripts() {
-		$status =
-			$this->form_shown ||
-			$this->did_wpforo_template_filter ||
-			$this->did_support_candy_shortcode_tag_filter;
+		$status = $this->form_shown;
 
 		/**
 		 * Filters whether to print hCaptcha scripts.
@@ -558,43 +542,12 @@ class Main {
 	 * Declare compatibility with WC features.
 	 *
 	 * @return void
+	 * @noinspection PhpExpressionResultUnusedInspection
 	 */
 	public function declare_wc_compatibility() {
 		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
 		}
-	}
-
-	/**
-	 * Catch wpForo template filter.
-	 *
-	 * @param array|string $template Template.
-	 *
-	 * @return array|string
-	 */
-	public function wpforo_template_filter( $template ) {
-		$this->did_wpforo_template_filter = true;
-
-		return $template;
-	}
-
-	/**
-	 * Catch Support Candy do shortcode tag filter.
-	 *
-	 * @param string|mixed $output Shortcode output.
-	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
-	 * @param array        $m      Regular expression match array.
-	 *
-	 * @return string|mixed
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function support_candy_shortcode_tag( $output, string $tag, $attr, array $m ) {
-		if ( 'supportcandy' === $tag ) {
-			$this->did_support_candy_shortcode_tag_filter = true;
-		}
-
-		return $output;
 	}
 
 	/**
@@ -860,6 +813,21 @@ class Main {
 				'kadence-blocks/kadence-blocks.php',
 				Kadence\AdvancedForm::class,
 			],
+			'LearnDash Login Form'              => [
+				[ 'learn_dash_status', null ],
+				'sfwd-lms/sfwd_lms.php',
+				LearnDash\Login::class,
+			],
+			'LearnDash Lost Password Form'      => [
+				[ 'learn_dash_status', 'lost_pass' ],
+				'sfwd-lms/sfwd_lms.php',
+				LearnDash\LostPassword::class,
+			],
+			'LearnDash Registration Form'       => [
+				[ 'learn_dash_status', 'register' ],
+				'sfwd-lms/sfwd_lms.php',
+				LearnDash\Register::class,
+			],
 			'MailChimp'                         => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',
@@ -1072,14 +1040,9 @@ class Main {
 			}
 
 			foreach ( (array) $module[2] as $component ) {
-				if ( false === strpos( $component, '.php' ) ) {
-					if ( ! class_exists( $component, false ) ) {
-						$this->loaded_classes[ $component ] = new $component();
-					}
-					continue;
+				if ( ! class_exists( $component, false ) ) {
+					$this->loaded_classes[ $component ] = new $component();
 				}
-
-				require_once HCAPTCHA_INC . '/' . $component;
 			}
 		}
 	}

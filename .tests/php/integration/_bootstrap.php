@@ -26,6 +26,7 @@ FunctionMocker::init(
 		'redefinable-internals' => [
 			'defined',
 			'filter_input',
+			'time',
 			'uniqid',
 		],
 	]

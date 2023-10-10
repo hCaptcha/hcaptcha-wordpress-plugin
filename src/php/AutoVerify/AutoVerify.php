@@ -32,6 +32,7 @@ class AutoVerify {
 	private function init_hooks() {
 		add_action( 'init', [ $this, 'verify_form' ], - PHP_INT_MAX );
 		add_filter( 'the_content', [ $this, 'content_filter' ], PHP_INT_MAX );
+		add_action( 'hcap_auto_verify_register', [ $this, 'content_filter' ] );
 	}
 
 	/**
@@ -50,10 +51,11 @@ class AutoVerify {
 			preg_match_all(
 				'#<form [\S\s]+?class="h-captcha"[\S\s]+?</form>#',
 				$content,
-				$matches
+				$matches,
+				PREG_PATTERN_ORDER
 			)
 		) {
-			$forms = array_column( $matches, 0 );
+			$forms = $matches[0];
 
 			$this->register_forms( $forms );
 		}
@@ -80,17 +82,13 @@ class AutoVerify {
 			return;
 		}
 
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
+		$path = $this->get_path( $this->get_request_uri() );
 
-		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
-
-		if ( ! $request_uri ) {
+		if ( ! $path ) {
 			return;
 		}
 
-		if ( ! $this->is_form_registered( $request_uri ) ) {
+		if ( ! $this->is_form_registered( $path ) ) {
 			return;
 		}
 
@@ -149,15 +147,34 @@ class AutoVerify {
 			$form_action = $m[1];
 		}
 
-		if ( ! $form_action ) {
-			$form_action = isset( $_SERVER['REQUEST_URI'] ) ?
-				filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-				'';
-		}
+		$form_action = $form_action ?: $this->get_request_uri();
 
-		$form_action = wp_parse_url( $form_action, PHP_URL_PATH );
+		return $this->get_path( $form_action );
+	}
 
-		return untrailingslashit( $form_action );
+	/**
+	 * Get REQUEST_URI without trailing slash.
+	 *
+	 * @return bool|string
+	 */
+	private function get_request_uri() {
+		return isset( $_SERVER['REQUEST_URI'] ) ?
+			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+	}
+
+	/**
+	 * Get path without trailing slash.
+	 * Return '/' for home page.
+	 *
+	 * @param string $url URL.
+	 *
+	 * @return string
+	 */
+	private function get_path( $url ): string {
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+
+		return '/' === $path ? $path : untrailingslashit( $path );
 	}
 
 	/**
@@ -265,10 +282,6 @@ class AutoVerify {
 				$registered_forms[ $action ][] = $inputs;
 			}
 
-			if ( $auto && $registered ) {
-				$registered_forms[ $action ][ $key ] = $inputs;
-			}
-
 			if ( ! $auto && $registered ) {
 				unset( $registered_forms[ $action ][ $key ] );
 			}
@@ -285,24 +298,22 @@ class AutoVerify {
 	/**
 	 * Is form registered.
 	 *
-	 * @param string $request_uri Request uri.
+	 * @param string $path URL path.
 	 *
 	 * @return bool
 	 */
-	private function is_form_registered( string $request_uri ): bool {
+	private function is_form_registered( string $path ): bool {
 		$registered_forms = get_transient( self::TRANSIENT );
 
 		if ( empty( $registered_forms ) ) {
 			return false;
 		}
 
-		$request_uri = untrailingslashit( $request_uri );
-
-		if ( ! isset( $registered_forms[ $request_uri ] ) ) {
+		if ( ! isset( $registered_forms[ $path ] ) ) {
 			return false;
 		}
 
-		foreach ( $registered_forms[ $request_uri ] as $registered_form ) {
+		foreach ( $registered_forms[ $path ] as $registered_form ) {
 			// Nonce is verified later, in hcaptcha_verify_post().
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( ! empty( array_intersect( array_keys( $_POST ), $registered_form ) ) ) {

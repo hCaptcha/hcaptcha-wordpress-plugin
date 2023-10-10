@@ -357,9 +357,11 @@ abstract class HCaptchaTestCase extends TestCase {
 	protected function get_test_general_form_fields(): array {
 		$form_fields = [
 			'site_key'                 => [
-				'label'   => 'Site Key',
-				'type'    => 'text',
-				'section' => General::SECTION_KEYS,
+				'label'        => 'Site Key',
+				'type'         => 'text',
+				'autocomplete' => 'nickname',
+				'lp_ignore'    => 'true',
+				'section'      => General::SECTION_KEYS,
 			],
 			'secret_key'               => [
 				'label'   => 'Secret Key',
@@ -367,7 +369,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => General::SECTION_KEYS,
 			],
 			'sample_hcaptcha'          => [
-				'label'   => 'Sample hCaptcha',
+				'label'   => 'Active hCaptcha to Check Site Config',
 				'type'    => 'hcaptcha',
 				'section' => General::SECTION_KEYS,
 			],
@@ -622,8 +624,8 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Delay showing hCaptcha, ms',
 				'type'    => 'number',
 				'section' => General::SECTION_OTHER,
-				'default' => - 100,
-				'min'     => - 100,
+				'default' => -100,
+				'min'     => -100,
 				'step'    => 100,
 				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
 			],
@@ -848,6 +850,17 @@ abstract class HCaptchaTestCase extends TestCase {
 						[
 							'form'          => 'Kadence Form',
 							'advanced_form' => 'Kadence Advanced Form',
+						],
+				],
+			'learn_dash_status'             =>
+				[
+					'label'   => 'LearnDash LMS',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login'     => 'Login Form',
+							'lost_pass' => 'Lost Password Form',
+							'register'  => 'Register Form',
 						],
 				],
 			'mailchimp_status'              =>

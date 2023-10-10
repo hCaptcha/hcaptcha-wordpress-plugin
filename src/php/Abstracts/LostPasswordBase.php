@@ -51,11 +51,12 @@ abstract class LostPasswordBase {
 	/**
 	 * Verify lost password form.
 	 *
-	 * @param WP_Error|mixed $error Error.
+	 * @param WP_Error|mixed $errors Error.
 	 *
 	 * @return void
+	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function verify( $error ) {
+	public function verify( $errors ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_value = isset( $_POST[ static::POST_KEY ] ) ?
 			sanitize_text_field( wp_unslash( $_POST[ static::POST_KEY ] ) ) :
@@ -75,14 +76,6 @@ abstract class LostPasswordBase {
 			static::ACTION
 		);
 
-		if ( null === $error_message ) {
-			return;
-		}
-
-		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
-		$error = is_wp_error( $error ) ? $error : new WP_Error();
-
-		$error->add( $code, $error_message );
+		HCaptcha::add_error_message( $errors, $error_message );
 	}
 }

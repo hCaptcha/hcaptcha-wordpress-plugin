@@ -137,7 +137,7 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Secret key', $this->is_empty( $settings->get_secret_key() ) );
 		$data .= $this->data( 'Theme', $settings->get( 'theme' ) );
 		$data .= $this->data( 'Size', $settings->get( 'size' ) );
-		$data .= $this->data( 'Language', $settings->get( 'language' ) );
+		$data .= $this->data( 'Language', $settings->get( 'language' ) ?: 'Auto-detect' );
 		$data .= $this->data( 'Mode', $settings->get_mode() );
 		$data .= $this->data( 'Custom Themes', $this->is_on( 'custom_themes' ) );
 		$data .= $this->data( 'Config Params', $this->is_empty( $settings->get( 'config_params' ) ) );

@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Helpers;
 
+use WP_Error;
+
 /**
  * Class HCaptcha.
  */
@@ -64,7 +66,7 @@ class HCaptcha {
 				 *   'form_id' => 23
 				 * ]
 				 */
-				'protect' => true,
+				'protect' => true, // Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
 			]
 		);
 
@@ -240,5 +242,30 @@ class HCaptcha {
 		global $wp_filters;
 
 		return $wp_filters[ $hook_name ] ?? 0;
+	}
+
+	/**
+	 * Add hCaptcha error message to WP_Error object.
+	 *
+	 * @param WP_Error|mixed $errors        A WP_Error object containing any errors.
+	 * @param string|null    $error_message Error message.
+	 *
+	 * @return WP_Error
+	 * @noinspection PhpMissingParamTypeInspection
+	 */
+	public static function add_error_message( $errors, $error_message ): WP_Error {
+		if ( null === $error_message ) {
+			return $errors;
+		}
+
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
+
+		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();
+
+		if ( ! isset( $errors->errors[ $code ] ) || ! in_array( $error_message, $errors->errors[ $code ], true ) ) {
+			$errors->add( $code, $error_message );
+		}
+
+		return $errors;
 	}
 }

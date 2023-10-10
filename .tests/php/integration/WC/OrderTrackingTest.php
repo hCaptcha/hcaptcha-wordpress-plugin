@@ -96,4 +96,15 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, [], [] ) );
 	}
+
+	/**
+	 * Test do_shortcode_tag() when not order_tracking tag.
+	 */
+	public function test_do_shortcode_tag_when_NOT_order_tracking() {
+		$output  = 'some output';
+		$tag     = 'some_tag';
+		$subject = new OrderTracking();
+
+		self::assertSame( $output, $subject->do_shortcode_tag( $output, $tag, [], [] ) );
+	}
 }

@@ -69,11 +69,48 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_captcha() when not WP login url.
+	 */
+	public function test_add_captcha_when_NOT_wp_login_url() {
+		unset( $_SERVER['REQUEST_URI'] );
+
+		$_GET['action'] = 'lostpassword';
+
+		$expected = '';
+
+		$subject = new LostPassword();
+
+		ob_start();
+
+		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_captcha() when not WP login action.
+	 */
+	public function test_add_captcha_when_NOT_wp_login_action() {
+		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+
+		$expected = '';
+
+		$subject = new LostPassword();
+
+		ob_start();
+
+		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
 	 * Test verify().
 	 */
 	public function test_verify() {
-		$validation_error = new WP_Error( 'some error' );
-		$expected         = $validation_error;
+		$validation_error   = new WP_Error( 'some error' );
+		$expected           = clone $validation_error;
+		$_POST['wp-submit'] = 'some';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password' );
 
@@ -87,12 +124,26 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified() {
-		$validation_error = new WP_Error( 'some error' );
-		$expected         = $validation_error;
+		$validation_error   = new WP_Error( 'some error' );
+		$expected           = clone $validation_error;
+		$_POST['wp-submit'] = 'some';
 
-		$expected->add( 'hcaptcha_error', 'The Captcha is invalid.' );
+		$expected->add( 'fail', 'The hCaptcha is invalid.' );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password', false );
+
+		$subject = new LostPassword();
+		$subject->verify( $validation_error );
+
+		self::assertEquals( $expected, $validation_error );
+	}
+
+	/**
+	 * Test verify() when not proper post key.
+	 */
+	public function test_verify_when_NOT_proper_post_key() {
+		$validation_error = new WP_Error( 'some error' );
+		$expected         = clone $validation_error;
 
 		$subject = new LostPassword();
 		$subject->verify( $validation_error );

@@ -250,6 +250,15 @@ class Integrations extends PluginSettingsBase {
 					'advanced_form' => __( 'Kadence Advanced Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'learn_dash_status'             => [
+				'label'   => 'LearnDash LMS',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'mailchimp_status'              => [
 				'label'   => 'Mailchimp for WP',
 				'type'    => 'checkbox',

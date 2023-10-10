@@ -1193,7 +1193,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="false" class="regular-text" />',
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="" class="regular-text" />',
 			],
 			'Text with helper'       => [
 				[
@@ -1208,7 +1208,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="false" class="regular-text" />' .
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="" class="regular-text" />' .
 				'<span class="helper"><span class="helper-content">This is helper</span></span>',
 			],
 			'Text with supplemental' => [
@@ -1224,7 +1224,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
-				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="false" class="regular-text" />' .
+				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="" class="regular-text" />' .
 				'<p class="description">This is supplemental</p>',
 			],
 		];

@@ -59,7 +59,20 @@ class Sendinblue {
 
 		$hcaptcha = HCaptcha::form( $args );
 
-		return (string) preg_replace( '/(<input type="submit")/', $hcaptcha . '$1', (string) $output );
+		$output = (string) preg_replace(
+			'/(<input type="submit"|<button .*?type="submit".*?>)/',
+			$hcaptcha . '$1',
+			(string) $output
+		);
+
+		/**
+		 * Filters the HTML containing a form to register it for auto-verification.
+		 *
+		 * @param string $html HTML content.
+		 */
+		do_action( 'hcap_auto_verify_register', $output );
+
+		return $output;
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.0.0
-Stable tag: 3.3.2
+Stable tag: 3.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -222,6 +222,10 @@ $form_id: post_id
 Kadence Advanced Form
 $source: 'kadence-blocks/kadence-blocks.php'
 $form_id: form_id
+
+LearnDash
+$source: 'sfwd-lms/sfwd_lms.php'
+$form_id: 'login', 'lost_password' or 'register'
 
 MemberPress
 $source: 'memberpress/memberpress.php'
@@ -459,6 +463,9 @@ For more details, please see the hCaptcha privacy policy at:
 * Jetpack Forms
 * Kadence Form
 * Kadence Advanced Form
+* LearnDash Login Form.
+* LearnDash Lost Password Form.
+* LearnDash Register Form.
 * Mailchimp for WP Form
 * MemberPress Login Form
 * MemberPress Register Form
@@ -516,6 +523,20 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.3.3 =
+* Added compatibility with LearnDash.
+* Added requirement to check the site config after changes in credentials.
+* Added filter `hcap_login_limit_exceeded`, allowing to filter the login limit exceeded status.
+* Changed Brevo (formerly Sendinblue) logo.
+* Fixed activation of hCaptcha with empty keys.
+* Fixed autocomplete of the Site Key field by LastPass.
+* Fixed form detection for Auto-Verify.
+* Fixed Brevo form working in the post content only.
+* Fixed hCaptcha not loading correctly for Brevo form.
+* Fixed Passster form working in the post content only.
+* Fixed LearnDash form working in the post content only.
+* Fixed auto-verify form not working on the homepage.
 
 = 3.3.2 =
 * Improved Beaver Builder login sequence.
