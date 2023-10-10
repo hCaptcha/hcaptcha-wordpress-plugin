@@ -527,6 +527,7 @@ Instructions for popular native integrations are below:
 = 3.3.3 =
 * Added compatibility with LearnDash.
 * Added requirement to check the site config after changes in credentials.
+* Added filter `hcap_login_limit_exceeded`, allowing to filter the login limit exceeded status.
 * Changed Brevo (formerly Sendinblue) logo.
 * Fixed activation of hCaptcha with empty keys.
 * Fixed autocomplete of the Site Key field by LasPass.
