@@ -8,8 +8,11 @@
 namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
+use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
 
@@ -32,6 +35,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		unset(
 			$_POST['log'],
 			$_POST['pwd'],
+			$_SERVER['REMOTE_ADDR'],
 			$GLOBALS['wp_action']['login_init'],
 			$GLOBALS['wp_action']['login_form_login'],
 			$GLOBALS['wp_filters']['login_link_separator']
@@ -54,6 +58,84 @@ class LoginTest extends HCaptchaWPTestCase {
 			10,
 			has_action( 'wp_authenticate_user', [ $subject, 'verify' ] )
 		);
+	}
+
+	/**
+	 * Test login().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_login() {
+		$ip                      = '1.1.1.1';
+		$login_data[ $ip ][]     = time();
+		$login_data['2.2.2.2'][] = time();
+		$user_login              = 'test-user';
+		$user                    = new WP_User();
+
+		$subject = new Login();
+
+		$this->set_protected_property( $subject, 'ip', $ip );
+		$this->set_protected_property( $subject, 'login_data', $login_data );
+
+		$subject->login( $user_login, $user );
+
+		unset( $login_data[ $ip ] );
+
+		self::assertSame( $login_data, $this->get_protected_property( $subject, 'login_data' ) );
+		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+	}
+
+	/**
+	 * Test login_failed().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection UnusedFunctionResultInspection
+	 */
+	public function test_login_failed() {
+		$ip                     = '1.1.1.1';
+		$time                   = time();
+		$username               = 'test_username';
+		$_SERVER['REMOTE_ADDR'] = $ip;
+
+		$subject = new Login();
+
+		$this->set_protected_property( $subject, 'ip', $ip );
+
+		FunctionMocker::replace( 'time', $time );
+
+		$subject->login_failed( $username, null );
+
+		$login_data[ $ip ][] = $time;
+
+		self::assertSame( $login_data, $this->get_protected_property( $subject, 'login_data' ) );
+		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+	}
+
+	/**
+	 * Test protect_form().
+	 *
+	 * @return void
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_protect_form() {
+		$value   = true;
+		$source  = HCaptcha::get_class_source( Login::class );
+		$form_id = 'login';
+
+		$subject = new Login();
+
+		self::assertFalse( $subject->protect_form( $value, $source, $form_id ) );
+
+		$form_id = 'some';
+
+		self::assertSame( $value, $subject->protect_form( $value, $source, $form_id ) );
+
+		$form_id = 'login';
+		$source  = [];
+
+		self::assertSame( $value, $subject->protect_form( $value, $source, $form_id ) );
 	}
 
 	/**
@@ -86,6 +168,34 @@ class LoginTest extends HCaptchaWPTestCase {
 		$expected = '';
 
 		$subject = new Login();
+
+		ob_start();
+
+		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_captcha() when not login limit exceeded.
+	 */
+	public function test_add_captcha_when_NOT_login_limit_exceeded() {
+		$expected = '';
+
+		$subject = new Login();
+
+		add_filter(
+			'hcap_login_limit_exceeded',
+			static function () {
+				return false;
+			}
+		);
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		ob_start();
 

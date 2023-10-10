@@ -41,14 +41,14 @@ abstract class LoginBase {
 	 *
 	 * @var string
 	 */
-	private $ip;
+	protected $ip;
 
 	/**
 	 * Login attempts data.
 	 *
 	 * @var array
 	 */
-	private $login_data;
+	protected $login_data;
 
 	/**
 	 * Constructor.
