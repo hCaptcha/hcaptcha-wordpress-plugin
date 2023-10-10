@@ -76,14 +76,53 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
+		add_filter( 'woocommerce_process_login_errors', [ $subject, 'verify' ] );
+
+		self::assertEquals(
+			$validation_error,
+			apply_filters( 'woocommerce_process_login_errors', $validation_error )
+		);
+	}
+
+	/**
+	 * Test verify() when not in the WC filter.
+	 */
+	public function test_verify_NOT_wc_filter() {
+		$validation_error = new WP_Error();
+
+		$subject = new Login();
+
 		self::assertEquals( $validation_error, $subject->verify( $validation_error ) );
+	}
+
+	/**
+	 * Test verify() when not login limit exceeded.
+	 */
+	public function test_verify_NOT_login_limit_exceeded() {
+		$validation_error = new WP_Error();
+
+		$subject = new Login();
+
+		add_filter(
+			'hcap_login_limit_exceeded',
+			static function () {
+				return false;
+			}
+		);
+
+		add_filter( 'woocommerce_process_login_errors', [ $subject, 'verify' ] );
+
+		self::assertEquals(
+			$validation_error,
+			apply_filters( 'woocommerce_process_login_errors', $validation_error )
+		);
 	}
 
 	/**
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified() {
-		$validation_error = new WP_Error();
+		$validation_error = 'some wrong error, to be replaced by WP_Error';
 		$expected         = new WP_Error();
 		$expected->add( 'hcaptcha_error', 'The hCaptcha is invalid.' );
 
@@ -91,6 +130,11 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $expected, apply_filters( 'woocommerce_process_login_errors', $validation_error ) );
+		add_filter( 'woocommerce_process_login_errors', [ $subject, 'verify' ] );
+
+		self::assertEquals(
+			$expected,
+			apply_filters( 'woocommerce_process_login_errors', $validation_error )
+		);
 	}
 }
