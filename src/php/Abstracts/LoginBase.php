@@ -100,6 +100,22 @@ abstract class LoginBase {
 	public function login_failed( string $username, $error = null ) {
 		$this->login_data[ $this->ip ][] = time();
 
+		$now            = time();
+		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );
+
+		foreach ( $this->login_data as & $login_datum ) {
+			$login_datum = array_values(
+				array_filter(
+					$login_datum,
+					static function ( $time ) use ( $now, $login_interval ) {
+						return $time > $now - $login_interval * MINUTE_IN_SECONDS;
+					}
+				)
+			);
+		}
+
+		unset( $login_datum );
+
 		update_option( self::LOGIN_DATA, $this->login_data, false );
 	}
 

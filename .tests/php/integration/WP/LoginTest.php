@@ -84,6 +84,10 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $login_data, $this->get_protected_property( $subject, 'login_data' ) );
 		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+
+		// Check that hcaptcha_login_data option is not autoloading.
+		$alloptions = wp_cache_get( 'alloptions', 'options' );
+		self::assertArrayNotHasKey( LoginBase::LOGIN_DATA, $alloptions );
 	}
 
 	/**
@@ -94,10 +98,26 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_login_failed() {
-		$ip                     = '1.1.1.1';
-		$time                   = time();
-		$username               = 'test_username';
-		$_SERVER['REMOTE_ADDR'] = $ip;
+		$ip                           = '1.1.1.1';
+		$ip2                          = '2.2.2.2';
+		$time                         = time();
+		$login_interval               = 15;
+		$login_data[ $ip ][]          = $time - $login_interval * MINUTE_IN_SECONDS;
+		$login_data[ $ip ][]          = $time - 20;
+		$login_data[ $ip ][]          = $time - 10;
+		$login_data[ $ip2 ][]         = $time - $login_interval * MINUTE_IN_SECONDS - 5;
+		$login_data[ $ip2 ][]         = $time - 25;
+		$login_data[ $ip2 ][]         = $time - 15;
+		$expected_login_data          = $login_data;
+		$expected_login_data[ $ip ][] = $time;
+		$username                     = 'test_username';
+		$_SERVER['REMOTE_ADDR']       = $ip;
+
+		array_shift( $expected_login_data[ $ip ] );
+		array_shift( $expected_login_data[ $ip2 ] );
+
+		update_option( 'hcaptcha_settings', [ 'login_interval' => $login_interval ] );
+		update_option( LoginBase::LOGIN_DATA, $login_data );
 
 		$subject = new Login();
 
@@ -107,10 +127,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject->login_failed( $username, null );
 
-		$login_data[ $ip ][] = $time;
-
-		self::assertSame( $login_data, $this->get_protected_property( $subject, 'login_data' ) );
-		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+		self::assertSame( $expected_login_data, $this->get_protected_property( $subject, 'login_data' ) );
+		self::assertSame( $expected_login_data, get_option( LoginBase::LOGIN_DATA ) );
 	}
 
 	/**
