@@ -18,9 +18,9 @@ use HCaptcha\WC\Checkout;
 /**
  * Test Checkout class.
  *
- * WooCommerce requires PHP 7.3.
+ * WooCommerce requires PHP 7.4.
  *
- * @requires PHP >= 7.3
+ * @requires PHP >= 7.4
  *
  * @group    wc-checkout
  * @group    wc
@@ -39,7 +39,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection*/
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		if ( function_exists( 'wc_clear_notices' ) ) {
+		if ( did_action( 'woocommerce_init' ) ) {
 			wc_clear_notices();
 		}
 

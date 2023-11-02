@@ -805,23 +805,6 @@ class AMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test declare_wc_compatibility().
-	 *
-	 * @return void
-	 */
-	public function test_declare_wc_compatibility() {
-		$declare_compatibility = FunctionMocker::replace(
-			'Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility',
-			true
-		);
-
-		$subject = new Main();
-		$subject->declare_wc_compatibility();
-
-		$declare_compatibility->wasCalledWithOnce( [ 'custom_order_tables', HCAPTCHA_FILE, true ] );
-	}
-
-	/**
 	 * Test whitelist_ip().
 	 *
 	 * @param mixed        $whitelisted_ips Settings.

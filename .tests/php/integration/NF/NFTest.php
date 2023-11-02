@@ -14,6 +14,10 @@ use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test ninja-forms-hcaptcha.php file.
+ *
+ * Ninja Forms requires PHP 7.2.
+ *
+ * @requires PHP >= 7.2
  */
 class NFTest extends HCaptchaPluginWPTestCase {
 

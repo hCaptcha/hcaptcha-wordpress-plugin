@@ -44,4 +44,30 @@ class MainTest extends HCaptchaTestCase {
 
 		self::assertTrue( $mock->is_xml_rpc() );
 	}
+	/**
+	 * Test declare_wc_compatibility().
+	 *
+	 * @return void
+	 * @noinspection UnusedFunctionResultInspection
+	 */
+	public function test_declare_wc_compatibility() {
+		$mock = Mockery::mock( 'alias:Automattic\WooCommerce\Utilities\FeaturesUtil' );
+		$mock->shouldReceive( 'declare_compatibility' )
+			->with( 'custom_order_tables', HCAPTCHA_TEST_FILE, true )
+			->andReturn( true );
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				if ( 'HCAPTCHA_FILE' === $name ) {
+					return HCAPTCHA_TEST_FILE;
+				}
+
+				return '';
+			}
+		);
+
+		$subject = new Main();
+		$subject->declare_wc_compatibility();
+	}
 }

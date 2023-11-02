@@ -13,9 +13,9 @@ use HCaptcha\WCWishlists\CreateList;
 /**
  * Test CreateList class.
  *
- * WooCommerce requires PHP 7.3.
+ * WooCommerce requires PHP 7.4.
  *
- * @requires PHP >= 7.3
+ * @requires PHP >= 7.4
  *
  * @group    wcwishlist
  */

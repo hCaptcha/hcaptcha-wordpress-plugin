@@ -542,11 +542,10 @@ class Main {
 	 * Declare compatibility with WC features.
 	 *
 	 * @return void
-	 * @noinspection PhpExpressionResultUnusedInspection
 	 */
 	public function declare_wc_compatibility() {
 		if ( class_exists( FeaturesUtil::class ) ) {
-			FeaturesUtil::declare_compatibility( 'custom_order_tables', HCAPTCHA_FILE, true );
+			FeaturesUtil::declare_compatibility( 'custom_order_tables', constant( 'HCAPTCHA_FILE' ), true );
 		}
 	}
 
