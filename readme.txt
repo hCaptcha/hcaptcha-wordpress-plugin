@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
-Tested up to: 6.3
+Tested up to: 6.4
 Requires PHP: 7.0.0
 Stable tag: 3.3.3
 License: GPLv2 or later
@@ -525,7 +525,9 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.4.0 =
-* Fixed compatibility with HPOS in WooCommerce
+* Tested with WordPress 6.4.
+* Tested with WooCommerce 8.2.
+* Fixed compatibility with HPOS in WooCommerce.
 
 = 3.3.3 =
 * Added compatibility with LearnDash.
