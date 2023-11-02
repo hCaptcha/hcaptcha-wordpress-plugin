@@ -527,8 +527,9 @@ Instructions for popular native integrations are below:
 = 3.4.0 =
 * Tested with WordPress 6.4.
 * Tested with WooCommerce 8.2.
+* Added purging of old failed login data to keep the `hcaptcha_login_data` option size small.
 * Fixed compatibility with HPOS in WooCommerce.
-* Fixed fatal error caused by broken backward compatibility in Ultimate Member 2.7.0.
+* Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.
 
 = 3.3.3 =
 * Added compatibility with LearnDash.
