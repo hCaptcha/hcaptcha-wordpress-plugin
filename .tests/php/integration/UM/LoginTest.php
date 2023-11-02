@@ -247,7 +247,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 		UM()->form()->errors = [ 'hcaptcha' => $error_message ];
 
-		$expected .= "<div class=\"um-field-error\"><span class=\"um-field-arrow\"><i class=\"um-faicon-caret-up\"></i></span>$error_message</div>";
+		$expected .= "<div class=\"um-field-error\" id=\"um-error-for-hcaptcha\"><span class=\"um-field-arrow\"><i class=\"um-faicon-caret-up\"></i></span>$error_message</div>";
 
 		self::assertSame( $expected, $subject->display_captcha( $output, $mode ) );
 	}
