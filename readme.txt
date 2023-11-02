@@ -528,6 +528,7 @@ Instructions for popular native integrations are below:
 * Tested with WordPress 6.4.
 * Tested with WooCommerce 8.2.
 * Fixed compatibility with HPOS in WooCommerce.
+* Fixed fatal error caused by broken backward compatibility in Ultimate Member 2.7.0.
 
 = 3.3.3 =
 * Added compatibility with LearnDash.
