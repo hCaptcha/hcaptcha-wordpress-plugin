@@ -39,18 +39,10 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
 
-      - name: Setup Composer caching
+      - name: Install dependencies with caching
         uses: ramsey/composer-install@v2
         with:
           working-directory: ${{ env.wp-plugin-directory }}
-
-      - name: Install dependencies
-        working-directory: ${{ env.wp-plugin-directory }}
-        run: |
-          composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install
-        env:
-          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run code sniffer
         working-directory: ${{ env.wp-plugin-directory }}
