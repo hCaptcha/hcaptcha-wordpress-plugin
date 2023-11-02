@@ -84,7 +84,7 @@ abstract class LoginBase {
 	public function login( string $user_login, WP_User $user ) {
 		unset( $this->login_data[ $this->ip ] );
 
-		update_option( self::LOGIN_DATA, $this->login_data );
+		update_option( self::LOGIN_DATA, $this->login_data, false );
 	}
 
 	/**
@@ -100,7 +100,7 @@ abstract class LoginBase {
 	public function login_failed( string $username, $error = null ) {
 		$this->login_data[ $this->ip ][] = time();
 
-		update_option( self::LOGIN_DATA, $this->login_data );
+		update_option( self::LOGIN_DATA, $this->login_data, false );
 	}
 
 	/**
