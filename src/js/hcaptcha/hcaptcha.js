@@ -6,9 +6,10 @@
 
 class HCaptcha {
 	constructor() {
-		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form';
-		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit), #check_config, a.fl-button span, button[type="button"].ff-btn,' +
-			' a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit, .frm_button_submit';
+		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item';
+		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit), #check_config, a.fl-button span,' +
+			' button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit,' +
+			' .frm_button_submit, a.sdm_download';
 		this.foundForms = [];
 		this.params = null;
 		this.callback = this.callback.bind( this );

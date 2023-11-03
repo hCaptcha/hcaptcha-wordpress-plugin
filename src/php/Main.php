@@ -897,6 +897,11 @@ class Main {
 				'mailin/sendinblue.php',
 				Sendinblue::class,
 			],
+			'Simple Download Monitor'           => [
+				[ 'simple_download_monitor_status', 'form' ],
+				'simple-download-monitor/main.php',
+				SimpleDownloadMonitor\Form::class,
+			],
 			'Subscriber'                        => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
