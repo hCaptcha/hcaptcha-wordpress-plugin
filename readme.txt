@@ -463,10 +463,11 @@ For more details, please see the hCaptcha privacy policy at:
 * Jetpack Forms
 * Kadence Form
 * Kadence Advanced Form
-* LearnDash Login Form.
-* LearnDash Lost Password Form.
-* LearnDash Register Form.
+* LearnDash Login Form
+* LearnDash Lost Password Form
+* LearnDash Register Form
 * Mailchimp for WP Form
+* MailPoet Form
 * MemberPress Login Form
 * MemberPress Register Form
 * Ninja Forms
@@ -527,6 +528,7 @@ Instructions for popular native integrations are below:
 = 3.4.0 =
 * Tested with WordPress 6.4.
 * Tested with WooCommerce 8.2.
+* Added MailPoet integration.
 * Added purging of old failed login data to keep the `hcaptcha_login_data` option size small.
 * Fixed compatibility with HPOS in WooCommerce.
 * Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.

@@ -872,6 +872,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'Form',
 						],
 				],
+			'mailpoet_status'               => [
+				'label'   => 'MailPoet',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'memberpress_status'            =>
 				[
 					'label'   => 'MemberPress',
