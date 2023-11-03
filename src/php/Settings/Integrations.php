@@ -266,6 +266,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'mailpoet_status'               => [
+				'label'   => 'MailPoet',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'memberpress_status'            => [
 				'label'   => 'MemberPress',
 				'type'    => 'checkbox',

@@ -832,6 +832,11 @@ class Main {
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				Mailchimp\Form::class,
 			],
+			'MailPoet'                          => [
+				[ 'mailpoet_status', 'form' ],
+				'mailpoet/mailpoet.php',
+				MailPoet\Form::class,
+			],
 			'MemberPress Login'                 => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',
