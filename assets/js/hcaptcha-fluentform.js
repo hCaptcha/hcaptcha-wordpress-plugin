@@ -41,8 +41,7 @@ document.addEventListener( 'hCaptchaLoaded', function() {
 			window.hCaptchaBindEvents();
 		};
 
-		// eslint-disable-next-line no-unused-vars
-		const mutationObserverCallback = ( mutationList, observer ) => {
+		const mutationObserverCallback = ( mutationList ) => {
 			for ( const mutation of mutationList ) {
 				if (
 					! (
@@ -84,8 +83,7 @@ document.addEventListener( 'hCaptchaLoaded', function() {
 				return resolve( document.querySelector( selector ) );
 			}
 
-			// eslint-disable-next-line no-unused-vars
-			const observer = new MutationObserver( ( mutations ) => {
+			const observer = new MutationObserver( () => {
 				if ( document.querySelector( selector ) ) {
 					resolve( document.querySelector( selector ) );
 					observer.disconnect();
@@ -131,8 +129,7 @@ document.addEventListener( 'hCaptchaLoaded', function() {
 	t.parentNode.insertBefore( s, t );
 
 	// Process form not having own hCaptcha.
-	// eslint-disable-next-line no-unused-vars
-	waitForElement( formSelector + ' .vff-footer' ).then( ( el ) => {
+	waitForElement( formSelector + ' .vff-footer' ).then( () => {
 		// Launch our form-related code when conversational form is rendered.
 		processForm();
 	} );

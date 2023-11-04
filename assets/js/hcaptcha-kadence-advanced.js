@@ -4,8 +4,7 @@ window.fetch = new Proxy( window.fetch, {
 		const result = Reflect.apply( actualFetch, that, args );
 
 		// noinspection JSUnusedLocalSymbols
-		// eslint-disable-next-line no-unused-vars
-		result.finally( ( response ) => {
+		result.finally( () => {
 			// @param {FormData} body
 			const body = args[ 1 ].body;
 

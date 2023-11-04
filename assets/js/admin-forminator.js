@@ -37,8 +37,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		subtree: true,
 	};
 
-	// eslint-disable-next-line no-unused-vars
-	const callback = ( mutationList, observer ) => {
+	const callback = ( mutationList ) => {
 		for ( const mutation of mutationList ) {
 			if (
 				! (
