@@ -6,7 +6,7 @@ global.jQuery = $;
 global.$ = $;
 
 // Import the script you want to test
-require( '../../../assets/js/hcaptcha-wc' );
+require( '../../../assets/js/hcaptcha-wc-checkout' );
 
 // Simulate jQuery.ready
 window.hCaptchaWC( $ );
