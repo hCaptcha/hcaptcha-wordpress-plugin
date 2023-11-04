@@ -724,7 +724,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'options' =>
 						[
 							'create_group' => 'Create Group Form',
-							'registration' => 'Registration Form',
+							'registration' => 'Register Form',
 						],
 				],
 			'classified_listing_status'        => [
@@ -783,6 +783,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'checkout'  => 'Checkout Form',
 					'login'     => 'Login Form',
 					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
 				],
 			],
 			'elementor_pro_status'             =>
@@ -888,7 +889,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'options' =>
 						[
 							'login'    => 'Login Form',
-							'register' => 'Registration Form',
+							'register' => 'Register Form',
 						],
 				],
 			'ninja_status'                     =>
@@ -1021,7 +1022,7 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'          => 'Login Form',
 							'lost_pass'      => 'Lost Password Form',
 							'order_tracking' => 'Order Tracking Form',
-							'register'       => 'Registration Form',
+							'register'       => 'Register Form',
 						],
 				],
 			'woocommerce_wishlists_status'     =>

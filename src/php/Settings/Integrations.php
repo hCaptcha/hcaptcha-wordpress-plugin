@@ -140,7 +140,7 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'create_group' => __( 'Create Group Form', 'hcaptcha-for-forms-and-more' ),
-					'registration' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
+					'registration' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'classified_listing_status'        => [
@@ -193,6 +193,7 @@ class Integrations extends PluginSettingsBase {
 					'checkout'  => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'elementor_pro_status'             => [
@@ -280,7 +281,7 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'register' => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'ninja_status'                     => [
@@ -398,7 +399,7 @@ class Integrations extends PluginSettingsBase {
 					'login'          => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass'      => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'order_tracking' => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
-					'register'       => __( 'Registration Form', 'hcaptcha-for-forms-and-more' ),
+					'register'       => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'woocommerce_wishlists_status'     => [

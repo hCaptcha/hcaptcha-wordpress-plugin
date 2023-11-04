@@ -205,7 +205,7 @@ $form_id: post_id of download item in the admin.
 
 Easy Digital Downloads
 $source: 'easy-digital-downloads/easy-digital-downloads.php'
-$form_id: 'checkout', 'login' or 'lost_password'
+$form_id: 'checkout', 'login', 'lost_password' or 'register'
 
 Elementor Pro
 $source: 'elementor-pro/elementor-pro.php'
@@ -456,6 +456,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Easy Digital Downloads Checkout Form
 * Easy Digital Downloads Login Form
 * Easy Digital Downloads Lost Password Form
+* Easy Digital Downloads Register Form
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
@@ -540,6 +541,7 @@ Instructions for popular native integrations are below:
 * Added Simple Basic Contact Form integration.
 * Added Easy Digital Downloads Login Form integration.
 * Added Easy Digital Downloads Lost Password Form integration.
+* Added Easy Digital Downloads Register Form integration.
 * Added purging of old failed login data to keep the `hcaptcha_login_data` option size small.
 * Fixed compatibility with HPOS in WooCommerce.
 * Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.

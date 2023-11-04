@@ -109,7 +109,6 @@ class Login {
 			'';
 
 		if ( 'user_login' !== $post_value ) {
-			// Submitted lost password form cannot be handled by this class.
 			return $errors;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing

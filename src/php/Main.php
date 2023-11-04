@@ -806,6 +806,11 @@ class Main {
 				'easy-digital-downloads/easy-digital-downloads.php',
 				EasyDigitalDownloads\LostPassword::class,
 			],
+			'Easy Digital Downloads Register'      => [
+				[ 'easy_digital_downloads_status', 'register' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				EasyDigitalDownloads\Register::class,
+			],
 			'Elementor Pro Form'                   => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
@@ -861,7 +866,7 @@ class Main {
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\LostPassword::class,
 			],
-			'LearnDash Registration Form'          => [
+			'LearnDash Register Form'              => [
 				[ 'learn_dash_status', 'register' ],
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Register::class,

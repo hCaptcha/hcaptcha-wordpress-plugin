@@ -13,17 +13,17 @@ use WP_Block;
 /**
  * Class Form.
  */
-class LostPassword {
+class Register {
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_easy_digital_downloads_lostpassword';
+	const ACTION = 'hcaptcha_easy_digital_downloads_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_easy_digital_downloads_lostpassword_nonce';
+	const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
 
 	/**
 	 * Form constructor.
@@ -53,7 +53,7 @@ class LostPassword {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $block_content, array $block, WP_Block $instance ): string {
-		if ( 'edd/login' !== $block['blockName'] || ! did_action( 'edd_lost_password_fields_after' ) ) {
+		if ( 'edd/register' !== $block['blockName'] || ! did_action( 'edd_register_form_fields_after' ) ) {
 			return $block_content;
 		}
 
@@ -62,13 +62,15 @@ class LostPassword {
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
+				'form_id' => 'register',
 			],
 		];
 
-		return preg_replace(
-			'#(<div class="edd-blocks-form__group edd-blocks-form__group-submit">[\s\S]*?<input id="edd_lost_password_submit")#',
-			'<div class="edd-blocks-form__group">' . HCaptcha::form( $args ) . '</div>$1',
+		$search = '<div class="edd-blocks-form__group edd-blocks-form__group-submit reset-pass-submit">';
+
+		return str_replace(
+			$search,
+			'<div class="edd-blocks-form__group">' . HCaptcha::form( $args ) . '</div>' . $search,
 			(string) $block_content
 		);
 	}
@@ -86,7 +88,7 @@ class LostPassword {
 			sanitize_text_field( wp_unslash( $_POST['edd_action'] ) ) :
 			'';
 
-		if ( 'user_lost_password' !== $post_value ) {
+		if ( 'user_register' !== $post_value ) {
 			return $errors;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
@@ -96,9 +98,6 @@ class LostPassword {
 		if ( null === $error_message ) {
 			return $errors;
 		}
-
-		// Prevent lost password action.
-		remove_action( 'edd_user_lost_password', 'edd_handle_lost_password_request' );
 
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 

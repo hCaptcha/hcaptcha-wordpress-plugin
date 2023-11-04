@@ -71,7 +71,6 @@ class Checkout {
 			'';
 
 		if ( 'edd_process_checkout' !== $post_value ) {
-			// Submitted lost password form cannot be handled by this class.
 			return $errors;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
