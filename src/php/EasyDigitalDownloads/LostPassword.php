@@ -26,13 +26,6 @@ class LostPassword {
 	const NONCE = 'hcaptcha_easy_digital_downloads_lostpassword_nonce';
 
 	/**
-	 * The hCaptcha error message.
-	 *
-	 * @var string|null
-	 */
-	private $error_message;
-
-	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -99,19 +92,19 @@ class LostPassword {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$this->error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
-		if ( null === $this->error_message ) {
+		if ( null === $error_message ) {
 			return $errors;
 		}
 
 		// Prevent lost password action.
 		remove_action( 'edd_user_lost_password', 'edd_handle_lost_password_request' );
 
-		$code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		$errors          = $errors ? (array) $errors : [];
-		$errors[ $code ] = $this->error_message;
+		$errors[ $code ] = $error_message;
 
 		return $errors;
 	}
