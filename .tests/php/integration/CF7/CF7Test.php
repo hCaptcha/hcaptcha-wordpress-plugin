@@ -73,7 +73,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<input type="submit" value="Send">' .
 			'</form>';
 		$tag               = 'contact-form-7';
-		$attr              = [];
+		$form_id           = 177;
+		$attr              = [ 'id' => $form_id ];
 		$m                 = [
 			'[contact-form-7 id="177" title="Contact form 1"]',
 			'',
@@ -130,8 +131,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
 
-		$output   = str_replace( '<input', '[cf7-hcaptcha]<input', $output );
-		$expected = str_replace( '<br>', '', $expected );
+		$output = str_replace( '<input', '[cf7-hcaptcha]<input', $output );
+
+		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
+
+		$output = str_replace( '[cf7-hcaptcha]', '[cf7-hcaptcha form_id=' . $form_id . ']', $output );
 
 		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
 	}
@@ -146,6 +150,81 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'visible'   => [ 'normal' ],
 			'invisible' => [ 'invisible' ],
 		];
+	}
+
+	/**
+	 * Test wpcf7_shortcode() when NOT active.
+	 */
+	public function test_wpcf7_shortcode_when_NOT_active() {
+		$output            =
+			'<form>' .
+			'<input type="submit" value="Send">' .
+			'</form>';
+		$form_id           = 177;
+		$tag               = 'contact-form-7';
+		$attr              = [ 'id' => $form_id ];
+		$m                 = [
+			'[contact-form-7 id="' . $form_id . '" title="Contact form 1"]',
+			'',
+			'contact-form-7',
+			'id="177" title="Contact form 1"',
+			'',
+			'',
+			'',
+		];
+		$uniqid            = 'hcap_cf7-6004092a854114.24546665';
+		$nonce             = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
+		$hcaptcha_site_key = 'some site key';
+		$hcaptcha_theme    = 'some theme';
+		$hcaptcha_size     = 'normal';
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key' => $hcaptcha_site_key,
+				'theme'    => $hcaptcha_theme,
+				'size'     => $hcaptcha_size,
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
+		add_filter(
+			'hcap_protect_form',
+			static function ( $value, $source, $id ) use ( $form_id ) {
+				if ( (int) $id === $form_id && in_array( 'contact-form-7/wp-contact-form-7.php', $source, true ) ) {
+					return false;
+				}
+
+				return $value;
+			},
+			10,
+			3
+		);
+
+		FunctionMocker::replace(
+			'uniqid',
+			static function ( $prefix, $more_entropy ) use ( $uniqid ) {
+				if ( 'hcap_cf7-' === $prefix && $more_entropy ) {
+					return $uniqid;
+				}
+
+				return null;
+			}
+		);
+
+		$encoded_id = 'eyJzb3VyY2UiOlsiY29udGFjdC1mb3JtLTdcL3dwLWNvbnRhY3QtZm9ybS03LnBocCJdLCJmb3JtX2lkIjoiMTc3In0=';
+		$hash       = wp_hash( $encoded_id );
+		$expected   = '<form>				<input
+					type="hidden"
+					class="hcaptcha-widget-id"
+					name="hcaptcha-widget-id"
+					value="' . $encoded_id . '-' . $hash . '">
+				<input type="submit" value="Send"></form>';
+
+		$subject = new CF7();
+
+		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
 	}
 
 	/**
