@@ -190,8 +190,9 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Easy Digital Downloads',
 				'type'    => 'checkbox',
 				'options' => [
-					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
-					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'checkout'  => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'elementor_pro_status'             => [

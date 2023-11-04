@@ -780,8 +780,9 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Easy Digital Downloads',
 				'type'    => 'checkbox',
 				'options' => [
-					'checkout' => 'Checkout Form',
-					'login'    => 'Login Form',
+					'checkout'  => 'Checkout Form',
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
 				],
 			],
 			'elementor_pro_status'             =>

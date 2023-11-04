@@ -13,17 +13,17 @@ use WP_Block;
 /**
  * Class Form.
  */
-class Login {
+class LostPassword {
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_easy_digital_downloads_login';
+	const ACTION = 'hcaptcha_easy_digital_downloads_lostpassword';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_easy_digital_downloads_login_nonce';
+	const NONCE = 'hcaptcha_easy_digital_downloads_lostpassword_nonce';
 
 	/**
 	 * The hCaptcha error message.
@@ -46,8 +46,7 @@ class Login {
 	 */
 	private function init_hooks() {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
-		add_action( 'edd_user_login', [ $this, 'verify' ], 9 );
-		add_filter( 'edd_errors', [ $this, 'errors' ] );
+		add_filter( 'edd_errors', [ $this, 'verify' ] );
 	}
 
 	/**
@@ -61,7 +60,7 @@ class Login {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $block_content, array $block, WP_Block $instance ): string {
-		if ( 'edd/login' !== $block['blockName'] || ! did_action( 'edd_login_fields_after' ) ) {
+		if ( 'edd/login' !== $block['blockName'] || ! did_action( 'edd_lost_password_fields_after' ) ) {
 			return $block_content;
 		}
 
@@ -70,12 +69,12 @@ class Login {
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
+				'form_id' => 'lost_password',
 			],
 		];
 
 		return preg_replace(
-			'#(<div class="edd-blocks-form__group edd-blocks-form__group-submit">[\s\S]*?<input id="edd_login_submit")#',
+			'#(<div class="edd-blocks-form__group edd-blocks-form__group-submit">[\s\S]*?<input id="edd_lost_password_submit")#',
 			'<div class="edd-blocks-form__group">' . HCaptcha::form( $args ) . '</div>$1',
 			(string) $block_content
 		);
@@ -84,39 +83,30 @@ class Login {
 	/**
 	 * Verify login form.
 	 *
-	 * @return void
-	 */
-	public function verify() {
-		$this->error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
-
-		if ( null !== $this->error_message ) {
-			// Prevent login.
-			remove_action( 'edd_user_login', 'edd_process_login_form' );
-		}
-	}
-
-	/**
-	 * Process errors.
-	 *
 	 * @param array|mixed $errors Errors.
 	 *
 	 * @return array|mixed
 	 */
-	public function errors( $errors ) {
+	public function verify( $errors ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_value = isset( $_POST['edd_action'] ) ?
 			sanitize_text_field( wp_unslash( $_POST['edd_action'] ) ) :
 			'';
 
-		if ( 'user_login' !== $post_value ) {
+		if ( 'user_lost_password' !== $post_value ) {
 			// Submitted lost password form cannot be handled by this class.
 			return $errors;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
+		$this->error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+
 		if ( null === $this->error_message ) {
 			return $errors;
 		}
+
+		// Prevent lost password action.
+		remove_action( 'edd_user_lost_password', 'edd_handle_lost_password_request' );
 
 		$code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
