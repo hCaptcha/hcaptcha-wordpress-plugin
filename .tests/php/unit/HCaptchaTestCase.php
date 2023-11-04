@@ -781,6 +781,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout' => 'Checkout Form',
+					'login'    => 'Login Form',
 				],
 			],
 			'elementor_pro_status'             =>

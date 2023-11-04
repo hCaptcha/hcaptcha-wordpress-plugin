@@ -191,6 +191,7 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'elementor_pro_status'             => [

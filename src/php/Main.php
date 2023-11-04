@@ -767,6 +767,11 @@ class Main {
 				'easy-digital-downloads/easy-digital-downloads.php',
 				EasyDigitalDownloads\Checkout::class,
 			],
+			'Easy Digital Downloads Login'      => [
+				[ 'easy_digital_downloads_status', 'login' ],
+				'easy-digital-downloads/easy-digital-downloads.php',
+				EasyDigitalDownloads\Login::class,
+			],
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',

@@ -205,7 +205,7 @@ $form_id: post_id of download item in the admin.
 
 Easy Digital Downloads
 $source: 'easy-digital-downloads/easy-digital-downloads.php'
-$form_id: checkout.
+$form_id: 'checkout' or 'login'
 
 Elementor Pro
 $source: 'elementor-pro/elementor-pro.php'
@@ -453,6 +453,8 @@ For more details, please see the hCaptcha privacy policy at:
 * Divi Email Optin Form
 * Divi Login Form
 * Download Manager Button
+* Easy Digital Downloads Checkout Form
+* Easy Digital Downloads Login Form
 * Elementor Pro Form
 * Fluent Forms
 * Forminator
@@ -534,7 +536,8 @@ Instructions for popular native integrations are below:
 * Added MailPoet integration.
 * Added Simple Download Monitor integration.
 * Added WP Job Openings integration.
-* Added Simple Basic Contact Form Integration.
+* Added Simple Basic Contact Form integration.
+* Added Easy Digital Downloads Login Form integration.
 * Added purging of old failed login data to keep the `hcaptcha_login_data` option size small.
 * Fixed compatibility with HPOS in WooCommerce.
 * Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.
