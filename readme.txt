@@ -535,6 +535,7 @@ Instructions for popular native integrations are below:
 * Fixed compatibility with HPOS in WooCommerce.
 * Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.
 * Fixed SystemInfo on multisite.
+* Fixed missing dependency of WooCommerce checkout script.
 
 = 3.3.3 =
 * Added compatibility with LearnDash.
