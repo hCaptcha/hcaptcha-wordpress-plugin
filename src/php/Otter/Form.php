@@ -5,9 +5,6 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedClassInspection */
-
 namespace HCaptcha\Otter;
 
 /**
@@ -32,8 +29,8 @@ class Form {
 		add_filter( 'default_option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 99, 3 );
 		add_filter( 'option_themeisle_google_captcha_api_secret_key', [ $this, 'replace_secret_key' ], 10, 2 );
 		add_filter( 'default_option_themeisle_google_captcha_api_secret_key', [ $this, 'replace_secret_key' ], 99, 3 );
-		add_filter( 'otter_blocks_recaptcha_verify_url', [ $this, 'replace_verify_url' ], 10, 1 );
-		add_filter( 'otter_blocks_recaptcha_api_url', [ $this, 'replace_api_url' ], 10, 1 );
+		add_filter( 'otter_blocks_recaptcha_verify_url', [ $this, 'replace_verify_url' ] );
+		add_filter( 'otter_blocks_recaptcha_api_url', [ $this, 'replace_api_url' ] );
 	}
 
 	/**
