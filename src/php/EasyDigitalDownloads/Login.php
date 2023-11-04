@@ -13,8 +13,6 @@
 namespace HCaptcha\EasyDigitalDownloads;
 
 use HCaptcha\Helpers\HCaptcha;
-use MailPoet\API\JSON\API;
-use MailPoet\API\JSON\Response;
 use WP_Block;
 
 /**
