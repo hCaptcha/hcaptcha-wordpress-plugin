@@ -8,7 +8,7 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
-// phpcs:disable Generic.Commenting.DocComment.MissingShort
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\EasyDigitalDownloads;
 
