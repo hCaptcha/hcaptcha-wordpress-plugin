@@ -481,6 +481,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Quform Forms
 * Sendinblue Form
 * Simple Download Monitor Form
+* Simple Basic Contact Form
 * Subscriber Form
 * Support Candy New Ticket Form
 * Theme My Login Login Form
@@ -533,6 +534,7 @@ Instructions for popular native integrations are below:
 * Added MailPoet integration.
 * Added Simple Download Monitor integration.
 * Added WP Job Openings integration.
+* Added Simple Basic Contact Form Integration.
 * Added purging of old failed login data to keep the `hcaptcha_login_data` option size small.
 * Fixed compatibility with HPOS in WooCommerce.
 * Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.

@@ -897,6 +897,11 @@ class Main {
 				'mailin/sendinblue.php',
 				Sendinblue::class,
 			],
+			'Simple Basic Contact Form'         => [
+				[ 'simple_basic_contact_form_status', 'form' ],
+				'simple-basic-contact-form/simple-basic-contact-form.php',
+				SimpleBasicContactForm\Form::class,
+			],
 			'Simple Download Monitor'           => [
 				[ 'simple_download_monitor_status', 'form' ],
 				'simple-download-monitor/main.php',
