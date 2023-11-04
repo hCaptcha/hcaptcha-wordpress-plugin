@@ -430,6 +430,13 @@ class Integrations extends PluginSettingsBase {
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'wp_job_openings_status'         => [
+				'label'   => 'WP Job Openings',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 	}
 

@@ -992,6 +992,11 @@ class Main {
 				[ 'wordfence/wordfence.php', 'wordfence-login-security/wordfence-login-security.php' ],
 				Wordfence\General::class,
 			],
+			'WP Job Openings'                   => [
+				[ 'wp_job_openings_status', 'form' ],
+				'wp-job-openings/wp-job-openings.php',
+				WPJobOpenings\Form::class,
+			],
 			'WPForms Lite'                      => [
 				[ 'wpforms_status', 'lite' ],
 				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],

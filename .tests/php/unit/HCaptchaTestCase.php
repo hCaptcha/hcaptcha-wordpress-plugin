@@ -1061,6 +1061,14 @@ abstract class HCaptchaTestCase extends TestCase {
 							'reply'     => 'Reply Form',
 						],
 				],
+			'wp_job_openings_status'         =>
+				[
+					'label'   => 'WP Job Openings',
+					'type'    => 'checkbox',
+					'options' => [
+						'form' => 'Form',
+					],
+				],
 		];
 	}
 }

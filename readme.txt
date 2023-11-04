@@ -500,7 +500,8 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Wishlist
 * Wordfence Security Login Form
 * Wordfence Login Security Login Form
-* WPForms Lite
+* WP Job Openings Form
+* WPForms Form
 * wpDiscuz Comment Form
 * wpDiscuz Support Form
 * wpForo New Topic Form
@@ -531,6 +532,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 8.2.
 * Added MailPoet integration.
 * Added Simple Download Monitor integration.
+* Added WP Job Openings integration.
 * Added purging of old failed login data to keep the `hcaptcha_login_data` option size small.
 * Fixed compatibility with HPOS in WooCommerce.
 * Fixed fatal error caused by broken backward compatibility in the Ultimate Member 2.7.0.
