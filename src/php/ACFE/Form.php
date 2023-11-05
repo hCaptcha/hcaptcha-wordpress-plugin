@@ -15,6 +15,11 @@ use HCaptcha\Helpers\HCaptcha;
 class Form {
 
 	/**
+	 * Script handle.
+	 */
+	const HANDLE = 'hcaptcha-acfe';
+
+	/**
 	 * Render hook.
 	 */
 	const RENDER_HOOK = 'acf/render_field/type=acfe_recaptcha';
@@ -29,7 +34,14 @@ class Form {
 	 *
 	 * @var int
 	 */
-	private $form_id = 0;
+	protected $form_id = 0;
+
+	/**
+	 * Captcha added.
+	 *
+	 * @var bool
+	 */
+	private $captcha_added = false;
 
 	/**
 	 * Form constructor.
@@ -49,7 +61,7 @@ class Form {
 		add_action( self::RENDER_HOOK, [ $this, 'add_hcaptcha' ], 11 );
 		add_filter( self::VALIDATION_HOOK, [ $this, 'remove_recaptcha_verify' ], 9, 4 );
 		add_filter( self::VALIDATION_HOOK, [ $this, 'verify' ], 11, 4 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -108,6 +120,8 @@ class Form {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $form;
+
+		$this->captcha_added = true;
 	}
 
 	/**
@@ -169,10 +183,14 @@ class Form {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
+		if ( ! $this->captcha_added ) {
+			return;
+		}
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'hcaptcha-acfe',
+			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-acfe$min.js",
 			[ 'jquery', 'hcaptcha' ],
 			HCAPTCHA_VERSION,

@@ -41,8 +41,6 @@ use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use ReflectionException;
 use stdClass;
-use tad\FunctionMocker\FunctionMocker;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test Main class.
@@ -52,7 +50,7 @@ use function PHPUnit\Framework\assertSame;
  * @group bp
  * @group subscriber
  */
-class AMainTest extends HCaptchaWPTestCase {
+class AAAMainTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Included components in test_load_modules().
@@ -85,6 +83,8 @@ class AMainTest extends HCaptchaWPTestCase {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 
 		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
+
+		delete_option( 'hcaptcha_settings' );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
