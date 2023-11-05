@@ -5,7 +5,7 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\Settings\Abstracts;
+namespace KAGG\Settings\Abstracts;
 
 /**
  * Interface SettingsInterface.

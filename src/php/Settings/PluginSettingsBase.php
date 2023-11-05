@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Settings;
 
-use HCaptcha\Settings\Abstracts\SettingsBase;
+use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
  * Class PluginSettingsBase
@@ -15,6 +15,11 @@ use HCaptcha\Settings\Abstracts\SettingsBase;
  * Extends general SettingsBase suitable for any plugin with current plugin related methods.
  */
 abstract class PluginSettingsBase extends SettingsBase {
+
+	/**
+	 * Plugin prefix.
+	 */
+	const PREFIX = 'hcaptcha';
 
 	/**
 	 * Constructor.

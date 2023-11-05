@@ -12,7 +12,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
-use HCaptcha\Settings\Abstracts\SettingsBase;
+use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;

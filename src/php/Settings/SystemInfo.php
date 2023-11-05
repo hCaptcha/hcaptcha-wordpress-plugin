@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Settings;
 
-use HCaptcha\Settings\Abstracts\SettingsBase;
+use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
  * Class SystemInfo

@@ -10,8 +10,8 @@
 
 namespace HCaptcha\Settings;
 
-use HCaptcha\Settings\Abstracts\SettingsBase;
-use HCaptcha\Settings\Abstracts\SettingsInterface;
+use KAGG\Settings\Abstracts\SettingsBase;
+use KAGG\Settings\Abstracts\SettingsInterface;
 
 /**
  * Class Settings

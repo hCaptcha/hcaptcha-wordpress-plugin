@@ -15,7 +15,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings\Abstracts;
 
-use HCaptcha\Settings\Abstracts\SettingsBase;
+use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use PHPUnit\Runner\Version;
@@ -258,12 +258,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			version_compare( substr( Version::id(), 0, 1 ), '7', '>=' )
 		) {
 			self::assertStringContainsString(
-				'HCaptcha_Settings_Abstracts_SettingsBase',
+				'KAGG_Settings_Abstracts_SettingsBase',
 				$subject->$method()
 			);
 		} else {
 			self::assertContains(
-				'HCaptcha_Settings_Abstracts_SettingsBase',
+				'KAGG_Settings_Abstracts_SettingsBase',
 				$subject->$method()
 			);
 		}
@@ -507,7 +507,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
-				SettingsBase::HANDLE,
+				SettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
 				$plugin_url . '/assets/css/settings-base.css',
 				[],
 				$plugin_version
@@ -656,11 +656,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'add_query_arg' )
 			->with( 'tab', strtolower( $tab_class_name ), $subject_url )->andReturn( $tab_url_arg );
 
-		$expected = '		<div class="hcaptcha-settings-tabs">
-					<a class="hcaptcha-settings-tab active" href="http://test.test/wp-admin/admin.php?page=hcaptcha">
-			' . $subject_page_title . '		</a>
-				<a class="hcaptcha-settings-tab" href="http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations">
-			' . $tab_page_title . '		</a>
+		$expected = '		<div class="kagg-settings-tabs">
+					<a
+				class="kagg-settings-tab active"
+				href="http://test.test/wp-admin/admin.php?page=hcaptcha">
+			General		</a>
+				<a
+				class="kagg-settings-tab"
+				href="http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations">
+			Integrations		</a>
 				</div>
 		';
 
@@ -1641,12 +1645,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<fieldset >' .
-				'<div class="hcaptcha-table-cell">' .
+				'<div class="kagg-table-cell">' .
 				'<label for="some_id-0">ю</label>' .
 				'<input name="hcaptcha_settings[some_id][ю]"' .
 				' id="some_id-0" type="text" placeholder="" value="yu" class="regular-text" />' .
 				'</div>' .
-				'<div class="hcaptcha-table-cell">' .
+				'<div class="kagg-table-cell">' .
 				'<label for="some_id-1">я</label>' .
 				'<input name="hcaptcha_settings[some_id][я]"' .
 				' id="some_id-1" type="text" placeholder="" value="ya" class="regular-text" />' .
