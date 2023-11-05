@@ -142,12 +142,13 @@ abstract class LoginBase {
 	 * @return bool
 	 */
 	protected function is_login_limit_exceeded(): bool {
-		$now            = time();
-		$login_limit    = (int) hcaptcha()->settings()->get( 'login_limit' );
-		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );
-		$count          = count(
+		$now               = time();
+		$login_limit       = (int) hcaptcha()->settings()->get( 'login_limit' );
+		$login_interval    = (int) hcaptcha()->settings()->get( 'login_interval' );
+		$login_data_for_ip = $this->login_data[ $this->ip ] ?? [];
+		$count             = count(
 			array_filter(
-				$this->login_data[ $this->ip ],
+				$login_data_for_ip,
 				static function ( $time ) use ( $now, $login_interval ) {
 					return $time > $now - $login_interval * MINUTE_IN_SECONDS;
 				}
