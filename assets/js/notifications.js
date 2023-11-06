@@ -143,6 +143,7 @@ const notifications = ( $ ) => {
 			$( response.data ).insertBefore( sectionKeysSelector );
 
 			setButtons();
+			$( document ).trigger( 'wp-updates-notice-added' );
 		} );
 	} );
 
