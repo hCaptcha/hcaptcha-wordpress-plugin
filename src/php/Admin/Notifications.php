@@ -121,6 +121,12 @@ class Notifications {
 				],
 			],
 		];
+
+		$settings = hcaptcha()->settings();
+
+		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
+			unset( $this->notifications['register'] );
+		}
 	}
 
 	/**

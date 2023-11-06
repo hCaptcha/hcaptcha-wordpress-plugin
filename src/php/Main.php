@@ -124,9 +124,6 @@ class Main {
 	 * @return void
 	 */
 	public function init_hooks() {
-		$this->notifications = new Notifications();
-		$this->notifications->init();
-
 		$this->settings = new Settings(
 			[
 				'hCaptcha' => [
@@ -136,6 +133,9 @@ class Main {
 				],
 			]
 		);
+
+		$this->notifications = new Notifications();
+		$this->notifications->init();
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
 		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
