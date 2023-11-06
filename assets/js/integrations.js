@@ -53,12 +53,18 @@ const integrations = function( $ ) {
 
 	function insertIntoTable( $table, key, $element ) {
 		let inserted = false;
+		const lowerKey = key.toLowerCase();
 
 		$table
 			.find( 'tbody' )
 			.children()
 			.each( function( i, el ) {
-				if ( $( el ).attr( 'class' ) > key ) {
+				let alt = $( el ).find( '.hcaptcha-integrations-logo img' ).attr( 'alt' );
+				alt = alt ? alt : '';
+				alt = alt.replace( ' Logo', '' );
+				const lowerAlt = alt.toLowerCase();
+
+				if ( lowerAlt > lowerKey ) {
 					$element.insertBefore( $( el ) );
 					inserted = true;
 					return false;
@@ -130,7 +136,7 @@ const integrations = function( $ ) {
 				$fieldset.attr( 'disabled', ! activate );
 				$fieldset.find( 'input' ).attr( 'disabled', ! activate );
 				showSuccessMessage( response.data );
-				insertIntoTable( $table, 'hcaptcha-integrations-' + status, $tr );
+				insertIntoTable( $table, alt, $tr );
 				$( 'html, body' ).animate(
 					{
 						scrollTop: $tr.offset().top - top - $message.outerHeight(),
