@@ -70,6 +70,7 @@ class Notifications {
 	 *
 	 * @return void
 	 * @noinspection HtmlUnknownTarget
+	 * @noinspection NonSecureShuffleUsageInspection
 	 */
 	private function init_notifications() {
 		$hcaptcha_url              = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
@@ -77,6 +78,7 @@ class Notifications {
 		$pro_url                   = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$dashboard_url             = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$hcaptcha_vs_turnstile_url = 'https://www.hcaptcha.com/post/hcaptcha-vs-turnstile/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$hcaptcha_vs_recaptcha_url = 'https://www.hcaptcha.com/post/hcaptcha-vs-recaptcha/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 
 		$this->notifications = [
 			'register'              => [
@@ -123,17 +125,17 @@ class Notifications {
 			],
 			'hcaptcha-vs-turnstile' => [
 				'title'   => __( 'hCaptcha vs. Turnstile', 'hcaptcha-for-forms-and-more' ),
-				'message' => sprintf(
-				/* translators: 1: blog post link. */
-					__( 'Recently, our friends at Cloudflare introduced a bot defense product called Turnstile. How does it compare to hCaptcha? Read %1$s to find out.', 'hcaptcha-for-forms-and-more' ),
-					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$hcaptcha_vs_turnstile_url,
-						__( 'this post', 'hcaptcha-for-forms-and-more' )
-					)
-				),
+				'message' => __( 'Recently, our friends at Cloudflare introduced a bot defense product called Turnstile. How does it compare to hCaptcha?', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
 					'url'  => $hcaptcha_vs_turnstile_url,
+					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'hcaptcha-vs-recaptcha' => [
+				'title'   => __( 'hCaptcha vs. reCAPTCHA', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Why Organizations are Choosing hCaptcha over reCAPTCHA v2 and reCAPTCHA v3?', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $hcaptcha_vs_recaptcha_url,
 					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
