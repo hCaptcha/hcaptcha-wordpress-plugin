@@ -72,13 +72,14 @@ class Notifications {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	private function init_notifications() {
-		$hcaptcha_url  = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$register_url  = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$pro_url       = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$dashboard_url = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$hcaptcha_url              = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
+		$register_url              = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
+		$pro_url                   = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$dashboard_url             = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$hcaptcha_vs_turnstile_url = 'https://www.hcaptcha.com/post/hcaptcha-vs-turnstile/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 
 		$this->notifications = [
-			'register'       => [
+			'register'              => [
 				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha link, 2: register link. */
@@ -99,7 +100,7 @@ class Notifications {
 					'text' => __( 'Get site keys', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'pro-free-trial' => [
+			'pro-free-trial'        => [
 				'title'   => __( 'Try Pro for free', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha Pro link, 2: dashboard link. */
@@ -118,6 +119,22 @@ class Notifications {
 				'button'  => [
 					'url'  => $pro_url,
 					'text' => __( 'Try Pro', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'hcaptcha-vs-turnstile' => [
+				'title'   => __( 'hCaptcha vs. Turnstile', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: blog post link. */
+					__( 'Recently, our friends at Cloudflare introduced a bot defense product called Turnstile. How does it compare to hCaptcha? Read %1$s to find out.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$hcaptcha_vs_turnstile_url,
+						__( 'this post', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $hcaptcha_vs_turnstile_url,
+					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 		];
