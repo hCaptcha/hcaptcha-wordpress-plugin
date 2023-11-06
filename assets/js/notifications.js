@@ -86,8 +86,12 @@ const notifications = ( $ ) => {
 			id: $notification.data( 'id' ),
 		};
 
+		let next = $( notificationSelector ).index( $notification ) + 1;
+		next = next < $( notificationSelector ).length ? next : 0;
+		const $next = $( notificationSelector ).eq( next );
+
 		$notification.remove();
-		$( notificationSelector ).show();
+		$next.show();
 
 		setNavStatus();
 		setButtons();
