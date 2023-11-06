@@ -611,7 +611,7 @@ class Integrations extends PluginSettingsBase {
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/integrations$this->min_prefix.css",
-			[ SettingsBase::HANDLE ],
+			[  static::PREFIX . '-' . SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
