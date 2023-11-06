@@ -70,7 +70,6 @@ class Notifications {
 	 *
 	 * @return void
 	 * @noinspection HtmlUnknownTarget
-	 * @noinspection NonSecureShuffleUsageInspection
 	 */
 	private function init_notifications() {
 		$hcaptcha_url              = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
@@ -173,6 +172,8 @@ class Notifications {
 				<?php esc_html_e( 'Notifications', 'hcaptcha-for-forms-and-more' ); ?>
 			</div>
 			<?php
+
+			$notifications = $this->shuffle_assoc( $notifications );
 
 			foreach ( $notifications as $id => $notification ) {
 				if ( array_key_exists( $id, $dismissed ) ) {
@@ -357,5 +358,26 @@ class Notifications {
 		}
 
 		return delete_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY );
+	}
+
+	/**
+	 * Shuffle array retaining its keys.
+	 *
+	 * @param array $arr Array.
+	 *
+	 * @return array
+	 * @noinspection NonSecureShuffleUsageInspection
+	 */
+	private function shuffle_assoc( array $arr ): array {
+		$new_arr = [];
+		$keys    = array_keys( $arr );
+
+		shuffle( $keys );
+
+		foreach ( $keys as $key ) {
+			$new_arr[ $key ] = $arr[ $key ];
+		}
+
+		return $new_arr;
 	}
 }
