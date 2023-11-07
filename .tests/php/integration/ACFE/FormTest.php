@@ -32,6 +32,12 @@ class FormTest extends HCaptchaWPTestCase {
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset( $_POST['_acf_post_id'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
+
+		wp_dequeue_script( 'hcaptcha-acfe' );
+		wp_deregister_script( 'hcaptcha-acfe' );
+
 		parent::tearDown();
 	}
 
@@ -269,7 +275,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test enqueue_scripts().
 	 */
-	public function est_hcap_cf7_enqueue_scripts() {
+	public function test_enqueue_scripts() {
 		$field = [
 			'type' => 'acfe_recaptcha',
 			'key'  => 'some-key',
