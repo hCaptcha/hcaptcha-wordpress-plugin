@@ -44,7 +44,14 @@ class Notifications {
 	 *
 	 * @var array
 	 */
-	private $notifications = [];
+	protected $notifications = [];
+
+	/**
+	 * Shuffle notifications.
+	 *
+	 * @var bool
+	 */
+	protected $shuffle = true;
 
 	/**
 	 * Init class.
@@ -155,11 +162,9 @@ class Notifications {
 	public function show() {
 		$user = wp_get_current_user();
 
-		if ( null === $user ) {
-			return;
-		}
-
-		$dismissed     = (array) get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true );
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		/** @noinspection NullPointerExceptionInspection */
+		$dismissed     = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
 		$notifications = array_diff_key( $this->notifications, array_flip( $dismissed ) );
 
 		if ( ! $notifications ) {
@@ -173,7 +178,9 @@ class Notifications {
 			</div>
 			<?php
 
-			$notifications = $this->shuffle_assoc( $notifications );
+			if ( $this->shuffle ) {
+				$notifications = $this->shuffle_assoc( $notifications );
+			}
 
 			foreach ( $notifications as $id => $notification ) {
 				if ( array_key_exists( $id, $dismissed ) ) {
