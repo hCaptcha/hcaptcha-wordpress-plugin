@@ -5,11 +5,6 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:disable Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedNamespaceInspection */
-/** @noinspection PhpUndefinedClassInspection */
-// phpcs:enable Generic.Commenting.DocComment.MissingShort
-
 namespace HCaptcha\Abstracts;
 
 use HCaptcha\Helpers\HCaptcha;
@@ -84,7 +79,7 @@ abstract class LoginBase {
 	public function login( string $user_login, WP_User $user ) {
 		unset( $this->login_data[ $this->ip ] );
 
-		update_option( self::LOGIN_DATA, $this->login_data );
+		update_option( self::LOGIN_DATA, $this->login_data, false );
 	}
 
 	/**
@@ -100,7 +95,23 @@ abstract class LoginBase {
 	public function login_failed( string $username, $error = null ) {
 		$this->login_data[ $this->ip ][] = time();
 
-		update_option( self::LOGIN_DATA, $this->login_data );
+		$now            = time();
+		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );
+
+		foreach ( $this->login_data as & $login_datum ) {
+			$login_datum = array_values(
+				array_filter(
+					$login_datum,
+					static function ( $time ) use ( $now, $login_interval ) {
+						return $time > $now - $login_interval * MINUTE_IN_SECONDS;
+					}
+				)
+			);
+		}
+
+		unset( $login_datum );
+
+		update_option( self::LOGIN_DATA, $this->login_data, false );
 	}
 
 	/**
@@ -131,12 +142,13 @@ abstract class LoginBase {
 	 * @return bool
 	 */
 	protected function is_login_limit_exceeded(): bool {
-		$now            = time();
-		$login_limit    = (int) hcaptcha()->settings()->get( 'login_limit' );
-		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );
-		$count          = count(
+		$now               = time();
+		$login_limit       = (int) hcaptcha()->settings()->get( 'login_limit' );
+		$login_interval    = (int) hcaptcha()->settings()->get( 'login_interval' );
+		$login_data_for_ip = $this->login_data[ $this->ip ] ?? [];
+		$count             = count(
 			array_filter(
-				$this->login_data[ $this->ip ],
+				$login_data_for_ip,
 				static function ( $time ) use ( $now, $login_interval ) {
 					return $time > $now - $login_interval * MINUTE_IN_SECONDS;
 				}

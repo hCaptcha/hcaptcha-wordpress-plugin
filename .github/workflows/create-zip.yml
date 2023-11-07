@@ -13,17 +13,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Composer caching
+      - name: Install dependencies with caching
         uses: ramsey/composer-install@v2
+        with:
+          composer-options: "--no-dev --optimize-autoloader --classmap-authoritative"
 
-      - name: Install dependencies in prod version
+      - name: Install packages
         run: |
-          composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install --no-dev --optimize-autoloader --classmap-authoritative
+          yarn set version stable
           yarn
           yarn prod
-        env:
-          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create zip file
         run: |

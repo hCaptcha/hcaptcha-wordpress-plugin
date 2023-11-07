@@ -39,18 +39,10 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
 
-      - name: Setup Composer caching
+      - name: Install dependencies with caching
         uses: ramsey/composer-install@v2
         with:
           working-directory: ${{ env.wp-plugin-directory }}
-
-      - name: Install dependencies
-        working-directory: ${{ env.wp-plugin-directory }}
-        run: |
-          composer config github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
-          composer install
-        env:
-          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run code sniffer
         working-directory: ${{ env.wp-plugin-directory }}
@@ -101,20 +93,15 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo
 
-      - name: Install plugins requiring 7.1
-        if: ${{ matrix.php-version >= '7.1' }}
+      - name: Install plugins requiring 7.2
+        if: ${{ matrix.php-version >= '7.2' }}
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install ninja-forms
-
-      - name: Install plugins requiring 7.3
-        if: ${{ matrix.php-version >= '7.3' }}
-        working-directory: ${{ env.wp-directory }}
-        run: wp plugin install woocommerce
 
       - name: Install plugins requiring 7.4
         if: ${{ matrix.php-version >= '7.4' }}
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install contact-form-7
+        run: wp plugin install contact-form-7 woocommerce
 
       - name: Run WP tests
         working-directory: ${{ env.wp-plugin-directory }}

@@ -13,6 +13,7 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Checkout
  */
 class Checkout {
+
 	/**
 	 * Nonce action.
 	 */
@@ -22,6 +23,18 @@ class Checkout {
 	 * Nonce name.
 	 */
 	const NONCE = 'hcaptcha_wc_checkout_nonce';
+
+	/**
+	 * Script handle.
+	 */
+	const HANDLE = 'hcaptcha-wc-checkout';
+
+	/**
+	 * The hCaptcha was added.
+	 *
+	 * @var bool
+	 */
+	private $captcha_added = false;
 
 	/**
 	 * Constructor.
@@ -36,7 +49,7 @@ class Checkout {
 	private function init_hooks() {
 		add_action( 'woocommerce_review_order_before_submit', [ $this, 'add_captcha' ] );
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -55,6 +68,8 @@ class Checkout {
 		];
 
 		HCaptcha::form_display( $args );
+
+		$this->captcha_added = true;
 	}
 
 	/**
@@ -80,11 +95,15 @@ class Checkout {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
+		if ( ! $this->captcha_added ) {
+			return;
+		}
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'hcaptcha-wc',
-			HCAPTCHA_URL . "/assets/js/hcaptcha-wc$min.js",
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-wc-checkout$min.js",
 			[ 'jquery', 'hcaptcha' ],
 			HCAPTCHA_VERSION,
 			true

@@ -44,7 +44,14 @@ class Notifications {
 	 *
 	 * @var array
 	 */
-	private $notifications = [];
+	protected $notifications = [];
+
+	/**
+	 * Shuffle notifications.
+	 *
+	 * @var bool
+	 */
+	protected $shuffle = true;
 
 	/**
 	 * Init class.
@@ -72,13 +79,14 @@ class Notifications {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	private function init_notifications() {
-		$hcaptcha_url  = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$register_url  = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$pro_url       = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$dashboard_url = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$hcaptcha_url        = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
+		$register_url        = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
+		$pro_url             = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$dashboard_url       = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$post_leadership_url = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 
 		$this->notifications = [
-			'register'       => [
+			'register'        => [
 				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha link, 2: register link. */
@@ -99,7 +107,7 @@ class Notifications {
 					'text' => __( 'Get site keys', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'pro-free-trial' => [
+			'pro-free-trial'  => [
 				'title'   => __( 'Try Pro for free', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha Pro link, 2: dashboard link. */
@@ -120,7 +128,21 @@ class Notifications {
 					'text' => __( 'Try Pro', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'post-leadership' => [
+				'title'   => __( 'hCaptcha\'s Leadership', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $post_leadership_url,
+					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
+
+		$settings = hcaptcha()->settings();
+
+		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
+			unset( $this->notifications['register'] );
+		}
 	}
 
 	/**
@@ -131,11 +153,9 @@ class Notifications {
 	public function show() {
 		$user = wp_get_current_user();
 
-		if ( null === $user ) {
-			return;
-		}
-
-		$dismissed     = (array) get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true );
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		/** @noinspection NullPointerExceptionInspection */
+		$dismissed     = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
 		$notifications = array_diff_key( $this->notifications, array_flip( $dismissed ) );
 
 		if ( ! $notifications ) {
@@ -148,6 +168,10 @@ class Notifications {
 				<?php esc_html_e( 'Notifications', 'hcaptcha-for-forms-and-more' ); ?>
 			</div>
 			<?php
+
+			if ( $this->shuffle ) {
+				$notifications = $this->shuffle_assoc( $notifications );
+			}
 
 			foreach ( $notifications as $id => $notification ) {
 				if ( array_key_exists( $id, $dismissed ) ) {
@@ -332,5 +356,26 @@ class Notifications {
 		}
 
 		return delete_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY );
+	}
+
+	/**
+	 * Shuffle array retaining its keys.
+	 *
+	 * @param array $arr Array.
+	 *
+	 * @return array
+	 * @noinspection NonSecureShuffleUsageInspection
+	 */
+	private function shuffle_assoc( array $arr ): array {
+		$new_arr = [];
+		$keys    = array_keys( $arr );
+
+		shuffle( $keys );
+
+		foreach ( $keys as $key ) {
+			$new_arr[ $key ] = $arr[ $key ];
+		}
+
+		return $new_arr;
 	}
 }

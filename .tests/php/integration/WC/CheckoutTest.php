@@ -18,9 +18,9 @@ use HCaptcha\WC\Checkout;
 /**
  * Test Checkout class.
  *
- * WooCommerce requires PHP 7.3.
+ * WooCommerce requires PHP 7.4.
  *
- * @requires PHP >= 7.3
+ * @requires PHP >= 7.4
  *
  * @group    wc-checkout
  * @group    wc
@@ -37,11 +37,14 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test tear down.
 	 *
-	 * @noinspection PhpUndefinedFunctionInspection*/
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		if ( function_exists( 'wc_clear_notices' ) ) {
+		if ( did_action( 'woocommerce_init' ) ) {
 			wc_clear_notices();
 		}
+
+		wp_dequeue_script( 'hcaptcha-wc-checkout' );
 
 		parent::tearDown();
 	}
@@ -61,8 +64,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 			has_action( 'woocommerce_checkout_process', [ $subject, 'verify' ] )
 		);
 		self::assertSame(
-			10,
-			has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
+			9,
+			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 	}
 
@@ -91,7 +94,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify().
 	 *
-	 * @noinspection PhpUndefinedFunctionInspection*/
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
 	public function test_verify() {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
 
@@ -107,7 +111,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 *
-	 * @noinspection PhpUndefinedFunctionInspection*/
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
 	public function test_verify_not_verified() {
 		$expected = [
 			'error' => [
@@ -135,10 +140,27 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	public function test_enqueue_scripts() {
 		$subject = new Checkout();
 
-		self::assertFalse( wp_script_is( 'hcaptcha-wc' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );
+
+		ob_start();
+		$subject->add_captcha();
+		ob_end_clean();
 
 		$subject->enqueue_scripts();
 
-		self::assertTrue( wp_script_is( 'hcaptcha-wc' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-wc-checkout' ) );
+	}
+
+	/**
+	 * Test enqueue_scripts() when captcha was NOT added.
+	 */
+	public function test_enqueue_scripts_when_captcha_was_NOT_added() {
+		$subject = new Checkout();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );
+
+		$subject->enqueue_scripts();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );
 	}
 }

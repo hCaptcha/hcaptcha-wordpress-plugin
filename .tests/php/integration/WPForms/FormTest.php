@@ -12,6 +12,8 @@ use HCaptcha\WPForms\Form;
 
 /**
  * Test Forms class.
+ *
+ * @group wpforms
  */
 class FormTest extends HCaptchaPluginWPTestCase {
 

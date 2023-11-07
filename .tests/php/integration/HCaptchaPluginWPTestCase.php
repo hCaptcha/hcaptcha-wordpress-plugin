@@ -52,9 +52,8 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 */
 	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		$plugins_requiring_php = [
-			'7.1' => [ 'ninja-forms/ninja-forms.php' ],
-			'7.3' => [ 'woocommerce/woocommerce.php' ],
-			'7.4' => [ 'contact-form-7/wp-contact-form-7.php' ],
+			'7.2' => [ 'ninja-forms/ninja-forms.php' ],
+			'7.4' => [ 'contact-form-7/wp-contact-form-7.php', 'woocommerce/woocommerce.php' ],
 		];
 
 		foreach ( $plugins_requiring_php as $php_version => $plugins_requiring_php_version ) {

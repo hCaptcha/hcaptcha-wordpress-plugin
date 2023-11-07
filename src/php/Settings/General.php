@@ -8,7 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Settings\Abstracts\SettingsBase;
+use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
  * Class General
@@ -512,7 +512,7 @@ class General extends PluginSettingsBase {
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_prefix.css",
-			[ SettingsBase::HANDLE ],
+			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}

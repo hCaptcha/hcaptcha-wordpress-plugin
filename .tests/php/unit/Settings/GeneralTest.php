@@ -14,7 +14,8 @@ namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Main;
-use HCaptcha\Settings\Abstracts\SettingsBase;
+use HCaptcha\Settings\PluginSettingsBase;
+use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
@@ -337,7 +338,7 @@ class GeneralTest extends HCaptchaTestCase {
 			->with(
 				General::HANDLE,
 				$plugin_url . "/assets/css/general$min_prefix.css",
-				[ SettingsBase::HANDLE ],
+				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
 				$plugin_version
 			)
 			->once();

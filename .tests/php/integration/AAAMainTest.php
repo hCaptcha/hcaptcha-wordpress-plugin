@@ -41,8 +41,6 @@ use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use ReflectionException;
 use stdClass;
-use tad\FunctionMocker\FunctionMocker;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test Main class.
@@ -52,7 +50,7 @@ use function PHPUnit\Framework\assertSame;
  * @group bp
  * @group subscriber
  */
-class AMainTest extends HCaptchaWPTestCase {
+class AAAMainTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Included components in test_load_modules().
@@ -85,6 +83,8 @@ class AMainTest extends HCaptchaWPTestCase {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 
 		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
+
+		delete_option( 'hcaptcha_settings' );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -449,6 +449,7 @@ class AMainTest extends HCaptchaWPTestCase {
 			#wpdiscuz-subscribe-form .h-captcha {
 				margin-left: auto;
 			}
+
 			div.wpforms-container-full .wpforms-form .h-captcha,
 			#wpforo #wpforo-wrap div .h-captcha,
 			.h-captcha {
@@ -458,54 +459,68 @@ class AMainTest extends HCaptchaWPTestCase {
 				padding: 0;
 				clear: both;
 			}
+
 			#hcaptcha-options .h-captcha {
 				margin-bottom: 0;
 			}
+
 			#af-wrapper div.editor-row.editor-row-hcaptcha {
 				display: flex;
 				flex-direction: row-reverse;
 			}
+
 			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
 				margin-bottom: 0;
 			}
+
 			.brz-forms2.brz-forms2__item .h-captcha {
 				margin-bottom: 0;
 			}
+
 			form.wpsc-create-ticket .h-captcha {
 				margin: 0 15px 15px 15px;
 			}
+
 			.frm-fluent-form .h-captcha {
 				line-height: 0;
 				margin-bottom: 0;
 			}
+
 			.passster-form .h-captcha {
 				margin-bottom: 5px;
 			}
+
 			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
 			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 				margin: 0 -20px;
 			}
+
 			.wpdm-button-area + .h-captcha {
 				margin-bottom: 1rem;
 			}
+
 			.w3eden .btn-primary {
 				background-color: var(--color-primary) !important;
 				color: #fff !important;
 			}
+
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 			.h-captcha[data-size="normal"] {
 				width: 303px;
 				height: 78px;
 			}
+
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"],
 			.h-captcha[data-size="compact"] {
 				width: 164px;
 				height: 144px;
 			}
+
 			div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"],
 			.h-captcha[data-size="invisible"] {
 				display: none;
 			}
+
 			.h-captcha::before {
 				content: \'\';
 				display: block;
@@ -516,49 +531,61 @@ class AMainTest extends HCaptchaWPTestCase {
 				border: 1px solid transparent;
 				border-radius: 4px;
 			}
+
 			.h-captcha[data-size="normal"]::before {
 				width: 300px;
 				height: 74px;
 				background-position: 94% 28%;
 			}
+
 			.h-captcha[data-size="compact"]::before {
 				width: 156px;
 				height: 136px;
 				background-position: 50% 79%;
 			}
+
 			.h-captcha[data-theme="light"]::before {
 				background-color: #fafafa;
 				border: 1px solid #e0e0e0;
 			}
+
 			.h-captcha[data-theme="dark"]::before {
 				background-image: url(' . $div_logo_url_white . ');
 				background-repeat: no-repeat;
 				background-color: #333;
 				border: 1px solid #f5f5f5;
 			}
+
 			.h-captcha[data-size="invisible"]::before {
 				display: none;
 			}
+
 			div.wpforms-container-full .wpforms-form .h-captcha iframe,
 			.h-captcha iframe {
 				position: relative;
 			}
+
 			span[data-name="hcap-cf7"] .h-captcha {
 				margin-bottom: 0;
 			}
+
 			span[data-name="hcap-cf7"] ~ input[type="submit"],
 			span[data-name="hcap-cf7"] ~ button[type="submit"] {
 				margin-top: 2rem;
 			}
+
 			.elementor-field-type-hcaptcha .elementor-field {
 				background: transparent !important;
 			}
+
 			.elementor-field-type-hcaptcha .h-captcha {
 				margin-bottom: unset;
 			}
+
 			#wppb-loginform .h-captcha {
 				margin-bottom: 14px;
 			}
+
 			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 				border-style: none;
 			}
@@ -584,6 +611,7 @@ class AMainTest extends HCaptchaWPTestCase {
 					justify-content: center;
 				}
 			}
+
 			@media (min-width: 350px) {
 				#login {
 					width: 350px;
@@ -802,23 +830,6 @@ class AMainTest extends HCaptchaWPTestCase {
 				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=true',
 			],
 		];
-	}
-
-	/**
-	 * Test declare_wc_compatibility().
-	 *
-	 * @return void
-	 */
-	public function test_declare_wc_compatibility() {
-		$declare_compatibility = FunctionMocker::replace(
-			'Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility',
-			true
-		);
-
-		$subject = new Main();
-		$subject->declare_wc_compatibility();
-
-		$declare_compatibility->wasCalledWithOnce( [ 'custom_order_tables', HCAPTCHA_FILE, true ] );
 	}
 
 	/**

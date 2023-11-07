@@ -252,12 +252,16 @@ class CF7 {
 	private function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
 		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
 
+		// The preg_match should be always true, because $output has shortcode.
 		if ( ! preg_match( "/$cf7_hcap_sc_regex/", $output, $matches ) ) {
+			// @codeCoverageIgnoreStart
 			return $output;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$cf7_hcap_sc = $matches[0];
 		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
+
 		unset( $atts[0] );
 
 		if ( isset( $atts['form_id'] ) && (int) $atts['form_id'] === $form_id ) {

@@ -12,6 +12,10 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test Fields class.
+ *
+ * Ninja Forms requires PHP 7.2.
+ *
+ * @requires PHP >= 7.2
  */
 class FieldsTest extends HCaptchaPluginWPTestCase {
 
