@@ -548,6 +548,7 @@ Instructions for popular native integrations are below:
 * Fixed SystemInfo on multisite.
 * Fixed missing dependency of WooCommerce checkout script.
 * Fixed fatal error occurring during login under some conditions.
+* Fixed the inability to send the Divi Contact Form when Divi Email Optin was active.
 
 = 3.3.3 =
 * Added compatibility with LearnDash.
