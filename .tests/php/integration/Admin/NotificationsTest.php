@@ -31,7 +31,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$secret_key = '';
 
 		$expected = [
-			'register'              =>
+			'register'        =>
 				[
 					'title'   => 'Get your hCaptcha site keys',
 					'message' => 'To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.',
@@ -41,7 +41,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 							'text' => 'Get site keys',
 						],
 				],
-			'pro-free-trial'        =>
+			'pro-free-trial'  =>
 				[
 					'title'   => 'Try Pro for free',
 					'message' => 'Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.',
@@ -51,26 +51,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 							'text' => 'Try Pro',
 						],
 				],
-			'hcaptcha-vs-turnstile' =>
-				[
-					'title'   => 'hCaptcha vs. Turnstile',
-					'message' => 'Recently, our friends at Cloudflare introduced a bot defense product called Turnstile. How does it compare to hCaptcha?',
-					'button'  =>
-						[
-							'url'  => 'https://www.hcaptcha.com/post/hcaptcha-vs-turnstile/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
-							'text' => 'Read post',
-						],
+			'post-leadership' => [
+				'title'   => 'hCaptcha\'s Leadership',
+				'message' => 'hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™',
+				'button'  => [
+					'url'  => 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
+					'text' => 'Read post',
 				],
-			'hcaptcha-vs-recaptcha' =>
-				[
-					'title'   => 'hCaptcha vs. reCAPTCHA',
-					'message' => 'Why Organizations are Choosing hCaptcha over reCAPTCHA v2 and reCAPTCHA v3?',
-					'button'  =>
-						[
-							'url'  => 'https://www.hcaptcha.com/post/hcaptcha-vs-recaptcha/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
-							'text' => 'Read post',
-						],
-				],
+			],
 		];
 
 		if ( ! $empty_keys ) {
@@ -190,23 +178,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 									</div>
 								<div
 						class="hcaptcha-notification notice notice-info is-dismissible inline"
-						data-id="hcaptcha-vs-turnstile">
+						data-id="post-leadership">
 					<div class="hcaptcha-notification-title">
-						hCaptcha vs. Turnstile					</div>
-					<p>Recently, our friends at Cloudflare introduced a bot defense product called Turnstile. How does it compare to hCaptcha?</p>
+						hCaptcha&#039;s Leadership					</div>
+					<p>hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™</p>
 										<div class="hcaptcha-notification-buttons hidden">
-						<a href="https://www.hcaptcha.com/post/hcaptcha-vs-turnstile/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
-							Read post						</a>
-					</div>
-									</div>
-								<div
-						class="hcaptcha-notification notice notice-info is-dismissible inline"
-						data-id="hcaptcha-vs-recaptcha">
-					<div class="hcaptcha-notification-title">
-						hCaptcha vs. reCAPTCHA					</div>
-					<p>Why Organizations are Choosing hCaptcha over reCAPTCHA v2 and reCAPTCHA v3?</p>
-										<div class="hcaptcha-notification-buttons hidden">
-						<a href="https://www.hcaptcha.com/post/hcaptcha-vs-recaptcha/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
+						<a href="https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
 							Read post						</a>
 					</div>
 									</div>
