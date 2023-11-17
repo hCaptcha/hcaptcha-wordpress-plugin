@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.4.0
+Stable tag: 3.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -532,7 +532,7 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
-= 3.4.0 =
+= 3.4.1 =
 * Tested with WordPress 6.4.
 * Tested with WooCommerce 8.2.
 * Added MailPoet integration.

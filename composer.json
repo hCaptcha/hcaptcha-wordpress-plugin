@@ -47,15 +47,15 @@
   },
   "autoload": {
     "psr-4": {
-      "HCaptcha\\": "src/php"
+      "HCaptcha\\": "src/php",
+      "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
     }
   },
   "autoload-dev": {
     "psr-4": {
       "HCaptcha\\": "src/php",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
-      "HCaptcha\\Tests\\Unit\\": ".tests/php/unit",
-      "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
+      "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
     }
   },
   "bin": [
