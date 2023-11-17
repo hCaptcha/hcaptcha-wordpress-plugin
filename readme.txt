@@ -533,7 +533,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.5.0 =
-* Added ability to process customized MailChimp forms.
+* Added the ability to process customized MailChimp forms.
 
 = 3.4.1 =
 * Tested with WordPress 6.4.
