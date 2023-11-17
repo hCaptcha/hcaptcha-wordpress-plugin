@@ -89,10 +89,9 @@ class Form {
 			],
 		];
 
-		return str_replace(
-			'<input type="submit"',
-			HCaptcha::form( $args ) .
-			'<input type="submit"',
+		return preg_replace(
+			'/(<input .*?type="submit")/',
+			HCaptcha::form( $args ) . '$1',
 			(string) $content
 		);
 	}
