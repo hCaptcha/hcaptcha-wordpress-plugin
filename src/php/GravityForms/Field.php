@@ -47,6 +47,8 @@ class Field extends GF_Field {
 	 * @return void
 	 */
 	private function init() {
+		$this->label = 'hCaptcha';
+
 		try {
 			GF_Fields::register( $this );
 		} catch ( Exception $e ) {
@@ -121,7 +123,10 @@ class Field extends GF_Field {
 	 * @return array
 	 */
 	public function get_form_editor_field_settings(): array {
-		return [];
+		return array(
+			'description_setting',
+			'css_class_setting',
+		);
 	}
 
 	/**
