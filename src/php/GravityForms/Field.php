@@ -136,8 +136,8 @@ class Field extends GF_Field {
 		$search          = 'class="h-captcha"';
 
 		$args = [
-			'action' => Form::ACTION,
-			'name'   => Form::NONCE,
+			'action' => Base::ACTION,
+			'name'   => Base::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => $form_id,

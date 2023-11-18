@@ -12,21 +12,11 @@ use HCaptcha\Helpers\HCaptcha;
 /**
  * Class Form
  */
-class Form {
+class Form extends Base {
 	/**
 	 * Script handle.
 	 */
 	const HANDLE = 'hcaptcha-gravity-forms';
-
-	/**
-	 * Nonce action.
-	 */
-	const ACTION = 'gravity_forms_form';
-
-	/**
-	 * Nonce name.
-	 */
-	const NONCE = 'gravity_forms_form_nonce';
 
 	/**
 	 * The hCaptcha error message.
@@ -63,7 +53,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $button_input, array $form ): string {
-		if ( is_admin() ) {
+		if ( $this->has_hcaptcha( $form ) || is_admin() ) {
 			return $button_input;
 		}
 
@@ -100,7 +90,7 @@ class Form {
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['gform_submit'] ) ) {
-			// We are not in the Gravity Form submit.
+			// We are not in the Gravity Form submit process.
 			return $validation_result;
 		}
 
@@ -223,5 +213,22 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Whether form has hCaptcha.
+	 *
+	 * @param array $form Form.
+	 *
+	 * @return bool
+	 */
+	private function has_hcaptcha( array $form ): bool {
+		foreach ( $form['fields'] as $field ) {
+			if ( 'hcaptcha' === $field->type ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
