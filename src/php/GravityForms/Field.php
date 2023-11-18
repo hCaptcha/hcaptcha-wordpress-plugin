@@ -11,6 +11,8 @@ use GF_Field;
 use GF_Fields;
 use Exception;
 use GFCommon;
+use GFForms;
+use GFFormsModel;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -56,6 +58,7 @@ class Field extends GF_Field {
 	 */
 	private function init_hooks() {
 		add_filter( 'gform_field_groups_form_editor', [ $this, 'add_to_field_groups' ] );
+		add_filter( 'gform_duplicate_field_link', [ $this, 'disable_duplication' ] );
 	}
 
 	/**
@@ -123,12 +126,13 @@ class Field extends GF_Field {
 	 * @param mixed $entry Entry.
 	 *
 	 * @return string
+	 * @noinspection PhpCastIsUnnecessaryInspection
 	 */
 	public function get_field_input( $form, $value = '', $entry = null ): string {
 		$form_id         = (int) $form['id'];
 		$is_entry_detail = $this->is_entry_detail();
 		$is_form_editor  = $this->is_form_editor();
-		$id              = $this->id;
+		$id              = (int) $this->id;
 		$field_id        = $is_entry_detail || $is_form_editor || 0 === $form_id ? "input_$id" : 'input_' . $form_id . "_$id";
 		$hcaptcha_size   = hcaptcha()->settings()->get( 'size' );
 		$tabindex        = GFCommon::$tab_index > 0 ? GFCommon::$tab_index++ : 0;
@@ -149,5 +153,32 @@ class Field extends GF_Field {
 			$search . ' id="' . $field_id . '" data-tabindex="' . $tabindex . '"',
 			HCaptcha::form( $args )
 		);
+	}
+
+	/**
+	 * Disable hCaptcha field duplication.
+	 *
+	 * @param string $duplicate_field_link Duplicate link.
+	 *
+	 * @return string
+	 */
+	public function disable_duplication( string $duplicate_field_link ): string {
+		$action = rgpost( 'action' );
+
+		if ( 'rg_add_field' === $action ) {
+			$field = json_decode( rgpost( 'field' ), false );
+		} else {
+			if ( ! preg_match( "/id='gfield_duplicate_(.*)?'/", $duplicate_field_link, $m ) ) {
+				return $duplicate_field_link;
+			}
+
+			$form_id  = GFForms::get( 'id' );
+			$field_id = $m[1];
+			$field    = GFFormsModel::get_field( $form_id, $field_id );
+		}
+
+		$type = $field->type ?? '';
+
+		return 'hcaptcha' === $type ? '' : $duplicate_field_link;
 	}
 }
