@@ -21,6 +21,11 @@ use HCaptcha\Helpers\HCaptcha;
 class Field extends GF_Field {
 
 	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-gravity-forms';
+
+	/**
 	 * Field type.
 	 *
 	 * @var string
@@ -59,6 +64,7 @@ class Field extends GF_Field {
 	private function init_hooks() {
 		add_filter( 'gform_field_groups_form_editor', [ $this, 'add_to_field_groups' ] );
 		add_filter( 'gform_duplicate_field_link', [ $this, 'disable_duplication' ] );
+		add_action( 'admin_print_footer_scripts-toplevel_page_gf_edit_forms', [ $this, 'enqueue_admin_script' ] );
 	}
 
 	/**
@@ -180,5 +186,30 @@ class Field extends GF_Field {
 		$type = $field->type ?? '';
 
 		return 'hcaptcha' === $type ? '' : $duplicate_field_link;
+	}
+
+	/**
+	 * Enqueue admin script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_admin_script() {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			HCAPTCHA_URL . "/assets/js/admin-gravity-forms$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			'HCaptchaGravityFormsObject',
+			[
+				'onlyOne' => __( 'Only one hCaptcha field can be added to the form.', 'hcaptcha-for-forms-and-more' ),
+			]
+		);
 	}
 }
