@@ -709,12 +709,12 @@ class Main {
 			'Beaver Builder Login Form'            => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
-				[ BeaverBuilder\Login::class ],
+				BeaverBuilder\Login::class,
 			],
 			'Brizy Form'                           => [
 				[ 'brizy_status', 'form' ],
 				'brizy/brizy.php',
-				[ Brizy\Form::class ],
+				Brizy\Form::class,
 			],
 			'BuddyPress Create Group'              => [
 				[ 'bp_status', 'create_group' ],
@@ -884,7 +884,7 @@ class Main {
 			'MemberPress Login'                    => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',
-				[ MemberPress\Login::class ],
+				MemberPress\Login::class,
 			],
 			'MemberPress Register'                 => [
 				[ 'memberpress_status', 'register' ],
@@ -979,7 +979,7 @@ class Main {
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
-				[ UM\Login::class ],
+				UM\Login::class,
 			],
 			'Ultimate Member LostPassword'         => [
 				[ 'ultimate_member_status', 'lost_pass' ],
