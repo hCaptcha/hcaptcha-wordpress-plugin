@@ -190,6 +190,16 @@ class Form extends Base {
 		.gform_footer.before .h-captcha[data-size="compact"] {
 			margin-bottom: 0;
 		}
+
+		.gform_wrapper.gravity-theme .gform_footer,
+		.gform_wrapper.gravity-theme .gform_page_footer {
+			flex-direction: column;
+		}
+
+		.gform_wrapper.gravity-theme .gform_footer .h-captcha,
+		.gform_wrapper.gravity-theme .gform_page_footer .h-captcha {
+			align-self: flex-end;
+		}
 		</style>
 		<?php
 	}
