@@ -839,7 +839,7 @@ class Main {
 			'Gravity Forms'                        => [
 				[ 'gravity_status', 'form' ],
 				'gravityforms/gravityforms.php',
-				GravityForms\Form::class,
+				[ GravityForms\Form::class, GravityForms\Field::class ],
 			],
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
