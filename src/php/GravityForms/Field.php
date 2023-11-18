@@ -34,9 +34,11 @@ class Field extends GF_Field {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param array $data Data.
 	 */
-	public function __construct() {
-		parent::__construct();
+	public function __construct( $data = [] ) {
+		parent::__construct( $data );
 
 		$this->init();
 	}
@@ -124,6 +126,7 @@ class Field extends GF_Field {
 	 */
 	public function get_form_editor_field_settings(): array {
 		return array(
+			'label_placement_setting',
 			'description_setting',
 			'css_class_setting',
 		);
