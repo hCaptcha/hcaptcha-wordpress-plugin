@@ -223,8 +223,10 @@ class Form extends Base {
 	 * @return bool
 	 */
 	private function has_hcaptcha( array $form ): bool {
+		$captcha_types = [ 'captcha', 'hcaptcha' ];
+
 		foreach ( $form['fields'] as $field ) {
-			if ( 'hcaptcha' === $field->type ) {
+			if ( in_array( $field->type, $captcha_types, true ) ) {
 				return true;
 			}
 		}
