@@ -193,12 +193,13 @@ class Form extends Base {
 
 		.gform_wrapper.gravity-theme .gform_footer,
 		.gform_wrapper.gravity-theme .gform_page_footer {
-			flex-direction: column;
+			flex-wrap: wrap;
 		}
 
 		.gform_wrapper.gravity-theme .h-captcha,
 		.gform_wrapper.gravity-theme .h-captcha {
 			margin: 0;
+			flex-basis: 100%;
 		}
 
 		.gform_wrapper.gravity-theme input[type="submit"],
