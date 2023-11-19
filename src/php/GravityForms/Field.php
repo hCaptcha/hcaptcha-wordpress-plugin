@@ -26,6 +26,11 @@ class Field extends GF_Field {
 	const ADMIN_HANDLE = 'admin-gravity-forms';
 
 	/**
+	 * Editor screen id.
+	 */
+	const EDITOR_SCREEN_ID = 'toplevel_page_gf_edit_forms';
+
+	/**
 	 * Field type.
 	 *
 	 * @var string
@@ -72,7 +77,8 @@ class Field extends GF_Field {
 	private function init_hooks() {
 		add_filter( 'gform_field_groups_form_editor', [ $this, 'add_to_field_groups' ] );
 		add_filter( 'gform_duplicate_field_link', [ $this, 'disable_duplication' ] );
-		add_action( 'admin_print_footer_scripts-toplevel_page_gf_edit_forms', [ $this, 'enqueue_admin_script' ] );
+		add_action( 'admin_print_footer_scripts-' . self::EDITOR_SCREEN_ID, [ $this, 'enqueue_admin_script' ] );
+		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 	}
 
 	/**
@@ -106,9 +112,16 @@ class Field extends GF_Field {
 	 * @return string
 	 */
 	public function get_form_editor_field_description(): string {
-		return esc_attr__(
-			'Adds a hCaptcha field to your form to help protect your website from spam and bot abuse.',
-			'hcaptcha-for-forms-and-more'
+		return (
+			esc_attr__(
+				'Adds a hCaptcha field to your form to help protect your website from spam and bot abuse.',
+				'hcaptcha-for-forms-and-more'
+			) .
+			' ' .
+			esc_attr__(
+				'hCaptcha settings must be modified on the hCaptcha plugin General settings page.',
+				'hcaptcha-for-forms-and-more'
+			)
 		);
 	}
 
@@ -223,5 +236,27 @@ class Field extends GF_Field {
 				'onlyOne' => __( 'Only one hCaptcha field can be added to the form.', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
+	}
+
+	/**
+	 * Print hCaptcha script on form edit page.
+	 *
+	 * @param bool|mixed $status Current print status.
+	 *
+	 * @return bool
+	 */
+	public function print_hcaptcha_scripts( $status ): bool {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return $status;
+		}
+
+		$screen    = get_current_screen();
+		$screen_id = $screen->id ?? '';
+
+		if ( self::EDITOR_SCREEN_ID === $screen_id ) {
+			return true;
+		}
+
+		return $status;
 	}
 }
