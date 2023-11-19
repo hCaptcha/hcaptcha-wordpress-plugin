@@ -196,9 +196,19 @@ class Form extends Base {
 			flex-direction: column;
 		}
 
-		.gform_wrapper.gravity-theme .gform_footer .h-captcha,
-		.gform_wrapper.gravity-theme .gform_page_footer .h-captcha {
-			align-self: flex-end;
+		.gform_wrapper.gravity-theme .h-captcha,
+		.gform_wrapper.gravity-theme .h-captcha {
+			margin: 0;
+		}
+
+		.gform_wrapper.gravity-theme input[type="submit"],
+		.gform_wrapper.gravity-theme input[type="submit"] {
+			align-self: flex-start;
+		}
+
+		.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"],
+		.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"] {
+			margin: 1em 0 0 0 !important;
 		}
 		</style>
 		<?php
