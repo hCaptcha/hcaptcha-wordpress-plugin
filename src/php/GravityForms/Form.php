@@ -259,7 +259,7 @@ class Form extends Base {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( ! $this->mode_auto && ! $this->has_hcaptcha( $form_id ) ) {
-			// In insertion mode, do not verify a form not having hCaptcha field.
+			// In manual mode, do not verify a form not having hCaptcha field.
 			return false;
 		}
 
