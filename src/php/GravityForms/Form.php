@@ -7,6 +7,7 @@
 
 namespace HCaptcha\GravityForms;
 
+use GFFormsModel;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -26,6 +27,13 @@ class Form extends Base {
 	private $error_message;
 
 	/**
+	 * Whether hCaptcha should be auto-added to any form.
+	 *
+	 * @var bool
+	 */
+	private $mode_auto = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -36,7 +44,12 @@ class Form extends Base {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		add_filter( 'gform_submit_button', [ $this, 'add_captcha' ], 10, 2 );
+		$this->mode_auto = hcaptcha()->settings()->is( 'gravity_status', 'form' );
+
+		if ( $this->mode_auto ) {
+			add_filter( 'gform_submit_button', [ $this, 'add_captcha' ], 10, 2 );
+		}
+
 		add_filter( 'gform_validation', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'gform_form_validation_errors', [ $this, 'form_validation_errors' ], 10, 2 );
 		add_filter( 'gform_form_validation_errors_markup', [ $this, 'form_validation_errors_markup' ], 10, 2 );
@@ -53,7 +66,7 @@ class Form extends Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $button_input, array $form ): string {
-		if ( $this->has_hcaptcha( $form ) || is_admin() ) {
+		if ( is_admin() ) {
 			return $button_input;
 		}
 
@@ -86,28 +99,9 @@ class Form extends Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $validation_result, string $context ) {
-		// Nonce is checked in the hcaptcha_verify_post().
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['gform_submit'] ) ) {
-			// We are not in the Gravity Form submit process.
+		if ( ! $this->should_verify() ) {
 			return $validation_result;
 		}
-
-		if ( isset( $_POST['gpnf_parent_form_id'] ) ) {
-			// Do not verify nested form.
-			return $validation_result;
-		}
-
-		$form_id     = (int) $_POST['gform_submit'];
-		$target_page = "gform_target_page_number_$form_id";
-
-		if ( isset( $_POST[ $target_page ] ) && 0 !== (int) $_POST[ $target_page ] ) {
-			// Do not verify hCaptcha and return success when switching between form pages.
-			return $validation_result;
-		}
-
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$this->error_message = hcaptcha_verify_post(
 			self::NONCE,
@@ -237,13 +231,55 @@ class Form extends Base {
 	}
 
 	/**
-	 * Whether form has hCaptcha.
-	 *
-	 * @param array $form Form.
+	 * Whether we should verify the hCaptcha.
 	 *
 	 * @return bool
 	 */
-	private function has_hcaptcha( array $form ): bool {
+	private function should_verify(): bool {
+		// Nonce is checked in the hcaptcha_verify_post().
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['gform_submit'] ) ) {
+			// We are not in the Gravity Form submit process.
+			return false;
+		}
+
+		if ( isset( $_POST['gpnf_parent_form_id'] ) ) {
+			// Do not verify nested form.
+			return false;
+		}
+
+		$form_id     = (int) $_POST['gform_submit'];
+		$target_page = "gform_target_page_number_$form_id";
+
+		if ( isset( $_POST[ $target_page ] ) && 0 !== (int) $_POST[ $target_page ] ) {
+			// Do not verify hCaptcha and return success when switching between form pages.
+			return false;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! $this->mode_auto && ! $this->has_hcaptcha( $form_id ) ) {
+			// In insertion mode, do not verify a form not having hCaptcha field.
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Whether form has hCaptcha.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return bool
+	 */
+	private function has_hcaptcha( int $form_id ): bool {
+		$form = GFFormsModel::get_form_meta( $form_id );
+
+		if ( ! $form ) {
+			return false;
+		}
+
 		$captcha_types = [ 'captcha', 'hcaptcha' ];
 
 		foreach ( $form['fields'] as $field ) {

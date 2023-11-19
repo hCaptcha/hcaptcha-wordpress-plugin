@@ -837,7 +837,7 @@ class Main {
 				GiveWP\Form::class,
 			],
 			'Gravity Forms'                        => [
-				[ 'gravity_status', 'form' ],
+				[ 'gravity_status', null ],
 				'gravityforms/gravityforms.php',
 				[ GravityForms\Form::class, GravityForms\Field::class ],
 			],
@@ -1094,6 +1094,7 @@ class Main {
 				continue;
 			}
 
+			// If plugin/theme is active, load a class having the option_value specified or null.
 			if ( $option_value && ! in_array( $option_value, $option, true ) ) {
 				continue;
 			}
