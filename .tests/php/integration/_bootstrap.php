@@ -12,7 +12,6 @@
 use tad\FunctionMocker\FunctionMocker;
 
 $loader = require HCAPTCHA_PATH . '/vendor/autoload.php';
-$loader->add( '', HCAPTCHA_PATH . '/.tests/php/integration/Stubs' );
 
 FunctionMocker::init(
 	[

@@ -1210,9 +1210,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				\HCaptcha\GiveWP\Form::class,
 			],
 			'Gravity Forms'                     => [
-				[ 'gravity_status', 'form' ],
+				[ 'gravity_status', null ],
 				'gravityforms/gravityforms.php',
-				\HCaptcha\GravityForms\Form::class,
+				[ \HCaptcha\GravityForms\Form::class, \HCaptcha\GravityForms\Field::class ],
 			],
 			'Jetpack'                           => [
 				[ 'jetpack_status', 'contact' ],

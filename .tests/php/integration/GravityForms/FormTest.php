@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\GravityForms;
 
+use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
@@ -39,7 +40,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
-		$expected = $this->get_hcap_form( Form::ACTION, Form::NONCE );
+		$expected = $this->get_hcap_form( Base::ACTION, Base::NONCE );
 
 		self::assertSame( $expected, $subject->add_captcha( '', $form ) );
 	}

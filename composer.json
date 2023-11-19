@@ -55,6 +55,7 @@
     "psr-4": {
       "HCaptcha\\": "src/php",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
+      "": ".tests/php/integration/Stubs",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
     }
   },
