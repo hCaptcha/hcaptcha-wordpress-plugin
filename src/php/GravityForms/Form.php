@@ -55,6 +55,7 @@ class Form extends Base {
 		add_filter( 'gform_form_validation_errors_markup', [ $this, 'form_validation_errors_markup' ], 10, 2 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 	}
 
 	/**
@@ -228,6 +229,24 @@ class Form extends Base {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Print hCaptcha script on form edit page.
+	 *
+	 * @param bool|mixed $status Current print status.
+	 *
+	 * @return bool
+	 */
+	public function print_hcaptcha_scripts( $status ): bool {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return $status;
+		}
+
+		$screen    = get_current_screen();
+		$screen_id = $screen->id ?? '';
+
+		return 'toplevel_page_gf_edit_forms' === $screen_id;
 	}
 
 	/**
