@@ -8,6 +8,7 @@ window.SetDefaultValues_hcaptcha = function( field ) {
 	field.inputs = null;
 	field.displayOnly = true;
 	field.label = 'hCaptcha';
+	field.labelPlacement = 'hidden_label';
 
 	return field;
 };
