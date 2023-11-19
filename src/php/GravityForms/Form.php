@@ -246,7 +246,11 @@ class Form extends Base {
 		$screen    = get_current_screen();
 		$screen_id = $screen->id ?? '';
 
-		return 'toplevel_page_gf_edit_forms' === $screen_id;
+		if ( 'toplevel_page_gf_edit_forms' === $screen_id ) {
+			return true;
+		}
+
+		return $status;
 	}
 
 	/**
