@@ -44,6 +44,7 @@
     "node": ">=21.1.0",
     "npm": ">=10.2.2"
   },
+  "packageManager": "yarn@4.0.2",
   "devDependencies": {
     "@babel/core": "^7.23.2",
     "@babel/preset-env": "^7.23.2",
