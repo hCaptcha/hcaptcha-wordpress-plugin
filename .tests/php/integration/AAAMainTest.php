@@ -703,7 +703,8 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
-		$site_key       = 'some key';
+		$site_key       = 'some site key';
+		$secret_key     = 'some secret key';
 		$theme          = 'light';
 		$size           = 'normal';
 		$language       = $language ?: '';
@@ -727,6 +728,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				'recaptcha_compat_off' => $compat ? [ $compat ] : [],
 				'language'             => $language,
 				'site_key'             => $site_key,
+				'secret_key'           => $secret_key,
 				'mode'                 => 'live',
 				'theme'                => $theme,
 				'size'                 => $size,
