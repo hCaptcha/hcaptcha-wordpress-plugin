@@ -35,8 +35,8 @@ abstract class Base extends LoginBase {
 	/**
 	 * Add hcaptcha.
 	 *
-	 * @param string          $out    Button html.
-	 * @param FLBuilderModule $module Button module.
+	 * @param string                $out    Button html.
+	 * @param FLBuilderModule|mixed $module Button module.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection

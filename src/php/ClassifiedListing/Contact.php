@@ -46,9 +46,9 @@ class Contact {
 	/**
 	 * Start output buffer before template part.
 	 *
-	 * @param string     $template_name Template name.
-	 * @param string     $located       Location.
-	 * @param array|null $template_args Arguments.
+	 * @param string           $template_name Template name.
+	 * @param string           $located       Location.
+	 * @param array|null|mixed $template_args Arguments.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
@@ -64,9 +64,9 @@ class Contact {
 	/**
 	 * Stop output buffer after template part and add captcha.
 	 *
-	 * @param string     $template_name Template name.
-	 * @param string     $located       Location.
-	 * @param array|null $template_args Arguments.
+	 * @param string           $template_name Template name.
+	 * @param string           $located       Location.
+	 * @param array|null|mixed $template_args Arguments.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
@@ -96,7 +96,7 @@ class Contact {
 	}
 
 	/**
-	 * Verify contact form.
+	 * Verify a contact form.
 	 *
 	 * @param WP_Error $error Error.
 	 * @param array    $data  Form data.

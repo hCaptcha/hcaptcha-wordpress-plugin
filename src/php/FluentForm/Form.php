@@ -93,7 +93,7 @@ class Form {
 	}
 
 	/**
-	 * Insert hCaptcha before the submit button.
+	 * Insert hCaptcha before the 'submit' button.
 	 * Works for auto-added hCaptcha.
 	 *
 	 * @param array    $submit_button Form data and settings.
@@ -103,7 +103,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( array $submit_button, stdClass $form ) {
-		// Do not add if form has its own hcaptcha.
+		// Do not add if the form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return;
 		}
@@ -149,7 +149,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function print_hcaptcha_scripts( $status ): bool {
-		// Remove API script by Fluent Forms, having handle 'hcaptcha'.
+		// Remove an API script by Fluent Forms, having the 'hcaptcha' handle.
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
@@ -193,7 +193,7 @@ class Form {
 		// Print localization data of conversational script.
 		$wp_scripts->print_extra_script( $fluent_forms_conversational_script );
 
-		// Remove localization script. We will launch it from our HANDLE script on hCaptchaLoaded event.
+		// Remove a localization script. We will launch it from our HANDLE script on hCaptchaLoaded event.
 		wp_dequeue_script( $fluent_forms_conversational_script );
 		wp_deregister_script( $fluent_forms_conversational_script );
 
@@ -257,7 +257,6 @@ class Form {
 	 * Whether we are on the Fluent Forms admin pages.
 	 *
 	 * @return bool
-	 * @noinspection InArrayMissUseInspection
 	 */
 	private function is_fluent_forms_admin_page(): bool {
 		if ( ! is_admin() ) {
@@ -335,7 +334,7 @@ class Form {
 	}
 
 	/**
-	 * Whether form has its own hcaptcha set in admin.
+	 * Whether the form has its own hcaptcha set in admin.
 	 *
 	 * @param FluentForm|stdClass $form Form data and settings.
 	 *

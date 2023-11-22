@@ -125,7 +125,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Get site key.
+	 * Get a site key.
 	 *
 	 * @return array|string
 	 */
@@ -161,7 +161,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Get setup message.
+	 * Get a setup message.
 	 *
 	 * @return string
 	 */
@@ -205,7 +205,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Get script handle.
+	 * Get a script handle.
 	 *
 	 * @return string
 	 */
@@ -350,7 +350,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Add filed type.
+	 * Add a field type.
 	 *
 	 * @param array|mixed $field_types Field types.
 	 *
@@ -369,7 +369,7 @@ class HCaptchaHandler {
 	 *
 	 * Fires after Elementor section ends in the editor panel.
 	 *
-	 * The dynamic portions of the hook name, `$stack_name` and `$section_id`, refers to the section name and section
+	 * The dynamic portions of the hook name, `$stack_name` and `$section_id`, refer to the section name and section
 	 * ID, respectively.
 	 *
 	 * @param Controls_Stack $controls_stack The controls stack.

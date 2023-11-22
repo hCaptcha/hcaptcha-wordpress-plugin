@@ -9,7 +9,7 @@ namespace HCaptcha\GiveWP;
 
 /**
  * Class Form.
- * Supports Donation form.
+ * Supports a Donation form.
  */
 class Form extends Base {
 

@@ -38,7 +38,7 @@ class DownloadManager {
 	 */
 	public function init_hooks() {
 		add_action( 'wpdm_after_fetch_template', [ $this, 'add_hcaptcha' ], 10, 2 );
-		add_action( 'wpdm_onstart_download', [ $this, 'verify' ], 10 );
+		add_action( 'wpdm_onstart_download', [ $this, 'verify' ] );
 	}
 
 	/**
