@@ -90,7 +90,7 @@ class Sendinblue {
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['sib_form_action'] ) ) {
-			// We are not in the Sendinblue submit.
+			// We are not in the Sendinblue submit request.
 			return $result;
 		}
 

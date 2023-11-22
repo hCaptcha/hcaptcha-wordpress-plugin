@@ -56,7 +56,7 @@ class NF {
 	}
 
 	/**
-	 * Add template file path.
+	 * Add a template file path.
 	 *
 	 * @param array|mixed $paths Paths.
 	 *

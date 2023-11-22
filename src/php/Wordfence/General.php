@@ -26,7 +26,7 @@ class General {
 	 */
 	protected function init_hooks() {
 		if ( hcaptcha()->settings()->is( 'wordfence_status', 'login' ) ) {
-			// Disable recaptcha compatibility, otherwise Wordfence login script fails and cannot show 2FA.
+			// Disable recaptcha compatibility, otherwise a Wordfence login script fails and cannot show 2FA.
 			hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
 
 			add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_recaptcha_script' ], 20 );

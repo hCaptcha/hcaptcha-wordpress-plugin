@@ -63,8 +63,8 @@ class Fields extends NF_Fields_recaptcha {
 	/**
 	 * Validate form.
 	 *
-	 * @param array $field Field.
-	 * @param mixed $data  Data.
+	 * @param array|mixed $field Field.
+	 * @param mixed       $data  Data.
 	 *
 	 * @return null|string
 	 * @noinspection PhpUnusedParameterInspection

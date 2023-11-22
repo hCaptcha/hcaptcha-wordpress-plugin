@@ -52,7 +52,7 @@ abstract class JetpackBase {
 	}
 
 	/**
-	 * Add hCaptcha to Jetpack form.
+	 * Add hCaptcha to a Jetpack form.
 	 *
 	 * @param string|mixed $content Content.
 	 *

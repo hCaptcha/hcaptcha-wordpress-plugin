@@ -52,7 +52,7 @@ class Comment {
 	/**
 	 * Add captcha.
 	 *
-	 * @param string|mixed $submit_field HTML markup for the submit field.
+	 * @param string|mixed $submit_field HTML markup for the 'submit' field.
 	 * @param array        $comment_args Arguments passed to comment_form().
 	 *
 	 * @return string

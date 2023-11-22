@@ -88,12 +88,12 @@ class Login extends LoginBase {
 	 *
 	 * @param array|WP_Error|mixed $result Validation result.
 	 * @param string               $action Action name.
-	 * @param array                $data POST data.
+	 * @param array|mixed          $data POST data.
 	 *
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $result, $action, $data ) {
+	public function verify( $result, string $action, $data ) {
 		if ( self::USERS_WP_ACTION !== $action ) {
 			return $result;
 		}

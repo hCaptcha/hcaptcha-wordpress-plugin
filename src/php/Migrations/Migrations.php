@@ -122,7 +122,7 @@ class Migrations {
 	}
 
 	/**
-	 * Get upgrade version from the method name.
+	 * Get an upgrade version from the method name.
 	 *
 	 * @param string $method Method name.
 	 *

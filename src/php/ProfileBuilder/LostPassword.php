@@ -87,7 +87,7 @@ class LostPassword {
 	}
 
 	/**
-	 * Verify lost password form.
+	 * Verify a lost password form.
 	 *
 	 * @param false|mixed  $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
@@ -111,7 +111,7 @@ class LostPassword {
 			( ! isset( $_POST[ static::POST_KEY ] ) ) ||
 			( self::POST_VALUE && self::POST_VALUE !== $post_value )
 		) {
-			// Submitted lost password form cannot be handled by this class.
+			// This class cannot handle a submitted lost password form.
 			return $output;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing

@@ -74,7 +74,7 @@ class Comment extends Base {
 	public function verify( $comment_data ) {
 		$wp_discuz = wpDiscuz();
 
-		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ], 10 );
+		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
 
 		// Nonce is checked by wpDiscuz.
 

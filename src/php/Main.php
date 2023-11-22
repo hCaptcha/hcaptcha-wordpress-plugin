@@ -229,7 +229,7 @@ class Main {
 	}
 
 	/**
-	 * Whether we are on the Elementor Pro edit post page and hCaptcha for Elementor Pro is active.
+	 * Whether we are on the Elementor Pro edit post/page and hCaptcha for Elementor Pro is active.
 	 *
 	 * @return bool
 	 */
@@ -1130,7 +1130,7 @@ class Main {
 				false !== strpos( $plugin_or_theme_name, '.php' ) &&
 				is_plugin_active( $plugin_or_theme_name )
 			) {
-				// Plugin is active.
+				// The plugin is active.
 				return true;
 			}
 
@@ -1138,7 +1138,7 @@ class Main {
 				false === strpos( $plugin_or_theme_name, '.php' ) &&
 				get_template() === $plugin_or_theme_name
 			) {
-				// Theme is active.
+				// The theme is active.
 				return true;
 			}
 		}
@@ -1160,7 +1160,7 @@ class Main {
 	}
 
 	/**
-	 * Check of it is a xml-rpc request
+	 * Check if it is the xml-rpc request.
 	 *
 	 * @return bool
 	 */

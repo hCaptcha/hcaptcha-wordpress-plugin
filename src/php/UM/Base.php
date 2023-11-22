@@ -169,6 +169,7 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUndefinedConstantInspection
 	 */
 	public function display_captcha( $output, string $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
@@ -199,8 +200,6 @@ abstract class Base extends LoginBase {
 
 		if ( $fields->is_error( self::KEY ) ) {
 			if ( version_compare( UM_VERSION, '2.7.0', '<' ) ) {
-				// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-				/** @noinspection PhpParamsInspection */
 				$output .= $fields->field_error( $fields->show_error( self::KEY ) );
 			} else {
 				$output .= $fields->field_error( $fields->show_error( self::KEY ), self::KEY );

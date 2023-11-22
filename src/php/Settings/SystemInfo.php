@@ -237,7 +237,7 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Active Theme', $theme );
 		$data .= $this->data( 'Show On Front', get_option( 'show_on_front' ) );
 
-		// Only show page specs if front page is set to 'page'.
+		// Only show page specs if the front page is set to 'page'.
 		if ( get_option( 'show_on_front' ) === 'page' ) {
 			$front_page_id = get_option( 'page_on_front' );
 			$blog_page_id  = get_option( 'page_for_posts' );

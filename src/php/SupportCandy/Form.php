@@ -9,7 +9,7 @@ namespace HCaptcha\SupportCandy;
 
 /**
  * Class Form.
- * Supports New Ticket form.
+ * Supports a New Ticket form.
  */
 class Form extends Base {
 
