@@ -124,6 +124,8 @@ class Main {
 	 * @return void
 	 */
 	public function init_hooks() {
+		$this->load_textdomain();
+
 		$this->settings = new Settings(
 			[
 				'hCaptcha' => [
@@ -138,7 +140,6 @@ class Main {
 		$this->notifications->init();
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
-		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 

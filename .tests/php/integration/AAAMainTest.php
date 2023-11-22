@@ -161,7 +161,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
 		self::assertSame( - PHP_INT_MAX + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
-		self::assertSame( 10, has_action( 'plugins_loaded', [ $hcaptcha, 'load_textdomain' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
 		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
@@ -191,10 +190,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		self::assertSame(
 			- PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 		);
 		self::assertSame(
 			- PHP_INT_MAX,
@@ -292,10 +287,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		self::assertSame(
 			- PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 		);
 		self::assertSame(
 			- PHP_INT_MAX,
@@ -1469,8 +1460,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			10,
 			3
 		);
-
-		self::assertEquals( 10, has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] ) );
 
 		$subject->load_textdomain();
 
