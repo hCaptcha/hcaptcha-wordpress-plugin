@@ -533,6 +533,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.5.0 =
+* Added hCaptcha field to Gravity Forms admin editor.
 * Added the ability to process customized MailChimp forms.
 
 = 3.4.1 =
