@@ -59,7 +59,7 @@ function hcap_get_user_ip() {
  *
  * @return array
  */
-function hcap_get_error_messages() {
+function hcap_get_error_messages(): array {
 	/**
 	 * Filters hCaptcha error messages.
 	 *
@@ -92,7 +92,7 @@ function hcap_get_error_messages() {
  *
  * @return string
  */
-function hcap_get_error_message( $error_codes ) {
+function hcap_get_error_message( $error_codes ): string {
 	$error_codes = (array) $error_codes;
 	$errors      = hcap_get_error_messages();
 	$message_arr = [];
@@ -306,7 +306,7 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	 *
 	 * @return string
 	 */
-	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ) {
+	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ): string {
 		_deprecated_function( __FUNCTION__, '2.1.0' );
 
 		$message = sprintf(
