@@ -54,7 +54,7 @@ class Field extends GF_Field {
 	 * @return void
 	 */
 	private function init() {
-		if ( hcaptcha()->settings()->is( 'gravity_status', 'form' ) ) {
+		if ( ! hcaptcha()->settings()->is( 'gravity_status', 'embed' ) ) {
 			return;
 		}
 

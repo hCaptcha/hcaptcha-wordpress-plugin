@@ -34,6 +34,13 @@ class Form extends Base {
 	private $mode_auto = false;
 
 	/**
+	 * Whether hCaptcha can be embedded into form in the GF form editor.
+	 *
+	 * @var bool
+	 */
+	private $mode_embed = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -44,7 +51,8 @@ class Form extends Base {
 	 * Init hooks.
 	 */
 	private function init_hooks() {
-		$this->mode_auto = hcaptcha()->settings()->is( 'gravity_status', 'form' );
+		$this->mode_auto  = hcaptcha()->settings()->is( 'gravity_status', 'form' );
+		$this->mode_embed = hcaptcha()->settings()->is( 'gravity_status', 'embed' );
 
 		if ( $this->mode_auto ) {
 			add_filter( 'gform_submit_button', [ $this, 'add_captcha' ], 10, 2 );
@@ -70,12 +78,18 @@ class Form extends Base {
 			return $button_input;
 		}
 
+		$form_id = $form['id'] ?? 0;
+
+		if ( $this->mode_embed && $this->has_hcaptcha( $form_id ) ) {
+			return $button_input;
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form['id'] ?? 0,
+				'form_id' => $form_id,
 			],
 		];
 
@@ -258,12 +272,17 @@ class Form extends Base {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		if ( ! $this->mode_auto && ! $this->has_hcaptcha( $form_id ) ) {
-			// In manual mode, do not verify a form not having hCaptcha field.
-			return false;
+		if ( $this->mode_auto ) {
+			// In auto mode, verify all forms.
+			return true;
 		}
 
-		return true;
+		if ( $this->mode_embed && $this->has_hcaptcha( $form_id ) ) {
+			// In embed mode, verify only a form having hCaptcha field.
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
