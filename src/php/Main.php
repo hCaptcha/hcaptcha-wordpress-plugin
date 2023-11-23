@@ -842,6 +842,11 @@ class Main {
 				'gravityforms/gravityforms.php',
 				[ GravityForms\Form::class, GravityForms\Field::class ],
 			],
+			'HTML Forms'                           => [
+				[ 'html_forms_status', 'form' ],
+				'html-forms/html-forms.php',
+				HTMLForms\Form::class,
+			],
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',

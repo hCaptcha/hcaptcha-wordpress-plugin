@@ -239,6 +239,13 @@ class Integrations extends PluginSettingsBase {
 					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'html_forms_status'                => [
+				'label'   => 'HTML Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'jetpack_status'                   => [
 				'label'   => 'Jetpack',
 				'type'    => 'checkbox',

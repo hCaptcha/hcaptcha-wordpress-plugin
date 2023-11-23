@@ -837,6 +837,13 @@ abstract class HCaptchaTestCase extends TestCase {
 							'embed' => 'Form Embed',
 						],
 				],
+			'html_forms_status'                => [
+				'label'   => 'HTML Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'jetpack_status'                   =>
 				[
 					'label'   => 'Jetpack',
