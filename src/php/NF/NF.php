@@ -50,7 +50,7 @@ class NF {
 	public function register_fields( $fields ): array {
 		$fields = (array) $fields;
 
-		$fields['hcaptcha-for-ninja-forms'] = new Fields();
+		$fields['hcaptcha-for-ninja-forms'] = new Field();
 
 		return $fields;
 	}

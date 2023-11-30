@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\NF;
 
-use HCaptcha\NF\Fields;
+use HCaptcha\NF\Field;
 use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
@@ -57,7 +57,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 
 		$fields = ( new NF() )->register_fields( $fields );
 
-		self::assertInstanceOf( Fields::class, $fields['hcaptcha-for-ninja-forms'] );
+		self::assertInstanceOf( Field::class, $fields['hcaptcha-for-ninja-forms'] );
 	}
 
 	/**

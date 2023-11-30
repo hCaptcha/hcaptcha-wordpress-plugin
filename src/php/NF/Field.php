@@ -1,6 +1,6 @@
 <?php
 /**
- * Fields class file.
+ * Field class file.
  *
  * @package hcaptcha-wp
  */
@@ -15,9 +15,9 @@ namespace HCaptcha\NF;
 use NF_Fields_Recaptcha;
 
 /**
- * Class Fields
+ * Class Field
  */
-class Fields extends NF_Fields_recaptcha {
+class Field extends NF_Fields_Recaptcha {
 
 	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
@@ -67,7 +67,6 @@ class Fields extends NF_Fields_recaptcha {
 	 * @param mixed       $data  Data.
 	 *
 	 * @return null|string
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function validate( $field, $data ) {
 		$value = $field['value'] ?? '';
