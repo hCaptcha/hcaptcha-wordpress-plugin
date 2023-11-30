@@ -24,7 +24,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				return;
 			}
 
-			// Check if Model has a value.
+			// Check if the Model has a value.
 			if ( model.get( 'value' ) ) {
 				// Remove Error from Model.
 				Backbone.Radio.channel( 'fields' ).request(
