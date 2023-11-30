@@ -43,6 +43,7 @@ class NF {
 	 */
 	public function init_hooks() {
 		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
+		add_action( 'nf_admin_enqueue_scripts', [ $this, 'nf_admin_enqueue_scripts' ] );
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
@@ -61,7 +62,55 @@ class NF {
 			return;
 		}
 
-		require_once $this->templates_dir . 'fields-hcaptcha.html';
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$template = file_get_contents( $this->templates_dir . 'fields-hcaptcha.html' );
+
+		// Fix bug in Ninja forms.
+		// For template script id, they expect field->_name in admin, but field->_type on frontend.
+		// It works for NF fields as all fields have _name === _type.
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo str_replace(
+			'tmpl-nf-field-hcaptcha',
+			'tmpl-nf-field-hcaptcha-for-ninja-forms',
+			$template
+		);
+	}
+
+	/**
+	 * Add hCaptcha to the field data.
+	 *
+	 * @return void
+	 */
+	public function nf_admin_enqueue_scripts() {
+		global $wp_scripts;
+
+		$data = $wp_scripts->registered['nf-builder']->extra['data'];
+
+		if ( ! preg_match( '/var nfDashInlineVars = (.+);/', $data, $m ) ) {
+			return;
+		}
+
+		$vars  = json_decode( $m[1], true );
+		$found = false;
+
+		foreach ( $vars['preloadedFormData']['fields'] as & $field ) {
+			if ( 'hcaptcha-for-ninja-forms' === $field['type'] ) {
+				$found             = true;
+				$field['hcaptcha'] = $this->get_hcaptcha( (int) $field['id'] );
+				break;
+			}
+		}
+
+		unset( $field );
+
+		if ( ! $found ) {
+			return;
+		}
+
+		$data = str_replace( $m[1], wp_json_encode( $vars ), $data );
+
+		$wp_scripts->registered['nf-builder']->extra['data'] = $data;
 	}
 
 	/**
@@ -115,10 +164,22 @@ class NF {
 	public function localize_field( $field ): array {
 		$field = (array) $field;
 
-		$settings                         = hcaptcha()->settings();
-		$hcaptcha_id                      = uniqid( 'hcaptcha-nf-', true );
-		$field['settings']['hcaptcha_id'] = $hcaptcha_id;
-		$hcaptcha_size                    = $settings->get( 'size' );
+		$field['settings']['hcaptcha'] = $field['settings']['hcaptcha'] ?? $this->get_hcaptcha( (int) $field['id'] );
+
+		return $field;
+	}
+
+	/**
+	 * Get hCaptcha.
+	 *
+	 * @param int $field_id Field id.
+	 *
+	 * @return string
+	 */
+	private function get_hcaptcha( int $field_id ): string {
+		$settings      = hcaptcha()->settings();
+		$hcaptcha_id   = uniqid( 'hcaptcha-nf-', true );
+		$hcaptcha_size = $settings->get( 'size' );
 
 		// Invisible is not supported by Ninja Forms so far.
 		$hcaptcha_size = 'invisible' === $hcaptcha_size ? 'normal' : $hcaptcha_size;
@@ -133,18 +194,12 @@ class NF {
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
-		$id       = $field['id'] ?? 0;
-		$hcaptcha = str_replace(
+
+		return str_replace(
 			'<div',
-			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $id . '"',
+			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $field_id . '"',
 			$hcaptcha
 		);
-
-		$field['settings']['hcaptcha'] = $hcaptcha;
-
-		hcaptcha()->form_shown = true;
-
-		return $field;
 	}
 
 	/**
