@@ -21,6 +21,8 @@ use wpforo\classes\Notices;
 
 /**
  * Test NewTopic class.
+ *
+ * @requires PHP >= 7.1
  */
 class NewTopicTest extends HCaptchaPluginWPTestCase {
 

@@ -93,6 +93,11 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo
 
+      - name: Install plugins requiring 7.1
+        if: ${{ matrix.php-version >= '7.1' }}
+        working-directory: ${{ env.wp-directory }}
+        run: wp plugin install wpforo
+
       - name: Install plugins requiring 7.2
         if: ${{ matrix.php-version >= '7.2' }}
         working-directory: ${{ env.wp-directory }}
