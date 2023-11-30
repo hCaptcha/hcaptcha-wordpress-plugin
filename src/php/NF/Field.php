@@ -12,12 +12,12 @@
 
 namespace HCaptcha\NF;
 
-use NF_Fields_Recaptcha;
+use NF_Abstracts_Field;
 
 /**
  * Class Field
  */
-class Field extends NF_Fields_Recaptcha {
+class Field extends NF_Abstracts_Field {
 
 	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
@@ -36,6 +36,20 @@ class Field extends NF_Fields_Recaptcha {
 	protected $_type = 'hcaptcha';
 
 	/**
+	 * Section.
+	 *
+	 * @var string
+	 */
+	protected $_section = 'misc';
+
+	/**
+	 * Icon.
+	 *
+	 * @var string
+	 */
+	protected $_icon = '';
+
+	/**
 	 * Templates.
 	 *
 	 * @var string
@@ -43,25 +57,21 @@ class Field extends NF_Fields_Recaptcha {
 	protected $_templates = 'hcaptcha';
 
 	/**
-	 * Nice name of the field.
+	 * Settings.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	protected $_nicename;
+	protected $_settings = [ 'label', 'classes' ];
 
 	// phpcs:enable PSR2.Classes.PropertyDeclaration.Underscore
 
 	/**
 	 * Fields constructor.
-	 *
-	 * @noinspection SuspiciousArrayElementInspection
 	 */
 	public function __construct() {
 		parent::__construct();
 
 		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
-
-		unset( $this->_settings['size '] );
 	}
 
 	/**
