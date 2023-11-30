@@ -67,6 +67,8 @@ class Field extends NF_Abstracts_Field {
 
 	/**
 	 * Fields constructor.
+	 *
+	 * @noinspection PhpDynamicFieldDeclarationInspection
 	 */
 	public function __construct() {
 		parent::__construct();
