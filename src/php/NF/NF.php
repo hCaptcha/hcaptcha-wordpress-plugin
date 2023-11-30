@@ -23,9 +23,18 @@ class NF {
 	private $form_id = 0;
 
 	/**
+	 * Templates dir.
+	 *
+	 * @var string
+	 */
+	private $templates_dir;
+
+	/**
 	 * NF constructor.
 	 */
 	public function __construct() {
+		$this->templates_dir = __DIR__ . '/templates/';
+
 		$this->init_hooks();
 	}
 
@@ -33,11 +42,26 @@ class NF {
 	 * Init hooks.
 	 */
 	public function init_hooks() {
+		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $this, 'localize_field' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
+	}
+
+	/**
+	 * Display template on form edit page.
+	 *
+	 * @return void
+	 */
+	public function admin_template() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['form_id'] ) ) {
+			return;
+		}
+
+		require_once $this->templates_dir . 'fields-hcaptcha.html';
 	}
 
 	/**
@@ -65,7 +89,7 @@ class NF {
 	public function template_file_paths( $paths ): array {
 		$paths = (array) $paths;
 
-		$paths[] = __DIR__ . '/templates/';
+		$paths[] = $this->templates_dir;
 
 		return $paths;
 	}
