@@ -53,11 +53,15 @@ class Field extends NF_Fields_Recaptcha {
 
 	/**
 	 * Fields constructor.
+	 *
+	 * @noinspection SuspiciousArrayElementInspection
 	 */
 	public function __construct() {
 		parent::__construct();
 
 		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
+
+		unset( $this->_settings['size '] );
 	}
 
 	/**
