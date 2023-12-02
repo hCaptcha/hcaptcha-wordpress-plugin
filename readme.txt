@@ -540,6 +540,7 @@ Instructions for popular native integrations are below:
 * Added the ability to process customized MailChimp forms.
 * Added HTML Forms integration.
 * Fixed loading of local .mo files.
+* Fixed inability to send Divi Contact Form.
 
 = 3.4.1 =
 * Tested with WordPress 6.4.
