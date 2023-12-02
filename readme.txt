@@ -535,6 +535,7 @@ Instructions for popular native integrations are below:
 = 3.5.0 =
 * Tested with WooCommerce 8.3.
 * Added hCaptcha field to Gravity Forms admin editor.
+* Added hCaptcha field to Ninja Forms admin editor.
 * Added the ability to process customized MailChimp forms.
 * Added HTML Forms integration.
 * Fixed loading of local .mo files.
