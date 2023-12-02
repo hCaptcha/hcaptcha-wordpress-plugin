@@ -114,9 +114,8 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected                            = $field;
-		$expected['settings']['hcaptcha_id'] = $uniqid;
-		$expected['settings']['hcaptcha']    = '		<div id="' . $uniqid . '" data-fieldId="5"
+		$expected                         = $field;
+		$expected['settings']['hcaptcha'] = '		<div id="' . $uniqid . '" data-fieldId="5"
 			class="h-captcha"
 			data-sitekey="some key"
 			data-theme="some theme"

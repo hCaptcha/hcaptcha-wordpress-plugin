@@ -15,6 +15,12 @@ use HCaptcha\Main;
  * Support Ninja Forms.
  */
 class NF {
+
+	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-nf';
+
 	/**
 	 * Form id.
 	 *
@@ -85,6 +91,7 @@ class NF {
 	public function nf_admin_enqueue_scripts() {
 		global $wp_scripts;
 
+		// Add hCaptcha to the preloaded form data.
 		$data = $wp_scripts->registered['nf-builder']->extra['data'];
 
 		if ( ! preg_match( '/var nfDashInlineVars = (.+);/', $data, $m ) ) {
@@ -97,7 +104,12 @@ class NF {
 		foreach ( $vars['preloadedFormData']['fields'] as & $field ) {
 			if ( 'hcaptcha-for-ninja-forms' === $field['type'] ) {
 				$found             = true;
-				$field['hcaptcha'] = $this->get_hcaptcha( (int) $field['id'] );
+				$search            = 'class="h-captcha"';
+				$field['hcaptcha'] = str_replace(
+					$search,
+					$search . ' style="z-index: 2;"',
+					$this->get_hcaptcha( (int) $field['id'] )
+				);
 				break;
 			}
 		}
@@ -111,6 +123,17 @@ class NF {
 		$data = str_replace( $m[1], wp_json_encode( $vars ), $data );
 
 		$wp_scripts->registered['nf-builder']->extra['data'] = $data;
+
+		// Enqueue admin script.
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			HCAPTCHA_URL . "/assets/js/admin-nf$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**
