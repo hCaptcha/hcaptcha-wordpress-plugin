@@ -47,7 +47,7 @@ class Field extends NF_Abstracts_Field {
 	 *
 	 * @var string
 	 */
-	protected $_icon = '';
+	protected $_icon = 'hand-paper-o';
 
 	/**
 	 * Templates.
@@ -74,6 +74,8 @@ class Field extends NF_Abstracts_Field {
 		parent::__construct();
 
 		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
+
+		add_filter( 'nf_sub_hidden_field_types', [ $this, 'hide_field_type' ] );
 	}
 
 	/**
@@ -88,5 +90,19 @@ class Field extends NF_Abstracts_Field {
 		$value = $field['value'] ?? '';
 
 		return hcaptcha_request_verify( $value );
+	}
+
+	/**
+	 * Hide the field type.
+	 *
+	 * @param array|mixed $hidden_field_types Field types.
+	 *
+	 * @return array
+	 */
+	public function hide_field_type( $hidden_field_types ): array {
+		$hidden_field_types   = (array) $hidden_field_types;
+		$hidden_field_types[] = $this->_name;
+
+		return $hidden_field_types;
 	}
 }
