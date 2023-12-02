@@ -46,8 +46,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			const config = {
 				childList: true,
 				subtree: true,
-				attributes: true,
-				characterData: true,
 			};
 			const observer = new MutationObserver( callback );
 
