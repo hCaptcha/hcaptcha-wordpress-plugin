@@ -200,20 +200,14 @@ class NF {
 	 * @return string
 	 */
 	private function get_hcaptcha( int $field_id ): string {
-		$settings      = hcaptcha()->settings();
-		$hcaptcha_id   = uniqid( 'hcaptcha-nf-', true );
-		$hcaptcha_size = $settings->get( 'size' );
-
-		// Invisible is not supported by Ninja Forms so far.
-		$hcaptcha_size = 'invisible' === $hcaptcha_size ? 'normal' : $hcaptcha_size;
+		$hcaptcha_id = uniqid( 'hcaptcha-nf-', true );
 
 		// Nonce is checked by Ninja forms.
 		$args = [
-			'id'   => [
+			'id' => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => $this->form_id,
 			],
-			'size' => $hcaptcha_size,
 		];
 
 		$hcaptcha = HCaptcha::form( $args );

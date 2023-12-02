@@ -128,28 +128,6 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		$subject->set_form_id( 1 );
 
 		self::assertSame( $expected, $subject->localize_field( $field ) );
-
-		// Test that invisible size is replaced by normal.
-		update_option(
-			'hcaptcha_settings',
-			[
-				'site_key' => $hcaptcha_site_key,
-				'theme'    => $hcaptcha_theme,
-				'size'     => 'invisible',
-			]
-		);
-
-		hcaptcha()->init_hooks();
-
-		$expected['settings']['hcaptcha'] = str_replace(
-			'some size',
-			'normal',
-			$expected['settings']['hcaptcha']
-		);
-
-		$subject = new NF();
-
-		self::assertSame( $expected, $subject->localize_field( $field ) );
 	}
 
 	/**
