@@ -52,6 +52,7 @@ jobs:
         working-directory: ${{ env.wp-plugin-directory }}
         if: ${{ matrix.php-version == '8.2' }}
         run: |
+          corepack enable
           yarn set version stable
           yarn
           yarn dev
