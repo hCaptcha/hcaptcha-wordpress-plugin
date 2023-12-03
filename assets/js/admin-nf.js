@@ -14,9 +14,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 			this.listenTo( appChannel, 'click:edit', this.editField );
 			this.listenTo( appChannel, 'click:closeDrawer', this.closeDrawer );
-
-			// const drawerChannel = nfRadio.channel( 'drawer' );
-			// this.listenTo( drawerChannel, 'click:fieldType', this.fieldType );
 		},
 
 		/**
@@ -72,14 +69,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 			this.observeHCaptcha( field );
 		},
-
-		// fieldType( e ) {
-		// 	if ( e.target.dataset.id !== 'hcaptcha-for-ninja-forms' ) {
-		// 		return;
-		// 	}
-		//
-		// 	this.observeHCaptcha( document.getElementById( 'nf-builder' ) );
-		// },
 
 		/**
 		 * Observe adding of the hCaptcha field in the form and bind its events.
