@@ -17,6 +17,11 @@ use HCaptcha\Main;
 class NF {
 
 	/**
+	 * Script handle.
+	 */
+	const HANDLE = 'hcaptcha-nf';
+
+	/**
 	 * Admin script handle.
 	 */
 	const ADMIN_HANDLE = 'admin-nf';
@@ -134,6 +139,14 @@ class NF {
 			[],
 			HCAPTCHA_VERSION,
 			true
+		);
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			'HCaptchaAdminNFObject',
+			[
+				'onlyOneHCaptchaAllowed' => __( 'Only one hCaptcha field allowed.', 'hcaptcha-for-forms-and-more' ),
+			]
 		);
 	}
 
@@ -254,7 +267,7 @@ class NF {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'hcaptcha-nf',
+			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-nf$min.js",
 			[ 'jquery', Main::HANDLE, 'nf-front-end', 'nf-front-end-deps' ],
 			HCAPTCHA_VERSION,
