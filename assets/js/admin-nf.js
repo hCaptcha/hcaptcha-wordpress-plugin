@@ -5,11 +5,15 @@
  */
 
 document.addEventListener( 'DOMContentLoaded', function() {
+	const nfRadio = Backbone.Radio;
+	const fieldClass = 'hcaptcha-for-ninja-forms';
+	const dataId = fieldClass;
+	const fieldSelector = '.' + fieldClass;
+
 	const HCaptchaAdminFieldController = Marionette.Object.extend( {
 		initialize() {
-			document.getElementById( 'nf-builder' ).addEventListener( 'click', this.checkAddingHCaptchaByClick, true );
+			document.getElementById( 'nf-builder' ).addEventListener( 'mousedown', this.checkAddingHCaptcha, true );
 
-			const nfRadio = Backbone.Radio;
 			const appChannel = nfRadio.channel( 'app' );
 
 			this.listenTo( appChannel, 'click:edit', this.editField );
@@ -17,12 +21,12 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		},
 
 		/**
-		 * Check adding hCaptcha by Click and prevent from having multiple hCaptcha fields.
+		 * Check adding hCaptcha and prevent from having multiple hCaptcha fields.
 		 *
 		 * @param {Object} e Click event.
 		 */
-		checkAddingHCaptchaByClick( e ) {
-			const buttonClicked = e.target.dataset.id === 'hcaptcha-for-ninja-forms';
+		checkAddingHCaptcha( e ) {
+			const buttonClicked = e.target.dataset.id === dataId;
 			const classList = e.target.classList;
 			const duplicateClicked = classList !== undefined && classList.contains( 'nf-duplicate' );
 
@@ -30,9 +34,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				return;
 			}
 
-			const hcaptchaField = document.querySelector( '.hcaptcha-for-ninja-forms' );
+			const field = document.querySelector( fieldSelector );
 
-			if ( hcaptchaField ) {
+			if ( field ) {
 				e.stopImmediatePropagation();
 
 				// eslint-disable-next-line no-alert
@@ -49,11 +53,11 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		editField( e ) {
 			const field = e.target.parentNode;
 
-			if ( field.classList === undefined || ! field.classList.contains( 'hcaptcha-for-ninja-forms' ) ) {
+			if ( field.classList === undefined || ! field.classList.contains( fieldClass ) ) {
 				return;
 			}
 
-			this.observeHCaptcha( field );
+			this.observeField( field );
 		},
 
 		/**
@@ -61,13 +65,13 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		 * Do it if the drawer was opened to edit hCaptcha.
 		 */
 		closeDrawer() {
-			const field = document.querySelector( '.hcaptcha-for-ninja-forms.active' );
+			const field = document.querySelector( fieldSelector + '.active' );
 
 			if ( ! field ) {
 				return;
 			}
 
-			this.observeHCaptcha( field );
+			this.observeField( field );
 		},
 
 		/**
@@ -75,11 +79,11 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		 *
 		 * @param {Node} field Field.
 		 */
-		observeHCaptcha( field ) {
+		observeField( field ) {
 			const callback = ( mutationList ) => {
 				for ( const mutation of mutationList ) {
 					[ ...mutation.addedNodes ].map( ( node ) => {
-						if ( node.classList !== undefined && node.classList.contains( 'hcaptcha-for-ninja-forms' ) ) {
+						if ( node.classList !== undefined && node.classList.contains( fieldClass ) ) {
 							window.hCaptchaBindEvents();
 						}
 
