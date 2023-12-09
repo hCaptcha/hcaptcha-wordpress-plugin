@@ -539,6 +539,8 @@ Instructions for popular native integrations are below:
 * Added invisible hCaptcha support for Ninja Forms.
 * Added the ability to process customized MailChimp forms.
 * Added HTML Forms integration.
+* Added Auto Theme option to follow light/dark theme settings on site.
+* Added support for WP Twenty Twenty-One theme dark mode.
 * Fixed loading of local .mo files.
 * Fixed inability to send Divi Contact Form.
 
