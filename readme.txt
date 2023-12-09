@@ -541,6 +541,7 @@ Instructions for popular native integrations are below:
 * Added HTML Forms integration.
 * Added Auto Theme option to follow light/dark theme settings on site.
 * Added support for WP Twenty Twenty-One theme dark mode.
+* Added support for WP Dark Mode plugin dark mode.
 * Fixed loading of local .mo files.
 * Fixed inability to send Divi Contact Form.
 
