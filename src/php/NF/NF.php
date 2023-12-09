@@ -56,7 +56,7 @@ class NF {
 		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
 		add_action( 'nf_admin_enqueue_scripts', [ $this, 'nf_admin_enqueue_scripts' ] );
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
-		add_action( 'ninja_forms_loaded', [ $this, 'place_hcaptcha_after_spam_field' ] );
+		add_action( 'ninja_forms_loaded', [ $this, 'place_hcaptcha_before_recaptcha_field' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $this, 'localize_field' ] );
@@ -166,27 +166,27 @@ class NF {
 	}
 
 	/**
-	 * Place hCaptcha field after spam field.
+	 * Place hCaptcha field before recaptcha field.
 	 *
 	 * @return void
 	 */
-	public function place_hcaptcha_after_spam_field() {
-		$hcaptcha_key   = 'hcaptcha-for-ninja-forms';
-		$fields         = Ninja_Forms()->fields;
-		$hcaptcha_value = $fields[ $hcaptcha_key ];
-
-		unset( $fields[ $hcaptcha_key ] );
-
-		$index = array_search( 'spam', array_keys( $fields ), true );
+	public function place_hcaptcha_before_recaptcha_field() {
+		$fields = Ninja_Forms()->fields;
+		$index  = array_search( 'recaptcha', array_keys( $fields ), true );
 
 		if ( false === $index ) {
 			return;
 		}
 
+		$hcaptcha_key   = 'hcaptcha-for-ninja-forms';
+		$hcaptcha_value = $fields[ $hcaptcha_key ];
+
+		unset( $fields[ $hcaptcha_key ] );
+
 		Ninja_Forms()->fields = array_merge(
-			array_slice( $fields, 0, $index + 1 ),
+			array_slice( $fields, 0, $index ),
 			[ $hcaptcha_key => $hcaptcha_value ],
-			array_slice( $fields, $index + 1 )
+			array_slice( $fields, $index )
 		);
 	}
 
