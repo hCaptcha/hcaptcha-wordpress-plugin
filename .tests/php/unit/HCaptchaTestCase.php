@@ -392,6 +392,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'options' => [
 					'light' => 'Light',
 					'dark'  => 'Dark',
+					'auto'  => 'Auto',
 				],
 				'helper'  => 'Select hCaptcha theme.',
 			],

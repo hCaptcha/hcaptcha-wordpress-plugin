@@ -160,6 +160,7 @@ class General extends PluginSettingsBase {
 				'options' => [
 					'light' => __( 'Light', 'hcaptcha-for-forms-and-more' ),
 					'dark'  => __( 'Dark', 'hcaptcha-for-forms-and-more' ),
+					'auto'  => __( 'Auto', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Select hCaptcha theme.', 'hcaptcha-for-forms-and-more' ),
 			],

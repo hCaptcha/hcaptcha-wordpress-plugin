@@ -13,6 +13,7 @@ class HCaptcha {
 			' .frm_button_submit, a.sdm_download';
 		this.foundForms = [];
 		this.params = null;
+		this.observing = false;
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
@@ -117,7 +118,7 @@ class HCaptcha {
 	/**
 	 * Get params.
 	 *
-	 * @return {{}} Params.
+	 * @return {*} Params.
 	 */
 	getParams() {
 		if ( this.params !== null ) {
@@ -147,6 +148,56 @@ class HCaptcha {
 	}
 
 	/**
+	 * Observe dark mode changes and apply auto theme.
+	 */
+	observeDarkMode() {
+		if ( this.observing ) {
+			return;
+		}
+
+		this.observing = true;
+
+		const params = this.getParams();
+
+		if ( params.theme !== 'auto' ) {
+			return;
+		}
+
+		let target, darkClass;
+
+		const callback = ( mutationList ) => {
+			for ( const mutation of mutationList ) {
+				let oldClasses = mutation.oldValue;
+				let newClasses = target.getAttribute( 'class' );
+
+				oldClasses = oldClasses ? oldClasses.split( ' ' ) : [];
+				newClasses = newClasses ? newClasses.split( ' ' ) : [];
+
+				const diff = newClasses
+					.filter( ( item ) => ! oldClasses.includes( item ) )
+					.concat( oldClasses.filter( ( item ) => ! newClasses.includes( item ) ) );
+
+				if ( diff.includes( darkClass ) ) {
+					this.bindEvents();
+				}
+			}
+		};
+
+		if ( document.getElementById( 'twenty-twenty-one-style-css' ) ) {
+			const config = {
+				attributes: true,
+				attributeOldValue: true,
+			};
+			const observer = new MutationObserver( callback );
+
+			target = document.body;
+			darkClass = 'is-dark-theme';
+
+			observer.observe( target, config );
+		}
+	}
+
+	/**
 	 * Called when the user submits a successful response.
 	 *
 	 * @param {string} token The h-captcha-response token.
@@ -166,12 +217,51 @@ class HCaptcha {
 	}
 
 	/**
+	 * Apply auto theme.
+	 *
+	 * @param {*} params Params.
+	 *
+	 * @return {*} Params.
+	 */
+	applyAutoTheme( params ) {
+		if ( params.theme !== 'auto' ) {
+			return params;
+		}
+
+		if (
+			document.getElementById( 'twenty-twenty-one-style-css' ) &&
+			document.body.classList.contains( 'is-dark-theme' )
+		) {
+			params.theme = 'dark';
+
+			return params;
+		}
+
+		params.theme = 'light';
+
+		return params;
+	}
+
+	/**
+	 * Render hCaptcha.
+	 *
+	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
+	 */
+	render( hcaptchaElement ) {
+		const params = this.applyAutoTheme( this.getParams() );
+
+		hcaptcha.render( hcaptchaElement, params );
+	}
+
+	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
 		if ( 'undefined' === typeof hcaptcha ) {
 			return;
 		}
+
+		this.observeDarkMode();
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
@@ -181,17 +271,19 @@ class HCaptcha {
 				return formElement;
 			}
 
-			// Do not render second time, processing arbitrary 'form' selector.
-			if ( null !== hcaptchaElement.querySelector( 'iframe' ) ) {
-				return formElement;
-			}
-
 			// Do not deal with skipped hCaptcha.
 			if ( hcaptchaElement.classList.contains( 'hcaptcha-widget-id' ) ) {
 				return formElement;
 			}
 
-			hcaptcha.render( hcaptchaElement, this.getParams() );
+			const iframe = hcaptchaElement.querySelector( 'iframe' );
+
+			// Re-render.
+			if ( null !== iframe ) {
+				iframe.remove();
+			}
+
+			this.render( hcaptchaElement );
 
 			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
 				return formElement;

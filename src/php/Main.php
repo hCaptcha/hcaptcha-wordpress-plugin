@@ -410,12 +410,14 @@ class Main {
 				background-position: 50% 79%;
 			}
 
-			.h-captcha[data-theme="light"]::before {
+			.h-captcha[data-theme="light"]::before,
+			body.is-light-theme .h-captcha[data-theme="auto"]::before {
 				background-color: #fafafa;
 				border: 1px solid #e0e0e0;
 			}
 
-			.h-captcha[data-theme="dark"]::before {
+			.h-captcha[data-theme="dark"]::before,
+			body.is-dark-theme .h-captcha[data-theme="auto"]::before {
 				background-image: url(<?php echo esc_url( $div_logo_white_url ); ?>);
 				background-repeat: no-repeat;
 				background-color: #333;
