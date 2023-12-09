@@ -14,7 +14,7 @@ class HCaptcha {
 		this.foundForms = [];
 		this.params = null;
 		this.observing = false;
-		this.darkTarget = null;
+		this.darkElement = null;
 		this.darkClass = null;
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
@@ -150,6 +150,47 @@ class HCaptcha {
 	}
 
 	/**
+	 * Set darkElement and darkClass.
+	 */
+	setDarkData() {
+		const darkData = {
+			'twenty-twenty-one': {
+				// Twenty Twenty-One theme.
+				darkStyleId: 'twenty-twenty-one-style-css',
+				darkElement: document.body,
+				darkClass: 'is-dark-theme',
+			},
+			'wp-dark-mode': {
+				// WP Dark Mode plugin.
+				darkStyleId: 'wp-dark-mode-frontend-css',
+				darkElement: document.documentElement,
+				darkClass: 'wp-dark-mode-active',
+			},
+			'droit-dark-mode': {
+				// Droit Dark Mode plugin.
+				darkStyleId: 'dtdr-public-inline-css',
+				darkElement: document.documentElement,
+				darkClass: 'drdt-dark-mode',
+			},
+			'blog-stream': {
+				// Blogstream theme.
+				darkStyleId: 'blogstream-style-css',
+				darkElement: document.body,
+				darkClass: 'dark',
+			},
+		};
+
+		for ( const datum of Object.values( darkData ) ) {
+			if ( document.getElementById( datum.darkStyleId ) ) {
+				this.darkElement = datum.darkElement;
+				this.darkClass = datum.darkClass;
+
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Observe dark mode changes and apply auto theme.
 	 */
 	observeDarkMode() {
@@ -168,7 +209,7 @@ class HCaptcha {
 		const callback = ( mutationList ) => {
 			for ( const mutation of mutationList ) {
 				let oldClasses = mutation.oldValue;
-				let newClasses = this.darkTarget.getAttribute( 'class' );
+				let newClasses = this.darkElement.getAttribute( 'class' );
 
 				oldClasses = oldClasses ? oldClasses.split( ' ' ) : [];
 				newClasses = newClasses ? newClasses.split( ' ' ) : [];
@@ -183,33 +224,17 @@ class HCaptcha {
 			}
 		};
 
-		// Twenty Twenty-One theme.
-		if ( document.getElementById( 'twenty-twenty-one-style-css' ) ) {
-			this.darkTarget = document.body;
-			this.darkClass = 'is-dark-theme';
-		}
-
-		// WP Dark Mode plugin.
-		if ( document.getElementById( 'wp-dark-mode-frontend-css' ) ) {
-			this.darkTarget = document.documentElement;
-			this.darkClass = 'wp-dark-mode-active';
-		}
-
-		// Droit Dark Mode plugin.
-		if ( document.getElementById( 'dtdr-public-inline-css' ) ) {
-			this.darkTarget = document.documentElement;
-			this.darkClass = 'drdt-dark-mode';
-		}
+		this.setDarkData();
 
 		// Add observer if there is a known dark mode provider.
-		if ( this.darkTarget && this.darkClass ) {
+		if ( this.darkElement && this.darkClass ) {
 			const config = {
 				attributes: true,
 				attributeOldValue: true,
 			};
 			const observer = new MutationObserver( callback );
 
-			observer.observe( this.darkTarget, config );
+			observer.observe( this.darkElement, config );
 		}
 	}
 
@@ -246,11 +271,11 @@ class HCaptcha {
 
 		params.theme = 'light';
 
-		if ( ! this.darkTarget ) {
+		if ( ! this.darkElement ) {
 			return params;
 		}
 
-		let targetClass = this.darkTarget.getAttribute( 'class' );
+		let targetClass = this.darkElement.getAttribute( 'class' );
 		targetClass = targetClass ? targetClass : '';
 
 		if ( targetClass.includes( this.darkClass ) ) {
