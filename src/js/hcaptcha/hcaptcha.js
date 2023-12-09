@@ -191,10 +191,17 @@ class HCaptcha {
 
 		// WP Dark Mode plugin.
 		if ( document.getElementById( 'wp-dark-mode-frontend-css' ) ) {
-			this.darkTarget = document.documentElement; // The <html> tag.
+			this.darkTarget = document.documentElement;
 			this.darkClass = 'wp-dark-mode-active';
 		}
 
+		// Droit Dark Mode plugin.
+		if ( document.getElementById( 'dtdr-public-inline-css' ) ) {
+			this.darkTarget = document.documentElement;
+			this.darkClass = 'drdt-dark-mode';
+		}
+
+		// Add observer if there is a known dark mode provider.
 		if ( this.darkTarget && this.darkClass ) {
 			const config = {
 				attributes: true,
