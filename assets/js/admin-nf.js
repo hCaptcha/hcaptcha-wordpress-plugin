@@ -8,7 +8,8 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const nfRadio = Backbone.Radio;
 	const fieldClass = 'hcaptcha-for-ninja-forms';
 	const dataId = fieldClass;
-	const fieldSelector = '.' + fieldClass;
+	const fieldSelector = '.' + fieldClass
+	let hasObserver = false;
 
 	const HCaptchaAdminFieldController = Marionette.Object.extend( {
 		initialize() {
@@ -18,6 +19,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 			this.listenTo( appChannel, 'click:edit', this.editField );
 			this.listenTo( appChannel, 'click:closeDrawer', this.closeDrawer );
+
+			const fieldsChannel = nfRadio.channel( 'fields' );
+
+			this.listenTo( fieldsChannel, 'add:field', this.addField );
 		},
 
 		/**
@@ -57,7 +62,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				return;
 			}
 
-			this.observeField( field );
+			this.observeField();
 		},
 
 		/**
@@ -71,19 +76,39 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				return;
 			}
 
-			this.observeField( field );
+			this.observeField();
 		},
 
 		/**
-		 * Observe adding of the hCaptcha field in the form and bind its events.
-		 *
-		 * @param {Node} field Field.
+		 * Check adding field and update hCaptcha.
 		 */
-		observeField( field ) {
+		addField() {
+			const field = document.querySelector( fieldSelector );
+
+			if ( ! field ) {
+				return;
+			}
+
+			this.observeField();
+		},
+
+		/**
+		 * Observe adding of a field to the form and bind hCaptcha events.
+		 */
+		observeField() {
+			if ( hasObserver ) {
+				return;
+			}
+
+			hasObserver = true;
+
 			const callback = ( mutationList ) => {
 				for ( const mutation of mutationList ) {
 					[ ...mutation.addedNodes ].map( ( node ) => {
-						if ( node.classList !== undefined && node.classList.contains( fieldClass ) ) {
+						if (
+							document.querySelector( '.h-captcha' ) &&
+							! document.querySelector( '.h-captcha iframe' )
+						) {
 							window.hCaptchaBindEvents();
 						}
 
@@ -98,7 +123,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			};
 			const observer = new MutationObserver( callback );
 
-			observer.observe( field, config );
+			observer.observe( document.getElementById( 'nf-main-body' ), config );
 		},
 	} );
 
