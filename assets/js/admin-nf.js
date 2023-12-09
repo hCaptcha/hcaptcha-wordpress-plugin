@@ -8,7 +8,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const nfRadio = Backbone.Radio;
 	const fieldClass = 'hcaptcha-for-ninja-forms';
 	const dataId = fieldClass;
-	const fieldSelector = '.' + fieldClass
+	const fieldSelector = '.' + fieldClass;
 	let hasObserver = false;
 
 	const HCaptchaAdminFieldController = Marionette.Object.extend( {
