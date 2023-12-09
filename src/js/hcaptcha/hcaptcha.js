@@ -14,6 +14,8 @@ class HCaptcha {
 		this.foundForms = [];
 		this.params = null;
 		this.observing = false;
+		this.darkTarget = null;
+		this.darkClass = null;
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
@@ -163,12 +165,10 @@ class HCaptcha {
 			return;
 		}
 
-		let target, darkClass;
-
 		const callback = ( mutationList ) => {
 			for ( const mutation of mutationList ) {
 				let oldClasses = mutation.oldValue;
-				let newClasses = target.getAttribute( 'class' );
+				let newClasses = this.darkTarget.getAttribute( 'class' );
 
 				oldClasses = oldClasses ? oldClasses.split( ' ' ) : [];
 				newClasses = newClasses ? newClasses.split( ' ' ) : [];
@@ -177,23 +177,32 @@ class HCaptcha {
 					.filter( ( item ) => ! oldClasses.includes( item ) )
 					.concat( oldClasses.filter( ( item ) => ! newClasses.includes( item ) ) );
 
-				if ( diff.includes( darkClass ) ) {
+				if ( diff.includes( this.darkClass ) ) {
 					this.bindEvents();
 				}
 			}
 		};
 
+		// Twenty Twenty-One theme.
 		if ( document.getElementById( 'twenty-twenty-one-style-css' ) ) {
+			this.darkTarget = document.body;
+			this.darkClass = 'is-dark-theme';
+		}
+
+		// WP Dark Mode plugin.
+		if ( document.getElementById( 'wp-dark-mode-frontend-css' ) ) {
+			this.darkTarget = document.documentElement; // The <html> tag.
+			this.darkClass = 'wp-dark-mode-active';
+		}
+
+		if ( this.darkTarget && this.darkClass ) {
 			const config = {
 				attributes: true,
 				attributeOldValue: true,
 			};
 			const observer = new MutationObserver( callback );
 
-			target = document.body;
-			darkClass = 'is-dark-theme';
-
-			observer.observe( target, config );
+			observer.observe( this.darkTarget, config );
 		}
 	}
 
@@ -228,16 +237,9 @@ class HCaptcha {
 			return params;
 		}
 
-		if (
-			document.getElementById( 'twenty-twenty-one-style-css' ) &&
-			document.body.classList.contains( 'is-dark-theme' )
-		) {
-			params.theme = 'dark';
-
-			return params;
-		}
-
-		params.theme = 'light';
+		params.theme = this.darkTarget.getAttribute( 'class' ).includes( this.darkClass )
+			? 'dark'
+			: 'light';
 
 		return params;
 	}
