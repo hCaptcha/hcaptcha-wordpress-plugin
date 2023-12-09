@@ -18,6 +18,7 @@ use tad\FunctionMocker\FunctionMocker;
  * Ninja Forms requires PHP 7.2.
  *
  * @requires PHP >= 7.2
+ * @requires PHP <= 8.2
  */
 class NFTest extends HCaptchaPluginWPTestCase {
 
