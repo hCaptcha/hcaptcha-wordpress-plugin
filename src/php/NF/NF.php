@@ -122,13 +122,11 @@ class NF {
 
 		unset( $field );
 
-		if ( ! $found ) {
-			return;
+		if ( $found ) {
+			$data = str_replace( $m[1], wp_json_encode( $vars ), $data );
+
+			$wp_scripts->registered['nf-builder']->extra['data'] = $data;
 		}
-
-		$data = str_replace( $m[1], wp_json_encode( $vars ), $data );
-
-		$wp_scripts->registered['nf-builder']->extra['data'] = $data;
 
 		// Enqueue admin script.
 		$min = hcap_min_suffix();
