@@ -547,6 +547,7 @@ Instructions for popular native integrations are below:
 * Added support for Droit Dark Mode plugin.
 * Fixed loading of local .mo files.
 * Fixed inability to send Divi Contact Form.
+* Fixed MailPoet issues in admin.
 
 = 3.4.1 =
 * Tested with WordPress 6.4.

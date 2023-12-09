@@ -95,6 +95,10 @@ class Form {
 	 * @param API $api MailPoet API instance.
 	 */
 	public function verify( API $api ) {
+		if ( is_admin() ) {
+			return;
+		}
+
 		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
