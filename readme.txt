@@ -453,6 +453,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Divi Email Optin Form
 * Divi Login Form
 * Download Manager Button
+* Droit Dark Mode
 * Easy Digital Downloads Checkout Form
 * Easy Digital Downloads Login Form
 * Easy Digital Downloads Lost Password Form
@@ -505,6 +506,7 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Wishlist
 * Wordfence Security Login Form
 * Wordfence Login Security Login Form
+* WP Dark Mode
 * WP Job Openings Form
 * WPForms Form
 * wpDiscuz Comment Form
