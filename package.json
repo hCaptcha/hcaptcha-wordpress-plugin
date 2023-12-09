@@ -45,6 +45,9 @@
     "npm": ">=10.2.4"
   },
   "packageManager": "yarn@4.0.2",
+  "dependencies": {
+    "@wordpress/hooks": "^3.47.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.5",
     "@babel/preset-env": "^7.23.5",

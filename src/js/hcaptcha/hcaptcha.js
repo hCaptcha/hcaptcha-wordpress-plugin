@@ -4,6 +4,8 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
+import { createHooks } from '@wordpress/hooks';
+
 class HCaptcha {
 	constructor() {
 		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item,' +
@@ -16,6 +18,7 @@ class HCaptcha {
 		this.observing = false;
 		this.darkElement = null;
 		this.darkClass = null;
+		this.hooks = createHooks();
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
@@ -153,7 +156,7 @@ class HCaptcha {
 	 * Set darkElement and darkClass.
 	 */
 	setDarkData() {
-		const darkData = {
+		let darkData = {
 			'twenty-twenty-one': {
 				// Twenty Twenty-One theme.
 				darkStyleId: 'twenty-twenty-one-style-css',
@@ -172,13 +175,9 @@ class HCaptcha {
 				darkElement: document.documentElement,
 				darkClass: 'drdt-dark-mode',
 			},
-			'blog-stream': {
-				// Blogstream theme.
-				darkStyleId: 'blogstream-style-css',
-				darkElement: document.body,
-				darkClass: 'dark',
-			},
 		};
+
+		darkData = this.hooks.applyFilters( 'hcaptcha.darkData', darkData );
 
 		for ( const datum of Object.values( darkData ) ) {
 			if ( document.getElementById( datum.darkStyleId ) ) {
