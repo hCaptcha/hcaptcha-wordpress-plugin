@@ -8,9 +8,9 @@ class HCaptcha {
 	constructor() {
 		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item,' +
 			' .gform_editor, #nf-builder';
-		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config, a.fl-button span,' +
-			' button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit,' +
-			' .frm_button_submit, a.sdm_download';
+		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config,' +
+			' a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button,' +
+			' .forminator-button-submit, .frm_button_submit, a.sdm_download';
 		this.foundForms = [];
 		this.params = null;
 		this.observing = false;
@@ -237,9 +237,18 @@ class HCaptcha {
 			return params;
 		}
 
-		params.theme = this.darkTarget.getAttribute( 'class' ).includes( this.darkClass )
-			? 'dark'
-			: 'light';
+		params.theme = 'light';
+
+		if ( ! this.darkTarget ) {
+			return params;
+		}
+
+		let targetClass = this.darkTarget.getAttribute( 'class' );
+		targetClass = targetClass ? targetClass : '';
+
+		if ( targetClass.includes( this.darkClass ) ) {
+			params.theme = 'dark';
+		}
 
 		return params;
 	}
@@ -250,6 +259,8 @@ class HCaptcha {
 	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
 	 */
 	render( hcaptchaElement ) {
+		this.observeDarkMode();
+
 		const params = this.applyAutoTheme( this.getParams() );
 
 		hcaptcha.render( hcaptchaElement, params );
@@ -262,8 +273,6 @@ class HCaptcha {
 		if ( 'undefined' === typeof hcaptcha ) {
 			return;
 		}
-
-		this.observeDarkMode();
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
@@ -320,7 +329,9 @@ class HCaptcha {
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
 		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
-		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute ? submitButtonElementTypeAttribute.toLowerCase() : '';
+		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute
+			? submitButtonElementTypeAttribute.toLowerCase()
+			: '';
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||
