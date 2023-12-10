@@ -133,7 +133,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		global $current_user;
 
 		unset( $current_user );
-		wp_set_current_user( 1 );
+
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
 
 		$site_key   = '';
 		$secret_key = '';
@@ -201,6 +204,28 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		// Do not shuffle notifications for test purposes.
 		$this->set_protected_property( $subject, 'shuffle', false );
+
+		ob_start();
+		$subject->show();
+		self::assertSame( $expected, ob_get_clean() );
+
+		// Dismiss Pro notification.
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial', 'some-other-key' ] );
+
+		$dismissed_notification = '<div
+						class="hcaptcha-notification notice notice-info is-dismissible inline"
+						data-id="pro-free-trial">
+					<div class="hcaptcha-notification-title">
+						Try Pro for free					</div>
+					<p>Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
+										<div class="hcaptcha-notification-buttons hidden">
+						<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
+							Try Pro						</a>
+					</div>
+									</div>
+								';
+
+		$expected = str_replace( $dismissed_notification, '', $expected );
 
 		ob_start();
 		$subject->show();
