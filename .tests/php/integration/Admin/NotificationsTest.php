@@ -395,6 +395,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		self::assertSame( $expected_extra, $script->extra );
 
 		self::assertTrue( wp_style_is( Notifications::HANDLE ) );
+		$style = wp_styles()->registered[ Notifications::HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/css/notifications.min.css', $style->src );
+		self::assertSame( [], $style->deps );
+		self::assertSame( HCAPTCHA_VERSION, $style->ver );
 	}
 
 	/**
