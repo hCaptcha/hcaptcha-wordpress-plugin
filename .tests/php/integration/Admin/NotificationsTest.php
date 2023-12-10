@@ -70,13 +70,13 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'hcap_site_key',
-			static function ( $key ) use ( $site_key ) {
+			static function () use ( $site_key ) {
 				return $site_key;
 			}
 		);
 		add_filter(
 			'hcap_secret_key',
-			static function ( $key ) use ( $secret_key ) {
+			static function () use ( $secret_key ) {
 				return $secret_key;
 			}
 		);
@@ -127,7 +127,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
-	 * @throws ReflectionException ReflectionException.
+	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function test_show() {
 		global $current_user;
@@ -143,13 +143,13 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'hcap_site_key',
-			static function ( $key ) use ( $site_key ) {
+			static function () use ( $site_key ) {
 				return $site_key;
 			}
 		);
 		add_filter(
 			'hcap_secret_key',
-			static function ( $key ) use ( $secret_key ) {
+			static function () use ( $secret_key ) {
 				return $secret_key;
 			}
 		);
@@ -220,12 +220,56 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$subject = new Notifications();
 		$subject->init();
 
-		// Do not shuffle notifications for test purposes.
-		$this->set_protected_property( $subject, 'shuffle', false );
-
 		ob_start();
 		$subject->show();
-		self::assertSame( $expected, $this->trim_tags( ob_get_clean() ) );
+		$actual = $this->trim_tags( ob_get_clean() );
+
+		$header  = '<div id="hcaptcha-notifications"> <div id="hcaptcha-notifications-header"> Notifications </div>';
+		$body    = '<div .+</div>';
+		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <a class="prev disabled"></a> <a class="next "></a> </div> </div> </div>';
+		$pattern = "#($header) ($body) ($footer)#";
+
+		preg_match( $pattern, $expected, $expected_matches );
+		preg_match( $pattern, $actual, $actual_matches );
+
+		self::assertSame( $expected_matches[1], $actual_matches[1] );
+		self::assertSame( $expected_matches[3], $actual_matches[3] );
+
+		$expected_body = $expected_matches[2];
+		$actual_body   = $actual_matches[2];
+
+		$notification_pattern = '#<div class="hcaptcha-notification notice.+?> <div .+?>.+?</div> <p>.+?</p> <div .+?>.+?</div> </div>#s';
+
+		preg_match_all(
+			$notification_pattern,
+			$expected_body,
+			$expected_notifications
+		);
+		preg_match_all(
+			$notification_pattern,
+			$actual_body,
+			$actual_notifications
+		);
+
+		$expected_notifications = $expected_notifications[0];
+		$actual_notifications   = $actual_notifications[0];
+
+		$sorted_actual_notifications = [];
+
+		foreach ( $actual_notifications as $actual_notification ) {
+			preg_match( '/data-id="(.+?)"/', $actual_notification, $m );
+			$data_id = $m[1];
+
+			foreach ( $expected_notifications as $key => $expected_notification ) {
+				if ( false !== strpos( $expected_notification, $data_id ) ) {
+					$sorted_actual_notifications[ $key ] = $actual_notification;
+				}
+			}
+		}
+
+		ksort( $sorted_actual_notifications );
+
+		self::assertSame( $expected_notifications, $sorted_actual_notifications );
 
 		// Dismiss Pro notification.
 		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial', 'some-other-key' ] );
