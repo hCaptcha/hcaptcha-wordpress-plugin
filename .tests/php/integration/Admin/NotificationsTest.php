@@ -154,50 +154,68 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = '		<div id="hcaptcha-notifications">
-			<div id="hcaptcha-notifications-header">
-				Notifications			</div>
-							<div
-						class="hcaptcha-notification notice notice-info is-dismissible inline"
-						data-id="register">
-					<div class="hcaptcha-notification-title">
-						Get your hCaptcha site keys					</div>
-					<p>To use <a href="https://www.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.</p>
-										<div class="hcaptcha-notification-buttons hidden">
-						<a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=sk" class="button button-primary" target="_blank">
-							Get site keys						</a>
-					</div>
-									</div>
-								<div
-						class="hcaptcha-notification notice notice-info is-dismissible inline"
-						data-id="pro-free-trial">
-					<div class="hcaptcha-notification-title">
-						Try Pro for free					</div>
-					<p>Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
-										<div class="hcaptcha-notification-buttons hidden">
-						<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
-							Try Pro						</a>
-					</div>
-									</div>
-								<div
-						class="hcaptcha-notification notice notice-info is-dismissible inline"
-						data-id="post-leadership">
-					<div class="hcaptcha-notification-title">
-						hCaptcha&#039;s Leadership					</div>
-					<p>hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™</p>
-										<div class="hcaptcha-notification-buttons hidden">
-						<a href="https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
-							Read post						</a>
-					</div>
-									</div>
-							<div id="hcaptcha-notifications-footer">
-				<div id="hcaptcha-navigation">
-					<a class="prev disabled"></a>
-					<a class="next "></a>
-				</div>
-			</div>
+		$expected = '
+<div id="hcaptcha-notifications">
+	<div id="hcaptcha-notifications-header">
+		Notifications
+	</div>
+	<div
+			class="hcaptcha-notification notice notice-info is-dismissible inline"
+			data-id="register">
+		<div class="hcaptcha-notification-title">
+			Get your hCaptcha site keys
 		</div>
-		';
+		<p>To use <a
+				href="https://www.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk"
+				target="_blank">hCaptcha</a>, please register <a
+				href="https://www.hcaptcha.com/signup-interstitial/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk"
+				target="_blank">here</a> to get your site and secret keys.</p>
+		<div class="hcaptcha-notification-buttons hidden">
+			<a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=sk"
+			   class="button button-primary" target="_blank">
+				Get site keys </a>
+		</div>
+	</div>
+	<div
+			class="hcaptcha-notification notice notice-info is-dismissible inline"
+			data-id="pro-free-trial">
+		<div class="hcaptcha-notification-title">
+			Try Pro for free
+		</div>
+		<p>Want low friction and custom themes? <a
+				href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
+				target="_blank">hCaptcha Pro</a> is for you. <a
+				href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
+				target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
+		<div class="hcaptcha-notification-buttons hidden">
+			<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
+			   class="button button-primary" target="_blank">
+				Try Pro </a>
+		</div>
+	</div>
+	<div
+			class="hcaptcha-notification notice notice-info is-dismissible inline"
+			data-id="post-leadership">
+		<div class="hcaptcha-notification-title">
+			hCaptcha&#039;s Leadership
+		</div>
+		<p>hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™</p>
+		<div class="hcaptcha-notification-buttons hidden">
+			<a href="https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
+			   class="button button-primary" target="_blank">
+				Read post </a>
+		</div>
+	</div>
+	<div id="hcaptcha-notifications-footer">
+		<div id="hcaptcha-navigation">
+			<a class="prev disabled"></a>
+			<a class="next "></a>
+		</div>
+	</div>
+</div>
+';
+
+		$expected = $this->trim_tags( $expected );
 
 		$subject = new Notifications();
 		$subject->init();
@@ -207,29 +225,37 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		$subject->show();
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertSame( $expected, $this->trim_tags( ob_get_clean() ) );
 
 		// Dismiss Pro notification.
 		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial', 'some-other-key' ] );
 
-		$dismissed_notification = '<div
-						class="hcaptcha-notification notice notice-info is-dismissible inline"
-						data-id="pro-free-trial">
-					<div class="hcaptcha-notification-title">
-						Try Pro for free					</div>
-					<p>Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
-										<div class="hcaptcha-notification-buttons hidden">
-						<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary" target="_blank">
-							Try Pro						</a>
-					</div>
-									</div>
-								';
+		$dismissed_notification = '
+<div
+		class="hcaptcha-notification notice notice-info is-dismissible inline"
+		data-id="pro-free-trial">
+	<div class="hcaptcha-notification-title">
+		Try Pro for free
+	</div>
+	<p>Want low friction and custom themes? <a
+			href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
+			target="_blank">hCaptcha Pro</a> is for you. <a
+			href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
+			target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
+	<div class="hcaptcha-notification-buttons hidden">
+		<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
+		   class="button button-primary" target="_blank">
+			Try Pro </a>
+	</div>
+</div>
+';
 
-		$expected = str_replace( $dismissed_notification, '', $expected );
+		$expected = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
+		$expected = $this->trim_tags( $expected );
 
 		ob_start();
 		$subject->show();
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertSame( $expected, $this->trim_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -250,5 +276,20 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		ob_start();
 		$subject->show();
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Trim spaces before and after tags.
+	 *
+	 * @param string $html Html.
+	 *
+	 * @return string
+	 */
+	private function trim_tags( string $html ): string {
+		return preg_replace(
+			[ '/\s+/' ],
+			[ ' ' ],
+			trim( $html )
+		);
 	}
 }
