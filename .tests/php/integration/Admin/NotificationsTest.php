@@ -630,6 +630,104 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test reset_notifications().
+	 *
+	 * @return void
+	 */
+	public function test_reset_notifications() {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Notifications();
+
+		// Test the case when bad admin referer.
+		ob_start();
+		$subject->reset_notifications();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Your session has expired. Please reload the page."}'
+			)
+		);
+
+		$action = Notifications::RESET_NOTIFICATIONS_ACTION;
+		$nonce  = wp_create_nonce( $action );
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+
+		// Test the case when a user has no caps.
+		ob_start();
+		$subject->reset_notifications();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"You are not allowed to perform this action."}'
+			)
+		);
+
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$nonce = wp_create_nonce( $action );
+
+		$_REQUEST['nonce'] = $nonce;
+
+		// Test the case when we cannot delete user meta.
+		ob_start();
+		$subject->reset_notifications();
+		$json = ob_get_clean();
+
+		add_filter( 'delete_user_metadata', '__return_false' );
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Error removing dismissed notifications."}'
+			)
+		);
+
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'some-key' ] );
+		remove_all_filters( 'delete_user_metadata' );
+
+		// Test successful case.
+		ob_start();
+		$subject->reset_notifications();
+		$json = ob_get_clean();
+
+		$dismissed = get_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, true );
+
+		self::assertSame( '', $dismissed );
+		self::assertSame( $expected, $die_arr );
+		self::assertSame( '{"success":true,"data":""}', $json );
+	}
+
+	/**
 	 * Trim spaces before and after tags.
 	 *
 	 * @param string $html Html.
