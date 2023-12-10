@@ -294,12 +294,53 @@ class NotificationsTest extends HCaptchaWPTestCase {
 </div>
 ';
 
-		$expected_dismissed = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
-		$expected_dismissed = $this->trim_tags( $expected_dismissed );
+		$expected = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
+		$expected = $this->trim_tags( $expected );
 
 		ob_start();
 		$subject->show();
-		self::assertSame( $expected_dismissed, $this->trim_tags( ob_get_clean() ) );
+
+		$actual = $this->trim_tags( ob_get_clean() );
+
+		preg_match( $pattern, $expected, $expected_matches );
+		preg_match( $pattern, $actual, $actual_matches );
+
+		self::assertSame( $expected_matches[1], $actual_matches[1] );
+		self::assertSame( $expected_matches[3], $actual_matches[3] );
+
+		$expected_body = $expected_matches[2];
+		$actual_body   = $actual_matches[2];
+
+		preg_match_all(
+			$notification_pattern,
+			$expected_body,
+			$expected_notifications
+		);
+		preg_match_all(
+			$notification_pattern,
+			$actual_body,
+			$actual_notifications
+		);
+
+		$expected_notifications = $expected_notifications[0];
+		$actual_notifications   = $actual_notifications[0];
+
+		$sorted_actual_notifications = [];
+
+		foreach ( $actual_notifications as $actual_notification ) {
+			preg_match( '/data-id="(.+?)"/', $actual_notification, $m );
+			$data_id = $m[1];
+
+			foreach ( $expected_notifications as $key => $expected_notification ) {
+				if ( false !== strpos( $expected_notification, $data_id ) ) {
+					$sorted_actual_notifications[ $key ] = $actual_notification;
+				}
+			}
+		}
+
+		ksort( $sorted_actual_notifications );
+
+		self::assertSame( $expected_notifications, $sorted_actual_notifications );
 	}
 
 	/**
@@ -320,6 +361,40 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		ob_start();
 		$subject->show();
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test admin_enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_admin_enqueue_scripts() {
+		$params         = [
+			'ajaxUrl'                   => 'http://test.test/wp-admin/admin-ajax.php',
+			'dismissNotificationAction' => Notifications::DISMISS_NOTIFICATION_ACTION,
+			'dismissNotificationNonce'  => wp_create_nonce( Notifications::DISMISS_NOTIFICATION_ACTION ),
+			'resetNotificationAction'   => Notifications::RESET_NOTIFICATIONS_ACTION,
+			'resetNotificationNonce'    => wp_create_nonce( Notifications::RESET_NOTIFICATIONS_ACTION ),
+		];
+		$expected_extra = [
+			'group' => 1,
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'data'  => 'var HCaptchaNotificationsObject = ' . json_encode( $params ) . ';',
+		];
+
+		$subject = new Notifications();
+
+		$subject->admin_enqueue_scripts();
+
+		self::assertTrue( wp_script_is( Notifications::HANDLE ) );
+
+		$script = wp_scripts()->registered[ Notifications::HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/notifications.min.js', $script->src );
+		self::assertSame( [ 'jquery' ], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+		self::assertSame( $expected_extra, $script->extra );
+
+		self::assertTrue( wp_style_is( Notifications::HANDLE ) );
 	}
 
 	/**
