@@ -1,0 +1,693 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: hCaptcha for Forms and More\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-12-10 12:06+0300\n"
+"PO-Revision-Date: 2023-12-10 12:08+0300\n"
+"Last-Translator: \n"
+"Language-Team: Brazilian Portuguese\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Loco-Source-Locale: pt_BR\n"
+"X-Generator: Poedit 3.4.1\n"
+"X-Poedit-KeywordsList: __;esc_html__;esc_html_e;esc_attr__;esc_attr_e\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: ../src/php\n"
+"X-Loco-Parser: loco_parse_po\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: Admin/Notifications.php:90
+#, fuzzy
+#| msgid "hCaptcha Site Key"
+msgid "Get your hCaptcha site keys"
+msgstr "Chave do Site hCaptcha"
+
+#: Admin/Notifications.php:93
+#, php-format
+msgid "To use %1$s, please register %2$s to get your site and secret keys."
+msgstr ""
+
+#: Admin/Notifications.php:97 ElementorPro/HCaptchaHandler.php:362
+#: NF/Field.php:76 Settings/PluginSettingsBase.php:42 UM/Base.php:146
+#: UM/Base.php:149
+msgid "hCaptcha"
+msgstr "hCaptcha"
+
+#: Admin/Notifications.php:102
+msgid "here"
+msgstr ""
+
+#: Admin/Notifications.php:107
+msgid "Get site keys"
+msgstr ""
+
+#: Admin/Notifications.php:111
+msgid "Try Pro for free"
+msgstr ""
+
+#: Admin/Notifications.php:114
+#, php-format
+msgid ""
+"Want low friction and custom themes? %1$s is for you. %2$s, no credit card "
+"required."
+msgstr ""
+
+#: Admin/Notifications.php:118
+#, fuzzy
+#| msgid "hCaptcha"
+msgid "hCaptcha Pro"
+msgstr "hCaptcha"
+
+#: Admin/Notifications.php:123
+msgid "Start a free trial in your dashboard"
+msgstr ""
+
+#: Admin/Notifications.php:128
+msgid "Try Pro"
+msgstr ""
+
+#: Admin/Notifications.php:132
+#, fuzzy
+#| msgid "hCaptcha Theme"
+msgid "hCaptcha's Leadership"
+msgstr "Tema hCaptcha"
+
+#: Admin/Notifications.php:133
+msgid ""
+"hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™"
+msgstr ""
+
+#: Admin/Notifications.php:136
+msgid "Read post"
+msgstr ""
+
+#: Admin/Notifications.php:168
+msgid "Notifications"
+msgstr ""
+
+#: Admin/Notifications.php:268 Admin/Notifications.php:328
+#: Settings/General.php:567 Settings/Integrations.php:635
+msgid "Your session has expired. Please reload the page."
+msgstr ""
+
+#: Admin/Notifications.php:273 Admin/Notifications.php:333
+#: Settings/General.php:572 Settings/Integrations.php:640
+msgid "You are not allowed to perform this action."
+msgstr ""
+
+#: DownloadManager/DownloadManager.php:104
+#, fuzzy
+#| msgid "hCaptcha Size"
+msgid "hCaptcha error"
+msgstr "Tamanho do hCaptcha"
+
+#: ElementorPro/HCaptchaHandler.php:169
+msgid "To use hCaptcha, you need to add the Site and Secret keys."
+msgstr ""
+
+#: GravityForms/Field.php:117
+msgid ""
+"Adds a hCaptcha field to your form to help protect your website from spam "
+"and bot abuse."
+msgstr ""
+
+#: GravityForms/Field.php:122
+msgid ""
+"hCaptcha settings must be modified on the hCaptcha plugin General settings "
+"page."
+msgstr ""
+
+#: GravityForms/Field.php:236
+msgid "Only one hCaptcha field can be added to the form."
+msgstr ""
+
+#: Helpers/HCaptcha.php:216
+msgid "hCaptcha plugin is active"
+msgstr ""
+
+#: Helpers/HCaptcha.php:220
+#, php-format
+msgid ""
+"When hCaptcha plugin is active and integration is on, hCaptcha settings must "
+"be modified on the %1$s."
+msgstr ""
+
+#: Kadence/AdvancedForm.php:142 Kadence/Form.php:115
+#, fuzzy
+#| msgid "Captcha Failed"
+msgid "hCaptcha Failed"
+msgstr "Falha no Captcha"
+
+#: NF/NF.php:146
+msgid "Only one hCaptcha field allowed."
+msgstr ""
+
+#: Quform/Quform.php:112
+msgid "Please enable JavaScript to submit this form."
+msgstr ""
+
+#: Settings/General.php:96
+msgid "General"
+msgstr ""
+
+#: Settings/General.php:128
+#, fuzzy
+#| msgid "hCaptcha Site Key"
+msgid "Site Key"
+msgstr "Chave do Site hCaptcha"
+
+#: Settings/General.php:135
+#, fuzzy
+#| msgid "hCaptcha Secret Key"
+msgid "Secret Key"
+msgstr "Chave Secreta hCaptcha"
+
+#: Settings/General.php:140
+msgid "Active hCaptcha to Check Site Config"
+msgstr ""
+
+#: Settings/General.php:145
+msgid "Check Site Config"
+msgstr ""
+
+#: Settings/General.php:147
+msgid "Check"
+msgstr ""
+
+#: Settings/General.php:151
+msgid "Reset Notifications"
+msgstr ""
+
+#: Settings/General.php:153
+msgid "Reset"
+msgstr ""
+
+#: Settings/General.php:157
+msgid "Theme"
+msgstr ""
+
+#: Settings/General.php:161
+msgid "Light"
+msgstr "Claro"
+
+#: Settings/General.php:162
+msgid "Dark"
+msgstr "Escuro"
+
+#: Settings/General.php:163
+msgid "Auto"
+msgstr ""
+
+#: Settings/General.php:165
+#, fuzzy
+#| msgid "hCaptcha Theme"
+msgid "Select hCaptcha theme."
+msgstr "Tema hCaptcha"
+
+#: Settings/General.php:168
+msgid "Size"
+msgstr ""
+
+#: Settings/General.php:172
+msgid "Normal"
+msgstr "Normal"
+
+#: Settings/General.php:173
+msgid "Compact"
+msgstr "Compacto"
+
+#: Settings/General.php:174
+msgid "Invisible"
+msgstr ""
+
+#: Settings/General.php:176
+#, fuzzy
+#| msgid "hCaptcha Size"
+msgid "Select hCaptcha size."
+msgstr "Tamanho do hCaptcha"
+
+#: Settings/General.php:179
+msgid "Language"
+msgstr ""
+
+#: Settings/General.php:296
+msgid ""
+"By default, hCaptcha will automatically detect the user's locale and "
+"localize widgets accordingly."
+msgstr ""
+
+#: Settings/General.php:301
+msgid "Mode"
+msgstr ""
+
+#: Settings/General.php:314
+msgid "Select live or test mode. In test mode, predefined keys are used."
+msgstr ""
+
+#: Settings/General.php:319
+msgid "Custom Themes"
+msgstr ""
+
+#: Settings/General.php:323
+msgid "Enable Custom Themes"
+msgstr ""
+
+#: Settings/General.php:327
+#, php-format
+msgid "Note: only works on hCaptcha %1$s and %2$s site keys."
+msgstr ""
+
+#: Settings/General.php:330 Settings/Integrations.php:432
+msgid "Pro"
+msgstr ""
+
+#: Settings/General.php:334
+msgid "Enterprise"
+msgstr ""
+
+#: Settings/General.php:339
+msgid "Config Params"
+msgstr ""
+
+#: Settings/General.php:344
+#, php-format
+msgid "hCaptcha render %s (optional). Must be a valid JSON."
+msgstr ""
+
+#: Settings/General.php:347
+msgid "parameters"
+msgstr ""
+
+#: Settings/General.php:352
+#, fuzzy
+#| msgid "Settings"
+msgid "Other Settings"
+msgstr "Configurações"
+
+#: Settings/General.php:356
+msgid "Turn Off When Logged In"
+msgstr ""
+
+#: Settings/General.php:358
+msgid "Do not show hCaptcha to logged-in users."
+msgstr ""
+
+#: Settings/General.php:364
+msgid "Disable reCAPTCHA Compatibility"
+msgstr ""
+
+#: Settings/General.php:366
+msgid "Use if including both hCaptcha and reCAPTCHA on the same page."
+msgstr ""
+
+#: Settings/General.php:372
+msgid "Use network-wide settings"
+msgstr ""
+
+#: Settings/General.php:374
+msgid "On multisite, use same settings for all sites of the network."
+msgstr ""
+
+#: Settings/General.php:377
+msgid "Whitelisted IPs"
+msgstr ""
+
+#: Settings/General.php:380
+msgid ""
+"Do not show hCaptcha for listed IP addresses. Please specify one IP address "
+"per line."
+msgstr ""
+
+#: Settings/General.php:383
+msgid "Login attempts before hCaptcha"
+msgstr ""
+
+#: Settings/General.php:388
+msgid "Maximum number of failed login attempts before showing hCaptcha."
+msgstr ""
+
+#: Settings/General.php:391
+msgid "Failed login attempts interval, min"
+msgstr ""
+
+#: Settings/General.php:396
+msgid "Time interval in minutes when failed login attempts are counted."
+msgstr ""
+
+#: Settings/General.php:399
+msgid "Delay showing hCaptcha, ms"
+msgstr ""
+
+#: Settings/General.php:405
+msgid ""
+"Delay time for loading the hCaptcha API script. Any negative value will "
+"prevent the API script from loading until user interaction: mouseenter, "
+"click, scroll or touch. This significantly improves Google Pagespeed "
+"Insights score."
+msgstr ""
+
+#: Settings/General.php:448
+msgid "Keys"
+msgstr ""
+
+#: Settings/General.php:451
+msgid "Appearance"
+msgstr ""
+
+#: Settings/General.php:454
+msgid "Custom"
+msgstr ""
+
+#: Settings/General.php:457
+msgid "Other"
+msgstr ""
+
+#: Settings/General.php:491
+msgid "Credentials changed."
+msgstr ""
+
+#: Settings/General.php:492
+#, fuzzy
+#| msgid "Please complete the captcha."
+msgid "Please complete hCaptcha and check the site config."
+msgstr "Por favor, complete o captcha."
+
+#: Settings/General.php:552
+#, fuzzy
+#| msgid "The Captcha is invalid."
+msgid "hCaptcha is in invisible mode."
+msgstr "O Captcha é inválido"
+
+#: Settings/General.php:613
+msgid "Cannot communicate with hCaptcha server."
+msgstr ""
+
+#: Settings/General.php:640
+msgid "Site config is valid."
+msgstr ""
+
+#: Settings/General.php:653
+msgid "Site configuration error: "
+msgstr ""
+
+#: Settings/Integrations.php:50
+msgid "Integrations"
+msgstr ""
+
+#: Settings/Integrations.php:80 Settings/Integrations.php:439
+msgid "Comment Form"
+msgstr ""
+
+#: Settings/Integrations.php:81 Settings/Integrations.php:128
+#: Settings/Integrations.php:151 Settings/Integrations.php:160
+#: Settings/Integrations.php:194 Settings/Integrations.php:268
+#: Settings/Integrations.php:291 Settings/Integrations.php:314
+#: Settings/Integrations.php:328 Settings/Integrations.php:379
+#: Settings/Integrations.php:388 Settings/Integrations.php:398
+#: Settings/Integrations.php:407 Settings/Integrations.php:424
+msgid "Login Form"
+msgstr ""
+
+#: Settings/Integrations.php:82 Settings/Integrations.php:152
+#: Settings/Integrations.php:161 Settings/Integrations.php:195
+#: Settings/Integrations.php:269 Settings/Integrations.php:380
+#: Settings/Integrations.php:389 Settings/Integrations.php:408
+#, fuzzy
+#| msgid "Enable hCaptcha on Lost Password Form"
+msgid "Lost Password Form"
+msgstr "Ativar hCaptcha no Formulário de Recuperação de Senha"
+
+#: Settings/Integrations.php:83
+msgid "Post/Page Password Form"
+msgstr ""
+
+#: Settings/Integrations.php:84 Settings/Integrations.php:143
+#: Settings/Integrations.php:153 Settings/Integrations.php:162
+#: Settings/Integrations.php:196 Settings/Integrations.php:270
+#: Settings/Integrations.php:292 Settings/Integrations.php:330
+#: Settings/Integrations.php:381 Settings/Integrations.php:390
+#: Settings/Integrations.php:399 Settings/Integrations.php:410
+msgid "Register Form"
+msgstr ""
+
+#: Settings/Integrations.php:91
+msgid "ACF Extended Form"
+msgstr ""
+
+#: Settings/Integrations.php:98 Settings/Integrations.php:135
+#: Settings/Integrations.php:169 Settings/Integrations.php:203
+#: Settings/Integrations.php:210 Settings/Integrations.php:217
+#: Settings/Integrations.php:224 Settings/Integrations.php:231
+#: Settings/Integrations.php:246 Settings/Integrations.php:277
+#: Settings/Integrations.php:284 Settings/Integrations.php:299
+#: Settings/Integrations.php:306 Settings/Integrations.php:337
+#: Settings/Integrations.php:344 Settings/Integrations.php:351
+#: Settings/Integrations.php:358 Settings/Integrations.php:365
+#: Settings/Integrations.php:372 Settings/Integrations.php:455
+msgid "Form"
+msgstr ""
+
+#: Settings/Integrations.php:105
+msgid "Avada Form"
+msgstr ""
+
+#: Settings/Integrations.php:112
+msgid "Back In Stock Notifier Form"
+msgstr ""
+
+#: Settings/Integrations.php:119 Settings/Integrations.php:447
+msgid "New Topic Form"
+msgstr ""
+
+#: Settings/Integrations.php:120 Settings/Integrations.php:448
+msgid "Reply Form"
+msgstr ""
+
+#: Settings/Integrations.php:127 Settings/Integrations.php:150
+#: Settings/Integrations.php:253
+#, fuzzy
+#| msgid "Enable Contact Form 7 Addon"
+msgid "Contact Form"
+msgstr "Ativar Complemento do Contact Form 7"
+
+#: Settings/Integrations.php:142
+msgid "Create Group Form"
+msgstr ""
+
+#: Settings/Integrations.php:176
+msgid "Divi Comment Form"
+msgstr ""
+
+#: Settings/Integrations.php:177
+msgid "Divi Contact Form"
+msgstr ""
+
+#: Settings/Integrations.php:178
+msgid "Divi Email Optin Form"
+msgstr ""
+
+#: Settings/Integrations.php:179
+msgid "Divi Login Form"
+msgstr ""
+
+#: Settings/Integrations.php:186
+msgid "Button"
+msgstr ""
+
+#: Settings/Integrations.php:193 Settings/Integrations.php:313
+#: Settings/Integrations.php:406
+msgid "Checkout Form"
+msgstr ""
+
+#: Settings/Integrations.php:238
+msgid "Form Auto-Add"
+msgstr ""
+
+#: Settings/Integrations.php:239
+msgid "Form Embed"
+msgstr ""
+
+#: Settings/Integrations.php:260
+msgid "Kadence Form"
+msgstr ""
+
+#: Settings/Integrations.php:261
+msgid "Kadence Advanced Form"
+msgstr ""
+
+#: Settings/Integrations.php:321
+msgid "Protection Form"
+msgstr ""
+
+#: Settings/Integrations.php:329
+msgid "Recover Password Form"
+msgstr ""
+
+#: Settings/Integrations.php:397
+msgid "Forgot Password Form"
+msgstr ""
+
+#: Settings/Integrations.php:409
+msgid "Order Tracking Form"
+msgstr ""
+
+#: Settings/Integrations.php:417
+msgid "Create List Form"
+msgstr ""
+
+#: Settings/Integrations.php:431
+msgid "Lite"
+msgstr ""
+
+#: Settings/Integrations.php:440
+msgid "Subscribe Form"
+msgstr ""
+
+#: Settings/Integrations.php:549
+msgid "Inactive plugins and themes"
+msgstr ""
+
+#: Settings/Integrations.php:561
+msgid ""
+"Manage integrations with popular plugins such as Contact Form 7, WPForms, "
+"Gravity Forms, and more."
+msgstr ""
+
+#: Settings/Integrations.php:564
+msgid "You can activate and deactivate a plugin by clicking on its logo."
+msgstr ""
+
+#: Settings/Integrations.php:574
+#, php-format
+msgid "Don't see your plugin here? Use the `[hcaptcha]` %1$s or %2$s."
+msgstr ""
+
+#: Settings/Integrations.php:578
+msgid "shortcode"
+msgstr ""
+
+#: Settings/Integrations.php:583
+msgid "request an integration"
+msgstr ""
+
+#: Settings/Integrations.php:589
+msgid "Active plugins and themes"
+msgstr ""
+
+#: Settings/Integrations.php:613
+#, php-format
+msgid "Activate %s plugin?"
+msgstr ""
+
+#: Settings/Integrations.php:615
+#, php-format
+msgid "Deactivate %s plugin?"
+msgstr ""
+
+#: Settings/Integrations.php:664
+#, php-format
+msgid "Error activating %s plugin."
+msgstr ""
+
+#: Settings/Integrations.php:673
+#, php-format
+msgid "%s plugin is activated."
+msgstr ""
+
+#: Settings/Integrations.php:684
+#, php-format
+msgid "%s plugin is deactivated."
+msgstr ""
+
+#: Settings/PluginSettingsBase.php:114
+msgid "hCaptcha Settings"
+msgstr "Configurações do hCaptcha"
+
+#: Settings/PluginSettingsBase.php:123
+msgid "Settings"
+msgstr "Configurações"
+
+#: Settings/PluginSettingsBase.php:196
+#, php-format
+msgid "Please rate %1$s %2$s on %3$s. Thank you!"
+msgstr ""
+
+#: Settings/PluginSettingsBase.php:231
+#, php-format
+msgid "Version %s"
+msgstr ""
+
+#: Settings/SystemInfo.php:40
+msgid "System Info"
+msgstr ""
+
+#: Settings/SystemInfo.php:68
+msgid "System info copied to clipboard."
+msgstr ""
+
+#: Settings/SystemInfo.php:88
+msgid "System Information"
+msgstr ""
+
+#: Settings/SystemInfo.php:92
+msgid "Copy system info to clipboard"
+msgstr ""
+
+#: WP/Comment.php:129
+#, fuzzy
+#| msgid "hCaptcha"
+msgid "Invalid Captcha"
+msgstr "hCaptcha"
+
+#: includes/request.php:72
+msgid "Your secret key is missing."
+msgstr ""
+
+#: includes/request.php:73
+msgid "Your secret key is invalid or malformed."
+msgstr ""
+
+#: includes/request.php:74
+msgid "The response parameter (verification token) is missing."
+msgstr ""
+
+#: includes/request.php:75
+msgid "The response parameter (verification token) is invalid or malformed."
+msgstr ""
+
+#: includes/request.php:76
+msgid "The request is invalid or malformed."
+msgstr ""
+
+#: includes/request.php:77
+msgid "The response parameter has already been checked, or has another issue."
+msgstr ""
+
+#: includes/request.php:78
+msgid "You have used a testing sitekey but have not used its matching secret."
+msgstr ""
+
+#: includes/request.php:79
+msgid "The sitekey is not registered with the provided secret."
+msgstr ""
+
+#: includes/request.php:81
+#, fuzzy
+#| msgid "Please complete the captcha."
+msgid "Please complete the hCaptcha."
+msgstr "Por favor, complete o captcha."
+
+#: includes/request.php:82 includes/request.php:314
+#, fuzzy
+#| msgid "The Captcha is invalid."
+msgid "The hCaptcha is invalid."
+msgstr "O Captcha é inválido"
+
+#: includes/request.php:83
+#, fuzzy
+#| msgid "hCaptcha Size"
+msgid "Bad hCaptcha nonce!"
+msgstr "Tamanho do hCaptcha"
