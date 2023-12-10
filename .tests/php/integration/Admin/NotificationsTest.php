@@ -250,12 +250,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 </div>
 ';
 
-		$expected = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
-		$expected = $this->trim_tags( $expected );
+		$expected_dismissed = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
+		$expected_dismissed = $this->trim_tags( $expected_dismissed );
 
 		ob_start();
 		$subject->show();
-		self::assertSame( $expected, $this->trim_tags( ob_get_clean() ) );
+		self::assertSame( $expected_dismissed, $this->trim_tags( ob_get_clean() ) );
 	}
 
 	/**
