@@ -27,7 +27,7 @@ function getDom() {
 		<tr class="hcaptcha-integrations-wp-status">
 			<th scope="row">
 				<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/wp-core-logo.png"
-					 alt="WP Core Logo">
+					 alt="WP Core Logo" data-entity="core">
 			</th>
 			<td>
 				<fieldset>
@@ -71,7 +71,7 @@ function getDom() {
 		<tr class="hcaptcha-integrations-acfe-status">
 			<th scope="row">
 				<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/acf-extended-logo.png"
-					 alt="ACF Extended Logo">
+					 alt="ACF Extended Logo" data-entity="plugin">
 			</th>
 			<td>
 				<fieldset disabled="disabled">

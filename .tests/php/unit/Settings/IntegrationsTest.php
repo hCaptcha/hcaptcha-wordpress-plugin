@@ -305,11 +305,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 				Integrations::HANDLE,
 				Integrations::OBJECT,
 				[
-					'ajaxUrl'       => $ajax_url,
-					'action'        => Integrations::ACTIVATE_ACTION,
-					'nonce'         => $nonce,
-					'activateMsg'   => 'Activate %s plugin?',
-					'deactivateMsg' => 'Deactivate %s plugin?',
+					'ajaxUrl'            => $ajax_url,
+					'action'             => Integrations::ACTIVATE_ACTION,
+					'nonce'              => $nonce,
+					'activateMsg'        => 'Activate %s plugin?',
+					'deactivateMsg'      => 'Deactivate %s plugin?',
+					'activateThemeMsg'   => 'Activate %s theme?',
+					'deactivateThemeMsg' => 'Deactivate %s theme?',
 				]
 			)
 			->once();

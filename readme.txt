@@ -546,6 +546,7 @@ Instructions for popular native integrations are below:
 * Added support for WP Twenty Twenty-One theme dark mode.
 * Added support for WP Dark Mode plugin.
 * Added support for Droit Dark Mode plugin.
+* Added ability to activate/deactivate themes from the Integrations settings page.
 * Fixed loading of local .mo files.
 * Fixed inability to send Divi Contact Form.
 * Fixed MailPoet issues in admin.

@@ -648,6 +648,7 @@ abstract class HCaptchaTestCase extends TestCase {
 		return [
 			'wp_status'                        =>
 				[
+					'entity'  => 'core',
 					'label'   => 'WP Core',
 					'type'    => 'checkbox',
 					'options' =>
@@ -677,6 +678,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			],
 			'avada_status'                     =>
 				[
+					'entity'  => 'theme',
 					'label'   => 'Avada',
 					'type'    => 'checkbox',
 					'options' =>
@@ -758,6 +760,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'divi_status'                      =>
 				[
+					'entity'  => 'theme',
 					'label'   => 'Divi',
 					'type'    => 'checkbox',
 					'options' =>

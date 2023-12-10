@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use KAGG\Settings\Abstracts\SettingsBase;
+use WP_Theme;
 
 /**
  * Class Integrations
@@ -74,6 +75,7 @@ class Integrations extends PluginSettingsBase {
 	public function init_form_fields() {
 		$this->form_fields = [
 			'wp_status'                        => [
+				'entity'  => 'core',
 				'label'   => 'WP Core',
 				'type'    => 'checkbox',
 				'options' => [
@@ -99,6 +101,7 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 			'avada_status'                     => [
+				'entity'  => 'theme',
 				'label'   => 'Avada',
 				'type'    => 'checkbox',
 				'options' => [
@@ -170,6 +173,7 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 			'divi_status'                      => [
+				'entity'  => 'theme',
 				'label'   => 'Divi',
 				'type'    => 'checkbox',
 				'options' => [
@@ -461,18 +465,21 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Get logo image.
 	 *
-	 * @param string $label Label.
+	 * @param array $form_field Label.
 	 *
 	 * @return string
 	 * @noinspection HtmlUnknownTarget
 	 */
-	private function logo( string $label ): string {
+	private function logo( array $form_field ): string {
+		$label     = $form_field['label'];
 		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
+		$entity    = $form_field['entity'] ?? 'plugin';
 
 		return sprintf(
-			'<div class="hcaptcha-integrations-logo"><img src="%1$s" alt="%2$s Logo"></div>',
+			'<div class="hcaptcha-integrations-logo"><img src="%1$s" alt="%2$s Logo" data-entity="%3$s"></div>',
 			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/$logo_file" ),
-			$label
+			$label,
+			$entity
 		);
 	}
 
@@ -488,7 +495,7 @@ class Integrations extends PluginSettingsBase {
 
 		foreach ( $this->form_fields as &$form_field ) {
 			if ( isset( $form_field['label'] ) ) {
-				$form_field['label'] = $this->logo( $form_field['label'] );
+				$form_field['label'] = $this->logo( $form_field );
 			}
 
 			if ( $form_field['disabled'] ) {
@@ -606,13 +613,17 @@ class Integrations extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-				'action'        => self::ACTIVATE_ACTION,
-				'nonce'         => wp_create_nonce( self::ACTIVATE_ACTION ),
+				'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+				'action'             => self::ACTIVATE_ACTION,
+				'nonce'              => wp_create_nonce( self::ACTIVATE_ACTION ),
 				/* translators: 1: Plugin name. */
-				'activateMsg'   => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'activateMsg'        => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
-				'deactivateMsg' => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'deactivateMsg'      => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Theme name. */
+				'activateThemeMsg'   => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Theme name. */
+				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
@@ -641,26 +652,44 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		$activate    = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
+		$entity      = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$status      = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$status      = str_replace( '-', '_', $status );
-		$plugin_name = $this->form_fields[ $status ]['label'];
-		$plugins     = [];
+		$entity_name = $this->form_fields[ $status ]['label'];
+		$entities    = [];
 
 		foreach ( hcaptcha()->modules as $module ) {
 			if ( $module[0][0] === $status ) {
-				$plugins[] = (array) $module[1];
+				$entities[] = (array) $module[1];
 			}
 		}
 
-		$plugins = array_merge( [], ...$plugins );
+		$entities = array_merge( [], ...$entities );
 
 		header_remove( 'Location' );
 		http_response_code( 200 );
 
+		if ( 'plugin' === $entity ) {
+			$this->process_plugins( $activate, $entities, $entity_name );
+		} else {
+			$this->process_themes( $activate, $entities, $entity_name );
+		}
+	}
+
+	/**
+	 * Activate/deactivate plugins.
+	 *
+	 * @param bool   $activate    Activate or deactivate.
+	 * @param array  $plugins     Plugins to process.
+	 * @param string $plugin_name Main plugin name to process.
+	 *
+	 * @return void
+	 */
+	private function process_plugins( bool $activate, array $plugins, string $plugin_name ) {
 		if ( $activate ) {
 			if ( ! $this->activate_plugins( $plugins ) ) {
 				$message = sprintf(
-				/* translators: 1: Plugin(s) name(s). */
+				/* translators: 1: Plugin name. */
 					__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
 					$plugin_name
 				);
@@ -669,7 +698,7 @@ class Integrations extends PluginSettingsBase {
 			}
 
 			$message = sprintf(
-			/* translators: 1: Plugin(s) name(s). */
+			/* translators: 1: Plugin name. */
 				__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
 				$plugin_name
 			);
@@ -680,9 +709,61 @@ class Integrations extends PluginSettingsBase {
 		deactivate_plugins( $plugins );
 
 		$message = sprintf(
-		/* translators: 1: Plugin(s) name(s). */
+		/* translators: 1: Plugin name. */
 			__( '%s plugin is deactivated.', 'hcaptcha-for-forms-and-more' ),
 			$plugin_name
+		);
+
+		wp_send_json_success( esc_html( $message ) );
+	}
+
+	/**
+	 * Activate/deactivate themes.
+	 *
+	 * @param bool   $activate   Activate or deactivate.
+	 * @param array  $themes     Themes to process.
+	 * @param string $theme_name Main theme name to process.
+	 *
+	 * @return void
+	 */
+	private function process_themes( bool $activate, array $themes, string $theme_name ) {
+		if ( $activate ) {
+			if ( ! $this->activate_themes( $themes ) ) {
+				$message = sprintf(
+				/* translators: 1: Theme name. */
+					__( 'Error activating %s theme.', 'hcaptcha-for-forms-and-more' ),
+					$theme_name
+				);
+
+				wp_send_json_error( esc_html( $message ) );
+			}
+
+			$message = sprintf(
+			/* translators: 1: Theme name. */
+				__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
+				$theme_name
+			);
+
+			wp_send_json_success( esc_html( $message ) );
+		}
+
+		$new_theme = WP_Theme::get_core_default_theme();
+
+		if ( ! $new_theme ) {
+			wp_send_json_error( esc_html__( 'No available theme to activate found.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		ob_start();
+
+		switch_theme( $new_theme->get_stylesheet() );
+
+		ob_end_clean();
+
+		$message = sprintf(
+		/* translators: 1: Deactivated theme name. 2: Activated theme name. */
+			__( '%1$s theme is deactivated. %2$s theme is activated.', 'hcaptcha-for-forms-and-more' ),
+			$theme_name,
+			$new_theme->get( 'Name' )
 		);
 
 		wp_send_json_success( esc_html( $message ) );
@@ -713,5 +794,26 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Activate themes.
+	 *
+	 * We activate the first available theme in the list only,
+	 * assuming that parent theme is placed earlier in the list.
+	 *
+	 * @param array $themes Themes to activate.
+	 *
+	 * @return bool
+	 */
+	private function activate_themes( array $themes ): bool {
+		ob_start();
+
+		switch_theme( $themes[0] );
+
+		ob_end_clean();
+
+		// Activate the first available theme only.
+		return true;
 	}
 }

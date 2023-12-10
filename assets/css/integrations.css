@@ -107,15 +107,11 @@
 	max-height: 28px;
 }
 
-.hcaptcha-integrations table tr.hcaptcha-integrations-wp-status th .hcaptcha-integrations-logo,
-.hcaptcha-integrations table tr.hcaptcha-integrations-avada-status th .hcaptcha-integrations-logo,
-.hcaptcha-integrations table tr.hcaptcha-integrations-divi-status th .hcaptcha-integrations-logo {
+.hcaptcha-integrations table tr.hcaptcha-integrations-wp-status th .hcaptcha-integrations-logo {
 	cursor: unset;
 }
 
-.hcaptcha-integrations table tr.hcaptcha-integrations-wp-status th .hcaptcha-integrations-logo:hover::before,
-.hcaptcha-integrations table tr.hcaptcha-integrations-avada-status th .hcaptcha-integrations-logo:hover::before,
-.hcaptcha-integrations table tr.hcaptcha-integrations-divi-status th .hcaptcha-integrations-logo:hover::before {
+.hcaptcha-integrations table tr.hcaptcha-integrations-wp-status th .hcaptcha-integrations-logo:hover::before {
 	display: none;
 }
 
