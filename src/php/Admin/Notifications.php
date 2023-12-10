@@ -276,7 +276,7 @@ class Notifications {
 		$id = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
 
 		if ( ! $this->update_dismissed( $id ) ) {
-			wp_send_json_error();
+			wp_send_json_error( esc_html__( 'Error dismissing notification.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 		wp_send_json_success();

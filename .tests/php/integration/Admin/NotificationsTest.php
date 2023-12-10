@@ -19,6 +19,17 @@ use ReflectionException;
 class NotificationsTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+		unset( $_REQUEST['action'], $_REQUEST['nonce'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test init().
 	 *
 	 * @param bool $empty_keys Whether keys are empty.
@@ -399,6 +410,91 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_URL . '/assets/css/notifications.min.css', $style->src );
 		self::assertSame( [], $style->deps );
 		self::assertSame( HCAPTCHA_VERSION, $style->ver );
+	}
+
+	/**
+	 * Test dismiss_notification().
+	 *
+	 * @return void
+	 */
+	public function test_dismiss_notification() {
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$action   = Notifications::DISMISS_NOTIFICATION_ACTION;
+		$nonce    = wp_create_nonce( $action );
+		$key      = 'some-notification';
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+		$_POST['id']        = $key;
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Notifications();
+
+		ob_start();
+		$subject->dismiss_notification();
+		$json = ob_get_clean();
+
+		$dismissed = get_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, true );
+
+		self::assertSame( [ $key ], $dismissed );
+		self::assertSame( $expected, $die_arr );
+		self::assertSame( '{"success":true}', $json );
+	}
+
+	/**
+	 * Test dismiss_notification() with bad ajax referer.
+	 *
+	 * @return void
+	 */
+	public function test_dismiss_notification_with_bad_ajax_referer() {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Notifications();
+
+		ob_start();
+		$subject->dismiss_notification();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertNotFalse(
+			strpos(
+				$json,
+				'{"success":false,"data":"Your session has expired. Please reload the page."}'
+			)
+		);
 	}
 
 	/**
