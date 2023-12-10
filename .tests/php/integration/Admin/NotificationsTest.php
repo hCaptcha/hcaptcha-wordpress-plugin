@@ -578,6 +578,43 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$subject = new Notifications();
 
+		// Test the case when no notification id was sent.
+		ob_start();
+		$subject->dismiss_notification();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Error dismissing notification."}'
+			)
+		);
+
+		$key         = 'some-notification';
+		$_POST['id'] = $key;
+
+		// Test the case when the notification was already dismissed.
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ $key ] );
+
+		ob_start();
+		$subject->dismiss_notification();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Error dismissing notification."}'
+			)
+		);
+
+		// Test the case when it is unable to write to user_meta.
+		delete_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY );
+		add_filter( 'update_user_metadata', '__return_false' );
+
 		ob_start();
 		$subject->dismiss_notification();
 		$json = ob_get_clean();
