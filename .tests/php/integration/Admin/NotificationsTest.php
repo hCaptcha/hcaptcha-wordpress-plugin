@@ -489,10 +489,105 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$json = ob_get_clean();
 
 		self::assertSame( $expected, $die_arr );
-		self::assertNotFalse(
+		self::assertSame(
+			0,
 			strpos(
 				$json,
 				'{"success":false,"data":"Your session has expired. Please reload the page."}'
+			)
+		);
+	}
+
+	/**
+	 * Test dismiss_notification() when a user has no caps.
+	 *
+	 * @return void
+	 */
+	public function test_dismiss_notification_when_user_has_no_caps() {
+		$action = Notifications::DISMISS_NOTIFICATION_ACTION;
+		$nonce  = wp_create_nonce( $action );
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Notifications();
+
+		ob_start();
+		$subject->dismiss_notification();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"You are not allowed to perform this action."}'
+			)
+		);
+	}
+
+	/**
+	 * Test dismiss_notification() when there is an update error.
+	 *
+	 * @return void
+	 */
+	public function test_dismiss_notification_when_update_error() {
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$action = Notifications::DISMISS_NOTIFICATION_ACTION;
+		$nonce  = wp_create_nonce( $action );
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Notifications();
+
+		ob_start();
+		$subject->dismiss_notification();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Error dismissing notification."}'
 			)
 		);
 	}
