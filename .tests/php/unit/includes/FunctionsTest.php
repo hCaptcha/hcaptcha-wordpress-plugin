@@ -37,6 +37,86 @@ class FunctionsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test hcap_shortcode().
+	 *
+	 * @param array $atts     Attributes.
+	 * @param array $expected Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_hcap_shortcode
+	 */
+	public function test_hcap_shortcode( array $atts, array $expected ) {
+		$pairs = [
+			'action' => HCAPTCHA_ACTION,
+			'name'   => HCAPTCHA_NONCE,
+			'auto'   => false,
+			'size'   => '',
+		];
+		$form  = 'some hcaptcha form content';
+
+		WP_Mock::userFunction( 'shortcode_atts' )
+			->with( $pairs, $atts )
+			->andReturnUsing(
+				static function ( $pairs, $atts ) {
+					return array_merge( $pairs, $atts );
+				}
+			);
+
+		$hcap_form = FunctionMocker::replace(
+			'\HCaptcha\Helpers\HCaptcha::form',
+			static function () use ( $form ) {
+				return $form;
+			}
+		);
+
+		self::assertSame( $form, hcap_shortcode( $atts ) );
+
+		$hcap_form->wasCalledWithOnce( [ $expected ] );
+	}
+
+	/**
+	 * Data provider for test_hcap_shortcode().
+	 *
+	 * @return array
+	 */
+	public function dp_test_hcap_shortcode(): array {
+		return [
+			'empty atts' => [
+				[],
+				[
+					'action' => HCAPTCHA_ACTION,
+					'name'   => HCAPTCHA_NONCE,
+					'auto'   => false,
+					'size'   => '',
+				],
+			],
+			'auto truly' => [
+				[
+					'auto' => '1',
+				],
+				[
+					'action' => HCAPTCHA_ACTION,
+					'name'   => HCAPTCHA_NONCE,
+					'auto'   => true,
+					'size'   => '',
+				],
+			],
+			'some atts'  => [
+				[
+					'some' => 'some attribute',
+				],
+				[
+					'action' => HCAPTCHA_ACTION,
+					'name'   => HCAPTCHA_NONCE,
+					'auto'   => false,
+					'size'   => '',
+					'some'   => 'some attribute',
+				],
+			],
+		];
+	}
+
+	/**
 	 * Test hcap_min_suffix().
 	 *
 	 * @return void

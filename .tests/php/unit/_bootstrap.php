@@ -51,6 +51,16 @@ const HCAPTCHA_TEST_URL = 'https://site.org/wp-content/plugins/hcaptcha-wordpres
  */
 const HCAPTCHA_TEST_FILE = PLUGIN_MAIN_FILE;
 
+/**
+ * Default nonce action.
+ */
+const HCAPTCHA_ACTION = 'hcaptcha_action';
+
+/**
+ * Default nonce name.
+ */
+const HCAPTCHA_NONCE = 'hcaptcha_nonce';
+
 FunctionMocker::init(
 	[
 		'blacklist'             => [
