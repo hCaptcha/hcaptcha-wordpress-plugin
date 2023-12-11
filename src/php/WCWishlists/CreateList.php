@@ -70,7 +70,7 @@ class CreateList {
 			],
 		];
 
-		// Find last $search string and insert hcaptcha before it.
+		// Find the last $search string and insert hcaptcha before it.
 		$search  = '<p class="form-row">';
 		$replace =
 			"\n" .

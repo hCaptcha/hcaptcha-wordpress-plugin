@@ -49,7 +49,7 @@ abstract class LostPasswordBase {
 	}
 
 	/**
-	 * Verify lost password form.
+	 * Verify a lost password form.
 	 *
 	 * @param WP_Error|mixed $errors Error.
 	 *
@@ -66,7 +66,7 @@ abstract class LostPasswordBase {
 			( ! isset( $_POST[ static::POST_KEY ] ) ) ||
 			( static::POST_VALUE && static::POST_VALUE !== $post_value )
 		) {
-			// Submitted lost password form cannot be handled by this class.
+			// This class cannot handle a submitted lost password form.
 			return;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing

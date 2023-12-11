@@ -53,7 +53,7 @@ class Form {
 		add_action( 'cwginstock_after_submit_button', [ $this, 'after_submit_button' ], 10, 2 );
 		add_action( 'cwginstock_ajax_data', [ $this, 'verify' ], 0, 2 );
 
-		// Fire it before same in Main, which is on 0.
+		// Fire it before the same in Main, which is on 0.
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], - 1 );
 	}
 

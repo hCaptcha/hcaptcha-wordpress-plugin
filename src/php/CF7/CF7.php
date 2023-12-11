@@ -99,7 +99,7 @@ class CF7 {
 		$args = wp_parse_args(
 			(array) $attr,
 			/**
-			 * CF7 works via REST API, where current user is set to 0 (not logged in) if nonce is not present.
+			 * CF7 works via REST API, where the current user is set to 0 (not logged in) if nonce is not present.
 			 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
 			 */
 			[
@@ -252,7 +252,7 @@ class CF7 {
 	private function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
 		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
 
-		// The preg_match should be always true, because $output has shortcode.
+		// The preg_match should always be true, because $output has shortcode.
 		if ( ! preg_match( "/$cf7_hcap_sc_regex/", $output, $matches ) ) {
 			// @codeCoverageIgnoreStart
 			return $output;

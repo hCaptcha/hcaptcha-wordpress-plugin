@@ -60,7 +60,7 @@ class Settings implements SettingsInterface {
 		foreach ( $this->menu_pages_classes as $menu_page_classes ) {
 			$tab_classes = (array) $menu_page_classes;
 
-			// Allow to specify menu page as one class, without tabs.
+			// Allow specifying menu page as one class, without tabs.
 			$page_class  = $tab_classes[0];
 			$tab_classes = array_slice( $tab_classes, 1 );
 
@@ -229,7 +229,7 @@ class Settings implements SettingsInterface {
 	public function get_mode(): string {
 
 		/**
-		 * Filters the current operating mode to get relevant key pair.
+		 * Filters the current operating mode to get a relevant key pair.
 		 *
 		 * @param string $mode Current operating mode.
 		 */
@@ -237,7 +237,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get site key.
+	 * Get a site key.
 	 *
 	 * @return string
 	 */

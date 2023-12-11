@@ -50,7 +50,7 @@ elif [[ $PHP_VERSION == '7.1' ]]; then
   PHP_UNIT='7.5'
 elif [[ $PHP_VERSION == '7.2' ]]; then
   PHP_UNIT='8.5'
-elif [[ $PHP_VERSION == '7.3' || $PHP_VERSION == '7.4' || $PHP_VERSION == '8.0' || $PHP_VERSION == '8.1' || $PHP_VERSION == '8.2' ]]; then
+elif [[ $PHP_VERSION == '7.3' || $PHP_VERSION == '7.4' || $PHP_VERSION == '8.0' || $PHP_VERSION == '8.1' || $PHP_VERSION == '8.2' || $PHP_VERSION == '8.3' ]]; then
   PHP_UNIT='9.5'
 fi
 

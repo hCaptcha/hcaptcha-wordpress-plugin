@@ -1,5 +1,20 @@
 /* global jQuery, HCaptchaIntegrationsObject */
 
+/**
+ * @param HCaptchaIntegrationsObject.ajaxUrl
+ * @param HCaptchaIntegrationsObject.action
+ * @param HCaptchaIntegrationsObject.nonce
+ * @param HCaptchaIntegrationsObject.activateMsg
+ * @param HCaptchaIntegrationsObject.deactivateMsg
+ * @param HCaptchaIntegrationsObject.activateThemeMsg
+ * @param HCaptchaIntegrationsObject.deactivateThemeMsg
+ */
+
+/**
+ * The Integrations Admin Page script.
+ *
+ * @param {jQuery} $ The jQuery instance.
+ */
 const integrations = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
@@ -81,13 +96,22 @@ const integrations = function( $ ) {
 		clearMessage();
 
 		const $target = $( event.target );
+		let entity = $target.data( 'entity' );
+		entity = entity ? entity : '';
+
+		if ( -1 === $.inArray( entity, [ 'core', 'theme', 'plugin' ] ) ) {
+			// Wrong entity type.
+			return;
+		}
+
+		if ( -1 !== $.inArray( entity, [ 'core' ] ) ) {
+			// Cannot activate/deactivate WP Core.
+			return;
+		}
+
 		let alt = $target.attr( 'alt' );
 		alt = alt ? alt : '';
 		alt = alt.replace( ' Logo', '' );
-
-		if ( -1 !== $.inArray( alt, [ 'WP Core', 'Avada', 'Divi' ] ) ) {
-			return;
-		}
 
 		const $tr = $target.closest( 'tr' );
 		let status = $tr.attr( 'class' );
@@ -95,12 +119,16 @@ const integrations = function( $ ) {
 		const $fieldset = $tr.find( 'fieldset' );
 
 		// noinspection JSUnresolvedVariable
-		let msg = HCaptchaIntegrationsObject.deactivateMsg;
+		let msg = entity === 'plugin'
+			? HCaptchaIntegrationsObject.deactivateMsg
+			: HCaptchaIntegrationsObject.deactivateThemeMsg;
 		let activate = false;
 
 		if ( $fieldset.attr( 'disabled' ) ) {
 			// noinspection JSUnresolvedVariable
-			msg = HCaptchaIntegrationsObject.activateMsg;
+			msg = entity === 'plugin'
+				? HCaptchaIntegrationsObject.activateMsg
+				: HCaptchaIntegrationsObject.activateThemeMsg;
 			activate = true;
 		}
 
@@ -114,6 +142,7 @@ const integrations = function( $ ) {
 			action: HCaptchaIntegrationsObject.action,
 			nonce: HCaptchaIntegrationsObject.nonce,
 			activate,
+			entity,
 			status,
 		};
 

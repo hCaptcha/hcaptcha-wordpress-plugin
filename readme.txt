@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.4.1
+Stable tag: 3.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -453,6 +453,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Divi Email Optin Form
 * Divi Login Form
 * Download Manager Button
+* Droit Dark Mode
 * Easy Digital Downloads Checkout Form
 * Easy Digital Downloads Login Form
 * Easy Digital Downloads Lost Password Form
@@ -505,6 +506,7 @@ For more details, please see the hCaptcha privacy policy at:
 * WooCommerce Wishlist
 * Wordfence Security Login Form
 * Wordfence Login Security Login Form
+* WP Dark Mode
 * WP Job Openings Form
 * WPForms Form
 * wpDiscuz Comment Form
@@ -531,6 +533,23 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.5.0 =
+* Tested with PHP 8.3.
+* Tested with WooCommerce 8.3.
+* Added hCaptcha field to Gravity Forms admin editor.
+* Added hCaptcha field to Ninja Forms admin editor.
+* Added invisible hCaptcha support for Ninja Forms.
+* Added the ability to process customized MailChimp forms.
+* Added HTML Forms integration.
+* Added Auto Theme option to follow light/dark theme settings on site.
+* Added support for WP Twenty Twenty-One theme dark mode.
+* Added support for WP Dark Mode plugin.
+* Added support for Droit Dark Mode plugin.
+* Added ability to activate/deactivate themes from the Integrations settings page.
+* Fixed loading of local .mo files.
+* Fixed inability to send Divi Contact Form.
+* Fixed MailPoet issues in admin.
 
 = 3.4.1 =
 * Tested with WordPress 6.4.

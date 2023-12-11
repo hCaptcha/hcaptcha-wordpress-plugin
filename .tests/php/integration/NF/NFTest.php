@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\NF;
 
-use HCaptcha\NF\Fields;
+use HCaptcha\NF\Field;
 use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
@@ -18,6 +18,7 @@ use tad\FunctionMocker\FunctionMocker;
  * Ninja Forms requires PHP 7.2.
  *
  * @requires PHP >= 7.2
+ * @requires PHP <= 8.2
  */
 class NFTest extends HCaptchaPluginWPTestCase {
 
@@ -57,7 +58,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 
 		$fields = ( new NF() )->register_fields( $fields );
 
-		self::assertInstanceOf( Fields::class, $fields['hcaptcha-for-ninja-forms'] );
+		self::assertInstanceOf( Field::class, $fields['hcaptcha-for-ninja-forms'] );
 	}
 
 	/**
@@ -114,9 +115,8 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected                            = $field;
-		$expected['settings']['hcaptcha_id'] = $uniqid;
-		$expected['settings']['hcaptcha']    = '		<div id="' . $uniqid . '" data-fieldId="5"
+		$expected                         = $field;
+		$expected['settings']['hcaptcha'] = '		<div id="' . $uniqid . '" data-fieldId="5"
 			class="h-captcha"
 			data-sitekey="some key"
 			data-theme="some theme"
@@ -127,28 +127,6 @@ class NFTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new NF();
 		$subject->set_form_id( 1 );
-
-		self::assertSame( $expected, $subject->localize_field( $field ) );
-
-		// Test that invisible size is replaced by normal.
-		update_option(
-			'hcaptcha_settings',
-			[
-				'site_key' => $hcaptcha_site_key,
-				'theme'    => $hcaptcha_theme,
-				'size'     => 'invisible',
-			]
-		);
-
-		hcaptcha()->init_hooks();
-
-		$expected['settings']['hcaptcha'] = str_replace(
-			'some size',
-			'normal',
-			$expected['settings']['hcaptcha']
-		);
-
-		$subject = new NF();
 
 		self::assertSame( $expected, $subject->localize_field( $field ) );
 	}

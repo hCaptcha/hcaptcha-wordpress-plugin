@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\Jetpack;
 
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use ReflectionException;
 use WP_Error;
 
 /**
@@ -72,5 +73,26 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		self::assertEquals( $error, $subject->verify() );
 		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', [ $subject, 'error_message' ] ) );
+	}
+
+	/**
+	 * Test error_message().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_error_message() {
+		$hcaptcha_content = 'some content';
+		$error_message    = 'some error message';
+
+		$subject = new JetpackForm();
+
+		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content ) );
+
+		$this->set_protected_property( $subject, 'error_message', $error_message );
+
+		$expected = '<p id="hcap_error" class="error hcap_error">' . $error_message . '</p>' . $hcaptcha_content;
+
+		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
 	}
 }

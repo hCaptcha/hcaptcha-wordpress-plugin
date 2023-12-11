@@ -40,10 +40,10 @@ class Login extends LoginBase {
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify a login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous
-	 *                                   callback failed authentication.
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
+	 *                                   if a previous callback failed authentication.
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error

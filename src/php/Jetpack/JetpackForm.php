@@ -15,7 +15,7 @@ use HCaptcha\Helpers\HCaptcha;
 class JetpackForm extends JetpackBase {
 
 	/**
-	 * Add hCaptcha to Jetpack contact form.
+	 * Add hCaptcha to a Jetpack contact form.
 	 *
 	 * @param string|mixed $content Content.
 	 *
@@ -40,7 +40,7 @@ class JetpackForm extends JetpackBase {
 	}
 
 	/**
-	 * Add hCaptcha shortcode to the provided shortcode for Jetpack classic contact form.
+	 * Add hCaptcha shortcode to the provided shortcode for a Jetpack classic contact form.
 	 *
 	 * @param array $matches Matches.
 	 *
@@ -64,7 +64,7 @@ class JetpackForm extends JetpackBase {
 	}
 
 	/**
-	 * Add hCaptcha shortcode to the provided shortcode for Jetpack block contact form.
+	 * Add hCaptcha shortcode to the provided shortcode for a Jetpack block contact form.
 	 *
 	 * @param array $matches Matches.
 	 *

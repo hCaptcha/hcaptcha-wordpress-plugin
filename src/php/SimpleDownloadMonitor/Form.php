@@ -49,7 +49,7 @@ class Form {
 
 
 	/**
-	 * Add hcaptcha to Simple Download Monitor form.
+	 * Add hcaptcha to a Simple Download Monitor form.
 	 *
 	 * @param string|mixed $output The shortcode output.
 	 * @param array        $atts   The attributes.

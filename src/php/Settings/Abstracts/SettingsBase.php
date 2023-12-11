@@ -11,7 +11,7 @@ namespace KAGG\Settings\Abstracts;
  * Class SettingsBase
  *
  * This is an abstract class to create the settings page in any plugin.
- * It uses WordPress Settings API and general output of fields of any type.
+ * It uses WordPress Settings API and general output any type of fields.
  * Similar approach is used in many plugins, including WooCommerce.
  */
 abstract class SettingsBase {
@@ -74,7 +74,7 @@ abstract class SettingsBase {
 	abstract public function screen_id(): string;
 
 	/**
-	 * Get option group.
+	 * Get an option group.
 	 *
 	 * @return string
 	 */
@@ -255,12 +255,12 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Is this the main menu page.
+	 * Is this the main menu page?
 	 *
 	 * @return bool
 	 */
 	protected function is_main_menu_page(): bool {
-		// Main menu page should have empty string as parent slug.
+		// The main menu page should have empty string as parent slug.
 		return ! $this->parent_slug();
 	}
 
@@ -275,7 +275,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get class name without namespace.
+	 * Get class name without a namespace.
 	 *
 	 * @return string
 	 */
@@ -296,11 +296,11 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Add link to plugin setting page on plugins page.
+	 * Add a link to the plugin setting page on the plugins' page.
 	 *
 	 * @param array|mixed $actions An array of plugin action links.
 	 *                             By default, this can include 'activate', 'deactivate', and 'delete'.
-	 *                             With Multisite active this can also include 'network_active' and 'network_only'
+	 *                             With Multisite active, this can also include 'network_active' and 'network_only'
 	 *                             items.
 	 *
 	 * @return array|string[] Plugin links
@@ -415,7 +415,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Add settings page to the menu.
+	 * Add settings' page to the menu.
 	 *
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
@@ -552,7 +552,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Show tab link.
+	 * Show a tab link.
 	 *
 	 * @param SettingsBase $tab Tabs of the current settings page.
 	 */
@@ -571,7 +571,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Check if tab is active.
+	 * Check if the tab is active.
 	 *
 	 * @param SettingsBase $tab Tab of the current settings page.
 	 *
@@ -774,7 +774,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Print checkbox field.
+	 * Print the checkbox field.
 	 *
 	 * @param array $arguments Field arguments.
 	 *

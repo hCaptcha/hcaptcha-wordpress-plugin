@@ -1,0 +1,702 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Teste\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-12-10 11:36-0300\n"
+"PO-Revision-Date: 2023-12-10 22:23+0300\n"
+"Last-Translator: Maison da Silva\n"
+"Language-Team: Brazilian Portuguese\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 3.4.1\n"
+"X-Loco-Source-Locale: en-US\n"
+"X-Loco-Project-Id: 151777\n"
+"X-Loco-Api-Version: 1.0.28 20231203-1\n"
+"X-Poedit-KeywordsList: __;esc_html__;esc_attr__;esc_html_e;esc_attr_e\n"
+"X-Poedit-Basepath: ../src/php\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: Admin/Notifications.php:90 loco:6575cd123e6a6a48c90bc830
+msgid "Get your hCaptcha site keys"
+msgstr "Obtenha suas chaves de site hCaptcha"
+
+#: Admin/Notifications.php:93 loco:6575cd133e6a6a48c90bc831
+#, php-format
+msgid "To use %1$s, please register %2$s to get your site and secret keys."
+msgstr ""
+"Para usar %1$s, por favor, registre %2$s para obter suas chaves de site e "
+"secreta."
+
+#: Admin/Notifications.php:97 ElementorPro/HCaptchaHandler.php:362
+#: NF/Field.php:76 Settings/PluginSettingsBase.php:42 UM/Base.php:146
+#: UM/Base.php:149 loco:6575cd133e6a6a48c90bc832
+msgid "hCaptcha"
+msgstr "hCaptcha"
+
+#: Admin/Notifications.php:102 loco:6575cd133e6a6a48c90bc833
+msgid "here"
+msgstr "aqui"
+
+#: Admin/Notifications.php:107 loco:6575cd133e6a6a48c90bc834
+msgid "Get site keys"
+msgstr "Obter chaves do site"
+
+#: Admin/Notifications.php:111 loco:6575cd133e6a6a48c90bc835
+msgid "Try Pro for free"
+msgstr "Experimente o Pro gratuitamente"
+
+#: Admin/Notifications.php:114 loco:6575cd133e6a6a48c90bc836
+#, php-format
+msgid ""
+"Want low friction and custom themes? %1$s is for you. %2$s, no credit card "
+"required."
+msgstr ""
+"Deseja baixa fricção e temas personalizados? %1$s é para você. %2$s, nenhum "
+"cartão de crédito necessário."
+
+#: Admin/Notifications.php:118 loco:6575cd133e6a6a48c90bc837
+msgid "hCaptcha Pro"
+msgstr "hCaptcha Pro"
+
+#: Admin/Notifications.php:123 loco:6575cd133e6a6a48c90bc838
+msgid "Start a free trial in your dashboard"
+msgstr "Inicie um teste gratuito no seu painel de controle"
+
+#: Admin/Notifications.php:128 loco:6575cd133e6a6a48c90bc839
+msgid "Try Pro"
+msgstr "Experimente o Pro"
+
+#: Admin/Notifications.php:132 loco:6575cd133e6a6a48c90bc83a
+msgid "hCaptcha's Leadership"
+msgstr "Liderança da hCaptcha's"
+
+#: Admin/Notifications.php:133 loco:6575cd133e6a6a48c90bc83b
+msgid ""
+"hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™"
+msgstr ""
+"hCaptcha Nomeada Líder em Tecnologia de Gerenciamento de Bot: 2023 SPARK "
+"Matrix™"
+
+#: Admin/Notifications.php:136 loco:6575cd133e6a6a48c90bc83c
+msgid "Read post"
+msgstr "Leia a postagem"
+
+#: Admin/Notifications.php:168 loco:6575cd133e6a6a48c90bc83d
+msgid "Notifications"
+msgstr "Notificações"
+
+#: Admin/Notifications.php:268 Admin/Notifications.php:328
+#: Settings/General.php:567 Settings/Integrations.php:635
+#: loco:6575cd133e6a6a48c90bc83e
+msgid "Your session has expired. Please reload the page."
+msgstr "Sua sessão expirou. Por favor, recarregue a página."
+
+#: Admin/Notifications.php:273 Admin/Notifications.php:333
+#: Settings/General.php:572 Settings/Integrations.php:640
+#: loco:6575cd133e6a6a48c90bc83f
+msgid "You are not allowed to perform this action."
+msgstr "Você não tem permissão para realizar esta ação."
+
+#: DownloadManager/DownloadManager.php:104 loco:6575cd133e6a6a48c90bc840
+msgid "hCaptcha error"
+msgstr "Erro do hCaptcha"
+
+#: ElementorPro/HCaptchaHandler.php:169 loco:6575cd133e6a6a48c90bc841
+msgid "To use hCaptcha, you need to add the Site and Secret keys."
+msgstr ""
+"Para usar o hCaptcha, você precisa adicionar as chaves de Site e Secreta."
+
+#: GravityForms/Field.php:117 loco:6575cd133e6a6a48c90bc842
+msgid ""
+"Adds a hCaptcha field to your form to help protect your website from spam "
+"and bot abuse."
+msgstr ""
+"Adiciona um campo hCaptcha ao seu formulário para ajudar a proteger seu site "
+"contra spam e abuso de bots."
+
+#: GravityForms/Field.php:122 loco:6575cd133e6a6a48c90bc843
+msgid ""
+"hCaptcha settings must be modified on the hCaptcha plugin General settings "
+"page."
+msgstr ""
+"As configurações do hCaptcha devem ser modificadas na página de "
+"configurações gerais do plugin hCaptcha."
+
+#: GravityForms/Field.php:236 loco:6575cd133e6a6a48c90bc844
+msgid "Only one hCaptcha field can be added to the form."
+msgstr "Apenas um campo hCaptcha pode ser adicionado ao formulário."
+
+#: Helpers/HCaptcha.php:216 loco:6575cd133e6a6a48c90bc845
+msgid "hCaptcha plugin is active"
+msgstr "O plugin hCaptcha está ativo"
+
+#: Helpers/HCaptcha.php:220 loco:6575cd133e6a6a48c90bc846
+#, php-format
+msgid ""
+"When hCaptcha plugin is active and integration is on, hCaptcha settings must "
+"be modified on the %1$s."
+msgstr ""
+"Quando o plugin hCaptcha está ativo e a integração está habilitada, as "
+"configurações do hCaptcha devem ser modificadas na página %1$s."
+
+#: Kadence/AdvancedForm.php:142 Kadence/Form.php:115
+#: loco:6575cd133e6a6a48c90bc847
+msgid "hCaptcha Failed"
+msgstr "Falha no Captcha"
+
+#: NF/NF.php:146 loco:6575cd133e6a6a48c90bc848
+msgid "Only one hCaptcha field allowed."
+msgstr "Apenas um campo hCaptcha permitido."
+
+#: Quform/Quform.php:112 loco:6575cd133e6a6a48c90bc849
+msgid "Please enable JavaScript to submit this form."
+msgstr "Habilite o JavaScript para enviar este formulário."
+
+#: Settings/General.php:96 loco:6575cd133e6a6a48c90bc84a
+msgid "General"
+msgstr "Geral"
+
+#: Settings/General.php:128 loco:6575cd133e6a6a48c90bc84b
+msgid "Site Key"
+msgstr "Chave do Site"
+
+#: Settings/General.php:135 loco:6575cd133e6a6a48c90bc84c
+msgid "Secret Key"
+msgstr "Chave Secreta"
+
+#: Settings/General.php:140 loco:6575cd133e6a6a48c90bc84d
+msgid "Active hCaptcha to Check Site Config"
+msgstr "Ative o hCaptcha para verificar a configuração do site"
+
+#: Settings/General.php:145 loco:6575cd133e6a6a48c90bc84e
+msgid "Check Site Config"
+msgstr "Verificar Configuração do Site"
+
+#: Settings/General.php:147 loco:6575cd133e6a6a48c90bc84f
+msgid "Check"
+msgstr "Verificar"
+
+#: Settings/General.php:151 loco:6575cd133e6a6a48c90bc850
+msgid "Reset Notifications"
+msgstr "Redefinir Notificações"
+
+#: Settings/General.php:153 loco:6575cd133e6a6a48c90bc851
+msgid "Reset"
+msgstr "Redefinir"
+
+#: Settings/General.php:157 loco:6575cd133e6a6a48c90bc852
+msgid "Theme"
+msgstr "Tema"
+
+#: Settings/General.php:161 loco:6575cd133e6a6a48c90bc853
+msgid "Light"
+msgstr "Claro"
+
+#: Settings/General.php:162 loco:6575cd133e6a6a48c90bc854
+msgid "Dark"
+msgstr "Escuro"
+
+#: Settings/General.php:163 loco:6575cd133e6a6a48c90bc855
+msgid "Auto"
+msgstr "Automático"
+
+#: Settings/General.php:165 loco:6575cd133e6a6a48c90bc856
+msgid "Select hCaptcha theme."
+msgstr "Selecionar tema do hCaptcha."
+
+#: Settings/General.php:168 loco:6575cd133e6a6a48c90bc857
+msgid "Size"
+msgstr "Tamanho"
+
+#: Settings/General.php:172 loco:6575cd133e6a6a48c90bc858
+msgid "Normal"
+msgstr "Normal"
+
+#: Settings/General.php:173 loco:6575cd133e6a6a48c90bc859
+msgid "Compact"
+msgstr "Compacto"
+
+#: Settings/General.php:174 loco:6575cd133e6a6a48c90bc85a
+msgid "Invisible"
+msgstr "Invisível"
+
+#: Settings/General.php:176 loco:6575cd133e6a6a48c90bc85b
+msgid "Select hCaptcha size."
+msgstr "Selecionar tamanho do hCaptcha."
+
+#: Settings/General.php:179 loco:6575cd133e6a6a48c90bc85c
+msgid "Language"
+msgstr "Idioma"
+
+#: Settings/General.php:296 loco:6575cd133e6a6a48c90bc85d
+msgid ""
+"By default, hCaptcha will automatically detect the user's locale and "
+"localize widgets accordingly."
+msgstr ""
+"Por padrão, o hCaptcha detectará automaticamente a localidade do usuário e "
+"localizará os widgets de acordo."
+
+#: Settings/General.php:301 loco:6575cd133e6a6a48c90bc85e
+msgid "Mode"
+msgstr "Modo"
+
+#: Settings/General.php:314 loco:6575cd133e6a6a48c90bc85f
+msgid "Select live or test mode. In test mode, predefined keys are used."
+msgstr ""
+"Selecionar modo ao vivo ou de teste. No modo de teste, são usadas chaves "
+"predefinidas."
+
+#: Settings/General.php:319 loco:6575cd133e6a6a48c90bc860
+msgid "Custom Themes"
+msgstr "Temas Personalizados"
+
+#: Settings/General.php:323 loco:6575cd133e6a6a48c90bc861
+msgid "Enable Custom Themes"
+msgstr "Ativar Temas Personalizados"
+
+#: Settings/General.php:327 loco:6575cd133e6a6a48c90bc862
+#, php-format
+msgid "Note: only works on hCaptcha %1$s and %2$s site keys."
+msgstr ""
+"Observação: funciona apenas nas chaves de site %1$s e %2$s do hCaptcha."
+
+#: Settings/General.php:330 Settings/Integrations.php:432
+#: loco:6575cd133e6a6a48c90bc863
+msgid "Pro"
+msgstr "Pro"
+
+#: Settings/General.php:334 loco:6575cd133e6a6a48c90bc864
+msgid "Enterprise"
+msgstr "Enterprise"
+
+#: Settings/General.php:339 loco:6575cd133e6a6a48c90bc865
+msgid "Config Params"
+msgstr "Parâmetros de Configuração"
+
+#: Settings/General.php:344 loco:6575cd133e6a6a48c90bc866
+#, php-format
+msgid "hCaptcha render %s (optional). Must be a valid JSON."
+msgstr "Renderização do hCaptcha %s (opcional). Deve ser um JSON válido."
+
+#: Settings/General.php:347 loco:6575cd133e6a6a48c90bc867
+msgid "parameters"
+msgstr "parâmetros"
+
+#: Settings/General.php:352 loco:6575cd133e6a6a48c90bc868
+msgid "Other Settings"
+msgstr "Outras Configurações"
+
+#: Settings/General.php:356 loco:6575cd133e6a6a48c90bc869
+msgid "Turn Off When Logged In"
+msgstr "Desativar Quando Conectado"
+
+#: Settings/General.php:358 loco:6575cd133e6a6a48c90bc86a
+msgid "Do not show hCaptcha to logged-in users."
+msgstr "Não mostrar hCaptcha para usuários conectados."
+
+#: Settings/General.php:364 loco:6575cd133e6a6a48c90bc86b
+msgid "Disable reCAPTCHA Compatibility"
+msgstr "Desativar Compatibilidade com reCAPTCHA"
+
+#: Settings/General.php:366 loco:6575cd133e6a6a48c90bc86c
+msgid "Use if including both hCaptcha and reCAPTCHA on the same page."
+msgstr ""
+"Use se estiver incluindo tanto hCaptcha quanto reCAPTCHA na mesma página."
+
+#: Settings/General.php:372 loco:6575cd133e6a6a48c90bc86d
+msgid "Use network-wide settings"
+msgstr "Utilize as configurações em toda a rede"
+
+#: Settings/General.php:374 loco:6575cd133e6a6a48c90bc86e
+msgid "On multisite, use same settings for all sites of the network."
+msgstr ""
+"Em multisite, utilize as mesmas configurações para todos os sites da rede."
+
+#: Settings/General.php:377 loco:6575cd133e6a6a48c90bc86f
+msgid "Whitelisted IPs"
+msgstr "IPs na Lista Branca"
+
+#: Settings/General.php:380 loco:6575cd133e6a6a48c90bc870
+msgid ""
+"Do not show hCaptcha for listed IP addresses. Please specify one IP address "
+"per line."
+msgstr ""
+"Não exibir hCaptcha para os endereços IP listados. Por favor, especifique um "
+"endereço IP por linha."
+
+#: Settings/General.php:383 loco:6575cd133e6a6a48c90bc871
+msgid "Login attempts before hCaptcha"
+msgstr "Tentativas de login antes do hCaptcha"
+
+#: Settings/General.php:388 loco:6575cd133e6a6a48c90bc872
+msgid "Maximum number of failed login attempts before showing hCaptcha."
+msgstr ""
+"Número máximo de tentativas de login falhadas antes de exibir o hCaptcha."
+
+#: Settings/General.php:391 loco:6575cd133e6a6a48c90bc873
+msgid "Failed login attempts interval, min"
+msgstr "Intervalo entre tentativas de login falhadas, em minutos"
+
+#: Settings/General.php:396 loco:6575cd133e6a6a48c90bc874
+msgid "Time interval in minutes when failed login attempts are counted."
+msgstr ""
+"Intervalo de tempo, em minutos, quando as tentativas de login falhadas são "
+"contadas."
+
+#: Settings/General.php:399 loco:6575cd133e6a6a48c90bc875
+msgid "Delay showing hCaptcha, ms"
+msgstr "Atraso na exibição do hCaptcha, em milissegundo"
+
+#: Settings/General.php:405 loco:6575cd133e6a6a48c90bc876
+msgid ""
+"Delay time for loading the hCaptcha API script. Any negative value will "
+"prevent the API script from loading until user interaction: mouseenter, "
+"click, scroll or touch. This significantly improves Google Pagespeed "
+"Insights score."
+msgstr ""
+"Tempo de atraso para carregar o script da API do hCaptcha. Qualquer valor "
+"negativo impedirá o carregamento do script da API até a interação do "
+"usuário: mouseenter, click, scroll ou touch. Isso melhora significativamente "
+"a pontuação do Google Pagespeed Insights."
+
+#: Settings/General.php:448 loco:6575cd133e6a6a48c90bc877
+msgid "Keys"
+msgstr "Chaves"
+
+#: Settings/General.php:451 loco:6575cd133e6a6a48c90bc878
+msgid "Appearance"
+msgstr "Aparência"
+
+#: Settings/General.php:454 loco:6575cd133e6a6a48c90bc879
+msgid "Custom"
+msgstr "Personalizado"
+
+#: Settings/General.php:457 loco:6575cd133e6a6a48c90bc87a
+msgid "Other"
+msgstr "Outros"
+
+#: Settings/General.php:491 loco:6575cd133e6a6a48c90bc87b
+msgid "Credentials changed."
+msgstr "Credenciais alteradas."
+
+#: Settings/General.php:492 loco:6575cd133e6a6a48c90bc87c
+msgid "Please complete hCaptcha and check the site config."
+msgstr "Preencha o hCaptcha e verifique a configuração do site."
+
+#: Settings/General.php:552 loco:6575cd133e6a6a48c90bc87d
+msgid "hCaptcha is in invisible mode."
+msgstr "O hCaptcha está em modo invisível."
+
+#: Settings/General.php:613 loco:6575cd133e6a6a48c90bc87e
+msgid "Cannot communicate with hCaptcha server."
+msgstr "Não é possível se comunicar com o servidor hCaptcha."
+
+#: Settings/General.php:640 loco:6575cd133e6a6a48c90bc87f
+msgid "Site config is valid."
+msgstr "A configuração do site é válida."
+
+#: Settings/General.php:653 loco:6575cd133e6a6a48c90bc880
+msgid "Site configuration error: "
+msgstr "Erro de configuração do site: "
+
+#: Settings/Integrations.php:50 loco:6575cd133e6a6a48c90bc881
+msgid "Integrations"
+msgstr "Integrações"
+
+#: Settings/Integrations.php:80 Settings/Integrations.php:439
+#: loco:6575cd133e6a6a48c90bc882
+msgid "Comment Form"
+msgstr "Formulário de Comentários"
+
+#: Settings/Integrations.php:81 Settings/Integrations.php:128
+#: Settings/Integrations.php:151 Settings/Integrations.php:160
+#: Settings/Integrations.php:194 Settings/Integrations.php:268
+#: Settings/Integrations.php:291 Settings/Integrations.php:314
+#: Settings/Integrations.php:328 Settings/Integrations.php:379
+#: Settings/Integrations.php:388 Settings/Integrations.php:398
+#: Settings/Integrations.php:407 Settings/Integrations.php:424
+#: loco:6575cd133e6a6a48c90bc883
+msgid "Login Form"
+msgstr "Formulário de Login"
+
+#: Settings/Integrations.php:82 Settings/Integrations.php:152
+#: Settings/Integrations.php:161 Settings/Integrations.php:195
+#: Settings/Integrations.php:269 Settings/Integrations.php:380
+#: Settings/Integrations.php:389 Settings/Integrations.php:408
+#: loco:6575cd133e6a6a48c90bc884
+msgid "Lost Password Form"
+msgstr "Formulário de Recuperação de Senha"
+
+#: Settings/Integrations.php:83 loco:6575cd133e6a6a48c90bc885
+msgid "Post/Page Password Form"
+msgstr "Formulário de Senha de Post/Página"
+
+#: Settings/Integrations.php:84 Settings/Integrations.php:143
+#: Settings/Integrations.php:153 Settings/Integrations.php:162
+#: Settings/Integrations.php:196 Settings/Integrations.php:270
+#: Settings/Integrations.php:292 Settings/Integrations.php:330
+#: Settings/Integrations.php:381 Settings/Integrations.php:390
+#: Settings/Integrations.php:399 Settings/Integrations.php:410
+#: loco:6575cd133e6a6a48c90bc886
+msgid "Register Form"
+msgstr "Formulário de Registro"
+
+#: Settings/Integrations.php:91 loco:6575cd133e6a6a48c90bc887
+msgid "ACF Extended Form"
+msgstr "Formulário Estendido da ACF"
+
+#: Settings/Integrations.php:98 Settings/Integrations.php:135
+#: Settings/Integrations.php:169 Settings/Integrations.php:203
+#: Settings/Integrations.php:210 Settings/Integrations.php:217
+#: Settings/Integrations.php:224 Settings/Integrations.php:231
+#: Settings/Integrations.php:246 Settings/Integrations.php:277
+#: Settings/Integrations.php:284 Settings/Integrations.php:299
+#: Settings/Integrations.php:306 Settings/Integrations.php:337
+#: Settings/Integrations.php:344 Settings/Integrations.php:351
+#: Settings/Integrations.php:358 Settings/Integrations.php:365
+#: Settings/Integrations.php:372 Settings/Integrations.php:455
+#: loco:6575cd133e6a6a48c90bc888
+msgid "Form"
+msgstr "Formulário"
+
+#: Settings/Integrations.php:105 loco:6575cd133e6a6a48c90bc889
+msgid "Avada Form"
+msgstr "Formulário Avada"
+
+#: Settings/Integrations.php:112 loco:6575cd133e6a6a48c90bc88a
+msgid "Back In Stock Notifier Form"
+msgstr "Formulário Back In Stock Notifier"
+
+#: Settings/Integrations.php:119 Settings/Integrations.php:447
+#: loco:6575cd133e6a6a48c90bc88b
+msgid "New Topic Form"
+msgstr "Formulário de Novo Tópico"
+
+#: Settings/Integrations.php:120 Settings/Integrations.php:448
+#: loco:6575cd133e6a6a48c90bc88c
+msgid "Reply Form"
+msgstr "Formulário de Resposta"
+
+#: Settings/Integrations.php:127 Settings/Integrations.php:150
+#: Settings/Integrations.php:253 loco:6575cd133e6a6a48c90bc88d
+msgid "Contact Form"
+msgstr "Formulário de Contato"
+
+#: Settings/Integrations.php:142 loco:6575cd133e6a6a48c90bc88e
+msgid "Create Group Form"
+msgstr "Formulário Create Group"
+
+#: Settings/Integrations.php:176 loco:6575cd133e6a6a48c90bc88f
+msgid "Divi Comment Form"
+msgstr "Formulário Divi Comment"
+
+#: Settings/Integrations.php:177 loco:6575cd133e6a6a48c90bc890
+msgid "Divi Contact Form"
+msgstr "Formulário Divi Contact"
+
+#: Settings/Integrations.php:178 loco:6575cd133e6a6a48c90bc891
+msgid "Divi Email Optin Form"
+msgstr "Formulário Divi Email Optin"
+
+#: Settings/Integrations.php:179 loco:6575cd133e6a6a48c90bc892
+msgid "Divi Login Form"
+msgstr "Formulário Divi Login"
+
+#: Settings/Integrations.php:186 loco:6575cd133e6a6a48c90bc893
+msgid "Button"
+msgstr "Botão"
+
+#: Settings/Integrations.php:193 Settings/Integrations.php:313
+#: Settings/Integrations.php:406 loco:6575cd133e6a6a48c90bc894
+msgid "Checkout Form"
+msgstr "Formulário Checkout"
+
+#: Settings/Integrations.php:238 loco:6575cd133e6a6a48c90bc895
+msgid "Form Auto-Add"
+msgstr "Formulário"
+
+#: Settings/Integrations.php:239 loco:6575cd133e6a6a48c90bc896
+msgid "Form Embed"
+msgstr "Formulário"
+
+#: Settings/Integrations.php:260 loco:6575cd133e6a6a48c90bc897
+msgid "Kadence Form"
+msgstr "Formulário Kadence"
+
+#: Settings/Integrations.php:261 loco:6575cd133e6a6a48c90bc898
+msgid "Kadence Advanced Form"
+msgstr "Formulário Kadence Advanced"
+
+#: Settings/Integrations.php:321 loco:6575cd133e6a6a48c90bc899
+msgid "Protection Form"
+msgstr "Formulário de Proteção"
+
+#: Settings/Integrations.php:329 loco:6575cd133e6a6a48c90bc89a
+msgid "Recover Password Form"
+msgstr "Formulário de Recuperação de Senha"
+
+#: Settings/Integrations.php:397 loco:6575cd133e6a6a48c90bc89b
+msgid "Forgot Password Form"
+msgstr "Formulário de Esqueci Minha Senha"
+
+#: Settings/Integrations.php:409 loco:6575cd133e6a6a48c90bc89c
+msgid "Order Tracking Form"
+msgstr "Formulário Order Tracking"
+
+#: Settings/Integrations.php:417 loco:6575cd133e6a6a48c90bc89d
+msgid "Create List Form"
+msgstr "Formulário Create List"
+
+#: Settings/Integrations.php:431 loco:6575cd133e6a6a48c90bc89e
+msgid "Lite"
+msgstr "Lite"
+
+#: Settings/Integrations.php:440 loco:6575cd133e6a6a48c90bc89f
+msgid "Subscribe Form"
+msgstr "Formulário de Inscrição"
+
+#: Settings/Integrations.php:549 loco:6575cd133e6a6a48c90bc8a0
+msgid "Inactive plugins and themes"
+msgstr "Plugins e temas inativos"
+
+#: Settings/Integrations.php:561 loco:6575cd133e6a6a48c90bc8a1
+msgid ""
+"Manage integrations with popular plugins such as Contact Form 7, WPForms, "
+"Gravity Forms, and more."
+msgstr ""
+"Gerencie integrações com plugins populares, como Contact Form 7, WPForms, "
+"Gravity Forms e muito mais."
+
+#: Settings/Integrations.php:564 loco:6575cd133e6a6a48c90bc8a2
+msgid "You can activate and deactivate a plugin by clicking on its logo."
+msgstr "Você pode ativar e desativar um plugin clicando em seu logotipo."
+
+#: Settings/Integrations.php:574 loco:6575cd133e6a6a48c90bc8a3
+#, php-format
+msgid "Don't see your plugin here? Use the `[hcaptcha]` %1$s or %2$s."
+msgstr "Não está vendo seu plug-in aqui? Use o `[hcaptcha]` %1$s or %2$s."
+
+#: Settings/Integrations.php:578 loco:6575cd133e6a6a48c90bc8a4
+msgid "shortcode"
+msgstr "shortcode"
+
+#: Settings/Integrations.php:583 loco:6575cd133e6a6a48c90bc8a5
+msgid "request an integration"
+msgstr "solicitar uma integração"
+
+#: Settings/Integrations.php:589 loco:6575cd133e6a6a48c90bc8a6
+msgid "Active plugins and themes"
+msgstr "Plugins e temas ativos"
+
+#: Settings/Integrations.php:613 loco:6575cd133e6a6a48c90bc8a7
+#, php-format
+msgid "Activate %s plugin?"
+msgstr "Ativar o plugin %s ?"
+
+#: Settings/Integrations.php:615 loco:6575cd133e6a6a48c90bc8a8
+#, php-format
+msgid "Deactivate %s plugin?"
+msgstr "Desativar o plugin %s?"
+
+#: Settings/Integrations.php:664 loco:6575cd133e6a6a48c90bc8a9
+#, php-format
+msgid "Error activating %s plugin."
+msgstr "Erro ao ativar o plugin %s."
+
+#: Settings/Integrations.php:673 loco:6575cd133e6a6a48c90bc8aa
+#, php-format
+msgid "%s plugin is activated."
+msgstr "O plugin %s está ativado."
+
+#: Settings/Integrations.php:684 loco:6575cd133e6a6a48c90bc8ab
+#, php-format
+msgid "%s plugin is deactivated."
+msgstr "O plugin %s está desativado."
+
+#: Settings/PluginSettingsBase.php:114 loco:6575cd133e6a6a48c90bc8ac
+msgid "hCaptcha Settings"
+msgstr "Configurações do hCaptcha"
+
+#: Settings/PluginSettingsBase.php:123 loco:6575cd133e6a6a48c90bc8ad
+msgid "Settings"
+msgstr "Configurações"
+
+#: Settings/PluginSettingsBase.php:196 loco:6575cd133e6a6a48c90bc8ae
+#, php-format
+msgid "Please rate %1$s %2$s on %3$s. Thank you!"
+msgstr "Por favor, avalie %1$s %2$s em %3$s. Obrigado!"
+
+#: Settings/PluginSettingsBase.php:231 loco:6575cd133e6a6a48c90bc8af
+#, php-format
+msgid "Version %s"
+msgstr "Versão %s"
+
+#: Settings/SystemInfo.php:40 loco:6575cd133e6a6a48c90bc8b0
+msgid "System Info"
+msgstr "Informações do Sistema"
+
+#: Settings/SystemInfo.php:68 loco:6575cd133e6a6a48c90bc8b1
+msgid "System info copied to clipboard."
+msgstr "Informações do sistema copiadas para a área de transferência."
+
+#: Settings/SystemInfo.php:88 loco:6575cd133e6a6a48c90bc8b2
+msgid "System Information"
+msgstr "Informações do Sistema"
+
+#: Settings/SystemInfo.php:92 loco:6575cd133e6a6a48c90bc8b3
+msgid "Copy system info to clipboard"
+msgstr "Copiar informações do sistema para a área de transferência"
+
+#: WP/Comment.php:129 loco:6575cd133e6a6a48c90bc8b4
+msgid "Invalid Captcha"
+msgstr "Captcha Inválido"
+
+#: includes/request.php:72 loco:6575cd133e6a6a48c90bc8b5
+msgid "Your secret key is missing."
+msgstr "Sua chave secreta está faltando."
+
+#: includes/request.php:73 loco:6575cd133e6a6a48c90bc8b6
+msgid "Your secret key is invalid or malformed."
+msgstr "Sua chave secreta é inválida ou está malformada."
+
+#: includes/request.php:74 loco:6575cd133e6a6a48c90bc8b7
+msgid "The response parameter (verification token) is missing."
+msgstr "O parâmetro de resposta (token de verificação) está ausente."
+
+#: includes/request.php:75 loco:6575cd133e6a6a48c90bc8b8
+msgid "The response parameter (verification token) is invalid or malformed."
+msgstr ""
+"O parâmetro de resposta (token de verificação) é inválido ou está malformado."
+
+#: includes/request.php:76 loco:6575cd133e6a6a48c90bc8b9
+msgid "The request is invalid or malformed."
+msgstr "A solicitação é inválida ou malformada."
+
+#: includes/request.php:77 loco:6575cd133e6a6a48c90bc8ba
+msgid "The response parameter has already been checked, or has another issue."
+msgstr "O parâmetro de resposta já foi verificado ou tem outro problema."
+
+#: includes/request.php:78 loco:6575cd133e6a6a48c90bc8bb
+msgid "You have used a testing sitekey but have not used its matching secret."
+msgstr ""
+"Você usou uma chave de site de teste, mas não usou o segredo correspondente."
+
+#: includes/request.php:79 loco:6575cd133e6a6a48c90bc8bc
+msgid "The sitekey is not registered with the provided secret."
+msgstr "A chave do site não está registrada com o segredo fornecido."
+
+#: includes/request.php:81 loco:6575cd133e6a6a48c90bc8bd
+msgid "Please complete the hCaptcha."
+msgstr "Por favor, complete o hCaptcha."
+
+#: includes/request.php:82 includes/request.php:314
+#: loco:6575cd133e6a6a48c90bc8be
+msgid "The hCaptcha is invalid."
+msgstr "O hCaptcha é inválido."
+
+#: includes/request.php:83 loco:6575cd133e6a6a48c90bc8bf
+msgid "Bad hCaptcha nonce!"
+msgstr "Mau hCaptcha agora!"

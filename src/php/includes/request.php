@@ -59,7 +59,7 @@ function hcap_get_user_ip() {
  *
  * @return array
  */
-function hcap_get_error_messages() {
+function hcap_get_error_messages(): array {
 	/**
 	 * Filters hCaptcha error messages.
 	 *
@@ -92,7 +92,7 @@ function hcap_get_error_messages() {
  *
  * @return string
  */
-function hcap_get_error_message( $error_codes ) {
+function hcap_get_error_message( $error_codes ): string {
 	$error_codes = (array) $error_codes;
 	$errors      = hcap_get_error_messages();
 	$message_arr = [];
@@ -260,7 +260,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_output' ) ) {
 
 if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
-	 * Get verify message.
+	 * Get a verify message.
 	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.
@@ -306,7 +306,7 @@ if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
 	 *
 	 * @return string
 	 */
-	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ) {
+	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ): string {
 		_deprecated_function( __FUNCTION__, '2.1.0' );
 
 		$message = sprintf(

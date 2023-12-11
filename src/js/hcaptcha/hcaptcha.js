@@ -4,14 +4,21 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
+import { createHooks } from '@wordpress/hooks';
+
 class HCaptcha {
 	constructor() {
-		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item';
-		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit), #check_config, a.fl-button span,' +
-			' button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button, .forminator-button-submit,' +
-			' .frm_button_submit, a.sdm_download';
+		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item,' +
+			' .gform_editor, #nf-builder';
+		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config,' +
+			' a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button,' +
+			' .forminator-button-submit, .frm_button_submit, a.sdm_download';
 		this.foundForms = [];
 		this.params = null;
+		this.observing = false;
+		this.darkElement = null;
+		this.darkClass = null;
+		this.hooks = createHooks();
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
@@ -116,7 +123,7 @@ class HCaptcha {
 	/**
 	 * Get params.
 	 *
-	 * @return {{}} Params.
+	 * @return {*} Params.
 	 */
 	getParams() {
 		if ( this.params !== null ) {
@@ -146,6 +153,91 @@ class HCaptcha {
 	}
 
 	/**
+	 * Set darkElement and darkClass.
+	 */
+	setDarkData() {
+		let darkData = {
+			'twenty-twenty-one': {
+				// Twenty Twenty-One theme.
+				darkStyleId: 'twenty-twenty-one-style-css',
+				darkElement: document.body,
+				darkClass: 'is-dark-theme',
+			},
+			'wp-dark-mode': {
+				// WP Dark Mode plugin.
+				darkStyleId: 'wp-dark-mode-frontend-css',
+				darkElement: document.documentElement,
+				darkClass: 'wp-dark-mode-active',
+			},
+			'droit-dark-mode': {
+				// Droit Dark Mode plugin.
+				darkStyleId: 'dtdr-public-inline-css',
+				darkElement: document.documentElement,
+				darkClass: 'drdt-dark-mode',
+			},
+		};
+
+		darkData = this.hooks.applyFilters( 'hcaptcha.darkData', darkData );
+
+		for ( const datum of Object.values( darkData ) ) {
+			if ( document.getElementById( datum.darkStyleId ) ) {
+				this.darkElement = datum.darkElement;
+				this.darkClass = datum.darkClass;
+
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Observe dark mode changes and apply auto theme.
+	 */
+	observeDarkMode() {
+		if ( this.observing ) {
+			return;
+		}
+
+		this.observing = true;
+
+		const params = this.getParams();
+
+		if ( params.theme !== 'auto' ) {
+			return;
+		}
+
+		const callback = ( mutationList ) => {
+			for ( const mutation of mutationList ) {
+				let oldClasses = mutation.oldValue;
+				let newClasses = this.darkElement.getAttribute( 'class' );
+
+				oldClasses = oldClasses ? oldClasses.split( ' ' ) : [];
+				newClasses = newClasses ? newClasses.split( ' ' ) : [];
+
+				const diff = newClasses
+					.filter( ( item ) => ! oldClasses.includes( item ) )
+					.concat( oldClasses.filter( ( item ) => ! newClasses.includes( item ) ) );
+
+				if ( diff.includes( this.darkClass ) ) {
+					this.bindEvents();
+				}
+			}
+		};
+
+		this.setDarkData();
+
+		// Add observer if there is a known dark mode provider.
+		if ( this.darkElement && this.darkClass ) {
+			const config = {
+				attributes: true,
+				attributeOldValue: true,
+			};
+			const observer = new MutationObserver( callback );
+
+			observer.observe( this.darkElement, config );
+		}
+	}
+
+	/**
 	 * Called when the user submits a successful response.
 	 *
 	 * @param {string} token The h-captcha-response token.
@@ -165,6 +257,47 @@ class HCaptcha {
 	}
 
 	/**
+	 * Apply auto theme.
+	 *
+	 * @param {*} params Params.
+	 *
+	 * @return {*} Params.
+	 */
+	applyAutoTheme( params ) {
+		if ( params.theme !== 'auto' ) {
+			return params;
+		}
+
+		params.theme = 'light';
+
+		if ( ! this.darkElement ) {
+			return params;
+		}
+
+		let targetClass = this.darkElement.getAttribute( 'class' );
+		targetClass = targetClass ? targetClass : '';
+
+		if ( targetClass.includes( this.darkClass ) ) {
+			params.theme = 'dark';
+		}
+
+		return params;
+	}
+
+	/**
+	 * Render hCaptcha.
+	 *
+	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
+	 */
+	render( hcaptchaElement ) {
+		this.observeDarkMode();
+
+		const params = this.applyAutoTheme( this.getParams() );
+
+		hcaptcha.render( hcaptchaElement, params );
+	}
+
+	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
@@ -180,17 +313,19 @@ class HCaptcha {
 				return formElement;
 			}
 
-			// Do not render second time, processing arbitrary 'form' selector.
-			if ( null !== hcaptchaElement.querySelector( 'iframe' ) ) {
-				return formElement;
-			}
-
 			// Do not deal with skipped hCaptcha.
 			if ( hcaptchaElement.classList.contains( 'hcaptcha-widget-id' ) ) {
 				return formElement;
 			}
 
-			hcaptcha.render( hcaptchaElement, this.getParams() );
+			const iframe = hcaptchaElement.querySelector( 'iframe' );
+
+			// Re-render.
+			if ( null !== iframe ) {
+				iframe.remove();
+			}
+
+			this.render( hcaptchaElement );
 
 			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
 				return formElement;
@@ -225,7 +360,9 @@ class HCaptcha {
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
 		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
-		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute ? submitButtonElementTypeAttribute.toLowerCase() : '';
+		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute
+			? submitButtonElementTypeAttribute.toLowerCase()
+			: '';
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||

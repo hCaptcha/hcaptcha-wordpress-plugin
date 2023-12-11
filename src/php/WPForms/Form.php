@@ -69,7 +69,7 @@ class Form {
 	 *
 	 * @link         https://wpforms.com/developers/wpforms_process/
 	 *
-	 * @param array $fields    Sanitized entry field. values/properties.
+	 * @param array $fields    Sanitized entry field: values/properties.
 	 * @param array $entry     Original $_POST global.
 	 * @param array $form_data Form data and settings.
 	 *

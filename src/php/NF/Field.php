@@ -1,6 +1,6 @@
 <?php
 /**
- * Fields class file.
+ * Field class file.
  *
  * @package hcaptcha-wp
  */
@@ -12,12 +12,12 @@
 
 namespace HCaptcha\NF;
 
-use NF_Fields_Recaptcha;
+use NF_Abstracts_Field;
 
 /**
- * Class Fields
+ * Class Field
  */
-class Fields extends NF_Fields_recaptcha {
+class Field extends NF_Abstracts_Field {
 
 	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
@@ -36,6 +36,20 @@ class Fields extends NF_Fields_recaptcha {
 	protected $_type = 'hcaptcha';
 
 	/**
+	 * Section.
+	 *
+	 * @var string
+	 */
+	protected $_section = 'misc';
+
+	/**
+	 * Icon.
+	 *
+	 * @var string
+	 */
+	protected $_icon = 'hand-paper-o';
+
+	/**
 	 * Templates.
 	 *
 	 * @var string
@@ -43,35 +57,52 @@ class Fields extends NF_Fields_recaptcha {
 	protected $_templates = 'hcaptcha';
 
 	/**
-	 * Nice name of the field.
+	 * Settings.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	protected $_nicename;
+	protected $_settings = [ 'label', 'classes' ];
 
 	// phpcs:enable PSR2.Classes.PropertyDeclaration.Underscore
 
 	/**
 	 * Fields constructor.
+	 *
+	 * @noinspection PhpDynamicFieldDeclarationInspection
 	 */
 	public function __construct() {
 		parent::__construct();
 
 		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
+
+		add_filter( 'nf_sub_hidden_field_types', [ $this, 'hide_field_type' ] );
 	}
 
 	/**
 	 * Validate form.
 	 *
-	 * @param array $field Field.
-	 * @param mixed $data  Data.
+	 * @param array|mixed $field Field.
+	 * @param mixed       $data  Data.
 	 *
 	 * @return null|string
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function validate( $field, $data ) {
 		$value = $field['value'] ?? '';
 
 		return hcaptcha_request_verify( $value );
+	}
+
+	/**
+	 * Hide the field type.
+	 *
+	 * @param array|mixed $hidden_field_types Field types.
+	 *
+	 * @return array
+	 */
+	public function hide_field_type( $hidden_field_types ): array {
+		$hidden_field_types   = (array) $hidden_field_types;
+		$hidden_field_types[] = $this->_name;
+
+		return $hidden_field_types;
 	}
 }

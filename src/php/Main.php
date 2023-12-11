@@ -124,6 +124,8 @@ class Main {
 	 * @return void
 	 */
 	public function init_hooks() {
+		$this->load_textdomain();
+
 		$this->settings = new Settings(
 			[
 				'hCaptcha' => [
@@ -138,7 +140,6 @@ class Main {
 		$this->notifications->init();
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
-		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
@@ -201,9 +202,9 @@ class Main {
 
 		/**
 		 * Do not load hCaptcha functionality:
-		 * - if user is logged in and the option 'off_when_logged_in' is set;
+		 * - if a user is logged in and the option 'off_when_logged_in' is set;
 		 * - for whitelisted IPs;
-		 * - when site key and secret key are empty (after first plugin activation).
+		 * - when the site key or the secret key is empty (after first plugin activation).
 		 */
 		$deactivate = (
 			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
@@ -214,7 +215,7 @@ class Main {
 			 * @param string|false $ip          IP string or false for local addresses.
 			 */
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() ) ||
-			( '' === $settings->get_site_key() && '' === $settings->get_secret_key() )
+			( '' === $settings->get_site_key() || '' === $settings->get_secret_key() )
 		);
 
 		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
@@ -228,7 +229,7 @@ class Main {
 	}
 
 	/**
-	 * Whether we are on the Elementor Pro edit post page and hCaptcha for Elementor Pro is active.
+	 * Whether we are on the Elementor Pro edit post/page and hCaptcha for Elementor Pro is active.
 	 *
 	 * @return bool
 	 */
@@ -409,12 +410,17 @@ class Main {
 				background-position: 50% 79%;
 			}
 
-			.h-captcha[data-theme="light"]::before {
+			.h-captcha[data-theme="light"]::before,
+			body.is-light-theme .h-captcha[data-theme="auto"]::before,
+			.h-captcha[data-theme="auto"]::before {
 				background-color: #fafafa;
 				border: 1px solid #e0e0e0;
 			}
 
-			.h-captcha[data-theme="dark"]::before {
+			.h-captcha[data-theme="dark"]::before,
+			body.is-dark-theme .h-captcha[data-theme="auto"]::before,
+			html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
+			html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
 				background-image: url(<?php echo esc_url( $div_logo_white_url ); ?>);
 				background-repeat: no-repeat;
 				background-color: #333;
@@ -709,12 +715,12 @@ class Main {
 			'Beaver Builder Login Form'            => [
 				[ 'beaver_builder_status', 'login' ],
 				'bb-plugin/fl-builder.php',
-				[ BeaverBuilder\Login::class ],
+				BeaverBuilder\Login::class,
 			],
 			'Brizy Form'                           => [
 				[ 'brizy_status', 'form' ],
 				'brizy/brizy.php',
-				[ Brizy\Form::class ],
+				Brizy\Form::class,
 			],
 			'BuddyPress Create Group'              => [
 				[ 'bp_status', 'create_group' ],
@@ -837,9 +843,14 @@ class Main {
 				GiveWP\Form::class,
 			],
 			'Gravity Forms'                        => [
-				[ 'gravity_status', 'form' ],
+				[ 'gravity_status', null ],
 				'gravityforms/gravityforms.php',
-				GravityForms\Form::class,
+				[ GravityForms\Form::class, GravityForms\Field::class ],
+			],
+			'HTML Forms'                           => [
+				[ 'html_forms_status', 'form' ],
+				'html-forms/html-forms.php',
+				HTMLForms\Form::class,
 			],
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
@@ -884,7 +895,7 @@ class Main {
 			'MemberPress Login'                    => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',
-				[ MemberPress\Login::class ],
+				MemberPress\Login::class,
 			],
 			'MemberPress Register'                 => [
 				[ 'memberpress_status', 'register' ],
@@ -979,7 +990,7 @@ class Main {
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
-				[ UM\Login::class ],
+				UM\Login::class,
 			],
 			'Ultimate Member LostPassword'         => [
 				[ 'ultimate_member_status', 'lost_pass' ],
@@ -1094,6 +1105,7 @@ class Main {
 				continue;
 			}
 
+			// If plugin/theme is active, load a class having the option_value specified or null.
 			if ( $option_value && ! in_array( $option_value, $option, true ) ) {
 				continue;
 			}
@@ -1128,7 +1140,7 @@ class Main {
 				false !== strpos( $plugin_or_theme_name, '.php' ) &&
 				is_plugin_active( $plugin_or_theme_name )
 			) {
-				// Plugin is active.
+				// The plugin is active.
 				return true;
 			}
 
@@ -1136,7 +1148,7 @@ class Main {
 				false === strpos( $plugin_or_theme_name, '.php' ) &&
 				get_template() === $plugin_or_theme_name
 			) {
-				// Theme is active.
+				// The theme is active.
 				return true;
 			}
 		}
@@ -1158,7 +1170,7 @@ class Main {
 	}
 
 	/**
-	 * Check of it is a xml-rpc request
+	 * Check if it is the xml-rpc request.
 	 *
 	 * @return bool
 	 */

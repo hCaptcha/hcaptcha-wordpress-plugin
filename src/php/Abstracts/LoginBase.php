@@ -64,7 +64,7 @@ abstract class LoginBase {
 	 */
 	protected function init_hooks() {
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
-		add_action( 'wp_login_failed', [ $this, 'login_failed' ], 10 );
+		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
 	}
 
 	/**

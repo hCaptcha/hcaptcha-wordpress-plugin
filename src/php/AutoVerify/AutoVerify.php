@@ -155,23 +155,23 @@ class AutoVerify {
 	/**
 	 * Get REQUEST_URI without trailing slash.
 	 *
-	 * @return bool|string
+	 * @return string
 	 */
-	private function get_request_uri() {
+	private function get_request_uri(): string {
 		return isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			(string) filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 	}
 
 	/**
-	 * Get path without trailing slash.
+	 * Get a path without a trailing slash.
 	 * Return '/' for home page.
 	 *
 	 * @param string $url URL.
 	 *
 	 * @return string
 	 */
-	private function get_path( $url ): string {
+	private function get_path( string $url ): string {
 		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
 
 		return '/' === $path ? $path : untrailingslashit( $path );
@@ -248,7 +248,7 @@ class AutoVerify {
 	}
 
 	/**
-	 * Check if form is auto.
+	 * Check if the form is auto.
 	 *
 	 * @param string $form Form.
 	 *
@@ -296,7 +296,7 @@ class AutoVerify {
 	}
 
 	/**
-	 * Is form registered.
+	 * Is the form registered?
 	 *
 	 * @param string $path URL path.
 	 *

@@ -41,7 +41,7 @@ class Fix {
 
 	/**
 	 * Prevent loading of WPTestCase class.
-	 * Loading of the WPTestCase causes fatal error if any plugin has Codeception tests in vendor.
+	 * Loading of the WPTestCase causes a fatal error if any plugin has Codeception tests in the vendor.
 	 *
 	 * @param string $classname Class name.
 	 *

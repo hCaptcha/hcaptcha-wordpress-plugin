@@ -1,23 +1,24 @@
 <?php
 /**
- * FieldsTest class file.
+ * FieldTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\NF;
 
-use HCaptcha\NF\Fields;
+use HCaptcha\NF\Field;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
- * Test Fields class.
+ * Test Field class.
  *
  * Ninja Forms requires PHP 7.2.
  *
  * @requires PHP >= 7.2
+ * @requires PHP <= 8.2
  */
-class FieldsTest extends HCaptchaPluginWPTestCase {
+class FieldTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Plugin relative path.
@@ -32,7 +33,7 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function test_constructor() {
-		$subject = new Fields();
+		$subject = new Field();
 
 		self::assertSame( 'hCaptcha', $subject->get_nicename() );
 	}
@@ -44,7 +45,7 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 		$field = [ 'value' => 'some value' ];
 		$this->prepare_hcaptcha_request_verify( $field['value'] );
 
-		$subject = new Fields();
+		$subject = new Field();
 
 		self::assertNull( $subject->validate( $field, null ) );
 	}
@@ -53,7 +54,7 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 	 * Test validate() without field.
 	 */
 	public function test_validate_without_field() {
-		$subject = new Fields();
+		$subject = new Field();
 
 		self::assertSame( 'Please complete the hCaptcha.', $subject->validate( [], null ) );
 	}
@@ -65,7 +66,7 @@ class FieldsTest extends HCaptchaPluginWPTestCase {
 		$field = [ 'value' => 'some value' ];
 		$this->prepare_hcaptcha_request_verify( $field['value'], false );
 
-		$subject = new Fields();
+		$subject = new Field();
 
 		self::assertSame( 'The hCaptcha is invalid.', $subject->validate( $field, null ) );
 	}

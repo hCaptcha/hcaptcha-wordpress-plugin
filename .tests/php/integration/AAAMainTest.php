@@ -161,7 +161,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
 		self::assertSame( - PHP_INT_MAX + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
-		self::assertSame( 10, has_action( 'plugins_loaded', [ $hcaptcha, 'load_textdomain' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
 		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
@@ -191,10 +190,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		self::assertSame(
 			- PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 		);
 		self::assertSame(
 			- PHP_INT_MAX,
@@ -292,10 +287,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		self::assertSame(
 			- PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] )
 		);
 		self::assertSame(
 			- PHP_INT_MAX,
@@ -544,12 +535,17 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				background-position: 50% 79%;
 			}
 
-			.h-captcha[data-theme="light"]::before {
+			.h-captcha[data-theme="light"]::before,
+			body.is-light-theme .h-captcha[data-theme="auto"]::before,
+			.h-captcha[data-theme="auto"]::before {
 				background-color: #fafafa;
 				border: 1px solid #e0e0e0;
 			}
 
-			.h-captcha[data-theme="dark"]::before {
+			.h-captcha[data-theme="dark"]::before,
+			body.is-dark-theme .h-captcha[data-theme="auto"]::before,
+			html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
+			html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
 				background-image: url(' . $div_logo_url_white . ');
 				background-repeat: no-repeat;
 				background-color: #333;
@@ -703,7 +699,8 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			} )();
 		</script>';
 
-		$site_key       = 'some key';
+		$site_key       = 'some site key';
+		$secret_key     = 'some secret key';
 		$theme          = 'light';
 		$size           = 'normal';
 		$language       = $language ?: '';
@@ -727,6 +724,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				'recaptcha_compat_off' => $compat ? [ $compat ] : [],
 				'language'             => $language,
 				'site_key'             => $site_key,
+				'secret_key'           => $secret_key,
 				'mode'                 => 'live',
 				'theme'                => $theme,
 				'size'                 => $size,
@@ -1210,9 +1208,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				\HCaptcha\GiveWP\Form::class,
 			],
 			'Gravity Forms'                     => [
-				[ 'gravity_status', 'form' ],
+				[ 'gravity_status', null ],
 				'gravityforms/gravityforms.php',
-				\HCaptcha\GravityForms\Form::class,
+				[ \HCaptcha\GravityForms\Form::class, \HCaptcha\GravityForms\Field::class ],
 			],
 			'Jetpack'                           => [
 				[ 'jetpack_status', 'contact' ],
@@ -1467,8 +1465,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			10,
 			3
 		);
-
-		self::assertEquals( 10, has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] ) );
 
 		$subject->load_textdomain();
 

@@ -125,7 +125,7 @@ class Form {
 	/**
 	 * Prevent native validation.
 	 *
-	 * @param bool|mixed $is_field_hidden Whether field is hidden.
+	 * @param bool|mixed $is_field_hidden Whether the field is hidden.
 	 * @param stdClass   $field           Field.
 	 * @param array      $post            wp_unslash( $_POST ) content.
 	 *

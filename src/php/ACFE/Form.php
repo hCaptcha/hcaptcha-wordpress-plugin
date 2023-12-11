@@ -127,7 +127,7 @@ class Form {
 	/**
 	 * Remove reCaptcha verify filter.
 	 *
-	 * @param bool|mixed $valid Whether field is valid.
+	 * @param bool|mixed $valid Whether the field is valid.
 	 * @param string     $value Field Value.
 	 * @param array      $field Field.
 	 * @param string     $input Input name.
@@ -147,7 +147,7 @@ class Form {
 	/**
 	 * Verify request.
 	 *
-	 * @param bool|mixed $valid Whether field is valid.
+	 * @param bool|mixed $valid Whether the field is valid.
 	 * @param string     $value Field Value.
 	 * @param array      $field Field.
 	 * @param string     $input Input name.

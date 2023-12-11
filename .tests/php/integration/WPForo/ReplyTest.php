@@ -20,6 +20,8 @@ use wpforo\classes\Notices;
 
 /**
  * Test Reply class.
+ *
+ * @requires PHP >= 7.1
  */
 class ReplyTest extends HCaptchaPluginWPTestCase {
 

@@ -96,7 +96,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init().
 	 *
-	 * @param bool $enabled Field is enabled.
+	 * @param bool $enabled The field is enabled.
 	 *
 	 * @dataProvider dp_test_init
 	 */
@@ -445,7 +445,35 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test validation.
+	 * Test validation with no hCaptcha response.
+	 */
+	public function test_validation_with_no_captcha() {
+		$fields = [
+			'field_014ea7c' =>
+				[
+					'id'        => 'field_014ea7c',
+					'type'      => 'hcaptcha',
+					'title'     => '',
+					'value'     => '',
+					'raw_value' => '',
+					'required'  => false,
+				],
+		];
+		$field  = current( $fields );
+
+		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
+		$record->shouldReceive( 'remove_field' )->never();
+
+		$ajax_handler = Mockery::mock( Ajax_Handler::class );
+		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'Please complete the hCaptcha.' )->once();
+
+		$subject = new HCaptchaHandler();
+		$subject->validation( $record, $ajax_handler );
+	}
+
+	/**
+	 * Test validation with failed hCaptcha.
 	 */
 	public function test_validation_with_failed_captcha() {
 		$fields = [
@@ -476,7 +504,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test validation.
+	 * Test validation with empty hCaptcha.
 	 */
 	public function test_validation_with_empty_captcha() {
 		$fields = [
@@ -835,5 +863,23 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$subject = new HCaptchaHandler();
 		self::assertTrue( $subject->filter_field_item( $text_item )['field_label'] );
 		self::assertFalse( $subject->filter_field_item( $hcaptcha_item )['field_label'] );
+	}
+
+	/**
+	 * Test print_footer_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_print_footer_scripts() {
+		$subject = new HCaptchaHandler();
+
+		$subject->print_footer_scripts();
+
+		self::assertTrue( wp_script_is( HCaptchaHandler::HANDLE ) );
+
+		$script = wp_scripts()->registered[ HCaptchaHandler::HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $script->src );
+		self::assertSame( [ 'jquery', Main::HANDLE ], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 	}
 }

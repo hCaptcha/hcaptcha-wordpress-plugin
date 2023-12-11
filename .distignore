@@ -21,6 +21,7 @@
 /phpcs.xml
 /webpack.config.js
 /yarn.lock
+/languages/*.pot
 
 # Directories
 /.codeception
