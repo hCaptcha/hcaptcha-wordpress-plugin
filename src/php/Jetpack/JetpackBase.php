@@ -29,7 +29,7 @@ abstract class JetpackBase {
 	 *
 	 * @var string|null
 	 */
-	private $error_message;
+	protected $error_message;
 
 	/**
 	 * Constructor.
