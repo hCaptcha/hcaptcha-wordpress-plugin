@@ -18,6 +18,7 @@ use HCaptcha\Helpers\HCaptcha;
  * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form()
  */
 function hcap_form( string $action = '', string $name = '', bool $auto = false ): string {
+	// @codeCoverageIgnoreStart
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form()' );
 
@@ -28,6 +29,7 @@ function hcap_form( string $action = '', string $name = '', bool $auto = false )
 	];
 
 	return HCaptcha::form( $args );
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -40,6 +42,7 @@ function hcap_form( string $action = '', string $name = '', bool $auto = false )
  * @deprecated 2.7.0 Use \HCaptcha\Helpers\HCaptcha::form_display()
  */
 function hcap_form_display( string $action = '', string $name = '', bool $auto = false ) {
+	// @codeCoverageIgnoreStart
 	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	_deprecated_function( __FUNCTION__, '2.7.0', HCaptcha::class . '::form_display()' );
 
@@ -50,6 +53,7 @@ function hcap_form_display( string $action = '', string $name = '', bool $auto =
 	];
 
 	HCaptcha::form_display( $args );
+	// @codeCoverageIgnoreEnd
 }
 
 /**
