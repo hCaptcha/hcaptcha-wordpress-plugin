@@ -25,6 +25,7 @@ class Login extends LoginBase {
 
 		add_filter( 'wppb_login_form_before_content_output', [ $this, 'add_wppb_captcha' ], 10, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -88,5 +89,21 @@ class Login extends LoginBase {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	#wppb-loginform .h-captcha {
+		margin-bottom: 14px;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

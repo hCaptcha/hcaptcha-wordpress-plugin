@@ -382,10 +382,6 @@ class Main {
 		position: relative;
 	}
 
-	#wppb-loginform .h-captcha {
-		margin-bottom: 14px;
-	}
-
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 		border-style: none;
 	}
