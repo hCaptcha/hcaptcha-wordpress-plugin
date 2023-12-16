@@ -313,7 +313,6 @@ class Main {
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
 		$css = <<<CSS
-	div.wpforms-container-full .wpforms-form .h-captcha,
 	#wpforo #wpforo-wrap div .h-captcha,
 	.h-captcha {
 		position: relative;
@@ -367,19 +366,16 @@ class Main {
 		color: #fff !important;
 	}
 	
-	div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
 	.h-captcha[data-size="normal"] {
 		width: 303px;
 		height: 78px;
 	}
 	
-	div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"],
 	.h-captcha[data-size="compact"] {
 		width: 164px;
 		height: 144px;
 	}
 	
-	div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"],
 	.h-captcha[data-size="invisible"] {
 		display: none;
 	}
@@ -428,7 +424,6 @@ class Main {
 		display: none;
 	}
 	
-	div.wpforms-container-full .wpforms-form .h-captcha iframe,
 	.h-captcha iframe {
 		position: relative;
 	}

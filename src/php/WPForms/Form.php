@@ -39,6 +39,7 @@ class Form {
 	private function init_hooks() {
 		add_action( 'wpforms_display_submit_before', [ $this, 'add_captcha' ] );
 		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -86,5 +87,43 @@ class Form {
 		if ( null !== $error_message ) {
 			wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $error_message;
 		}
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	div.wpforms-container-full .wpforms-form .h-captcha {
+		position: relative;
+		display: block;
+		margin-bottom: 2rem;
+		padding: 0;
+		clear: both;
+	}
+
+	div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"] {
+		width: 303px;
+		height: 78px;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"] {
+		width: 164px;
+		height: 144px;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"] {
+		display: none;
+	}
+
+	div.wpforms-container-full .wpforms-form .h-captcha iframe {
+		position: relative;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }
