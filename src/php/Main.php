@@ -321,11 +321,6 @@ class Main {
 		clear: both;
 	}
 
-	.frm-fluent-form .h-captcha {
-		line-height: 0;
-		margin-bottom: 0;
-	}
-
 	.passster-form .h-captcha {
 		margin-bottom: 5px;
 	}
