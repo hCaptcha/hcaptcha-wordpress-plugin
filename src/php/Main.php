@@ -312,7 +312,7 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
-		$style = <<<CSS
+		$css = <<<CSS
 	#wpdiscuz-subscribe-form .h-captcha {
 		margin-left: auto;
 	}
@@ -463,7 +463,7 @@ class Main {
 	}
 CSS;
 
-		HCaptcha::css_display( $style );
+		HCaptcha::css_display( $css );
 	}
 
 	/**
@@ -473,7 +473,7 @@ CSS;
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function login_head() {
-		$style = <<<'CSS'
+		$css = <<<'CSS'
 	@media (max-width: 349px) {
 		.h-captcha {
 			display: flex;
@@ -488,7 +488,7 @@ CSS;
 	}
 CSS;
 
-		HCaptcha::css_display( $style );
+		HCaptcha::css_display( $css );
 	}
 
 	/**

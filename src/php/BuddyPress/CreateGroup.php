@@ -99,11 +99,11 @@ class CreateGroup {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles() {
-		$style = <<<'CSS'
+		$css = <<<'CSS'
 	#buddypress .h-captcha {
 		margin-top: 15px;
 	}
 CSS;
-		HCaptcha::css_display( $style );
+		HCaptcha::css_display( $css );
 	}
 }

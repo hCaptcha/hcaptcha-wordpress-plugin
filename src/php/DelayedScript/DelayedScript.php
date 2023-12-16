@@ -24,7 +24,7 @@ class DelayedScript {
 	 * @noinspection JSUnusedAssignment
 	 */
 	public static function create( string $js, int $delay = 3000 ): string {
-		$script = <<<JS
+		$js = <<<JS
 	( () => {
 		'use strict';
 
@@ -76,7 +76,7 @@ $js
 	} )();
 JS;
 
-		return "<script>\n" . HCaptcha::js_minify( $script ) . "\n</script>\n";
+		return "<script>\n" . HCaptcha::js_minify( $js ) . "\n</script>\n";
 	}
 
 	/**
