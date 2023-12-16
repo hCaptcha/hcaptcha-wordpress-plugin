@@ -349,6 +349,6 @@ class HCaptcha {
 
 		$minifier->add( $js );
 
-		return $js;
+		return $minifier->minify();
 	}
 }

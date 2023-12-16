@@ -672,66 +672,83 @@ CSS;
 	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ) {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
 		$hcaptcha = hcaptcha();
 
 		$hcaptcha->form_shown = true;
 
-		$expected_scripts = '<script>
-			( () => {
-				\'use strict\';
+		$expected_scripts = <<<JS
+	( () => {
+		'use strict';
 
-				let loaded = false,
-					scrolled = false,
-					timerId;
+		let loaded = false,
+			scrolled = false,
+			timerId;
 
-				function load() {
-					if ( loaded ) {
-						return;
-					}
+		function load() {
+			if ( loaded ) {
+				return;
+			}
 
-					loaded = true;
-					clearTimeout( timerId );
+			loaded = true;
+			clearTimeout( timerId );
 
-					window.removeEventListener( \'touchstart\', load );
-					document.removeEventListener( \'mouseenter\', load );
-					document.removeEventListener( \'click\', load );
-					window.removeEventListener( \'load\', delayedLoad );
+			window.removeEventListener( 'touchstart', load );
+			document.removeEventListener( 'mouseenter', load );
+			document.removeEventListener( 'click', load );
+			window.removeEventListener( 'load', delayedLoad );
 
-							const t = document.getElementsByTagName( \'script\' )[0];
-		const s = document.createElement(\'script\');
-		s.type  = \'text/javascript\';
-		s.id = \'hcaptcha-api\';
-		s[\'src\'] = \'' . $expected_script_src . '\';
-		s.async = true;
-		t.parentNode.insertBefore( s, t );
-						}
+			const t = document.getElementsByTagName( 'script' )[0];
+			const s = document.createElement('script');
+			s.type  = 'text/javascript';
+			s.id = 'hcaptcha-api';
+			s['src'] = '$expected_script_src';
+			s.async = true;
+			t.parentNode.insertBefore( s, t );
+		}
 
-				function scrollHandler() {
-					if ( ! scrolled ) {
-						// Ignore first scroll event, which can be on page load.
-						scrolled = true;
-						return;
-					}
+		function scrollHandler() {
+			if ( ! scrolled ) {
+				// Ignore first scroll event, which can be on page load.
+				scrolled = true;
+				return;
+			}
 
-					window.removeEventListener( \'scroll\', scrollHandler );
-					load();
-				}
+			window.removeEventListener( 'scroll', scrollHandler );
+			load();
+		}
 
-				function delayedLoad() {
-					window.addEventListener( \'scroll\', scrollHandler );
-					const delay = -100;
+		function delayedLoad() {
+			window.addEventListener( 'scroll', scrollHandler );
+			// noinspection JSAnnotator
+			const delay = -100;
 
-					if ( delay >= 0 ) {
-						setTimeout( load, delay );
-					}
-				}
+			if ( delay >= 0 ) {
+				setTimeout( load, delay );
+			}
+		}
 
-				window.addEventListener( \'touchstart\', load );
-				document.addEventListener( \'mouseenter\', load );
-				document.addEventListener( \'click\', load );
-				window.addEventListener( \'load\', delayedLoad );
-			} )();
-		</script>';
+		window.addEventListener( 'touchstart', load );
+		document.addEventListener( 'mouseenter', load );
+		document.addEventListener( 'click', load );
+		window.addEventListener( 'load', delayedLoad );
+	} )();
+JS;
+
+		$expected_scripts = "<script>\n$expected_scripts\n</script>\n";
 
 		$site_key       = 'some site key';
 		$secret_key     = 'some secret key';
@@ -786,7 +803,7 @@ CSS;
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 
-		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
+		self::assertSame( 0, strpos( $scripts, $expected_scripts ) );
 
 		// Test when Elementor Pro is loaded.
 		wp_dequeue_script( 'hcaptcha' );
