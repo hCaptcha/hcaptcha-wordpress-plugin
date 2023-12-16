@@ -319,6 +319,7 @@ class HCaptcha {
 	 * @param bool   $wrap Wrap by <script>...</script> tags.
 	 *
 	 * @return void
+	 * @noinspection PhpUnused
 	 */
 	public static function js_display( string $js, bool $wrap = true ) {
 		if ( $wrap ) {
