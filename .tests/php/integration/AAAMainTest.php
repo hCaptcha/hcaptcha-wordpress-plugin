@@ -461,11 +461,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		clear: both;
 	}
 
-	.w3eden .btn-primary {
-		background-color: var(--color-primary) !important;
-		color: #fff !important;
-	}
-
 	.h-captcha[data-size="normal"] {
 		width: 303px;
 		height: 78px;

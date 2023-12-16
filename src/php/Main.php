@@ -306,7 +306,6 @@ class Main {
 	 *
 	 * @return void
 	 * @noinspection CssUnusedSymbol
-	 * @noinspection CssUnresolvedCustomProperty
 	 */
 	public function print_inline_styles() {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
@@ -319,11 +318,6 @@ class Main {
 		margin-bottom: 2rem;
 		padding: 0;
 		clear: both;
-	}
-
-	.w3eden .btn-primary {
-		background-color: var(--color-primary) !important;
-		color: #fff !important;
 	}
 
 	.h-captcha[data-size="normal"] {

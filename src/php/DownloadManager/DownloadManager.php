@@ -115,11 +115,17 @@ class DownloadManager {
 	 *
 	 * @return void
 	 * @noinspection CssUnusedSymbol
+	 * @noinspection CssUnresolvedCustomProperty
 	 */
 	public function print_inline_styles() {
 		$css = <<<CSS
 	.wpdm-button-area + .h-captcha {
 		margin-bottom: 1rem;
+	}
+
+	.w3eden .btn-primary {
+		background-color: var(--color-primary) !important;
+		color: #fff !important;
 	}
 CSS;
 
