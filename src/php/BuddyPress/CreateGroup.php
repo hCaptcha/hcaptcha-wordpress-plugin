@@ -39,6 +39,7 @@ class CreateGroup {
 	private function init_hooks() {
 		add_action( 'bp_after_group_details_creation_step', [ $this, 'add_captcha' ] );
 		add_action( 'groups_group_before_save', [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -62,7 +63,6 @@ class CreateGroup {
 
 		echo '</div>';
 	}
-
 
 	/**
 	 * Verify group form captcha.
@@ -90,5 +90,22 @@ class CreateGroup {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 */
+	public function print_inline_styles() {
+		$style = <<<'HTML'
+<style>
+	#buddypress .h-captcha {
+		margin-top: 15px;
+	}
+</style>
+HTML;
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $style;
 	}
 }
