@@ -382,15 +382,6 @@ class Main {
 		position: relative;
 	}
 
-	span[data-name="hcap-cf7"] .h-captcha {
-		margin-bottom: 0;
-	}
-
-	span[data-name="hcap-cf7"] ~ input[type="submit"],
-	span[data-name="hcap-cf7"] ~ button[type="submit"] {
-		margin-top: 2rem;
-	}
-
 	.elementor-field-type-hcaptcha .elementor-field {
 		background: transparent !important;
 	}

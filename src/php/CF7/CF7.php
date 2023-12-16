@@ -38,6 +38,7 @@ class CF7 {
 		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
 		add_filter( 'wpcf7_validate', [ $this, 'verify_hcaptcha' ], 20, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -238,6 +239,27 @@ class CF7 {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	span[data-name="hcap-cf7"] .h-captcha {
+		margin-bottom: 0;
+	}
+
+	span[data-name="hcap-cf7"] ~ input[type="submit"],
+	span[data-name="hcap-cf7"] ~ button[type="submit"] {
+		margin-top: 2rem;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 
 	/**
