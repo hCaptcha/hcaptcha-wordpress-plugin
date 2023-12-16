@@ -184,43 +184,43 @@ class Form extends Base {
 	 * Print inline styles.
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles() {
-		?>
-		<!--suppress CssUnusedSymbol -->
-		<style>
-		.gform_previous_button + .h-captcha {
-			margin-top: 2rem;
-		}
-		.gform_footer.before .h-captcha[data-size="normal"] {
-			margin-bottom: 3px;
-		}
-		.gform_footer.before .h-captcha[data-size="compact"] {
-			margin-bottom: 0;
-		}
+		$css = <<<CSS
+	.gform_previous_button + .h-captcha {
+		margin-top: 2rem;
+	}
+	.gform_footer.before .h-captcha[data-size="normal"] {
+		margin-bottom: 3px;
+	}
+	.gform_footer.before .h-captcha[data-size="compact"] {
+		margin-bottom: 0;
+	}
 
-		.gform_wrapper.gravity-theme .gform_footer,
-		.gform_wrapper.gravity-theme .gform_page_footer {
-			flex-wrap: wrap;
-		}
+	.gform_wrapper.gravity-theme .gform_footer,
+	.gform_wrapper.gravity-theme .gform_page_footer {
+		flex-wrap: wrap;
+	}
 
-		.gform_wrapper.gravity-theme .h-captcha,
-		.gform_wrapper.gravity-theme .h-captcha {
-			margin: 0;
-			flex-basis: 100%;
-		}
+	.gform_wrapper.gravity-theme .h-captcha,
+	.gform_wrapper.gravity-theme .h-captcha {
+		margin: 0;
+		flex-basis: 100%;
+	}
 
-		.gform_wrapper.gravity-theme input[type="submit"],
-		.gform_wrapper.gravity-theme input[type="submit"] {
-			align-self: flex-start;
-		}
+	.gform_wrapper.gravity-theme input[type="submit"],
+	.gform_wrapper.gravity-theme input[type="submit"] {
+		align-self: flex-start;
+	}
 
-		.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"],
-		.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"] {
-			margin: 1em 0 0 0 !important;
-		}
-		</style>
-		<?php
+	.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"],
+	.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"] {
+		margin: 1em 0 0 0 !important;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 
 	/**

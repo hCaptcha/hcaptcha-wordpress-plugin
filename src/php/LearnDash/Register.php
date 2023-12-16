@@ -101,15 +101,15 @@ class Register {
 	 * Print inline styles.
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles() {
-		?>
-		<!--suppress CssUnusedSymbol -->
-		<style>
-			#learndash_registerform .h-captcha {
-				margin-bottom: 0;
-			}
-		</style>
-		<?php
+		$css = <<<CSS
+	#learndash_registerform .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }
