@@ -537,7 +537,8 @@ Instructions for popular native integrations are below:
 = 3.6.0 =
 * Added compatibility with BuddyPress 12.0.
 * Improved inline scripts to optimize page load time.
-* Fixed hCaptcha position in BuddyPress forms.
+* Fixed hCaptcha position in BuddyPress.
+* Fixed hCaptcha position in wpDiscuz.
 
 = 3.5.0 =
 * Tested with PHP 8.3.
