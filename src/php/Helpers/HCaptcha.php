@@ -7,6 +7,9 @@
 
 namespace HCaptcha\Helpers;
 
+use Exception;
+use MatthiasMullie\Minify\CSS;
+use MatthiasMullie\Minify\JS;
 use WP_Error;
 
 /**
@@ -267,5 +270,85 @@ class HCaptcha {
 		}
 
 		return $errors;
+	}
+
+	/**
+	 * Display CSS.
+	 *
+	 * @param string $css  CSS.
+	 * @param bool   $wrap Wrap by <style>...</style> tags.
+	 *
+	 * @return void
+	 */
+	public static function css_display( string $css, bool $wrap = true ) {
+		if ( $wrap ) {
+			echo "<style>\n";
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo self::css_minify( $css ) . "\n";
+
+		if ( $wrap ) {
+			echo "</style>\n";
+		}
+	}
+
+	/**
+	 * Minify CSS.
+	 *
+	 * @param string $css CSS.
+	 *
+	 * @return string
+	 */
+	public static function css_minify( string $css ): string {
+		if ( defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ) {
+			return $css;
+		}
+
+		$minifier = new CSS();
+
+		$minifier->add( $css );
+
+		return $minifier->minify();
+	}
+
+	/**
+	 * Display JavaScript.
+	 *
+	 * @param string $js   JavaScript.
+	 * @param bool   $wrap Wrap by <script>...</script> tags.
+	 *
+	 * @return void
+	 */
+	public static function js_display( string $js, bool $wrap = true ) {
+		if ( $wrap ) {
+			echo "<script>\n";
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo self::js_minify( $js ) . "\n";
+
+		if ( $wrap ) {
+			echo "<script>\n";
+		}
+	}
+
+	/**
+	 * Minify JavaScript.
+	 *
+	 * @param string $js JavaScript.
+	 *
+	 * @return string
+	 */
+	public static function js_minify( string $js ): string {
+		if ( defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ) {
+			return $js;
+		}
+
+		$minifier = new JS();
+
+		$minifier->add( $js );
+
+		return $js;
 	}
 }

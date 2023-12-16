@@ -98,14 +98,11 @@ class CreateGroup {
 	 * @return void
 	 */
 	public function print_inline_styles() {
-		$style = <<<'HTML'
-<style>
-	#buddypress .h-captcha {
-		margin-top: 15px;
-	}
-</style>
-HTML;
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $style;
+		$style = <<<'CSS'
+#buddypress .h-captcha {
+	margin-top: 15px;
+}
+CSS;
+		HCaptcha::css_display( $style );
 	}
 }
