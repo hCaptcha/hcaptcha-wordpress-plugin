@@ -80,6 +80,7 @@ class Subscribe extends Base {
 	public function print_inline_styles() {
 		$css = <<<CSS
 	#wpdiscuz-subscribe-form .h-captcha {
+		margin-top: 5px;
 		margin-left: auto;
 	}
 CSS;
