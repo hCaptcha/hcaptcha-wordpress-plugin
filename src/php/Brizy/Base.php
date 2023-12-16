@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Brizy;
 
+use Brizy_Editor_Project;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Post;
 
@@ -33,6 +34,7 @@ abstract class Base {
 	private function init_hooks() {
 		add_filter( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ], 10, 4 );
 		add_filter( static::VERIFY_HOOK, [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -110,5 +112,29 @@ abstract class Base {
 		}
 
 		return $form;
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		static $style_shown;
+
+		if ( $style_shown ) {
+			return;
+		}
+
+		$style_shown = true;
+
+		$css = <<<CSS
+	.brz-forms2.brz-forms2__item .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }
