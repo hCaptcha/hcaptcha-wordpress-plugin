@@ -96,12 +96,13 @@ class CreateGroup {
 	 * Print inline styles.
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles() {
 		$style = <<<'CSS'
-#buddypress .h-captcha {
-	margin-top: 15px;
-}
+	#buddypress .h-captcha {
+		margin-top: 15px;
+	}
 CSS;
 		HCaptcha::css_display( $style );
 	}
