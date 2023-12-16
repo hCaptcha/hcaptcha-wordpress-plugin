@@ -461,10 +461,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		clear: both;
 	}
 
-	form.wpsc-create-ticket .h-captcha {
-		margin: 0 15px 15px 15px;
-	}
-
 	.frm-fluent-form .h-captcha {
 		line-height: 0;
 		margin-bottom: 0;
