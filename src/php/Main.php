@@ -313,10 +313,6 @@ class Main {
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
 		$css = <<<CSS
-	#wpdiscuz-subscribe-form .h-captcha {
-		margin-left: auto;
-	}
-	
 	div.wpforms-container-full .wpforms-form .h-captcha,
 	#wpforo #wpforo-wrap div .h-captcha,
 	.h-captcha {

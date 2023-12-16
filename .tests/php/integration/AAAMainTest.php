@@ -453,10 +453,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		);
 
 		$expected = <<<CSS
-	#wpdiscuz-subscribe-form .h-captcha {
-		margin-left: auto;
-	}
-	
 	div.wpforms-container-full .wpforms-form .h-captcha,
 	#wpforo #wpforo-wrap div .h-captcha,
 	.h-captcha {
