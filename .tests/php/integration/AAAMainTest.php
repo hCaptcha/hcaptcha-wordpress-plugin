@@ -523,14 +523,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		position: relative;
 	}
 
-	.elementor-field-type-hcaptcha .elementor-field {
-		background: transparent !important;
-	}
-
-	.elementor-field-type-hcaptcha .h-captcha {
-		margin-bottom: unset;
-	}
-
 	#wppb-loginform .h-captcha {
 		margin-bottom: 14px;
 	}
