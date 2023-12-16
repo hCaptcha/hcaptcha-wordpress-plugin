@@ -41,6 +41,7 @@ use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use ReflectionException;
 use stdClass;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Main class.
@@ -105,7 +106,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	public function test_init() {
 		$hcaptcha = hcaptcha();
 
-		// Plugin was loaded by codeception.
+		// The plugin was loaded by codeception.
 		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
 		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], -PHP_INT_MAX );
@@ -149,7 +150,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		// Plugin was loaded by codeception.
+		// The plugin was loaded by codeception.
 		self::assertTrue(
 			in_array(
 				$this->normalize_path( ABSPATH . 'wp-includes/pluggable.php' ),
@@ -430,164 +431,181 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test print_inline_styles().
+	 *
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles() {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_url_white = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
-		$expected = '		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
-		<style>
-			#wpdiscuz-subscribe-form .h-captcha {
-				margin-left: auto;
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
 			}
+		);
 
-			div.wpforms-container-full .wpforms-form .h-captcha,
-			#wpforo #wpforo-wrap div .h-captcha,
-			.h-captcha {
-				position: relative;
-				display: block;
-				margin-bottom: 2rem;
-				padding: 0;
-				clear: both;
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
 			}
+		);
 
-			#hcaptcha-options .h-captcha {
-				margin-bottom: 0;
-			}
+		$expected = <<<CSS
+	#wpdiscuz-subscribe-form .h-captcha {
+		margin-left: auto;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha,
+	#wpforo #wpforo-wrap div .h-captcha,
+	.h-captcha {
+		position: relative;
+		display: block;
+		margin-bottom: 2rem;
+		padding: 0;
+		clear: both;
+	}
+	
+	#hcaptcha-options .h-captcha {
+		margin-bottom: 0;
+	}
+	
+	#af-wrapper div.editor-row.editor-row-hcaptcha {
+		display: flex;
+		flex-direction: row-reverse;
+	}
+	
+	#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+		margin-bottom: 0;
+	}
+	
+	.brz-forms2.brz-forms2__item .h-captcha {
+		margin-bottom: 0;
+	}
+	
+	form.wpsc-create-ticket .h-captcha {
+		margin: 0 15px 15px 15px;
+	}
+	
+	.frm-fluent-form .h-captcha {
+		line-height: 0;
+		margin-bottom: 0;
+	}
+	
+	.passster-form .h-captcha {
+		margin-bottom: 5px;
+	}
+	
+	#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
+	#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
+		margin: 0 -20px;
+	}
+	
+	.wpdm-button-area + .h-captcha {
+		margin-bottom: 1rem;
+	}
+	
+	.w3eden .btn-primary {
+		background-color: var(--color-primary) !important;
+		color: #fff !important;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
+	.h-captcha[data-size="normal"] {
+		width: 303px;
+		height: 78px;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"],
+	.h-captcha[data-size="compact"] {
+		width: 164px;
+		height: 144px;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"],
+	.h-captcha[data-size="invisible"] {
+		display: none;
+	}
+	
+	.h-captcha::before {
+		content: '';
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+		background: url( $div_logo_url ) no-repeat;
+		border: 1px solid transparent;
+		border-radius: 4px;
+	}
+	
+	.h-captcha[data-size="normal"]::before {
+		width: 300px;
+		height: 74px;
+		background-position: 94% 28%;
+	}
+	
+	.h-captcha[data-size="compact"]::before {
+		width: 156px;
+		height: 136px;
+		background-position: 50% 79%;
+	}
+	
+	.h-captcha[data-theme="light"]::before,
+	body.is-light-theme .h-captcha[data-theme="auto"]::before,
+	.h-captcha[data-theme="auto"]::before {
+		background-color: #fafafa;
+		border: 1px solid #e0e0e0;
+	}
+	
+	.h-captcha[data-theme="dark"]::before,
+	body.is-dark-theme .h-captcha[data-theme="auto"]::before,
+	html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
+	html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
+		background-image: url( $div_logo_url_white );
+		background-repeat: no-repeat;
+		background-color: #333;
+		border: 1px solid #f5f5f5;
+	}
+	
+	.h-captcha[data-size="invisible"]::before {
+		display: none;
+	}
+	
+	div.wpforms-container-full .wpforms-form .h-captcha iframe,
+	.h-captcha iframe {
+		position: relative;
+	}
+	
+	span[data-name="hcap-cf7"] .h-captcha {
+		margin-bottom: 0;
+	}
+	
+	span[data-name="hcap-cf7"] ~ input[type="submit"],
+	span[data-name="hcap-cf7"] ~ button[type="submit"] {
+		margin-top: 2rem;
+	}
+	
+	.elementor-field-type-hcaptcha .elementor-field {
+		background: transparent !important;
+	}
+	
+	.elementor-field-type-hcaptcha .h-captcha {
+		margin-bottom: unset;
+	}
+	
+	#wppb-loginform .h-captcha {
+		margin-bottom: 14px;
+	}
+	
+	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
+		border-style: none;
+	}
+CSS;
 
-			#af-wrapper div.editor-row.editor-row-hcaptcha {
-				display: flex;
-				flex-direction: row-reverse;
-			}
+		$expected = "<style>\n$expected\n</style>\n";
 
-			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
-				margin-bottom: 0;
-			}
-
-			.brz-forms2.brz-forms2__item .h-captcha {
-				margin-bottom: 0;
-			}
-
-			form.wpsc-create-ticket .h-captcha {
-				margin: 0 15px 15px 15px;
-			}
-
-			.frm-fluent-form .h-captcha {
-				line-height: 0;
-				margin-bottom: 0;
-			}
-
-			.passster-form .h-captcha {
-				margin-bottom: 5px;
-			}
-
-			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
-			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
-				margin: 0 -20px;
-			}
-
-			.wpdm-button-area + .h-captcha {
-				margin-bottom: 1rem;
-			}
-
-			.w3eden .btn-primary {
-				background-color: var(--color-primary) !important;
-				color: #fff !important;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
-			.h-captcha[data-size="normal"] {
-				width: 303px;
-				height: 78px;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"],
-			.h-captcha[data-size="compact"] {
-				width: 164px;
-				height: 144px;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"],
-			.h-captcha[data-size="invisible"] {
-				display: none;
-			}
-
-			.h-captcha::before {
-				content: \'\';
-				display: block;
-				position: absolute;
-				top: 0;
-				left: 0;
-				background: url(' . $div_logo_url . ') no-repeat;
-				border: 1px solid transparent;
-				border-radius: 4px;
-			}
-
-			.h-captcha[data-size="normal"]::before {
-				width: 300px;
-				height: 74px;
-				background-position: 94% 28%;
-			}
-
-			.h-captcha[data-size="compact"]::before {
-				width: 156px;
-				height: 136px;
-				background-position: 50% 79%;
-			}
-
-			.h-captcha[data-theme="light"]::before,
-			body.is-light-theme .h-captcha[data-theme="auto"]::before,
-			.h-captcha[data-theme="auto"]::before {
-				background-color: #fafafa;
-				border: 1px solid #e0e0e0;
-			}
-
-			.h-captcha[data-theme="dark"]::before,
-			body.is-dark-theme .h-captcha[data-theme="auto"]::before,
-			html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
-			html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
-				background-image: url(' . $div_logo_url_white . ');
-				background-repeat: no-repeat;
-				background-color: #333;
-				border: 1px solid #f5f5f5;
-			}
-
-			.h-captcha[data-size="invisible"]::before {
-				display: none;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha iframe,
-			.h-captcha iframe {
-				position: relative;
-			}
-
-			span[data-name="hcap-cf7"] .h-captcha {
-				margin-bottom: 0;
-			}
-
-			span[data-name="hcap-cf7"] ~ input[type="submit"],
-			span[data-name="hcap-cf7"] ~ button[type="submit"] {
-				margin-top: 2rem;
-			}
-
-			.elementor-field-type-hcaptcha .elementor-field {
-				background: transparent !important;
-			}
-
-			.elementor-field-type-hcaptcha .h-captcha {
-				margin-bottom: unset;
-			}
-
-			#wppb-loginform .h-captcha {
-				margin-bottom: 14px;
-			}
-
-			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
-				border-style: none;
-			}
-		</style>
-		';
-		$subject  = new Main();
+		$subject = new Main();
 
 		ob_start();
 
@@ -598,23 +616,39 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test login_head().
-	 */
+	 *
+	 * @noinspection CssUnusedSymbol*/
 	public function test_login_head() {
-		$expected = '		<style>
-			@media (max-width: 349px) {
-				.h-captcha {
-					display: flex;
-					justify-content: center;
-				}
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
 			}
+		);
 
-			@media (min-width: 350px) {
-				#login {
-					width: 350px;
-				}
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
 			}
-		</style>
-		';
+		);
+
+		$expected = <<<CSS
+	@media (max-width: 349px) {
+		.h-captcha {
+			display: flex;
+			justify-content: center;
+		}
+	}
+	
+	@media (min-width: 350px) {
+		#login {
+			width: 350px;
+		}
+	}
+CSS;
+
+		$expected = "<style>\n$expected\n</style>\n";
 
 		$subject = new Main();
 
@@ -1028,8 +1062,8 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function dp_test_load_modules(): array {
-		// Return modules similar to defined in Main class.
-		// If $module[3] is set, it contains expected value.
+		// Return modules similar to those defined in the Main class.
+		// If $module[3] is set, it contains the expected value.
 		$modules = [
 			'Comment Form'                      => [
 				[ 'wp_status', 'comment' ],
@@ -1474,7 +1508,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Convert Windows path to Linux style to make tests OS-independent.
+	 * Convert a Windows path to Linux style to make tests OS-independent.
 	 *
 	 * @param string|string[] $path Path.
 	 *
