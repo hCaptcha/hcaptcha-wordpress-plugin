@@ -44,6 +44,7 @@ class Protect {
 		add_action( 'wp_ajax_validate_input', [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_validate_input', [ $this, 'verify' ], 9 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -131,5 +132,21 @@ class Protect {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.passster-form .h-captcha {
+		margin-bottom: 5px;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

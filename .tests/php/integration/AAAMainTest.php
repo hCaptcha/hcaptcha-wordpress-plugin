@@ -461,10 +461,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		clear: both;
 	}
 
-	.passster-form .h-captcha {
-		margin-bottom: 5px;
-	}
-
 	.wpdm-button-area + .h-captcha {
 		margin-bottom: 1rem;
 	}
