@@ -31,6 +31,7 @@ abstract class Base {
 		add_filter( static::VERIFY_HOOK, [ $this, 'verify' ] );
 		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -110,5 +111,38 @@ abstract class Base {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		static $style_shown;
+
+		if ( $style_shown ) {
+			return;
+		}
+
+		$style_shown = true;
+
+		$css = <<<CSS
+	#wpforo #wpforo-wrap div .h-captcha {
+		position: relative;
+		display: block;
+		margin-bottom: 2rem;
+		padding: 0;
+		clear: both;
+	}
+
+	#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
+	#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
+		margin: 0 -20px;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

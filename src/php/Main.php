@@ -313,7 +313,6 @@ class Main {
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
 		$css = <<<CSS
-	#wpforo #wpforo-wrap div .h-captcha,
 	.h-captcha {
 		position: relative;
 		display: block;
@@ -350,11 +349,6 @@ class Main {
 	
 	.passster-form .h-captcha {
 		margin-bottom: 5px;
-	}
-	
-	#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
-	#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
-		margin: 0 -20px;
 	}
 	
 	.wpdm-button-area + .h-captcha {

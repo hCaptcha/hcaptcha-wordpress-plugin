@@ -453,7 +453,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		);
 
 		$expected = <<<CSS
-	#wpforo #wpforo-wrap div .h-captcha,
 	.h-captcha {
 		position: relative;
 		display: block;
@@ -490,11 +489,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	
 	.passster-form .h-captcha {
 		margin-bottom: 5px;
-	}
-	
-	#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
-	#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
-		margin: 0 -20px;
 	}
 	
 	.wpdm-button-area + .h-captcha {
