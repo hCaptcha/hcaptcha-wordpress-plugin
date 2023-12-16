@@ -83,7 +83,7 @@ class CreateGroup {
 		if ( null !== $error_message ) {
 			bp_core_add_message( $error_message, 'error' );
 			bp_core_redirect(
-				bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create/step/group-details/'
+				bp_get_root_url() . '/' . bp_get_groups_root_slug() . '/create/step/group-details/'
 			);
 
 			return false;

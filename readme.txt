@@ -534,6 +534,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.6.0 =
+* Added compatibility with BuddyPress 12.0.
+
 = 3.5.0 =
 * Tested with PHP 8.3.
 * Tested with WooCommerce 8.3.
