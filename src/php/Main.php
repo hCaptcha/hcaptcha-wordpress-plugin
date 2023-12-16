@@ -320,60 +320,56 @@ class Main {
 		padding: 0;
 		clear: both;
 	}
-	
-	#hcaptcha-options .h-captcha {
-		margin-bottom: 0;
-	}
-	
+
 	#af-wrapper div.editor-row.editor-row-hcaptcha {
 		display: flex;
 		flex-direction: row-reverse;
 	}
-	
+
 	#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
 		margin-bottom: 0;
 	}
-	
+
 	.brz-forms2.brz-forms2__item .h-captcha {
 		margin-bottom: 0;
 	}
-	
+
 	form.wpsc-create-ticket .h-captcha {
 		margin: 0 15px 15px 15px;
 	}
-	
+
 	.frm-fluent-form .h-captcha {
 		line-height: 0;
 		margin-bottom: 0;
 	}
-	
+
 	.passster-form .h-captcha {
 		margin-bottom: 5px;
 	}
-	
+
 	.wpdm-button-area + .h-captcha {
 		margin-bottom: 1rem;
 	}
-	
+
 	.w3eden .btn-primary {
 		background-color: var(--color-primary) !important;
 		color: #fff !important;
 	}
-	
+
 	.h-captcha[data-size="normal"] {
 		width: 303px;
 		height: 78px;
 	}
-	
+
 	.h-captcha[data-size="compact"] {
 		width: 164px;
 		height: 144px;
 	}
-	
+
 	.h-captcha[data-size="invisible"] {
 		display: none;
 	}
-	
+
 	.h-captcha::before {
 		content: '';
 		display: block;
@@ -384,26 +380,26 @@ class Main {
 		border: 1px solid transparent;
 		border-radius: 4px;
 	}
-	
+
 	.h-captcha[data-size="normal"]::before {
 		width: 300px;
 		height: 74px;
 		background-position: 94% 28%;
 	}
-	
+
 	.h-captcha[data-size="compact"]::before {
 		width: 156px;
 		height: 136px;
 		background-position: 50% 79%;
 	}
-	
+
 	.h-captcha[data-theme="light"]::before,
 	body.is-light-theme .h-captcha[data-theme="auto"]::before,
 	.h-captcha[data-theme="auto"]::before {
 		background-color: #fafafa;
 		border: 1px solid #e0e0e0;
 	}
-	
+
 	.h-captcha[data-theme="dark"]::before,
 	body.is-dark-theme .h-captcha[data-theme="auto"]::before,
 	html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
@@ -413,36 +409,36 @@ class Main {
 		background-color: #333;
 		border: 1px solid #f5f5f5;
 	}
-	
+
 	.h-captcha[data-size="invisible"]::before {
 		display: none;
 	}
-	
+
 	.h-captcha iframe {
 		position: relative;
 	}
-	
+
 	span[data-name="hcap-cf7"] .h-captcha {
 		margin-bottom: 0;
 	}
-	
+
 	span[data-name="hcap-cf7"] ~ input[type="submit"],
 	span[data-name="hcap-cf7"] ~ button[type="submit"] {
 		margin-top: 2rem;
 	}
-	
+
 	.elementor-field-type-hcaptcha .elementor-field {
 		background: transparent !important;
 	}
-	
+
 	.elementor-field-type-hcaptcha .h-captcha {
 		margin-bottom: unset;
 	}
-	
+
 	#wppb-loginform .h-captcha {
 		margin-bottom: 14px;
 	}
-	
+
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 		border-style: none;
 	}
@@ -465,7 +461,7 @@ CSS;
 			justify-content: center;
 		}
 	}
-	
+
 	@media (min-width: 350px) {
 		#login {
 			width: 350px;
