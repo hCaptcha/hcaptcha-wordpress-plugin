@@ -74,7 +74,6 @@ class Form {
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
-
 	}
 
 	/**
