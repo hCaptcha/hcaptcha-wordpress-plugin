@@ -539,6 +539,7 @@ Instructions for popular native integrations are below:
 * Improved inline scripts to optimize page load time.
 * Fixed hCaptcha position in BuddyPress.
 * Fixed hCaptcha position in wpDiscuz.
+* Fixed fatal error in Brizy integration.
 
 = 3.5.0 =
 * Tested with PHP 8.3.
