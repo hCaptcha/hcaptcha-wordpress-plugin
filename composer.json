@@ -30,8 +30,7 @@
     }
   },
   "require": {
-    "ext-json": "*",
-    "matthiasmullie/minify": "^1.3.71"
+    "ext-json": "*"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
@@ -49,7 +48,9 @@
   "autoload": {
     "psr-4": {
       "HCaptcha\\": "src/php",
-      "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
+      "HCaptcha\\Scoper\\": ".php-scoper",
+      "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts",
+      "HCaptcha\\Vendor\\": "lib"
     }
   },
   "autoload-dev": {
@@ -63,12 +64,24 @@
     "bin/update-tests"
   ],
   "scripts": {
-    "pre-update-cmd": "update-tests",
+    "pre-update-cmd2": [
+      "HCaptcha\\Scoper\\Scoper::pre_cmd",
+      "update-tests"
+    ],
+    "post-update-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
+    "post-package-install": "HCaptcha\\Scoper\\Scoper::post_package_install",
+    "post-package-update": "HCaptcha\\Scoper\\Scoper::post_package_update",
+    "post-package-uninstall": "HCaptcha\\Scoper\\Scoper::post_package_uninstall",
     "update-tests": "update-tests",
     "revert-tests": "update-tests revert",
     "phpcs": "vendor/bin/phpcs --colors --standard=phpcs.xml",
-    "acceptance": "codecept run acceptance -c .codeception.yml",
     "integration": "codecept run integration -c .codeception.yml",
     "unit": "codecept run unit -c .codeception.yml"
+  },
+  "extra": {
+    "scope-packages": [
+      "matthiasmullie/minify",
+      "matthiasmullie/path-converter"
+    ]
   }
 }

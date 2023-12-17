@@ -1,5 +1,18 @@
 # A set of files and directories you probably don't want in your WordPress.org distribution
 
+# Directories
+/.codeception
+/.git
+/.github
+/.idea
+/.php-scoper
+/.tests
+/.wordpress-org
+/.yarn
+/bin
+/node_modules
+/src/js
+
 # Files
 /.DS_Store
 /.babelrc
@@ -22,15 +35,3 @@
 /webpack.config.js
 /yarn.lock
 /languages/*.pot
-
-# Directories
-/.codeception
-/.git
-/.github
-/.idea
-/.tests
-/.wordpress-org
-/.yarn
-/bin
-/node_modules
-/src/js
