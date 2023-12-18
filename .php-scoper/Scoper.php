@@ -57,19 +57,19 @@ class Scoper {
 		}
 
 		// When .php-scoper/vendor dir exists and not empty, it means that this script was already executed.
-//		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
-//			return;
-//		}
+		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
+			return;
+		}
 
 		self::check_php_version();
 
 		$vendor_prefixed = getcwd() . '/lib';
 
-		self::delete_all( $vendor_prefixed );
-
-		// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
-		mkdir( $vendor_prefixed );
-		// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
+		if ( ! is_dir( $vendor_prefixed ) ) {
+			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
+			mkdir( $vendor_prefixed );
+			// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
+		}
 
 		$composer_cmd = 'composer --working-dir="' . __DIR__ . '" --no-plugins --no-scripts install';
 

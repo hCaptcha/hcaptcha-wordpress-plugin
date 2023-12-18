@@ -67,12 +67,15 @@
     "bin/update-tests"
   ],
   "scripts": {
-    "pre-update-cmd-blocked": [
+    "pre-cmd": [
       "HCaptcha\\Scoper\\Scoper::pre_cmd",
       "update-tests"
     ],
-    "post-install-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
-    "post-update-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
+    "pre-install-cmd": "@pre-cmd",
+    "pre-update-cmd": "@pre-cmd",
+    "post-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
+    "post-install-cmd": "@post-cmd",
+    "post-update-cmd": "@post-cmd",
     "post-package-install": "HCaptcha\\Scoper\\Scoper::post_package_install",
     "post-package-update": "HCaptcha\\Scoper\\Scoper::post_package_update",
     "pre-package-uninstall": "HCaptcha\\Scoper\\Scoper::pre_package_uninstall",
