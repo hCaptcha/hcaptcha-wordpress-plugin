@@ -31,7 +31,21 @@ $config = [
 	 * To circumvent that, you can define patchers to manipulate the file to your heart contents.
 	 * For more see: https://github.com/humbug/php-scoper#patchers.
 	 */
-	'patchers'  => [],
+	'patchers'  => [
+		function ( string $file_path, string $prefix, string $content ): string {
+			$file_path = str_replace( '\\', '/', $file_path );
+
+			if ( strpos( $file_path, 'matthiasmullie/minify/src/JS.php' ) !== false ) {
+				return str_replace(
+					'\\\MatthiasMullie\\\Minify\\\Minify',
+					'\\' . $prefix . '\MatthiasMullie\Minify\Minify',
+					$content
+				);
+			}
+
+			return $content;
+		},
+	],
 
 	/*
 	 * Whitelists Classes that don't need to be scoped.

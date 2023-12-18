@@ -73,7 +73,6 @@
     "post-update-cmd": "@post-cmd",
     "post-package-install": "HCaptcha\\Scoper\\Scoper::post_package_install",
     "post-package-update": "HCaptcha\\Scoper\\Scoper::post_package_update",
-    "pre-package-uninstall": "HCaptcha\\Scoper\\Scoper::pre_package_uninstall",
     "post-package-uninstall": "HCaptcha\\Scoper\\Scoper::post_package_uninstall",
     "update-tests": "update-tests",
     "revert-tests": "update-tests revert",
