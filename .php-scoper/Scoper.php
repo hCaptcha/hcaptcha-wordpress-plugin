@@ -33,6 +33,13 @@ class Scoper {
 	private static $do_scope = false;
 
 	/**
+	 * Do dump-autoload, as some packages were updated or removed.
+	 *
+	 * @var bool
+	 */
+	private static $do_dump = false;
+
+	/**
 	 * Pre-update composer command.
 	 * It checks the PHP version, clears recursively the `vendor_prefixed` dir and re-creates it.
 	 *
@@ -50,9 +57,9 @@ class Scoper {
 		}
 
 		// When .php-scoper/vendor dir exists and not empty, it means that this script was already executed.
-		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
-			return;
-		}
+//		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
+//			return;
+//		}
 
 		self::check_php_version();
 
@@ -80,11 +87,29 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_cmd( Event $event ) {
-		echo "============================== Post cmd\n";
+		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
-//		xdebug_break();
+		if ( ! self::$do_scope ) {
+			$lock_data       = $event->getComposer()->getLocker()->getLockData();
+			$locked_packages = array_unique(
+				array_map(
+					static function ( $package ) {
+						return $package['name'] ?? '';
+					},
+					array_merge( $lock_data['packages'], $lock_data['packages-dev'] )
+				)
+			);
+
+			$removed_packages = array_diff( $packages, $locked_packages );
+			$vendor_prefixed  = getcwd() . '/lib';
+
+			foreach ( $removed_packages as $removed_package ) {
+				self::delete_package( $vendor_prefixed, $removed_package );
+			}
+		}
 
 		self::scope( $event );
+		self::dump( $event );
 	}
 
 	/**
@@ -105,13 +130,15 @@ class Scoper {
 		 * @var InstallOperation $operation
 		 */
 		$package = $operation->getPackage()->getName();
-//		xdebug_break();
 
 		if ( ! in_array( $package, $packages, true ) ) {
 			return;
 		}
 
-		echo "============================== Post package install cmd - $package\n";
+		$vendor_prefixed  = getcwd() . '/lib';
+
+		// Do not run scoper after installation if we already have package scoped.
+		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( $vendor_prefixed . '/' . $package );
 	}
 
 	/**
@@ -137,7 +164,6 @@ class Scoper {
 			return;
 		}
 
-		echo "============================== Post package update cmd - $package\n";
 		self::$do_scope = true;
 	}
 
@@ -158,25 +184,25 @@ class Scoper {
 		 *
 		 * @var UninstallOperation $operation
 		 */
-//		xdebug_break();
 		$package = $operation->getPackage()->getName();
 
 		if ( ! in_array( $package, $packages, true ) ) {
 			return;
 		}
 
-		echo "============================== Post package uninstall cmd - $package\n";
-		self::$do_scope = true;
+		self::delete_package( getcwd() . '/lib/', $package );
+
+		self::$do_dump = true;
 	}
 
 	/**
 	 * Scope libraries.
 	 *
-	 * @param BaseEvent $event Composer event.
+	 * @param Event $event Composer event.
 	 *
 	 * @return void
 	 */
-	private static function scope( BaseEvent $event ) {
+	private static function scope( Event $event ) {
 		if ( ! self::$do_scope ) {
 			return;
 		}
@@ -187,36 +213,115 @@ class Scoper {
 			return;
 		}
 
-		$vendor          = getcwd() . '/vendor';
-		$vendor_prefixed = getcwd() . '/lib';
-		$slug            = basename( getcwd() );
+		$slug       = basename( getcwd() );
+		$vendor     = getcwd() . '/vendor';
+		$output_dir = getcwd() . '/lib';
 
-		// When vendor_prefixed dir exists and not empty, it means that this script was already executed.
-		if ( self::is_not_empty_dir( $vendor_prefixed ) ) {
-			return;
+		$vendors = array_unique(
+			array_map(
+				static function ( $scope_package ) {
+					return explode( '/', $scope_package )[0];
+				},
+				$scope_packages
+			)
+		);
+
+		/**
+		 * PHP Scoper has a bug.
+		 * Packages to scope have directory structure like vendor-name/package-name.
+		 * When all packages have the same vendor-name,
+		 * PHP Scoper creates only package-name-dirs, without the common vendor-name dir.
+		 * If it is the case, we should add the vendor-name dir to the output dir.
+		 */
+		if ( 1 === count( $vendors ) ) {
+			$output_dir .= '/' . $vendors[0];
 		}
 
 		self::fix_logo_on_windows();
 
-		$scoper_file  = __DIR__ . '/vendor/humbug/php-scoper/bin/php-scoper';
-		$scoper_args  =
+		$scoper_file = __DIR__ . '/vendor/humbug/php-scoper/bin/php-scoper';
+		$scoper_args =
 			'" add-prefix' .
 			' --config=.php-scoper/' . $slug . '-scoper.php' .
-			' --output-dir=' . $vendor_prefixed . '/' .
+			' --output-dir=' . $output_dir .
 			' --force';
-		$scoper_cmd   = 'php "' . $scoper_file . $scoper_args;
-		$composer_cmd = 'composer --no-plugins --no-scripts dump-autoload';
+		$scoper_cmd  = 'php "' . $scoper_file . $scoper_args;
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo shell_exec( $scoper_cmd );
 
 		// Loop through the list of  packages and delete relevant dirs in vendor.
 		foreach ( $scope_packages as $package ) {
-			self::delete_all( $vendor . '/' . $package );
+			self::delete_package( $vendor, $package );
 		}
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo shell_exec( $composer_cmd );
+		self::$do_dump = true;
+	}
+
+	/**
+	 * Dump autoload.
+	 *
+	 * @param BaseEvent $event Composer event.
+	 *
+	 * @return void
+	 */
+	private static function dump( BaseEvent $event ) {
+		if ( ! self::$do_dump ) {
+			return;
+		}
+
+		/**
+		 * Current event.
+		 *
+		 * @var Event $event
+		 */
+		$composer = $event->getComposer();
+
+		$installation_manager = $composer->getInstallationManager();
+		$local_repo           = $composer->getRepositoryManager()->getLocalRepository();
+		$package              = $composer->getPackage();
+		$config               = $composer->getConfig();
+
+		$optimize      = $config->get( 'optimize-autoloader' );
+		$authoritative = $config->get( 'classmap-authoritative' );
+		$apcu          = $config->get( 'apcu-autoloader' );
+
+		if ( $authoritative ) {
+			$event->getIO()->write( '<info>Generating optimized autoload files (authoritative)</info>' );
+		} elseif ( $optimize ) {
+			$event->getIO()->write( '<info>Generating optimized autoload files</info>' );
+		} else {
+			$event->getIO()->write( '<info>Generating autoload files</info>' );
+		}
+
+		$generator = $composer->getAutoloadGenerator();
+
+		$generator->setClassMapAuthoritative( $authoritative );
+		$generator->setRunScripts( false );
+		$generator->setApcu( $apcu );
+
+		$class_map = $generator->dump(
+			$config,
+			$local_repo,
+			$package,
+			$installation_manager,
+			'composer',
+			$optimize,
+			null,
+			$composer->getLocker()
+		);
+
+		$number_of_classes = count( $class_map );
+
+		if ( $authoritative ) {
+			$event->getIO()
+				->write( '<info>Generated optimized autoload files (authoritative) containing ' . $number_of_classes . ' classes</info>' );
+		} elseif ( $optimize ) {
+			$event->getIO()
+				->write( '<info>Generated optimized autoload files containing ' . $number_of_classes . ' classes</info>' );
+		} else {
+			$event->getIO()->write( '<info>Generated autoload files</info>' );
+		}
 	}
 
 	/**
@@ -225,30 +330,23 @@ class Scoper {
 	 * @return Finder[]
 	 */
 	public static function get_finders(): array {
-		/**
-		 * PHP Scoper has a bug.
-		 * When only one Finder is used, it creates in the `vendor_prefixed` only sub-dirs,
-		 * without the main package dir like `guzzlehttp`.
-		 * So, we need to scope two libs at least.
-		 * We should add also all dependent packages.
-		 */
-
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$composer_json = json_decode( file_get_contents( getcwd() . '/composer.json' ), true );
 		$packages      = $composer_json['extra']['scope-packages'] ?? [];
-		$vendor_dir    = getcwd() . '/vendor/';
+		$vendor_dir    = getcwd() . '/vendor';
 		$filenames     = [ '*.php', 'composer.json', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
 		$finders       = [];
 
 		foreach ( $packages as $package ) {
-			if ( ! is_dir( $vendor_dir . $package ) ) {
-				// Some packages may not exist in the lite version, skip them.
+			$package_dir = $vendor_dir . '/' . $package;
+
+			if ( ! is_dir( $package_dir ) ) {
 				continue;
 			}
 
 			$finders[] = Finder::create()
 				->files()
-				->in( $vendor_dir . $package )
+				->in( $package_dir )
 				->name( $filenames );
 		}
 
@@ -299,6 +397,26 @@ class Scoper {
 	}
 
 	/**
+	 * Delete package.
+	 *
+	 * @param string $dir     Home package dir like /vendor.
+	 * @param string $package Package name like vendor/package.
+	 *
+	 * @return void
+	 */
+	private static function delete_package( string $dir, string $package ) {
+		self::delete_all( $dir . '/' . $package );
+
+		$vendor_name     = explode( '/', $package )[0];
+		$vendor_name_dir = $dir . '/' . $vendor_name;
+
+		if ( self::is_empty_dir( $vendor_name_dir ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+			rmdir( $vendor_name_dir );
+		}
+	}
+
+	/**
 	 * Delete all in the directory recursively.
 	 *
 	 * @param string $str Directory name.
@@ -324,6 +442,20 @@ class Scoper {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Detect if filename is dir and is empty.
+	 *
+	 * @param string $filename Filename.
+	 *
+	 * @return bool
+	 */
+	private static function is_empty_dir( string $filename ): bool {
+		return (
+			is_dir( $filename ) &&
+			empty( glob( rtrim( $filename, '/' ) . '/{,.}[!.,!..]*', GLOB_NOSORT | GLOB_BRACE ) )
+		);
 	}
 
 	/**

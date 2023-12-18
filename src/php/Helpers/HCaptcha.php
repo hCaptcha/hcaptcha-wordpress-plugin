@@ -7,9 +7,8 @@
 
 namespace HCaptcha\Helpers;
 
-use Exception;
-use MatthiasMullie\Minify\CSS;
-use MatthiasMullie\Minify\JS;
+use HCaptcha\Vendor\MatthiasMullie\Minify\CSS;
+use HCaptcha\Vendor\MatthiasMullie\Minify\JS;
 use WP_Error;
 
 /**

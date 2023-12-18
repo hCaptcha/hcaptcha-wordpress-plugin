@@ -30,7 +30,8 @@
     }
   },
   "require": {
-    "ext-json": "*"
+    "ext-json": "*",
+    "matthiasmullie/minify": "^1.3"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
@@ -49,9 +50,11 @@
     "psr-4": {
       "HCaptcha\\": "src/php",
       "HCaptcha\\Scoper\\": ".php-scoper",
-      "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts",
-      "HCaptcha\\Vendor\\": "lib"
-    }
+      "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
+    },
+    "classmap": [
+      "lib"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
@@ -64,13 +67,15 @@
     "bin/update-tests"
   ],
   "scripts": {
-    "pre-update-cmd2": [
+    "pre-update-cmd-blocked": [
       "HCaptcha\\Scoper\\Scoper::pre_cmd",
       "update-tests"
     ],
+    "post-install-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
     "post-update-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
     "post-package-install": "HCaptcha\\Scoper\\Scoper::post_package_install",
     "post-package-update": "HCaptcha\\Scoper\\Scoper::post_package_update",
+    "pre-package-uninstall": "HCaptcha\\Scoper\\Scoper::pre_package_uninstall",
     "post-package-uninstall": "HCaptcha\\Scoper\\Scoper::post_package_uninstall",
     "update-tests": "update-tests",
     "revert-tests": "update-tests revert",
