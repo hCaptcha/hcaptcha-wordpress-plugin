@@ -67,10 +67,7 @@
     "bin/update-tests"
   ],
   "scripts": {
-    "pre-cmd": [
-      "HCaptcha\\Scoper\\Scoper::pre_cmd",
-      "update-tests"
-    ],
+    "pre-cmd": "update-tests",
     "pre-install-cmd": "@pre-cmd",
     "pre-update-cmd": "@pre-cmd",
     "post-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",

@@ -40,45 +40,6 @@ class Scoper {
 	private static $do_dump = false;
 
 	/**
-	 * Pre-update composer command.
-	 * It checks the PHP version, clears recursively the `vendor_prefixed` dir and re-creates it.
-	 *
-	 * @param Event $event Composer event.
-	 *
-	 * @return void
-	 * @noinspection MkdirRaceConditionInspection
-	 * @noinspection PhpUnused
-	 */
-	public static function pre_cmd( Event $event ) {
-		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-
-		if ( ! $packages ) {
-			return;
-		}
-
-		// When .php-scoper/vendor dir exists and not empty, it means that this script was already executed.
-		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
-			return;
-		}
-
-		self::check_php_version();
-
-		$vendor_prefixed = getcwd() . '/lib';
-
-		if ( ! is_dir( $vendor_prefixed ) ) {
-			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
-			mkdir( $vendor_prefixed );
-			// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
-		}
-
-		$composer_cmd = 'composer --working-dir="' . __DIR__ . '" --no-plugins --no-scripts install';
-
-		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo shell_exec( $composer_cmd );
-		// phpcs:enable WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
-	}
-
-	/**
 	 * Post-update composer command.
 	 *
 	 * @param Event $event Composer event.
@@ -89,7 +50,10 @@ class Scoper {
 	public static function post_cmd( Event $event ) {
 		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
-		if ( ! self::$do_scope ) {
+		if ( self::$do_scope ) {
+			self::prepare_scope( $event );
+			self::scope( $event );
+		} else {
 			$lock_data       = $event->getComposer()->getLocker()->getLockData();
 			$locked_packages = array_unique(
 				array_map(
@@ -108,8 +72,9 @@ class Scoper {
 			}
 		}
 
-		self::scope( $event );
-		self::dump( $event );
+		if ( self::$do_dump ) {
+			self::dump( $event );
+		}
 	}
 
 	/**
@@ -196,6 +161,45 @@ class Scoper {
 	}
 
 	/**
+	 * Prepare scoper to work.
+	 * It checks the PHP version, creates the `vendor_prefixed` dir and runs composer for scoper package.
+	 *
+	 * @param Event $event Composer event.
+	 *
+	 * @return void
+	 * @noinspection MkdirRaceConditionInspection
+	 * @noinspection PhpUnused
+	 */
+	private static function prepare_scope( Event $event ) {
+		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+
+		if ( ! $packages ) {
+			return;
+		}
+
+		// Bail if .php-scoper/vendor dir already exists and not empty.
+		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
+			return;
+		}
+
+		self::check_php_version();
+
+		$vendor_prefixed = getcwd() . '/lib';
+
+		if ( ! is_dir( $vendor_prefixed ) ) {
+			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
+			mkdir( $vendor_prefixed );
+			// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
+		}
+
+		$composer_cmd = 'composer --working-dir="' . __DIR__ . '" --no-plugins --no-scripts --no-dev install';
+
+		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo shell_exec( $composer_cmd );
+		// phpcs:enable WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
 	 * Scope libraries.
 	 *
 	 * @param Event $event Composer event.
@@ -203,10 +207,6 @@ class Scoper {
 	 * @return void
 	 */
 	private static function scope( Event $event ) {
-		if ( ! self::$do_scope ) {
-			return;
-		}
-
 		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
 		if ( ! $scope_packages ) {
@@ -266,10 +266,6 @@ class Scoper {
 	 * @return void
 	 */
 	private static function dump( BaseEvent $event ) {
-		if ( ! self::$do_dump ) {
-			return;
-		}
-
 		/**
 		 * Current event.
 		 *
