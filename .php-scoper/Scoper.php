@@ -100,7 +100,7 @@ class Scoper {
 			return;
 		}
 
-		$vendor_prefixed  = getcwd() . '/lib';
+		$vendor_prefixed = getcwd() . '/lib';
 
 		// Do not run scoper after installation if we already have package scoped.
 		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( $vendor_prefixed . '/' . $package );
