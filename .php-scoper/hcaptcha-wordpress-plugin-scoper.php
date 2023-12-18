@@ -11,6 +11,10 @@ use HCaptcha\Scoper\Scoper;
 
 require_once __DIR__ . '/Scoper.php';
 
+$finders = Scoper::get_finders();
+
+$finders[0]->name( [ 'keywords*.txt', 'operators*.txt' ] );
+
 $config = [
 	'prefix'    => 'HCaptcha\Vendor',
 
@@ -21,7 +25,7 @@ $config = [
 	 * in the following configuration key.
 	 * For more see: https://github.com/humbug/php-scoper#finders-and-paths.
 	 */
-	'finders'   => Scoper::get_finders(),
+	'finders'   => $finders,
 
 	/**
 	 * When scoping PHP files, there will be scenarios where some of the code being scoped indirectly
