@@ -16,13 +16,29 @@ $finders = Scoper::get_finders();
 $finders[0]->name( [ 'keywords*.txt', 'operators*.txt' ] );
 
 $config = [
-	'prefix'    => 'HCaptcha\Vendor',
-	'finders'   => $finders,
-	'patchers'  => [
+	'prefix'        => 'HCaptcha\Vendor',
+	'finders'       => $finders,
+	'patchers'      => [
 		static function ( string $file_path, string $prefix, string $content ): string {
 			$file_path = str_replace( '\\', '/', $file_path );
 
-			if ( strpos( $file_path, 'matthiasmullie/minify/src/JS.php' ) !== false ) {
+			if ( false !== strpos( $file_path, 'matthiasmullie/minify/src/CSS.php' ) ) {
+				return str_replace(
+					[
+						"'HCaptcha\\\\Vendor\\\\1\\\\2\\\\3'",
+						"'HCaptcha\\\\Vendor\\\\1\\\\2'",
+						"'HCaptcha\\\\Vendor\\\\1'",
+					],
+					[
+						"'\\\\1\\\\2\\\\3'",
+						"'\\\\1\\\\2'",
+						"'0\\\\1'",
+					],
+					$content
+				);
+			}
+
+			if ( false !== strpos( $file_path, 'matthiasmullie/minify/src/JS.php' ) ) {
 				return str_replace(
 					'\\\MatthiasMullie\\\Minify\\\Minify',
 					'\\' . $prefix . '\MatthiasMullie\Minify\Minify',
@@ -33,7 +49,6 @@ $config = [
 			return $content;
 		},
 	],
-	'whitelist' => [],
 ];
 
 return $config;

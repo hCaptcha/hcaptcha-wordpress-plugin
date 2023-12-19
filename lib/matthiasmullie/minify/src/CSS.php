@@ -512,15 +512,15 @@ class CSS extends Minify
         // @see https://github.com/matthiasmullie/minify/issues/60
         $content = \preg_replace('/' . $before . '(-?0*(\\.0+)?)(?<=0)px' . $after . '/', '\\1', $content);
         // strip 0-digits (.0 -> 0)
-        $content = \preg_replace('/' . $before . '\\.0+' . $units . '?' . $after . '/', 'HCaptcha\\Vendor\\1', $content);
+        $content = \preg_replace('/' . $before . '\\.0+' . $units . '?' . $after . '/', '0\\1', $content);
         // strip trailing 0: 50.10 -> 50.1, 50.10px -> 50.1px
-        $content = \preg_replace('/' . $before . '(-?[0-9]+\\.[0-9]+)0+' . $units . '?' . $after . '/', 'HCaptcha\\Vendor\\1\\2', $content);
+        $content = \preg_replace('/' . $before . '(-?[0-9]+\\.[0-9]+)0+' . $units . '?' . $after . '/', '\\1\\2', $content);
         // strip trailing 0: 50.00 -> 50, 50.00px -> 50px
-        $content = \preg_replace('/' . $before . '(-?[0-9]+)\\.0+' . $units . '?' . $after . '/', 'HCaptcha\\Vendor\\1\\2', $content);
+        $content = \preg_replace('/' . $before . '(-?[0-9]+)\\.0+' . $units . '?' . $after . '/', '\\1\\2', $content);
         // strip leading 0: 0.1 -> .1, 01.1 -> 1.1
-        $content = \preg_replace('/' . $before . '(-?)0+([0-9]*\\.[0-9]+)' . $units . '?' . $after . '/', 'HCaptcha\\Vendor\\1\\2\\3', $content);
+        $content = \preg_replace('/' . $before . '(-?)0+([0-9]*\\.[0-9]+)' . $units . '?' . $after . '/', '\\1\\2\\3', $content);
         // strip negative zeroes (-0 -> 0) & truncate zeroes (00 -> 0)
-        $content = \preg_replace('/' . $before . '-?0+' . $units . '?' . $after . '/', 'HCaptcha\\Vendor\\1', $content);
+        $content = \preg_replace('/' . $before . '-?0+' . $units . '?' . $after . '/', '0\\1', $content);
         // IE doesn't seem to understand a unitless flex-basis value (correct -
         // it goes against the spec), so let's add it in again (make it `%`,
         // which is only 1 char: 0%, 0px, 0 anything, it's all just the same)
