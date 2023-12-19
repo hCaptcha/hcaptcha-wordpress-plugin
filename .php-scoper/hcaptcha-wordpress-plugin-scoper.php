@@ -16,9 +16,9 @@ $finders = Scoper::get_finders();
 $finders[0]->name( [ 'keywords*.txt', 'operators*.txt' ] );
 
 $config = [
-	'prefix'        => 'HCaptcha\Vendor',
-	'finders'       => $finders,
-	'patchers'      => [
+	'prefix'   => 'HCaptcha\Vendor',
+	'finders'  => $finders,
+	'patchers' => [
 		static function ( string $file_path, string $prefix, string $content ): string {
 			$file_path = str_replace( '\\', '/', $file_path );
 
