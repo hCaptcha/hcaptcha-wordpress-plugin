@@ -330,7 +330,7 @@ class Scoper {
 		$composer_json = json_decode( file_get_contents( getcwd() . '/composer.json' ), true );
 		$packages      = $composer_json['extra']['scope-packages'] ?? [];
 		$vendor_dir    = getcwd() . '/vendor';
-		$filenames     = [ '*.php', 'composer.json', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
+		$filenames     = [ '*.php', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
 		$finders       = [];
 
 		foreach ( $packages as $package ) {
@@ -343,7 +343,8 @@ class Scoper {
 			$finders[] = Finder::create()
 				->files()
 				->in( $package_dir )
-				->name( $filenames );
+				->name( $filenames )
+				->notName( '/.*\\.dist|Makefile|composer\\.json|composer\\.lock/' );
 		}
 
 		return $finders;
