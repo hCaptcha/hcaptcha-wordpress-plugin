@@ -186,8 +186,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject = new Main();
 		$subject->init_hooks();
 
-		self::assertInstanceOf( Notifications::class, $subject->notifications() );
-
 		self::assertSame(
 			- PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )

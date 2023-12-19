@@ -13,7 +13,6 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
-use HCaptcha\Admin\Notifications;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
@@ -84,13 +83,6 @@ class Main {
 	private $settings;
 
 	/**
-	 * Notifications class instance.
-	 *
-	 * @var Notifications
-	 */
-	private $notifications;
-
-	/**
 	 * Instance of AutoVerify.
 	 *
 	 * @var AutoVerify
@@ -137,9 +129,6 @@ class Main {
 			]
 		);
 
-		$this->notifications = new Notifications();
-		$this->notifications->init();
-
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
@@ -170,15 +159,6 @@ class Main {
 	 */
 	public function get( string $class_name ) {
 		return $this->loaded_classes[ $class_name ] ?? null;
-	}
-
-	/**
-	 * Get Notifications instance.
-	 *
-	 * @return Notifications
-	 */
-	public function notifications(): Notifications {
-		return $this->notifications;
 	}
 
 	/**

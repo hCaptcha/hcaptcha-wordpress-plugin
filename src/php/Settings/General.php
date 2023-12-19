@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Admin\Notifications;
 use HCaptcha\Helpers\HCaptcha;
 use KAGG\Settings\Abstracts\SettingsBase;
 
@@ -88,6 +89,13 @@ class General extends PluginSettingsBase {
 	const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
 	/**
+	 * Notifications class instance.
+	 *
+	 * @var Notifications
+	 */
+	protected $notifications;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -111,12 +119,25 @@ class General extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		$hcaptcha = hcaptcha();
+		$hcaptcha  = hcaptcha();
+		$page_hook = $this->screen_id();
+
+		add_action( "load-{$page_hook}", [ $this, 'init_notifications' ] );
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
+	}
+
+	/**
+	 * Init notifications.
+	 *
+	 * @return void
+	 */
+	public function init_notifications() {
+		$this->notifications = new Notifications();
+		$this->notifications->init();
 	}
 
 	/**
@@ -444,7 +465,7 @@ class General extends PluginSettingsBase {
 				</h2>
 				<div id="hcaptcha-message"></div>
 				<?php
-				hcaptcha()->notifications()->show();
+				$this->notifications->show();
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			case self::SECTION_APPEARANCE:
@@ -648,7 +669,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_check_config_error( $error ) {
+	private function send_check_config_error( string $error ) {
 		wp_send_json_error(
 			esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' ) . $error
 		);
