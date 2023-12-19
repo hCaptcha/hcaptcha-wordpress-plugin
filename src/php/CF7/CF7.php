@@ -13,6 +13,7 @@ namespace HCaptcha\CF7;
 use HCaptcha\Helpers\HCaptcha;
 use WPCF7_FormTag;
 use WPCF7_Submission;
+use WPCF7_TagGenerator;
 use WPCF7_Validation;
 
 /**
@@ -39,6 +40,7 @@ class CF7 {
 		add_filter( 'wpcf7_validate', [ $this, 'verify_hcaptcha' ], 20, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
 	}
 
 	/**
@@ -139,10 +141,10 @@ class CF7 {
 				ob_start();
 				?>
 				<input
-					type="hidden"
-					class="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
-					name="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
-					value="<?php echo esc_attr( $widget_id ); ?>">
+						type="hidden"
+						class="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
+						name="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
+						value="<?php echo esc_attr( $widget_id ); ?>">
 				<?php
 
 				return ob_get_clean();
@@ -260,6 +262,83 @@ class CF7 {
 CSS;
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Add tag generator to admin editor.
+	 *
+	 * @return void
+	 */
+	public function add_tag_generator_hcaptcha() {
+		$tag_generator = WPCF7_TagGenerator::get_instance();
+
+		$tag_generator->add(
+			'cf7-hcaptcha',
+			__( 'hCaptcha', 'hcaptcha-for-forms-and-more' ),
+			[ $this, 'tag_generator_hcaptcha' ]
+		);
+	}
+
+	/**
+	 * Show tag generator.
+	 *
+	 * @param mixed        $contact_form Contact form.
+	 * @param array|string $args         Arguments.
+	 *
+	 * @return void
+	 */
+	public function tag_generator_hcaptcha( $contact_form, $args = '' ) {
+		$args        = wp_parse_args( $args );
+		$type        = $args['id'];
+		$description = __( 'Generate a form-tag for a hCaptcha field.', 'hcaptcha-for-forms-and-more' );
+
+		?>
+		<div class="control-box">
+			<fieldset>
+				<legend><?php echo esc_html( $description ); ?></legend>
+
+				<table class="form-table">
+					<tbody>
+
+					<tr>
+						<th scope="row">
+							<label for="<?php echo esc_attr( $args['content'] . '-id' ); ?>">
+								<?php echo esc_html( __( 'Id attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="text" name="id" class="idvalue oneline option"
+								   id="<?php echo esc_attr( $args['content'] . '-id' ); ?>"/>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">
+							<label for="<?php echo esc_attr( $args['content'] . '-class' ); ?>">
+								<?php echo esc_html( __( 'Class attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="text" name="class" class="classvalue oneline option"
+								   id="<?php echo esc_attr( $args['content'] . '-class' ); ?>"/>
+						</td>
+					</tr>
+
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+
+		<div class="insert-box">
+			<input type="text" name="<?php echo $type; ?>" class="tag code" readonly="readonly"
+				   onfocus="this.select()"/>
+
+			<div class="submitbox">
+				<input type="button" class="button button-primary insert-tag"
+					   value="<?php echo esc_attr( __( 'Insert Tag', 'hcaptcha-for-forms-and-more' ) ); ?>"/>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
