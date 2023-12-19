@@ -125,6 +125,16 @@ class CF7 {
 			]
 		);
 
+		foreach ( $args as $arg ) {
+			if ( is_array( $arg ) ) {
+				continue;
+			}
+
+			if ( preg_match( '/(id|class):([\w-]+)/', $arg, $m ) ) {
+				$args[ 'cf7-' . $m[1] ] = $m[2];
+			}
+		}
+
 		if ( $args['id'] ) {
 			$id            = (array) $args['id'];
 			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
@@ -156,10 +166,13 @@ class CF7 {
 
 		hcaptcha()->form_shown = true;
 
+		$id    = $args['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
+		$class = $args['cf7-class'] ?? '';
+
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
-			'<span id="' . uniqid( 'hcap_cf7-', true ) . '"' .
-			' class="wpcf7-form-control h-captcha"' .
+			'<span id="' . $id . '"' .
+			' class="wpcf7-form-control h-captcha ' . $class . '"' .
 			' data-sitekey="' . esc_attr( $hcaptcha_site_key ) . '"' .
 			' data-theme="' . esc_attr( $hcaptcha_theme ) . '"' .
 			' data-size="' . esc_attr( $args['size'] ) . '"' .
@@ -286,6 +299,7 @@ CSS;
 	 * @param array|string $args         Arguments.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function tag_generator_hcaptcha( $contact_form, $args = '' ) {
 		$args        = wp_parse_args( $args );
@@ -307,8 +321,9 @@ CSS;
 							</label>
 						</th>
 						<td>
-							<input type="text" name="id" class="idvalue oneline option"
-								   id="<?php echo esc_attr( $args['content'] . '-id' ); ?>"/>
+							<input
+									type="text" name="id" class="idvalue oneline option"
+									id="<?php echo esc_attr( $args['content'] . '-id' ); ?>"/>
 						</td>
 					</tr>
 
@@ -319,8 +334,9 @@ CSS;
 							</label>
 						</th>
 						<td>
-							<input type="text" name="class" class="classvalue oneline option"
-								   id="<?php echo esc_attr( $args['content'] . '-class' ); ?>"/>
+							<input
+									type="text" name="class" class="classvalue oneline option"
+									id="<?php echo esc_attr( $args['content'] . '-class' ); ?>"/>
 						</td>
 					</tr>
 
@@ -330,12 +346,16 @@ CSS;
 		</div>
 
 		<div class="insert-box">
-			<input type="text" name="<?php echo $type; ?>" class="tag code" readonly="readonly"
-				   onfocus="this.select()"/>
+			<label>
+				<input
+						type="text" name="<?php echo esc_attr( $type ); ?>" class="tag code" readonly="readonly"
+						onfocus="this.select()"/>
+			</label>
 
 			<div class="submitbox">
-				<input type="button" class="button button-primary insert-tag"
-					   value="<?php echo esc_attr( __( 'Insert Tag', 'hcaptcha-for-forms-and-more' ) ); ?>"/>
+				<input
+						type="button" class="button button-primary insert-tag"
+						value="<?php echo esc_attr( __( 'Insert Tag', 'hcaptcha-for-forms-and-more' ) ); ?>"/>
 			</div>
 		</div>
 		<?php
@@ -361,6 +381,8 @@ CSS;
 		}
 
 		$cf7_hcap_sc = $matches[0];
+		$cf7_hcap_sc = preg_replace( '/\s*\[|]\s*/', '', $cf7_hcap_sc );
+		$cf7_hcap_sc = preg_replace( '/(id|class)\s*:\s*([\w-]+)/', '$1=$2', $cf7_hcap_sc );
 		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );
@@ -378,7 +400,7 @@ CSS;
 			}
 		);
 
-		$updated_cf_hcap_sc = '[' . self::SHORTCODE . ' ' . implode( ' ', $atts ) . ']';
+		$updated_cf_hcap_sc = self::SHORTCODE . ' ' . implode( ' ', $atts );
 
 		return str_replace( $cf7_hcap_sc, $updated_cf_hcap_sc, $output );
 	}
