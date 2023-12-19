@@ -182,8 +182,6 @@ class Scoper {
 			return;
 		}
 
-		self::check_php_version();
-
 		$vendor_prefixed = getcwd() . '/lib';
 
 		if ( ! is_dir( $vendor_prefixed ) ) {
@@ -360,18 +358,6 @@ class Scoper {
 	private static function show_message( string $message ) {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo "\033[31m$message\033[0m" . PHP_EOL;
-	}
-
-	/**
-	 * Check PHP version.
-	 *
-	 * @return void
-	 */
-	private static function check_php_version() {
-		if ( PHP_VERSION_ID < 70400 ) {
-			self::show_message( 'Your PHP version is not correct(' . PHP_VERSION . ')! Please use PHP 7.4 for executing this composer script.' );
-			exit( 1 );
-		}
 	}
 
 	/**
