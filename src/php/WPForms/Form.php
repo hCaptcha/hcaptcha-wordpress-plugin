@@ -37,7 +37,6 @@ class Form {
 	 * @return void
 	 */
 	private function init_hooks() {
-		add_action( 'wpforms_display_submit_before', [ $this, 'add_captcha' ] );
 		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 		add_filter( 'wpforms_setting', [ $this, 'wpforms_setting' ], 10, 4 );
@@ -45,29 +44,8 @@ class Form {
 		add_filter( 'wpforms_settings_fields', [ $this, 'wpforms_settings_fields' ], 10, 2 );
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'hcap_print_hcaptcha_scripts' ] );
 		add_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $this, 'wpforms_admin_settings_captcha_enqueues_disable' ] );
-	}
-
-	/**
-	 * Action that fires immediately before the submit button element is displayed.
-	 *
-	 * @link         https://wpforms.com/developers/wpforms_display_submit_before/
-	 *
-	 * @param array|mixed $form_data Form data and settings.
-	 *
-	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_captcha( $form_data ) {
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => (int) $form_data['id'],
-			],
-		];
-
-		HCaptcha::form_display( $args );
+		add_action( 'wpforms_wp_footer', [ $this, 'block_assets_recaptcha' ], 0 );
+		add_action( 'wpforms_frontend_output', [ $this, 'wpforms_frontend_output' ], 19, 5 );
 	}
 
 	/**
@@ -105,7 +83,7 @@ class Form {
 	div.wpforms-container-full .wpforms-form .h-captcha {
 		position: relative;
 		display: block;
-		margin-bottom: 2rem;
+		margin-bottom: 0;
 		padding: 0;
 		clear: both;
 	}
@@ -296,6 +274,127 @@ HTML;
 	}
 
 	/**
+	 * Block recaptcha assets on frontend.
+	 *
+	 * @return void
+	 */
+	public function block_assets_recaptcha() {
+		if ( ! $this->is_wpforms_provider_hcaptcha() ) {
+			return;
+		}
+
+		$captcha = wpforms()->get( 'captcha' );
+
+		if ( ! $captcha ) {
+			return;
+		}
+
+		remove_action( 'wpforms_wp_footer', [ $captcha, 'assets_recaptcha' ] );
+	}
+
+	/**
+	 * Output embedded hCaptcha.
+	 *
+	 * @param array|mixed $form_data   Form data and settings.
+	 * @param null        $deprecated  Deprecated in v1.3.7, previously was $form object.
+	 * @param bool        $title       Whether to display form title.
+	 * @param bool        $description Whether to display form description.
+	 * @param array       $errors      List of all errors filled in WPForms_Process::process().
+	 *
+	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function wpforms_frontend_output( $form_data, $deprecated, bool $title, bool $description, array $errors ) {
+		$form_data = (array) $form_data;
+
+		$form_captcha_settings = $this->get_form_captcha_settings( $form_data );
+		$our_wpforms_status    = hcaptcha()->settings()->is_on( 'wpforms_status' );
+
+		if ( ! ( $form_captcha_settings || $our_wpforms_status ) ) {
+			return;
+		}
+
+		$id = (int) $form_data['id'];
+
+		if ( $form_captcha_settings ) {
+			$captcha = wpforms()->get( 'captcha' );
+
+			if ( ! $captcha ) {
+				return;
+			}
+
+			remove_action( 'wpforms_frontend_output', [ $captcha, 'recaptcha' ], 20 );
+
+			$this->show_hcaptcha( $id );
+
+			return;
+		}
+
+		if ( $our_wpforms_status ) {
+			$this->show_hcaptcha( $id );
+		}
+	}
+
+	/**
+	 * Show hCaptcha.
+	 *
+	 * @param int $id Form id.
+	 *
+	 * @return void
+	 */
+	private function show_hcaptcha( int $id ) {
+		$frontend_obj = wpforms()->get( 'frontend' );
+
+		if ( ! $frontend_obj ) {
+			return;
+		}
+
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $id,
+			],
+		];
+
+		printf(
+			'<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" %s>',
+			$frontend_obj->pages ? 'style="display:none;"' : ''
+		);
+
+		HCaptcha::form_display( $args );
+
+		echo '</div>';
+	}
+
+	/**
+	 * Get captcha settings for form output.
+	 * Return null if captcha is disabled.
+	 *
+	 * @param array $form_data Form data and settings.
+	 *
+	 * @return array|null
+	 */
+	private function get_form_captcha_settings( array $form_data ) {
+		$captcha_settings = wpforms_get_captcha_settings();
+		$provider         = $captcha_settings['provider'] ?? '';
+
+		if ( 'hcaptcha' !== $provider ) {
+			return null;
+		}
+
+		// Check that the CAPTCHA is configured for the specific form.
+		$recaptcha = $form_data['settings']['recaptcha'] ?? '';
+
+		if ( '1' !== $recaptcha ) {
+			return null;
+		}
+
+		return $captcha_settings;
+	}
+
+	/**
 	 * Check if the current page is wpforms captcha settings page and the current provider is hCaptcha.
 	 *
 	 * @return bool
@@ -312,8 +411,17 @@ HTML;
 			return false;
 		}
 
-		$settings = wpforms_get_captcha_settings();
-		$provider = $settings['provider'] ?? '';
+		return $this->is_wpforms_provider_hcaptcha();
+	}
+
+	/**
+	 * Check if the current captcha provider is hCaptcha.
+	 *
+	 * @return bool
+	 */
+	private function is_wpforms_provider_hcaptcha(): bool {
+		$captcha_settings = wpforms_get_captcha_settings();
+		$provider         = $captcha_settings['provider'] ?? '';
 
 		return 'hcaptcha' === $provider;
 	}
