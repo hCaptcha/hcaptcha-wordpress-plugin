@@ -43,6 +43,8 @@ class Form {
 		add_filter( 'wpforms_setting', [ $this, 'wpforms_setting' ], 10, 4 );
 		add_filter( 'wpforms_update_settings', [ $this, 'wpforms_update_settings' ] );
 		add_filter( 'wpforms_settings_fields', [ $this, 'wpforms_settings_fields' ], 10, 2 );
+		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'hcap_print_hcaptcha_scripts' ] );
+		add_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $this, 'wpforms_admin_settings_captcha_enqueues_disable' ] );
 	}
 
 	/**
@@ -260,6 +262,59 @@ HTML;
 			$fields['hcaptcha-heading'] .= $notice_content;
 		}
 
+		if ( isset( $fields['captcha-preview'] ) ) {
+			$fields['captcha-preview'] = preg_replace(
+				'#<div class="wpforms-captcha wpforms-captcha-hcaptcha".+?</div>#',
+				HCaptcha::form(),
+				$fields['captcha-preview']
+			);
+		}
+
 		return $fields;
+	}
+
+	/**
+	 * Filter whether to print hCaptcha scripts.
+	 *
+	 * @param bool|mixed $status Status.
+	 *
+	 * @return bool
+	 */
+	public function hcap_print_hcaptcha_scripts( $status ): bool {
+		return $this->is_wpforms_hcaptcha_settings_page() || $status;
+	}
+
+	/**
+	 * Disable enqueuing wpforms hCaptcha.
+	 *
+	 * @param bool|mixed $status Status.
+	 *
+	 * @return bool
+	 */
+	public function wpforms_admin_settings_captcha_enqueues_disable( $status ): bool {
+		return $this->is_wpforms_hcaptcha_settings_page() || $status;
+	}
+
+	/**
+	 * Check if the current page is wpforms captcha settings page and the current provider is hCaptcha.
+	 *
+	 * @return bool
+	 */
+	private function is_wpforms_hcaptcha_settings_page(): bool {
+		if ( ! function_exists( 'get_current_screen' ) || ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+		$id     = $screen->id ?? '';
+
+		if ( 'wpforms_page_wpforms-settings' !== $id ) {
+			return false;
+		}
+
+		$settings = wpforms_get_captcha_settings();
+		$provider = $settings['provider'] ?? '';
+
+		return 'hcaptcha' === $provider;
 	}
 }
