@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      8.2
+ * WC tested up to:      8.4
  */
 
 // phpcs:ignore Generic.Commenting.DocComment.MissingShort

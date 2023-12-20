@@ -535,6 +535,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.6.0 =
+* Tested with WooCommerce 8.4.
 * Added compatibility with BuddyPress 12.0.
 * Added hCaptcha tag to Contact Form 7 admin editor.
 * Improved inline scripts to optimize page load time.
