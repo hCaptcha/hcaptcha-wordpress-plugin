@@ -8,6 +8,7 @@
 namespace HCaptcha\WC;
 
 use HCaptcha\Abstracts\LostPasswordBase;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class LostPassword
@@ -39,4 +40,29 @@ class LostPassword extends LostPasswordBase {
 	 * $_POST value to check.
 	 */
 	const POST_VALUE = 'true';
+
+	/**
+	 * Init hooks.
+	 */
+	protected function init_hooks() {
+		parent::init_hooks();
+
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.woocommerce-ResetPassword .h-captcha {
+		margin-top: 0.5rem;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
+	}
 }
