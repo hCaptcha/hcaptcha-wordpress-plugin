@@ -538,6 +538,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 8.4.
 * Added compatibility with BuddyPress 12.0.
 * Added hCaptcha tag to Contact Form 7 admin editor.
+* Added support for WPForms embedded forms.
 * Improved inline scripts to optimize page load time.
 * Fixed hCaptcha position in BuddyPress.
 * Fixed hCaptcha position in wpDiscuz.
