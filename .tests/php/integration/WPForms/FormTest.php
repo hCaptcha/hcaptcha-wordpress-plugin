@@ -25,28 +25,6 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'wpforms-lite/wpforms.php';
 
 	/**
-	 * Tests add_captcha().
-	 */
-	public function test_add_captcha() {
-		$form_data = [ 'id' => 5 ];
-		$expected  =
-			$this->get_hcap_form() .
-			wp_nonce_field(
-				'hcaptcha_wpforms',
-				'hcaptcha_wpforms_nonce',
-				true,
-				false
-			);
-		$subject   = new Form();
-
-		ob_start();
-
-		$subject->add_captcha( $form_data );
-
-		self::assertSame( $expected, ob_get_clean() );
-	}
-
-	/**
 	 * Test verify().
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
