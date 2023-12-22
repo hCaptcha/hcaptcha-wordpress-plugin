@@ -960,15 +960,10 @@ CSS;
 				'wp-job-openings/wp-job-openings.php',
 				WPJobOpenings\Form::class,
 			],
-			'WPForms Lite'                         => [
-				[ 'wpforms_status', 'lite' ],
+			'WPForms'                              => [
+				[ 'wpforms_status', null ],
 				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
-				\HCaptcha\WPForms\Form::class,
-			],
-			'WPForms Pro'                          => [
-				[ 'wpforms_status', 'pro' ],
-				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
-				\HCaptcha\WPForms\Form::class,
+				WPForms\Form::class,
 			],
 			'wpDiscuz Comment'                     => [
 				[ 'wpdiscuz_status', 'comment_form' ],

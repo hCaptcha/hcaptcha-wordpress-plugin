@@ -432,8 +432,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WPForms',
 				'type'    => 'checkbox',
 				'options' => [
-					'lite' => __( 'Lite', 'hcaptcha-for-forms-and-more' ),
-					'pro'  => __( 'Pro', 'hcaptcha-for-forms-and-more' ),
+					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
+					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wpdiscuz_status'                  => [

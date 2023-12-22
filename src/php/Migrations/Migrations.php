@@ -239,4 +239,27 @@ class Migrations {
 
 		return true;
 	}
+
+	/**
+	 * Migrate to 3.6.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnusedPrivateMethodInspection
+	 * @noinspection MultiAssignmentUsageInspection
+	 */
+	private function migrate_360() {
+		$option         = get_option( 'hcaptcha_settings', [] );
+		$wpforms_status = $option['wpforms_status'] ?? [];
+
+		if ( empty( $wpforms_status ) ) {
+			return true;
+		}
+
+		// Convert any WPForms status ('lite' or 'pro') to the status 'form'.
+		$option['wpforms_status'] = [ 'form' ];
+
+		update_option( 'hcaptcha_settings', $option );
+
+		return true;
+	}
 }
