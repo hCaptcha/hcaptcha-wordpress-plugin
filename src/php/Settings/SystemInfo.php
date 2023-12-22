@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Migrations\Migrations;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
@@ -112,6 +113,7 @@ class SystemInfo extends PluginSettingsBase {
 		$data = $this->header( '### Begin System Info ###' );
 
 		$data .= $this->hcaptcha_info();
+		$data .= $this->integration_info();
 		$data .= $this->site_info();
 		$data .= $this->wp_info();
 		$data .= $this->uploads_info();
@@ -148,11 +150,30 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Failed login attempts interval, min', $settings->get( 'login_interval' ) );
 		$data .= $this->data( 'Delay showing hCaptcha, ms', $settings->get( 'delay' ) );
 
+		$migrations = get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [] );
+
+		$data .= $this->data( 'Migrations', '' );
+
+		$format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+
+		foreach ( $migrations as $version => $timestamp ) {
+			$data .= $this->data( '  ' . $version, gmdate( $format, $timestamp ) );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get integration info.
+	 *
+	 * @return string
+	 */
+	public function integration_info(): string {
 		list( $integration_fields, $integration_settings ) = $this->get_integrations();
 
 		$disabled = false;
 
-		$data .= $this->header( '--- Active plugins and themes ---' );
+		$data = $this->header( '--- Active plugins and themes ---' );
 
 		foreach ( $integration_fields as $field_key => $field ) {
 			if ( $field['disabled'] !== $disabled ) {
