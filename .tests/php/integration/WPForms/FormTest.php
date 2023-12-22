@@ -32,7 +32,10 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	public function test_verify() {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
-		$subject   = new Form();
+
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+
+		$subject = new Form();
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
@@ -52,9 +55,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	public function test_verify_not_verified() {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
-		$subject   = new Form();
+		$expected  = 'The hCaptcha is invalid.';
 
-		$expected = 'The hCaptcha is invalid.';
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+
+		$subject = new Form();
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 
