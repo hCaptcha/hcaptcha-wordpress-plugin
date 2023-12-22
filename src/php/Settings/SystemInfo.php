@@ -157,7 +157,11 @@ class SystemInfo extends PluginSettingsBase {
 		$format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 
 		foreach ( $migrations as $version => $timestamp ) {
-			$data .= $this->data( '  ' . $version, gmdate( $format, $timestamp ) );
+			$value = Migrations::STARTED === $timestamp ? 'Started' : 0;
+			$value = Migrations::FAILED === $timestamp ? 'Failed' : $value;
+			$value = $value ?: gmdate( $format, $timestamp );
+
+			$data .= $this->data( '  ' . $version, $value );
 		}
 
 		return $data;
