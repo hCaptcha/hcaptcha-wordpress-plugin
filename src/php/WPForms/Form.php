@@ -25,6 +25,21 @@ class Form {
 	const NAME = 'hcaptcha_wpforms_nonce';
 
 	/**
+	 * Whether hCaptcha should be auto-added to any form.
+	 *
+	 * @var bool
+	 */
+	private $mode_auto = false;
+
+	/**
+	 * Whether hCaptcha can be embedded into form in the WPForms form editor.
+	 * WPForms settings are blocked in this case.
+	 *
+	 * @var bool
+	 */
+	private $mode_embed = false;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -37,15 +52,27 @@ class Form {
 	 * @return void
 	 */
 	private function init_hooks() {
-		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
+		$this->mode_auto  = hcaptcha()->settings()->is( 'wpforms_status', 'form' );
+		$this->mode_embed =
+			hcaptcha()->settings()->is( 'wpforms_status', 'embed' ) &&
+			$this->is_wpforms_provider_hcaptcha();
+
+		if ( ! $this->mode_auto && ! $this->mode_embed ) {
+			return;
+		}
+
+		if ( $this->mode_embed ) {
+			add_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $this, 'wpforms_admin_settings_captcha_enqueues_disable' ] );
+			add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'hcap_print_hcaptcha_scripts' ] );
+			add_filter( 'wpforms_settings_fields', [ $this, 'wpforms_settings_fields' ], 10, 2 );
+		}
+
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
-		add_filter( 'wpforms_setting', [ $this, 'wpforms_setting' ], 10, 4 );
-		add_filter( 'wpforms_update_settings', [ $this, 'wpforms_update_settings' ] );
-		add_filter( 'wpforms_settings_fields', [ $this, 'wpforms_settings_fields' ], 10, 2 );
-		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'hcap_print_hcaptcha_scripts' ] );
-		add_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $this, 'wpforms_admin_settings_captcha_enqueues_disable' ] );
 		add_action( 'wpforms_wp_footer', [ $this, 'block_assets_recaptcha' ], 0 );
+
 		add_action( 'wpforms_frontend_output', [ $this, 'wpforms_frontend_output' ], 19, 5 );
+		add_filter( 'wpforms_process_bypass_captcha', '__return_true' );
+		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
 	}
 
 	/**
@@ -62,13 +89,25 @@ class Form {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( array $fields, array $entry, array $form_data ) {
+		if ( ! $this->process_hcaptcha( $form_data ) ) {
+			return;
+		}
+
+		$wpforms_error_message = '';
+
+		if ( ! $this->mode_embed && $this->form_has_hcaptcha( $form_data ) ) {
+			$this->use_wpforms_settings();
+
+			$wpforms_error_message = wpforms_setting( 'hcaptcha-fail-msg' );
+		}
+
 		$error_message = hcaptcha_get_verify_message(
 			self::NAME,
 			self::ACTION
 		);
 
 		if ( null !== $error_message ) {
-			wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $error_message;
+			wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $wpforms_error_message ?: $error_message;
 		}
 	}
 
@@ -108,73 +147,6 @@ class Form {
 CSS;
 
 		HCaptcha::css_display( $css );
-	}
-
-	/**
-	 * Filter WPForms setting and return hCaptcha values.
-	 *
-	 * @param mixed  $value         Setting value.
-	 * @param string $key           Setting key.
-	 * @param mixed  $default_value Setting default value.
-	 * @param string $option        Settings option name.
-	 *
-	 * @return mixed
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function wpforms_setting( $value, string $key, $default_value, string $option ) {
-		if ( 'wpforms_settings' !== $option ) {
-			return $value;
-		}
-
-		switch ( $key ) {
-			case 'hcaptcha-site-key':
-				return hcaptcha()->settings()->get_site_key();
-			case 'hcaptcha-secret-key':
-				return hcaptcha()->settings()->get_secret_key();
-			case 'hcaptcha-theme-key':
-				return hcaptcha()->settings()->get( 'theme' );
-			case 'recaptcha-noconflict':
-				return ! hcaptcha()->settings()->get( 'recaptcha_compat_off' );
-			case 'hcaptcha-fail-msg':
-				$error_messages = hcap_get_error_messages();
-
-				if ( isset( $error_messages['fail'] ) ) {
-					return $error_messages['fail'];
-				}
-
-				break;
-			default:
-				break;
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Update wpforms settings.
-	 *
-	 * @param array|mixed $settings Settings.
-	 *
-	 * @return array
-	 */
-	public function wpforms_update_settings( $settings ): array {
-		$settings     = (array) $settings;
-		$old_settings = (array) get_option( 'wpforms_settings', [] );
-
-		$filtered_settings = [
-			'hcaptcha-site-key',
-			'hcaptcha-secret-key',
-			'hcaptcha-fail-msg',
-			'recaptcha-noconflict',
-			'hcaptcha-theme-key',
-		];
-
-		// Do not save hCaptcha options filtered in wpforms_setting().
-		foreach ( $filtered_settings as $filtered_setting ) {
-			$settings[ $filtered_setting ] = $old_settings[ $filtered_setting ];
-		}
-
-		return $settings;
 	}
 
 	/**
@@ -307,42 +279,39 @@ HTML;
 	public function wpforms_frontend_output( $form_data, $deprecated, bool $title, bool $description, array $errors ) {
 		$form_data = (array) $form_data;
 
-		$form_captcha_settings = $this->get_form_captcha_settings( $form_data );
-		$our_wpforms_status    = hcaptcha()->settings()->is_on( 'wpforms_status' );
-
-		if ( ! ( $form_captcha_settings || $our_wpforms_status ) ) {
+		if ( ! $this->process_hcaptcha( $form_data ) ) {
 			return;
 		}
 
-		$id = (int) $form_data['id'];
-
-		if ( $form_captcha_settings ) {
+		if ( $this->mode_embed ) {
 			$captcha = wpforms()->get( 'captcha' );
 
 			if ( ! $captcha ) {
 				return;
 			}
 
+			// Block native WPForms hCaptcha output.
 			remove_action( 'wpforms_frontend_output', [ $captcha, 'recaptcha' ], 20 );
 
-			$this->show_hcaptcha( $id );
+			$this->show_hcaptcha( $form_data );
 
 			return;
 		}
 
-		if ( $our_wpforms_status ) {
-			$this->show_hcaptcha( $id );
+		if ( $this->mode_auto ) {
+			$this->show_hcaptcha( $form_data );
 		}
 	}
 
 	/**
 	 * Show hCaptcha.
 	 *
-	 * @param int $id Form id.
+	 * @param array $form_data Form data and settings.
 	 *
 	 * @return void
+	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function show_hcaptcha( int $id ) {
+	private function show_hcaptcha( array $form_data ) {
 		$frontend_obj = wpforms()->get( 'frontend' );
 
 		if ( ! $frontend_obj ) {
@@ -354,9 +323,13 @@ HTML;
 			'name'   => self::NAME,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $id,
+				'form_id' => (int) $form_data['id'],
 			],
 		];
+
+		if ( ! $this->mode_embed && $this->form_has_hcaptcha( $form_data ) ) {
+			$this->use_wpforms_settings();
+		}
 
 		printf(
 			'<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" %s>',
@@ -369,29 +342,24 @@ HTML;
 	}
 
 	/**
-	 * Get captcha settings for form output.
-	 * Return null if captcha is disabled.
+	 * Whether form has hCaptcha.
 	 *
 	 * @param array $form_data Form data and settings.
 	 *
-	 * @return array|null
+	 * @return bool
 	 */
-	private function get_form_captcha_settings( array $form_data ) {
+	private function form_has_hcaptcha( array $form_data ): bool {
 		$captcha_settings = wpforms_get_captcha_settings();
 		$provider         = $captcha_settings['provider'] ?? '';
 
 		if ( 'hcaptcha' !== $provider ) {
-			return null;
+			return false;
 		}
 
 		// Check that the CAPTCHA is configured for the specific form.
 		$recaptcha = $form_data['settings']['recaptcha'] ?? '';
 
-		if ( '1' !== $recaptcha ) {
-			return null;
-		}
-
-		return $captcha_settings;
+		return '1' === $recaptcha;
 	}
 
 	/**
@@ -424,5 +392,52 @@ HTML;
 		$provider         = $captcha_settings['provider'] ?? '';
 
 		return 'hcaptcha' === $provider;
+	}
+
+	/**
+	 * Process hCaptcha in the form.
+	 * Returns true if form has hCaptcha or hCaptcha will be auto-added.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return bool
+	 */
+	private function process_hcaptcha( array $form_data ): bool {
+		return (
+			$this->mode_auto ||
+			( $this->mode_embed && $this->form_has_hcaptcha( $form_data ) )
+		);
+	}
+
+	/**
+	 * Use WPForms settings for hCaptcha.
+	 *
+	 * @return void
+	 */
+	private function use_wpforms_settings() {
+		$captcha_settings = wpforms_get_captcha_settings();
+		$site_key         = $captcha_settings['site_key'] ?? '';
+		$secret_key       = $captcha_settings['secret_key'] ?? '';
+
+		add_filter(
+			'hcap_site_key',
+			static function () use ( $site_key ) {
+				return $site_key;
+			}
+		);
+
+		add_filter(
+			'hcap_secret_key',
+			static function () use ( $secret_key ) {
+				return $secret_key;
+			}
+		);
+
+		add_filter(
+			'hcap_theme',
+			static function () {
+				return 'light';
+			}
+		);
 	}
 }

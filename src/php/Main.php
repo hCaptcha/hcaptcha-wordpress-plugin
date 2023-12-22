@@ -456,7 +456,7 @@ CSS;
 
 		$params = [
 			'sitekey' => $settings->get_site_key(),
-			'theme'   => $settings->get( 'theme' ),
+			'theme'   => $settings->get_theme(),
 			'size'    => $settings->get( 'size' ),
 			'hl'      => $settings->get_language(),
 		];

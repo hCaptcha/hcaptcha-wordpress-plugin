@@ -95,7 +95,7 @@ class CF7 {
 	public function cf7_hcaptcha_shortcode( $attr = [] ): string {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
-		$hcaptcha_theme    = $settings->get( 'theme' );
+		$hcaptcha_theme    = $settings->get_theme();
 		$hcaptcha_size     = $settings->get( 'size' );
 		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
 
