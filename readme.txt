@@ -171,6 +171,10 @@ The form_id is the form_id for plugins like Gravity Forms or WPForms, the post i
 
 Filter arguments for some plugins/forms are listed below.
 
+Affiliates
+$source: 'affiliates/affiliates.php'
+$form_id: 'login' or 'register'
+
 Back In Stock Notifier
 $source: 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'
 $form_id: product_id
@@ -433,6 +437,8 @@ For more details, please see the hCaptcha privacy policy at:
 * Comment Form
 * Post/Page Password Form
 * ACF Extended Form
+* Affiliates Login Form
+* Affiliates Register Form
 * Asgaros Forum New Topic Form
 * Asgaros Forum Reply Form
 * Avada Form
@@ -539,6 +545,8 @@ Instructions for popular native integrations are below:
 * Added compatibility with BuddyPress 12.0.
 * Added hCaptcha tag to Contact Form 7 admin editor.
 * Added support for WPForms embedded forms.
+* Added Affiliates Login Form integration.
+* Added Affiliates Register Form integration.
 * Improved inline scripts to optimize page load time.
 * Fixed hCaptcha position in BuddyPress.
 * Fixed hCaptcha position in wpDiscuz.
