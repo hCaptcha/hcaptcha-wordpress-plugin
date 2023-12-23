@@ -589,6 +589,11 @@ CSS;
 				[ 'affiliates/affiliates.php' ],
 				Affiliates\Login::class,
 			],
+			'Affiliates Register'                  => [
+				[ 'affiliates_status', 'register' ],
+				[ 'affiliates/affiliates.php' ],
+				Affiliates\Register::class,
+			],
 			'Asgaros Form'                         => [
 				[ 'asgaros_status', 'form' ],
 				'asgaros-forum/asgaros-forum.php',

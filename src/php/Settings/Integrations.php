@@ -97,7 +97,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Affiliates',
 				'type'    => 'checkbox',
 				'options' => [
-					'login' => __( 'Affiliates Login Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Affiliates Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Affiliates Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'asgaros_status'                   => [
