@@ -93,6 +93,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'affiliates_status'                => [
+				'label'   => 'Affiliates',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Affiliates Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'asgaros_status'                   => [
 				'label'   => 'Asgaros',
 				'type'    => 'checkbox',

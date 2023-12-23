@@ -538,7 +538,6 @@ CSS;
 	 * Load plugin modules.
 	 *
 	 * @return void
-	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
 		/**
@@ -584,6 +583,11 @@ CSS;
 				[ 'acfe_status', 'form' ],
 				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
 				ACFE\Form::class,
+			],
+			'Affiliates Login'                     => [
+				[ 'affiliates_status', 'login' ],
+				[ 'affiliates/affiliates.php' ],
+				Affiliates\Login::class,
 			],
 			'Asgaros Form'                         => [
 				[ 'asgaros_status', 'form' ],

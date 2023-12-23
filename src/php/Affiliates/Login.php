@@ -5,7 +5,7 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\LearnDash;
+namespace HCaptcha\Affiliates;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
@@ -13,7 +13,7 @@ use WP_Error;
 use WP_User;
 
 /**
- * Class Login.
+ * Class Login
  */
 class Login extends LoginBase {
 
@@ -23,14 +23,31 @@ class Login extends LoginBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_filter( 'login_form_middle', [ $this, 'add_learn_dash_captcha' ], 10, 2 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+		add_filter( 'login_form_top', [ $this, 'add_affiliates_marker' ], 10, 2 );
+		add_filter( 'login_form_middle', [ $this, 'add_affiliates_captcha' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+	}
 
-		// Check login status, because class is always loading when LearDash plugin is active.
-		if ( hcaptcha()->settings()->is( 'learn_dash_status', 'login' ) ) {
-			add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		} else {
-			add_filter( 'hcap_protect_form', [ $this, 'protect_form' ], 10, 3 );
+	/**
+	 * Add marker to distinguish the form.
+	 *
+	 * @param string|mixed $content Content to display. Default empty.
+	 * @param array        $args    Array of login form arguments.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_affiliates_marker( $content, array $args ): string {
+		$content = (string) $content;
+
+		if ( ! $this->is_affiliates_login_form() ) {
+			return $content;
 		}
+
+		$marker = '<input id="affiliates-login-form" type="hidden" name="affiliates-login-form">';
+
+		return $content . $marker;
 	}
 
 	/**
@@ -40,13 +57,12 @@ class Login extends LoginBase {
 	 * @param array        $args    Array of login form arguments.
 	 *
 	 * @return string
-	 * @noinspection PhpMissingParamTypeInspection
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_learn_dash_captcha( $content, $args ): string {
+	public function add_affiliates_captcha( $content, array $args ): string {
 		$content = (string) $content;
 
-		if ( ! $this->is_learn_dash_login_form() ) {
+		if ( ! $this->is_affiliates_login_form() ) {
 			return $content;
 		}
 
@@ -68,7 +84,7 @@ class Login extends LoginBase {
 	 */
 	public function verify( $user, string $password ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['learndash-login-form'] ) ) {
+		if ( ! isset( $_POST['affiliates-login-form'] ) ) {
 			return $user;
 		}
 
@@ -91,11 +107,27 @@ class Login extends LoginBase {
 	}
 
 	/**
-	 * Whether we process the Learn Dash login form.
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.affiliates-dashboard .h-captcha {
+		margin-top: 2rem;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Whether we process the Affiliates login form.
 	 *
 	 * @return bool
 	 */
-	private function is_learn_dash_login_form(): bool {
-		return HCaptcha::did_filter( 'learndash-login-form-args' );
+	private function is_affiliates_login_form(): bool {
+		return did_action( 'affiliates_dashboard_before_section' );
 	}
 }
