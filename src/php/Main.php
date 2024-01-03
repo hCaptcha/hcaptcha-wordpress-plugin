@@ -454,12 +454,19 @@ CSS;
 			true
 		);
 
-		$params = [
+		$params   = [
 			'sitekey' => $settings->get_site_key(),
 			'theme'   => $settings->get_theme(),
 			'size'    => $settings->get( 'size' ),
-			'hl'      => $settings->get_language(),
 		];
+		$language = $settings->get_language();
+
+		// Fix auto-detection of hCaptcha language.
+		$language = $language ?: HCaptcha::get_hcap_locale();
+
+		if ( $language ) {
+			$params['hl'] = $language;
+		}
 
 		$config_params = [];
 

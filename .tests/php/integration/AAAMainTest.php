@@ -673,7 +673,7 @@ JS;
 		$secret_key     = 'some secret key';
 		$theme          = 'light';
 		$size           = 'normal';
-		$language       = $language ?: '';
+		$language       = $language ?: 'en';
 		$params         = [
 			'sitekey' => $site_key,
 			'theme'   => $theme,
