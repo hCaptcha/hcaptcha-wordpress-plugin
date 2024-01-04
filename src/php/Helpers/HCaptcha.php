@@ -69,7 +69,8 @@ class HCaptcha {
 				 * ]
 				 */
 				'id'      => [],
-				'protect' => true, // Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
+				// Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
+				'protect' => true,
 			]
 		);
 
@@ -370,7 +371,8 @@ class HCaptcha {
 	public static function get_hcap_locale(): string {
 		$wp_locale = get_locale();
 
-		// To get all WP locales, use the following statement on the https://translate.wordpress.org/ page and remove all double quotes.
+		// To get all WP locales, use the following statement on the https://translate.wordpress.org/ page
+		// and remove all double quotes.
 		// phpcs:disable Squiz.Commenting.InlineComment.InvalidEndChar
 		// [...document.querySelectorAll( '.locale')].map( (l) => { return "'" + l.querySelector('.english a').text + "' => '" + l.querySelector('.code a').text + "'" } )
 		// phpcs:enable Squiz.Commenting.InlineComment.InvalidEndChar
@@ -580,7 +582,8 @@ class HCaptcha {
 				'Zulu'                             => 'zul',
 			];
 
-		// To get all hCaptcha locales, use the following statement on the https://docs.hcaptcha.com/languages page and remove all double quotes.
+		// To get all hCaptcha locales, use the following statement on the https://docs.hcaptcha.com/languages page
+		// and remove all double quotes.
 		// phpcs:disable Squiz.Commenting.InlineComment.InvalidEndChar
 		// [...document.querySelectorAll('table tbody tr')].map( r => { return ' + r.querySelector('td:nth-of-type(1)').innerText + ' => ' + r.querySelector('td:nth-of-type(2)').innerText + ' })
 		// phpcs:enable Squiz.Commenting.InlineComment.InvalidEndChar
