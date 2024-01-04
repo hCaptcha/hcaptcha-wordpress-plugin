@@ -63,8 +63,60 @@ abstract class LoginBase {
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
+		add_action( 'login_form', [ $this, 'display_signature' ] );
+		add_filter( 'login_form_middle', [ $this, 'add_signature' ], 10, 2 );
+		add_filter( 'wp_authenticate_user', [ $this, 'check_signature' ], PHP_INT_MAX, 2 );
+
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
 		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
+	}
+
+	/**
+	 * Display signature.
+	 *
+	 * @return void
+	 */
+	public function display_signature() {
+		HCaptcha::display_signature( 'login' );
+	}
+
+	/**
+	 * Add signature.
+	 *
+	 * @param string|mixed $content Content to display. Default empty.
+	 * @param array        $args    Array of login form arguments.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_signature( $content, array $args ): string {
+		$content = (string) $content;
+
+		ob_start();
+		$this->display_signature();
+
+		return $content . ob_get_clean();
+	}
+
+	/**
+	 * Verify a login form.
+	 *
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
+	 *                                   if a previous callback failed authentication.
+	 * @param string           $password Password to check against the user.
+	 *
+	 * @return WP_User|WP_Error
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function check_signature( $user, string $password ) {
+		if ( HCaptcha::check_signature( 'login' ) ) {
+			return $user;
+		}
+
+		$code          = 'bad-signature';
+		$error_message = hcap_get_error_messages()[ $code ];
+
+		return new WP_Error( $code, $error_message, 400 );
 	}
 
 	/**

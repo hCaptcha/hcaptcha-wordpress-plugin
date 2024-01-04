@@ -15,7 +15,16 @@ use WP_Error;
  * Class HCaptcha.
  */
 class HCaptcha {
+
+	/**
+	 * Widget id.
+	 */
 	const HCAPTCHA_WIDGET_ID = 'hcaptcha-widget-id';
+
+	/**
+	 * Signature id.
+	 */
+	const HCAPTCHA_SIGNATURE_ID = 'hcaptcha-signature-id';
 
 	/**
 	 * Default widget id.
@@ -93,6 +102,7 @@ class HCaptcha {
 				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				$encoded_id = base64_encode( wp_json_encode( $id ) );
 				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+
 				?>
 				<input
 					type="hidden"
@@ -128,6 +138,47 @@ class HCaptcha {
 	}
 
 	/**
+	 * Display signature.
+	 *
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return void
+	 */
+	public static function display_signature( $form_id ) {
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = self::HCAPTCHA_SIGNATURE_ID . '-' . base64_encode( static::class );
+
+		?>
+		<input
+				type="hidden"
+				class="<?php echo esc_attr( self::HCAPTCHA_SIGNATURE_ID ); ?>"
+				name="<?php echo esc_attr( $name ); ?>"
+				value="<?php echo esc_attr( self::get_hashed_id( $form_id ) ); ?>">
+		<?php
+	}
+
+	/**
+	 * Check signature.
+	 *
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return bool
+	 */
+	public static function check_signature( $form_id ): bool {
+		$info = self::get_hashed_id_info(
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			self::HCAPTCHA_SIGNATURE_ID . '-' . base64_encode( static::class )
+		);
+
+		return (
+			self::get_class_source( static::class ) === $info['id']['source'] &&
+			$form_id === $info['id']['form_id'] &&
+			wp_hash( $info['encoded_id'] ) === $info['hash']
+		);
+	}
+
+	/**
 	 * Whether form protection is enabled/disabled via hCaptcha widget id.
 	 *
 	 * Return false(protection disabled) in only one case:
@@ -137,7 +188,7 @@ class HCaptcha {
 	 * @return bool
 	 */
 	public static function is_protection_enabled(): bool {
-		$info = self::get_widget_info();
+		$info = self::get_hashed_id_info();
 
 		$id         = $info['id'];
 		$encoded_id = $info['encoded_id'];
@@ -155,47 +206,7 @@ class HCaptcha {
 	 * @return array
 	 */
 	public static function get_widget_id(): array {
-		return self::get_widget_info()['id'];
-	}
-
-	/**
-	 * Get hcaptcha widget info from $_POST.
-	 *
-	 * @return array
-	 */
-	public static function get_widget_info(): array {
-		// Nonce is checked in hcaptcha_verify_post().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
-			filter_var( wp_unslash( $_POST[ self::HCAPTCHA_WIDGET_ID ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( ! $widget_id ) {
-			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			$encoded_id = base64_encode( wp_json_encode( self::$default_id ) );
-			$hash       = wp_hash( $encoded_id );
-
-			return [
-				'id'         => self::$default_id,
-				'encoded_id' => $encoded_id,
-				'hash'       => $hash,
-			];
-		}
-
-		list( $encoded_id, $hash ) = explode( '-', $widget_id );
-
-		$id = wp_parse_args(
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			(array) json_decode( base64_decode( $encoded_id ), true ),
-			self::$default_id
-		);
-
-		return [
-			'id'         => $id,
-			'encoded_id' => $encoded_id,
-			'hash'       => $hash,
-		];
+		return self::get_hashed_id_info()['id'];
 	}
 
 	/**
@@ -726,5 +737,68 @@ class HCaptcha {
 		$lang_name = explode( ' (', $lang_name )[0];
 
 		return $hcaptcha_locales[ $lang_name ] ?? '';
+	}
+
+	/**
+	 * Get hCaptcha hashed id info from $_POST.
+	 *
+	 * @param string $hashed_id_field Hashed id field name in $_POST array.
+	 *
+	 * @return array
+	 */
+	private static function get_hashed_id_info( string $hashed_id_field = '' ): array {
+		$hashed_id_field = $hashed_id_field ?: self::HCAPTCHA_WIDGET_ID;
+
+		// Nonce is checked in hcaptcha_verify_post().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$hashed_id = isset( $_POST[ $hashed_id_field ] ) ?
+			filter_var( wp_unslash( $_POST[ $hashed_id_field ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! $hashed_id ) {
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			$encoded_id = base64_encode( wp_json_encode( self::$default_id ) );
+			$hash       = wp_hash( $encoded_id );
+
+			return [
+				'id'         => self::$default_id,
+				'encoded_id' => $encoded_id,
+				'hash'       => $hash,
+			];
+		}
+
+		list( $encoded_id, $hash ) = explode( '-', $hashed_id );
+
+		$id = wp_parse_args(
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			(array) json_decode( base64_decode( $encoded_id ), true ),
+			self::$default_id
+		);
+
+		return [
+			'id'         => $id,
+			'encoded_id' => $encoded_id,
+			'hash'       => $hash,
+		];
+	}
+
+	/**
+	 * Get hashed id.
+	 *
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return string
+	 */
+	private static function get_hashed_id( $form_id ): string {
+		$id = [
+			'source'  => self::get_class_source( static::class ),
+			'form_id' => $form_id,
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+
+		return $encoded_id . '-' . wp_hash( $encoded_id );
 	}
 }
