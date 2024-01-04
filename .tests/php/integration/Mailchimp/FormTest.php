@@ -79,6 +79,10 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'Bad hCaptcha nonce!',
 			],
+			'bad-signature'                    => [
+				'type' => 'error',
+				'text' => 'Bad hCaptcha signature!',
+			],
 		];
 
 		$expected = array_merge( $messages, $hcap_errors );
