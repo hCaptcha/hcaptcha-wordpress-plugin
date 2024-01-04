@@ -243,8 +243,9 @@ class HCaptcha {
 			/* translators: 1: link to the General setting page */
 				__( 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
-					'<a href="%s" target="_blank">' . esc_html__( 'General settings page', 'hcaptcha-for-forms-and-more' ) . '</a>',
-					esc_url( $url )
+					'<a href="%1$s" target="_blank">%2$s</a>',
+					esc_url( $url ),
+					__( 'General settings page', 'hcaptcha-for-forms-and-more' )
 				)
 			)
 		);
@@ -629,11 +630,11 @@ class HCaptcha {
 			'French'              => 'fr',
 			'Frisian'             => 'fy',
 			'Gaelic'              => 'gd',
-			'Galacian'            => 'gl',
+			'Galician'            => 'gl',
 			'Georgian'            => 'ka',
 			'German'              => 'de',
 			'Greek'               => 'el',
-			'Gujurati'            => 'gu',
+			'Gujarati'            => 'gu',
 			'Haitian'             => 'ht',
 			'Hausa'               => 'ha',
 			'Hawaiian'            => 'haw',
@@ -682,11 +683,11 @@ class HCaptcha {
 			'Samoan'              => 'sm',
 			'Shona'               => 'sn',
 			'Sindhi'              => 'sd',
-			'Singhalese'          => 'si',
+			'Sinhala'             => 'si',
 			'Serbian'             => 'sr',
 			'Slovak'              => 'sk',
 			'Slovenian'           => 'sl',
-			'Somani'              => 'so',
+			'Somali'              => 'so',
 			'Southern Sotho'      => 'st',
 			'Spanish'             => 'es',
 			'Sundanese'           => 'su',
@@ -696,7 +697,7 @@ class HCaptcha {
 			'Tajik'               => 'tg',
 			'Tamil'               => 'ta',
 			'Tatar'               => 'tt',
-			'Teluga'              => 'te',
+			'Telugu'              => 'te',
 			'Thai'                => 'th',
 			'Turkish'             => 'tr',
 			'Turkmen'             => 'tk',
