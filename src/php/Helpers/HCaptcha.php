@@ -243,7 +243,7 @@ class HCaptcha {
 			/* translators: 1: link to the General setting page */
 				__( 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the %1$s.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
-					'<a href="%s" target="_blank">General settings page</a>',
+					'<a href="%s" target="_blank">' . esc_html__( 'General settings page', 'hcaptcha-for-forms-and-more' ) . '</a>',
 					esc_url( $url )
 				)
 			)
