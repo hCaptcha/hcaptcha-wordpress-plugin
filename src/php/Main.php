@@ -176,9 +176,6 @@ class Main {
 	 * @return bool
 	 */
 	private function activate_hcaptcha(): bool {
-		// Make sure we can use is_user_logged_in().
-		require_once ABSPATH . 'wp-includes/pluggable.php';
-
 		$settings = $this->settings();
 
 		/**
