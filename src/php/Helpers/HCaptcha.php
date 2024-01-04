@@ -60,14 +60,15 @@ class HCaptcha {
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
-				'id'      => [], // hCaptcha widget id.
 				/**
+				 * The hCaptcha widget id.
 				 * Example of id:
 				 * [
 				 *   'source'  => ['gravityforms/gravityforms.php'],
 				 *   'form_id' => 23
 				 * ]
 				 */
+				'id'      => [],
 				'protect' => true, // Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
 			]
 		);
@@ -135,24 +136,11 @@ class HCaptcha {
 	 * @return bool
 	 */
 	public static function is_protection_enabled(): bool {
-		// Nonce is checked in hcaptcha_verify_post().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
-			filter_var( wp_unslash( $_POST[ self::HCAPTCHA_WIDGET_ID ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$info = self::get_widget_info();
 
-		if ( ! $widget_id ) {
-			return true;
-		}
-
-		list( $encoded_id, $hash ) = explode( '-', $widget_id );
-
-		$id = wp_parse_args(
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			(array) json_decode( base64_decode( $encoded_id ), true ),
-			self::$default_id
-		);
+		$id         = $info['id'];
+		$encoded_id = $info['encoded_id'];
+		$hash       = $info['hash'];
 
 		return ! (
 			wp_hash( $encoded_id ) === $hash &&
@@ -164,9 +152,17 @@ class HCaptcha {
 	 * Get hcaptcha widget id from $_POST.
 	 *
 	 * @return array
-	 * @noinspection PhpUnusedLocalVariableInspection
 	 */
 	public static function get_widget_id(): array {
+		return self::get_widget_info()['id'];
+	}
+
+	/**
+	 * Get hcaptcha widget info from $_POST.
+	 *
+	 * @return array
+	 */
+	public static function get_widget_info(): array {
 		// Nonce is checked in hcaptcha_verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$widget_id = isset( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ?
@@ -175,16 +171,30 @@ class HCaptcha {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( ! $widget_id ) {
-			return self::$default_id;
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			$encoded_id = base64_encode( wp_json_encode( self::$default_id ) );
+			$hash       = wp_hash( $encoded_id );
+
+			return [
+				'id'         => self::$default_id,
+				'encoded_id' => $encoded_id,
+				'hash'       => $hash,
+			];
 		}
 
 		list( $encoded_id, $hash ) = explode( '-', $widget_id );
 
-		return wp_parse_args(
+		$id = wp_parse_args(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 			(array) json_decode( base64_decode( $encoded_id ), true ),
 			self::$default_id
 		);
+
+		return [
+			'id'         => $id,
+			'encoded_id' => $encoded_id,
+			'hash'       => $hash,
+		];
 	}
 
 	/**
