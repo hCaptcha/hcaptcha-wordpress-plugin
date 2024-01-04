@@ -552,6 +552,7 @@ Instructions for popular native integrations are below:
 * Fixed hCaptcha position in wpDiscuz.
 * Fixed fatal error in Brizy integration.
 * Fixed auto-detection of hCaptcha language.
+* Fixed and added some translations.
 
 = 3.5.0 =
 * Tested with PHP 8.3.
