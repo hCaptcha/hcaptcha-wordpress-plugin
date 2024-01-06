@@ -784,7 +784,7 @@ CSS;
 				Kadence\AdvancedForm::class,
 			],
 			'LearnDash Login Form'                 => [
-				[ 'learn_dash_status', null ],
+				[ 'learn_dash_status', 'login' ],
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Login::class,
 			],
