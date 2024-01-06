@@ -46,6 +46,13 @@ abstract class LoginBase {
 	protected $login_data;
 
 	/**
+	 * The hCaptcha was shown by the current class.
+	 *
+	 * @var bool
+	 */
+	protected $hcaptcha_shown = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -63,8 +70,8 @@ abstract class LoginBase {
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
-		add_action( 'login_form', [ $this, 'display_signature' ] );
-		add_filter( 'login_form_middle', [ $this, 'add_signature' ], 10, 2 );
+		add_action( 'login_form', [ $this, 'display_signature' ], PHP_INT_MAX );
+		add_filter( 'login_form_middle', [ $this, 'add_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'check_signature' ], PHP_INT_MAX, 2 );
 
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
@@ -77,7 +84,7 @@ abstract class LoginBase {
 	 * @return void
 	 */
 	public function display_signature() {
-		HCaptcha::display_signature( 'login' );
+		HCaptcha::display_signature( static::class, 'login', $this->hcaptcha_shown );
 	}
 
 	/**
@@ -109,14 +116,20 @@ abstract class LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_signature( $user, string $password ) {
-		if ( HCaptcha::check_signature( 'login' ) ) {
+		$check = HCaptcha::check_signature( static::class, 'login' );
+
+		if ( $check ) {
 			return $user;
 		}
 
-		$code          = 'bad-signature';
-		$error_message = hcap_get_error_messages()[ $code ];
+		if ( false === $check ) {
+			$code          = 'bad-signature';
+			$error_message = hcap_get_error_messages()[ $code ];
 
-		return new WP_Error( $code, $error_message, 400 );
+			return new WP_Error( $code, $error_message, 400 );
+		}
+
+		return $this->verify( $user, $password );
 	}
 
 	/**
@@ -186,6 +199,8 @@ abstract class LoginBase {
 		];
 
 		HCaptcha::form_display( $args );
+
+		$this->hcaptcha_shown = true;
 	}
 
 	/**
@@ -230,5 +245,34 @@ abstract class LoginBase {
 		}
 
 		return (bool) $value;
+	}
+
+	/**
+	 * Verify a login form.
+	 *
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
+	 *                                   if a previous callback failed authentication.
+	 * @param string           $password Password to check against the user.
+	 *
+	 * @return WP_User|WP_Error
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	private function verify( $user, string $password ) {
+		if ( ! $this->is_login_limit_exceeded() ) {
+			return $user;
+		}
+
+		$error_message = hcaptcha_verify_post(
+			self::NONCE,
+			self::ACTION
+		);
+
+		if ( null === $error_message ) {
+			return $user;
+		}
+
+		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
+
+		return new WP_Error( $code, $error_message, 400 );
 	}
 }

@@ -22,9 +22,9 @@ class HCaptcha {
 	const HCAPTCHA_WIDGET_ID = 'hcaptcha-widget-id';
 
 	/**
-	 * Signature id.
+	 * Signature prefix.
 	 */
-	const HCAPTCHA_SIGNATURE_ID = 'hcaptcha-signature-id';
+	const HCAPTCHA_SIGNATURE = 'hcaptcha-signature';
 
 	/**
 	 * Default widget id.
@@ -140,42 +140,49 @@ class HCaptcha {
 	/**
 	 * Display signature.
 	 *
-	 * @param int|string $form_id Form id.
+	 * @param string     $class_name     Class name.
+	 * @param int|string $form_id        Form id.
+	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
 	 *
 	 * @return void
 	 */
-	public static function display_signature( $form_id ) {
+	public static function display_signature( string $class_name, $form_id, bool $hcaptcha_shown ) {
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$name = self::HCAPTCHA_SIGNATURE_ID . '-' . base64_encode( static::class );
+		$name = self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
 
 		?>
 		<input
 				type="hidden"
-				class="<?php echo esc_attr( self::HCAPTCHA_SIGNATURE_ID ); ?>"
+				class="<?php echo esc_attr( self::HCAPTCHA_SIGNATURE ); ?>"
 				name="<?php echo esc_attr( $name ); ?>"
-				value="<?php echo esc_attr( self::get_hashed_id( $form_id ) ); ?>">
+				value="<?php echo esc_attr( self::encode_signature( $class_name, $form_id, $hcaptcha_shown ) ); ?>">
 		<?php
 	}
 
 	/**
 	 * Check signature.
 	 *
-	 * @param int|string $form_id Form id.
+	 * @param string     $class_name Class name.
+	 * @param int|string $form_id    Form id.
 	 *
-	 * @return bool
+	 * @return bool|null True if signature is valid, false if not or does not exist. Null if valid and hCaptcha was shown.
 	 */
-	public static function check_signature( $form_id ): bool {
-		$info = self::get_hashed_id_info(
+	public static function check_signature( string $class_name, $form_id ) {
+		$info = self::decode_id_info(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			self::HCAPTCHA_SIGNATURE_ID . '-' . base64_encode( static::class )
+			self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name )
 		);
 
-		return (
-			self::get_class_source( static::class ) === $info['id']['source'] &&
-			$form_id === $info['id']['form_id'] &&
-			wp_hash( $info['encoded_id'] ) === $info['hash']
-		);
+		if (
+			$form_id !== $info['id']['form_id'] ||
+			self::get_class_source( $class_name ) !== $info['id']['source'] ||
+			wp_hash( $info['encoded_id'] ) !== $info['hash']
+		) {
+			return false;
+		}
+
+		return $info['id']['hcaptcha_shown'] ? null : true;
 	}
 
 	/**
@@ -188,7 +195,7 @@ class HCaptcha {
 	 * @return bool
 	 */
 	public static function is_protection_enabled(): bool {
-		$info = self::get_hashed_id_info();
+		$info = self::decode_id_info();
 
 		$id         = $info['id'];
 		$encoded_id = $info['encoded_id'];
@@ -206,7 +213,7 @@ class HCaptcha {
 	 * @return array
 	 */
 	public static function get_widget_id(): array {
-		return self::get_hashed_id_info()['id'];
+		return self::decode_id_info()['id'];
 	}
 
 	/**
@@ -747,7 +754,7 @@ class HCaptcha {
 	 *
 	 * @return array
 	 */
-	private static function get_hashed_id_info( string $hashed_id_field = '' ): array {
+	private static function decode_id_info( string $hashed_id_field = '' ): array {
 		$hashed_id_field = $hashed_id_field ?: self::HCAPTCHA_WIDGET_ID;
 
 		// Nonce is checked in hcaptcha_verify_post().
@@ -785,16 +792,19 @@ class HCaptcha {
 	}
 
 	/**
-	 * Get hashed id.
+	 * Encode signature.
 	 *
-	 * @param int|string $form_id Form id.
+	 * @param string     $class_name     Class name.
+	 * @param int|string $form_id        Form id.
+	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
 	 *
 	 * @return string
 	 */
-	private static function get_hashed_id( $form_id ): string {
+	private static function encode_signature( string $class_name, $form_id, bool $hcaptcha_shown ): string {
 		$id = [
-			'source'  => self::get_class_source( static::class ),
-			'form_id' => $form_id,
+			'source'         => self::get_class_source( $class_name ),
+			'form_id'        => $form_id,
+			'hcaptcha_shown' => $hcaptcha_shown,
 		];
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
