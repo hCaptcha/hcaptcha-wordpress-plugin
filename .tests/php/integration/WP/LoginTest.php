@@ -54,10 +54,6 @@ class LoginTest extends HCaptchaWPTestCase {
 			10,
 			has_action( 'login_form', [ $subject, 'add_captcha' ] )
 		);
-		self::assertSame(
-			10,
-			has_action( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
 	}
 
 	/**

@@ -9,8 +9,6 @@ namespace HCaptcha\Affiliates;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-use WP_User;
 
 /**
  * Class Login
@@ -26,7 +24,6 @@ class Login extends LoginBase {
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 		add_filter( 'login_form_top', [ $this, 'add_affiliates_marker' ], 10, 2 );
 		add_filter( 'login_form_middle', [ $this, 'add_affiliates_captcha' ], 10, 2 );
-		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
@@ -70,40 +67,6 @@ class Login extends LoginBase {
 		$this->add_captcha();
 
 		return $content . ob_get_clean();
-	}
-
-	/**
-	 * Verify a login form.
-	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
-	 * @param string           $password Password to check against the user.
-	 *
-	 * @return WP_User|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function verify( $user, string $password ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['affiliates-login-form'] ) ) {
-			return $user;
-		}
-
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $user;
-		}
-
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null === $error_message ) {
-			return $user;
-		}
-
-		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
-		return new WP_Error( $code, $error_message, 400 );
 	}
 
 	/**
