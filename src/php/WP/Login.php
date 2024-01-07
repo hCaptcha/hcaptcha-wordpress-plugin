@@ -44,41 +44,4 @@ class Login extends LoginBase {
 
 		parent::add_captcha();
 	}
-
-	/**
-	 * Verify a login form.
-	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
-	 * @param string           $password Password to check against the user.
-	 *
-	 * @return WP_User|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function verify( $user, string $password ) {
-		if (
-			! (
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				isset( $_POST['log'], $_POST['pwd'] ) &&
-				$this->is_wp_login_form()
-			)
-		) {
-			return $user;
-		}
-
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $user;
-		}
-
-		$error_message = hcaptcha_get_verify_message_html(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null === $error_message ) {
-			return $user;
-		}
-
-		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
-	}
 }
