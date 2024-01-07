@@ -547,7 +547,9 @@ Instructions for popular native integrations are below:
 * Added support for WPForms embedded forms.
 * Added Affiliates Login Form integration.
 * Added Affiliates Register Form integration.
+* Improved login forms security.
 * Improved inline scripts to optimize page load time.
+* Improved Integrations settings page - the Save Changes button moved up for better UX.
 * Fixed hCaptcha position in BuddyPress.
 * Fixed hCaptcha position in wpDiscuz.
 * Fixed fatal error in Brizy integration.
