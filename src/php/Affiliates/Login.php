@@ -22,29 +22,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
-		add_filter( 'login_form_top', [ $this, 'add_affiliates_marker' ], 10, 2 );
 		add_filter( 'login_form_middle', [ $this, 'add_affiliates_captcha' ], 10, 2 );
-	}
-
-	/**
-	 * Add marker to distinguish the form.
-	 *
-	 * @param string|mixed $content Content to display. Default empty.
-	 * @param array        $args    Array of login form arguments.
-	 *
-	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_affiliates_marker( $content, array $args ): string {
-		$content = (string) $content;
-
-		if ( ! $this->is_affiliates_login_form() ) {
-			return $content;
-		}
-
-		$marker = '<input id="affiliates-login-form" type="hidden" name="affiliates-login-form">';
-
-		return $content . $marker;
 	}
 
 	/**
