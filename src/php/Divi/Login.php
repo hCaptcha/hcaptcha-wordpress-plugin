@@ -29,13 +29,6 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_divi_captcha' ], 10, 2 );
-
-		// Check login status, because class is always loading when Divi theme is active.
-		if ( hcaptcha()->settings()->is( 'divi_status', 'login' ) ) {
-			add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		} else {
-			add_filter( 'hcap_protect_form', [ $this, 'protect_form' ], 10, 3 );
-		}
 	}
 
 	/**
@@ -59,17 +52,21 @@ class Login extends LoginBase {
 			return $output;
 		}
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
-			],
-		];
+		$hcaptcha = '';
+
+		// Check login status, because class is always loading when Divi theme is active.
+		if ( hcaptcha()->settings()->is( 'divi_status', 'login' ) ) {
+			ob_start();
+			$this->add_captcha();
+			$hcaptcha = (string) ob_get_clean();
+		}
+
+		ob_start();
+		do_action( 'hcap_signature' );
+		$signatures = (string) ob_get_clean();
 
 		$pattern     = '/(<p>[\s]*?<button)/';
-		$replacement = HCaptcha::form( $args ) . "\n" . '$1';
+		$replacement = $hcaptcha . $signatures . "\n" . '$1';
 
 		// Insert hCaptcha.
 		return preg_replace( $pattern, $replacement, $output );

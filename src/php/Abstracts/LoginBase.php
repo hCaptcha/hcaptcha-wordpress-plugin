@@ -70,6 +70,7 @@ abstract class LoginBase {
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
+		add_action( 'hcap_signature', [ $this, 'display_signature' ] );
 		add_action( 'login_form', [ $this, 'display_signature' ], PHP_INT_MAX );
 		add_filter( 'login_form_middle', [ $this, 'add_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'check_signature' ], PHP_INT_MAX, 2 );
