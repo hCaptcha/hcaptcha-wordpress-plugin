@@ -249,23 +249,6 @@ abstract class LoginBase {
 	}
 
 	/**
-	 * Protect form filter.
-	 *
-	 * @param bool|mixed $value   The protection status of a form.
-	 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-	 * @param int|string $form_id Form id.
-	 *
-	 * @return bool
-	 */
-	public function protect_form( $value, array $source, $form_id ): bool {
-		if ( 'login' === $form_id && HCaptcha::get_class_source( static::class ) === $source ) {
-			return false;
-		}
-
-		return (bool) $value;
-	}
-
-	/**
 	 * Verify a login form.
 	 *
 	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
