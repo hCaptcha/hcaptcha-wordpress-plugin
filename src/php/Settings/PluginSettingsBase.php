@@ -168,11 +168,28 @@ abstract class PluginSettingsBase extends SettingsBase {
 			settings_fields( $this->option_group() ); // Hidden protection fields.
 
 			if ( ! empty( $this->form_fields ) ) {
-				submit_button();
+				$this->submit_button();
 			}
 			?>
 		</form>
 		<?php
+	}
+
+	/**
+	 * Show submit button in any place of the form.
+	 *
+	 * @return void
+	 */
+	public function submit_button() {
+		static $shown = false;
+
+		if ( $shown ) {
+			return;
+		}
+
+		$shown = true;
+
+		submit_button();
 	}
 
 	/**

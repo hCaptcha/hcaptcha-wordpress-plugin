@@ -559,6 +559,8 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
+			$this->submit_button();
+
 			?>
 			<hr class="hcaptcha-disabled-section">
 			<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
