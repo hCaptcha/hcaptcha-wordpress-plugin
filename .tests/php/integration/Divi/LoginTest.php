@@ -61,6 +61,8 @@ class LoginTest extends HCaptchaWPTestCase {
 			</div>';
 
 		$module_slug = 'et_pb_login';
+		$encoded     = 'eyJzb3VyY2UiOlsiRGl2aSJdLCJmb3JtX2lkIjoibG9naW4iLCJoY2FwdGNoYV9zaG93biI6dHJ1ZX0=';
+		$hash        = wp_hash( $encoded );
 
 		$expected = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
 				
@@ -78,7 +80,13 @@ class LoginTest extends HCaptchaWPTestCase {
 							<input id="user_pass_61e5e64ddf4d8" placeholder="Password" class="input" type="password" value="" name="pwd" />
 						</p>
 						<p class="et_pb_forgot_password"><a href="http://test.test/wp-login.php?action=lostpassword">Forgot your password?</a></p>
-						' . $this->get_hcap_form( 'hcaptcha_login', 'hcaptcha_login_nonce' ) . "\n" . '<p>
+						' . $this->get_hcap_form( 'hcaptcha_login', 'hcaptcha_login_nonce' ) . '		<input
+				type="hidden"
+				class="hcaptcha-signature"
+				name="hcaptcha-signature-SENhcHRjaGFcRGl2aVxMb2dpbg=="
+				value="' . $encoded . '-' . $hash . '">
+		
+<p>
 							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>
 							
 						</p>

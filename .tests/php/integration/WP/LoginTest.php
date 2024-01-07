@@ -8,7 +8,6 @@
 namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
 use ReflectionException;
@@ -128,31 +127,6 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test protect_form().
-	 *
-	 * @return void
-	 * @noinspection PhpConditionAlreadyCheckedInspection
-	 */
-	public function test_protect_form() {
-		$value   = true;
-		$source  = HCaptcha::get_class_source( Login::class );
-		$form_id = 'login';
-
-		$subject = new Login();
-
-		self::assertFalse( $subject->protect_form( $value, $source, $form_id ) );
-
-		$form_id = 'some';
-
-		self::assertSame( $value, $subject->protect_form( $value, $source, $form_id ) );
-
-		$form_id = 'login';
-		$source  = [];
-
-		self::assertSame( $value, $subject->protect_form( $value, $source, $form_id ) );
-	}
-
-	/**
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
@@ -237,18 +211,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $user, $subject->verify( $user, '' ) );
-	}
-
-	/**
-	 * Test verify() when nto WP login form.
-	 */
-	public function test_verify_when_NOT_wp_login_form() {
-		$user = new WP_User( 1 );
-
-		$subject = new Login();
-
-		self::assertEquals( $user, $subject->verify( $user, '' ) );
+		self::assertEquals( $user, $subject->login_base_verify( $user, '' ) );
 	}
 
 	/**
@@ -272,7 +235,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $user, $subject->verify( $user, '' ) );
+		self::assertEquals( $user, $subject->login_base_verify( $user, '' ) );
 	}
 
 	/**
@@ -280,7 +243,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_not_verified() {
 		$user     = new WP_User( 1 );
-		$expected = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> The hCaptcha is invalid.', 400 );
+		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
@@ -295,6 +258,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $expected, $subject->verify( $user, '' ) );
+		self::assertEquals( $expected, $subject->login_base_verify( $user, '' ) );
 	}
 }

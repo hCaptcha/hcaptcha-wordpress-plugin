@@ -134,7 +134,7 @@ abstract class LoginBase {
 			return new WP_Error( $code, $error_message, 400 );
 		}
 
-		return $this->verify( $user, $password );
+		return $this->login_base_verify( $user, $password );
 	}
 
 	/**
@@ -258,7 +258,7 @@ abstract class LoginBase {
 	 * @return WP_User|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	private function verify( $user, string $password ) {
+	public function login_base_verify( $user, string $password ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return $user;
 		}
