@@ -81,17 +81,4 @@ class Login extends LoginBase {
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
 	}
-
-	/**
-	 * Whether we process the native WP login form created in wp-login.php.
-	 *
-	 * @return bool
-	 */
-	private function is_wp_login_form(): bool {
-		return (
-			did_action( 'login_init' ) &&
-			did_action( 'login_form_login' ) &&
-			HCaptcha::did_filter( 'login_link_separator' )
-		);
-	}
 }

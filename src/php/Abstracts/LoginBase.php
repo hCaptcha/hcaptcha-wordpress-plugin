@@ -116,6 +116,10 @@ abstract class LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_signature( $user, string $password ) {
+		if ( ! $this->is_wp_login_form() ) {
+			return $user;
+		}
+
 		$check = HCaptcha::check_signature( static::class, 'login' );
 
 		if ( $check ) {
@@ -201,6 +205,19 @@ abstract class LoginBase {
 		HCaptcha::form_display( $args );
 
 		$this->hcaptcha_shown = true;
+	}
+
+	/**
+	 * Whether we process the native WP login form created in wp-login.php.
+	 *
+	 * @return bool
+	 */
+	protected function is_wp_login_form(): bool {
+		return (
+			did_action( 'login_init' ) &&
+			did_action( 'login_form_login' ) &&
+			HCaptcha::did_filter( 'login_link_separator' )
+		);
 	}
 
 	/**
