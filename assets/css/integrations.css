@@ -124,6 +124,10 @@
 	margin: 20px 0;
 }
 
+.hcaptcha-integrations table.form-table + p.submit {
+	padding: 10px 0 0 0;
+}
+
 @media (max-width: 1279px) {
 	.hcaptcha-integrations table tbody {
 		grid-template-columns: repeat(3, minmax(100px, 1fr));

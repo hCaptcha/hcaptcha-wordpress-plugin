@@ -8,6 +8,7 @@
 namespace HCaptcha\LearnDash;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
 
@@ -23,13 +24,6 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_filter( 'login_form_middle', [ $this, 'add_learn_dash_captcha' ], 10, 2 );
-
-		// Check login status, because class is always loading when LearDash plugin is active.
-		if ( hcaptcha()->settings()->is( 'learn_dash_status', 'login' ) ) {
-			add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
-		} else {
-			add_filter( 'hcap_protect_form', [ $this, 'protect_form' ], 10, 3 );
-		}
 	}
 
 	/**
@@ -43,43 +37,24 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_learn_dash_captcha( $content, $args ): string {
+		$content = (string) $content;
+
+		if ( ! $this->is_learn_dash_login_form() ) {
+			return $content;
+		}
+
 		ob_start();
 		$this->add_captcha();
 
-		return (string) ob_get_clean();
+		return $content . ob_get_clean();
 	}
 
 	/**
-	 * Verify a login form.
+	 * Whether we process the Learn Dash login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
-	 * @param string           $password Password to check against the user.
-	 *
-	 * @return WP_User|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
+	 * @return bool
 	 */
-	public function verify( $user, string $password ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['learndash-login-form'] ) ) {
-			return $user;
-		}
-
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $user;
-		}
-
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null === $error_message ) {
-			return $user;
-		}
-
-		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
-		return new WP_Error( $code, $error_message, 400 );
+	private function is_learn_dash_login_form(): bool {
+		return HCaptcha::did_filter( 'learndash-login-form-args' );
 	}
 }

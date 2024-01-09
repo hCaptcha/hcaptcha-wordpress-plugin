@@ -13,6 +13,7 @@ namespace HCaptcha\CF7;
 use HCaptcha\Helpers\HCaptcha;
 use WPCF7_FormTag;
 use WPCF7_Submission;
+use WPCF7_TagGenerator;
 use WPCF7_Validation;
 
 /**
@@ -38,6 +39,8 @@ class CF7 {
 		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
 		add_filter( 'wpcf7_validate', [ $this, 'verify_hcaptcha' ], 20, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
 	}
 
 	/**
@@ -92,7 +95,7 @@ class CF7 {
 	public function cf7_hcaptcha_shortcode( $attr = [] ): string {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
-		$hcaptcha_theme    = $settings->get( 'theme' );
+		$hcaptcha_theme    = $settings->get_theme();
 		$hcaptcha_size     = $settings->get( 'size' );
 		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
 
@@ -122,6 +125,16 @@ class CF7 {
 			]
 		);
 
+		foreach ( $args as $arg ) {
+			if ( is_array( $arg ) ) {
+				continue;
+			}
+
+			if ( preg_match( '/(id|class):([\w-]+)/', $arg, $m ) ) {
+				$args[ 'cf7-' . $m[1] ] = $m[2];
+			}
+		}
+
 		if ( $args['id'] ) {
 			$id            = (array) $args['id'];
 			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
@@ -138,10 +151,10 @@ class CF7 {
 				ob_start();
 				?>
 				<input
-					type="hidden"
-					class="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
-					name="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
-					value="<?php echo esc_attr( $widget_id ); ?>">
+						type="hidden"
+						class="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
+						name="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
+						value="<?php echo esc_attr( $widget_id ); ?>">
 				<?php
 
 				return ob_get_clean();
@@ -153,10 +166,13 @@ class CF7 {
 
 		hcaptcha()->form_shown = true;
 
+		$id    = $args['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
+		$class = $args['cf7-class'] ?? '';
+
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
-			'<span id="' . uniqid( 'hcap_cf7-', true ) . '"' .
-			' class="wpcf7-form-control h-captcha"' .
+			'<span id="' . $id . '"' .
+			' class="wpcf7-form-control h-captcha ' . $class . '"' .
 			' data-sitekey="' . esc_attr( $hcaptcha_site_key ) . '"' .
 			' data-theme="' . esc_attr( $hcaptcha_theme ) . '"' .
 			' data-size="' . esc_attr( $args['size'] ) . '"' .
@@ -241,6 +257,111 @@ class CF7 {
 	}
 
 	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	span[data-name="hcap-cf7"] .h-captcha {
+		margin-bottom: 0;
+	}
+
+	span[data-name="hcap-cf7"] ~ input[type="submit"],
+	span[data-name="hcap-cf7"] ~ button[type="submit"] {
+		margin-top: 2rem;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Add tag generator to admin editor.
+	 *
+	 * @return void
+	 */
+	public function add_tag_generator_hcaptcha() {
+		$tag_generator = WPCF7_TagGenerator::get_instance();
+
+		$tag_generator->add(
+			'cf7-hcaptcha',
+			__( 'hCaptcha', 'hcaptcha-for-forms-and-more' ),
+			[ $this, 'tag_generator_hcaptcha' ]
+		);
+	}
+
+	/**
+	 * Show tag generator.
+	 *
+	 * @param mixed        $contact_form Contact form.
+	 * @param array|string $args         Arguments.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function tag_generator_hcaptcha( $contact_form, $args = '' ) {
+		$args        = wp_parse_args( $args );
+		$type        = $args['id'];
+		$description = __( 'Generate a form-tag for a hCaptcha field.', 'hcaptcha-for-forms-and-more' );
+
+		?>
+		<div class="control-box">
+			<fieldset>
+				<legend><?php echo esc_html( $description ); ?></legend>
+
+				<table class="form-table">
+					<tbody>
+
+					<tr>
+						<th scope="row">
+							<label for="<?php echo esc_attr( $args['content'] . '-id' ); ?>">
+								<?php echo esc_html( __( 'Id attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
+							</label>
+						</th>
+						<td>
+							<input
+									type="text" name="id" class="idvalue oneline option"
+									id="<?php echo esc_attr( $args['content'] . '-id' ); ?>"/>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">
+							<label for="<?php echo esc_attr( $args['content'] . '-class' ); ?>">
+								<?php echo esc_html( __( 'Class attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
+							</label>
+						</th>
+						<td>
+							<input
+									type="text" name="class" class="classvalue oneline option"
+									id="<?php echo esc_attr( $args['content'] . '-class' ); ?>"/>
+						</td>
+					</tr>
+
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+
+		<div class="insert-box">
+			<label>
+				<input
+						type="text" name="<?php echo esc_attr( $type ); ?>" class="tag code" readonly="readonly"
+						onfocus="this.select()"/>
+			</label>
+
+			<div class="submitbox">
+				<input
+						type="button" class="button button-primary insert-tag"
+						value="<?php echo esc_attr( __( 'Insert Tag', 'hcaptcha-for-forms-and-more' ) ); ?>"/>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Add form_id to cf7_hcaptcha shortcode if it does not exist.
 	 * Replace to proper form_id if needed.
 	 *
@@ -260,6 +381,8 @@ class CF7 {
 		}
 
 		$cf7_hcap_sc = $matches[0];
+		$cf7_hcap_sc = preg_replace( '/\s*\[|]\s*/', '', $cf7_hcap_sc );
+		$cf7_hcap_sc = preg_replace( '/(id|class)\s*:\s*([\w-]+)/', '$1=$2', $cf7_hcap_sc );
 		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );
@@ -277,7 +400,7 @@ class CF7 {
 			}
 		);
 
-		$updated_cf_hcap_sc = '[' . self::SHORTCODE . ' ' . implode( ' ', $atts ) . ']';
+		$updated_cf_hcap_sc = self::SHORTCODE . ' ' . implode( ' ', $atts );
 
 		return str_replace( $cf7_hcap_sc, $updated_cf_hcap_sc, $output );
 	}

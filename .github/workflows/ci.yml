@@ -50,7 +50,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: ${{ env.wp-plugin-directory }}
-        if: ${{ matrix.php-version == '8.2' }}
+        if: ${{ matrix.php-version == '8.3' }}
         run: |
           corepack enable
           yarn set version stable
@@ -114,6 +114,6 @@ jobs:
         run: composer integration -- --env github-actions
 
       - name: Run Jest
-        if: ${{ matrix.php-version == '8.2' }}
+        if: ${{ matrix.php-version == '8.3' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: yarn jest

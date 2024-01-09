@@ -210,6 +210,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 */
 	public function test_section_callback( string $id, string $expected ) {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
+		WP_Mock::userFunction( 'submit_button' );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
 

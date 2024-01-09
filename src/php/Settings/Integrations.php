@@ -93,6 +93,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'affiliates_status'                => [
+				'label'   => 'Affiliates',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => __( 'Affiliates Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Affiliates Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'asgaros_status'                   => [
 				'label'   => 'Asgaros',
 				'type'    => 'checkbox',
@@ -432,8 +440,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WPForms',
 				'type'    => 'checkbox',
 				'options' => [
-					'lite' => __( 'Lite', 'hcaptcha-for-forms-and-more' ),
-					'pro'  => __( 'Pro', 'hcaptcha-for-forms-and-more' ),
+					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
+					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wpdiscuz_status'                  => [
@@ -551,6 +559,8 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
+			$this->submit_button();
+
 			?>
 			<hr class="hcaptcha-disabled-section">
 			<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>

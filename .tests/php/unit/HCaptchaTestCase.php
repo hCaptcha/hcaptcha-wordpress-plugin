@@ -443,11 +443,11 @@ abstract class HCaptchaTestCase extends TestCase {
 					'fr'    => 'French',
 					'fy'    => 'Frisian',
 					'gd'    => 'Gaelic',
-					'gl'    => 'Galacian',
+					'gl'    => 'Galician',
 					'ka'    => 'Georgian',
 					'de'    => 'German',
 					'el'    => 'Greek',
-					'gu'    => 'Gujurati',
+					'gu'    => 'Gujarati',
 					'ht'    => 'Haitian',
 					'ha'    => 'Hausa',
 					'haw'   => 'Hawaiian',
@@ -495,11 +495,11 @@ abstract class HCaptchaTestCase extends TestCase {
 					'sm'    => 'Samoan',
 					'sn'    => 'Shona',
 					'sd'    => 'Sindhi',
-					'si'    => 'Singhalese',
+					'si'    => 'Sinhala',
 					'sr'    => 'Serbian',
 					'sk'    => 'Slovak',
 					'sl'    => 'Slovenian',
-					'so'    => 'Somani',
+					'so'    => 'Somali',
 					'st'    => 'Southern Sotho',
 					'es'    => 'Spanish',
 					'su'    => 'Sundanese',
@@ -509,7 +509,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'tg'    => 'Tajik',
 					'ta'    => 'Tamil',
 					'tt'    => 'Tatar',
-					'te'    => 'Teluga',
+					'te'    => 'Telugu',
 					'th'    => 'Thai',
 					'tr'    => 'Turkish',
 					'tk'    => 'Turkmen',
@@ -667,6 +667,16 @@ abstract class HCaptchaTestCase extends TestCase {
 					'options' =>
 						[
 							'form' => 'ACF Extended Form',
+						],
+				],
+			'affiliates_status'                =>
+				[
+					'label'   => 'Affiliates',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login'    => 'Affiliates Login Form',
+							'register' => 'Affiliates Register Form',
 						],
 				],
 			'asgaros_status'                   => [
@@ -1059,8 +1069,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'lite' => 'Lite',
-							'pro'  => 'Pro',
+							'form'  => 'Form Auto-Add',
+							'embed' => 'Form Embed',
 						],
 				],
 			'wpdiscuz_status'                  =>

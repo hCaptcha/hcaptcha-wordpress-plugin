@@ -190,19 +190,19 @@ class Form {
 	 * Print inline styles.
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles() {
-		?>
-		<!--suppress CssUnusedSymbol -->
-		<style>
-		#form-preview .h-captcha {
-			margin-bottom: 2rem;
-		}
+		$css = <<<CSS
+	#form-preview .h-captcha {
+		margin-bottom: 2rem;
+	}
 
-		.hf-fields-wrap .h-captcha {
-			margin-top: 2rem;
-		}
-		</style>
-		<?php
+	.hf-fields-wrap .h-captcha {
+		margin-top: 2rem;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

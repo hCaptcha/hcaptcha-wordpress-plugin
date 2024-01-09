@@ -170,6 +170,7 @@ abstract class Base extends LoginBase {
 	 * @return string|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection PhpUndefinedConstantInspection
+	 * @noinspection PhpParamsInspection
 	 */
 	public function display_captcha( $output, string $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {

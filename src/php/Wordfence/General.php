@@ -69,6 +69,6 @@ class General {
 		}
 
 		remove_action( 'login_form', [ $wp_login, 'add_captcha' ] );
-		remove_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] );
+		remove_filter( 'wp_authenticate_user', [ $wp_login, 'check_signature' ], PHP_INT_MAX );
 	}
 }

@@ -25,28 +25,6 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'wpforms-lite/wpforms.php';
 
 	/**
-	 * Tests add_captcha().
-	 */
-	public function test_add_captcha() {
-		$form_data = [ 'id' => 5 ];
-		$expected  =
-			$this->get_hcap_form() .
-			wp_nonce_field(
-				'hcaptcha_wpforms',
-				'hcaptcha_wpforms_nonce',
-				true,
-				false
-			);
-		$subject   = new Form();
-
-		ob_start();
-
-		$subject->add_captcha( $form_data );
-
-		self::assertSame( $expected, ob_get_clean() );
-	}
-
-	/**
 	 * Test verify().
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
@@ -54,7 +32,10 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	public function test_verify() {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
-		$subject   = new Form();
+
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+
+		$subject = new Form();
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
@@ -74,9 +55,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	public function test_verify_not_verified() {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
-		$subject   = new Form();
+		$expected  = 'The hCaptcha is invalid.';
 
-		$expected = 'The hCaptcha is invalid.';
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+
+		$subject = new Form();
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 

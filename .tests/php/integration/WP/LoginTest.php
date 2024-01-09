@@ -54,10 +54,118 @@ class LoginTest extends HCaptchaWPTestCase {
 			10,
 			has_action( 'login_form', [ $subject, 'add_captcha' ] )
 		);
-		self::assertSame(
-			10,
-			has_action( 'wp_authenticate_user', [ $subject, 'verify' ] )
-		);
+	}
+
+	/**
+	 * Test display_signature().
+	 *
+	 * @return void
+	 */
+	public function test_display_signature() {
+		$subject = new Login();
+
+		$expected = $this->get_signature( get_class( $subject ) );
+
+		ob_start();
+		$subject->display_signature();
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_signature().
+	 *
+	 * @return void
+	 */
+	public function test_add_signature() {
+		$content = 'some content';
+
+		$subject = new Login();
+
+		$expected = $content . $this->get_signature( get_class( $subject ) );
+
+		self::assertSame( $expected, $subject->add_signature( $content, [] ) );
+	}
+
+	/**
+	 * Test check_signature().
+	 *
+	 * @return void
+	 */
+	public function test_check_signature() {
+		$user     = wp_get_current_user();
+		$password = 'some password';
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature', null );
+
+		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+
+		$subject = new Login();
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		self::assertSame( $user, $subject->check_signature( $user, $password ) );
+	}
+
+	/**
+	 * Test check_signature() when NOT wp login form.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_when_NOT_wp_login_form() {
+		$user     = wp_get_current_user();
+		$password = 'some password';
+
+		$subject = new Login();
+
+		self::assertSame( $user, $subject->check_signature( $user, $password ) );
+	}
+
+	/**
+	 * Test check_signature() when good signature.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_when_good_signature() {
+		$user     = wp_get_current_user();
+		$password = 'some password';
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature', true );
+
+		$subject = new Login();
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		self::assertSame( $user, $subject->check_signature( $user, $password ) );
+	}
+
+	/**
+	 * Test check_signature() when bad signature.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_when_bad_signature() {
+		$user     = wp_get_current_user();
+		$password = 'some password';
+
+		$subject = new Login();
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		$expected = new WP_Error( 'bad-signature', 'Bad hCaptcha signature!', 400 );
+
+		self::assertSame( wp_json_encode( $expected ), wp_json_encode( $subject->check_signature( $user, $password ) ) );
 	}
 
 	/**
@@ -129,31 +237,6 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected_login_data, $this->get_protected_property( $subject, 'login_data' ) );
 		self::assertSame( $expected_login_data, get_option( LoginBase::LOGIN_DATA ) );
-	}
-
-	/**
-	 * Test protect_form().
-	 *
-	 * @return void
-	 * @noinspection PhpConditionAlreadyCheckedInspection
-	 */
-	public function test_protect_form() {
-		$value   = true;
-		$source  = HCaptcha::get_class_source( Login::class );
-		$form_id = 'login';
-
-		$subject = new Login();
-
-		self::assertFalse( $subject->protect_form( $value, $source, $form_id ) );
-
-		$form_id = 'some';
-
-		self::assertSame( $value, $subject->protect_form( $value, $source, $form_id ) );
-
-		$form_id = 'login';
-		$source  = [];
-
-		self::assertSame( $value, $subject->protect_form( $value, $source, $form_id ) );
 	}
 
 	/**
@@ -241,18 +324,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $user, $subject->verify( $user, '' ) );
-	}
-
-	/**
-	 * Test verify() when nto WP login form.
-	 */
-	public function test_verify_when_NOT_wp_login_form() {
-		$user = new WP_User( 1 );
-
-		$subject = new Login();
-
-		self::assertEquals( $user, $subject->verify( $user, '' ) );
+		self::assertEquals( $user, $subject->login_base_verify( $user, '' ) );
 	}
 
 	/**
@@ -276,7 +348,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $user, $subject->verify( $user, '' ) );
+		self::assertEquals( $user, $subject->login_base_verify( $user, '' ) );
 	}
 
 	/**
@@ -284,7 +356,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_not_verified() {
 		$user     = new WP_User( 1 );
-		$expected = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> The hCaptcha is invalid.', 400 );
+		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
@@ -299,6 +371,27 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertEquals( $expected, $subject->verify( $user, '' ) );
+		self::assertEquals( $expected, $subject->login_base_verify( $user, '' ) );
+	}
+
+	/**
+	 * Get signature.
+	 *
+	 * @param string $class_name Class name.
+	 *
+	 * @return string
+	 */
+	private function get_signature( string $class_name ): string {
+		$const = HCaptcha::HCAPTCHA_SIGNATURE;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = $const . '-' . base64_encode( $class_name );
+
+		return '		<input
+				type="hidden"
+				class="' . $const . '"
+				name="' . $name . '"
+				value="' . $this->get_encoded_signature( [ 'WordPress' ], 'login', false ) . '">
+		';
 	}
 }

@@ -16,7 +16,6 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Comment;
 use Mockery;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**

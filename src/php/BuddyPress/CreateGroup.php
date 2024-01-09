@@ -39,6 +39,7 @@ class CreateGroup {
 	private function init_hooks() {
 		add_action( 'bp_after_group_details_creation_step', [ $this, 'add_captcha' ] );
 		add_action( 'groups_group_before_save', [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -63,7 +64,6 @@ class CreateGroup {
 		echo '</div>';
 	}
 
-
 	/**
 	 * Verify group form captcha.
 	 *
@@ -83,12 +83,27 @@ class CreateGroup {
 		if ( null !== $error_message ) {
 			bp_core_add_message( $error_message, 'error' );
 			bp_core_redirect(
-				bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create/step/group-details/'
+				bp_get_root_url() . '/' . bp_get_groups_root_slug() . '/create/step/group-details/'
 			);
 
 			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<'CSS'
+	#buddypress .h-captcha {
+		margin-top: 15px;
+	}
+CSS;
+		HCaptcha::css_display( $css );
 	}
 }

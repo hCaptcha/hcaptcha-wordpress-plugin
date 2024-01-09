@@ -73,6 +73,7 @@ class Form {
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -332,6 +333,24 @@ class Form {
 				],
 		];
 	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.frm-fluent-form .h-captcha {
+		line-height: 0;
+		margin-bottom: 0;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
+	}
+
 
 	/**
 	 * Whether the form has its own hcaptcha set in admin.

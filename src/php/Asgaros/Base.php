@@ -29,6 +29,7 @@ abstract class Base {
 	private function init_hooks() {
 		add_filter( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ], 10, 4 );
 		add_filter( static::VERIFY_HOOK, [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -93,5 +94,26 @@ abstract class Base {
 		}
 
 		return $verified;
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	#af-wrapper div.editor-row.editor-row-hcaptcha {
+		display: flex;
+		flex-direction: row-reverse;
+	}
+
+	#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

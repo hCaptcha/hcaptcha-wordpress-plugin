@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Admin\Notifications;
 use HCaptcha\Helpers\HCaptcha;
 use KAGG\Settings\Abstracts\SettingsBase;
 
@@ -88,6 +89,13 @@ class General extends PluginSettingsBase {
 	const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
 	/**
+	 * Notifications class instance.
+	 *
+	 * @var Notifications
+	 */
+	protected $notifications;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -111,12 +119,25 @@ class General extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		$hcaptcha = hcaptcha();
+		$hcaptcha  = hcaptcha();
+		$page_hook = $this->screen_id();
+
+		add_action( "load-{$page_hook}", [ $this, 'init_notifications' ] );
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
+	}
+
+	/**
+	 * Init notifications.
+	 *
+	 * @return void
+	 */
+	public function init_notifications() {
+		$this->notifications = new Notifications();
+		$this->notifications->init();
 	}
 
 	/**
@@ -180,117 +201,117 @@ class General extends PluginSettingsBase {
 				'type'    => 'select',
 				'section' => self::SECTION_APPEARANCE,
 				'options' => [
-					''      => '--- Auto-Detect ---',
-					'af'    => 'Afrikaans',
-					'sq'    => 'Albanian',
-					'am'    => 'Amharic',
-					'ar'    => 'Arabic',
-					'hy'    => 'Armenian',
-					'az'    => 'Azerbaijani',
-					'eu'    => 'Basque',
-					'be'    => 'Belarusian',
-					'bn'    => 'Bengali',
-					'bg'    => 'Bulgarian',
-					'bs'    => 'Bosnian',
-					'my'    => 'Burmese',
-					'ca'    => 'Catalan',
-					'ceb'   => 'Cebuano',
-					'zh'    => 'Chinese',
-					'zh-CN' => 'Chinese Simplified',
-					'zh-TW' => 'Chinese Traditional',
-					'co'    => 'Corsican',
-					'hr'    => 'Croatian',
-					'cs'    => 'Czech',
-					'da'    => 'Danish',
-					'nl'    => 'Dutch',
-					'en'    => 'English',
-					'eo'    => 'Esperanto',
-					'et'    => 'Estonian',
-					'fa'    => 'Persian',
-					'fi'    => 'Finnish',
-					'fr'    => 'French',
-					'fy'    => 'Frisian',
-					'gd'    => 'Gaelic',
-					'gl'    => 'Galacian',
-					'ka'    => 'Georgian',
-					'de'    => 'German',
-					'el'    => 'Greek',
-					'gu'    => 'Gujurati',
-					'ht'    => 'Haitian',
-					'ha'    => 'Hausa',
-					'haw'   => 'Hawaiian',
-					'he'    => 'Hebrew',
-					'hi'    => 'Hindi',
-					'hmn'   => 'Hmong',
-					'hu'    => 'Hungarian',
-					'is'    => 'Icelandic',
-					'ig'    => 'Igbo',
-					'id'    => 'Indonesian',
-					'ga'    => 'Irish',
-					'it'    => 'Italian',
-					'ja'    => 'Japanese',
-					'jw'    => 'Javanese',
-					'kn'    => 'Kannada',
-					'kk'    => 'Kazakh',
-					'km'    => 'Khmer',
-					'rw'    => 'Kinyarwanda',
-					'ky'    => 'Kirghiz',
-					'ko'    => 'Korean',
-					'ku'    => 'Kurdish',
-					'lo'    => 'Lao',
-					'la'    => 'Latin',
-					'lv'    => 'Latvian',
-					'lt'    => 'Lithuanian',
-					'lb'    => 'Luxembourgish',
-					'mk'    => 'Macedonian',
-					'mg'    => 'Malagasy',
-					'ms'    => 'Malay',
-					'ml'    => 'Malayalam',
-					'mt'    => 'Maltese',
-					'mi'    => 'Maori',
-					'mr'    => 'Marathi',
-					'mn'    => 'Mongolian',
-					'ne'    => 'Nepali',
-					'no'    => 'Norwegian',
-					'ny'    => 'Nyanja',
-					'or'    => 'Oriya',
-					'pl'    => 'Polish',
-					'pt'    => 'Portuguese',
-					'ps'    => 'Pashto',
-					'pa'    => 'Punjabi',
-					'ro'    => 'Romanian',
-					'ru'    => 'Russian',
-					'sm'    => 'Samoan',
-					'sn'    => 'Shona',
-					'sd'    => 'Sindhi',
-					'si'    => 'Singhalese',
-					'sr'    => 'Serbian',
-					'sk'    => 'Slovak',
-					'sl'    => 'Slovenian',
-					'so'    => 'Somani',
-					'st'    => 'Southern Sotho',
-					'es'    => 'Spanish',
-					'su'    => 'Sundanese',
-					'sw'    => 'Swahili',
-					'sv'    => 'Swedish',
-					'tl'    => 'Tagalog',
-					'tg'    => 'Tajik',
-					'ta'    => 'Tamil',
-					'tt'    => 'Tatar',
-					'te'    => 'Teluga',
-					'th'    => 'Thai',
-					'tr'    => 'Turkish',
-					'tk'    => 'Turkmen',
-					'ug'    => 'Uyghur',
-					'uk'    => 'Ukrainian',
-					'ur'    => 'Urdu',
-					'uz'    => 'Uzbek',
-					'vi'    => 'Vietnamese',
-					'cy'    => 'Welsh',
-					'xh'    => 'Xhosa',
-					'yi'    => 'Yiddish',
-					'yo'    => 'Yoruba',
-					'zu'    => 'Zulu',
+					''      => __( '--- Auto-Detect ---', 'hcaptcha-for-forms-and-more' ),
+					'af'    => __( 'Afrikaans', 'hcaptcha-for-forms-and-more' ),
+					'sq'    => __( 'Albanian', 'hcaptcha-for-forms-and-more' ),
+					'am'    => __( 'Amharic', 'hcaptcha-for-forms-and-more' ),
+					'ar'    => __( 'Arabic', 'hcaptcha-for-forms-and-more' ),
+					'hy'    => __( 'Armenian', 'hcaptcha-for-forms-and-more' ),
+					'az'    => __( 'Azerbaijani', 'hcaptcha-for-forms-and-more' ),
+					'eu'    => __( 'Basque', 'hcaptcha-for-forms-and-more' ),
+					'be'    => __( 'Belarusian', 'hcaptcha-for-forms-and-more' ),
+					'bn'    => __( 'Bengali', 'hcaptcha-for-forms-and-more' ),
+					'bg'    => __( 'Bulgarian', 'hcaptcha-for-forms-and-more' ),
+					'bs'    => __( 'Bosnian', 'hcaptcha-for-forms-and-more' ),
+					'my'    => __( 'Burmese', 'hcaptcha-for-forms-and-more' ),
+					'ca'    => __( 'Catalan', 'hcaptcha-for-forms-and-more' ),
+					'ceb'   => __( 'Cebuano', 'hcaptcha-for-forms-and-more' ),
+					'zh'    => __( 'Chinese', 'hcaptcha-for-forms-and-more' ),
+					'zh-CN' => __( 'Chinese Simplified', 'hcaptcha-for-forms-and-more' ),
+					'zh-TW' => __( 'Chinese Traditional', 'hcaptcha-for-forms-and-more' ),
+					'co'    => __( 'Corsican', 'hcaptcha-for-forms-and-more' ),
+					'hr'    => __( 'Croatian', 'hcaptcha-for-forms-and-more' ),
+					'cs'    => __( 'Czech', 'hcaptcha-for-forms-and-more' ),
+					'da'    => __( 'Danish', 'hcaptcha-for-forms-and-more' ),
+					'nl'    => __( 'Dutch', 'hcaptcha-for-forms-and-more' ),
+					'en'    => __( 'English', 'hcaptcha-for-forms-and-more' ),
+					'eo'    => __( 'Esperanto', 'hcaptcha-for-forms-and-more' ),
+					'et'    => __( 'Estonian', 'hcaptcha-for-forms-and-more' ),
+					'fa'    => __( 'Persian', 'hcaptcha-for-forms-and-more' ),
+					'fi'    => __( 'Finnish', 'hcaptcha-for-forms-and-more' ),
+					'fr'    => __( 'French', 'hcaptcha-for-forms-and-more' ),
+					'fy'    => __( 'Frisian', 'hcaptcha-for-forms-and-more' ),
+					'gd'    => __( 'Gaelic', 'hcaptcha-for-forms-and-more' ),
+					'gl'    => __( 'Galician', 'hcaptcha-for-forms-and-more' ),
+					'ka'    => __( 'Georgian', 'hcaptcha-for-forms-and-more' ),
+					'de'    => __( 'German', 'hcaptcha-for-forms-and-more' ),
+					'el'    => __( 'Greek', 'hcaptcha-for-forms-and-more' ),
+					'gu'    => __( 'Gujarati', 'hcaptcha-for-forms-and-more' ),
+					'ht'    => __( 'Haitian', 'hcaptcha-for-forms-and-more' ),
+					'ha'    => __( 'Hausa', 'hcaptcha-for-forms-and-more' ),
+					'haw'   => __( 'Hawaiian', 'hcaptcha-for-forms-and-more' ),
+					'he'    => __( 'Hebrew', 'hcaptcha-for-forms-and-more' ),
+					'hi'    => __( 'Hindi', 'hcaptcha-for-forms-and-more' ),
+					'hmn'   => __( 'Hmong', 'hcaptcha-for-forms-and-more' ),
+					'hu'    => __( 'Hungarian', 'hcaptcha-for-forms-and-more' ),
+					'is'    => __( 'Icelandic', 'hcaptcha-for-forms-and-more' ),
+					'ig'    => __( 'Igbo', 'hcaptcha-for-forms-and-more' ),
+					'id'    => __( 'Indonesian', 'hcaptcha-for-forms-and-more' ),
+					'ga'    => __( 'Irish', 'hcaptcha-for-forms-and-more' ),
+					'it'    => __( 'Italian', 'hcaptcha-for-forms-and-more' ),
+					'ja'    => __( 'Japanese', 'hcaptcha-for-forms-and-more' ),
+					'jw'    => __( 'Javanese', 'hcaptcha-for-forms-and-more' ),
+					'kn'    => __( 'Kannada', 'hcaptcha-for-forms-and-more' ),
+					'kk'    => __( 'Kazakh', 'hcaptcha-for-forms-and-more' ),
+					'km'    => __( 'Khmer', 'hcaptcha-for-forms-and-more' ),
+					'rw'    => __( 'Kinyarwanda', 'hcaptcha-for-forms-and-more' ),
+					'ky'    => __( 'Kirghiz', 'hcaptcha-for-forms-and-more' ),
+					'ko'    => __( 'Korean', 'hcaptcha-for-forms-and-more' ),
+					'ku'    => __( 'Kurdish', 'hcaptcha-for-forms-and-more' ),
+					'lo'    => __( 'Lao', 'hcaptcha-for-forms-and-more' ),
+					'la'    => __( 'Latin', 'hcaptcha-for-forms-and-more' ),
+					'lv'    => __( 'Latvian', 'hcaptcha-for-forms-and-more' ),
+					'lt'    => __( 'Lithuanian', 'hcaptcha-for-forms-and-more' ),
+					'lb'    => __( 'Luxembourgish', 'hcaptcha-for-forms-and-more' ),
+					'mk'    => __( 'Macedonian', 'hcaptcha-for-forms-and-more' ),
+					'mg'    => __( 'Malagasy', 'hcaptcha-for-forms-and-more' ),
+					'ms'    => __( 'Malay', 'hcaptcha-for-forms-and-more' ),
+					'ml'    => __( 'Malayalam', 'hcaptcha-for-forms-and-more' ),
+					'mt'    => __( 'Maltese', 'hcaptcha-for-forms-and-more' ),
+					'mi'    => __( 'Maori', 'hcaptcha-for-forms-and-more' ),
+					'mr'    => __( 'Marathi', 'hcaptcha-for-forms-and-more' ),
+					'mn'    => __( 'Mongolian', 'hcaptcha-for-forms-and-more' ),
+					'ne'    => __( 'Nepali', 'hcaptcha-for-forms-and-more' ),
+					'no'    => __( 'Norwegian', 'hcaptcha-for-forms-and-more' ),
+					'ny'    => __( 'Nyanja', 'hcaptcha-for-forms-and-more' ),
+					'or'    => __( 'Oriya', 'hcaptcha-for-forms-and-more' ),
+					'pl'    => __( 'Polish', 'hcaptcha-for-forms-and-more' ),
+					'pt'    => __( 'Portuguese', 'hcaptcha-for-forms-and-more' ),
+					'ps'    => __( 'Pashto', 'hcaptcha-for-forms-and-more' ),
+					'pa'    => __( 'Punjabi', 'hcaptcha-for-forms-and-more' ),
+					'ro'    => __( 'Romanian', 'hcaptcha-for-forms-and-more' ),
+					'ru'    => __( 'Russian', 'hcaptcha-for-forms-and-more' ),
+					'sm'    => __( 'Samoan', 'hcaptcha-for-forms-and-more' ),
+					'sn'    => __( 'Shona', 'hcaptcha-for-forms-and-more' ),
+					'sd'    => __( 'Sindhi', 'hcaptcha-for-forms-and-more' ),
+					'si'    => __( 'Sinhala', 'hcaptcha-for-forms-and-more' ),
+					'sr'    => __( 'Serbian', 'hcaptcha-for-forms-and-more' ),
+					'sk'    => __( 'Slovak', 'hcaptcha-for-forms-and-more' ),
+					'sl'    => __( 'Slovenian', 'hcaptcha-for-forms-and-more' ),
+					'so'    => __( 'Somali', 'hcaptcha-for-forms-and-more' ),
+					'st'    => __( 'Southern Sotho', 'hcaptcha-for-forms-and-more' ),
+					'es'    => __( 'Spanish', 'hcaptcha-for-forms-and-more' ),
+					'su'    => __( 'Sundanese', 'hcaptcha-for-forms-and-more' ),
+					'sw'    => __( 'Swahili', 'hcaptcha-for-forms-and-more' ),
+					'sv'    => __( 'Swedish', 'hcaptcha-for-forms-and-more' ),
+					'tl'    => __( 'Tagalog', 'hcaptcha-for-forms-and-more' ),
+					'tg'    => __( 'Tajik', 'hcaptcha-for-forms-and-more' ),
+					'ta'    => __( 'Tamil', 'hcaptcha-for-forms-and-more' ),
+					'tt'    => __( 'Tatar', 'hcaptcha-for-forms-and-more' ),
+					'te'    => __( 'Telugu', 'hcaptcha-for-forms-and-more' ),
+					'th'    => __( 'Thai', 'hcaptcha-for-forms-and-more' ),
+					'tr'    => __( 'Turkish', 'hcaptcha-for-forms-and-more' ),
+					'tk'    => __( 'Turkmen', 'hcaptcha-for-forms-and-more' ),
+					'ug'    => __( 'Uyghur', 'hcaptcha-for-forms-and-more' ),
+					'uk'    => __( 'Ukrainian', 'hcaptcha-for-forms-and-more' ),
+					'ur'    => __( 'Urdu', 'hcaptcha-for-forms-and-more' ),
+					'uz'    => __( 'Uzbek', 'hcaptcha-for-forms-and-more' ),
+					'vi'    => __( 'Vietnamese', 'hcaptcha-for-forms-and-more' ),
+					'cy'    => __( 'Welsh', 'hcaptcha-for-forms-and-more' ),
+					'xh'    => __( 'Xhosa', 'hcaptcha-for-forms-and-more' ),
+					'yi'    => __( 'Yiddish', 'hcaptcha-for-forms-and-more' ),
+					'yo'    => __( 'Yoruba', 'hcaptcha-for-forms-and-more' ),
+					'zu'    => __( 'Zulu', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __(
 					"By default, hCaptcha will automatically detect the user's locale and localize widgets accordingly.",
@@ -303,10 +324,10 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_APPEARANCE,
 				// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 				'options' => [
-					self::MODE_LIVE                          => 'Live',
-					self::MODE_TEST_PUBLISHER                => 'Test: Publisher Account',
-					self::MODE_TEST_ENTERPRISE_SAFE_END_USER => 'Test: Enterprise Account (Safe End User)',
-					self::MODE_TEST_ENTERPRISE_BOT_DETECTED  => 'Test: Enterprise Account (Bot Detected)',
+					self::MODE_LIVE                          => __( 'Live', 'hcaptcha-for-forms-and-more' ),
+					self::MODE_TEST_PUBLISHER                => __( 'Test: Publisher Account', 'hcaptcha-for-forms-and-more' ),
+					self::MODE_TEST_ENTERPRISE_SAFE_END_USER => __( 'Test: Enterprise Account (Safe End User)', 'hcaptcha-for-forms-and-more' ),
+					self::MODE_TEST_ENTERPRISE_BOT_DETECTED  => __( 'Test: Enterprise Account (Bot Detected)', 'hcaptcha-for-forms-and-more' ),
 				],
 				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 				'default' => self::MODE_LIVE,
@@ -444,7 +465,7 @@ class General extends PluginSettingsBase {
 				</h2>
 				<div id="hcaptcha-message"></div>
 				<?php
-				hcaptcha()->notifications()->show();
+				$this->notifications->show();
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			case self::SECTION_APPEARANCE:
@@ -648,7 +669,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_check_config_error( $error ) {
+	private function send_check_config_error( string $error ) {
 		wp_send_json_error(
 			esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' ) . $error
 		);

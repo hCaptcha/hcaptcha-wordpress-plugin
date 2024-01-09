@@ -236,4 +236,26 @@ class HCaptchaWPTestCase extends WPTestCase {
 	protected function prepare_hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name, $result = true ) {
 		$this->prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, $result );
 	}
+
+	/**
+	 * Get encoded signature.
+	 *
+	 * @param string[]   $source         Signature source.
+	 * @param int|string $form_id        Form id.
+	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
+	 *
+	 * @return string
+	 */
+	protected function get_encoded_signature( array $source, $form_id, bool $hcaptcha_shown ): string {
+		$id = [
+			'source'         => $source,
+			'form_id'        => $form_id,
+			'hcaptcha_shown' => $hcaptcha_shown,
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+
+		return $encoded_id . '-' . wp_hash( $encoded_id );
+	}
 }

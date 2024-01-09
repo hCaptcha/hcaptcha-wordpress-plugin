@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.5.0
+Stable tag: 3.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -134,9 +134,9 @@ and insert this shortcode into your form.
 
 Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but we have plans to extend the functionality.
 
-= How to block hCaptcha on specific page? =
+= How to block hCaptcha on a specific page? =
 
-hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add this code to your theme's `functions.php` file:
+hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add the following code to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
 `
 /**
@@ -170,6 +170,10 @@ The source is the plugin's slug (like 'directory/main-plugin-file.php'), the the
 The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
 
 Filter arguments for some plugins/forms are listed below.
+
+Affiliates
+$source: 'affiliates/affiliates.php'
+$form_id: 'login' or 'register'
 
 Back In Stock Notifier
 $source: 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'
@@ -433,6 +437,8 @@ For more details, please see the hCaptcha privacy policy at:
 * Comment Form
 * Post/Page Password Form
 * ACF Extended Form
+* Affiliates Login Form
+* Affiliates Register Form
 * Asgaros Forum New Topic Form
 * Asgaros Forum Reply Form
 * Avada Form
@@ -533,6 +539,22 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.6.0 =
+* Tested with WooCommerce 8.4.
+* Added compatibility with BuddyPress 12.0.
+* Added hCaptcha tag to Contact Form 7 admin editor.
+* Added support for WPForms embedded forms.
+* Added Affiliates Login Form integration.
+* Added Affiliates Register Form integration.
+* Improved login forms security.
+* Improved inline scripts to optimize page load time.
+* Improved Integrations settings page - the Save Changes button moved up for better user experience.
+* Fixed hCaptcha position in BuddyPress.
+* Fixed hCaptcha position in wpDiscuz.
+* Fixed fatal error in Brizy integration.
+* Fixed auto-detection of hCaptcha language.
+* Fixed and added some translations.
 
 = 3.5.0 =
 * Tested with PHP 8.3.

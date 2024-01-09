@@ -23,6 +23,10 @@
 	position: relative;
 }
 
+#hcaptcha-options .h-captcha {
+	margin-bottom: 0;
+}
+
 /* Section Keys */
 .hcaptcha-section-keys + table {
 	max-width: 760px;

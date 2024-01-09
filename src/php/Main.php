@@ -13,13 +13,13 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
-use HCaptcha\Admin\Notifications;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
@@ -83,13 +83,6 @@ class Main {
 	private $settings;
 
 	/**
-	 * Notifications class instance.
-	 *
-	 * @var Notifications
-	 */
-	private $notifications;
-
-	/**
 	 * Instance of AutoVerify.
 	 *
 	 * @var AutoVerify
@@ -136,9 +129,6 @@ class Main {
 			]
 		);
 
-		$this->notifications = new Notifications();
-		$this->notifications->init();
-
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
@@ -172,15 +162,6 @@ class Main {
 	}
 
 	/**
-	 * Get Notifications instance.
-	 *
-	 * @return Notifications
-	 */
-	public function notifications(): Notifications {
-		return $this->notifications;
-	}
-
-	/**
 	 * Get Settings instance.
 	 *
 	 * @return Settings
@@ -195,9 +176,6 @@ class Main {
 	 * @return bool
 	 */
 	private function activate_hcaptcha(): bool {
-		// Make sure we can use is_user_logged_in().
-		require_once ABSPATH . 'wp-includes/pluggable.php';
-
 		$settings = $this->settings();
 
 		/**
@@ -304,188 +282,110 @@ class Main {
 	 * Print inline styles.
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles() {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
-		?>
-		<!--suppress CssUnresolvedCustomProperty, CssUnusedSymbol -->
-		<style>
-			#wpdiscuz-subscribe-form .h-captcha {
-				margin-left: auto;
-			}
+		$css = <<<CSS
+	.h-captcha {
+		position: relative;
+		display: block;
+		margin-bottom: 2rem;
+		padding: 0;
+		clear: both;
+	}
 
-			div.wpforms-container-full .wpforms-form .h-captcha,
-			#wpforo #wpforo-wrap div .h-captcha,
-			.h-captcha {
-				position: relative;
-				display: block;
-				margin-bottom: 2rem;
-				padding: 0;
-				clear: both;
-			}
+	.h-captcha[data-size="normal"] {
+		width: 303px;
+		height: 78px;
+	}
 
-			#hcaptcha-options .h-captcha {
-				margin-bottom: 0;
-			}
+	.h-captcha[data-size="compact"] {
+		width: 164px;
+		height: 144px;
+	}
 
-			#af-wrapper div.editor-row.editor-row-hcaptcha {
-				display: flex;
-				flex-direction: row-reverse;
-			}
+	.h-captcha[data-size="invisible"] {
+		display: none;
+	}
 
-			#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
-				margin-bottom: 0;
-			}
+	.h-captcha::before {
+		content: '';
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+		background: url( $div_logo_url ) no-repeat;
+		border: 1px solid transparent;
+		border-radius: 4px;
+	}
 
-			.brz-forms2.brz-forms2__item .h-captcha {
-				margin-bottom: 0;
-			}
+	.h-captcha[data-size="normal"]::before {
+		width: 300px;
+		height: 74px;
+		background-position: 94% 28%;
+	}
 
-			form.wpsc-create-ticket .h-captcha {
-				margin: 0 15px 15px 15px;
-			}
+	.h-captcha[data-size="compact"]::before {
+		width: 156px;
+		height: 136px;
+		background-position: 50% 79%;
+	}
 
-			.frm-fluent-form .h-captcha {
-				line-height: 0;
-				margin-bottom: 0;
-			}
+	.h-captcha[data-theme="light"]::before,
+	body.is-light-theme .h-captcha[data-theme="auto"]::before,
+	.h-captcha[data-theme="auto"]::before {
+		background-color: #fafafa;
+		border: 1px solid #e0e0e0;
+	}
 
-			.passster-form .h-captcha {
-				margin-bottom: 5px;
-			}
+	.h-captcha[data-theme="dark"]::before,
+	body.is-dark-theme .h-captcha[data-theme="auto"]::before,
+	html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
+	html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
+		background-image: url( $div_logo_white_url );
+		background-repeat: no-repeat;
+		background-color: #333;
+		border: 1px solid #f5f5f5;
+	}
 
-			#wpforo #wpforo-wrap.wpft-topic div .h-captcha,
-			#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
-				margin: 0 -20px;
-			}
+	.h-captcha[data-size="invisible"]::before {
+		display: none;
+	}
 
-			.wpdm-button-area + .h-captcha {
-				margin-bottom: 1rem;
-			}
+	.h-captcha iframe {
+		position: relative;
+	}
+CSS;
 
-			.w3eden .btn-primary {
-				background-color: var(--color-primary) !important;
-				color: #fff !important;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"],
-			.h-captcha[data-size="normal"] {
-				width: 303px;
-				height: 78px;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"],
-			.h-captcha[data-size="compact"] {
-				width: 164px;
-				height: 144px;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"],
-			.h-captcha[data-size="invisible"] {
-				display: none;
-			}
-
-			.h-captcha::before {
-				content: '';
-				display: block;
-				position: absolute;
-				top: 0;
-				left: 0;
-				background: url(<?php echo esc_url( $div_logo_url ); ?>) no-repeat;
-				border: 1px solid transparent;
-				border-radius: 4px;
-			}
-
-			.h-captcha[data-size="normal"]::before {
-				width: 300px;
-				height: 74px;
-				background-position: 94% 28%;
-			}
-
-			.h-captcha[data-size="compact"]::before {
-				width: 156px;
-				height: 136px;
-				background-position: 50% 79%;
-			}
-
-			.h-captcha[data-theme="light"]::before,
-			body.is-light-theme .h-captcha[data-theme="auto"]::before,
-			.h-captcha[data-theme="auto"]::before {
-				background-color: #fafafa;
-				border: 1px solid #e0e0e0;
-			}
-
-			.h-captcha[data-theme="dark"]::before,
-			body.is-dark-theme .h-captcha[data-theme="auto"]::before,
-			html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
-			html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
-				background-image: url(<?php echo esc_url( $div_logo_white_url ); ?>);
-				background-repeat: no-repeat;
-				background-color: #333;
-				border: 1px solid #f5f5f5;
-			}
-
-			.h-captcha[data-size="invisible"]::before {
-				display: none;
-			}
-
-			div.wpforms-container-full .wpforms-form .h-captcha iframe,
-			.h-captcha iframe {
-				position: relative;
-			}
-
-			span[data-name="hcap-cf7"] .h-captcha {
-				margin-bottom: 0;
-			}
-
-			span[data-name="hcap-cf7"] ~ input[type="submit"],
-			span[data-name="hcap-cf7"] ~ button[type="submit"] {
-				margin-top: 2rem;
-			}
-
-			.elementor-field-type-hcaptcha .elementor-field {
-				background: transparent !important;
-			}
-
-			.elementor-field-type-hcaptcha .h-captcha {
-				margin-bottom: unset;
-			}
-
-			#wppb-loginform .h-captcha {
-				margin-bottom: 14px;
-			}
-
-			div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
-				border-style: none;
-			}
-		</style>
-		<?php
+		HCaptcha::css_display( $css );
 	}
 
 	/**
 	 * Print styles to fit hcaptcha widget to the login form.
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function login_head() {
-		?>
-		<style>
-			@media (max-width: 349px) {
-				.h-captcha {
-					display: flex;
-					justify-content: center;
-				}
-			}
+		$css = <<<'CSS'
+	@media (max-width: 349px) {
+		.h-captcha {
+			display: flex;
+			justify-content: center;
+		}
+	}
 
-			@media (min-width: 350px) {
-				#login {
-					width: 350px;
-				}
-			}
-		</style>
-		<?php
+	@media (min-width: 350px) {
+		#login {
+			width: 350px;
+		}
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 
 	/**
@@ -551,12 +451,19 @@ class Main {
 			true
 		);
 
-		$params = [
+		$params   = [
 			'sitekey' => $settings->get_site_key(),
-			'theme'   => $settings->get( 'theme' ),
+			'theme'   => $settings->get_theme(),
 			'size'    => $settings->get( 'size' ),
-			'hl'      => $settings->get_language(),
 		];
+		$language = $settings->get_language();
+
+		// Fix auto-detection of hCaptcha language.
+		$language = $language ?: HCaptcha::get_hcap_locale();
+
+		if ( $language ) {
+			$params['hl'] = $language;
+		}
 
 		$config_params = [];
 
@@ -635,7 +542,6 @@ class Main {
 	 * Load plugin modules.
 	 *
 	 * @return void
-	 * @noinspection PhpFullyQualifiedNameUsageInspection
 	 */
 	public function load_modules() {
 		/**
@@ -681,6 +587,16 @@ class Main {
 				[ 'acfe_status', 'form' ],
 				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
 				ACFE\Form::class,
+			],
+			'Affiliates Login'                     => [
+				[ 'affiliates_status', 'login' ],
+				[ 'affiliates/affiliates.php' ],
+				Affiliates\Login::class,
+			],
+			'Affiliates Register'                  => [
+				[ 'affiliates_status', 'register' ],
+				[ 'affiliates/affiliates.php' ],
+				Affiliates\Register::class,
 			],
 			'Asgaros Form'                         => [
 				[ 'asgaros_status', 'form' ],
@@ -868,7 +784,7 @@ class Main {
 				Kadence\AdvancedForm::class,
 			],
 			'LearnDash Login Form'                 => [
-				[ 'learn_dash_status', null ],
+				[ 'learn_dash_status', 'login' ],
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Login::class,
 			],
@@ -1057,15 +973,10 @@ class Main {
 				'wp-job-openings/wp-job-openings.php',
 				WPJobOpenings\Form::class,
 			],
-			'WPForms Lite'                         => [
-				[ 'wpforms_status', 'lite' ],
+			'WPForms'                              => [
+				[ 'wpforms_status', null ],
 				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
-				\HCaptcha\WPForms\Form::class,
-			],
-			'WPForms Pro'                          => [
-				[ 'wpforms_status', 'pro' ],
-				[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
-				\HCaptcha\WPForms\Form::class,
+				WPForms\Form::class,
 			],
 			'wpDiscuz Comment'                     => [
 				[ 'wpdiscuz_status', 'comment_form' ],

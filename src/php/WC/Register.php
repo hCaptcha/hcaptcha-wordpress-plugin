@@ -37,6 +37,7 @@ class Register {
 	private function init_hooks() {
 		add_action( 'woocommerce_register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'woocommerce_process_registration_errors', [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -81,5 +82,21 @@ class Register {
 		$validation_error->add( 'hcaptcha_error', $error_message );
 
 		return $validation_error;
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.woocommerce-form-register .h-captcha {
+		margin-top: 2rem;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

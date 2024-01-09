@@ -222,21 +222,6 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get mode.
-	 *
-	 * @return string
-	 */
-	public function get_mode(): string {
-
-		/**
-		 * Filters the current operating mode to get a relevant key pair.
-		 *
-		 * @param string $mode Current operating mode.
-		 */
-		return (string) apply_filters( 'hcap_mode', $this->get( 'mode' ) );
-	}
-
-	/**
 	 * Get a site key.
 	 *
 	 * @return string
@@ -267,6 +252,21 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get theme.
+	 *
+	 * @return string
+	 */
+	public function get_theme(): string {
+
+		/**
+		 * Filters the current theme to get a relevant key pair.
+		 *
+		 * @param string $mode Current theme.
+		 */
+		return (string) apply_filters( 'hcap_theme', $this->get( 'theme' ) );
+	}
+
+	/**
 	 * Get language.
 	 *
 	 * @return string
@@ -279,6 +279,21 @@ class Settings implements SettingsInterface {
 		 * @param string $language Language.
 		 */
 		return (string) apply_filters( 'hcap_language', $this->get( 'language' ) );
+	}
+
+	/**
+	 * Get mode.
+	 *
+	 * @return string
+	 */
+	public function get_mode(): string {
+
+		/**
+		 * Filters the current operating mode to get a relevant key pair.
+		 *
+		 * @param string $mode Current operating mode.
+		 */
+		return (string) apply_filters( 'hcap_mode', $this->get( 'mode' ) );
 	}
 
 	/**

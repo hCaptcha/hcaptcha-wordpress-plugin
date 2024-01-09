@@ -192,20 +192,16 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_section_callback
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback( string $section_id, string $expected ) {
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
+		$subject       = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
+
+		$this->set_protected_property( $subject, 'notifications', $notifications );
 
 		if ( General::SECTION_KEYS === $section_id ) {
 			$notifications->shouldReceive( 'show' )->once();
-			$main = Mockery::mock( Main::class )->makePartial();
-			$main->shouldReceive( 'notifications' )->andReturn( $notifications );
-
-			WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
-		} else {
-			WP_Mock::userFunction( 'hcaptcha' )->never();
 		}
 
 		WP_Mock::passthruFunction( 'wp_kses_post' );

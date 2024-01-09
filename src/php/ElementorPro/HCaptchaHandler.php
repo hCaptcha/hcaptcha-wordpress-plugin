@@ -53,6 +53,7 @@ class HCaptchaHandler {
 		add_action( 'elementor/init', [ $this, 'init' ] );
 
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -434,5 +435,25 @@ class HCaptchaHandler {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.elementor-field-type-hcaptcha .elementor-field {
+		background: transparent !important;
+	}
+
+	.elementor-field-type-hcaptcha .h-captcha {
+		margin-bottom: unset;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

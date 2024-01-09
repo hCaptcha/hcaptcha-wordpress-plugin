@@ -7,6 +7,8 @@
 
 namespace HCaptcha\DelayedScript;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class DelayedScript
  */
@@ -19,74 +21,62 @@ class DelayedScript {
 	 * @param int    $delay Delay in ms.
 	 *
 	 * @return string
-	 * @noinspection PhpCastIsUnnecessaryInspection
-	 * @noinspection UnnecessaryCastingInspection
+	 * @noinspection JSUnusedAssignment
 	 */
 	public static function create( string $js, int $delay = 3000 ): string {
-		ob_start();
-		?>
-		<!--suppress JSUnusedAssignment -->
-		<?php
-		ob_get_clean();
-		ob_start();
-		?>
-		<script>
-			( () => {
-				'use strict';
+		$js = <<<JS
+	( () => {
+		'use strict';
 
-				let loaded = false,
-					scrolled = false,
-					timerId;
+		let loaded = false,
+			scrolled = false,
+			timerId;
 
-				function load() {
-					if ( loaded ) {
-						return;
-					}
+		function load() {
+			if ( loaded ) {
+				return;
+			}
 
-					loaded = true;
-					clearTimeout( timerId );
+			loaded = true;
+			clearTimeout( timerId );
 
-					window.removeEventListener( 'touchstart', load );
-					document.removeEventListener( 'mouseenter', load );
-					document.removeEventListener( 'click', load );
-					window.removeEventListener( 'load', delayedLoad );
+			window.removeEventListener( 'touchstart', load );
+			document.removeEventListener( 'mouseenter', load );
+			document.removeEventListener( 'click', load );
+			window.removeEventListener( 'load', delayedLoad );
 
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $js;
-					?>
-				}
+$js
+		}
 
-				function scrollHandler() {
-					if ( ! scrolled ) {
-						// Ignore first scroll event, which can be on page load.
-						scrolled = true;
-						return;
-					}
+		function scrollHandler() {
+			if ( ! scrolled ) {
+				// Ignore first scroll event, which can be on page load.
+				scrolled = true;
+				return;
+			}
 
-					window.removeEventListener( 'scroll', scrollHandler );
-					load();
-				}
+			window.removeEventListener( 'scroll', scrollHandler );
+			load();
+		}
 
-				function delayedLoad() {
-					window.addEventListener( 'scroll', scrollHandler );
-					const delay = <?php echo (int) $delay; ?>;
+		function delayedLoad() {
+			window.addEventListener( 'scroll', scrollHandler );
+			// noinspection JSAnnotator
+			const delay = $delay;
 
-					if ( delay >= 0 ) {
-						setTimeout( load, delay );
-					}
-				}
+			if ( delay >= 0 ) {
+				setTimeout( load, delay );
+			}
+		}
 
-				window.addEventListener( 'touchstart', load );
-				document.addEventListener( 'mouseenter', load );
-				document.addEventListener( 'click', load );
-				window.addEventListener( 'load', delayedLoad );
-			} )();
-		</script>
+		window.addEventListener( 'touchstart', load );
+		document.addEventListener( 'mouseenter', load );
+		document.addEventListener( 'click', load );
+		window.addEventListener( 'load', delayedLoad );
+	} )();
+JS;
 
-		<?php
-
-		return ob_get_clean();
+		return "<script>\n" . HCaptcha::js_minify( $js ) . "\n</script>\n";
 	}
 
 	/**
@@ -96,31 +86,31 @@ class DelayedScript {
 	 * @param int   $delay Delay in ms.
 	 */
 	public static function launch( array $args, int $delay = 3000 ) {
-		ob_start();
+		$js = <<<JS
+			const t = document.getElementsByTagName( 'script' )[0];
+			const s = document.createElement('script');
+			s.type  = 'text/javascript';
+			s.id = 'hcaptcha-api';
+JS;
 
-		?>
-		const t = document.getElementsByTagName( 'script' )[0];
-		const s = document.createElement('script');
-		s.type  = 'text/javascript';
-		s.id = 'hcaptcha-api';
-		<?php
+		$js = "$js\n";
+
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		foreach ( $args as $key => $arg ) {
 			if ( 'data' === $key ) {
 				foreach ( $arg as $data_key => $data_arg ) {
-					echo "s.dataset.$data_key = '$data_arg';\n";
+					$js .= "\t\t\ts.dataset.$data_key = '$data_arg';\n";
 				}
 				continue;
 			}
 
-			echo "s['$key'] = '$arg';\n";
+			$js .= "\t\t\ts['$key'] = '$arg';\n";
 		}
-		?>
-		s.async = true;
-		t.parentNode.insertBefore( s, t );
-		<?php
 
-		$js = ob_get_clean();
+		$js .= <<<JS
+			s.async = true;
+			t.parentNode.insertBefore( s, t );
+JS;
 
 		echo self::create( $js, $delay );
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped

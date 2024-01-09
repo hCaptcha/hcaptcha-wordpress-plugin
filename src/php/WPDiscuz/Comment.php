@@ -25,6 +25,7 @@ class Comment extends Base {
 
 		add_filter( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -93,5 +94,21 @@ class Comment extends Base {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		wp_die( esc_html( $result ) );
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	.wpd-field-hcaptcha .h-captcha {
+		margin-left: auto;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

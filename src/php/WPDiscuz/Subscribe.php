@@ -25,6 +25,7 @@ class Subscribe extends Base {
 		add_action( 'wpdiscuz_after_subscription_form', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_action( 'wp_ajax_wpdAddSubscription', [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_wpdAddSubscription', [ $this, 'verify' ], 9 );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -68,5 +69,22 @@ class Subscribe extends Base {
 		}
 
 		wp_send_json_error( $result );
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	#wpdiscuz-subscribe-form .h-captcha {
+		margin-top: 5px;
+		margin-left: auto;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

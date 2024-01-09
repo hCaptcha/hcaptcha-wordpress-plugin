@@ -123,11 +123,11 @@ class GeneralTest extends HCaptchaWPTestCase {
 		$wp_login = hcaptcha()->get( Login::class );
 
 		self::assertSame( 10, has_action( 'login_form', [ $wp_login, 'add_captcha' ] ) );
-		self::assertSame( 10, has_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] ) );
+		self::assertSame( PHP_INT_MAX, has_filter( 'wp_authenticate_user', [ $wp_login, 'check_signature' ] ) );
 
 		$subject->remove_wp_login_hcaptcha_hooks();
 
 		self::assertFalse( has_action( 'login_form', [ $wp_login, 'add_captcha' ] ) );
-		self::assertFalse( has_filter( 'wp_authenticate_user', [ $wp_login, 'verify' ] ) );
+		self::assertFalse( has_filter( 'wp_authenticate_user', [ $wp_login, 'check_signature' ] ) );
 	}
 }

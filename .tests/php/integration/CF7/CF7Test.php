@@ -117,7 +117,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
 			'<span id="' . $uniqid . '"' .
-			' class="wpcf7-form-control h-captcha" data-sitekey="' . $hcaptcha_site_key . '"' .
+			' class="wpcf7-form-control h-captcha " data-sitekey="' . $hcaptcha_site_key . '"' .
 			' data-theme="' . $hcaptcha_theme . '"' .
 			' data-size="' . $hcaptcha_size . '"' .
 			' ' . $callback . '>' .
@@ -216,10 +216,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$encoded_id = 'eyJzb3VyY2UiOlsiY29udGFjdC1mb3JtLTdcL3dwLWNvbnRhY3QtZm9ybS03LnBocCJdLCJmb3JtX2lkIjoiMTc3In0=';
 		$hash       = wp_hash( $encoded_id );
 		$expected   = '<form>				<input
-					type="hidden"
-					class="hcaptcha-widget-id"
-					name="hcaptcha-widget-id"
-					value="' . $encoded_id . '-' . $hash . '">
+						type="hidden"
+						class="hcaptcha-widget-id"
+						name="hcaptcha-widget-id"
+						value="' . $encoded_id . '-' . $hash . '">
 				<input type="submit" value="Send"></form>';
 
 		$subject = new CF7();

@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\DelayedScript;
 
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test DelayedScriptTest class.
@@ -22,61 +23,78 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	 *
 	 * @noinspection BadExpressionStatementJS
 	 * @noinspection JSUnresolvedReference
+	 * @noinspection JSUnusedLocalSymbols
 	 */
 	public function test_create() {
-		$js = 'some js script';
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
 
-		$expected = '		<script>
-			( () => {
-				\'use strict\';
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
 
-				let loaded = false,
-					scrolled = false,
-					timerId;
+		$js = "\t\t\tconst some = 1;";
 
-				function load() {
-					if ( loaded ) {
-						return;
-					}
+		$expected = <<<JS
+	( () => {
+		'use strict';
 
-					loaded = true;
-					clearTimeout( timerId );
+		let loaded = false,
+			scrolled = false,
+			timerId;
 
-					window.removeEventListener( \'touchstart\', load );
-					document.removeEventListener( \'mouseenter\', load );
-					document.removeEventListener( \'click\', load );
-					window.removeEventListener( \'load\', delayedLoad );
+		function load() {
+			if ( loaded ) {
+				return;
+			}
 
-					some js script				}
+			loaded = true;
+			clearTimeout( timerId );
 
-				function scrollHandler() {
-					if ( ! scrolled ) {
-						// Ignore first scroll event, which can be on page load.
-						scrolled = true;
-						return;
-					}
+			window.removeEventListener( 'touchstart', load );
+			document.removeEventListener( 'mouseenter', load );
+			document.removeEventListener( 'click', load );
+			window.removeEventListener( 'load', delayedLoad );
 
-					window.removeEventListener( \'scroll\', scrollHandler );
-					load();
-				}
+			const some = 1;
+		}
 
-				function delayedLoad() {
-					window.addEventListener( \'scroll\', scrollHandler );
-					const delay = 3000;
+		function scrollHandler() {
+			if ( ! scrolled ) {
+				// Ignore first scroll event, which can be on page load.
+				scrolled = true;
+				return;
+			}
 
-					if ( delay >= 0 ) {
-						setTimeout( load, delay );
-					}
-				}
+			window.removeEventListener( 'scroll', scrollHandler );
+			load();
+		}
 
-				window.addEventListener( \'touchstart\', load );
-				document.addEventListener( \'mouseenter\', load );
-				document.addEventListener( \'click\', load );
-				window.addEventListener( \'load\', delayedLoad );
-			} )();
-		</script>
+		function delayedLoad() {
+			window.addEventListener( 'scroll', scrollHandler );
+			// noinspection JSAnnotator
+			const delay = 3000;
 
-		';
+			if ( delay >= 0 ) {
+				setTimeout( load, delay );
+			}
+		}
+
+		window.addEventListener( 'touchstart', load );
+		document.addEventListener( 'mouseenter', load );
+		document.addEventListener( 'click', load );
+		window.addEventListener( 'load', delayedLoad );
+	} )();
+JS;
+
+		$expected = "<script>\n$expected\n</script>\n";
 
 		self::assertSame( $expected, DelayedScript::create( $js ) );
 
@@ -91,64 +109,79 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_launch() {
-		$expected = '		<script>
-			( () => {
-				\'use strict\';
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
 
-				let loaded = false,
-					scrolled = false,
-					timerId;
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
 
-				function load() {
-					if ( loaded ) {
-						return;
-					}
+		$expected = <<<JS
+	( () => {
+		'use strict';
 
-					loaded = true;
-					clearTimeout( timerId );
+		let loaded = false,
+			scrolled = false,
+			timerId;
 
-					window.removeEventListener( \'touchstart\', load );
-					document.removeEventListener( \'mouseenter\', load );
-					document.removeEventListener( \'click\', load );
-					window.removeEventListener( \'load\', delayedLoad );
+		function load() {
+			if ( loaded ) {
+				return;
+			}
 
-							const t = document.getElementsByTagName( \'script\' )[0];
-		const s = document.createElement(\'script\');
-		s.type  = \'text/javascript\';
-		s.id = \'hcaptcha-api\';
-		s[\'src\'] = \'https://js.hcaptcha.com/1/api.js\';
-		s.async = true;
-		t.parentNode.insertBefore( s, t );
-						}
+			loaded = true;
+			clearTimeout( timerId );
 
-				function scrollHandler() {
-					if ( ! scrolled ) {
-						// Ignore first scroll event, which can be on page load.
-						scrolled = true;
-						return;
-					}
+			window.removeEventListener( 'touchstart', load );
+			document.removeEventListener( 'mouseenter', load );
+			document.removeEventListener( 'click', load );
+			window.removeEventListener( 'load', delayedLoad );
 
-					window.removeEventListener( \'scroll\', scrollHandler );
-					load();
-				}
+			const t = document.getElementsByTagName( 'script' )[0];
+			const s = document.createElement('script');
+			s.type  = 'text/javascript';
+			s.id = 'hcaptcha-api';
+			s['src'] = 'https://js.hcaptcha.com/1/api.js';
+			s.async = true;
+			t.parentNode.insertBefore( s, t );
+		}
 
-				function delayedLoad() {
-					window.addEventListener( \'scroll\', scrollHandler );
-					const delay = 3000;
+		function scrollHandler() {
+			if ( ! scrolled ) {
+				// Ignore first scroll event, which can be on page load.
+				scrolled = true;
+				return;
+			}
 
-					if ( delay >= 0 ) {
-						setTimeout( load, delay );
-					}
-				}
+			window.removeEventListener( 'scroll', scrollHandler );
+			load();
+		}
 
-				window.addEventListener( \'touchstart\', load );
-				document.addEventListener( \'mouseenter\', load );
-				document.addEventListener( \'click\', load );
-				window.addEventListener( \'load\', delayedLoad );
-			} )();
-		</script>
+		function delayedLoad() {
+			window.addEventListener( 'scroll', scrollHandler );
+			// noinspection JSAnnotator
+			const delay = 3000;
 
-		';
+			if ( delay >= 0 ) {
+				setTimeout( load, delay );
+			}
+		}
+
+		window.addEventListener( 'touchstart', load );
+		document.addEventListener( 'mouseenter', load );
+		document.addEventListener( 'click', load );
+		window.addEventListener( 'load', delayedLoad );
+	} )();
+JS;
+
+		$expected = "<script>\n$expected\n</script>\n";
 
 		$src  = 'https://js.hcaptcha.com/1/api.js';
 		$args = [ 'src' => $src ];

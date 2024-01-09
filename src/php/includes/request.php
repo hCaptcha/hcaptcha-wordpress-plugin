@@ -81,6 +81,7 @@ function hcap_get_error_messages(): array {
 			'empty'                            => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 			'fail'                             => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
 			'bad-nonce'                        => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
+			'bad-signature'                    => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
 		]
 	);
 }
