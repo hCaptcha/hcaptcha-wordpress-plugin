@@ -134,9 +134,9 @@ and insert this shortcode into your form.
 
 Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but we have plans to extend the functionality.
 
-= How to block hCaptcha on specific page? =
+= How to block hCaptcha on a specific page? =
 
-hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add this code to your theme's `functions.php` file:
+hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add the following code to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
 `
 /**
