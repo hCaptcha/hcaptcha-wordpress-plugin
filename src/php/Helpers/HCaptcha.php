@@ -359,7 +359,7 @@ class HCaptcha {
 		echo self::js_minify( $js ) . "\n";
 
 		if ( $wrap ) {
-			echo "<script>\n";
+			echo "</script>\n";
 		}
 	}
 

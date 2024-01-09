@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\Helpers;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test HCaptcha class.
@@ -64,7 +65,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		self::assertFalse( hcaptcha()->form_shown );
 
 		ob_start();
-		hCaptcha::form_display();
+		HCaptcha::form_display();
 		self::assertSame( $this->get_hcap_form(), ob_get_clean() );
 		self::assertTrue( hcaptcha()->form_shown );
 
@@ -78,7 +79,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		];
 
 		ob_start();
-		hCaptcha::form_display( $args );
+		HCaptcha::form_display( $args );
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
 
 		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
@@ -86,8 +87,40 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 
 		ob_start();
-		hCaptcha::form_display( $args );
+		HCaptcha::form_display( $args );
 		self::assertSame( $this->get_hcap_form( $action, $name, $auto, true ), ob_get_clean() );
+	}
+
+	/**
+	 * Test check_signature().
+	 *
+	 * @return void
+	 */
+	public function test_check_signature() {
+		$const      = HCaptcha::HCAPTCHA_SIGNATURE;
+		$class_name = 'SomeClass';
+		$form_id    = 'some_id';
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = $const . '-' . base64_encode( $class_name );
+
+		// False when no signature.
+		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
+
+		$_POST[ $name ] = $this->get_encoded_signature( [], $form_id, true );
+
+		// False when wrong form_id.
+		self::assertFalse( HCaptcha::check_signature( $class_name, 'wrong_form_id' ) );
+
+		// Null when hCaptcha shown.
+		self::assertNull( HCaptcha::check_signature( $class_name, $form_id ) );
+
+		$_POST[ $name ] = $this->get_encoded_signature( [], $form_id, false );
+
+		// True when hCaptcha not shown.
+		self::assertTrue( HCaptcha::check_signature( $class_name, $form_id ) );
+
+		unset( $_POST[ $name ] );
 	}
 
 	/**
@@ -131,5 +164,48 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		];
 
 		self::assertSame( $expected, HCaptcha::get_hcaptcha_plugin_notice() );
+	}
+
+	/**
+	 * Test js_display().
+	 *
+	 * @return void
+	 */
+	public function test_js_display() {
+		$js       = <<<JS
+	var a = 1;
+	console.log( a );
+JS;
+		$expected = "var a=1;console.log(a)\n";
+
+		// Not wrapped.
+		ob_start();
+		HCaptcha::js_display( $js, false );
+		self::assertSame( $expected, ob_get_clean() );
+
+		$expected_wrapped = "<script>\n" . $expected . "</script>\n";
+
+		// Wrapped.
+		ob_start();
+		HCaptcha::js_display( $js, true );
+		self::assertSame( $expected_wrapped, ob_get_clean() );
+
+		// Not minified.
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		ob_start();
+		HCaptcha::js_display( $js, false );
+		self::assertSame( $js . "\n", ob_get_clean() );
 	}
 }

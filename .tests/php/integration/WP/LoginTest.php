@@ -64,7 +64,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_display_signature() {
 		$subject = new Login();
 
-		$expected = $this->get_signature( $subject );
+		$expected = $this->get_signature( get_class( $subject ) );
 
 		ob_start();
 		$subject->display_signature();
@@ -81,7 +81,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		$expected = $content . $this->get_signature( $subject );
+		$expected = $content . $this->get_signature( get_class( $subject ) );
 
 		self::assertSame( $expected, $subject->add_signature( $content, [] ) );
 	}
@@ -377,13 +377,12 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Get signature.
 	 *
-	 * @param object $class_instance Class instance.
+	 * @param string $class_name Class name.
 	 *
 	 * @return string
 	 */
-	private function get_signature( $class_instance ): string {
-		$const      = HCaptcha::HCAPTCHA_SIGNATURE;
-		$class_name = get_class( $class_instance );
+	private function get_signature( string $class_name ): string {
+		$const = HCaptcha::HCAPTCHA_SIGNATURE;
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$name = $const . '-' . base64_encode( $class_name );
@@ -394,27 +393,5 @@ class LoginTest extends HCaptchaWPTestCase {
 				name="' . $name . '"
 				value="' . $this->get_encoded_signature( [ 'WordPress' ], 'login', false ) . '">
 		';
-	}
-
-	/**
-	 * Get encoded signature.
-	 *
-	 * @param string[]   $source         Signature source.
-	 * @param int|string $form_id        Form id.
-	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
-	 *
-	 * @return string
-	 */
-	private function get_encoded_signature( array $source, $form_id, bool $hcaptcha_shown ): string {
-		$id = [
-			'source'         => $source,
-			'form_id'        => $form_id,
-			'hcaptcha_shown' => $hcaptcha_shown,
-		];
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$encoded_id = base64_encode( wp_json_encode( $id ) );
-
-		return $encoded_id . '-' . wp_hash( $encoded_id );
 	}
 }
