@@ -540,6 +540,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.7.0 =
+* Fixed improper display of the "rate plugin" message on options.php.
+
 = 3.6.0 =
 * Tested with WooCommerce 8.4.
 * Added compatibility with BuddyPress 12.0.
