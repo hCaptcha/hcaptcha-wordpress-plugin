@@ -431,7 +431,7 @@ CSS;
 			$value = trim( $this->settings()->get( $enterprise_param ) );
 
 			if ( $value ) {
-				$params[ $enterprise_param ] = $value;
+				$params[ $enterprise_param ] = urlencode( $value );
 			}
 		}
 
