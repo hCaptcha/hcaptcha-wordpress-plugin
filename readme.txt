@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.6.0
+Stable tag: 3.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -541,6 +541,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.7.0 =
+* Tested with WooCommerce 8.5.
 * Added Enterprise settings for API host and Endpoint.
 * Fixed improper display of the "rate plugin" message on options.php.
 * Fixed colored border of hCaptcha challenge arrow.
