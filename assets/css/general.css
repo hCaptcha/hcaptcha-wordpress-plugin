@@ -132,22 +132,12 @@
 .hcaptcha-section-enterprise + table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	grid-template-areas:
-		"api-host endpoint";
 	gap: 10px 20px;
 	padding: 15px 20px;
 }
 
 .hcaptcha-section-enterprise + table tbody th {
 	width: auto;
-}
-
-.hcaptcha-section-enterprise + table tbody tr.hcaptcha-general-api-host {
-	grid-area: api-host;
-}
-
-.hcaptcha-section-enterprise + table tbody tr.hcaptcha-general-endpoint {
-	grid-area: endpoint;
 }
 
 .hcaptcha-section-enterprise + table tbody tr th {
@@ -243,14 +233,6 @@
 	}
 
 	.hcaptcha-section-keys + table tbody tr {
-		grid-area: unset !important;
-	}
-
-	.hcaptcha-section-enterprise + table tbody {
-		grid-template-areas: unset;
-	}
-
-	.hcaptcha-section-enterprise + table tbody tr {
 		grid-area: unset !important;
 	}
 

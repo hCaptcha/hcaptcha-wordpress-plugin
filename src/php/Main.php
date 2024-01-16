@@ -417,10 +417,22 @@ CSS;
 		}
 
 		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
-		$endpoint = trim( $this->settings()->get( 'endpoint' ) );
 
-		if ( $endpoint ) {
-			$params['endpoint'] = $endpoint;
+		$enterprise_params = [
+			'asset_host',
+			'endpoint',
+			'host',
+			'image_host',
+			'report_api',
+			'sentry',
+		];
+
+		foreach ( $enterprise_params as $enterprise_param ) {
+			$value = trim( $this->settings()->get( $enterprise_param ) );
+
+			if ( $value ) {
+				$params[ $enterprise_param ] = $value;
+			}
 		}
 
 		return add_query_arg( $params, "https://{$api_host}/1/api.js" );
