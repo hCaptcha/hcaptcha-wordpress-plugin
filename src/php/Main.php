@@ -47,6 +47,11 @@ class Main {
 	const OBJECT = 'HCaptchaMainObject';
 
 	/**
+	 * Default API host.
+	 */
+	const API_HOST = 'js.hcaptcha.com';
+
+	/**
 	 * Form shown somewhere, use this flag to run the script.
 	 *
 	 * @var boolean
@@ -358,6 +363,10 @@ class Main {
 	.h-captcha iframe {
 		position: relative;
 	}
+
+	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
+		border-style: none;
+	}
 CSS;
 
 		HCaptcha::css_display( $css );
@@ -407,7 +416,26 @@ CSS;
 			$params['custom'] = 'true';
 		}
 
-		return add_query_arg( $params, 'https://js.hcaptcha.com/1/api.js' );
+		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
+
+		$enterprise_params = [
+			'asset_host',
+			'endpoint',
+			'host',
+			'image_host',
+			'report_api',
+			'sentry',
+		];
+
+		foreach ( $enterprise_params as $enterprise_param ) {
+			$value = trim( $this->settings()->get( $enterprise_param ) );
+
+			if ( $value ) {
+				$params[ $enterprise_param ] = rawurlencode( $value );
+			}
+		}
+
+		return add_query_arg( $params, "https://$api_host/1/api.js" );
 	}
 
 	/**

@@ -574,6 +574,49 @@ abstract class HCaptchaTestCase extends TestCase {
 					)
 				),
 			],
+			'api_host'                 => [
+				'label'   => 'API Host',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'default' => 'js.hcaptcha.com',
+				'helper'  => 'See Enterprise docs.',
+			],
+			'asset_host'               => [
+				'label'   => 'Asset Host',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
+			'endpoint'                 => [
+				'label'   => 'Endpoint',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
+			'host'                     => [
+				'label'   => 'Host',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
+			'image_host'               => [
+				'label'   => 'Image Host',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
+			'report_api'               => [
+				'label'   => 'Report API',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
+			'sentry'                   => [
+				'label'   => 'Sentry',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
 			'off_when_logged_in'       => [
 				'label'   => 'Other Settings',
 				'type'    => 'checkbox',

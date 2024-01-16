@@ -201,7 +201,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function admin_footer_text( $text ) {
-		if ( ! $this->is_options_screen() ) {
+		if ( ! $this->is_options_screen( [] ) ) {
 			return $text;
 		}
 

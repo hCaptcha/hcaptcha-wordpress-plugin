@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.6.0
+Stable tag: 3.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -539,6 +539,12 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.7.0 =
+* Tested with WooCommerce 8.5.
+* Added optional Enterprise settings.
+* Fixed improper display of the "rate plugin" message on options.php.
+* Fixed colored border of hCaptcha challenge arrow.
 
 = 3.6.0 =
 * Tested with WooCommerce 8.4.

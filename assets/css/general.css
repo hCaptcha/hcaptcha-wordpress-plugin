@@ -124,6 +124,30 @@
 	width: 100%;
 }
 
+/* Section Enterprise */
+.hcaptcha-section-enterprise + table {
+	max-width: 760px;
+}
+
+.hcaptcha-section-enterprise + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-enterprise + table tbody th {
+	width: auto;
+}
+
+.hcaptcha-section-enterprise + table tbody tr th {
+	padding: 0 0 10px 0;
+}
+
+.hcaptcha-section-enterprise + table tbody tr td input {
+	width: 100%;
+}
+
 /* Section Other */
 .hcaptcha-section-other + table {
 	max-width: 760px;

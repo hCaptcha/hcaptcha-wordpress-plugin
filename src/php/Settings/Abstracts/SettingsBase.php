@@ -1271,9 +1271,13 @@ abstract class SettingsBase {
 	/**
 	 * Is current admin screen the plugin options screen.
 	 *
+	 * @param string|array $ids Additional screen id or ids to check.
+	 *
 	 * @return bool
 	 */
-	protected function is_options_screen(): bool {
+	protected function is_options_screen( $ids = 'options' ): bool {
+		$ids = (array) $ids;
+
 		if ( ! function_exists( 'get_current_screen' ) ) {
 			return false;
 		}
@@ -1290,7 +1294,7 @@ abstract class SettingsBase {
 			$screen_id = str_replace( 'settings_page', 'toplevel_page', $screen_id );
 		}
 
-		return 'options' === $current_screen->id || $screen_id === $current_screen->id;
+		return $screen_id === $current_screen->id || in_array( $current_screen->id, $ids, true );
 	}
 
 	/**
