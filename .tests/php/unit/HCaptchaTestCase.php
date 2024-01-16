@@ -579,7 +579,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'text',
 				'section' => 'enterprise',
 				'default' => 'js.hcaptcha.com',
-				'helper'  => 'Hostname hCaptcha api.js is loaded from. (See Enterprise docs)',
+				'helper'  => 'See Enterprise docs',
 			],
 			'asset_host'               => [
 				'label'   => 'Asset Host',
