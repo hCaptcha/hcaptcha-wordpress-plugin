@@ -431,11 +431,11 @@ CSS;
 			$value = trim( $this->settings()->get( $enterprise_param ) );
 
 			if ( $value ) {
-				$params[ $enterprise_param ] = urlencode( $value );
+				$params[ $enterprise_param ] = rawurlencode( $value );
 			}
 		}
 
-		return add_query_arg( $params, "https://{$api_host}/1/api.js" );
+		return add_query_arg( $params, "https://$api_host/1/api.js" );
 	}
 
 	/**
