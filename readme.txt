@@ -542,7 +542,7 @@ Instructions for popular native integrations are below:
 
 = 3.7.0 =
 * Tested with WooCommerce 8.5.
-* Added Enterprise settings for API host and Endpoint.
+* Added optional Enterprise settings.
 * Fixed improper display of the "rate plugin" message on options.php.
 * Fixed colored border of hCaptcha challenge arrow.
 
