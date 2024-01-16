@@ -541,6 +541,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.7.0 =
+* Added Enterprise settings for API host and Endpoint.
 * Fixed improper display of the "rate plugin" message on options.php.
 
 = 3.6.0 =

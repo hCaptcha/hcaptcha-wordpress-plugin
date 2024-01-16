@@ -574,6 +574,19 @@ abstract class HCaptchaTestCase extends TestCase {
 					)
 				),
 			],
+			'api_host'                 => [
+				'label'   => 'API host',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'default' => 'js.hcaptcha.com',
+				'helper'  => 'Hostname hCaptcha /1/api.js is loaded from.',
+			],
+			'endpoint'                 => [
+				'label'   => 'Endpoint',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'Endpoint for hCaptcha /1/api.js.',
+			],
 			'off_when_logged_in'       => [
 				'label'   => 'Other Settings',
 				'type'    => 'checkbox',

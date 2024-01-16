@@ -9,6 +9,7 @@ namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Main;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
@@ -47,6 +48,11 @@ class General extends PluginSettingsBase {
 	 * Custom section id.
 	 */
 	const SECTION_CUSTOM = 'custom';
+
+	/**
+	 * Enterprise section id.
+	 */
+	const SECTION_ENTERPRISE = 'enterprise';
 
 	/**
 	 * Other section id.
@@ -369,6 +375,19 @@ class General extends PluginSettingsBase {
 					)
 				),
 			],
+			'api_host'             => [
+				'label'   => __( 'API host', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_ENTERPRISE,
+				'default' => Main::API_HOST,
+				'helper'  => __( 'Hostname hCaptcha /1/api.js is loaded from.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'endpoint'             => [
+				'label'   => __( 'Endpoint', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_ENTERPRISE,
+				'helper'  => __( 'Endpoint for hCaptcha /1/api.js.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'off_when_logged_in'   => [
 				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
@@ -473,6 +492,9 @@ class General extends PluginSettingsBase {
 				break;
 			case self::SECTION_CUSTOM:
 				$this->print_section_header( $arguments['id'], __( 'Custom', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			case self::SECTION_ENTERPRISE:
+				$this->print_section_header( $arguments['id'], __( 'Enterprise', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );

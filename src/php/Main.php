@@ -47,6 +47,11 @@ class Main {
 	const OBJECT = 'HCaptchaMainObject';
 
 	/**
+	 * Default API host.
+	 */
+	const API_HOST = 'js.hcaptcha.com';
+
+	/**
 	 * Form shown somewhere, use this flag to run the script.
 	 *
 	 * @var boolean
@@ -407,7 +412,14 @@ CSS;
 			$params['custom'] = 'true';
 		}
 
-		return add_query_arg( $params, 'https://js.hcaptcha.com/1/api.js' );
+		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
+		$endpoint = trim( $this->settings()->get( 'endpoint' ) );
+
+		if ( $endpoint ) {
+			$params['endpoint'] = $endpoint;
+		}
+
+		return add_query_arg( $params, "https://{$api_host}/1/api.js" );
 	}
 
 	/**
