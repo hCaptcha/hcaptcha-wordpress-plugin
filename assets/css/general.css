@@ -246,6 +246,14 @@
 		grid-area: unset !important;
 	}
 
+	.hcaptcha-section-enterprise + table tbody {
+		grid-template-areas: unset;
+	}
+
+	.hcaptcha-section-enterprise + table tbody tr {
+		grid-area: unset !important;
+	}
+
 	.hcaptcha-section-other + table tbody {
 		grid-template-areas: unset;
 	}
