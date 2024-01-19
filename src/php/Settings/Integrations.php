@@ -66,6 +66,7 @@ class Integrations extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
+		add_action( 'kagg_settings_tab', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 	}
 
@@ -484,7 +485,9 @@ class Integrations extends PluginSettingsBase {
 		$entity    = $form_field['entity'] ?? 'plugin';
 
 		return sprintf(
-			'<div class="hcaptcha-integrations-logo"><img src="%1$s" alt="%2$s Logo" data-entity="%3$s"></div>',
+			'<div class="hcaptcha-integrations-logo">' .
+			'<img src="%1$s" alt="%2$s Logo" data-label="%2$s" data-entity="%3$s">' .
+			'</div>',
 			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/$logo_file" ),
 			$label,
 			$entity
@@ -548,6 +551,20 @@ class Integrations extends PluginSettingsBase {
 		);
 
 		return $fields;
+	}
+
+	/**
+	 * Show search box.
+	 */
+	public function search_box() {
+		?>
+		<span class="hcaptcha-integrations-search-wrap">
+			<label for="hcaptcha-integrations-search"></label>
+			<input
+					type="search" id="hcaptcha-integrations-search"
+					placeholder="<?php esc_html_e( 'Search plugins and themes...', 'hcaptcha-for-forms-and-more' ); ?>">
+		</span>
+		<?php
 	}
 
 	/**

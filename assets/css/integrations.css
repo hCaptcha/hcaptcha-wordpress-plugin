@@ -128,6 +128,14 @@
 	padding: 10px 0 0 0;
 }
 
+.hcaptcha-integrations-search-wrap {
+	position: relative;
+}
+
+#hcaptcha-integrations-search {
+	width: 210px;
+}
+
 @media (max-width: 1279px) {
 	.hcaptcha-integrations table tbody {
 		grid-template-columns: repeat(3, minmax(100px, 1fr));
@@ -137,5 +145,13 @@
 @media (max-width: 1023px) {
 	.hcaptcha-integrations table tbody {
 		grid-template-columns: repeat(2, minmax(100px, 1fr));
+	}
+}
+
+@media (max-width: 782px) {
+	#hcaptcha-integrations-search {
+		font-size: 14px;
+		padding: 1px 8px;
+		min-height: unset;
 	}
 }

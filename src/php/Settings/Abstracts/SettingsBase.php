@@ -540,12 +540,21 @@ abstract class SettingsBase {
 	public function tabs_callback() {
 		?>
 		<div class="<?php echo esc_attr( static::PREFIX . '-settings-tabs' ); ?>">
+			<span class="<?php echo esc_attr( static::PREFIX . '-settings-links' ); ?>">
 			<?php
+
 			$this->tab_link( $this );
 
 			foreach ( $this->tabs as $tab ) {
 				$this->tab_link( $tab );
 			}
+
+			?>
+			</span>
+			<?php
+
+			do_action( 'kagg_settings_tab' );
+
 			?>
 		</div>
 		<?php

@@ -180,6 +180,41 @@ const integrations = function( $ ) {
 				$tr.removeClass( 'on off' );
 			} );
 	} );
+
+	const debounce = ( func, delay ) => {
+		let debounceTimer;
+
+		return function() {
+			const context = this;
+			const args = arguments;
+			clearTimeout( debounceTimer );
+			debounceTimer = setTimeout( () => func.apply( context, args ), delay );
+		};
+	};
+
+	$( '#hcaptcha-integrations-search' ).on( 'input', debounce(
+		function() {
+			const search = $( '#hcaptcha-integrations-search' ).val().trim().toLowerCase();
+			const $logo = $( '.hcaptcha-integrations-logo img' );
+
+			$logo.each( function( i, el ) {
+				const $el = $( el );
+
+				if ( $el.data( 'entity' ) === 'core' ) {
+					return;
+				}
+
+				const $tr = $el.closest( 'tr' );
+
+				if ( $el.data( 'label' ).toLowerCase().includes( search ) ) {
+					$tr.show();
+				} else {
+					$tr.hide();
+				}
+			} );
+		},
+		100
+	) );
 };
 
 window.hCaptchaIntegrations = integrations;

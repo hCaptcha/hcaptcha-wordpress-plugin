@@ -540,6 +540,10 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.8.0 =
+* Added search of plugin and themes on the Integrations page.
+* Fixed Brevo plugin position on Integrations page.
+
 = 3.7.1 =
 * Fixed adding arguments to api.js for Enterprise accounts.
 

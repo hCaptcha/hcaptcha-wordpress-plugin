@@ -657,6 +657,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			->with( 'tab', strtolower( $tab_class_name ), $subject_url )->andReturn( $tab_url_arg );
 
 		$expected = '		<div class="kagg-settings-tabs">
+			<span class="kagg-settings-links">
 					<a
 				class="kagg-settings-tab active"
 				href="http://test.test/wp-admin/admin.php?page=hcaptcha">
@@ -665,7 +666,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				class="kagg-settings-tab"
 				href="http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations">
 			Integrations		</a>
-				</div>
+					</span>
+					</div>
 		';
 
 		ob_start();
