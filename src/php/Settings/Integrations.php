@@ -350,7 +350,7 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 			'sendinblue_status'                => [
-				'label'   => 'Sendinblue',
+				'label'   => 'Brevo',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),

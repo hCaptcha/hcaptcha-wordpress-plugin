@@ -1011,7 +1011,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'sendinblue_status'                =>
 				[
-					'label'   => 'Sendinblue',
+					'label'   => 'Brevo',
 					'type'    => 'checkbox',
 					'options' =>
 						[
