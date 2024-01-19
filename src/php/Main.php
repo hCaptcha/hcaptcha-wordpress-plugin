@@ -419,19 +419,19 @@ CSS;
 		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
 
 		$enterprise_params = [
-			'asset_host',
-			'endpoint',
-			'host',
-			'image_host',
-			'report_api',
-			'sentry',
+			'asset_host' => 'assethost',
+			'endpoint'   => 'endpoint',
+			'host'       => 'host',
+			'image_host' => 'imghost',
+			'report_api' => 'reportapi',
+			'sentry'     => 'sentry',
 		];
 
-		foreach ( $enterprise_params as $enterprise_param ) {
+		foreach ( $enterprise_params as $enterprise_param => $enterprise_arg ) {
 			$value = trim( $this->settings()->get( $enterprise_param ) );
 
 			if ( $value ) {
-				$params[ $enterprise_param ] = rawurlencode( $value );
+				$params[ $enterprise_arg ] = rawurlencode( $value );
 			}
 		}
 
