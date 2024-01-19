@@ -540,6 +540,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.7.1 =
+* Fixed adding arguments to api.js for Enterprise accounts.
+
 = 3.7.0 =
 * Tested with WooCommerce 8.5.
 * Added optional Enterprise settings.
