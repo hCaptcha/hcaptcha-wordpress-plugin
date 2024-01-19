@@ -66,6 +66,6 @@ class Form {
 	 * @return string
 	 */
 	public function replace_api_url(): string {
-		return 'https://js.hcaptcha.com/1/api.js';
+		return hcaptcha()->get_api_url();
 	}
 }

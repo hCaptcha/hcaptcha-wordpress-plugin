@@ -398,7 +398,18 @@ CSS;
 	}
 
 	/**
-	 * Get API source url.
+	 * Get API url.
+	 *
+	 * @return string
+	 */
+	public function get_api_url(): string {
+		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
+
+		return "https://$api_host" . '/1/api.js';
+	}
+
+	/**
+	 * Get API source url with params.
 	 *
 	 * @return string
 	 */
@@ -415,8 +426,6 @@ CSS;
 		if ( $this->settings()->is_on( 'custom_themes' ) ) {
 			$params['custom'] = 'true';
 		}
-
-		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
 
 		$enterprise_params = [
 			'asset_host' => 'assethost',
@@ -435,7 +444,7 @@ CSS;
 			}
 		}
 
-		return add_query_arg( $params, "https://$api_host/1/api.js" );
+		return add_query_arg( $params, $this->get_api_url() );
 	}
 
 	/**
