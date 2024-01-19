@@ -57,7 +57,7 @@ class Form {
 	 * @return string
 	 */
 	public function replace_verify_url(): string {
-		return 'https://hcaptcha.com/siteverify';
+		return hcaptcha()->get_verify_url();
 	}
 
 	/**

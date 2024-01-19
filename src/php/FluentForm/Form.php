@@ -315,9 +315,11 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function pre_http_request( $response, array $parsed_args, string $url ) {
-		$api_urls = [
-			'https://api.hcaptcha.com/siteverify',
-			'https://hcaptcha.com/siteverify',
+		$verify_url     = hcaptcha()->get_verify_url();
+		$old_verify_url = str_replace( 'api.', '', $verify_url );
+		$api_urls       = [
+			$verify_url,
+			$old_verify_url,
 		];
 
 		if ( ! in_array( $url, $api_urls, true ) ) {

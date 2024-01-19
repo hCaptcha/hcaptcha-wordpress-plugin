@@ -448,6 +448,15 @@ CSS;
 	}
 
 	/**
+	 * Get verify url.
+	 *
+	 * @return string
+	 */
+	public function get_verify_url(): string {
+		return 'https://api.hcaptcha.com/siteverify';
+	}
+
+	/**
 	 * Add the hCaptcha script to footer.
 	 *
 	 * @return void

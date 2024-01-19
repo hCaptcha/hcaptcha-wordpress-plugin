@@ -175,7 +175,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$raw_response = wp_remote_post(
-			'https://api.hcaptcha.com/siteverify',
+			hcaptcha()->get_verify_url(),
 			[ 'body' => $params ]
 		);
 
