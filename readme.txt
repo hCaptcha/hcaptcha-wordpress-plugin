@@ -547,6 +547,7 @@ Instructions for popular native integrations are below:
 * Added filter `hcap_api_src`, allowing to filter the API source url with params.
 * Fixed Brevo plugin position on Integrations page.
 * Fixed testing config with test accounts.
+* Fixed saving Notification state.
 
 = 3.7.1 =
 * Fixed adding arguments to api.js for Enterprise accounts.

@@ -135,10 +135,10 @@ class General extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		$hcaptcha  = hcaptcha();
-		$page_hook = $this->screen_id();
+		$hcaptcha = hcaptcha();
 
-		add_action( "load-{$page_hook}", [ $this, 'init_notifications' ] );
+		// Current class loaded early on plugins_loaded. Init Notifications later, when Settings class is ready.
+		add_action( 'plugins_loaded', [ $this, 'init_notifications' ] );
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
