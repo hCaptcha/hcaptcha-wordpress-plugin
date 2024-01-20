@@ -543,6 +543,7 @@ Instructions for popular native integrations are below:
 = 3.8.0 =
 * Added search of plugin and themes on the Integrations page.
 * Added toggling of sections on the General page.
+* Added filter `hcap_api_src`, allowing to filter the API source url with params.
 * Fixed Brevo plugin position on Integrations page.
 
 = 3.7.1 =

@@ -204,7 +204,7 @@ class Main {
 		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
 
 		/**
-		 * Filters the hcaptcha activation flag.
+		 * Filters the hCaptcha activation flag.
 		 *
 		 * @param bool $activate Activate the hcaptcha functionality.
 		 */
@@ -444,7 +444,12 @@ CSS;
 			}
 		}
 
-		return add_query_arg( $params, $this->get_api_url() );
+		/**
+		 * Filters the API source url with params.
+		 *
+		 * @param string $api_src API source url with params.
+		 */
+		return (string) apply_filters( 'hcap_api_src', add_query_arg( $params, $this->get_api_url() ) );
 	}
 
 	/**
