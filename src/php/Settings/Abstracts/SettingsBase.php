@@ -467,6 +467,13 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function base_admin_enqueue_scripts() {
+		wp_enqueue_style(
+			static::PREFIX . '-settings-admin',
+			$this->plugin_url() . "/assets/css/settings-admin$this->min_prefix.css",
+			[],
+			$this->plugin_version()
+		);
+
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
