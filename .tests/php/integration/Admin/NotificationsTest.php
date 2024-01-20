@@ -42,7 +42,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$secret_key = '';
 
 		$expected = [
-			'register'        =>
+			'register'            =>
 				[
 					'title'   => 'Get your hCaptcha site keys',
 					'message' => 'To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.',
@@ -52,7 +52,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 							'text' => 'Get site keys',
 						],
 				],
-			'pro-free-trial'  =>
+			'pro-free-trial'      =>
 				[
 					'title'   => 'Try Pro for free',
 					'message' => 'Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.',
@@ -62,7 +62,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 							'text' => 'Try Pro',
 						],
 				],
-			'post-leadership' => [
+			'post-leadership'     => [
 				'title'   => 'hCaptcha\'s Leadership',
 				'message' => 'hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™',
 				'button'  => [
