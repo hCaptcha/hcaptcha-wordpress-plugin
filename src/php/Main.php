@@ -405,6 +405,13 @@ CSS;
 	public function get_api_url(): string {
 		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
 
+		/**
+		 * Filters the API host.
+		 *
+		 * @param string $api_host API host.
+		 */
+		$api_host = apply_filters( 'hcap_api_host', $api_host );
+
 		return "https://$api_host" . '/1/api.js';
 	}
 
