@@ -558,7 +558,7 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function search_box() {
 		?>
-		<span class="hcaptcha-integrations-search-wrap">
+		<span id="hcaptcha-integrations-search-wrap">
 			<label for="hcaptcha-integrations-search"></label>
 			<input
 					type="search" id="hcaptcha-integrations-search"
