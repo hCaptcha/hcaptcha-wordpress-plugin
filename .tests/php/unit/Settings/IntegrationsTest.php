@@ -84,8 +84,21 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_menu_title() {
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
-		$method = 'menu_title';
-		self::assertSame( 'hCaptcha', $subject->$method() );
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				if ( 'HCAPTCHA_URL' === $name ) {
+					return HCAPTCHA_TEST_URL;
+				}
+
+				return '';
+			}
+		);
+
+		$method   = 'menu_title';
+		$expected = '<img class="kagg-settings-menu-image" src="https://site.org/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-icon.svg" alt="hCaptcha icon"><span class="kagg-settings-menu-title">hCaptcha</span>';
+
+		self::assertSame( $expected, $subject->$method() );
 	}
 
 	/**

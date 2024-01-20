@@ -87,8 +87,21 @@ class GeneralTest extends HCaptchaTestCase {
 	public function test_menu_title() {
 		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
-		$method = 'menu_title';
-		self::assertSame( 'hCaptcha', $subject->$method() );
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				if ( 'HCAPTCHA_URL' === $name ) {
+					return HCAPTCHA_TEST_URL;
+				}
+
+				return '';
+			}
+		);
+
+		$method   = 'menu_title';
+		$expected = '<img class="kagg-settings-menu-image" src="https://site.org/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-icon.svg" alt="hCaptcha icon"><span class="kagg-settings-menu-title">hCaptcha</span>';
+
+		self::assertSame( $expected, $subject->$method() );
 	}
 
 	/**
@@ -195,6 +208,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback( string $section_id, string $expected ) {
+		$user          = (object) [ 'ID' => 1 ];
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
 		$subject       = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
@@ -204,6 +218,8 @@ class GeneralTest extends HCaptchaTestCase {
 			$notifications->shouldReceive( 'show' )->once();
 		}
 
+		WP_Mock::userFunction( 'wp_get_current_user' )->andReturn( $user );
+		WP_Mock::userFunction( 'get_user_meta' )->andReturn( [] );
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 
 		ob_start();
@@ -223,22 +239,52 @@ class GeneralTest extends HCaptchaTestCase {
 				'				<h2>
 					General				</h2>
 				<div id="hcaptcha-message"></div>
-						<h3 class="hcaptcha-section-keys">Keys</h3>
+						<h3 class="hcaptcha-section-keys">
+			<span class="hcaptcha-section-header-title">
+				Keys			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
 		',
 			],
 			'appearance' => [
 				General::SECTION_APPEARANCE,
-				'		<h3 class="hcaptcha-section-appearance">Appearance</h3>
+				'		<h3 class="hcaptcha-section-appearance">
+			<span class="hcaptcha-section-header-title">
+				Appearance			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
 		',
 			],
 			'custom'     => [
 				General::SECTION_CUSTOM,
-				'		<h3 class="hcaptcha-section-custom">Custom</h3>
+				'		<h3 class="hcaptcha-section-custom">
+			<span class="hcaptcha-section-header-title">
+				Custom			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
+		',
+			],
+			'enterprise' => [
+				General::SECTION_ENTERPRISE,
+				'		<h3 class="hcaptcha-section-enterprise">
+			<span class="hcaptcha-section-header-title">
+				Enterprise			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
 		',
 			],
 			'other'      => [
 				General::SECTION_OTHER,
-				'		<h3 class="hcaptcha-section-other">Other</h3>
+				'		<h3 class="hcaptcha-section-other">
+			<span class="hcaptcha-section-header-title">
+				Other			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
 		',
 			],
 			'wrong'      => [ 'wrong', '' ],
@@ -309,6 +355,11 @@ class GeneralTest extends HCaptchaTestCase {
 			->andReturn( $nonce )
 			->once();
 
+		WP_Mock::userFunction( 'wp_create_nonce' )
+			->with( General::TOGGLE_SECTION_ACTION )
+			->andReturn( $nonce )
+			->once();
+
 		WP_Mock::userFunction( 'wp_localize_script' )
 			->with(
 				General::HANDLE,
@@ -316,7 +367,9 @@ class GeneralTest extends HCaptchaTestCase {
 				[
 					'ajaxUrl'                              => $ajax_url,
 					'checkConfigAction'                    => General::CHECK_CONFIG_ACTION,
-					'nonce'                                => $nonce,
+					'checkConfigNonce'                     => $nonce,
+					'toggleSectionAction'                  => General::TOGGLE_SECTION_ACTION,
+					'toggleSectionNonce'                   => $nonce,
 					'modeLive'                             => General::MODE_LIVE,
 					'modeTestPublisher'                    => General::MODE_TEST_PUBLISHER,
 					'modeTestEnterpriseSafeEndUser'        => General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
