@@ -298,23 +298,3 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
 	}
 }
-
-if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
-	/**
-	 * Print error message.
-	 *
-	 * @param string $hcaptcha_content Content of hCaptcha.
-	 *
-	 * @return string
-	 */
-	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ): string {
-		_deprecated_function( __FUNCTION__, '2.1.0' );
-
-		$message = sprintf(
-			'<p id="hcap_error" class="error hcap_error">%s</p>',
-			__( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' )
-		);
-
-		return $message . $hcaptcha_content;
-	}
-}
