@@ -55,7 +55,7 @@ const general = function( $ ) {
 		$message.removeClass();
 		$message.addClass( msgClass + ' notice is-dismissible' );
 		const messageLines = message.split( '\n' ).map( function( line ) {
-			return `<p>${line}</p>`;
+			return `<p>${ line }</p>`;
 		} );
 		$message.html( messageLines.join( '' ) );
 
@@ -88,7 +88,7 @@ const general = function( $ ) {
 		sampleHCaptcha.innerHTML = '';
 
 		for ( const key in params ) {
-			sampleHCaptcha.setAttribute( `data-${key}`, `${params[ key ]}` );
+			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
 		}
 
 		hCaptcha.bindEvents();
