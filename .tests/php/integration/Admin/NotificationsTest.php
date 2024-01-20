@@ -70,6 +70,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Read post',
 				],
 			],
+			'search-integrations' => [
+				'title'   => 'Search on Integrations page',
+				'message' => 'Now you can search for plugin an themes on the Integrations page.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search',
+					'text' => 'Start search',
+				],
+            ],
 		];
 
 		if ( ! $empty_keys ) {
