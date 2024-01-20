@@ -679,18 +679,21 @@ class General extends PluginSettingsBase {
 				return $ajax_mode;
 			}
 		);
-		add_filter(
-			'hcap_site_key',
-			static function ( $site_key ) use ( $ajax_site_key ) {
-				return $ajax_site_key;
-			}
-		);
-		add_filter(
-			'hcap_secret_key',
-			static function ( $secret_key ) use ( $ajax_secret_key ) {
-				return $ajax_secret_key;
-			}
-		);
+
+		if ( self::MODE_LIVE === $ajax_mode ) {
+			add_filter(
+				'hcap_site_key',
+				static function ( $site_key ) use ( $ajax_site_key ) {
+					return $ajax_site_key;
+				}
+			);
+			add_filter(
+				'hcap_secret_key',
+				static function ( $secret_key ) use ( $ajax_secret_key ) {
+					return $ajax_secret_key;
+				}
+			);
+		}
 
 		$settings = hcaptcha()->settings();
 		$params   = [
@@ -713,7 +716,7 @@ class General extends PluginSettingsBase {
 		$body = json_decode( $raw_body, true );
 
 		if ( ! $body ) {
-			$this->send_check_config_error( $raw_body );
+			$this->send_check_config_error( __( 'Cannot decode hCaptcha server response.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 		if ( empty( $body['pass'] ) ) {
@@ -733,7 +736,7 @@ class General extends PluginSettingsBase {
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
 		if ( null !== $result ) {
-			$this->send_check_config_error( $result );
+			$this->send_check_config_error( $result, true );
 		}
 
 		wp_send_json_success(
@@ -797,13 +800,16 @@ class General extends PluginSettingsBase {
 	/**
 	 * Send check config error.
 	 *
-	 * @param string $error Error message.
+	 * @param string $error      Error message.
+	 * @param bool   $raw_result Send a raw result.
 	 *
 	 * @return void
 	 */
-	private function send_check_config_error( string $error ) {
+	private function send_check_config_error( string $error, $raw_result = false ) {
+		$prefix = $raw_result ? '' : esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' );
+
 		wp_send_json_error(
-			esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' ) . $error
+			$prefix . $error
 		);
 	}
 }
