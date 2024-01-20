@@ -77,7 +77,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search',
 					'text' => 'Start search',
 				],
-            ],
+			],
 		];
 
 		if ( ! $empty_keys ) {
