@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Admin\Dialog;
 use KAGG\Settings\Abstracts\SettingsBase;
 use WP_Theme;
 
@@ -43,6 +44,13 @@ class Integrations extends PluginSettingsBase {
 	const SECTION_DISABLED = 'disabled';
 
 	/**
+	 * Dialog class instance.
+	 *
+	 * @var Dialog
+	 */
+	private $dialog;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -65,6 +73,10 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function init_hooks() {
 		parent::init_hooks();
+
+		$this->dialog = new Dialog();
+
+		$this->dialog->init();
 
 		add_action( 'kagg_settings_tab', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
@@ -576,6 +588,8 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
+			$this->print_popups();
+
 			$this->submit_button();
 
 			?>
@@ -657,7 +671,7 @@ class Integrations extends PluginSettingsBase {
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/integrations$this->min_prefix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
+			[ static::PREFIX . '-' . SettingsBase::HANDLE, Dialog::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
@@ -842,5 +856,14 @@ class Integrations extends PluginSettingsBase {
 
 		// Activate the first available theme only.
 		return true;
+	}
+
+	/**
+	 * Print popups for confirmation and theme selection.
+	 *
+	 * @return void
+	 */
+	private function print_popups() {
+		$this->dialog->print_confirmation_popup();
 	}
 }

@@ -169,3 +169,37 @@
 		min-height: unset;
 	}
 }
+
+/* KAGG Dialog hCaptcha styles */
+body div.kagg-dialog {
+	--teal-400: #00d4bf;
+	--grey-600: #5c6f8a;
+	--color-activate: #00a32a;
+	--color-deactivate: #d63638;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content {
+	color: var(--grey-600);
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button {
+	color: var(--grey-600);
+}
+
+body div.kagg-dialog.activate .kagg-dialog-container .kagg-dialog-box {
+	color: var(--color-activate);
+}
+
+body div.kagg-dialog.activate .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
+	background: var(--color-activate);
+	color: #ffffff
+}
+
+body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box {
+	color: var(--color-deactivate);
+}
+
+body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
+	background: var(--color-deactivate);
+	color: #ffffff
+}

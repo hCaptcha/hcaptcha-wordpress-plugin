@@ -1,4 +1,4 @@
-/* global jQuery, HCaptchaIntegrationsObject */
+/* global jQuery, HCaptchaIntegrationsObject, kaggDialog */
 
 /**
  * @param HCaptchaIntegrationsObject.ajaxUrl
@@ -92,6 +92,59 @@ const integrations = function( $ ) {
 	}
 
 	$( '.form-table img' ).on( 'click', function( event ) {
+		function maybeToggleActivation( confirmation ) {
+			if ( ! confirmation ) {
+				return;
+			}
+
+			toggleActivation();
+		}
+
+		function toggleActivation() {
+			const activateClass = activate ? 'on' : 'off';
+			const data = {
+				action: HCaptchaIntegrationsObject.action,
+				nonce: HCaptchaIntegrationsObject.nonce,
+				activate,
+				entity,
+				status,
+			};
+
+			$tr.addClass( activateClass );
+
+			// noinspection JSVoidFunctionReturnValueUsed
+			$.post( {
+				url: HCaptchaIntegrationsObject.ajaxUrl,
+				data,
+			} )
+				.done( function( response ) {
+					if ( ! response.success ) {
+						showErrorMessage( response.data );
+						return;
+					}
+
+					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
+					const top = $wpwrap.position().top;
+
+					$fieldset.attr( 'disabled', ! activate );
+					$fieldset.find( 'input' ).attr( 'disabled', ! activate );
+					showSuccessMessage( response.data );
+					insertIntoTable( $table, alt, $tr );
+					$( 'html, body' ).animate(
+						{
+							scrollTop: $tr.offset().top - top - $message.outerHeight(),
+						},
+						1000
+					);
+				} )
+				.fail( function( response ) {
+					showErrorMessage( response.statusText );
+				} )
+				.always( function() {
+					$tr.removeClass( 'on off' );
+				} );
+		}
+
 		event.preventDefault();
 		clearMessage();
 
@@ -132,53 +185,16 @@ const integrations = function( $ ) {
 			activate = true;
 		}
 
-		// eslint-disable-next-line no-alert
-		if ( ! event.ctrlKey && ! confirm( msg.replace( '%s', alt ) ) ) {
+		if ( event.ctrlKey ) {
+			toggleActivation();
 			return;
 		}
 
-		const activateClass = activate ? 'on' : 'off';
-		const data = {
-			action: HCaptchaIntegrationsObject.action,
-			nonce: HCaptchaIntegrationsObject.nonce,
-			activate,
-			entity,
-			status,
-		};
-
-		$tr.addClass( activateClass );
-
-		// noinspection JSVoidFunctionReturnValueUsed
-		$.post( {
-			url: HCaptchaIntegrationsObject.ajaxUrl,
-			data,
-		} )
-			.done( function( response ) {
-				if ( ! response.success ) {
-					showErrorMessage( response.data );
-					return;
-				}
-
-				const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
-				const top = $wpwrap.position().top;
-
-				$fieldset.attr( 'disabled', ! activate );
-				$fieldset.find( 'input' ).attr( 'disabled', ! activate );
-				showSuccessMessage( response.data );
-				insertIntoTable( $table, alt, $tr );
-				$( 'html, body' ).animate(
-					{
-						scrollTop: $tr.offset().top - top - $message.outerHeight(),
-					},
-					1000
-				);
-			} )
-			.fail( function( response ) {
-				showErrorMessage( response.statusText );
-			} )
-			.always( function() {
-				$tr.removeClass( 'on off' );
-			} );
+		kaggDialog.confirm( {
+			content: msg.replace( '%s', alt ),
+			type: activate ? 'activate' : 'deactivate',
+			onAction: maybeToggleActivation,
+		} );
 	} );
 
 	const debounce = ( func, delay ) => {
