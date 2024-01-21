@@ -36,6 +36,7 @@
 	padding: 15px 20px;
 	margin: 1.5em 0 0;
 	color: #5c6f8a;
+	cursor: pointer;
 }
 
 .hcaptcha-section-header-toggle:after {
@@ -44,7 +45,6 @@
 	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	cursor: pointer;
 }
 
 h3.closed .hcaptcha-section-header-toggle:after {

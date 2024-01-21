@@ -238,16 +238,16 @@ const general = function( $ ) {
 		$submit.attr( 'disabled', false );
 	} );
 
-	$( '.hcaptcha-section-header-toggle' ).on( 'click', function( event ) {
-		const h3 = $( event.target.closest( 'h3' ) );
+	$( '.hcaptcha-general h3' ).on( 'click', function( event ) {
+		const $h3 = $( event.currentTarget );
 
-		$( event.target ).closest( 'h3' ).toggleClass( 'closed' );
+		$h3.toggleClass( 'closed' );
 
 		const data = {
 			action: HCaptchaGeneralObject.toggleSectionAction,
 			nonce: HCaptchaGeneralObject.toggleSectionNonce,
-			section: h3.attr( 'class' ).replaceAll( /(hcaptcha-section-|closed)/g, '' ).trim(),
-			status: ! h3.hasClass( 'closed' ),
+			section: $h3.attr( 'class' ).replaceAll( /(hcaptcha-section-|closed)/g, '' ).trim(),
+			status: ! $h3.hasClass( 'closed' ),
 		};
 
 		$.post( {
