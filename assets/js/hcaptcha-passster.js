@@ -3,7 +3,7 @@
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
-		const data = options.data;
+		const data = options.data ?? '';
 
 		if ( ! data.startsWith( 'action=validate_input' ) ) {
 			return;
