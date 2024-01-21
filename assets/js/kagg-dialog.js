@@ -7,7 +7,6 @@ var kaggDialog = window.kaggDialog || ( function( document, window, $ ) {
 		defaults: {
 			content: 'Are you sure to continue?',
 			type: 'default',
-			buttons: {},
 			// eslint-disable-next-line no-unused-vars
 			onAction( result ) {
 			},

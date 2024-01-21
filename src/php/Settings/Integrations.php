@@ -650,6 +650,15 @@ class Integrations extends PluginSettingsBase {
 			true
 		);
 
+		$themes = array_map(
+			static function ( $theme ) {
+				return $theme->get( 'Name' );
+			},
+			wp_get_themes()
+		);
+
+		unset( $themes[ wp_get_theme()->get_stylesheet() ] );
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
@@ -665,6 +674,9 @@ class Integrations extends PluginSettingsBase {
 				'activateThemeMsg'   => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
 				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
+				'themes'             => $themes,
+				'defaultTheme'       => WP_Theme::get_core_default_theme()->get_stylesheet(),
 			]
 		);
 
@@ -692,12 +704,13 @@ class Integrations extends PluginSettingsBase {
 			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$activate    = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
-		$entity      = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status      = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status      = str_replace( '-', '_', $status );
-		$entity_name = $this->form_fields[ $status ]['label'];
-		$entities    = [];
+		$activate       = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
+		$entity         = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$new_theme_name = filter_input( INPUT_POST, 'newThemeName', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status         = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status         = str_replace( '-', '_', $status );
+		$entity_name    = $this->form_fields[ $status ]['label'];
+		$entities       = [];
 
 		foreach ( hcaptcha()->modules as $module ) {
 			if ( $module[0][0] === $status ) {
@@ -713,7 +726,7 @@ class Integrations extends PluginSettingsBase {
 		if ( 'plugin' === $entity ) {
 			$this->process_plugins( $activate, $entities, $entity_name );
 		} else {
-			$this->process_themes( $activate, $entities, $entity_name );
+			$this->process_themes( $activate, $entities, $entity_name, $new_theme_name );
 		}
 	}
 
@@ -761,13 +774,14 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Activate/deactivate themes.
 	 *
-	 * @param bool   $activate   Activate or deactivate.
-	 * @param array  $themes     Themes to process.
-	 * @param string $theme_name Main theme name to process.
+	 * @param bool   $activate       Activate or deactivate.
+	 * @param array  $themes         Themes to process.
+	 * @param string $theme_name     Main theme name to process.
+	 * @param string $new_theme_name New theme name to activate.
 	 *
 	 * @return void
 	 */
-	private function process_themes( bool $activate, array $themes, string $theme_name ) {
+	private function process_themes( bool $activate, array $themes, string $theme_name, string $new_theme_name ) {
 		if ( $activate ) {
 			if ( ! $this->activate_themes( $themes ) ) {
 				$message = sprintf(
@@ -788,15 +802,9 @@ class Integrations extends PluginSettingsBase {
 			wp_send_json_success( esc_html( $message ) );
 		}
 
-		$new_theme = WP_Theme::get_core_default_theme();
-
-		if ( ! $new_theme ) {
-			wp_send_json_error( esc_html__( 'No available theme to activate found.', 'hcaptcha-for-forms-and-more' ) );
-		}
-
 		ob_start();
 
-		switch_theme( $new_theme->get_stylesheet() );
+		switch_theme( $new_theme_name );
 
 		ob_end_clean();
 
@@ -804,7 +812,7 @@ class Integrations extends PluginSettingsBase {
 		/* translators: 1: Deactivated theme name. 2: Activated theme name. */
 			__( '%1$s theme is deactivated. %2$s theme is activated.', 'hcaptcha-for-forms-and-more' ),
 			$theme_name,
-			$new_theme->get( 'Name' )
+			wp_get_theme( $new_theme_name )->get( 'Name' )
 		);
 
 		wp_send_json_success( esc_html( $message ) );

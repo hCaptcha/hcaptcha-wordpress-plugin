@@ -8,6 +8,9 @@
  * @param HCaptchaIntegrationsObject.deactivateMsg
  * @param HCaptchaIntegrationsObject.activateThemeMsg
  * @param HCaptchaIntegrationsObject.deactivateThemeMsg
+ * @param HCaptchaIntegrationsObject.selectThemeMsg
+ * @param HCaptchaIntegrationsObject.themes
+ * @param HCaptchaIntegrationsObject.defaultTheme
  */
 
 /**
@@ -100,6 +103,16 @@ const integrations = function( $ ) {
 			toggleActivation();
 		}
 
+		function getSelectedTheme() {
+			const select = document.querySelector( '.kagg-dialog select' );
+
+			if ( ! select ) {
+				return '';
+			}
+
+			return select.value ?? '';
+		}
+
 		function toggleActivation() {
 			const activateClass = activate ? 'on' : 'off';
 			const data = {
@@ -108,6 +121,7 @@ const integrations = function( $ ) {
 				activate,
 				entity,
 				status,
+				newThemeName: getSelectedTheme(),
 			};
 
 			$tr.addClass( activateClass );
@@ -169,20 +183,33 @@ const integrations = function( $ ) {
 		const $tr = $target.closest( 'tr' );
 		let status = $tr.attr( 'class' );
 		status = status.replace( 'hcaptcha-integrations-', '' );
-		const $fieldset = $tr.find( 'fieldset' );
 
-		// noinspection JSUnresolvedVariable
-		let msg = entity === 'plugin'
-			? HCaptchaIntegrationsObject.deactivateMsg
-			: HCaptchaIntegrationsObject.deactivateThemeMsg;
-		let activate = false;
+		const $fieldset = $tr.find( 'fieldset' );
+		let msg, activate;
 
 		if ( $fieldset.attr( 'disabled' ) ) {
-			// noinspection JSUnresolvedVariable
 			msg = entity === 'plugin'
 				? HCaptchaIntegrationsObject.activateMsg
 				: HCaptchaIntegrationsObject.activateThemeMsg;
 			activate = true;
+		} else {
+			if ( entity === 'plugin' ) {
+				msg = HCaptchaIntegrationsObject.deactivateMsg;
+			} else {
+				msg = HCaptchaIntegrationsObject.deactivateThemeMsg;
+				msg += '<p>' + HCaptchaIntegrationsObject.selectThemeMsg + '</p>';
+				msg += '<select>';
+
+				for ( const slug in HCaptchaIntegrationsObject.themes ) {
+					const selected = slug === HCaptchaIntegrationsObject.defaultTheme ? ' selected="selected"' : '';
+
+					msg += `<option value="${ slug }"${ selected }>${ HCaptchaIntegrationsObject.themes[ slug ] }</option>`;
+				}
+
+				msg += '</select>';
+			}
+
+			activate = false;
 		}
 
 		if ( event.ctrlKey ) {

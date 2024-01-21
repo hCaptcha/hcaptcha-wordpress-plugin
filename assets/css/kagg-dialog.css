@@ -64,6 +64,15 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-conten
 	grid-column: 1 / -1;
 }
 
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content p {
+	font-size: 16px;
+	margin: 16px 0 8px 0;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content select {
+	width: 190px;
+}
+
 body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons {
 	margin-top: -10px
 }

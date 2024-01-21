@@ -543,6 +543,8 @@ Instructions for popular native integrations are below:
 = 3.8.0 =
 * Added search of plugin and themes on the Integrations page.
 * Added toggling of sections on the General page.
+* Added new dialog on activation and deactivaion of plugin and themes.
+* Added selection of a new theme on deactivation of the current one.
 * Added filter `hcap_api_host`, allowing to filter the API host.
 * Added filter `hcap_api_src`, allowing to filter the API source url with params.
 * Fixed Brevo plugin position on Integrations page.
