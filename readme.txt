@@ -548,6 +548,7 @@ Instructions for popular native integrations are below:
 * Fixed Brevo plugin position on Integrations page.
 * Fixed testing config with test accounts.
 * Fixed saving Notification state.
+* Fixed compatibility of Ninja Forms with GeoDirectory.
 
 = 3.7.1 =
 * Fixed adding arguments to api.js for Enterprise accounts.
