@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Admin\Dialog;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\Integrations;
@@ -220,12 +221,19 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @param string $expected Expected value.
 	 *
 	 * @dataProvider dp_test_section_callback
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback( string $id, string $expected ) {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 		WP_Mock::userFunction( 'submit_button' );
 
+		$dialog = Mockery::mock( Dialog::class )->makePartial();
+
+		$dialog->shouldReceive( 'print_confirmation_popup' );
+
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
+
+		$this->set_protected_property( $subject, 'dialog', $dialog );
 
 		ob_start();
 		$subject->section_callback( [ 'id' => $id ] );
@@ -274,6 +282,26 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
 
+		$theme         = Mockery::mock( 'WP_Theme' );
+		$default_theme = Mockery::mock( 'WP_Theme' );
+
+		FunctionMocker::replace(
+			'\WP_Theme::get_core_default_theme',
+			static function () use ( $default_theme ) {
+				return $default_theme;
+			}
+		);
+
+		$theme->shouldReceive( 'get_stylesheet' )->andReturn( 'Divi' );
+		$theme->shouldReceive( 'get' )->with( 'Name' )->andReturn( 'Divi' );
+		$default_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyone' );
+		$default_theme->shouldReceive( 'get' )->andReturn( 'Twenty Twenty-One' );
+
+		$themes = [
+			'Divi'            => $theme,
+			'twentytwentyone' => $default_theme,
+		];
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( true );
@@ -304,6 +332,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 			)
 			->once();
 
+		WP_Mock::userFunction( 'wp_get_themes' )->with()->andReturn( $themes )->once();
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme )->once();
+
 		WP_Mock::userFunction( 'admin_url' )
 			->with( 'admin-ajax.php' )
 			->andReturn( $ajax_url )
@@ -326,6 +357,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'deactivateMsg'      => 'Deactivate %s plugin?',
 					'activateThemeMsg'   => 'Activate %s theme?',
 					'deactivateThemeMsg' => 'Deactivate %s theme?',
+					'selectThemeMsg'     => 'Select theme to activate:',
+					'themes'             => [ 'twentytwentyone' => 'Twenty Twenty-One' ],
+					'defaultTheme'       => 'twentytwentyone',
 				]
 			)
 			->once();
@@ -334,7 +368,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/css/integrations$min_prefix.css",
-				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
+				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, Dialog::HANDLE ],
 				$plugin_version
 			)
 			->once();

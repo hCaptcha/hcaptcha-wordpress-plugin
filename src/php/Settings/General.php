@@ -429,6 +429,12 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'backend'              => [
+				'label'   => __( 'Backend', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_ENTERPRISE,
+				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'off_when_logged_in'   => [
 				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',

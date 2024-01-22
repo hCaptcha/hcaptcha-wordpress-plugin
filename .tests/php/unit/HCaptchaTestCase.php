@@ -617,6 +617,12 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'enterprise',
 				'helper'  => 'See Enterprise docs.',
 			],
+			'backend'                  => [
+				'label'   => 'Backend',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'helper'  => 'See Enterprise docs.',
+			],
 			'off_when_logged_in'       => [
 				'label'   => 'Other Settings',
 				'type'    => 'checkbox',

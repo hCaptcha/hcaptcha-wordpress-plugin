@@ -48,7 +48,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @var Dialog
 	 */
-	private $dialog;
+	protected $dialog;
 
 	/**
 	 * Get page title.
@@ -659,6 +659,9 @@ class Integrations extends PluginSettingsBase {
 
 		unset( $themes[ wp_get_theme()->get_stylesheet() ] );
 
+		$core_default_theme_obj = WP_Theme::get_core_default_theme();
+		$default_theme          = $core_default_theme_obj ? $core_default_theme_obj->get_stylesheet() : '';
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
@@ -676,7 +679,7 @@ class Integrations extends PluginSettingsBase {
 				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
 				'themes'             => $themes,
-				'defaultTheme'       => WP_Theme::get_core_default_theme()->get_stylesheet(),
+				'defaultTheme'       => $default_theme,
 			]
 		);
 
