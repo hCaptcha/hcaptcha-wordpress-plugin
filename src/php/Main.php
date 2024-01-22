@@ -52,6 +52,11 @@ class Main {
 	const API_HOST = 'js.hcaptcha.com';
 
 	/**
+	 * Default verify host.
+	 */
+	const VERIFY_HOST = 'api.hcaptcha.com';
+
+	/**
 	 * Form shown somewhere, use this flag to run the script.
 	 *
 	 * @var boolean
@@ -465,7 +470,16 @@ CSS;
 	 * @return string
 	 */
 	public function get_verify_url(): string {
-		return 'https://api.hcaptcha.com/siteverify';
+		$verify_host = trim( $this->settings()->get( 'backend' ) ) ?: self::VERIFY_HOST;
+
+		/**
+		 * Filters the verification host.
+		 *
+		 * @param string $verify_host Verification host.
+		 */
+		$verify_host = apply_filters( 'hcap_verify_host', $verify_host );
+
+		return "https://$verify_host/siteverify";
 	}
 
 	/**
