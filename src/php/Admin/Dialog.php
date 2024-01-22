@@ -45,6 +45,7 @@ class Dialog {
 			</div>
 			<div class="kagg-dialog-container">
 				<div class="kagg-dialog-box">
+					<div class="kagg-dialog-title"></div>
 					<div class="kagg-dialog-content"></div>
 					<div class="kagg-dialog-buttons">
 						<button type="button" class="btn btn-ok">

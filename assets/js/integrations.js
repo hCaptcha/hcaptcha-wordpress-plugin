@@ -185,32 +185,36 @@ const integrations = function( $ ) {
 		status = status.replace( 'hcaptcha-integrations-', '' );
 
 		const $fieldset = $tr.find( 'fieldset' );
-		let msg, activate;
+		let title = '';
+		let content = '';
+		let activate;
 
 		if ( $fieldset.attr( 'disabled' ) ) {
-			msg = entity === 'plugin'
+			title = entity === 'plugin'
 				? HCaptchaIntegrationsObject.activateMsg
 				: HCaptchaIntegrationsObject.activateThemeMsg;
 			activate = true;
 		} else {
 			if ( entity === 'plugin' ) {
-				msg = HCaptchaIntegrationsObject.deactivateMsg;
+				title = HCaptchaIntegrationsObject.deactivateMsg;
 			} else {
-				msg = HCaptchaIntegrationsObject.deactivateThemeMsg;
-				msg += '<p>' + HCaptchaIntegrationsObject.selectThemeMsg + '</p>';
-				msg += '<select>';
+				title = HCaptchaIntegrationsObject.deactivateThemeMsg;
+				content = '<p>' + HCaptchaIntegrationsObject.selectThemeMsg + '</p>';
+				content += '<select>';
 
 				for ( const slug in HCaptchaIntegrationsObject.themes ) {
 					const selected = slug === HCaptchaIntegrationsObject.defaultTheme ? ' selected="selected"' : '';
 
-					msg += `<option value="${ slug }"${ selected }>${ HCaptchaIntegrationsObject.themes[ slug ] }</option>`;
+					content += `<option value="${ slug }"${ selected }>${ HCaptchaIntegrationsObject.themes[ slug ] }</option>`;
 				}
 
-				msg += '</select>';
+				content += '</select>';
 			}
 
 			activate = false;
 		}
+
+		title = title.replace( '%s', alt );
 
 		if ( event.ctrlKey ) {
 			toggleActivation();
@@ -218,7 +222,8 @@ const integrations = function( $ ) {
 		}
 
 		kaggDialog.confirm( {
-			content: msg.replace( '%s', alt ),
+			title,
+			content,
 			type: activate ? 'activate' : 'deactivate',
 			onAction: maybeToggleActivation,
 		} );

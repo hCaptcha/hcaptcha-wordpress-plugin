@@ -54,6 +54,7 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box {
 	margin: auto;
 }
 
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-title,
 body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content {
 	color: #444444;
 	font-size: 16px;
@@ -62,6 +63,10 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-conten
 	overflow: inherit;
 	text-align: center;
 	grid-column: 1 / -1;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-title {
+	font-weight: bold;
 }
 
 body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content p {
