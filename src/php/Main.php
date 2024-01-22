@@ -415,9 +415,27 @@ CSS;
 		 *
 		 * @param string $api_host API host.
 		 */
-		$api_host = apply_filters( 'hcap_api_host', $api_host );
+		$api_host = (string) apply_filters( 'hcap_api_host', $api_host );
 
-		return "https://$api_host" . '/1/api.js';
+		$api_host = $this->force_https( $api_host );
+
+		return "$api_host/1/api.js";
+	}
+
+	/**
+	 * Force https in the hostname.
+	 *
+	 * @param string $host Hostname. Could be with http|https scheme, or without it.
+	 *
+	 * @return string
+	 */
+	private function force_https( string $host ): string {
+		$host = preg_replace( '#(http|https)://#', '', $host );
+
+		// We need to add scheme here, otherwise wp_parse_url returns null.
+		$host = (string) wp_parse_url( 'https://' . $host, PHP_URL_HOST );
+
+		return 'https://' . $host;
 	}
 
 	/**
@@ -452,7 +470,7 @@ CSS;
 			$value = trim( $this->settings()->get( $enterprise_param ) );
 
 			if ( $value ) {
-				$params[ $enterprise_arg ] = rawurlencode( $value );
+				$params[ $enterprise_arg ] = rawurlencode( $this->force_https( $value ) );
 			}
 		}
 
@@ -477,9 +495,11 @@ CSS;
 		 *
 		 * @param string $verify_host Verification host.
 		 */
-		$verify_host = apply_filters( 'hcap_verify_host', $verify_host );
+		$verify_host = (string) apply_filters( 'hcap_verify_host', $verify_host );
 
-		return "https://$verify_host/siteverify";
+		$verify_host = $this->force_https( $verify_host );
+
+		return "$verify_host/siteverify";
 	}
 
 	/**

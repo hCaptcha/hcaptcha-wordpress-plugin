@@ -433,6 +433,7 @@ class General extends PluginSettingsBase {
 				'label'   => __( 'Backend', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
+				'default' => Main::VERIFY_HOST,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'off_when_logged_in'   => [
