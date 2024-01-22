@@ -545,8 +545,10 @@ Instructions for popular native integrations are below:
 * Added toggling of sections on the General page.
 * Added new dialog on activation and deactivaion of plugin and themes.
 * Added selection of a new theme on deactivation of the current one.
+* Added 'backend' to optional Enterprise settings.
 * Added filter `hcap_api_host`, allowing to filter the API host.
 * Added filter `hcap_api_src`, allowing to filter the API source url with params.
+* Updated integration with Back In Stock Notifier.
 * Fixed Brevo plugin position on Integrations page.
 * Fixed testing config with test accounts.
 * Fixed saving Notification state.
