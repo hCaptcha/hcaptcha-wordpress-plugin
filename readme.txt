@@ -557,6 +557,7 @@ Instructions for popular native integrations are below:
 * Fixed compatibility of Divi with GeoDirectory.
 * Fixed compatibility of MailPoet with GeoDirectory.
 * Fixed compatibility of Passster with GeoDirectory.
+* Fixed styles of General page on mobile.
 
 = 3.7.1 =
 * Fixed adding arguments to api.js for Enterprise accounts.
