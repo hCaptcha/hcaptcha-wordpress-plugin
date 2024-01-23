@@ -103,13 +103,14 @@ var kaggDialog = window.kaggDialog || ( function( document ) {
 			this.parseSettings( settings );
 
 			const dialog = this.getConfirmDialog();
-			const confirm = document.querySelector( '.kagg-dialog .btn-ok' );
-			const cancel = document.querySelector( '.kagg-dialog .btn-cancel' );
-			const bg = document.querySelector( '.kagg-dialog-bg' );
 			const promise = new Promise( ( resolve ) => {
-				confirm.addEventListener( 'click', resolve );
-				cancel.addEventListener( 'click', resolve );
-				bg.addEventListener( 'click', resolve );
+				document.querySelector( '.kagg-dialog-bg' ).addEventListener( 'click', resolve );
+
+				[ ...dialog.querySelectorAll( '.btn' ) ].map( ( btn ) => {
+					btn.addEventListener( 'click', resolve );
+
+					return btn;
+				} );
 			} );
 
 			async function waitClick() {
