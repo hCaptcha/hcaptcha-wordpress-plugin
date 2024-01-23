@@ -9,6 +9,8 @@
  * @param HCaptchaIntegrationsObject.activateThemeMsg
  * @param HCaptchaIntegrationsObject.deactivateThemeMsg
  * @param HCaptchaIntegrationsObject.selectThemeMsg
+ * @param HCaptchaIntegrationsObject.OKBtnText
+ * @param HCaptchaIntegrationsObject.CancelBtnText
  * @param HCaptchaIntegrationsObject.themes
  * @param HCaptchaIntegrationsObject.defaultTheme
  */
@@ -234,6 +236,14 @@ const integrations = function( $ ) {
 			title,
 			content,
 			type: activate ? 'activate' : 'deactivate',
+			buttons: {
+				ok: {
+					text: HCaptchaIntegrationsObject.OKBtnText,
+				},
+				cancel: {
+					text: HCaptchaIntegrationsObject.CancelBtnText,
+				},
+			},
 			onAction: maybeToggleActivation,
 		} );
 	} );

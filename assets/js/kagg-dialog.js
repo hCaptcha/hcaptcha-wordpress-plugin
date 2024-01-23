@@ -1,41 +1,108 @@
-/* global jQuery */
 // noinspection ES6ConvertVarToLetConst
 
 // eslint-disable-next-line no-var
-var kaggDialog = window.kaggDialog || ( function( document, window, $ ) {
-	const app = {
+var kaggDialog = window.kaggDialog || ( function( document ) {
+	return {
 		defaults: {
-			title: 'Please confirm',
-			content: 'Are you sure to continue?',
+			title: 'Are you sure to continue?',
+			content: 'Please confirm',
 			type: 'default',
-			// eslint-disable-next-line no-unused-vars
-			onAction( result ) {
+			buttons: {},
+			defaultButtons: {
+				ok: {
+					text: 'OK',
+					class: 'btn-ok',
+					action() {},
+				},
+				cancel: {
+					text: 'Cancel',
+					class: 'btn-cancel',
+					action() {},
+				},
 			},
+			// eslint-disable-next-line no-unused-vars
+			onAction() {},
 		},
+
+		settings: {},
 
 		/**
 		 * Init app.
 		 */
 		init() {
-			// Document ready.
-			$( app.ready );
+			addEventListener( 'DOMContentLoaded', this.ready );
 		},
 
 		/**
 		 * Document ready.
 		 */
 		ready() {
-			$( document ).trigger( 'kaggDialogReady' );
+		},
+
+		/**
+		 * Parse settings.
+		 *
+		 * @param {Object} settings Settings.
+		 */
+		parseSettings( settings ) {
+			this.settings = Object.assign( {}, this.defaults, settings );
+			this.settings.buttons = Object.keys( this.settings.buttons ).length
+				? this.settings.buttons
+				: this.settings.defaultButtons;
+
+			for ( const btnKey in this.settings.buttons ) {
+				const defaultButton = this.settings.defaultButtons[ btnKey ];
+
+				if ( defaultButton !== undefined ) {
+					this.settings.buttons[ btnKey ] = Object.assign( defaultButton, this.settings.buttons[ btnKey ] );
+				}
+			}
+		},
+
+		/**
+		 * Get confirm dialog.
+		 * Create its HTMl if it does not exist.
+		 */
+		getConfirmDialog() {
+			let buttonsHTML = '';
+
+			for ( const btnKey in this.settings.buttons ) {
+				const button = this.settings.buttons[ btnKey ];
+				buttonsHTML += `<button type="button" class="btn ${ button.class }">${ button.text }</button>`;
+			}
+
+			// Create the confirm dialog HTML.
+			const innerHTML = `
+				<div class="kagg-dialog-bg">
+				</div>
+				<div class="kagg-dialog-container">
+					<div class="kagg-dialog-box">
+						<div class="kagg-dialog-title"></div>
+						<div class="kagg-dialog-content"></div>
+						<div class="kagg-dialog-buttons">
+							${ buttonsHTML }
+						</div>
+					</div>
+				</div>
+			`;
+
+			const dialog = document.createElement( 'div' );
+
+			dialog.className = 'kagg-dialog';
+			dialog.innerHTML = innerHTML;
+
+			return document.body.appendChild( dialog );
 		},
 
 		/**
 		 * Confirm dialog.
 		 *
-		 * @param {Object} settings Dialog data.
+		 * @param {Object} settings Dialog settings.
 		 */
 		confirm( settings ) {
-			const data = Object.assign( {}, this.defaults, settings );
-			const dialog = document.querySelector( '.kagg-dialog' );
+			this.parseSettings( settings );
+
+			const dialog = this.getConfirmDialog();
 			const confirm = document.querySelector( '.kagg-dialog .btn-ok' );
 			const cancel = document.querySelector( '.kagg-dialog .btn-cancel' );
 			const bg = document.querySelector( '.kagg-dialog-bg' );
@@ -52,28 +119,25 @@ var kaggDialog = window.kaggDialog || ( function( document, window, $ ) {
 					} );
 			}
 
-			dialog.querySelector( '.kagg-dialog-title' ).innerHTML = data.title;
-			dialog.querySelector( '.kagg-dialog-content' ).innerHTML = data.content;
+			dialog.querySelector( '.kagg-dialog-title' ).innerHTML = this.settings.title;
+			dialog.querySelector( '.kagg-dialog-content' ).innerHTML = this.settings.content;
 
 			dialog.className = 'kagg-dialog';
 
-			if ( data.type !== 'default' ) {
-				dialog.classList.add( data.type );
+			if ( this.settings.type !== 'default' ) {
+				dialog.classList.add( this.settings.type );
 			}
 
 			dialog.classList.add( 'open' );
 
 			waitClick()
 				.then( ( result ) => {
-					dialog.classList.remove( 'open' );
+					this.settings.onAction( result );
 
-					data.onAction( result );
+					dialog.remove();
 				} );
 		},
 	};
+}( document ) );
 
-	return app;
-}( document, window, jQuery ) );
-
-// Initialize.
 kaggDialog.init();

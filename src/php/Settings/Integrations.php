@@ -19,7 +19,12 @@ use WP_Theme;
 class Integrations extends PluginSettingsBase {
 
 	/**
-	 * Admin script handle.
+	 * Dialog scripts and style handle.
+	 */
+	const DIALOG_HANDLE = 'kagg-dialog';
+
+	/**
+	 * Admin script and style handle.
 	 */
 	const HANDLE = 'hcaptcha-integrations';
 
@@ -73,10 +78,6 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function init_hooks() {
 		parent::init_hooks();
-
-		$this->dialog = new Dialog();
-
-		$this->dialog->init();
 
 		add_action( 'kagg_settings_tab', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
@@ -588,8 +589,6 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function section_callback( array $arguments ) {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
-			$this->print_popups();
-
 			$this->submit_button();
 
 			?>
@@ -643,6 +642,21 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function admin_enqueue_scripts() {
 		wp_enqueue_script(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_prefix.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_enqueue_style(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/kagg-dialog$this->min_prefix.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/integrations$this->min_prefix.js",
 			[ 'jquery' ],
@@ -678,6 +692,8 @@ class Integrations extends PluginSettingsBase {
 				/* translators: 1: Theme name. */
 				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText'          => __( 'OK', 'hcaptcha-for-forms-and-more' ),
+				'CancelBtnText'      => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
 				'themes'             => $themes,
 				'defaultTheme'       => $default_theme,
 			]
@@ -686,7 +702,7 @@ class Integrations extends PluginSettingsBase {
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/integrations$this->min_prefix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE, Dialog::HANDLE ],
+			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
@@ -867,14 +883,5 @@ class Integrations extends PluginSettingsBase {
 
 		// Activate the first available theme only.
 		return true;
-	}
-
-	/**
-	 * Print popups for confirmation and theme selection.
-	 *
-	 * @return void
-	 */
-	private function print_popups() {
-		$this->dialog->print_confirmation_popup();
 	}
 }

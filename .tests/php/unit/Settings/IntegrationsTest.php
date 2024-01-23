@@ -227,13 +227,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 		WP_Mock::userFunction( 'submit_button' );
 
-		$dialog = Mockery::mock( Dialog::class )->makePartial();
-
-		$dialog->shouldReceive( 'print_confirmation_popup' );
-
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
-		$this->set_protected_property( $subject, 'dialog', $dialog );
 
 		ob_start();
 		$subject->section_callback( [ 'id' => $id ] );
@@ -324,6 +318,25 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
+				Integrations::DIALOG_HANDLE,
+				$plugin_url . "/assets/js/kagg-dialog$min_prefix.js",
+				[],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				Integrations::DIALOG_HANDLE,
+				$plugin_url . "/assets/css/kagg-dialog$min_prefix.css",
+				[],
+				$plugin_version
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/js/integrations$min_prefix.js",
 				[ 'jquery' ],
@@ -358,6 +371,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'activateThemeMsg'   => 'Activate %s theme?',
 					'deactivateThemeMsg' => 'Deactivate %s theme?',
 					'selectThemeMsg'     => 'Select theme to activate:',
+					'OKBtnText'          => 'OK',
+					'CancelBtnText'      => 'Cancel',
 					'themes'             => [ 'twentytwentyone' => 'Twenty Twenty-One' ],
 					'defaultTheme'       => 'twentytwentyone',
 				]
@@ -368,7 +383,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/css/integrations$min_prefix.css",
-				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, Dialog::HANDLE ],
+				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, Integrations::DIALOG_HANDLE ],
 				$plugin_version
 			)
 			->once();

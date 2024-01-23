@@ -621,6 +621,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Backend',
 				'type'    => 'text',
 				'section' => 'enterprise',
+				'default' => 'api.hcaptcha.com',
 				'helper'  => 'See Enterprise docs.',
 			],
 			'off_when_logged_in'       => [
