@@ -875,9 +875,15 @@ class Integrations extends PluginSettingsBase {
 	 * @return bool
 	 */
 	private function activate_themes( array $themes ): bool {
+		$theme = $themes[0];
+
+		if ( ! wp_get_theme( $theme )->exists() ) {
+			return false;
+		}
+
 		ob_start();
 
-		switch_theme( $themes[0] );
+		switch_theme( $theme );
 
 		ob_end_clean();
 
