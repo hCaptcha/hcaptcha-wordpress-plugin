@@ -219,9 +219,20 @@ const integrations = function( $ ) {
 		if (
 			-1 !== $.inArray( entity, [ 'theme' ] ) &&
 			! activate &&
-			Object.keys( HCaptchaIntegrationsObject.themes ).length === 1
+			Object.keys( HCaptchaIntegrationsObject.themes ).length === 0
 		) {
 			// Cannot deactivate a theme when it is the only one on the site.
+			kaggDialog.confirm( {
+				title: 'Cannot deactivate the only theme on the site.',
+				content: '',
+				type: 'info',
+				buttons: {
+					ok: {
+						text: HCaptchaIntegrationsObject.OKBtnText,
+					},
+				},
+			} );
+
 			return;
 		}
 
