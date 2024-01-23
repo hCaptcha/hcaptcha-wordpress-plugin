@@ -214,6 +214,15 @@ const integrations = function( $ ) {
 			activate = false;
 		}
 
+		if (
+			-1 !== $.inArray( entity, [ 'theme' ] ) &&
+			! activate &&
+			Object.keys( HCaptchaIntegrationsObject.themes ).length === 1
+		) {
+			// Cannot deactivate a theme when it is the only one on the site.
+			return;
+		}
+
 		title = title.replace( '%s', alt );
 
 		if ( event.ctrlKey ) {
