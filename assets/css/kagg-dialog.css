@@ -37,6 +37,7 @@ body div.kagg-dialog *, body div.kagg-dialog *::before, body div.kagg-dialog *::
 
 body div.kagg-dialog .kagg-dialog-container {
 	z-index: 1;
+	width: 100%;
 }
 
 body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box {
@@ -50,7 +51,8 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box {
 	border-top-width: 4px;
 	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 	padding-top: 34px;
-	width: 400px;
+	width: 100%;
+	max-width: 400px;
 	margin: auto;
 }
 
@@ -116,4 +118,10 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-button
 	background: #eeeeee;
 	border-color: #cccccc;
 	cursor: pointer;
+}
+
+@media (max-width: 782px) {
+	body div.kagg-dialog .kagg-dialog-container {
+		margin: 0 12px 0 10px;
+	}
 }

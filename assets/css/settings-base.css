@@ -196,6 +196,13 @@ body.settings_page_hcaptcha {
 	margin: 0.5em 0;
 }
 
+@media (max-width: 782px) {
+	.hcaptcha-settings-tabs {
+		margin: 10px -12px 0 -10px;
+		padding: 0 12px 0 10px;
+	}
+}
+
 @media (max-width: 600px) {
 	#hcaptcha-options table tbody {
 		grid-template-columns: 1fr;
