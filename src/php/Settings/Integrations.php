@@ -659,7 +659,7 @@ class Integrations extends PluginSettingsBase {
 		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/integrations$this->min_prefix.js",
-			[ 'jquery' ],
+			[ 'jquery', self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);

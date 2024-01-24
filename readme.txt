@@ -540,6 +540,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.8.1 =
+* Fixed activation and deactivation of plugin and themes on the Integrations page.
+
 = 3.8.0 =
 * Added search of plugin and themes on the Integrations page.
 * Added toggling of sections on the General page.

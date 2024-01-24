@@ -1,7 +1,7 @@
 // noinspection ES6ConvertVarToLetConst
 
 // eslint-disable-next-line no-var
-var kaggDialog = window.kaggDialog || ( function( document ) {
+const kaggDialog = window.kaggDialog || ( function( document ) {
 	return {
 		defaults: {
 			title: 'Do you want to continue?',
@@ -140,5 +140,7 @@ var kaggDialog = window.kaggDialog || ( function( document ) {
 		},
 	};
 }( document ) );
+
+window.kaggDialog = kaggDialog;
 
 kaggDialog.init();
