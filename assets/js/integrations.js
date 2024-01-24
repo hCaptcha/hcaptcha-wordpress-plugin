@@ -187,7 +187,7 @@ const integrations = function( $ ) {
 		status = status.replace( 'hcaptcha-integrations-', '' );
 
 		const $fieldset = $tr.find( 'fieldset' );
-		let title = '';
+		let title;
 		let content = '';
 		let activate;
 
