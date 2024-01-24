@@ -710,7 +710,7 @@ class General extends PluginSettingsBase {
 			'swa'     => 1,
 			'spst'    => 0,
 		];
-		$url      = add_query_arg( $params, 'https://hcaptcha.com/checksiteconfig' );
+		$url      = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
 
 		$raw_response = wp_remote_post( $url );
 

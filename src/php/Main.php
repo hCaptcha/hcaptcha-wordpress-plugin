@@ -503,6 +503,22 @@ CSS;
 	}
 
 	/**
+	 * Get check site config url.
+	 *
+	 * @return string
+	 */
+	public function get_check_site_config_url(): string {
+		$verify_host = trim( $this->settings()->get( 'backend' ) ) ?: self::VERIFY_HOST;
+
+		/** This filter is documented above. */
+		$verify_host = (string) apply_filters( 'hcap_verify_host', $verify_host );
+
+		$verify_host = $this->force_https( $verify_host );
+
+		return "$verify_host/checksiteconfig";
+	}
+
+	/**
 	 * Add the hCaptcha script to footer.
 	 *
 	 * @return void
