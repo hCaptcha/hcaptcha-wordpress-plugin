@@ -4,7 +4,7 @@
 var kaggDialog = window.kaggDialog || ( function( document ) {
 	return {
 		defaults: {
-			title: 'Are you sure to continue?',
+			title: 'Do you want to continue?',
 			content: 'Please confirm',
 			type: 'default',
 			buttons: {},
