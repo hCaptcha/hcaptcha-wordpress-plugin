@@ -23,7 +23,7 @@
 const integrations = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
-	const $wpwrap = $( '#wpwrap' );
+	const $wpWrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 
 	function clearMessage() {
@@ -43,7 +43,7 @@ const integrations = function( $ ) {
 		$message.css( 'visibility', 'hidden' );
 
 		$fixed.css( 'margin', '0px' );
-		$fixed.css( 'top', $wpwrap.position().top );
+		$fixed.css( 'top', $wpWrap.position().top );
 
 		const adminMenuWrapWidth = $adminmenuwrap.css( 'display' ) === 'block'
 			? $adminmenuwrap.width()
@@ -140,7 +140,7 @@ const integrations = function( $ ) {
 					}
 
 					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
-					const top = $wpwrap.position().top;
+					const top = $wpWrap.position().top;
 
 					$fieldset.attr( 'disabled', ! activate );
 					$fieldset.find( 'input' ).attr( 'disabled', ! activate );
@@ -222,16 +222,18 @@ const integrations = function( $ ) {
 			Object.keys( HCaptchaIntegrationsObject.themes ).length === 0
 		) {
 			// Cannot deactivate a theme when it is the only one on the site.
-			kaggDialog.confirm( {
-				title: 'Cannot deactivate the only theme on the site.',
-				content: '',
-				type: 'info',
-				buttons: {
-					ok: {
-						text: HCaptchaIntegrationsObject.OKBtnText,
-					},
-				},
-			} );
+			// kaggDialog.confirm( {
+			// 	title: 'Cannot deactivate the only theme on the site.',
+			// 	content: '',
+			// 	type: 'info',
+			// 	buttons: {
+			// 		ok: {
+			// 			text: HCaptchaIntegrationsObject.OKBtnText,
+			// 		},
+			// 	},
+			// } );
+
+			showErrorMessage( 'Cannot deactivate the only theme on the site.' );
 
 			return;
 		}
