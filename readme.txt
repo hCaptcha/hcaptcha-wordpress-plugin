@@ -543,13 +543,13 @@ Instructions for popular native integrations are below:
 = 3.8.0 =
 * Added search of plugin and themes on the Integrations page.
 * Added toggling of sections on the General page.
-* Added new dialog on activation and deactivaion of plugin and themes.
+* Added new dialog on activation and deactivation of plugin and themes.
 * Added selection of a new theme on deactivation of the current one.
 * Added 'backend' to optional Enterprise settings.
 * Added filter `hcap_api_host`, allowing to filter the API host.
 * Added filter `hcap_api_src`, allowing to filter the API source url with params.
 * Updated integration with Back In Stock Notifier.
-* Fixed Brevo plugin position on Integrations page.
+* Fixed Brevo (formerly Sendinblue) plugin position on Integrations page.
 * Fixed testing config with test accounts.
 * Fixed saving Notification state.
 * Fixed compatibility of Ninja Forms with GeoDirectory.
