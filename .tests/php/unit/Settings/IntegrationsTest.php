@@ -371,6 +371,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'activateThemeMsg'   => 'Activate %s theme?',
 					'deactivateThemeMsg' => 'Deactivate %s theme?',
 					'selectThemeMsg'     => 'Select theme to activate:',
+					'onlyOneThemeMsg'    => 'Cannot deactivate the only theme on the site.',
+					'unexpectedErrorMsg' => 'Unexpected error.',
 					'OKBtnText'          => 'OK',
 					'CancelBtnText'      => 'Cancel',
 					'themes'             => [ 'twentytwentyone' => 'Twenty Twenty-One' ],

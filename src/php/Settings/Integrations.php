@@ -692,6 +692,8 @@ class Integrations extends PluginSettingsBase {
 				/* translators: 1: Theme name. */
 				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
+				'onlyOneThemeMsg'    => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
+				'unexpectedErrorMsg' => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
 				'OKBtnText'          => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 				'CancelBtnText'      => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
 				'themes'             => $themes,
@@ -828,10 +830,10 @@ class Integrations extends PluginSettingsBase {
 		ob_end_clean();
 
 		$message = sprintf(
-		/* translators: 1: Deactivated theme name. 2: Activated theme name. */
-			__( '%1$s theme is deactivated. %2$s theme is activated.', 'hcaptcha-for-forms-and-more' ),
-			$theme_name,
-			wp_get_theme( $new_theme_name )->get( 'Name' )
+		/* translators: 1: Activated theme name. 2: Deactivated theme name. */
+			__( '%1$s theme is activated. %2$s theme is deactivated.', 'hcaptcha-for-forms-and-more' ),
+			wp_get_theme( $new_theme_name )->get( 'Name' ),
+			$theme_name
 		);
 
 		wp_send_json_success( esc_html( $message ) );

@@ -186,7 +186,6 @@ body.settings_page_hcaptcha {
 }
 
 #hcaptcha-message {
-	z-index: 999999;
 	box-sizing: border-box;
 }
 

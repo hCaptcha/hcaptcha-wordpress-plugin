@@ -9,6 +9,8 @@
  * @param HCaptchaIntegrationsObject.activateThemeMsg
  * @param HCaptchaIntegrationsObject.deactivateThemeMsg
  * @param HCaptchaIntegrationsObject.selectThemeMsg
+ * @param HCaptchaIntegrationsObject.onlyOneThemeMsg
+ * @param HCaptchaIntegrationsObject.unexpectedErrorMsg
  * @param HCaptchaIntegrationsObject.OKBtnText
  * @param HCaptchaIntegrationsObject.CancelBtnText
  * @param HCaptchaIntegrationsObject.themes
@@ -44,6 +46,7 @@ const integrations = function( $ ) {
 
 		$fixed.css( 'margin', '0px' );
 		$fixed.css( 'top', $wpWrap.position().top );
+		$fixed.css( 'z-index', '999999' );
 
 		const adminMenuWrapWidth = $adminmenuwrap.css( 'display' ) === 'block'
 			? $adminmenuwrap.width()
@@ -71,9 +74,39 @@ const integrations = function( $ ) {
 		showMessage( response, 'notice-error' );
 	}
 
+	function showUnexpectedErrorMessage() {
+		showMessage( HCaptchaIntegrationsObject.unexpectedErrorMsg, 'notice-error' );
+	}
+
+	function isActiveTable( $table ) {
+		return $table.is( jQuery( '.form-table' ).eq( 0 ) );
+	}
+
+	function swapThemes( activate, entity, newThemeName ) {
+		if ( entity !== 'theme' ) {
+			return;
+		}
+
+		const $tables = $( '.form-table' );
+		const $fromTable = $tables.eq( activate ? 0 : 1 );
+		const $toTable = $tables.eq( activate ? 1 : 0 );
+		const dataLabel = activate ? '' : '[data-label="' + newThemeName + '"]';
+
+		const $img = $fromTable.find( '.hcaptcha-integrations-logo img[data-entity="theme"]' + dataLabel );
+		const $tr = $img.closest( 'tr' );
+
+		insertIntoTable( $toTable, $img.attr( 'data-label' ), $tr );
+	}
+
 	function insertIntoTable( $table, key, $element ) {
 		let inserted = false;
 		const lowerKey = key.toLowerCase();
+
+		const disable = ! isActiveTable( $table );
+		const $fieldset = $element.find( 'fieldset' );
+
+		$fieldset.attr( 'disabled', disable );
+		$fieldset.find( 'input' ).attr( 'disabled', disable );
 
 		$table
 			.find( 'tbody' )
@@ -87,6 +120,7 @@ const integrations = function( $ ) {
 				if ( lowerAlt > lowerKey ) {
 					$element.insertBefore( $( el ) );
 					inserted = true;
+
 					return false;
 				}
 			} );
@@ -117,13 +151,14 @@ const integrations = function( $ ) {
 
 		function toggleActivation() {
 			const activateClass = activate ? 'on' : 'off';
+			const newThemeName = getSelectedTheme();
 			const data = {
 				action: HCaptchaIntegrationsObject.action,
 				nonce: HCaptchaIntegrationsObject.nonce,
 				activate,
 				entity,
 				status,
-				newThemeName: getSelectedTheme(),
+				newThemeName,
 			};
 
 			$tr.addClass( activateClass );
@@ -134,6 +169,10 @@ const integrations = function( $ ) {
 				data,
 			} )
 				.done( function( response ) {
+					if ( response.success === undefined ) {
+						showUnexpectedErrorMessage();
+					}
+
 					if ( ! response.success ) {
 						showErrorMessage( response.data );
 						return;
@@ -142,10 +181,10 @@ const integrations = function( $ ) {
 					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
 					const top = $wpWrap.position().top;
 
-					$fieldset.attr( 'disabled', ! activate );
-					$fieldset.find( 'input' ).attr( 'disabled', ! activate );
-					showSuccessMessage( response.data );
+					swapThemes( activate, entity, newThemeName );
 					insertIntoTable( $table, alt, $tr );
+					showSuccessMessage( response.data );
+
 					$( 'html, body' ).animate(
 						{
 							scrollTop: $tr.offset().top - top - $message.outerHeight(),
@@ -223,7 +262,7 @@ const integrations = function( $ ) {
 		) {
 			// Cannot deactivate a theme when it is the only one on the site.
 			kaggDialog.confirm( {
-				title: 'Cannot deactivate the only theme on the site.',
+				title: HCaptchaIntegrationsObject.onlyOneThemeMsg,
 				content: '',
 				type: 'info',
 				buttons: {
