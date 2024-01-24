@@ -339,7 +339,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/js/integrations$min_prefix.js",
-				[ 'jquery' ],
+				[ 'jquery', Integrations::DIALOG_HANDLE ],
 				$plugin_version,
 				true
 			)
