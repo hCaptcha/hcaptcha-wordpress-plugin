@@ -61,6 +61,10 @@ const HCAPTCHA_ACTION = 'hcaptcha_action';
  */
 const HCAPTCHA_NONCE = 'hcaptcha_nonce';
 
+$loader = require PLUGIN_PATH . '/vendor/autoload.php';
+
+$loader->addPsr4( '', __DIR__ . '/Stubs/', true );
+
 FunctionMocker::init(
 	[
 		'blacklist'             => [
@@ -69,6 +73,7 @@ FunctionMocker::init(
 		'whitelist'             => [
 			realpath( PLUGIN_PATH . '/hcaptcha.php' ),
 			realpath( PLUGIN_PATH . '/src/php' ),
+			realpath( PLUGIN_PATH . '/.tests/php/unit/Stubs' ),
 		],
 		'redefinable-internals' => [
 			'constant',

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, spam, abuse
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.7.1
+Stable tag: 3.8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -539,6 +539,25 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.8.0 =
+* Added search of plugin and themes on the Integrations page.
+* Added toggling of sections on the General page.
+* Added new dialog on activation and deactivation of plugin and themes.
+* Added selection of a new theme on deactivation of the current one.
+* Added 'backend' to optional Enterprise settings.
+* Added filter `hcap_api_host`, allowing to filter the API host.
+* Added filter `hcap_api_src`, allowing to filter the API source url with params.
+* Updated integration with Back In Stock Notifier.
+* Fixed Brevo (formerly Sendinblue) plugin position on Integrations page.
+* Fixed testing config with test accounts.
+* Fixed saving Notification state.
+* Fixed compatibility of Ninja Forms with GeoDirectory.
+* Fixed compatibility of Beaver Builder with GeoDirectory.
+* Fixed compatibility of Divi with GeoDirectory.
+* Fixed compatibility of MailPoet with GeoDirectory.
+* Fixed compatibility of Passster with GeoDirectory.
+* Fixed styles of Settings pages on mobile.
 
 = 3.7.1 =
 * Fixed adding arguments to api.js for Enterprise accounts.

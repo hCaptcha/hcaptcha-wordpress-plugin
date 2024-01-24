@@ -617,6 +617,13 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'enterprise',
 				'helper'  => 'See Enterprise docs.',
 			],
+			'backend'                  => [
+				'label'   => 'Backend',
+				'type'    => 'text',
+				'section' => 'enterprise',
+				'default' => 'api.hcaptcha.com',
+				'helper'  => 'See Enterprise docs.',
+			],
 			'off_when_logged_in'       => [
 				'label'   => 'Other Settings',
 				'type'    => 'checkbox',
@@ -1011,7 +1018,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'sendinblue_status'                =>
 				[
-					'label'   => 'Sendinblue',
+					'label'   => 'Brevo',
 					'type'    => 'checkbox',
 					'options' =>
 						[

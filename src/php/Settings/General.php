@@ -35,6 +35,11 @@ class General extends PluginSettingsBase {
 	const CHECK_CONFIG_ACTION = 'hcaptcha-general-check-config';
 
 	/**
+	 * Toggle section ajax action.
+	 */
+	const TOGGLE_SECTION_ACTION = 'hcaptcha-general-toggle-section';
+
+	/**
 	 * Keys section id.
 	 */
 	const SECTION_KEYS = 'keys';
@@ -95,6 +100,11 @@ class General extends PluginSettingsBase {
 	const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
 	/**
+	 * User settings meta.
+	 */
+	const USER_SETTINGS_META = 'hcaptcha_user_settings';
+
+	/**
 	 * Notifications class instance.
 	 *
 	 * @var Notifications
@@ -125,15 +135,16 @@ class General extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		$hcaptcha  = hcaptcha();
-		$page_hook = $this->screen_id();
+		$hcaptcha = hcaptcha();
 
-		add_action( "load-{$page_hook}", [ $this, 'init_notifications' ] );
+		// Current class loaded early on plugins_loaded. Init Notifications later, when Settings class is ready.
+		add_action( 'plugins_loaded', [ $this, 'init_notifications' ] );
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
+		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
 	}
 
 	/**
@@ -418,6 +429,13 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'backend'              => [
+				'label'   => __( 'Backend', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_ENTERPRISE,
+				'default' => Main::VERIFY_HOST,
+				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'off_when_logged_in'   => [
 				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
@@ -543,8 +561,24 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function print_section_header( string $id, string $title ) {
+		$user                   = wp_get_current_user();
+		$hcaptcha_user_settings = [];
+
+		if ( $user ) {
+			$hcaptcha_user_settings = get_user_meta( $user->ID, self::USER_SETTINGS_META, true );
+		}
+
+		$open  = $hcaptcha_user_settings['sections'][ $id ] ?? true;
+		$class = $open ? '' : ' closed';
+
 		?>
-		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $title ); ?></h3>
+		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?><?php echo esc_attr( $class ); ?>">
+			<span class="hcaptcha-section-header-title">
+				<?php echo esc_html( $title ); ?>
+			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
 		<?php
 	}
 
@@ -570,7 +604,9 @@ class General extends PluginSettingsBase {
 			[
 				'ajaxUrl'                              => admin_url( 'admin-ajax.php' ),
 				'checkConfigAction'                    => self::CHECK_CONFIG_ACTION,
-				'nonce'                                => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
+				'checkConfigNonce'                     => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
+				'toggleSectionAction'                  => self::TOGGLE_SECTION_ACTION,
+				'toggleSectionNonce'                   => wp_create_nonce( self::TOGGLE_SECTION_ACTION ),
 				'modeLive'                             => self::MODE_LIVE,
 				'modeTestPublisher'                    => self::MODE_TEST_PUBLISHER,
 				'modeTestEnterpriseSafeEndUser'        => self::MODE_TEST_ENTERPRISE_SAFE_END_USER,
@@ -635,19 +671,14 @@ class General extends PluginSettingsBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_config() {
-		// Run a security check.
-		if ( ! check_ajax_referer( self::CHECK_CONFIG_ACTION, 'nonce', false ) ) {
-			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
-		}
+		$this->run_checks( self::CHECK_CONFIG_ACTION );
 
-		// Check for permissions.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
-		}
-
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$ajax_mode       = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : '';
 		$ajax_site_key   = isset( $_POST['siteKey'] ) ? sanitize_text_field( wp_unslash( $_POST['siteKey'] ) ) : '';
 		$ajax_secret_key = isset( $_POST['secretKey'] ) ? sanitize_text_field( wp_unslash( $_POST['secretKey'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		add_filter(
 			'hcap_mode',
@@ -655,18 +686,21 @@ class General extends PluginSettingsBase {
 				return $ajax_mode;
 			}
 		);
-		add_filter(
-			'hcap_site_key',
-			static function ( $site_key ) use ( $ajax_site_key ) {
-				return $ajax_site_key;
-			}
-		);
-		add_filter(
-			'hcap_secret_key',
-			static function ( $secret_key ) use ( $ajax_secret_key ) {
-				return $ajax_secret_key;
-			}
-		);
+
+		if ( self::MODE_LIVE === $ajax_mode ) {
+			add_filter(
+				'hcap_site_key',
+				static function ( $site_key ) use ( $ajax_site_key ) {
+					return $ajax_site_key;
+				}
+			);
+			add_filter(
+				'hcap_secret_key',
+				static function ( $secret_key ) use ( $ajax_secret_key ) {
+					return $ajax_secret_key;
+				}
+			);
+		}
 
 		$settings = hcaptcha()->settings();
 		$params   = [
@@ -676,7 +710,7 @@ class General extends PluginSettingsBase {
 			'swa'     => 1,
 			'spst'    => 0,
 		];
-		$url      = add_query_arg( $params, 'https://hcaptcha.com/checksiteconfig' );
+		$url      = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
 
 		$raw_response = wp_remote_post( $url );
 
@@ -689,7 +723,7 @@ class General extends PluginSettingsBase {
 		$body = json_decode( $raw_body, true );
 
 		if ( ! $body ) {
-			$this->send_check_config_error( $raw_body );
+			$this->send_check_config_error( __( 'Cannot decode hCaptcha server response.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 		if ( empty( $body['pass'] ) ) {
@@ -699,14 +733,17 @@ class General extends PluginSettingsBase {
 			$this->send_check_config_error( $error );
 		}
 
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
 		if ( null !== $result ) {
-			$this->send_check_config_error( $result );
+			$this->send_check_config_error( $result, true );
 		}
 
 		wp_send_json_success(
@@ -715,15 +752,71 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
-	 * Send check config error.
+	 * Ajax action to toggle a section.
 	 *
-	 * @param string $error Error message.
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function toggle_section() {
+		$this->run_checks( self::TOGGLE_SECTION_ACTION );
+
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
+		$status  = isset( $_POST['status'] ) ?
+			filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOL ) :
+			false;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$user = wp_get_current_user();
+
+		if ( ! $user ) {
+			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		$hcaptcha_user_settings = array_filter(
+			(array) get_user_meta( $user->ID, self::USER_SETTINGS_META, true )
+		);
+
+		$hcaptcha_user_settings['sections'][ $section ] = (bool) $status;
+
+		update_user_meta( $user->ID, self::USER_SETTINGS_META, $hcaptcha_user_settings );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Check ajax call.
+	 *
+	 * @param string $action Action.
 	 *
 	 * @return void
 	 */
-	private function send_check_config_error( string $error ) {
+	private function run_checks( string $action ) {
+		// Run a security check.
+		if ( ! check_ajax_referer( $action, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+	}
+
+	/**
+	 * Send check config error.
+	 *
+	 * @param string $error      Error message.
+	 * @param bool   $raw_result Send a raw result.
+	 *
+	 * @return void
+	 */
+	private function send_check_config_error( string $error, $raw_result = false ) {
+		$prefix = $raw_result ? '' : esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' );
+
 		wp_send_json_error(
-			esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' ) . $error
+			$prefix . $error
 		);
 	}
 }

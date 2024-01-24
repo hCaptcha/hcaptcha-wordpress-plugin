@@ -467,6 +467,13 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function base_admin_enqueue_scripts() {
+		wp_enqueue_style(
+			static::PREFIX . '-settings-admin',
+			$this->plugin_url() . "/assets/css/settings-admin$this->min_prefix.css",
+			[],
+			$this->plugin_version()
+		);
+
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
@@ -540,12 +547,21 @@ abstract class SettingsBase {
 	public function tabs_callback() {
 		?>
 		<div class="<?php echo esc_attr( static::PREFIX . '-settings-tabs' ); ?>">
+			<span class="<?php echo esc_attr( static::PREFIX . '-settings-links' ); ?>">
 			<?php
+
 			$this->tab_link( $this );
 
 			foreach ( $this->tabs as $tab ) {
 				$this->tab_link( $tab );
 			}
+
+			?>
+			</span>
+			<?php
+
+			do_action( 'kagg_settings_tab' );
+
 			?>
 		</div>
 		<?php

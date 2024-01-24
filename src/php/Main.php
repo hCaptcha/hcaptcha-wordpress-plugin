@@ -52,6 +52,11 @@ class Main {
 	const API_HOST = 'js.hcaptcha.com';
 
 	/**
+	 * Default verify host.
+	 */
+	const VERIFY_HOST = 'api.hcaptcha.com';
+
+	/**
 	 * Form shown somewhere, use this flag to run the script.
 	 *
 	 * @var boolean
@@ -204,7 +209,7 @@ class Main {
 		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
 
 		/**
-		 * Filters the hcaptcha activation flag.
+		 * Filters the hCaptcha activation flag.
 		 *
 		 * @param bool $activate Activate the hcaptcha functionality.
 		 */
@@ -398,7 +403,43 @@ CSS;
 	}
 
 	/**
-	 * Get API source url.
+	 * Get API url.
+	 *
+	 * @return string
+	 */
+	public function get_api_url(): string {
+		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
+
+		/**
+		 * Filters the API host.
+		 *
+		 * @param string $api_host API host.
+		 */
+		$api_host = (string) apply_filters( 'hcap_api_host', $api_host );
+
+		$api_host = $this->force_https( $api_host );
+
+		return "$api_host/1/api.js";
+	}
+
+	/**
+	 * Force https in the hostname.
+	 *
+	 * @param string $host Hostname. Could be with http|https scheme, or without it.
+	 *
+	 * @return string
+	 */
+	private function force_https( string $host ): string {
+		$host = preg_replace( '#(http|https)://#', '', $host );
+
+		// We need to add scheme here, otherwise wp_parse_url returns null.
+		$host = (string) wp_parse_url( 'https://' . $host, PHP_URL_HOST );
+
+		return 'https://' . $host;
+	}
+
+	/**
+	 * Get API source url with params.
 	 *
 	 * @return string
 	 */
@@ -416,8 +457,6 @@ CSS;
 			$params['custom'] = 'true';
 		}
 
-		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
-
 		$enterprise_params = [
 			'asset_host' => 'assethost',
 			'endpoint'   => 'endpoint',
@@ -431,11 +470,52 @@ CSS;
 			$value = trim( $this->settings()->get( $enterprise_param ) );
 
 			if ( $value ) {
-				$params[ $enterprise_arg ] = rawurlencode( $value );
+				$params[ $enterprise_arg ] = rawurlencode( $this->force_https( $value ) );
 			}
 		}
 
-		return add_query_arg( $params, "https://$api_host/1/api.js" );
+		/**
+		 * Filters the API source url with params.
+		 *
+		 * @param string $api_src API source url with params.
+		 */
+		return (string) apply_filters( 'hcap_api_src', add_query_arg( $params, $this->get_api_url() ) );
+	}
+
+	/**
+	 * Get verify url.
+	 *
+	 * @return string
+	 */
+	public function get_verify_url(): string {
+		$verify_host = trim( $this->settings()->get( 'backend' ) ) ?: self::VERIFY_HOST;
+
+		/**
+		 * Filters the verification host.
+		 *
+		 * @param string $verify_host Verification host.
+		 */
+		$verify_host = (string) apply_filters( 'hcap_verify_host', $verify_host );
+
+		$verify_host = $this->force_https( $verify_host );
+
+		return "$verify_host/siteverify";
+	}
+
+	/**
+	 * Get check site config url.
+	 *
+	 * @return string
+	 */
+	public function get_check_site_config_url(): string {
+		$verify_host = trim( $this->settings()->get( 'backend' ) ) ?: self::VERIFY_HOST;
+
+		/** This filter is documented above. */
+		$verify_host = (string) apply_filters( 'hcap_verify_host', $verify_host );
+
+		$verify_host = $this->force_https( $verify_host );
+
+		return "$verify_host/checksiteconfig";
 	}
 
 	/**

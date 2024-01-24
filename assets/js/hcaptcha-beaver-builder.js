@@ -3,7 +3,7 @@
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
-		const data = options.data;
+		const data = options.data ?? '';
 		let nonceName = '';
 
 		if ( data.startsWith( 'action=fl_builder_email' ) ) {

@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Admin\Dialog;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\Integrations;
@@ -84,8 +85,21 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_menu_title() {
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
-		$method = 'menu_title';
-		self::assertSame( 'hCaptcha', $subject->$method() );
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				if ( 'HCAPTCHA_URL' === $name ) {
+					return HCAPTCHA_TEST_URL;
+				}
+
+				return '';
+			}
+		);
+
+		$method   = 'menu_title';
+		$expected = '<img class="kagg-settings-menu-image" src="https://site.org/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-icon.svg" alt="hCaptcha icon"><span class="kagg-settings-menu-title">hCaptcha</span>';
+
+		self::assertSame( $expected, $subject->$method() );
 	}
 
 	/**
@@ -207,6 +221,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @param string $expected Expected value.
 	 *
 	 * @dataProvider dp_test_section_callback
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback( string $id, string $expected ) {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
@@ -261,6 +276,26 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
 
+		$theme         = Mockery::mock( 'WP_Theme' );
+		$default_theme = Mockery::mock( 'WP_Theme' );
+
+		FunctionMocker::replace(
+			'\WP_Theme::get_core_default_theme',
+			static function () use ( $default_theme ) {
+				return $default_theme;
+			}
+		);
+
+		$theme->shouldReceive( 'get_stylesheet' )->andReturn( 'Divi' );
+		$theme->shouldReceive( 'get' )->with( 'Name' )->andReturn( 'Divi' );
+		$default_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyone' );
+		$default_theme->shouldReceive( 'get' )->andReturn( 'Twenty Twenty-One' );
+
+		$themes = [
+			'Divi'            => $theme,
+			'twentytwentyone' => $default_theme,
+		];
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( true );
@@ -283,6 +318,25 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
+				Integrations::DIALOG_HANDLE,
+				$plugin_url . "/assets/js/kagg-dialog$min_prefix.js",
+				[],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				Integrations::DIALOG_HANDLE,
+				$plugin_url . "/assets/css/kagg-dialog$min_prefix.css",
+				[],
+				$plugin_version
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/js/integrations$min_prefix.js",
 				[ 'jquery' ],
@@ -290,6 +344,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 				true
 			)
 			->once();
+
+		WP_Mock::userFunction( 'wp_get_themes' )->with()->andReturn( $themes )->once();
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme )->once();
 
 		WP_Mock::userFunction( 'admin_url' )
 			->with( 'admin-ajax.php' )
@@ -313,6 +370,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'deactivateMsg'      => 'Deactivate %s plugin?',
 					'activateThemeMsg'   => 'Activate %s theme?',
 					'deactivateThemeMsg' => 'Deactivate %s theme?',
+					'selectThemeMsg'     => 'Select theme to activate:',
+					'onlyOneThemeMsg'    => 'Cannot deactivate the only theme on the site.',
+					'unexpectedErrorMsg' => 'Unexpected error.',
+					'OKBtnText'          => 'OK',
+					'CancelBtnText'      => 'Cancel',
+					'themes'             => [ 'twentytwentyone' => 'Twenty Twenty-One' ],
+					'defaultTheme'       => 'twentytwentyone',
 				]
 			)
 			->once();
@@ -321,7 +385,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/css/integrations$min_prefix.css",
-				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
+				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, Integrations::DIALOG_HANDLE ],
 				$plugin_version
 			)
 			->once();

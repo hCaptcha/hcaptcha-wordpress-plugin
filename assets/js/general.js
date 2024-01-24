@@ -3,7 +3,9 @@
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
  * @param HCaptchaGeneralObject.checkConfigAction
- * @param HCaptchaGeneralObject.nonce
+ * @param HCaptchaGeneralObject.checkConfigNonce
+ * @param HCaptchaGeneralObject.toggleSectionAction
+ * @param HCaptchaGeneralObject.toggleSectionNonce
  * @param HCaptchaGeneralObject.modeLive
  * @param HCaptchaGeneralObject.modeTestPublisher
  * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUser
@@ -126,7 +128,7 @@ const general = function( $ ) {
 
 		const data = {
 			action: HCaptchaGeneralObject.checkConfigAction,
-			nonce: HCaptchaGeneralObject.nonce,
+			nonce: HCaptchaGeneralObject.checkConfigNonce,
 			mode: $mode.val(),
 			siteKey: $siteKey.val(),
 			secretKey: $secretKey.val(),
@@ -234,6 +236,32 @@ const general = function( $ ) {
 	$configParams.on( 'focus', function() {
 		$configParams.css( 'background-color', 'unset' );
 		$submit.attr( 'disabled', false );
+	} );
+
+	$( '.hcaptcha-general h3' ).on( 'click', function( event ) {
+		const $h3 = $( event.currentTarget );
+
+		$h3.toggleClass( 'closed' );
+
+		const data = {
+			action: HCaptchaGeneralObject.toggleSectionAction,
+			nonce: HCaptchaGeneralObject.toggleSectionNonce,
+			section: $h3.attr( 'class' ).replaceAll( /(hcaptcha-section-|closed)/g, '' ).trim(),
+			status: ! $h3.hasClass( 'closed' ),
+		};
+
+		$.post( {
+			url: HCaptchaGeneralObject.ajaxUrl,
+			data,
+		} )
+			.done( function( response ) {
+				if ( ! response.success ) {
+					showErrorMessage( response.data );
+				}
+			} )
+			.fail( function( response ) {
+				showErrorMessage( response.statusText );
+			} );
 	} );
 };
 

@@ -1,0 +1,126 @@
+body div.kagg-dialog {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 99999999;
+	font-family: inherit;
+	overflow: hidden;
+	align-items: center;
+	justify-content: center;
+	display: none;
+}
+
+body div.kagg-dialog.open {
+	display: flex;
+}
+
+body div.kagg-dialog .kagg-dialog-bg {
+	background-color: slategray;
+	opacity: .6;
+}
+
+body div.kagg-dialog .kagg-dialog-bg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	-webkit-transition: opacity .4s;
+	transition: opacity .4s;
+}
+
+body div.kagg-dialog *, body div.kagg-dialog *::before, body div.kagg-dialog *::after {
+	box-sizing: border-box;
+}
+
+body div.kagg-dialog .kagg-dialog-container {
+	z-index: 1;
+	width: 100%;
+	max-width: 400px;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	justify-items: center;
+	animation: none;
+	background: #ffffff;
+	border-radius: 6px;
+	border-top-style: solid;
+	border-top-width: 4px;
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+	padding-top: 34px;
+	margin: auto;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-title,
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content {
+	color: #444444;
+	font-size: 16px;
+	line-height: 24px;
+	margin-bottom: 20px;
+	overflow: inherit;
+	text-align: center;
+	grid-column: 1 / -1;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-title {
+	font-weight: bold;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content p {
+	font-size: 16px;
+	margin: 16px 0 8px 0;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content select {
+	width: 190px;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons {
+	margin-top: -10px
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons {
+	grid-column: 1 / -1;
+}
+
+.kagg-dialog.kagg-dialog-modern .kagg-dialog-box .kagg-dialog-buttons {
+	text-align: center;
+}
+
+.kagg-dialog .kagg-dialog-box .kagg-dialog-buttons {
+	padding-bottom: 11px;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button {
+	min-width: 83px;
+	background: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 4px;
+	color: #777777;
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 20px;
+	outline: none;
+	padding: 11px 17px;
+	text-transform: none;
+	margin: 10px;
+	transition-property: all;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button:hover {
+	background: #eeeeee;
+	border-color: #cccccc;
+	cursor: pointer;
+}
+
+@media (max-width: 782px) {
+	body div.kagg-dialog .kagg-dialog-container {
+		margin: 0 12px 0 10px;
+	}
+}

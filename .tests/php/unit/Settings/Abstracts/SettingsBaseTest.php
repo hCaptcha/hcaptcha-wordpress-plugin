@@ -501,10 +501,18 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
-		$subject->shouldReceive( 'plugin_url' )->once()->andReturn( $plugin_url );
-		$subject->shouldReceive( 'plugin_version' )->once()->andReturn( $plugin_version );
+		$subject->shouldReceive( 'plugin_url' )->twice()->andReturn( $plugin_url );
+		$subject->shouldReceive( 'plugin_version' )->twice()->andReturn( $plugin_version );
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				SettingsBase::PREFIX . '-settings-admin',
+				$plugin_url . '/assets/css/settings-admin.css',
+				[],
+				$plugin_version
+			)
+			->once();
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				SettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
@@ -657,6 +665,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			->with( 'tab', strtolower( $tab_class_name ), $subject_url )->andReturn( $tab_url_arg );
 
 		$expected = '		<div class="kagg-settings-tabs">
+			<span class="kagg-settings-links">
 					<a
 				class="kagg-settings-tab active"
 				href="http://test.test/wp-admin/admin.php?page=hcaptcha">
@@ -665,7 +674,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				class="kagg-settings-tab"
 				href="http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations">
 			Integrations		</a>
-				</div>
+					</span>
+					</div>
 		';
 
 		ob_start();

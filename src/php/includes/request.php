@@ -75,7 +75,7 @@ function hcap_get_error_messages(): array {
 			'invalid-input-response'           => __( 'The response parameter (verification token) is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 			'bad-request'                      => __( 'The request is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 			'invalid-or-already-seen-response' => __( 'The response parameter has already been checked, or has another issue.', 'hcaptcha-for-forms-and-more' ),
-			'not-using-dummy-passcode'         => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
+			'not-using-dummy-secret'           => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
 			'sitekey-secret-mismatch'          => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
 			// Plugin messages.
 			'empty'                            => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
@@ -175,7 +175,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		}
 
 		$raw_response = wp_remote_post(
-			'https://api.hcaptcha.com/siteverify',
+			hcaptcha()->get_verify_url(),
 			[ 'body' => $params ]
 		);
 
@@ -296,25 +296,5 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 		}
 
 		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
-	}
-}
-
-if ( ! function_exists( 'hcap_hcaptcha_error_message' ) ) {
-	/**
-	 * Print error message.
-	 *
-	 * @param string $hcaptcha_content Content of hCaptcha.
-	 *
-	 * @return string
-	 */
-	function hcap_hcaptcha_error_message( string $hcaptcha_content = '' ): string {
-		_deprecated_function( __FUNCTION__, '2.1.0' );
-
-		$message = sprintf(
-			'<p id="hcap_error" class="error hcap_error">%s</p>',
-			__( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' )
-		);
-
-		return $message . $hcaptcha_content;
 	}
 }

@@ -1,4 +1,4 @@
-/* global jQuery, HCaptchaIntegrationsObject */
+/* global jQuery, HCaptchaIntegrationsObject, kaggDialog */
 
 /**
  * @param HCaptchaIntegrationsObject.ajaxUrl
@@ -8,6 +8,13 @@
  * @param HCaptchaIntegrationsObject.deactivateMsg
  * @param HCaptchaIntegrationsObject.activateThemeMsg
  * @param HCaptchaIntegrationsObject.deactivateThemeMsg
+ * @param HCaptchaIntegrationsObject.selectThemeMsg
+ * @param HCaptchaIntegrationsObject.onlyOneThemeMsg
+ * @param HCaptchaIntegrationsObject.unexpectedErrorMsg
+ * @param HCaptchaIntegrationsObject.OKBtnText
+ * @param HCaptchaIntegrationsObject.CancelBtnText
+ * @param HCaptchaIntegrationsObject.themes
+ * @param HCaptchaIntegrationsObject.defaultTheme
  */
 
 /**
@@ -18,7 +25,7 @@
 const integrations = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
-	const $wpwrap = $( '#wpwrap' );
+	const $wpWrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 
 	function clearMessage() {
@@ -38,7 +45,8 @@ const integrations = function( $ ) {
 		$message.css( 'visibility', 'hidden' );
 
 		$fixed.css( 'margin', '0px' );
-		$fixed.css( 'top', $wpwrap.position().top );
+		$fixed.css( 'top', $wpWrap.position().top );
+		$fixed.css( 'z-index', '999999' );
 
 		const adminMenuWrapWidth = $adminmenuwrap.css( 'display' ) === 'block'
 			? $adminmenuwrap.width()
@@ -66,9 +74,39 @@ const integrations = function( $ ) {
 		showMessage( response, 'notice-error' );
 	}
 
+	function showUnexpectedErrorMessage() {
+		showMessage( HCaptchaIntegrationsObject.unexpectedErrorMsg, 'notice-error' );
+	}
+
+	function isActiveTable( $table ) {
+		return $table.is( jQuery( '.form-table' ).eq( 0 ) );
+	}
+
+	function swapThemes( activate, entity, newThemeName ) {
+		if ( entity !== 'theme' ) {
+			return;
+		}
+
+		const $tables = $( '.form-table' );
+		const $fromTable = $tables.eq( activate ? 0 : 1 );
+		const $toTable = $tables.eq( activate ? 1 : 0 );
+		const dataLabel = activate ? '' : '[data-label="' + newThemeName + '"]';
+
+		const $img = $fromTable.find( '.hcaptcha-integrations-logo img[data-entity="theme"]' + dataLabel );
+		const $tr = $img.closest( 'tr' );
+
+		insertIntoTable( $toTable, $img.attr( 'data-label' ), $tr );
+	}
+
 	function insertIntoTable( $table, key, $element ) {
 		let inserted = false;
 		const lowerKey = key.toLowerCase();
+
+		const disable = ! isActiveTable( $table );
+		const $fieldset = $element.find( 'fieldset' );
+
+		$fieldset.attr( 'disabled', disable );
+		$fieldset.find( 'input' ).attr( 'disabled', disable );
 
 		$table
 			.find( 'tbody' )
@@ -82,6 +120,7 @@ const integrations = function( $ ) {
 				if ( lowerAlt > lowerKey ) {
 					$element.insertBefore( $( el ) );
 					inserted = true;
+
 					return false;
 				}
 			} );
@@ -92,6 +131,75 @@ const integrations = function( $ ) {
 	}
 
 	$( '.form-table img' ).on( 'click', function( event ) {
+		function maybeToggleActivation( confirmation ) {
+			if ( ! confirmation ) {
+				return;
+			}
+
+			toggleActivation();
+		}
+
+		function getSelectedTheme() {
+			const select = document.querySelector( '.kagg-dialog select' );
+
+			if ( ! select ) {
+				return '';
+			}
+
+			return select.value ?? '';
+		}
+
+		function toggleActivation() {
+			const activateClass = activate ? 'on' : 'off';
+			const newThemeName = getSelectedTheme();
+			const data = {
+				action: HCaptchaIntegrationsObject.action,
+				nonce: HCaptchaIntegrationsObject.nonce,
+				activate,
+				entity,
+				status,
+				newThemeName,
+			};
+
+			$tr.addClass( activateClass );
+
+			// noinspection JSVoidFunctionReturnValueUsed
+			$.post( {
+				url: HCaptchaIntegrationsObject.ajaxUrl,
+				data,
+			} )
+				.done( function( response ) {
+					if ( response.success === undefined ) {
+						showUnexpectedErrorMessage();
+					}
+
+					if ( ! response.success ) {
+						showErrorMessage( response.data );
+						return;
+					}
+
+					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
+					const top = $wpWrap.position().top;
+
+					swapThemes( activate, entity, newThemeName );
+					insertIntoTable( $table, alt, $tr );
+					showSuccessMessage( response.data );
+
+					$( 'html, body' ).animate(
+						{
+							scrollTop: $tr.offset().top - top - $message.outerHeight(),
+						},
+						1000
+					);
+				} )
+				.fail( function( response ) {
+					showErrorMessage( response.statusText );
+				} )
+				.always( function() {
+					$tr.removeClass( 'on off' );
+				} );
+		}
+
 		event.preventDefault();
 		clearMessage();
 
@@ -116,70 +224,114 @@ const integrations = function( $ ) {
 		const $tr = $target.closest( 'tr' );
 		let status = $tr.attr( 'class' );
 		status = status.replace( 'hcaptcha-integrations-', '' );
-		const $fieldset = $tr.find( 'fieldset' );
 
-		// noinspection JSUnresolvedVariable
-		let msg = entity === 'plugin'
-			? HCaptchaIntegrationsObject.deactivateMsg
-			: HCaptchaIntegrationsObject.deactivateThemeMsg;
-		let activate = false;
+		const $fieldset = $tr.find( 'fieldset' );
+		let title;
+		let content = '';
+		let activate;
 
 		if ( $fieldset.attr( 'disabled' ) ) {
-			// noinspection JSUnresolvedVariable
-			msg = entity === 'plugin'
+			title = entity === 'plugin'
 				? HCaptchaIntegrationsObject.activateMsg
 				: HCaptchaIntegrationsObject.activateThemeMsg;
 			activate = true;
+		} else {
+			if ( entity === 'plugin' ) {
+				title = HCaptchaIntegrationsObject.deactivateMsg;
+			} else {
+				title = HCaptchaIntegrationsObject.deactivateThemeMsg;
+				content = '<p>' + HCaptchaIntegrationsObject.selectThemeMsg + '</p>';
+				content += '<select>';
+
+				for ( const slug in HCaptchaIntegrationsObject.themes ) {
+					const selected = slug === HCaptchaIntegrationsObject.defaultTheme ? ' selected="selected"' : '';
+
+					content += `<option value="${ slug }"${ selected }>${ HCaptchaIntegrationsObject.themes[ slug ] }</option>`;
+				}
+
+				content += '</select>';
+			}
+
+			activate = false;
 		}
 
-		// eslint-disable-next-line no-alert
-		if ( ! event.ctrlKey && ! confirm( msg.replace( '%s', alt ) ) ) {
+		if (
+			-1 !== $.inArray( entity, [ 'theme' ] ) &&
+			! activate &&
+			Object.keys( HCaptchaIntegrationsObject.themes ).length === 0
+		) {
+			// Cannot deactivate a theme when it is the only one on the site.
+			kaggDialog.confirm( {
+				title: HCaptchaIntegrationsObject.onlyOneThemeMsg,
+				content: '',
+				type: 'info',
+				buttons: {
+					ok: {
+						text: HCaptchaIntegrationsObject.OKBtnText,
+					},
+				},
+			} );
+
 			return;
 		}
 
-		const activateClass = activate ? 'on' : 'off';
-		const data = {
-			action: HCaptchaIntegrationsObject.action,
-			nonce: HCaptchaIntegrationsObject.nonce,
-			activate,
-			entity,
-			status,
+		title = title.replace( '%s', alt );
+
+		if ( event.ctrlKey ) {
+			toggleActivation();
+			return;
+		}
+
+		kaggDialog.confirm( {
+			title,
+			content,
+			type: activate ? 'activate' : 'deactivate',
+			buttons: {
+				ok: {
+					text: HCaptchaIntegrationsObject.OKBtnText,
+				},
+				cancel: {
+					text: HCaptchaIntegrationsObject.CancelBtnText,
+				},
+			},
+			onAction: maybeToggleActivation,
+		} );
+	} );
+
+	const debounce = ( func, delay ) => {
+		let debounceTimer;
+
+		return function() {
+			const context = this;
+			const args = arguments;
+			clearTimeout( debounceTimer );
+			debounceTimer = setTimeout( () => func.apply( context, args ), delay );
 		};
+	};
 
-		$tr.addClass( activateClass );
+	$( '#hcaptcha-integrations-search' ).on( 'input', debounce(
+		function() {
+			const search = $( '#hcaptcha-integrations-search' ).val().trim().toLowerCase();
+			const $logo = $( '.hcaptcha-integrations-logo img' );
 
-		// noinspection JSVoidFunctionReturnValueUsed
-		$.post( {
-			url: HCaptchaIntegrationsObject.ajaxUrl,
-			data,
-		} )
-			.done( function( response ) {
-				if ( ! response.success ) {
-					showErrorMessage( response.data );
+			$logo.each( function( i, el ) {
+				const $el = $( el );
+
+				if ( $el.data( 'entity' ) === 'core' ) {
 					return;
 				}
 
-				const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
-				const top = $wpwrap.position().top;
+				const $tr = $el.closest( 'tr' );
 
-				$fieldset.attr( 'disabled', ! activate );
-				$fieldset.find( 'input' ).attr( 'disabled', ! activate );
-				showSuccessMessage( response.data );
-				insertIntoTable( $table, alt, $tr );
-				$( 'html, body' ).animate(
-					{
-						scrollTop: $tr.offset().top - top - $message.outerHeight(),
-					},
-					1000
-				);
-			} )
-			.fail( function( response ) {
-				showErrorMessage( response.statusText );
-			} )
-			.always( function() {
-				$tr.removeClass( 'on off' );
+				if ( $el.data( 'label' ).toLowerCase().includes( search ) ) {
+					$tr.show();
+				} else {
+					$tr.hide();
+				}
 			} );
-	} );
+		},
+		100
+	) );
 };
 
 window.hCaptchaIntegrations = integrations;

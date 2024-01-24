@@ -79,14 +79,15 @@ class Notifications {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	private function init_notifications() {
-		$hcaptcha_url        = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$register_url        = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$pro_url             = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$dashboard_url       = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$post_leadership_url = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$hcaptcha_url            = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
+		$register_url            = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
+		$pro_url                 = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$dashboard_url           = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$search_integrations_url = admin_url( 'options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search' );
 
 		$this->notifications = [
-			'register'        => [
+			'register'            => [
 				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha link, 2: register link. */
@@ -107,7 +108,7 @@ class Notifications {
 					'text' => __( 'Get site keys', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'pro-free-trial'  => [
+			'pro-free-trial'      => [
 				'title'   => __( 'Try Pro for free', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: hCaptcha Pro link, 2: dashboard link. */
@@ -128,12 +129,20 @@ class Notifications {
 					'text' => __( 'Try Pro', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'post-leadership' => [
+			'post-leadership'     => [
 				'title'   => __( 'hCaptcha\'s Leadership', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
 					'url'  => $post_leadership_url,
 					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'search-integrations' => [
+				'title'   => __( 'Search on Integrations page', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Now you can search for plugin an themes on the Integrations page.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $search_integrations_url,
+					'text' => __( 'Start search', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 		];

@@ -146,9 +146,15 @@ describe( 'integrations', () => {
 		$( $img.get( 0 ) ).trigger( 'click' );
 		expect( postSpy ).not.toHaveBeenCalled();
 
-		jest.spyOn( global, 'confirm' ).mockReturnValueOnce( true );
+		// Mock window.kaggDialog object and methods
+		window.kaggDialog = {
+			confirm: jest.fn( ( settings ) => settings.onAction( true ) ),
+		};
+		// jest.spyOn( global, 'kaggDialog.confirm' ).mockReturnValueOnce( true );
 
 		$( $img.get( 1 ) ).trigger( 'click' );
+
+		// expect( window.kaggDialog ).toHaveBeenCalled();
 		expect( postSpy ).toHaveBeenCalled();
 	} );
 } );

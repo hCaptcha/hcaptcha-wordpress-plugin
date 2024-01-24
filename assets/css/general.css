@@ -27,11 +27,51 @@
 	margin-bottom: 0;
 }
 
-/* Section Keys */
-.hcaptcha-section-keys + table {
+#hcaptcha-options.hcaptcha-general h3 {
+	display: flex;
+	justify-content: space-between;
 	max-width: 760px;
+	background: white;
+	box-sizing: border-box;
+	padding: 15px 20px;
+	margin: 1.5em 0 0;
+	color: #5c6f8a;
+	cursor: pointer;
 }
 
+.hcaptcha-section-header-toggle:after {
+	content: "\f142";
+	font: normal 20px dashicons;
+	speak: never;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+h3.closed .hcaptcha-section-header-toggle:after {
+	content: "\f140";
+}
+
+#hcaptcha-options.hcaptcha-general h3 + table {
+	position: relative;
+	max-width: 760px;
+	margin-top: 0;
+}
+
+#hcaptcha-options.hcaptcha-general h3.closed + table {
+	display: none;
+}
+
+#hcaptcha-options.hcaptcha-general h3 + table:before {
+	content: '';
+	position: absolute;
+	top: 0;
+	width: calc(100% - 40px);
+	max-width: 720px;
+	margin: 0 20px;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+/* Section Keys */
 .hcaptcha-section-keys + table tbody {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
@@ -75,10 +115,6 @@
 }
 
 /* Section Appearance */
-.hcaptcha-section-appearance + table {
-	max-width: 760px;
-}
-
 .hcaptcha-section-appearance + table tbody {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
@@ -96,10 +132,6 @@
 }
 
 /* Section Custom */
-.hcaptcha-section-custom + table {
-	max-width: 760px;
-}
-
 .hcaptcha-section-custom + table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
@@ -125,10 +157,6 @@
 }
 
 /* Section Enterprise */
-.hcaptcha-section-enterprise + table {
-	max-width: 760px;
-}
-
 .hcaptcha-section-enterprise + table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
@@ -149,10 +177,6 @@
 }
 
 /* Section Other */
-.hcaptcha-section-other + table {
-	max-width: 760px;
-}
-
 .hcaptcha-section-other + table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);

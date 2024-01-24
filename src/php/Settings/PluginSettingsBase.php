@@ -39,7 +39,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @return string
 	 */
 	protected function menu_title(): string {
-		return __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
+		$menu_title = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
+		$icon       = constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon.svg';
+		$icon       = '<img class="kagg-settings-menu-image" src="' . $icon . '" alt="hCaptcha icon">';
+
+		return $icon . '<span class="kagg-settings-menu-title">' . $menu_title . '</span>';
 	}
 
 	/**

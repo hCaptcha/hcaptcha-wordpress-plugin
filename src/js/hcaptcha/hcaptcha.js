@@ -56,9 +56,23 @@ class HCaptcha {
 	 * @return {string} Widget id.
 	 */
 	getWidgetId( el ) {
-		return el
-			.getElementsByClassName( 'h-captcha' )[ 0 ]
-			.getElementsByTagName( 'iframe' )[ 0 ].dataset.hcaptchaWidgetId;
+		if ( typeof el === 'undefined' ) {
+			return '';
+		}
+
+		const hcaptcha = el.getElementsByClassName( 'h-captcha' )[ 0 ];
+
+		if ( typeof hcaptcha === 'undefined' ) {
+			return '';
+		}
+
+		const iframe = hcaptcha.getElementsByTagName( 'iframe' )[ 0 ];
+
+		if ( typeof iframe === 'undefined' ) {
+			return '';
+		}
+
+		return iframe.dataset.hcaptchaWidgetId ?? '';
 	}
 
 	/**
@@ -67,7 +81,13 @@ class HCaptcha {
 	 * @param {HTMLDivElement} el Form element.
 	 */
 	reset( el ) {
-		hcaptcha.reset( this.getWidgetId( el ) );
+		const widgetId = this.getWidgetId( el );
+
+		if ( ! widgetId ) {
+			return;
+		}
+
+		hcaptcha.reset( widgetId );
 	}
 
 	/**
@@ -108,7 +128,13 @@ class HCaptcha {
 		event.stopPropagation();
 
 		this.currentForm = { formElement, submitButtonElement };
-		hcaptcha.execute( this.getWidgetId( formElement ) );
+		const widgetId = this.getWidgetId( formElement );
+
+		if ( ! widgetId ) {
+			return;
+		}
+
+		hcaptcha.execute( widgetId );
 	}
 
 	/**

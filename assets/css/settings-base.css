@@ -16,6 +16,9 @@ body.settings_page_hcaptcha {
 }
 
 .hcaptcha-settings-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
 	line-height: 4.5em;
 	background: #fff;
 	margin: 10px -20px 0 -20px;
@@ -183,7 +186,7 @@ body.settings_page_hcaptcha {
 }
 
 #hcaptcha-message {
-	z-index: 1;
+	box-sizing: border-box;
 }
 
 #hcaptcha-message p {
@@ -191,6 +194,13 @@ body.settings_page_hcaptcha {
 	font-weight: 600;
 	line-height: 1.5;
 	margin: 0.5em 0;
+}
+
+@media (max-width: 782px) {
+	.hcaptcha-settings-tabs {
+		margin: 10px -12px 0 -10px;
+		padding: 0 12px 0 10px;
+	}
 }
 
 @media (max-width: 600px) {

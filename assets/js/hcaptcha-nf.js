@@ -56,7 +56,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
-		const data = options.data;
+		const data = options.data ?? '';
 
 		if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
 			return;
