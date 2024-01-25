@@ -82,17 +82,22 @@ const integrations = function( $ ) {
 		return $table.is( jQuery( '.form-table' ).eq( 0 ) );
 	}
 
-	function swapThemes( activate, entity, newThemeName ) {
+	function swapThemes( activate, entity, newTheme ) {
 		if ( entity !== 'theme' ) {
 			return;
 		}
 
 		const $tables = $( '.form-table' );
 		const $fromTable = $tables.eq( activate ? 0 : 1 );
-		const $toTable = $tables.eq( activate ? 1 : 0 );
-		const dataLabel = activate ? '' : '[data-label="' + newThemeName + '"]';
+		const dataLabel = activate ? '' : '[data-label="' + newTheme + '"]';
 
 		const $img = $fromTable.find( '.hcaptcha-integrations-logo img[data-entity="theme"]' + dataLabel );
+
+		if ( ! $img.length ) {
+			return;
+		}
+
+		const $toTable = $tables.eq( activate ? 1 : 0 );
 		const $tr = $img.closest( 'tr' );
 
 		insertIntoTable( $toTable, $img.attr( 'data-label' ), $tr );
@@ -151,14 +156,14 @@ const integrations = function( $ ) {
 
 		function toggleActivation() {
 			const activateClass = activate ? 'on' : 'off';
-			const newThemeName = getSelectedTheme();
+			const newTheme = getSelectedTheme();
 			const data = {
 				action: HCaptchaIntegrationsObject.action,
 				nonce: HCaptchaIntegrationsObject.nonce,
 				activate,
 				entity,
 				status,
-				newThemeName,
+				newTheme,
 			};
 
 			$tr.addClass( activateClass );
@@ -171,19 +176,27 @@ const integrations = function( $ ) {
 				.done( function( response ) {
 					if ( response.success === undefined ) {
 						showUnexpectedErrorMessage();
+
+						return;
+					}
+
+					if ( response.data.themes !== undefined ) {
+						window.HCaptchaIntegrationsObject.themes = response.data.themes;
+						window.HCaptchaIntegrationsObject.defaultTheme = response.data.defaultTheme;
 					}
 
 					if ( ! response.success ) {
-						showErrorMessage( response.data );
+						showErrorMessage( response.data.message );
+
 						return;
 					}
 
 					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
 					const top = $wpWrap.position().top;
 
-					swapThemes( activate, entity, newThemeName );
+					swapThemes( activate, entity, newTheme );
 					insertIntoTable( $table, alt, $tr );
-					showSuccessMessage( response.data );
+					showSuccessMessage( response.data.message );
 
 					$( 'html, body' ).animate(
 						{
