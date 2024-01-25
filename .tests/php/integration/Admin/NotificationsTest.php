@@ -70,12 +70,28 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Read post',
 				],
 			],
+			'please-rate'         => [
+				'title'   => 'Rate hCaptcha plugin',
+				'message' => 'Please rate <strong>hCaptcha for WordPress</strong> <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">★★★★★</a> on <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">WordPress.org</a>. Thank you!',
+				'button'  => [
+					'url'  => 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post',
+					'text' => 'Rate',
+				],
+			],
 			'search-integrations' => [
 				'title'   => 'Search on Integrations page',
 				'message' => 'Now you can search for plugin an themes on the Integrations page.',
 				'button'  => [
 					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search',
 					'text' => 'Start search',
+				],
+			],
+			'enterprise-support'  => [
+				'title'   => 'Support for Enterprise features',
+				'message' => 'The hCaptcha plugin commenced support for Enterprise features. Solve your fraud and abuse problem today.',
+				'button'  => [
+					'url'  => 'https://www.hcaptcha.com/#enterprise-features',
+					'text' => 'Get started',
 				],
 			],
 		];
