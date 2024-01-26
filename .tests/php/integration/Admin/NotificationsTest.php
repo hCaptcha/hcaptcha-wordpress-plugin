@@ -90,7 +90,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Support for Enterprise features',
 				'message' => 'The hCaptcha plugin commenced support for Enterprise features. Solve your fraud and abuse problem today.',
 				'button'  => [
-					'url'  => 'https://www.hcaptcha.com/#enterprise-features',
+					'url'  => 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
 					'text' => 'Get started',
 				],
 			],
