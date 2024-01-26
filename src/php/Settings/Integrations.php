@@ -767,7 +767,7 @@ class Integrations extends PluginSettingsBase {
 					$plugin_name
 				);
 
-				wp_send_json_error( esc_html( $message ) );
+				$this->send_json_error( esc_html( $message ) );
 			}
 
 			$message = sprintf(
@@ -776,7 +776,7 @@ class Integrations extends PluginSettingsBase {
 				$plugin_name
 			);
 
-			wp_send_json_success( esc_html( $message ) );
+			$this->send_json_success( esc_html( $message ) );
 		}
 
 		deactivate_plugins( $plugins );
@@ -787,7 +787,7 @@ class Integrations extends PluginSettingsBase {
 			$plugin_name
 		);
 
-		wp_send_json_success( esc_html( $message ) );
+		$this->send_json_success( esc_html( $message ) );
 	}
 
 	/**
