@@ -12,34 +12,28 @@ require( '../../../assets/js/hcaptcha-wc-checkout' );
 window.hCaptchaWC( $ );
 
 describe( 'hCaptcha WooCommerce', () => {
-	let hCaptchaReset;
 	let hCaptchaBindEvents;
 
 	beforeEach( () => {
-		hCaptchaReset = jest.fn();
-		global.hCaptchaReset = hCaptchaReset;
-
 		hCaptchaBindEvents = jest.fn();
-		global.hCaptchaBindEvents = hCaptchaBindEvents;
+		window.hCaptchaBindEvents = hCaptchaBindEvents;
 	} );
 
 	afterEach( () => {
-		global.hCaptchaReset.mockRestore();
-		global.hCaptchaBindEvents.mockRestore();
+		window.hCaptchaBindEvents.mockRestore();
 	} );
 
-	test( 'checkout_error event triggers hCaptchaReset', () => {
+	test( 'checkout_error event triggers hCaptchaBindEvents', () => {
 		const event = new CustomEvent( 'checkout_error' );
 		document.body.dispatchEvent( event );
 
-		expect( hCaptchaReset ).toHaveBeenCalledTimes( 1 );
+		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 
-	test( 'updated_checkout event triggers hCaptchaBindEvents and hCaptchaReset', () => {
+	test( 'updated_checkout event triggers hCaptchaBindEvents', () => {
 		const event = new CustomEvent( 'updated_checkout' );
 		document.body.dispatchEvent( event );
 
 		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
-		expect( hCaptchaReset ).toHaveBeenCalledTimes( 1 );
 	} );
 } );
