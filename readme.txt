@@ -541,6 +541,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.9.0 =
+* Added Spectra - WordPress Gutenberg Blocks integration.
 * Added test of hCaptcha completion before checking the site config.
 * Added site config check upon changing Enterprise params.
 * Fixed site config check upon changing site and secret keys.
