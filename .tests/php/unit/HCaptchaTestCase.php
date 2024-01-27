@@ -1039,6 +1039,13 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'spectra_status'                   => [
+				'label'   => 'Spectra',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'subscriber_status'                =>
 				[
 					'label'   => 'Subscriber',

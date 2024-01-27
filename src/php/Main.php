@@ -986,6 +986,11 @@ CSS;
 				'simple-download-monitor/main.php',
 				SimpleDownloadMonitor\Form::class,
 			],
+			'Spectra'                              => [
+				[ 'spectra_status', 'form' ],
+				'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php',
+				Spectra\Form::class,
+			],
 			'Subscriber'                           => [
 				[ 'subscriber_status', 'form' ],
 				'subscriber/subscriber.php',
