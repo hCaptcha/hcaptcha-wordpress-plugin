@@ -493,6 +493,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Sendinblue Form
 * Simple Download Monitor Form
 * Simple Basic Contact Form
+* Spectra - WordPress Gutenberg Blocks Form
 * Subscriber Form
 * Support Candy New Ticket Form
 * Theme My Login Login Form
