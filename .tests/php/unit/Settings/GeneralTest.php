@@ -389,6 +389,7 @@ class GeneralTest extends HCaptchaTestCase {
 					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 					'checkConfigNotice'                    => $check_config_notice,
+					'checkingConfigMsg'                    => 'Checking site config...',
 					'completeHCaptchaTitle'                => 'Please complete the hCaptcha.',
 					'completeHCaptchaContent'              => 'Before checking the site config, please complete the Active hCaptcha in the current section.',
 					'OKBtnText'                            => 'OK',

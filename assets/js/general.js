@@ -15,6 +15,7 @@
  * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
  * @param HCaptchaGeneralObject.checkConfigNotice
+ * @param HCaptchaGeneralObject.checkingConfigMsg
  * @param HCaptchaGeneralObject.completeHCaptchaTitle
  * @param HCaptchaGeneralObject.completeHCaptchaContent
  * @param HCaptchaMainObject.params
@@ -153,6 +154,7 @@ const general = function( $ ) {
 		return $.post( {
 			url: HCaptchaGeneralObject.ajaxUrl,
 			data,
+			beforeSend: () => showSuccessMessage( HCaptchaGeneralObject.checkingConfigMsg ),
 		} )
 			.done( function( response ) {
 				if ( ! response.success ) {
