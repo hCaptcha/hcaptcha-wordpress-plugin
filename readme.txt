@@ -542,6 +542,7 @@ Instructions for popular native integrations are below:
 
 = 3.9.0 =
 * Added test of hCaptcha completion before checking the site config.
+* Fixed list of themes after activation on the Integratins page.
 * Fixed jumping WooCommerce checkout page to hCaptcha on a page load.
 
 = 3.8.1 =
