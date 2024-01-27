@@ -543,6 +543,7 @@ Instructions for popular native integrations are below:
 = 3.9.0 =
 * Added test of hCaptcha completion before checking the site config.
 * Added site config check upon changing Enterprise params.
+* Fixed site config check upon changing site and secret keys.
 * Fixed list of themes after activation on the Integrations page.
 * Fixed jumping WooCommerce checkout page to hCaptcha on a page load.
 

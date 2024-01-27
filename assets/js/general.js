@@ -40,8 +40,8 @@ const general = function( $ ) {
 	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
 	const $submit = $form.find( '#submit' );
 	const modes = {};
-	const siteKeyInitVal = $siteKey.val();
-	const secretKeyInitVal = $secretKey.val();
+	let siteKeyInitVal = $siteKey.val();
+	let secretKeyInitVal = $secretKey.val();
 	let enterpriseInitValues = getValues( $enterpriseInputs );
 
 	modes[ HCaptchaGeneralObject.modeLive ] = HCaptchaGeneralObject.siteKey;
@@ -160,6 +160,8 @@ const general = function( $ ) {
 					return;
 				}
 
+				siteKeyInitVal = $siteKey.val();
+				secretKeyInitVal = $secretKey.val();
 				enterpriseInitValues = getValues( $enterpriseInputs );
 
 				showSuccessMessage( response.data );
