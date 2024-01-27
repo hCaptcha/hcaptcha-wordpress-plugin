@@ -541,6 +541,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.9.0 =
+* Added test of hCaptcha completion before checking the site config.
 * Fixed jumping WooCommerce checkout page to hCaptcha on a page load.
 
 = 3.8.1 =

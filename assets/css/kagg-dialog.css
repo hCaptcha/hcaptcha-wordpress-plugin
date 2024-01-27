@@ -119,6 +119,29 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-button
 	cursor: pointer;
 }
 
+body div.kagg-dialog {
+	--teal-400: #00d4bf;
+	--grey-600: #5c6f8a;
+	--color-info: #0075ab;
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content {
+	color: var(--grey-600);
+}
+
+body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button {
+	color: var(--grey-600);
+}
+
+body div.kagg-dialog.info .kagg-dialog-container .kagg-dialog-box {
+	color: var(--color-info);
+}
+
+body div.kagg-dialog.info .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
+	background: var(--color-info);
+	color: #ffffff
+}
+
 @media (max-width: 782px) {
 	body div.kagg-dialog .kagg-dialog-container {
 		margin: 0 12px 0 10px;

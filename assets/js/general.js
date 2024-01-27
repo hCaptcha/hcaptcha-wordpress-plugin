@@ -1,4 +1,4 @@
-/* global jQuery, hCaptcha, HCaptchaGeneralObject */
+/* global jQuery, hCaptcha, HCaptchaGeneralObject, kaggDialog */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
@@ -15,6 +15,8 @@
  * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
  * @param HCaptchaGeneralObject.checkConfigNotice
+ * @param HCaptchaGeneralObject.completeHCaptchaTitle
+ * @param HCaptchaGeneralObject.completeHCaptchaContent
  * @param HCaptchaMainObject.params
  */
 
@@ -169,6 +171,22 @@ const general = function( $ ) {
 
 	$( '#check_config' ).on( 'click', function( event ) {
 		event.preventDefault();
+
+		if ( $( '.hcaptcha-general-sample-hcaptcha iframe' ).attr( 'data-hcaptcha-response' ) === '' ) {
+			kaggDialog.confirm( {
+				title: HCaptchaGeneralObject.completeHCaptchaTitle,
+				content: HCaptchaGeneralObject.completeHCaptchaContent,
+				type: 'info',
+				buttons: {
+					ok: {
+						text: HCaptchaGeneralObject.OKBtnText,
+					},
+				},
+				onAction: () => window.hCaptchaReset( document.querySelector( '.hcaptcha-general-sample-hcaptcha' ) ),
+			} );
+
+			return;
+		}
 
 		checkConfig();
 	} );
