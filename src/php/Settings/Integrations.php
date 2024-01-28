@@ -393,6 +393,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'spectra_status'                   => [
 				'label'   => 'Spectra',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -508,14 +509,15 @@ class Integrations extends PluginSettingsBase {
 	 */
 	private function logo( array $form_field ): string {
 		$label     = $form_field['label'];
-		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
+		$logo_type = $form_field['logo'] ?? 'png';
+		$logo_file = sanitize_file_name( strtolower( $label ) . '.' . $logo_type );
 		$entity    = $form_field['entity'] ?? 'plugin';
 
 		return sprintf(
 			'<div class="hcaptcha-integrations-logo">' .
 			'<img src="%1$s" alt="%2$s Logo" data-label="%2$s" data-entity="%3$s">' .
 			'</div>',
-			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/$logo_file" ),
+			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/logo/$logo_file" ),
 			$label,
 			$entity
 		);

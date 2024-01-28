@@ -1041,6 +1041,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			],
 			'spectra_status'                   => [
 				'label'   => 'Spectra',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
