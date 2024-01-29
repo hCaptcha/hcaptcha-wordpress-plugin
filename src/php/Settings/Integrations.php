@@ -154,6 +154,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'beaver_builder_status'            => [
 				'label'   => 'Beaver Builder',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
@@ -162,6 +163,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'brizy_status'                     => [
 				'label'   => 'Brizy',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -169,6 +171,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'bp_status'                        => [
 				'label'   => 'BuddyPress',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'create_group' => __( 'Create Group Form', 'hcaptcha-for-forms-and-more' ),
@@ -196,6 +199,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'cf7_status'                       => [
 				'label'   => 'Contact Form 7',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -221,6 +225,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'easy_digital_downloads_status'    => [
 				'label'   => 'Easy Digital Downloads',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout'  => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
@@ -231,6 +236,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'elementor_pro_status'             => [
 				'label'   => 'Elementor Pro',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -245,6 +251,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'formidable_forms_status'          => [
 				'label'   => 'Formidable Forms',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -259,6 +266,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'give_wp_status'                   => [
 				'label'   => 'GiveWP',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -266,6 +274,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'gravity_status'                   => [
 				'label'   => 'Gravity Forms',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
@@ -281,6 +290,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'jetpack_status'                   => [
 				'label'   => 'Jetpack',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
@@ -288,6 +298,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'kadence_status'                   => [
 				'label'   => 'Kadence',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form'          => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
@@ -296,6 +307,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'learn_dash_status'                => [
 				'label'   => 'LearnDash LMS',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
@@ -305,6 +317,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'mailchimp_status'                 => [
 				'label'   => 'Mailchimp for WP',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -312,6 +325,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'mailpoet_status'                  => [
 				'label'   => 'MailPoet',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -319,6 +333,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'memberpress_status'               => [
 				'label'   => 'MemberPress',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
@@ -341,6 +356,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'paid_memberships_pro_status'      => [
 				'label'   => 'Paid Memberships Pro',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
@@ -372,6 +388,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'sendinblue_status'                => [
 				'label'   => 'Brevo',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -460,6 +477,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'wordfence_status'                 => [
 				'label'   => 'Wordfence',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
