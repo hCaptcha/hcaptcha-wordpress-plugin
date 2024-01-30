@@ -330,13 +330,10 @@ class Notifications {
 			return false;
 		}
 
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
-		if ( ! $user ) {
-			return false;
-		}
-
-		$dismissed = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
+		$dismissed = get_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
 
 		if ( in_array( $id, $dismissed, true ) ) {
 			return false;
@@ -344,13 +341,7 @@ class Notifications {
 
 		$dismissed[] = $id;
 
-		$result = update_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, $dismissed );
-
-		if ( ! $result ) {
-			return false;
-		}
-
-		return true;
+		return (bool) update_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, $dismissed );
 	}
 
 	/**
@@ -385,13 +376,10 @@ class Notifications {
 	 * @return bool
 	 */
 	private function remove_dismissed(): bool {
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
-		if ( ! $user ) {
-			return false;
-		}
-
-		return delete_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY );
+		return delete_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY );
 	}
 
 	/**
