@@ -214,10 +214,6 @@ class Notifications {
 			}
 
 			foreach ( $notifications as $id => $notification ) {
-				if ( array_key_exists( $id, $dismissed ) ) {
-					continue;
-				}
-
 				$title       = $notification['title'] ?: '';
 				$message     = $notification['message'] ?? '';
 				$button_url  = $notification['button']['url'] ?? '';
