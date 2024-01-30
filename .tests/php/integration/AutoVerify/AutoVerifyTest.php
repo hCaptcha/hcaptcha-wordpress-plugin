@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 
 /**
  * Test AutoVerify class.
@@ -39,15 +40,13 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$subject = new AutoVerify();
 		$subject->init();
 
-		self::assertSame(
-			- PHP_INT_MAX,
-			has_action( 'init', [ $subject, 'verify_form' ] )
-		);
-
+		self::assertSame( -PHP_INT_MAX, has_action( 'init', [ $subject, 'verify_form' ] ) );
+		self::assertSame( PHP_INT_MAX, has_filter( 'the_content', [ $subject, 'content_filter' ] ) );
 		self::assertSame(
 			PHP_INT_MAX,
-			has_filter( 'the_content', [ $subject, 'content_filter' ] )
+			has_filter( 'widget_block_content', [ $subject, 'widget_block_content_filter' ] )
 		);
+		self::assertSame( 10, has_action( 'hcap_auto_verify_register', [ $subject, 'content_filter' ] ) );
 	}
 
 	/**
@@ -65,6 +64,26 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		self::assertSame( $content, $subject->content_filter( $content ) );
+		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test widget_block_content_filter().
+	 */
+	public function test_widget_block_content_filter() {
+		$wp_widget_block = Mockery::mock( 'WP_Widget_Block' );
+
+		$request_uri = $this->get_test_request_uri();
+		$content     = $this->get_test_content();
+
+		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$expected = $this->get_test_registered_forms();
+
+		$subject = new AutoVerify();
+
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+		self::assertSame( $content, $subject->widget_block_content_filter( $content, [], $wp_widget_block ) );
 		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
 
