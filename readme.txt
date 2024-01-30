@@ -132,7 +132,7 @@ Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"
 
 and insert this shortcode into your form.
 
-Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but we have plans to extend the functionality.
+Auto-verification works with forms sent by POST on frontend only. It works with forms in the post content and in widgets.
 
 = How to block hCaptcha on a specific page? =
 
@@ -545,6 +545,7 @@ Instructions for popular native integrations are below:
 * Added Spectra - WordPress Gutenberg Blocks integration.
 * Added test of hCaptcha completion before checking the site config.
 * Added site config check upon changing Enterprise params.
+* Added auto verify feature for forms in widgets.
 * Fixed site config check upon changing site and secret keys.
 * Fixed list of themes after activation on the Integrations page.
 * Fixed jumping WooCommerce checkout page to hCaptcha on a page load.
