@@ -13,7 +13,6 @@
 
 namespace HCaptcha\Tests\Integration;
 
-use HCaptcha\Admin\Notifications;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -583,6 +582,152 @@ CSS;
 	}
 
 	/**
+	 * Test get_api_url().
+	 *
+	 * @param string $api_host API host.
+	 * @param string $expected Expected value.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_api_url
+	 */
+	public function test_get_api_url( string $api_host, string $expected ) {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'api_host' => $api_host,
+			]
+		);
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->get_api_url() );
+	}
+
+	/**
+	 * Data provider for test_get_api_url().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_api_url(): array {
+		return [
+			[ '', 'https://js.hcaptcha.com/1/api.js' ],
+			[ ' ', 'https://js.hcaptcha.com/1/api.js' ],
+			[ 'cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/1/api.js' ],
+			[ 'http://cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/1/api.js' ],
+			[ 'https://cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/1/api.js' ],
+		];
+	}
+
+	/**
+	 * Test get_api_src().
+	 *
+	 * @return void
+	 */
+	public function test_get_api_src() {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'recaptcha_compat_off' => [ 'on' ],
+				'custom_themes'        => [ 'on' ],
+				'asset_host'           => 'assets-cn1.hcaptcha.com',
+				'endpoint'             => 'cn1.hcaptcha.com',
+				'host'                 => 'cn1.hcaptcha.com',
+				'image_host'           => 'imgs-cn1.hcaptcha.com',
+				'report_api'           => 'reportapi-cn1.hcaptcha.com',
+				'sentry'               => 'cn1.hcaptcha.com',
+			]
+		);
+
+		$expected = 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=true&assethost=https%3A%2F%2Fassets-cn1.hcaptcha.com&endpoint=https%3A%2F%2Fcn1.hcaptcha.com&host=https%3A%2F%2Fcn1.hcaptcha.com&imghost=https%3A%2F%2Fimgs-cn1.hcaptcha.com&reportapi=https%3A%2F%2Freportapi-cn1.hcaptcha.com&sentry=https%3A%2F%2Fcn1.hcaptcha.com';
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->get_api_src() );
+	}
+
+	/**
+	 * Test get_verify_url().
+	 *
+	 * @param string $backend  Backend.
+	 * @param string $expected Expected value.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_verify_url
+	 */
+	public function test_get_verify_url( string $backend, string $expected ) {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'backend' => $backend,
+			]
+		);
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->get_verify_url() );
+	}
+
+	/**
+	 * Data provider for test_get_verify_url().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_verify_url(): array {
+		return [
+			[ '', 'https://api.hcaptcha.com/siteverify' ],
+			[ ' ', 'https://api.hcaptcha.com/siteverify' ],
+			[ 'cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/siteverify' ],
+			[ 'http://cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/siteverify' ],
+			[ 'https://cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/siteverify' ],
+		];
+	}
+
+	/**
+	 * Test get_check_site_config_url().
+	 *
+	 * @param string $backend  Backend.
+	 * @param string $expected Expected value.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_check_site_config_url
+	 */
+	public function test_get_check_site_config_url( string $backend, string $expected ) {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'backend' => $backend,
+			]
+		);
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->get_check_site_config_url() );
+	}
+
+	/**
+	 * Data provider for test_get_check_site_config_url().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_check_site_config_url(): array {
+		return [
+			[ '', 'https://api.hcaptcha.com/checksiteconfig' ],
+			[ ' ', 'https://api.hcaptcha.com/checksiteconfig' ],
+			[ 'cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/checksiteconfig' ],
+			[ 'http://cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/checksiteconfig' ],
+			[ 'https://cn1.hcaptcha.com', 'https://cn1.hcaptcha.com/checksiteconfig' ],
+		];
+	}
+
+	/**
 	 * Test print_footer_scripts().
 	 *
 	 * @param string|false $compat              Compat option value.
@@ -756,6 +901,46 @@ JS;
 		self::assertSame( $expected_extra, $script->extra );
 
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
+	}
+
+	/**
+	 * Test print_footer_scripts when blocked by filter.
+	 *
+	 * @return void
+	 */
+	public function test_print_footer_script_when_blocked_by_filter() {
+		add_filter( 'hcap_activate', '__return_true' );
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		$scripts = ob_get_clean();
+
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+		self::assertSame( '', $scripts );
+	}
+
+	/**
+	 * Test declare_wc_compatibility().
+	 *
+	 * @return void
+	 */
+	public function test_declare_wc_compatibility() {
+		$declare_compatibility = FunctionMocker::replace(
+			'Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility'
+		);
+
+		$subject = new Main();
+
+		$subject->declare_wc_compatibility();
+
+		$declare_compatibility->wasCalledWithOnce( [ 'custom_order_tables', HCAPTCHA_FILE, true ] );
 	}
 
 	/**
