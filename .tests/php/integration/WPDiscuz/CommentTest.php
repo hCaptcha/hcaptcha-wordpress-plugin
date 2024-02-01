@@ -174,25 +174,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_print_inline_styles() {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<CSS
-	.wpd-field-hcaptcha .h-captcha {
-		margin-left: auto;
-	}
-CSS;
+		$expected = '.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 
 		$subject = new Comment();

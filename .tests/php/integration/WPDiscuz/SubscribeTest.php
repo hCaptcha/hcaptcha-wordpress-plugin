@@ -166,26 +166,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_print_inline_styles() {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<CSS
-	#wpdiscuz-subscribe-form .h-captcha {
-		margin-top: 5px;
-		margin-left: auto;
-	}
-CSS;
+		$expected = '#wpdiscuz-subscribe-form .h-captcha{margin-top:5px;margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 
 		$subject = new Subscribe();
