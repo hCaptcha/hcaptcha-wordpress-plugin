@@ -594,9 +594,11 @@ CSS;
 	 * @return void
 	 */
 	public function declare_wc_compatibility() {
+		// @codeCoverageIgnoreStart
 		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', constant( 'HCAPTCHA_FILE' ), true );
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**

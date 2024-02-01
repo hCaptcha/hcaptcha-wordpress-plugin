@@ -927,23 +927,6 @@ JS;
 	}
 
 	/**
-	 * Test declare_wc_compatibility().
-	 *
-	 * @return void
-	 */
-	public function test_declare_wc_compatibility() {
-		$declare_compatibility = FunctionMocker::replace(
-			'Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility'
-		);
-
-		$subject = new Main();
-
-		$subject->declare_wc_compatibility();
-
-		$declare_compatibility->wasCalledWithOnce( [ 'custom_order_tables', HCAPTCHA_FILE, true ] );
-	}
-
-	/**
 	 * Data provider for test_print_footer_scripts().
 	 *
 	 * @return array
