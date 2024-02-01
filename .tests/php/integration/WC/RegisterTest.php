@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\Register;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -80,4 +81,41 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$subject = new Register();
 		self::assertEquals( $expected, $subject->verify( $validation_error ) );
 	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles() {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	.woocommerce-form-register .h-captcha {
+		margin-top: 2rem;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new Register();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
 }
