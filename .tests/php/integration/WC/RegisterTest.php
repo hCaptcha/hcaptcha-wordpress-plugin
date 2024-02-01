@@ -117,5 +117,4 @@ CSS;
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
-
 }

@@ -51,7 +51,7 @@ class Comment extends Base {
 		ob_start();
 		?>
 		<div class="wpd-field-hcaptcha wpdiscuz-item">
-			<div class="wpdiscuz-hcaptcha" id='wpdiscuz-hcaptcha'></div>
+			<div class="wpdiscuz-hcaptcha" id="wpdiscuz-hcaptcha"></div>
 			<?php HCaptcha::form_display( $args ); ?>
 			<div class="clearfix"></div>
 		</div>
