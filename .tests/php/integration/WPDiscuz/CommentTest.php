@@ -134,7 +134,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
 		$expected          = [
-			'The hCaptcha is invalid.',
+			'Please complete the hCaptcha.',
 			'',
 			[],
 		];
@@ -146,6 +146,8 @@ class CommentTest extends HCaptchaWPTestCase {
 		add_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+
+		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 
 		add_filter(
 			'wp_die_handler',

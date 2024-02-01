@@ -127,13 +127,15 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	public function test_verify_NOT_verified() {
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
-		$expected = [
+		$expected          = [
 			'',
 			'',
 			[ 'response' => null ],
 		];
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+
+		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
@@ -151,7 +153,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 
 		$subject->verify();
 
-		self::assertSame( '{"success":false,"data":"The hCaptcha is invalid."}', ob_get_clean() );
+		self::assertSame( '{"success":false,"data":"Please complete the hCaptcha."}', ob_get_clean() );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );
