@@ -289,7 +289,9 @@ HTML;
 			$captcha = wpforms()->get( 'captcha' );
 
 			if ( ! $captcha ) {
+				// @codeCoverageIgnoreStart
 				return;
+				// @codeCoverageIgnoreEnd
 			}
 
 			// Block native WPForms hCaptcha output.
@@ -317,7 +319,9 @@ HTML;
 		$frontend_obj = wpforms()->get( 'frontend' );
 
 		if ( ! $frontend_obj ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$args = [
