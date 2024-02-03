@@ -82,6 +82,7 @@ class Form {
 	 * @param bool|mixed $demo_mode Demo mode.
 	 *
 	 * @return bool|mixed|void
+	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify( $demo_mode ) {
 
@@ -102,7 +103,7 @@ class Form {
 			return $demo_mode;
 		}
 
-		die(
+		wp_die(
 			wp_json_encode(
 				[
 					'status' => 'error',
