@@ -16,7 +16,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPJobOpenings\Form;
 
 /**
- * Test NewTopic class.
+ * Test FormTest class.
  *
  * @group job-openings
  */
