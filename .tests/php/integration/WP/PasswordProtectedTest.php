@@ -80,7 +80,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify() {
-		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected' );
 
 		$subject = new PasswordProtected();
 
@@ -101,7 +101,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected', false );
 
 		$subject = new PasswordProtected();
 
