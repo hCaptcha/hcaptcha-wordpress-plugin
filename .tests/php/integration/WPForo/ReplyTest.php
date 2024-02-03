@@ -21,6 +21,7 @@ use wpforo\classes\Notices;
 /**
  * Test Reply class.
  *
+ * @group wpforo
  * @requires PHP >= 7.1
  */
 class ReplyTest extends HCaptchaPluginWPTestCase {
@@ -69,11 +70,12 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		];
 		$nonce    = wp_nonce_field( 'hcaptcha_wpforo_reply', 'hcaptcha_wpforo_reply_nonce', true, false );
 		$expected = $this->get_hcap_form() . $nonce;
-		$subject  = new Reply();
+
+		new Reply();
 
 		ob_start();
 
-		$subject->add_captcha( $topic );
+		do_action( Reply::ADD_CAPTCHA_HOOK, $topic );
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
