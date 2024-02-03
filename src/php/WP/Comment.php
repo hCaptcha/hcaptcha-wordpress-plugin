@@ -33,6 +33,13 @@ class Comment {
 	protected $active;
 
 	/**
+	 * Verification result.
+	 *
+	 * @var string|null
+	 */
+	protected $result;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -46,7 +53,8 @@ class Comment {
 	 */
 	private function init_hooks() {
 		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
-		add_filter( 'pre_comment_approved', [ $this, 'verify' ], 20, 2 );
+		add_filter( 'preprocess_comment', [ $this, 'verify' ], - PHP_INT_MAX );
+		add_filter( 'pre_comment_approved', [ $this, 'pre_comment_approved' ], 20, 2 );
 	}
 
 	/**
@@ -97,24 +105,44 @@ class Comment {
 	/**
 	 * Verify comment.
 	 *
+	 * @param array|mixed $comment_data Comment data.
+	 *
+	 * @return array
+	 */
+	public function verify( $comment_data ): array {
+		$comment_data = (array) $comment_data;
+
+		if ( is_admin() ) {
+			return $comment_data;
+		}
+
+		$this->result = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
+
+		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
+
+		if ( null !== $this->result ) {
+			// Block Akismet activity to reduce its API calls.
+			remove_action( 'preprocess_comment', [ 'Akismet', 'auto_check_comment' ], 1 );
+		}
+
+		return $comment_data;
+	}
+
+	/**
+	 * Pre-approve comment.
+	 *
 	 * @param int|string|WP_Error $approved    The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
 	 * @param array               $commentdata Comment data.
 	 *
 	 * @return int|string|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $approved, array $commentdata ) {
-		if ( is_admin() ) {
+	public function pre_comment_approved( $approved, array $commentdata ) {
+		if ( null === $this->result ) {
 			return $approved;
 		}
 
-		$error_message = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
-
-		if ( null !== $error_message ) {
-			return $this->invalid_captcha_error( $approved, $error_message );
-		}
-
-		return $approved;
+		return $this->invalid_captcha_error( $approved, $this->result );
 	}
 
 	/**

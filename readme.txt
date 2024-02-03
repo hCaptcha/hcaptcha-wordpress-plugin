@@ -543,6 +543,7 @@ Instructions for popular native integrations are below:
 
 = 3.9.0 =
 * Added Spectra - WordPress Gutenberg Blocks integration.
+* Added Akismet integration.
 * Added test of hCaptcha completion before checking the site config.
 * Added site config check upon changing Enterprise params.
 * Added auto verify feature for forms in widgets.
