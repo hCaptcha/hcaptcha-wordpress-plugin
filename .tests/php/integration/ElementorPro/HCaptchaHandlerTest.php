@@ -24,10 +24,12 @@ use HCaptcha\Main;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Class HCaptchaHandlerTest
  *
+ * @group elementor-pro
  * @group hcaptcha-handler
  */
 class HCaptchaHandlerTest extends HCaptchaWPTestCase {
@@ -881,5 +883,45 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $script->src );
 		self::assertSame( [ 'jquery', Main::HANDLE ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles() {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	.elementor-field-type-hcaptcha .elementor-field {
+		background: transparent !important;
+	}
+
+	.elementor-field-type-hcaptcha .h-captcha {
+		margin-bottom: unset;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new HCaptchaHandler();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
 	}
 }
