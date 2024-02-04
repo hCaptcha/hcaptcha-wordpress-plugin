@@ -381,8 +381,11 @@ CSS;
 		}
 
 		$cf7_hcap_sc = $matches[0];
-		$cf7_hcap_sc = preg_replace( '/\s*\[|]\s*/', '', $cf7_hcap_sc );
-		$cf7_hcap_sc = preg_replace( '/(id|class)\s*:\s*([\w-]+)/', '$1=$2', $cf7_hcap_sc );
+		$cf7_hcap_sc = preg_replace(
+			[ '/\s*\[|]\s*/', '/(id|class)\s*:\s*([\w-]+)/' ],
+			[ '', '$1=$2' ],
+			$cf7_hcap_sc
+		);
 		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );

@@ -18,6 +18,7 @@ use Mockery;
 use tad\FunctionMocker\FunctionMocker;
 use WPCF7_FormTag;
 use WPCF7_Submission;
+use WPCF7_TagGenerator;
 use WPCF7_Validation;
 
 /**
@@ -135,7 +136,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
 
-		$output = str_replace( '[cf7-hcaptcha]', '[cf7-hcaptcha form_id=' . $form_id . ']', $output );
+		$output   = str_replace( '[cf7-hcaptcha]', '[cf7-hcaptcha form_id=' . $form_id . ' class:some-class]', $output );
+		$expected = str_replace( 'h-captcha ', 'h-captcha some-class', $expected );
 
 		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
 	}
@@ -479,5 +481,142 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		ob_end_clean();
 
 		self::assertTrue( wp_script_is( CF7::HANDLE ) );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles() {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	span[data-name="hcap-cf7"] .h-captcha {
+		margin-bottom: 0;
+	}
+
+	span[data-name="hcap-cf7"] ~ input[type="submit"],
+	span[data-name="hcap-cf7"] ~ button[type="submit"] {
+		margin-top: 2rem;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new CF7();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_tag_generator_hcaptcha().
+	 *
+	 * @return void
+	 */
+	public function test_add_tag_generator_hcaptcha() {
+		$subject = new CF7();
+
+		require_once WPCF7_PLUGIN_DIR . '/admin/includes/tag-generator.php';
+
+		$tag_generator = WPCF7_TagGenerator::get_instance();
+
+		ob_start();
+		$tag_generator->print_buttons();
+		$buttons = ob_get_clean();
+
+		self::assertFalse( strpos( $buttons, 'hcaptcha' ) );
+
+		$subject->add_tag_generator_hcaptcha();
+
+		ob_start();
+		$tag_generator->print_buttons();
+		$buttons = ob_get_clean();
+
+		self::assertNotFalse( strpos( $buttons, 'hcaptcha' ) );
+	}
+
+	/**
+	 * Test tag_generator_hcaptcha().
+	 *
+	 * @return void
+	 */
+	public function test_tag_generator_hcaptcha() {
+		$args     = [
+			'id'      => 'cf7-hcaptcha',
+			'title'   => 'hCaptcha',
+			'content' => 'tag-generator-panel-cf7-hcaptcha',
+		];
+		$expected = '		<div class="control-box">
+			<fieldset>
+				<legend>Generate a form-tag for a hCaptcha field.</legend>
+
+				<table class="form-table">
+					<tbody>
+
+					<tr>
+						<th scope="row">
+							<label for="tag-generator-panel-cf7-hcaptcha-id">
+								Id attribute							</label>
+						</th>
+						<td>
+							<input
+									type="text" name="id" class="idvalue oneline option"
+									id="tag-generator-panel-cf7-hcaptcha-id"/>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">
+							<label for="tag-generator-panel-cf7-hcaptcha-class">
+								Class attribute							</label>
+						</th>
+						<td>
+							<input
+									type="text" name="class" class="classvalue oneline option"
+									id="tag-generator-panel-cf7-hcaptcha-class"/>
+						</td>
+					</tr>
+
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+
+		<div class="insert-box">
+			<label>
+				<input
+						type="text" name="cf7-hcaptcha" class="tag code" readonly="readonly"
+						onfocus="this.select()"/>
+			</label>
+
+			<div class="submitbox">
+				<input
+						type="button" class="button button-primary insert-tag"
+						value="Insert Tag"/>
+			</div>
+		</div>
+		';
+
+		$subject = new CF7();
+
+		ob_start();
+		$subject->tag_generator_hcaptcha( [], $args );
+		self::assertSame( $expected, ob_get_clean() );
 	}
 }
