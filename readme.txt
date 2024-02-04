@@ -550,6 +550,7 @@ Instructions for popular native integrations are below:
 * Fixed site config check upon changing site and secret keys.
 * Fixed list of themes after activation on the Integrations page.
 * Fixed jumping WooCommerce checkout page to hCaptcha on a page load.
+* Fixed missing hCaptcha on the Divi Comment Form.
 
 = 3.8.1 =
 * Fixed activation and deactivation of plugin and themes on the Integrations page.
