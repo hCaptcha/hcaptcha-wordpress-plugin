@@ -158,7 +158,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcaptcha_request_verify_not_empty() {
 		self::assertSame(
-			'hCaptcha error: The response parameter (verification token) is invalid or malformed.',
+			'hCaptcha errors: Your secret key is missing.; The response parameter (verification token) is invalid or malformed.',
 			hcaptcha_request_verify( 'some response' )
 		);
 	}
