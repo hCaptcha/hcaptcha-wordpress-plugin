@@ -12,7 +12,6 @@
 
 namespace HCaptcha\Tests\Integration\GravityForms;
 
-use GFFormsModel;
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -20,7 +19,7 @@ use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
- * Test GravityForms.
+ * Test GravityForms Form class.
  *
  * @group gravityforms
  */
