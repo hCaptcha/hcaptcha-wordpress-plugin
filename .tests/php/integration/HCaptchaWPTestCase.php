@@ -31,7 +31,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 		FunctionMocker::setUp();
 		parent::setUp();
 
-		hcaptcha()->has_result  = false;
+		hcaptcha()->has_result = false;
+		hcaptcha()->form_shown = false;
+
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 	}
 
@@ -43,6 +45,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 
 		delete_option( 'hcaptcha_settings' );
+		hcaptcha()->init_hooks();
 
 		Mockery::close();
 		parent::tearDown();

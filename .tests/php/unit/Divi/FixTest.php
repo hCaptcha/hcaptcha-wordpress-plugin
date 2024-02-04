@@ -65,7 +65,7 @@ class FixTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test register_autoload() without divi theme.
+	 * Test register_autoload() without the Divi theme.
 	 */
 	public function test_register_autoload_without_divi_theme() {
 		$autoload = FunctionMocker::replace( 'spl_autoload_register' );
