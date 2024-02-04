@@ -129,4 +129,40 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( 'Please complete the hCaptcha.', $bp->template_message );
 		self::assertSame( 'error', $bp->template_message_type );
 	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles() {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	#buddypress .h-captcha {
+		margin-top: 15px;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new CreateGroup();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
 }
