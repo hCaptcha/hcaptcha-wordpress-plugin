@@ -29,6 +29,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset( $_POST['formData'], $_POST['hcaptcha-widget-id'] );
+
+		parent::tearDown();
 	}
 
 	/**
