@@ -9,7 +9,7 @@
 /** @noinspection PhpIllegalPsrClassPathInspection */
 
 /**
- * Class Plugin
+ * Class GF_Field
  */
 class GF_Field {
 
