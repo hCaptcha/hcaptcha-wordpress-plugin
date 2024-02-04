@@ -8,7 +8,7 @@ Stable tag: 3.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Enables hCaptcha.com integration with WordPress.
+Enables hCaptcha integration with WordPress and popular plugins. hCaptcha is certified under EU-US, UK-US, and Swiss-US DPF for GDPR compliance.
 
 == Description ==
 
