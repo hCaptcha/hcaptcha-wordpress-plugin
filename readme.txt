@@ -1,6 +1,6 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, protect form, spam, abuse, antispam, anti-spam, contact form 7, elementor, jetpack, woocommerce, wpforms
+Tags: captcha, hcaptcha, spam, abuse, antispam, anti-spam, protect form, contact form 7, elementor, jetpack, woocommerce, wpforms
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
