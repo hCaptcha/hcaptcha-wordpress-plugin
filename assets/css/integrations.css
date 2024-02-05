@@ -172,19 +172,8 @@
 
 /* KAGG Dialog hCaptcha styles */
 body div.kagg-dialog {
-	--teal-400: #00d4bf;
-	--grey-600: #5c6f8a;
 	--color-activate: #00a32a;
 	--color-deactivate: #d63638;
-	--color-info: #0075ab;
-}
-
-body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-content {
-	color: var(--grey-600);
-}
-
-body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button {
-	color: var(--grey-600);
 }
 
 body div.kagg-dialog.activate .kagg-dialog-container .kagg-dialog-box {
@@ -202,14 +191,5 @@ body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box {
 
 body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
 	background: var(--color-deactivate);
-	color: #ffffff
-}
-
-body div.kagg-dialog.info .kagg-dialog-container .kagg-dialog-box {
-	color: var(--color-info);
-}
-
-body div.kagg-dialog.info .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
-	background: var(--color-info);
 	color: #ffffff
 }

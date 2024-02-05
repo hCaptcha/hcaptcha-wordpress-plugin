@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\LostPassword;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * LostPasswordTest class.
@@ -43,6 +44,42 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		ob_start();
 
 		$subject->add_captcha();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles() {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	.woocommerce-ResetPassword .h-captcha {
+		margin-top: 0.5rem;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new LostPassword();
+
+		ob_start();
+
+		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
 	}

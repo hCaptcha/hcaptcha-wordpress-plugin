@@ -766,6 +766,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'beaver_builder_status'            =>
 				[
 					'label'   => 'Beaver Builder',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -775,6 +776,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'brizy_status'                     => [
 				'label'   => 'Brizy',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
@@ -783,6 +785,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'bp_status'                        =>
 				[
 					'label'   => 'BuddyPress',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -812,6 +815,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'cf7_status'                       =>
 				[
 					'label'   => 'Contact Form 7',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -842,6 +846,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'easy_digital_downloads_status'    => [
 				'label'   => 'Easy Digital Downloads',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout'  => 'Checkout Form',
@@ -853,6 +858,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'elementor_pro_status'             =>
 				[
 					'label'   => 'Elementor Pro',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -870,6 +876,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'formidable_forms_status'          => [
 				'label'   => 'Formidable Forms',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
@@ -886,6 +893,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'give_wp_status'                   => [
 				'label'   => 'GiveWP',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
@@ -894,6 +902,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'gravity_status'                   =>
 				[
 					'label'   => 'Gravity Forms',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -911,6 +920,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'jetpack_status'                   =>
 				[
 					'label'   => 'Jetpack',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -920,6 +930,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'kadence_status'                   =>
 				[
 					'label'   => 'Kadence',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -930,6 +941,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'learn_dash_status'                =>
 				[
 					'label'   => 'LearnDash LMS',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -941,6 +953,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'mailchimp_status'                 =>
 				[
 					'label'   => 'Mailchimp for WP',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -949,6 +962,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'mailpoet_status'                  => [
 				'label'   => 'MailPoet',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
@@ -957,6 +971,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'memberpress_status'               =>
 				[
 					'label'   => 'MemberPress',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -985,6 +1000,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'paid_memberships_pro_status'      =>
 				[
 					'label'   => 'Paid Memberships Pro',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' => [
 						'checkout' => 'Checkout Form',
@@ -1019,6 +1035,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'sendinblue_status'                =>
 				[
 					'label'   => 'Brevo',
+					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' =>
 						[
@@ -1034,6 +1051,14 @@ abstract class HCaptchaTestCase extends TestCase {
 			],
 			'simple_download_monitor_status'   => [
 				'label'   => 'Simple Download Monitor',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
+			'spectra_status'                   => [
+				'label'   => 'Spectra',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
@@ -1108,6 +1133,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'wordfence_status'                 => [
 				'label'   => 'Wordfence',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login' => 'Login Form',

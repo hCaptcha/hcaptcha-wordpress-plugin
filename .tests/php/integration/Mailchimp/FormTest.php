@@ -115,7 +115,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify() {
-		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
 
@@ -128,7 +128,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified() {
-		$this->prepare_hcaptcha_verify_POST( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
 

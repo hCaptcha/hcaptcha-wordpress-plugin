@@ -8,6 +8,7 @@
 namespace HCaptcha\AutoVerify;
 
 use HCaptcha\Helpers\Request;
+use WP_Widget_Block;
 
 /**
  * Class AutoVerify
@@ -32,6 +33,7 @@ class AutoVerify {
 	private function init_hooks() {
 		add_action( 'init', [ $this, 'verify_form' ], - PHP_INT_MAX );
 		add_filter( 'the_content', [ $this, 'content_filter' ], PHP_INT_MAX );
+		add_filter( 'widget_block_content', [ $this, 'widget_block_content_filter' ], PHP_INT_MAX, 3 );
 		add_action( 'hcap_auto_verify_register', [ $this, 'content_filter' ] );
 	}
 
@@ -40,27 +42,24 @@ class AutoVerify {
 	 *
 	 * @param string|mixed $content Content.
 	 *
-	 * @return string|mixed
+	 * @return string
 	 */
-	public function content_filter( $content ) {
-		if ( ! Request::is_frontend() ) {
-			return $content;
-		}
+	public function content_filter( $content ): string {
+		return $this->process_content( $content );
+	}
 
-		if (
-			preg_match_all(
-				'#<form [\S\s]+?class="h-captcha"[\S\s]+?</form>#',
-				$content,
-				$matches,
-				PREG_PATTERN_ORDER
-			)
-		) {
-			$forms = $matches[0];
-
-			$this->register_forms( $forms );
-		}
-
-		return $content;
+	/**
+	 * Filter block widget content and register the form for auto verification.
+	 *
+	 * @param string|mixed    $content  The widget content.
+	 * @param array           $instance Array of settings for the current widget.
+	 * @param WP_Widget_Block $widget   Current Block widget instance.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function widget_block_content_filter( $content, array $instance, WP_Widget_Block $widget ): string {
+		return $this->process_content( $content );
 	}
 
 	/**
@@ -322,5 +321,35 @@ class AutoVerify {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Process content and register the form for auto verification.
+	 *
+	 * @param string|mixed $content Content.
+	 *
+	 * @return string
+	 */
+	private function process_content( $content ): string {
+		$content = (string) $content;
+
+		if ( ! Request::is_frontend() ) {
+			return $content;
+		}
+
+		if (
+			preg_match_all(
+				'#<form [\S\s]+?class="h-captcha"[\S\s]+?</form>#',
+				$content,
+				$matches,
+				PREG_PATTERN_ORDER
+			)
+		) {
+			$forms = $matches[0];
+
+			$this->register_forms( $forms );
+		}
+
+		return $content;
 	}
 }

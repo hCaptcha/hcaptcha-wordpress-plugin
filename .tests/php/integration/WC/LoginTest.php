@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\WC;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\Login;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -136,5 +137,41 @@ class LoginTest extends HCaptchaWPTestCase {
 			$expected,
 			apply_filters( 'woocommerce_process_login_errors', $validation_error )
 		);
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles() {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	.woocommerce-form-login .h-captcha {
+		margin-top: 2rem;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new Login();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
 	}
 }

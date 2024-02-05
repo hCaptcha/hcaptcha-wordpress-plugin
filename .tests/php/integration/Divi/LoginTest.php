@@ -24,10 +24,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_constructor_and_init_hooks() {
 		$subject = new Login();
 
-		self::assertSame(
-			10,
-			has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_divi_captcha' ] )
-		);
+		self::assertSame( 10, has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_divi_captcha' ] ) );
 	}
 
 	/**
@@ -116,6 +113,20 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$output      = 'some string';
 		$module_slug = 'et_pb_login';
+
+		$subject = new Login();
+
+		self::assertSame( $output, $subject->add_divi_captcha( $output, $module_slug ) );
+	}
+
+	/**
+	 * Test add_divi_captcha() when the login limit is not exceeded.
+	 */
+	public function test_add_divi_captcha_when_login_limit_is_not_exceeded() {
+		$output      = 'some string';
+		$module_slug = 'et_pb_login';
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
 		$subject = new Login();
 

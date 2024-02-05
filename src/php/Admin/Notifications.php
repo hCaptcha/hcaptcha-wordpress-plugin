@@ -84,7 +84,9 @@ class Notifications {
 		$pro_url                 = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$dashboard_url           = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$rate_url                = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
 		$search_integrations_url = admin_url( 'options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search' );
+		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 
 		$this->notifications = [
 			'register'            => [
@@ -137,12 +139,41 @@ class Notifications {
 					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'please-rate'         => [
+				'title'   => __( 'Rate hCaptcha plugin', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
+					__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
+					'<strong>hCaptcha for WordPress</strong>',
+					sprintf(
+						'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
+						$rate_url
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank" rel="noopener noreferrer">WordPress.org</a>',
+						$rate_url
+					)
+				),
+				'button'  => [
+					'url'  => $rate_url,
+					'text' => __( 'Rate', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 3.8.0.
 			'search-integrations' => [
 				'title'   => __( 'Search on Integrations page', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'Now you can search for plugin an themes on the Integrations page.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
 					'url'  => $search_integrations_url,
 					'text' => __( 'Start search', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'enterprise-support'  => [
+				'title'   => __( 'Support for Enterprise features', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'The hCaptcha plugin commenced support for Enterprise features. Solve your fraud and abuse problem today.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $enterprise_features_url,
+					'text' => __( 'Get started', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 		];
@@ -183,10 +214,6 @@ class Notifications {
 			}
 
 			foreach ( $notifications as $id => $notification ) {
-				if ( array_key_exists( $id, $dismissed ) ) {
-					continue;
-				}
-
 				$title       = $notification['title'] ?: '';
 				$message     = $notification['message'] ?? '';
 				$button_url  = $notification['button']['url'] ?? '';
@@ -303,13 +330,10 @@ class Notifications {
 			return false;
 		}
 
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
-		if ( ! $user ) {
-			return false;
-		}
-
-		$dismissed = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
+		$dismissed = get_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
 
 		if ( in_array( $id, $dismissed, true ) ) {
 			return false;
@@ -317,13 +341,7 @@ class Notifications {
 
 		$dismissed[] = $id;
 
-		$result = update_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, $dismissed );
-
-		if ( ! $result ) {
-			return false;
-		}
-
-		return true;
+		return (bool) update_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, $dismissed );
 	}
 
 	/**
@@ -358,13 +376,10 @@ class Notifications {
 	 * @return bool
 	 */
 	private function remove_dismissed(): bool {
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
-		if ( ! $user ) {
-			return false;
-		}
-
-		return delete_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY );
+		return delete_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY );
 	}
 
 	/**

@@ -1,4 +1,4 @@
-/* global jQuery, hCaptcha, HCaptchaGeneralObject */
+/* global jQuery, hCaptcha, HCaptchaGeneralObject, kaggDialog */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
@@ -15,6 +15,9 @@
  * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
  * @param HCaptchaGeneralObject.checkConfigNotice
+ * @param HCaptchaGeneralObject.checkingConfigMsg
+ * @param HCaptchaGeneralObject.completeHCaptchaTitle
+ * @param HCaptchaGeneralObject.completeHCaptchaContent
  * @param HCaptchaMainObject.params
  */
 
@@ -35,15 +38,27 @@ const general = function( $ ) {
 	const $mode = $( '[name="hcaptcha_settings[mode]"]' );
 	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
+	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
 	const $submit = $form.find( '#submit' );
 	const modes = {};
-	const siteKeyInitVal = $siteKey.val();
-	const secretKeyInitVal = $secretKey.val();
+	let siteKeyInitVal = $siteKey.val();
+	let secretKeyInitVal = $secretKey.val();
+	let enterpriseInitValues = getValues( $enterpriseInputs );
 
 	modes[ HCaptchaGeneralObject.modeLive ] = HCaptchaGeneralObject.siteKey;
 	modes[ HCaptchaGeneralObject.modeTestPublisher ] = HCaptchaGeneralObject.modeTestPublisherSiteKey;
 	modes[ HCaptchaGeneralObject.modeTestEnterpriseSafeEndUser ] = HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey;
 	modes[ HCaptchaGeneralObject.modeTestEnterpriseBotDetected ] = HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey;
+
+	function getValues( $inputs ) {
+		const values = [];
+
+		$inputs.each( function() {
+			values.push( $( this ).val() );
+		} );
+
+		return values;
+	}
 
 	function clearMessage() {
 		$message.remove();
@@ -139,12 +154,17 @@ const general = function( $ ) {
 		return $.post( {
 			url: HCaptchaGeneralObject.ajaxUrl,
 			data,
+			beforeSend: () => showSuccessMessage( HCaptchaGeneralObject.checkingConfigMsg ),
 		} )
 			.done( function( response ) {
 				if ( ! response.success ) {
 					showErrorMessage( response.data );
 					return;
 				}
+
+				siteKeyInitVal = $siteKey.val();
+				secretKeyInitVal = $secretKey.val();
+				enterpriseInitValues = getValues( $enterpriseInputs );
 
 				showSuccessMessage( response.data );
 				$submit.attr( 'disabled', false );
@@ -157,8 +177,18 @@ const general = function( $ ) {
 			} );
 	}
 
-	function checkCredentialsChange() {
+	function checkChangeCredentials() {
 		if ( $siteKey.val() === siteKeyInitVal && $secretKey.val() === secretKeyInitVal ) {
+			clearMessage();
+			$submit.attr( 'disabled', false );
+		} else {
+			showErrorMessage( HCaptchaGeneralObject.checkConfigNotice );
+			$submit.attr( 'disabled', true );
+		}
+	}
+
+	function checkChangeEnterpriseSettings() {
+		if ( JSON.stringify( getValues( $enterpriseInputs ) ) === JSON.stringify( enterpriseInitValues ) ) {
 			clearMessage();
 			$submit.attr( 'disabled', false );
 		} else {
@@ -170,17 +200,38 @@ const general = function( $ ) {
 	$( '#check_config' ).on( 'click', function( event ) {
 		event.preventDefault();
 
+		if ( $( '.hcaptcha-general-sample-hcaptcha iframe' ).attr( 'data-hcaptcha-response' ) === '' ) {
+			kaggDialog.confirm( {
+				title: HCaptchaGeneralObject.completeHCaptchaTitle,
+				content: HCaptchaGeneralObject.completeHCaptchaContent,
+				type: 'info',
+				buttons: {
+					ok: {
+						text: HCaptchaGeneralObject.OKBtnText,
+					},
+				},
+				onAction: () => window.hCaptchaReset( document.querySelector( '.hcaptcha-general-sample-hcaptcha' ) ),
+			} );
+
+			return;
+		}
+
 		checkConfig();
 	} );
 
 	$siteKey.on( 'change', function( e ) {
 		const sitekey = $( e.target ).val();
+
 		hCaptchaUpdate( { sitekey } );
-		checkCredentialsChange();
+		checkChangeCredentials();
 	} );
 
 	$secretKey.on( 'change', function() {
-		checkCredentialsChange();
+		checkChangeCredentials();
+	} );
+
+	$enterpriseInputs.on( 'change', function() {
+		checkChangeEnterpriseSettings();
 	} );
 
 	$theme.on( 'change', function( e ) {

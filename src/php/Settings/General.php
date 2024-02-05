@@ -20,6 +20,11 @@ use KAGG\Settings\Abstracts\SettingsBase;
 class General extends PluginSettingsBase {
 
 	/**
+	 * Dialog scripts and style handle.
+	 */
+	const DIALOG_HANDLE = 'kagg-dialog';
+
+	/**
 	 * Admin script handle.
 	 */
 	const HANDLE = 'hcaptcha-general';
@@ -587,9 +592,24 @@ class General extends PluginSettingsBase {
 	 */
 	public function admin_enqueue_scripts() {
 		wp_enqueue_script(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_prefix.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_enqueue_style(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/kagg-dialog$this->min_prefix.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/general$this->min_prefix.js",
-			[ 'jquery' ],
+			[ 'jquery', self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);
@@ -616,13 +636,17 @@ class General extends PluginSettingsBase {
 				'modeTestEnterpriseSafeEndUserSiteKey' => self::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 				'modeTestEnterpriseBotDetectedSiteKey' => self::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 				'checkConfigNotice'                    => $check_config_notice,
+				'checkingConfigMsg'                    => __( 'Checking site config...', 'hcaptcha-for-forms-and-more' ),
+				'completeHCaptchaTitle'                => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+				'completeHCaptchaContent'              => __( 'Before checking the site config, please complete the Active hCaptcha in the current section.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText'                            => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_prefix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
+			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}

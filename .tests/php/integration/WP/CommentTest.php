@@ -52,17 +52,9 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		if ( $active ) {
-			self::assertSame(
-				10,
-				has_filter( 'comment_form_submit_field', [ $subject, 'add_captcha' ] )
-			);
-		}
-
-		self::assertSame(
-			20,
-			has_filter( 'pre_comment_approved', [ $subject, 'verify' ] )
-		);
+		self::assertSame( 10, has_filter( 'comment_form_submit_field', [ $subject, 'add_captcha' ] ) );
+		self::assertSame( - PHP_INT_MAX, has_filter( 'preprocess_comment', [ $subject, 'verify' ] ) );
+		self::assertSame( 20, has_filter( 'pre_comment_approved', [ $subject, 'pre_comment_approved' ] ) );
 	}
 
 	/**
@@ -130,8 +122,95 @@ class CommentTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify().
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify() {
+		$commentdata = [ 'some comment data' ];
+
+		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+
+		$subject = new Comment();
+
+		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );
+		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test verify() in admin.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_in_admin() {
+		$commentdata = [ 'some comment data' ];
+
+		set_current_screen( 'edit-post' );
+
+		$subject = new Comment();
+
+		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test verify() not verified.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_not_verified() {
+		$commentdata = [ 'some comment data' ];
+		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
+
+		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
+
+		$subject = new Comment();
+
+		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $expected, $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test pre_comment_approved().
+	 *
+	 * @return void
+	 */
+	public function test_pre_comment_approved() {
+		$approved    = 1;
+		$commentdata = [ 'some comment data' ];
+
+		$subject = new Comment();
+
+		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $commentdata ) );
+	}
+
+	/**
+	 * Test pre_comment_approved() when not verified.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_pre_comment_approved_when_not_verified() {
+		$approved      = 1;
+		$commentdata   = [ 'some comment data' ];
+		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
+		$expected      = new WP_Error();
+
+		$expected->add( 'invalid_hcaptcha', $error_message, 400 );
+
+		$subject = new Comment();
+
+		$this->set_protected_property( $subject, 'result', $error_message );
+
+		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $commentdata ) );
+	}
+
+	/**
+	 * Test verify().
+	 */
+	public function est_verify() {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 
@@ -139,13 +218,13 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $approved, $subject->verify( $approved, $commentdata ) );
+		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $commentdata ) );
 	}
 
 	/**
 	 * Test verify() not verified in admin.
 	 */
-	public function test_verify_not_verified_in_admin() {
+	public function est_verify_not_verified_in_admin() {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 
@@ -153,26 +232,26 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $approved, $subject->verify( $approved, $commentdata ) );
+		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $commentdata ) );
 	}
 
 	/**
 	 * Test verify() do not need to verify, not in admin.
 	 */
-	public function test_verify_do_not_need_to_verify_not_admin() {
+	public function est_verify_do_not_need_to_verify_not_admin() {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 		$expected    = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> Please complete the hCaptcha.', 400 );
 
 		$subject = new Comment();
 
-		self::assertEquals( $expected, $subject->verify( $approved, $commentdata ) );
+		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $commentdata ) );
 	}
 
 	/**
 	 * Test verify() not verified, not in admin.
 	 */
-	public function test_verify_not_verified_not_admin() {
+	public function est_verify_not_verified_not_admin() {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 		$expected    = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> The hCaptcha is invalid.', 400 );
@@ -181,6 +260,6 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertEquals( $expected, $subject->verify( $approved, $commentdata ) );
+		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $commentdata ) );
 	}
 }

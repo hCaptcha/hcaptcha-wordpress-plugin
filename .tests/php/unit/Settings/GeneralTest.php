@@ -337,9 +337,19 @@ class GeneralTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
+				General::DIALOG_HANDLE,
+				$plugin_url . "/assets/js/kagg-dialog$min_prefix.js",
+				[],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
 				General::HANDLE,
 				$plugin_url . "/assets/js/general$min_prefix.js",
-				[ 'jquery' ],
+				[ 'jquery', General::DIALOG_HANDLE ],
 				$plugin_version,
 				true
 			)
@@ -379,7 +389,20 @@ class GeneralTest extends HCaptchaTestCase {
 					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 					'checkConfigNotice'                    => $check_config_notice,
+					'checkingConfigMsg'                    => 'Checking site config...',
+					'completeHCaptchaTitle'                => 'Please complete the hCaptcha.',
+					'completeHCaptchaContent'              => 'Before checking the site config, please complete the Active hCaptcha in the current section.',
+					'OKBtnText'                            => 'OK',
 				]
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				General::DIALOG_HANDLE,
+				$plugin_url . "/assets/css/kagg-dialog$min_prefix.css",
+				[],
+				$plugin_version
 			)
 			->once();
 
@@ -387,7 +410,7 @@ class GeneralTest extends HCaptchaTestCase {
 			->with(
 				General::HANDLE,
 				$plugin_url . "/assets/css/general$min_prefix.css",
-				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
+				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, General::DIALOG_HANDLE ],
 				$plugin_version
 			)
 			->once();

@@ -51,7 +51,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	protected function init_hooks() {
 		$this->mode_auto  = hcaptcha()->settings()->is( 'wpforms_status', 'form' );
 		$this->mode_embed =
 			hcaptcha()->settings()->is( 'wpforms_status', 'embed' ) &&
@@ -258,7 +258,9 @@ HTML;
 		$captcha = wpforms()->get( 'captcha' );
 
 		if ( ! $captcha ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		remove_action( 'wpforms_wp_footer', [ $captcha, 'assets_recaptcha' ] );
@@ -287,7 +289,9 @@ HTML;
 			$captcha = wpforms()->get( 'captcha' );
 
 			if ( ! $captcha ) {
+				// @codeCoverageIgnoreStart
 				return;
+				// @codeCoverageIgnoreEnd
 			}
 
 			// Block native WPForms hCaptcha output.
@@ -315,7 +319,9 @@ HTML;
 		$frontend_obj = wpforms()->get( 'frontend' );
 
 		if ( ! $frontend_obj ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$args = [
@@ -402,7 +408,7 @@ HTML;
 	 *
 	 * @return bool
 	 */
-	private function process_hcaptcha( array $form_data ): bool {
+	protected function process_hcaptcha( array $form_data ): bool {
 		return (
 			$this->mode_auto ||
 			( $this->mode_embed && $this->form_has_hcaptcha( $form_data ) )

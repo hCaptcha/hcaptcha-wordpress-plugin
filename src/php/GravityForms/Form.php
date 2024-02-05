@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\GravityForms;
 
 use GFFormsModel;
@@ -24,7 +27,7 @@ class Form extends Base {
 	 *
 	 * @var string|null
 	 */
-	private $error_message;
+	protected $error_message;
 
 	/**
 	 * Whether hCaptcha should be auto-added to any form.
@@ -191,9 +194,11 @@ class Form extends Base {
 	.gform_previous_button + .h-captcha {
 		margin-top: 2rem;
 	}
+
 	.gform_footer.before .h-captcha[data-size="normal"] {
 		margin-bottom: 3px;
 	}
+
 	.gform_footer.before .h-captcha[data-size="compact"] {
 		margin-bottom: 0;
 	}

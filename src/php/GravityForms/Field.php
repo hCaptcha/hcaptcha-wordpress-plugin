@@ -62,8 +62,10 @@ class Field extends GF_Field {
 
 		try {
 			GF_Fields::register( $this );
+			// @codeCoverageIgnoreStart
 		} catch ( Exception $e ) {
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$this->init_hooks();
@@ -142,11 +144,11 @@ class Field extends GF_Field {
 	 * @return array
 	 */
 	public function get_form_editor_field_settings(): array {
-		return array(
+		return [
 			'label_placement_setting',
 			'description_setting',
 			'css_class_setting',
-		);
+		];
 	}
 
 	/**
@@ -247,7 +249,9 @@ class Field extends GF_Field {
 	 */
 	public function print_hcaptcha_scripts( $status ): bool {
 		if ( ! function_exists( 'get_current_screen' ) ) {
+			// @codeCoverageIgnoreStart
 			return $status;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$screen    = get_current_screen();

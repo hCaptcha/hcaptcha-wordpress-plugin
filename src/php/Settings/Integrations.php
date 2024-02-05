@@ -56,6 +56,13 @@ class Integrations extends PluginSettingsBase {
 	protected $dialog;
 
 	/**
+	 * Entity name to activate/deactivate. Can be 'plugin' or 'theme'.
+	 *
+	 * @var string
+	 */
+	private $entity = '';
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -147,6 +154,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'beaver_builder_status'            => [
 				'label'   => 'Beaver Builder',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
@@ -155,6 +163,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'brizy_status'                     => [
 				'label'   => 'Brizy',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -162,6 +171,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'bp_status'                        => [
 				'label'   => 'BuddyPress',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'create_group' => __( 'Create Group Form', 'hcaptcha-for-forms-and-more' ),
@@ -189,6 +199,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'cf7_status'                       => [
 				'label'   => 'Contact Form 7',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -214,6 +225,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'easy_digital_downloads_status'    => [
 				'label'   => 'Easy Digital Downloads',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout'  => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
@@ -224,6 +236,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'elementor_pro_status'             => [
 				'label'   => 'Elementor Pro',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -238,6 +251,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'formidable_forms_status'          => [
 				'label'   => 'Formidable Forms',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -252,6 +266,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'give_wp_status'                   => [
 				'label'   => 'GiveWP',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -259,6 +274,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'gravity_status'                   => [
 				'label'   => 'Gravity Forms',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
@@ -274,6 +290,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'jetpack_status'                   => [
 				'label'   => 'Jetpack',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
@@ -281,6 +298,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'kadence_status'                   => [
 				'label'   => 'Kadence',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form'          => __( 'Kadence Form', 'hcaptcha-for-forms-and-more' ),
@@ -289,6 +307,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'learn_dash_status'                => [
 				'label'   => 'LearnDash LMS',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
@@ -298,6 +317,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'mailchimp_status'                 => [
 				'label'   => 'Mailchimp for WP',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -305,6 +325,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'mailpoet_status'                  => [
 				'label'   => 'MailPoet',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -312,6 +333,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'memberpress_status'               => [
 				'label'   => 'MemberPress',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
@@ -334,6 +356,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'paid_memberships_pro_status'      => [
 				'label'   => 'Paid Memberships Pro',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
@@ -365,6 +388,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'sendinblue_status'                => [
 				'label'   => 'Brevo',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -379,6 +403,14 @@ class Integrations extends PluginSettingsBase {
 			],
 			'simple_download_monitor_status'   => [
 				'label'   => 'Simple Download Monitor',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'spectra_status'                   => [
+				'label'   => 'Spectra',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -445,6 +477,7 @@ class Integrations extends PluginSettingsBase {
 			],
 			'wordfence_status'                 => [
 				'label'   => 'Wordfence',
+				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
 					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
@@ -494,14 +527,15 @@ class Integrations extends PluginSettingsBase {
 	 */
 	private function logo( array $form_field ): string {
 		$label     = $form_field['label'];
-		$logo_file = sanitize_file_name( strtolower( $label ) . '-logo.png' );
+		$logo_type = $form_field['logo'] ?? 'png';
+		$logo_file = sanitize_file_name( strtolower( $label ) . '.' . $logo_type );
 		$entity    = $form_field['entity'] ?? 'plugin';
 
 		return sprintf(
 			'<div class="hcaptcha-integrations-logo">' .
 			'<img src="%1$s" alt="%2$s Logo" data-label="%2$s" data-entity="%3$s">' .
 			'</div>',
-			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/$logo_file" ),
+			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/logo/$logo_file" ),
 			$label,
 			$entity
 		);
@@ -664,18 +698,6 @@ class Integrations extends PluginSettingsBase {
 			true
 		);
 
-		$themes = array_map(
-			static function ( $theme ) {
-				return $theme->get( 'Name' );
-			},
-			wp_get_themes()
-		);
-
-		unset( $themes[ wp_get_theme()->get_stylesheet() ] );
-
-		$core_default_theme_obj = WP_Theme::get_core_default_theme();
-		$default_theme          = $core_default_theme_obj ? $core_default_theme_obj->get_stylesheet() : '';
-
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
@@ -696,8 +718,8 @@ class Integrations extends PluginSettingsBase {
 				'unexpectedErrorMsg' => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
 				'OKBtnText'          => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 				'CancelBtnText'      => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
-				'themes'             => $themes,
-				'defaultTheme'       => $default_theme,
+				'themes'             => $this->get_themes(),
+				'defaultTheme'       => $this->get_default_theme(),
 			]
 		);
 
@@ -710,7 +732,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Ajax action to activate/deactivate plugin.
+	 * Ajax action to activate/deactivate plugin/theme.
 	 *
 	 * @return void
 	 */
@@ -725,29 +747,32 @@ class Integrations extends PluginSettingsBase {
 			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$activate       = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
-		$entity         = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$new_theme_name = filter_input( INPUT_POST, 'newThemeName', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status         = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status         = str_replace( '-', '_', $status );
-		$entity_name    = $this->form_fields[ $status ]['label'];
-		$entities       = [];
-
-		foreach ( hcaptcha()->modules as $module ) {
-			if ( $module[0][0] === $status ) {
-				$entities[] = (array) $module[1];
-			}
-		}
-
-		$entities = array_merge( [], ...$entities );
+		$activate     = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
+		$this->entity = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$new_theme    = filter_input( INPUT_POST, 'newTheme', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status       = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status       = str_replace( '-', '_', $status );
+		$entity_name  = $this->form_fields[ $status ]['label'];
 
 		header_remove( 'Location' );
 		http_response_code( 200 );
 
-		if ( 'plugin' === $entity ) {
+		if ( 'plugin' === $this->entity ) {
+			$entities = [];
+
+			foreach ( hcaptcha()->modules as $module ) {
+				if ( $module[0][0] === $status ) {
+					$entities[] = (array) $module[1];
+				}
+			}
+
+			$entities = array_unique( array_merge( [], ...$entities ) );
+
 			$this->process_plugins( $activate, $entities, $entity_name );
 		} else {
-			$this->process_themes( $activate, $entities, $entity_name, $new_theme_name );
+			$theme = $activate ? $entity_name : $new_theme;
+
+			$this->process_theme( $theme );
 		}
 	}
 
@@ -769,7 +794,7 @@ class Integrations extends PluginSettingsBase {
 					$plugin_name
 				);
 
-				wp_send_json_error( esc_html( $message ) );
+				$this->send_json_error( esc_html( $message ) );
 			}
 
 			$message = sprintf(
@@ -778,7 +803,7 @@ class Integrations extends PluginSettingsBase {
 				$plugin_name
 			);
 
-			wp_send_json_success( esc_html( $message ) );
+			$this->send_json_success( esc_html( $message ) );
 		}
 
 		deactivate_plugins( $plugins );
@@ -789,54 +814,34 @@ class Integrations extends PluginSettingsBase {
 			$plugin_name
 		);
 
-		wp_send_json_success( esc_html( $message ) );
+		$this->send_json_success( esc_html( $message ) );
 	}
 
 	/**
-	 * Activate/deactivate themes.
+	 * Activate a theme.
 	 *
-	 * @param bool   $activate       Activate or deactivate.
-	 * @param array  $themes         Themes to process.
-	 * @param string $theme_name     Main theme name to process.
-	 * @param string $new_theme_name New theme name to activate.
+	 * @param string $theme Theme name to process.
 	 *
 	 * @return void
 	 */
-	private function process_themes( bool $activate, array $themes, string $theme_name, string $new_theme_name ) {
-		if ( $activate ) {
-			if ( ! $this->activate_themes( $themes ) ) {
-				$message = sprintf(
-				/* translators: 1: Theme name. */
-					__( 'Error activating %s theme.', 'hcaptcha-for-forms-and-more' ),
-					$theme_name
-				);
-
-				wp_send_json_error( esc_html( $message ) );
-			}
-
+	private function process_theme( string $theme ) {
+		if ( ! $this->activate_theme( $theme ) ) {
 			$message = sprintf(
 			/* translators: 1: Theme name. */
-				__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
-				$theme_name
+				__( 'Error activating %s theme.', 'hcaptcha-for-forms-and-more' ),
+				$theme
 			);
 
-			wp_send_json_success( esc_html( $message ) );
+			$this->send_json_error( esc_html( $message ) );
 		}
 
-		ob_start();
-
-		switch_theme( $new_theme_name );
-
-		ob_end_clean();
-
 		$message = sprintf(
-		/* translators: 1: Activated theme name. 2: Deactivated theme name. */
-			__( '%1$s theme is activated. %2$s theme is deactivated.', 'hcaptcha-for-forms-and-more' ),
-			wp_get_theme( $new_theme_name )->get( 'Name' ),
-			$theme_name
+		/* translators: 1: Theme name. */
+			__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
+			$theme
 		);
 
-		wp_send_json_success( esc_html( $message ) );
+		$this->send_json_success( esc_html( $message ) );
 	}
 
 	/**
@@ -867,18 +872,13 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Activate themes.
+	 * Activate theme.
 	 *
-	 * We activate the first available theme in the list only,
-	 * assuming that parent theme is placed earlier in the list.
-	 *
-	 * @param array $themes Themes to activate.
+	 * @param string $theme Theme to activate.
 	 *
 	 * @return bool
 	 */
-	private function activate_themes( array $themes ): bool {
-		$theme = $themes[0];
-
+	private function activate_theme( string $theme ): bool {
 		if ( ! wp_get_theme( $theme )->exists() ) {
 			return false;
 		}
@@ -889,7 +889,77 @@ class Integrations extends PluginSettingsBase {
 
 		ob_end_clean();
 
-		// Activate the first available theme only.
 		return true;
+	}
+
+	/**
+	 * Send json success.
+	 *
+	 * @param string $message Message.
+	 *
+	 * @return void
+	 */
+	private function send_json_success( string $message ) {
+		wp_send_json_success( $this->json_data( $message ) );
+	}
+
+	/**
+	 * Send json error.
+	 *
+	 * @param string $message Message.
+	 *
+	 * @return void
+	 */
+	private function send_json_error( string $message ) {
+		wp_send_json_error( $this->json_data( $message ) );
+	}
+
+	/**
+	 * Prepare json data.
+	 *
+	 * @param string $message Message.
+	 *
+	 * @return array
+	 */
+	private function json_data( string $message ): array {
+		$data = [ 'message' => esc_html( $message ) ];
+
+		if ( 'theme' === $this->entity ) {
+			$data['themes']       = $this->get_themes();
+			$data['defaultTheme'] = $this->get_default_theme();
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get themes to switch (all themes, excluding the active one).
+	 *
+	 * @return array
+	 */
+	public function get_themes(): array {
+		$themes = array_map(
+			static function ( $theme ) {
+				return $theme->get( 'Name' );
+			},
+			wp_get_themes()
+		);
+
+		unset( $themes[ wp_get_theme()->get_stylesheet() ] );
+
+		asort( $themes );
+
+		return $themes;
+	}
+
+	/**
+	 * Get default theme.
+	 *
+	 * @return string
+	 */
+	public function get_default_theme(): string {
+		$core_default_theme_obj = WP_Theme::get_core_default_theme();
+
+		return $core_default_theme_obj ? $core_default_theme_obj->get_stylesheet() : '';
 	}
 }

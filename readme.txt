@@ -1,14 +1,14 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, recaptcha, spam, abuse
+Tags: captcha, hcaptcha, spam, abuse, antispam, anti-spam, protect form, contact form 7, elementor, jetpack, woocommerce, wpforms
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0.0
-Stable tag: 3.8.1
+Stable tag: 3.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Enables hCaptcha.com integration with WordPress.
+Enables hCaptcha integration with WordPress and popular plugins.
 
 == Description ==
 
@@ -132,7 +132,7 @@ Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"
 
 and insert this shortcode into your form.
 
-Auto-verification works with forms sent by POST on frontend only. Also, it works only with forms in the post content, but we have plans to extend the functionality.
+Auto-verification works with forms sent by POST on frontend only. It works with forms in the post content and in widgets.
 
 = How to block hCaptcha on a specific page? =
 
@@ -416,6 +416,10 @@ Please see our [website](https://hcaptcha.com/).
 
 hCaptcha is designed to comply with privacy laws in every country, including GDPR, LGPD, CCPA, and more.
 
+For example, hCaptcha has been certified under ISO 27001 and 27701 and is enrolled in the EU-US, UK-US, and Swiss-US Data Privacy Framework for GDPR compliance.
+
+Details are available at [www.hcaptcha.com/certifications](https://www.hcaptcha.com/certifications) and [www.hcaptcha.com/gdpr](https://www.hcaptcha.com/gdpr).
+
 With the default configuration, this plugin does not:
 
 * track users by stealth;
@@ -493,6 +497,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Sendinblue Form
 * Simple Download Monitor Form
 * Simple Basic Contact Form
+* Spectra - WordPress Gutenberg Blocks Form
 * Subscriber Form
 * Support Candy New Ticket Form
 * Theme My Login Login Form
@@ -539,6 +544,17 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.9.0 =
+* Added Spectra - WordPress Gutenberg Blocks integration.
+* Added Akismet integration.
+* Added test of hCaptcha completion before checking the site config.
+* Added site config check upon changing Enterprise params.
+* Added auto verify feature for forms in widgets.
+* Fixed site config check upon changing site and secret keys.
+* Fixed list of themes after activation on the Integrations page.
+* Fixed jumping WooCommerce checkout page to hCaptcha on a page load.
+* Fixed missing hCaptcha on the Divi Comment Form.
 
 = 3.8.1 =
 * Fixed activation and deactivation of plugin and themes on the Integrations page.

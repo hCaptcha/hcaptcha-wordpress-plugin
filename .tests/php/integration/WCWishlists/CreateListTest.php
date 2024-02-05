@@ -54,7 +54,7 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 	 * Test verify().
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection*/
-	public function verify() {
+	public function test_verify() {
 		$valid_captcha = 'some captcha';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );

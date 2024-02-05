@@ -594,9 +594,11 @@ CSS;
 	 * @return void
 	 */
 	public function declare_wc_compatibility() {
+		// @codeCoverageIgnoreStart
 		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', constant( 'HCAPTCHA_FILE' ), true );
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -985,6 +987,11 @@ CSS;
 				[ 'simple_download_monitor_status', 'form' ],
 				'simple-download-monitor/main.php',
 				SimpleDownloadMonitor\Form::class,
+			],
+			'Spectra'                              => [
+				[ 'spectra_status', 'form' ],
+				'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php',
+				Spectra\Form::class,
 			],
 			'Subscriber'                           => [
 				[ 'subscriber_status', 'form' ],

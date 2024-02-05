@@ -31,7 +31,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 		FunctionMocker::setUp();
 		parent::setUp();
 
-		hcaptcha()->has_result  = false;
+		hcaptcha()->has_result = false;
+		hcaptcha()->form_shown = false;
+
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 	}
 
@@ -43,6 +45,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 
 		delete_option( 'hcaptcha_settings' );
+		hcaptcha()->init_hooks();
 
 		Mockery::close();
 		parent::tearDown();
@@ -198,7 +201,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @param bool|null $result            Desired result.
 	 *
 	 * @noinspection PhpMissingParamTypeInspection*/
-	protected function prepare_hcaptcha_verify_POST( string $nonce_field_name, string $nonce_action_name, $result = true ) {
+	protected function prepare_hcaptcha_verify_post( string $nonce_field_name, string $nonce_action_name, $result = true ) {
 		if ( null === $result ) {
 			return;
 		}
@@ -221,7 +224,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	protected function prepare_hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name, $result = true ) {
-		$this->prepare_hcaptcha_verify_POST( $nonce_field_name, $nonce_action_name, $result );
+		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, $result );
 	}
 
 	/**
