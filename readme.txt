@@ -8,7 +8,7 @@ Stable tag: 3.9.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Enables hCaptcha integration with WordPress and popular plugins. hCaptcha is certified under EU-US, UK-US, and Swiss-US DPF for GDPR compliance.
+Enables hCaptcha integration with WordPress and popular plugins.
 
 == Description ==
 
@@ -415,6 +415,10 @@ Please see our [website](https://hcaptcha.com/).
 == Privacy Notices ==
 
 hCaptcha is designed to comply with privacy laws in every country, including GDPR, LGPD, CCPA, and more.
+
+For example, hCaptcha has been certified under ISO 27001 and 27701 and is enrolled in the EU-US, UK-US, and Swiss-US Data Privacy Framework for GDPR compliance.
+
+Details are available at [www.hcaptcha.com/certifications](https://www.hcaptcha.com/certifications) and [www.hcaptcha.com/gdpr](https://www.hcaptcha.com/gdpr).
 
 With the default configuration, this plugin does not:
 
