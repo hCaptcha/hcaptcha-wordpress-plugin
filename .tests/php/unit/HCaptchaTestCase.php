@@ -950,6 +950,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'register'  => 'Register Form',
 						],
 				],
+			'login_signup_popup_status'        =>
+				[
+					'label'   => 'Login Signup Popup',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login' => 'Login Form',
+						],
+				],
 			'mailchimp_status'                 =>
 				[
 					'label'   => 'Mailchimp for WP',

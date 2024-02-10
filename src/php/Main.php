@@ -908,6 +908,11 @@ CSS;
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Register::class,
 			],
+			'Login/Signup Popup Login Form'        => [
+				[ 'login_signup_popup_status', 'login' ],
+				'easy-login-woocommerce/xoo-el-main.php',
+				LoginSignupPopup\Login::class,
+			],
 			'MailChimp'                            => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',

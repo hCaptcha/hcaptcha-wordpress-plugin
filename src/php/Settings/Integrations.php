@@ -315,6 +315,13 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'login_signup_popup_status'        => [
+				'label'   => 'Login Signup Popup',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'mailchimp_status'                 => [
 				'label'   => 'Mailchimp for WP',
 				'logo'    => 'svg',
