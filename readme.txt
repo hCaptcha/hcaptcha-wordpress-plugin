@@ -545,6 +545,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.10.0 =
+* Improved translation on Settings pages.
+
 = 3.9.0 =
 * Added Spectra - WordPress Gutenberg Blocks integration.
 * Added Akismet integration.

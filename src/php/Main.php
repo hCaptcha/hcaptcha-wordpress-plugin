@@ -1188,6 +1188,7 @@ CSS;
 	 * @return void
 	 */
 	public function load_textdomain() {
+		load_default_textdomain();
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',
 			false,
