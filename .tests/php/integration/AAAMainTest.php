@@ -1588,9 +1588,12 @@ JS;
 		$subject = new Main();
 		$subject->init_hooks();
 
-		$domain = 'hcaptcha-for-forms-and-more';
 		$locale = 'en_US';
 
+		$default_domain = 'default';
+		$default_mofile = WP_LANG_DIR . "/$locale.mo";
+
+		$domain = 'hcaptcha-for-forms-and-more';
 		$mofile =
 			WP_PLUGIN_DIR . '/' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/' .
 			$domain . '-' . $locale . '.mo';
@@ -1600,19 +1603,22 @@ JS;
 		add_filter(
 			'override_load_textdomain',
 			static function ( $override, $domain, $mofile ) use ( &$override_filter_params ) {
-				$override_filter_params = [ $override, $domain, $mofile ];
+				$override_filter_params[] = [ $override, $domain, $mofile ];
 
 				return $override;
 			},
-			10,
+			- PHP_INT_MAX,
 			3
 		);
 
 		$subject->load_textdomain();
 
-		self::assertFalse( $override_filter_params[0] );
-		self::assertSame( $domain, $override_filter_params[1] );
-		self::assertSame( $mofile, $override_filter_params[2] );
+		self::assertFalse( $override_filter_params[0][0] );
+		self::assertSame( $default_domain, $override_filter_params[0][1] );
+		self::assertSame( $default_mofile, $override_filter_params[0][2] );
+		self::assertFalse( $override_filter_params[1][0] );
+		self::assertSame( $domain, $override_filter_params[1][1] );
+		self::assertSame( basename( $mofile ), basename( $override_filter_params[1][2] ) );
 	}
 
 	/**
