@@ -41,12 +41,7 @@ class Form {
 	protected function init_hooks() {
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'render_block_data', [ $this, 'render_block_data' ], 10, 3 );
-
-//		add_action( 'xoo_el_form_start', [ $this, 'form_start' ], 10, 2 );
-//		add_action( 'xoo_el_form_end', [ $this, 'add_login_signup_popup_hcaptcha' ], 10, 2 );
-//		add_filter( 'xoo_el_process_login_errors', [ $this, 'verify' ], 10, 2 );
-//		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
-//		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
@@ -174,40 +169,6 @@ class Form {
 		];
 	}
 
-
-
-	/**
-	 * Verify form.
-	 *
-	 * @param WP_Error|mixed $error       Error.
-	 * @param array          $credentials Credentials.
-	 *
-	 * @return WP_Error
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-//	public function verify( $error, array $credentials ): WP_Error {
-//		if ( ! is_wp_error( $error ) ) {
-//			$error = new WP_Error();
-//		}
-//
-//		if ( ! $this->is_login_limit_exceeded() ) {
-//			return $error;
-//		}
-//
-//		$error_message = hcaptcha_verify_post(
-//			self::NONCE,
-//			self::ACTION
-//		);
-//
-//		if ( null === $error_message ) {
-//			return $error;
-//		}
-//
-//		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-//
-//		return new WP_Error( $code, $error_message, 400 );
-//	}
-
 	/**
 	 * Print inline styles.
 	 *
@@ -216,28 +177,11 @@ class Form {
 	 */
 	public function print_inline_styles() {
 		$css = <<<CSS
-	.xoo-el-form-container div[data-section="login"] .h-captcha {
+	.wp-block-coblocks-form .h-captcha {
 		margin-bottom: 25px;
 	}
 CSS;
 
 		HCaptcha::css_display( $css );
-	}
-
-	/**
-	 * Enqueue scripts.
-	 *
-	 * @return void
-	 */
-	public function enqueue_scripts() {
-		$min = hcap_min_suffix();
-
-		wp_enqueue_script(
-			'hcaptcha-login-signup-popup',
-			HCAPTCHA_URL . "/assets/js/hcaptcha-login-signup-popup$min.js",
-			[ 'jquery' ],
-			HCAPTCHA_VERSION,
-			true
-		);
 	}
 }
