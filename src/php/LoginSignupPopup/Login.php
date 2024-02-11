@@ -31,6 +31,7 @@ class Login extends LoginBase {
 		add_action( 'xoo_el_form_end', [ $this, 'add_login_signup_popup_hcaptcha' ], 10, 2 );
 		add_filter( 'xoo_el_process_login_errors', [ $this, 'verify' ], 10, 2 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
@@ -123,5 +124,22 @@ class Login extends LoginBase {
 CSS;
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts() {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			'hcaptcha-login-signup-popup',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-login-signup-popup$min.js",
+			[ 'jquery' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 }
