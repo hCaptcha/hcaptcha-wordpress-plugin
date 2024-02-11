@@ -112,16 +112,31 @@ class Form {
 			return $parsed_block;
 		}
 
+		// We cannot add filters right here.
+		// In this case, the calculation of form hash in the coblocks_render_coblocks_form_block() will fail.
+		add_action( 'coblocks_before_form_submit', [ $this, 'before_form_submit' ], 10, 2 );
+
+		$filters_added = true;
+
+		return $parsed_block;
+	}
+
+	/**
+	 * Before form submitting action.
+	 *
+	 * @param array $post User submitted form data.
+	 * @param array $atts Form block attributes.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function before_form_submit( array $post, array $atts ) {
 		add_filter( 'pre_option_coblocks_google_recaptcha_site_key', '__return_true' );
 		add_filter( 'pre_option_coblocks_google_recaptcha_secret_key', '__return_true' );
 
 		$_POST['g-recaptcha-token'] = self::HCAPTCHA_DUMMY_TOKEN;
 
 		add_filter( 'pre_http_request', [ $this, 'verify' ], 10, 3 );
-
-		$filters_added = true;
-
-		return $parsed_block;
 	}
 
 	/**
