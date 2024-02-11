@@ -913,6 +913,11 @@ CSS;
 				'easy-login-woocommerce/xoo-el-main.php',
 				LoginSignupPopup\Login::class,
 			],
+			'Login/Signup Popup Register Form'     => [
+				[ 'login_signup_popup_status', 'register' ],
+				'easy-login-woocommerce/xoo-el-main.php',
+				LoginSignupPopup\Register::class,
+			],
 			'MailChimp'                            => [
 				[ 'mailchimp_status', 'form' ],
 				'mailchimp-for-wp/mailchimp-for-wp.php',

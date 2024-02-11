@@ -1,35 +1,50 @@
-<?php
+<?php /** @noinspection PhpUnusedParameterInspection */
+
 /**
- * Login class file.
+ * Register class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\LoginSignupPopup;
 
-use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
- * Class Login.
+ * Class Register
  */
-class Login extends LoginBase {
+class Register {
 
 	/**
 	 * Form ID.
 	 */
-	const FORM_ID = 'login';
+	const FORM_ID = 'register';
+
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_login_signup_popup_register';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_login_signup_popup_register_nonce';
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		$this->init_hooks();
+	}
 
 	/**
 	 * Init hooks.
 	 */
-	protected function init_hooks() {
-		parent::init_hooks();
-
+	private function init_hooks() {
 		add_action( 'xoo_el_form_start', [ $this, 'form_start' ], 10, 2 );
 		add_action( 'xoo_el_form_end', [ $this, 'add_login_signup_popup_hcaptcha' ], 10, 2 );
-		add_filter( 'xoo_el_process_login_errors', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'xoo_el_process_registration_errors', [ $this, 'verify' ], 10, 4 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
@@ -40,7 +55,6 @@ class Login extends LoginBase {
 	 * @param array  $args Arguments.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function form_start( string $form, array $args ) {
 		if ( self::FORM_ID !== $form ) {
@@ -64,9 +78,16 @@ class Login extends LoginBase {
 			return;
 		}
 
-		ob_start();
-		$this->add_captcha();
-		$hcaptcha = ob_get_clean();
+		$hcaptcha_args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => self::FORM_ID,
+			],
+		];
+
+		$hcaptcha = HCaptcha::form( $hcaptcha_args );
 
 		$form = ob_get_clean();
 
@@ -80,19 +101,17 @@ class Login extends LoginBase {
 	/**
 	 * Verify form.
 	 *
-	 * @param WP_Error|mixed $error       Error.
-	 * @param array          $credentials Credentials.
+	 * @param WP_Error|mixed $error    Error.
+	 * @param string         $username Username.
+	 * @param string         $password Password.
+	 * @param string         $email    Email.
 	 *
 	 * @return WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $error, array $credentials ): WP_Error {
+	public function verify( $error, string $username, string $password, string $email ): WP_Error {
 		if ( ! is_wp_error( $error ) ) {
 			$error = new WP_Error();
-		}
-
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $error;
 		}
 
 		$error_message = hcaptcha_verify_post(
@@ -117,7 +136,7 @@ class Login extends LoginBase {
 	 */
 	public function print_inline_styles() {
 		$css = <<<CSS
-	.xoo-el-form-container div[data-section="login"] .h-captcha {
+	.xoo-el-form-container div[data-section="register"] .h-captcha {
 		margin-bottom: 25px;
 	}
 CSS;
