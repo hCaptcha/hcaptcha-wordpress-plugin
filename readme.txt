@@ -231,6 +231,10 @@ LearnDash
 $source: 'sfwd-lms/sfwd_lms.php'
 $form_id: 'login', 'lost_password' or 'register'
 
+Login/Signup Popup
+$source: 'easy-login-woocommerce/xoo-el-main.php'
+$form_id: 'login', or 'register'
+
 MemberPress
 $source: 'memberpress/memberpress.php'
 $form_id: 'login' or 'register'
@@ -481,6 +485,8 @@ For more details, please see the hCaptcha privacy policy at:
 * LearnDash Login Form
 * LearnDash Lost Password Form
 * LearnDash Register Form
+* Login/Signup Popup Login Form
+* Login/Signup Popup Register Form
 * Mailchimp for WP Form
 * MailPoet Form
 * MemberPress Login Form
@@ -546,6 +552,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.10.0 =
+* Added Login/Signup Popup integration.
 * Improved translation on Settings pages.
 
 = 3.9.0 =
