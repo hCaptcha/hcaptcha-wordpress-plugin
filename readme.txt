@@ -1,7 +1,7 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, spam, abuse, antispam, anti-spam, protect form, contact form 7, elementor, jetpack, woocommerce, wpforms
-Requires at least: 5.0
+Requires at least: 5.1
 Tested up to: 6.4
 Requires PHP: 7.0.0
 Stable tag: 3.9.0
@@ -461,6 +461,10 @@ For more details, please see the hCaptcha privacy policy at:
 * Classified Listing Login Form
 * Classified Listing Lost Password Form
 * Classified Listing Register Form
+* CoBlocks Form
+* Colorlib Customizer Login Form
+* Colorlib Customizer Lost Password Form
+* Colorlib Customizer Register Form
 * Contact Form 7
 * Divi Comment Form
 * Divi Contact Form
@@ -552,7 +556,9 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.10.0 =
+* The minimum required WordPress version is now 5.1.
 * Added Login/Signup Popup integration.
+* Added CoBlocks integration.
 * Improved translation on Settings pages.
 
 = 3.9.0 =

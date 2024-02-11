@@ -19,7 +19,8 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test HCaptcha class.
  *
- * @group hcaptcha
+ * @group helpers
+ * @group helpers-hcaptcha
  */
 class HCaptchaTest extends HCaptchaWPTestCase {
 
@@ -207,5 +208,43 @@ JS;
 		ob_start();
 		HCaptcha::js_display( $js, false );
 		self::assertSame( $js . "\n", ob_get_clean() );
+	}
+
+	/**
+	 * Test get_hcap_locale().
+	 *
+	 * @param string $locale   Locale.
+	 * @param string $expected Expected value.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_hcap_locale
+	 */
+	public function test_get_hcap_locale( string $locale, string $expected ) {
+		add_filter(
+			'locale',
+			static function () use ( $locale ) {
+				return $locale;
+			}
+		);
+
+		self::assertSame( $expected, HCaptcha::get_hcap_locale() );
+	}
+
+	/**
+	 * Data provider for test_get_hcap_locale().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_hcap_locale(): array {
+		return [
+			[ 'en', 'en' ],
+			[ 'en_US', 'en' ],
+			[ 'en_UK', 'en' ],
+			[ 'zh_CN', 'zh-CN' ],
+			[ 'zh_SG', 'zh' ],
+			[ 'bal', 'ca' ],
+			[ 'hau', 'ha' ],
+			[ 'some', '' ],
+		];
 	}
 }

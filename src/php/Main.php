@@ -778,6 +778,11 @@ CSS;
 				'classified-listing/classified-listing.php',
 				ClassifiedListing\Register::class,
 			],
+			'CoBlocks Form'                        => [
+				[ 'coblocks_status', 'form' ],
+				'coblocks/class-coblocks.php',
+				CoBlocks\Form::class,
+			],
 			'Colorlib Customizer Login'            => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',

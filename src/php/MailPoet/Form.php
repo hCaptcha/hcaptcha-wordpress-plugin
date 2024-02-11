@@ -55,7 +55,6 @@ class Form {
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
-
 	/**
 	 * Add hcaptcha to MailPoet form.
 	 *
@@ -68,7 +67,7 @@ class Form {
 	 */
 	public function add_captcha( $block_content, array $block, WP_Block $instance ): string {
 		if ( 'mailpoet/subscription-form-block' !== $block['blockName'] ) {
-			return $block_content;
+			return (string) $block_content;
 		}
 
 		$form_id = $block['attrs']['formId'] ?? 0;

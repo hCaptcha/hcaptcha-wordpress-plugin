@@ -388,7 +388,6 @@ class HCaptcha {
 	 * @return string
 	 */
 	public static function get_hcap_locale(): string {
-		$wp_locale = get_locale();
 
 		// To get all WP locales, use the following statement on the https://translate.wordpress.org/ page
 		// and remove all double quotes.
@@ -720,6 +719,8 @@ class HCaptcha {
 			'Zulu'                => 'zu',
 		];
 
+		$wp_locale = get_locale();
+
 		$locale = str_replace( '_', '-', $wp_locale );
 
 		if ( in_array( $locale, $hcaptcha_locales, true ) ) {
@@ -742,7 +743,7 @@ class HCaptcha {
 			return $hcaptcha_locales[ $lang_name ];
 		}
 
-		$lang_name = explode( ' (', $lang_name )[0];
+		$lang_name = explode( ' (', $lang_name, 2 )[0];
 
 		return $hcaptcha_locales[ $lang_name ] ?? '';
 	}
