@@ -41,6 +41,15 @@ class Migrations {
 	 * Migration constructor.
 	 */
 	public function __construct() {
+		$this->init();
+	}
+
+	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	public function init() {
 		if ( ! $this->is_allowed() ) {
 			return;
 		}
@@ -94,14 +103,18 @@ class Migrations {
 			// Some migration methods can be called several times to support AS action,
 			// so do not log their completion here.
 			if ( null === $result ) {
+				// @codeCoverageIgnoreStart
 				continue;
+				// @codeCoverageIgnoreEnd
 			}
 
 			$migrated[ $upgrade_version ] = $result ? time() : static::FAILED;
 
 			$message = $result ?
 				sprintf( 'Migration of %1$s to %2$s completed.', self::PLUGIN_NAME, $upgrade_version ) :
+				// @codeCoverageIgnoreStart
 				sprintf( 'Migration of %1$s to %2$s failed.', self::PLUGIN_NAME, $upgrade_version );
+				// @codeCoverageIgnoreEnd
 
 			$this->log( $message );
 		}
@@ -112,13 +125,13 @@ class Migrations {
 	/**
 	 * Determine if migration is allowed.
 	 */
-	private function is_allowed(): bool {
+	public function is_allowed(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['service-worker'] ) ) {
 			return false;
 		}
 
-		return ( defined( 'DOING_CRON' ) && DOING_CRON ) || is_admin();
+		return ( defined( 'DOING_CRON' ) && constant( 'DOING_CRON' ) ) || is_admin();
 	}
 
 	/**
@@ -131,7 +144,9 @@ class Migrations {
 	private function get_upgrade_version( string $method ): string {
 		// Find only the digits to get version number.
 		if ( ! preg_match( '/\d+/', $method, $matches ) ) {
+			// @codeCoverageIgnoreStart
 			return '';
+			// @codeCoverageIgnoreEnd
 		}
 
 		return implode( '.', str_split( $matches[0] ) );
@@ -141,20 +156,13 @@ class Migrations {
 	 * Output message into log file.
 	 *
 	 * @param string $message Message to log.
-	 * @param mixed  $item    Item.
 	 *
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
-	 * @noinspection PhpSameParameterValueInspection
 	 */
-	private function log( string $message, $item = null ) {
-		if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
+	private function log( string $message ) {
+		if ( ! ( defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) ) ) {
 			return;
-		}
-
-		if ( null !== $item ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-			$message .= ' ' . print_r( $item, true );
 		}
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -165,10 +173,10 @@ class Migrations {
 	 * Migrate to 2.0.0
 	 *
 	 * @return bool|null
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 * @noinspection MultiAssignmentUsageInspection
+	 * @noinspection PhpUnused
 	 */
-	private function migrate_200() {
+	protected function migrate_200() {
 		$options_map = [
 			'hcaptcha_api_key'                     => 'site_key',
 			'hcaptcha_secret_key'                  => 'secret_key',
@@ -244,10 +252,9 @@ class Migrations {
 	 * Migrate to 3.6.0
 	 *
 	 * @return bool|null
-	 * @noinspection PhpUnusedPrivateMethodInspection
-	 * @noinspection MultiAssignmentUsageInspection
+	 * @noinspection PhpUnused
 	 */
-	private function migrate_360() {
+	protected function migrate_360() {
 		$option         = get_option( 'hcaptcha_settings', [] );
 		$wpforms_status = $option['wpforms_status'] ?? [];
 
