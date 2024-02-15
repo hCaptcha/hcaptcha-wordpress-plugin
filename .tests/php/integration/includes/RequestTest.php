@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\includes;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test request file.
@@ -133,12 +134,40 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hcap_get_error_message().
+	 *
+	 * @return void
+	 */
+	public function test_hcap_get_error_message() {
+		self::assertSame( '', hcap_get_error_message( 'wrong-error-code' ) );
+		self::assertSame(
+			'hCaptcha error: The request is invalid or malformed.',
+			hcap_get_error_message( 'bad-request' )
+		);
+		self::assertSame(
+			'hCaptcha errors: Your secret key is missing.; The hCaptcha is invalid.',
+			hcap_get_error_message( [ 'missing-input-secret', 'fail' ] )
+		);
+	}
+
+	/**
 	 * Test hcaptcha_request_verify().
 	 */
 	public function test_hcaptcha_request_verify() {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+
+		self::assertNull( hcaptcha_request_verify( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test hcaptcha_request_verify() when protection is not enabled.
+	 */
+	public function test_hcaptcha_request_verify_when_protection_not_enabled() {
+		$hcaptcha_response = 'some response';
+
+		add_filter( 'hcap_protect_form', '__return_false' );
 
 		self::assertNull( hcaptcha_request_verify( $hcaptcha_response ) );
 	}
