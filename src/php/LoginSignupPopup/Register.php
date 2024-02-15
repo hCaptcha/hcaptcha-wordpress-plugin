@@ -1,10 +1,12 @@
-<?php /** @noinspection PhpUnusedParameterInspection */
-
+<?php
 /**
  * Register class file.
  *
  * @package hcaptcha-wp
  */
+
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUnusedParameterInspection */
 
 namespace HCaptcha\LoginSignupPopup;
 
