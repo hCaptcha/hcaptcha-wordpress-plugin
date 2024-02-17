@@ -75,7 +75,7 @@ function hcap_get_error_messages(): array {
 			'invalid-input-response'           => __( 'The response parameter (verification token) is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 			'bad-request'                      => __( 'The request is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 			'invalid-or-already-seen-response' => __( 'The response parameter has already been checked, or has another issue.', 'hcaptcha-for-forms-and-more' ),
-			'not-using-dummy-secret'           => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
+			'not-using-dummy-passcode'         => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
 			'sitekey-secret-mismatch'          => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
 			// Plugin messages.
 			'empty'                            => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),

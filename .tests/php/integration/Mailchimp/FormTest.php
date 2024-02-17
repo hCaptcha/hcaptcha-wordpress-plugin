@@ -59,7 +59,7 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'The response parameter has already been checked, or has another issue.',
 			],
-			'not-using-dummy-secret'           => [
+			'not-using-dummy-passcode'         => [
 				'type' => 'error',
 				'text' => 'You have used a testing sitekey but have not used its matching secret.',
 			],
