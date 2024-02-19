@@ -449,11 +449,13 @@ CSS;
 			'render' => 'explicit',
 		];
 
-		if ( $this->settings()->is_on( 'recaptcha_compat_off' ) ) {
+		$settings = $this->settings();
+
+		if ( $settings->is_on( 'recaptcha_compat_off' ) ) {
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $this->settings()->is_on( 'custom_themes' ) ) {
+		if ( $settings->is_on( 'custom_themes' ) ) {
 			$params['custom'] = 'true';
 		}
 
@@ -467,7 +469,7 @@ CSS;
 		];
 
 		foreach ( $enterprise_params as $enterprise_param => $enterprise_arg ) {
-			$value = trim( $this->settings()->get( $enterprise_param ) );
+			$value = trim( $settings->get( $enterprise_param ) );
 
 			if ( $value ) {
 				$params[ $enterprise_arg ] = rawurlencode( $this->force_https( $value ) );
