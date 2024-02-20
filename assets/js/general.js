@@ -152,7 +152,7 @@ const general = function( $ ) {
 		const logs = getCleanConsoleLogs();
 
 		message += '\n' + logs;
-		message = message.trim( '\n' );
+		message = message.trim();
 
 		if ( ! message ) {
 			return;
