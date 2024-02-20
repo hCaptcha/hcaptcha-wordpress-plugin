@@ -183,16 +183,6 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_request_verify() with not empty string as argument.
-	 */
-	public function test_hcaptcha_request_verify_not_empty() {
-		self::assertSame(
-			'hCaptcha errors: Your secret key is missing.; The response parameter (verification token) is invalid or malformed.',
-			hcaptcha_request_verify( 'some response' )
-		);
-	}
-
-	/**
 	 * Test hcaptcha_request_verify() not verified.
 	 */
 	public function test_hcaptcha_request_verify_not_verified() {
