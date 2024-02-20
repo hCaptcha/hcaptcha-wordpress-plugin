@@ -111,7 +111,7 @@ jobs:
 
       - name: Run WP tests
         working-directory: ${{ env.wp-plugin-directory }}
-        run: codecept run integration -c .codeception.yml --env github-actions
+        run: vendor/bin/codecept run integration -c .codeception.yml --env github-actions
 
       - name: Run Jest
         if: ${{ matrix.php-version == '8.3' }}
