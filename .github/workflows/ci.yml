@@ -40,7 +40,7 @@ jobs:
           extensions: json, mysqli, mbstring, zip
 
       - name: Install dependencies with caching
-        uses: ramsey/composer-install@v2
+        uses: kagg-design/composer-install@v2
         with:
           working-directory: ${{ env.wp-plugin-directory }}
 
@@ -111,7 +111,7 @@ jobs:
 
       - name: Run WP tests
         working-directory: ${{ env.wp-plugin-directory }}
-        run: vendor/bin/codecept run integration --env github-actions
+        run: vendor/bin/codecept run integration -c .codeception.yml --env github-actions
 
       - name: Run Jest
         if: ${{ matrix.php-version == '8.3' }}
