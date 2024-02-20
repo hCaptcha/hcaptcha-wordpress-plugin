@@ -21,6 +21,8 @@
  * @param HCaptchaMainObject.params
  */
 
+/* eslint-disable no-console */
+
 /**
  * General settings page logic.
  *
@@ -54,6 +56,74 @@ const general = function( $ ) {
 	let credentialsChanged = false;
 	let enterpriseSettingsChanged = false;
 
+	let consoleLogs = [];
+
+	interceptConsoleLogs();
+
+	function interceptConsoleLogs() {
+		consoleLogs = [];
+
+		const systemLog = console.log;
+		const systemWarn = console.warn;
+		const systemInfo = console.info;
+		const systemError = console.error;
+		const systemClear = console.clear;
+
+		// eslint-disable-next-line no-unused-vars
+		console.log = function( message ) {
+			consoleLogs.push( [ 'Console log:', arguments ] );
+			systemLog.apply( console, arguments );
+		};
+
+		// eslint-disable-next-line no-unused-vars
+		console.warn = function( message ) {
+			consoleLogs.push( [ 'Console warn:', arguments ] );
+			systemWarn.apply( console, arguments );
+		};
+
+		// eslint-disable-next-line no-unused-vars
+		console.info = function( message ) {
+			consoleLogs.push( [ 'Console info:', arguments ] );
+			systemInfo.apply( console, arguments );
+		};
+
+		// eslint-disable-next-line no-unused-vars
+		console.error = function( message ) {
+			consoleLogs.push( [ 'Console error:', arguments ] );
+			systemError.apply( console, arguments );
+		};
+
+		console.clear = function() {
+			consoleLogs = [];
+			systemClear();
+		};
+	}
+
+	function getCleanConsoleLogs() {
+		const logs = [];
+
+		for ( let i = 0; i < consoleLogs.length; i++ ) {
+			// Extract strings only (some JS functions push objects to console).
+			const consoleLog = consoleLogs[ i ];
+			const type = consoleLog[ 0 ];
+			const args = consoleLog[ 1 ];
+			const keys = Object.keys( args );
+			const lines = [];
+
+			for ( let a = 0; a < keys.length; a++ ) {
+				if ( typeof ( args[ a ] ) === 'string' ) {
+					lines.push( [ type, args[ a ] ].join( ' ' ) );
+				}
+			}
+
+			logs.push( lines.join( '\n' ) );
+		}
+
+		consoleLogs = [];
+
+		return logs.join( '\n' );
+	}
+
 	function getValues( $inputs ) {
 		const values = {};
 
@@ -76,9 +146,21 @@ const general = function( $ ) {
 		$message = $( msgSelector );
 	}
 
-	function showMessage( message, msgClass ) {
+	function showMessage( message = '', msgClass = '' ) {
+		message = message === undefined ? '' : String( message );
+
+		const logs = getCleanConsoleLogs();
+
+		message += '\n' + logs;
+		message = message.trim( '\n' );
+
+		if ( ! message ) {
+			return;
+		}
+
 		$message.removeClass();
 		$message.addClass( msgClass + ' notice is-dismissible' );
+
 		const messageLines = message.split( '\n' ).map( function( line ) {
 			return `<p>${ line }</p>`;
 		} );
@@ -97,12 +179,12 @@ const general = function( $ ) {
 		);
 	}
 
-	function showSuccessMessage( response ) {
-		showMessage( response, 'notice-success' );
+	function showSuccessMessage( message = '' ) {
+		showMessage( message, 'notice-success' );
 	}
 
-	function showErrorMessage( response ) {
-		showMessage( response, 'notice-error' );
+	function showErrorMessage( message = '' ) {
+		showMessage( message, 'notice-error' );
 	}
 
 	function hCaptchaUpdate( params = {} ) {
@@ -211,6 +293,10 @@ const general = function( $ ) {
 			$submit.attr( 'disabled', true );
 		}
 	}
+
+	document.addEventListener( 'hCaptchaLoaded', function() {
+		showErrorMessage();
+	} );
 
 	$( '#check_config' ).on( 'click', function( event ) {
 		event.preventDefault();
