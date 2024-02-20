@@ -76,7 +76,10 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_migrate() {
-		$time              = time();
+		$time = time();
+
+		FunctionMocker::replace( 'time', $time );
+
 		$size              = 'normal';
 		$expected_option   = [
 			'2.0.0' => $time,
@@ -112,7 +115,6 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'_network_wide'                => [],
 		];
 
-		FunctionMocker::replace( 'time', $time );
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
