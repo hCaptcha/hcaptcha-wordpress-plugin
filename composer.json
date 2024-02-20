@@ -77,8 +77,8 @@
     "update-tests": "update-tests",
     "revert-tests": "update-tests revert",
     "phpcs": "vendor/bin/phpcs --colors --standard=phpcs.xml",
-    "integration": "codecept run integration -c .codeception.yml",
-    "unit": "codecept run unit -c .codeception.yml"
+    "integration": "codecept run integration -c codeception.yml",
+    "unit": "codecept run unit -c codeception.yml"
   },
   "extra": {
     "scope-packages": [
