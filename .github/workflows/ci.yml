@@ -111,7 +111,9 @@ jobs:
 
       - name: Run WP tests
         working-directory: ${{ env.wp-plugin-directory }}
-        run: vendor/bin/codecept run integration -c .codeception.yml --env github-actions
+        run: |
+          sed -i s/if \(\!\$configFile \&\& self\:\:\$config\) \{/echo \$configFile\; if \(\!\$configFile \&\& self\:\:\$config\) \{/g vendor/codeception/codeception/src/Codeception/Configuration.php
+          vendor/bin/codecept run integration -c .codeception.yml --env github-actions
 
       - name: Run Jest
         if: ${{ matrix.php-version == '8.3' }}
