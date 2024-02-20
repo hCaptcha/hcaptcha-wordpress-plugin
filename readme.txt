@@ -559,7 +559,11 @@ Instructions for popular native integrations are below:
 * The minimum required WordPress version is now 5.1.
 * Added Login/Signup Popup integration.
 * Added CoBlocks integration.
+* Added Enterprise parameters to System Info page.
+* Added checking of Enterprise parameters before saving.
 * Improved translation on Settings pages.
+* Improved error reporting for Active hCaptcha on General page.
+* Fixed hCaptcha error codes table.
 
 = 3.9.0 =
 * Added Spectra - WordPress Gutenberg Blocks integration.
