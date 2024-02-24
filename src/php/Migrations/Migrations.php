@@ -110,14 +110,10 @@ class Migrations {
 
 			$migrated[ $upgrade_version ] = $result ? time() : static::FAILED;
 
-			$message = $result ?
-				sprintf( 'Migration of %1$s to %2$s completed.', self::PLUGIN_NAME, $upgrade_version ) :
-				// @codeCoverageIgnoreStart
-				sprintf( 'Migration of %1$s to %2$s failed.', self::PLUGIN_NAME, $upgrade_version );
-				// @codeCoverageIgnoreEnd
-
-			$this->log( $message );
+			$this->log_migration_message( $result, $upgrade_version );
 		}
+
+		uasort( $migrated, 'version_compare' );
 
 		update_option( self::MIGRATED_VERSIONS_OPTION_NAME, $migrated );
 	}
@@ -131,7 +127,7 @@ class Migrations {
 			return false;
 		}
 
-		return ( defined( 'DOING_CRON' ) && constant( 'DOING_CRON' ) ) || is_admin();
+		return wp_doing_cron() || is_admin() || ( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) );
 	}
 
 	/**
@@ -142,14 +138,22 @@ class Migrations {
 	 * @return string
 	 */
 	private function get_upgrade_version( string $method ): string {
-		// Find only the digits to get version number.
-		if ( ! preg_match( '/\d+/', $method, $matches ) ) {
+		// Find only the digits and underscores to get version number.
+		if ( ! preg_match( '/(\d_?)+/', $method, $matches ) ) {
 			// @codeCoverageIgnoreStart
 			return '';
 			// @codeCoverageIgnoreEnd
 		}
 
-		return implode( '.', str_split( $matches[0] ) );
+		$raw_version = $matches[0];
+
+		if ( strpos( $raw_version, '_' ) ) {
+			// Modern notation: 3_10_0 means 3.10.0 version.
+			return str_replace( '_', '.', $raw_version );
+		}
+
+		// Legacy notation, with 1-digit subversion numbers: 360 means 3.6.0 version.
+		return implode( '.', str_split( $raw_version ) );
 	}
 
 	/**
@@ -167,6 +171,23 @@ class Migrations {
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		error_log( self::PLUGIN_NAME . ':  ' . $message );
+	}
+
+	/**
+	 * Log migration message.
+	 *
+	 * @param bool   $migrated        Migration status.
+	 * @param string $upgrade_version Upgrade version.
+	 *
+	 * @return void
+	 */
+	private function log_migration_message( bool $migrated, string $upgrade_version ) {
+
+		$message = $migrated ?
+			sprintf( 'Migration of %1$s to %2$s completed.', self::PLUGIN_NAME, $upgrade_version ) :
+			sprintf( 'Migration of %1$s to %2$s failed.', self::PLUGIN_NAME, $upgrade_version );
+
+		$this->log( $message );
 	}
 
 	/**
