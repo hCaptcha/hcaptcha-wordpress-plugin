@@ -816,7 +816,7 @@ abstract class SettingsBase {
 			$options_markup .= sprintf(
 				'<label for="%2$s_%7$s">' .
 				'<input id="%2$s_%7$s" name="%1$s[%2$s][]" type="%3$s" value="%4$s" %5$s %8$s />' .
-				' %6$s' .
+				'%6$s' .
 				'</label>' .
 				'<br/>',
 				esc_html( $this->option_name() ),
@@ -882,7 +882,7 @@ abstract class SettingsBase {
 			$options_markup .= sprintf(
 				'<label for="%2$s_%7$s">' .
 				'<input id="%2$s_%7$s" name="%1$s[%2$s]" type="%3$s" value="%4$s" %5$s %8$s />' .
-				' %6$s' .
+				'%6$s' .
 				'</label>' .
 				'<br/>',
 				esc_html( $this->option_name() ),
