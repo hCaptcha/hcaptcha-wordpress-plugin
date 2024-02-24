@@ -855,6 +855,11 @@ CSS;
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
+			'Elementor Pro Login'                  => [
+				[ 'elementor_pro_status', null ],
+				'elementor-pro/elementor-pro.php',
+				ElementorPro\Login::class,
+			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',

@@ -477,6 +477,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Easy Digital Downloads Lost Password Form
 * Easy Digital Downloads Register Form
 * Elementor Pro Form
+* Elementor Pro Login
 * Fluent Forms
 * Forminator
 * Formidable Forms
@@ -557,6 +558,7 @@ Instructions for popular native integrations are below:
 
 = 3.10.0 =
 * The minimum required WordPress version is now 5.1.
+* Added Elementor Pro Login integration.
 * Added Login/Signup Popup integration.
 * Added CoBlocks integration.
 * Added Enterprise parameters to System Info page.
