@@ -869,7 +869,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'form' => 'Form',
+							'form'  => 'Form',
+							'login' => 'Login',
 						],
 				],
 			'fluent_status'                    =>

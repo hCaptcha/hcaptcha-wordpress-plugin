@@ -1327,7 +1327,12 @@ JS;
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
-				HCaptchaHandler::class,
+				[ HCaptchaHandler::class, \HCaptcha\ElementorPro\Login::class ],
+			],
+			'Elementor Pro Login'               => [
+				[ 'elementor_pro_status', null ],
+				'elementor-pro/elementor-pro.php',
+				\HCaptcha\ElementorPro\Login::class,
 			],
 			'Fluent Forms'                      => [
 				[ 'fluent_status', 'form' ],
