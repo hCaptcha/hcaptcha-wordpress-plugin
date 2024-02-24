@@ -213,7 +213,7 @@ $form_id: 'checkout', 'login', 'lost_password' or 'register'
 
 Elementor Pro
 $source: 'elementor-pro/elementor-pro.php'
-$form_id: Form ID set for the form Content->Additional Options.
+$form_id: Form ID set for the form Content->Additional Options or 'login'.
 
 Jetpack
 $source: 'jetpack/jetpack.php'
