@@ -273,19 +273,71 @@ class Main {
 	 * @return array
 	 */
 	public function csp_headers( $headers ): array {
-		$headers  = (array) $headers;
-		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
+		$headers       = (array) $headers;
+		$csp_key       = 'Content-Security-Policy';
+		$csp_key_lower = strtolower( $csp_key );
+		$hcap_src      = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
+		$hcap_csp      = "script-src $hcap_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
+		$hcap_csp_arr  = $this->parse_csp( $hcap_csp );
 
-		$headers['X-Content-Security-Policy'] =
-			"default-src 'self'; " .
-			"script-src $hcap_csp; " .
-			"frame-src $hcap_csp; " .
-			"style-src $hcap_csp; " .
-			"connect-src $hcap_csp; " .
-			"unsafe-eval $hcap_csp; " .
-			"unsafe-inline $hcap_csp;";
+		foreach ( $headers as $key => $header ) {
+			if ( strtolower( $key ) === $csp_key_lower ) {
+				$hcap_csp_arr = $this->merge_csp( $hcap_csp_arr, $this->parse_csp( $header ) );
+			}
+		}
+
+		$hcap_csp_subheaders = [];
+
+		foreach ( $hcap_csp_arr as $key => $value ) {
+			$hcap_csp_subheaders[] = $key . ' ' . implode( ' ', $value );
+		}
+
+		$headers[ $csp_key ] = implode( '; ', $hcap_csp_subheaders );
 
 		return $headers;
+	}
+
+	/**
+	 * Parse csp header.
+	 *
+	 * @param string $csp CSP header.
+	 *
+	 * @return array
+	 */
+	private function parse_csp( string $csp ): array {
+		$csp_subheaders = explode( ';', $csp );
+		$csp_arr        = [];
+
+		foreach ( $csp_subheaders as $csp_subheader ) {
+			$csp_subheader_arr = explode( ' ', trim( $csp_subheader ) );
+			$key               = (string) array_shift( $csp_subheader_arr );
+			$csp_arr[ $key ]   = $csp_subheader_arr;
+		}
+
+		unset( $csp_arr[''] );
+
+		return array_filter( $csp_arr );
+	}
+
+	/**
+	 * Merge csp headers.
+	 *
+	 * @param array $csp_arr1 CSP headers array 1.
+	 * @param array $csp_arr2 CSP headers array 2.
+	 *
+	 * @return array
+	 */
+	private function merge_csp( array $csp_arr1, array $csp_arr2 ): array {
+		$csp  = [];
+		$keys = array_merge( array_keys( $csp_arr1 ), array_keys( $csp_arr1 ) );
+
+		foreach ( $keys as $key ) {
+			$csp1        = $csp_arr1[ $key ] ?? [];
+			$csp2        = $csp_arr2[ $key ] ?? [];
+			$csp[ $key ] = array_unique( array_merge( $csp1, $csp2 ) );
+		}
+
+		return $csp;
 	}
 
 	/**
