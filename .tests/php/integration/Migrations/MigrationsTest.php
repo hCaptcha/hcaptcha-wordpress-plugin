@@ -115,19 +115,6 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'_network_wide'                => [],
 		];
 
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'WP_DEBUG' === $constant_name;
-			}
-		);
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'WP_DEBUG' === $name;
-			}
-		);
-
 		update_option( 'hcaptcha_size', $size );
 		update_option( 'hcaptcha_wpforms_status', 'on' );
 

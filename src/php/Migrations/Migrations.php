@@ -149,7 +149,10 @@ class Migrations {
 
 		if ( strpos( $raw_version, '_' ) ) {
 			// Modern notation: 3_10_0 means 3.10.0 version.
+
+			// @codeCoverageIgnoreStart
 			return str_replace( '_', '.', $raw_version );
+			// @codeCoverageIgnoreEnd
 		}
 
 		// Legacy notation, with 1-digit subversion numbers: 360 means 3.6.0 version.
@@ -166,7 +169,9 @@ class Migrations {
 	 */
 	private function log( string $message ) {
 		if ( ! ( defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) ) ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -185,7 +190,9 @@ class Migrations {
 
 		$message = $migrated ?
 			sprintf( 'Migration of %1$s to %2$s completed.', self::PLUGIN_NAME, $upgrade_version ) :
+			// @codeCoverageIgnoreStart
 			sprintf( 'Migration of %1$s to %2$s failed.', self::PLUGIN_NAME, $upgrade_version );
+		// @codeCoverageIgnoreEnd
 
 		$this->log( $message );
 	}
