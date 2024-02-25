@@ -564,11 +564,13 @@ Instructions for popular native integrations are below:
 * Added Elementor Pro Login integration.
 * Added Login/Signup Popup integration.
 * Added CoBlocks integration.
-* Added Enterprise parameters to System Info page.
+* Added Enterprise parameters to the System Info page.
 * Added checking of Enterprise parameters before saving.
 * Improved translation on Settings pages.
-* Improved error reporting for Active hCaptcha on General page.
+* Improved error reporting for Active hCaptcha on the General page.
 * Fixed hCaptcha error codes table.
+* Fixed Settings pages layout with Chrome 122.
+* Fixed Content Security Policy headers.
 
 = 3.9.0 =
 * Added Spectra - WordPress Gutenberg Blocks integration.
