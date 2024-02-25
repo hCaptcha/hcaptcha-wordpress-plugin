@@ -390,6 +390,10 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
+		if ( ! this.currentForm ) {
+			return;
+		}
+
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
 		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
