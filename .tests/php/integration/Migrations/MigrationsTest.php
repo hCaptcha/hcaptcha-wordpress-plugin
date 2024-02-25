@@ -125,7 +125,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		$subject->migrate();
 
-		self::assertSame( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) );
+		self::assertTrue( $this->compare_migrated( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) ) );
 		self::assertSame( $expected_settings, get_option( 'hcaptcha_settings', [] ) );
 		self::assertFalse( get_option( 'hcaptcha_size' ) );
 		self::assertFalse( get_option( 'hcaptcha_wpforms_status' ) );
@@ -135,7 +135,30 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		$subject->migrate();
 
-		self::assertSame( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) );
+		self::assertTrue( $this->compare_migrated( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) ) );
+	}
+
+	/**
+	 * Compare migrated option data.
+	 *
+	 * @param array $expected_option Expected option.
+	 * @param array $option          Actual option.
+	 *
+	 * @return bool
+	 */
+	private function compare_migrated( array $expected_option, array $option ): bool {
+		if ( array_keys( $expected_option ) !== array_keys( $option ) ) {
+			return false;
+		}
+
+		foreach ( $expected_option as $version => $time ) {
+			// Due to the glitch with mocking time(), let us allow 5 seconds time difference.
+			if ( $option[ $version ] - $time > 5 ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
