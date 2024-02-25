@@ -276,8 +276,12 @@ class HCaptcha {
 		);
 
 		const params = this.getParams();
+		const hcaptcha = document.querySelector( 'iframe[data-hcaptcha-response="' + token + '"]' ).closest( '.h-captcha' );
 
-		if ( params.size === 'invisible' ) {
+		if (
+			params.size === 'invisible' ||
+			hcaptcha.dataset.force === 'true'
+		) {
 			this.submit();
 		}
 	}
@@ -353,7 +357,10 @@ class HCaptcha {
 
 			this.render( hcaptchaElement );
 
-			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
+			if (
+				( 'invisible' !== hcaptchaElement.dataset.size ) &&
+				( 'true' !== hcaptchaElement.dataset.force )
+			)  {
 				return formElement;
 			}
 

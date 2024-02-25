@@ -68,6 +68,7 @@ class HCaptcha {
 				'action'  => '', // Action name for wp_nonce_field.
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
+				'force'   => false, // Whether to execute hCaptcha widget before submit (like for invisible).
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
 				/**
 				 * The hCaptcha widget id.
@@ -117,7 +118,8 @@ class HCaptcha {
 			}
 		}
 
-		$args['auto'] = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['auto']  = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['force'] = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
 		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
 
 		?>
@@ -126,7 +128,8 @@ class HCaptcha {
 			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $args['size'] ); ?>"
-			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>">
+			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
+			data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
 		</div>
 		<?php
 
