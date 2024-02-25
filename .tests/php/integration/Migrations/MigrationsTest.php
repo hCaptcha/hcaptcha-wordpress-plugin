@@ -76,10 +76,9 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_migrate() {
-		$time = time();
+		FunctionMocker::replace( 'time', time() );
 
-		FunctionMocker::replace( 'time', $time );
-
+		$time              = time();
 		$size              = 'normal';
 		$expected_option   = [
 			'2.0.0' => $time,
