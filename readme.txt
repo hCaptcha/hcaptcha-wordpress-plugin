@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.10.0 =
+* Tested with WooCommerce 8.6.
 * The minimum required WordPress version is now 5.1.
 * Added Force hCaptcha check before submit feature.
 * Added Elementor Pro Login integration.
