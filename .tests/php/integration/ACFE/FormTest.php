@@ -155,7 +155,8 @@ class FormTest extends HCaptchaWPTestCase {
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 		</div><input type="hidden" id="acf-some-key" name="some-name"></div>',
 			],

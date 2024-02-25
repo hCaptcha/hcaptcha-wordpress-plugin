@@ -79,7 +79,8 @@ function hcap_shortcode( $atts ): string {
 		$atts
 	);
 
-	$atts['auto'] = filter_var( $atts['auto'], FILTER_VALIDATE_BOOLEAN );
+	$atts['auto']  = filter_var( $atts['auto'], FILTER_VALIDATE_BOOLEAN );
+	$atts['force'] = filter_var( $atts['force'], FILTER_VALIDATE_BOOLEAN );
 
 	/**
 	 * Filters the content of the hcaptcha form.

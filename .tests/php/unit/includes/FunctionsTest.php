@@ -50,6 +50,7 @@ class FunctionsTest extends HCaptchaTestCase {
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => false,
+			'force'  => false,
 			'size'   => '',
 		];
 		$form  = 'some hcaptcha form content';
@@ -81,16 +82,17 @@ class FunctionsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_hcap_shortcode(): array {
 		return [
-			'empty atts' => [
+			'empty atts'  => [
 				[],
 				[
 					'action' => HCAPTCHA_ACTION,
 					'name'   => HCAPTCHA_NONCE,
 					'auto'   => false,
+					'force'  => false,
 					'size'   => '',
 				],
 			],
-			'auto truly' => [
+			'auto truly'  => [
 				[
 					'auto' => '1',
 				],
@@ -98,10 +100,23 @@ class FunctionsTest extends HCaptchaTestCase {
 					'action' => HCAPTCHA_ACTION,
 					'name'   => HCAPTCHA_NONCE,
 					'auto'   => true,
+					'force'  => false,
 					'size'   => '',
 				],
 			],
-			'some atts'  => [
+			'force truly' => [
+				[
+					'force' => '1',
+				],
+				[
+					'action' => HCAPTCHA_ACTION,
+					'name'   => HCAPTCHA_NONCE,
+					'auto'   => false,
+					'force'  => true,
+					'size'   => '',
+				],
+			],
+			'some atts'   => [
 				[
 					'some' => 'some attribute',
 				],
@@ -109,6 +124,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'action' => HCAPTCHA_ACTION,
 					'name'   => HCAPTCHA_NONCE,
 					'auto'   => false,
+					'force'  => false,
 					'size'   => '',
 					'some'   => 'some attribute',
 				],
