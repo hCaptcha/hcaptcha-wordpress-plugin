@@ -65,25 +65,27 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 
 Full list of arguments:
 
-`
-[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" size="normal|compact|invisible"]
-`
+```
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" size="normal|compact|invisible"]
+```
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
-`
+```
 [hcaptcha action="my_hcap_action" name="my_hcap_name"]
-`
+```
 
 and in the verification:
 
-`
+```
 $result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
-`
+```
 
-For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, auto="false".
+For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, `auto="false"`.
 
-The argument size="normal|compact|invisible" allows to set the size of hCaptcha widget. size="normal" by default.
+The argument force="true|false" allows forcing verification of hCaptcha widget before submitting the form. By default, `force="false"`.
+
+The argument size="normal|compact|invisible" allows setting the size of hCaptcha widget. By default, `size="normal"`.
 
 = How to add hCaptcha to an arbitrary form =
 
@@ -558,6 +560,7 @@ Instructions for popular native integrations are below:
 
 = 3.10.0 =
 * The minimum required WordPress version is now 5.1.
+* Added Force hCaptcha check before submit feature.
 * Added Elementor Pro Login integration.
 * Added Login/Signup Popup integration.
 * Added CoBlocks integration.
