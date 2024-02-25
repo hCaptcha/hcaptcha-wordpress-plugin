@@ -54,6 +54,7 @@ class JetpackForm extends JetpackBase {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
+			'force'  => true,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => 'contact',
@@ -80,6 +81,7 @@ class JetpackForm extends JetpackBase {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
+			'force'  => true,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => 'contact',
