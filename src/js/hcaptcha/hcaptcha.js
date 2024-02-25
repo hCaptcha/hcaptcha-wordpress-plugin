@@ -360,7 +360,7 @@ class HCaptcha {
 			if (
 				( 'invisible' !== hcaptchaElement.dataset.size ) &&
 				( 'true' !== hcaptchaElement.dataset.force )
-			)  {
+			) {
 				return formElement;
 			}
 
