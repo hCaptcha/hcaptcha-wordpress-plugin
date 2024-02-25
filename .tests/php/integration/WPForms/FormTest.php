@@ -323,7 +323,8 @@ HTML;
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 		</div>',
 		];
@@ -507,7 +508,8 @@ HTML;
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 		' . $nonce . '</div>';
 
@@ -571,7 +573,8 @@ HTML;
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 		' . $nonce . '</div>';
 
@@ -624,7 +627,8 @@ HTML;
 			data-sitekey=""
 			data-theme="light"
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 		' . $nonce . '</div>';
 

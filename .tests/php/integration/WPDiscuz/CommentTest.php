@@ -90,7 +90,8 @@ class CommentTest extends HCaptchaWPTestCase {
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 					<div class="clearfix"></div>
 		</div>

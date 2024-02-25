@@ -75,7 +75,8 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 			data-sitekey="' . $site_key . '"
 			data-theme="' . $theme . '"
 			data-size="' . $size . '"
-			data-auto="true">
+			data-auto="true"
+			data-force="false">
 		</div>
 		' . $nonce . '</div><p class="form-row"><button type="submit" class="button" name="track" value="Track">Track</button></p>
 	<input type="hidden" id="woocommerce-order-tracking-nonce" name="woocommerce-order-tracking-nonce" value="3f0f69409a" /><input type="hidden" name="_wp_http_referer" value="/wc-order-tracking/" />

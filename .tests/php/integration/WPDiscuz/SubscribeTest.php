@@ -88,7 +88,8 @@ class SubscribeTest extends HCaptchaWPTestCase {
 			data-sitekey=""
 			data-theme=""
 			data-size=""
-			data-auto="false">
+			data-auto="false"
+			data-force="false">
 		</div>
 		';
 
