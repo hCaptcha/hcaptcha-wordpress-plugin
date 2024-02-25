@@ -120,7 +120,7 @@ class HCaptcha {
 
 		$args['auto']  = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
 		$args['force'] = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
-		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
+		$args['size']  = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
 
 		?>
 		<div
