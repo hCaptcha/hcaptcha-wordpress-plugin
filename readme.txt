@@ -136,6 +136,12 @@ and insert this shortcode into your form.
 
 Auto-verification works with forms sent by POST on frontend only. It works with forms in the post content and in widgets.
 
+You can add also `force="true"` or `force="1"` argument to prevent sending a form without checking the hCaptcha.
+
+```
+[hcaptcha auto="true" force="true"]
+```
+
 = How to block hCaptcha on a specific page? =
 
 hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add the following code to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.

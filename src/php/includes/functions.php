@@ -73,6 +73,7 @@ function hcap_shortcode( $atts ): string {
 			'action' => HCAPTCHA_ACTION,
 			'name'   => HCAPTCHA_NONCE,
 			'auto'   => false,
+			'force'  => false,
 			'size'   => '',
 		],
 		$atts
