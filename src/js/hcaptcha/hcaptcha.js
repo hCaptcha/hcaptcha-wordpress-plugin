@@ -288,12 +288,14 @@ class HCaptcha {
 		);
 
 		const params = this.getParams();
-		const hcaptcha = document.querySelector( 'iframe[data-hcaptcha-response="' + token + '"]' ).closest( '.h-captcha' );
+		const iframe = document.querySelector( 'iframe[data-hcaptcha-response="' + token + '"]' );
+		const hcaptcha = iframe ? iframe.closest( '.h-captcha' ) : null;
+		const force = hcaptcha ? hcaptcha.dataset.force : null;
 
 		if (
 			params.size === 'invisible' ||
 			// Prevent form submit when hCaptcha widget was manually solved.
-			( hcaptcha.dataset.force === 'true' && this.isValidated() )
+			( force === 'true' && this.isValidated() )
 		) {
 			this.submit();
 		}

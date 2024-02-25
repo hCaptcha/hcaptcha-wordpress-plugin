@@ -64,6 +64,7 @@ describe( 'HCaptcha', () => {
 				// Mock the rendering of the hCaptcha widget by adding a dataset attribute
 				const iframe = document.createElement( 'iframe' );
 				iframe.dataset.hcaptchaWidgetId = 'mock-widget-id';
+				iframe.dataset.hcaptchaResponse = '';
 				hcaptchaElement.appendChild( iframe );
 			} ),
 			execute: jest.fn(),
