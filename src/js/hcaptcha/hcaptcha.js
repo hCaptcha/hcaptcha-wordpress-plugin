@@ -134,7 +134,15 @@ class HCaptcha {
 			return;
 		}
 
-		hcaptcha.execute( widgetId );
+		const iframe = formElement.querySelector( '.h-captcha iframe' );
+		const token = iframe.dataset.hcaptchaResponse;
+
+		// Do not execute hCaptcha twice.
+		if ( token === '' ) {
+			hcaptcha.execute( widgetId );
+		} else {
+			this.callback( token );
+		}
 	}
 
 	isValidated() {
@@ -235,7 +243,7 @@ class HCaptcha {
 			return;
 		}
 
-		const callback = ( mutationList ) => {
+		const observerCallback = ( mutationList ) => {
 			for ( const mutation of mutationList ) {
 				let oldClasses = mutation.oldValue;
 				let newClasses = this.darkElement.getAttribute( 'class' );
@@ -261,7 +269,7 @@ class HCaptcha {
 				attributes: true,
 				attributeOldValue: true,
 			};
-			const observer = new MutationObserver( callback );
+			const observer = new MutationObserver( observerCallback );
 
 			observer.observe( this.darkElement, config );
 		}
