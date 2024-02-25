@@ -137,6 +137,10 @@ class HCaptcha {
 		hcaptcha.execute( widgetId );
 	}
 
+	isValidated() {
+		return this.currentForm !== undefined;
+	}
+
 	/**
 	 * Get forms.
 	 *
@@ -280,7 +284,8 @@ class HCaptcha {
 
 		if (
 			params.size === 'invisible' ||
-			hcaptcha.dataset.force === 'true'
+			// Prevent form submit when hCaptcha widget was manually solved.
+			( hcaptcha.dataset.force === 'true' && this.isValidated() )
 		) {
 			this.submit();
 		}
@@ -376,11 +381,7 @@ class HCaptcha {
 
 			formElement.dataset.hCaptchaId = hCaptchaId;
 
-			submitButtonElement.addEventListener(
-				'click',
-				this.validate,
-				true
-			);
+			submitButtonElement.addEventListener( 'click', this.validate, true );
 
 			return formElement;
 		} );
@@ -390,10 +391,6 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		if ( ! this.currentForm ) {
-			return;
-		}
-
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
 		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
