@@ -105,7 +105,7 @@ abstract class JetpackBase {
 		<span class="visually-hidden">Warning.</span>
 		<i aria-hidden="true"></i>
 	</span>
-	<span>{$this->error_message}</span>
+	<span>$this->error_message</span>
 </div>
 HTML;
 
@@ -116,7 +116,7 @@ HTML;
 	 * Print inline styles.
 	 *
 	 * @return void
-	 * @noinspection CssUnusedSymbol
+	 * @noinspection CssUnusedSymbol CssUnusedSymbol.
 	 */
 	public function print_inline_styles() {
 		$css = <<<CSS
