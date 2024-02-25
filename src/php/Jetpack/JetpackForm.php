@@ -33,7 +33,7 @@ class JetpackForm extends JetpackBase {
 
 		// Jetpack block form.
 		return (string) preg_replace_callback(
-			'~<form [\s\S]*?wp-block-jetpack-contact-form[\s\S]*?(<button [\s\S]*?type="submit"[\s\S]*?</button>)[\s\S]*?</form>~',
+			'~<form [\s\S]*?wp-block-jetpack-contact-form[\s\S]*?(<div class="wp-block-jetpack-button wp-block-button"[\s\S]*?<button [\s\S]*?type="submit"[\s\S]*?</button>)[\s\S]*?</form>~',
 			[ $this, 'block_callback' ],
 			$content
 		);
@@ -60,7 +60,9 @@ class JetpackForm extends JetpackBase {
 			],
 		];
 
-		return $matches[1] . $this->error_message( HCaptcha::form( $args ) ) . $matches[2];
+		$hcaptcha = '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
+
+		return $matches[1] . $this->error_message( $hcaptcha ) . $matches[2];
 	}
 
 	/**
@@ -84,9 +86,11 @@ class JetpackForm extends JetpackBase {
 			],
 		];
 
+		$hcaptcha = '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
+
 		return str_replace(
 			$matches[1],
-			$this->error_message( HCaptcha::form( $args ) ) . $matches[1],
+			$this->error_message( $hcaptcha ) . $matches[1],
 			$matches[0]
 		);
 	}
