@@ -17,7 +17,12 @@ class TrackingInfo {
 	/**
 	 * Event API URL.
 	 */
-	const EventAPI = 'https://a.hcaptcha.com/api/event';
+	const EVENT_API = 'https://a.hcaptcha.com/api/event';
+
+	/**
+	 * Report domain.
+	 */
+	const DOMAIN = 'wp-plugin.hcaptcha.com';
 
 	/**
 	 * Class constructor.
@@ -54,18 +59,19 @@ class TrackingInfo {
 		$tracking_info = $this->get_tracking_info();
 
 		$headers = [
-			'Content-Type'    => 'application/json; charset=utf-8',
-			'X-Debug-Request' => '',
+			'Content-Type' => 'application/json; charset=utf-8',
 		];
 		$params  = [
-			'd'     => wp_parse_url( home_url(), PHP_URL_HOST ), // Domain.
+			'd'     => self::DOMAIN, // Domain.
 			'n'     => 'wp-plugin-tracking-info', // Name.
 			'u'     => home_url(), // URL.
+			'r'     => null, // Referer.
+			'w'     => 1024, // Some window inner width.
 			'props' => $tracking_info, // Info.
 		];
 
 		$result = wp_remote_post(
-			self::EventAPI,
+			self::EVENT_API,
 			[
 				'headers' => $headers,
 				'body'    => wp_json_encode( $params ),
