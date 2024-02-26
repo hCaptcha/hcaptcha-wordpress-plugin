@@ -48,12 +48,13 @@ class TrackingInfo {
 	 * Send tracking info.
 	 *
 	 * @return void
+	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function send_tracking_info() {
 		$tracking_info = $this->get_tracking_info();
 
 		$headers = [
-			'Content-Type' => 'application/json; charset=utf-8',
+			'Content-Type'    => 'application/json; charset=utf-8',
 			'X-Debug-Request' => '',
 		];
 		$params  = [
@@ -67,7 +68,7 @@ class TrackingInfo {
 			self::EventAPI,
 			[
 				'headers' => $headers,
-				'body'    => json_encode( $params ),
+				'body'    => wp_json_encode( $params ),
 			]
 		);
 
@@ -80,12 +81,14 @@ class TrackingInfo {
 		$message = 'Error sending tracking info: ';
 
 		if ( is_wp_error( $result ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( $message . $result->get_error_message() );
 		}
 
 		$code = $result['response']['code'] ?? 0;
 
-		if ( $code !== 202 ) {
+		if ( 202 !== $code ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( $message . $code );
 		}
 	}
