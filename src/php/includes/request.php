@@ -125,6 +125,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
 		static $result;
+		static $error_codes;
 
 		// Do not make remote request more than once.
 		if ( hcaptcha()->has_result ) {
@@ -134,16 +135,17 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			 * @param string|null $result      The result of verification. The null means success.
 			 * @param string[]    $error_codes Error code(s). Empty array on success.
 			 */
-			return apply_filters( 'hcap_verify_request', $result, [] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		hcaptcha()->has_result = true;
 
 		if ( ! HCaptcha::is_protection_enabled() ) {
-			$result = null;
+			$result      = null;
+			$error_codes = [];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, [] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(
@@ -157,10 +159,11 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$fail_message  = $errors['fail'];
 
 		if ( '' === $hcaptcha_response_sanitized ) {
-			$result = $empty_message;
+			$result      = $empty_message;
+			$error_codes = [ 'empty' ];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, [ 'empty' ] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		$params = [
@@ -182,10 +185,11 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
 		if ( empty( $raw_body ) ) {
-			$result = $fail_message;
+			$result      = $fail_message;
+			$error_codes = [ 'fail' ];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, [ 'fail' ] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		$body = json_decode( $raw_body, true );
@@ -195,8 +199,8 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 		$error_codes = [];
 
 		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
-			$error_codes = $body['error-codes'] ?? [ 'fail' ];
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
+			$error_codes = $body['error-codes'] ?? [ 'fail' ];
 		}
 
 		/** This filter is documented above. */
