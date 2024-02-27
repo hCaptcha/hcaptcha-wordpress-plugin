@@ -297,4 +297,41 @@ class Migrations {
 
 		return true;
 	}
+
+	/**
+	 * Migrate to 3.10.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_3_10_0() {
+
+		global $wpdb;
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}hcaptcha_events (
+		    id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		    source     VARCHAR(256)    NOT NULL,
+		    form_id    VARCHAR(20)     NOT NULL,
+		    ip         VARCHAR(39)     NOT NULL,
+		    user_agent VARCHAR(256)    NOT NULL,
+		    uuid       VARCHAR(36)     NOT NULL,
+		    result     VARCHAR(40)     NULL,
+		    date_gmt   DATETIME        NOT NULL,
+		    PRIMARY KEY (id),
+		    KEY source (source),
+		    KEY form_id (form_id),
+		    KEY hcaptcha_id (source, form_id),
+		    KEY ip (ip),
+		    KEY uuid (uuid),
+		    KEY date_gmt (date_gmt)
+		) {$charset_collate};";
+
+		dbDelta( $sql );
+
+		return true;
+	}
 }
