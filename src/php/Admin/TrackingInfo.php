@@ -63,7 +63,7 @@ class TrackingInfo {
 		];
 		$params  = [
 			'd'     => self::DOMAIN, // Domain.
-			'n'     => 'wp-plugin-tracking-info', // Name.
+			'n'     => 'pageview', // Name.
 			'u'     => home_url(), // URL.
 			'r'     => null, // Referer.
 			'w'     => 1024, // Some window inner width.
