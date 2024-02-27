@@ -56,14 +56,17 @@ class TrackingInfo {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function send_tracking_info() {
+		global $wp_version;
+
 		$tracking_info = $this->get_tracking_info();
 
 		$headers = [
 			'Content-Type' => 'application/json; charset=utf-8',
+			'User-Agent'   => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 		];
 		$params  = [
-			'd'     => self::DOMAIN, // Domain.
 			'n'     => 'pageview', // Name.
+			'd'     => self::DOMAIN, // Domain.
 			'u'     => home_url(), // URL.
 			'r'     => null, // Referer.
 			'w'     => 1024, // Some window inner width.
