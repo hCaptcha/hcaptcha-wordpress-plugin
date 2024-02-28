@@ -20,6 +20,11 @@ class TrackingInfo {
 	const EVENT_API = 'https://a.hcaptcha.com/api/event';
 
 	/**
+	 * Event name.
+	 */
+	const NAME = 'wp-plugin-tracking-info';
+
+	/**
 	 * Report domain.
 	 */
 	const DOMAIN = 'wp-plugin.hcaptcha.com';
@@ -65,7 +70,7 @@ class TrackingInfo {
 			'User-Agent'   => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 		];
 		$params  = [
-			'n'     => 'pageview', // Name.
+			'n'     => self::NAME, // Name.
 			'd'     => self::DOMAIN, // Domain.
 			'u'     => home_url(), // URL.
 			'r'     => null, // Referer.
