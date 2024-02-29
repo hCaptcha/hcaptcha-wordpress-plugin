@@ -54,9 +54,15 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce', true, false );
+		$args     = [
+			'action' => 'hcaptcha_login',
+			'name'   => 'hcaptcha_login_nonce',
+			'id'     => [
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'login',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new Login();
 

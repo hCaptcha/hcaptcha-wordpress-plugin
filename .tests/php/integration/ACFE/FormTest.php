@@ -150,15 +150,18 @@ class FormTest extends HCaptchaWPTestCase {
 					'key'  => 'some-key',
 					'name' => 'some-name',
 				],
-				'<div class="acf-input-wrap acfe-field-recaptcha"> <div>		<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false"
-			data-force="false">
-		</div>
-		</div><input type="hidden" id="acf-some-key" name="some-name"></div>',
+				'<div class="acf-input-wrap acfe-field-recaptcha"> <div>' .
+				$this->get_hcap_form(
+					[
+						'id' => [
+							'source'  => [
+								'acf-extended-pro/acf-extended.php',
+								'acf-extended/acf-extended.php',
+							],
+							'form_id' => 0,
+						],
+					]
+				) . '</div><input type="hidden" id="acf-some-key" name="some-name"></div>',
 			],
 			'some field'      => [
 				[ 'type' => 'some' ],

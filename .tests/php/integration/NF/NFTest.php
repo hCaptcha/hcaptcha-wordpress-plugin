@@ -83,8 +83,10 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 * Test localize_field().
 	 */
 	public function test_localize_field() {
-		$field = [
-			'id'       => 5,
+		$form_id  = 1;
+		$field_id = 5;
+		$field    = [
+			'id'       => $field_id,
 			'settings' => [],
 		];
 
@@ -116,7 +118,14 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		);
 
 		$expected                         = $field;
-		$expected['settings']['hcaptcha'] = '		<div id="' . $uniqid . '" data-fieldId="5"
+		$hcap_widget                      = $this->get_hcap_widget(
+			[
+				'source'  => [ 'ninja-forms/ninja-forms.php' ],
+				'form_id' => $form_id,
+			]
+		);
+		$expected['settings']['hcaptcha'] =
+			$hcap_widget . "\n" . '				<div id="' . $uniqid . '" data-fieldId="' . $field_id . '"
 			class="h-captcha"
 			data-sitekey="some key"
 			data-theme="some theme"
@@ -127,7 +136,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		';
 
 		$subject = new NF();
-		$subject->set_form_id( 1 );
+		$subject->set_form_id( $form_id );
 
 		self::assertSame( $expected, $subject->localize_field( $field ) );
 	}

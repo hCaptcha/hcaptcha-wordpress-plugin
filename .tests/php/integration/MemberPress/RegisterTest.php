@@ -40,8 +40,14 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$subject = new Register();
 
 		$expected = $this->get_hcap_form(
-			'hcaptcha_memberpress_register',
-			'hcaptcha_memberpress_register_nonce'
+			[
+				'action' => 'hcaptcha_memberpress_register',
+				'name'   => 'hcaptcha_memberpress_register_nonce',
+				'id'     => [
+					'source'  => [ 'memberpress/memberpress.php' ],
+					'form_id' => 'register',
+				],
+			]
 		);
 
 		ob_start();

@@ -84,43 +84,36 @@ class HCaptcha {
 			]
 		);
 
-		if ( $args['id'] ) {
-			$id            = (array) $args['id'];
-			$id['source']  = (array) ( $id['source'] ?? [] );
-			$id['form_id'] = $id['form_id'] ?? 0;
+		$args['action']  = (string) $args['action'];
+		$args['name']    = (string) $args['name'];
+		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
+		$args['size']    = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
+		$args['id']      = (array) $args['id'];
+		$args['protect'] = (bool) $args['protect'];
 
-			/**
-			 * Filters the protection status of a form.
-			 *
-			 * @param bool       $value   The protection status of a form.
-			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-			 * @param int|string $form_id Form id.
-			 */
-//			if (
-//				! $args['protect'] ||
-//				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
-//			) {
-				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-				$encoded_id = base64_encode( wp_json_encode( $id ) );
-				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+		$id = wp_parse_args(
+			$args['id'],
+			self::$default_id
+		);
 
-				?>
-				<input
-					type="hidden"
-					class="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
-					name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
-					value="<?php echo esc_attr( $widget_id ); ?>">
-				<?php
+		self::display_widget( $id );
 
-//				hcaptcha()->form_shown = true;
+		hcaptcha()->form_shown = true;
 
-//				return;
-//			}
+		/**
+		 * Filters the protection status of a form.
+		 *
+		 * @param bool       $value   The protection status of a form.
+		 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
+		 * @param int|string $form_id Form id.
+		 */
+		if (
+			! $args['protect'] ||
+			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
+		) {
+			return;
 		}
-
-		$args['auto']  = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
-		$args['force'] = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
-		$args['size']  = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
 
 		?>
 		<div
@@ -136,8 +129,30 @@ class HCaptcha {
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
+	}
 
-		hcaptcha()->form_shown = true;
+	/**
+	 * Display widget.
+	 *
+	 * @param array|mixed $id The hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private static function display_widget( array $id ) {
+		$id['source']  = (array) ( $id['source'] ?? [] );
+		$id['form_id'] = $id['form_id'] ?? 0;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+
+		?>
+		<input
+				type="hidden"
+				class="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
+				name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
+				value="<?php echo esc_attr( $widget_id ); ?>">
+		<?php
 	}
 
 	/**

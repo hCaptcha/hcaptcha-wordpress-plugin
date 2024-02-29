@@ -235,10 +235,17 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 		$mode     = $subject::UM_MODE;
 		$output   = '';
+		$args     = [
+			'action' => "hcaptcha_um_$mode",
+			'name'   => "hcaptcha_um_{$mode}_nonce",
+			'id'     => [
+				'source'  => [ 'ultimate-member/ultimate-member.php' ],
+				'form_id' => 'login',
+			],
+		];
 		$expected =
 			'<div class="um-field um-field-hcaptcha">' .
-			$this->get_hcap_form() .
-			wp_nonce_field( "hcaptcha_um_$mode", "hcaptcha_um_{$mode}_nonce", true, false ) .
+			$this->get_hcap_form( $args ) .
 			'</div>';
 
 		self::assertSame( $expected, $subject->display_captcha( $output, $mode ) );

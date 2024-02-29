@@ -55,9 +55,15 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'lostpassword';
 
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_wp_lost_password', 'hcaptcha_wp_lost_password_nonce', true, false );
+		$args     = [
+			'action' => 'hcaptcha_wp_lost_password',
+			'name'   => 'hcaptcha_wp_lost_password_nonce',
+			'id'     => [
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'lost_password',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new LostPassword();
 

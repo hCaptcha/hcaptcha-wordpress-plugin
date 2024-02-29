@@ -63,13 +63,21 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		$topic_id = 21;
 		$topic    = [
 			'forumid'  => 2,
-			'topicid'  => 21,
+			'topicid'  => $topic_id,
 			'some key' => 'some value',
 		];
-		$nonce    = wp_nonce_field( 'hcaptcha_wpforo_reply', 'hcaptcha_wpforo_reply_nonce', true, false );
-		$expected = $this->get_hcap_form() . $nonce;
+		$args     = [
+			'action' => 'hcaptcha_wpforo_reply',
+			'name'   => 'hcaptcha_wpforo_reply_nonce',
+			'id'     => [
+				'source'  => [ 'wpforo/wpforo.php' ],
+				'form_id' => $topic_id,
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		new Reply();
 

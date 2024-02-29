@@ -40,7 +40,7 @@ abstract class LostPasswordBase {
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
 			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'source'  => HCaptcha::get_class_source( static::class ),
 				'form_id' => 'lost_password',
 			],
 		];

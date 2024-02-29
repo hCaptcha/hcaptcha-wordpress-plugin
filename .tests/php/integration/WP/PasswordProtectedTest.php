@@ -64,12 +64,18 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 
 		$post = new WP_Post( (object) [] );
 
-		$search   = '</form>';
-		$replace  =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_password_protected', 'hcaptcha_password_protected_nonce', true, false ) .
-			$search;
-		$expected = str_replace( $search, $replace, $output );
+		$search    = '</form>';
+		$args      = [
+			'action' => 'hcaptcha_password_protected',
+			'name'   => 'hcaptcha_password_protected_nonce',
+			'id'     => [
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'password_protected',
+			],
+		];
+		$hcap_form = $this->get_hcap_form( $args );
+		$replace   = $hcap_form . $search;
+		$expected  = str_replace( $search, $replace, $output );
 
 		$subject = new PasswordProtected();
 

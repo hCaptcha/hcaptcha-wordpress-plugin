@@ -75,14 +75,24 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_captcha() {
+		$form_id      = '1';
 		$submit_field =
 			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
-			"<input type='hidden' name='comment_post_ID' value='1' id='comment_post_ID' />" .
+			"<input type='hidden' name='comment_post_ID' value='$form_id' id='comment_post_ID' />" .
 			"<input type='hidden' name='comment_parent' id='comment_parent' value='0' />" .
 			'</p>';
 
 		$expected =
-			$this->get_hcap_form( 'hcaptcha_comment', 'hcaptcha_comment_nonce' ) .
+			$this->get_hcap_form(
+				[
+					'action' => 'hcaptcha_comment',
+					'name'   => 'hcaptcha_comment_nonce',
+					'id'     => [
+						'source'  => [ 'WordPress' ],
+						'form_id' => $form_id,
+					],
+				]
+			) .
 			$submit_field;
 
 		$subject = Mockery::mock( Comment::class )->makePartial();
@@ -98,19 +108,20 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_captcha_when_NOT_active() {
+		$form_id      = '1';
 		$submit_field =
 			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
-			"<input type='hidden' name='comment_post_ID' value='1' id='comment_post_ID' />" .
+			"<input type='hidden' name='comment_post_ID' value='$form_id' id='comment_post_ID' />" .
 			"<input type='hidden' name='comment_parent' id='comment_parent' value='0' />" .
 			'</p>';
-		$encoded_id   = 'eyJzb3VyY2UiOlsiV29yZFByZXNzIl0sImZvcm1faWQiOiIxIn0=';
-		$hash         = wp_hash( $encoded_id );
-		$expected     = '				<input
-					type="hidden"
-					class="hcaptcha-widget-id"
-					name="hcaptcha-widget-id"
-					value="' . $encoded_id . '-' . $hash . '">
-				' . $submit_field;
+		$hcap_widget  = $this->get_hcap_widget(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => $form_id,
+			]
+		);
+		$expected     = $hcap_widget . '
+		' . $submit_field;
 
 		$subject = Mockery::mock( Comment::class )->makePartial();
 

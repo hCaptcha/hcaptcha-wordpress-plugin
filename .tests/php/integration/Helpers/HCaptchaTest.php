@@ -54,7 +54,16 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 			'auto'   => $auto,
 		];
 
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), HCaptcha::form( $args ) );
+		self::assertSame(
+			$this->get_hcap_form(
+				[
+					'action' => $action,
+					'name'   => $name,
+					'auto'   => $auto,
+				]
+			),
+			HCaptcha::form( $args )
+		);
 	}
 
 	/**
@@ -81,7 +90,16 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		HCaptcha::form_display( $args );
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
+		self::assertSame(
+			$this->get_hcap_form(
+				[
+					'action' => $action,
+					'name'   => $name,
+					'auto'   => $auto,
+				]
+			),
+			ob_get_clean()
+		);
 
 		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
 
@@ -89,7 +107,17 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		HCaptcha::form_display( $args );
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto, true ), ob_get_clean() );
+		self::assertSame(
+			$this->get_hcap_form(
+				[
+					'action' => $action,
+					'name'   => $name,
+					'auto'   => $auto,
+					'size'   => 'invisible',
+				]
+			),
+			ob_get_clean()
+		);
 	}
 
 	/**

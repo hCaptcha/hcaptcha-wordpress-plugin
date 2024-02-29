@@ -44,9 +44,17 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
-		$nonce    = wp_nonce_field( 'hcaptcha_bp_register', 'hcaptcha_bp_register_nonce', true, false );
-		$expected = $this->get_hcap_form() . $nonce;
-		$subject  = new Register();
+		$args     = [
+			'action' => 'hcaptcha_bp_register',
+			'name'   => 'hcaptcha_bp_register_nonce',
+			'id'     => [
+				'source'  => 'buddypress/bp-loader.php',
+				'form_id' => 'register',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
+
+		$subject = new Register();
 
 		ob_start();
 
@@ -61,6 +69,14 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	public function test_register_error() {
 		global $bp;
 
+		$args                     = [
+			'action' => 'hcaptcha_bp_register',
+			'name'   => 'hcaptcha_bp_register_nonce',
+			'id'     => [
+				'source'  => 'buddypress/bp-loader.php',
+				'form_id' => 'register',
+			],
+		];
 		$hcaptcha_response_verify = 'some response';
 
 		$bp->signup = (object) [
@@ -69,12 +85,11 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 			],
 		];
 
-		$nonce    = wp_nonce_field( 'hcaptcha_bp_register', 'hcaptcha_bp_register_nonce', true, false );
 		$expected =
 			'<div class="error">' .
 			$hcaptcha_response_verify .
 			'</div>' .
-			$this->get_hcap_form() . $nonce;
+			$this->get_hcap_form( $args );
 		$subject  = new Register();
 
 		ob_start();

@@ -54,7 +54,16 @@ class EmailOptinTest extends HCaptchaWPTestCase {
 	$wrap
 </form>
 HTML;
-		$hcap_form         = $this->get_hcap_form( EmailOptin::ACTION, EmailOptin::NONCE );
+		$hcap_form         = $this->get_hcap_form(
+			[
+				'action' => EmailOptin::ACTION,
+				'name'   => EmailOptin::NONCE,
+				'id'     => [
+					'source'  => [ 'Divi' ],
+					'form_id' => 'email_optin',
+				],
+			]
+		);
 		$expected          = str_replace( $wrap, $hcap_form . "\n" . $wrap, $html );
 		$single_name_field = 'some';
 

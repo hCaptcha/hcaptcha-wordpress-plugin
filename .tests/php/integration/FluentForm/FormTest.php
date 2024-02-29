@@ -54,8 +54,9 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_add_captcha() {
 		hcaptcha()->init_hooks();
 
-		$form = (object) [
-			'id' => 1,
+		$form_id = 1;
+		$form    = (object) [
+			'id' => $form_id,
 		];
 
 		$mock = Mockery::mock( Form::class )->makePartial();
@@ -64,8 +65,14 @@ class FormTest extends HCaptchaWPTestCase {
 		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( false );
 
 		$hcap_form = $this->get_hcap_form(
-			'hcaptcha_fluentform',
-			'hcaptcha_fluentform_nonce'
+			[
+				'action' => 'hcaptcha_fluentform',
+				'name'   => 'hcaptcha_fluentform_nonce',
+				'id'     => [
+					'source'  => [ 'fluentform/fluentform.php' ],
+					'form_id' => $form_id,
+				],
+			]
 		);
 
 		ob_start();

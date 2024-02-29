@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use Codeception\TestCase\WPTestCase;
+use HCaptcha\Helpers\HCaptcha;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
@@ -111,30 +112,65 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Return HCaptcha::form_display() content.
+	 * Return HCaptcha::get_widget() content.
 	 *
-	 * @param string $action    Action name for wp_nonce_field.
-	 * @param string $name      Nonce name for wp_nonce_field.
-	 * @param bool   $auto      This form has to be auto-verified.
-	 * @param string $invisible This form is invisible.
+	 * @param array $id The hCaptcha widget id.
 	 *
 	 * @return string
 	 */
-	protected function get_hcap_form( string $action = '', string $name = '', bool $auto = false, $invisible = false ): string {
+	protected function get_hcap_widget( array $id ): string {
+		$id['source']  = (array) ( $id['source'] ?? [] );
+		$id['form_id'] = $id['form_id'] ?? 0;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+
+		return '		<input
+				type="hidden"
+				class="hcaptcha-widget-id"
+				name="hcaptcha-widget-id"
+				value="' . $widget_id . '">';
+	}
+
+	/**
+	 * Return HCaptcha::form_display() content.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	protected function get_hcap_form( array $args = [] ): string {
 		$nonce_field = '';
 
-		if ( ! empty( $action ) && ! empty( $name ) ) {
-			$nonce_field = wp_nonce_field( $action, $name, true, false );
+		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
+			$nonce_field = wp_nonce_field( $args['action'], $args['name'], true, false );
 		}
 
-		$data_size  = $invisible ? 'invisible' : '';
-		$data_auto  = $auto ? 'true' : 'false';
-		$data_force = 'false';
+		$data_sitekey = $args['data-sitekey'] ?? '';
+		$data_theme   = $args['data-theme'] ?? '';
+		$data_auto    = $args['auto'] ?? false;
+		$data_auto    = $data_auto ? 'true' : 'false';
+		$data_force   = $args['force'] ?? false;
+		$data_force   = $data_force ? 'true' : 'false';
+		$data_size    = $args['size'] ?? '';
+		$id           = $args['id'] ?? [];
 
-		return '		<div
+		$default_id = [
+			'source'  => [],
+			'form_id' => 0,
+		];
+
+		$id = wp_parse_args(
+			$id,
+			$default_id
+		);
+
+		return $this->get_hcap_widget( $id ) . '
+				<div
 			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
+			data-sitekey="' . $data_sitekey . '"
+			data-theme="' . $data_theme . '"
 			data-size="' . $data_size . '"
 			data-auto="' . $data_auto . '"
 			data-force="' . $data_force . '">

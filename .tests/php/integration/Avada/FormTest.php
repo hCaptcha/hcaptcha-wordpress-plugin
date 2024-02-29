@@ -52,11 +52,18 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_hcaptcha() {
-		$args       = [];
-		$params     = [ 'id' => 5 ];
+		$form_id    = 5;
+		$args       = [
+			'id' =>
+				[
+					'source'  => [ 'Avada' ],
+					'form_id' => $form_id,
+				],
+		];
+		$params     = [ 'id' => $form_id ];
 		$wrong_html = 'some html';
 		$html       = '<button type="submit">';
-		$form       = $this->get_hcap_form();
+		$form       = $this->get_hcap_form( $args );
 		$expected   = $form . $html;
 
 		$subject = new Form();

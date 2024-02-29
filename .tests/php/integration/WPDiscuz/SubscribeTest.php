@@ -83,15 +83,13 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_hcaptcha() {
-		$expected = '		<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false"
-			data-force="false">
-		</div>
-		';
+		$args     = [
+			'id' => [
+				'source'  => [ 'wpdiscuz/class.WpdiscuzCore.php' ],
+				'form_id' => 0,
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		ob_start();
 

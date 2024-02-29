@@ -24,15 +24,15 @@ class FormTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$content  = '<!--some form content-->';
-		$expected =
-			$content .
-			$this->get_hcap_form() .
-			wp_nonce_field(
-				'hcaptcha_subscriber_form',
-				'hcaptcha_subscriber_form_nonce',
-				true,
-				false
-			);
+		$args     = [
+			'action' => 'hcaptcha_subscriber_form',
+			'name'   => 'hcaptcha_subscriber_form_nonce',
+			'id'     => [
+				'source'  => [ 'subscriber/subscriber.php' ],
+				'form_id' => 'form',
+			],
+		];
+		$expected = $content . $this->get_hcap_form( $args );
 		$subject  = new Form();
 
 		self::assertSame( $expected, $subject->add_captcha( $content ) );

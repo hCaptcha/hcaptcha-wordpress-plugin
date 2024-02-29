@@ -65,8 +65,15 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_add_captcha() {
 		$topic    = 2;
-		$nonce    = wp_nonce_field( 'hcaptcha_wpforo_new_topic', 'hcaptcha_wpforo_new_topic_nonce', true, false );
-		$expected = $this->get_hcap_form() . $nonce;
+		$args     = [
+			'action' => 'hcaptcha_wpforo_new_topic',
+			'name'   => 'hcaptcha_wpforo_new_topic_nonce',
+			'id'     => [
+				'source'  => [ 'wpforo/wpforo.php' ],
+				'form_id' => 'new_topic',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		new NewTopic();
 

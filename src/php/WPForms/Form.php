@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedFunctionInspection */
+
 namespace HCaptcha\WPForms;
 
 use HCaptcha\Helpers\HCaptcha;

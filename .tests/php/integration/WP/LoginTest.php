@@ -249,9 +249,15 @@ class LoginTest extends HCaptchaWPTestCase {
 		$GLOBALS['wp_filters']['login_link_separator'] = 1;
 		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_login', 'hcaptcha_login_nonce', true, false );
+		$args     = [
+			'action' => 'hcaptcha_login',
+			'name'   => 'hcaptcha_login_nonce',
+			'id'     => [
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'login',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new Login();
 

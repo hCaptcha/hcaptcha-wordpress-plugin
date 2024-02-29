@@ -42,9 +42,15 @@ class RegisterTest extends HCaptchaWPTestCase {
 	public function test_add_captcha() {
 		hcaptcha()->init_hooks();
 
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_wc_register', 'hcaptcha_wc_register_nonce', true, false );
+		$args     = [
+			'action' => 'hcaptcha_wc_register',
+			'name'   => 'hcaptcha_wc_register_nonce',
+			'id'     => [
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'register',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new Register();
 
