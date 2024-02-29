@@ -579,6 +579,7 @@ Instructions for popular native integrations are below:
 * Fixed hCaptcha error codes table.
 * Fixed Settings pages layout with Chrome 122.
 * Fixed Content Security Policy headers.
+* Fixed fatal error with Formidable Forms 6.8.2.
 
 = 3.9.0 =
 * Added Spectra — WordPress Gutenberg Blocks integration.

@@ -11,7 +11,9 @@
 namespace HCaptcha\FormidableForms;
 
 use FrmAppHelper;
+use FrmSettings;
 use HCaptcha\Helpers\HCaptcha;
+use stdClass;
 
 /**
  * Class Form.
@@ -48,7 +50,7 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_filter( 'transient_frm_options', [ $this, 'get_transient' ], 10, 2 );
+		add_filter( 'option_frm_options', [ $this, 'get_option' ], 10, 2 );
 		add_filter( 'frm_replace_shortcodes', [ $this, 'add_captcha' ], 10, 3 );
 		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 10, 3 );
 		add_filter( 'frm_validate_entry', [ $this, 'verify' ], 10, 3 );
@@ -56,17 +58,18 @@ class Form {
 	}
 
 	/**
-	 * Use this plugin settings for hcaptcha in Formidable Forms.
+	 * Use this plugin settings for hCaptcha in Formidable Forms.
 	 *
-	 * @param mixed  $value     Value of transient.
-	 * @param string $transient Transient name.
+	 * @param mixed|FrmSettings $value  Value of option.
+	 * @param string            $option Option name.
 	 *
 	 * @return mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function get_transient( $value, string $transient ) {
+	public function get_option( $value, string $option ) {
 		if (
 			! $value ||
+			! is_a( $value, FrmSettings::class ) ||
 			( isset( $value->active_captcha ) && 'hcaptcha' !== $value->active_captcha )
 		) {
 			return $value;
@@ -98,8 +101,6 @@ class Form {
 		if ( 'recaptcha' === $frm_settings->active_captcha ) {
 			return $html;
 		}
-
-		// <div id="field_5l59" class="h-captcha" data-sitekey="ead4f33b-cd8a-49fb-aa16-51683d9cffc8"></div>
 
 		if ( ! preg_match( '#<div id="(.+)" class="h-captcha" .+></div>#', (string) $html, $m ) ) {
 			return $html;
