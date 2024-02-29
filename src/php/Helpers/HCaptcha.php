@@ -96,10 +96,10 @@ class HCaptcha {
 			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
 			 * @param int|string $form_id Form id.
 			 */
-			if (
-				! $args['protect'] ||
-				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
-			) {
+//			if (
+//				! $args['protect'] ||
+//				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
+//			) {
 				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				$encoded_id = base64_encode( wp_json_encode( $id ) );
 				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
@@ -112,10 +112,10 @@ class HCaptcha {
 					value="<?php echo esc_attr( $widget_id ); ?>">
 				<?php
 
-				hcaptcha()->form_shown = true;
+//				hcaptcha()->form_shown = true;
 
-				return;
-			}
+//				return;
+//			}
 		}
 
 		$args['auto']  = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
