@@ -22,6 +22,7 @@ use stdClass;
  * Class Form
  */
 class Form {
+
 	/**
 	 * Nonce action.
 	 */

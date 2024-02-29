@@ -31,6 +31,16 @@ class Form {
 	const NONCE = 'hcaptcha_formidable_forms_nonce';
 
 	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-formidable-forms';
+
+	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaFormidableFormsObject';
+
+	/**
 	 * The hCaptcha field id.
 	 *
 	 * @var int|string
@@ -55,6 +65,7 @@ class Form {
 		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 10, 3 );
 		add_filter( 'frm_validate_entry', [ $this, 'verify' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
 	/**
@@ -186,5 +197,60 @@ class Form {
 	public function enqueue_scripts() {
 		wp_dequeue_script( 'captcha-api' );
 		wp_deregister_script( 'captcha-api' );
+	}
+
+	/**
+	 * Enqueue script in admin.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( ! $this->is_formidable_forms_admin_page() ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-formidable-forms$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
+			]
+		);
+	}
+
+	/**
+	 * Whether we are on the Formidable Forms admin pages.
+	 *
+	 * @return bool
+	 */
+	private function is_formidable_forms_admin_page(): bool {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return false;
+		}
+
+		$formidable_forms_admin_pages = [
+			'formidable_page_formidable-settings',
+		];
+
+		return in_array( $screen->id, $formidable_forms_admin_pages, true );
 	}
 }
