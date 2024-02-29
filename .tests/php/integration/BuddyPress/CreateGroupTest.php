@@ -17,7 +17,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
- * Test  CreateGroup.
+ * Test CreateGroup.
  *
  * @group bp
  */
@@ -58,7 +58,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 			$this->get_hcap_form( $args ) .
 			'</div>';
 
-		$subject  = new CreateGroup();
+		$subject = new CreateGroup();
 
 		ob_start();
 
