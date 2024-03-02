@@ -140,6 +140,11 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 
 		hcaptcha()->has_result = true;
 
+		$errors        = hcap_get_error_messages();
+		$empty_message = $errors['empty'];
+		$fail_message  = $errors['fail'];
+
+		// Protection is not enabled.
 		if ( ! HCaptcha::is_protection_enabled() ) {
 			$result      = null;
 			$error_codes = [];
@@ -153,11 +158,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
 		);
 
-		$errors = hcap_get_error_messages();
-
-		$empty_message = $errors['empty'];
-		$fail_message  = $errors['fail'];
-
+		// The hCaptcha response field is empty.
 		if ( '' === $hcaptcha_response_sanitized ) {
 			$result      = $empty_message;
 			$error_codes = [ 'empty' ];
@@ -177,6 +178,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$params['remoteip'] = $ip;
 		}
 
+		// Verify hCaptcha on the API server.
 		$raw_response = wp_remote_post(
 			hcaptcha()->get_verify_url(),
 			[ 'body' => $params ]
@@ -184,6 +186,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
+		// Verification request failed.
 		if ( empty( $raw_body ) ) {
 			$result      = $fail_message;
 			$error_codes = [ 'fail' ];
@@ -194,14 +197,18 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 
 		$body = json_decode( $raw_body, true );
 
-		// Success.
-		$result      = null;
-		$error_codes = [];
-
+		// Verification request is not verified.
 		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
 			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
 			$error_codes = $body['error-codes'] ?? [ 'fail' ];
+
+			/** This filter is documented above. */
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
+
+		// Success.
+		$result      = null;
+		$error_codes = [];
 
 		/** This filter is documented above. */
 		return apply_filters( 'hcap_verify_request', $result, $error_codes );
@@ -233,10 +240,12 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 			! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) &&
 			HCaptcha::is_protection_enabled()
 		) {
-			$errors = hcap_get_error_messages();
+			$errors      = hcap_get_error_messages();
+			$result      = $errors['bad-nonce'];
+			$error_codes = [ 'bad-nonce' ];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $errors['bad-nonce'], [ 'bad-nonce' ] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		return hcaptcha_request_verify( $hcaptcha_response );
