@@ -13,6 +13,7 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use HCaptcha\Admin\Events;
 use HCaptcha\Admin\TrackingInfo;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
@@ -140,7 +141,8 @@ class Main {
 			]
 		);
 
-		new TrackingInfo();
+		$this->load( TrackingInfo::class );
+		$this->load( Events::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
@@ -172,6 +174,17 @@ class Main {
 	 */
 	public function get( string $class_name ) {
 		return $this->loaded_classes[ $class_name ] ?? null;
+	}
+
+	/**
+	 * Load class.
+	 *
+	 * @param string $class_name Class name.
+	 *
+	 * @return void
+	 */
+	private function load( string $class_name ) {
+		$this->loaded_classes[] = new $class_name();
 	}
 
 	/**

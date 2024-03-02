@@ -14,14 +14,16 @@ use HCaptcha\Helpers\HCaptcha;
  * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
  * Returns a string with the IP address or false for local IPs.
  *
- * @return false|string
+ * @return string|false
  */
 function hcap_get_user_ip() {
-	$client_ip = false;
+	$ip = false;
 
 	// In order of preference, with the best ones for this purpose first.
 	$address_headers = [
+		'HTTP_TRUE_CLIENT_IP',
 		'HTTP_CF_CONNECTING_IP',
+		'HTTP_X_REAL_IP',
 		'HTTP_CLIENT_IP',
 		'HTTP_X_FORWARDED_FOR',
 		'HTTP_X_FORWARDED',
@@ -36,22 +38,23 @@ function hcap_get_user_ip() {
 			continue;
 		}
 
+		/*
+		 * HTTP_X_FORWARDED_FOR can contain a chain of comma-separated addresses.
+		 * The first one is the original client.
+		 * It can't be trusted for authenticity, but we don't need to for this purpose.
+		 */
 		$address_chain = explode(
 			',',
-			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
+			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_VALIDATE_IP ),
 			2
 		);
-		$client_ip     = trim( $address_chain[0] );
+		$ip            = trim( $address_chain[0] );
 
 		break;
 	}
 
-	// Filter out local addresses.
-	return filter_var(
-		$client_ip,
-		FILTER_VALIDATE_IP,
-		FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-	);
+	// Filter validate IP.
+	return filter_var( $ip, FILTER_VALIDATE_IP );
 }
 
 /**
