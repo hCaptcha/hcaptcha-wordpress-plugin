@@ -47,11 +47,13 @@ class FunctionsTest extends HCaptchaTestCase {
 	 */
 	public function test_hcap_shortcode( array $atts, array $expected ) {
 		$pairs = [
-			'action' => HCAPTCHA_ACTION,
-			'name'   => HCAPTCHA_NONCE,
-			'auto'   => false,
-			'force'  => false,
-			'size'   => '',
+			'action'  => HCAPTCHA_ACTION,
+			'name'    => HCAPTCHA_NONCE,
+			'auto'    => false,
+			'force'   => false,
+			'size'    => '',
+			'id'      => [],
+			'protect' => true,
 		];
 		$form  = 'some hcaptcha form content';
 
@@ -85,11 +87,13 @@ class FunctionsTest extends HCaptchaTestCase {
 			'empty atts'  => [
 				[],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => false,
-					'force'  => false,
-					'size'   => '',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => false,
+					'force'   => false,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
 				],
 			],
 			'auto truly'  => [
@@ -97,23 +101,27 @@ class FunctionsTest extends HCaptchaTestCase {
 					'auto' => '1',
 				],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => true,
-					'force'  => false,
-					'size'   => '',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => '1',
+					'force'   => false,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
 				],
 			],
 			'force truly' => [
 				[
-					'force' => '1',
+					'force' => true,
 				],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => false,
-					'force'  => true,
-					'size'   => '',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => false,
+					'force'   => true,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
 				],
 			],
 			'some atts'   => [
@@ -121,12 +129,14 @@ class FunctionsTest extends HCaptchaTestCase {
 					'some' => 'some attribute',
 				],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => false,
-					'force'  => false,
-					'size'   => '',
-					'some'   => 'some attribute',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => false,
+					'force'   => false,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
+					'some'    => 'some attribute',
 				],
 			],
 		];

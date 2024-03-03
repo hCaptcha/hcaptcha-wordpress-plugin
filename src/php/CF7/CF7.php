@@ -327,13 +327,13 @@ CSS;
 			// @codeCoverageIgnoreEnd
 		}
 
-		$cf7_hcap_sc = $matches[0];
-		$cf7_hcap_sc = preg_replace(
+		$cf7_hcap_shortcode = $matches[0];
+		$cf7_hcap_sc        = preg_replace(
 			[ '/\s*\[|]\s*/', '/(id|class)\s*:\s*([\w-]+)/' ],
 			[ '', '$1=$2' ],
-			$cf7_hcap_sc
+			$cf7_hcap_shortcode
 		);
-		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
+		$atts               = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );
 
@@ -346,12 +346,18 @@ CSS;
 		array_walk(
 			$atts,
 			static function ( &$value, $key ) {
+				if ( in_array( $key, [ 'id', 'class' ], true ) ) {
+					$value = "$key:$value";
+
+					return;
+				}
+
 				$value = "$key=\"$value\"";
 			}
 		);
 
 		$updated_cf_hcap_sc = self::SHORTCODE . ' ' . implode( ' ', $atts );
 
-		return str_replace( $cf7_hcap_sc, $updated_cf_hcap_sc, $output );
+		return str_replace( $cf7_hcap_shortcode, "[$updated_cf_hcap_sc]", $output );
 	}
 }
