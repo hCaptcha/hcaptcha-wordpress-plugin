@@ -13,7 +13,7 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
-use HCaptcha\Admin\Events;
+use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\TrackingInfo;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
@@ -27,6 +27,7 @@ use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\EventsInfo;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
@@ -136,6 +137,7 @@ class Main {
 				'hCaptcha' => [
 					General::class,
 					Integrations::class,
+					EventsInfo::class,
 					SystemInfo::class,
 				],
 			]

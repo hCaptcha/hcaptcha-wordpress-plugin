@@ -5,7 +5,7 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\Admin;
+namespace HCaptcha\Admin\Events;
 
 use HCaptcha\Helpers\HCaptcha;
 
@@ -73,6 +73,55 @@ class Events {
 		);
 
 		return $result;
+	}
+
+	/**
+	 * Get events.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return array
+	 */
+	public static function get_events( array $args = [] ): array {
+		global $wpdb;
+
+		$args    = wp_parse_args(
+			$args,
+			[
+				'columns' => [],
+				'offset'  => 0,
+				'limit'   => 20,
+				'order'   => 'ASC',
+				'orderby' => '',
+			]
+		);
+		$columns = implode( ',', $args['columns'] );
+		$columns = $columns ?: '*';
+		$order   = strtoupper( $args['order'] );
+		$order   = 'ASC' === $order ? '' : $order;
+		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
+		$offset  = absint( $args['offset'] );
+		$limit   = absint( $args['limit'] );
+
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = (array) $wpdb->get_results(
+			$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT SQL_CALC_FOUND_ROWS $columns FROM $table_name $orderby LIMIT %d, %d",
+				$offset,
+				$limit
+			)
+		);
+
+		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return [
+			'items' => $result,
+			'total' => $total,
+		];
 	}
 
 	/**

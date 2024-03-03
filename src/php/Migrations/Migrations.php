@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Migrations;
 
-use HCaptcha\Admin\Events;
+use HCaptcha\Admin\Events\Events;
 
 /**
  * Migrations class.
