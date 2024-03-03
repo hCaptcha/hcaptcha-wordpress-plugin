@@ -79,7 +79,7 @@ class HCaptcha {
 				 * ]
 				 */
 				'id'      => [],
-				// Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
+				// Protection status. When true, hCaptcha should be added.
 				'protect' => true,
 			]
 		);
@@ -90,7 +90,7 @@ class HCaptcha {
 		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
 		$args['size']    = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
-		$args['protect'] = (bool) $args['protect'];
+		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
 		$id = wp_parse_args(
 			$args['id'],
