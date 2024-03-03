@@ -45,7 +45,7 @@ function hcap_get_user_ip() {
 		 */
 		$address_chain = explode(
 			',',
-			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_VALIDATE_IP ),
+			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
 			2
 		);
 		$ip            = trim( $address_chain[0] );
@@ -53,8 +53,8 @@ function hcap_get_user_ip() {
 		break;
 	}
 
-	// Filter validate IP.
-	return filter_var( $ip, FILTER_VALIDATE_IP );
+	// Filter out local addresses.
+	return filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
 }
 
 /**

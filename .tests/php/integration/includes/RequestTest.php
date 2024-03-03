@@ -25,7 +25,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset(
+			$_SERVER['HTTP_TRUE_CLIENT_IP'],
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
+			$_SERVER['HTTP_X_REAL_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
 			$_SERVER['HTTP_X_FORWARDED_FOR'],
 			$_SERVER['HTTP_X_FORWARDED'],
@@ -49,7 +51,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcap_get_user_ip( array $headers, $expected ) {
 		unset(
+			$_SERVER['HTTP_TRUE_CLIENT_IP'],
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
+			$_SERVER['HTTP_X_REAL_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
 			$_SERVER['HTTP_X_FORWARDED_FOR'],
 			$_SERVER['HTTP_X_FORWARDED'],
@@ -71,8 +75,16 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_hcap_get_user_ip(): array {
 		return [
+			'HTTP_TRUE_CLIENT_IP'      => [
+				[ 'HTTP_TRUE_CLIENT_IP' => '7.7.7.1' ],
+				'7.7.7.1',
+			],
 			'HTTP_CF_CONNECTING_IP'    => [
-				[ 'HTTP_CLIENT_IP' => '7.7.7.1' ],
+				[ 'HTTP_CF_CONNECTING_IP' => '7.7.7.1' ],
+				'7.7.7.1',
+			],
+			'HTTP_X_REAL_IP'           => [
+				[ 'HTTP_X_REAL_IP' => '7.7.7.1' ],
 				'7.7.7.1',
 			],
 			'HTTP_CLIENT_IP'           => [
