@@ -44,13 +44,13 @@ class Events {
 	 * @param string|null|mixed $result      The hCaptcha verification result.
 	 * @param array             $error_codes Error codes.
 	 *
-	 * @return void
+	 * @return string|null|mixed
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
-			return;
+			return $result;
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -71,6 +71,8 @@ class Events {
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
+
+		return $result;
 	}
 
 	/**
