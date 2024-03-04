@@ -106,7 +106,7 @@ class Events {
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = (array) $wpdb->get_results(
+		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"SELECT SQL_CALC_FOUND_ROWS $columns FROM $table_name $orderby LIMIT %d, %d",
@@ -119,7 +119,7 @@ class Events {
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return [
-			'items' => $result,
+			'items' => $results,
 			'total' => $total,
 		];
 	}
