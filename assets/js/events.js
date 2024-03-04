@@ -8,8 +8,6 @@
 document.addEventListener( 'DOMContentLoaded', function() {
 	const ctx = document.getElementById( 'eventsChart' );
 
-	console.log( HCaptchaEventsObject );
-
 	new Chart( ctx, {
 		type: 'bar',
 		data: {
