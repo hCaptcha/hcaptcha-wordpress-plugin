@@ -136,9 +136,9 @@ class EventsInfo extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'passed'  => $this->passed,
-				'failed'  => $this->failed,
-				'unit'    => $this->unit,
+				'passed' => $this->passed,
+				'failed' => $this->failed,
+				'unit'   => $this->unit,
 			]
 		);
 
@@ -161,7 +161,11 @@ class EventsInfo extends PluginSettingsBase {
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
 		<div id="hcaptcha-events-chart">
-			<canvas id="eventsChart"></canvas>
+			<canvas id="eventsChart" aria-label="The hCaptcha Events Chart" role="img">
+				<p>
+					<?php esc_html_e( 'Your browser does not support the canvas element.', 'hcaptcha-for-forms-and-more' ); ?>
+				</p>
+			</canvas>
 		</div>
 		<div id="hcaptcha-events-wrap">
 			<?php

@@ -25,6 +25,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			],
 		},
 		options: {
+			responsive: true,
+			maintainAspectRatio: true,
+			aspectRatio: 3,
 			scales: {
 				x: {
 					type: 'time',

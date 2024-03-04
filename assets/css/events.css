@@ -2,6 +2,14 @@
 	padding: 8px 10px;
 }
 
+#hcaptcha-events-chart {
+	background-color: #ffffff;
+	position: relative;
+	margin: auto;
+	width: 100%;
+	aspect-ratio: 3/1;
+}
+
 #hcaptcha-events-wrap #user_agent {
 	width: 220px;
 }
