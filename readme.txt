@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
-Tested up to: 6.4
+Tested up to: 6.5
 Requires PHP: 7.0.0
 Stable tag: 3.9.0
 License: GPLv2 or later
@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 3.10.0 =
+* Tested with WordPress 6.5.
 * Tested with WooCommerce 8.6.
 * The minimum required WordPress version is now 5.1.
 * Added hCaptcha events statistics and Events admin page.
