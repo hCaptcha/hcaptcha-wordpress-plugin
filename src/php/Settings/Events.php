@@ -15,7 +15,7 @@ use KAGG\Settings\Abstracts\SettingsBase;
  *
  * Settings page "Events".
  */
-class EventsInfo extends PluginSettingsBase {
+class Events extends PluginSettingsBase {
 
 	/**
 	 * Admin script handle.

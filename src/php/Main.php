@@ -27,7 +27,7 @@ use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
-use HCaptcha\Settings\EventsInfo;
+use HCaptcha\Settings\Events;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
@@ -137,7 +137,7 @@ class Main {
 				'hCaptcha' => [
 					General::class,
 					Integrations::class,
-					EventsInfo::class,
+					Events::class,
 					SystemInfo::class,
 				],
 			]
