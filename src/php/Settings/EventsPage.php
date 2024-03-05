@@ -35,11 +35,11 @@ class EventsPage extends PluginSettingsBase {
 	private $list_table;
 
 	/**
-	 * Passed events.
+	 * Succeed events.
 	 *
 	 * @var array
 	 */
-	private $passed;
+	private $succeed;
 
 	/**
 	 * Failed events.
@@ -136,9 +136,11 @@ class EventsPage extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'passed' => $this->passed,
-				'failed' => $this->failed,
-				'unit'   => $this->unit,
+				'succeed'      => $this->succeed,
+				'failed'       => $this->failed,
+				'unit'         => $this->unit,
+				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
+				'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
@@ -181,8 +183,8 @@ class EventsPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function prepare_chart_data() {
-		$this->passed = [];
-		$this->failed = [];
+		$this->succeed = [];
+		$this->failed  = [];
 
 		if ( ! $this->list_table->items ) {
 			return;
@@ -231,11 +233,11 @@ class EventsPage extends PluginSettingsBase {
 			$date    = wp_date( $date_format, $time_gmt );
 			$success = '[]' === $item->error_codes;
 
-			$this->passed[ $date ] = $this->passed[ $date ] ?? 0;
-			$this->failed[ $date ] = $this->failed[ $date ] ?? 0;
+			$this->succeed[ $date ] = $this->succeed[ $date ] ?? 0;
+			$this->failed[ $date ]  = $this->failed[ $date ] ?? 0;
 
 			if ( $success ) {
-				++$this->passed[ $date ];
+				++$this->succeed[ $date ];
 			} else {
 				++$this->failed[ $date ];
 			}

@@ -1,9 +1,11 @@
 /* global Chart, HCaptchaEventsObject */
 
 /**
- * @param HCaptchaEventsObject.passed
+ * @param HCaptchaEventsObject.succeed
  * @param HCaptchaEventsObject.failed
  * @param HCaptchaEventsObject.unit
+ * @param HCaptchaEventsObject.succeedLabel
+ * @param HCaptchaEventsObject.failedLabel
  */
 document.addEventListener( 'DOMContentLoaded', function() {
 	const ctx = document.getElementById( 'eventsChart' );
@@ -13,12 +15,12 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		data: {
 			datasets: [
 				{
-					label: '# of passed events',
-					data: HCaptchaEventsObject.passed,
+					label: HCaptchaEventsObject.succeedLabel,
+					data: HCaptchaEventsObject.succeed,
 					borderWidth: 1,
 				},
 				{
-					label: '# of failed events',
+					label: HCaptchaEventsObject.failedLabel,
 					data: HCaptchaEventsObject.failed,
 					borderWidth: 1,
 				},
