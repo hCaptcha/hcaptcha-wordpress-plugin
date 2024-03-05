@@ -1,6 +1,6 @@
 <?php
 /**
- * EventsInfo class file.
+ * EventsPage class file.
  *
  * @package hcaptcha-wp
  */
@@ -11,11 +11,11 @@ use HCaptcha\Admin\Events\ListTable;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
- * Class EventsInfo
+ * Class EventsPage
  *
  * Settings page "Events".
  */
-class Events extends PluginSettingsBase {
+class EventsPage extends PluginSettingsBase {
 
 	/**
 	 * Admin script handle.
