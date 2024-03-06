@@ -50,11 +50,11 @@ class FormsPage extends PluginSettingsBase {
 	private $unit;
 
 	/**
-	 * Statistics is on.
+	 * The page is allowed to be shown.
 	 *
 	 * @var bool
 	 */
-	private $statistics = false;
+	private $allowed = false;
 
 	/**
 	 * Get page title.
@@ -98,9 +98,9 @@ class FormsPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function admin_init() {
-		$this->statistics = hcaptcha()->settings()->is_on( 'statistics' );
+		$this->allowed = hcaptcha()->settings()->is_on( 'statistics' );
 
-		if ( ! $this->statistics ) {
+		if ( ! $this->allowed ) {
 			return;
 		}
 
@@ -122,7 +122,7 @@ class FormsPage extends PluginSettingsBase {
 			constant( 'HCAPTCHA_VERSION' )
 		);
 
-		if ( ! $this->statistics ) {
+		if ( ! $this->allowed ) {
 			return;
 		}
 
@@ -173,16 +173,17 @@ class FormsPage extends PluginSettingsBase {
 		</h2>
 		<?php
 
-		if ( ! $this->statistics ) {
+		if ( ! $this->allowed ) {
 			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
 
 			$message = sprintf(
 			/* translators: 1: Statistics link. */
-				__( 'Want to see forms statistics? Please turn on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Want to see forms statistics? Please turn on the %1$s on the General settings page.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
+				/* translators: 1: Statistics switch link, 2: Statistics switch text. */
 					'<a href="%1$s" target="_blank">%2$s</a>',
 					$statistics_url,
-					__( 'Statistics switch on the General settings page', 'hcaptcha-for-forms-and-more' )
+					__( 'Statistics switch', 'hcaptcha-for-forms-and-more' )
 				)
 			);
 
@@ -190,7 +191,7 @@ class FormsPage extends PluginSettingsBase {
 			<div class="hcaptcha-forms-sample-bg"></div>
 
 			<div class="hcaptcha-forms-sample-text">
-				<p><?php esc_html_e( 'It is an example of a forms page.', 'hcaptcha-for-forms-and-more' ); ?></p>
+				<p><?php esc_html_e( 'It is an example of the Forms page.', 'hcaptcha-for-forms-and-more' ); ?></p>
 				<p><?php echo wp_kses_post( $message ); ?></p>
 			</div>
 			<?php

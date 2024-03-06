@@ -56,6 +56,13 @@ class EventsPage extends PluginSettingsBase {
 	private $unit;
 
 	/**
+	 * The page is allowed to be shown.
+	 *
+	 * @var bool
+	 */
+	private $allowed = false;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -97,6 +104,12 @@ class EventsPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function admin_init() {
+		$this->allowed = ( hcaptcha()->settings()->is_on( 'statistics' ) && hcaptcha()->is_pro() );
+
+		if ( ! $this->allowed ) {
+			return;
+		}
+
 		$this->list_table = new EventsTable();
 
 		$this->list_table->prepare_items();
@@ -108,6 +121,17 @@ class EventsPage extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
+		wp_enqueue_style(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/events$this->min_prefix.css",
+			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		if ( ! $this->allowed ) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'chart',
 			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chart.umd.min.js',
@@ -143,13 +167,6 @@ class EventsPage extends PluginSettingsBase {
 				'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
-
-		wp_enqueue_style(
-			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/events$this->min_prefix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
-			constant( 'HCAPTCHA_VERSION' )
-		);
 	}
 
 	/**
@@ -162,6 +179,42 @@ class EventsPage extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
+		<?php
+
+		if ( ! $this->allowed ) {
+			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
+			$pro_url        = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+
+			$message = sprintf(
+			/* translators: 1: Statistics link, 2: Pro account link. */
+				__( 'Want to see events statistics? Please turn on the %1$s on the General settings page and upgrade to %2$s.', 'hcaptcha-for-forms-and-more' ),
+				sprintf(
+				/* translators: 1: Statistics switch link, 2: Statistics switch text. */
+					'<a href="%1$s" target="_blank">%2$s</a>',
+					$statistics_url,
+					__( 'Statistics switch', 'hcaptcha-for-forms-and-more' )
+				),
+				sprintf(
+				/* translators: 1: Pro account link, 2: Pro account text. */
+					'<a href="%1$s" target="_blank">%2$s</a>',
+					$pro_url,
+					__( 'Pro account', 'hcaptcha-for-forms-and-more' )
+				)
+			);
+
+			?>
+			<div class="hcaptcha-events-sample-bg"></div>
+
+			<div class="hcaptcha-events-sample-text">
+				<p><?php esc_html_e( 'It is an example of the Events page.', 'hcaptcha-for-forms-and-more' ); ?></p>
+				<p><?php echo wp_kses_post( $message ); ?></p>
+			</div>
+			<?php
+
+			return;
+		}
+
+		?>
 		<div id="hcaptcha-events-chart">
 			<canvas id="eventsChart" aria-label="The hCaptcha Events Chart" role="img">
 				<p>

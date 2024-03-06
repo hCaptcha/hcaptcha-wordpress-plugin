@@ -226,6 +226,15 @@ class Main {
 	}
 
 	/**
+	 * Check if it is a Pro account.
+	 *
+	 * @return false
+	 */
+	public function is_pro(): bool {
+		return false;
+	}
+
+	/**
 	 * Whether we are on the Elementor Pro edit post/page and hCaptcha for Elementor Pro is active.
 	 *
 	 * @return bool

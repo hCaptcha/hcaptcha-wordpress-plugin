@@ -15,15 +15,14 @@
 }
 
 .hcaptcha-forms-sample-text {
-	background-color: rgb(92, 111, 138);
 	background-color: rgb(92, 111, 138, 0.8);
 	color: #f0f2f5;
-	border: 3px solid #f1f1f1;
+	border: 3px solid #f0f2f5;
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	z-index: 2;
+	z-index: 1;
 	width: 80%;
 	padding: 20px;
 	text-align: center;
