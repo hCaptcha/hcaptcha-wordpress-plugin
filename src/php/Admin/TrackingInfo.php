@@ -183,7 +183,17 @@ class TrackingInfo {
 		$tracking_info['Pro']        = hcaptcha()->is_pro();
 		$tracking_info['Site key']   = $this->is_empty( $settings->get_site_key() );
 		$tracking_info['Secret key'] = $this->is_empty( $settings->get_secret_key() );
-		$tracking_info['Multisite']  = is_multisite() ? 'Yes' : 'No';
+		$tracking_info['Multisite']  = is_multisite();
+		$tracking_info['Enterprise'] = (
+			! empty( $settings->get( 'api_host' ) ) ||
+			! empty( $settings->get( 'asset_host' ) ) ||
+			! empty( $settings->get( 'endpoint' ) ) ||
+			! empty( $settings->get( 'host' ) ) ||
+			! empty( $settings->get( 'image_host' ) ) ||
+			! empty( $settings->get( 'report_api' ) ) ||
+			! empty( $settings->get( 'sentry' ) ) ||
+			! empty( $settings->get( 'backend' ) )
+		);
 
 		return $tracking_info;
 	}
