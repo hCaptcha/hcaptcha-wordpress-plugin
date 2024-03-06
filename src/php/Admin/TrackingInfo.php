@@ -51,7 +51,7 @@ class TrackingInfo {
 	 * @return void
 	 */
 	private function init_hooks() {
-		add_action( 'send_tracking_info', [ $this, 'send_tracking_info' ] );
+		add_action( 'hcap_send_tracking_info', [ $this, 'send_tracking_info' ] );
 	}
 
 	/**
