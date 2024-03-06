@@ -50,6 +50,13 @@ class FormsPage extends PluginSettingsBase {
 	private $unit;
 
 	/**
+	 * Statistics is on.
+	 *
+	 * @var bool
+	 */
+	private $statistics = false;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -91,6 +98,12 @@ class FormsPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function admin_init() {
+		$this->statistics = hcaptcha()->settings()->is_on( 'statistics' );
+
+		if ( ! $this->statistics ) {
+			return;
+		}
+
 		$this->list_table = new FormsTable();
 
 		$this->list_table->prepare_items();
@@ -102,6 +115,17 @@ class FormsPage extends PluginSettingsBase {
 	 * Enqueue class scripts.
 	 */
 	public function admin_enqueue_scripts() {
+		wp_enqueue_style(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/forms$this->min_prefix.css",
+			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		if ( ! $this->statistics ) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'chart',
 			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chart.umd.min.js',
@@ -135,13 +159,6 @@ class FormsPage extends PluginSettingsBase {
 				'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
-
-		wp_enqueue_style(
-			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/forms$this->min_prefix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
-			constant( 'HCAPTCHA_VERSION' )
-		);
 	}
 
 	/**
@@ -154,6 +171,35 @@ class FormsPage extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
+		<?php
+
+		if ( ! $this->statistics ) {
+			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
+
+			$message = sprintf(
+			/* translators: 1: Statistics link. */
+				__( 'Want to see forms statistics? Please turn on the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				sprintf(
+					'<a href="%1$s" target="_blank">%2$s</a>',
+					$statistics_url,
+					__( 'Statistics switch on the General settings page', 'hcaptcha-for-forms-and-more' )
+				)
+			);
+			?>
+
+			<p><?php echo wp_kses_post( $message ); ?></p>
+			<p><?php esc_html_e( 'Below is an example of an active forms page.', 'hcaptcha-for-forms-and-more' ); ?></p>
+			<img
+					class="hcaptcha-forms-sample"
+					src="<?php echo esc_url( HCAPTCHA_URL . '/assets/images/forms-page.jpg' ); ?>"
+					alt="Sample Forms Page">
+			<?php
+
+			return;
+		}
+
+		?>
+
 		<div id="hcaptcha-forms-chart">
 			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
