@@ -109,7 +109,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	public function get_system_info(): string {
+	private function get_system_info(): string {
 		$data = $this->header( '### Begin System Info ###' );
 
 		$data .= $this->hcaptcha_info();
@@ -222,7 +222,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function get_integrations(): array {
+	public function get_integrations(): array {
 		$tabs = hcaptcha()->settings()->get_tabs();
 
 		$tabs = array_filter(

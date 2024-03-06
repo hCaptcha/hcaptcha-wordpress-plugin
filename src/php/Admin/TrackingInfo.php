@@ -128,7 +128,7 @@ class TrackingInfo {
 			return [];
 		}
 
-		$system_info   = explode( "\n", $system_info_obj->get_system_info() );
+		$system_info   = explode( "\n", $system_info_obj->integration_info() );
 		$tracking_info = [];
 		$current_root  = & $tracking_info;
 		$header1       = '';
@@ -175,6 +175,27 @@ class TrackingInfo {
 			$current_root[ $key ] = trim( $value );
 		}
 
+		$settings = hcaptcha()->settings();
+
+		$tracking_info = $tracking_info[''];
+
+		$tracking_info['hCaptcha']   = HCAPTCHA_VERSION;
+		$tracking_info['Pro']        = hcaptcha()->is_pro();
+		$tracking_info['Site key']   = $this->is_empty( $settings->get_site_key() );
+		$tracking_info['Secret key'] = $this->is_empty( $settings->get_secret_key() );
+		$tracking_info['Multisite']  = is_multisite() ? 'Yes' : 'No';
+
 		return $tracking_info;
+	}
+
+	/**
+	 * Return whether data is empty.
+	 *
+	 * @param mixed $data Data.
+	 *
+	 * @return string
+	 */
+	private function is_empty( $data ): string {
+		return empty( $data ) ? 'Not set' : 'Set';
 	}
 }
