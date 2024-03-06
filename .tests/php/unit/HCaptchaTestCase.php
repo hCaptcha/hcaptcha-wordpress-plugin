@@ -680,6 +680,32 @@ abstract class HCaptchaTestCase extends TestCase {
 				'step'    => 100,
 				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
 			],
+			'statistics'               => [
+				'label'   => 'Statistics',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Enable Statistics',
+				],
+				'helper'  => 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.',
+			],
+			'collect_ip'               => [
+				'label'   => 'Collection',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Collect IP',
+				],
+				'helper'  => 'Allow collecting of IP addresses from which forms were sent.',
+			],
+			'collect_ua'               => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Collect User Agent',
+				],
+				'helper'  => 'Allow collecting of User Agent headers of users sending forms.',
+			],
 		];
 
 		if ( ! ( function_exists( 'is_multisite' ) && is_multisite() ) ) {
