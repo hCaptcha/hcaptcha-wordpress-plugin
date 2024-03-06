@@ -503,13 +503,30 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'statistics'           => [
-				'label'   => __( 'Statistics Settings', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Statistics', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_STATISTICS,
 				'options' => [
 					'on' => __( 'Enable Statistics', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'collect_ip'           => [
+				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Collect IP', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Allow collecting of IP addresses from which forms were sent.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'collect_ua'           => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Collect User Agent', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Allow collecting of User Agent headers of users sending forms.', 'hcaptcha-for-forms-and-more' ),
 			],
 		];
 
