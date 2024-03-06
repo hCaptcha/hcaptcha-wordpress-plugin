@@ -185,21 +185,20 @@ class FormsPage extends PluginSettingsBase {
 					__( 'Statistics switch on the General settings page', 'hcaptcha-for-forms-and-more' )
 				)
 			);
-			?>
 
-			<p><?php echo wp_kses_post( $message ); ?></p>
-			<p><?php esc_html_e( 'Below is an example of an active forms page.', 'hcaptcha-for-forms-and-more' ); ?></p>
-			<img
-					class="hcaptcha-forms-sample"
-					src="<?php echo esc_url( HCAPTCHA_URL . '/assets/images/forms-page.jpg' ); ?>"
-					alt="Sample Forms Page">
+			?>
+			<div class="hcaptcha-forms-sample-bg"></div>
+
+			<div class="hcaptcha-forms-sample-text">
+				<p><?php esc_html_e( 'It is an example of a forms page.', 'hcaptcha-for-forms-and-more' ); ?></p>
+				<p><?php echo wp_kses_post( $message ); ?></p>
+			</div>
 			<?php
 
 			return;
 		}
 
 		?>
-
 		<div id="hcaptcha-forms-chart">
 			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
