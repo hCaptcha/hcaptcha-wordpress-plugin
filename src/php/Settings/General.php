@@ -70,6 +70,11 @@ class General extends PluginSettingsBase {
 	const SECTION_OTHER = 'other';
 
 	/**
+	 * Statistics section id.
+	 */
+	const SECTION_STATISTICS = 'statistics';
+
+	/**
 	 * Live mode.
 	 */
 	const MODE_LIVE = 'live';
@@ -497,6 +502,15 @@ class General extends PluginSettingsBase {
 				'step'    => 100,
 				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'statistics'           => [
+				'label'   => __( 'Statistics Settings', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Enable Statistics', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
+			],
 		];
 
 		if ( ! is_multisite() ) {
@@ -551,6 +565,9 @@ class General extends PluginSettingsBase {
 				break;
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			case self::SECTION_STATISTICS:
+				$this->print_section_header( $arguments['id'], __( 'Statistics', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			default:
 				break;
