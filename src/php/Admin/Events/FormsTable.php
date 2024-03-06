@@ -1,6 +1,6 @@
 <?php
 /**
- * ListTable class file.
+ * FormsTable class file.
  *
  * @package hcaptcha-wp
  */
@@ -22,23 +22,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 
 /**
- * List events in the table.
+ * List forms in the table.
  */
-class ListTable extends WP_List_Table {
+class FormsTable extends WP_List_Table {
 
 	/**
-	 * Number of events to show per page.
+	 * Number of forms to show per page.
 	 *
 	 * @var int
 	 */
 	public $per_page = 20;
 
 	/**
-	 * Date and time formats.
+	 * Served events.
 	 *
 	 * @var array
 	 */
-	private $datetime_format = [];
+	public $served = [];
 
 	/**
 	 * Columns.
@@ -60,9 +60,9 @@ class ListTable extends WP_List_Table {
 	public function __construct() {
 		parent::__construct(
 			[
-				'singular' => 'event',
-				'plural'   => 'events',
-				'screen'   => 'events',
+				'singular' => 'form',
+				'plural'   => 'forms',
+				'screen'   => 'forms',
 			]
 		);
 
@@ -75,18 +75,10 @@ class ListTable extends WP_List_Table {
 	 * @return void
 	 */
 	public function init() {
-		$this->datetime_format = [
-			'date' => get_option( 'date_format' ),
-			'time' => get_option( 'time_format' ),
-		];
-
 		$this->columns = [
-			'source'      => __( 'Source', 'hcaptcha-for-forms-and-more' ),
-			'form_id'     => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
-			'ip'          => __( 'IP', 'hcaptcha-for-forms-and-more' ),
-			'user_agent'  => __( 'User Agent', 'hcaptcha-for-forms-and-more' ),
-			'error_codes' => __( 'Errors', 'hcaptcha-for-forms-and-more' ),
-			'date_gmt'    => __( 'Date', 'hcaptcha-for-forms-and-more' ),
+			'source'  => __( 'Source', 'hcaptcha-for-forms-and-more' ),
+			'form_id' => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
+			'served'  => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 		];
 
 		$this->plugins = get_plugins();
@@ -109,9 +101,9 @@ class ListTable extends WP_List_Table {
 	public function get_sortable_columns(): array {
 
 		return [
-			'source'   => [ 'source', false ],
-			'form_id'  => [ 'form_id', false ],
-			'date_gmt' => [ 'date_gmt', false ],
+			'source'  => [ 'source', false ],
+			'form_id' => [ 'form_id', false ],
+			'served'  => [ 'served', false ],
 		];
 	}
 
@@ -125,24 +117,23 @@ class ListTable extends WP_List_Table {
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$paged   = isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1;
-		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'DESC';
-		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date_gmt';
+		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'ASC';
+		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'source';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$column_slugs = array_keys( $this->columns );
-		$per_page     = $this->get_items_per_page( 'hcaptcha_events_per_page', $this->per_page );
-		$offset       = ( $paged - 1 ) * $per_page;
-		$args         = [
-			'columns' => $column_slugs,
+		$per_page = $this->get_items_per_page( 'hcaptcha_forms_per_page', $this->per_page );
+		$offset   = ( $paged - 1 ) * $per_page;
+		$args     = [
 			'offset'  => $offset,
 			'limit'   => $per_page,
 			'order'   => $order,
 			'orderby' => $orderby,
 		];
 
-		$events      = Events::get_events( $args );
-		$this->items = $events['items'];
-		$total_items = $events['total'];
+		$forms        = Events::get_forms( $args );
+		$this->items  = $forms['items'];
+		$this->served = $forms['served'];
+		$total_items  = $forms['total'];
 
 		$this->set_pagination_args(
 			[
@@ -178,60 +169,6 @@ class ListTable extends WP_List_Table {
 		unset( $slug );
 
 		return $this->excerpt( implode( ', ', $source ), 15 );
-	}
-
-	/**
-	 * Column User Agent.
-	 *
-	 * @param object $item Item.
-	 *
-	 * @noinspection PhpUnused PhpUnused.
-	 */
-	protected function column_user_agent( $item ): string {
-		return $this->excerpt( $item->user_agent );
-	}
-
-	/**
-	 * Column Error Codes.
-	 *
-	 * @param object $item Item.
-	 *
-	 * @noinspection PhpUnused PhpUnused.
-	 */
-	protected function column_error_codes( $item ): string {
-		$error_codes = (array) json_decode( $item->error_codes, true );
-		$errors      = hcap_get_error_messages();
-		$message_arr = [];
-
-		foreach ( $error_codes as $error_code ) {
-			if ( array_key_exists( $error_code, $errors ) ) {
-				$message_arr[] = $errors[ $error_code ];
-			}
-		}
-
-		if ( ! $message_arr ) {
-			return '';
-		}
-
-		return $this->excerpt( implode( '; ', $message_arr ) );
-	}
-
-	/**
-	 * Column Date.
-	 *
-	 * @param object $item Item.
-	 *
-	 * @noinspection PhpUnused PhpUnused.
-	 */
-	protected function column_date_gmt( $item ): string {
-		$date    = $item->date_gmt;
-		$wp_date = wp_date( $this->datetime_format['date'] . ' ' . $this->datetime_format['time'], strtotime( $date ) );
-
-		return sprintf(
-			'<time datetime="%s">%s</time>',
-			esc_attr( $date ),
-			esc_html( $wp_date )
-		);
 	}
 
 	/**

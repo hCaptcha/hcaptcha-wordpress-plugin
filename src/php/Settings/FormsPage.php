@@ -1,6 +1,6 @@
 <?php
 /**
- * EventsPage class file.
+ * FormsPage class file.
  *
  * @package hcaptcha-wp
  */
@@ -8,45 +8,39 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Events\EventsTable;
+use HCaptcha\Admin\Events\FormsTable;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
- * Class EventsPage
+ * Class FormsPage
  *
- * Settings page "Events".
+ * Settings page "Forms".
  */
-class EventsPage extends PluginSettingsBase {
+class FormsPage extends PluginSettingsBase {
 
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-events';
+	const HANDLE = 'hcaptcha-forms';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaEventsObject';
+	const OBJECT = 'HCaptchaFormsObject';
 
 	/**
 	 * ListTable instance.
 	 *
-	 * @var EventsTable
+	 * @var FormsTable
 	 */
 	private $list_table;
 
 	/**
-	 * Succeed events.
+	 * Served events.
 	 *
 	 * @var array
 	 */
-	private $succeed;
-
-	/**
-	 * Failed events.
-	 *
-	 * @var array
-	 */
-	private $failed;
+	private $served;
 
 	/**
 	 * Chart time unit.
@@ -61,7 +55,7 @@ class EventsPage extends PluginSettingsBase {
 	 * @return string
 	 */
 	protected function page_title(): string {
-		return __( 'Events', 'hcaptcha-for-forms-and-more' );
+		return __( 'Forms', 'hcaptcha-for-forms-and-more' );
 	}
 
 	/**
@@ -70,7 +64,7 @@ class EventsPage extends PluginSettingsBase {
 	 * @return string
 	 */
 	protected function section_title(): string {
-		return 'events';
+		return 'forms';
 	}
 
 	/**
@@ -79,7 +73,7 @@ class EventsPage extends PluginSettingsBase {
 	 * @return string
 	 */
 	protected function tab_name(): string {
-		return 'events';
+		return 'forms';
 	}
 
 	/**
@@ -97,7 +91,7 @@ class EventsPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function admin_init() {
-		$this->list_table = new EventsTable();
+		$this->list_table = new FormsTable();
 
 		$this->list_table->prepare_items();
 
@@ -126,7 +120,7 @@ class EventsPage extends PluginSettingsBase {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/events$this->min_prefix.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/forms$this->min_prefix.js",
 			[ 'chart', 'chart-adapter-date-fns' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
@@ -136,17 +130,15 @@ class EventsPage extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'succeed'      => $this->succeed,
-				'failed'       => $this->failed,
-				'unit'         => $this->unit,
-				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
-				'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
+				'served'      => $this->served,
+				'unit'        => $this->unit,
+				'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
 		wp_enqueue_style(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/events$this->min_prefix.css",
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/forms$this->min_prefix.css",
 			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
@@ -162,14 +154,14 @@ class EventsPage extends PluginSettingsBase {
 		<h2>
 			<?php echo esc_html( $this->page_title() ); ?>
 		</h2>
-		<div id="hcaptcha-events-chart">
-			<canvas id="eventsChart" aria-label="The hCaptcha Events Chart" role="img">
+		<div id="hcaptcha-forms-chart">
+			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
 					<?php esc_html_e( 'Your browser does not support the canvas element.', 'hcaptcha-for-forms-and-more' ); ?>
 				</p>
 			</canvas>
 		</div>
-		<div id="hcaptcha-events-wrap">
+		<div id="hcaptcha-forms-wrap">
 			<?php
 			$this->list_table->display();
 			?>
@@ -183,10 +175,9 @@ class EventsPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function prepare_chart_data() {
-		$this->succeed = [];
-		$this->failed  = [];
+		$this->served = [];
 
-		if ( ! $this->list_table->items ) {
+		if ( ! $this->list_table->served ) {
 			return;
 		}
 
@@ -194,7 +185,7 @@ class EventsPage extends PluginSettingsBase {
 		$max_time   = 0;
 		$min_time   = PHP_INT_MAX;
 
-		foreach ( $this->list_table->items as $item ) {
+		foreach ( $this->list_table->served as $item ) {
 			$time     = strtotime( $item->date_gmt ) + $gmt_offset;
 			$max_time = max( $time, $max_time );
 			$min_time = min( $time, $min_time );
@@ -221,28 +212,14 @@ class EventsPage extends PluginSettingsBase {
 			}
 		}
 
-		if ( $time_diff < MINUTE_IN_SECONDS ) {
-			$date_format = 'Y-m-d H:i:s';
-		} elseif ( $time_diff < DAY_IN_SECONDS ) {
-			$date_format = 'Y-m-d H:i';
-		} else {
-			$date_format = 'Y-m-d';
-		}
+		$date_format = 'Y-m-d';
 
-		foreach ( $this->list_table->items as $item ) {
-			$time_gmt = strtotime( $item->date_gmt );
+		foreach ( $this->list_table->served as $item ) {
+			$time_gmt              = strtotime( $item->date_gmt );
+			$date                  = wp_date( $date_format, $time_gmt );
+			$this->served[ $date ] = $this->served[ $date ] ?? 0;
 
-			$date    = wp_date( $date_format, $time_gmt );
-			$success = '[]' === $item->error_codes;
-
-			$this->succeed[ $date ] = $this->succeed[ $date ] ?? 0;
-			$this->failed[ $date ]  = $this->failed[ $date ] ?? 0;
-
-			if ( $success ) {
-				++$this->succeed[ $date ];
-			} else {
-				++$this->failed[ $date ];
-			}
+			++$this->served[ $date ];
 		}
 	}
 }
