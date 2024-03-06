@@ -14,7 +14,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			datasets: [
 				{
 					label: HCaptchaFormsObject.servedLabel,
-					backgroundColor: '#026593',
+					backgroundColor: 'rgba(2,101,147,0.5)',
 					data: HCaptchaFormsObject.served,
 					barThickness: 'flex',
 					borderWidth: 1,
