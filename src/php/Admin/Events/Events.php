@@ -57,10 +57,21 @@ class Events {
 			return $result;
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : '';
-		$info       = HCaptcha::decode_id_info();
-		$ip         = (string) hcap_get_user_ip();
+		$settings   = hcaptcha()->settings();
+		$ip         = '';
+		$user_agent = '';
+		$uuid       = '';
+
+		if ( $settings->is_on( 'collect_ua' ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : '';
+		}
+
+		if ( $settings->is_on( 'collect_ip' ) ) {
+			$ip = (string) hcap_get_user_ip();
+		}
+
+		$info = HCaptcha::decode_id_info();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->insert(
@@ -70,7 +81,7 @@ class Events {
 				'form_id'     => $info['id']['form_id'],
 				'ip'          => $ip,
 				'user_agent'  => $user_agent,
-				'uuid'        => '',
+				'uuid'        => $uuid,
 				'error_codes' => (string) wp_json_encode( $error_codes ),
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
