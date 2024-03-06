@@ -35,6 +35,10 @@ class Events {
 	 * @return void
 	 */
 	private function init_hooks() {
+		if ( ! hcaptcha()->settings()->is_on( 'statistics' ) ) {
+			return;
+		}
+
 		add_action( 'hcap_verify_request', [ $this, 'save_event' ], - PHP_INT_MAX, 2 );
 	}
 
