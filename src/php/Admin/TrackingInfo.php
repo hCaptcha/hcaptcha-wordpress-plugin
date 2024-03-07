@@ -22,7 +22,7 @@ class TrackingInfo {
 	/**
 	 * Event name.
 	 */
-	const NAME = 'wp-plugin-tracking-info';
+	const NAME = 'pageview';
 
 	/**
 	 * Report domain.
@@ -61,25 +61,26 @@ class TrackingInfo {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function send_tracking_info() {
-		global $wp_version;
-
 		$tracking_info = $this->get_tracking_info();
 
+		$url     = self::EVENT_API;
 		$headers = [
-			'Content-Type' => 'application/json; charset=utf-8',
-			'User-Agent'   => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'Content-Type'    => 'application/json',
+			'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+			'X-Forwarded-For' => hcap_get_user_ip() ?: '127.0.0.1',
 		];
+		$domain  = self::DOMAIN;
 		$params  = [
+			'd'     => $domain, // Domain.
 			'n'     => self::NAME, // Name.
-			'd'     => self::DOMAIN, // Domain.
-			'u'     => home_url(), // URL.
+			'u'     => home_url( 'tracking-info' ), // URL.
 			'r'     => null, // Referer.
 			'w'     => 1024, // Some window inner width.
 			'props' => $tracking_info, // Info.
 		];
 
 		$result = wp_remote_post(
-			self::EVENT_API,
+			$url,
 			[
 				'headers' => $headers,
 				'body'    => wp_json_encode( $params ),
@@ -97,6 +98,8 @@ class TrackingInfo {
 		if ( is_wp_error( $result ) ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( $message . $result->get_error_message() );
+
+			return;
 		}
 
 		$code = $result['response']['code'] ?? 0;
