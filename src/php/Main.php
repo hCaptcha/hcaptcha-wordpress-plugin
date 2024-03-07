@@ -292,11 +292,17 @@ class Main {
 	 */
 	public function csp_headers( $headers ): array {
 		$headers       = (array) $headers;
+		$keys_lower    = array_map( 'strtolower', array_keys( $headers ) );
 		$csp_key       = 'Content-Security-Policy';
 		$csp_key_lower = strtolower( $csp_key );
-		$hcap_src      = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
-		$hcap_csp      = "script-src $hcap_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
-		$hcap_csp_arr  = $this->parse_csp( $hcap_csp );
+
+		if ( ! in_array( $csp_key_lower, $keys_lower, true ) ) {
+			return $headers;
+		}
+
+		$hcap_src     = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
+		$hcap_csp     = "script-src $hcap_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
+		$hcap_csp_arr = $this->parse_csp( $hcap_csp );
 
 		foreach ( $headers as $key => $header ) {
 			if ( strtolower( $key ) === $csp_key_lower ) {
@@ -347,7 +353,7 @@ class Main {
 	 */
 	private function merge_csp( array $csp_arr1, array $csp_arr2 ): array {
 		$csp  = [];
-		$keys = array_merge( array_keys( $csp_arr1 ), array_keys( $csp_arr1 ) );
+		$keys = array_unique( array_merge( array_keys( $csp_arr1 ), array_keys( $csp_arr2 ) ) );
 
 		foreach ( $keys as $key ) {
 			$csp1        = $csp_arr1[ $key ] ?? [];

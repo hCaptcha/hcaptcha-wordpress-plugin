@@ -408,7 +408,10 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_csp_headers() {
-		$headers  = [ 'some_header' => 'some header content' ];
+		$headers  = [
+			'some_header'             => 'some header content',
+			'Content-Security-Policy' => "default-src 'self'",
+		];
 		$expected = $headers;
 		$hcap_csp = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
 
@@ -416,7 +419,8 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			"script-src $hcap_csp; " .
 			"frame-src $hcap_csp; " .
 			"style-src $hcap_csp; " .
-			"connect-src $hcap_csp";
+			"connect-src $hcap_csp; " .
+			"default-src 'self'";
 
 		$subject = new Main();
 
