@@ -41,6 +41,8 @@ use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Admin\TrackingInfo;
+use HCaptcha\Admin\Events\Events;
 
 /**
  * Test Main class.
@@ -1063,10 +1065,13 @@ JS;
 
 		// Test with hCaptcha plugin not active.
 		$subject->load_modules();
-		$expected_loaded_classes = [];
+		$expected_loaded_classes = [
+			TrackingInfo::class,
+			Events::class,
+		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
-		self::assertSame( $expected_loaded_classes, $loaded_classes );
+		self::assertSame( $expected_loaded_classes, array_keys( $loaded_classes ) );
 
 		// Activate hCaptcha.
 		$activate = true;
@@ -1095,7 +1100,7 @@ JS;
 
 		$loaded_classes = $this->get_protected_property( $subject, 'loaded_classes' );
 
-		self::assertSame( $expected_loaded_classes, $loaded_classes );
+		self::assertSame( $expected_loaded_classes, array_keys( $loaded_classes ) );
 
 		array_walk(
 			$component,

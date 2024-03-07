@@ -83,7 +83,7 @@ class Main {
 	public $modules = [];
 
 	/**
-	 * Loaded classes.
+	 * Loaded integration-related classes.
 	 *
 	 * @var array
 	 */
@@ -145,8 +145,8 @@ class Main {
 			]
 		);
 
-		new TrackingInfo();
-		new Events();
+		$this->load( TrackingInfo::class );
+		$this->load( Events::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
@@ -178,6 +178,17 @@ class Main {
 	 */
 	public function get( string $class_name ) {
 		return $this->loaded_classes[ $class_name ] ?? null;
+	}
+
+	/**
+	 * Load a service class.
+	 *
+	 * @param string $class_name Class name.
+	 *
+	 * @return void
+	 */
+	private function load( string $class_name ) {
+		$this->loaded_classes[ $class_name ] = new $class_name();
 	}
 
 	/**
