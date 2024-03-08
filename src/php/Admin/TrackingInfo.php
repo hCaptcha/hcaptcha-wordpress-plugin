@@ -131,13 +131,13 @@ class TrackingInfo {
 			return [];
 		}
 
-		$system_info   = explode( "\n", $system_info_obj->integration_info() );
-		$tracking_info = [];
-		$current_root  = & $tracking_info;
-		$header1       = '';
-		$array_name    = '';
+		$integration_info = explode( "\n", $system_info_obj->integration_info() );
+		$integrations     = [];
+		$current_root     = &$integrations;
+		$header1          = '';
+		$array_name       = '';
 
-		foreach ( $system_info as $item ) {
+		foreach ( $integration_info as $item ) {
 			if ( ! $item || 0 === strpos( $item, '### ' ) ) {
 				continue;
 			}
@@ -145,9 +145,9 @@ class TrackingInfo {
 			if ( 0 === strpos( $item, '-- ' ) ) {
 				$header1 = preg_replace( '/-- (.+) --/', '$1', $item );
 
-				$tracking_info[ $header1 ] = [];
+				$integrations[ $header1 ] = [];
 
-				$current_root = & $tracking_info[ $header1 ];
+				$current_root = & $integrations[ $header1 ];
 
 				continue;
 			}
@@ -155,9 +155,9 @@ class TrackingInfo {
 			if ( 0 === strpos( $item, '--- ' ) ) {
 				$header2 = preg_replace( '/--- (.+) ---/', '$1', $item );
 
-				$tracking_info[ $header1 ][ $header2 ] = [];
+				$integrations[ $header1 ][ $header2 ] = [];
 
-				$current_root = & $tracking_info[ $header1 ][ $header2 ];
+				$current_root = & $integrations[ $header1 ][ $header2 ];
 
 				continue;
 			}
@@ -180,8 +180,31 @@ class TrackingInfo {
 
 		$settings = hcaptcha()->settings();
 
-		$tracking_info = $tracking_info[''];
+		$integrations  = $integrations[''];
+		$tracking_info = [];
 
+		$tracking_info = array_merge(
+			$tracking_info,
+			array_fill_keys( array_keys( $integrations['Active plugins and themes'] ), 'Active' )
+		);
+		$tracking_info = array_merge(
+			$tracking_info,
+			array_fill_keys( array_keys( $integrations['Inactive plugins and themes'] ), 'Inactive' )
+		);
+		$integrations  = array_merge(
+			$integrations['Active plugins and themes'],
+			$integrations['Inactive plugins and themes']
+		);
+
+		$flat_integrations = [];
+
+		foreach ( $integrations as $integration => $forms ) {
+			foreach ( $forms as $key => $value ) {
+				$flat_integrations[ $integration . ': ' . $key ] = $value;
+			}
+		}
+
+		$tracking_info               = array_merge( $tracking_info, $flat_integrations );
 		$tracking_info['hCaptcha']   = HCAPTCHA_VERSION;
 		$tracking_info['Pro']        = hcaptcha()->is_pro();
 		$tracking_info['Site key']   = $this->is_empty( $settings->get_site_key() );
