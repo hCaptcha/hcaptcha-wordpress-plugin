@@ -22,7 +22,7 @@ class TrackingInfo {
 	/**
 	 * Event name.
 	 */
-	const NAME = 'pageview';
+	const NAME = 'tracking-info';
 
 	/**
 	 * Report domain.
@@ -73,7 +73,7 @@ class TrackingInfo {
 		$params  = [
 			'd'     => $domain, // Domain.
 			'n'     => self::NAME, // Name.
-			'u'     => home_url( 'tracking-info' ), // URL.
+			'u'     => home_url( self::NAME ), // URL.
 			'r'     => null, // Referer.
 			'w'     => 1024, // Some window inner width.
 			'props' => $tracking_info, // Info.
