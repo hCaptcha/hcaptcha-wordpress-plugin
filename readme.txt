@@ -65,21 +65,21 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 
 Full list of arguments:
 
-```
+`
 [hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" size="normal|compact|invisible"]
-```
+`
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
-```
+`
 [hcaptcha action="my_hcap_action" name="my_hcap_name"]
-```
+`
 
 and in the verification:
 
-```
+`
 $result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
-```
+`
 
 For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, `auto="false"`.
 
@@ -93,17 +93,17 @@ First, add the hCaptcha snippet to the form.
 
 If you create the form as an HTML block in the post content, insert the shortcode `[hcaptcha]` inside it. It may look like this:
 
-```
+`
 <form method="post">
 	<input type="text" name="test_input">
 	<input type="submit" value="Send">
     [hcaptcha]
 </form>
-```
+`
 
 If you create the form programmatically, insert the following statement inside it:
 
-```
+`
 ?>
 <form method="post">
 	<input type="text" name="test_input">
@@ -111,26 +111,26 @@ If you create the form programmatically, insert the following statement inside i
     <?php echo do_shortcode( '[hcaptcha]' ); ?>
 </form>
 <?php
-```
+`
 
 Secondly, verify the result of hCaptcha challenge.
 
-```
+`
 $result = hcaptcha_verify_post();
 
 if ( null !== $result ) {
     echo esc_html( $result );
     // Block processing of the form.
 }
-```
+`
 
 = How to automatically verify an arbitrary form =
 
 Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"` to the shortcode:
 
-```
+`
 [hcaptcha auto="true"]
-```
+`
 
 and insert this shortcode into your form.
 
@@ -138,15 +138,15 @@ Auto-verification works with forms sent by POST on frontend only. It works with 
 
 You can add also `force="true"` or `force="1"` argument to prevent sending a form without checking the hCaptcha.
 
-```
+`
 [hcaptcha auto="true" force="true"]
-```
+`
 
 = How to block hCaptcha on a specific page? =
 
 hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add the following code to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
-```
+`
 /**
 * Filter hCaptcha activation flag.
 *
@@ -167,7 +167,7 @@ function my_hcap_activate( $activate ) {
 }
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
-```
+`
 
 = Skipping hCaptcha verification on a specific form =
 
@@ -313,7 +313,7 @@ WooCommerce
 
 Below is an example of how to skip the hCaptcha widget on a Gravity Form with id = 1.
 
-```
+`
 /**
  * Filters the protection status of a form.
  *
@@ -339,7 +339,7 @@ function hcap_protect_form_filter( $value, $source, $form_id ) {
 }
 
 add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
-```
+`
 
 = How to show hCaptcha widget instantly? =
 
@@ -347,7 +347,7 @@ The plugin loads the hCaptcha script with a delay until user interaction: mousee
 
 To load the hCaptcha widget instantly, you can use the following filter:
 
-```
+`
 /**
 * Filters delay time for hCaptcha API script.
 *
@@ -363,13 +363,13 @@ function my_hcap_delay_api( $delay ) {
 }
 
 add_filter( 'hcap_delay_api', 'my_hcap_delay_api' );
-```
+`
 
 = How to set hCaptcha language programmatically? =
 
 hCaptcha defaults to using the user's language as reported by the browser. However, on multilingual sites you can override this to set the hCaptcha language to match the current page language. For this, you can use the following filter:
 
-```
+`
 /**
 * Filters hCaptcha language.
 *
@@ -383,13 +383,13 @@ function my_hcap_language( $language ) {
 }
 
 add_filter( 'hcap_language', 'my_hcap_language' );
-```
+`
 
 = How to whitelist certain IPs =
 
 You can use the following filter:
 
-```
+`
 /**
  * Filter user IP to check if it is whitelisted.
  * For whitelisted IPs, hCaptcha will not be shown.
@@ -415,7 +415,7 @@ function my_hcap_whitelist_ip( $whitelisted, $ip ) {
 }
 
 add_filter( 'hcap_whitelist_ip', 'my_hcap_whitelist_ip', 10, 2 );
-```
+`
 
 = Why isn't my WPForms Lite installation working? =
 
