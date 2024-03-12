@@ -552,9 +552,6 @@ class General extends PluginSettingsBase {
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
 				break;
-			case self::SECTION_STATISTICS:
-				$this->print_section_header( $arguments['id'], __( 'Statistics', 'hcaptcha-for-forms-and-more' ) );
-				break;
 			default:
 				break;
 		}
