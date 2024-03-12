@@ -569,8 +569,6 @@ Instructions for popular native integrations are below:
 * Tested with WordPress 6.5.
 * Tested with WooCommerce 8.6.
 * The minimum required WordPress version is now 5.1.
-* Added hCaptcha events statistics and Forms admin page.
-* Added Events admin page for Pro users.
 * Added Force hCaptcha check before submit feature.
 * Added Elementor Pro Login integration.
 * Added Login/Signup Popup integration.
