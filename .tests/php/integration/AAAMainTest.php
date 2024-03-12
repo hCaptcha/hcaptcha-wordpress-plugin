@@ -1067,7 +1067,6 @@ JS;
 		$subject->load_modules();
 		$expected_loaded_classes = [
 			TrackingInfo::class,
-			Events::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
