@@ -331,16 +331,4 @@ class Migrations {
 
 		return true;
 	}
-
-	/**
-	 * Migrate to 3.10.0
-	 *
-	 * @return bool|null
-	 * @noinspection PhpUnused
-	 */
-	protected function migrate_3_10_0() {
-		Events::create_table();
-
-		return true;
-	}
 }
