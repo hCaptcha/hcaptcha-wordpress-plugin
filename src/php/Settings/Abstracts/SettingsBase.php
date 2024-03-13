@@ -574,7 +574,7 @@ abstract class SettingsBase {
 	 */
 	private function tab_link( SettingsBase $tab ) {
 		$url    = menu_page_url( $this->option_page(), false );
-		$url    = add_query_arg( 'tab', strtolower( $tab->get_class_name() ), $url );
+		$url    = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
 		$active = $this->is_tab_active( $tab ) ? ' active' : '';
 
 		?>
@@ -610,7 +610,7 @@ abstract class SettingsBase {
 			return true;
 		}
 
-		return strtolower( $tab->get_class_name() ) === $current_tab_name;
+		return strtolower( $tab->tab_name() ) === $current_tab_name;
 	}
 
 	/**
@@ -816,7 +816,7 @@ abstract class SettingsBase {
 			$options_markup .= sprintf(
 				'<label for="%2$s_%7$s">' .
 				'<input id="%2$s_%7$s" name="%1$s[%2$s][]" type="%3$s" value="%4$s" %5$s %8$s />' .
-				' %6$s' .
+				'%6$s' .
 				'</label>' .
 				'<br/>',
 				esc_html( $this->option_name() ),
@@ -882,7 +882,7 @@ abstract class SettingsBase {
 			$options_markup .= sprintf(
 				'<label for="%2$s_%7$s">' .
 				'<input id="%2$s_%7$s" name="%1$s[%2$s]" type="%3$s" value="%4$s" %5$s %8$s />' .
-				' %6$s' .
+				'%6$s' .
 				'</label>' .
 				'<br/>',
 				esc_html( $this->option_name() ),

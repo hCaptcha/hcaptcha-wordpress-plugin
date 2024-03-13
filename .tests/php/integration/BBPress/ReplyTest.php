@@ -18,6 +18,8 @@ use WP_Error;
 
 /**
  * Test Reply class.
+ *
+ * @group bbpress
  */
 class ReplyTest extends HCaptchaPluginWPTestCase {
 
@@ -45,8 +47,16 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
-		$nonce    = wp_nonce_field( 'hcaptcha_bbp_reply', 'hcaptcha_bbp_reply_nonce', true, false );
-		$expected = $this->get_hcap_form() . $nonce;
+		$args = [
+			'action' => 'hcaptcha_bbp_reply',
+			'name'   => 'hcaptcha_bbp_reply_nonce',
+			'id'     => [
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'reply',
+			],
+		];
+
+		$expected = $this->get_hcap_form( $args );
 		$subject  = new Reply();
 
 		ob_start();

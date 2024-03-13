@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\GravityForms;
 
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Field;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -174,20 +175,27 @@ class FieldTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_field_input() {
 		$form_id  = 23;
+		$field_id = 'input_0';
+		$tabindex = 0;
 		$form     = [
 			'id' => $form_id,
 		];
 		$value    = '';
 		$entry    = null;
-		$nonce    = wp_nonce_field( Base::ACTION, Base::NONCE, true, false );
-		$expected = '		<div
-			class="h-captcha" id="input_0" data-tabindex="0"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false">
-		</div>
-		' . $nonce;
+		$args     = [
+			'action' => Base::ACTION,
+			'name'   => Base::NONCE,
+			'id'     => [
+				'source'  => [ 'gravityforms/gravityforms.php' ],
+				'form_id' => $form_id,
+			],
+		];
+		$search   = 'class="h-captcha"';
+		$expected = str_replace(
+			$search,
+			$search . ' id="' . $field_id . '" data-tabindex="' . $tabindex . '"',
+			$this->get_hcap_form( $args )
+		);
 
 		$subject = new Field();
 

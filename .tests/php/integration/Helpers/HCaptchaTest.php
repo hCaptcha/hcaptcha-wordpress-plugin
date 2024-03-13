@@ -19,7 +19,8 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test HCaptcha class.
  *
- * @group hcaptcha
+ * @group helpers
+ * @group helpers-hcaptcha
  */
 class HCaptchaTest extends HCaptchaWPTestCase {
 
@@ -53,7 +54,16 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 			'auto'   => $auto,
 		];
 
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), HCaptcha::form( $args ) );
+		self::assertSame(
+			$this->get_hcap_form(
+				[
+					'action' => $action,
+					'name'   => $name,
+					'auto'   => $auto,
+				]
+			),
+			HCaptcha::form( $args )
+		);
 	}
 
 	/**
@@ -80,7 +90,16 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		HCaptcha::form_display( $args );
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto ), ob_get_clean() );
+		self::assertSame(
+			$this->get_hcap_form(
+				[
+					'action' => $action,
+					'name'   => $name,
+					'auto'   => $auto,
+				]
+			),
+			ob_get_clean()
+		);
 
 		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
 
@@ -88,7 +107,17 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		HCaptcha::form_display( $args );
-		self::assertSame( $this->get_hcap_form( $action, $name, $auto, true ), ob_get_clean() );
+		self::assertSame(
+			$this->get_hcap_form(
+				[
+					'action' => $action,
+					'name'   => $name,
+					'auto'   => $auto,
+					'size'   => 'invisible',
+				]
+			),
+			ob_get_clean()
+		);
 	}
 
 	/**
@@ -207,5 +236,43 @@ JS;
 		ob_start();
 		HCaptcha::js_display( $js, false );
 		self::assertSame( $js . "\n", ob_get_clean() );
+	}
+
+	/**
+	 * Test get_hcap_locale().
+	 *
+	 * @param string $locale   Locale.
+	 * @param string $expected Expected value.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_hcap_locale
+	 */
+	public function test_get_hcap_locale( string $locale, string $expected ) {
+		add_filter(
+			'locale',
+			static function () use ( $locale ) {
+				return $locale;
+			}
+		);
+
+		self::assertSame( $expected, HCaptcha::get_hcap_locale() );
+	}
+
+	/**
+	 * Data provider for test_get_hcap_locale().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_hcap_locale(): array {
+		return [
+			[ 'en', 'en' ],
+			[ 'en_US', 'en' ],
+			[ 'en_UK', 'en' ],
+			[ 'zh_CN', 'zh-CN' ],
+			[ 'zh_SG', 'zh' ],
+			[ 'bal', 'ca' ],
+			[ 'hau', 'ha' ],
+			[ 'some', '' ],
+		];
 	}
 }

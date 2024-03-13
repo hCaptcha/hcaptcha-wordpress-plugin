@@ -1340,7 +1340,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
-				' </label><br/></fieldset>',
+				'</label><br/></fieldset>',
 			],
 			'Checkbox not checked'      => [
 				[
@@ -1356,7 +1356,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
-				' </label><br/></fieldset>',
+				'</label><br/></fieldset>',
 			],
 			'Checkbox checked'          => [
 				[
@@ -1372,7 +1372,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
-				' </label><br/></fieldset>',
+				'</label><br/></fieldset>',
 			],
 		];
 	}
@@ -1450,13 +1450,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id]" type="radio" value="0"   />' .
-				' green</label><br/>' .
+				'green</label><br/>' .
 				'<label for="some_id_2"><input id="some_id_2"' .
 				' name="hcaptcha_settings[some_id]" type="radio" value="1" checked="checked"  />' .
-				' yellow</label><br/>' .
+				'yellow</label><br/>' .
 				'<label for="some_id_3"><input id="some_id_3"' .
 				' name="hcaptcha_settings[some_id]" type="radio" value="2"   />' .
-				' red</label><br/></fieldset>',
+				'red</label><br/></fieldset>',
 			],
 		];
 	}

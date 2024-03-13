@@ -60,6 +60,7 @@ class Login extends LoginBase {
 		if ( hcaptcha()->settings()->is( 'paid_memberships_pro_status', 'login' ) ) {
 			ob_start();
 			$this->add_captcha();
+
 			$hcaptcha = (string) ob_get_clean();
 		}
 

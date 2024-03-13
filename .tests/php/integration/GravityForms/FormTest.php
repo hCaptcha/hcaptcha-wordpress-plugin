@@ -89,15 +89,25 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_add_captcha
 	 */
 	public function test_add_captcha( bool $is_admin ) {
-		$form = [
-			'id' => 23,
+		$form_id = 23;
+		$form    = [
+			'id' => $form_id,
 		];
 
 		if ( $is_admin ) {
 			$expected = '';
 			set_current_screen( 'edit-post' );
 		} else {
-			$expected = $this->get_hcap_form( Base::ACTION, Base::NONCE );
+			$expected = $this->get_hcap_form(
+				[
+					'action' => Base::ACTION,
+					'name'   => Base::NONCE,
+					'id'     => [
+						'source'  => [ 'gravityforms/gravityforms.php' ],
+						'form_id' => $form_id,
+					],
+				]
+			);
 		}
 
 		$subject = new Form();
@@ -125,11 +135,21 @@ class FormTest extends HCaptchaWPTestCase {
 		$hcaptcha_field = (object) [
 			'type' => 'hcaptcha',
 		];
+		$form_id        = 23;
 		$form           = [
-			'id'     => 23,
+			'id'     => $form_id,
 			'fields' => [],
 		];
-		$expected       = $this->get_hcap_form( Base::ACTION, Base::NONCE );
+		$expected       = $this->get_hcap_form(
+			[
+				'action' => Base::ACTION,
+				'name'   => Base::NONCE,
+				'id'     => [
+					'source'  => [ 'gravityforms/gravityforms.php' ],
+					'form_id' => $form_id,
+				],
+			]
+		);
 
 		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'embed' ] ] );
 		hcaptcha()->init_hooks();

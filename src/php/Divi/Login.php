@@ -57,6 +57,7 @@ class Login extends LoginBase {
 		// Check the login status, because class is always loading when Divi theme is active.
 		if ( hcaptcha()->settings()->is( 'divi_status', 'login' ) ) {
 			ob_start();
+
 			$this->add_captcha();
 			$hcaptcha = (string) ob_get_clean();
 		}
@@ -66,7 +67,7 @@ class Login extends LoginBase {
 		$signatures = (string) ob_get_clean();
 
 		$pattern     = '/(<p>[\s]*?<button)/';
-		$replacement = $hcaptcha . $signatures . "\n" . '$1';
+		$replacement = $hcaptcha . $signatures . "\n$1";
 
 		// Insert hCaptcha.
 		return preg_replace( $pattern, $replacement, $output );

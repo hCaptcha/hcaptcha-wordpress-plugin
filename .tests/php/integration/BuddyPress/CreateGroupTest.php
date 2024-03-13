@@ -17,7 +17,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
- * Test  CreateGroup.
+ * Test CreateGroup.
  *
  * @group bp
  */
@@ -45,12 +45,20 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_hcap_bp_group_form() {
-		$nonce    = wp_nonce_field( 'hcaptcha_bp_create_group', 'hcaptcha_bp_create_group_nonce', true, false );
+		$args     = [
+			'action' => 'hcaptcha_bp_create_group',
+			'name'   => 'hcaptcha_bp_create_group_nonce',
+			'id'     => [
+				'source'  => 'buddypress/bp-loader.php',
+				'form_id' => 'create_group',
+			],
+		];
 		$expected =
 			'<div class="hcap_buddypress_group_form">' .
-			$this->get_hcap_form() . $nonce .
+			$this->get_hcap_form( $args ) .
 			'</div>';
-		$subject  = new CreateGroup();
+
+		$subject = new CreateGroup();
 
 		ob_start();
 

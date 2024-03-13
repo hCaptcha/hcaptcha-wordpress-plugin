@@ -50,12 +50,20 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_captcha() {
+		$form_id    = 5;
 		$form_attrs = [
-			'job_id' => 5,
+			'job_id' => $form_id,
 		];
 		$html       = '<div class="awsm-job-form-group">' . "\n" . '<input type="submit">';
-		$nonce      = wp_nonce_field( Form::ACTION, Form::NONCE, true, false );
-		$expected   = '<div class="awsm-job-form-group">' . $this->get_hcap_form() . $nonce . "</div>\n" . $html;
+		$args       = [
+			'action' => Form::ACTION,
+			'name'   => Form::NONCE,
+			'id'     => [
+				'source'  => [ 'wp-job-openings/wp-job-openings.php' ],
+				'form_id' => $form_id,
+			],
+		];
+		$expected   = '<div class="awsm-job-form-group">' . $this->get_hcap_form( $args ) . "</div>\n" . $html;
 
 		$subject = new Form();
 

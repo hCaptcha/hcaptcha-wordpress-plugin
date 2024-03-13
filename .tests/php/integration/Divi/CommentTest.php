@@ -31,13 +31,23 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		$form_id     = '3075';
 		$output      = <<<HTML
 <form>
 	<button name="submit" type="submit" id="et_pb_submit" class="submit">Submit Comment</button>
-	<input type='hidden' name='comment_post_ID' value='3075' id='comment_post_ID' />
+	<input type='hidden' name='comment_post_ID' value='$form_id' id='comment_post_ID' />
 </form>
 HTML;
-		$hcap_form   = $this->get_hcap_form( Comment::ACTION, Comment::NONCE );
+		$hcap_form   = $this->get_hcap_form(
+			[
+				'action' => Comment::ACTION,
+				'name'   => Comment::NONCE,
+				'id'     => [
+					'source'  => [ 'Divi' ],
+					'form_id' => $form_id,
+				],
+			]
+		);
 		$expected    = str_replace( '<button', $hcap_form . "\n<button", $output );
 		$module_slug = 'et_pb_comments';
 

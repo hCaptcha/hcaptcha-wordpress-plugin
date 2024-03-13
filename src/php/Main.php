@@ -79,7 +79,7 @@ class Main {
 	public $modules = [];
 
 	/**
-	 * Loaded classes.
+	 * Loaded integration-related classes.
 	 *
 	 * @var array
 	 */
@@ -172,6 +172,17 @@ class Main {
 	}
 
 	/**
+	 * Load a service class.
+	 *
+	 * @param string $class_name Class name.
+	 *
+	 * @return void
+	 */
+	private function load( string $class_name ) {
+		$this->loaded_classes[ $class_name ] = new $class_name();
+	}
+
+	/**
 	 * Get Settings instance.
 	 *
 	 * @return Settings
@@ -214,6 +225,15 @@ class Main {
 		 * @param bool $activate Activate the hcaptcha functionality.
 		 */
 		return (bool) apply_filters( 'hcap_activate', $activate );
+	}
+
+	/**
+	 * Check if it is a Pro account.
+	 *
+	 * @return false
+	 */
+	public function is_pro(): bool {
+		return false;
 	}
 
 	/**
@@ -273,19 +293,77 @@ class Main {
 	 * @return array
 	 */
 	public function csp_headers( $headers ): array {
-		$headers  = (array) $headers;
-		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
+		$headers       = (array) $headers;
+		$keys_lower    = array_map( 'strtolower', array_keys( $headers ) );
+		$csp_key       = 'Content-Security-Policy';
+		$csp_key_lower = strtolower( $csp_key );
 
-		$headers['X-Content-Security-Policy'] =
-			"default-src 'self'; " .
-			"script-src $hcap_csp; " .
-			"frame-src $hcap_csp; " .
-			"style-src $hcap_csp; " .
-			"connect-src $hcap_csp; " .
-			"unsafe-eval $hcap_csp; " .
-			"unsafe-inline $hcap_csp;";
+		if ( ! in_array( $csp_key_lower, $keys_lower, true ) ) {
+			return $headers;
+		}
+
+		$hcap_src     = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
+		$hcap_csp     = "script-src $hcap_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
+		$hcap_csp_arr = $this->parse_csp( $hcap_csp );
+
+		foreach ( $headers as $key => $header ) {
+			if ( strtolower( $key ) === $csp_key_lower ) {
+				$hcap_csp_arr = $this->merge_csp( $hcap_csp_arr, $this->parse_csp( $header ) );
+			}
+		}
+
+		$hcap_csp_subheaders = [];
+
+		foreach ( $hcap_csp_arr as $key => $value ) {
+			$hcap_csp_subheaders[] = $key . ' ' . implode( ' ', $value );
+		}
+
+		$headers[ $csp_key ] = implode( '; ', $hcap_csp_subheaders );
 
 		return $headers;
+	}
+
+	/**
+	 * Parse csp header.
+	 *
+	 * @param string $csp CSP header.
+	 *
+	 * @return array
+	 */
+	private function parse_csp( string $csp ): array {
+		$csp_subheaders = explode( ';', $csp );
+		$csp_arr        = [];
+
+		foreach ( $csp_subheaders as $csp_subheader ) {
+			$csp_subheader_arr = explode( ' ', trim( $csp_subheader ) );
+			$key               = (string) array_shift( $csp_subheader_arr );
+			$csp_arr[ $key ]   = $csp_subheader_arr;
+		}
+
+		unset( $csp_arr[''] );
+
+		return array_filter( $csp_arr );
+	}
+
+	/**
+	 * Merge csp headers.
+	 *
+	 * @param array $csp_arr1 CSP headers array 1.
+	 * @param array $csp_arr2 CSP headers array 2.
+	 *
+	 * @return array
+	 */
+	private function merge_csp( array $csp_arr1, array $csp_arr2 ): array {
+		$csp  = [];
+		$keys = array_unique( array_merge( array_keys( $csp_arr1 ), array_keys( $csp_arr2 ) ) );
+
+		foreach ( $keys as $key ) {
+			$csp1        = $csp_arr1[ $key ] ?? [];
+			$csp2        = $csp_arr2[ $key ] ?? [];
+			$csp[ $key ] = array_unique( array_merge( $csp1, $csp2 ) );
+		}
+
+		return $csp;
 	}
 
 	/**
@@ -449,11 +527,13 @@ CSS;
 			'render' => 'explicit',
 		];
 
-		if ( $this->settings()->is_on( 'recaptcha_compat_off' ) ) {
+		$settings = $this->settings();
+
+		if ( $settings->is_on( 'recaptcha_compat_off' ) ) {
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $this->settings()->is_on( 'custom_themes' ) ) {
+		if ( $settings->is_on( 'custom_themes' ) ) {
 			$params['custom'] = 'true';
 		}
 
@@ -467,7 +547,7 @@ CSS;
 		];
 
 		foreach ( $enterprise_params as $enterprise_param => $enterprise_arg ) {
-			$value = trim( $this->settings()->get( $enterprise_param ) );
+			$value = trim( $settings->get( $enterprise_param ) );
 
 			if ( $value ) {
 				$params[ $enterprise_arg ] = rawurlencode( $this->force_https( $value ) );
@@ -778,6 +858,11 @@ CSS;
 				'classified-listing/classified-listing.php',
 				ClassifiedListing\Register::class,
 			],
+			'CoBlocks Form'                        => [
+				[ 'coblocks_status', 'form' ],
+				'coblocks/class-coblocks.php',
+				CoBlocks\Form::class,
+			],
 			'Colorlib Customizer Login'            => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
@@ -848,6 +933,11 @@ CSS;
 				'elementor-pro/elementor-pro.php',
 				HCaptchaHandler::class,
 			],
+			'Elementor Pro Login'                  => [
+				[ 'elementor_pro_status', null ],
+				'elementor-pro/elementor-pro.php',
+				ElementorPro\Login::class,
+			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
@@ -907,6 +997,16 @@ CSS;
 				[ 'learn_dash_status', 'register' ],
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Register::class,
+			],
+			'Login/Signup Popup Login Form'        => [
+				[ 'login_signup_popup_status', 'login' ],
+				'easy-login-woocommerce/xoo-el-main.php',
+				LoginSignupPopup\Login::class,
+			],
+			'Login/Signup Popup Register Form'     => [
+				[ 'login_signup_popup_status', 'register' ],
+				'easy-login-woocommerce/xoo-el-main.php',
+				LoginSignupPopup\Register::class,
 			],
 			'MailChimp'                            => [
 				[ 'mailchimp_status', 'form' ],
@@ -1188,6 +1288,7 @@ CSS;
 	 * @return void
 	 */
 	public function load_textdomain() {
+		load_default_textdomain();
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',
 			false,

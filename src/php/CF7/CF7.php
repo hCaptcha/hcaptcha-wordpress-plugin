@@ -93,93 +93,40 @@ class CF7 {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function cf7_hcaptcha_shortcode( $attr = [] ): string {
-		$settings          = hcaptcha()->settings();
-		$hcaptcha_site_key = $settings->get_site_key();
-		$hcaptcha_theme    = $settings->get_theme();
-		$hcaptcha_size     = $settings->get( 'size' );
-		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
+		$attr = (array) $attr;
 
-		$args = wp_parse_args(
-			(array) $attr,
-			/**
-			 * CF7 works via REST API, where the current user is set to 0 (not logged in) if nonce is not present.
-			 * However, we can add standard nonce for the action 'wp_rest' and rest_cookie_check_errors() provides the check.
-			 */
-			[
-				'action'  => 'wp_rest', // Action name for wp_nonce_field.
-				'name'    => '_wpnonce', // Nonce name for wp_nonce_field.
-				'auto'    => false, // Whether a form has to be auto-verified.
-				'size'    => $hcaptcha_size, // The hCaptcha widget size.
-				'id'      => [
-					'source'  => HCaptcha::get_class_source( __CLASS__ ),
-					'form_id' => $attr['form_id'] ?? 0,
-				], // hCaptcha widget id.
-				/**
-				 * Example of id:
-				 * [
-				 *   'source' => ['gravityforms/gravityforms.php'],
-				 *   $form_id => 23
-				 * ]
-				 */
-				'protect' => true,
-			]
-		);
-
-		foreach ( $args as $arg ) {
-			if ( is_array( $arg ) ) {
+		foreach ( $attr as $key => $value ) {
+			if ( is_array( $value ) ) {
 				continue;
 			}
 
-			if ( preg_match( '/(id|class):([\w-]+)/', $arg, $m ) ) {
-				$args[ 'cf7-' . $m[1] ] = $m[2];
+			if ( preg_match( '/(^id|^class):([\w-]+)/', $value, $m ) ) {
+				$attr[ 'cf7-' . $m[1] ] = $m[2];
+				unset( $attr[ $key ] );
 			}
 		}
 
-		if ( $args['id'] ) {
-			$id            = (array) $args['id'];
-			$id['source']  = isset( $id['source'] ) ? (array) $id['source'] : [];
-			$id['form_id'] = $id['form_id'] ?? 0;
+		$attr['action'] = 'wp_rest';
+		$attr['name']   = '_wpnonce';
+		$attr['id']     = [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => (int) ( $attr['form_id'] ?? 0 ),
+		];
 
-			if (
-				! $args['protect'] ||
-				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
-			) {
-				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-				$encoded_id = base64_encode( wp_json_encode( $id ) );
-				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+		$hcap_form = hcap_shortcode( $attr );
 
-				ob_start();
-				?>
-				<input
-						type="hidden"
-						class="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
-						name="<?php echo esc_attr( HCaptcha::HCAPTCHA_WIDGET_ID ); ?>"
-						value="<?php echo esc_attr( $widget_id ); ?>">
-				<?php
-
-				return ob_get_clean();
-			}
-		}
-
-		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
-		$callback     = 'invisible' === $args['size'] ? 'data-callback="hCaptchaSubmit"' : '';
-
-		hcaptcha()->form_shown = true;
-
-		$id    = $args['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
-		$class = $args['cf7-class'] ?? '';
+		$id        = $attr['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
+		$class     = $attr['cf7-class'] ?? '';
+		$hcap_form = preg_replace(
+			[ '/(<div\s+?class="h-captcha")/', '#</div>#' ],
+			[ '<span id="' . $id . '" class="wpcf7-form-control h-captcha ' . $class . '"', '</span>' ],
+			$hcap_form
+		);
 
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
-			'<span id="' . $id . '"' .
-			' class="wpcf7-form-control h-captcha ' . $class . '"' .
-			' data-sitekey="' . esc_attr( $hcaptcha_site_key ) . '"' .
-			' data-theme="' . esc_attr( $hcaptcha_theme ) . '"' .
-			' data-size="' . esc_attr( $args['size'] ) . '"' .
-			' ' . wp_kses_post( $callback ) . '>' .
-			'</span>' .
-			'</span>' .
-			wp_nonce_field( $args['action'], $args['name'], true, false )
+			$hcap_form .
+			'</span>'
 		);
 	}
 
@@ -380,13 +327,13 @@ CSS;
 			// @codeCoverageIgnoreEnd
 		}
 
-		$cf7_hcap_sc = $matches[0];
-		$cf7_hcap_sc = preg_replace(
+		$cf7_hcap_shortcode = $matches[0];
+		$cf7_hcap_sc        = preg_replace(
 			[ '/\s*\[|]\s*/', '/(id|class)\s*:\s*([\w-]+)/' ],
 			[ '', '$1=$2' ],
-			$cf7_hcap_sc
+			$cf7_hcap_shortcode
 		);
-		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
+		$atts               = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );
 
@@ -399,12 +346,18 @@ CSS;
 		array_walk(
 			$atts,
 			static function ( &$value, $key ) {
+				if ( in_array( $key, [ 'id', 'class' ], true ) ) {
+					$value = "$key:$value";
+
+					return;
+				}
+
 				$value = "$key=\"$value\"";
 			}
 		);
 
 		$updated_cf_hcap_sc = self::SHORTCODE . ' ' . implode( ' ', $atts );
 
-		return str_replace( $cf7_hcap_sc, $updated_cf_hcap_sc, $output );
+		return str_replace( $cf7_hcap_shortcode, "[$updated_cf_hcap_sc]", $output );
 	}
 }

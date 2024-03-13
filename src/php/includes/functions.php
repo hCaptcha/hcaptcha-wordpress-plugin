@@ -70,15 +70,16 @@ function hcap_shortcode( $atts ): string {
 	 */
 	$atts = shortcode_atts(
 		[
-			'action' => HCAPTCHA_ACTION,
-			'name'   => HCAPTCHA_NONCE,
-			'auto'   => false,
-			'size'   => '',
+			'action'  => HCAPTCHA_ACTION,
+			'name'    => HCAPTCHA_NONCE,
+			'auto'    => false,
+			'force'   => false,
+			'size'    => '',
+			'id'      => [],
+			'protect' => true,
 		],
 		$atts
 	);
-
-	$atts['auto'] = filter_var( $atts['auto'], FILTER_VALIDATE_BOOLEAN );
 
 	/**
 	 * Filters the content of the hcaptcha form.

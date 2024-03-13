@@ -21,6 +21,8 @@
  * @param HCaptchaMainObject.params
  */
 
+/* eslint-disable no-console */
+
 /**
  * General settings page logic.
  *
@@ -39,25 +41,103 @@ const general = function( $ ) {
 	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
 	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
+	const $recaptchaCompatOff = $( '[name="hcaptcha_settings[recaptcha_compat_off][]"]' );
 	const $submit = $form.find( '#submit' );
 	const modes = {};
 	let siteKeyInitVal = $siteKey.val();
 	let secretKeyInitVal = $secretKey.val();
-	let enterpriseInitValues = getValues( $enterpriseInputs );
+	let enterpriseInitValues = getEnterpriseValues();
 
 	modes[ HCaptchaGeneralObject.modeLive ] = HCaptchaGeneralObject.siteKey;
 	modes[ HCaptchaGeneralObject.modeTestPublisher ] = HCaptchaGeneralObject.modeTestPublisherSiteKey;
 	modes[ HCaptchaGeneralObject.modeTestEnterpriseSafeEndUser ] = HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey;
 	modes[ HCaptchaGeneralObject.modeTestEnterpriseBotDetected ] = HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey;
 
+	let credentialsChanged = false;
+	let enterpriseSettingsChanged = false;
+
+	let consoleLogs = [];
+
+	interceptConsoleLogs();
+
+	function interceptConsoleLogs() {
+		consoleLogs = [];
+
+		const systemLog = console.log;
+		const systemWarn = console.warn;
+		const systemInfo = console.info;
+		const systemError = console.error;
+		const systemClear = console.clear;
+
+		// eslint-disable-next-line no-unused-vars
+		console.log = function( message ) {
+			consoleLogs.push( [ 'Console log:', arguments ] );
+			systemLog.apply( console, arguments );
+		};
+
+		// eslint-disable-next-line no-unused-vars
+		console.warn = function( message ) {
+			consoleLogs.push( [ 'Console warn:', arguments ] );
+			systemWarn.apply( console, arguments );
+		};
+
+		// eslint-disable-next-line no-unused-vars
+		console.info = function( message ) {
+			consoleLogs.push( [ 'Console info:', arguments ] );
+			systemInfo.apply( console, arguments );
+		};
+
+		// eslint-disable-next-line no-unused-vars
+		console.error = function( message ) {
+			consoleLogs.push( [ 'Console error:', arguments ] );
+			systemError.apply( console, arguments );
+		};
+
+		console.clear = function() {
+			consoleLogs = [];
+			systemClear();
+		};
+	}
+
+	function getCleanConsoleLogs() {
+		const logs = [];
+
+		for ( let i = 0; i < consoleLogs.length; i++ ) {
+			// Extract strings only (some JS functions push objects to console).
+			const consoleLog = consoleLogs[ i ];
+			const type = consoleLog[ 0 ];
+			const args = consoleLog[ 1 ];
+			const keys = Object.keys( args );
+			const lines = [];
+
+			for ( let a = 0; a < keys.length; a++ ) {
+				if ( typeof ( args[ a ] ) === 'string' ) {
+					lines.push( [ type, args[ a ] ].join( ' ' ) );
+				}
+			}
+
+			logs.push( lines.join( '\n' ) );
+		}
+
+		consoleLogs = [];
+
+		return logs.join( '\n' );
+	}
+
 	function getValues( $inputs ) {
-		const values = [];
+		const values = {};
 
 		$inputs.each( function() {
-			values.push( $( this ).val() );
+			const $input = $( this );
+			const name = $input.attr( 'name' ).replace( /hcaptcha_settings\[(.+)]/, '$1' );
+			values[ name ] = $input.val();
 		} );
 
 		return values;
+	}
+
+	function getEnterpriseValues() {
+		return getValues( $enterpriseInputs );
 	}
 
 	function clearMessage() {
@@ -66,9 +146,21 @@ const general = function( $ ) {
 		$message = $( msgSelector );
 	}
 
-	function showMessage( message, msgClass ) {
+	function showMessage( message = '', msgClass = '' ) {
+		message = message === undefined ? '' : String( message );
+
+		const logs = getCleanConsoleLogs();
+
+		message += '\n' + logs;
+		message = message.trim();
+
+		if ( ! message ) {
+			return;
+		}
+
 		$message.removeClass();
 		$message.addClass( msgClass + ' notice is-dismissible' );
+
 		const messageLines = message.split( '\n' ).map( function( line ) {
 			return `<p>${ line }</p>`;
 		} );
@@ -87,15 +179,15 @@ const general = function( $ ) {
 		);
 	}
 
-	function showSuccessMessage( response ) {
-		showMessage( response, 'notice-success' );
+	function showSuccessMessage( message = '' ) {
+		showMessage( message, 'notice-success' );
 	}
 
-	function showErrorMessage( response ) {
-		showMessage( response, 'notice-error' );
+	function showErrorMessage( message = '' ) {
+		showMessage( message, 'notice-error' );
 	}
 
-	function hCaptchaUpdate( params ) {
+	function hCaptchaUpdate( params = {} ) {
 		const updatedParams = Object.assign( hCaptcha.getParams(), params );
 		hCaptcha.setParams( updatedParams );
 
@@ -165,6 +257,7 @@ const general = function( $ ) {
 				siteKeyInitVal = $siteKey.val();
 				secretKeyInitVal = $secretKey.val();
 				enterpriseInitValues = getValues( $enterpriseInputs );
+				enterpriseSettingsChanged = false;
 
 				showSuccessMessage( response.data );
 				$submit.attr( 'disabled', false );
@@ -173,33 +266,42 @@ const general = function( $ ) {
 				showErrorMessage( response.statusText );
 			} )
 			.always( function() {
-				hCaptchaUpdate( {} );
+				hCaptchaUpdate();
 			} );
 	}
 
 	function checkChangeCredentials() {
 		if ( $siteKey.val() === siteKeyInitVal && $secretKey.val() === secretKeyInitVal ) {
+			credentialsChanged = false;
 			clearMessage();
 			$submit.attr( 'disabled', false );
-		} else {
+		} else if ( ! credentialsChanged ) {
+			credentialsChanged = true;
 			showErrorMessage( HCaptchaGeneralObject.checkConfigNotice );
 			$submit.attr( 'disabled', true );
 		}
 	}
 
 	function checkChangeEnterpriseSettings() {
-		if ( JSON.stringify( getValues( $enterpriseInputs ) ) === JSON.stringify( enterpriseInitValues ) ) {
+		if ( JSON.stringify( getEnterpriseValues() ) === JSON.stringify( enterpriseInitValues ) ) {
+			enterpriseSettingsChanged = false;
 			clearMessage();
 			$submit.attr( 'disabled', false );
-		} else {
+		} else if ( ! enterpriseSettingsChanged ) {
+			enterpriseSettingsChanged = true;
 			showErrorMessage( HCaptchaGeneralObject.checkConfigNotice );
 			$submit.attr( 'disabled', true );
 		}
 	}
 
+	document.addEventListener( 'hCaptchaLoaded', function() {
+		showErrorMessage();
+	} );
+
 	$( '#check_config' ).on( 'click', function( event ) {
 		event.preventDefault();
 
+		// Check if hCaptcha is solved.
 		if ( $( '.hcaptcha-general-sample-hcaptcha iframe' ).attr( 'data-hcaptcha-response' ) === '' ) {
 			kaggDialog.confirm( {
 				title: HCaptchaGeneralObject.completeHCaptchaTitle,
@@ -228,10 +330,6 @@ const general = function( $ ) {
 
 	$secretKey.on( 'change', function() {
 		checkChangeCredentials();
-	} );
-
-	$enterpriseInputs.on( 'change', function() {
-		checkChangeEnterpriseSettings();
 	} );
 
 	$theme.on( 'change', function( e ) {
@@ -289,6 +387,85 @@ const general = function( $ ) {
 		$submit.attr( 'disabled', false );
 	} );
 
+	function forceHttps( host ) {
+		host = host.replace( /(http|https):\/\//, '' );
+
+		const url = new URL( 'https://' + host );
+
+		return 'https://' + url.host;
+	}
+
+	function scriptUpdate() {
+		const params = {
+			onload: 'hCaptchaOnLoad',
+			render: 'explicit',
+		};
+
+		if ( $recaptchaCompatOff.prop( 'checked' ) ) {
+			params.recaptchacompat = 'off';
+		}
+
+		if ( $customThemes.prop( 'checked' ) ) {
+			params.custom = 'true';
+		}
+
+		const enterpriseParams = {
+			asset_host: 'assethost',
+			endpoint: 'endpoint',
+			host: 'host',
+			image_host: 'imghost',
+			report_api: 'reportapi',
+			sentry: 'sentry',
+		};
+
+		const enterpriseValues = getEnterpriseValues();
+
+		for ( const enterpriseParam in enterpriseParams ) {
+			const value = enterpriseValues[ enterpriseParam ].trim();
+
+			if ( value ) {
+				params[ enterpriseParams[ enterpriseParam ] ] = encodeURIComponent( forceHttps( value ) );
+			}
+		}
+
+		/**
+		 * @param enterpriseValues.api_host
+		 */
+		let apiHost = enterpriseValues.api_host.trim();
+		apiHost = apiHost ? apiHost : 'js.hcaptcha.com';
+		apiHost = forceHttps( apiHost ) + '/1/api.js';
+
+		const url = new URL( apiHost );
+
+		for ( const name in params ) {
+			url.searchParams.append( name, params[ name ] );
+		}
+
+		// Remove the existing API script.
+		document.getElementById( 'hcaptcha-api' ).remove();
+		delete global.hcaptcha;
+
+		// Remove sample hCaptcha.
+		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
+		sampleHCaptcha.innerHTML = '';
+
+		// Re-create the API script.
+		const t = document.getElementsByTagName( 'head' )[ 0 ];
+		const s = document.createElement( 'script' );
+
+		s.type = 'text/javascript';
+		s.id = 'hcaptcha-api';
+		s.src = url.href;
+
+		t.appendChild( s );
+	}
+
+	$enterpriseInputs.on( 'change', function() {
+		scriptUpdate();
+		checkChangeEnterpriseSettings();
+	} );
+
+	// Toggle a section.
 	$( '.hcaptcha-general h3' ).on( 'click', function( event ) {
 		const $h3 = $( event.currentTarget );
 

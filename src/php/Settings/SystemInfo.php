@@ -109,7 +109,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	public function get_system_info(): string {
+	private function get_system_info(): string {
 		$data = $this->header( '### Begin System Info ###' );
 
 		$data .= $this->hcaptcha_info();
@@ -135,14 +135,32 @@ class SystemInfo extends PluginSettingsBase {
 		$data     = $this->header( '-- hCaptcha Info --' );
 
 		$data .= $this->data( 'Version', HCAPTCHA_VERSION );
+
+		// Keys section.
 		$data .= $this->data( 'Site key', $this->is_empty( $settings->get_site_key() ) );
 		$data .= $this->data( 'Secret key', $this->is_empty( $settings->get_secret_key() ) );
+
+		// Appearance section.
 		$data .= $this->data( 'Theme', $settings->get_theme() );
 		$data .= $this->data( 'Size', $settings->get( 'size' ) );
 		$data .= $this->data( 'Language', $settings->get( 'language' ) ?: 'Auto-detect' );
 		$data .= $this->data( 'Mode', $settings->get_mode() );
+
+		// Custom section.
 		$data .= $this->data( 'Custom Themes', $this->is_on( 'custom_themes' ) );
 		$data .= $this->data( 'Config Params', $this->is_empty( $settings->get( 'config_params' ) ) );
+
+		// Enterprise section.
+		$data .= $this->data( 'API Host', $settings->get( 'api_host' ) );
+		$data .= $this->data( 'Asset Host', $settings->get( 'asset_host' ) );
+		$data .= $this->data( 'Endpoint', $settings->get( 'endpoint' ) );
+		$data .= $this->data( 'Host', $settings->get( 'host' ) );
+		$data .= $this->data( 'Image Host', $settings->get( 'image_host' ) );
+		$data .= $this->data( 'Report API', $settings->get( 'report_api' ) );
+		$data .= $this->data( 'Sentry', $settings->get( 'sentry' ) );
+		$data .= $this->data( 'Backend', $settings->get( 'backend' ) );
+
+		// Other section.
 		$data .= $this->data( 'Turn Off When Logged In', $this->is_on( 'off_when_logged_in' ) );
 		$data .= $this->data( 'Disable reCAPTCHA Compatibility', $this->is_on( 'recaptcha_compat_off' ) );
 		$data .= $this->data( 'Whitelisted IPs', $this->is_empty( $settings->get( 'whitelisted_ips' ) ) );
@@ -152,7 +170,7 @@ class SystemInfo extends PluginSettingsBase {
 
 		$migrations = get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [] );
 
-		$data .= $this->data( 'Migrations', '' );
+		$data .= $this->data( 'Migrations' );
 
 		$format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 
@@ -186,7 +204,7 @@ class SystemInfo extends PluginSettingsBase {
 				$data .= $this->header( '--- Inactive plugins and themes ---' );
 			}
 
-			$data .= $this->data( $field['label'], '' );
+			$data .= $this->data( $field['label'] );
 
 			foreach ( $field['options'] as $option_key => $option ) {
 				$setting = isset( $integration_settings[ $field_key ] ) ? (array) $integration_settings[ $field_key ] : [];
@@ -204,7 +222,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function get_integrations(): array {
+	public function get_integrations(): array {
 		$tabs = hcaptcha()->settings()->get_tabs();
 
 		$tabs = array_filter(
@@ -500,7 +518,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function data( string $key, string $value, int $max_key_length = 0 ): string {
+	private function data( string $key, string $value = '', int $max_key_length = 0 ): string {
 		$length = $max_key_length ? max( $max_key_length, self::DATA_KEY_LENGTH ) : self::DATA_KEY_LENGTH;
 
 		$length += 2;

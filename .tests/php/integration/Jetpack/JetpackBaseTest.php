@@ -91,7 +91,13 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		$this->set_protected_property( $subject, 'error_message', $error_message );
 
-		$expected = '<p id="hcap_error" class="error hcap_error">' . $error_message . '</p>' . $hcaptcha_content;
+		$expected = $hcaptcha_content . '<div class="contact-form__input-error">
+	<span class="contact-form__warning-icon">
+		<span class="visually-hidden">Warning.</span>
+		<i aria-hidden="true"></i>
+	</span>
+	<span>' . $error_message . '</span>
+</div>';
 
 		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
 	}

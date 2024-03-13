@@ -73,14 +73,15 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 * Tests add_captcha().
 	 */
 	public function test_add_captcha() {
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field(
-				'hcaptcha_wc_checkout',
-				'hcaptcha_wc_checkout_nonce',
-				true,
-				false
-			);
+		$args     = [
+			'action' => 'hcaptcha_wc_checkout',
+			'name'   => 'hcaptcha_wc_checkout_nonce',
+			'id'     => [
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'checkout',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new Checkout();
 

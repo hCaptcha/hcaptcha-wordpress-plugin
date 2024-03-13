@@ -836,7 +836,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_check_config_error( string $error, $raw_result = false ) {
+	private function send_check_config_error( string $error, bool $raw_result = false ) {
 		$prefix = $raw_result ? '' : esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' );
 
 		wp_send_json_error(

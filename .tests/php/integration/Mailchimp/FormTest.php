@@ -59,7 +59,7 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'The response parameter has already been checked, or has another issue.',
 			],
-			'not-using-dummy-secret'           => [
+			'not-using-dummy-passcode'         => [
 				'type' => 'error',
 				'text' => 'You have used a testing sitekey but have not used its matching secret.',
 			],
@@ -95,14 +95,20 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
+		$form_id  = 5;
 		$content  = '<input type="submit">';
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_mailchimp', 'hcaptcha_mailchimp_nonce', true, false ) .
-			'<input type="submit">';
+		$args     = [
+			'action' => 'hcaptcha_mailchimp',
+			'name'   => 'hcaptcha_mailchimp_nonce',
+			'id'     => [
+				'source'  => [ 'mailchimp-for-wp/mailchimp-for-wp.php' ],
+				'form_id' => $form_id,
+			],
+		];
+		$expected = $this->get_hcap_form( $args ) . $content;
 
 		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = 5;
+		$mc4wp_form->ID = $form_id;
 
 		$element = Mockery::mock( MC4WP_Form_Element::class );
 

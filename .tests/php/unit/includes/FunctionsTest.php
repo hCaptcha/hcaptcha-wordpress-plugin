@@ -47,10 +47,13 @@ class FunctionsTest extends HCaptchaTestCase {
 	 */
 	public function test_hcap_shortcode( array $atts, array $expected ) {
 		$pairs = [
-			'action' => HCAPTCHA_ACTION,
-			'name'   => HCAPTCHA_NONCE,
-			'auto'   => false,
-			'size'   => '',
+			'action'  => HCAPTCHA_ACTION,
+			'name'    => HCAPTCHA_NONCE,
+			'auto'    => false,
+			'force'   => false,
+			'size'    => '',
+			'id'      => [],
+			'protect' => true,
 		];
 		$form  = 'some hcaptcha form content';
 
@@ -81,36 +84,59 @@ class FunctionsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_hcap_shortcode(): array {
 		return [
-			'empty atts' => [
+			'empty atts'  => [
 				[],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => false,
-					'size'   => '',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => false,
+					'force'   => false,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
 				],
 			],
-			'auto truly' => [
+			'auto truly'  => [
 				[
 					'auto' => '1',
 				],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => true,
-					'size'   => '',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => '1',
+					'force'   => false,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
 				],
 			],
-			'some atts'  => [
+			'force truly' => [
+				[
+					'force' => true,
+				],
+				[
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => false,
+					'force'   => true,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
+				],
+			],
+			'some atts'   => [
 				[
 					'some' => 'some attribute',
 				],
 				[
-					'action' => HCAPTCHA_ACTION,
-					'name'   => HCAPTCHA_NONCE,
-					'auto'   => false,
-					'size'   => '',
-					'some'   => 'some attribute',
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => false,
+					'force'   => false,
+					'size'    => '',
+					'id'      => [],
+					'protect' => true,
+					'some'    => 'some attribute',
 				],
 			],
 		];

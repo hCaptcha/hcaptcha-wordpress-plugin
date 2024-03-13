@@ -82,19 +82,21 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_captcha() {
-		$output   = 'Some comment output<div class="wc-field-submit">Submit</div>';
-		$expected = 'Some comment output		<div class="wpd-field-hcaptcha wpdiscuz-item">
+		$args      = [
+			'id' => [
+				'source'  => [ 'wpdiscuz/class.WpdiscuzCore.php' ],
+				'form_id' => 0,
+			],
+		];
+		$hcap_form = $this->get_hcap_form( $args );
+		$output    = 'Some comment output<div class="wc-field-submit">Submit</div>';
+		$expected  =
+			'Some comment output' .
+			'		<div class="wpd-field-hcaptcha wpdiscuz-item">
 			<div class="wpdiscuz-hcaptcha" id="wpdiscuz-hcaptcha"></div>
-					<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false">
+			' . $hcap_form . '			<div class="clearfix"></div>
 		</div>
-					<div class="clearfix"></div>
-		</div>
-		<div class="wc-field-submit">Submit</div>';
+		' . '<div class="wc-field-submit">Submit</div>';
 
 		$subject = new Comment();
 

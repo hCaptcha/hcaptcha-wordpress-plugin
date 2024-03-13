@@ -9,8 +9,6 @@ namespace HCaptcha\LearnDash;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-use WP_User;
 
 /**
  * Class Login.

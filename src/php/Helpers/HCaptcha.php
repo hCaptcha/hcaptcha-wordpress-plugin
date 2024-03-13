@@ -68,6 +68,7 @@ class HCaptcha {
 				'action'  => '', // Action name for wp_nonce_field.
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
+				'force'   => false, // Whether to execute hCaptcha widget before submit (like for invisible).
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
 				/**
 				 * The hCaptcha widget id.
@@ -78,47 +79,41 @@ class HCaptcha {
 				 * ]
 				 */
 				'id'      => [],
-				// Protection status. When true, hCaptcha should be added. When false, hidden widget to be added.
+				// Protection status. When true, hCaptcha should be added.
 				'protect' => true,
 			]
 		);
 
-		if ( $args['id'] ) {
-			$id            = (array) $args['id'];
-			$id['source']  = (array) ( $id['source'] ?? [] );
-			$id['form_id'] = $id['form_id'] ?? 0;
+		$args['action']  = (string) $args['action'];
+		$args['name']    = (string) $args['name'];
+		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
+		$args['size']    = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
+		$args['id']      = (array) $args['id'];
+		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
-			/**
-			 * Filters the protection status of a form.
-			 *
-			 * @param bool       $value   The protection status of a form.
-			 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-			 * @param int|string $form_id Form id.
-			 */
-			if (
-				! $args['protect'] ||
-				! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
-			) {
-				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-				$encoded_id = base64_encode( wp_json_encode( $id ) );
-				$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+		$id = wp_parse_args(
+			$args['id'],
+			self::$default_id
+		);
 
-				?>
-				<input
-					type="hidden"
-					class="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
-					name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
-					value="<?php echo esc_attr( $widget_id ); ?>">
-				<?php
+		self::display_widget( $id );
 
-				hcaptcha()->form_shown = true;
+		hcaptcha()->form_shown = true;
 
-				return;
-			}
+		/**
+		 * Filters the protection status of a form.
+		 *
+		 * @param bool       $value   The protection status of a form.
+		 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
+		 * @param int|string $form_id Form id.
+		 */
+		if (
+			! $args['protect'] ||
+			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
+		) {
+			return;
 		}
-
-		$args['auto'] = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
-		$args['size'] = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
 
 		?>
 		<div
@@ -126,15 +121,38 @@ class HCaptcha {
 			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 			data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 			data-size="<?php echo esc_attr( $args['size'] ); ?>"
-			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>">
+			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
+			data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
 		</div>
 		<?php
 
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
+	}
 
-		hcaptcha()->form_shown = true;
+	/**
+	 * Display widget.
+	 *
+	 * @param array|mixed $id The hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private static function display_widget( array $id ) {
+		$id['source']  = (array) ( $id['source'] ?? [] );
+		$id['form_id'] = $id['form_id'] ?? 0;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+
+		?>
+		<input
+				type="hidden"
+				class="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
+				name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
+				value="<?php echo esc_attr( $widget_id ); ?>">
+		<?php
 	}
 
 	/**
@@ -388,7 +406,6 @@ class HCaptcha {
 	 * @return string
 	 */
 	public static function get_hcap_locale(): string {
-		$wp_locale = get_locale();
 
 		// To get all WP locales, use the following statement on the https://translate.wordpress.org/ page
 		// and remove all double quotes.
@@ -720,6 +737,8 @@ class HCaptcha {
 			'Zulu'                => 'zu',
 		];
 
+		$wp_locale = get_locale();
+
 		$locale = str_replace( '_', '-', $wp_locale );
 
 		if ( in_array( $locale, $hcaptcha_locales, true ) ) {
@@ -742,7 +761,7 @@ class HCaptcha {
 			return $hcaptcha_locales[ $lang_name ];
 		}
 
-		$lang_name = explode( ' (', $lang_name )[0];
+		$lang_name = explode( ' (', $lang_name, 2 )[0];
 
 		return $hcaptcha_locales[ $lang_name ] ?? '';
 	}
@@ -754,7 +773,7 @@ class HCaptcha {
 	 *
 	 * @return array
 	 */
-	private static function decode_id_info( string $hashed_id_field = '' ): array {
+	public static function decode_id_info( string $hashed_id_field = '' ): array {
 		$hashed_id_field = $hashed_id_field ?: self::HCAPTCHA_WIDGET_ID;
 
 		// Nonce is checked in hcaptcha_verify_post().

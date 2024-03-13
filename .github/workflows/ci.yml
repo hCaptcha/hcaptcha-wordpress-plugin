@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.wp-plugin-directory }}
 
@@ -40,7 +40,7 @@ jobs:
           extensions: json, mysqli, mbstring, zip
 
       - name: Install dependencies with caching
-        uses: ramsey/composer-install@v2
+        uses: kagg-design/composer-install@v2
         with:
           working-directory: ${{ env.wp-plugin-directory }}
 
@@ -92,7 +92,7 @@ jobs:
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo
+        run: wp plugin install bbpress buddypress ultimate-member wpforms-lite
 
       - name: Install plugins requiring 7.1
         if: ${{ matrix.php-version >= '7.1' }}

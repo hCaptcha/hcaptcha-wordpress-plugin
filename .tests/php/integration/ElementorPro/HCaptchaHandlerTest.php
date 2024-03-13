@@ -571,14 +571,19 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'form_id' => $form_id,
 			],
 		];
-		$expected          = '<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">		<div
-			class="h-captcha"
-			data-sitekey="some site key"
-			data-theme="some theme"
-			data-size="some size"
-			data-auto="false">
-		</div>
-		</div></div>';
+		$args              = [
+			'size'         => $size,
+			'id'           => [
+				'source'  => [ 'elementor-pro/elementor-pro.php' ],
+				'form_id' => $form_id,
+			],
+			'data-sitekey' => $site_key,
+			'data-theme'   => $theme,
+		];
+		$expected          =
+			'<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">' .
+			$this->get_hcap_form( $args ) .
+			'</div></div>';
 
 		$widget = Mockery::mock( Widget_Base::class );
 		$widget->shouldReceive( 'add_render_attribute' )->with( $render_attributes )->once();

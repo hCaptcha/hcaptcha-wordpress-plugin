@@ -1,0 +1,79 @@
+#hcaptcha-options #hcaptcha-events-wrap table tbody tr td {
+	padding: 8px 10px;
+}
+
+.hcaptcha-events-sample-bg {
+	background-image: url('../images/events-page.jpg');
+	filter: blur(1px);
+	-webkit-filter: blur(1px);
+	width: 100%;
+	aspect-ratio: 2882 / 1943;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	box-sizing: border-box;
+}
+
+.hcaptcha-events-sample-text {
+	background-color: rgb(92, 111, 138, 0.8);
+	color: #f0f2f5;
+	border: 3px solid #f0f2f5;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1;
+	width: 80%;
+	padding: 20px;
+	text-align: center;
+}
+
+.hcaptcha-events-sample-text p {
+	font-size: 1.3em;
+}
+
+#hcaptcha-options .hcaptcha-events-sample-text p a {
+	color: #f0f2f5;
+}
+
+
+#hcaptcha-events-chart {
+	background-color: #ffffff;
+	position: relative;
+	margin: auto;
+	width: 100%;
+	aspect-ratio: 3/1;
+}
+
+#hcaptcha-events-wrap #user_agent {
+	width: 220px;
+}
+
+.hcaptcha-hide {
+	display: none;
+}
+
+.hcaptcha-excerpt {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.hcaptcha-excerpt:hover .hcaptcha-hide {
+	position: absolute;
+	color: #f0f2f5;
+	background: #5c6f8a;
+	z-index: 1;
+	display: block;
+	max-width: 300px;
+	width: max-content;
+	padding: 8px 10px;
+	top: 0;
+	left: 0;
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+	border-radius: 6px;
+	border: 1px solid #c3c4c7;
+	white-space: normal;
+	text-align: center;
+}

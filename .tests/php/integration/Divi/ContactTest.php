@@ -125,7 +125,7 @@ class ContactTest extends HCaptchaWPTestCase {
 			</div><!-- .et_pb_contact_right -->
 							<button type="submit" name="et_builder_submit_button" class="et_pb_contact_submit et_pb_button">Submit</button>
 						</div>
-						<input type="hidden" id="_wpnonce-et-pb-contact-form-submitted-0" name="_wpnonce-et-pb-contact-form-submitted-0" value="f8255b904d" /><input type="hidden" name="_wp_http_referer" value="/divi/?XDEBUG_SESSION_START=18543" />
+						<input type="hidden" id="_wpnonce-et-pb-contact-form-submitted-0" name="_wpnonce-et-pb-contact-form-submitted-0" value="f8255b904d" /><input type="hidden" name="_wp_http_referer" value="/divi/" />
 					</form>
 				</div> <!-- .et_pb_contact -->
 			</div> <!-- .et_pb_contact_form_container -->
@@ -133,7 +133,17 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$module_slug = 'et_pb_contact_form';
 
-		$expected = '
+		$hcap_form = $this->get_hcap_form(
+			[
+				'action' => 'hcaptcha_divi_cf',
+				'name'   => 'hcaptcha_divi_cf_nonce',
+				'id'     => [
+					'source'  => [ 'Divi' ],
+					'form_id' => 'contact',
+				],
+			]
+		);
+		$expected  = '
 			<div id="et_pb_contact_form_0" class="et_pb_module et_pb_contact_form_0 et_pb_contact_form_container clearfix" data-form_unique_num="0">
 				
 				
@@ -159,14 +169,14 @@ class ContactTest extends HCaptchaWPTestCase {
 				<textarea name="et_pb_contact_message_0" id="et_pb_contact_message_0" class="et_pb_contact_message input" data-required_mark="required" data-field_type="text" data-original_id="message" placeholder="Message">я</textarea>
 			</p>
 						<input type="hidden" value="et_contact_proccess" name="et_pb_contactform_submit_0"/>
-						<div style="float:right;">' . $this->get_hcap_form( 'hcaptcha_divi_cf', 'hcaptcha_divi_cf_nonce' ) . '</div>
+						<div style="float:right;">' . $hcap_form . '</div>
 <div style="clear: both;"></div>
 <div class="et_contact_bottom_container">
 							
 			
 							<button type="submit" name="et_builder_submit_button" class="et_pb_contact_submit et_pb_button">Submit</button>
 						</div>
-						<input type="hidden" id="_wpnonce-et-pb-contact-form-submitted-0" name="_wpnonce-et-pb-contact-form-submitted-0" value="f8255b904d" /><input type="hidden" name="_wp_http_referer" value="/divi/?XDEBUG_SESSION_START=18543" />
+						<input type="hidden" id="_wpnonce-et-pb-contact-form-submitted-0" name="_wpnonce-et-pb-contact-form-submitted-0" value="f8255b904d" /><input type="hidden" name="_wp_http_referer" value="/divi/" />
 					</form>
 				</div> <!-- .et_pb_contact -->
 			</div> <!-- .et_pb_contact_form_container -->

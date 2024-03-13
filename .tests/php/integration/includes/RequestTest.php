@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\includes;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test request file.
@@ -24,7 +25,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		unset(
+			$_SERVER['HTTP_TRUE_CLIENT_IP'],
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
+			$_SERVER['HTTP_X_REAL_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
 			$_SERVER['HTTP_X_FORWARDED_FOR'],
 			$_SERVER['HTTP_X_FORWARDED'],
@@ -48,7 +51,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function test_hcap_get_user_ip( array $headers, $expected ) {
 		unset(
+			$_SERVER['HTTP_TRUE_CLIENT_IP'],
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
+			$_SERVER['HTTP_X_REAL_IP'],
 			$_SERVER['HTTP_CLIENT_IP'],
 			$_SERVER['HTTP_X_FORWARDED_FOR'],
 			$_SERVER['HTTP_X_FORWARDED'],
@@ -70,8 +75,16 @@ class RequestTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_hcap_get_user_ip(): array {
 		return [
+			'HTTP_TRUE_CLIENT_IP'      => [
+				[ 'HTTP_TRUE_CLIENT_IP' => '7.7.7.1' ],
+				'7.7.7.1',
+			],
 			'HTTP_CF_CONNECTING_IP'    => [
-				[ 'HTTP_CLIENT_IP' => '7.7.7.1' ],
+				[ 'HTTP_CF_CONNECTING_IP' => '7.7.7.1' ],
+				'7.7.7.1',
+			],
+			'HTTP_X_REAL_IP'           => [
+				[ 'HTTP_X_REAL_IP' => '7.7.7.1' ],
 				'7.7.7.1',
 			],
 			'HTTP_CLIENT_IP'           => [
@@ -133,6 +146,23 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hcap_get_error_message().
+	 *
+	 * @return void
+	 */
+	public function test_hcap_get_error_message() {
+		self::assertSame( '', hcap_get_error_message( 'wrong-error-code' ) );
+		self::assertSame(
+			'hCaptcha error: The request is invalid or malformed.',
+			hcap_get_error_message( 'bad-request' )
+		);
+		self::assertSame(
+			'hCaptcha errors: Your secret key is missing.; The hCaptcha is invalid.',
+			hcap_get_error_message( [ 'missing-input-secret', 'fail' ] )
+		);
+	}
+
+	/**
 	 * Test hcaptcha_request_verify().
 	 */
 	public function test_hcaptcha_request_verify() {
@@ -144,22 +174,23 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hcaptcha_request_verify() when protection is not enabled.
+	 */
+	public function test_hcaptcha_request_verify_when_protection_not_enabled() {
+		$hcaptcha_response = 'some response';
+
+		add_filter( 'hcap_protect_form', '__return_false' );
+
+		self::assertNull( hcaptcha_request_verify( $hcaptcha_response ) );
+	}
+
+	/**
 	 * Test hcaptcha_request_verify() with empty string as argument.
 	 */
 	public function test_hcaptcha_request_verify_empty() {
 		self::assertSame(
 			'Please complete the hCaptcha.',
 			hcaptcha_request_verify( '' )
-		);
-	}
-
-	/**
-	 * Test hcaptcha_request_verify() with not empty string as argument.
-	 */
-	public function test_hcaptcha_request_verify_not_empty() {
-		self::assertSame(
-			'hCaptcha errors: Your secret key is missing.; The response parameter (verification token) is invalid or malformed.',
-			hcaptcha_request_verify( 'some response' )
 		);
 	}
 
@@ -266,8 +297,8 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * Test hcaptcha_get_verify_output().
 	 */
 	public function test_hcaptcha_get_verify_output() {
-		$empty_message     = 'some empty message';
-		$fail_message      = 'some fail message';
+		$empty_message     = '';
+		$fail_message      = '';
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -280,8 +311,8 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * Test hcaptcha_get_verify_output() not validated.
 	 */
 	public function test_hcaptcha_get_verify_output_not_validated() {
-		$empty_message     = 'some empty message';
-		$fail_message      = 'some fail message';
+		$empty_message     = '';
+		$fail_message      = '';
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -294,8 +325,8 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * Test hcaptcha_get_verify_output() not validated with empty_POST.
 	 */
 	public function test_hcaptcha_get_verify_output_not_validated_empty_POST() {
-		$empty_message     = 'some empty message';
-		$fail_message      = 'some fail message';
+		$empty_message     = '';
+		$fail_message      = '';
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 

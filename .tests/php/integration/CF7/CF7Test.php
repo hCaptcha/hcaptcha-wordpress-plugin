@@ -89,6 +89,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$nonce             = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
 		$hcaptcha_site_key = 'some site key';
 		$hcaptcha_theme    = 'some theme';
+		$id                = [
+			'source'  => [ 'contact-form-7/wp-contact-form-7.php' ],
+			'form_id' => $form_id,
+		];
 
 		update_option(
 			'hcaptcha_settings',
@@ -112,21 +116,20 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$callback = 'invisible' === $hcaptcha_size ? 'data-callback="hCaptchaSubmit"' : '';
-
 		$expected =
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
-			'<span id="' . $uniqid . '"' .
-			' class="wpcf7-form-control h-captcha " data-sitekey="' . $hcaptcha_site_key . '"' .
-			' data-theme="' . $hcaptcha_theme . '"' .
-			' data-size="' . $hcaptcha_size . '"' .
-			' ' . $callback . '>' .
-			'</span>' .
-			'</span>' .
-			$nonce .
-			'<input type="submit" value="Send">' .
-			'</form>';
+			$this->get_hcap_widget( $id ) . '
+				<span id="' . $uniqid . '" class="wpcf7-form-control h-captcha "
+			data-sitekey="' . $hcaptcha_site_key . '"
+			data-theme="' . $hcaptcha_theme . '"
+			data-size="' . $hcaptcha_size . '"
+			data-auto="false"
+			data-force="false">' . '
+		</span>
+		' . $nonce .
+		'</span><input type="submit" value="Send">' .
+		'</form>';
 
 		$subject = new CF7();
 
@@ -175,7 +178,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'',
 		];
 		$uniqid            = 'hcap_cf7-6004092a854114.24546665';
-		$nonce             = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
 		$hcaptcha_site_key = 'some site key';
 		$hcaptcha_theme    = 'some theme';
 		$hcaptcha_size     = 'normal';
@@ -215,14 +217,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$encoded_id = 'eyJzb3VyY2UiOlsiY29udGFjdC1mb3JtLTdcL3dwLWNvbnRhY3QtZm9ybS03LnBocCJdLCJmb3JtX2lkIjoiMTc3In0=';
-		$hash       = wp_hash( $encoded_id );
-		$expected   = '<form>				<input
-						type="hidden"
-						class="hcaptcha-widget-id"
-						name="hcaptcha-widget-id"
-						value="' . $encoded_id . '-' . $hash . '">
-				<input type="submit" value="Send"></form>';
+		$id       = [
+			'source'  => [ 'contact-form-7/wp-contact-form-7.php' ],
+			'form_id' => $form_id,
+		];
+		$expected =
+			'<form><span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
+			$this->get_hcap_widget( $id ) . '
+		</span><input type="submit" value="Send"></form>';
 
 		$subject = new CF7();
 

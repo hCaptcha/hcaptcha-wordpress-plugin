@@ -1,0 +1,24 @@
+paths:
+  tests: .tests/php
+  output: .codeception/_output
+  data: .codeception/_data
+  support: .codeception/_support
+  envs: .codeception/_envs
+actor_suffix: Tester
+extensions:
+  enabled:
+    - Codeception\Extension\RunFailed
+params:
+  - env
+  - .codeception/_config/params.php
+settings:
+  backup_globals: false
+  colors: true
+coverage:
+  enabled: true
+  low_limit: 35
+  high_limit: 90
+  show_only_summary: true
+  include:
+    - ./src/php/*
+    - ./hcaptcha.php

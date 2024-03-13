@@ -134,7 +134,19 @@ class HCaptcha {
 			return;
 		}
 
-		hcaptcha.execute( widgetId );
+		const iframe = formElement.querySelector( '.h-captcha iframe' );
+		const token = iframe.dataset.hcaptchaResponse;
+
+		// Do not execute hCaptcha twice.
+		if ( token === '' ) {
+			hcaptcha.execute( widgetId );
+		} else {
+			this.callback( token );
+		}
+	}
+
+	isValidated() {
+		return this.currentForm !== undefined;
 	}
 
 	/**
@@ -231,7 +243,7 @@ class HCaptcha {
 			return;
 		}
 
-		const callback = ( mutationList ) => {
+		const observerCallback = ( mutationList ) => {
 			for ( const mutation of mutationList ) {
 				let oldClasses = mutation.oldValue;
 				let newClasses = this.darkElement.getAttribute( 'class' );
@@ -257,7 +269,7 @@ class HCaptcha {
 				attributes: true,
 				attributeOldValue: true,
 			};
-			const observer = new MutationObserver( callback );
+			const observer = new MutationObserver( observerCallback );
 
 			observer.observe( this.darkElement, config );
 		}
@@ -276,8 +288,15 @@ class HCaptcha {
 		);
 
 		const params = this.getParams();
+		const iframe = document.querySelector( 'iframe[data-hcaptcha-response="' + token + '"]' );
+		const hcaptcha = iframe ? iframe.closest( '.h-captcha' ) : null;
+		const force = hcaptcha ? hcaptcha.dataset.force : null;
 
-		if ( params.size === 'invisible' ) {
+		if (
+			params.size === 'invisible' ||
+			// Prevent form submit when hCaptcha widget was manually solved.
+			( force === 'true' && this.isValidated() )
+		) {
 			this.submit();
 		}
 	}
@@ -353,7 +372,10 @@ class HCaptcha {
 
 			this.render( hcaptchaElement );
 
-			if ( 'invisible' !== hcaptchaElement.dataset.size ) {
+			if (
+				( 'invisible' !== hcaptchaElement.dataset.size ) &&
+				( 'true' !== hcaptchaElement.dataset.force )
+			) {
 				return formElement;
 			}
 
@@ -369,11 +391,7 @@ class HCaptcha {
 
 			formElement.dataset.hCaptchaId = hCaptchaId;
 
-			submitButtonElement.addEventListener(
-				'click',
-				this.validate,
-				true
-			);
+			submitButtonElement.addEventListener( 'click', this.validate, true );
 
 			return formElement;
 		} );

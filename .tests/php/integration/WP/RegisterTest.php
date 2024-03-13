@@ -55,9 +55,15 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'register';
 
-		$expected =
-			$this->get_hcap_form() .
-			wp_nonce_field( 'hcaptcha_registration', 'hcaptcha_registration_nonce', true, false );
+		$args     = [
+			'action' => 'hcaptcha_registration',
+			'name'   => 'hcaptcha_registration_nonce',
+			'id'     => [
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'register',
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new Register();
 

@@ -803,6 +803,13 @@ abstract class HCaptchaTestCase extends TestCase {
 					'register'  => 'Register Form',
 				],
 			],
+			'coblocks_status'                  => [
+				'label'   => 'CoBlocks',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'colorlib_customizer_status'       => [
 				'label'   => 'Colorlib Login Customizer',
 				'type'    => 'checkbox',
@@ -862,7 +869,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'form' => 'Form',
+							'form'  => 'Form',
+							'login' => 'Login',
 						],
 				],
 			'fluent_status'                    =>
@@ -948,6 +956,16 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'     => 'Login Form',
 							'lost_pass' => 'Lost Password Form',
 							'register'  => 'Register Form',
+						],
+				],
+			'login_signup_popup_status'        =>
+				[
+					'label'   => 'Login Signup Popup',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login'    => 'Login Form',
+							'register' => 'Register Form',
 						],
 				],
 			'mailchimp_status'                 =>

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Jetpack;
 
+use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
@@ -49,6 +50,8 @@ abstract class JetpackBase {
 		add_filter( 'widget_text', 'do_shortcode' );
 
 		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'verify' ], 100, 2 );
+
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
@@ -96,11 +99,33 @@ abstract class JetpackBase {
 			return $hcaptcha_content;
 		}
 
-		$message = sprintf(
-			'<p id="hcap_error" class="error hcap_error">%s</p>',
-			esc_html( $this->error_message )
-		);
+		$message = <<< HTML
+<div class="contact-form__input-error">
+	<span class="contact-form__warning-icon">
+		<span class="visually-hidden">Warning.</span>
+		<i aria-hidden="true"></i>
+	</span>
+	<span>$this->error_message</span>
+</div>
+HTML;
 
-		return $message . $hcaptcha_content;
+		return $hcaptcha_content . $message;
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol CssUnusedSymbol.
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	form.contact-form .grunion-field-wrap .h-captcha,
+	form.wp-block-jetpack-contact-form .grunion-field-wrap .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

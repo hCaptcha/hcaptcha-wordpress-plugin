@@ -5,6 +5,9 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedFunctionInspection */
+
 namespace HCaptcha\Tests\Integration\WPForms;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -312,20 +315,14 @@ CSS;
 </div>
 HTML;
 
-		$expected = [
+		$hcap_form = $this->get_hcap_form();
+		$expected  = [
 			'hcaptcha-heading'    =>
 				'<div>Some hCaptcha heading</div>' . $notice_content,
 			'hcaptcha-site-key'   => '<div><span style="opacity: 0.4;" class="wpforms-setting-field"><input disabled type="text"></span></div>',
 			'hcaptcha-secret-key' => '<div><span style="opacity: 0.4;" class="wpforms-setting-field"><input disabled type="text"></span></div>',
 			'hcaptcha-fail-msg'   => '<div><span style="opacity: 0.4;" class="wpforms-setting-field"><input disabled type="text"></span></div>',
-			'captcha-preview'     => '<div>		<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false">
-		</div>
-		</div>',
+			'captcha-preview'     => '<div>' . $hcap_form . '</div>',
 		];
 
 		$subject = new Form();
@@ -491,8 +488,9 @@ HTML;
 	 * @return void
 	 */
 	public function test_wpforms_frontend_output_when_mode_embed() {
+		$form_id     = 5;
 		$form_data   = [
-			'id'       => 5,
+			'id'       => $form_id,
 			'settings' => [
 				'recaptcha' => '1',
 			],
@@ -501,15 +499,16 @@ HTML;
 		$title       = 'some title';
 		$description = 'some description';
 		$errors      = [ 'some errors' ];
-		$nonce       = wp_nonce_field( Form::ACTION, Form::NAME, true, false );
-		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >		<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false">
-		</div>
-		' . $nonce . '</div>';
+		$args        = [
+			'action' => Form::ACTION,
+			'name'   => Form::NAME,
+			'id'     => [
+				'source'  => [ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
+				'form_id' => $form_id,
+			],
+		];
+		$hcap_form   = $this->get_hcap_form( $args );
+		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';
 
 		$classes   = [];
 		$classes[] = [
@@ -560,20 +559,22 @@ HTML;
 	 * @return void
 	 */
 	public function test_wpforms_frontend_output_when_mode_auto() {
-		$form_data   = [ 'id' => 5 ];
+		$form_id     = 5;
+		$form_data   = [ 'id' => $form_id ];
 		$deprecated  = null;
 		$title       = 'some title';
 		$description = 'some description';
 		$errors      = [ 'some errors' ];
-		$nonce       = wp_nonce_field( Form::ACTION, Form::NAME, true, false );
-		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >		<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme=""
-			data-size=""
-			data-auto="false">
-		</div>
-		' . $nonce . '</div>';
+		$args        = [
+			'action' => Form::ACTION,
+			'name'   => Form::NAME,
+			'id'     => [
+				'source'  => [ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
+				'form_id' => $form_id,
+			],
+		];
+		$hcap_form   = $this->get_hcap_form( $args );
+		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';
 
 		$classes   = [];
 		$classes[] = [
@@ -608,8 +609,9 @@ HTML;
 	 * @return void
 	 */
 	public function test_wpforms_frontend_output_when_mode_auto_and_form_has_hcaptcha() {
+		$form_id     = 5;
 		$form_data   = [
-			'id'       => 5,
+			'id'       => $form_id,
 			'settings' => [
 				'recaptcha' => '1',
 			],
@@ -618,15 +620,17 @@ HTML;
 		$title       = 'some title';
 		$description = 'some description';
 		$errors      = [ 'some errors' ];
-		$nonce       = wp_nonce_field( Form::ACTION, Form::NAME, true, false );
-		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >		<div
-			class="h-captcha"
-			data-sitekey=""
-			data-theme="light"
-			data-size=""
-			data-auto="false">
-		</div>
-		' . $nonce . '</div>';
+		$args        = [
+			'action'     => Form::ACTION,
+			'name'       => Form::NAME,
+			'id'         => [
+				'source'  => [ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
+				'form_id' => $form_id,
+			],
+			'data-theme' => 'light',
+		];
+		$hcap_form   = $this->get_hcap_form( $args );
+		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';
 
 		$classes   = [];
 		$classes[] = [

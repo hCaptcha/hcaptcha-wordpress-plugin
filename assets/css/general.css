@@ -247,6 +247,42 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: 100%;
 }
 
+/* Section Statistics */
+.hcaptcha-section-statistics + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"statistics collect-ip"
+		"statistics collect-ua";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics {
+	grid-area: statistics;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ip {
+	grid-area: collect-ip;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ua {
+	grid-area: collect-ua;
+}
+
+.hcaptcha-section-statistics + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ua th {
+	padding: 0;
+}
+
+.hcaptcha-section-statistics + table tbody tr td {
+	width: max-content;
+}
+
 @media (max-width: 600px) {
 	.hcaptcha-general table tbody tr td {
 		width: auto;
@@ -270,5 +306,13 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td {
 		width: auto;
+	}
+
+	.hcaptcha-section-statistics + table tbody {
+		grid-template-areas: unset;
+	}
+
+	.hcaptcha-section-statistics + table tbody tr {
+		grid-area: unset !important;
 	}
 }

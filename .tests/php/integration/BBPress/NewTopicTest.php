@@ -18,6 +18,8 @@ use WP_Error;
 
 /**
  * Test NewTopic class.
+ *
+ * @group bbpress
  */
 class NewTopicTest extends HCaptchaPluginWPTestCase {
 
@@ -45,8 +47,16 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha() {
-		$nonce    = wp_nonce_field( 'hcaptcha_bbp_new_topic', 'hcaptcha_bbp_new_topic_nonce', true, false );
-		$expected = $this->get_hcap_form() . $nonce;
+		$args = [
+			'action' => 'hcaptcha_bbp_new_topic',
+			'name'   => 'hcaptcha_bbp_new_topic_nonce',
+			'id'     => [
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'new_topic',
+			],
+		];
+
+		$expected = $this->get_hcap_form( $args );
 
 		$subject = new NewTopic();
 

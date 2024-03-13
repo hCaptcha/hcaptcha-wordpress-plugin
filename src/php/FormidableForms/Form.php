@@ -11,7 +11,9 @@
 namespace HCaptcha\FormidableForms;
 
 use FrmAppHelper;
+use FrmSettings;
 use HCaptcha\Helpers\HCaptcha;
+use stdClass;
 
 /**
  * Class Form.
@@ -27,6 +29,16 @@ class Form {
 	 * Verify nonce.
 	 */
 	const NONCE = 'hcaptcha_formidable_forms_nonce';
+
+	/**
+	 * Admin script handle.
+	 */
+	const ADMIN_HANDLE = 'admin-formidable-forms';
+
+	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaFormidableFormsObject';
 
 	/**
 	 * The hCaptcha field id.
@@ -48,25 +60,27 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks() {
-		add_filter( 'transient_frm_options', [ $this, 'get_transient' ], 10, 2 );
+		add_filter( 'option_frm_options', [ $this, 'get_option' ], 10, 2 );
 		add_filter( 'frm_replace_shortcodes', [ $this, 'add_captcha' ], 10, 3 );
 		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 10, 3 );
 		add_filter( 'frm_validate_entry', [ $this, 'verify' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
 	/**
-	 * Use this plugin settings for hcaptcha in Formidable Forms.
+	 * Use this plugin settings for hCaptcha in Formidable Forms.
 	 *
-	 * @param mixed  $value     Value of transient.
-	 * @param string $transient Transient name.
+	 * @param mixed|FrmSettings $value  Value of option.
+	 * @param string            $option Option name.
 	 *
 	 * @return mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function get_transient( $value, string $transient ) {
+	public function get_option( $value, string $option ) {
 		if (
 			! $value ||
+			! is_a( $value, FrmSettings::class ) ||
 			( isset( $value->active_captcha ) && 'hcaptcha' !== $value->active_captcha )
 		) {
 			return $value;
@@ -98,8 +112,6 @@ class Form {
 		if ( 'recaptcha' === $frm_settings->active_captcha ) {
 			return $html;
 		}
-
-		// <div id="field_5l59" class="h-captcha" data-sitekey="ead4f33b-cd8a-49fb-aa16-51683d9cffc8"></div>
 
 		if ( ! preg_match( '#<div id="(.+)" class="h-captcha" .+></div>#', (string) $html, $m ) ) {
 			return $html;
@@ -185,5 +197,60 @@ class Form {
 	public function enqueue_scripts() {
 		wp_dequeue_script( 'captcha-api' );
 		wp_deregister_script( 'captcha-api' );
+	}
+
+	/**
+	 * Enqueue script in admin.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( ! $this->is_formidable_forms_admin_page() ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-formidable-forms$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
+			]
+		);
+	}
+
+	/**
+	 * Whether we are on the Formidable Forms admin pages.
+	 *
+	 * @return bool
+	 */
+	private function is_formidable_forms_admin_page(): bool {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return false;
+		}
+
+		$formidable_forms_admin_pages = [
+			'formidable_page_formidable-settings',
+		];
+
+		return in_array( $screen->id, $formidable_forms_admin_pages, true );
 	}
 }

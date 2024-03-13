@@ -41,6 +41,7 @@ use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Admin\Events\Events;
 
 /**
  * Test Main class.
@@ -408,18 +409,19 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_csp_headers() {
-		$headers  = [ 'some_header' => 'some header content' ];
+		$headers  = [
+			'some_header'             => 'some header content',
+			'Content-Security-Policy' => "default-src 'self'",
+		];
 		$expected = $headers;
-		$hcap_csp = "'self' https://hcaptcha.com https://*.hcaptcha.com";
+		$hcap_csp = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
 
-		$expected['X-Content-Security-Policy'] =
-			"default-src 'self'; " .
+		$expected['Content-Security-Policy'] =
 			"script-src $hcap_csp; " .
 			"frame-src $hcap_csp; " .
 			"style-src $hcap_csp; " .
 			"connect-src $hcap_csp; " .
-			"unsafe-eval $hcap_csp; " .
-			"unsafe-inline $hcap_csp;";
+			"default-src 'self'";
 
 		$subject = new Main();
 
@@ -1065,7 +1067,7 @@ JS;
 		$expected_loaded_classes = [];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
-		self::assertSame( $expected_loaded_classes, $loaded_classes );
+		self::assertSame( $expected_loaded_classes, array_keys( $loaded_classes ) );
 
 		// Activate hCaptcha.
 		$activate = true;
@@ -1094,7 +1096,7 @@ JS;
 
 		$loaded_classes = $this->get_protected_property( $subject, 'loaded_classes' );
 
-		self::assertSame( $expected_loaded_classes, $loaded_classes );
+		self::assertSame( $expected_loaded_classes, array_keys( $loaded_classes ) );
 
 		array_walk(
 			$component,
@@ -1327,7 +1329,12 @@ JS;
 			'Elementor Pro Form'                => [
 				[ 'elementor_pro_status', 'form' ],
 				'elementor-pro/elementor-pro.php',
-				HCaptchaHandler::class,
+				[ HCaptchaHandler::class, \HCaptcha\ElementorPro\Login::class ],
+			],
+			'Elementor Pro Login'               => [
+				[ 'elementor_pro_status', null ],
+				'elementor-pro/elementor-pro.php',
+				\HCaptcha\ElementorPro\Login::class,
 			],
 			'Fluent Forms'                      => [
 				[ 'fluent_status', 'form' ],
@@ -1588,9 +1595,12 @@ JS;
 		$subject = new Main();
 		$subject->init_hooks();
 
-		$domain = 'hcaptcha-for-forms-and-more';
 		$locale = 'en_US';
 
+		$default_domain = 'default';
+		$default_mofile = WP_LANG_DIR . "/$locale.mo";
+
+		$domain = 'hcaptcha-for-forms-and-more';
 		$mofile =
 			WP_PLUGIN_DIR . '/' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/' .
 			$domain . '-' . $locale . '.mo';
@@ -1600,19 +1610,22 @@ JS;
 		add_filter(
 			'override_load_textdomain',
 			static function ( $override, $domain, $mofile ) use ( &$override_filter_params ) {
-				$override_filter_params = [ $override, $domain, $mofile ];
+				$override_filter_params[] = [ $override, $domain, $mofile ];
 
 				return $override;
 			},
-			10,
+			- PHP_INT_MAX,
 			3
 		);
 
 		$subject->load_textdomain();
 
-		self::assertFalse( $override_filter_params[0] );
-		self::assertSame( $domain, $override_filter_params[1] );
-		self::assertSame( $mofile, $override_filter_params[2] );
+		self::assertFalse( $override_filter_params[0][0] );
+		self::assertSame( $default_domain, $override_filter_params[0][1] );
+		self::assertSame( $default_mofile, $override_filter_params[0][2] );
+		self::assertFalse( $override_filter_params[1][0] );
+		self::assertSame( $domain, $override_filter_params[1][1] );
+		self::assertSame( basename( $mofile ), basename( $override_filter_params[1][2] ) );
 	}
 
 	/**

@@ -14,14 +14,16 @@ use HCaptcha\Helpers\HCaptcha;
  * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
  * Returns a string with the IP address or false for local IPs.
  *
- * @return false|string
+ * @return string|false
  */
 function hcap_get_user_ip() {
-	$client_ip = false;
+	$ip = false;
 
 	// In order of preference, with the best ones for this purpose first.
 	$address_headers = [
+		'HTTP_TRUE_CLIENT_IP',
 		'HTTP_CF_CONNECTING_IP',
+		'HTTP_X_REAL_IP',
 		'HTTP_CLIENT_IP',
 		'HTTP_X_FORWARDED_FOR',
 		'HTTP_X_FORWARDED',
@@ -36,22 +38,23 @@ function hcap_get_user_ip() {
 			continue;
 		}
 
+		/*
+		 * HTTP_X_FORWARDED_FOR can contain a chain of comma-separated addresses.
+		 * The first one is the original client.
+		 * It can't be trusted for authenticity, but we don't need to for this purpose.
+		 */
 		$address_chain = explode(
 			',',
 			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
 			2
 		);
-		$client_ip     = trim( $address_chain[0] );
+		$ip            = trim( $address_chain[0] );
 
 		break;
 	}
 
 	// Filter out local addresses.
-	return filter_var(
-		$client_ip,
-		FILTER_VALIDATE_IP,
-		FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-	);
+	return filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
 }
 
 /**
@@ -75,7 +78,7 @@ function hcap_get_error_messages(): array {
 			'invalid-input-response'           => __( 'The response parameter (verification token) is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 			'bad-request'                      => __( 'The request is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
 			'invalid-or-already-seen-response' => __( 'The response parameter has already been checked, or has another issue.', 'hcaptcha-for-forms-and-more' ),
-			'not-using-dummy-secret'           => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
+			'not-using-dummy-passcode'         => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
 			'sitekey-secret-mismatch'          => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
 			// Plugin messages.
 			'empty'                            => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
@@ -125,6 +128,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ) {
 		static $result;
+		static $error_codes;
 
 		// Do not make remote request more than once.
 		if ( hcaptcha()->has_result ) {
@@ -134,16 +138,22 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			 * @param string|null $result      The result of verification. The null means success.
 			 * @param string[]    $error_codes Error code(s). Empty array on success.
 			 */
-			return apply_filters( 'hcap_verify_request', $result, [] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		hcaptcha()->has_result = true;
 
+		$errors        = hcap_get_error_messages();
+		$empty_message = $errors['empty'];
+		$fail_message  = $errors['fail'];
+
+		// Protection is not enabled.
 		if ( ! HCaptcha::is_protection_enabled() ) {
-			$result = null;
+			$result      = null;
+			$error_codes = [];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, [] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		$hcaptcha_response_sanitized = htmlspecialchars(
@@ -151,16 +161,13 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
 		);
 
-		$errors = hcap_get_error_messages();
-
-		$empty_message = $errors['empty'];
-		$fail_message  = $errors['fail'];
-
+		// The hCaptcha response field is empty.
 		if ( '' === $hcaptcha_response_sanitized ) {
-			$result = $empty_message;
+			$result      = $empty_message;
+			$error_codes = [ 'empty' ];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, [ 'empty' ] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		$params = [
@@ -174,6 +181,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			$params['remoteip'] = $ip;
 		}
 
+		// Verify hCaptcha on the API server.
 		$raw_response = wp_remote_post(
 			hcaptcha()->get_verify_url(),
 			[ 'body' => $params ]
@@ -181,23 +189,29 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
+		// Verification request failed.
 		if ( empty( $raw_body ) ) {
-			$result = $fail_message;
+			$result      = $fail_message;
+			$error_codes = [ 'fail' ];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, [ 'fail' ] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		$body = json_decode( $raw_body, true );
 
+		// Verification request is not verified.
+		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
+			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
+			$error_codes = $body['error-codes'] ?? [ 'fail' ];
+
+			/** This filter is documented above. */
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
+		}
+
 		// Success.
 		$result      = null;
 		$error_codes = [];
-
-		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
-			$error_codes = $body['error-codes'] ?? [ 'fail' ];
-			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
-		}
 
 		/** This filter is documented above. */
 		return apply_filters( 'hcap_verify_request', $result, $error_codes );
@@ -229,10 +243,12 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 			! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) &&
 			HCaptcha::is_protection_enabled()
 		) {
-			$errors = hcap_get_error_messages();
+			$errors      = hcap_get_error_messages();
+			$result      = $errors['bad-nonce'];
+			$error_codes = [ 'bad-nonce' ];
 
 			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $errors['bad-nonce'], [ 'bad-nonce' ] );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
 		return hcaptcha_request_verify( $hcaptcha_response );

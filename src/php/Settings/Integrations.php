@@ -188,6 +188,13 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'coblocks_status'                  => [
+				'label'   => 'CoBlocks',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'colorlib_customizer_status'       => [
 				'label'   => 'Colorlib Login Customizer',
 				'type'    => 'checkbox',
@@ -239,7 +246,8 @@ class Integrations extends PluginSettingsBase {
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
-					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+					'form'  => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+					'login' => __( 'Login', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'fluent_status'                    => [
@@ -313,6 +321,14 @@ class Integrations extends PluginSettingsBase {
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'login_signup_popup_status'        => [
+				'label'   => 'Login Signup Popup',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'mailchimp_status'                 => [
