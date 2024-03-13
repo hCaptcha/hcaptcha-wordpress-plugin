@@ -76,8 +76,6 @@ class Migrations {
 	public function migrate() {
 		$migrated = get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
 
-		$this->check_plugin_update( $migrated );
-
 		$migrations       = array_filter(
 			get_class_methods( $this ),
 			static function ( $migration ) {
@@ -141,27 +139,6 @@ class Migrations {
 		}
 
 		return wp_doing_cron() || is_admin() || ( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) );
-	}
-
-	/**
-	 * Check if the plugin was updated.
-	 *
-	 * @param array $migrated Migrated versions.
-	 *
-	 * @return void
-	 */
-	private function check_plugin_update( array $migrated ) {
-		if ( isset( $migrated[ self::PLUGIN_VERSION ] ) ) {
-			return;
-		}
-
-		// Send tracking info on plugin update.
-		add_action(
-			'init',
-			static function () {
-				do_action( 'hcap_send_tracking_info' );
-			}
-		);
 	}
 
 	/**
