@@ -424,6 +424,15 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			"connect-src $hcap_csp; " .
 			"default-src 'self'";
 
+		add_filter(
+			'hcap_add_csp_headers',
+			static function ( $add, $h ) use ( $headers ) {
+				return $h === $headers;
+			},
+			10,
+			2
+		);
+
 		$subject = new Main();
 
 		self::assertSame( $expected, $subject->csp_headers( $headers ) );
