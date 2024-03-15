@@ -302,6 +302,10 @@ class Main {
 	 * @return array
 	 */
 	public function csp_headers( $headers ): array {
+		if ( ! apply_filters( 'hcap_add_csp_headers', false, $headers ) ) {
+			return $headers;
+		}
+
 		$headers       = (array) $headers;
 		$keys_lower    = array_map( 'strtolower', array_keys( $headers ) );
 		$csp_key       = 'Content-Security-Policy';
