@@ -565,6 +565,10 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 3.10.1 =
+* Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
+* Fixed Content Security Policy headers processing.
+
 = 3.10.0 =
 * Tested with WordPress 6.5.
 * Tested with WooCommerce 8.6.
