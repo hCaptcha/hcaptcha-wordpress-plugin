@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\Migrations;
 
+use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -19,6 +20,22 @@ use tad\FunctionMocker\FunctionMocker;
  * @group migrations
  */
 class MigrationsTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Set up test.
+	 *
+	 * @return void
+	 * @noinspection PhpLanguageLevelInspection
+	 * @noinspection PhpUndefinedClassInspection
+	 */
+	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+
+		parent::setUp();
+
+		// Disable working with temporary tables.
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+	}
 
 	/**
 	 * Tear down test.
@@ -182,5 +199,31 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject->$method();
 
 		self::assertSame( $option, get_option( 'hcaptcha_settings', [] ) );
+	}
+
+	/**
+	 * Test migrate_4_0_0().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_migrate_4_0_0_when_wpforms_status_not_set() {
+		global $wpdb;
+
+		$method     = 'migrate_4_0_0';
+		$subject    = Mockery::mock( Migrations::class )->makePartial();
+		$table_name = Events::TABLE_NAME;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( "DROP TABLE $wpdb->prefix$table_name" );
+
+		self::assertSame( 0, $wpdb->query( "SHOW TABLES LIKE '$wpdb->prefix$table_name'" ) );
+
+		$this->set_method_accessibility( $subject, $method );
+
+		$subject->$method();
+
+		self::assertSame( 1, $wpdb->query( "SHOW TABLES LIKE '$wpdb->prefix$table_name'" ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
 	}
 }
