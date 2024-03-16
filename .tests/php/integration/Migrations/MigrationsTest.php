@@ -206,23 +206,24 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_migrate_4_0_0_when_wpforms_status_not_set() {
+	public function test_migrate_4_0_0() {
 		global $wpdb;
 
-		$method     = 'migrate_4_0_0';
-		$subject    = Mockery::mock( Migrations::class )->makePartial();
-		$table_name = Events::TABLE_NAME;
+		$method          = 'migrate_4_0_0';
+		$subject         = Mockery::mock( Migrations::class )->makePartial();
+		$table_name      = Events::TABLE_NAME;
+		$full_table_name = $wpdb->prefix . $table_name;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
-		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
+		$wpdb->query( "DROP TABLE $full_table_name" );
 
-		self::assertSame( 0, $wpdb->query( "SHOW TABLES LIKE '$wpdb->prefix$table_name'" ) );
+		self::assertFalse( (bool) $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table_name ) ) );
 
 		$this->set_method_accessibility( $subject, $method );
 
 		$subject->$method();
 
-		self::assertSame( 1, $wpdb->query( "SHOW TABLES LIKE '$wpdb->prefix$table_name'" ) );
+		self::assertTrue( (bool) $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table_name ) ) );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
 	}
 }
