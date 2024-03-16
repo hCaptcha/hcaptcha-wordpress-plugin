@@ -14,7 +14,7 @@ namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Admin\Events\Events;
-use HCaptcha\Admin\TrackingInfo;
+use HCaptcha\Admin\PluginStats;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
@@ -145,7 +145,7 @@ class Main {
 			]
 		);
 
-		$this->load( TrackingInfo::class );
+		$this->load( PluginStats::class );
 		$this->load( Events::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );

@@ -29,7 +29,6 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-
 		parent::setUp();
 
 		// Disable working with temporary tables.
@@ -215,7 +214,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$table_name = Events::TABLE_NAME;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
-		$wpdb->query( "DROP TABLE $wpdb->prefix$table_name" );
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
 
 		self::assertSame( 0, $wpdb->query( "SHOW TABLES LIKE '$wpdb->prefix$table_name'" ) );
 

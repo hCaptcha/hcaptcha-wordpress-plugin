@@ -25,7 +25,6 @@ class Events {
 	 * @return void
 	 */
 	public function __construct() {
-		self::create_table();
 		$this->init_hooks();
 	}
 

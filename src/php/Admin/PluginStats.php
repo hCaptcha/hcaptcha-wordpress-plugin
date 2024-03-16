@@ -1,6 +1,6 @@
 <?php
 /**
- * TrackingInfo class file.
+ * PluginStats class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,9 +10,9 @@ namespace HCaptcha\Admin;
 use HCaptcha\Settings\SystemInfo;
 
 /**
- * Class TrackingInfo.
+ * Class PluginStats.
  */
-class TrackingInfo {
+class PluginStats {
 
 	/**
 	 * Event API URL.
@@ -51,7 +51,7 @@ class TrackingInfo {
 	 * @return void
 	 */
 	private function init_hooks() {
-		add_action( 'hcap_send_tracking_info', [ $this, 'send_tracking_info' ] );
+		add_action( 'hcap_send_plugin_stats', [ $this, 'send_plugin_stats' ] );
 	}
 
 	/**
@@ -60,8 +60,8 @@ class TrackingInfo {
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function send_tracking_info() {
-		$tracking_info = $this->get_tracking_info();
+	public function send_plugin_stats() {
+		$stats = $this->get_plugin_stats();
 
 		$url     = self::EVENT_API;
 		$headers = [
@@ -76,7 +76,7 @@ class TrackingInfo {
 			'u'     => home_url( self::NAME ), // URL.
 			'r'     => null, // Referer.
 			'w'     => 1024, // Some window inner width.
-			'props' => $tracking_info, // Info.
+			'props' => $stats, // Info.
 		];
 
 		$result = wp_remote_post(
@@ -115,7 +115,7 @@ class TrackingInfo {
 	 *
 	 * @return array
 	 */
-	public function get_tracking_info(): array {
+	public function get_plugin_stats(): array {
 		$tabs            = hcaptcha()->settings()->get_tabs();
 		$system_info_obj = null;
 
@@ -180,18 +180,18 @@ class TrackingInfo {
 
 		$settings = hcaptcha()->settings();
 
-		$integrations  = $integrations[''];
-		$tracking_info = [];
+		$integrations = $integrations[''];
+		$stats        = [];
 
-		$tracking_info = array_merge(
-			$tracking_info,
+		$stats        = array_merge(
+			$stats,
 			array_fill_keys( array_keys( $integrations['Active plugins and themes'] ), 'Active' )
 		);
-		$tracking_info = array_merge(
-			$tracking_info,
+		$stats        = array_merge(
+			$stats,
 			array_fill_keys( array_keys( $integrations['Inactive plugins and themes'] ), 'Inactive' )
 		);
-		$integrations  = array_merge(
+		$integrations = array_merge(
 			$integrations['Active plugins and themes'],
 			$integrations['Inactive plugins and themes']
 		);
@@ -204,13 +204,13 @@ class TrackingInfo {
 			}
 		}
 
-		$tracking_info               = array_merge( $tracking_info, $flat_integrations );
-		$tracking_info['hCaptcha']   = HCAPTCHA_VERSION;
-		$tracking_info['Pro']        = hcaptcha()->is_pro();
-		$tracking_info['Site key']   = $this->is_empty( $settings->get_site_key() );
-		$tracking_info['Secret key'] = $this->is_empty( $settings->get_secret_key() );
-		$tracking_info['Multisite']  = is_multisite();
-		$tracking_info['Enterprise'] = (
+		$stats               = array_merge( $stats, $flat_integrations );
+		$stats['hCaptcha']   = HCAPTCHA_VERSION;
+		$stats['Pro']        = hcaptcha()->is_pro();
+		$stats['Site key']   = $this->is_empty( $settings->get_site_key() );
+		$stats['Secret key'] = $this->is_empty( $settings->get_secret_key() );
+		$stats['Multisite']  = is_multisite();
+		$stats['Enterprise'] = (
 			! empty( $settings->get( 'api_host' ) ) ||
 			! empty( $settings->get( 'asset_host' ) ) ||
 			! empty( $settings->get( 'endpoint' ) ) ||
@@ -221,7 +221,7 @@ class TrackingInfo {
 			! empty( $settings->get( 'backend' ) )
 		);
 
-		return $tracking_info;
+		return $stats;
 	}
 
 	/**

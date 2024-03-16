@@ -159,7 +159,7 @@ class Migrations {
 		add_action(
 			'init',
 			static function () {
-				do_action( 'hcap_send_tracking_info' );
+				do_action( 'hcap_send_plugin_stats' );
 			}
 		);
 	}

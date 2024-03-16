@@ -41,7 +41,7 @@ use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
-use HCaptcha\Admin\TrackingInfo;
+use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
 
 /**
@@ -1075,7 +1075,7 @@ JS;
 		// Test with hCaptcha plugin not active.
 		$subject->load_modules();
 		$expected_loaded_classes = [
-			TrackingInfo::class,
+			PluginStats::class,
 			Events::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
