@@ -216,6 +216,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
 		$wpdb->query( "DROP TABLE $full_table_name" );
+		$wpdb->query( "DROP TEMPORARY TABLE $full_table_name" );
 
 		self::assertFalse( (bool) $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table_name ) ) );
 
