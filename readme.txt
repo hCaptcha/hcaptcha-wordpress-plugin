@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 3.9.0
+Stable tag: 3.10.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -565,6 +565,10 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.0.0 =
+* Added hCaptcha events statistics and Forms admin page.
+* Added Events admin page for Pro users.
+
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
 * Fixed Content Security Policy headers processing.
@@ -573,8 +577,6 @@ Instructions for popular native integrations are below:
 * Tested with WordPress 6.5.
 * Tested with WooCommerce 8.6.
 * The minimum required WordPress version is now 5.1.
-* Added hCaptcha events statistics and Forms admin page.
-* Added Events admin page for Pro users.
 * Added Force hCaptcha check before submit feature.
 * Added Elementor Pro Login integration.
 * Added Login/Signup Popup integration.
