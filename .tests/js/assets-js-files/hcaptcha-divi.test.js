@@ -27,4 +27,15 @@ describe( 'hCaptcha ajaxStop binding', () => {
 		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
 		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
+
+  test ('hCaptchaBindEvents is called when ajaxSuccess event is triggered with unexpected data', () => {
+    const xhr = {};
+    const settings = {};
+
+    // Unexpected object which does not have `.includes` method
+    settings.data = {};
+    $( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
+    expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+  })
+
 } );
