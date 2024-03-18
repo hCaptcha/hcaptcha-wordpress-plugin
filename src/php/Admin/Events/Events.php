@@ -206,7 +206,6 @@ class Events {
 	 * Create table.
 	 *
 	 * @return void
-	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public static function create_table() {
 		global $wpdb;
@@ -234,10 +233,6 @@ class Events {
 		    KEY date_gmt (date_gmt)
 		) $charset_collate;";
 
-		$r = dbDelta( $sql );
-
-		// phpcs:disable
-		error_log( 'SQL: ' . $sql );
-		error_log( 'dbDelta: ' . print_r( $r, true ) );
+		dbDelta( $sql );
 	}
 }

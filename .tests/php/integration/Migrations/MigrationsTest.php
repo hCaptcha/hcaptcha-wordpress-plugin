@@ -213,20 +213,39 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$method          = 'migrate_4_0_0';
 		$subject         = Mockery::mock( Migrations::class )->makePartial();
 		$table_name      = Events::TABLE_NAME;
-		$full_table_name = $wpdb->prefix . $table_name;
+		$charset_collate = $wpdb->get_charset_collate();
+		$actual_query    = '';
+		$expected_query  = "CREATE TABLE IF NOT EXISTS $wpdb->prefix$table_name (
+		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		    source      VARCHAR(256)    NOT NULL,
+		    form_id     VARCHAR(20)     NOT NULL,
+		    ip          VARCHAR(39)     NOT NULL,
+		    user_agent  VARCHAR(256)    NOT NULL,
+		    uuid        VARCHAR(36)     NOT NULL,
+		    error_codes VARCHAR(256)    NOT NULL,
+		    date_gmt    DATETIME        NOT NULL,
+		    PRIMARY KEY (id),
+		    KEY source (source),
+		    KEY form_id (form_id),
+		    KEY hcaptcha_id (source, form_id),
+		    KEY ip (ip),
+		    KEY uuid (uuid),
+		    KEY date_gmt (date_gmt)
+		) $charset_collate;";
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
-		$wpdb->query( "DROP TABLE IF EXISTS $full_table_name" );
-		$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS $full_table_name" );
+		add_filter(
+			'dbdelta_queries',
+			static function ( $queries ) use ( &$actual_query ) {
+				$actual_query = $queries;
 
-		self::assertFalse( (bool) $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table_name ) ) );
+				return $queries;
+			}
+		);
 
 		$this->set_method_accessibility( $subject, $method );
 
 		$subject->$method();
 
-		$wpdb->query( 'COMMIT' );
-		self::assertTrue( (bool) $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table_name ) ) );
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		self::assertSame( array_filter( explode( ';', $expected_query ) ), $actual_query );
 	}
 }
