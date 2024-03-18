@@ -236,7 +236,8 @@ class Events {
 
 		$r = dbDelta( $sql );
 
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_dump
-		var_dump( $sql, $r );
+		// phpcs:disable
+		error_log( 'SQL: ' . $sql );
+		error_log( 'dbDelta: ' . print_r( $r, true ) );
 	}
 }
