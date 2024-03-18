@@ -22,22 +22,6 @@ use tad\FunctionMocker\FunctionMocker;
 class MigrationsTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Set up test.
-	 *
-	 * @return void
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
-	 */
-	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		parent::setUp();
-
-		// Disable working with temporary tables.
-		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
-		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
-	}
-
-	/**
 	 * Tear down test.
 	 *
 	 * @return void
