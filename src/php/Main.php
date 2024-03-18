@@ -302,11 +302,18 @@ class Main {
 	 * @return array
 	 */
 	public function csp_headers( $headers ): array {
+		$headers = (array) $headers;
+
+		/**
+		 * Filters whether to add Content Security Policy (CSP) headers.
+		 *
+		 * @param bool  $add_csp_headers Add Content Security Policy (CSP) headers.
+		 * @param array $headers Current headers.
+		 */
 		if ( ! apply_filters( 'hcap_add_csp_headers', false, $headers ) ) {
 			return $headers;
 		}
 
-		$headers       = (array) $headers;
 		$keys_lower    = array_map( 'strtolower', array_keys( $headers ) );
 		$csp_key       = 'Content-Security-Policy';
 		$csp_key_lower = strtolower( $csp_key );
@@ -325,13 +332,20 @@ class Main {
 			}
 		}
 
-		$hcap_csp_subheaders = [];
+		$hcap_csp_headers = [];
 
 		foreach ( $hcap_csp_arr as $key => $value ) {
-			$hcap_csp_subheaders[] = $key . ' ' . implode( ' ', $value );
+			$hcap_csp_headers[] = $key . ' ' . implode( ' ', $value );
 		}
 
-		$headers[ $csp_key ] = implode( '; ', $hcap_csp_subheaders );
+		/**
+		 * Filters the Content Security Policy (CSP) headers.
+		 *
+		 * @param string $hcap_csp_headers Content Security Policy (CSP) headers.
+		 */
+		$hcap_csp_headers = (array) apply_filters( 'hcap_csp_headers', $hcap_csp_headers );
+
+		$headers[ $csp_key ] = implode( '; ', $hcap_csp_headers );
 
 		return $headers;
 	}
