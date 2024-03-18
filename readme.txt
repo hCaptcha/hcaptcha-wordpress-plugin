@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 3.10.0
+Stable tag: 3.10.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -564,6 +564,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 3.10.1 =
+* Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
+* Fixed Content Security Policy headers processing.
 
 = 3.10.0 =
 * Tested with WordPress 6.5.
