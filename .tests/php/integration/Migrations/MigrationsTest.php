@@ -34,6 +34,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		// Disable working with temporary tables.
 		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
 		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
 	}
 
 	/**

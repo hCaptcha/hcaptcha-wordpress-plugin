@@ -233,6 +233,8 @@ class Events {
 		    KEY date_gmt (date_gmt)
 		) $charset_collate;";
 
-		dbDelta( $sql );
+		$r = dbDelta( $sql );
+
+		var_dump( $sql, $r );
 	}
 }
