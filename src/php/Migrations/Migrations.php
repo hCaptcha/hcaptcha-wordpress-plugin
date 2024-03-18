@@ -155,10 +155,13 @@ class Migrations {
 			return;
 		}
 
-		// Send tracking info on plugin update.
+		// Send statistics on plugin update.
 		add_action(
 			'init',
 			static function () {
+				/**
+				 * Send plugin statistics.
+				 */
 				do_action( 'hcap_send_plugin_stats' );
 			}
 		);

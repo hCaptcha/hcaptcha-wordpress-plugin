@@ -221,6 +221,7 @@ class HCaptcha {
 
 		return ! (
 			wp_hash( $encoded_id ) === $hash &&
+			/** This filter is documented above. */
 			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
 		);
 	}

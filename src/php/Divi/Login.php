@@ -63,7 +63,12 @@ class Login extends LoginBase {
 		}
 
 		ob_start();
+
+		/**
+		 * Display hCaptcha signature.
+		 */
 		do_action( 'hcap_signature' );
+
 		$signatures = (string) ob_get_clean();
 
 		$pattern     = '/(<p>[\s]*?<button)/';

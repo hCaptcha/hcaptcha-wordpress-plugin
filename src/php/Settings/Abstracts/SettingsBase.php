@@ -560,6 +560,9 @@ abstract class SettingsBase {
 			</span>
 			<?php
 
+			/**
+			 * Fires before settings tab closing tag.
+			 */
 			do_action( 'kagg_settings_tab' );
 
 			?>
