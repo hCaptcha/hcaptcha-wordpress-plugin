@@ -206,6 +206,7 @@ class Events {
 	 * Create table.
 	 *
 	 * @return void
+	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public static function create_table() {
 		global $wpdb;
@@ -235,6 +236,7 @@ class Events {
 
 		$r = dbDelta( $sql );
 
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_dump
 		var_dump( $sql, $r );
 	}
 }
