@@ -225,6 +225,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		$subject->$method();
 
+		$wpdb->query( 'COMMIT' );
 		self::assertTrue( (bool) $wpdb->query( $wpdb->prepare( 'SHOW TABLES LIKE %s', $full_table_name ) ) );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange
 	}
