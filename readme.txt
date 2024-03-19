@@ -568,6 +568,7 @@ Instructions for popular native integrations are below:
 = 4.0.0 =
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
+* Added filter `hcap_form_args` to allow modifying form arguments.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
