@@ -118,13 +118,40 @@ h3.closed .hcaptcha-section-header-toggle:after {
 .hcaptcha-section-appearance + table tbody {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
+	grid-template-areas:
+		"theme size language mode"
+		"force force . .";
 	gap: 10px 20px;
 	padding: 15px 20px;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-theme {
+	grid-area: theme;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-size {
+	grid-area: size;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-language {
+	grid-area: language;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-mode {
+	grid-area: mode;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force {
+	grid-area: force;
 }
 
 .hcaptcha-section-appearance + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force td {
+	width: max-content;
 }
 
 .hcaptcha-section-appearance + table tbody tr td select {

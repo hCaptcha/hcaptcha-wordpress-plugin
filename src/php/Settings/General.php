@@ -363,6 +363,15 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
+			'force'                => [
+				'label'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_APPEARANCE,
+				'options' => [
+					'on' => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Force hCaptcha check before submit.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'custom_themes'        => [
 				'label'   => __( 'Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
