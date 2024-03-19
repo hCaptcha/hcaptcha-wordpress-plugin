@@ -15,6 +15,10 @@ use HCaptcha\Helpers\HCaptcha;
  * @return string
  */
 function hcap_shortcode( $atts ): string {
+	$settings       = hcaptcha()->settings();
+	$hcaptcha_force = $settings->is_on( 'force' );
+	$hcaptcha_size  = $settings->get( 'size' );
+
 	/**
 	 * Do not set the default size here.
 	 * If size is not normal|compact|invisible, it will be taken from plugin settings in HCaptcha::form().
@@ -24,8 +28,8 @@ function hcap_shortcode( $atts ): string {
 			'action'  => HCAPTCHA_ACTION,
 			'name'    => HCAPTCHA_NONCE,
 			'auto'    => false,
-			'force'   => false,
-			'size'    => '',
+			'force'   => $hcaptcha_force,
+			'size'    => $hcaptcha_size,
 			'id'      => [],
 			'protect' => true,
 		],
