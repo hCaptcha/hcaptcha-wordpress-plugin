@@ -112,6 +112,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'woocommerce_wishlists_status' => [],
 			'wpforms_status'               => [ 'form' ],
 			'wpforo_status'                => [],
+			'force'                        => [],
 			'custom_themes'                => [],
 			'statistics'                   => [],
 			'collect_ip'                   => [],

@@ -541,6 +541,15 @@ abstract class HCaptchaTestCase extends TestCase {
 				'default' => General::MODE_LIVE,
 				'helper'  => 'Select live or test mode. In test mode, predefined keys are used.',
 			],
+			'force'                    => [
+				'label'   => 'Force hCaptcha',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_APPEARANCE,
+				'options' => [
+					'on' => 'Force hCaptcha',
+				],
+				'helper'  => 'Force hCaptcha check before submit.',
+			],
 			'custom_themes'            => [
 				'label'   => 'Custom Themes',
 				'type'    => 'checkbox',
