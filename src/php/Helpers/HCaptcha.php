@@ -84,6 +84,13 @@ class HCaptcha {
 			]
 		);
 
+		/**
+		 * Filters the form arguments.
+		 *
+		 * @param array $args The form arguments.
+		 */
+		$args = (array) apply_filters( 'hcap_form_args', $args );
+
 		$args['action']  = (string) $args['action'];
 		$args['name']    = (string) $args['name'];
 		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
