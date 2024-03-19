@@ -22,7 +22,7 @@ class PluginStats {
 	/**
 	 * Event name.
 	 */
-	const NAME = 'tracking-info';
+	const NAME = 'plugin-stats';
 
 	/**
 	 * Report domain.
@@ -55,7 +55,7 @@ class PluginStats {
 	}
 
 	/**
-	 * Send tracking info.
+	 * Send plugin statistics.
 	 *
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
@@ -93,7 +93,7 @@ class PluginStats {
 			// @codeCoverageIgnoreEnd
 		}
 
-		$message = 'Error sending tracking info: ';
+		$message = 'Error sending plugin statistics: ';
 
 		if ( is_wp_error( $result ) ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -111,7 +111,7 @@ class PluginStats {
 	}
 
 	/**
-	 * Get tracking info.
+	 * Get plugin statistics.
 	 *
 	 * @return array
 	 */
