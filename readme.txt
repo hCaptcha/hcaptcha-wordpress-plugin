@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.0.0 =
+* Tested with WooCommerce 8.7.
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
 * Added filter `hcap_form_args` to allow modifying form arguments.
