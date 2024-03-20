@@ -167,6 +167,7 @@ class NF {
 	 * Place hCaptcha field before recaptcha field.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function place_hcaptcha_before_recaptcha_field() {
 		$fields = Ninja_Forms()->fields;
