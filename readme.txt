@@ -569,6 +569,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 8.7.
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
+* Added Force option to show hCaptcha challenge before submit. 
 * Added filter `hcap_form_args` to allow modifying form arguments.
 * Fixed issue with Divi Contact Form Helper plugin and File Upload field.
 
