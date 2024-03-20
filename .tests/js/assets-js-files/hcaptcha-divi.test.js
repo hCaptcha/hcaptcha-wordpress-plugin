@@ -28,7 +28,7 @@ describe( 'hCaptcha ajaxStop binding', () => {
 		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 
-	test ('hCaptchaBindEvents is not called when ajaxSuccess event is triggered with unexpected data', () => {
+	test( 'hCaptchaBindEvents is not called when ajaxSuccess event is triggered with unexpected data', () => {
 		const xhr = {};
 		const settings = {};
 
@@ -36,5 +36,5 @@ describe( 'hCaptcha ajaxStop binding', () => {
 		settings.data = {};
 		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
 		expect( hCaptchaBindEvents ).not.toHaveBeenCalled();
-	})
+	} );
 } );
