@@ -49,4 +49,12 @@ describe( 'hCaptcha Beaver Builder', () => {
 		expect( options.data ).not.toContain( 'hcaptcha_beaver_builder_nonce' );
 		expect( options.data ).not.toContain( 'hcaptcha_login_nonce' );
 	} );
+
+	test( 'does not append anything when data is not a string', () => {
+		options.data = {};
+		ajaxPrefilterCallback( options );
+		expect( options.data ).not.toContain( 'h-captcha-response' );
+		expect( options.data ).not.toContain( 'hcaptcha_beaver_builder_nonce' );
+		expect( options.data ).not.toContain( 'hcaptcha_login_nonce' );
+	} );
 } );
