@@ -570,6 +570,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
 * Added filter `hcap_form_args` to allow modifying form arguments.
+* Fixed issue with Divi Contact Form Helper plugin and File Upload field.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
