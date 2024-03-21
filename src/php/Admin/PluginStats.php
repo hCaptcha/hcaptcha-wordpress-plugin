@@ -30,6 +30,11 @@ class PluginStats {
 	const DOMAIN = 'wp-plugin.hcaptcha.com';
 
 	/**
+	 * Max props to send.
+	 */
+	const MAX_PROPS = 30;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -76,7 +81,7 @@ class PluginStats {
 			'u'     => home_url( self::NAME ), // URL.
 			'r'     => null, // Referer.
 			'w'     => 1024, // Some window inner width.
-			'props' => $stats, // Info.
+			'props' => $stats, // Stats.
 		];
 
 		$result = wp_remote_post(
@@ -131,86 +136,13 @@ class PluginStats {
 			return [];
 		}
 
-		$integration_info = explode( "\n", $system_info_obj->integration_info() );
-		$integrations     = [];
-		$current_root     = &$integrations;
-		$header1          = '';
-		$array_name       = '';
-
-		foreach ( $integration_info as $item ) {
-			if ( ! $item || 0 === strpos( $item, '### ' ) ) {
-				continue;
-			}
-
-			if ( 0 === strpos( $item, '-- ' ) ) {
-				$header1 = preg_replace( '/-- (.+) --/', '$1', $item );
-
-				$integrations[ $header1 ] = [];
-
-				$current_root = & $integrations[ $header1 ];
-
-				continue;
-			}
-
-			if ( 0 === strpos( $item, '--- ' ) ) {
-				$header2 = preg_replace( '/--- (.+) ---/', '$1', $item );
-
-				$integrations[ $header1 ][ $header2 ] = [];
-
-				$current_root = & $integrations[ $header1 ][ $header2 ];
-
-				continue;
-			}
-
-			list( $key, $value ) = explode( ': ', $item, 2 );
-
-			$in_array = 0 === strpos( $item, '  ' );
-
-			if ( $in_array ) {
-				$current_root[ $array_name ] = is_array( $current_root[ $array_name ] ) ? $current_root[ $array_name ] : [];
-
-				$current_root[ $array_name ][ trim( $key ) ] = trim( $value );
-
-				continue;
-			}
-
-			$array_name           = $key;
-			$current_root[ $key ] = trim( $value );
-		}
-
-		$settings = hcaptcha()->settings();
-
-		$integrations = $integrations[''];
-		$stats        = [];
-
-		$stats        = array_merge(
-			$stats,
-			array_fill_keys( array_keys( $integrations['Active plugins and themes'] ), 'Active' )
-		);
-		$stats        = array_merge(
-			$stats,
-			array_fill_keys( array_keys( $integrations['Inactive plugins and themes'] ), 'Inactive' )
-		);
-		$integrations = array_merge(
-			$integrations['Active plugins and themes'],
-			$integrations['Inactive plugins and themes']
-		);
-
-		$flat_integrations = [];
-
-		foreach ( $integrations as $integration => $forms ) {
-			foreach ( $forms as $key => $value ) {
-				$flat_integrations[ $integration . ': ' . $key ] = $value;
-			}
-		}
-
-		$stats               = array_merge( $stats, $flat_integrations );
+		$settings            = hcaptcha()->settings();
 		$stats['hCaptcha']   = HCAPTCHA_VERSION;
-		$stats['Pro']        = hcaptcha()->is_pro();
-		$stats['Site key']   = $this->is_empty( $settings->get_site_key() );
-		$stats['Secret key'] = $this->is_empty( $settings->get_secret_key() );
-		$stats['Multisite']  = is_multisite();
-		$stats['Enterprise'] = (
+		$stats['Pro']        = (int) hcaptcha()->is_pro();
+		$stats['Site key']   = $this->is_not_empty( $settings->get_site_key() );
+		$stats['Secret key'] = $this->is_not_empty( $settings->get_secret_key() );
+		$stats['Multisite']  = (int) is_multisite();
+		$stats['Enterprise'] = (int) (
 			! empty( $settings->get( 'api_host' ) ) ||
 			! empty( $settings->get( 'asset_host' ) ) ||
 			! empty( $settings->get( 'endpoint' ) ) ||
@@ -221,17 +153,27 @@ class PluginStats {
 			! empty( $settings->get( 'backend' ) )
 		);
 
-		return $stats;
+		list( $fields, $integration_settings ) = $system_info_obj->get_integrations();
+
+		foreach ( $fields as $key => $field ) {
+			if ( $field['disabled'] ) {
+				continue;
+			}
+
+			$stats[ $field['label'] ] = implode( ',', $integration_settings[ $key ] );
+		}
+
+		return array_slice( $stats, 0, self::MAX_PROPS );
 	}
 
 	/**
-	 * Return whether data is empty.
+	 * Return whether data is not empty.
 	 *
 	 * @param mixed $data Data.
 	 *
-	 * @return string
+	 * @return int
 	 */
-	private function is_empty( $data ): string {
-		return empty( $data ) ? 'Not set' : 'Set';
+	private function is_not_empty( $data ): int {
+		return (int) ( ! empty( $data ) );
 	}
 }
