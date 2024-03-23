@@ -74,7 +74,7 @@ class Migrations {
 	 * @return void
 	 */
 	public function migrate() {
-		$migrated = get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
+		$migrated = (array) get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
 
 		$this->check_plugin_update( $migrated );
 
@@ -344,6 +344,30 @@ class Migrations {
 	protected function migrate_4_0_0() {
 		Events::create_table();
 
+		add_action( 'plugins_loaded', [ $this, 'save_license_level' ] );
+
 		return true;
+	}
+
+	/**
+	 * Save license level in settings.
+	 *
+	 * @return void
+	 */
+	public function save_license_level() {
+		// Check the license level.
+		$result = hcap_check_site_config();
+
+		if ( $result['error'] ?? false ) {
+			return;
+		}
+
+		$pro               = $result['features']['custom_theme'] ?? false;
+		$license           = $pro ? 'pro' : 'free';
+		$option            = get_option( 'hcaptcha_settings', [] );
+		$option['license'] = $license;
+
+		// Save license level in settings.
+		update_option( 'hcaptcha_settings', $option );
 	}
 }

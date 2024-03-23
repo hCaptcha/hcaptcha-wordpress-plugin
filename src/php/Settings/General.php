@@ -769,36 +769,16 @@ class General extends PluginSettingsBase {
 			);
 		}
 
-		$settings = hcaptcha()->settings();
-		$params   = [
-			'host'    => (string) wp_parse_url( site_url(), PHP_URL_HOST ),
-			'sitekey' => $settings->get_site_key(),
-			'sc'      => 1,
-			'swa'     => 1,
-			'spst'    => 0,
-		];
-		$url      = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
+		$result = hcap_check_site_config();
 
-		$raw_response = wp_remote_post( $url );
-
-		$raw_body = wp_remote_retrieve_body( $raw_response );
-
-		if ( empty( $raw_body ) ) {
-			$this->send_check_config_error( __( 'Cannot communicate with hCaptcha server.', 'hcaptcha-for-forms-and-more' ) );
+		if ( $result['error'] ?? false ) {
+			$this->send_check_config_error( $result['error'] );
 		}
 
-		$body = json_decode( $raw_body, true );
+		$pro     = $result['features']['custom_theme'] ?? false;
+		$license = $pro ? 'pro' : 'free';
 
-		if ( ! $body ) {
-			$this->send_check_config_error( __( 'Cannot decode hCaptcha server response.', 'hcaptcha-for-forms-and-more' ) );
-		}
-
-		if ( empty( $body['pass'] ) ) {
-			$error = $body['error'] ? (string) $body['error'] : '';
-			$error = $error ? ': ' . $error : '';
-
-			$this->send_check_config_error( $error );
-		}
+		$this->update_option( 'license', $license );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -880,10 +860,13 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function send_check_config_error( string $error, bool $raw_result = false ) {
-		$prefix = $raw_result ? '' : esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' );
+		$prefix = '';
 
-		wp_send_json_error(
-			$prefix . $error
-		);
+		if ( ! $raw_result ) {
+			$prefix = esc_html__( 'Site configuration error', 'hcaptcha-for-forms-and-more' );
+			$prefix = $error ? $prefix . ': ' : $prefix . '.';
+		}
+
+		wp_send_json_error( $prefix . $error );
 	}
 }

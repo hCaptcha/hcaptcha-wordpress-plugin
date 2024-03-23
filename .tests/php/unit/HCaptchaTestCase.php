@@ -293,10 +293,6 @@ abstract class HCaptchaTestCase extends TestCase {
 				[],
 			'recaptcha_compat_off'         =>
 				[],
-			'custom_theme_params'          => '{
-   "theme": "dark",
-   "size": "compact"
-}',
 			'config_params'                => '',
 			'whitelisted_ips'              => '4444444.777.2
 220.45.45.1
