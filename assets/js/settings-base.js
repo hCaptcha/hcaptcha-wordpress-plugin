@@ -17,13 +17,13 @@ const settingsBase = function( $ ) {
 			return;
 		}
 
-		const hash = url.substring( url.indexOf( '#' ) + 1 );
+		const hash = window.location.hash;
 
 		if ( ! hash ) {
 			return;
 		}
 
-		const $element = $( '#' + hash );
+		const $element = $( hash );
 
 		if ( ! $element ) {
 			return;
