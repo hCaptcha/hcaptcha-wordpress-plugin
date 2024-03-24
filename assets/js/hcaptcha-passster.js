@@ -2,7 +2,14 @@
 
 import { helper } from './hcaptcha-helper';
 
-document.addEventListener( 'DOMContentLoaded', function() {
+/**
+ * Add filters before DOMContentLoaded event.
+ */
+document.addEventListener( 'readystatechange', () => {
+	if ( document.readyState !== 'interactive' ) {
+		return;
+	}
+
 	wp.hooks.addFilter(
 		'hcaptcha.ajaxSubmitButton',
 		'hcaptcha',
