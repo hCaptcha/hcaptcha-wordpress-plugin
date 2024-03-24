@@ -501,8 +501,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
-		$subject->shouldReceive( 'plugin_url' )->twice()->andReturn( $plugin_url );
-		$subject->shouldReceive( 'plugin_version' )->twice()->andReturn( $plugin_version );
+		$subject->shouldReceive( 'plugin_url' )->times( 3 )->andReturn( $plugin_url );
+		$subject->shouldReceive( 'plugin_version' )->times( 3 )->andReturn( $plugin_version );
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 
 		WP_Mock::userFunction( 'wp_enqueue_style' )
@@ -511,6 +511,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				$plugin_url . '/assets/css/settings-admin.css',
 				[],
 				$plugin_version
+			)
+			->once();
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				SettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
+				$plugin_url . '/assets/js/settings-base.js',
+				[],
+				$plugin_version,
+				true
 			)
 			->once();
 		WP_Mock::userFunction( 'wp_enqueue_style' )
