@@ -9,12 +9,6 @@
  */
 class HCaptcha {
 	constructor() {
-		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item,' +
-			' .gform_editor, #nf-builder, .wpforms-captcha-preview';
-		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config,' +
-			' a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button,' +
-			' .forminator-button-submit, .frm_button_submit, a.sdm_download,' +
-			' .uagb-forms-main-submit-button'; // Spectra.
 		this.foundForms = [];
 		this.params = null;
 		this.observing = false;
@@ -347,6 +341,20 @@ class HCaptcha {
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
+		this.formSelector = wp.hooks.applyFilters(
+			'hcaptcha.formSelector',
+			'form' +
+			', section.cwginstock-subscribe-form, div.sdm_download_item' +
+			', .gform_editor, #nf-builder, .wpforms-captcha-preview'
+		);
+		this.submitButtonSelector = wp.hooks.applyFilters(
+			'hcaptcha.submitButtonSelector',
+			'*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config' +
+			', button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button' +
+			', .forminator-button-submit, .frm_button_submit, a.sdm_download' +
+			', .uagb-forms-main-submit-button' // Spectra.
+		);
+
 		if ( 'undefined' === typeof hcaptcha ) {
 			return;
 		}
