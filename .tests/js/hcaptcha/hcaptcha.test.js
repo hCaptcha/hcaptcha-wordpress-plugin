@@ -20,7 +20,7 @@ describe( 'HCaptcha', () => {
 		global.wp = {
 			hooks: {
 				addFilter: jest.fn(),
-				applyFilters: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
 			},
 		};
 	} );
