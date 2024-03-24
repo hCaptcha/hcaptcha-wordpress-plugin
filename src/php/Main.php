@@ -661,7 +661,7 @@ CSS;
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
-			[],
+			[ 'wp-hooks' ],
 			HCAPTCHA_VERSION,
 			true
 		);
