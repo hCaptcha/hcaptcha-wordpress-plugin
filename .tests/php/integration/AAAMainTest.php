@@ -879,7 +879,7 @@ JS;
 
 		$script = wp_scripts()->registered['hcaptcha'];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
-		self::assertSame( [], $script->deps );
+		self::assertSame( [ 'wp-hooks' ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 
@@ -908,7 +908,7 @@ JS;
 
 		$script = wp_scripts()->registered['hcaptcha'];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
-		self::assertSame( [], $script->deps );
+		self::assertSame( [ 'wp-hooks' ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 
