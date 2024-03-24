@@ -136,13 +136,9 @@ class PluginStats {
 			return [];
 		}
 
-		$settings            = hcaptcha()->settings();
-		$stats['hCaptcha']   = HCAPTCHA_VERSION;
-		$stats['Pro']        = (int) hcaptcha()->is_pro();
-		$stats['Site key']   = $this->is_not_empty( $settings->get_site_key() );
-		$stats['Secret key'] = $this->is_not_empty( $settings->get_secret_key() );
-		$stats['Multisite']  = (int) is_multisite();
-		$stats['Enterprise'] = (int) (
+		$settings   = hcaptcha()->settings();
+		$license    = (int) hcaptcha()->is_pro() ? 'Pro' : 'Free';
+		$enterprise = (int) (
 			! empty( $settings->get( 'api_host' ) ) ||
 			! empty( $settings->get( 'asset_host' ) ) ||
 			! empty( $settings->get( 'endpoint' ) ) ||
@@ -152,6 +148,13 @@ class PluginStats {
 			! empty( $settings->get( 'sentry' ) ) ||
 			! empty( $settings->get( 'backend' ) )
 		);
+		$license    = 'Pro' === $license && $enterprise ? 'Enterprise' : $license;
+
+		$stats['hCaptcha']   = HCAPTCHA_VERSION;
+		$stats['License']    = $license;
+		$stats['Site key']   = $this->is_not_empty( $settings->get_site_key() );
+		$stats['Secret key'] = $this->is_not_empty( $settings->get_secret_key() );
+		$stats['Multisite']  = (int) is_multisite();
 
 		list( $fields, $integration_settings ) = $system_info_obj->get_integrations();
 
