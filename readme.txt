@@ -531,6 +531,7 @@ Instructions for popular native integrations are below:
 * Added Force option to show hCaptcha challenge before submit. 
 * Added filter `hcap_form_args` to allow modifying form arguments.
 * Fixed issue with Divi Contact Form Helper plugin and File Upload field.
+* Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
