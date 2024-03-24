@@ -160,7 +160,7 @@ class PluginStats {
 				continue;
 			}
 
-			$stats[ $field['label'] ] = implode( ',', $integration_settings[ $key ] );
+			$stats[ $field['label'] ] = implode( ',', (array) $integration_settings[ $key ] );
 		}
 
 		return array_slice( $stats, 0, self::MAX_PROPS );

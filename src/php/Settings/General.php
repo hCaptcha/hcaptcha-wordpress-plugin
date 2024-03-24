@@ -155,6 +155,8 @@ class General extends PluginSettingsBase {
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
 		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
+
+		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 	}
 
 	/**
@@ -830,6 +832,30 @@ class General extends PluginSettingsBase {
 		update_user_meta( $user->ID, self::USER_SETTINGS_META, $hcaptcha_user_settings );
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Filter plugin option update.
+	 *
+	 * @param mixed $value     New option value.
+	 * @param mixed $old_value Old option value.
+	 *
+	 * @return mixed
+	 */
+	public function pre_update_option_filter( $value, $old_value ) {
+		$value = parent::pre_update_option_filter( $value, $old_value );
+
+		$stats     = $value['statistics'][0] ?? '';
+		$old_stats = $old_value['statistics'][0] ?? '';
+
+		if ( 'on' === $stats && 'on' !== $old_stats ) {
+			/**
+			 * Statistics switch is turned on, send plugin statistics.
+			 */
+			do_action( 'hcap_send_plugin_stats' );
+		}
+
+		return $value;
 	}
 
 	/**
