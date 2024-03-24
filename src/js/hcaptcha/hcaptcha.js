@@ -12,7 +12,8 @@ class HCaptcha {
 			' .gform_editor, #nf-builder, .wpforms-captcha-preview';
 		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config,' +
 			' a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button,' +
-			' .forminator-button-submit, .frm_button_submit, a.sdm_download';
+			' .forminator-button-submit, .frm_button_submit, a.sdm_download,' +
+			' .uagb-forms-main-submit-button'; // Spectra.
 		this.foundForms = [];
 		this.params = null;
 		this.observing = false;
