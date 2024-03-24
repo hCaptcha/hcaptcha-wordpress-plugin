@@ -2,6 +2,20 @@
 
 import { helper } from './hcaptcha-helper';
 
+document.addEventListener( 'DOMContentLoaded', function() {
+	wp.hooks.addFilter(
+		'hcaptcha.ajaxSubmitButton',
+		'hcaptcha',
+		( isAjaxSubmitButton, submitButtonElement ) => {
+			if ( submitButtonElement.classList.contains( 'passster-submit' ) ) {
+				return true;
+			}
+
+			return isAjaxSubmitButton;
+		}
+	);
+} );
+
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
@@ -22,17 +36,3 @@ import { helper } from './hcaptcha-helper';
 		);
 	} );
 }( jQuery ) );
-
-document.addEventListener( 'DOMContentLoaded', function() {
-	wp.hooks.addFilter(
-		'hcaptcha.ajaxSubmitButton',
-		'hcaptcha',
-		( isAjaxSubmitButton, submitButtonElement ) => {
-			if ( submitButtonElement.classList.contains( 'passster-submit' ) ) {
-				return true;
-			}
-
-			return isAjaxSubmitButton;
-		}
-	);
-} );
