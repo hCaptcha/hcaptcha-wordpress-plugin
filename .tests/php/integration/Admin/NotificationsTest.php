@@ -94,6 +94,22 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Get started',
 				],
 			],
+			'statistics'          => [
+				'title'   => 'Events statistics and Forms admin page',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Turn on</a> events statistics and <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=forms" target="_blank">see</a> how your forms are used.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1',
+					'text' => 'Turn on stats',
+				],
+			],
+			'events_page'         => [
+				'title'   => 'Events admin page',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Turn on</a> events statistics and <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">upgrade to Pro</a> to <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=events" target="_blank">see</a> complete statistics on form events.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1',
+					'text' => 'Turn on stats',
+				],
+			],
 		];
 
 		if ( ! $empty_keys ) {
