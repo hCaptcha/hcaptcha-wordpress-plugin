@@ -99,6 +99,7 @@ const general = function( $ ) {
 	}
 
 	function getCleanConsoleLogs() {
+		const ignore = [ 'recaptchacompat disabled' ];
 		const logs = [];
 
 		for ( let i = 0; i < consoleLogs.length; i++ ) {
@@ -110,8 +111,10 @@ const general = function( $ ) {
 			const lines = [];
 
 			for ( let a = 0; a < keys.length; a++ ) {
-				if ( typeof ( args[ a ] ) === 'string' ) {
-					lines.push( [ type, args[ a ] ].join( ' ' ) );
+				const arg = args[ a ];
+
+				if ( typeof arg === 'string' && ignore.indexOf( arg ) === -1 ) {
+					lines.push( [ type, arg ].join( ' ' ) );
 				}
 			}
 
