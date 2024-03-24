@@ -4,8 +4,9 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
-import { createHooks } from '@wordpress/hooks';
-
+/**
+ * Class hCaptcha.
+ */
 class HCaptcha {
 	constructor() {
 		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item,' +
@@ -19,7 +20,6 @@ class HCaptcha {
 		this.observing = false;
 		this.darkElement = null;
 		this.darkClass = null;
-		this.hooks = createHooks();
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
@@ -216,7 +216,7 @@ class HCaptcha {
 			},
 		};
 
-		darkData = this.hooks.applyFilters( 'hcaptcha.darkData', darkData );
+		darkData = wp.hooks.applyFilters( 'hcaptcha.darkData', darkData );
 
 		for ( const datum of Object.values( darkData ) ) {
 			if ( document.getElementById( datum.darkStyleId ) ) {
@@ -399,19 +399,30 @@ class HCaptcha {
 	}
 
 	/**
+	 * Whether submitButtonElement is an ajax submit button.
+	 *
+	 * @param {Object} submitButtonElement Element to check.
+	 *
+	 * @return {boolean} Ajax submit button status.
+	 */
+	isAjaxSubmitButton( submitButtonElement ) {
+		let typeAttribute = submitButtonElement.getAttribute( 'type' );
+		typeAttribute = typeAttribute ? typeAttribute.toLowerCase() : '';
+
+		const isAjaxSubmitButton = 'submit' !== typeAttribute;
+		return wp.hooks.applyFilters( 'hcaptcha.ajaxSubmitButton', isAjaxSubmitButton, submitButtonElement );
+	}
+
+	/**
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
-		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
-		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute
-			? submitButtonElementTypeAttribute.toLowerCase()
-			: '';
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||
-			'submit' !== submitButtonElementTypeAttribute
+			this.isAjaxSubmitButton( submitButtonElement )
 		) {
 			submitButtonElement.removeEventListener( 'click', this.validate, true );
 			submitButtonElement.click();
