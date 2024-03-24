@@ -18,7 +18,6 @@
  * @param HCaptchaGeneralObject.checkingConfigMsg
  * @param HCaptchaGeneralObject.completeHCaptchaTitle
  * @param HCaptchaGeneralObject.completeHCaptchaContent
- * @param HCaptchaMainObject.params
  */
 
 /* eslint-disable no-console */

@@ -478,7 +478,13 @@ abstract class SettingsBase {
 			return;
 		}
 
-		$this->get_active_tab()->admin_enqueue_scripts();
+		wp_enqueue_script(
+			static::PREFIX . '-' . self::HANDLE,
+			$this->plugin_url() . "/assets/js/settings-base$this->min_prefix.js",
+			[],
+			$this->plugin_version(),
+			true
+		);
 
 		wp_enqueue_style(
 			static::PREFIX . '-' . self::HANDLE,
@@ -486,6 +492,8 @@ abstract class SettingsBase {
 			[],
 			$this->plugin_version()
 		);
+
+		$this->get_active_tab()->admin_enqueue_scripts();
 	}
 
 	/**
