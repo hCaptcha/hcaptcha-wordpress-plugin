@@ -341,6 +341,10 @@ class HCaptcha {
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
+		if ( 'undefined' === typeof hcaptcha ) {
+			return;
+		}
+
 		this.formSelector = wp.hooks.applyFilters(
 			'hcaptcha.formSelector',
 			'form' +
@@ -349,15 +353,11 @@ class HCaptcha {
 		);
 		this.submitButtonSelector = wp.hooks.applyFilters(
 			'hcaptcha.submitButtonSelector',
-			'*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config' +
+			'*[type="submit"]:not(.quform-default-submit), #check_config' +
 			', button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button' +
 			', .forminator-button-submit, .frm_button_submit, a.sdm_download' +
 			', .uagb-forms-main-submit-button' // Spectra.
 		);
-
-		if ( 'undefined' === typeof hcaptcha ) {
-			return;
-		}
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );

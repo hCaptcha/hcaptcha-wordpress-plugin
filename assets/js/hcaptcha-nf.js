@@ -4,7 +4,27 @@
 
 /* global hcaptcha, Marionette, Backbone */
 
-// On Document Ready.
+/**
+ * Add filters before DOMContentLoaded event.
+ */
+document.addEventListener( 'readystatechange', () => {
+	if ( document.readyState !== 'interactive' ) {
+		return;
+	}
+
+	wp.hooks.addFilter(
+		'hcaptcha.ajaxSubmitButton',
+		'hcaptcha',
+		( isAjaxSubmitButton, submitButtonElement ) => {
+			if ( submitButtonElement.classList.contains( 'nf-element' ) ) {
+				return true;
+			}
+
+			return isAjaxSubmitButton;
+		}
+	);
+} );
+
 document.addEventListener( 'DOMContentLoaded', function() {
 	const HCaptchaFieldController = Marionette.Object.extend( {
 		initialize() {
