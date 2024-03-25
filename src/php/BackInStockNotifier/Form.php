@@ -177,6 +177,14 @@ class Form {
 			return $tag;
 		}
 
-		return str_replace( ' src', ' type="module" src', $tag );
+		$type = ' type="module"';
+
+		if ( false !== strpos( $tag, $type ) ) {
+			return $tag;
+		}
+
+		$src = ' src';
+
+		return str_replace( $src, $type . $src, $tag );
 	}
 }
