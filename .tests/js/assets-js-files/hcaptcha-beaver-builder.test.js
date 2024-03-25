@@ -12,6 +12,13 @@ describe( 'hCaptcha Beaver Builder', () => {
 	};
 
 	beforeEach( () => {
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
 		// Mock jQuery.ajaxPrefilter
 		$.ajaxPrefilter = jest.fn( ( callback ) => {
 			ajaxPrefilterCallback = callback;
