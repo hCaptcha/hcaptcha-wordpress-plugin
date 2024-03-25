@@ -1,31 +1,22 @@
 /* global jQuery */
 
-import { helper } from './hcaptcha-helper';
+import { helper } from './hcaptcha-helper.js';
 
-/**
- * Add filters before DOMContentLoaded event.
- */
-document.addEventListener( 'readystatechange', () => {
-	if ( document.readyState !== 'interactive' ) {
-		return;
+wp.hooks.addFilter(
+	'hcaptcha.formSelector',
+	'hcaptcha',
+	( formSelector ) => {
+		return formSelector + ', div.fl-login-form';
 	}
+);
 
-	wp.hooks.addFilter(
-		'hcaptcha.formSelector',
-		'hcaptcha',
-		( formSelector ) => {
-			return formSelector + ', div.fl-login-form';
-		}
-	);
-
-	wp.hooks.addFilter(
-		'hcaptcha.submitButtonSelector',
-		'hcaptcha',
-		( submitButtonSelector ) => {
-			return submitButtonSelector + ', a.fl-button';
-		}
-	);
-} );
+wp.hooks.addFilter(
+	'hcaptcha.submitButtonSelector',
+	'hcaptcha',
+	( submitButtonSelector ) => {
+		return submitButtonSelector + ', a.fl-button';
+	}
+);
 
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
