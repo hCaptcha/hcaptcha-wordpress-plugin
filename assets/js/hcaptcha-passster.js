@@ -1,27 +1,18 @@
 /* global jQuery */
 
-import { helper } from './hcaptcha-helper';
+import { helper } from './hcaptcha-helper.js';
 
-/**
- * Add filters before DOMContentLoaded event.
- */
-document.addEventListener( 'readystatechange', () => {
-	if ( document.readyState !== 'interactive' ) {
-		return;
-	}
-
-	wp.hooks.addFilter(
-		'hcaptcha.ajaxSubmitButton',
-		'hcaptcha',
-		( isAjaxSubmitButton, submitButtonElement ) => {
-			if ( submitButtonElement.classList.contains( 'passster-submit' ) ) {
-				return true;
-			}
-
-			return isAjaxSubmitButton;
+wp.hooks.addFilter(
+	'hcaptcha.ajaxSubmitButton',
+	'hcaptcha',
+	( isAjaxSubmitButton, submitButtonElement ) => {
+		if ( submitButtonElement.classList.contains( 'passster-submit' ) ) {
+			return true;
 		}
-	);
-} );
+
+		return isAjaxSubmitButton;
+	}
+);
 
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
