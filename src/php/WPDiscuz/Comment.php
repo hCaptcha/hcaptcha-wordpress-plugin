@@ -31,7 +31,6 @@ class Comment extends Base {
 		add_filter( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] , 11 );
 	}
 
 	/**
@@ -119,34 +118,6 @@ class Comment extends Base {
 			HCAPTCHA_VERSION,
 			true
 		);
-	}
-
-	/**
-	 * Add type="module" attribute to script tag.
-	 *
-	 * @param string|mixed $tag    Script tag.
-	 * @param string       $handle Script handle.
-	 * @param string       $src    Script source.
-	 *
-	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_type_module( $tag, string $handle, string $src ): string {
-		$tag = (string) $tag;
-
-		if ( self::HANDLE !== $handle ) {
-			return $tag;
-		}
-
-		$type = ' type="module"';
-
-		if ( false !== strpos( $tag, $type ) ) {
-			return $tag;
-		}
-
-		$src = ' src';
-
-		return str_replace( $src, $type . $src, $tag );
 	}
 
 	/**
