@@ -403,7 +403,7 @@ class HCaptcha {
 			submitButtonElement.addEventListener( 'click', this.validate, true );
 
 			return formElement;
-		} );
+		}, this );
 	}
 
 	/**
