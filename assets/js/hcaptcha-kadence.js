@@ -1,3 +1,25 @@
+wp.hooks.addFilter(
+	'hcaptcha.submitButtonSelector',
+	'hcaptcha',
+	( submitButtonSelector ) => {
+		return submitButtonSelector + ', button.kb-forms-submit';
+	}
+);
+
+wp.hooks.addFilter(
+	'hcaptcha.ajaxSubmitButton',
+	'hcaptcha',
+	( isAjaxSubmitButton, submitButtonElement ) => {
+		if (
+			submitButtonElement.classList.contains( 'kb-forms-submit' )
+		) {
+			return true;
+		}
+
+		return isAjaxSubmitButton;
+	}
+);
+
 let originalStateChange;
 
 function modifyResponse() {
