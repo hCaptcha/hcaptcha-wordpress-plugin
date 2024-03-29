@@ -5,12 +5,37 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Otter;
+
+use HCaptcha\Helpers\HCaptcha;
+use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
+use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
+use WP_Block;
 
 /**
  * Class Form.
  */
 class Form {
+
+	/**
+	 * Script handle.
+	 */
+	const HANDLE = 'hcaptcha-otter';
+
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_otter';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_otter_nonce';
 
 	/**
 	 * Otter Form constructor.
@@ -27,45 +52,111 @@ class Form {
 	public function init_hooks() {
 		add_filter( 'option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 10, 2 );
 		add_filter( 'default_option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 99, 3 );
-		add_filter( 'option_themeisle_google_captcha_api_secret_key', [ $this, 'replace_secret_key' ], 10, 2 );
-		add_filter( 'default_option_themeisle_google_captcha_api_secret_key', [ $this, 'replace_secret_key' ], 99, 3 );
-		add_filter( 'otter_blocks_recaptcha_verify_url', [ $this, 'replace_verify_url' ] );
-		add_filter( 'otter_blocks_recaptcha_api_url', [ $this, 'replace_api_url' ] );
+		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
+		add_filter( 'otter_form_anti_spam_validation', array( $this, 'verify' ) );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
-	 * Replace Site Key.
+	 * Block enqueuing a Google reCaptcha script by replacing Site Key.
 	 *
 	 * @return string
 	 */
 	public function replace_site_key(): string {
-		return hcaptcha()->settings()->get_site_key();
+		return '';
 	}
 
 	/**
-	 * Replace Secret Key.
+	 * Add hcaptcha to an Otter form.
+	 *
+	 * @param string|mixed $block_content The block content.
+	 * @param array        $block         The full block, including name and attributes.
+	 * @param WP_Block     $instance      The block instance.
 	 *
 	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function replace_secret_key(): string {
-		return hcaptcha()->settings()->get_secret_key();
+	public function add_hcaptcha( $block_content, array $block, WP_Block $instance ): string {
+		if ( 'themeisle-blocks/form' !== $block['blockName'] ) {
+			return (string) $block_content;
+		}
+
+		$form_id = 0;
+
+		if ( preg_match( '/<div id="wp-block-themeisle-blocks-form-(.+?)"/', $block_content, $m ) ) {
+			$form_id = $m[1];
+		}
+
+		$args    = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => $form_id,
+			],
+		];
+		$button  = '<div class="wp-block-button">';
+		$search  = [
+			'/class="(.*?)has-captcha(.*?)"/',
+			"/$button/",
+		];
+		$replace = [
+			'class="$1$2"',
+			HCaptcha::form( $args ) . "\n" . $button,
+		];
+
+		return preg_replace( $search, $replace, $block_content );
 	}
 
 	/**
-	 * Replace Verify URL.
+	 * Verify the hCaptcha.
 	 *
-	 * @return string
+	 * @param Form_Data_Request|null|mixed $form_data Data from the request.
+	 *
+	 * @return Form_Data_Request|null
 	 */
-	public function replace_verify_url(): string {
-		return hcaptcha()->get_verify_url();
+	public function verify( $form_data ) {
+		if ( ! isset( $form_data ) ) {
+			return $form_data;
+		}
+
+		if ( $form_data->has_error() ) {
+			return $form_data;
+		}
+
+		$_POST['h-captcha-response'] = $form_data->get_root_data( 'h-captcha-response' ) ?: '';
+		$_POST[ self::NONCE ]        = $form_data->get_root_data( self::NONCE ) ?: '';
+
+		$error_message = hcaptcha_verify_post(
+			self::NONCE,
+			self::ACTION
+		);
+
+		if ( null !== $error_message ) {
+			$form_data->set_error( Form_Data_Response::ERROR_MISSING_CAPTCHA );
+		}
+
+		return $form_data;
 	}
 
 	/**
-	 * Replace API URL.
+	 * Enqueue Otter script.
 	 *
-	 * @return string
+	 * @return void
 	 */
-	public function replace_api_url(): string {
-		return hcaptcha()->get_api_url();
+	public function enqueue_scripts() {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-otter$min.js",
+			[ 'wp-hooks' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 }
