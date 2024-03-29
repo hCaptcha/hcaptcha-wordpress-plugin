@@ -31,7 +31,7 @@ class Comment extends Base {
 		add_filter( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], 9 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] , 11 );
 	}
 
 	/**
@@ -108,6 +108,8 @@ class Comment extends Base {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
+		parent::enqueue_scripts();
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
