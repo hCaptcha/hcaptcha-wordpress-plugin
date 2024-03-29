@@ -530,6 +530,7 @@ Instructions for popular native integrations are below:
 * Added Events admin page for Pro users.
 * Added Force option to show hCaptcha challenge before submit. 
 * Added filter `hcap_form_args` to allow modifying form arguments.
+* Reworked Otter integration to follow Force and all other hCaptcha settings.
 * Fixed issue with Divi Contact Form Helper plugin and File Upload field.
 * Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
 * Fixed racing condition with hCaptcha script loading.
