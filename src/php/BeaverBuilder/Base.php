@@ -18,6 +18,7 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Base.
  */
 abstract class Base extends LoginBase {
+
 	/**
 	 * Script handle.
 	 */
