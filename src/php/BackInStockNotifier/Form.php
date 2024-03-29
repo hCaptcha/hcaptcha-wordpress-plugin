@@ -183,8 +183,8 @@ class Form {
 			return $tag;
 		}
 
-		$src = ' src';
+		$search = ' src';
 
-		return str_replace( $src, $type . $src, $tag );
+		return str_replace( $search, $type . $search, $tag );
 	}
 }
