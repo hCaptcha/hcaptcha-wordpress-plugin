@@ -187,7 +187,9 @@ const integrations = function( $ ) {
 					}
 
 					if ( ! response.success ) {
-						showErrorMessage( response.data.message );
+						const message = response.data?.message ?? response.data;
+
+						showErrorMessage( message );
 
 						return;
 					}
