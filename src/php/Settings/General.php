@@ -618,8 +618,34 @@ class General extends PluginSettingsBase {
 			$hcaptcha_user_settings = get_user_meta( $user->ID, self::USER_SETTINGS_META, true );
 		}
 
-		$open  = $hcaptcha_user_settings['sections'][ $id ] ?? true;
-		$class = $open ? '' : ' closed';
+		$open     = $hcaptcha_user_settings['sections'][ $id ] ?? true;
+		$disabled = '';
+		$class    = '';
+		$license  = hcaptcha()->settings()->get_license();
+
+		switch ( $id ) {
+			case self::SECTION_CUSTOM:
+				if ( 'free' === $license ) {
+					$open     = false;
+					$disabled = true;
+
+					$title .= ' - ' . __( 'hCaptcha Pro Required', 'hcaptcha-for-forms-and-more' );
+				}
+				break;
+			case self::SECTION_ENTERPRISE:
+				if ( 'free' === $license ) {
+					$open     = false;
+					$disabled = true;
+
+					$title .= ' - ' . __( 'hCaptcha Enterprise Required', 'hcaptcha-for-forms-and-more' );
+				}
+				break;
+			default:
+				break;
+		}
+
+		$class .= $open ? '' : ' closed';
+		$class .= $disabled ? ' disabled' : '';
 
 		?>
 		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?><?php echo esc_attr( $class ); ?>">

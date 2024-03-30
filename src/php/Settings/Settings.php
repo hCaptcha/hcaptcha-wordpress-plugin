@@ -21,6 +21,11 @@ use KAGG\Settings\Abstracts\SettingsInterface;
 class Settings implements SettingsInterface {
 
 	/**
+	 * Existing licenses.
+	 */
+	const EXISTING_LICENSES = [ 'free', 'pro', 'enterprise' ];
+
+	/**
 	 * Menu pages class names.
 	 *
 	 * @var array
@@ -294,6 +299,17 @@ class Settings implements SettingsInterface {
 		 * @param string $mode Current operating mode.
 		 */
 		return (string) apply_filters( 'hcap_mode', $this->get( 'mode' ) );
+	}
+
+	/**
+	 * Get license level.
+	 *
+	 * @return string
+	 */
+	public function get_license(): string {
+		$license = (string) $this->get( 'license' );
+
+		return in_array( $license, self::EXISTING_LICENSES, true ) ? $license : 'free';
 	}
 
 	/**

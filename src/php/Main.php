@@ -242,7 +242,7 @@ class Main {
 	 * @return false
 	 */
 	public function is_pro(): bool {
-		return 'pro' === $this->settings->get( 'license' );
+		return 'pro' === $this->settings->get_license();
 	}
 
 	/**

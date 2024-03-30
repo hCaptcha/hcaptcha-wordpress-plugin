@@ -39,6 +39,10 @@
 	cursor: pointer;
 }
 
+#hcaptcha-options.hcaptcha-general h3.disabled {
+	opacity: 0.6;
+}
+
 .hcaptcha-section-header-toggle:after {
 	content: "\f142";
 	font: normal 20px dashicons;
@@ -55,6 +59,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	position: relative;
 	max-width: 760px;
 	margin-top: 0;
+}
+
+#hcaptcha-options.hcaptcha-general h3.disabled + table {
+	opacity: 0.6;
 }
 
 #hcaptcha-options.hcaptcha-general h3.closed + table {

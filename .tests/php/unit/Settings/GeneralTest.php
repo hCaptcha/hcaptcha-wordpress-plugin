@@ -208,7 +208,16 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback( string $section_id, string $expected ) {
-		$user          = (object) [ 'ID' => 1 ];
+		$user     = (object) [ 'ID' => 1 ];
+		$settings = Mockery::mock( Settings::class )->makePartial();
+
+		$settings->shouldReceive( 'get_license' )->andReturn( 'free' );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
 		$subject       = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
@@ -259,9 +268,9 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'custom'     => [
 				General::SECTION_CUSTOM,
-				'		<h3 class="hcaptcha-section-custom">
+				'		<h3 class="hcaptcha-section-custom closed disabled">
 			<span class="hcaptcha-section-header-title">
-				Custom			</span>
+				Custom - hCaptcha Pro Required			</span>
 			<span class="hcaptcha-section-header-toggle">
 			</span>
 		</h3>
@@ -269,9 +278,9 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'enterprise' => [
 				General::SECTION_ENTERPRISE,
-				'		<h3 class="hcaptcha-section-enterprise">
+				'		<h3 class="hcaptcha-section-enterprise closed disabled">
 			<span class="hcaptcha-section-header-title">
-				Enterprise			</span>
+				Enterprise - hCaptcha Enterprise Required			</span>
 			<span class="hcaptcha-section-header-toggle">
 			</span>
 		</h3>
