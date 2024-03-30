@@ -85,8 +85,8 @@ class EventsPage extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function tab_name(): string {
-		return 'events';
+	public function tab_name(): string {
+		return 'Events';
 	}
 
 	/**

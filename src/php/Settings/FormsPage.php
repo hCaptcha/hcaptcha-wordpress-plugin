@@ -79,8 +79,8 @@ class FormsPage extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function tab_name(): string {
-		return 'forms';
+	public function tab_name(): string {
+		return 'Forms';
 	}
 
 	/**

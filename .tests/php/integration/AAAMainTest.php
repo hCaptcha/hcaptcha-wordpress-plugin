@@ -649,6 +649,7 @@ CSS;
 				'image_host'           => 'imgs-cn1.hcaptcha.com',
 				'report_api'           => 'reportapi-cn1.hcaptcha.com',
 				'sentry'               => 'cn1.hcaptcha.com',
+				'license'              => 'pro',
 			]
 		);
 
@@ -863,6 +864,7 @@ JS;
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 				'config_params'        => json_encode( $config_params ),
 				'delay'                => - 100,
+				'license'              => 'pro',
 			]
 		);
 

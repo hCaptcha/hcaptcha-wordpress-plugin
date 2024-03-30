@@ -560,7 +560,7 @@ CSS;
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $settings->is_on( 'custom_themes' ) ) {
+		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
 			$params['custom'] = 'true';
 		}
 
@@ -682,7 +682,7 @@ CSS;
 
 		$config_params = [];
 
-		if ( $settings->is_on( 'custom_themes' ) ) {
+		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
 			$config_params = json_decode( $settings->get( 'config_params' ), true ) ?: [];
 		}
 
@@ -1330,5 +1330,14 @@ CSS;
 	 */
 	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
+	}
+
+	/**
+	 * Whether option is allowed to use.
+	 *
+	 * @return bool
+	 */
+	private function is_pro_or_general(): bool {
+		return $this->is_pro() || ( is_admin() && 'General' === $this->settings->get_active_tab_name() );
 	}
 }

@@ -105,6 +105,17 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get active tab name.
+	 *
+	 * @return string
+	 */
+	public function get_active_tab_name(): string {
+		$first_tab = $this->tabs[0] ?? null;
+
+		return $first_tab ? $first_tab->get_active_tab()->tab_name() : '';
+	}
+
+	/**
 	 * Get plugin option.
 	 *
 	 * @param string $key         Setting name.
