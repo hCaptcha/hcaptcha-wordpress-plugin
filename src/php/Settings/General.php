@@ -156,7 +156,7 @@ class General extends PluginSettingsBase {
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
 		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
 
-		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
+		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_send_stats' ], 20, 2 );
 	}
 
 	/**
@@ -861,16 +861,14 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
-	 * Filter plugin option update.
+	 * Send stats if the key is switched on.
 	 *
 	 * @param mixed $value     New option value.
 	 * @param mixed $old_value Old option value.
 	 *
 	 * @return mixed
 	 */
-	public function pre_update_option_filter( $value, $old_value ) {
-		$value = parent::pre_update_option_filter( $value, $old_value );
-
+	public function maybe_send_stats( $value, $old_value ) {
 		$stats     = $value['statistics'][0] ?? '';
 		$old_stats = $old_value['statistics'][0] ?? '';
 
