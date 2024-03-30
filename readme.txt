@@ -534,6 +534,7 @@ Instructions for popular native integrations are below:
 * Fixed issue with Divi Contact Form Helper plugin and File Upload field.
 * Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
 * Fixed racing condition with hCaptcha script loading.
+* Fixed checking nonce in CF7 for not logged-in users.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
