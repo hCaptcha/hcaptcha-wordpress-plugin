@@ -90,6 +90,7 @@ class Notifications {
 		$statistics_url          = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
 		$forms_url               = admin_url( 'options-general.php?page=hcaptcha&tab=forms' );
 		$events_url              = admin_url( 'options-general.php?page=hcaptcha&tab=events' );
+		$force_url               = admin_url( 'options-general.php?page=hcaptcha&tab=general#force_1' );
 
 		$this->notifications = [
 			'register'            => [
@@ -229,12 +230,29 @@ class Notifications {
 					'text' => __( 'Turn on stats', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.0.0.
+			'force'               => [
+				'title'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Force hCaptcha check before submitting the form and simplify the user experience.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $force_url,
+					'text' => __( 'Turn on force', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
 
 		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
 			unset( $this->notifications['register'] );
+		}
+
+		if ( hcaptcha()->is_pro() ) {
+			unset( $this->notifications['pro-free-trial'] );
+		}
+
+		if ( $settings->is_on( 'force' ) ) {
+			unset( $this->notifications['force'] );
 		}
 	}
 

@@ -110,6 +110,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Turn on stats',
 				],
 			],
+			'force'               => [
+				'title'   => 'Force hCaptcha',
+				'message' => 'Force hCaptcha check before submitting the form and simplify the user experience.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#force_1',
+					'text' => 'Turn on force',
+				],
+			],
 		];
 
 		if ( ! $empty_keys ) {
