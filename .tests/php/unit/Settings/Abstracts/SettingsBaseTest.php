@@ -35,7 +35,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @param bool $is_tab Is this a tab.
+	 * @param bool $is_tab Is this a tab?
 	 *
 	 * @dataProvider dp_test_constructor
 	 * @throws ReflectionException ReflectionException.
@@ -79,8 +79,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 *
-	 * @param bool $is_active    Is this an active tab.
-	 * @param bool $script_debug Is script debug active.
+	 * @param bool $is_active    Is this an active tab?
+	 * @param bool $script_debug Is script debug active?
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
@@ -443,7 +443,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test add_settings_page().
 	 *
-	 * @param bool $is_main_menu_page Is this the main menu page.
+	 * @param bool $is_main_menu_page Is this the main menu page?
 	 *
 	 * @dataProvider dp_test_add_settings_page
 	 */
@@ -1148,7 +1148,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_fields() not on options screen.
+	 * Test setup_fields() not on the options screen.
 	 */
 	public function test_setup_fields_not_on_options_screen() {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1316,7 +1316,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'section'      => 'some_section',
 					'type'         => 'text',
 					'placeholder'  => '',
-					'helper'       => 'This is helper',
+					'helper'       => 'This is a helper',
 					'supplemental' => '',
 					'default'      => 'some text',
 					'field_id'     => 'some_id',
@@ -1324,7 +1324,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
 				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="" class="regular-text" />' .
-				'<span class="helper"><span class="helper-content">This is helper</span></span>',
+				'<span class="helper"><span class="helper-content">This is a helper</span></span>',
 			],
 			'Text with supplemental' => [
 				[
