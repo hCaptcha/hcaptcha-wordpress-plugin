@@ -181,6 +181,22 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test init_form_fields().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_form_fields() {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'init_form_fields';
+
+		$this->set_protected_property( $subject, 'form_fields', null );
+
+		$subject->$method();
+
+		self::assertSame( [], $this->get_protected_property( $subject, 'form_fields' ) );
+	}
+
+	/**
 	 * Test parent_slug().
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -489,6 +505,18 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test admin_enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_admin_enqueue_scripts() {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'admin_enqueue_scripts';
+
+		$subject->$method();
+	}
+
+	/**
 	 * Test admin_enqueue_base_scripts().
 	 */
 	public function test_base_admin_enqueue_scripts() {
@@ -535,6 +563,32 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test admin_enqueue_base_scripts() when not options screen.
+	 */
+	public function test_base_admin_enqueue_scripts_when_not_options_screen() {
+		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-for-forms-and-more';
+		$plugin_version = '1.0.0';
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'plugin_url' )->once()->andReturn( $plugin_url );
+		$subject->shouldReceive( 'plugin_version' )->once()->andReturn( $plugin_version );
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				SettingsBase::PREFIX . '-settings-admin',
+				$plugin_url . '/assets/css/settings-admin.css',
+				[],
+				$plugin_version
+			)
+			->once();
+
+		$subject->base_admin_enqueue_scripts();
+	}
+
+	/**
 	 * Test setup_sections().
 	 *
 	 * @param array $tabs Tabs.
@@ -563,6 +617,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		foreach ( $form_fields as $form_field ) {
 			$title = $form_field['title'] ?? '';
+
 			WP_Mock::userFunction( 'add_settings_section' )
 				->with(
 					$form_field['section'],
@@ -589,7 +644,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_sections() not on options screen.
+	 * Test setup_sections() not on the options screen.
 	 */
 	public function test_setup_sections_not_on_options_screen() {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -599,14 +654,39 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_tabs_section() not on options screen.
+	 * Test setup_sections() when empty form_fields.
+	 *
+	 * @param array $tabs Tabs.
+	 *
+	 * @dataProvider dp_test_setup_sections
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_setup_tabs_section_not_on_options_screen() {
+	public function test_setup_sections_when_empty_form_fields( array $tabs ) {
+		$tab_option_page = 'hcaptcha';
+		$title           = 'some title';
+
+		$tab = Mockery::mock( SettingsBase::class )->makePartial();
+		$tab->shouldAllowMockingProtectedMethods();
+		$tab->shouldReceive( 'option_page' )->andReturn( $tab_option_page );
+
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $tab );
+		$subject->shouldReceive( 'section_title' )->once()->andReturn( $title );
 
-		$subject->setup_tabs_section();
+		$this->set_protected_property( $subject, 'tabs', $tabs );
+
+		WP_Mock::userFunction( 'add_settings_section' )
+			->with(
+				$title,
+				'',
+				[ $tab, 'section_callback' ],
+				$tab_option_page
+			)
+			->once();
+
+		$subject->setup_sections();
 	}
 
 	/**
@@ -632,6 +712,17 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				$tab_option_page
 			)
 			->once();
+
+		$subject->setup_tabs_section();
+	}
+
+	/**
+	 * Test setup_tabs_section() not on the options screen.
+	 */
+	public function test_setup_tabs_section_not_on_options_screen() {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
 
 		$subject->setup_tabs_section();
 	}
@@ -1169,7 +1260,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			$this->dp_radio_field_callback(),
 			$this->dp_select_field_callback(),
 			$this->dp_multiple_field_callback(),
-			$this->dp_table_field_callback()
+			$this->dp_table_field_callback(),
+			$this->dp_button_field_callback()
 		);
 	}
 
@@ -1680,12 +1772,66 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test field_callback() without field id.
+	 * Data provider for button field.
+	 *
+	 * @return array
+	 */
+	private function dp_button_field_callback(): array {
+		return [
+			'Button' => [
+				[
+					'label'        => 'Some Button',
+					'section'      => 'some_section',
+					'type'         => 'button',
+					'text'         => 'Some Text',
+					'placeholder'  => '',
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => [
+						'ю' => 'yu',
+						'я' => 'ya',
+					],
+					'field_id'     => 'some_id',
+					'disabled'     => false,
+				],
+				'<button  id="some_id" class="button button-secondary" type="button"/>' .
+				'Some Text' .
+				'</button>',
+			],
+		];
+	}
+
+	/**
+	 * Test field_callback() without a field id.
 	 */
 	public function test_field_callback_without_field_id() {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
 		$arguments = [];
+
+		ob_start();
+		$subject->field_callback( $arguments );
+		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
+	 * Test field_callback() without a callable method.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_field_callback_without_callable() {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		$arguments = [
+			'field_id' => 'some_id',
+			'type'     => 'text',
+		];
+
+		$fields = [
+			'text' => null,
+		];
+
+		$this->set_protected_property( $subject, 'fields', $fields );
 
 		ob_start();
 		$subject->field_callback( $arguments );
@@ -1758,6 +1904,28 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		);
 
 		self::assertSame( $expected, $subject->get( $key ) );
+	}
+
+	/**
+	 * Test set().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_set() {
+		$settings         = $this->get_test_settings();
+		$key              = 'wp_status';
+		$value            = 'new_value';
+		$expected         = $settings;
+		$expected[ $key ] = $value;
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'settings', $settings );
+
+		self::assertFalse( $subject->set( 'unknown', $value ) );
+		self::assertTrue( $subject->set( $key, $value ) );
+		self::assertSame( $expected, $this->get_protected_property( $subject, 'settings' ) );
 	}
 
 	/**
