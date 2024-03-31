@@ -80,6 +80,8 @@ FunctionMocker::init(
 			'defined',
 			'filter_input',
 			'function_exists',
+			'header_remove',
+			'http_response_code',
 			'uniqid',
 		],
 	]

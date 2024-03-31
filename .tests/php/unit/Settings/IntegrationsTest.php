@@ -12,7 +12,8 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
-use HCaptcha\Admin\Dialog;
+use HCaptcha\ACFE\Form;
+use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\Integrations;
@@ -31,45 +32,6 @@ use WP_Mock;
 class IntegrationsTest extends HCaptchaTestCase {
 
 	/**
-	 * Test screen_id().
-	 */
-	public function test_screen_id() {
-		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
-		self::assertSame( 'settings_page_hcaptcha', $subject->screen_id() );
-	}
-
-	/**
-	 * Test option_group().
-	 */
-	public function test_option_group() {
-		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
-		$method = 'option_group';
-		self::assertSame( 'hcaptcha_group', $subject->$method() );
-	}
-
-	/**
-	 * Test option_page().
-	 */
-	public function test_option_page() {
-		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
-		$method = 'option_page';
-		self::assertSame( 'hcaptcha', $subject->$method() );
-	}
-
-	/**
-	 * Test option_name().
-	 */
-	public function test_option_name() {
-		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
-		$method = 'option_name';
-		self::assertSame( 'hcaptcha_settings', $subject->$method() );
-	}
-
-	/**
 	 * Test page_title().
 	 */
 	public function test_page_title() {
@@ -77,29 +39,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$method = 'page_title';
 		self::assertSame( 'Integrations', $subject->$method() );
-	}
-
-	/**
-	 * Test menu_title().
-	 */
-	public function test_menu_title() {
-		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				if ( 'HCAPTCHA_URL' === $name ) {
-					return HCAPTCHA_TEST_URL;
-				}
-
-				return '';
-			}
-		);
-
-		$method   = 'menu_title';
-		$expected = '<img class="kagg-settings-menu-image" src="https://site.org/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-icon.svg" alt="hCaptcha icon"><span class="kagg-settings-menu-title">hCaptcha</span>';
-
-		self::assertSame( $expected, $subject->$method() );
 	}
 
 	/**
@@ -124,6 +63,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
 
+		WP_Mock::expectActionAdded( 'kagg_settings_tab', [ $subject, 'search_box' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Integrations::ACTIVATE_ACTION, [ $subject, 'activate' ] );
 
 		$subject->init_hooks();
@@ -202,7 +142,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_fields() not on options screen.
+	 * Test setup_fields() not on the options screen.
 	 *
 	 * @return void
 	 */
@@ -215,13 +155,32 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test search_box().
+	 */
+	public function test_search_box() {
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+		$expected = '		<span id="hcaptcha-integrations-search-wrap">
+			<label for="hcaptcha-integrations-search"></label>
+			<input
+					type="search" id="hcaptcha-integrations-search"
+					placeholder="Search plugins and themes...">
+		</span>
+		';
+
+		ob_start();
+		$subject->search_box();
+		$output = ob_get_clean();
+
+		self::assertSame( $expected, $output );
+	}
+
+	/**
 	 * Test section_callback()
 	 *
 	 * @param string $id       Section id.
 	 * @param string $expected Expected value.
 	 *
 	 * @dataProvider dp_test_section_callback
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback( string $id, string $expected ) {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
@@ -391,5 +350,306 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->once();
 
 		$subject->admin_enqueue_scripts();
+	}
+
+	/**
+	 * Test activate() for plugin.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 */
+	public function test_activate_for_plugin() {
+		$activate    = true;
+		$entity      = 'plugin';
+		$new_theme   = '';
+		$status      = 'acfe_status';
+		$form_fields = $this->get_test_form_fields();
+		$entity_name = $form_fields[ $status ]['label'];
+
+		$main    = Mockery::mock( Main::class )->makePartial();
+		$form    = Mockery::mock( Form::class )->makePartial();
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$modules  = [
+			'ACF Extended Form' => [
+				[ $status, 'form' ],
+				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
+				$form,
+			],
+		];
+		$entities = $modules['ACF Extended Form'][1];
+
+		$main->modules = $modules;
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' )->with( Integrations::ACTIVATE_ACTION )->once();
+		$subject->shouldReceive( 'process_plugins' )->with( $activate, $entities, $entity_name )->once();
+
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $var_name, $filter ) use ( $activate, $entity, $new_theme, $status ) {
+				if ( INPUT_POST === $type && 'activate' === $var_name && FILTER_VALIDATE_BOOLEAN === $filter ) {
+					return $activate;
+				}
+
+				if ( INPUT_POST === $type && 'entity' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $entity;
+				}
+
+				if ( INPUT_POST === $type && 'newTheme' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $new_theme;
+				}
+
+				if ( INPUT_POST === $type && 'status' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $status;
+				}
+
+				return null;
+			}
+		);
+
+		$header_remove      = FunctionMocker::replace( 'header_remove' );
+		$http_response_code = FunctionMocker::replace( 'http_response_code' );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+
+		$subject->activate();
+
+		$header_remove->wasCalledWithOnce( [ 'Location' ] );
+		$http_response_code->wasCalledWithOnce( [ 200 ] );
+	}
+
+	/**
+	 * Test activate() for theme.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 */
+	public function test_activate_for_theme() {
+		$activate    = false; // Deactivate theme.
+		$entity      = 'Divi';
+		$new_theme   = 'twentytwentyfour';
+		$status      = 'divi_status';
+		$form_fields = $this->get_test_form_fields();
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' )->with( Integrations::ACTIVATE_ACTION )->once();
+		$subject->shouldReceive( 'process_theme' )->with( $new_theme )->once();
+
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $var_name, $filter ) use ( $activate, $entity, $new_theme, $status ) {
+				if ( INPUT_POST === $type && 'activate' === $var_name && FILTER_VALIDATE_BOOLEAN === $filter ) {
+					return $activate;
+				}
+
+				if ( INPUT_POST === $type && 'entity' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $entity;
+				}
+
+				if ( INPUT_POST === $type && 'newTheme' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $new_theme;
+				}
+
+				if ( INPUT_POST === $type && 'status' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $status;
+				}
+
+				return null;
+			}
+		);
+
+		$header_remove      = FunctionMocker::replace( 'header_remove' );
+		$http_response_code = FunctionMocker::replace( 'http_response_code' );
+
+		$subject->activate();
+
+		$header_remove->wasCalledWithOnce( [ 'Location' ] );
+		$http_response_code->wasCalledWithOnce( [ 200 ] );
+	}
+
+	/**
+	 * Test process_plugins() with activation.
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_process_activate_plugins() {
+		$activate    = true;
+		$plugins     = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugin_name = 'ACF Extended';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( false );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( [ 'message' => 'Error activating ACF Extended plugin.' ] )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'ACF Extended plugin is activated.' ] )->once();
+		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'ACF Extended plugin is deactivated.' ] )->once();
+
+		$subject->process_plugins( $activate, $plugins, $plugin_name );
+	}
+
+	/**
+	 * Test process_plugins() with deactivation.
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_process_deactivate_plugins() {
+		$activate    = false;
+		$plugins     = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugin_name = 'ACF Extended';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'ACF Extended plugin is deactivated.' ] )->once();
+
+		$subject->process_plugins( $activate, $plugins, $plugin_name );
+	}
+
+	/**
+	 * Test process_theme().
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_process_theme() {
+		$theme = 'Divi';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( [ 'message' => 'Error activating Divi theme.' ] )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'Divi theme is activated.' ] )->once();
+
+		$subject->process_theme( $theme );
+	}
+
+	/**
+	 * Test activate_plugins().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_activate_plugins() {
+		$plugins = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'activate_plugins';
+
+		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[0] )->once()->andReturn( false );
+		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[1] )->once()->andReturn( null );
+
+		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		self::assertTrue( $subject->$method( $plugins ) );
+	}
+
+	/**
+	 * Test activate_plugins() when no such plugins.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_activate_plugins_when_no_such_plugins() {
+		$plugins = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'activate_plugins';
+
+		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[0] )->once()->andReturn( false );
+		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[1] )->once()->andReturn( false );
+
+		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		self::assertFalse( $subject->$method( $plugins ) );
+	}
+
+	/**
+	 * Test activate_theme().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_activate_theme() {
+		$theme = 'Divi';
+
+		$wp_theme = Mockery::mock( 'WP_Theme' );
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+		$method   = 'activate_theme';
+
+		$wp_theme->shouldReceive( 'exists' )->andReturn( true );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'switch_theme' )->with( $theme )->once();
+
+		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		self::assertTrue( $subject->$method( $theme ) );
+	}
+
+	/**
+	 * Test activate_theme() when it does not exist.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_activate_theme_when_not_exist() {
+		$theme = 'Divi';
+
+		$wp_theme = Mockery::mock( 'WP_Theme' );
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+		$method   = 'activate_theme';
+
+		$wp_theme->shouldReceive( 'exists' )->andReturn( false );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
+
+		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		self::assertFalse( $subject->$method( $theme ) );
+	}
+
+	/**
+	 * Test json_data().
+	 */
+	public function test_json_data() {
+		$message  = 'Test message';
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+		$method   = 'json_data';
+		$expected = [
+			'message' => $message,
+		];
+
+		self::assertSame( $expected, $subject->$method( $message ) );
+	}
+
+	/**
+	 * Test json_data() for theme.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_json_data_for_theme() {
+		$message       = 'Test message';
+		$subject       = Mockery::mock( Integrations::class )->makePartial();
+		$method        = 'json_data';
+		$default_theme = 'twentytwentyone';
+		$themes        = [ $default_theme => 'Twenty Twenty-One' ];
+		$expected      = [
+			'message'      => $message,
+			'themes'       => $themes,
+			'defaultTheme' => $default_theme,
+		];
+
+		$this->set_protected_property( $subject, 'entity', 'theme' );
+		$subject->shouldReceive( 'get_themes' )->andReturn( $themes );
+		$subject->shouldReceive( 'get_default_theme' )->andReturn( $default_theme );
+
+		self::assertSame( $expected, $subject->$method( $message ) );
 	}
 }
