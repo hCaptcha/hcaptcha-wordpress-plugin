@@ -814,7 +814,9 @@ class General extends PluginSettingsBase {
 		add_filter(
 			'hcap_mode',
 			static function ( $mode ) use ( $ajax_mode ) {
+				// @codeCoverageIgnoreStart
 				return $ajax_mode;
+				// @codeCoverageIgnoreEnd
 			}
 		);
 
@@ -822,13 +824,17 @@ class General extends PluginSettingsBase {
 			add_filter(
 				'hcap_site_key',
 				static function ( $site_key ) use ( $ajax_site_key ) {
+					// @codeCoverageIgnoreStart
 					return $ajax_site_key;
+					// @codeCoverageIgnoreEnd
 				}
 			);
 			add_filter(
 				'hcap_secret_key',
 				static function ( $secret_key ) use ( $ajax_secret_key ) {
+					// @codeCoverageIgnoreStart
 					return $ajax_secret_key;
+					// @codeCoverageIgnoreEnd
 				}
 			);
 		}
@@ -845,11 +851,9 @@ class General extends PluginSettingsBase {
 		$this->update_option( 'license', $license );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$hcaptcha_response =
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			isset( $_POST['h-captcha-response'] ) ? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : '';
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
@@ -874,24 +878,24 @@ class General extends PluginSettingsBase {
 		// Nonce is checked by check_ajax_referer() in run_checks().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
-		$status  = isset( $_POST['status'] ) ?
-			filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOL ) :
-			false;
+		$status  =
+			isset( $_POST['status'] ) ? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOL ) : false;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
-		if ( ! $user ) {
+		if ( ! $user_id ) {
 			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 		$hcaptcha_user_settings = array_filter(
-			(array) get_user_meta( $user->ID, self::USER_SETTINGS_META, true )
+			(array) get_user_meta( $user_id, self::USER_SETTINGS_META, true )
 		);
 
 		$hcaptcha_user_settings['sections'][ $section ] = (bool) $status;
 
-		update_user_meta( $user->ID, self::USER_SETTINGS_META, $hcaptcha_user_settings );
+		update_user_meta( $user_id, self::USER_SETTINGS_META, $hcaptcha_user_settings );
 
 		wp_send_json_success();
 	}
@@ -925,7 +929,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function run_checks( string $action ) {
+	protected function run_checks( string $action ) {
 		// Run a security check.
 		if ( ! check_ajax_referer( $action, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
