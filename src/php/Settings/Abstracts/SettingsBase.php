@@ -286,7 +286,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Is this a tab.
+	 * Is this a tab?
 	 *
 	 * @return bool
 	 */
