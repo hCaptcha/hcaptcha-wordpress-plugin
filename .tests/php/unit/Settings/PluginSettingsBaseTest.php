@@ -353,4 +353,46 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 
 		self::assertSame( $content, $subject->$method( $content ) );
 	}
+
+	/**
+	 * Test run_checks().
+	 *
+	 * @param bool   $referer  Referer.
+	 * @param bool   $user_can User can.
+	 * @param string $expected Expected check.
+	 *
+	 * @return void
+	 *
+	 * @dataProvider dp_test_run_checks
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_run_checks( bool $referer, bool $user_can, string $expected ) {
+		$action  = 'some-action';
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$method  = 'run_checks';
+
+		$this->set_method_accessibility( $subject, 'run_checks' );
+
+		WP_Mock::userFunction( 'check_ajax_referer' )->with( $action, 'nonce', false )->once()->andReturn( $referer );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( $user_can );
+
+		if ( $expected ) {
+			WP_Mock::userFunction( 'wp_send_json_error' )->with( $expected )->once();
+		}
+
+		$subject->$method( $action );
+	}
+
+	/**
+	 * Data provider for test_run_checks().
+	 *
+	 * @return array
+	 */
+	public function dp_test_run_checks(): array {
+		return [
+			'OK'              => [ true, true, '' ],
+			'Bad referer'     => [ false, true, 'Your session has expired. Please reload the page.' ],
+			'No capabilities' => [ true, false, 'You are not allowed to perform this action.' ],
+		];
+	}
 }

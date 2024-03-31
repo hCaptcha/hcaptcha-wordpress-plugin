@@ -258,4 +258,23 @@ abstract class PluginSettingsBase extends SettingsBase {
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
+
+	/**
+	 * Check ajax call.
+	 *
+	 * @param string $action Action.
+	 *
+	 * @return void
+	 */
+	protected function run_checks( string $action ) {
+		// Run a security check.
+		if ( ! check_ajax_referer( $action, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+	}
 }
