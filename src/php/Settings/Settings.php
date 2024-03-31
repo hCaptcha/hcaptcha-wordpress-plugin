@@ -324,6 +324,200 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get the default hCaptcha theme.
+	 *
+	 * @return array
+	 */
+	public function get_default_theme(): array {
+		return [
+			'palette'   => [
+				'mode'    => 'light',
+				'grey'    => [
+					100  => '#fafafa',
+					200  => '#f5f5f5',
+					300  => '#e0e0e0',
+					400  => '#d7d7d7',
+					500  => '#bfbfbf',
+					600  => '#919191',
+					700  => '#555555',
+					800  => '#333333',
+					900  => '#222222',
+					1000 => '#14191f',
+				],
+				'primary' => [
+					'main' => '#00838f',
+				],
+				'warn'    => [
+					'main' => '#eb5757',
+				],
+				'text'    => [
+					'heading' => '#555555',
+					'body'    => '#555555',
+				],
+			],
+			'component' => [
+				'checkbox'     => [
+					'main'  => [
+						'fill'   => '#fafafa',
+						'border' => '#e0e0e0',
+					],
+					'hover' => [
+						'fill' => '#f5f5f5',
+					],
+				],
+				'challenge'    => [
+					'main'  => [
+						'fill'   => '#fafafa',
+						'border' => '#e0e0e0',
+					],
+					'hover' => [
+						'fill' => '#fafafa',
+					],
+				],
+				'modal'        => [
+					'main'  => [
+						'fill'   => '#ffffff',
+						'border' => '#e0e0e0',
+					],
+					'hover' => [
+						'fill' => '#f5f5f5',
+					],
+					'focus' => [
+						'border' => '#0074bf',
+					],
+				],
+				'breadcrumb'   => [
+					'main'   => [
+						'fill' => '#f5f5f5',
+					],
+					'active' => [
+						'fill' => '#00838f',
+					],
+				],
+				'button'       => [
+					'main'   => [
+						'fill' => '#ffffff',
+						'icon' => '#555555',
+						'text' => '#555555',
+					],
+					'hover'  => [
+						'fill' => '#f5f5f5',
+					],
+					'focus'  => [
+						'icon' => '#00838f',
+						'text' => '#00838f',
+					],
+					'active' => [
+						'fill' => '#f5f5f5',
+						'icon' => '#555555',
+						'text' => '#555555',
+					],
+				],
+				'list'         => [
+					'main' => [
+						'fill'   => '#ffffff',
+						'border' => '#d7d7d7',
+					],
+				],
+				'listItem'     => [
+					'main'     => [
+						'fill' => '#ffffff',
+						'line' => '#f5f5f5',
+						'text' => '#555555',
+					],
+					'hover'    => [
+						'fill' => '#f5f5f5',
+					],
+					'selected' => [
+						'fill' => '#e0e0e0',
+					],
+				],
+				'input'        => [
+					'main'  => [
+						'fill'   => '#fafafa',
+						'border' => '#919191',
+					],
+					'focus' => [
+						'fill'   => '#f5f5f5',
+						'border' => '#333333',
+					],
+				],
+				'radio'        => [
+					'main'     => [
+						'file'   => '#f5f5f5',
+						'border' => '#919191',
+						'check'  => '#f5f5f5',
+					],
+					'selected' => [
+						'check' => '#00838f',
+					],
+				],
+				'task'         => [
+					'main'     => [
+						'fill' => '#f5f5f5',
+					],
+					'selected' => [
+						'border' => '#00838f',
+					],
+					'report'   => [
+						'border' => '#eb5757',
+					],
+				],
+				'prompt'       => [
+					'main'   => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'report' => [
+						'fill'   => '#eb5757',
+						'border' => '#eb5757',
+						'text'   => '#ffffff',
+					],
+				],
+				'skipButton'   => [
+					'main'  => [
+						'fill'   => '#919191',
+						'border' => '#919191',
+						'text'   => '#ffffff',
+					],
+					'hover' => [
+						'fill'   => '#555555',
+						'border' => '#919191',
+						'text'   => '#ffffff',
+					],
+				],
+				'verifyButton' => [
+					'main'  => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'hover' => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+				],
+				'expandButton' => [
+					'main' => [
+						'fill' => '#00838f',
+					],
+				],
+				'slider'       => [
+					'main'  => [
+						'bar'    => '#c4c4c4',
+						'handle' => '#0f8390',
+					],
+					'focus' => [
+						'handle' => '#0f8390',
+					],
+				],
+			],
+		];
+	}
+
+	/**
 	 * Set field.
 	 *
 	 * @param string $key       Setting name.

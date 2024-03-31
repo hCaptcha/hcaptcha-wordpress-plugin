@@ -394,6 +394,19 @@ class General extends PluginSettingsBase {
 					)
 				),
 			],
+			'custom_prop'          => [
+				'label'   => __( 'Property', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'options' => [],
+				'section' => self::SECTION_CUSTOM,
+				'helper'  => __( 'Select custom theme property.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'custom_value'         => [
+				'label'   => __( 'Value', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_CUSTOM,
+				'helper'  => __( 'Set property value.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'config_params'        => [
 				'label'   => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
@@ -554,13 +567,36 @@ class General extends PluginSettingsBase {
 			return;
 		}
 
+		$settings = hcaptcha()->settings();
+
 		// In Settings, a filter applied for mode.
-		$mode = hcaptcha()->settings()->get_mode();
+		$mode = $settings->get_mode();
 
 		if ( self::MODE_LIVE !== $mode ) {
 			$this->form_fields['site_key']['disabled']   = true;
 			$this->form_fields['secret_key']['disabled'] = true;
 		}
+
+		$custom_theme  = $settings->get( 'config_params' )['theme'] ?? [];
+		$default_theme = $settings->get_default_theme();
+		$custom_theme  = array_merge_recursive( $default_theme, $custom_theme );
+		$custom_theme  = $this->flatten_array( $custom_theme );
+		$options       = [];
+		$custom_theme  = array_merge(
+			[ esc_html__( '- Select Property -', 'hcaptcha-for-forms-and-more' ) => '' ],
+			$custom_theme
+		);
+
+		foreach ( $custom_theme as $key => $value ) {
+			$key_arr = explode( '--', $key );
+			$level   = count( $key_arr ) - 1;
+			$prefix  = $level ? str_repeat( '–', $level ) . ' ' : '';
+			$option  = $prefix . ucfirst( end( $key_arr ) );
+
+			$options[ $key . '=' . $value ] = $option;
+		}
+
+		$this->form_fields['custom_prop']['options'] = $options;
 
 		parent::setup_fields();
 	}
@@ -918,5 +954,33 @@ class General extends PluginSettingsBase {
 		}
 
 		wp_send_json_error( $prefix . $error );
+	}
+
+	/**
+	 * Flatten array.
+	 *
+	 * @param array $arr Multidimensional array.
+	 *
+	 * @return array
+	 */
+	private function flatten_array( array $arr ): array {
+		static $level  = [];
+		static $result = [];
+
+		foreach ( $arr as $key => $value ) {
+			$level[] = $key;
+
+			if ( is_array( $value ) ) {
+				$result[] = [ implode( '--', $level ) => '' ];
+				$result[] = $this->flatten_array( $value );
+				array_pop( $level );
+				continue;
+			}
+
+			$result[] = [ implode( '--', $level ) => $value ];
+			array_pop( $level );
+		}
+
+		return array_merge( [], ...$result );
 	}
 }

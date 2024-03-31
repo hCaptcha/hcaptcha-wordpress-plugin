@@ -566,6 +566,19 @@ abstract class HCaptchaTestCase extends TestCase {
 					)
 				),
 			],
+			'custom_prop'              => [
+				'label'   => 'Property',
+				'type'    => 'select',
+				'options' => [],
+				'section' => 'custom',
+				'helper'  => 'Select custom theme property.',
+			],
+			'custom_value'             => [
+				'label'   => 'Value',
+				'type'    => 'text',
+				'section' => 'custom',
+				'helper'  => 'Set property value.',
+			],
 			'config_params'            => [
 				'label'   => 'Config Params',
 				'type'    => 'textarea',
