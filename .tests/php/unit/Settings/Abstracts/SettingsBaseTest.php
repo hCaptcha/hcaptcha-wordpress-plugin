@@ -35,7 +35,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @param bool $is_tab Is this a tab?
+	 * @param bool $is_tab Whether it is a tab.
 	 *
 	 * @dataProvider dp_test_constructor
 	 * @throws ReflectionException ReflectionException.
@@ -79,8 +79,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 *
-	 * @param bool $is_active    Is this an active tab?
-	 * @param bool $script_debug Is script debug active?
+	 * @param bool $is_active    Whether it is an active tab.
+	 * @param bool $script_debug Whether script debug is active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
@@ -443,7 +443,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test add_settings_page().
 	 *
-	 * @param bool $is_main_menu_page Is this the main menu page?
+	 * @param bool $is_main_menu_page Whether it is the main menu page.
 	 *
 	 * @dataProvider dp_test_add_settings_page
 	 */
