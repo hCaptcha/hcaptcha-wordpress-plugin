@@ -350,6 +350,8 @@ Easy Digital Downloads:
 Elementor Pro:                        
   Form:                               On
   Login:                              Off
+Essential Addons:                     
+  Login:                              Off
 Fluent Forms:                         
   Form:                               On
 Formidable Forms:                     

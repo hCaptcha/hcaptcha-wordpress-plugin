@@ -965,6 +965,11 @@ CSS;
 				'elementor-pro/elementor-pro.php',
 				ElementorPro\Login::class,
 			],
+			'Essential Addons Login'               => [
+				[ 'essential_addons_status', 'login' ],
+				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				EssentialAddons\Login::class,
+			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
