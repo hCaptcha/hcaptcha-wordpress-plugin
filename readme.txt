@@ -35,6 +35,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 5. General settings page
 6. Integrations settings page
 7. Activating plugin from the Integration settings page
+8. (Optional) Local statistics
 
 == Installation ==
 
@@ -341,7 +342,7 @@ function hcap_protect_form_filter( $value, $source, $form_id ) {
 add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
 `
 
-= How to show hCaptcha widget instantly? =
+= How can I show the hCaptcha widget instantly? =
 
 The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.
 
@@ -445,6 +446,13 @@ Once you activate this plugin, the hCaptcha-answering user's IP address and brow
 For more details, please see the hCaptcha privacy policy at:
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
+
+If you enable the optional plugin-local statistics feature, the following additional data will be recorded to your database:
+
+* counts of challenge verifications per form
+* **only if you enable this optional feature:** the IP addresses challenged on each form
+
+If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
 
 === Plugins, Themes and Forms Supported ==
 
