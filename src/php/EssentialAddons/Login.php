@@ -38,6 +38,7 @@ class Login extends LoginBase {
 	 * @param Widget_Base $widget The widget.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_login_hcaptcha( Widget_Base $widget ) {
 		if ( ! $this->is_login_limit_exceeded() ) {
