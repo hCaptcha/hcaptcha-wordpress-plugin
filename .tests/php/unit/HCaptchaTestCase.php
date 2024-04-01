@@ -1241,4 +1241,36 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 		];
 	}
+
+	/**
+	 * Sort fields. First, by enabled status, then by label.
+	 *
+	 * @param array $fields Fields.
+	 *
+	 * @return array
+	 */
+	public function sort_fields( array $fields ): array {
+		uasort(
+			$fields,
+			static function ( $a, $b ) {
+				$a_disabled = $a['disabled'] ?? false;
+				$b_disabled = $b['disabled'] ?? false;
+
+				$a_label = strtolower( $a['label'] ?? '' );
+				$b_label = strtolower( $b['label'] ?? '' );
+
+				if ( $a_disabled === $b_disabled ) {
+					return $a_label <=> $b_label;
+				}
+
+				if ( ! $a_disabled && $b_disabled ) {
+					return -1;
+				}
+
+				return 1;
+			}
+		);
+
+		return $fields;
+	}
 }

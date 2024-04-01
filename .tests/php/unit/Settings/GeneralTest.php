@@ -337,7 +337,6 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( true );
 		$this->set_protected_property( $subject, 'min_prefix', $min_prefix );
 
 		FunctionMocker::replace(

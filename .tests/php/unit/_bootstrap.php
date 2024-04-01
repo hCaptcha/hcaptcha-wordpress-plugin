@@ -82,6 +82,7 @@ FunctionMocker::init(
 			'function_exists',
 			'header_remove',
 			'http_response_code',
+			'ini_get',
 			'uniqid',
 		],
 	]

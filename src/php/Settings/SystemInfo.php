@@ -109,7 +109,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function get_system_info(): string {
+	protected function get_system_info(): string {
 		$data = $this->header( '### Begin System Info ###' );
 
 		$data .= $this->hcaptcha_info();
@@ -134,7 +134,7 @@ class SystemInfo extends PluginSettingsBase {
 		$settings = hcaptcha()->settings();
 		$data     = $this->header( '-- hCaptcha Info --' );
 
-		$data .= $this->data( 'Version', HCAPTCHA_VERSION );
+		$data .= $this->data( 'Version', constant( 'HCAPTCHA_VERSION' ) );
 
 		// Keys section.
 		$data .= $this->data( 'Site key', $this->is_empty( $settings->get_site_key() ) );
@@ -291,12 +291,19 @@ class SystemInfo extends PluginSettingsBase {
 			$data .= $this->data( 'Page For Posts', $blog_page );
 		}
 
-		$data .= $this->data( 'ABSPATH', ABSPATH );
+		$data .= $this->data( 'ABSPATH', constant( 'ABSPATH' ) );
 		$data .= $this->data( 'Table Prefix', 'Length: ' . strlen( $wpdb->prefix ) . '   Status: ' . ( strlen( $wpdb->prefix ) > 16 ? 'ERROR: Too long' : 'Acceptable' ) );
-		$data .= $this->data( 'WP_DEBUG', defined( 'WP_DEBUG' ) ? WP_DEBUG ? 'Enabled' : 'Disabled' : 'Not set' );
-		$data .= $this->data( 'Memory Limit', WP_MEMORY_LIMIT );
+		$data .= $this->data( 'WP_DEBUG', defined( 'WP_DEBUG' ) ? constant( 'WP_DEBUG' ) ? 'Enabled' : 'Disabled' : 'Not set' );
+		$data .= $this->data( 'Memory Limit', constant( 'WP_MEMORY_LIMIT' ) );
 		$data .= $this->data( 'Registered Post Stati', implode( ', ', get_post_stati() ) );
-		$data .= $this->data( 'Revisions', WP_POST_REVISIONS ? WP_POST_REVISIONS > 1 ? 'Limited to ' . WP_POST_REVISIONS : 'Enabled' : 'Disabled' );
+		$data .= $this->data(
+			'Revisions',
+			constant( 'WP_POST_REVISIONS' ) ?
+				constant( 'WP_POST_REVISIONS' ) > 1 ?
+					'Limited to ' . constant( 'WP_POST_REVISIONS' ) :
+					'Enabled' :
+				'Disabled'
+		);
 
 		return $data;
 	}
@@ -310,9 +317,9 @@ class SystemInfo extends PluginSettingsBase {
 	private function uploads_info(): string {
 		$data = $this->header( '-- WordPress Uploads/Constants --' );
 
-		$data .= $this->data( 'WP_CONTENT_DIR', defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR ?: 'Disabled' : 'Not set' );
-		$data .= $this->data( 'WP_CONTENT_URL', defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL ?: 'Disabled' : 'Not set' );
-		$data .= $this->data( 'UPLOADS', defined( 'UPLOADS' ) ? UPLOADS ?: 'Disabled' : 'Not set' );
+		$data .= $this->data( 'WP_CONTENT_DIR', defined( 'WP_CONTENT_DIR' ) ? constant( 'WP_CONTENT_DIR' ) ?: 'Disabled' : 'Not set' );
+		$data .= $this->data( 'WP_CONTENT_URL', defined( 'WP_CONTENT_URL' ) ? constant( 'WP_CONTENT_URL' ) ?: 'Disabled' : 'Not set' );
+		$data .= $this->data( 'UPLOADS', defined( 'UPLOADS' ) ? constant( 'UPLOADS' ) ?: 'Disabled' : 'Not set' );
 
 		$uploads_dir = wp_upload_dir();
 
@@ -411,7 +418,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function multisite_plugins(): string {
+	protected function multisite_plugins(): string {
 		$data = '';
 
 		if ( ! is_multisite() ) {
@@ -461,7 +468,7 @@ class SystemInfo extends PluginSettingsBase {
 		// Server configuration (really just versions).
 		$data = $this->header( '-- Webserver Configuration --' );
 
-		$data .= $this->data( 'PHP Version', PHP_VERSION );
+		$data .= $this->data( 'PHP Version', constant( 'PHP_VERSION' ) );
 		$data .= $this->data( 'MySQL Version', $wpdb->db_version() );
 		$data .= $this->data( 'Webserver Info', isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '' );
 
