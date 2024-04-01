@@ -35,7 +35,8 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 5. General settings page
 6. Integrations settings page
 7. Activating plugin from the Integration settings page
-8. (Optional) Local statistics
+8. (Optional) Local Forms statistics
+9. (Optional) Local Events statistics
 
 == Installation ==
 
