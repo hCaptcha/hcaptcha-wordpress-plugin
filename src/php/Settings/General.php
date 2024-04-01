@@ -879,7 +879,7 @@ class General extends PluginSettingsBase {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
 		$status  =
-			isset( $_POST['status'] ) ? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOL ) : false;
+			isset( $_POST['status'] ) ? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN ) : false;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$user    = wp_get_current_user();
