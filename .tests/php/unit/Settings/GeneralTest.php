@@ -557,7 +557,7 @@ class GeneralTest extends HCaptchaTestCase {
 				return (
 					INPUT_POST === $type &&
 					'status' === $var_name &&
-					FILTER_VALIDATE_BOOL === $filter
+					FILTER_VALIDATE_BOOLEAN === $filter
 				);
 			}
 		);
@@ -598,7 +598,7 @@ class GeneralTest extends HCaptchaTestCase {
 				return (
 					INPUT_POST === $type &&
 					'status' === $var_name &&
-					FILTER_VALIDATE_BOOL === $filter
+					FILTER_VALIDATE_BOOLEAN === $filter
 				);
 			}
 		);
