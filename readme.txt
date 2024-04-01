@@ -536,7 +536,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.0.0 =
-* Tested with WooCommerce 8.7.
+* This major release adds a new Statistics feature and many admin improvements
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
 * Added Custom Theme Editor for Pro users.
@@ -548,6 +548,7 @@ Instructions for popular native integrations are below:
 * Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
 * Fixed racing condition with hCaptcha script loading.
 * Fixed checking nonce in CF7 for not logged-in users.
+* Tested with WooCommerce 8.7.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
