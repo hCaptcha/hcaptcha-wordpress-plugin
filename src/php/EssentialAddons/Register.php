@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * Register class file.
  *
  * @package hcaptcha-wp
  */
@@ -13,22 +13,36 @@
 namespace HCaptcha\EssentialAddons;
 
 use Elementor\Widget_Base;
-use Essential_Addons_Elementor\Classes\Bootstrap;
-use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\HCaptcha;
 
 /**
- * Class Login.
+ * Class Register.
  */
-class Login extends LoginBase {
+class Register {
+
+	/**
+	 * Nonce action.
+	 */
+	const ACTION = 'hcaptcha_essential_addons_register';
+
+	/**
+	 * Nonce name.
+	 */
+	const NONCE = 'hcaptcha_essential_addons_register_nonce';
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		$this->init_hooks();
+	}
 
 	/**
 	 * Init hooks.
 	 */
 	protected function init_hooks() {
-		parent::init_hooks();
-
-		add_action( 'eael/login-register/before-login-footer', [ $this, 'add_login_hcaptcha' ] );
-		add_action( 'eael/login-register/before-login', [ $this, 'verify' ], 10, 3 );
+		add_action( 'eael/login-register/after-password-field', [ $this, 'add_register_hcaptcha' ] );
+		add_action( 'eael/login-register/before-register', [ $this, 'verify' ] );
 	}
 
 	/**
@@ -39,25 +53,25 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_login_hcaptcha( Widget_Base $widget ) {
-		$this->add_captcha();
+	public function add_register_hcaptcha( Widget_Base $widget ) {
+		$args = [
+			'action' => static::ACTION,
+			'name'   => static::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => 'register',
+			],
+		];
+
+		HCaptcha::form_display( $args );
 	}
 
 	/**
 	 * Verify hCaptcha.
 	 *
-	 * @param array     $post      The $_POST data.
-	 * @param array     $settings  Elementor widget settings.
-	 * @param Bootstrap $bootstrap Bootstrap instance.
-	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( array $post, array $settings, Bootstrap $bootstrap ) {
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return;
-		}
-
+	public function verify() {
 		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION

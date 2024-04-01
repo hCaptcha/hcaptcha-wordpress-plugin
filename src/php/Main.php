@@ -970,6 +970,11 @@ CSS;
 				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
 				EssentialAddons\Login::class,
 			],
+			'Essential Addons Register'            => [
+				[ 'essential_addons_status', 'register' ],
+				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				EssentialAddons\Register::class,
+			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',

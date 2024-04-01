@@ -352,6 +352,7 @@ Elementor Pro:
   Login:                              Off
 Essential Addons:                     
   Login:                              Off
+  Register:                           Off
 Fluent Forms:                         
   Form:                               On
 Formidable Forms:                     

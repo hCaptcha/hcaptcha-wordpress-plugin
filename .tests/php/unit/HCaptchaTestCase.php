@@ -921,7 +921,8 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Essential Addons',
 				'type'    => 'checkbox',
 				'options' => [
-					'login' => 'Login',
+					'login'    => 'Login',
+					'register' => 'Register',
 				],
 			],
 			'fluent_status'                    =>

@@ -466,6 +466,7 @@ For more details, please see the hCaptcha privacy policy at:
 * Droit Dark Mode
 * Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
 * Elementor Pro Form and Login Form
+* Essential Addons for Elementor Login and Register Forms
 * Fluent Forms
 * Forminator Forms
 * Formidable Forms
@@ -530,6 +531,7 @@ Instructions for popular native integrations are below:
 * Added Events admin page for Pro users.
 * Added Custom Theme Editor for Pro users.
 * Added Force option to show hCaptcha challenge before submit.
+* Added integration with Essential Addons for Elementor — the Login/Register form.
 * Added filter `hcap_form_args` to allow modifying form arguments.
 * Reworked Otter integration to follow Force and all other hCaptcha settings.
 * Fixed issue with Divi Contact Form Helper plugin and File Upload field.

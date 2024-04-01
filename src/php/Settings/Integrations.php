@@ -246,7 +246,8 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Essential Addons',
 				'type'    => 'checkbox',
 				'options' => [
-					'login' => __( 'Login', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'fluent_status'                    => [
