@@ -514,8 +514,8 @@ Display Errors:                       N/A
 
 cURL:                                 Supported
 fsockopen:                            Supported
-SOAP Client:                          Not Installed
-Suhosin:                              Not Installed
+SOAP Client:                          Installed
+Suhosin:                              Installed
 
 -- Session Configuration --
 
@@ -680,6 +680,22 @@ Use Only Cookies:                     On
 				$defined_functions = [ 'curl_init', 'fsockopen' ];
 
 				return in_array( $function_name, $defined_functions, true );
+			}
+		);
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $class_name ) {
+				$defined_classes = [ 'SoapClient' ];
+
+				return in_array( $class_name, $defined_classes, true );
+			}
+		);
+		FunctionMocker::replace(
+			'extension_loaded',
+			static function ( $extension_name ) {
+				$loaded_extensions = [ 'suhosin' ];
+
+				return in_array( $extension_name, $loaded_extensions, true );
 			}
 		);
 

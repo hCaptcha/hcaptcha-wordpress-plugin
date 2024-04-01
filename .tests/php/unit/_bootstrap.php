@@ -76,8 +76,10 @@ FunctionMocker::init(
 			realpath( PLUGIN_PATH . '/.tests/php/unit/Stubs' ),
 		],
 		'redefinable-internals' => [
+			'class_exists',
 			'constant',
 			'defined',
+			'extension_loaded',
 			'filter_input',
 			'function_exists',
 			'header_remove',
