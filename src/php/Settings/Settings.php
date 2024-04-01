@@ -44,7 +44,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @var array
 	 */
-	private $screen_ids = [];
+	protected $screen_ids = [];
 
 	/**
 	 * Settings constructor.
