@@ -43,6 +43,8 @@ class Register {
 	protected function init_hooks() {
 		add_action( 'eael/login-register/after-password-field', [ $this, 'add_register_hcaptcha' ] );
 		add_action( 'eael/login-register/before-register', [ $this, 'verify' ] );
+
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
@@ -95,5 +97,22 @@ class Register {
 
 			exit();
 		}
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles() {
+		$css = <<<CSS
+	#eael-register-form .h-captcha {
+		margin-top: 1rem;
+		margin-bottom: 0;
+	}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }
