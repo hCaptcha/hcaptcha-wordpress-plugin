@@ -452,6 +452,8 @@ If you enable the optional plugin-local statistics feature, the following additi
 * counts of challenge verifications per form
 * **only if you enable this optional feature:** the IP addresses challenged on each form
 
+We recommend leaving IP recording off, which will make these statistics fully anonymous.
+
 If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
 
 === Plugins, Themes and Forms Supported ==
