@@ -293,10 +293,6 @@ abstract class HCaptchaTestCase extends TestCase {
 				[],
 			'recaptcha_compat_off'         =>
 				[],
-			'custom_theme_params'          => '{
-   "theme": "dark",
-   "size": "compact"
-}',
 			'config_params'                => '',
 			'whitelisted_ips'              => '4444444.777.2
 220.45.45.1
@@ -541,6 +537,15 @@ abstract class HCaptchaTestCase extends TestCase {
 				'default' => General::MODE_LIVE,
 				'helper'  => 'Select live or test mode. In test mode, predefined keys are used.',
 			],
+			'force'                    => [
+				'label'   => 'Force hCaptcha',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_APPEARANCE,
+				'options' => [
+					'on' => 'Force hCaptcha',
+				],
+				'helper'  => 'Force hCaptcha check before submit.',
+			],
 			'custom_themes'            => [
 				'label'   => 'Custom Themes',
 				'type'    => 'checkbox',
@@ -560,6 +565,19 @@ abstract class HCaptchaTestCase extends TestCase {
 						'Enterprise'
 					)
 				),
+			],
+			'custom_prop'              => [
+				'label'   => 'Property',
+				'type'    => 'select',
+				'options' => [],
+				'section' => 'custom',
+				'helper'  => 'Select custom theme property.',
+			],
+			'custom_value'             => [
+				'label'   => 'Value',
+				'type'    => 'text',
+				'section' => 'custom',
+				'helper'  => 'Set property value.',
 			],
 			'config_params'            => [
 				'label'   => 'Config Params',
@@ -679,6 +697,32 @@ abstract class HCaptchaTestCase extends TestCase {
 				'min'     => -100,
 				'step'    => 100,
 				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
+			],
+			'statistics'               => [
+				'label'   => 'Statistics',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Enable Statistics',
+				],
+				'helper'  => 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.',
+			],
+			'collect_ip'               => [
+				'label'   => 'Collection',
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Collect IP',
+				],
+				'helper'  => 'Allow collecting of IP addresses from which forms were sent.',
+			],
+			'collect_ua'               => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Collect User Agent',
+				],
+				'helper'  => 'Allow collecting of User Agent headers of users sending forms.',
 			],
 		];
 
@@ -873,6 +917,14 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login' => 'Login',
 						],
 				],
+			'essential_addons_status'          => [
+				'label'   => 'Essential Addons',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => 'Login',
+					'register' => 'Register',
+				],
+			],
 			'fluent_status'                    =>
 				[
 					'label'   => 'Fluent Forms',
@@ -1196,5 +1248,37 @@ abstract class HCaptchaTestCase extends TestCase {
 					],
 				],
 		];
+	}
+
+	/**
+	 * Sort fields. First, by enabled status, then by label.
+	 *
+	 * @param array $fields Fields.
+	 *
+	 * @return array
+	 */
+	public function sort_fields( array $fields ): array {
+		uasort(
+			$fields,
+			static function ( $a, $b ) {
+				$a_disabled = $a['disabled'] ?? false;
+				$b_disabled = $b['disabled'] ?? false;
+
+				$a_label = strtolower( $a['label'] ?? '' );
+				$b_label = strtolower( $b['label'] ?? '' );
+
+				if ( $a_disabled === $b_disabled ) {
+					return $a_label <=> $b_label;
+				}
+
+				if ( ! $a_disabled && $b_disabled ) {
+					return -1;
+				}
+
+				return 1;
+			}
+		);
+
+		return $fields;
 	}
 }

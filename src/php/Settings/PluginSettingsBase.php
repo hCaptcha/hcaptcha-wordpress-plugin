@@ -22,6 +22,13 @@ abstract class PluginSettingsBase extends SettingsBase {
 	const PREFIX = 'hcaptcha';
 
 	/**
+	 * The 'submit' button was shown.
+	 *
+	 * @var bool
+	 */
+	protected $submit_shown = false;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param array|null $tabs Tabs of this settings page.
@@ -157,7 +164,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	public function settings_page() {
 		?>
 		<img
-				src="<?php echo esc_url( HCAPTCHA_URL . '/assets/images/hcaptcha-logo.svg' ); ?>"
+				src="<?php echo esc_url( constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-logo.svg' ); ?>"
 				alt="hCaptcha Logo"
 				class="hcaptcha-logo"
 		/>
@@ -185,13 +192,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @return void
 	 */
 	public function submit_button() {
-		static $shown = false;
-
-		if ( $shown ) {
+		if ( $this->submit_shown ) {
 			return;
 		}
 
-		$shown = true;
+		$this->submit_shown = true;
 
 		submit_button();
 	}
@@ -250,7 +255,26 @@ abstract class PluginSettingsBase extends SettingsBase {
 		return sprintf(
 		/* translators: 1: plugin version. */
 			__( 'Version %s', 'hcaptcha-for-forms-and-more' ),
-			HCAPTCHA_VERSION
+			constant( 'HCAPTCHA_VERSION' )
 		);
+	}
+
+	/**
+	 * Check ajax call.
+	 *
+	 * @param string $action Action.
+	 *
+	 * @return void
+	 */
+	protected function run_checks( string $action ) {
+		// Run a security check.
+		if ( ! check_ajax_referer( $action, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
 	}
 }

@@ -167,6 +167,7 @@ class NF {
 	 * Place hCaptcha field before recaptcha field.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function place_hcaptcha_before_recaptcha_field() {
 		$fields = Ninja_Forms()->fields;
@@ -267,7 +268,7 @@ class NF {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-nf$min.js",
-			[ 'jquery', Main::HANDLE, 'nf-front-end', 'nf-front-end-deps' ],
+			[ 'jquery', Main::HANDLE, 'nf-front-end', 'nf-front-end-deps', 'wp-hooks' ],
 			HCAPTCHA_VERSION,
 			true
 		);

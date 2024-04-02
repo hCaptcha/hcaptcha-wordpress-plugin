@@ -116,6 +116,51 @@ function hcap_get_error_message( $error_codes ): string {
 	return $header . ' ' . implode( '; ', $message_arr );
 }
 
+/**
+ * Check site configuration.
+ *
+ * @return array
+ */
+function hcap_check_site_config(): array {
+	$settings = hcaptcha()->settings();
+	$params   = [
+		'host'    => (string) wp_parse_url( site_url(), PHP_URL_HOST ),
+		'sitekey' => $settings->get_site_key(),
+		'sc'      => 1,
+		'swa'     => 1,
+		'spst'    => 0,
+	];
+	$url      = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
+
+	$raw_response = wp_remote_post( $url );
+
+	$raw_body = wp_remote_retrieve_body( $raw_response );
+
+	if ( empty( $raw_body ) ) {
+		return [
+			'error' => __( 'Cannot communicate with hCaptcha server.', 'hcaptcha-for-forms-and-more' ),
+		];
+	}
+
+	$body = (array) json_decode( $raw_body, true );
+
+	if ( ! $body ) {
+		return [
+			'error' => __( 'Cannot decode hCaptcha server response.', 'hcaptcha-for-forms-and-more' ),
+		];
+	}
+
+	if ( empty( $body['pass'] ) ) {
+		$error = (string) ( $body['error'] ?? '' );
+
+		return [
+			'error' => $error,
+		];
+	}
+
+	return $body;
+}
+
 if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	/**
 	 * Verify hCaptcha response.
@@ -277,7 +322,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_output' ) ) {
 
 if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
-	 * Get a verify message.
+	 * Get 'verify' message.
 	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.

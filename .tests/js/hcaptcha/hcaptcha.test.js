@@ -16,6 +16,13 @@ describe( 'HCaptcha', () => {
 
 	beforeEach( () => {
 		hCaptcha = new HCaptcha();
+
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
 	} );
 
 	test( 'GenerateID', () => {

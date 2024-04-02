@@ -18,7 +18,6 @@
  * @param HCaptchaGeneralObject.checkingConfigMsg
  * @param HCaptchaGeneralObject.completeHCaptchaTitle
  * @param HCaptchaGeneralObject.completeHCaptchaContent
- * @param HCaptchaMainObject.params
  */
 
 /* eslint-disable no-console */
@@ -34,11 +33,15 @@ const general = function( $ ) {
 	const $form = $( 'form.hcaptcha-general' );
 	const $siteKey = $( '[name="hcaptcha_settings[site_key]"]' );
 	const $secretKey = $( '[name="hcaptcha_settings[secret_key]"]' );
+	const $checkConfig = $( '#check_config' );
+	const $resetNotifications = $( '#reset_notifications' );
 	const $theme = $( '[name="hcaptcha_settings[theme]"]' );
 	const $size = $( '[name="hcaptcha_settings[size]"]' );
 	const $language = $( '[name="hcaptcha_settings[language]"]' );
 	const $mode = $( '[name="hcaptcha_settings[mode]"]' );
 	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
+	const $customProp = $( '.hcaptcha-general-custom-prop select' );
+	const $customValue = $( '.hcaptcha-general-custom-value input' );
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
 	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
 	const $recaptchaCompatOff = $( '[name="hcaptcha_settings[recaptcha_compat_off][]"]' );
@@ -100,6 +103,7 @@ const general = function( $ ) {
 	}
 
 	function getCleanConsoleLogs() {
+		const ignore = [ 'recaptchacompat disabled' ];
 		const logs = [];
 
 		for ( let i = 0; i < consoleLogs.length; i++ ) {
@@ -111,8 +115,10 @@ const general = function( $ ) {
 			const lines = [];
 
 			for ( let a = 0; a < keys.length; a++ ) {
-				if ( typeof ( args[ a ] ) === 'string' ) {
-					lines.push( [ type, args[ a ] ].join( ' ' ) );
+				const arg = args[ a ];
+
+				if ( typeof arg === 'string' && ignore.indexOf( arg ) === -1 ) {
+					lines.push( [ type, arg ].join( ' ' ) );
 				}
 			}
 
@@ -201,7 +207,30 @@ const general = function( $ ) {
 		hCaptcha.bindEvents();
 	}
 
-	function applyCustomThemes() {
+	function deepMerge( target, source ) {
+		const isObject = ( obj ) => obj && typeof obj === 'object';
+
+		if ( ! isObject( target ) || ! isObject( source ) ) {
+			return source;
+		}
+
+		Object.keys( source ).forEach( ( key ) => {
+			const targetValue = target[ key ];
+			const sourceValue = source[ key ];
+
+			if ( Array.isArray( targetValue ) && Array.isArray( sourceValue ) ) {
+				target[ key ] = targetValue.concat( sourceValue );
+			} else if ( isObject( targetValue ) && isObject( sourceValue ) ) {
+				target[ key ] = deepMerge( Object.assign( {}, targetValue ), sourceValue );
+			} else {
+				target[ key ] = sourceValue;
+			}
+		} );
+
+		return target;
+	}
+
+	function applyCustomThemes( params = {} ) {
 		let configParamsJson = $configParams.val().trim();
 		let configParams;
 
@@ -209,13 +238,17 @@ const general = function( $ ) {
 
 		try {
 			configParams = JSON.parse( configParamsJson );
-		} catch ( e ) {
+		} catch ( ex ) {
 			$configParams.css( 'background-color', '#ffabaf' );
 			$submit.attr( 'disabled', true );
 			showErrorMessage( 'Bad JSON!' );
 
 			return;
 		}
+
+		configParams = deepMerge( configParams, params );
+
+		$configParams.val( JSON.stringify( configParams, null, 2 ) );
 
 		if ( ! $customThemes.prop( 'checked' ) ) {
 			configParams = {
@@ -298,7 +331,7 @@ const general = function( $ ) {
 		showErrorMessage();
 	} );
 
-	$( '#check_config' ).on( 'click', function( event ) {
+	$checkConfig.on( 'click', function( event ) {
 		event.preventDefault();
 
 		// Check if hCaptcha is solved.
@@ -490,6 +523,62 @@ const general = function( $ ) {
 			.fail( function( response ) {
 				showErrorMessage( response.statusText );
 			} );
+	} );
+
+	// Prevent saving values of some form elements.
+	$checkConfig.removeAttr( 'name' );
+	$resetNotifications.removeAttr( 'name' );
+	$customProp.removeAttr( 'name' );
+	$customValue.removeAttr( 'name' );
+
+	// Disable group keys.
+	$customProp.find( 'option' ).each( function() {
+		const $option = $( this );
+		const value = $option.val().split( '=' )[ 1 ];
+
+		if ( ! value ) {
+			$option.attr( 'disabled', true );
+		}
+	} );
+
+	// Clear custom value.
+	$customValue.val( '' );
+
+	// On Custom Prop change.
+	$customProp.on( 'change', function() {
+		const $selected = $( this ).find( 'option:selected' );
+		const option = $selected.val().split( '=' );
+		const key = option[ 0 ];
+		const value = option[ 1 ];
+
+		if ( key === 'palette--mode' ) {
+			$customValue.attr( 'type', 'text' );
+			$customValue.val( value );
+		} else {
+			$customValue.val( value );
+			$customValue.attr( 'type', 'color' );
+		}
+	} );
+
+	// On Custom Value change.
+	$customValue.on( 'change', function( e ) {
+		const value = $( e.target ).val();
+		const $selected = $customProp.find( 'option:selected' );
+		const option = $selected.val().split( '=' );
+		let key = option[ 0 ];
+		let params = value;
+
+		$selected.val( key + '=' + value );
+
+		key = 'theme--' + option[ 0 ];
+		params = key.split( '--' ).reverse().reduce( function( acc, curr ) {
+			const newObj = {};
+			newObj[ curr ] = acc;
+
+			return newObj;
+		}, params );
+
+		applyCustomThemes( params );
 	} );
 };
 

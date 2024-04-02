@@ -39,6 +39,10 @@
 	cursor: pointer;
 }
 
+#hcaptcha-options.hcaptcha-general h3.disabled {
+	opacity: 0.6;
+}
+
 .hcaptcha-section-header-toggle:after {
 	content: "\f142";
 	font: normal 20px dashicons;
@@ -55,6 +59,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	position: relative;
 	max-width: 760px;
 	margin-top: 0;
+}
+
+#hcaptcha-options.hcaptcha-general h3.disabled + table {
+	opacity: 0.6;
 }
 
 #hcaptcha-options.hcaptcha-general h3.closed + table {
@@ -118,13 +126,40 @@ h3.closed .hcaptcha-section-header-toggle:after {
 .hcaptcha-section-appearance + table tbody {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
+	grid-template-areas:
+		"theme size language mode"
+		"force force . .";
 	gap: 10px 20px;
 	padding: 15px 20px;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-theme {
+	grid-area: theme;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-size {
+	grid-area: size;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-language {
+	grid-area: language;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-mode {
+	grid-area: mode;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force {
+	grid-area: force;
 }
 
 .hcaptcha-section-appearance + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force td {
+	width: max-content;
 }
 
 .hcaptcha-section-appearance + table tbody tr td select {
@@ -134,9 +169,28 @@ h3.closed .hcaptcha-section-header-toggle:after {
 /* Section Custom */
 .hcaptcha-section-custom + table tbody {
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-areas:
+		"custom-themes custom-themes config-params config-params"
+		"custom-prop custom-value config-params config-params";
 	gap: 10px 20px;
 	padding: 15px 20px;
+}
+
+.hcaptcha-section-custom + table tbody tr.hcaptcha-general-custom-themes {
+	grid-area: custom-themes;
+}
+
+.hcaptcha-section-custom + table tbody tr.hcaptcha-general-config-params {
+	grid-area: config-params;
+}
+
+.hcaptcha-section-custom + table tbody tr.hcaptcha-general-custom-prop {
+	grid-area: custom-prop;
+}
+
+.hcaptcha-section-custom + table tbody tr.hcaptcha-general-custom-value {
+	grid-area: custom-value;
 }
 
 .hcaptcha-section-custom + table tbody tr th {
@@ -144,7 +198,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: auto;
 }
 
-.hcaptcha-section-custom + table tbody tr td {
+.hcaptcha-section-custom + table tbody tr.hcaptcha-general-custom-themes td {
 	width: max-content;
 }
 
@@ -154,6 +208,20 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-custom + table tbody tr td textarea {
 	width: 100%;
+}
+
+.hcaptcha-section-custom + table tbody tr td select {
+	width: 100%;
+}
+
+.hcaptcha-section-custom + table tbody tr td select option:disabled {
+	background: #f0f0f1;
+	color: #2c3338
+}
+
+.hcaptcha-section-custom + table tbody tr td input {
+	width: 100%;
+	height: 30px;
 }
 
 /* Section Enterprise */

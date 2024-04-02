@@ -27,6 +27,7 @@ const integrations = function( $ ) {
 	let $message = $( msgSelector );
 	const $wpWrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
+	const $search = $( '#hcaptcha-integrations-search' );
 
 	function clearMessage() {
 		$message.remove();
@@ -186,7 +187,9 @@ const integrations = function( $ ) {
 					}
 
 					if ( ! response.success ) {
-						showErrorMessage( response.data.message );
+						const message = response.data?.message ?? response.data;
+
+						showErrorMessage( message );
 
 						return;
 					}
@@ -322,9 +325,9 @@ const integrations = function( $ ) {
 		};
 	};
 
-	$( '#hcaptcha-integrations-search' ).on( 'input', debounce(
+	$search.on( 'input', debounce(
 		function() {
-			const search = $( '#hcaptcha-integrations-search' ).val().trim().toLowerCase();
+			const search = $search.val().trim().toLowerCase();
 			const $logo = $( '.hcaptcha-integrations-logo img' );
 
 			$logo.each( function( i, el ) {
@@ -345,6 +348,14 @@ const integrations = function( $ ) {
 		},
 		100
 	) );
+
+	$( '#hcaptcha-options' ).keydown(
+		function( e ) {
+			if ( $( e.target ).is( $search ) && e.which === 13 ) {
+				e.preventDefault();
+			}
+		}
+	);
 };
 
 window.hCaptchaIntegrations = integrations;

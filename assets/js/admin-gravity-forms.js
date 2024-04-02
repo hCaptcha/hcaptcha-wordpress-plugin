@@ -15,7 +15,8 @@ window.SetDefaultValues_hcaptcha = function( field ) {
 
 document.addEventListener( 'DOMContentLoaded', function() {
 	gform.addFilter(
-		'gform_form_editor_can_field_be_added', ( value, type ) => {
+		'gform_form_editor_can_field_be_added',
+		( value, type ) => {
 			if ( type === 'hcaptcha' && GetFieldsByType( [ 'hcaptcha' ] ).length > 0 ) {
 				// eslint-disable-next-line no-alert
 				alert( HCaptchaGravityFormsObject.onlyOne );
@@ -23,5 +24,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			}
 
 			return value;
-		} );
+		}
+	);
 } );

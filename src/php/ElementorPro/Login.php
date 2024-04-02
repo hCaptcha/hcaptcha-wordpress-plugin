@@ -81,7 +81,12 @@ class Login extends LoginBase {
 		}
 
 		ob_start();
+
+		/**
+		 * Display hCaptcha signature.
+		 */
 		do_action( 'hcap_signature' );
+
 		$signatures = (string) ob_get_clean();
 
 		$pattern     = '/(<div class="elementor-field-group.+<button type="submit")/s';

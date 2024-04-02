@@ -197,6 +197,20 @@ body.settings_page_hcaptcha {
 	margin: 0.5em 0;
 }
 
+@keyframes blink {
+	0% {opacity: 1;}
+	16.7% {opacity: 0;}
+	33.3% {opacity: 1;}
+	50% {opacity: 0;}
+	66.7% {opacity: 1;}
+	83.3% {opacity: 0;}
+	100% {opacity: 1;}
+}
+
+.blink {
+	animation: blink 3s linear;
+}
+
 @media (max-width: 782px) {
 	.hcaptcha-settings-tabs {
 		margin: 10px -12px 0 -10px;

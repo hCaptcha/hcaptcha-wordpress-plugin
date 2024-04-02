@@ -16,6 +16,11 @@ use WP_User;
 class Comment extends Base {
 
 	/**
+	 * Script handle.
+	 */
+	const HANDLE = 'hcaptcha-wpdiscuz-comment';
+
+	/**
 	 * Add hooks.
 	 *
 	 * @return void
@@ -94,6 +99,25 @@ class Comment extends Base {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		wp_die( esc_html( $result ) );
+	}
+
+	/**
+	 * Enqueue Beaver Builder script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts() {
+		parent::enqueue_scripts();
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-wpdiscuz-comment$min.js",
+			[ 'wp-hooks' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

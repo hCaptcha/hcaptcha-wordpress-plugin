@@ -1,0 +1,182 @@
+<?php
+/**
+ * PluginStats class file.
+ *
+ * @package hcaptcha-wp
+ */
+
+namespace HCaptcha\Admin;
+
+use HCaptcha\Settings\SystemInfo;
+
+/**
+ * Class PluginStats.
+ */
+class PluginStats {
+
+	/**
+	 * Event API URL.
+	 */
+	const EVENT_API = 'https://a.hcaptcha.com/api/event';
+
+	/**
+	 * Event name.
+	 */
+	const NAME = 'plugin-stats';
+
+	/**
+	 * Report domain.
+	 */
+	const DOMAIN = 'wp-plugin.hcaptcha.com';
+
+	/**
+	 * Max props to send.
+	 */
+	const MAX_PROPS = 30;
+
+	/**
+	 * Class constructor.
+	 */
+	public function __construct() {
+		$this->init();
+	}
+
+	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	private function init() {
+		$this->init_hooks();
+	}
+
+	/**
+	 * Init hooks.
+	 *
+	 * @return void
+	 */
+	private function init_hooks() {
+		add_action( 'hcap_send_plugin_stats', [ $this, 'send_plugin_stats' ] );
+	}
+
+	/**
+	 * Send plugin statistics.
+	 *
+	 * @return void
+	 * @noinspection ForgottenDebugOutputInspection
+	 */
+	public function send_plugin_stats() {
+		$stats = $this->get_plugin_stats();
+
+		$url     = self::EVENT_API;
+		$headers = [
+			'Content-Type'    => 'application/json',
+			'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+			'X-Forwarded-For' => hcap_get_user_ip() ?: '127.0.0.1',
+		];
+		$domain  = self::DOMAIN;
+		$params  = [
+			'd'     => $domain, // Domain.
+			'n'     => self::NAME, // Name.
+			'u'     => home_url( self::NAME ), // URL.
+			'r'     => null, // Referer.
+			'w'     => 1024, // Some window inner width.
+			'props' => $stats, // Stats.
+		];
+
+		$result = wp_remote_post(
+			$url,
+			[
+				'headers' => $headers,
+				'body'    => wp_json_encode( $params ),
+			]
+		);
+
+		if ( ! ( defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) ) ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		$message = 'Error sending plugin statistics: ';
+
+		if ( is_wp_error( $result ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( $message . $result->get_error_message() );
+
+			return;
+		}
+
+		$code = $result['response']['code'] ?? 0;
+
+		if ( 202 !== $code ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( $message . $code );
+		}
+	}
+
+	/**
+	 * Get plugin statistics.
+	 *
+	 * @return array
+	 */
+	public function get_plugin_stats(): array {
+		$tabs            = hcaptcha()->settings()->get_tabs();
+		$system_info_obj = null;
+
+		foreach ( $tabs as $tab ) {
+			if ( is_a( $tab, SystemInfo::class ) ) {
+				$system_info_obj = $tab;
+
+				break;
+			}
+		}
+
+		if ( ! $system_info_obj ) {
+			return [];
+		}
+
+		$settings   = hcaptcha()->settings();
+		$license    = (int) hcaptcha()->is_pro() ? 'Pro' : 'Publisher';
+		$enterprise = (int) (
+			! empty( $settings->get( 'api_host' ) ) ||
+			! empty( $settings->get( 'asset_host' ) ) ||
+			! empty( $settings->get( 'endpoint' ) ) ||
+			! empty( $settings->get( 'host' ) ) ||
+			! empty( $settings->get( 'image_host' ) ) ||
+			! empty( $settings->get( 'report_api' ) ) ||
+			! empty( $settings->get( 'sentry' ) ) ||
+			! empty( $settings->get( 'backend' ) )
+		);
+		$license    = 'Pro' === $license && $enterprise ? 'Enterprise' : $license;
+
+		$stats['hCaptcha']   = HCAPTCHA_VERSION;
+		$stats['License']    = $license;
+		$stats['Site key']   = $this->is_not_empty( $settings->get_site_key() );
+		$stats['Secret key'] = $this->is_not_empty( $settings->get_secret_key() );
+		$stats['Multisite']  = (int) is_multisite();
+
+		list( $fields, $integration_settings ) = $system_info_obj->get_integrations();
+
+		foreach ( $fields as $key => $field ) {
+			if ( $field['disabled'] ) {
+				continue;
+			}
+
+			$stats[ $field['label'] ] = implode( ',', (array) $integration_settings[ $key ] );
+		}
+
+		return array_slice( $stats, 0, self::MAX_PROPS );
+	}
+
+	/**
+	 * Return whether data is not empty.
+	 *
+	 * @param mixed $data Data.
+	 *
+	 * @return int
+	 */
+	private function is_not_empty( $data ): int {
+		return (int) ( ! empty( $data ) );
+	}
+}

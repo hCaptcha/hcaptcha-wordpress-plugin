@@ -70,6 +70,11 @@ class General extends PluginSettingsBase {
 	const SECTION_OTHER = 'other';
 
 	/**
+	 * Statistics section id.
+	 */
+	const SECTION_STATISTICS = 'statistics';
+
+	/**
 	 * Live mode.
 	 */
 	const MODE_LIVE = 'live';
@@ -150,6 +155,8 @@ class General extends PluginSettingsBase {
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
 		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
+
+		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_send_stats' ], 20, 2 );
 	}
 
 	/**
@@ -358,6 +365,15 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
+			'force'                => [
+				'label'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_APPEARANCE,
+				'options' => [
+					'on' => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Force hCaptcha check before submit.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'custom_themes'        => [
 				'label'   => __( 'Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
@@ -377,6 +393,19 @@ class General extends PluginSettingsBase {
 						__( 'Enterprise', 'hcaptcha-for-forms-and-more' )
 					)
 				),
+			],
+			'custom_prop'          => [
+				'label'   => __( 'Property', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'options' => [],
+				'section' => self::SECTION_CUSTOM,
+				'helper'  => __( 'Select custom theme property.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'custom_value'         => [
+				'label'   => __( 'Value', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'text',
+				'section' => self::SECTION_CUSTOM,
+				'helper'  => __( 'Set property value.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'config_params'        => [
 				'label'   => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
@@ -497,6 +526,32 @@ class General extends PluginSettingsBase {
 				'step'    => 100,
 				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'statistics'           => [
+				'label'   => __( 'Statistics', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Enable Statistics', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'collect_ip'           => [
+				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Collect IP', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Allow collecting of IP addresses from which forms were sent.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'collect_ua'           => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Collect User Agent', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Allow collecting of User Agent headers of users sending forms.', 'hcaptcha-for-forms-and-more' ),
+			],
 		];
 
 		if ( ! is_multisite() ) {
@@ -512,13 +567,36 @@ class General extends PluginSettingsBase {
 			return;
 		}
 
+		$settings = hcaptcha()->settings();
+
 		// In Settings, a filter applied for mode.
-		$mode = hcaptcha()->settings()->get_mode();
+		$mode = $settings->get_mode();
 
 		if ( self::MODE_LIVE !== $mode ) {
 			$this->form_fields['site_key']['disabled']   = true;
 			$this->form_fields['secret_key']['disabled'] = true;
 		}
+
+		$custom_theme  = $settings->get( 'config_params' )['theme'] ?? [];
+		$default_theme = $settings->get_default_theme();
+		$custom_theme  = array_merge_recursive( $default_theme, $custom_theme );
+		$custom_theme  = $this->flatten_array( $custom_theme );
+		$options       = [];
+		$custom_theme  = array_merge(
+			[ esc_html__( '- Select Property -', 'hcaptcha-for-forms-and-more' ) => '' ],
+			$custom_theme
+		);
+
+		foreach ( $custom_theme as $key => $value ) {
+			$key_arr = explode( '--', $key );
+			$level   = count( $key_arr ) - 1;
+			$prefix  = $level ? str_repeat( '–', $level ) . ' ' : '';
+			$option  = $prefix . ucfirst( end( $key_arr ) );
+
+			$options[ $key . '=' . $value ] = $option;
+		}
+
+		$this->form_fields['custom_prop']['options'] = $options;
 
 		parent::setup_fields();
 	}
@@ -552,6 +630,9 @@ class General extends PluginSettingsBase {
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
 				break;
+			case self::SECTION_STATISTICS:
+				$this->print_section_header( $arguments['id'], __( 'Statistics', 'hcaptcha-for-forms-and-more' ) );
+				break;
 			default:
 				break;
 		}
@@ -573,8 +654,34 @@ class General extends PluginSettingsBase {
 			$hcaptcha_user_settings = get_user_meta( $user->ID, self::USER_SETTINGS_META, true );
 		}
 
-		$open  = $hcaptcha_user_settings['sections'][ $id ] ?? true;
-		$class = $open ? '' : ' closed';
+		$open     = $hcaptcha_user_settings['sections'][ $id ] ?? true;
+		$disabled = '';
+		$class    = '';
+		$license  = hcaptcha()->settings()->get_license();
+
+		switch ( $id ) {
+			case self::SECTION_CUSTOM:
+				if ( 'free' === $license ) {
+					$open     = false;
+					$disabled = true;
+
+					$title .= ' - ' . __( 'hCaptcha Pro Required', 'hcaptcha-for-forms-and-more' );
+				}
+				break;
+			case self::SECTION_ENTERPRISE:
+				if ( 'free' === $license ) {
+					$open     = false;
+					$disabled = true;
+
+					$title .= ' - ' . __( 'hCaptcha Enterprise Required', 'hcaptcha-for-forms-and-more' );
+				}
+				break;
+			default:
+				break;
+		}
+
+		$class .= $open ? '' : ' closed';
+		$class .= $disabled ? ' disabled' : '';
 
 		?>
 		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?><?php echo esc_attr( $class ); ?>">
@@ -707,7 +814,9 @@ class General extends PluginSettingsBase {
 		add_filter(
 			'hcap_mode',
 			static function ( $mode ) use ( $ajax_mode ) {
+				// @codeCoverageIgnoreStart
 				return $ajax_mode;
+				// @codeCoverageIgnoreEnd
 			}
 		);
 
@@ -715,54 +824,36 @@ class General extends PluginSettingsBase {
 			add_filter(
 				'hcap_site_key',
 				static function ( $site_key ) use ( $ajax_site_key ) {
+					// @codeCoverageIgnoreStart
 					return $ajax_site_key;
+					// @codeCoverageIgnoreEnd
 				}
 			);
 			add_filter(
 				'hcap_secret_key',
 				static function ( $secret_key ) use ( $ajax_secret_key ) {
+					// @codeCoverageIgnoreStart
 					return $ajax_secret_key;
+					// @codeCoverageIgnoreEnd
 				}
 			);
 		}
 
-		$settings = hcaptcha()->settings();
-		$params   = [
-			'host'    => (string) wp_parse_url( site_url(), PHP_URL_HOST ),
-			'sitekey' => $settings->get_site_key(),
-			'sc'      => 1,
-			'swa'     => 1,
-			'spst'    => 0,
-		];
-		$url      = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
+		$result = hcap_check_site_config();
 
-		$raw_response = wp_remote_post( $url );
-
-		$raw_body = wp_remote_retrieve_body( $raw_response );
-
-		if ( empty( $raw_body ) ) {
-			$this->send_check_config_error( __( 'Cannot communicate with hCaptcha server.', 'hcaptcha-for-forms-and-more' ) );
+		if ( $result['error'] ?? false ) {
+			$this->send_check_config_error( $result['error'] );
 		}
 
-		$body = json_decode( $raw_body, true );
+		$pro     = $result['features']['custom_theme'] ?? false;
+		$license = $pro ? 'pro' : 'free';
 
-		if ( ! $body ) {
-			$this->send_check_config_error( __( 'Cannot decode hCaptcha server response.', 'hcaptcha-for-forms-and-more' ) );
-		}
-
-		if ( empty( $body['pass'] ) ) {
-			$error = $body['error'] ? (string) $body['error'] : '';
-			$error = $error ? ': ' . $error : '';
-
-			$this->send_check_config_error( $error );
-		}
+		$this->update_option( 'license', $license );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$hcaptcha_response =
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			isset( $_POST['h-captcha-response'] ) ? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : '';
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
@@ -787,45 +878,48 @@ class General extends PluginSettingsBase {
 		// Nonce is checked by check_ajax_referer() in run_checks().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
-		$status  = isset( $_POST['status'] ) ?
-			filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOL ) :
-			false;
+		$status  =
+			isset( $_POST['status'] ) ? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN ) : false;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
-		if ( ! $user ) {
+		if ( ! $user_id ) {
 			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
 		$hcaptcha_user_settings = array_filter(
-			(array) get_user_meta( $user->ID, self::USER_SETTINGS_META, true )
+			(array) get_user_meta( $user_id, self::USER_SETTINGS_META, true )
 		);
 
 		$hcaptcha_user_settings['sections'][ $section ] = (bool) $status;
 
-		update_user_meta( $user->ID, self::USER_SETTINGS_META, $hcaptcha_user_settings );
+		update_user_meta( $user_id, self::USER_SETTINGS_META, $hcaptcha_user_settings );
 
 		wp_send_json_success();
 	}
 
 	/**
-	 * Check ajax call.
+	 * Send stats if the key is switched on.
 	 *
-	 * @param string $action Action.
+	 * @param mixed $value     New option value.
+	 * @param mixed $old_value Old option value.
 	 *
-	 * @return void
+	 * @return mixed
 	 */
-	private function run_checks( string $action ) {
-		// Run a security check.
-		if ( ! check_ajax_referer( $action, 'nonce', false ) ) {
-			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+	public function maybe_send_stats( $value, $old_value ) {
+		$stats     = $value['statistics'][0] ?? '';
+		$old_stats = $old_value['statistics'][0] ?? '';
+
+		if ( 'on' === $stats && 'on' !== $old_stats ) {
+			/**
+			 * Statistics switch is turned on, send plugin statistics.
+			 */
+			do_action( 'hcap_send_plugin_stats' );
 		}
 
-		// Check for permissions.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
-		}
+		return $value;
 	}
 
 	/**
@@ -837,10 +931,41 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function send_check_config_error( string $error, bool $raw_result = false ) {
-		$prefix = $raw_result ? '' : esc_html__( 'Site configuration error: ', 'hcaptcha-for-forms-and-more' );
+		$prefix = '';
 
-		wp_send_json_error(
-			$prefix . $error
-		);
+		if ( ! $raw_result ) {
+			$prefix = esc_html__( 'Site configuration error', 'hcaptcha-for-forms-and-more' );
+			$prefix = $error ? $prefix . ': ' : $prefix . '.';
+		}
+
+		wp_send_json_error( $prefix . $error );
+	}
+
+	/**
+	 * Flatten array.
+	 *
+	 * @param array $arr Multidimensional array.
+	 *
+	 * @return array
+	 */
+	private function flatten_array( array $arr ): array {
+		static $level  = [];
+		static $result = [];
+
+		foreach ( $arr as $key => $value ) {
+			$level[] = $key;
+
+			if ( is_array( $value ) ) {
+				$result[] = [ implode( '--', $level ) => '' ];
+				$result[] = $this->flatten_array( $value );
+				array_pop( $level );
+				continue;
+			}
+
+			$result[] = [ implode( '--', $level ) => $value ];
+			array_pop( $level );
+		}
+
+		return array_merge( [], ...$result );
 	}
 }

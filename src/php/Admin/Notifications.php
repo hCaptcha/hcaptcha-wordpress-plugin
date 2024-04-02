@@ -87,6 +87,10 @@ class Notifications {
 		$rate_url                = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
 		$search_integrations_url = admin_url( 'options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search' );
 		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$statistics_url          = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
+		$forms_url               = admin_url( 'options-general.php?page=hcaptcha&tab=forms' );
+		$events_url              = admin_url( 'options-general.php?page=hcaptcha&tab=events' );
+		$force_url               = admin_url( 'options-general.php?page=hcaptcha&tab=general#force_1' );
 
 		$this->notifications = [
 			'register'            => [
@@ -168,6 +172,7 @@ class Notifications {
 					'text' => __( 'Start search', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 3.9.0.
 			'enterprise-support'  => [
 				'title'   => __( 'Support for Enterprise features', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'The hCaptcha plugin commenced support for Enterprise features. Solve your fraud and abuse problem today.', 'hcaptcha-for-forms-and-more' ),
@@ -176,12 +181,78 @@ class Notifications {
 					'text' => __( 'Get started', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.0.0.
+			'statistics'          => [
+				'title'   => __( 'Events statistics and Forms admin page', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: statistics switch link, 2: the 'forms' page link. */
+					__( '%1$s events statistics and %2$s how your forms are used.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$statistics_url,
+						__( 'Turn on', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$forms_url,
+						__( 'see', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $statistics_url,
+					'text' => __( 'Turn on stats', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 4.0.0.
+			'events_page'         => [
+				'title'   => __( 'Events admin page', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: statistics switch link, 2: the 'forms' page link. */
+					__( '%1$s events statistics and %2$s to %3$s complete statistics on form events.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$statistics_url,
+						__( 'Turn on', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$dashboard_url,
+						__( 'upgrade to Pro', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$events_url,
+						__( 'see', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $statistics_url,
+					'text' => __( 'Turn on stats', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 4.0.0.
+			'force'               => [
+				'title'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Force hCaptcha check before submitting the form and simplify the user experience.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $force_url,
+					'text' => __( 'Turn on force', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
 
 		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
 			unset( $this->notifications['register'] );
+		}
+
+		if ( hcaptcha()->is_pro() ) {
+			unset( $this->notifications['pro-free-trial'] );
+		}
+
+		if ( $settings->is_on( 'force' ) ) {
+			unset( $this->notifications['force'] );
 		}
 	}
 

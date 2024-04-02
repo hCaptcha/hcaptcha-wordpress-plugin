@@ -270,7 +270,7 @@ abstract class SettingsBase {
 	 * @return string
 	 * @noinspection PhpUnused
 	 */
-	protected function tab_name(): string {
+	public function tab_name(): string {
 		return $this->get_class_name();
 	}
 
@@ -286,7 +286,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Is this a tab.
+	 * Is this a tab?
 	 *
 	 * @return bool
 	 */
@@ -478,7 +478,13 @@ abstract class SettingsBase {
 			return;
 		}
 
-		$this->get_active_tab()->admin_enqueue_scripts();
+		wp_enqueue_script(
+			static::PREFIX . '-' . self::HANDLE,
+			$this->plugin_url() . "/assets/js/settings-base$this->min_prefix.js",
+			[],
+			$this->plugin_version(),
+			true
+		);
 
 		wp_enqueue_style(
 			static::PREFIX . '-' . self::HANDLE,
@@ -486,6 +492,8 @@ abstract class SettingsBase {
 			[],
 			$this->plugin_version()
 		);
+
+		$this->get_active_tab()->admin_enqueue_scripts();
 	}
 
 	/**
@@ -560,6 +568,9 @@ abstract class SettingsBase {
 			</span>
 			<?php
 
+			/**
+			 * Fires before settings tab closing tag.
+			 */
 			do_action( 'kagg_settings_tab' );
 
 			?>
@@ -666,7 +677,7 @@ abstract class SettingsBase {
 	 *
 	 * @return SettingsBase
 	 */
-	protected function get_active_tab(): SettingsBase {
+	public function get_active_tab(): SettingsBase {
 		if ( ! empty( $this->tabs ) ) {
 			foreach ( $this->tabs as $tab ) {
 				if ( $this->is_tab_active( $tab ) ) {

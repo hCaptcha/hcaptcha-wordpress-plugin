@@ -74,7 +74,9 @@ class Migrations {
 	 * @return void
 	 */
 	public function migrate() {
-		$migrated = get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
+		$migrated = (array) get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
+
+		$this->check_plugin_update( $migrated );
 
 		$migrations       = array_filter(
 			get_class_methods( $this ),
@@ -139,6 +141,30 @@ class Migrations {
 		}
 
 		return wp_doing_cron() || is_admin() || ( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) );
+	}
+
+	/**
+	 * Check if the plugin was updated.
+	 *
+	 * @param array $migrated Migrated versions.
+	 *
+	 * @return void
+	 */
+	private function check_plugin_update( array $migrated ) {
+		if ( isset( $migrated[ self::PLUGIN_VERSION ] ) ) {
+			return;
+		}
+
+		// Send statistics on plugin update.
+		add_action(
+			'init',
+			static function () {
+				/**
+				 * Send plugin statistics.
+				 */
+				do_action( 'hcap_send_plugin_stats' );
+			}
+		);
 	}
 
 	/**
@@ -307,5 +333,41 @@ class Migrations {
 		update_option( 'hcaptcha_settings', $option );
 
 		return true;
+	}
+
+	/**
+	 * Migrate to 4.0.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_4_0_0() {
+		Events::create_table();
+
+		add_action( 'plugins_loaded', [ $this, 'save_license_level' ] );
+
+		return true;
+	}
+
+	/**
+	 * Save license level in settings.
+	 *
+	 * @return void
+	 */
+	public function save_license_level() {
+		// Check the license level.
+		$result = hcap_check_site_config();
+
+		if ( $result['error'] ?? false ) {
+			return;
+		}
+
+		$pro               = $result['features']['custom_theme'] ?? false;
+		$license           = $pro ? 'pro' : 'free';
+		$option            = get_option( 'hcaptcha_settings', [] );
+		$option['license'] = $license;
+
+		// Save license level in settings.
+		update_option( 'hcaptcha_settings', $option );
 	}
 }

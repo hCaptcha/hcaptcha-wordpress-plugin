@@ -14,6 +14,13 @@ describe( 'Ninja Forms hCaptcha', () => {
 	let controller;
 
 	beforeEach( () => {
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
 		require( '../../../assets/js/hcaptcha-nf.js' );
 
 		// Execute DOMContentLoaded event

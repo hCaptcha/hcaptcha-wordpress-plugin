@@ -170,6 +170,7 @@ class Form {
 
 		// Avoid duplicate token: do not process during ajax validation.
 		// Process hcaptcha widget check when form protection is skipped.
+		/** This filter is documented in the HCaptcha\Helpers\HCaptcha class. */
 		if ( wp_doing_ajax() && apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] ) ) {
 			return $valid;
 		}

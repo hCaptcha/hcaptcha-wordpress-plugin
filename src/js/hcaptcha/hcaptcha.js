@@ -4,21 +4,16 @@
 
 /* global hcaptcha, HCaptchaMainObject */
 
-import { createHooks } from '@wordpress/hooks';
-
+/**
+ * Class hCaptcha.
+ */
 class HCaptcha {
 	constructor() {
-		this.formSelector = 'form, div.fl-login-form, section.cwginstock-subscribe-form, div.sdm_download_item,' +
-			' .gform_editor, #nf-builder, .wpforms-captcha-preview';
-		this.submitButtonSelector = '*[type="submit"]:not(.quform-default-submit):not(.nf-element), #check_config,' +
-			' a.fl-button span, button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button,' +
-			' .forminator-button-submit, .frm_button_submit, a.sdm_download';
 		this.foundForms = [];
 		this.params = null;
 		this.observing = false;
 		this.darkElement = null;
 		this.darkClass = null;
-		this.hooks = createHooks();
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
 	}
@@ -215,7 +210,7 @@ class HCaptcha {
 			},
 		};
 
-		darkData = this.hooks.applyFilters( 'hcaptcha.darkData', darkData );
+		darkData = wp.hooks.applyFilters( 'hcaptcha.darkData', darkData );
 
 		for ( const datum of Object.values( darkData ) ) {
 			if ( document.getElementById( datum.darkStyleId ) ) {
@@ -350,6 +345,20 @@ class HCaptcha {
 			return;
 		}
 
+		this.formSelector = wp.hooks.applyFilters(
+			'hcaptcha.formSelector',
+			'form' +
+			', section.cwginstock-subscribe-form, div.sdm_download_item' +
+			', .gform_editor, #nf-builder, .wpforms-captcha-preview'
+		);
+		this.submitButtonSelector = wp.hooks.applyFilters(
+			'hcaptcha.submitButtonSelector',
+			'*[type="submit"]:not(.quform-default-submit), #check_config' +
+			', button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button' +
+			', .forminator-button-submit, .frm_button_submit, a.sdm_download' +
+			', .uagb-forms-main-submit-button' // Spectra.
+		);
+
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
 
@@ -394,7 +403,22 @@ class HCaptcha {
 			submitButtonElement.addEventListener( 'click', this.validate, true );
 
 			return formElement;
-		} );
+		}, this );
+	}
+
+	/**
+	 * Whether submitButtonElement is an ajax submit button.
+	 *
+	 * @param {Object} submitButtonElement Element to check.
+	 *
+	 * @return {boolean} Ajax submit button status.
+	 */
+	isAjaxSubmitButton( submitButtonElement ) {
+		let typeAttribute = submitButtonElement.getAttribute( 'type' );
+		typeAttribute = typeAttribute ? typeAttribute.toLowerCase() : '';
+
+		const isAjaxSubmitButton = 'submit' !== typeAttribute;
+		return wp.hooks.applyFilters( 'hcaptcha.ajaxSubmitButton', isAjaxSubmitButton, submitButtonElement );
 	}
 
 	/**
@@ -403,14 +427,10 @@ class HCaptcha {
 	submit() {
 		const formElement = this.currentForm.formElement;
 		const submitButtonElement = this.currentForm.submitButtonElement;
-		let submitButtonElementTypeAttribute = submitButtonElement.getAttribute( 'type' );
-		submitButtonElementTypeAttribute = submitButtonElementTypeAttribute
-			? submitButtonElementTypeAttribute.toLowerCase()
-			: '';
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||
-			'submit' !== submitButtonElementTypeAttribute
+			this.isAjaxSubmitButton( submitButtonElement )
 		) {
 			submitButtonElement.removeEventListener( 'click', this.validate, true );
 			submitButtonElement.click();

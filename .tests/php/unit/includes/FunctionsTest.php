@@ -14,8 +14,11 @@
 
 namespace HCaptcha\Tests\Unit\includes;
 
+use HCaptcha\Main;
+use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use tad\FunctionMocker\FunctionMocker;
+use Mockery;
 use WP_Mock;
 
 /**
@@ -51,11 +54,20 @@ class FunctionsTest extends HCaptchaTestCase {
 			'name'    => HCAPTCHA_NONCE,
 			'auto'    => false,
 			'force'   => false,
-			'size'    => '',
+			'size'    => 'normal',
 			'id'      => [],
 			'protect' => true,
 		];
 		$form  = 'some hcaptcha form content';
+
+		$main     = Mockery::mock( Main::class )->makePartial();
+		$settings = Mockery::mock( Settings::class )->makePartial();
+
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		$settings->shouldReceive( 'is_on' )->with( 'force' )->andReturn( false );
+		$settings->shouldReceive( 'get' )->with( 'size' )->andReturn( 'normal' );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
 		WP_Mock::userFunction( 'shortcode_atts' )
 			->with( $pairs, $atts )
@@ -91,7 +103,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => false,
 					'force'   => false,
-					'size'    => '',
+					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
 				],
@@ -105,7 +117,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => '1',
 					'force'   => false,
-					'size'    => '',
+					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
 				],
@@ -119,7 +131,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => false,
 					'force'   => true,
-					'size'    => '',
+					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
 				],
@@ -133,7 +145,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => false,
 					'force'   => false,
-					'size'    => '',
+					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
 					'some'    => 'some attribute',

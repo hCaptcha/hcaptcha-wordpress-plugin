@@ -23,6 +23,7 @@ use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
+use WP_Mock;
 
 /**
  * Class SettingsTest
@@ -82,18 +83,60 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init() {
-		$subject = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$screen_ids = [ ( new IntegrationsStub() )->screen_id() ];
+		$subject    = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$method     = 'init';
 
-		$expected = [ GeneralStub::class, IntegrationsStub::class ];
-		$method   = 'init';
+		$menu_page_classes = [
+			'hCaptcha' => [ GeneralStub::class, IntegrationsStub::class ],
+		];
 
-		$this->set_protected_property( $subject, 'menu_pages_classes', $expected );
+		$this->set_protected_property( $subject, 'menu_pages_classes', $menu_page_classes );
 
 		$subject->$method();
 
 		foreach ( $this->get_protected_property( $subject, 'tabs' ) as $key => $tab ) {
-			self::assertInstanceOf( $expected[ $key ], $tab );
+			self::assertInstanceOf( $menu_page_classes['hCaptcha'][ $key ], $tab );
 		}
+
+		self::assertSame( $screen_ids, $this->get_protected_property( $subject, 'screen_ids' ) );
+	}
+
+	/**
+	 * Test get_tabs().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_tabs() {
+		$general      = Mockery::mock( General::class )->makePartial();
+		$integrations = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$tabs = [ $general, $integrations ];
+		$this->set_protected_property( $subject, 'tabs', $tabs );
+
+		self::assertSame( $tabs, $subject->get_tabs() );
+	}
+
+	/**
+	 * Test get_active_tab_name().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_active_tab_name() {
+		$general_tab_name = General::class;
+		$general          = Mockery::mock( $general_tab_name )->makePartial();
+		$integrations     = Mockery::mock( Integrations::class )->makePartial();
+
+		$general->shouldReceive( 'get_active_tab' )->andReturn( $general );
+		$general->shouldReceive( 'tab_name' )->andReturn( $general_tab_name );
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$tabs = [ $general, $integrations ];
+		$this->set_protected_property( $subject, 'tabs', $tabs );
+
+		self::assertSame( $general_tab_name, $subject->get_active_tab_name() );
 	}
 
 	/**
@@ -107,7 +150,7 @@ class SettingsTest extends HCaptchaTestCase {
 		$integrations_key   = 'some integrations key';
 		$integrations_value = 'some integrations value';
 
-		$general = Mockery::mock( General::class );
+		$general = Mockery::mock( General::class )->makePartial();
 		$general->shouldReceive( 'get' )->andReturnUsing(
 			function ( $key, $empty_value ) use ( $general_key, &$general_value ) {
 				if ( $key === $general_key ) {
@@ -122,7 +165,7 @@ class SettingsTest extends HCaptchaTestCase {
 			}
 		);
 
-		$integrations = Mockery::mock( Integrations::class );
+		$integrations = Mockery::mock( Integrations::class )->makePartial();
 		$integrations->shouldReceive( 'get' )->andReturnUsing(
 			function ( $key, $empty_value ) use ( $integrations_key, $integrations_value ) {
 				if ( $key === $integrations_key ) {
@@ -160,6 +203,42 @@ class SettingsTest extends HCaptchaTestCase {
 		$general_value = '';
 		$empty_value   = '';
 		self::assertSame( $empty_value, $subject->get( $general_key, $empty_value ) );
+	}
+
+	/**
+	 * Test set().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_set() {
+		$general_key      = 'some general key';
+		$integrations_key = 'some integrations key';
+
+		$general = Mockery::mock( General::class )->makePartial();
+		$general->shouldReceive( 'set' )->andReturnUsing(
+			function ( $key, $value ) use ( $general_key ) {
+				return $key === $general_key;
+			}
+		);
+
+		$integrations = Mockery::mock( Integrations::class )->makePartial();
+		$integrations->shouldReceive( 'set' )->andReturnUsing(
+			function ( $key, $value ) use ( $integrations_key ) {
+				return $key === $integrations_key;
+			}
+		);
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		self::assertFalse( $subject->set( $general_key, 'some value' ) );
+
+		$this->set_protected_property( $subject, 'tabs', [ $general, $integrations ] );
+
+		self::assertTrue( $subject->set( $general_key, 'some value' ) );
+		self::assertFalse( $subject->set( 'unknown key', 'some value' ) );
+
+		self::assertTrue( $subject->set( $integrations_key, 'some value' ) );
+		self::assertFalse( $subject->set( 'unknown key', 'some value' ) );
 	}
 
 	/**
@@ -296,6 +375,309 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_site_key().
+	 */
+	public function test_get_site_key() {
+		$site_key   = 'some site key';
+		$secret_key = 'some secret key';
+		$subject    = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'get' )->with( 'mode' )->andReturn( 'live' );
+		$subject->shouldReceive( 'get' )->with( 'site_key' )->andReturn( $site_key );
+		$subject->shouldReceive( 'get' )->with( 'secret_key' )->andReturn( $secret_key );
+
+		WP_Mock::expectFilter( 'hcap_site_key', $site_key );
+
+		self::assertSame( $site_key, $subject->get_site_key() );
+	}
+
+	/**
+	 * Test get_secret_key().
+	 */
+	public function test_get_secret_key() {
+		$site_key   = 'some site key';
+		$secret_key = 'some secret key';
+		$subject    = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'get' )->with( 'mode' )->andReturn( 'live' );
+		$subject->shouldReceive( 'get' )->with( 'site_key' )->andReturn( $site_key );
+		$subject->shouldReceive( 'get' )->with( 'secret_key' )->andReturn( $secret_key );
+
+		WP_Mock::expectFilter( 'hcap_secret_key', $secret_key );
+
+		self::assertSame( $secret_key, $subject->get_secret_key() );
+	}
+
+	/**
+	 * Test get_theme().
+	 */
+	public function test_get_theme() {
+		$theme   = 'some theme';
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'get' )->with( 'theme' )->andReturn( $theme );
+
+		WP_Mock::expectFilter( 'hcap_theme', $theme );
+
+		self::assertSame( $theme, $subject->get_theme() );
+	}
+
+	/**
+	 * Test get_language().
+	 */
+	public function test_get_language() {
+		$language = 'some language';
+		$subject  = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'get' )->with( 'language' )->andReturn( $language );
+
+		WP_Mock::expectFilter( 'hcap_language', $language );
+
+		self::assertSame( $language, $subject->get_language() );
+	}
+
+	/**
+	 * Test get_mode().
+	 */
+	public function test_get_mode() {
+		$mode    = 'some mode';
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'get' )->with( 'mode' )->andReturn( $mode );
+
+		WP_Mock::expectFilter( 'hcap_mode', $mode );
+
+		self::assertSame( $mode, $subject->get_mode() );
+	}
+
+	/**
+	 * Test get_license().
+	 *
+	 * @param string $license  Saved license.
+	 * @param string $expected Expected license.
+	 *
+	 * @dataProvider dp_test_get_license
+	 * @return void
+	 */
+	public function test_get_license( string $license, string $expected ) {
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'get' )->with( 'license' )->andReturn( $license );
+
+		self::assertSame( $expected, $subject->get_license() );
+	}
+
+	/**
+	 * Data provider for test_get_license().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_license(): array {
+		return [
+			[ 'free', 'free' ],
+			[ 'pro', 'pro' ],
+			[ 'enterprise', 'enterprise' ],
+			[ 'wrong', 'free' ],
+		];
+	}
+
+	/**
+	 * Test get_default_theme().
+	 */
+	public function test_get_default_theme() {
+		$expected = [
+			'palette'   => [
+				'mode'    => 'light',
+				'grey'    => [
+					100  => '#fafafa',
+					200  => '#f5f5f5',
+					300  => '#e0e0e0',
+					400  => '#d7d7d7',
+					500  => '#bfbfbf',
+					600  => '#919191',
+					700  => '#555555',
+					800  => '#333333',
+					900  => '#222222',
+					1000 => '#14191f',
+				],
+				'primary' => [
+					'main' => '#00838f',
+				],
+				'warn'    => [
+					'main' => '#eb5757',
+				],
+				'text'    => [
+					'heading' => '#555555',
+					'body'    => '#555555',
+				],
+			],
+			'component' => [
+				'checkbox'     => [
+					'main'  => [
+						'fill'   => '#fafafa',
+						'border' => '#e0e0e0',
+					],
+					'hover' => [
+						'fill' => '#f5f5f5',
+					],
+				],
+				'challenge'    => [
+					'main'  => [
+						'fill'   => '#fafafa',
+						'border' => '#e0e0e0',
+					],
+					'hover' => [
+						'fill' => '#fafafa',
+					],
+				],
+				'modal'        => [
+					'main'  => [
+						'fill'   => '#ffffff',
+						'border' => '#e0e0e0',
+					],
+					'hover' => [
+						'fill' => '#f5f5f5',
+					],
+					'focus' => [
+						'border' => '#0074bf',
+					],
+				],
+				'breadcrumb'   => [
+					'main'   => [
+						'fill' => '#f5f5f5',
+					],
+					'active' => [
+						'fill' => '#00838f',
+					],
+				],
+				'button'       => [
+					'main'   => [
+						'fill' => '#ffffff',
+						'icon' => '#555555',
+						'text' => '#555555',
+					],
+					'hover'  => [
+						'fill' => '#f5f5f5',
+					],
+					'focus'  => [
+						'icon' => '#00838f',
+						'text' => '#00838f',
+					],
+					'active' => [
+						'fill' => '#f5f5f5',
+						'icon' => '#555555',
+						'text' => '#555555',
+					],
+				],
+				'list'         => [
+					'main' => [
+						'fill'   => '#ffffff',
+						'border' => '#d7d7d7',
+					],
+				],
+				'listItem'     => [
+					'main'     => [
+						'fill' => '#ffffff',
+						'line' => '#f5f5f5',
+						'text' => '#555555',
+					],
+					'hover'    => [
+						'fill' => '#f5f5f5',
+					],
+					'selected' => [
+						'fill' => '#e0e0e0',
+					],
+				],
+				'input'        => [
+					'main'  => [
+						'fill'   => '#fafafa',
+						'border' => '#919191',
+					],
+					'focus' => [
+						'fill'   => '#f5f5f5',
+						'border' => '#333333',
+					],
+				],
+				'radio'        => [
+					'main'     => [
+						'file'   => '#f5f5f5',
+						'border' => '#919191',
+						'check'  => '#f5f5f5',
+					],
+					'selected' => [
+						'check' => '#00838f',
+					],
+				],
+				'task'         => [
+					'main'     => [
+						'fill' => '#f5f5f5',
+					],
+					'selected' => [
+						'border' => '#00838f',
+					],
+					'report'   => [
+						'border' => '#eb5757',
+					],
+				],
+				'prompt'       => [
+					'main'   => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'report' => [
+						'fill'   => '#eb5757',
+						'border' => '#eb5757',
+						'text'   => '#ffffff',
+					],
+				],
+				'skipButton'   => [
+					'main'  => [
+						'fill'   => '#919191',
+						'border' => '#919191',
+						'text'   => '#ffffff',
+					],
+					'hover' => [
+						'fill'   => '#555555',
+						'border' => '#919191',
+						'text'   => '#ffffff',
+					],
+				],
+				'verifyButton' => [
+					'main'  => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'hover' => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+				],
+				'expandButton' => [
+					'main' => [
+						'fill' => '#00838f',
+					],
+				],
+				'slider'       => [
+					'main'  => [
+						'bar'    => '#c4c4c4',
+						'handle' => '#0f8390',
+					],
+					'focus' => [
+						'handle' => '#0f8390',
+					],
+				],
+			],
+		];
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		self::assertSame( $expected, $subject->get_default_theme() );
+	}
+
+	/**
 	 * Test set_field().
 	 *
 	 * @param array $has_field Tab has field.
@@ -306,8 +688,8 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_set_field
 	 */
 	public function test_set_field( array $has_field, array $called ) {
-		$general      = Mockery::mock( General::class );
-		$integrations = Mockery::mock( Integrations::class );
+		$general      = Mockery::mock( General::class )->makePartial();
+		$integrations = Mockery::mock( Integrations::class )->makePartial();
 		$tabs         = empty( $has_field ) ? [] : [ $general, $integrations ];
 		$subject      = Mockery::mock( Settings::class )->makePartial();
 
@@ -357,5 +739,19 @@ class SettingsTest extends HCaptchaTestCase {
 				[ true, true ],
 			],
 		];
+	}
+
+	/**
+	 * Test screen_ids().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_screen_ids() {
+		$screen_ids = [ 'general-screen-id', 'integrations-screen-id' ];
+		$subject    = Mockery::mock( Settings::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'screen_ids', $screen_ids );
+
+		self::assertSame( $screen_ids, $subject->screen_ids() );
 	}
 }

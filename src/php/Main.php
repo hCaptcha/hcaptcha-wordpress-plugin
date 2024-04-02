@@ -13,6 +13,8 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use HCaptcha\Admin\Events\Events;
+use HCaptcha\Admin\PluginStats;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
@@ -25,6 +27,8 @@ use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\EventsPage;
+use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
@@ -134,10 +138,15 @@ class Main {
 				'hCaptcha' => [
 					General::class,
 					Integrations::class,
+					FormsPage::class,
+					EventsPage::class,
 					SystemInfo::class,
 				],
 			]
 		);
+
+		$this->load( PluginStats::class );
+		$this->load( Events::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
@@ -233,7 +242,7 @@ class Main {
 	 * @return false
 	 */
 	public function is_pro(): bool {
-		return false;
+		return 'pro' === $this->settings->get_license();
 	}
 
 	/**
@@ -293,11 +302,18 @@ class Main {
 	 * @return array
 	 */
 	public function csp_headers( $headers ): array {
+		$headers = (array) $headers;
+
+		/**
+		 * Filters whether to add Content Security Policy (CSP) headers.
+		 *
+		 * @param bool  $add_csp_headers Add Content Security Policy (CSP) headers.
+		 * @param array $headers Current headers.
+		 */
 		if ( ! apply_filters( 'hcap_add_csp_headers', false, $headers ) ) {
 			return $headers;
 		}
 
-		$headers       = (array) $headers;
 		$keys_lower    = array_map( 'strtolower', array_keys( $headers ) );
 		$csp_key       = 'Content-Security-Policy';
 		$csp_key_lower = strtolower( $csp_key );
@@ -316,13 +332,20 @@ class Main {
 			}
 		}
 
-		$hcap_csp_subheaders = [];
+		$hcap_csp_headers = [];
 
 		foreach ( $hcap_csp_arr as $key => $value ) {
-			$hcap_csp_subheaders[] = $key . ' ' . implode( ' ', $value );
+			$hcap_csp_headers[] = $key . ' ' . implode( ' ', $value );
 		}
 
-		$headers[ $csp_key ] = implode( '; ', $hcap_csp_subheaders );
+		/**
+		 * Filters the Content Security Policy (CSP) headers.
+		 *
+		 * @param string $hcap_csp_headers Content Security Policy (CSP) headers.
+		 */
+		$hcap_csp_headers = (array) apply_filters( 'hcap_csp_headers', $hcap_csp_headers );
+
+		$headers[ $csp_key ] = implode( '; ', $hcap_csp_headers );
 
 		return $headers;
 	}
@@ -537,7 +560,7 @@ CSS;
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $settings->is_on( 'custom_themes' ) ) {
+		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
 			$params['custom'] = 'true';
 		}
 
@@ -638,7 +661,7 @@ CSS;
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
-			[],
+			[ 'wp-hooks' ],
 			HCAPTCHA_VERSION,
 			true
 		);
@@ -659,7 +682,7 @@ CSS;
 
 		$config_params = [];
 
-		if ( $settings->is_on( 'custom_themes' ) ) {
+		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
 			$config_params = json_decode( $settings->get( 'config_params' ), true ) ?: [];
 		}
 
@@ -941,6 +964,16 @@ CSS;
 				[ 'elementor_pro_status', null ],
 				'elementor-pro/elementor-pro.php',
 				ElementorPro\Login::class,
+			],
+			'Essential Addons Login'               => [
+				[ 'essential_addons_status', 'login' ],
+				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				EssentialAddons\Login::class,
+			],
+			'Essential Addons Register'            => [
+				[ 'essential_addons_status', 'register' ],
+				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				EssentialAddons\Register::class,
 			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
@@ -1307,5 +1340,14 @@ CSS;
 	 */
 	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
+	}
+
+	/**
+	 * Whether option is allowed to use.
+	 *
+	 * @return bool
+	 */
+	private function is_pro_or_general(): bool {
+		return $this->is_pro() || ( is_admin() && 'General' === $this->settings->get_active_tab_name() );
 	}
 }

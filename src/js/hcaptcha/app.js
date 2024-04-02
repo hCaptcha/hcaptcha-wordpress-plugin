@@ -27,7 +27,15 @@ window.hCaptchaSubmit = () => {
 };
 
 window.hCaptchaOnLoad = () => {
-	window.hCaptchaBindEvents();
+	function hCaptchaOnLoad() {
+		window.hCaptchaBindEvents();
+		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
+	}
 
-	document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
+	// Sync with DOMContentLoaded event.
+	if ( document.readyState === 'loading' ) {
+		window.addEventListener( 'DOMContentLoaded', hCaptchaOnLoad );
+	} else {
+		hCaptchaOnLoad();
+	}
 };

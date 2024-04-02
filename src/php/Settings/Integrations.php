@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Settings;
 
-use HCaptcha\Admin\Dialog;
 use KAGG\Settings\Abstracts\SettingsBase;
 use WP_Theme;
 
@@ -49,18 +48,11 @@ class Integrations extends PluginSettingsBase {
 	const SECTION_DISABLED = 'disabled';
 
 	/**
-	 * Dialog class instance.
-	 *
-	 * @var Dialog
-	 */
-	protected $dialog;
-
-	/**
 	 * Entity name to activate/deactivate. Can be 'plugin' or 'theme'.
 	 *
 	 * @var string
 	 */
-	private $entity = '';
+	protected $entity = '';
 
 	/**
 	 * Get page title.
@@ -248,6 +240,14 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'form'  => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 					'login' => __( 'Login', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'essential_addons_status'          => [
+				'label'   => 'Essential Addons',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => __( 'Login', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'fluent_status'                    => [
@@ -753,15 +753,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function activate() {
-		// Run a security check.
-		if ( ! check_ajax_referer( self::ACTIVATE_ACTION, 'nonce', false ) ) {
-			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
-		}
-
-		// Check for permissions.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
-		}
+		$this->run_checks( self::ACTIVATE_ACTION );
 
 		$activate     = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
 		$this->entity = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -801,7 +793,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function process_plugins( bool $activate, array $plugins, string $plugin_name ) {
+	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ) {
 		if ( $activate ) {
 			if ( ! $this->activate_plugins( $plugins ) ) {
 				$message = sprintf(
@@ -840,7 +832,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function process_theme( string $theme ) {
+	protected function process_theme( string $theme ) {
 		if ( ! $this->activate_theme( $theme ) ) {
 			$message = sprintf(
 			/* translators: 1: Theme name. */
@@ -870,7 +862,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function activate_plugins( array $plugins ): bool {
+	protected function activate_plugins( array $plugins ): bool {
 		foreach ( $plugins as $plugin ) {
 			ob_start();
 
@@ -894,7 +886,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function activate_theme( string $theme ): bool {
+	protected function activate_theme( string $theme ): bool {
 		if ( ! wp_get_theme( $theme )->exists() ) {
 			return false;
 		}
@@ -937,7 +929,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function json_data( string $message ): array {
+	protected function json_data( string $message ): array {
 		$data = [ 'message' => esc_html( $message ) ];
 
 		if ( 'theme' === $this->entity ) {

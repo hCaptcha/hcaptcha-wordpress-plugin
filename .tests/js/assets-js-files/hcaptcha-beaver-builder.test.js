@@ -12,6 +12,13 @@ describe( 'hCaptcha Beaver Builder', () => {
 	};
 
 	beforeEach( () => {
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
 		// Mock jQuery.ajaxPrefilter
 		$.ajaxPrefilter = jest.fn( ( callback ) => {
 			ajaxPrefilterCallback = callback;
@@ -44,6 +51,14 @@ describe( 'hCaptcha Beaver Builder', () => {
 
 	test( 'does not append anything when data does not start with any expected action', () => {
 		options.data = 'action=other_action&node_id=123';
+		ajaxPrefilterCallback( options );
+		expect( options.data ).not.toContain( 'h-captcha-response' );
+		expect( options.data ).not.toContain( 'hcaptcha_beaver_builder_nonce' );
+		expect( options.data ).not.toContain( 'hcaptcha_login_nonce' );
+	} );
+
+	test( 'does not append anything when data is not a string', () => {
+		options.data = {};
 		ajaxPrefilterCallback( options );
 		expect( options.data ).not.toContain( 'h-captcha-response' );
 		expect( options.data ).not.toContain( 'hcaptcha_beaver_builder_nonce' );

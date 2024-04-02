@@ -1,31 +1,36 @@
 /* global jQuery */
 
+import { helper } from './hcaptcha-helper.js';
+
+wp.hooks.addFilter(
+	'hcaptcha.ajaxSubmitButton',
+	'hcaptcha',
+	( isAjaxSubmitButton, submitButtonElement ) => {
+		if ( submitButtonElement.classList.contains( 'passster-submit' ) ) {
+			return true;
+		}
+
+		return isAjaxSubmitButton;
+	}
+);
+
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
 		const data = options.data ?? '';
 
-		if ( ! data.startsWith( 'action=validate_input' ) ) {
+		if ( typeof data !== 'string' ) {
 			return;
 		}
 
 		const urlParams = new URLSearchParams( data );
 		const area = urlParams.get( 'area' );
-		const $node = $( '[data-area=' + area + ']' ).closest( 'form' );
-		const nonceName = 'hcaptcha_passster_nonce';
-		let response = $node.find( '[name="h-captcha-response"]' ).val();
 
-		response = response ? response : '';
-
-		let id = $node.find( '[name="hcaptcha-widget-id"]' ).val();
-
-		id = id ? id : '';
-
-		let nonce = $node.find( '[name="' + nonceName + '"]' ).val();
-
-		nonce = nonce ? nonce : '';
-
-		options.data +=
-			'&h-captcha-response=' + response + '&hcaptcha-widget-id=' + id + '&' + nonceName + '=' + nonce;
+		helper.addHCaptchaData(
+			options,
+			'validate_input',
+			'hcaptcha_passster_nonce',
+			$( '[data-area=' + area + ']' ).closest( 'form' )
+		);
 	} );
 }( jQuery ) );

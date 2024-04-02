@@ -59,6 +59,7 @@ class HCaptcha {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_theme    = $settings->get_theme();
+		$hcaptcha_force    = $settings->is_on( 'force' );
 		$hcaptcha_size     = $settings->get( 'size' );
 		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
 
@@ -68,7 +69,7 @@ class HCaptcha {
 				'action'  => '', // Action name for wp_nonce_field.
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
-				'force'   => false, // Whether to execute hCaptcha widget before submit (like for invisible).
+				'force'   => $hcaptcha_force, // Whether to execute hCaptcha widget before submit (like for invisible).
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
 				/**
 				 * The hCaptcha widget id.
@@ -83,6 +84,13 @@ class HCaptcha {
 				'protect' => true,
 			]
 		);
+
+		/**
+		 * Filters the form arguments.
+		 *
+		 * @param array $args The form arguments.
+		 */
+		$args = (array) apply_filters( 'hcap_form_args', $args );
 
 		$args['action']  = (string) $args['action'];
 		$args['name']    = (string) $args['name'];
@@ -221,6 +229,7 @@ class HCaptcha {
 
 		return ! (
 			wp_hash( $encoded_id ) === $hash &&
+			/** This filter is documented above. */
 			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
 		);
 	}

@@ -9,6 +9,13 @@ describe( 'hCaptcha ajaxStop binding', () => {
 	let hCaptchaBindEvents;
 
 	beforeEach( () => {
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
 		hCaptchaBindEvents = jest.fn();
 		global.hCaptchaBindEvents = hCaptchaBindEvents;
 

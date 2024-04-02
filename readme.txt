@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 3.10.1
+Stable tag: 4.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,8 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 5. General settings page
 6. Integrations settings page
 7. Activating plugin from the Integration settings page
+8. (Optional) Local Forms statistics
+9. (Optional) Local Events statistics
 
 == Installation ==
 
@@ -341,7 +343,7 @@ function hcap_protect_form_filter( $value, $source, $form_id ) {
 add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
 `
 
-= How to show hCaptcha widget instantly? =
+= How can I show the hCaptcha widget instantly? =
 
 The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.
 
@@ -446,73 +448,54 @@ For more details, please see the hCaptcha privacy policy at:
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
 
-=== Forms and Plugins Supported ==
+If you enable the optional plugin-local statistics feature, the following additional data will be recorded to your database:
 
-* Login Form
-* Register Form
-* Lost Password Form
-* Comment Form
-* Post/Page Password Form
+* counts of challenge verifications per form
+* **only if you enable this optional feature:** the IP addresses challenged on each form
+
+We recommend leaving IP recording off, which will make these statistics fully anonymous.
+
+If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
+
+=== Plugins, Themes and Forms Supported ==
+
+* WordPress Login, Register, Lost Password, Comment, and Post/Page Password Forms
 * ACF Extended Form
-* Affiliates Login Form
-* Affiliates Register Form
-* Asgaros Forum New Topic Form
-* Asgaros Forum Reply Form
+* Affiliates Login and Register Forms
+* Asgaros Forum New Topic and Reply Form
 * Avada Form
-* Back In Stock Notifier
-* bbPress New Topic Form
-* bbPress Reply Form
-* Beaver Builder Contact Form
-* Beaver Builder Login Form
-* BuddyPress Create Group Form
-* Buddypress Registration Form
-* Classified Listing Contact Form
-* Classified Listing Login Form
-* Classified Listing Lost Password Form
-* Classified Listing Register Form
+* Back In Stock Notifier Form
+* bbPress New Topic and Reply Forms
+* Beaver Builder Contact and Login Forms
+* BuddyPress — Create Group and Registration Forms
+* Classified Listing Contact, Login, Lost Password, and Listing Register Forms
 * CoBlocks Form
-* Colorlib Customizer Login Form
-* Colorlib Customizer Lost Password Form
-* Colorlib Customizer Register Form
+* Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
-* Divi Comment Form
-* Divi Contact Form
-* Divi Email Optin Form
-* Divi Login Form
-* Download Manager Button
+* Divi Comment, Contact, Email Optin and Login Forms
+* Download Manager Form
 * Droit Dark Mode
-* Easy Digital Downloads Checkout Form
-* Easy Digital Downloads Login Form
-* Easy Digital Downloads Lost Password Form
-* Easy Digital Downloads Register Form
-* Elementor Pro Form
-* Elementor Pro Login
+* Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
+* Elementor Pro Form and Login Form
+* Essential Addons for Elementor Login and Register Forms
 * Fluent Forms
-* Forminator
+* Forminator Forms
 * Formidable Forms
 * GiveWP Form
 * Gravity Forms
 * Gravity Perks Nested Forms
 * Jetpack Forms
-* Kadence Form
-* Kadence Advanced Form
-* LearnDash Login Form
-* LearnDash Lost Password Form
-* LearnDash Register Form
-* Login/Signup Popup Login Form
-* Login/Signup Popup Register Form
+* Kadence Form and Advanced Form
+* LearnDash Login, Lost Password, and Register Forms
+* Login/Signup Popup Login and Register Forms
 * Mailchimp for WP Form
 * MailPoet Form
-* MemberPress Login Form
-* MemberPress Register Form
+* MemberPress Login and Register Forms
 * Ninja Forms
 * Otter Blocks Forms
-* Paid Memberships Pro Checkout Form
-* Paid Memberships Pro Login Form
+* Paid Memberships Pro Checkout and Login Forms
 * Passster Protection Form
-* Profile Builder Login Form
-* Profile Builder Recover Password Form
-* Profile Builder Register Form
+* Profile Builder Login, Recover Password, and Register Forms
 * Quform Forms
 * Sendinblue Form
 * Simple Download Monitor Form
@@ -520,30 +503,18 @@ For more details, please see the hCaptcha privacy policy at:
 * Spectra — WordPress Gutenberg Blocks Form
 * Subscriber Form
 * Support Candy New Ticket Form
-* Theme My Login: Login Form
-* Theme My Login: Lost Password Form
-* Theme My Login: Register Form
-* Ultimate Member Login Form
-* Ultimate Member Lost Password Form
-* Ultimate Member Register Form
-* UsersWP Forgot Password Form
-* UsersWP Login Form
-* UsersWP Register Form
-* WooCommerce Login Form
-* WooCommerce Registration Form
-* WooCommerce Lost Password Form
-* WooCommerce Checkout Form
-* WooCommerce Order Tracking Form
-* WooCommerce Wishlist
+* Theme My Login — Login, Lost Password, and Register Form
+* Ultimate Member Login, Lost Password, and Member Register Forms
+* UsersWP Forgot Password, Login, and Register Forms
+* WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
+* WooCommerce Wishlist Form
 * Wordfence Security Login Form
 * Wordfence Login Security Login Form
 * WP Dark Mode
 * WP Job Openings Form
 * WPForms Form
-* wpDiscuz Comment Form
-* wpDiscuz Support Form
-* wpForo New Topic Form
-* wpForo Reply Form
+* wpDiscuz Comment and Support Forms
+* wpForo New Topic and Reply Forms
 
 === Please note ===
 
@@ -564,6 +535,21 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.0.0 =
+* This major release adds a new Statistics feature and many admin improvements
+* Added hCaptcha events statistics and Forms admin page.
+* Added Events admin page for Pro users.
+* Added Custom Theme Editor for Pro users.
+* Added Force option to show hCaptcha challenge before submit.
+* Added integration with Essential Addons for Elementor — the Login/Register form.
+* Added filter `hcap_form_args` to allow modifying form arguments.
+* Reworked Otter integration to follow Force and all other hCaptcha settings.
+* Fixed issue with Divi Contact Form Helper plugin and File Upload field.
+* Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
+* Fixed racing condition with hCaptcha script loading.
+* Fixed checking nonce in CF7 for not logged-in users.
+* Tested with WooCommerce 8.7.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.

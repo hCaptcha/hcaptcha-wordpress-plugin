@@ -25,7 +25,11 @@ class Form {
 	/**
 	 * Nonce name.
 	 */
-	const NONCE                = 'hcaptcha_coblocks_nonce';
+	const NONCE = 'hcaptcha_coblocks_nonce';
+
+	/**
+	 * Fake hCaptcha token.
+	 */
 	const HCAPTCHA_DUMMY_TOKEN = 'hcaptcha_token';
 
 	/**

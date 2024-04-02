@@ -41,6 +41,7 @@ use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
 
 /**
@@ -648,6 +649,7 @@ CSS;
 				'image_host'           => 'imgs-cn1.hcaptcha.com',
 				'report_api'           => 'reportapi-cn1.hcaptcha.com',
 				'sentry'               => 'cn1.hcaptcha.com',
+				'license'              => 'pro',
 			]
 		);
 
@@ -862,6 +864,7 @@ JS;
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 				'config_params'        => json_encode( $config_params ),
 				'delay'                => - 100,
+				'license'              => 'pro',
 			]
 		);
 
@@ -878,7 +881,7 @@ JS;
 
 		$script = wp_scripts()->registered['hcaptcha'];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
-		self::assertSame( [], $script->deps );
+		self::assertSame( [ 'wp-hooks' ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 
@@ -907,7 +910,7 @@ JS;
 
 		$script = wp_scripts()->registered['hcaptcha'];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
-		self::assertSame( [], $script->deps );
+		self::assertSame( [ 'wp-hooks' ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 
@@ -1073,7 +1076,10 @@ JS;
 
 		// Test with hCaptcha plugin not active.
 		$subject->load_modules();
-		$expected_loaded_classes = [];
+		$expected_loaded_classes = [
+			PluginStats::class,
+			Events::class,
+		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
 		self::assertSame( $expected_loaded_classes, array_keys( $loaded_classes ) );

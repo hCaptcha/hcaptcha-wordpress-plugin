@@ -37,6 +37,7 @@ class CF7 {
 	public function init_hooks() {
 		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
+		add_filter( 'rest_authentication_errors', [ $this, 'check_rest_nonce' ] );
 		add_filter( 'wpcf7_validate', [ $this, 'verify_hcaptcha' ], 20, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
@@ -128,6 +129,33 @@ class CF7 {
 			$hcap_form .
 			'</span>'
 		);
+	}
+
+	/**
+	 * Check rest nonce and remove it for not logged-in users.
+	 *
+	 * @param WP_Error|mixed $result Error from another authentication handler,
+	 *                               null if we should handle it, or another value if not.
+	 *
+	 * @return WP_Error|mixed
+	 */
+	public function check_rest_nonce( $result ) {
+		if ( is_user_logged_in() ) {
+			return $result;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$form_id        = isset( $_POST['_wpcf7'] ) ? (int) $_POST['_wpcf7'] : 0;
+		$cf7_submit_uri = '/' . rest_get_url_prefix() . '/contact-form-7/v1/contact-forms/' . $form_id . '/feedback';
+		$uri            = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+
+		if ( $cf7_submit_uri !== $uri ) {
+			return $result;
+		}
+
+		unset( $_REQUEST['_wpnonce'] );
+
+		return $result;
 	}
 
 	/**
