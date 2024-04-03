@@ -536,6 +536,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.0.1 =
+* Fixed PHP notice on the Forms page.
+
 = 4.0.0 =
 * This major release adds a new Statistics feature and many admin improvements
 * Added hCaptcha events statistics and Forms admin page.

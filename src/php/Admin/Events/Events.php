@@ -189,10 +189,8 @@ class Events {
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
-			$wpdb->prepare(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT date_gmt FROM $table_name $where"
-			)
+			"SELECT date_gmt FROM $table_name $where"
 		);
 
 		return [
