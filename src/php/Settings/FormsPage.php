@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Settings;
 
-use HCaptcha\Admin\Events\EventsTable;
 use HCaptcha\Admin\Events\FormsTable;
 use KAGG\Settings\Abstracts\SettingsBase;
 
@@ -33,28 +32,28 @@ class FormsPage extends PluginSettingsBase {
 	 *
 	 * @var FormsTable
 	 */
-	private $list_table;
+	protected $list_table;
 
 	/**
 	 * Served events.
 	 *
 	 * @var array
 	 */
-	private $served;
+	protected $served;
 
 	/**
 	 * Chart time unit.
 	 *
 	 * @var string
 	 */
-	private $unit;
+	protected $unit;
 
 	/**
 	 * The page is allowed to be shown.
 	 *
 	 * @var bool
 	 */
-	private $allowed = false;
+	protected $allowed = false;
 
 	/**
 	 * Get page title.
@@ -163,6 +162,8 @@ class FormsPage extends PluginSettingsBase {
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
+	 *
+	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
 		?>
@@ -218,7 +219,7 @@ class FormsPage extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function prepare_chart_data() {
+	protected function prepare_chart_data() {
 		$this->served = [];
 
 		$this->list_table->prepare_items();
@@ -227,7 +228,7 @@ class FormsPage extends PluginSettingsBase {
 			return;
 		}
 
-		$gmt_offset = (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+		$gmt_offset = (int) get_option( 'gmt_offset' ) * constant( 'HOUR_IN_SECONDS' );
 		$max_time   = 0;
 		$min_time   = PHP_INT_MAX;
 
@@ -241,12 +242,12 @@ class FormsPage extends PluginSettingsBase {
 
 		$time_units = [
 			[ 1, 'second' ],
-			[ MINUTE_IN_SECONDS, 'minute' ],
-			[ HOUR_IN_SECONDS, 'hour' ],
-			[ DAY_IN_SECONDS, 'day' ],
-			[ WEEK_IN_SECONDS, 'week' ],
-			[ MONTH_IN_SECONDS, 'month' ],
-			[ YEAR_IN_SECONDS, 'year' ],
+			[ constant( 'MINUTE_IN_SECONDS' ), 'minute' ],
+			[ constant( 'HOUR_IN_SECONDS' ), 'hour' ],
+			[ constant( 'DAY_IN_SECONDS' ), 'day' ],
+			[ constant( 'WEEK_IN_SECONDS' ), 'week' ],
+			[ constant( 'MONTH_IN_SECONDS' ), 'month' ],
+			[ constant( 'YEAR_IN_SECONDS' ), 'year' ],
 		];
 
 		foreach ( $time_units as $index => $time_unit ) {
