@@ -5,12 +5,6 @@
  * @package HCaptcha\Tests
  */
 
-// phpcs:disable Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
-/** @noinspection PhpUndefinedClassInspection */
-// phpcs:enable Generic.Commenting.DocComment.MissingShort
-
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\Admin\Events\EventsTable;
