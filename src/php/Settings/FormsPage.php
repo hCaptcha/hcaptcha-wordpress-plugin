@@ -259,11 +259,18 @@ class FormsPage extends PluginSettingsBase {
 			}
 		}
 
-		$date_format = 'Y-m-d';
+		if ( $time_diff < constant( 'MINUTE_IN_SECONDS' ) ) {
+			$date_format = 'Y-m-d H:i:s';
+		} elseif ( $time_diff < constant( 'DAY_IN_SECONDS' ) ) {
+			$date_format = 'Y-m-d H:i';
+		} else {
+			$date_format = 'Y-m-d';
+		}
 
 		foreach ( $this->list_table->served as $item ) {
-			$time_gmt              = strtotime( $item->date_gmt );
-			$date                  = wp_date( $date_format, $time_gmt );
+			$time_gmt = strtotime( $item->date_gmt );
+			$date     = wp_date( $date_format, $time_gmt );
+
 			$this->served[ $date ] = $this->served[ $date ] ?? 0;
 
 			++$this->served[ $date ];

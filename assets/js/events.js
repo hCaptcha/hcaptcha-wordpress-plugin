@@ -17,13 +17,11 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				{
 					label: HCaptchaEventsObject.succeedLabel,
 					data: HCaptchaEventsObject.succeed,
-					barThickness: 'flex',
 					borderWidth: 1,
 				},
 				{
 					label: HCaptchaEventsObject.failedLabel,
 					data: HCaptchaEventsObject.failed,
-					barThickness: 'flex',
 					borderWidth: 1,
 				},
 			],
@@ -48,7 +46,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 							year: 'dd.MM.yyyy',
 						},
 						tooltipFormat: 'dd.MM.yyyy HH:mm',
-						unit: HCaptchaEventsObject.unit,
 					},
 				},
 				y: {

@@ -286,14 +286,12 @@ class EventsPage extends PluginSettingsBase {
 
 		foreach ( $this->list_table->items as $item ) {
 			$time_gmt = strtotime( $item->date_gmt );
-
-			$date    = wp_date( $date_format, $time_gmt );
-			$success = '[]' === $item->error_codes;
+			$date     = wp_date( $date_format, $time_gmt );
 
 			$this->succeed[ $date ] = $this->succeed[ $date ] ?? 0;
 			$this->failed[ $date ]  = $this->failed[ $date ] ?? 0;
 
-			if ( $success ) {
+			if ( '[]' === $item->error_codes ) {
 				++$this->succeed[ $date ];
 			} else {
 				++$this->failed[ $date ];
