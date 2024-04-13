@@ -145,7 +145,6 @@ class FormsPage extends ListPageBase {
 			self::OBJECT,
 			[
 				'served'      => $this->served,
-				'unit'        => $this->unit,
 				'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 			]
 		);

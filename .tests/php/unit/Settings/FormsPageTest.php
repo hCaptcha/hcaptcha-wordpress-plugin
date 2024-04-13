@@ -127,7 +127,6 @@ class FormsPageTest extends HCaptchaTestCase {
 		$plugin_version = '1.0.0';
 		$min_prefix     = '.min';
 		$served         = [ 'some served events' ];
-		$unit           = 'some unit';
 		$times          = $allowed ? 1 : 0;
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
@@ -135,7 +134,6 @@ class FormsPageTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'min_prefix', $min_prefix );
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'served', $served );
-		$this->set_protected_property( $subject, 'unit', $unit );
 
 		FunctionMocker::replace(
 			'constant',
@@ -197,7 +195,6 @@ class FormsPageTest extends HCaptchaTestCase {
 				FormsPage::OBJECT,
 				[
 					'served'      => $served,
-					'unit'        => $unit,
 					'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 				]
 			)
@@ -296,28 +293,16 @@ class FormsPageTest extends HCaptchaTestCase {
 		FunctionMocker::replace(
 			'constant',
 			static function ( $name ) {
-				if ( 'HOUR_IN_SECONDS' === $name ) {
-					return 3600;
-				}
-
 				if ( 'MINUTE_IN_SECONDS' === $name ) {
 					return 60;
 				}
 
+				if ( 'HOUR_IN_SECONDS' === $name ) {
+					return 3600;
+				}
+
 				if ( 'DAY_IN_SECONDS' === $name ) {
 					return 86400;
-				}
-
-				if ( 'WEEK_IN_SECONDS' === $name ) {
-					return 604800;
-				}
-
-				if ( 'MONTH_IN_SECONDS' === $name ) {
-					return 2592000;
-				}
-
-				if ( 'YEAR_IN_SECONDS' === $name ) {
-					return 31536000;
 				}
 
 				return null;
@@ -336,7 +321,6 @@ class FormsPageTest extends HCaptchaTestCase {
 		$subject->$method();
 
 		self::assertSame( $expected['served'], $this->get_protected_property( $subject, 'served' ) );
-		self::assertSame( $expected['unit'], $this->get_protected_property( $subject, 'unit' ) );
 	}
 
 	/**
@@ -477,7 +461,6 @@ class FormsPageTest extends HCaptchaTestCase {
 						'2024-03-30' => 5,
 						'2024-04-01' => 6,
 					],
-					'unit'   => 'week',
 				],
 			],
 		];
