@@ -32,35 +32,35 @@ class EventsPage extends PluginSettingsBase {
 	 *
 	 * @var EventsTable
 	 */
-	private $list_table;
+	protected $list_table;
 
 	/**
 	 * Succeed events.
 	 *
 	 * @var array
 	 */
-	private $succeed;
+	protected $succeed;
 
 	/**
 	 * Failed events.
 	 *
 	 * @var array
 	 */
-	private $failed;
+	protected $failed;
 
 	/**
 	 * Chart time unit.
 	 *
 	 * @var string
 	 */
-	private $unit;
+	protected $unit;
 
 	/**
 	 * The page is allowed to be shown.
 	 *
 	 * @var bool
 	 */
-	private $allowed = false;
+	protected $allowed = false;
 
 	/**
 	 * Get page title.
@@ -111,8 +111,6 @@ class EventsPage extends PluginSettingsBase {
 		}
 
 		$this->list_table = new EventsTable();
-
-		$this->list_table->prepare_items();
 
 		$this->prepare_chart_data();
 	}
@@ -173,6 +171,8 @@ class EventsPage extends PluginSettingsBase {
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
+	 *
+	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
 		?>
@@ -235,15 +235,17 @@ class EventsPage extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function prepare_chart_data() {
+	protected function prepare_chart_data() {
 		$this->succeed = [];
 		$this->failed  = [];
+
+		$this->list_table->prepare_items();
 
 		if ( ! $this->list_table->items ) {
 			return;
 		}
 
-		$gmt_offset = (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+		$gmt_offset = (int) get_option( 'gmt_offset' ) * constant( 'HOUR_IN_SECONDS' );
 		$max_time   = 0;
 		$min_time   = PHP_INT_MAX;
 
@@ -257,12 +259,12 @@ class EventsPage extends PluginSettingsBase {
 
 		$time_units = [
 			[ 1, 'second' ],
-			[ MINUTE_IN_SECONDS, 'minute' ],
-			[ HOUR_IN_SECONDS, 'hour' ],
-			[ DAY_IN_SECONDS, 'day' ],
-			[ WEEK_IN_SECONDS, 'week' ],
-			[ MONTH_IN_SECONDS, 'month' ],
-			[ YEAR_IN_SECONDS, 'year' ],
+			[ constant( 'MINUTE_IN_SECONDS' ), 'minute' ],
+			[ constant( 'HOUR_IN_SECONDS' ), 'hour' ],
+			[ constant( 'DAY_IN_SECONDS' ), 'day' ],
+			[ constant( 'WEEK_IN_SECONDS' ), 'week' ],
+			[ constant( 'MONTH_IN_SECONDS' ), 'month' ],
+			[ constant( 'YEAR_IN_SECONDS' ), 'year' ],
 		];
 
 		foreach ( $time_units as $index => $time_unit ) {
@@ -274,9 +276,9 @@ class EventsPage extends PluginSettingsBase {
 			}
 		}
 
-		if ( $time_diff < MINUTE_IN_SECONDS ) {
+		if ( $time_diff < constant( 'MINUTE_IN_SECONDS' ) ) {
 			$date_format = 'Y-m-d H:i:s';
-		} elseif ( $time_diff < DAY_IN_SECONDS ) {
+		} elseif ( $time_diff < constant( 'DAY_IN_SECONDS' ) ) {
 			$date_format = 'Y-m-d H:i';
 		} else {
 			$date_format = 'Y-m-d';

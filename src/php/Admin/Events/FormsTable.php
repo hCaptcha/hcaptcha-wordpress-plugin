@@ -16,10 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreEnd
 }
 
-// IMPORTANT NOTICE:
-// This line is needed to prevent fatal errors in the third-party plugins.
-// We know that Jetpack (probably others also) can load WP classes during cron jobs.
-require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+if ( ! class_exists( 'WP_List_Table', false ) ) {
+	// IMPORTANT NOTICE:
+	// This line is needed to prevent fatal errors in the third-party plugins.
+	// We know that Jetpack (probably others also) can load WP classes during cron jobs.
+	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+}
 
 /**
  * List forms in the table.

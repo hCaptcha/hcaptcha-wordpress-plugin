@@ -106,8 +106,6 @@ class FormsPage extends PluginSettingsBase {
 
 		$this->list_table = new FormsTable();
 
-		$this->list_table->prepare_items();
-
 		$this->prepare_chart_data();
 	}
 
@@ -222,6 +220,8 @@ class FormsPage extends PluginSettingsBase {
 	 */
 	private function prepare_chart_data() {
 		$this->served = [];
+
+		$this->list_table->prepare_items();
 
 		if ( ! $this->list_table->served ) {
 			return;
