@@ -3,7 +3,6 @@
 /**
  * @param HCaptchaEventsObject.succeed
  * @param HCaptchaEventsObject.failed
- * @param HCaptchaEventsObject.unit
  * @param HCaptchaEventsObject.succeedLabel
  * @param HCaptchaEventsObject.failedLabel
  */

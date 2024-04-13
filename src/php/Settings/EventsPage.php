@@ -11,11 +11,11 @@ use HCaptcha\Admin\Events\EventsTable;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
- * Class EventsPage
+ * Class EventsPage.
  *
  * Settings page "Events".
  */
-class EventsPage extends PluginSettingsBase {
+class EventsPage extends ListPageBase {
 
 	/**
 	 * Admin script handle.
@@ -47,13 +47,6 @@ class EventsPage extends PluginSettingsBase {
 	 * @var array
 	 */
 	protected $failed;
-
-	/**
-	 * Chart time unit.
-	 *
-	 * @var string
-	 */
-	protected $unit;
 
 	/**
 	 * The page is allowed to be shown.
@@ -245,44 +238,7 @@ class EventsPage extends PluginSettingsBase {
 			return;
 		}
 
-		$gmt_offset = (int) get_option( 'gmt_offset' ) * constant( 'HOUR_IN_SECONDS' );
-		$max_time   = 0;
-		$min_time   = PHP_INT_MAX;
-
-		foreach ( $this->list_table->items as $item ) {
-			$time     = strtotime( $item->date_gmt ) + $gmt_offset;
-			$max_time = max( $time, $max_time );
-			$min_time = min( $time, $min_time );
-		}
-
-		$time_diff = $max_time - $min_time;
-
-		$time_units = [
-			[ 1, 'second' ],
-			[ constant( 'MINUTE_IN_SECONDS' ), 'minute' ],
-			[ constant( 'HOUR_IN_SECONDS' ), 'hour' ],
-			[ constant( 'DAY_IN_SECONDS' ), 'day' ],
-			[ constant( 'WEEK_IN_SECONDS' ), 'week' ],
-			[ constant( 'MONTH_IN_SECONDS' ), 'month' ],
-			[ constant( 'YEAR_IN_SECONDS' ), 'year' ],
-		];
-
-		foreach ( $time_units as $index => $time_unit ) {
-			$i          = max( 0, $index - 1 );
-			$this->unit = $time_units[ $i ][1];
-
-			if ( $time_diff < $time_unit[0] ) {
-				break;
-			}
-		}
-
-		if ( $time_diff < constant( 'MINUTE_IN_SECONDS' ) ) {
-			$date_format = 'Y-m-d H:i:s';
-		} elseif ( $time_diff < constant( 'DAY_IN_SECONDS' ) ) {
-			$date_format = 'Y-m-d H:i';
-		} else {
-			$date_format = 'Y-m-d';
-		}
+		$date_format = $this->get_date_format( $this->list_table->items );
 
 		foreach ( $this->list_table->items as $item ) {
 			$time_gmt = strtotime( $item->date_gmt );

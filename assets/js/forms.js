@@ -2,7 +2,6 @@
 
 /**
  * @param HCaptchaFormsObject.served
- * @param HCaptchaFormsObject.unit
  * @param HCaptchaFormsObject.servedLabel
  */
 document.addEventListener( 'DOMContentLoaded', function() {
