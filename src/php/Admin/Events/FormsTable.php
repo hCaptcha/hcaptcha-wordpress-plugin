@@ -101,11 +101,10 @@ class FormsTable extends WP_List_Table {
 	 * @return array Array of all the sortable columns
 	 */
 	public function get_sortable_columns(): array {
-
 		return [
-			'source'  => [ 'source', false ],
-			'form_id' => [ 'form_id', false ],
-			'served'  => [ 'served', false ],
+			'source'  => [ 'source', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
+			'form_id' => [ 'form_id', false, __( 'Form Id', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Form Id.' ) ],
+			'served'  => [ 'served', false, __( 'Served', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Served Count.' ) ],
 		];
 	}
 
