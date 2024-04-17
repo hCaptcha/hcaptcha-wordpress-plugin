@@ -537,6 +537,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.0.1 =
+* Improved appearance of Forms and Events pages.
 * Fixed PHP notice on the Forms page.
 
 = 4.0.0 =
