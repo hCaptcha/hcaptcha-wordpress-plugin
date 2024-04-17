@@ -11,11 +11,11 @@ use HCaptcha\Admin\Events\EventsTable;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
- * Class EventsPage
+ * Class EventsPage.
  *
  * Settings page "Events".
  */
-class EventsPage extends PluginSettingsBase {
+class EventsPage extends ListPageBase {
 
 	/**
 	 * Admin script handle.
@@ -32,35 +32,28 @@ class EventsPage extends PluginSettingsBase {
 	 *
 	 * @var EventsTable
 	 */
-	private $list_table;
+	protected $list_table;
 
 	/**
 	 * Succeed events.
 	 *
 	 * @var array
 	 */
-	private $succeed;
+	protected $succeed;
 
 	/**
 	 * Failed events.
 	 *
 	 * @var array
 	 */
-	private $failed;
-
-	/**
-	 * Chart time unit.
-	 *
-	 * @var string
-	 */
-	private $unit;
+	protected $failed;
 
 	/**
 	 * The page is allowed to be shown.
 	 *
 	 * @var bool
 	 */
-	private $allowed = false;
+	protected $allowed = false;
 
 	/**
 	 * Get page title.
@@ -112,8 +105,6 @@ class EventsPage extends PluginSettingsBase {
 
 		$this->list_table = new EventsTable();
 
-		$this->list_table->prepare_items();
-
 		$this->prepare_chart_data();
 	}
 
@@ -162,7 +153,6 @@ class EventsPage extends PluginSettingsBase {
 			[
 				'succeed'      => $this->succeed,
 				'failed'       => $this->failed,
-				'unit'         => $this->unit,
 				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
 				'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
 			]
@@ -173,6 +163,8 @@ class EventsPage extends PluginSettingsBase {
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
+	 *
+	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
 		?>
@@ -235,63 +227,26 @@ class EventsPage extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function prepare_chart_data() {
+	protected function prepare_chart_data() {
 		$this->succeed = [];
 		$this->failed  = [];
+
+		$this->list_table->prepare_items();
 
 		if ( ! $this->list_table->items ) {
 			return;
 		}
 
-		$gmt_offset = (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
-		$max_time   = 0;
-		$min_time   = PHP_INT_MAX;
-
-		foreach ( $this->list_table->items as $item ) {
-			$time     = strtotime( $item->date_gmt ) + $gmt_offset;
-			$max_time = max( $time, $max_time );
-			$min_time = min( $time, $min_time );
-		}
-
-		$time_diff = $max_time - $min_time;
-
-		$time_units = [
-			[ 1, 'second' ],
-			[ MINUTE_IN_SECONDS, 'minute' ],
-			[ HOUR_IN_SECONDS, 'hour' ],
-			[ DAY_IN_SECONDS, 'day' ],
-			[ WEEK_IN_SECONDS, 'week' ],
-			[ MONTH_IN_SECONDS, 'month' ],
-			[ YEAR_IN_SECONDS, 'year' ],
-		];
-
-		foreach ( $time_units as $index => $time_unit ) {
-			$i          = max( 0, $index - 1 );
-			$this->unit = $time_units[ $i ][1];
-
-			if ( $time_diff < $time_unit[0] ) {
-				break;
-			}
-		}
-
-		if ( $time_diff < MINUTE_IN_SECONDS ) {
-			$date_format = 'Y-m-d H:i:s';
-		} elseif ( $time_diff < DAY_IN_SECONDS ) {
-			$date_format = 'Y-m-d H:i';
-		} else {
-			$date_format = 'Y-m-d';
-		}
+		$date_format = $this->get_date_format( $this->list_table->items );
 
 		foreach ( $this->list_table->items as $item ) {
 			$time_gmt = strtotime( $item->date_gmt );
-
-			$date    = wp_date( $date_format, $time_gmt );
-			$success = '[]' === $item->error_codes;
+			$date     = wp_date( $date_format, $time_gmt );
 
 			$this->succeed[ $date ] = $this->succeed[ $date ] ?? 0;
 			$this->failed[ $date ]  = $this->failed[ $date ] ?? 0;
 
-			if ( $success ) {
+			if ( '[]' === $item->error_codes ) {
 				++$this->succeed[ $date ];
 			} else {
 				++$this->failed[ $date ];

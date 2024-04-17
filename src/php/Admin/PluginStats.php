@@ -35,6 +35,12 @@ class PluginStats {
 	const MAX_PROPS = 30;
 
 	/**
+	 * Max prop value length.
+	 * (Max prop key length is 300).
+	 */
+	const MAX_PROP_VALUE_LENGTH = 2000;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -158,11 +164,16 @@ class PluginStats {
 
 		list( $fields, $integration_settings ) = $system_info_obj->get_integrations();
 
-		foreach ( $fields as $key => $field ) {
-			if ( $field['disabled'] ) {
-				continue;
+		$fields = array_filter(
+			$fields,
+			static function ( $field ) {
+				return ! $field['disabled'];
 			}
+		);
 
+		$stats['Active'] = $this->get_active( $fields );
+
+		foreach ( $fields as $key => $field ) {
 			$stats[ $field['label'] ] = implode( ',', (array) $integration_settings[ $key ] );
 		}
 
@@ -178,5 +189,28 @@ class PluginStats {
 	 */
 	private function is_not_empty( $data ): int {
 		return (int) ( ! empty( $data ) );
+	}
+
+	/**
+	 * Get active entities.
+	 *
+	 * @param array $fields Settings fields.
+	 *
+	 * @return string
+	 */
+	private function get_active( array $fields ): string {
+		$active = array_values( wp_list_pluck( $fields, 'label' ) );
+		$active = array_diff( $active, [ 'WP Core' ] );
+
+		$active_list   = implode( ',', $active );
+		$active_length = strlen( $active_list );
+
+		while ( $active_length > self::MAX_PROP_VALUE_LENGTH ) {
+			array_pop( $active );
+			$active_list   = implode( ',', $active );
+			$active_length = strlen( $active_list );
+		}
+
+		return $active_list;
 	}
 }

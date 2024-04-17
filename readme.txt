@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 4.0.0
+Stable tag: 4.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -535,6 +535,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.0.1 =
+* Improved appearance of Forms and Events pages.
+* Fixed PHP notice on the Forms page.
 
 = 4.0.0 =
 * This major release adds a new Statistics feature and many admin improvements

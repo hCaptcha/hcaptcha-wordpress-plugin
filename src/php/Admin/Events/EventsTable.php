@@ -16,10 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreEnd
 }
 
-// IMPORTANT NOTICE:
-// This line is needed to prevent fatal errors in the third-party plugins.
-// We know that Jetpack (probably others also) can load WP classes during cron jobs.
-require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+if ( ! class_exists( 'WP_List_Table', false ) ) {
+	// IMPORTANT NOTICE:
+	// This line is needed to prevent fatal errors in the third-party plugins.
+	// We know that Jetpack (probably others also) can load WP classes during cron jobs.
+	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+}
 
 /**
  * List events in the table.
@@ -27,11 +29,21 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 class EventsTable extends WP_List_Table {
 
 	/**
-	 * Number of events to show per page.
+	 * Page hook.
+	 */
+	const PAGE_HOOK = 'settings_page_hcaptcha';
+
+	/**
+	 * Events per page option.
+	 */
+	const EVENTS_PER_PAGE = 'hcaptcha_events_per_page';
+
+	/**
+	 * Default number of events to show per page.
 	 *
 	 * @var int
 	 */
-	public $per_page = 20;
+	public $per_page_default = 20;
 
 	/**
 	 * Date and time formats.
@@ -90,6 +102,41 @@ class EventsTable extends WP_List_Table {
 		];
 
 		$this->plugins = get_plugins();
+
+		add_action( 'load-' . self::PAGE_HOOK, [ $this, 'add_screen_option' ] );
+		add_filter( 'set_screen_option_' . self::EVENTS_PER_PAGE, [ $this, 'set_screen_option' ], 10, 3 );
+
+		set_screen_options();
+	}
+
+	/**
+	 * Add screen options.
+	 *
+	 * @return void
+	 */
+	public function add_screen_option() {
+		$args = [
+			'label'   => __( 'Number of items per page:', 'hcaptcha-for-forms-and-more' ),
+			'default' => $this->per_page_default,
+			'option'  => self::EVENTS_PER_PAGE,
+		];
+
+		add_screen_option( 'per_page', $args );
+	}
+
+	/**
+	 * Set screen option.
+	 *
+	 * @param mixed  $screen_option  The value to save instead of the option value.
+	 *                               Default false (to skip saving the current option).
+	 * @param string $option         The option name.
+	 * @param mixed  $value          The option value.
+	 *
+	 * @return mixed
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function set_screen_option( $screen_option, string $option, $value ) {
+		return $value;
 	}
 
 	/**
@@ -109,9 +156,9 @@ class EventsTable extends WP_List_Table {
 	public function get_sortable_columns(): array {
 
 		return [
-			'source'   => [ 'source', false ],
-			'form_id'  => [ 'form_id', false ],
-			'date_gmt' => [ 'date_gmt', false ],
+			'source'   => [ 'source', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
+			'form_id'  => [ 'form_id', false, __( 'Form Id', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Form Id.' ) ],
+			'date_gmt' => [ 'date_gmt', false, __( 'Date GMT', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Date GMT.' ) ],
 		];
 	}
 
@@ -130,7 +177,7 @@ class EventsTable extends WP_List_Table {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		$column_slugs = array_keys( $this->columns );
-		$per_page     = $this->get_items_per_page( 'hcaptcha_events_per_page', $this->per_page );
+		$per_page     = $this->get_items_per_page( self::EVENTS_PER_PAGE, $this->per_page_default );
 		$offset       = ( $paged - 1 ) * $per_page;
 		$args         = [
 			'columns' => $column_slugs,

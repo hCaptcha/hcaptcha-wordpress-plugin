@@ -120,7 +120,7 @@ class CF7 {
 		$class     = $attr['cf7-class'] ?? '';
 		$hcap_form = preg_replace(
 			[ '/(<div\s+?class="h-captcha")/', '#</div>#' ],
-			[ '<span id="' . $id . '" class="wpcf7-form-control h-captcha ' . $class . '"', '</span>' ],
+			[ '<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"', '</span>' ],
 			$hcap_form
 		);
 

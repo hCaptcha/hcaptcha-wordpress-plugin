@@ -2,7 +2,6 @@
 
 /**
  * @param HCaptchaFormsObject.served
- * @param HCaptchaFormsObject.unit
  * @param HCaptchaFormsObject.servedLabel
  */
 document.addEventListener( 'DOMContentLoaded', function() {
@@ -16,7 +15,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 					label: HCaptchaFormsObject.servedLabel,
 					backgroundColor: 'rgba(2,101,147,0.5)',
 					data: HCaptchaFormsObject.served,
-					barThickness: 'flex',
 					borderWidth: 1,
 				},
 			],
@@ -41,7 +39,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 							year: 'dd.MM.yyyy',
 						},
 						tooltipFormat: 'dd.MM.yyyy HH:mm',
-						unit: HCaptchaFormsObject.unit,
 					},
 				},
 				y: {

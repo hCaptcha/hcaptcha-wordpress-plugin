@@ -7,16 +7,15 @@
 
 namespace HCaptcha\Settings;
 
-use HCaptcha\Admin\Events\EventsTable;
 use HCaptcha\Admin\Events\FormsTable;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
- * Class FormsPage
+ * Class FormsPage.
  *
  * Settings page "Forms".
  */
-class FormsPage extends PluginSettingsBase {
+class FormsPage extends ListPageBase {
 
 	/**
 	 * Admin script handle.
@@ -33,28 +32,21 @@ class FormsPage extends PluginSettingsBase {
 	 *
 	 * @var FormsTable
 	 */
-	private $list_table;
+	protected $list_table;
 
 	/**
 	 * Served events.
 	 *
 	 * @var array
 	 */
-	private $served;
-
-	/**
-	 * Chart time unit.
-	 *
-	 * @var string
-	 */
-	private $unit;
+	protected $served;
 
 	/**
 	 * The page is allowed to be shown.
 	 *
 	 * @var bool
 	 */
-	private $allowed = false;
+	protected $allowed = false;
 
 	/**
 	 * Get page title.
@@ -106,8 +98,6 @@ class FormsPage extends PluginSettingsBase {
 
 		$this->list_table = new FormsTable();
 
-		$this->list_table->prepare_items();
-
 		$this->prepare_chart_data();
 	}
 
@@ -155,7 +145,6 @@ class FormsPage extends PluginSettingsBase {
 			self::OBJECT,
 			[
 				'served'      => $this->served,
-				'unit'        => $this->unit,
 				'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
@@ -165,6 +154,8 @@ class FormsPage extends PluginSettingsBase {
 	 * Section callback.
 	 *
 	 * @param array $arguments Section arguments.
+	 *
+	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
 		?>
@@ -220,49 +211,21 @@ class FormsPage extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function prepare_chart_data() {
+	protected function prepare_chart_data() {
 		$this->served = [];
+
+		$this->list_table->prepare_items();
 
 		if ( ! $this->list_table->served ) {
 			return;
 		}
 
-		$gmt_offset = (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
-		$max_time   = 0;
-		$min_time   = PHP_INT_MAX;
+		$date_format = $this->get_date_format( $this->list_table->served );
 
 		foreach ( $this->list_table->served as $item ) {
-			$time     = strtotime( $item->date_gmt ) + $gmt_offset;
-			$max_time = max( $time, $max_time );
-			$min_time = min( $time, $min_time );
-		}
+			$time_gmt = strtotime( $item->date_gmt );
+			$date     = wp_date( $date_format, $time_gmt );
 
-		$time_diff = $max_time - $min_time;
-
-		$time_units = [
-			[ 1, 'second' ],
-			[ MINUTE_IN_SECONDS, 'minute' ],
-			[ HOUR_IN_SECONDS, 'hour' ],
-			[ DAY_IN_SECONDS, 'day' ],
-			[ WEEK_IN_SECONDS, 'week' ],
-			[ MONTH_IN_SECONDS, 'month' ],
-			[ YEAR_IN_SECONDS, 'year' ],
-		];
-
-		foreach ( $time_units as $index => $time_unit ) {
-			$i          = max( 0, $index - 1 );
-			$this->unit = $time_units[ $i ][1];
-
-			if ( $time_diff < $time_unit[0] ) {
-				break;
-			}
-		}
-
-		$date_format = 'Y-m-d';
-
-		foreach ( $this->list_table->served as $item ) {
-			$time_gmt              = strtotime( $item->date_gmt );
-			$date                  = wp_date( $date_format, $time_gmt );
 			$this->served[ $date ] = $this->served[ $date ] ?? 0;
 
 			++$this->served[ $date ];

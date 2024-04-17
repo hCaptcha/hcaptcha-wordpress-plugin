@@ -1,6 +1,21 @@
+= 4.0.1 =
+* Improved appearance of Forms and Events pages.
+* Fixed PHP notice on the Forms page.
+
 = 4.0.0 =
+* This major release adds a new Statistics feature and many admin improvements
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
+* Added Custom Theme Editor for Pro users.
+* Added Force option to show hCaptcha challenge before submit.
+* Added integration with Essential Addons for Elementor — the Login/Register form.
+* Added filter `hcap_form_args` to allow modifying form arguments.
+* Reworked Otter integration to follow Force and all other hCaptcha settings.
+* Fixed issue with Divi Contact Form Helper plugin and File Upload field.
+* Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
+* Fixed racing condition with hCaptcha script loading.
+* Fixed checking nonce in CF7 for not logged-in users.
+* Tested with WooCommerce 8.7.
 
 = 3.10.1 =
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
