@@ -104,6 +104,8 @@ class EventsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'get_option' )->with( 'time_format' )->andReturn( 'some time format' );
 		WP_Mock::userFunction( 'get_plugins' )->with()->andReturn( [] );
 
+		WP_Mock::userFunction( 'set_screen_options' )->with()->times( $times );
+
 		$subject->admin_init();
 	}
 

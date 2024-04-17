@@ -99,6 +99,8 @@ class FormsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 		WP_Mock::userFunction( 'get_plugins' )->with()->andReturn( [] );
 
+		WP_Mock::userFunction( 'set_screen_options' )->with()->times( $times );
+
 		$subject->admin_init();
 	}
 
