@@ -111,7 +111,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms Forms found in the content.
 	 */
-	private function register_forms( array $forms ) {
+	protected function register_forms( array $forms ) {
 		$forms_data = [];
 
 		foreach ( $forms as $form ) {
@@ -301,7 +301,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_form_registered( string $path ): bool {
+	protected function is_form_registered( string $path ): bool {
 		$registered_forms = get_transient( self::TRANSIENT );
 
 		if ( empty( $registered_forms ) ) {
