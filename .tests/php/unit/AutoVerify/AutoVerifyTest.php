@@ -138,7 +138,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 
-		$_SERVER['REQUEST_METHOD'] = 'some';
+		$_SERVER['REQUEST_METHOD'] = '';
 
 		$subject = new AutoVerify();
 		$subject->verify_form();
@@ -157,13 +157,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		);
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::userFunction( 'wp_parse_url' )->with( $url, PHP_URL_PATH )->andReturnUsing(
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
 			static function ( $url, $component ) {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 				return parse_url( $url, $component );
 			}
 		);
-		WP_Mock::userFunction( 'untrailingslashit' )->with( $path )->andReturnUsing(
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
 			static function ( $value ) {
 				return rtrim( $value, '/\\' );
 			}
@@ -192,13 +192,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		);
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::userFunction( 'wp_parse_url' )->with( $url, PHP_URL_PATH )->andReturnUsing(
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
 			static function ( $url, $component ) {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 				return parse_url( $url, $component );
 			}
 		);
-		WP_Mock::userFunction( 'untrailingslashit' )->with( $path )->andReturnUsing(
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
 			static function ( $value ) {
 				return rtrim( $value, '/\\' );
 			}
@@ -230,13 +230,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		);
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::userFunction( 'wp_parse_url' )->with( $url, PHP_URL_PATH )->andReturnUsing(
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
 			static function ( $url, $component ) {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 				return parse_url( $url, $component );
 			}
 		);
-		WP_Mock::userFunction( 'untrailingslashit' )->with( $path )->andReturnUsing(
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
 			static function ( $value ) {
 				return rtrim( $value, '/\\' );
 			}
@@ -270,13 +270,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		);
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::userFunction( 'wp_parse_url' )->with( $url, PHP_URL_PATH )->andReturnUsing(
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
 			static function ( $url, $component ) {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 				return parse_url( $url, $component );
 			}
 		);
-		WP_Mock::userFunction( 'untrailingslashit' )->with( $path )->andReturnUsing(
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
 			static function ( $value ) {
 				return rtrim( $value, '/\\' );
 			}
@@ -306,6 +306,80 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( [], $_POST );
+	}
+
+	/**
+	 * Test register_forms() with empty forms.
+	 *
+	 * @return void
+	 */
+	public function test_register_forms_with_empty_forms() {
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'update_transient' )->with( [] )->once();
+
+		$subject->register_forms( [] );
+	}
+
+	/**
+	 * Test register_forms().
+	 *
+	 * @return void
+	 */
+	public function test_register_forms() {
+		$forms    = [ $this->get_test_form() ];
+		$action   = '/action-page';
+		$expected = [
+			[
+				'action' => $action,
+				'inputs' => [ 'test_input' ],
+				'auto'   => true,
+			],
+		];
+
+		$expected_without_inputs              = $expected;
+		$expected_without_inputs[0]['inputs'] = [];
+
+		$expected_without_auto            = $expected_without_inputs;
+		$expected_without_auto[0]['auto'] = false;
+
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
+			static function ( $value ) {
+				return rtrim( $value, '/\\' );
+			}
+		);
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $url, $component ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $url, $component );
+			}
+		);
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'update_transient' )->with( [] )->once();
+		$subject->shouldReceive( 'update_transient' )->with( $expected )->once();
+		$subject->shouldReceive( 'update_transient' )->with( $expected_without_inputs )->once();
+		$subject->shouldReceive( 'update_transient' )->with( $expected_without_auto )->once();
+
+		$subject->register_forms( $forms );
+
+		// Add action to form.
+		$forms[0] = str_replace( '<form ', '<form action="' . $action . '" ', $forms[0] );
+
+		$subject->register_forms( $forms );
+
+		// Remove inputs from the form.
+		$forms[0] = preg_replace( '/<input .+>/', '', $forms[0] );
+
+		$subject->register_forms( $forms );
+
+		// Remove auto from the form.
+		$forms[0] = str_replace( 'data-auto="true"', '', $forms[0] );
+
+		$subject->register_forms( $forms );
 	}
 
 	/**

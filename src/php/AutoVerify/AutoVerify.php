@@ -73,9 +73,7 @@ class AutoVerify {
 			return;
 		}
 
-		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : '';
 
 		if ( 'POST' !== $request_method ) {
 			return;
@@ -262,7 +260,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms_data Forms data to update in transient.
 	 */
-	private function update_transient( array $forms_data ) {
+	protected function update_transient( array $forms_data ) {
 		$transient        = get_transient( self::TRANSIENT );
 		$registered_forms = $transient ?: [];
 
