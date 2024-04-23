@@ -478,6 +478,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
 * Elementor Pro Form and Login Form
 * Essential Addons for Elementor Login and Register Forms
+* Essential Blocks Form
 * Fluent Forms
 * Forminator Forms
 * Formidable Forms
@@ -535,6 +536,9 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.1.0 =
+* Added Essential Blocks integration.
 
 = 4.0.1 =
 * Improved appearance of Forms and Events pages.

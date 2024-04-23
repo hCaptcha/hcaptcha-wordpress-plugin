@@ -975,6 +975,11 @@ CSS;
 				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
 				EssentialAddons\Register::class,
 			],
+			'Essential Blocks Form'                => [
+				[ 'essential_blocks_status', 'form' ],
+				'essential-blocks/essential-blocks.php',
+				EssentialBlocks\Form::class,
+			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',

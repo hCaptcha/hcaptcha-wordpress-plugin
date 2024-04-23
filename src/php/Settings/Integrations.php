@@ -250,6 +250,13 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'essential_blocks_status'          => [
+				'label'   => 'Essential Blocks',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'fluent_status'                    => [
 				'label'   => 'Fluent Forms',
 				'type'    => 'checkbox',
