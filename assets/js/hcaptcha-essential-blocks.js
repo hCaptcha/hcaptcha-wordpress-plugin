@@ -1,5 +1,17 @@
 const { fetch: originalFetch } = window;
 
+wp.hooks.addFilter(
+	'hcaptcha.ajaxSubmitButton',
+	'hcaptcha',
+	( isAjaxSubmitButton, submitButtonElement ) => {
+		if ( submitButtonElement.classList.contains( 'eb-form-submit-button' ) ) {
+			return true;
+		}
+
+		return isAjaxSubmitButton;
+	}
+);
+
 // Intercept Essential Blocks form fetch to add hCaptcha data.
 window.fetch = async ( ...args ) => {
 	const [ resource, config ] = args;
