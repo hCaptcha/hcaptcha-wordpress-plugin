@@ -353,6 +353,8 @@ Elementor Pro:
 Essential Addons:                     
   Login:                              Off
   Register:                           Off
+Essential Blocks:                     
+  Form:                               Off
 Fluent Forms:                         
   Form:                               On
 Formidable Forms:                     

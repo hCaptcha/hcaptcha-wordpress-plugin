@@ -925,6 +925,13 @@ abstract class HCaptchaTestCase extends TestCase {
 					'register' => 'Register',
 				],
 			],
+			'essential_blocks_status'          => [
+				'label'   => 'Essential Blocks',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => 'Form',
+				],
+			],
 			'fluent_status'                    =>
 				[
 					'label'   => 'Fluent Forms',
