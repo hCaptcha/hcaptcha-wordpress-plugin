@@ -74,7 +74,7 @@ class FormsTable extends WP_List_Table {
 			[
 				'singular' => 'form',
 				'plural'   => 'forms',
-				'screen'   => 'forms',
+				'screen'   => self::PAGE_HOOK,
 			]
 		);
 
@@ -88,7 +88,7 @@ class FormsTable extends WP_List_Table {
 	 */
 	public function init() {
 		$this->columns = [
-			'source'  => __( 'Source', 'hcaptcha-for-forms-and-more' ),
+			'name'    => __( 'Source', 'hcaptcha-for-forms-and-more' ),
 			'form_id' => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
 			'served'  => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 		];
@@ -147,7 +147,7 @@ class FormsTable extends WP_List_Table {
 	 */
 	public function get_sortable_columns(): array {
 		return [
-			'source'  => [ 'source', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
+			'name'    => [ 'name', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
 			'form_id' => [ 'form_id', false, __( 'Form Id', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Form Id.' ) ],
 			'served'  => [ 'served', false, __( 'Served', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Served Count.' ) ],
 		];
@@ -157,7 +157,7 @@ class FormsTable extends WP_List_Table {
 	 * Fetch and set up the final data for the table.
 	 */
 	public function prepare_items() {
-		$hidden                = [];
+		$hidden                = get_hidden_columns( $this->screen );
 		$sortable              = $this->get_sortable_columns();
 		$this->_column_headers = [ $this->columns, $hidden, $sortable ];
 
@@ -192,12 +192,16 @@ class FormsTable extends WP_List_Table {
 
 	/**
 	 * Column Source.
+	 * Has 'name' slug not to be hidden.
+	 * WP has no filter for special columns.
+	 *
+	 * @see          \WP_Screen::render_list_table_columns_preferences.
 	 *
 	 * @param object $item Item.
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_source( $item ): string {
+	protected function column_name( $item ): string {
 		$source = (array) json_decode( $item->source, true );
 
 		foreach ( $source as &$slug ) {
