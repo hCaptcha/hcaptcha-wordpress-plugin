@@ -17,6 +17,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use tad\FunctionMocker\FunctionMocker;
 use Mockery;
+use ReflectionException;
 use WP_Mock;
 
 /**
@@ -31,7 +32,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_POST['test'] );
+		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_POST );
 
 		parent::tearDown();
 	}
@@ -380,6 +381,240 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$forms[0] = str_replace( 'data-auto="true"', '', $forms[0] );
 
 		$subject->register_forms( $forms );
+	}
+
+	/**
+	 * Test update_transient().
+	 *
+	 * @param mixed $transient  Transient.
+	 * @param array $forms_data Forms data.
+	 * @param array $expected   Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_update_transient
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_update_transient( $transient, array $forms_data, array $expected ) {
+		$day_in_seconds = 24 * 60 * 60;
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'DAY_IN_SECONDS' === $name;
+			}
+		);
+		WP_Mock::userFunction( 'get_transient' )
+			->with( AutoVerify::TRANSIENT )
+			->once()
+			->andReturn( $transient );
+		WP_Mock::userFunction( 'set_transient' )
+			->with( AutoVerify::TRANSIENT, $expected, $day_in_seconds )
+			->once();
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+		$method  = 'update_transient';
+
+		$subject->$method( $forms_data );
+	}
+
+	/**
+	 * Data provider for test_update_transient().
+	 *
+	 * @return array
+	 */
+	public function dp_test_update_transient(): array {
+		$test_forms_data = [
+			[
+				'action' => '/autoverify',
+				'inputs' => [ 'test_input' ],
+				'auto'   => true,
+			],
+		];
+		$test_transient  = [
+			'/autoverify' =>
+				[
+					[ 'test_input' ],
+				],
+		];
+
+		return [
+			'Empty transient and forms_data'   => [
+				'transient'  => false,
+				'forms_data' => [],
+				'expected'   => [],
+			],
+			'Empty forms_data'                 => [
+				'transient'  => $test_transient,
+				'forms_data' => [],
+				'expected'   => $test_transient,
+			],
+			'Add new form'                     => [
+				'transient'  => [],
+				'forms_data' => $test_forms_data,
+				'expected'   => $test_transient,
+			],
+			'Add form with multiple inputs'    => [
+				'transient'  => [],
+				'forms_data' => [
+					[
+						'action' => '/autoverify',
+						'inputs' => [ 'test_input', 'test_input2' ],
+						'auto'   => true,
+					],
+				],
+				'expected'   => [
+					'/autoverify' => [
+						[ 'test_input', 'test_input2' ],
+					],
+				],
+			],
+			'Add forms with same action'       => [
+				'transient'  => $test_transient,
+				'forms_data' => [
+					[
+						'action' => '/autoverify',
+						'inputs' => [ 'test_input', 'test_input2' ],
+						'auto'   => true,
+					],
+					[
+						'action' => '/autoverify',
+						'inputs' => [ 'test_input3', 'test_input4' ],
+						'auto'   => true,
+					],
+				],
+				'expected'   => [
+					'/autoverify' => [
+						[ 'test_input' ],
+						[ 'test_input', 'test_input2' ],
+						[ 'test_input3', 'test_input4' ],
+					],
+				],
+			],
+			'Add forms with different actions' => [
+				'transient'  => $test_transient,
+				'forms_data' => [
+					[
+						'action' => '/autoverify',
+						'inputs' => [ 'test_input', 'test_input2' ],
+						'auto'   => true,
+					],
+					[
+						'action' => '/autoverify2',
+						'inputs' => [ 'test_input3', 'test_input4' ],
+						'auto'   => true,
+					],
+				],
+				'expected'   => [
+					'/autoverify'  => [
+						[ 'test_input' ],
+						[ 'test_input', 'test_input2' ],
+					],
+					'/autoverify2' => [
+						[ 'test_input3', 'test_input4' ],
+					],
+				],
+			],
+			'Remove form'                      => [
+				'transient'  => $test_transient,
+				'forms_data' => [
+					[
+						'action' => '/autoverify',
+						'inputs' => [ 'test_input' ],
+						'auto'   => false,
+					],
+					[
+						'action' => '/autoverify2',
+						'inputs' => [ 'test_input3', 'test_input4' ],
+						'auto'   => true,
+					],
+				],
+				'expected'   => [
+					'/autoverify'  => [],
+					'/autoverify2' => [
+						[ 'test_input3', 'test_input4' ],
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Test is_form_registered().
+	 *
+	 * @param mixed  $transient Transient.
+	 * @param string $path      Path.
+	 * @param array  $post      Post.
+	 * @param bool   $expected  Expected.
+	 *
+	 * @dataProvider dp_test_is_form_registered
+	 * @return void
+	 */
+	public function test_is_form_registered( $transient, string $path, array $post, bool $expected ) {
+		$_POST = $post;
+
+		WP_Mock::userFunction( 'get_transient' )
+			->with( AutoVerify::TRANSIENT )
+			->once()
+			->andReturn( $transient );
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+		$method  = 'is_form_registered';
+
+		self::assertSame( $expected, $subject->$method( $path ) );
+	}
+
+	/**
+	 * Data provider for test_is_form_registered().
+	 *
+	 * @return array
+	 */
+	public function dp_test_is_form_registered(): array {
+		return [
+			'Empty transient'               => [
+				'transient' => false,
+				'path'      => '/autoverify',
+				'post'      => [],
+				'expected'  => false,
+			],
+			'Path not in transient'         => [
+				'transient' => [
+					'/some' =>
+						[
+							[ 'test_input' ],
+						],
+				],
+				'path'      => '/autoverify',
+				'post'      => [],
+				'expected'  => false,
+			],
+			'Path in transient, other keys' => [
+				'transient' => [
+					'/autoverify' =>
+						[
+							[ 'test_input' ],
+							[ 'test_input2', 'test_input3' ],
+						],
+				],
+				'path'      => '/autoverify',
+				'post'      => [ 'test_input4' => 'some' ],
+				'expected'  => false,
+			],
+			'Path in transient, same keys'  => [
+				'transient' => [
+					'/autoverify' =>
+						[
+							[ 'test_input' ],
+							[ 'test_input2', 'test_input3' ],
+						],
+				],
+				'path'      => '/autoverify',
+				'post'      => [
+					'test_input2' => 'some',
+					'test_input3' => 'some',
+				],
+				'expected'  => true,
+			],
+		];
 	}
 
 	/**
