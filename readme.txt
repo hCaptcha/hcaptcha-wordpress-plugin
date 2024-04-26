@@ -539,6 +539,7 @@ Instructions for popular native integrations are below:
 
 = 4.1.0 =
 * Added Essential Blocks integration.
+* Added hideable columns to Forms and Events tables.
 
 = 4.0.1 =
 * Improved appearance of Forms and Events pages.
