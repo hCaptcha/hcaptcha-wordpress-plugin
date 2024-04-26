@@ -40,7 +40,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		unset( $_POST['mode'], $_POST['siteKey'], $_POST['secretKey'], $_POST['h-captcha-response'], $_POST['section'], $_POST['status'] );
+		unset( $_POST );
 
 		parent::tearDown();
 	}
