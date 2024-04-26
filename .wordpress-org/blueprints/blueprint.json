@@ -1,5 +1,5 @@
 {
-  "landingPage": "/wp-admin/plugins.php",
+  "landingPage": "/wp-admin/options-general.php?page=hcaptcha&tab=general",
   "preferredVersions": {
     "php": "8.0",
     "wp": "latest"
@@ -14,8 +14,18 @@
     {
       "step": "installPlugin",
       "pluginZipFile": {
-        "resource": "url",
-        "url": "https://downloads.wordpress.org/plugin/hcaptcha-for-forms-and-more.4.0.1.zip"
+        "resource": "wordpress.org/plugins",
+        "slug": "hcaptcha-for-forms-and-more"
+      },
+      "options": {
+        "activate": true
+      }
+    },
+    {
+      "step": "installPlugin",
+      "pluginZipFile": {
+        "resource": "wordpress.org/plugins",
+        "url": "contact-form-7"
       },
       "options": {
         "activate": true
