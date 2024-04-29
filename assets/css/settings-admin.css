@@ -3,6 +3,10 @@
 	filter: grayscale(1);
 }
 
+#toplevel_page_hcaptcha.wp-menu-open img {
+	filter: grayscale(0);
+}
+
 .kagg-settings-menu-image {
 	position: absolute;
 	width: 20px;
