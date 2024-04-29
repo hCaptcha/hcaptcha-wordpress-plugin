@@ -30,7 +30,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @var array
 	 */
-	protected $menu_pages_classes;
+	protected $menu_groups;
 
 	/**
 	 * Menu pages and tabs in one flat array.
@@ -40,20 +40,12 @@ class Settings implements SettingsInterface {
 	protected $tabs = [];
 
 	/**
-	 * Screen ids of pages and tabs.
-	 *
-	 * @var array
-	 */
-	protected $screen_ids = [];
-
-	/**
 	 * Settings constructor.
 	 *
-	 * @param array $menu_pages_classes Menu pages.
+	 * @param array $menu_groups Menu items.
 	 */
-	public function __construct( array $menu_pages_classes = [] ) {
-		// Allow to specify $menu_pages_classes item as one class, not an array.
-		$this->menu_pages_classes = $menu_pages_classes;
+	public function __construct( array $menu_groups = [] ) {
+		$this->menu_groups = $menu_groups;
 
 		$this->init();
 	}
@@ -62,23 +54,22 @@ class Settings implements SettingsInterface {
 	 * Init class.
 	 */
 	protected function init() {
-		foreach ( $this->menu_pages_classes as $menu_page_classes ) {
-			$tab_classes = (array) $menu_page_classes;
+		foreach ( $this->menu_groups as $menu_group ) {
+			$classes = (array) ( $menu_group['classes'] ?? [] );
+			$args    = $menu_group['args'] ?? [];
 
-			// Allow specifying menu page as one class, without tabs.
-			$page_class  = $tab_classes[0];
-			$tab_classes = array_slice( $tab_classes, 1 );
+			$page_class  = $classes[0];
+			$tab_classes = array_slice( $classes, 1 );
+			$tabs        = [];
 
-			$tabs = [];
 			foreach ( $tab_classes as $tab_class ) {
 				/**
 				 * Tab.
 				 *
 				 * @var PluginSettingsBase $tab
 				 */
-				$tab                = new $tab_class( null );
-				$tabs[]             = $tab;
-				$this->screen_ids[] = $tab->screen_id();
+				$tab    = new $tab_class( null, $args );
+				$tabs[] = $tab;
 			}
 
 			/**
@@ -86,13 +77,13 @@ class Settings implements SettingsInterface {
 			 *
 			 * @var PluginSettingsBase $page_class
 			 */
-			$menu_page = new $page_class( $tabs );
+			$menu_page = new $page_class( $tabs, $args );
 
 			$this->tabs[] = [ $menu_page ];
 			$this->tabs[] = $tabs;
 		}
 
-		$this->tabs = array_merge( [], ...$this->tabs );
+		$this->tabs = array_merge( [], ...array_filter( $this->tabs ) );
 	}
 
 	/**
@@ -537,15 +528,5 @@ class Settings implements SettingsInterface {
 				break;
 			}
 		}
-	}
-
-	/**
-	 * Get screen ids of all settings pages and tabs.
-	 *
-	 * @return array
-	 * @noinspection PhpUnused
-	 */
-	public function screen_ids(): array {
-		return $this->screen_ids;
 	}
 }
