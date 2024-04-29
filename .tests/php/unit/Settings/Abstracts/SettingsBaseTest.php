@@ -242,17 +242,19 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test init_hooks().
 	 *
-	 * @param bool $is_active Whether it is an active tab.
+	 * @param bool $is_active         Whether it is an active tab.
+	 * @param bool $is_main_menu_page Whether it is the main menu page.
 	 *
 	 * @dataProvider dp_test_init_hooks
-	 * @throws ReflectionException
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_hooks( bool $is_active ) {
+	public function test_init_hooks( bool $is_active, bool $is_main_menu_page ) {
 		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
 		$option_name      = 'hcaptcha_settings';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_main_menu_page' )->once()->with()->andReturn( $is_main_menu_page );
 		$subject->shouldReceive( 'is_tab_active' )->once()->with( $subject )->andReturn( $is_active );
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
@@ -261,10 +263,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		if ( $is_active ) {
 			WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'load_plugin_textdomain' ] );
-			WP_Mock::expectFilterAdded(
-				'plugin_action_links_' . $plugin_base_name,
-				[ $subject, 'add_settings_link' ]
-			);
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
 			WP_Mock::expectFilterAdded(
@@ -281,6 +279,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			);
 		}
 
+		if ( $is_main_menu_page ) {
+			WP_Mock::expectFilterAdded(
+				'plugin_action_links_' . $plugin_base_name,
+				[ $subject, 'add_settings_link' ]
+			);
+		}
+
 		$method = 'init_hooks';
 
 		$this->set_method_accessibility( $subject, $method );
@@ -294,8 +299,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_init_hooks(): array {
 		return [
-			'Active tab'     => [ true ],
-			'Not active tab' => [ false ],
+			'Not active tab, not main menu page' => [ false, false ],
+			'Not active tab, main menu page'     => [ false, true ],
+			'Active tab, not main menu page'     => [ true, false ],
+			'Active tab, main menu page'         => [ true, true ],
 		];
 	}
 
@@ -323,6 +330,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_is_main_menu_page
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpMissingParamTypeInspection PhpMissingParamTypeInspection.
 	 */
 	public function test_is_main_menu_page( $tabs, bool $expected ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -410,8 +418,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 	/**
 	 * Test add_settings_link().
+	 *
+	 * @param string $parent_slug Parent slug.
+	 *
+	 * @dataProvider dp_test_add_settings_link
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function est_add_settings_link() {
+	public function test_add_settings_link( string $parent_slug ) {
 		$option_page         = 'hcaptcha';
 		$settings_link_label = 'hCaptcha Settings';
 		$settings_link_text  = 'Settings';
@@ -422,15 +435,29 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'settings_link_label' )->andReturn( $settings_link_label );
 		$subject->shouldReceive( 'settings_link_text' )->andReturn( $settings_link_text );
 
+		$this->set_protected_property( $subject, 'parent_slug', $parent_slug );
+
 		WP_Mock::passthruFunction( 'admin_url' );
 
 		$expected = [
 			'settings' =>
-				'<a href="options-general.php?page=' . $option_page .
+				'<a href="' . $parent_slug . '?page=' . $option_page .
 				'" aria-label="' . $settings_link_label . '">' . $settings_link_text . '</a>',
 		];
 
 		self::assertSame( $expected, $subject->add_settings_link( [] ) );
+	}
+
+	/**
+	 * Data provider for test_add_settings_link().
+	 *
+	 * @return array
+	 */
+	public function dp_test_add_settings_link(): array {
+		return [
+			'No parent slug' => [ '' ],
+			'Parent slug'    => [ 'options-general.php' ],
+		];
 	}
 
 	/**

@@ -282,12 +282,15 @@ abstract class SettingsBase {
 	protected function init_hooks() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
 
+		if ( $this->is_main_menu_page() ) {
+			add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
+		}
+
 		if ( ! $this->is_tab_active( $this ) ) {
 			return;
 		}
 
 		add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
-		add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
 		add_action( 'current_screen', [ $this, 'setup_fields' ] );
 		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
