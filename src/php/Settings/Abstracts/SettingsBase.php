@@ -240,7 +240,6 @@ abstract class SettingsBase {
 			$this->parent_slug = $args['parent'];
 		}
 
-
 		if ( null === $args['position'] ) {
 			$hash           = hexdec( sha1( self::PREFIX ) );
 			$pow            = floor( log10( $hash ) );

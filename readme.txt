@@ -419,6 +419,33 @@ function my_hcap_whitelist_ip( $whitelisted, $ip ) {
 add_filter( 'hcap_whitelist_ip', 'my_hcap_whitelist_ip', 10, 2 );
 `
 
+= How to change the appearance of the admin menu? =
+
+Starting from 4.1.0, the admin menu was moved to the toplevel with subpages. You may ewant to return it back to the previous location in the admin Settings section, or tweak the appearance.
+
+You can use the following filter:
+
+`
+/**
+ * Filter the settings system initialization arguments.
+ *
+ * @param array $args Settings system initialization arguments.
+ */
+function hcap_settings_init_args_filter( $args ) {
+  $args['mode'] = 'tabs';
+
+  return $args;
+}
+
+add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
+`
+
+`$args` array has the following fields:
+
+`mode`: 'pages' or 'tabs' (default 'pages') — the appearance of the admin menu;
+`parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
+`position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
+
 = Why isn't my WPForms Lite installation working? =
 
 Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
@@ -540,6 +567,8 @@ Instructions for popular native integrations are below:
 = 4.1.0 =
 * Added Essential Blocks integration.
 * Added hideable columns to Forms and Events tables.
+* Admin menu moved to the toplevel with subpages.
+* Added a filter to change admin menu appearance.
 
 = 4.0.1 =
 * Improved appearance of Forms and Events pages.

@@ -134,6 +134,17 @@ class Main {
 	public function init_hooks() {
 		$this->load_textdomain();
 
+		$args = [
+			'mode' => SettingsBase::MODE_PAGES,
+		];
+
+		/**
+		 *  Filters the settings system initialization arguments.
+		 *
+		 * @param array $args Settings system initialization arguments.
+		 */
+		$args = (array) apply_filters( 'hcap_settings_init_args', $args );
+
 		$this->settings = new Settings(
 			[
 				'hCaptcha' => [
@@ -144,9 +155,7 @@ class Main {
 						EventsPage::class,
 						SystemInfo::class,
 					],
-					'args'    => [
-						'mode' => SettingsBase::MODE_PAGES,
-					],
+					'args'    => $args,
 				],
 			]
 		);
