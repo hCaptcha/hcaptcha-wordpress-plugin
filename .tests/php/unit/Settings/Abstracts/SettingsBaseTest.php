@@ -35,24 +35,50 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @param bool $is_tab Whether it is a tab.
+	 * @param bool  $is_tab   Whether it is a tab.
+	 * @param array $args     Arguments.
+	 * @param array $expected Expected.
 	 *
 	 * @dataProvider dp_test_constructor
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_constructor( bool $is_tab ) {
+	public function test_constructor( bool $is_tab, array $args, array $expected ) {
+		$tabs = [ 'some class instance1', 'some class instance2' ];
+
 		$classname = SettingsBase::class;
 
 		$subject = Mockery::mock( $classname )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_tab' )->once()->andReturn( $is_tab );
+		$subject->shouldReceive( 'is_tab' )->andReturn( $is_tab );
 
-		if ( $is_tab ) {
-			WP_Mock::expectActionNotAdded( 'current_screen', [ $subject, 'setup_tabs_section' ] );
-			WP_Mock::expectActionNotAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
-		} else {
+		$fields = [
+			'text'     => [ $subject, 'print_text_field' ],
+			'password' => [ $subject, 'print_text_field' ],
+			'hidden'   => [ $subject, 'print_text_field' ],
+			'number'   => [ $subject, 'print_number_field' ],
+			'textarea' => [ $subject, 'print_textarea_field' ],
+			'checkbox' => [ $subject, 'print_checkbox_field' ],
+			'radio'    => [ $subject, 'print_radio_field' ],
+			'select'   => [ $subject, 'print_select_field' ],
+			'multiple' => [ $subject, 'print_multiple_select_field' ],
+			'table'    => [ $subject, 'print_table_field' ],
+			'button'   => [ $subject, 'print_button_field' ],
+		];
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
+
+		$mode = $args['mode'] ?? null;
+
+		if ( SettingsBase::MODE_PAGES === $mode || ! $is_tab ) {
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_tabs_section' ], 9 );
 			WP_Mock::expectActionAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
+		} else {
+			WP_Mock::expectActionNotAdded( 'current_screen', [ $subject, 'setup_tabs_section' ] );
+			WP_Mock::expectActionNotAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
 		}
 
 		$subject->shouldReceive( 'init' )->once()->with();
@@ -61,7 +87,18 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		self::assertNotNull( $constructor );
 
-		$constructor->invoke( $subject );
+		$constructor->invoke( $subject, $tabs, $args );
+
+		self::assertSame( $tabs, $this->get_protected_property( $subject, 'tabs' ) );
+		self::assertSame( $fields, $this->get_protected_property( $subject, 'fields' ) );
+
+		$actual = [
+			'mode'     => $this->get_protected_property( $subject, 'mode' ),
+			'parent'   => $this->get_protected_property( $subject, 'parent_slug' ),
+			'position' => $this->get_protected_property( $subject, 'position' ),
+		];
+
+		self::assertSame( $expected, $actual );
 	}
 
 	/**
@@ -71,32 +108,96 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_constructor(): array {
 		return [
-			'Tab'       => [ true ],
-			'Not a tab' => [ false ],
+			'Tab, tabs mode'        => [
+				true,
+				[ 'mode' => SettingsBase::MODE_TABS ],
+				[
+					'mode'     => SettingsBase::MODE_TABS,
+					'parent'   => 'options-general.php',
+					'position' => 58.990225,
+				],
+			],
+			'Not a tab, tabs mode'  => [
+				false,
+				[ 'mode' => SettingsBase::MODE_TABS ],
+				[
+					'mode'     => SettingsBase::MODE_TABS,
+					'parent'   => 'options-general.php',
+					'position' => 58.990225,
+				],
+			],
+			'Tab, pages mode'       => [
+				true,
+				[ 'mode' => SettingsBase::MODE_PAGES ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'Not a tab, pages mode' => [
+				false,
+				[ 'mode' => SettingsBase::MODE_PAGES ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'No mode'               => [
+				false,
+				[],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'Wrong mode'            => [
+				false,
+				[ 'mode' => 'some' ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'Some parent'           => [
+				false,
+				[ 'parent' => 'some.php' ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => 'some.php',
+					'position' => 58.990225,
+				],
+			],
+			'Some position'         => [
+				false,
+				[ 'position' => 99 ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 99.0,
+				],
+			],
 		];
 	}
 
 	/**
 	 * Test init().
 	 *
-	 * @param bool $is_active    Whether it is an active tab.
 	 * @param bool $script_debug Whether script debug is active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init( bool $is_active, bool $script_debug ) {
+	public function test_init( bool $script_debug ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'form_fields' )->once();
 		$subject->shouldReceive( 'init_settings' )->once();
-		$subject->shouldReceive( 'is_tab_active' )->once()->with( $subject )->andReturn( $is_active );
 
-		if ( $is_active ) {
-			$subject->shouldReceive( 'init_hooks' )->once();
-		} else {
-			$subject->shouldReceive( 'init_hooks' )->never();
-		}
+		$subject->shouldReceive( 'init_hooks' )->once();
 
 		FunctionMocker::replace(
 			'defined',
@@ -133,51 +234,69 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_init(): array {
 		return [
-			'Active tab, script_debug'        => [ true, true ],
-			'Active tab, no script debug'     => [ true, false ],
-			'Not active tab, script debug'    => [ false, true ],
-			'Not active tab, no script debug' => [ false, false ],
+			'Script_debug'    => [ true ],
+			'No script debug' => [ false ],
 		];
 	}
 
 	/**
 	 * Test init_hooks().
+	 *
+	 * @param bool $is_active Whether it is an active tab.
+	 *
+	 * @dataProvider dp_test_init_hooks
+	 * @throws ReflectionException
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks( bool $is_active ) {
 		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
 		$option_name      = 'hcaptcha_settings';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_tab_active' )->once()->with( $subject )->andReturn( $is_active );
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 
-		WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'load_plugin_textdomain' ] );
-
-		WP_Mock::expectFilterAdded(
-			'plugin_action_links_' . $plugin_base_name,
-			[ $subject, 'add_settings_link' ]
-		);
-
-		WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
-		WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
-
-		WP_Mock::expectFilterAdded(
-			'pre_update_option_' . $option_name,
-			[ $subject, 'pre_update_option_filter' ],
-			10,
-			2
-		);
-		WP_Mock::expectFilterAdded(
-			'pre_update_site_option_option_' . $option_name,
-			[ $subject, 'pre_update_option_filter' ],
-			10,
-			2
-		);
-
 		WP_Mock::expectActionAdded( 'admin_enqueue_scripts', [ $subject, 'base_admin_enqueue_scripts' ] );
 
-		$subject->init_hooks();
+		if ( $is_active ) {
+			WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'load_plugin_textdomain' ] );
+			WP_Mock::expectFilterAdded(
+				'plugin_action_links_' . $plugin_base_name,
+				[ $subject, 'add_settings_link' ]
+			);
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
+			WP_Mock::expectFilterAdded(
+				'pre_update_option_' . $option_name,
+				[ $subject, 'pre_update_option_filter' ],
+				10,
+				2
+			);
+			WP_Mock::expectFilterAdded(
+				'pre_update_site_option_option_' . $option_name,
+				[ $subject, 'pre_update_option_filter' ],
+				10,
+				2
+			);
+		}
+
+		$method = 'init_hooks';
+
+		$this->set_method_accessibility( $subject, $method );
+		$subject->$method();
+	}
+
+	/**
+	 * Data provider for test_init_hooks().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_hooks(): array {
+		return [
+			'Active tab'     => [ true ],
+			'Not active tab' => [ false ],
+		];
 	}
 
 	/**
@@ -197,33 +316,20 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test parent_slug().
-	 *
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function test_parent_slug() {
-		$subject = Mockery::mock( SettingsBase::class )->makePartial();
-
-		$method = 'parent_slug';
-		$this->set_method_accessibility( $subject, $method );
-		self::assertSame( 'options-general.php', $subject->$method() );
-	}
-
-	/**
 	 * Test is_main_menu_page().
 	 *
-	 * @param string $parent_slug Parent slug.
-	 * @param bool   $expected    Expected.
+	 * @param array|null $tabs     Tabs.
+	 * @param bool       $expected Expected.
 	 *
 	 * @dataProvider dp_test_is_main_menu_page
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_is_main_menu_page( string $parent_slug, bool $expected ) {
+	public function test_is_main_menu_page( $tabs, bool $expected ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'parent_slug' )->once()->andReturn( $parent_slug );
 		$method = 'is_main_menu_page';
 
+		$this->set_protected_property( $subject, 'tabs', $tabs );
 		$this->set_method_accessibility( $subject, $method );
 		self::assertSame( $expected, $subject->$method() );
 	}
@@ -235,8 +341,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_is_main_menu_page(): array {
 		return [
-			'Empty slug' => [ '', true ],
-			'Some slug'  => [ 'options-general.php', false ],
+			'Null tabs'  => [ null, false ],
+			'Empty tabs' => [ [], true ],
+			'Some tabs'  => [ [ 'some_tab_class_instance' ], true ],
 		];
 	}
 
@@ -304,7 +411,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test add_settings_link().
 	 */
-	public function test_add_settings_link() {
+	public function est_add_settings_link() {
 		$option_page         = 'hcaptcha';
 		$settings_link_label = 'hCaptcha Settings';
 		$settings_link_text  = 'Settings';
@@ -446,13 +553,17 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @param bool $is_main_menu_page Whether it is the main menu page.
 	 *
 	 * @dataProvider dp_test_add_settings_page
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_settings_page( bool $is_main_menu_page ) {
-		$parent_slug = 'options-general.php';
-		$page_title  = 'General';
-		$menu_title  = 'hCaptcha';
-		$capability  = 'manage_options';
-		$slug        = 'hcaptcha';
+		$page_title     = 'General';
+		$tab_page_title = 'Integrations';
+		$menu_title     = 'hCaptcha';
+		$capability     = 'manage_options';
+		$slug           = 'hcaptcha';
+		$tab_slug       = 'hcaptcha-integrations';
+		$icon_url       = HCAPTCHA_TEST_URL . '/assets/images/hcaptcha-icon.svg';
+		$position       = 99;
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -460,15 +571,27 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'page_title' )->andReturn( $page_title );
 		$subject->shouldReceive( 'menu_title' )->andReturn( $menu_title );
 		$subject->shouldReceive( 'option_page' )->andReturn( $slug );
+		$subject->shouldReceive( 'icon_url' )->andReturn( $icon_url );
+
+		$this->set_protected_property( $subject, 'position', $position );
 
 		$callback = [ $subject, 'settings_base_page' ];
 
 		if ( $is_main_menu_page ) {
+			$tab = Mockery::mock( SettingsBase::class )->makePartial();
+
+			$tab->shouldAllowMockingProtectedMethods();
+			$tab->shouldReceive( 'page_title' )->andReturn( $tab_page_title );
+			$tab->shouldReceive( 'option_page' )->andReturn( $tab_slug );
+
+			$tab_callback = [ $tab, 'settings_base_page' ];
+
+			$this->set_protected_property( $subject, 'tabs', [ $tab ] );
+
 			WP_Mock::userFunction( 'add_menu_page' )
-				->with( $page_title, $menu_title, $capability, $slug, $callback );
-		} else {
+				->with( $page_title, $menu_title, $capability, $slug, $callback, $icon_url, $position + 1e-6 );
 			WP_Mock::userFunction( 'add_submenu_page' )
-				->with( $parent_slug, $page_title, $menu_title, $capability, $slug, $callback );
+				->with( $slug, $tab_page_title, $tab_page_title, $capability, $tab_slug, $tab_callback );
 		}
 
 		$subject->add_settings_page();
@@ -484,6 +607,34 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			'Main menu page' => [ true ],
 			'Submenu page'   => [ false ],
 		];
+	}
+
+	/**
+	 * Test add_settings_page() with parent slug.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_settings_page_with_parent_slug() {
+		$parent_slug = 'options-general.php';
+		$page_title  = 'General';
+		$menu_title  = 'hCaptcha';
+		$capability  = 'manage_options';
+		$slug        = 'hcaptcha';
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_tab' )->andReturn( $subject );
+		$subject->shouldReceive( 'page_title' )->andReturn( $page_title );
+		$subject->shouldReceive( 'menu_title' )->andReturn( $menu_title );
+		$subject->shouldReceive( 'option_page' )->andReturn( $slug );
+		$this->set_protected_property( $subject, 'parent_slug', $parent_slug );
+
+		$callback = [ $subject, 'settings_base_page' ];
+
+		WP_Mock::userFunction( 'add_submenu_page' )
+			->with( $parent_slug, $page_title, $menu_title, $capability, $slug, $callback );
+
+		$subject->add_settings_page();
 	}
 
 	/**
@@ -701,7 +852,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
+		$subject->shouldReceive( 'is_main_menu_page' )->once()->andReturn( true );
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $tab );
 
 		WP_Mock::userFunction( 'add_settings_section' )
@@ -717,12 +868,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_tabs_section() not on the options screen.
+	 * Test setup_tabs_section() not the main menu page.
 	 */
 	public function test_setup_tabs_section_not_on_options_screen() {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
+		$subject->shouldReceive( 'is_main_menu_page' )->andReturn( false );
 
 		$subject->setup_tabs_section();
 	}
@@ -734,31 +885,37 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function test_tabs_callback() {
 		$option_page        = 'hcaptcha';
+		$tab_option_page    = 'hcaptcha';
 		$subject_class_name = 'General';
 		$subject_page_title = 'General';
 		$tab_class_name     = 'Integrations';
 		$tab_page_title     = 'Integrations';
 		$subject_url        = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
+		$tab_url            = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
 		$subject_url_arg    = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
 		$tab_url_arg        = 'http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations';
 
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
+		$tab->shouldReceive( 'option_page' )->with()->andReturn( $tab_option_page );
 		$tab->shouldReceive( 'get_class_name' )->with()->andReturn( $tab_class_name );
 		$tab->shouldReceive( 'page_title' )->with()->andReturn( $tab_page_title );
+		$tab->shouldReceive( 'is_tab_active' )->with( $tab )->once()->andReturn( false );
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'option_page' )->with()->twice()->andReturn( $option_page );
+		$subject->shouldReceive( 'option_page' )->with()->andReturn( $option_page );
 		$subject->shouldReceive( 'get_class_name' )->with()->andReturn( $subject_class_name );
 		$subject->shouldReceive( 'page_title' )->with()->andReturn( $subject_page_title );
 		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->once()->andReturn( true );
-		$subject->shouldReceive( 'is_tab_active' )->with( $tab )->once()->andReturn( false );
 
 		$this->set_protected_property( $subject, 'tabs', [ $tab ] );
+		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
 
 		WP_Mock::userFunction( 'menu_page_url' )
-			->with( $option_page, false )->twice()->andReturn( $subject_url );
+			->with( $option_page, false )->andReturn( $subject_url );
+		WP_Mock::userFunction( 'menu_page_url' )
+			->with( $tab_option_page, false )->andReturn( $tab_url );
 		WP_Mock::userFunction( 'add_query_arg' )
 			->with( 'tab', strtolower( $subject_class_name ), $subject_url )->andReturn( $subject_url_arg );
 		WP_Mock::userFunction( 'add_query_arg' )
@@ -766,13 +923,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$expected = '		<div class="kagg-settings-tabs">
 			<span class="kagg-settings-links">
-					<a
-				class="kagg-settings-tab active"
-				href="http://test.test/wp-admin/admin.php?page=hcaptcha">
+					<a class="kagg-settings-tab active" href="http://test.test/wp-admin/admin.php?page=hcaptcha">
 			General		</a>
-				<a
-				class="kagg-settings-tab"
-				href="http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations">
+				<a class="kagg-settings-tab" href="http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations">
 			Integrations		</a>
 					</span>
 					</div>
@@ -784,7 +937,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test is_tab_active().
+	 * Test is_tab_active() in tabs mode.
 	 *
 	 * @param string|null $on_page     $_GET['page'] === own option page.
 	 * @param string|null $input_tab   $_GET['tab'].
@@ -793,10 +946,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @param string      $class_name  Class name.
 	 * @param bool        $expected    Expected.
 	 *
-	 * @dataProvider dp_test_is_tab_active
+	 * @dataProvider dp_test_is_tab_active_in_tabs_mode
 	 * @noinspection PhpMissingParamTypeInspection
+	 * @throws ReflectionException
 	 */
-	public function test_is_tab_active( $on_page, $input_tab, $referer_tab, bool $is_tab, string $class_name, bool $expected ) {
+	public function test_is_tab_active_in_tabs_mode( $on_page, $input_tab, $referer_tab, bool $is_tab, string $class_name, bool $expected ) {
 		$option_page = 'own-option-page';
 		$input_page  = $on_page ? $option_page : 'some-page';
 
@@ -809,6 +963,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_tab );
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
+
+		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -833,7 +989,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			}
 		);
 
-		self::assertSame( $expected, $subject->is_tab_active( $tab ) );
+		$method = 'is_tab_active';
+
+		self::assertSame( $expected, $subject->$method( $tab ) );
 	}
 
 	/**
@@ -841,7 +999,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_is_tab_active(): array {
+	public function dp_test_is_tab_active_in_tabs_mode(): array {
 		return [
 			'No input, not on page'   => [
 				false,
@@ -2282,25 +2440,18 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test is_options_screen().
 	 *
-	 * @param mixed   $current_screen    Current admin screen.
-	 * @param boolean $is_main_menu_page It is the main menu page.
-	 * @param boolean $expected          Expected result.
+	 * @param mixed   $current_screen Current admin screen.
+	 * @param boolean $expected       Expected result.
 	 *
 	 * @dataProvider dp_test_is_options_screen
 	 */
-	public function test_is_options_screen( $current_screen, bool $is_main_menu_page, bool $expected ) {
-		$screen_id      = 'settings_page_hcaptcha';
-		$main_screen_id = 'toplevel_page_hcaptcha';
+	public function test_is_options_screen( $current_screen, bool $expected ) {
+		$option_page = 'hcaptcha';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_main_menu_page' )->andReturn( $is_main_menu_page );
 
-		if ( $is_main_menu_page ) {
-			$subject->shouldReceive( 'screen_id' )->andReturn( $main_screen_id );
-		} else {
-			$subject->shouldReceive( 'screen_id' )->andReturn( $screen_id );
-		}
+		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
 		WP_Mock::userFunction( 'get_current_screen' )->with()->andReturn( $current_screen );
 
@@ -2314,11 +2465,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_is_options_screen(): array {
 		return [
-			'Current screen not set'        => [ null, false, false ],
-			'Wrong screen'                  => [ (object) [ 'id' => 'something' ], false, false ],
-			'Options screen'                => [ (object) [ 'id' => 'options' ], false, true ],
-			'Plugin screen'                 => [ (object) [ 'id' => 'settings_page_hcaptcha' ], false, true ],
-			'Plugin screen, main menu page' => [ (object) [ 'id' => 'toplevel_page_hcaptcha' ], true, true ],
+			'Current screen not set'        => [ null, false ],
+			'Wrong screen'                  => [ (object) [ 'id' => 'something' ], false ],
+			'Options screen'                => [ (object) [ 'id' => 'options' ], true ],
+			'Plugin screen'                 => [ (object) [ 'id' => 'settings_page_hcaptcha' ], true ],
+			'Plugin screen, main menu page' => [ (object) [ 'id' => 'toplevel_page_hcaptcha' ], true ],
 		];
 	}
 

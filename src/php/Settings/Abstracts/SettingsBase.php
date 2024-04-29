@@ -71,13 +71,6 @@ abstract class SettingsBase {
 	protected $tabs;
 
 	/**
-	 * Arguments of this setting page.
-	 *
-	 * @var array
-	 */
-	protected $args;
-
-	/**
 	 * Prefix for minified files.
 	 *
 	 * @var string
@@ -97,7 +90,7 @@ abstract class SettingsBase {
 	 *
 	 * @var string
 	 */
-	private $parent_slug;
+	protected $parent_slug;
 
 	/**
 	 * Mode of the settings page, e.g. 'pages' or 'tabs'.
@@ -111,7 +104,7 @@ abstract class SettingsBase {
 	 *
 	 * @var float
 	 */
-	private $position;
+	protected $position;
 
 	/**
 	 * Get an option group.
@@ -219,7 +212,6 @@ abstract class SettingsBase {
 	 */
 	public function __construct( $tabs = [], $args = [] ) {
 		$this->tabs = $tabs;
-		$this->args = $args;
 
 		$args = wp_parse_args(
 			$args,
@@ -295,12 +287,9 @@ abstract class SettingsBase {
 		}
 
 		add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
-
 		add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
-
 		add_action( 'current_screen', [ $this, 'setup_fields' ] );
 		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
-
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 		add_filter(
 			'pre_update_site_option_option_' . $this->option_name(),
@@ -315,15 +304,6 @@ abstract class SettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [];
-	}
-
-	/**
-	 * Get parent slug.
-	 *
-	 * @return string
-	 */
-	protected function parent_slug(): string {
-		return $this->parent_slug;
 	}
 
 	/**
@@ -380,7 +360,7 @@ abstract class SettingsBase {
 	public function add_settings_link( $actions ): array {
 		$new_actions = [
 			'settings' =>
-				'<a href="' . admin_url( $this->parent_slug() . '?page=' . $this->option_page() ) .
+				'<a href="' . admin_url( $this->parent_slug . '?page=' . $this->option_page() ) .
 				'" aria-label="' . esc_attr( $this->settings_link_label() ) . '">' .
 				esc_html( $this->settings_link_text() ) . '</a>',
 		];
@@ -493,9 +473,9 @@ abstract class SettingsBase {
 	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function add_settings_page() {
-		if ( $this->parent_slug() ) {
+		if ( $this->parent_slug ) {
 			add_submenu_page(
-				$this->parent_slug(),
+				$this->parent_slug,
 				$this->get_active_tab()->page_title(),
 				$this->menu_title(),
 				'manage_options',
