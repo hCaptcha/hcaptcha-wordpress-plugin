@@ -43,7 +43,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_constructor( bool $is_tab, array $args, array $expected ) {
-		$tabs = [ 'some class instance1', 'some class instance2' ];
+		$tabs = [ 'some class instance 1', 'some class instance 2' ];
 
 		$classname = SettingsBase::class;
 
@@ -71,9 +71,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			}
 		);
 
-		$mode = $args['mode'] ?? null;
+		$admin_mode = $args['mode'] ?? null;
 
-		if ( SettingsBase::MODE_PAGES === $mode || ! $is_tab ) {
+		if ( SettingsBase::MODE_PAGES === $admin_mode || ! $is_tab ) {
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_tabs_section' ], 9 );
 			WP_Mock::expectActionAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
 		} else {
@@ -93,7 +93,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		self::assertSame( $fields, $this->get_protected_property( $subject, 'fields' ) );
 
 		$actual = [
-			'mode'     => $this->get_protected_property( $subject, 'mode' ),
+			'mode'     => $this->get_protected_property( $subject, 'admin_mode' ),
 			'parent'   => $this->get_protected_property( $subject, 'parent_slug' ),
 			'position' => $this->get_protected_property( $subject, 'position' ),
 		];
@@ -937,7 +937,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->once()->andReturn( true );
 
 		$this->set_protected_property( $subject, 'tabs', [ $tab ] );
-		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
+		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
 		WP_Mock::userFunction( 'menu_page_url' )
 			->with( $option_page, false )->andReturn( $subject_url );
@@ -991,7 +991,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_names );
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
-		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
+		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -1131,7 +1131,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_names );
 
-		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_PAGES );
+		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_PAGES );
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -1192,7 +1192,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$tab     = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
-		$this->set_protected_property( $subject, 'mode', 'wrong' );
+		$this->set_protected_property( $subject, 'admin_mode', 'wrong' );
 
 		$method = 'is_tab_active';
 

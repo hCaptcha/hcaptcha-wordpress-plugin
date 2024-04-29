@@ -49,7 +49,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	protected function menu_title(): string {
 		$menu_title = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 
-		if ( self::MODE_PAGES === $this->mode ) {
+		if ( self::MODE_PAGES === $this->admin_mode ) {
 			return $menu_title;
 		}
 
@@ -84,7 +84,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	protected function option_page(): string {
 		$option_page = self::PREFIX;
 
-		if ( self::MODE_TABS === $this->mode || $this->is_main_menu_page() ) {
+		if ( self::MODE_TABS === $this->admin_mode || $this->is_main_menu_page() ) {
 			return $option_page;
 		}
 

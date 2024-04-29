@@ -70,7 +70,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$constant   = FunctionMocker::replace( 'constant', $plugin_url );
 
-		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
+		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
 		$method = 'menu_title';
 		self::assertSame( $icon . '<span class="kagg-settings-menu-title">' . $menu_title . '</span>', $subject->$method() );
@@ -86,7 +86,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$menu_title = 'hCaptcha';
 		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
-		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_PAGES );
+		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_PAGES );
 
 		$method = 'menu_title';
 		self::assertSame( $menu_title, $subject->$method() );
@@ -105,20 +105,20 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test option_page().
 	 *
-	 * @param string $mode              Mode.
+	 * @param string $admin_mode        Mode.
 	 * @param bool   $is_main_menu_page Whether it is the main menu page.
 	 * @param string $expected          Expected.
 	 *
 	 * @dataProvider dp_test_option_page
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_option_page( string $mode, bool $is_main_menu_page, string $expected ) {
+	public function test_option_page( string $admin_mode, bool $is_main_menu_page, string $expected ) {
 		$tab_name = 'integrations';
 
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
-		$this->set_protected_property( $subject, 'mode', $mode );
+		$this->set_protected_property( $subject, 'admin_mode', $admin_mode );
 		$subject->shouldReceive( 'is_main_menu_page' )->with()->andReturn( $is_main_menu_page );
 		$subject->shouldReceive( 'tab_name' )->with()->andReturn( $tab_name );
 

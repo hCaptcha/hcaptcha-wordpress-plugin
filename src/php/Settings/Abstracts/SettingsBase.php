@@ -97,7 +97,7 @@ abstract class SettingsBase {
 	 *
 	 * @var string
 	 */
-	protected $mode = self::MODE_PAGES;
+	protected $admin_mode = self::MODE_PAGES;
 
 	/**
 	 * Position of the menu.
@@ -222,12 +222,12 @@ abstract class SettingsBase {
 			]
 		);
 
-		$this->mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
+		$this->admin_mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
 			$args['mode'] :
 			self::MODE_PAGES;
 
 		if ( null === $args['parent'] ) {
-			$this->parent_slug = self::MODE_PAGES === $this->mode ? '' : 'options-general.php';
+			$this->parent_slug = self::MODE_PAGES === $this->admin_mode ? '' : 'options-general.php';
 		} else {
 			$this->parent_slug = $args['parent'];
 		}
@@ -254,7 +254,7 @@ abstract class SettingsBase {
 			'button'   => [ $this, 'print_button_field' ],
 		];
 
-		if ( self::MODE_PAGES === $this->mode || ! $this->is_tab() ) {
+		if ( self::MODE_PAGES === $this->admin_mode || ! $this->is_tab() ) {
 			add_action( 'current_screen', [ $this, 'setup_tabs_section' ], 9 );
 			add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
 		}
@@ -654,7 +654,7 @@ abstract class SettingsBase {
 	private function tab_link( SettingsBase $tab ) {
 		$url = menu_page_url( $tab->option_page(), false );
 
-		if ( self::MODE_TABS === $this->mode ) {
+		if ( self::MODE_TABS === $this->admin_mode ) {
 			$url = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
 		}
 
@@ -676,7 +676,7 @@ abstract class SettingsBase {
 	 * @return bool
 	 */
 	protected function is_tab_active( SettingsBase $tab ): bool {
-		switch ( $this->mode ) {
+		switch ( $this->admin_mode ) {
 			case self::MODE_PAGES:
 				$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
