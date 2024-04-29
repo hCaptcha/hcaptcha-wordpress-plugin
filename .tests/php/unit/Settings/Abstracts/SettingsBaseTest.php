@@ -939,18 +939,18 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test is_tab_active() in tabs mode.
 	 *
-	 * @param string|null $on_page     $_GET['page'] === own option page.
-	 * @param string|null $input_tab   $_GET['tab'].
-	 * @param string|null $referer_tab Tab name from referer.
-	 * @param bool        $is_tab      Is tab.
-	 * @param string      $class_name  Class name.
-	 * @param bool        $expected    Expected.
+	 * @param string|null   $on_page       $_GET['page'] === own option page.
+	 * @param string|null   $input_tab     $_GET['tab'].
+	 * @param string[]|null $referer_names Names from referer.
+	 * @param bool          $is_tab        Is tab.
+	 * @param string        $class_name    Class name.
+	 * @param bool          $expected      Expected.
 	 *
 	 * @dataProvider dp_test_is_tab_active_in_tabs_mode
 	 * @noinspection PhpMissingParamTypeInspection
-	 * @throws ReflectionException
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_is_tab_active_in_tabs_mode( $on_page, $input_tab, $referer_tab, bool $is_tab, string $class_name, bool $expected ) {
+	public function test_is_tab_active_in_tabs_mode( $on_page, $input_tab, $referer_names, bool $is_tab, string $class_name, bool $expected ) {
 		$option_page = 'own-option-page';
 		$input_page  = $on_page ? $option_page : 'some-page';
 
@@ -961,7 +961,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_tab );
+		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_names );
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
 		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
@@ -995,7 +995,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for test_is_tab_active().
+	 * Data provider for test_is_tab_active_in_tabs_mode().
 	 *
 	 * @return array
 	 */
@@ -1079,6 +1079,97 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				true,
 			],
 		];
+	}
+
+	/**
+	 * Test is_tab_active() in pages mode.
+	 *
+	 * @param string|null   $on_page       $_GET['page'] === own option page.
+	 * @param string[]|null $referer_names Names from referer.
+	 * @param bool          $expected      Expected.
+	 *
+	 * @dataProvider dp_test_is_tab_active_in_pages_mode
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_is_tab_active_in_pages_mode( $on_page, $referer_names, bool $expected ) {
+		$option_page = 'hcaptcha';
+		$input_page  = $on_page ? $option_page : null;
+
+		$tab = Mockery::mock( SettingsBase::class )->makePartial();
+		$tab->shouldAllowMockingProtectedMethods();
+		$tab->shouldReceive( 'option_page' )->andReturn( $option_page );
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_names_from_referer' )->andReturn( $referer_names );
+
+		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_PAGES );
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $name, $filter ) use ( $input_page ) {
+				if (
+					INPUT_GET === $type &&
+					'page' === $name &&
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
+				) {
+					return $input_page;
+				}
+
+				return null;
+			}
+		);
+
+		$method = 'is_tab_active';
+
+		self::assertSame( $expected, $subject->$method( $tab ) );
+	}
+
+	/**
+	 * Data provider for test_is_tab_active_in_pages_mode().
+	 *
+	 * @return array
+	 */
+	public function dp_test_is_tab_active_in_pages_mode(): array {
+		return [
+			'Not on page, no referer' => [
+				false,
+				[ 'page' => null ],
+				false,
+			],
+			'On page, no referer'     => [
+				true,
+				[ 'page' => null ],
+				true,
+			],
+			'Not on page, referer'    => [
+				false,
+				[ 'page' => 'hcaptcha' ],
+				true,
+			],
+			'On page, referer'        => [
+				true,
+				[ 'page' => 'hcaptcha' ],
+				true,
+			],
+		];
+	}
+
+	/**
+	 * Test is_tab_active() in wrong mode.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_is_tab_active_in_wrong_mode() {
+		$tab     = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'mode', 'wrong' );
+
+		$method = 'is_tab_active';
+
+		self::assertFalse( $subject->$method( $tab ) );
 	}
 
 	/**
