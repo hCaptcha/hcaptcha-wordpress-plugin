@@ -83,8 +83,8 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init() {
-		$subject    = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method     = 'init';
+		$subject = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$method  = 'init';
 
 		$menu_groups = [
 			'hCaptcha' => [
