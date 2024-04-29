@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
+use KAGG\Settings\Abstracts\SettingsBase;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
@@ -39,11 +40,16 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( $classname )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_tab' )->once()->andReturn( true );
 		$subject->shouldReceive( 'init' )->once()->with();
 
 		WP_Mock::expectFilterAdded( 'admin_footer_text', [ $subject, 'admin_footer_text' ] );
 		WP_Mock::expectFilterAdded( 'update_footer', [ $subject, 'update_footer' ], PHP_INT_MAX );
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
 
 		$constructor = ( new ReflectionClass( $classname ) )->getConstructor();
 
@@ -53,14 +59,18 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test menu_title().
+	 * Test menu_title() in tabs mode.
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_menu_title() {
+	public function test_menu_title_in_tabs_mode() {
 		$plugin_url = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$menu_title = 'hCaptcha';
 		$icon       = "<img class=\"kagg-settings-menu-image\" src=\"$plugin_url/assets/images/hcaptcha-icon.svg\" alt=\"hCaptcha icon\">";
 		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$constant   = FunctionMocker::replace( 'constant', $plugin_url );
+
+		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_TABS );
 
 		$method = 'menu_title';
 		self::assertSame( $icon . '<span class="kagg-settings-menu-title">' . $menu_title . '</span>', $subject->$method() );
@@ -68,13 +78,18 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test screen_id().
+	 * Test menu_title() in pages mode.
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_screen_id() {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'screen_id';
+	public function test_menu_title_in_pages_mode() {
+		$menu_title = 'hCaptcha';
+		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
-		self::assertSame( 'settings_page_hcaptcha', $subject->$method() );
+		$this->set_protected_property( $subject, 'mode', SettingsBase::MODE_PAGES );
+
+		$method = 'menu_title';
+		self::assertSame( $menu_title, $subject->$method() );
 	}
 
 	/**
@@ -89,12 +104,40 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 
 	/**
 	 * Test option_page().
+	 *
+	 * @param string $mode              Mode.
+	 * @param bool   $is_main_menu_page Whether it is the main menu page.
+	 * @param string $expected          Expected.
+	 *
+	 * @dataProvider dp_test_option_page
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_option_page() {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'option_page';
+	public function test_option_page( string $mode, bool $is_main_menu_page, string $expected ) {
+		$tab_name = 'integrations';
 
-		self::assertSame( 'hcaptcha', $subject->$method() );
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->set_protected_property( $subject, 'mode', $mode );
+		$subject->shouldReceive( 'is_main_menu_page' )->with()->andReturn( $is_main_menu_page );
+		$subject->shouldReceive( 'tab_name' )->with()->andReturn( $tab_name );
+
+		$method = 'option_page';
+
+		self::assertSame( $expected, $subject->$method() );
+	}
+
+	/**
+	 * Data provider for test_option_page().
+	 *
+	 * @return array
+	 */
+	public function dp_test_option_page(): array {
+		return [
+			'Tabs mode'            => [ SettingsBase::MODE_TABS, false, 'hcaptcha' ],
+			'Pages mode, not main' => [ SettingsBase::MODE_PAGES, false, 'hcaptcha-integrations' ],
+			'Pages mode, main'     => [ SettingsBase::MODE_PAGES, true, 'hcaptcha' ],
+		];
 	}
 
 	/**
@@ -200,7 +243,6 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'form_fields', $form_fields );
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'option_page' )->with()->once()->andReturn( $option_page );
 		$subject->shouldReceive( 'section_title' )->with()->once()->andReturn( $section_title );
 		$subject->shouldReceive( 'is_options_screen' )->with()->once()->andReturn( false );
 
@@ -220,13 +262,14 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_settings_page() {
-		$plugin_url = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
-		$title      = 'some-section-title';
-		$submit     = '<input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes">';
-		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial();
-		$method     = 'settings_page';
-		$constant   = FunctionMocker::replace( 'constant', $plugin_url );
-		$expected   = "		<img
+		$plugin_url  = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
+		$title       = 'some-section-title';
+		$option_page = 'hcaptcha';
+		$submit      = '<input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes">';
+		$subject     = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$method      = 'settings_page';
+		$constant    = FunctionMocker::replace( 'constant', $plugin_url );
+		$expected    = "		<img
 				src=\"$plugin_url/assets/images/hcaptcha-logo.svg\"
 				alt=\"hCaptcha Logo\"
 				class=\"hcaptcha-logo\"
@@ -242,11 +285,12 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'section_title' )->with()->once()->andReturn( $title );
+		$subject->shouldReceive( 'option_page' )->with()->once()->andReturn( $option_page );
 
 		$this->set_protected_property( $subject, 'form_fields', [ 'some' ] );
 
 		WP_Mock::passthruFunction( 'admin_url' );
-		WP_Mock::userFunction( 'do_settings_sections' )->with( 'hcaptcha' )->once();
+		WP_Mock::userFunction( 'do_settings_sections' )->with( $option_page )->once();
 		WP_Mock::userFunction( 'settings_fields' )->with( 'hcaptcha_group' )->once();
 		WP_Mock::userFunction( 'submit_button' )->with()->once()->andReturnUsing(
 			function () use ( $submit ) {
