@@ -63,15 +63,15 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_init_hooks() {
-		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
-
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
 
 		WP_Mock::expectActionAdded( 'admin_init', [ $subject, 'admin_init' ] );
 
-		$subject->init_hooks();
+		$method = 'init_hooks';
+
+		$subject->$method();
 	}
 
 	/**

@@ -36,14 +36,14 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @param array|null $menu_pages_classes Menu pages classes.
+	 * @param array|null $menu_groups Menu pages classes.
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_constructor
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_constructor( $menu_pages_classes ) {
+	public function test_constructor( $menu_groups ) {
 		$class_name = Settings::class;
 
 		$subject = Mockery::mock( $class_name )->makePartial()->shouldAllowMockingProtectedMethods();
@@ -53,15 +53,15 @@ class SettingsTest extends HCaptchaTestCase {
 
 		self::assertNotNull( $constructor );
 
-		if ( null === $menu_pages_classes ) {
-			$menu_pages_classes = [];
+		if ( null === $menu_groups ) {
+			$menu_groups = [];
 
 			$constructor->invoke( $subject );
 		} else {
-			$constructor->invoke( $subject, $menu_pages_classes );
+			$constructor->invoke( $subject, $menu_groups );
 		}
 
-		self::assertSame( $menu_pages_classes, $this->get_protected_property( $subject, 'menu_pages_classes' ) );
+		self::assertSame( $menu_groups, $this->get_protected_property( $subject, 'menu_groups' ) );
 	}
 
 	/**
@@ -83,23 +83,22 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init() {
-		$screen_ids = [ ( new IntegrationsStub() )->screen_id() ];
 		$subject    = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method     = 'init';
 
-		$menu_page_classes = [
-			'hCaptcha' => [ GeneralStub::class, IntegrationsStub::class ],
+		$menu_groups = [
+			'hCaptcha' => [
+				'classes' => [ GeneralStub::class, IntegrationsStub::class ],
+			],
 		];
 
-		$this->set_protected_property( $subject, 'menu_pages_classes', $menu_page_classes );
+		$this->set_protected_property( $subject, 'menu_groups', $menu_groups );
 
 		$subject->$method();
 
 		foreach ( $this->get_protected_property( $subject, 'tabs' ) as $key => $tab ) {
-			self::assertInstanceOf( $menu_page_classes['hCaptcha'][ $key ], $tab );
+			self::assertInstanceOf( $menu_groups['hCaptcha']['classes'][ $key ], $tab );
 		}
-
-		self::assertSame( $screen_ids, $this->get_protected_property( $subject, 'screen_ids' ) );
 	}
 
 	/**
@@ -183,7 +182,7 @@ class SettingsTest extends HCaptchaTestCase {
 		$general->shouldReceive( 'get_tabs' )->andReturn( [ $integrations ] );
 		$integrations->shouldReceive( 'get_tabs' )->andReturn( null );
 
-		$menu_pages_classes = [
+		$menu_groups = [
 			'hCaptcha' => [ General::class, Integrations::class ],
 		];
 
@@ -191,7 +190,7 @@ class SettingsTest extends HCaptchaTestCase {
 
 		$tabs = [ $general, $integrations ];
 		$this->set_protected_property( $subject, 'tabs', $tabs );
-		$this->set_protected_property( $subject, 'menu_pages_classes', $menu_pages_classes );
+		$this->set_protected_property( $subject, 'menu_groups', $menu_groups );
 
 		self::assertSame( $general_value, $subject->get( $general_key ) );
 		self::assertSame( $integrations_value, $subject->get( $integrations_key ) );
@@ -739,19 +738,5 @@ class SettingsTest extends HCaptchaTestCase {
 				[ true, true ],
 			],
 		];
-	}
-
-	/**
-	 * Test screen_ids().
-	 *
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function test_screen_ids() {
-		$screen_ids = [ 'general-screen-id', 'integrations-screen-id' ];
-		$subject    = Mockery::mock( Settings::class )->makePartial();
-
-		$this->set_protected_property( $subject, 'screen_ids', $screen_ids );
-
-		self::assertSame( $screen_ids, $subject->screen_ids() );
 	}
 }
