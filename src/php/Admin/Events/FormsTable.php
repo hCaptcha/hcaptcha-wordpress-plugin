@@ -29,14 +29,16 @@ if ( ! class_exists( 'WP_List_Table', false ) ) {
 class FormsTable extends WP_List_Table {
 
 	/**
-	 * Page hook.
-	 */
-	const PAGE_HOOK = 'settings_page_hcaptcha';
-
-	/**
 	 * Forms per page option.
 	 */
 	const FORMS_PER_PAGE = 'hcaptcha_forms_per_page';
+
+	/**
+	 * Plugin page hook.
+	 *
+	 * @var string
+	 */
+	private $plugin_page_hook;
 
 	/**
 	 * Default number of forms to show per page.
@@ -68,15 +70,19 @@ class FormsTable extends WP_List_Table {
 
 	/**
 	 * Class constructor.
+	 *
+	 * @param string $plugin_page_hook Plugin page hook.
 	 */
-	public function __construct() {
+	public function __construct( string $plugin_page_hook ) {
 		parent::__construct(
 			[
 				'singular' => 'form',
 				'plural'   => 'forms',
-				'screen'   => self::PAGE_HOOK,
+				'screen'   => $plugin_page_hook,
 			]
 		);
+
+		$this->plugin_page_hook = $plugin_page_hook;
 
 		$this->init();
 	}
@@ -95,7 +101,7 @@ class FormsTable extends WP_List_Table {
 
 		$this->plugins = get_plugins();
 
-		add_action( 'load-' . self::PAGE_HOOK, [ $this, 'add_screen_option' ] );
+		add_action( 'load-' . $this->plugin_page_hook, [ $this, 'add_screen_option' ] );
 		add_filter( 'set_screen_option_' . self::FORMS_PER_PAGE, [ $this, 'set_screen_option' ], 10, 3 );
 
 		set_screen_options();
