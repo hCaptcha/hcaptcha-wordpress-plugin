@@ -83,9 +83,13 @@ class EventsPageTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_admin_init
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_admin_init( bool $statistics, bool $is_pro ) {
-		$times = $statistics && $is_pro ? 1 : 0;
+		$times       = $statistics && $is_pro ? 1 : 0;
+		$option_page = 'hcaptcha-events';
+		$parent_slug = '';
+		$page_hook   = 'hcaptcha_page_' . $parent_slug . $option_page;
 
 		new WP_List_Table();
 
@@ -97,12 +101,16 @@ class EventsPageTest extends HCaptchaTestCase {
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
 		$main->shouldReceive( 'is_pro' )->andReturn( $is_pro );
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'option_page' )->times( $times )->andReturn( $option_page );
 		$subject->shouldReceive( 'prepare_chart_data' )->times( $times );
+
+		$this->set_protected_property( $subject, 'parent_slug', $parent_slug );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 		WP_Mock::userFunction( 'get_option' )->with( 'date_format' )->andReturn( 'some date format' );
 		WP_Mock::userFunction( 'get_option' )->with( 'time_format' )->andReturn( 'some time format' );
 		WP_Mock::userFunction( 'get_plugins' )->with()->andReturn( [] );
+		WP_Mock::userFunction( 'get_plugin_page_hook' )->with( $option_page, $parent_slug )->andReturn( $page_hook );
 
 		WP_Mock::userFunction( 'set_screen_options' )->with()->times( $times );
 
