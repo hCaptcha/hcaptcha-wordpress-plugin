@@ -187,17 +187,23 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * Test init().
 	 *
 	 * @param bool $script_debug Whether script debug is active.
+	 * @param bool $is_main_menu_page Whether it is the main menu page.
+	 * @param bool $is_tab_active Whether the tab is active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init( bool $script_debug ) {
+	public function test_init( bool $script_debug, bool $is_main_menu_page, bool $is_tab_active ) {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'form_fields' )->once();
 		$subject->shouldReceive( 'init_settings' )->once();
+		$subject->shouldReceive( 'is_main_menu_page' )->andReturn( $is_main_menu_page );
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( $is_tab_active );
 
-		$subject->shouldReceive( 'init_hooks' )->once();
+		if ( $is_main_menu_page || $is_tab_active ) {
+			$subject->shouldReceive( 'init_hooks' )->once();
+		}
 
 		FunctionMocker::replace(
 			'defined',
@@ -234,8 +240,14 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_init(): array {
 		return [
-			'Script_debug'    => [ true ],
-			'No script debug' => [ false ],
+			'Script_debug, main, tab'            => [ true, true, true ],
+			'Script_debug, main, not tab'        => [ true, true, false ],
+			'Script_debug, not main, tab'        => [ true, false, true ],
+			'Script_debug, not main, not tab'    => [ true, false, false ],
+			'No script debug, main, tab'         => [ false, true, true ],
+			'No script debug, main, not tab'     => [ false, true, false ],
+			'No script debug, not main, tab'     => [ false, false, true ],
+			'No script debug, not main, not tab' => [ false, false, false ],
 		];
 	}
 
@@ -261,10 +273,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		WP_Mock::expectActionAdded( 'admin_enqueue_scripts', [ $subject, 'base_admin_enqueue_scripts' ] );
 
-		if ( $is_active ) {
+		if ( $is_main_menu_page ) {
 			WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'load_plugin_textdomain' ] );
-			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
-			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
+			WP_Mock::expectFilterAdded(
+				'plugin_action_links_' . $plugin_base_name,
+				[ $subject, 'add_settings_link' ]
+			);
 			WP_Mock::expectFilterAdded(
 				'pre_update_option_' . $option_name,
 				[ $subject, 'pre_update_option_filter' ],
@@ -279,11 +293,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			);
 		}
 
-		if ( $is_main_menu_page ) {
-			WP_Mock::expectFilterAdded(
-				'plugin_action_links_' . $plugin_base_name,
-				[ $subject, 'add_settings_link' ]
-			);
+		if ( $is_active ) {
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
 		}
 
 		$method = 'init_hooks';

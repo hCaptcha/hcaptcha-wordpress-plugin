@@ -130,7 +130,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpUnitTestsInspection
-	 * @noinspection UnnecessaryAssertionInspection
 	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $whitelisted, bool $hcaptcha_active ) {

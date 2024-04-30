@@ -273,7 +273,9 @@ abstract class SettingsBase {
 		$this->form_fields();
 		$this->init_settings();
 
-		$this->init_hooks();
+		if ( $this->is_main_menu_page() || $this->is_tab_active( $this ) ) {
+			$this->init_hooks();
+		}
 	}
 
 	/**
@@ -283,23 +285,21 @@ abstract class SettingsBase {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
 
 		if ( $this->is_main_menu_page() ) {
+			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
 			add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
+			add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
+			add_filter(
+				'pre_update_site_option_option_' . $this->option_name(),
+				[ $this, 'pre_update_option_filter' ],
+				10,
+				2
+			);
 		}
 
-		if ( ! $this->is_tab_active( $this ) ) {
-			return;
+		if ( $this->is_tab_active( $this ) ) {
+			add_action( 'current_screen', [ $this, 'setup_fields' ] );
+			add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
 		}
-
-		add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
-		add_action( 'current_screen', [ $this, 'setup_fields' ] );
-		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
-		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
-		add_filter(
-			'pre_update_site_option_option_' . $this->option_name(),
-			[ $this, 'pre_update_option_filter' ],
-			10,
-			2
-		);
 	}
 
 	/**
