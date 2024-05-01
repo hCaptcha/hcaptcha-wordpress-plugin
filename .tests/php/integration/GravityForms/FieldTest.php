@@ -265,7 +265,8 @@ class FieldTest extends HCaptchaWPTestCase {
 	 */
 	public function test_enqueue_admin_script() {
 		$params = [
-			'onlyOne' => 'Only one hCaptcha field can be added to the form.',
+			'onlyOne'   => 'Only one hCaptcha field can be added to the form.',
+			'OKBtnText' => 'OK',
 		];
 
 		$expected_extra = [
@@ -282,9 +283,20 @@ class FieldTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( wp_script_is( Field::ADMIN_HANDLE ) );
 
+		$script = wp_scripts()->registered[ Field::DIALOG_HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/kagg-dialog.min.js', $script->src );
+		self::assertSame( [], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+		self::assertSame( [ 'group' => 1 ], $script->extra );
+
+		$style = wp_styles()->registered[ Field::DIALOG_HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/css/kagg-dialog.min.css', $style->src );
+		self::assertSame( [], $style->deps );
+		self::assertSame( HCAPTCHA_VERSION, $style->ver );
+
 		$script = wp_scripts()->registered[ Field::ADMIN_HANDLE ];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/admin-gravity-forms.min.js', $script->src );
-		self::assertSame( [], $script->deps );
+		self::assertSame( [ Field::DIALOG_HANDLE ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 	}

@@ -21,9 +21,19 @@ use HCaptcha\Helpers\HCaptcha;
 class Field extends GF_Field {
 
 	/**
+	 * Dialog scripts and style handle.
+	 */
+	const DIALOG_HANDLE = 'kagg-dialog';
+
+	/**
 	 * Admin script handle.
 	 */
 	const ADMIN_HANDLE = 'admin-gravity-forms';
+
+	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaGravityFormsObject';
 
 	/**
 	 * Editor screen id.
@@ -224,18 +234,34 @@ class Field extends GF_Field {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$min.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_enqueue_style(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/kagg-dialog$min.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		wp_enqueue_script(
 			self::ADMIN_HANDLE,
 			HCAPTCHA_URL . "/assets/js/admin-gravity-forms$min.js",
-			[],
+			[ self::DIALOG_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
 
 		wp_localize_script(
 			self::ADMIN_HANDLE,
-			'HCaptchaGravityFormsObject',
+			self::OBJECT,
 			[
-				'onlyOne' => __( 'Only one hCaptcha field can be added to the form.', 'hcaptcha-for-forms-and-more' ),
+				'onlyOne'   => __( 'Only one hCaptcha field can be added to the form.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText' => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 	}
