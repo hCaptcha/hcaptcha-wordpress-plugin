@@ -569,6 +569,7 @@ Instructions for popular native integrations are below:
 * Added hideable columns to Forms and Events tables.
 * Admin menu moved to the toplevel with subpages.
 * Added a filter to change admin menu appearance.
+* Add modern dialog to the System Info page.
 
 = 4.0.1 =
 * Added pagination to the Forms and Events pages.

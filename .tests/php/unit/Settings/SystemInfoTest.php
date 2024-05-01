@@ -98,9 +98,28 @@ class SystemInfoTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
+				SystemInfo::DIALOG_HANDLE,
+				$plugin_url . "/assets/js/kagg-dialog$min_prefix.js",
+				[],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				SystemInfo::DIALOG_HANDLE,
+				$plugin_url . "/assets/css/kagg-dialog$min_prefix.css",
+				[],
+				$plugin_version
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
 				SystemInfo::HANDLE,
 				$plugin_url . "/assets/js/system-info$min_prefix.js",
-				[],
+				[ SystemInfo::DIALOG_HANDLE ],
 				$plugin_version,
 				true
 			)
@@ -111,7 +130,9 @@ class SystemInfoTest extends HCaptchaTestCase {
 				SystemInfo::HANDLE,
 				SystemInfo::OBJECT,
 				[
-					'copiedMsg' => 'System info copied to clipboard.',
+					'successMsg' => 'System info copied to the clipboard.',
+					'errorMsg'   => 'Cannot copy info to the clipboard.',
+					'OKBtnText'  => 'OK',
 				]
 			)
 			->once();
@@ -120,7 +141,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 			->with(
 				SystemInfo::HANDLE,
 				$plugin_url . "/assets/css/system-info$min_prefix.css",
-				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
+				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, SystemInfo::DIALOG_HANDLE ],
 				$plugin_version
 			)
 			->once();

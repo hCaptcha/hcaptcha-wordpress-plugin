@@ -18,6 +18,11 @@ use KAGG\Settings\Abstracts\SettingsBase;
 class SystemInfo extends PluginSettingsBase {
 
 	/**
+	 * Dialog scripts and style handle.
+	 */
+	const DIALOG_HANDLE = 'kagg-dialog';
+
+	/**
 	 * Admin script handle.
 	 */
 	const HANDLE = 'hcaptcha-system-info';
@@ -55,9 +60,24 @@ class SystemInfo extends PluginSettingsBase {
 	 */
 	public function admin_enqueue_scripts() {
 		wp_enqueue_script(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_prefix.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_enqueue_style(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/kagg-dialog$this->min_prefix.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/system-info$this->min_prefix.js",
-			[],
+			[ self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);
@@ -66,14 +86,16 @@ class SystemInfo extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'copiedMsg' => __( 'System info copied to clipboard.', 'hcaptcha-for-forms-and-more' ),
+				'successMsg' => __( 'System info copied to the clipboard.', 'hcaptcha-for-forms-and-more' ),
+				'errorMsg'   => __( 'Cannot copy info to the clipboard.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText'  => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/system-info$this->min_prefix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
+			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
