@@ -572,6 +572,7 @@ Instructions for popular native integrations are below:
 * Add modern dialog to the System Info admin page.
 * Add modern dialog to the Gravity Forms edit page.
 * Add modern dialog to the Ninja Forms edit page.
+* Tested with WooCommerce 8.8.
 
 = 4.0.1 =
 * Added pagination to the Forms and Events pages.
