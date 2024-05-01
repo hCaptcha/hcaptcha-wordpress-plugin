@@ -287,6 +287,9 @@ abstract class SettingsBase {
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
 			add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
+		}
+
+		if ( $this->is_tab_active( $this ) ) {
 			add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 			add_filter(
 				'pre_update_site_option_option_' . $this->option_name(),
@@ -294,9 +297,7 @@ abstract class SettingsBase {
 				10,
 				2
 			);
-		}
 
-		if ( $this->is_tab_active( $this ) ) {
 			add_action( 'current_screen', [ $this, 'setup_fields' ] );
 			add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
 		}

@@ -279,6 +279,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'plugin_action_links_' . $plugin_base_name,
 				[ $subject, 'add_settings_link' ]
 			);
+		}
+
+		if ( $is_active ) {
 			WP_Mock::expectFilterAdded(
 				'pre_update_option_' . $option_name,
 				[ $subject, 'pre_update_option_filter' ],
@@ -291,9 +294,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				10,
 				2
 			);
-		}
 
-		if ( $is_active ) {
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_fields' ] );
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_sections' ], 11 );
 		}
