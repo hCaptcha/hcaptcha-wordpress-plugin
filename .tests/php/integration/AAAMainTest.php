@@ -137,8 +137,14 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		$hcaptcha = hcaptcha();
 
-		update_option( 'hcaptcha_settings', [ 'site_key' => 'some site key' ] );
-		update_option( 'hcaptcha_settings', [ 'secret_key' => 'some secret key' ] );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'           => 'some site key',
+				'secret_key'         => 'some secret key',
+				'off_when_logged_in' => 'on' === $hcaptcha_off_when_logged_in ? [ 'on' ] : [],
+			]
+		);
 
 		// Init plugin to update settings.
 		do_action( 'plugins_loaded' );
@@ -175,12 +181,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		if ( $logged_in ) {
 			wp_set_current_user( 1 );
-		}
-
-		if ( 'on' === $hcaptcha_off_when_logged_in ) {
-			update_option( 'hcaptcha_settings', [ 'off_when_logged_in' => [ 'on' ] ] );
-		} else {
-			update_option( 'hcaptcha_settings', [ 'off_when_logged_in' => [] ] );
 		}
 
 		$subject = new Main();
