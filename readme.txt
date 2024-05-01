@@ -571,7 +571,7 @@ Instructions for popular native integrations are below:
 * Added a filter to change admin menu appearance.
 
 = 4.0.1 =
-* Improved appearance of Forms and Events pages.
+* Added pagination to the Forms and Events pages.
 * Fixed PHP notice on the Forms page.
 
 = 4.0.0 =
