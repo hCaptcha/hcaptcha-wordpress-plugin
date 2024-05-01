@@ -1,7 +1,8 @@
-/* global Marionette, Backbone, HCaptchaAdminNFObject */
+/* global Marionette, Backbone, HCaptchaAdminNFObject, kaggDialog */
 
 /**
- * @param HCaptchaAdminNFObject.onlyOneHCaptchaAllowed
+ * @param HCaptchaAdminNFObject.onlyOne
+ * @param HCaptchaAdminNFObject.OKBtnText
  */
 
 document.addEventListener( 'DOMContentLoaded', function() {
@@ -44,8 +45,16 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			if ( field ) {
 				e.stopImmediatePropagation();
 
-				// eslint-disable-next-line no-alert
-				alert( HCaptchaAdminNFObject.onlyOneHCaptchaAllowed );
+				kaggDialog.confirm( {
+					title: HCaptchaAdminNFObject.onlyOne,
+					content: '',
+					type: 'info',
+					buttons: {
+						ok: {
+							text: HCaptchaAdminNFObject.OKBtnText,
+						},
+					},
+				} );
 			}
 		},
 

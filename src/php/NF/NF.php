@@ -17,6 +17,11 @@ use HCaptcha\Main;
 class NF {
 
 	/**
+	 * Dialog scripts and style handle.
+	 */
+	const DIALOG_HANDLE = 'kagg-dialog';
+
+	/**
 	 * Script handle.
 	 */
 	const HANDLE = 'hcaptcha-nf';
@@ -25,6 +30,11 @@ class NF {
 	 * Admin script handle.
 	 */
 	const ADMIN_HANDLE = 'admin-nf';
+
+	/**
+	 * Script localization object.
+	 */
+	const OBJECT = 'HCaptchaAdminNFObject';
 
 	/**
 	 * Form id.
@@ -132,18 +142,34 @@ class NF {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$min.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_enqueue_style(
+			self::DIALOG_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/kagg-dialog$min.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+
+		wp_enqueue_script(
 			self::ADMIN_HANDLE,
 			HCAPTCHA_URL . "/assets/js/admin-nf$min.js",
-			[],
+			[ self::DIALOG_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
 
 		wp_localize_script(
 			self::ADMIN_HANDLE,
-			'HCaptchaAdminNFObject',
+			self::OBJECT,
 			[
-				'onlyOneHCaptchaAllowed' => __( 'Only one hCaptcha field allowed.', 'hcaptcha-for-forms-and-more' ),
+				'onlyOne'   => __( 'Only one hCaptcha field allowed.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText' => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 	}
