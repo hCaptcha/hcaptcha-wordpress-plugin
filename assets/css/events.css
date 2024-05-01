@@ -3,7 +3,7 @@
 }
 
 .hcaptcha-events-sample-bg {
-	background-image: url('../images/events-page.jpg');
+	background-image: url('../images/events-page.png');
 	filter: blur(1px);
 	-webkit-filter: blur(1px);
 	width: 100%;
