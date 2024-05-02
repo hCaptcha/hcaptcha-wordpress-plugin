@@ -96,7 +96,7 @@ class FormsPage extends ListPageBase {
 			return;
 		}
 
-		$this->list_table = new FormsTable();
+		$this->list_table = new FormsTable( (string) get_plugin_page_hook( $this->option_page(), $this->parent_slug ) );
 
 		$this->prepare_chart_data();
 	}

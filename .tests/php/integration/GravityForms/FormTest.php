@@ -202,9 +202,10 @@ class FormTest extends HCaptchaWPTestCase {
 
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
-		$this->prepare_hcaptcha_verify_post( Form::NONCE, Form::ACTION );
-
 		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ $mode ] ] );
+
+		$this->prepare_hcaptcha_verify_post( Base::NONCE, Base::ACTION );
+
 		hcaptcha()->init_hooks();
 
 		$subject = new Form();

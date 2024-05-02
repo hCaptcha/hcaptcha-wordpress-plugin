@@ -32,6 +32,24 @@ abstract class SettingsBase {
 	const NETWORK_WIDE = '_network_wide';
 
 	/**
+	 * Pages mode.
+	 */
+	const MODE_PAGES = 'pages';
+
+	/**
+	 * Tabs mode.
+	 */
+	const MODE_TABS = 'tabs';
+
+	/**
+	 * Menu position.
+	 *
+	 * A number after 58.9 (WPForms),
+	 * but before 59 (Separator) and 60 (Appearance) to avoid conflicts with other plugins.
+	 */
+	const POSITION = 58.99;
+
+	/**
 	 * Form fields.
 	 *
 	 * @var array
@@ -67,11 +85,26 @@ abstract class SettingsBase {
 	protected $fields;
 
 	/**
-	 * Get screen id.
+	 * Parent slug.
+	 * By default, add menu pages to Options menu.
 	 *
-	 * @return string
+	 * @var string
 	 */
-	abstract public function screen_id(): string;
+	protected $parent_slug;
+
+	/**
+	 * Mode of the settings page, e.g. 'pages' or 'tabs'.
+	 *
+	 * @var string
+	 */
+	protected $admin_mode = self::MODE_PAGES;
+
+	/**
+	 * Position of the menu.
+	 *
+	 * @var float
+	 */
+	protected $position;
 
 	/**
 	 * Get an option group.
@@ -173,11 +206,39 @@ abstract class SettingsBase {
 	 * SettingsBase constructor.
 	 *
 	 * @param array|null $tabs Tabs of this settings page.
+	 * @param array      $args Arguments.
 	 *
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function __construct( $tabs = [] ) {
+	public function __construct( $tabs = [], $args = [] ) {
 		$this->tabs = $tabs;
+
+		$args = wp_parse_args(
+			$args,
+			[
+				'mode'     => self::MODE_PAGES,
+				'parent'   => null,
+				'position' => null,
+			]
+		);
+
+		$this->admin_mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
+			$args['mode'] :
+			self::MODE_PAGES;
+
+		if ( null === $args['parent'] ) {
+			$this->parent_slug = self::MODE_PAGES === $this->admin_mode ? '' : 'options-general.php';
+		} else {
+			$this->parent_slug = $args['parent'];
+		}
+
+		if ( null === $args['position'] ) {
+			$hash           = hexdec( sha1( self::PREFIX ) );
+			$pow            = floor( log10( $hash ) );
+			$this->position = round( self::POSITION + $hash / 10 ** ( $pow + 4 ), 6 );
+		} else {
+			$this->position = (float) $args['position'];
+		}
 
 		$this->fields = [
 			'text'     => [ $this, 'print_text_field' ],
@@ -193,7 +254,7 @@ abstract class SettingsBase {
 			'button'   => [ $this, 'print_button_field' ],
 		];
 
-		if ( ! $this->is_tab() ) {
+		if ( self::MODE_PAGES === $this->admin_mode || ! $this->is_tab() ) {
 			add_action( 'current_screen', [ $this, 'setup_tabs_section' ], 9 );
 			add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
 		}
@@ -212,7 +273,7 @@ abstract class SettingsBase {
 		$this->form_fields();
 		$this->init_settings();
 
-		if ( $this->is_tab_active( $this ) ) {
+		if ( $this->is_main_menu_page() || $this->is_tab_active( $this ) ) {
 			$this->init_hooks();
 		}
 	}
@@ -221,20 +282,25 @@ abstract class SettingsBase {
 	 * Init class hooks.
 	 */
 	protected function init_hooks() {
-		add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
-
-		add_filter(
-			'plugin_action_links_' . $this->plugin_basename(),
-			[ $this, 'add_settings_link' ]
-		);
-
-		add_action( 'current_screen', [ $this, 'setup_fields' ] );
-		add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
-
-		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
-		add_filter( 'pre_update_site_option_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
-
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
+
+		if ( $this->is_main_menu_page() ) {
+			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
+			add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
+		}
+
+		if ( $this->is_tab_active( $this ) ) {
+			add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
+			add_filter(
+				'pre_update_site_option_option_' . $this->option_name(),
+				[ $this, 'pre_update_option_filter' ],
+				10,
+				2
+			);
+
+			add_action( 'current_screen', [ $this, 'setup_fields' ] );
+			add_action( 'current_screen', [ $this, 'setup_sections' ], 11 );
+		}
 	}
 
 	/**
@@ -245,23 +311,13 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get parent slug.
-	 *
-	 * @return string
-	 */
-	protected function parent_slug(): string {
-		// By default, add menu pages to Options menu.
-		return 'options-general.php';
-	}
-
-	/**
 	 * Is this the main menu page?
 	 *
 	 * @return bool
 	 */
 	protected function is_main_menu_page(): bool {
-		// The main menu page should have empty string as parent slug.
-		return ! $this->parent_slug();
+		// The main menu page has tabs as an array.
+		return null !== $this->tabs;
 	}
 
 	/**
@@ -308,7 +364,7 @@ abstract class SettingsBase {
 	public function add_settings_link( $actions ): array {
 		$new_actions = [
 			'settings' =>
-				'<a href="' . admin_url( $this->parent_slug() . '?page=' . $this->option_page() ) .
+				'<a href="' . admin_url( $this->parent_slug . '?page=' . $this->option_page() ) .
 				'" aria-label="' . esc_attr( $this->settings_link_label() ) . '">' .
 				esc_html( $this->settings_link_text() ) . '</a>',
 		];
@@ -421,26 +477,39 @@ abstract class SettingsBase {
 	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function add_settings_page() {
-		if ( $this->is_main_menu_page() ) {
-			add_menu_page(
-				$this->page_title(),
+		if ( $this->parent_slug ) {
+			add_submenu_page(
+				$this->parent_slug,
+				$this->get_active_tab()->page_title(),
 				$this->menu_title(),
 				'manage_options',
 				$this->option_page(),
 				[ $this, 'settings_base_page' ]
 			);
+		} elseif ( $this->is_main_menu_page() ) {
+			$this->position += 1e-6;
 
-			return;
+			add_menu_page(
+				$this->page_title(),
+				$this->menu_title(),
+				'manage_options',
+				$this->option_page(),
+				[ $this, 'settings_base_page' ],
+				$this->icon_url(),
+				$this->position
+			);
+
+			foreach ( $this->tabs as $tab ) {
+				add_submenu_page(
+					$this->option_page(),
+					$tab->page_title(),
+					$tab->page_title(),
+					'manage_options',
+					$tab->option_page(),
+					[ $tab, 'settings_base_page' ]
+				);
+			}
 		}
-
-		add_submenu_page(
-			$this->parent_slug(),
-			$this->get_active_tab()->page_title(),
-			$this->menu_title(),
-			'manage_options',
-			$this->option_page(),
-			[ $this, 'settings_base_page' ]
-		);
 	}
 
 	/**
@@ -535,7 +604,7 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function setup_tabs_section() {
-		if ( ! $this->is_options_screen() ) {
+		if ( ! $this->is_main_menu_page() ) {
 			return;
 		}
 
@@ -584,14 +653,17 @@ abstract class SettingsBase {
 	 * @param SettingsBase $tab Tabs of the current settings page.
 	 */
 	private function tab_link( SettingsBase $tab ) {
-		$url    = menu_page_url( $this->option_page(), false );
-		$url    = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
-		$active = $this->is_tab_active( $tab ) ? ' active' : '';
+		$url = menu_page_url( $tab->option_page(), false );
+
+		if ( self::MODE_TABS === $this->admin_mode ) {
+			$url = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
+		}
+
+		$active = $tab->is_tab_active( $tab ) ? ' active' : '';
+		$class  = static::PREFIX . '-settings-tab' . $active;
 
 		?>
-		<a
-				class="<?php echo esc_attr( static::PREFIX . '-settings-tab' ); ?><?php echo esc_attr( $active ); ?>"
-				href="<?php echo esc_url( $url ); ?>">
+		<a class="<?php echo esc_attr( $class ); ?>" href="<?php echo esc_url( $url ); ?>">
 			<?php echo esc_html( $tab->page_title() ); ?>
 		</a>
 		<?php
@@ -605,23 +677,37 @@ abstract class SettingsBase {
 	 * @return bool
 	 */
 	protected function is_tab_active( SettingsBase $tab ): bool {
-		$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$current_tab_name  = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		switch ( $this->admin_mode ) {
+			case self::MODE_PAGES:
+				$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
-		if ( null === $current_page_name || null === $current_tab_name ) {
-			$names             = $this->get_names_from_referer();
-			$current_page_name = $names['page'];
-			$current_tab_name  = $names['tab'];
+				if ( null === $current_page_name ) {
+					$names             = $this->get_names_from_referer();
+					$current_page_name = $names['page'];
+				}
+
+				return $tab->option_page() === $current_page_name;
+			case self::MODE_TABS:
+				$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+				$current_tab_name  = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+				if ( null === $current_page_name || null === $current_tab_name ) {
+					$names             = $this->get_names_from_referer();
+					$current_page_name = $names['page'];
+					$current_tab_name  = $names['tab'];
+				}
+
+				if (
+					( $current_page_name !== $this->option_page() || null === $current_tab_name ) &&
+					! $tab->is_tab()
+				) {
+					return true;
+				}
+
+				return strtolower( $tab->tab_name() ) === $current_tab_name;
+			default:
+				return false;
 		}
-
-		if (
-			( $current_page_name !== $this->option_page() || null === $current_tab_name ) &&
-			! $tab->is_tab()
-		) {
-			return true;
-		}
-
-		return strtolower( $tab->tab_name() ) === $current_tab_name;
 	}
 
 	/**
@@ -1315,13 +1401,9 @@ abstract class SettingsBase {
 			return false;
 		}
 
-		$screen_id = $this->screen_id();
+		$current_suffix = preg_replace( '/.+_page_/', '', $current_screen->id );
 
-		if ( $this->is_main_menu_page() ) {
-			$screen_id = str_replace( 'settings_page', 'toplevel_page', $screen_id );
-		}
-
-		return $screen_id === $current_screen->id || in_array( $current_screen->id, $ids, true );
+		return $this->option_page() === $current_suffix || in_array( $current_screen->id, $ids, true );
 	}
 
 	/**

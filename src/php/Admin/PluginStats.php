@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Admin;
 
+use HCaptcha\Main;
 use HCaptcha\Settings\SystemInfo;
 
 /**
@@ -144,15 +145,17 @@ class PluginStats {
 
 		$settings   = hcaptcha()->settings();
 		$license    = (int) hcaptcha()->is_pro() ? 'Pro' : 'Publisher';
-		$enterprise = (int) (
-			! empty( $settings->get( 'api_host' ) ) ||
+		$api_host   = $settings->get( 'api_host' );
+		$backend    = $settings->get( 'backend' );
+		$enterprise = (
+			( ! empty( $api_host ) && Main::API_HOST !== $api_host ) ||
 			! empty( $settings->get( 'asset_host' ) ) ||
 			! empty( $settings->get( 'endpoint' ) ) ||
 			! empty( $settings->get( 'host' ) ) ||
 			! empty( $settings->get( 'image_host' ) ) ||
 			! empty( $settings->get( 'report_api' ) ) ||
 			! empty( $settings->get( 'sentry' ) ) ||
-			! empty( $settings->get( 'backend' ) )
+			( ! empty( $backend ) && Main::VERIFY_HOST !== $backend )
 		);
 		$license    = 'Pro' === $license && $enterprise ? 'Enterprise' : $license;
 

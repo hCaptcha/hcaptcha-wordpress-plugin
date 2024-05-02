@@ -113,12 +113,6 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'woocommerce_wishlists_status' => [],
 			'wpforms_status'               => [ 'form' ],
 			'wpforo_status'                => [],
-			'force'                        => [],
-			'custom_themes'                => [],
-			'statistics'                   => [],
-			'collect_ip'                   => [],
-			'collect_ua'                   => [],
-			'_network_wide'                => [],
 		];
 
 		update_option( 'hcaptcha_size', $size );

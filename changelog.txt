@@ -1,5 +1,15 @@
+= 4.1.0 =
+* Added Essential Blocks integration.
+* Added hideable columns to Forms and Events tables.
+* Admin menu moved to the toplevel with subpages.
+* Added a filter to change admin menu appearance.
+* Add modern dialog to the System Info admin page.
+* Add modern dialog to the Gravity Forms edit page.
+* Add modern dialog to the Ninja Forms edit page.
+* Tested with WooCommerce 8.8.
+
 = 4.0.1 =
-* Improved appearance of Forms and Events pages.
+* Added pagination to the Forms and Events pages.
 * Fixed PHP notice on the Forms page.
 
 = 4.0.0 =

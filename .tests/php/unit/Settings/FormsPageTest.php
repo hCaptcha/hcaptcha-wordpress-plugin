@@ -63,15 +63,15 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_init_hooks() {
-		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
-
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
 
 		WP_Mock::expectActionAdded( 'admin_init', [ $subject, 'admin_init' ] );
 
-		$subject->init_hooks();
+		$method = 'init_hooks';
+
+		$subject->$method();
 	}
 
 	/**
@@ -81,9 +81,13 @@ class FormsPageTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_admin_init
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_admin_init( bool $statistics ) {
-		$times = $statistics ? 1 : 0;
+		$times       = $statistics ? 1 : 0;
+		$option_page = 'hcaptcha-forms';
+		$parent_slug = '';
+		$page_hook   = 'hcaptcha_page_' . $parent_slug . $option_page;
 
 		new WP_List_Table();
 
@@ -94,10 +98,14 @@ class FormsPageTest extends HCaptchaTestCase {
 		$settings->shouldReceive( 'is_on' )->with( 'statistics' )->andReturn( $statistics );
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'option_page' )->times( $times )->andReturn( $option_page );
 		$subject->shouldReceive( 'prepare_chart_data' )->times( $times );
+
+		$this->set_protected_property( $subject, 'parent_slug', $parent_slug );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 		WP_Mock::userFunction( 'get_plugins' )->with()->andReturn( [] );
+		WP_Mock::userFunction( 'get_plugin_page_hook' )->with( $option_page, $parent_slug )->andReturn( $page_hook );
 
 		WP_Mock::userFunction( 'set_screen_options' )->with()->times( $times );
 

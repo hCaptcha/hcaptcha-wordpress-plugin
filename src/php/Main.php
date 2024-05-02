@@ -35,6 +35,7 @@ use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
+use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
  * Class Main.
@@ -133,14 +134,28 @@ class Main {
 	public function init_hooks() {
 		$this->load_textdomain();
 
+		$args = [
+			'mode' => SettingsBase::MODE_PAGES,
+		];
+
+		/**
+		 *  Filters the settings system initialization arguments.
+		 *
+		 * @param array $args Settings system initialization arguments.
+		 */
+		$args = (array) apply_filters( 'hcap_settings_init_args', $args );
+
 		$this->settings = new Settings(
 			[
 				'hCaptcha' => [
-					General::class,
-					Integrations::class,
-					FormsPage::class,
-					EventsPage::class,
-					SystemInfo::class,
+					'classes' => [
+						General::class,
+						Integrations::class,
+						FormsPage::class,
+						EventsPage::class,
+						SystemInfo::class,
+					],
+					'args'    => $args,
 				],
 			]
 		);
@@ -974,6 +989,11 @@ CSS;
 				[ 'essential_addons_status', 'register' ],
 				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
 				EssentialAddons\Register::class,
+			],
+			'Essential Blocks Form'                => [
+				[ 'essential_blocks_status', 'form' ],
+				'essential-blocks/essential-blocks.php',
+				EssentialBlocks\Form::class,
 			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],

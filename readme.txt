@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 4.0.1
+Stable tag: 4.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -419,6 +419,35 @@ function my_hcap_whitelist_ip( $whitelisted, $ip ) {
 add_filter( 'hcap_whitelist_ip', 'my_hcap_whitelist_ip', 10, 2 );
 `
 
+= How do I change the appearance of the admin menu? =
+
+Starting from 4.1.0, the admin menu was moved to the top level with subpages.
+
+You can customize this by returning it to the previous location in the admin Settings section, or tweak its appearance.
+
+To do this, use the following filter:
+
+`
+/**
+ * Filter the settings system initialization arguments.
+ *
+ * @param array $args Settings system initialization arguments.
+ */
+function hcap_settings_init_args_filter( $args ) {
+  $args['mode'] = 'tabs';
+
+  return $args;
+}
+
+add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
+`
+
+`$args` array has the following fields:
+
+`mode`: 'pages' or 'tabs' (default 'pages') — the appearance of the admin menu;
+`parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
+`position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
+
 = Why isn't my WPForms Lite installation working? =
 
 Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
@@ -478,6 +507,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
 * Elementor Pro Form and Login Form
 * Essential Addons for Elementor Login and Register Forms
+* Essential Blocks Form
 * Fluent Forms
 * Forminator Forms
 * Formidable Forms
@@ -536,12 +566,22 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.1.0 =
+* Added Essential Blocks integration.
+* Added hideable columns to Forms and Events tables.
+* Admin menu moved to the toplevel with subpages.
+* Added a filter to change admin menu appearance.
+* Add modern dialog to the System Info admin page.
+* Add modern dialog to the Gravity Forms edit page.
+* Add modern dialog to the Ninja Forms edit page.
+* Tested with WooCommerce 8.8.
+
 = 4.0.1 =
-* Improved appearance of Forms and Events pages.
+* Added pagination to the Forms and Events pages.
 * Fixed PHP notice on the Forms page.
 
 = 4.0.0 =
-* This major release adds a new Statistics feature and many admin improvements
+* This major release adds a new Statistics feature and many admin improvements.
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
 * Added Custom Theme Editor for Pro users.

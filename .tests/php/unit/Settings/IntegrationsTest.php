@@ -62,11 +62,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
 
 		WP_Mock::expectActionAdded( 'kagg_settings_tab', [ $subject, 'search_box' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Integrations::ACTIVATE_ACTION, [ $subject, 'activate' ] );
 
-		$subject->init_hooks();
+		$method = 'init_hooks';
+
+		$subject->$method();
 	}
 
 	/**
@@ -431,7 +434,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 */
 	public function test_activate_for_theme() {
 		$activate    = false; // Deactivate theme.
-		$entity      = 'Divi';
+		$entity      = 'theme';
 		$new_theme   = 'twentytwentyfour';
 		$status      = 'divi_status';
 		$form_fields = $this->get_test_form_fields();

@@ -103,7 +103,7 @@ class EventsPage extends ListPageBase {
 			return;
 		}
 
-		$this->list_table = new EventsTable();
+		$this->list_table = new EventsTable( (string) get_plugin_page_hook( $this->option_page(), $this->parent_slug ) );
 
 		$this->prepare_chart_data();
 	}

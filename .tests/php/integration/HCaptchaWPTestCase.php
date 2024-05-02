@@ -201,7 +201,13 @@ class HCaptchaWPTestCase extends WPTestCase {
 
 		$hcaptcha_secret_key = 'some secret key';
 
-		update_option( 'hcaptcha_settings', [ 'secret_key' => $hcaptcha_secret_key ] );
+		$hcaptcha_settings = (array) get_option( 'hcaptcha_settings', [] );
+		$hcaptcha_settings = array_merge(
+			$hcaptcha_settings,
+			[ 'secret_key' => $hcaptcha_secret_key ]
+		);
+
+		update_option( 'hcaptcha_settings', $hcaptcha_settings );
 		hcaptcha()->init_hooks();
 
 		$ip                        = '7.7.7.7';

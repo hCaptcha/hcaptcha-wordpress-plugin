@@ -32,12 +32,13 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * Constructor.
 	 *
 	 * @param array|null $tabs Tabs of this settings page.
+	 * @param array      $args Arguments.
 	 */
-	public function __construct( $tabs = [] ) {
+	public function __construct( $tabs = [], $args = [] ) {
 		add_filter( 'admin_footer_text', [ $this, 'admin_footer_text' ] );
 		add_filter( 'update_footer', [ $this, 'update_footer' ], PHP_INT_MAX );
 
-		parent::__construct( $tabs );
+		parent::__construct( $tabs, $args );
 	}
 
 	/**
@@ -47,19 +48,23 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 */
 	protected function menu_title(): string {
 		$menu_title = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
-		$icon       = constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon.svg';
-		$icon       = '<img class="kagg-settings-menu-image" src="' . $icon . '" alt="hCaptcha icon">';
+
+		if ( self::MODE_PAGES === $this->admin_mode ) {
+			return $menu_title;
+		}
+
+		$icon = '<img class="kagg-settings-menu-image" src="' . $this->icon_url() . '" alt="hCaptcha icon">';
 
 		return $icon . '<span class="kagg-settings-menu-title">' . $menu_title . '</span>';
 	}
 
 	/**
-	 * Get screen id.
+	 * Get icon url.
 	 *
 	 * @return string
 	 */
-	public function screen_id(): string {
-		return 'settings_page_hcaptcha';
+	protected function icon_url(): string {
+		return constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon.svg';
 	}
 
 	/**
@@ -77,7 +82,13 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @return string
 	 */
 	protected function option_page(): string {
-		return 'hcaptcha';
+		$option_page = self::PREFIX;
+
+		if ( self::MODE_TABS === $this->admin_mode || $this->is_main_menu_page() ) {
+			return $option_page;
+		}
+
+		return $option_page . '-' . strtolower( $this->tab_name() );
 	}
 
 	/**
@@ -147,7 +158,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * Setup settings fields.
 	 */
 	public function setup_fields() {
-		$prefix = $this->option_page() . '-' . static::section_title() . '-';
+		$prefix = self::PREFIX . '-' . static::section_title() . '-';
 
 		foreach ( $this->form_fields as $key => $form_field ) {
 			if ( ! isset( $form_field['class'] ) ) {

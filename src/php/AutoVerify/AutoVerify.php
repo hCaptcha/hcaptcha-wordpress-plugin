@@ -73,9 +73,7 @@ class AutoVerify {
 			return;
 		}
 
-		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : '';
 
 		if ( 'POST' !== $request_method ) {
 			return;
@@ -111,7 +109,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms Forms found in the content.
 	 */
-	private function register_forms( array $forms ) {
+	protected function register_forms( array $forms ) {
 		$forms_data = [];
 
 		foreach ( $forms as $form ) {
@@ -262,7 +260,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms_data Forms data to update in transient.
 	 */
-	private function update_transient( array $forms_data ) {
+	protected function update_transient( array $forms_data ) {
 		$transient        = get_transient( self::TRANSIENT );
 		$registered_forms = $transient ?: [];
 
@@ -290,7 +288,7 @@ class AutoVerify {
 			self::TRANSIENT,
 			$registered_forms,
 			/** This filter is documented in wp-includes/pluggable.php. */
-			apply_filters( 'nonce_life', DAY_IN_SECONDS )
+			apply_filters( 'nonce_life', constant( 'DAY_IN_SECONDS' ) )
 		);
 	}
 
@@ -301,7 +299,7 @@ class AutoVerify {
 	 *
 	 * @return bool
 	 */
-	private function is_form_registered( string $path ): bool {
+	protected function is_form_registered( string $path ): bool {
 		$registered_forms = get_transient( self::TRANSIENT );
 
 		if ( empty( $registered_forms ) ) {

@@ -250,6 +250,13 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'essential_blocks_status'          => [
+				'label'   => 'Essential Blocks',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'fluent_status'                    => [
 				'label'   => 'Fluent Forms',
 				'type'    => 'checkbox',
@@ -760,7 +767,7 @@ class Integrations extends PluginSettingsBase {
 		$new_theme    = filter_input( INPUT_POST, 'newTheme', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$status       = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$status       = str_replace( '-', '_', $status );
-		$entity_name  = $this->form_fields[ $status ]['label'];
+		$entity_name  = $this->form_fields[ $status ]['label'] ?? '';
 
 		header_remove( 'Location' );
 		http_response_code( 200 );
@@ -777,7 +784,9 @@ class Integrations extends PluginSettingsBase {
 			$entities = array_unique( array_merge( [], ...$entities ) );
 
 			$this->process_plugins( $activate, $entities, $entity_name );
-		} else {
+		}
+
+		if ( 'theme' === $this->entity ) {
 			$theme = $activate ? $entity_name : $new_theme;
 
 			$this->process_theme( $theme );

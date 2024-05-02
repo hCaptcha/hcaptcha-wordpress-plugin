@@ -29,14 +29,16 @@ if ( ! class_exists( 'WP_List_Table', false ) ) {
 class EventsTable extends WP_List_Table {
 
 	/**
-	 * Page hook.
-	 */
-	const PAGE_HOOK = 'settings_page_hcaptcha';
-
-	/**
 	 * Events per page option.
 	 */
 	const EVENTS_PER_PAGE = 'hcaptcha_events_per_page';
+
+	/**
+	 * Plugin page hook.
+	 *
+	 * @var string
+	 */
+	private $plugin_page_hook;
 
 	/**
 	 * Default number of events to show per page.
@@ -68,15 +70,19 @@ class EventsTable extends WP_List_Table {
 
 	/**
 	 * Class constructor.
+	 *
+	 * @param string $plugin_page_hook Plugin page hook.
 	 */
-	public function __construct() {
+	public function __construct( string $plugin_page_hook ) {
 		parent::__construct(
 			[
 				'singular' => 'event',
 				'plural'   => 'events',
-				'screen'   => 'events',
+				'screen'   => $plugin_page_hook,
 			]
 		);
+
+		$this->plugin_page_hook = $plugin_page_hook;
 
 		$this->init();
 	}
@@ -93,7 +99,7 @@ class EventsTable extends WP_List_Table {
 		];
 
 		$this->columns = [
-			'source'      => __( 'Source', 'hcaptcha-for-forms-and-more' ),
+			'name'        => __( 'Source', 'hcaptcha-for-forms-and-more' ),
 			'form_id'     => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
 			'ip'          => __( 'IP', 'hcaptcha-for-forms-and-more' ),
 			'user_agent'  => __( 'User Agent', 'hcaptcha-for-forms-and-more' ),
@@ -103,7 +109,7 @@ class EventsTable extends WP_List_Table {
 
 		$this->plugins = get_plugins();
 
-		add_action( 'load-' . self::PAGE_HOOK, [ $this, 'add_screen_option' ] );
+		add_action( 'load-' . $this->plugin_page_hook, [ $this, 'add_screen_option' ] );
 		add_filter( 'set_screen_option_' . self::EVENTS_PER_PAGE, [ $this, 'set_screen_option' ], 10, 3 );
 
 		set_screen_options();
@@ -156,7 +162,7 @@ class EventsTable extends WP_List_Table {
 	public function get_sortable_columns(): array {
 
 		return [
-			'source'   => [ 'source', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
+			'name'     => [ 'name', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
 			'form_id'  => [ 'form_id', false, __( 'Form Id', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Form Id.' ) ],
 			'date_gmt' => [ 'date_gmt', false, __( 'Date GMT', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Date GMT.' ) ],
 		];
@@ -166,7 +172,7 @@ class EventsTable extends WP_List_Table {
 	 * Fetch and set up the final data for the table.
 	 */
 	public function prepare_items() {
-		$hidden                = [];
+		$hidden                = get_hidden_columns( $this->screen );
 		$sortable              = $this->get_sortable_columns();
 		$this->_column_headers = [ $this->columns, $hidden, $sortable ];
 
@@ -176,7 +182,7 @@ class EventsTable extends WP_List_Table {
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date_gmt';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$column_slugs = array_keys( $this->columns );
+		$column_slugs = str_replace( 'name', 'source', array_keys( $this->columns ) );
 		$per_page     = $this->get_items_per_page( self::EVENTS_PER_PAGE, $this->per_page_default );
 		$offset       = ( $paged - 1 ) * $per_page;
 		$args         = [
@@ -202,12 +208,16 @@ class EventsTable extends WP_List_Table {
 
 	/**
 	 * Column Source.
+	 * Has 'name' slug not to be hidden.
+	 * WP has no filter for special columns.
+	 *
+	 * @see          \WP_Screen::render_list_table_columns_preferences.
 	 *
 	 * @param object $item Item.
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_source( $item ): string {
+	protected function column_name( $item ): string {
 		$source = (array) json_decode( $item->source, true );
 
 		foreach ( $source as &$slug ) {

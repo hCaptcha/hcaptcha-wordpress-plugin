@@ -40,7 +40,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		unset( $_POST['mode'], $_POST['siteKey'], $_POST['secretKey'], $_POST['h-captcha-response'], $_POST['section'], $_POST['status'] );
+		unset( $_POST );
 
 		parent::tearDown();
 	}
@@ -75,8 +75,8 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject          = Mockery::mock( General::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $hcaptcha );
 
@@ -90,7 +90,9 @@ class GeneralTest extends HCaptchaTestCase {
 
 		WP_Mock::expectFilterAdded( 'pre_update_option_' . $option_name, [ $subject, 'maybe_send_stats' ], 20, 2 );
 
-		$subject->init_hooks();
+		$method = 'init_hooks';
+
+		$subject->$method();
 	}
 
 	/**

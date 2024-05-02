@@ -13,7 +13,7 @@
 namespace HCaptcha\Tests\Integration;
 
 /**
- * Test main plugin file.
+ * Test the main plugin file.
  *
  * @group main-plugin-file
  */
@@ -38,13 +38,13 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, $plugin_headers );
 
-		self::assertSame( realpath( __DIR__ . '/../../../' ), HCAPTCHA_PATH );
+		self::assertSame( HCAPTCHA_PATH, realpath( __DIR__ . '/../../../' ) );
 
 		$config = include __DIR__ . '/../../../.codeception/_config/params.local.php';
 		$wp_url = $config['WP_URL'];
-		self::assertSame( 'http://' . $wp_url . '/wp-content/plugins/hcaptcha-wordpress-plugin', HCAPTCHA_URL );
+		self::assertSame( HCAPTCHA_URL, 'http://' . $wp_url . '/wp-content/plugins/hcaptcha-wordpress-plugin' );
 
-		self::assertSame( realpath( __DIR__ . '/../../../hcaptcha.php' ), HCAPTCHA_FILE );
+		self::assertSame( HCAPTCHA_FILE, realpath( __DIR__ . '/../../../hcaptcha.php' ) );
 
 		self::assertSame( 'hcaptcha_action', HCAPTCHA_ACTION );
 		self::assertSame( 'hcaptcha_nonce', HCAPTCHA_NONCE );
@@ -67,7 +67,7 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	/**
 	 * Test that readme.txt contains proper stable tag.
 	 */
-	public function test_readme_txt() {
+	public function test_stable_tag_in_readme_txt() {
 		$expected    = [
 			'stable_tag' => HCAPTCHA_VERSION,
 		];
@@ -80,5 +80,44 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertSame( $expected, $readme_headers );
+	}
+
+	/**
+	 * Test that readme.txt contains changelog records for the current version.
+	 */
+	public function test_changelog() {
+		$readme_file    = HCAPTCHA_PATH . '/readme.txt';
+		$changelog_file = HCAPTCHA_PATH . '/changelog.txt';
+
+		// phpcs:disable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$readme    = file_get_contents( $readme_file );
+		$changelog = file_get_contents( $changelog_file );
+		// phpcs:enable WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+		$readme_changelog = substr( $readme, strpos( $readme, "\n== Changelog ==" ) );
+
+		self::assertSame(
+			$this->get_current_version_records( $readme_changelog ),
+			$this->get_current_version_records( $changelog )
+		);
+	}
+
+	/**
+	 * Get current version records from a changelog section.
+	 *
+	 * @param string $changelog Changelog.
+	 *
+	 * @return string
+	 */
+	private function get_current_version_records( string $changelog ): string {
+		$current_version_records = '';
+
+		if ( preg_match( '/= ' . HCAPTCHA_VERSION . ' =\n((?:.|\n)+)\n= /U', $changelog, $m ) ) {
+			$current_version_records = $m[1];
+		}
+
+		self::assertNotEmpty( trim( $current_version_records ) );
+
+		return $current_version_records;
 	}
 }
