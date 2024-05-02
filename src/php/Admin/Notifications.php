@@ -207,7 +207,7 @@ class Notifications {
 			'events_page'         => [
 				'title'   => __( 'Events admin page', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
-				/* translators: 1: statistics switch link, 2: the 'forms' page link. */
+				/* translators: 1: statistics switch link, 2: Pro link, 3: the 'forms' page link. */
 					__( '%1$s events statistics and %2$s to %3$s complete statistics on form events.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
