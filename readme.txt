@@ -419,11 +419,13 @@ function my_hcap_whitelist_ip( $whitelisted, $ip ) {
 add_filter( 'hcap_whitelist_ip', 'my_hcap_whitelist_ip', 10, 2 );
 `
 
-= How to change the appearance of the admin menu? =
+= How do I change the appearance of the admin menu? =
 
-Starting from 4.1.0, the admin menu was moved to the toplevel with subpages. You may ewant to return it back to the previous location in the admin Settings section, or tweak the appearance.
+Starting from 4.1.0, the admin menu was moved to the top level with subpages.
 
-You can use the following filter:
+You can customize this by returning it to the previous location in the admin Settings section, or tweak its appearance.
+
+To do this, use the following filter:
 
 `
 /**
