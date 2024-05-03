@@ -142,14 +142,14 @@ class EventsPageTest extends HCaptchaTestCase {
 	public function test_admin_enqueue_scripts( bool $allowed ) {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
-		$min_prefix     = '.min';
+		$min_suffix     = '.min';
 		$succeed        = [ 'some succeed events' ];
 		$failed         = [ 'some failed events' ];
 		$times          = $allowed ? 1 : 0;
 
 		$subject = Mockery::mock( EventsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$this->set_protected_property( $subject, 'min_prefix', $min_prefix );
+		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'succeed', $succeed );
 		$this->set_protected_property( $subject, 'failed', $failed );
@@ -172,7 +172,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				EventsPage::HANDLE,
-				$plugin_url . "/assets/css/events$min_prefix.css",
+				$plugin_url . "/assets/css/events$min_suffix.css",
 				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
 				$plugin_version
 			)
@@ -201,7 +201,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				EventsPage::HANDLE,
-				$plugin_url . "/assets/js/events$min_prefix.js",
+				$plugin_url . "/assets/js/events$min_suffix.js",
 				[ 'chart', 'chart-adapter-date-fns' ],
 				$plugin_version,
 				true

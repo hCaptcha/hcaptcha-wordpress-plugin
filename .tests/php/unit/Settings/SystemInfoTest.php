@@ -75,11 +75,11 @@ class SystemInfoTest extends HCaptchaTestCase {
 	public function test_admin_enqueue_scripts() {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
-		$min_prefix     = '.min';
+		$min_suffix     = '.min';
 		$subject        = Mockery::mock( SystemInfo::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$this->set_protected_property( $subject, 'min_prefix', $min_prefix );
+		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 
 		FunctionMocker::replace(
 			'constant',
@@ -99,7 +99,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				SystemInfo::DIALOG_HANDLE,
-				$plugin_url . "/assets/js/kagg-dialog$min_prefix.js",
+				$plugin_url . "/assets/js/kagg-dialog$min_suffix.js",
 				[],
 				$plugin_version,
 				true
@@ -109,7 +109,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				SystemInfo::DIALOG_HANDLE,
-				$plugin_url . "/assets/css/kagg-dialog$min_prefix.css",
+				$plugin_url . "/assets/css/kagg-dialog$min_suffix.css",
 				[],
 				$plugin_version
 			)
@@ -118,7 +118,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				SystemInfo::HANDLE,
-				$plugin_url . "/assets/js/system-info$min_prefix.js",
+				$plugin_url . "/assets/js/system-info$min_suffix.js",
 				[ SystemInfo::DIALOG_HANDLE ],
 				$plugin_version,
 				true
@@ -140,7 +140,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				SystemInfo::HANDLE,
-				$plugin_url . "/assets/css/system-info$min_prefix.css",
+				$plugin_url . "/assets/css/system-info$min_suffix.css",
 				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, SystemInfo::DIALOG_HANDLE ],
 				$plugin_version
 			)

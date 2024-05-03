@@ -107,7 +107,7 @@ class FormsPage extends ListPageBase {
 	public function admin_enqueue_scripts() {
 		wp_enqueue_style(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/forms$this->min_prefix.css",
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/forms$this->min_suffix.css",
 			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
@@ -134,7 +134,7 @@ class FormsPage extends ListPageBase {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/forms$this->min_prefix.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/forms$this->min_suffix.js",
 			[ 'chart', 'chart-adapter-date-fns' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true

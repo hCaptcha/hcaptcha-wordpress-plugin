@@ -186,9 +186,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 *
-	 * @param bool $script_debug Whether script debug is active.
+	 * @param bool $script_debug      Whether script debug is active.
 	 * @param bool $is_main_menu_page Whether it is the main menu page.
-	 * @param bool $is_tab_active Whether the tab is active.
+	 * @param bool $is_tab_active     Whether the tab is active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
@@ -229,8 +229,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject->init();
 
-		$min_prefix = $script_debug ? '' : '.min';
-		self::assertSame( $min_prefix, $this->get_protected_property( $subject, 'min_prefix' ) );
+		$min_suffix = $script_debug ? '' : '.min';
+		self::assertSame( $min_suffix, $this->get_protected_property( $subject, 'min_suffix' ) );
 	}
 
 	/**
