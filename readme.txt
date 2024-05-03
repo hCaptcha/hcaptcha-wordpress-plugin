@@ -472,7 +472,6 @@ With the default configuration, this plugin does not:
 * use cookies.
 
 Once you activate this plugin, the hCaptcha-answering user's IP address and browser data may be sent to the hCaptcha service on pages where you have activated hCaptcha protection. However, hCaptcha is designed to minimize data used, process it very close to the user, and rapidly discard it after analysis.
-
 For more details, please see the hCaptcha privacy policy at:
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
@@ -565,6 +564,9 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.2.0 =
+* Fixed a possible fatal error in the admin with some third-party plugins.
 
 = 4.1.0 =
 * Added Essential Blocks integration.
