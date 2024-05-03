@@ -698,7 +698,7 @@ CSS;
 		$config_params = [];
 
 		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
-			$config_params = json_decode( $settings->get( 'config_params' ), true ) ?: [];
+			$config_params = $settings->get_config_params();
 		}
 
 		$params = array_merge( $params, $config_params );

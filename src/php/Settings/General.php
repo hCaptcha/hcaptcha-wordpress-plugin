@@ -577,9 +577,10 @@ class General extends PluginSettingsBase {
 			$this->form_fields['secret_key']['disabled'] = true;
 		}
 
-		$custom_theme  = $settings->get( 'config_params' )['theme'] ?? [];
+		$config_params = $settings->get_config_params();
+		$custom_theme  = $config_params['theme'] ?? [];
 		$default_theme = $settings->get_default_theme();
-		$custom_theme  = array_merge_recursive( $default_theme, $custom_theme );
+		$custom_theme  = array_replace_recursive( $default_theme, $custom_theme );
 		$custom_theme  = $this->flatten_array( $custom_theme );
 		$options       = [];
 		$custom_theme  = array_merge(

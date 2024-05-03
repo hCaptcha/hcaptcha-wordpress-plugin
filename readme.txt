@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.2.0 =
+* Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.
 * Fixed a possible fatal error in the admin with some third-party plugins.
 
 = 4.1.0 =
