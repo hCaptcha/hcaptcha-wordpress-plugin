@@ -610,6 +610,10 @@ abstract class SettingsBase {
 
 		$tab = $this->get_active_tab();
 
+		if ( ! $this->is_options_screen( [ 'options', $tab->option_page() ] ) ) {
+			return;
+		}
+
 		add_settings_section(
 			'tabs_section',
 			'',
@@ -1403,7 +1407,7 @@ abstract class SettingsBase {
 
 		$current_suffix = preg_replace( '/.+_page_/', '', $current_screen->id );
 
-		return $this->option_page() === $current_suffix || in_array( $current_screen->id, $ids, true );
+		return $this->option_page() === $current_suffix || in_array( $current_suffix, $ids, true );
 	}
 
 	/**
