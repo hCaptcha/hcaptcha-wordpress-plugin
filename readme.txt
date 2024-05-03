@@ -425,7 +425,7 @@ Starting from 4.1.0, the admin menu was moved to the top level with subpages.
 
 You can customize this by returning it to the previous location in the admin Settings section, or tweak its appearance.
 
-To do this, use the following filter:
+To do this, use the following filter to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
 `
 /**
