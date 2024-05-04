@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 4.1.0
+Stable tag: 4.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -565,9 +565,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
-= 4.2.0 =
+= 4.1.1 =
 * Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.
-* Fixed a possible fatal error in the admin with some third-party plugins.
+* Fixed a possible fatal error with third-party plugins using a Jetpack library.
 
 = 4.1.0 =
 * Added Essential Blocks integration.
