@@ -234,7 +234,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_admin_enqueue_scripts() {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
-		$min_prefix     = '.min';
+		$min_suffix     = '.min';
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
 
@@ -261,7 +261,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( true );
-		$this->set_protected_property( $subject, 'min_prefix', $min_prefix );
+		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 
 		FunctionMocker::replace(
 			'constant',
@@ -281,7 +281,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				Integrations::DIALOG_HANDLE,
-				$plugin_url . "/assets/js/kagg-dialog$min_prefix.js",
+				$plugin_url . "/assets/js/kagg-dialog$min_suffix.js",
 				[],
 				$plugin_version,
 				true
@@ -291,7 +291,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				Integrations::DIALOG_HANDLE,
-				$plugin_url . "/assets/css/kagg-dialog$min_prefix.css",
+				$plugin_url . "/assets/css/kagg-dialog$min_suffix.css",
 				[],
 				$plugin_version
 			)
@@ -300,7 +300,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				Integrations::HANDLE,
-				$plugin_url . "/assets/js/integrations$min_prefix.js",
+				$plugin_url . "/assets/js/integrations$min_suffix.js",
 				[ 'jquery', Integrations::DIALOG_HANDLE ],
 				$plugin_version,
 				true
@@ -346,7 +346,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				Integrations::HANDLE,
-				$plugin_url . "/assets/css/integrations$min_prefix.css",
+				$plugin_url . "/assets/css/integrations$min_suffix.css",
 				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, Integrations::DIALOG_HANDLE ],
 				$plugin_version
 			)

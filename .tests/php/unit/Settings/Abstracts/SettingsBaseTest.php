@@ -186,9 +186,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 *
-	 * @param bool $script_debug Whether script debug is active.
+	 * @param bool $script_debug      Whether script debug is active.
 	 * @param bool $is_main_menu_page Whether it is the main menu page.
-	 * @param bool $is_tab_active Whether the tab is active.
+	 * @param bool $is_tab_active     Whether the tab is active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
@@ -229,8 +229,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject->init();
 
-		$min_prefix = $script_debug ? '' : '.min';
-		self::assertSame( $min_prefix, $this->get_protected_property( $subject, 'min_prefix' ) );
+		$min_suffix = $script_debug ? '' : '.min';
+		self::assertSame( $min_suffix, $this->get_protected_property( $subject, 'min_suffix' ) );
 	}
 
 	/**
@@ -882,8 +882,14 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 	/**
 	 * Test setup_tabs_section().
+	 *
+	 * @param bool $is_main_page      Whether it is the main page.
+	 * @param bool $is_options_screen Whether it is the options' screen.
+	 *
+	 * @dataProvider dp_test_setup_tabs_section
+	 * @return void
 	 */
-	public function test_setup_tabs_section() {
+	public function test_setup_tabs_section( bool $is_main_page, bool $is_options_screen ) {
 		$tab_option_page = 'hcaptcha';
 
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
@@ -892,8 +898,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_main_menu_page' )->once()->andReturn( true );
-		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $tab );
+		$subject->shouldReceive( 'is_main_menu_page' )->once()->andReturn( $is_main_page );
+		$subject->shouldReceive( 'get_active_tab' )->andReturn( $tab );
+		$subject->shouldReceive( 'is_options_screen' )
+			->with( [ 'options', $tab_option_page ] )->andReturn( $is_options_screen );
+
+		$times = ( $is_main_page && $is_options_screen ) ? 1 : 0;
 
 		WP_Mock::userFunction( 'add_settings_section' )
 			->with(
@@ -902,9 +912,23 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				[ $subject, 'tabs_callback' ],
 				$tab_option_page
 			)
-			->once();
+			->times( $times );
 
 		$subject->setup_tabs_section();
+	}
+
+	/**
+	 * Data provider for test_setup_tabs_section().
+	 *
+	 * @return array
+	 */
+	public function dp_test_setup_tabs_section(): array {
+		return [
+			'Not main page, not options screen' => [ false, false ],
+			'Not main page, options screen'     => [ false, true ],
+			'Main page, not options screen'     => [ true, false ],
+			'Main page, options screen'         => [ true, true ],
+		];
 	}
 
 	/**

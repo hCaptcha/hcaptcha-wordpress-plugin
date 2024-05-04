@@ -230,6 +230,31 @@ const general = function( $ ) {
 		return target;
 	}
 
+	function syncConfigParams( configParams, parentKey = '' ) {
+		for ( const key in configParams ) {
+			// Construct the full key path.
+			const fullKey = parentKey ? `${ parentKey }--${ key }` : key;
+
+			// If the value is an object, recursively print its keys.
+			if ( typeof configParams[ key ] === 'object' && configParams[ key ] !== null ) {
+				syncConfigParams( configParams[ key ], fullKey );
+			} else {
+				// Update the custom property selector.
+				const value = configParams[ key ];
+				const propKey = fullKey.replace( /theme--/g, '' );
+				const newValue = `${ propKey }=${ value }`;
+				const $prop = $customProp.find( `option[value*="${ propKey }="]` );
+
+				if ( $prop.length === 1 ) {
+					$prop.attr( 'value', newValue );
+					if ( $prop.is( ':selected' ) ) {
+						$customValue.val( value );
+					}
+				}
+			}
+		}
+	}
+
 	function applyCustomThemes( params = {} ) {
 		let configParamsJson = $configParams.val().trim();
 		let configParams;
@@ -249,6 +274,8 @@ const general = function( $ ) {
 		configParams = deepMerge( configParams, params );
 
 		$configParams.val( JSON.stringify( configParams, null, 2 ) );
+
+		syncConfigParams( configParams );
 
 		if ( ! $customThemes.prop( 'checked' ) ) {
 			configParams = {

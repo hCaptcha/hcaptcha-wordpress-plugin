@@ -107,6 +107,15 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get config params.
+	 *
+	 * @return array
+	 */
+	public function get_config_params(): array {
+		return (array) ( json_decode( $this->get( 'config_params' ), true ) ?: [] );
+	}
+
+	/**
 	 * Get plugin option.
 	 *
 	 * @param string $key         Setting name.

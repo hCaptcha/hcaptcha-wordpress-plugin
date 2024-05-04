@@ -71,11 +71,11 @@ abstract class SettingsBase {
 	protected $tabs;
 
 	/**
-	 * Prefix for minified files.
+	 * Suffix for minified files.
 	 *
 	 * @var string
 	 */
-	protected $min_prefix;
+	protected $min_suffix;
 
 	/**
 	 * Fields and their print methods.
@@ -268,7 +268,7 @@ abstract class SettingsBase {
 	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function init() {
-		$this->min_prefix = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
+		$this->min_suffix = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
 
 		$this->form_fields();
 		$this->init_settings();
@@ -538,7 +538,7 @@ abstract class SettingsBase {
 	public function base_admin_enqueue_scripts() {
 		wp_enqueue_style(
 			static::PREFIX . '-settings-admin',
-			$this->plugin_url() . "/assets/css/settings-admin$this->min_prefix.css",
+			$this->plugin_url() . "/assets/css/settings-admin$this->min_suffix.css",
 			[],
 			$this->plugin_version()
 		);
@@ -549,7 +549,7 @@ abstract class SettingsBase {
 
 		wp_enqueue_script(
 			static::PREFIX . '-' . self::HANDLE,
-			$this->plugin_url() . "/assets/js/settings-base$this->min_prefix.js",
+			$this->plugin_url() . "/assets/js/settings-base$this->min_suffix.js",
 			[],
 			$this->plugin_version(),
 			true
@@ -557,7 +557,7 @@ abstract class SettingsBase {
 
 		wp_enqueue_style(
 			static::PREFIX . '-' . self::HANDLE,
-			$this->plugin_url() . "/assets/css/settings-base$this->min_prefix.css",
+			$this->plugin_url() . "/assets/css/settings-base$this->min_suffix.css",
 			[],
 			$this->plugin_version()
 		);
@@ -609,6 +609,10 @@ abstract class SettingsBase {
 		}
 
 		$tab = $this->get_active_tab();
+
+		if ( ! $this->is_options_screen( [ 'options', $tab->option_page() ] ) ) {
+			return;
+		}
 
 		add_settings_section(
 			'tabs_section',
@@ -1403,7 +1407,7 @@ abstract class SettingsBase {
 
 		$current_suffix = preg_replace( '/.+_page_/', '', $current_screen->id );
 
-		return $this->option_page() === $current_suffix || in_array( $current_screen->id, $ids, true );
+		return $this->option_page() === $current_suffix || in_array( $current_suffix, $ids, true );
 	}
 
 	/**

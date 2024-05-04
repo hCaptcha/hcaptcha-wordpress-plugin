@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 4.1.0
+Stable tag: 4.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -425,7 +425,7 @@ Starting from 4.1.0, the admin menu was moved to the top level with subpages.
 
 You can customize this by returning it to the previous location in the admin Settings section, or tweak its appearance.
 
-To do this, use the following filter:
+To do this, use the following filter to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
 `
 /**
@@ -472,7 +472,6 @@ With the default configuration, this plugin does not:
 * use cookies.
 
 Once you activate this plugin, the hCaptcha-answering user's IP address and browser data may be sent to the hCaptcha service on pages where you have activated hCaptcha protection. However, hCaptcha is designed to minimize data used, process it very close to the user, and rapidly discard it after analysis.
-
 For more details, please see the hCaptcha privacy policy at:
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
@@ -565,6 +564,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.1.1 =
+* Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.
+* Fixed a possible fatal error with third-party plugins using a Jetpack library.
 
 = 4.1.0 =
 * Added Essential Blocks integration.

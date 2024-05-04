@@ -135,13 +135,13 @@ class FormsPageTest extends HCaptchaTestCase {
 	public function test_admin_enqueue_scripts( bool $allowed ) {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
-		$min_prefix     = '.min';
+		$min_suffix     = '.min';
 		$served         = [ 'some served events' ];
 		$times          = $allowed ? 1 : 0;
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$this->set_protected_property( $subject, 'min_prefix', $min_prefix );
+		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'served', $served );
 
@@ -163,7 +163,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				FormsPage::HANDLE,
-				$plugin_url . "/assets/css/forms$min_prefix.css",
+				$plugin_url . "/assets/css/forms$min_suffix.css",
 				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE ],
 				$plugin_version
 			)
@@ -192,7 +192,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				FormsPage::HANDLE,
-				$plugin_url . "/assets/js/forms$min_prefix.js",
+				$plugin_url . "/assets/js/forms$min_suffix.js",
 				[ 'chart', 'chart-adapter-date-fns' ],
 				$plugin_version,
 				true

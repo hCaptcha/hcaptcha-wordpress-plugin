@@ -1,3 +1,7 @@
+= 4.1.1 =
+* Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.
+* Fixed a possible fatal error with third-party plugins using a Jetpack library.
+
 = 4.1.0 =
 * Added Essential Blocks integration.
 * Added hideable columns to Forms and Events tables.

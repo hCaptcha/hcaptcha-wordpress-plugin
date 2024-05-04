@@ -114,7 +114,7 @@ class EventsPage extends ListPageBase {
 	public function admin_enqueue_scripts() {
 		wp_enqueue_style(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/events$this->min_prefix.css",
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/events$this->min_suffix.css",
 			[ static::PREFIX . '-' . SettingsBase::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
@@ -141,7 +141,7 @@ class EventsPage extends ListPageBase {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/events$this->min_prefix.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/events$this->min_suffix.js",
 			[ 'chart', 'chart-adapter-date-fns' ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
