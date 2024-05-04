@@ -141,7 +141,7 @@ class FormsPageTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$this->set_protected_property( $subject, 'min_prefix', $min_suffix );
+		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'served', $served );
 
