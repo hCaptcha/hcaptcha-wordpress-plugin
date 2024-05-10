@@ -128,7 +128,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-columns: repeat(4, 1fr);
 	grid-template-areas:
 		"theme size language mode"
-		"force force . .";
+		"force position . .";
 	gap: 10px 20px;
 	padding: 15px 20px;
 }
@@ -153,12 +153,20 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: force;
 }
 
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-menu-position {
+	grid-area: position;
+}
+
 .hcaptcha-section-appearance + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
 }
 
 .hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force td {
+	width: max-content;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-menu-position td {
 	width: max-content;
 }
 

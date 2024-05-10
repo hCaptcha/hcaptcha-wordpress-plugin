@@ -546,6 +546,15 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 				'helper'  => 'Force hCaptcha check before submit.',
 			],
+			'menu_position'            => [
+				'label'   => 'Menu Under Settings',
+				'type'    => 'checkbox',
+				'section' => 'appearance',
+				'options' => [
+					'on' => 'Under Settings',
+				],
+				'helper'  => 'When on, the hCaptcha admin menu is placed under Settings.',
+			],
 			'custom_themes'            => [
 				'label'   => 'Custom Themes',
 				'type'    => 'checkbox',

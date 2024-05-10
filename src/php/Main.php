@@ -134,8 +134,10 @@ class Main {
 	public function init_hooks() {
 		$this->load_textdomain();
 
-		$args = [
-			'mode' => SettingsBase::MODE_PAGES,
+		$settings      = get_option( 'hcaptcha_settings', [] );
+		$menu_position = $settings['menu_position'] ?? [];
+		$args          = [
+			'mode' => [ 'on' ] === $menu_position ? SettingsBase::MODE_TABS : SettingsBase::MODE_PAGES,
 		];
 
 		/**
