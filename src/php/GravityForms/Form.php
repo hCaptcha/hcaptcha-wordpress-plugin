@@ -11,6 +11,7 @@
 namespace HCaptcha\GravityForms;
 
 use GFFormsModel;
+use GP_Field_Nested_Form;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -263,17 +264,47 @@ CSS;
 			return false;
 		}
 
-		if ( isset( $_POST['gpnf_parent_form_id'] ) ) {
-			// Do not verify nested form.
-			return false;
+		$form_id = (int) $_POST['gform_submit'];
+
+		// Nested form.
+		$parent_form_id = isset( $_POST['gpnf_parent_form_id'] ) ? (int) $_POST['gpnf_parent_form_id'] : 0;
+
+		if ( $parent_form_id ) {
+			$fields = (array) GFFormsModel::get_form_meta( $parent_form_id )['fields'];
+
+			foreach ( $fields as $field ) {
+				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				if ( $field instanceof GP_Field_Nested_Form && (int) $field->gpnfForm === $form_id ) {
+
+					// Do not verify nested form.
+					return false;
+				}
+			}
 		}
 
-		$form_id     = (int) $_POST['gform_submit'];
-		$target_page = "gform_target_page_number_$form_id";
+		// Multipage form.
+		$target_page_name = "gform_target_page_number_$form_id";
 
-		if ( isset( $_POST[ $target_page ] ) && 0 !== (int) $_POST[ $target_page ] ) {
-			// Do not verify hCaptcha and return success when switching between form pages.
-			return false;
+		if ( isset( $_POST[ $target_page_name ] ) ) {
+			$source_page_name = "gform_source_page_number_$form_id";
+
+			$target_page = (int) $_POST[ $target_page_name ];
+			$source_page = isset( $_POST[ $source_page_name ] ) ? (int) $_POST[ $source_page_name ] : 0;
+
+			$form_meta = (array) GFFormsModel::get_form_meta( $form_id );
+
+			if (
+				0 !== (int) $_POST[ $target_page_name ] &&
+				$target_page !== $source_page &&
+				isset(
+					$form_meta['pagination']['pages'][ $target_page - 1 ],
+					$form_meta['pagination']['pages'][ $source_page - 1 ]
+				)
+			) {
+
+				// Do not verify hCaptcha and return success when switching between form pages.
+				return false;
+			}
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
