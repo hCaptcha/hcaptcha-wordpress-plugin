@@ -8,6 +8,7 @@
  */
 document.addEventListener( 'DOMContentLoaded', function() {
 	const ctx = document.getElementById( 'eventsChart' );
+	const aspectRatio = window.innerWidth > 600 ? 3 : 2;
 
 	new Chart( ctx, {
 		type: 'bar',
@@ -28,7 +29,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		options: {
 			responsive: true,
 			maintainAspectRatio: true,
-			aspectRatio: 3,
+			aspectRatio,
 			scales: {
 				x: {
 					type: 'time',

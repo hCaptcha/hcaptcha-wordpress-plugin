@@ -36,7 +36,6 @@
 	color: #f0f2f5;
 }
 
-
 #hcaptcha-events-chart {
 	background-color: #ffffff;
 	position: relative;
@@ -49,31 +48,12 @@
 	width: 220px;
 }
 
-.hcaptcha-hide {
-	display: none;
-}
+@media (max-width: 600px) {
+	#hcaptcha-options #hcaptcha-events-wrap table tbody tr td {
+		padding: 3px 8px 3px 35%;
+	}
 
-.hcaptcha-excerpt {
-	display: block;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-.hcaptcha-excerpt:hover .hcaptcha-hide {
-	position: absolute;
-	color: #f0f2f5;
-	background: #5c6f8a;
-	z-index: 1;
-	display: block;
-	max-width: 300px;
-	width: max-content;
-	padding: 8px 10px;
-	top: 0;
-	left: 0;
-	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-	border-radius: 6px;
-	border: 1px solid #c3c4c7;
-	white-space: normal;
-	text-align: center;
+	#hcaptcha-options #hcaptcha-events-wrap table tbody tr td.column-primary {
+		padding: 3px 10px;
+	}
 }
