@@ -565,6 +565,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.1.2 =
+* Added option to have the hCaptcha admin menu under Settings.
+
 = 4.1.1 =
 * Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.
 * Fixed a possible fatal error with third-party plugins using a Jetpack library.
