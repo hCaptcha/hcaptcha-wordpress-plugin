@@ -567,6 +567,7 @@ Instructions for popular native integrations are below:
 
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.
+* Fixed the General admin page on the mobile.
 
 = 4.1.1 =
 * Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.
