@@ -542,16 +542,16 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'section' => General::SECTION_APPEARANCE,
 				'options' => [
-					'on' => 'Force hCaptcha',
+					'on' => 'Force',
 				],
 				'helper'  => 'Force hCaptcha check before submit.',
 			],
 			'menu_position'            => [
-				'label'   => 'Menu Under Settings',
+				'label'   => 'Tabs Menu Under Settings',
 				'type'    => 'checkbox',
 				'section' => 'appearance',
 				'options' => [
-					'on' => 'Under Settings',
+					'on' => 'Tabs',
 				],
 				'helper'  => 'When on, the hCaptcha admin menu is placed under Settings.',
 			],
