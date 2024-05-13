@@ -8,6 +8,7 @@
 namespace HCaptcha\Migrations;
 
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Settings\PluginSettingsBase;
 
 /**
  * Migrations class.
@@ -304,7 +305,7 @@ class Migrations {
 			}
 		}
 
-		update_option( 'hcaptcha_settings', $new_options );
+		update_option( PluginSettingsBase::OPTION_NAME, $new_options );
 
 		foreach ( array_keys( $options_map ) as $old_option_name ) {
 			delete_option( $old_option_name );
@@ -320,7 +321,7 @@ class Migrations {
 	 * @noinspection PhpUnused
 	 */
 	protected function migrate_360() {
-		$option         = get_option( 'hcaptcha_settings', [] );
+		$option         = get_option( PluginSettingsBase::OPTION_NAME, [] );
 		$wpforms_status = $option['wpforms_status'] ?? [];
 
 		if ( empty( $wpforms_status ) ) {
@@ -330,7 +331,7 @@ class Migrations {
 		// Convert any WPForms status ('lite' or 'pro') to the status 'form'.
 		$option['wpforms_status'] = [ 'form' ];
 
-		update_option( 'hcaptcha_settings', $option );
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
 
 		return true;
 	}
@@ -364,10 +365,10 @@ class Migrations {
 
 		$pro               = $result['features']['custom_theme'] ?? false;
 		$license           = $pro ? 'pro' : 'free';
-		$option            = get_option( 'hcaptcha_settings', [] );
+		$option            = get_option( PluginSettingsBase::OPTION_NAME, [] );
 		$option['license'] = $license;
 
 		// Save license level in settings.
-		update_option( 'hcaptcha_settings', $option );
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
 	}
 }

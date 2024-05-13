@@ -31,6 +31,7 @@ use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
@@ -1380,7 +1381,7 @@ CSS;
 	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function get_raw_setting( string $key ) {
-		$settings = get_option( 'hcaptcha_settings', [] );
+		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
 
 		return $settings[ $key ] ?? '';
 	}
