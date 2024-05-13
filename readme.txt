@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.1
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 4.1.1
+Stable tag: 4.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -564,6 +564,11 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.1.2 =
+* Added option to have the hCaptcha admin menu under Settings.
+* Fixed the General admin page on the mobile.
+* Fixed Forms and Events admin pages on the mobile.
 
 = 4.1.1 =
 * Added updating of the Custom Themes properties on the General page upon manual editing of the Config Params JSON.

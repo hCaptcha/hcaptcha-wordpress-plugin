@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\GravityForms;
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -276,48 +277,98 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_when_should_not_be_verified() {
-		$form_id           = 23;
-		$target_page       = "gform_target_page_number_$form_id";
+		$form_id           = 2;
+		$nested_form_id    = 9;
+		$multipage_form_id = 3;
+		$source_page_name  = "gform_source_page_number_$multipage_form_id";
+		$target_page_name  = "gform_target_page_number_$multipage_form_id";
 		$hcaptcha_field    = (object) [
 			'type' => 'hcaptcha',
 		];
-		$form              = [
+		$nested_form_field = Mockery::mock( 'GP_Field_Nested_Form' );
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$nested_form_field->gpnfForm = $form_id;
+		$form_fields                 = [
 			'id'     => $form_id,
 			'fields' => [ $hcaptcha_field ],
 		];
-		$validation_result = [
+		$nested_form_fields          = [
+			'id'     => $nested_form_id,
+			'fields' => [ $nested_form_field ],
+		];
+		$multipage_form_fields       = [
+			'id'         => $nested_form_id,
+			'pagination' => [
+				'pages' => [
+					0 => [],
+					1 => [],
+				],
+			],
+		];
+		$validation_result           = [
 			'is_valid'               => true,
 			'form'                   => [],
 			'failed_validation_page' => 0,
 		];
-		$context           = 'form-submit';
+		$context                     = 'form-submit';
 
 		$subject = new Form();
 
 		// The POST 'gform_submit' not set.
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
-		$_POST['gform_submit'] = $form_id;
+		// Nested form.
+		$_POST['gform_submit']        = $form_id;
+		$_POST['gpnf_parent_form_id'] = $nested_form_id;
 
-		// The POST 'gpnf_parent_form_id' is set.
-		$_POST['gpnf_parent_form_id'] = 5;
+		FunctionMocker::replace(
+			'GFFormsModel::get_form_meta',
+			static function ( $id ) use (
+				$form_id,
+				$form_fields,
+				$nested_form_id,
+				$nested_form_fields,
+				$multipage_form_id,
+				$multipage_form_fields
+			) {
+				if ( $id === $form_id ) {
+					return $form_fields;
+				}
+
+				if ( $id === $nested_form_id ) {
+					return $nested_form_fields;
+				}
+
+				if ( $id === $multipage_form_id ) {
+					return $multipage_form_fields;
+				}
+
+				return [];
+			}
+		);
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
+		// Not a nested form.
 		unset( $_POST['gpnf_parent_form_id'] );
 
+		// Multipage form.
+		$_POST['gform_submit'] = $multipage_form_id;
+
 		// The POST target_page is set and not 0.
-		$_POST[ $target_page ] = 3;
+		$_POST[ $source_page_name ] = 1;
+		$_POST[ $target_page_name ] = 2;
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
 		// The POST target_page is set and 0.
-		$_POST[ $target_page ] = 0;
+		$_POST[ $source_page_name ] = 2;
+		$_POST[ $target_page_name ] = 0;
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
 		// The POST target_page is unset.
-		unset( $_POST[ $target_page ] );
+		unset( $_POST[ $target_page_name ] );
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 	}

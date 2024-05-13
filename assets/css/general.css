@@ -128,7 +128,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-columns: repeat(4, 1fr);
 	grid-template-areas:
 		"theme size language mode"
-		"force force . .";
+		"force force position position";
 	gap: 10px 20px;
 	padding: 15px 20px;
 }
@@ -153,12 +153,20 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: force;
 }
 
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-menu-position {
+	grid-area: position;
+}
+
 .hcaptcha-section-appearance + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
 }
 
 .hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force td {
+	width: max-content;
+}
+
+.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-menu-position td {
 	width: max-content;
 }
 
@@ -352,35 +360,73 @@ h3.closed .hcaptcha-section-header-toggle:after {
 }
 
 @media (max-width: 600px) {
-	.hcaptcha-general table tbody tr td {
-		width: auto;
-	}
-
 	.hcaptcha-section-keys + table tbody {
-		grid-template-areas: unset;
+		grid-template-columns: repeat(2, 1fr) !important;
+		grid-template-areas:
+		"site-key site-key"
+		"secret-key secret-key"
+		"sample-hcaptcha sample-hcaptcha"
+		"check-config reset-notifications";
 	}
 
-	.hcaptcha-section-keys + table tbody tr {
-		grid-area: unset !important;
+	.hcaptcha-section-appearance + table tbody {
+		grid-template-columns: repeat(2, 1fr) !important;
+		grid-template-areas:
+		"theme size"
+		"language mode"
+		"force force"
+		"position position";
+	}
+
+	.hcaptcha-section-appearance + table tbody tr td {
+		width: unset !important;
+	}
+
+	.hcaptcha-section-custom + table tbody {
+		grid-template-columns: repeat(2, 1fr) !important;
+		grid-template-areas:
+		"custom-themes custom-themes"
+		"custom-prop custom-value"
+		"config-params config-params";
+	}
+
+	.hcaptcha-section-custom + table tbody tr td {
+		width: unset !important;
+	}
+
+	.hcaptcha-section-enterprise + table tbody {
+		grid-template-columns: repeat(1, 1fr) !important;
+	}
+
+	.hcaptcha-section-enterprise + table tbody tr td {
+		width: unset !important;
 	}
 
 	.hcaptcha-section-other + table tbody {
-		grid-template-areas: unset;
+		grid-template-columns: repeat(1, 1fr) !important;
+		grid-template-areas:
+		"logged"
+		"recaptcha"
+		"network"
+		"whitelisted"
+		"login-limit"
+		"login-interval"
+		"delay";
 	}
 
-	.hcaptcha-section-other + table tbody tr {
-		grid-area: unset !important;
-	}
-
-	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td {
-		width: auto;
+	.hcaptcha-section-other + table tbody tr td {
+		width: unset !important;
 	}
 
 	.hcaptcha-section-statistics + table tbody {
-		grid-template-areas: unset;
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"statistics"
+		"collect-ip"
+		"collect-ua";
 	}
 
-	.hcaptcha-section-statistics + table tbody tr {
-		grid-area: unset !important;
+	.hcaptcha-section-statistics + table tbody tr td {
+		width: unset !important;
 	}
 }
