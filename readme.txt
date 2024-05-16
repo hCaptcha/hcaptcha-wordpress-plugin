@@ -565,6 +565,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.2.0 =
+* Added support for Multisite Network Admin synced with network-wide plugin options.
+
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.
 * Fixed the General admin page on the mobile.

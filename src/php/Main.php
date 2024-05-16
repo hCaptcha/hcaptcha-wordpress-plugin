@@ -135,16 +135,12 @@ class Main {
 	public function init_hooks() {
 		$this->load_textdomain();
 
-		$args = [
-			'mode' => $this->is_raw_setting_on( 'menu_position' ) ? SettingsBase::MODE_TABS : SettingsBase::MODE_PAGES,
-		];
-
 		/**
 		 *  Filters the settings system initialization arguments.
 		 *
 		 * @param array $args Settings system initialization arguments.
 		 */
-		$args = (array) apply_filters( 'hcap_settings_init_args', $args );
+		$args = (array) apply_filters( 'hcap_settings_init_args', [] );
 
 		$this->settings = new Settings(
 			[
@@ -1370,32 +1366,5 @@ CSS;
 	 */
 	private function is_pro_or_general(): bool {
 		return $this->is_pro() || ( is_admin() && 'General' === $this->settings->get_active_tab_name() );
-	}
-
-	/**
-	 * Get raw setting from the plugin option.
-	 *
-	 * @param string $key Setting name.
-	 *
-	 * @return string|array
-	 * @noinspection PhpSameParameterValueInspection
-	 */
-	private function get_raw_setting( string $key ) {
-		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
-
-		return $settings[ $key ] ?? '';
-	}
-
-	/**
-	 * Check whether option value is 'on' or just non-empty.
-	 * See \HCaptcha\Settings\Settings::is_on() for details.
-	 *
-	 * @param string $key Setting name.
-	 *
-	 * @return bool
-	 * @noinspection PhpSameParameterValueInspection
-	 */
-	private function is_raw_setting_on( string $key ): bool {
-		return ! empty( $this->get_raw_setting( $key ) );
 	}
 }
