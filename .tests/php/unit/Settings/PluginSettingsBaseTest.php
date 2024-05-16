@@ -40,7 +40,10 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( $classname )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'process_args' )->once()->with( [] );
+		$subject->shouldReceive( 'is_tab' )->once()->with()->andReturn( true );
 		$subject->shouldReceive( 'init' )->once()->with();
+		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
 		WP_Mock::expectFilterAdded( 'admin_footer_text', [ $subject, 'admin_footer_text' ] );
 		WP_Mock::expectFilterAdded( 'update_footer', [ $subject, 'update_footer' ], PHP_INT_MAX );

@@ -35,21 +35,24 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @param bool  $is_tab   Whether it is a tab.
-	 * @param array $args     Arguments.
-	 * @param array $expected Expected.
+	 * @param bool   $is_tab          Whether it is a tab.
+	 * @param string $admin_mode      Admin mode.
+	 * @param bool   $is_network_wide Whether it is network wide.
 	 *
 	 * @dataProvider dp_test_constructor
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_constructor( bool $is_tab, array $args, array $expected ) {
+	public function test_constructor( bool $is_tab, string $admin_mode, bool $is_network_wide ) {
 		$tabs = [ 'some class instance 1', 'some class instance 2' ];
+		$args = [ 'some' => 'args' ];
 
 		$classname = SettingsBase::class;
 
 		$subject = Mockery::mock( $classname )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'process_args' )->with( $args );
 		$subject->shouldReceive( 'is_tab' )->andReturn( $is_tab );
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( $is_network_wide );
 
 		$fields = [
 			'text'     => [ $subject, 'print_text_field' ],
@@ -65,23 +68,22 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			'button'   => [ $subject, 'print_button_field' ],
 		];
 
-		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
-			function ( $args, $defaults ) {
-				return array_merge( $defaults, $args );
-			}
-		);
-
-		$admin_mode = $args['mode'] ?? null;
-
 		if ( SettingsBase::MODE_PAGES === $admin_mode || ! $is_tab ) {
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'setup_tabs_section' ], 9 );
-			WP_Mock::expectActionAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
+
+			if ( $is_network_wide ) {
+				WP_Mock::expectActionAdded( 'network_admin_menu', [ $subject, 'add_settings_page' ] );
+			} else {
+				WP_Mock::expectActionAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
+			}
 		} else {
 			WP_Mock::expectActionNotAdded( 'current_screen', [ $subject, 'setup_tabs_section' ] );
 			WP_Mock::expectActionNotAdded( 'admin_menu', [ $subject, 'add_settings_page' ] );
 		}
 
 		$subject->shouldReceive( 'init' )->once()->with();
+
+		$this->set_protected_property( $subject, 'admin_mode', $admin_mode );
 
 		$constructor = ( new ReflectionClass( $classname ) )->getConstructor();
 
@@ -91,14 +93,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		self::assertSame( $tabs, $this->get_protected_property( $subject, 'tabs' ) );
 		self::assertSame( $fields, $this->get_protected_property( $subject, 'fields' ) );
-
-		$actual = [
-			'mode'     => $this->get_protected_property( $subject, 'admin_mode' ),
-			'parent'   => $this->get_protected_property( $subject, 'parent_slug' ),
-			'position' => $this->get_protected_property( $subject, 'position' ),
-		];
-
-		self::assertSame( $expected, $actual );
 	}
 
 	/**
@@ -108,78 +102,18 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_constructor(): array {
 		return [
-			'Tab, tabs mode'        => [
-				true,
-				[ 'mode' => SettingsBase::MODE_TABS ],
-				[
-					'mode'     => SettingsBase::MODE_TABS,
-					'parent'   => 'options-general.php',
-					'position' => 58.990225,
-				],
-			],
-			'Not a tab, tabs mode'  => [
-				false,
-				[ 'mode' => SettingsBase::MODE_TABS ],
-				[
-					'mode'     => SettingsBase::MODE_TABS,
-					'parent'   => 'options-general.php',
-					'position' => 58.990225,
-				],
-			],
-			'Tab, pages mode'       => [
-				true,
-				[ 'mode' => SettingsBase::MODE_PAGES ],
-				[
-					'mode'     => SettingsBase::MODE_PAGES,
-					'parent'   => '',
-					'position' => 58.990225,
-				],
-			],
-			'Not a tab, pages mode' => [
-				false,
-				[ 'mode' => SettingsBase::MODE_PAGES ],
-				[
-					'mode'     => SettingsBase::MODE_PAGES,
-					'parent'   => '',
-					'position' => 58.990225,
-				],
-			],
-			'No mode'               => [
-				false,
-				[],
-				[
-					'mode'     => SettingsBase::MODE_PAGES,
-					'parent'   => '',
-					'position' => 58.990225,
-				],
-			],
-			'Wrong mode'            => [
-				false,
-				[ 'mode' => 'some' ],
-				[
-					'mode'     => SettingsBase::MODE_PAGES,
-					'parent'   => '',
-					'position' => 58.990225,
-				],
-			],
-			'Some parent'           => [
-				false,
-				[ 'parent' => 'some.php' ],
-				[
-					'mode'     => SettingsBase::MODE_PAGES,
-					'parent'   => 'some.php',
-					'position' => 58.990225,
-				],
-			],
-			'Some position'         => [
-				false,
-				[ 'position' => 99 ],
-				[
-					'mode'     => SettingsBase::MODE_PAGES,
-					'parent'   => '',
-					'position' => 99.0,
-				],
-			],
+			'Not a tab, pages mode, not network wide' => [ false, SettingsBase::MODE_PAGES, false ],
+			'Not a tab, pages mode, network wide'     => [ false, SettingsBase::MODE_PAGES, true ],
+			'Not a tab, tabs mode, not network wide'  => [ false, SettingsBase::MODE_TABS, false ],
+			'Not a tab, tabs mode, network wide'      => [ false, SettingsBase::MODE_TABS, true ],
+			'Tab, pages mode, not network wide'       => [ true, SettingsBase::MODE_PAGES, false ],
+			'Tab, pages mode, network wide'           => [ true, SettingsBase::MODE_PAGES, true ],
+			'Tab, tabs mode, not network wide'        => [ true, SettingsBase::MODE_TABS, false ],
+			'Tab, tabs mode, network wide'            => [ true, SettingsBase::MODE_TABS, true ],
+			'Not a tab, some mode, not network wide'  => [ false, 'some', false ],
+			'Not a tab, some mode, network wide'      => [ false, 'some', true ],
+			'Tab, some mode, not network wide'        => [ true, 'some', false ],
+			'Tab, some mode, network wide'            => [ true, 'some', true ],
 		];
 	}
 
@@ -336,6 +270,194 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test process_args().
+	 *
+	 * @param array $args     Arguments.
+	 * @param array $expected Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_process_args
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_args( array $args, $expected ) {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'process_args';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_menu_position' )->andReturn( SettingsBase::MODE_PAGES );
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( false );
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( true );
+
+		$subject->$method( $args );
+
+		$actual = [
+			'mode'     => $this->get_protected_property( $subject, 'admin_mode' ),
+			'parent'   => $this->get_protected_property( $subject, 'parent_slug' ),
+			'position' => $this->get_protected_property( $subject, 'position' ),
+		];
+
+		self::assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_process_args().
+	 *
+	 * @return array
+	 */
+	public function dp_test_process_args(): array {
+		return [
+			'Tabs mode'     => [
+				[ 'mode' => SettingsBase::MODE_TABS ],
+				[
+					'mode'     => SettingsBase::MODE_TABS,
+					'parent'   => 'options-general.php',
+					'position' => 58.990225,
+				],
+			],
+			'Pages mode'    => [
+				[ 'mode' => SettingsBase::MODE_PAGES ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'No mode'       => [
+				[],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'Wrong mode'    => [
+				[ 'mode' => 'some' ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 58.990225,
+				],
+			],
+			'Some parent'   => [
+				[ 'parent' => 'some.php' ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => 'some.php',
+					'position' => 58.990225,
+				],
+			],
+			'Some position' => [
+				[ 'position' => 99 ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 99.0,
+				],
+			],
+		];
+	}
+
+	/**
+	 * Test process_args() when network_wide.
+	 *
+	 * @param array $args     Arguments.
+	 * @param array $expected Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_process_args_when_network_wide
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_args_when_network_wide( array $args, $expected ) {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'process_args';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_menu_position' )->andReturn( SettingsBase::MODE_PAGES );
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( true );
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( true );
+
+		$subject->$method( $args );
+
+		$actual = [
+			'mode'     => $this->get_protected_property( $subject, 'admin_mode' ),
+			'parent'   => $this->get_protected_property( $subject, 'parent_slug' ),
+			'position' => $this->get_protected_property( $subject, 'position' ),
+		];
+
+		self::assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_process_args_when_network_wide().
+	 *
+	 * @return array
+	 */
+	public function dp_test_process_args_when_network_wide(): array {
+		return [
+			'Tabs mode'     => [
+				[ 'mode' => SettingsBase::MODE_TABS ],
+				[
+					'mode'     => SettingsBase::MODE_TABS,
+					'parent'   => 'settings.php',
+					'position' => 24.990225,
+				],
+			],
+			'Pages mode'    => [
+				[ 'mode' => SettingsBase::MODE_PAGES ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 24.990225,
+				],
+			],
+			'No mode'       => [
+				[],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 24.990225,
+				],
+			],
+			'Wrong mode'    => [
+				[ 'mode' => 'some' ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 24.990225,
+				],
+			],
+			'Some parent'   => [
+				[ 'parent' => 'some.php' ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => 'some.php',
+					'position' => 24.990225,
+				],
+			],
+			'Some position' => [
+				[ 'position' => 99 ],
+				[
+					'mode'     => SettingsBase::MODE_PAGES,
+					'parent'   => '',
+					'position' => 99.0,
+				],
+			],
+		];
+	}
+
+	/**
 	 * Test is_main_menu_page().
 	 *
 	 * @param array|null $tabs     Tabs.
@@ -483,10 +605,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_settings( $settings, bool $network_wide ) {
-		$option_name = 'hcaptcha_settings';
+		$option_name          = 'hcaptcha_settings';
+		$network_wide_setting = $network_wide ? [ 'on' ] : [];
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( $network_wide );
+		$subject->shouldReceive( 'get_network_wide' )->andReturn( $network_wide_setting );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 		$method = 'init_settings';
 		$this->set_method_accessibility( $subject, $method );
@@ -494,9 +619,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		if ( $settings ) {
 			$settings['_network_wide'] = $network_wide;
 		}
-
-		WP_Mock::userFunction( 'get_site_option' )->with( $option_name . '_network_wide', [] )->once()
-			->andReturn( $network_wide );
 
 		if ( empty( $network_wide ) ) {
 			WP_Mock::userFunction( 'get_option' )->with( $option_name, null )->once()->andReturn( $settings );
@@ -945,19 +1067,25 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test tabs_callback().
 	 *
+	 * @param bool $is_network_wide Is network wide.
+	 *
+	 * @dataProvider dp_test_tabs_callback
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_tabs_callback() {
-		$option_page        = 'hcaptcha';
-		$tab_option_page    = 'hcaptcha';
-		$subject_class_name = 'General';
-		$subject_page_title = 'General';
-		$tab_class_name     = 'Integrations';
-		$tab_page_title     = 'Integrations';
-		$subject_url        = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
-		$tab_url            = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
-		$subject_url_arg    = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
-		$tab_url_arg        = 'http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations';
+	public function test_tabs_callback( bool $is_network_wide ) {
+		$option_page         = 'hcaptcha';
+		$tab_option_page     = 'hcaptcha';
+		$subject_class_name  = 'General';
+		$subject_page_title  = 'General';
+		$tab_class_name      = 'Integrations';
+		$tab_page_title      = 'Integrations';
+		$subject_url         = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
+		$tab_url             = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
+		$network_url         = 'https://test.test/wp-admin/network/admin.php?page=hcaptcha';
+		$subject_url_arg     = 'http://test.test/wp-admin/admin.php?page=hcaptcha';
+		$tab_url_arg         = 'http://test.test/wp-admin/admin.php?page=hcaptcha&tab=integrations';
+		$network_url_arg     = 'http://test.test/wp-admin/network/admin.php?page=hcaptcha';
+		$network_tab_url_arg = 'http://test.test/wp-admin/network/admin.php?page=hcaptcha&tab=integrations';
 
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
@@ -968,6 +1096,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_network_wide' )->with()->andReturn( $is_network_wide );
 		$subject->shouldReceive( 'option_page' )->with()->andReturn( $option_page );
 		$subject->shouldReceive( 'get_class_name' )->with()->andReturn( $subject_class_name );
 		$subject->shouldReceive( 'page_title' )->with()->andReturn( $subject_page_title );
@@ -976,14 +1105,21 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'tabs', [ $tab ] );
 		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
+		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
 		WP_Mock::userFunction( 'menu_page_url' )
 			->with( $option_page, false )->andReturn( $subject_url );
 		WP_Mock::userFunction( 'menu_page_url' )
 			->with( $tab_option_page, false )->andReturn( $tab_url );
+		WP_Mock::userFunction( 'network_admin_url' )
+			->with( 'admin.php?page=' . $tab_option_page )->andReturn( $network_url );
 		WP_Mock::userFunction( 'add_query_arg' )
 			->with( 'tab', strtolower( $subject_class_name ), $subject_url )->andReturn( $subject_url_arg );
 		WP_Mock::userFunction( 'add_query_arg' )
 			->with( 'tab', strtolower( $tab_class_name ), $subject_url )->andReturn( $tab_url_arg );
+		WP_Mock::userFunction( 'add_query_arg' )
+			->with( 'tab', strtolower( $subject_class_name ), $network_url )->andReturn( $network_url_arg );
+		WP_Mock::userFunction( 'add_query_arg' )
+			->with( 'tab', strtolower( $tab_class_name ), $network_url )->andReturn( $network_tab_url_arg );
 
 		$expected = '		<div class="kagg-settings-tabs">
 			<span class="kagg-settings-links">
@@ -995,9 +1131,25 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					</div>
 		';
 
+		if ( $is_network_wide ) {
+			$expected = str_replace( 'admin.php', 'network/admin.php', $expected );
+		}
+
 		ob_start();
 		$subject->tabs_callback();
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Data provider for test_tabs_callback().
+	 *
+	 * @return array
+	 */
+	public function dp_test_tabs_callback(): array {
+		return [
+			'Not network wide' => [ false ],
+			'Network wide'     => [ true ],
+		];
 	}
 
 	/**
@@ -2606,9 +2758,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( false );
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
 		WP_Mock::userFunction( 'get_current_screen' )->with()->andReturn( $current_screen );
+		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
 
 		self::assertSame( $expected, $subject->is_options_screen() );
 	}
@@ -2629,6 +2783,44 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test is_options_screen() when network_wide.
+	 *
+	 * @param mixed   $current_screen Current admin screen.
+	 * @param boolean $expected       Expected result.
+	 *
+	 * @dataProvider dp_test_is_options_screen_when_network_wide
+	 */
+	public function test_is_options_screen_when_network_wide( $current_screen, bool $expected ) {
+		$option_page = 'hcaptcha';
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( true );
+		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
+
+		WP_Mock::userFunction( 'get_current_screen' )->with()->andReturn( $current_screen );
+		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
+
+		self::assertSame( $expected, $subject->is_options_screen() );
+	}
+
+	/**
+	 * Data provider for test_is_options_screen_when_network_wide().
+	 *
+	 * @return array
+	 */
+	public function dp_test_is_options_screen_when_network_wide(): array {
+		return [
+			'Current screen not set'        => [ null, false ],
+			'Wrong screen'                  => [ (object) [ 'id' => 'something-network' ], false ],
+			'Options screen'                => [ (object) [ 'id' => 'options-network' ], true ],
+			'Plugin screen'                 => [ (object) [ 'id' => 'settings_page_hcaptcha-network' ], true ],
+			'Plugin screen, main menu page' => [ (object) [ 'id' => 'toplevel_page_hcaptcha-network' ], true ],
+		];
+	}
+
+	/**
 	 * Test is_options_screen() when get_current_screen() does not exist.
 	 */
 	public function test_is_options_screen_when_get_current_screen_does_not_exist() {
@@ -2643,5 +2835,82 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 
 		self::assertFalse( $subject->is_options_screen() );
+	}
+
+	/**
+	 * Test get_network_wide().
+	 *
+	 * @return void
+	 */
+	public function test_get_network_wide() {
+		$option_name  = 'hcaptcha_settings';
+		$network_wide = [ 'on' ];
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'get_network_wide';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
+
+		WP_Mock::userFunction( 'get_site_option' )
+			->with( $option_name . SettingsBase::NETWORK_WIDE, [] )
+			->once()
+			->andReturn( $network_wide );
+
+		self::assertSame( $network_wide, $subject->$method() );
+		self::assertSame( $network_wide, $subject->$method() );
+	}
+
+	/**
+	 * Test is_network_wide().
+	 *
+	 * @return void
+	 */
+	public function test_is_network_wide() {
+		$network_wide = [ 'on' ];
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'is_network_wide';
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->shouldReceive( 'get_network_wide' )->andReturnUsing(
+			function () use ( &$network_wide ) {
+				return $network_wide;
+			}
+		);
+
+		self::assertTrue( $subject->$method() );
+
+		$network_wide = [];
+
+		self::assertFalse( $subject->$method() );
+	}
+
+	/**
+	 * Test get_menu_position().
+	 *
+	 * @return void
+	 */
+	public function test_get_menu_position() {
+		$menu_position = [ 'on' ];
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'get_menu_position';
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->shouldReceive( 'get' )->with( 'menu_position' )
+			->andReturnUsing(
+				function () use ( &$menu_position ) {
+					return $menu_position;
+				}
+			);
+
+		self::assertSame( SettingsBase::MODE_TABS, $subject->$method() );
+
+		$menu_position = [];
+
+		self::assertSame( SettingsBase::MODE_PAGES, $subject->$method() );
 	}
 }

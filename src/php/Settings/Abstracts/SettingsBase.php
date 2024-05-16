@@ -220,34 +220,7 @@ abstract class SettingsBase {
 	public function __construct( $tabs = [], $args = [] ) {
 		$this->tabs = $tabs;
 
-		$args = wp_parse_args(
-			$args,
-			[
-				'mode'     => [ 'on' ] === $this->get( 'menu_position' ) ? self::MODE_TABS : self::MODE_PAGES,
-				'parent'   => null,
-				'position' => null,
-			]
-		);
-
-		$this->admin_mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
-			$args['mode'] :
-			self::MODE_PAGES;
-
-		if ( null === $args['parent'] ) {
-			$wp_settings_slug  = is_multisite() && $this->is_network_wide() ? 'settings.php' : 'options-general.php';
-			$this->parent_slug = self::MODE_PAGES === $this->admin_mode ? '' : $wp_settings_slug;
-		} else {
-			$this->parent_slug = $args['parent'];
-		}
-
-		if ( null === $args['position'] ) {
-			$hash           = hexdec( sha1( self::PREFIX ) );
-			$pow            = floor( log10( $hash ) );
-			$position       = is_multisite() && $this->is_network_wide() ? self::NETWORK_WIDE_POSITION : self::POSITION;
-			$this->position = round( $position + $hash / 10 ** ( $pow + 4 ), 6 );
-		} else {
-			$this->position = (float) $args['position'];
-		}
+		$this->process_args( $args );
 
 		$this->fields = [
 			'text'     => [ $this, 'print_text_field' ],
@@ -320,6 +293,44 @@ abstract class SettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [];
+	}
+
+	/**
+	 * Process arguments.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return void
+	 */
+	protected function process_args( array $args ) {
+		$args = wp_parse_args(
+			$args,
+			[
+				'mode'     => $this->get_menu_position(),
+				'parent'   => null,
+				'position' => null,
+			]
+		);
+
+		$this->admin_mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
+			$args['mode'] :
+			self::MODE_PAGES;
+
+		if ( null === $args['parent'] ) {
+			$wp_settings_slug  = is_multisite() && $this->is_network_wide() ? 'settings.php' : 'options-general.php';
+			$this->parent_slug = self::MODE_PAGES === $this->admin_mode ? '' : $wp_settings_slug;
+		} else {
+			$this->parent_slug = $args['parent'];
+		}
+
+		if ( null === $args['position'] ) {
+			$hash           = hexdec( sha1( self::PREFIX ) );
+			$pow            = floor( log10( $hash ) );
+			$position       = is_multisite() && $this->is_network_wide() ? self::NETWORK_WIDE_POSITION : self::POSITION;
+			$this->position = round( $position + $hash / 10 ** ( $pow + 4 ), 6 );
+		} else {
+			$this->position = (float) $args['position'];
+		}
 	}
 
 	/**
@@ -1467,7 +1478,7 @@ abstract class SettingsBase {
 	 *
 	 * @return array
 	 */
-	private function get_network_wide(): array {
+	protected function get_network_wide(): array {
 		static $network_wide = null;
 
 		if ( null === $network_wide ) {
@@ -1482,7 +1493,16 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function is_network_wide(): bool {
+	protected function is_network_wide(): bool {
 		return ! empty( $this->get_network_wide() );
+	}
+
+	/**
+	 * Get menu position.
+	 *
+	 * @return string
+	 */
+	protected function get_menu_position(): string {
+		return [ 'on' ] === $this->get( 'menu_position' ) ? self::MODE_TABS : self::MODE_PAGES;
 	}
 }
