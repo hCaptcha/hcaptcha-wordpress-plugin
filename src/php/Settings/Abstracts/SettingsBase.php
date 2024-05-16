@@ -268,6 +268,7 @@ abstract class SettingsBase {
 	 */
 	protected function init_hooks() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
+		add_action( 'admin_page_access_denied', [ $this, 'base_admin_page_access_denied' ] );
 
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
@@ -584,6 +585,28 @@ abstract class SettingsBase {
 		);
 
 		$this->get_active_tab()->admin_enqueue_scripts();
+	}
+
+	/**
+	 * Filter denied access to the settings page.
+	 * It is needed when switching network_wide option.
+	 *
+	 * @return void
+	 */
+	public function base_admin_page_access_denied() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
+		if ( static::PREFIX !== $page ) {
+			return;
+		}
+
+		$url = is_multisite() && $this->is_network_wide() ?
+			network_admin_url( 'admin.php?page=' . $this->option_page() ) :
+			admin_url( 'admin.php?page=' . $this->option_page() );
+
+		wp_safe_redirect( $url );
+		exit();
 	}
 
 	/**
