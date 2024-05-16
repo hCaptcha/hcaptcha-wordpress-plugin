@@ -567,6 +567,7 @@ Instructions for popular native integrations are below:
 
 = 4.2.0 =
 * Added support for Multisite Network Admin synced with network-wide plugin options.
+* Fixed JS error on the Lost Password page.
 
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.

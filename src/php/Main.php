@@ -48,6 +48,11 @@ class Main {
 	const HANDLE = 'hcaptcha';
 
 	/**
+	 * WP hooks handle.
+	 */
+	const WP_HOOKS_HANDLE = 'wp-hooks';
+
+	/**
 	 * Main script localization object.
 	 */
 	const OBJECT = 'HCaptchaMainObject';
@@ -670,10 +675,11 @@ CSS;
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
+		wp_enqueue_script( self::WP_HOOKS_HANDLE );
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
-			[ 'wp-hooks' ],
+			[ self::WP_HOOKS_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
