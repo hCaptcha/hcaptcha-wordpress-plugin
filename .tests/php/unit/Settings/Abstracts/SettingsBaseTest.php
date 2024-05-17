@@ -924,7 +924,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
 		$subject->base_admin_page_access_denied();
 
-
 		$_GET['page'] = 'some';
 		$subject->base_admin_page_access_denied();
 
@@ -942,11 +941,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			);
 		$subject->base_admin_page_access_denied();
 
-
 		$is_network_wide = true;
 		WP_Mock::passthruFunction( 'network_admin_url' );
 		$subject->base_admin_page_access_denied();
-
 
 		$referer = 'some';
 		WP_Mock::userFunction( 'wp_safe_redirect' )->with( $url )->once();
