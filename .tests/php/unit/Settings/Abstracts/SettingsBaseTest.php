@@ -935,7 +935,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_get_raw_referer' )
 			->with()
 			->andReturnUsing(
-				static function () use( &$referer ) {
+				static function () use ( &$referer ) {
 					return $referer;
 				}
 			);
