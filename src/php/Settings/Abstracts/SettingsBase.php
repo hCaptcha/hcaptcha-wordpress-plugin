@@ -611,7 +611,18 @@ abstract class SettingsBase {
 		}
 
 		wp_safe_redirect( $url );
+		$this->exit();
+	}
+
+	/**
+	 * Exit wrapper for test purposes.
+	 *
+	 * @return void
+	 */
+	protected function exit() {
+		// @codeCoverageIgnoreStart
 		exit();
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**

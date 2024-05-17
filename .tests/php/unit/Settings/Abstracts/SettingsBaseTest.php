@@ -902,6 +902,59 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test base_admin_page_access_denied().
+	 *
+	 * @return void
+	 */
+	public function test_base_admin_page_access_denied() {
+		$is_network_wide = false;
+		$option_page     = 'hcaptcha';
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
+		$subject->shouldReceive( 'is_network_wide' )
+			->with()
+		->andReturnUsing(
+			static function () use ( &$is_network_wide ) {
+				return $is_network_wide;
+			}
+		);
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		$subject->base_admin_page_access_denied();
+
+
+		$_GET['page'] = 'some';
+		$subject->base_admin_page_access_denied();
+
+		$_GET['page'] = SettingsBase::PREFIX;
+		$url          = 'admin.php?page=' . $option_page;
+		$referer      = $url;
+		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
+		WP_Mock::passthruFunction( 'admin_url' );
+		WP_Mock::userFunction( 'wp_get_raw_referer' )
+			->with()
+			->andReturnUsing(
+				static function () use( &$referer ) {
+					return $referer;
+				}
+			);
+		$subject->base_admin_page_access_denied();
+
+
+		$is_network_wide = true;
+		WP_Mock::passthruFunction( 'network_admin_url' );
+		$subject->base_admin_page_access_denied();
+
+
+		$referer = 'some';
+		WP_Mock::userFunction( 'wp_safe_redirect' )->with( $url )->once();
+		$subject->shouldReceive( 'exit' )->once();
+		$subject->base_admin_page_access_denied();
+	}
+
+	/**
 	 * Test setup_sections().
 	 *
 	 * @param array $tabs Tabs.
