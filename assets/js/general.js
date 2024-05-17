@@ -103,7 +103,10 @@ const general = function( $ ) {
 	}
 
 	function getCleanConsoleLogs() {
-		const ignore = [ 'recaptchacompat disabled' ];
+		const ignore = [
+			'recaptchacompat disabled',
+			'Missing sitekey - https://hcaptcha.com/docs/configuration#jsapi',
+		];
 		const logs = [];
 
 		for ( let i = 0; i < consoleLogs.length; i++ ) {
