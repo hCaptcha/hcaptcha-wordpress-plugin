@@ -605,6 +605,11 @@ abstract class SettingsBase {
 			network_admin_url( 'admin.php?page=' . $this->option_page() ) :
 			admin_url( 'admin.php?page=' . $this->option_page() );
 
+		if ( wp_get_raw_referer() === $url ) {
+			// Prevent infinite loop.
+			return;
+		}
+
 		wp_safe_redirect( $url );
 		exit();
 	}
