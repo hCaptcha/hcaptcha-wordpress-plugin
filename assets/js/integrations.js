@@ -329,6 +329,7 @@ const integrations = function( $ ) {
 		function() {
 			const search = $search.val().trim().toLowerCase();
 			const $logo = $( '.hcaptcha-integrations-logo img' );
+			let $trFirst = null;
 
 			$logo.each( function( i, el ) {
 				const $el = $( el );
@@ -341,10 +342,22 @@ const integrations = function( $ ) {
 
 				if ( $el.data( 'label' ).toLowerCase().includes( search ) ) {
 					$tr.show();
+					$trFirst = $trFirst ?? $tr;
 				} else {
 					$tr.hide();
 				}
 			} );
+
+			if ( ! $trFirst ) {
+				return;
+			}
+
+			const scrollTop = $trFirst.offset().top + $trFirst.outerHeight() - $( window ).height() + 5;
+
+			$( 'html' ).stop().animate(
+				{ scrollTop },
+				1000
+			);
 		},
 		100
 	) );
