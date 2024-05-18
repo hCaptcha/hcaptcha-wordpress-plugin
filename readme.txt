@@ -567,6 +567,7 @@ Instructions for popular native integrations are below:
 
 = 4.2.0 =
 * Added support for Multisite Network Admin synced with network-wide plugin options.
+* Added scrolling of the Integrations page during search.
 * Fixed JS error on the Lost Password page.
 * Fixed missing site key notification on the General page.
 * Fixed color flickering of hCaptcha placeholder with custom themes.
