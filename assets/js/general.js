@@ -203,10 +203,16 @@ const general = function( $ ) {
 		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
 		sampleHCaptcha.innerHTML = '';
 
+		// Map the theme to the palette mode.
+		params.theme = params?.theme?.palette?.mode;
+
+		if ( ! params.theme ) {
+			// Remove the theme if it's not set.
+			delete params.theme;
+		}
+
 		for ( const key in params ) {
-			if ( typeof params[ key ] === 'string' ) {
-				sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
-			}
+			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
 		}
 
 		hCaptcha.bindEvents();
