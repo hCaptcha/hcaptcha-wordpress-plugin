@@ -107,6 +107,24 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Check if it is a Pro account.
+	 *
+	 * @return false
+	 */
+	public function is_pro(): bool {
+		return 'pro' === $this->get_license();
+	}
+
+	/**
+	 * Check if it is a Pro account or General admin page.
+	 *
+	 * @return bool
+	 */
+	public function is_pro_or_general(): bool {
+		return $this->is_pro() || ( is_admin() && 'General' === $this->get_active_tab_name() );
+	}
+
+	/**
 	 * Get config params.
 	 *
 	 * @return array
@@ -273,13 +291,18 @@ class Settings implements SettingsInterface {
 	 * @return string
 	 */
 	public function get_theme(): string {
+		$theme = $this->get( 'theme' );
+
+		if ( $this->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
+			$theme = $this->get_config_params()['theme']['palette']['mode'] ?? $theme;
+		}
 
 		/**
 		 * Filters the current theme to get a relevant key pair.
 		 *
 		 * @param string $mode Current theme.
 		 */
-		return (string) apply_filters( 'hcap_theme', $this->get( 'theme' ) );
+		return (string) apply_filters( 'hcap_theme', $theme );
 	}
 
 	/**

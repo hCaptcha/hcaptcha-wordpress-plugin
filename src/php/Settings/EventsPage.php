@@ -97,7 +97,9 @@ class EventsPage extends ListPageBase {
 	 * @return void
 	 */
 	public function admin_init() {
-		$this->allowed = ( hcaptcha()->settings()->is_on( 'statistics' ) && hcaptcha()->is_pro() );
+		$settings = hcaptcha()->settings();
+
+		$this->allowed = ( $settings->is_on( 'statistics' ) && $settings->is_pro() );
 
 		if ( ! $this->allowed ) {
 			return;

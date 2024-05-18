@@ -254,15 +254,6 @@ class Main {
 	}
 
 	/**
-	 * Check if it is a Pro account.
-	 *
-	 * @return false
-	 */
-	public function is_pro(): bool {
-		return 'pro' === $this->settings->get_license();
-	}
-
-	/**
 	 * Whether we are on the Elementor Pro edit post/page and hCaptcha for Elementor Pro is active.
 	 *
 	 * @return bool
@@ -496,6 +487,20 @@ class Main {
 	}
 CSS;
 
+		$settings = $this->settings();
+
+		if ( $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
+			$bg = $settings->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? '';
+
+			if ( $bg ) {
+				$css .= <<<CSS
+	.h-captcha::before {
+		background-color: $bg !important;	
+	}
+CSS;
+			}
+		}
+
 		HCaptcha::css_display( $css );
 	}
 
@@ -577,7 +582,7 @@ CSS;
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
+		if ( $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
 			$params['custom'] = 'true';
 		}
 
@@ -698,11 +703,9 @@ CSS;
 			$params['hl'] = $language;
 		}
 
-		$config_params = [];
-
-		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
-			$config_params = $settings->get_config_params();
-		}
+		$config_params = $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general()
+			? $settings->get_config_params()
+			: [];
 
 		$params = array_merge( $params, $config_params );
 
@@ -1363,14 +1366,5 @@ CSS;
 	 */
 	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
-	}
-
-	/**
-	 * Whether option is allowed to use.
-	 *
-	 * @return bool
-	 */
-	private function is_pro_or_general(): bool {
-		return $this->is_pro() || ( is_admin() && 'General' === $this->settings->get_active_tab_name() );
 	}
 }

@@ -247,7 +247,7 @@ class Notifications {
 			unset( $this->notifications['register'] );
 		}
 
-		if ( hcaptcha()->is_pro() ) {
+		if ( $settings->is_pro() ) {
 			unset( $this->notifications['pro-free-trial'] );
 		}
 
