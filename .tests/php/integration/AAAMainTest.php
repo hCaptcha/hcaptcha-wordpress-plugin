@@ -410,8 +410,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 */
 	public function test_csp_headers() {
 		$headers  = [
-			'some_header'             => 'some header content',
-			'Content-Security-Policy' => "default-src 'self'",
+			'some_header' => 'some header content',
 		];
 		$expected = $headers;
 		$hcap_csp = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
@@ -423,17 +422,29 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			"connect-src $hcap_csp; " .
 			"default-src 'self'";
 
+		$subject = new Main();
+
+		// The 'hcap_add_csp_headers' filter is not added.
+		self::assertSame( $headers, $subject->csp_headers( $headers ) );
+
 		add_filter(
 			'hcap_add_csp_headers',
-			static function ( $add, $h ) use ( $headers ) {
+			static function ( $add, $h ) use ( &$headers ) {
 				return $h === $headers;
 			},
 			10,
 			2
 		);
 
-		$subject = new Main();
+		// The 'Content-Security-Policy' key is not in headers.
+		self::assertSame( $headers, $subject->csp_headers( $headers ) );
 
+		$headers = [
+			'some_header'             => 'some header content',
+			'Content-Security-Policy' => "default-src 'self'",
+		];
+
+		// The 'Content-Security-Policy' key is in headers.
 		self::assertSame( $expected, $subject->csp_headers( $headers ) );
 	}
 
