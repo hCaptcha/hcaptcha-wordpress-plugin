@@ -440,9 +440,38 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test print_inline_styles().
 	 *
+	 * @param string|false $custom_themes Custom themes option value.
+	 *
+	 * @dataProvider dp_test_print_inline_styles
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles( $custom_themes ) {
+		$license       = 'pro';
+		$bg            = '#f0f0f0';
+		$config_params = 'on' === $custom_themes
+			? [
+				'theme' => [
+					'component' => [
+						'checkbox' => [
+							'main' => [
+								'fill' => $bg,
+							],
+						],
+					],
+				],
+			]
+			: [];
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'custom_themes' => $custom_themes ? [ $custom_themes ] : [],
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+				'config_params' => json_encode( $config_params ),
+				'license'       => $license,
+			]
+		);
+
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_url_white = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
@@ -536,15 +565,37 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 CSS;
 
+		if ( $custom_themes ) {
+			$expected .= <<<CSS
+	.h-captcha::before {
+		background-color: $bg !important;	
+	}
+CSS;
+		}
+
 		$expected = "<style>\n$expected\n</style>\n";
 
 		$subject = new Main();
+
+		$subject->init_hooks();
 
 		ob_start();
 
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Data provider for test_print_inline_styles().
+	 *
+	 * @return array
+	 */
+	public function dp_test_print_inline_styles(): array {
+		return [
+			[ false ],
+			[ 'on' ],
+		];
 	}
 
 	/**
