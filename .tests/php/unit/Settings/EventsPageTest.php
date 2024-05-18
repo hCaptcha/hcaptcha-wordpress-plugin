@@ -99,7 +99,7 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		$settings->shouldReceive( 'is_on' )->with( 'statistics' )->andReturn( $statistics );
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
-		$main->shouldReceive( 'is_pro' )->andReturn( $is_pro );
+		$settings->shouldReceive( 'is_pro' )->andReturn( $is_pro );
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'option_page' )->times( $times )->andReturn( $option_page );
 		$subject->shouldReceive( 'prepare_chart_data' )->times( $times );
