@@ -204,7 +204,9 @@ const general = function( $ ) {
 		sampleHCaptcha.innerHTML = '';
 
 		for ( const key in params ) {
-			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
+			if ( typeof params[ key ] === 'string' ) {
+				sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
+			}
 		}
 
 		hCaptcha.bindEvents();
