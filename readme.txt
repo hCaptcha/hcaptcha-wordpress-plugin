@@ -569,6 +569,7 @@ Instructions for popular native integrations are below:
 * Added support for Multisite Network Admin synced with network-wide plugin options.
 * Fixed JS error on the Lost Password page.
 * Fixed missing site key notification on the General page.
+* Fixed color flickering of hCaptcha placeholder with custom themes.
 
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.
