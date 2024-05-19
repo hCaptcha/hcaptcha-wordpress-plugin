@@ -828,12 +828,12 @@ CSS;
 			],
 			'Affiliates Login'                     => [
 				[ 'affiliates_status', 'login' ],
-				[ 'affiliates/affiliates.php' ],
+				'affiliates/affiliates.php',
 				Affiliates\Login::class,
 			],
 			'Affiliates Register'                  => [
 				[ 'affiliates_status', 'register' ],
-				[ 'affiliates/affiliates.php' ],
+				'affiliates/affiliates.php',
 				Affiliates\Register::class,
 			],
 			'Asgaros Form'                         => [
@@ -1318,7 +1318,7 @@ CSS;
 	 *
 	 * @return bool
 	 */
-	private function plugin_or_theme_active( $plugin_or_theme_names ): bool {
+	public function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
 			if ( '' === $plugin_or_theme_name ) {
 				// WP Core is always active.

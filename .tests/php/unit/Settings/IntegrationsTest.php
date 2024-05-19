@@ -483,21 +483,27 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test process_plugins() with activation.
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_process_activate_plugins() {
-		$activate    = true;
-		$plugins     = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
-		$plugin_name = 'ACF Extended';
+		$activate     = true;
+		$plugins      = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugin_name  = 'ACF Extended';
+		$plugins_tree = [ 'acf-extended-pro/acf-extended.php' => [] ];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$this->set_protected_property( $subject, 'plugins_tree', $plugins_tree );
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( false );
+		$subject->shouldReceive( 'plugin_names_from_tree' )
+			->with( $plugins_tree )->once()->andReturn( [ $plugin_name ] );
 
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( [ 'message' => 'Error activating ACF Extended plugin.' ] )->once();
 		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'ACF Extended plugin is activated.' ] )->once();
 		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'ACF Extended plugin is deactivated.' ] )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )
+			->with( [ 'message' => 'ACF Extended plugin is deactivated.' ] )->once();
 
 		$subject->process_plugins( $activate, $plugins, $plugin_name );
 	}
@@ -547,15 +553,30 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_plugins() {
-		$plugins = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugins      = [
+			'acf-extended-pro/acf-extended.php',
+			'acf-extended/acf-extended.php',
+		];
+		$plugin_trees = [
+			$plugins[0] => [],
+			$plugins[1] => [],
+		];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'activate_plugins';
 
-		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[0] )->once()->andReturn( false );
-		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[1] )->once()->andReturn( null );
+		$subject->shouldAllowMockingProtectedMethods();
 
-		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		$subject->shouldReceive( 'build_plugins_tree' )
+			->with( $plugins[0] )->once()->andReturn( $plugin_trees[ $plugins[0] ] );
+		$subject->shouldReceive( 'build_plugins_tree' )
+			->with( $plugins[1] )->once()->andReturn( $plugin_trees[ $plugins[1] ] );
+
+		$subject->shouldReceive( 'activate_plugin_tree' )
+			->with( $plugin_trees[ $plugins[0] ] )->once()->andReturn( false );
+		$subject->shouldReceive( 'activate_plugin_tree' )
+			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( null );
+
 		self::assertTrue( $subject->$method( $plugins ) );
 	}
 
@@ -565,15 +586,30 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_plugins_when_no_such_plugins() {
-		$plugins = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugins      = [
+			'acf-extended-pro/acf-extended.php',
+			'acf-extended/acf-extended.php',
+		];
+		$plugin_trees = [
+			$plugins[0] => [],
+			$plugins[1] => [],
+		];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'activate_plugins';
 
-		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[0] )->once()->andReturn( false );
-		WP_Mock::userFunction( 'activate_plugin' )->with( $plugins[1] )->once()->andReturn( false );
+		$subject->shouldAllowMockingProtectedMethods();
 
-		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		$subject->shouldReceive( 'build_plugins_tree' )
+			->with( $plugins[0] )->once()->andReturn( $plugin_trees[ $plugins[0] ] );
+		$subject->shouldReceive( 'build_plugins_tree' )
+			->with( $plugins[1] )->once()->andReturn( $plugin_trees[ $plugins[1] ] );
+
+		$subject->shouldReceive( 'activate_plugin_tree' )
+			->with( $plugin_trees[ $plugins[0] ] )->once()->andReturn( false );
+		$subject->shouldReceive( 'activate_plugin_tree' )
+			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( false );
+
 		self::assertFalse( $subject->$method( $plugins ) );
 	}
 
