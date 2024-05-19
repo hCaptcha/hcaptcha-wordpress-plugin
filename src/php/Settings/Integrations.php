@@ -973,7 +973,7 @@ class Integrations extends PluginSettingsBase {
 		$wp_dependencies  = $this->plugin_dirs_to_slugs(
 			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
 		);
-		$dependencies     = (array) ( self::PLUGIN_DEPENDENCIES['plugin'] ?? [] );
+		$dependencies     = (array) ( self::PLUGIN_DEPENDENCIES[ $plugin ] ?? [] );
 
 		return array_merge( $wp_dependencies, $dependencies );
 	}
@@ -1032,6 +1032,11 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		$plugin_name = $this->form_fields[ $status ]['label'] ?? '';
+
+		if ( ! $plugin_name ) {
+			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $node['plugin'] );
+			$plugin_name = $plugin_data['Name'] ?? '';
+		}
 
 		return array_unique( array_merge( [ $plugin_name ], $plugin_names ) );
 	}
