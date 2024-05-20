@@ -968,7 +968,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function plugin_dependencies( string $plugin ): array {
-		$plugin_headers   = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
+		$plugin_headers   = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin );
 		$requires_plugins = $plugin_headers['RequiresPlugins'] ?? '';
 		$wp_dependencies  = $this->plugin_dirs_to_slugs(
 			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
@@ -985,7 +985,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function plugin_dirs_to_slugs( array $dirs ): array {
+	protected function plugin_dirs_to_slugs( array $dirs ): array {
 		if ( ! $dirs ) {
 			return $dirs;
 		}
@@ -1034,7 +1034,7 @@ class Integrations extends PluginSettingsBase {
 		$plugin_name = $this->form_fields[ $status ]['label'] ?? '';
 
 		if ( ! $plugin_name ) {
-			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $node['plugin'] );
+			$plugin_data = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $node['plugin'] );
 			$plugin_name = $plugin_data['Name'] ?? '';
 		}
 
@@ -1111,7 +1111,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function get_activation_stati(): array {
+	protected function get_activation_stati(): array {
 		$stati = [];
 
 		foreach ( hcaptcha()->modules as $module ) {
