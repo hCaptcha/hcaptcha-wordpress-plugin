@@ -19,11 +19,13 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const defaultChoice = filterForm.querySelector( 'input[type="radio"][data-default]' );
 
 	function bindEvents() {
-		wrapper.addEventListener( 'submit', onSubmitDatepicker );
-		wrapper.querySelector( '[type="reset"]' ).addEventListener( 'click', onResetDatepicker );
+		document.addEventListener( 'click', onClickOutside );
+		wrapper.querySelector( '#hcaptcha-datepicker-popover-button' ).addEventListener( 'click', onToggle );
 		wrapper.querySelectorAll( '[type="radio"]' ).forEach( function( input ) {
 			input.addEventListener( 'change', onUpdateDatepicker );
 		} );
+		wrapper.querySelector( '[type="reset"]' ).addEventListener( 'click', onResetDatepicker );
+		wrapper.addEventListener( 'submit', onSubmitDatepicker );
 	}
 
 	function onSubmitDatepicker( event ) {
@@ -55,9 +57,38 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		el.style.display = 'none';
 	}
 
-	function selectDatepickerChoice( $this ) {
-		filterForm.querySelector( 'label' ).classList.remove( classNames.selected );
-		$this.classList.add( classNames.selected );
+	function onToggle( event ) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const selectorElement = event.target.nextElementSibling;
+
+		// Toggle the visibility of the matched element.
+		if ( selectorElement.style.display === 'none' || selectorElement.style.display === '' ) {
+			selectorElement.style.display = 'block';
+		} else {
+			selectorElement.style.display = 'none';
+		}
+
+		// When the dropdown is open, aria-expanded="true".
+		selectorElement.setAttribute( 'aria-expanded', selectorElement.style.display === 'block' );
+	}
+
+	function onClickOutside( event ) {
+		const selector = document.querySelector( '.hcaptcha-datepicker-popover' );
+
+		// Check if the click is outside the target element.
+		if ( ! selector.contains( event.target ) ) {
+			selector.style.display = 'none'; // hide the element
+		}
+	}
+
+	function selectDatepickerChoice( element ) {
+		filterForm.querySelectorAll( 'label' ).forEach( function( label ) {
+			label.classList.remove( classNames.selected );
+		} );
+
+		element.classList.add( classNames.selected );
 	}
 
 	function onResetDatepicker( event ) {

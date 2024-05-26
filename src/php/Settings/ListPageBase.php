@@ -106,6 +106,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 			true
 		);
 
+		wp_enqueue_style(
+			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/settings-list-page-base$min.css",
+			[],
+			HCAPTCHA_VERSION
+		);
+
 		wp_enqueue_script(
 			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/settings-list-page-base$min.js",
