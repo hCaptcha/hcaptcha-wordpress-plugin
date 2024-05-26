@@ -154,7 +154,7 @@ class Events {
 	public static function get_forms( array $args = [] ): array {
 		global $wpdb;
 
-		$args       = wp_parse_args(
+		$args = wp_parse_args(
 			$args,
 			[
 				'offset'  => 0,
@@ -164,18 +164,27 @@ class Events {
 				'dates'   => [],
 			]
 		);
-		$where_date = empty( $args['dates'] )
-			? '1=1'
-			: sprintf(
+
+		if ( $args['dates'] ) {
+			$args['dates'][1] = $args['dates'][1] ?? $args['dates'][0];
+
+			$args['dates'][0] .= ' 00:00:00';
+			$args['dates'][1] .= ' 23:59:59';
+
+			$where_date = sprintf(
 				"date_gmt BETWEEN '%s' AND '%s'",
 				esc_sql( $args['dates'][0] ),
 				esc_sql( $args['dates'][1] )
 			);
-		$order      = strtoupper( $args['order'] );
-		$order      = 'ASC' === $order ? '' : $order;
-		$orderby    = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
-		$offset     = absint( $args['offset'] );
-		$limit      = absint( $args['limit'] );
+		} else {
+			$where_date = '1=1';
+		}
+
+		$order   = strtoupper( $args['order'] );
+		$order   = 'ASC' === $order ? '' : $order;
+		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
+		$offset  = absint( $args['offset'] );
+		$limit   = absint( $args['limit'] );
 
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
 

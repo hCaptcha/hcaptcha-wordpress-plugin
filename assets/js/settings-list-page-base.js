@@ -21,6 +21,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	function bindEvents() {
 		wrapper.addEventListener( 'submit', onSubmitDatepicker );
 		wrapper.querySelector( '[type="reset"]' ).addEventListener( 'click', onResetDatepicker );
+		wrapper.querySelectorAll( '[type="radio"]' ).forEach( function( input ) {
+			input.addEventListener( 'change', onUpdateDatepicker );
+		} );
 	}
 
 	function onSubmitDatepicker( event ) {
@@ -69,10 +72,11 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 		defaultChoice.checked = true;
 
-		updateDatepicker();
+		onUpdateDatepicker();
 	}
 
-	function updateDatepicker( isCustomDates = false ) {
+	// eslint-disable-next-line no-unused-vars
+	function onUpdateDatepicker( event = {}, isCustomDates = false ) {
 		const selected = filterForm.querySelector( 'input:checked' );
 		const parent = selected.parentElement;
 		const target = isCustomDates ? datepicker : selected;
@@ -122,7 +126,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		} );
 
 		// Determine if a custom date range was provided or selected.
-		updateDatepicker( filterForm.querySelector( 'input[value="custom"]' ).checked );
+		onUpdateDatepicker( {}, filterForm.querySelector( 'input[value="custom"]' ).checked );
 	}
 
 	bindEvents();
