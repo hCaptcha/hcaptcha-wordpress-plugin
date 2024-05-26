@@ -125,21 +125,7 @@ class EventsPage extends ListPageBase {
 			return;
 		}
 
-		wp_enqueue_script(
-			'chart',
-			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chart.umd.min.js',
-			[],
-			'v4.4.2',
-			true
-		);
-
-		wp_enqueue_script(
-			'chart-adapter-date-fns',
-			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chartjs-adapter-date-fns.bundle.min.js',
-			[ 'chart' ],
-			'v3.0.0',
-			true
-		);
+		parent::admin_enqueue_scripts();
 
 		wp_enqueue_script(
 			self::HANDLE,
