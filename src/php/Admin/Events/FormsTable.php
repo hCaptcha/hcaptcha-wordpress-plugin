@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Admin\Events;
 
+use HCaptcha\Settings\ListPageBase;
 use WP_List_Table;
 
 // If this file is called directly, abort.
@@ -153,9 +154,24 @@ class FormsTable extends WP_List_Table {
 	 */
 	public function get_sortable_columns(): array {
 		return [
-			'name'    => [ 'name', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
-			'form_id' => [ 'form_id', false, __( 'Form Id', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Form Id.' ) ],
-			'served'  => [ 'served', false, __( 'Served', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Served Count.' ) ],
+			'name'    => [
+				'name',
+				false,
+				__( 'Source', 'hcaptcha-for-forms-and-more' ),
+				__( 'Table ordered by Source.' ),
+			],
+			'form_id' => [
+				'form_id',
+				false,
+				__( 'Form Id', 'hcaptcha-for-forms-and-more' ),
+				__( 'Table ordered by Form Id.' ),
+			],
+			'served'  => [
+				'served',
+				false,
+				__( 'Served', 'hcaptcha-for-forms-and-more' ),
+				__( 'Table ordered by Served Count.' ),
+			],
 		];
 	}
 
@@ -171,8 +187,13 @@ class FormsTable extends WP_List_Table {
 		$paged   = isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1;
 		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'ASC';
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'source';
+		$date    = isset( $_GET['date'] )
+			? filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: ''; // We need filter_input here to keep delimiter intact.
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
+		$dates    = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
+		$dates    = array_filter( array_map( 'trim', $dates ) );
 		$per_page = $this->get_items_per_page( self::FORMS_PER_PAGE, $this->per_page_default );
 		$offset   = ( $paged - 1 ) * $per_page;
 		$args     = [
@@ -180,6 +201,7 @@ class FormsTable extends WP_List_Table {
 			'limit'   => $per_page,
 			'order'   => $order,
 			'orderby' => $orderby,
+			'dates'   => $dates,
 		];
 
 		$forms        = Events::get_forms( $args );

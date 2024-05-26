@@ -16,12 +16,14 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const datepicker = document.getElementById( 'hcaptcha-datepicker' );
 	const filterForm = document.querySelector( '.hcaptcha-filter' );
 	const filterBtn = document.getElementById( 'hcaptcha-datepicker-popover-button' );
+	const defaultChoice = filterForm.querySelector( 'input[type="radio"][data-default]' );
 
 	function bindEvents() {
-		wrapper.addEventListener( 'submit', handleOnSubmitDatepicker );
+		wrapper.addEventListener( 'submit', onSubmitDatepicker );
+		wrapper.querySelector( '[type="reset"]' ).addEventListener( 'click', onResetDatepicker );
 	}
 
-	function handleOnSubmitDatepicker( event ) {
+	function onSubmitDatepicker( event ) {
 		event.preventDefault();
 
 		// Exclude radio inputs from the form submission.
@@ -36,9 +38,12 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		const currentUrl = new URL( window.location.href );
 		const searchParams = currentUrl.searchParams;
 
-		// Replace 'newDateValue' with the actual value.
+		// Set date URL arg.
 		searchParams.delete( 'date' );
-		searchParams.append( 'date', 'newDateValue' );
+
+		if ( datepicker.value ) {
+			searchParams.append( 'date', datepicker.value );
+		}
 		window.location.href = currentUrl.toString();
 	}
 
@@ -52,7 +57,22 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		$this.classList.add( classNames.selected );
 	}
 
-	function handleOnUpdateDatepicker( isCustomDates = false ) {
+	function onResetDatepicker( event ) {
+		event.preventDefault();
+
+		// Return the form to its original state.
+		// filterForm.reset();
+
+		// Remove the popover from the view.
+		// When the dropdown is closed, aria-expended="false".
+		// hideElement( filterBtn.nextElementSibling );
+
+		defaultChoice.checked = true;
+
+		updateDatepicker();
+	}
+
+	function updateDatepicker( isCustomDates = false ) {
 		const selected = filterForm.querySelector( 'input:checked' );
 		const parent = selected.parentElement;
 		const target = isCustomDates ? datepicker : selected;
@@ -102,7 +122,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		} );
 
 		// Determine if a custom date range was provided or selected.
-		handleOnUpdateDatepicker( filterForm.querySelector( 'input[value="custom"]' ).checked );
+		updateDatepicker( filterForm.querySelector( 'input[value="custom"]' ).checked );
 	}
 
 	bindEvents();

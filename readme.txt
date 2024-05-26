@@ -1,7 +1,7 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect form
-Requires at least: 5.1
+Requires at least: 5.3
 Tested up to: 6.5
 Requires PHP: 7.0.0
 Stable tag: 4.1.2
@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.2.0 =
+* The minimum required WordPress version is now 5.3.
 * Added support for Multisite Network Admin synced with network-wide plugin options.
 * Added scrolling of the Integrations page during search.
 * Added automatic activation of dependent plugins on the Integrations page.

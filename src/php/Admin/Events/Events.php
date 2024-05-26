@@ -38,7 +38,7 @@ class Events {
 			return;
 		}
 
-		add_action( 'hcap_verify_request', [ $this, 'save_event' ], - PHP_INT_MAX, 2 );
+		add_action( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
 	}
 
 	/**
@@ -122,14 +122,20 @@ class Events {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS $columns FROM $table_name $orderby LIMIT %d, %d",
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT
+						SQL_CALC_FOUND_ROWS
+    					$columns
+						FROM $table_name $orderby
+						LIMIT %d, %d",
 				$offset,
 				$limit
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			)
 		);
 
 		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return [
@@ -148,37 +154,52 @@ class Events {
 	public static function get_forms( array $args = [] ): array {
 		global $wpdb;
 
-		$args    = wp_parse_args(
+		$args       = wp_parse_args(
 			$args,
 			[
 				'offset'  => 0,
 				'limit'   => 20,
 				'order'   => 'ASC',
 				'orderby' => '',
+				'dates'   => [],
 			]
 		);
-		$order   = strtoupper( $args['order'] );
-		$order   = 'ASC' === $order ? '' : $order;
-		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
-		$offset  = absint( $args['offset'] );
-		$limit   = absint( $args['limit'] );
+		$where_date = empty( $args['dates'] )
+			? '1=1'
+			: sprintf(
+				"date_gmt BETWEEN '%s' AND '%s'",
+				esc_sql( $args['dates'][0] ),
+				esc_sql( $args['dates'][1] )
+			);
+		$order      = strtoupper( $args['order'] );
+		$order      = 'ASC' === $order ? '' : $order;
+		$orderby    = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
+		$offset     = absint( $args['offset'] );
+		$limit      = absint( $args['limit'] );
 
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS id, source, form_id, COUNT(*) as served FROM $table_name GROUP BY source, form_id $orderby LIMIT %d, %d",
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT
+						SQL_CALC_FOUND_ROWS
+    					source, form_id, COUNT(*) as served
+						FROM $table_name
+						WHERE $where_date
+						GROUP BY source, form_id $orderby
+						LIMIT %d, %d",
 				$offset,
 				$limit
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			)
 		);
 
 		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-		$where = 'WHERE 1=0';
+		$where = '1=0';
 
 		foreach ( $results as $result ) {
 			$source  = esc_sql( $result->source );
@@ -187,11 +208,16 @@ class Events {
 			$where .= " OR (source='$source' AND form_id='$form_id')";
 		}
 
+		$where = "($where) AND " . $where_date;
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT date_gmt FROM $table_name $where"
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT date_gmt FROM $table_name WHERE $where"
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
+
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return [
 			'items'  => $results,

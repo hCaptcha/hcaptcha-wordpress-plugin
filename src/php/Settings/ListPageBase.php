@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use DateTimeImmutable;
 use HCaptcha\Helpers\Utils;
 
 /**
@@ -15,7 +16,27 @@ use HCaptcha\Helpers\Utils;
  * Settings page with a list.
  */
 abstract class ListPageBase extends PluginSettingsBase {
+
+	/**
+	 * Base handle.
+	 */
 	const SETTINGS_LIST_PAGE_BASE_HANDLE = 'settings-list-page-base';
+
+	/**
+	 * Number of timespan days by default.
+	 * "Last 30 Days", by default.
+	 */
+	const DEFAULT_TIMESPAN_DAYS = '30';
+
+	/**
+	 * Timespan (date range) delimiter.
+	 */
+	const TIMESPAN_DELIMITER = ' - ';
+
+	/**
+	 * Default date format.
+	 */
+	const DATE_FORMAT = 'Y-m-d';
 
 	/**
 	 * Get suggested data format from items array.
@@ -97,7 +118,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
 			'HCaptchaFlatPickerObject',
 			[
-				'delimiter' => ' - ',
+				'delimiter' => self::TIMESPAN_DELIMITER,
 				'locale'    => Utils::get_language_code(),
 			]
 		);
@@ -109,28 +130,19 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * @return void
 	 */
 	protected function date_picker_display() {
-		$chosen_filter = 'Last 30 days';
-		$value         = '2024-04-21 - 2024-05-21';
-		$choices       = [
-			'<label class="">Today<input type="radio" aria-hidden="true" name="timespan" value="2024-05-21 - 2024-05-21" ></label>',
-			'<label class="">Yesterday<input type="radio" aria-hidden="true" name="timespan" value="2024-05-20 - 2024-05-21" ></label>',
-			'<label class="">Last 7 days<input type="radio" aria-hidden="true" name="timespan" value="2024-05-14 - 2024-05-21" ></label>',
-			'<label class="is-selected">Last 30 days<input type="radio" aria-hidden="true" name="timespan" value="2024-04-21 - 2024-05-21" checked="checked"></label>',
-			'<label class="">Last 90 days<input type="radio" aria-hidden="true" name="timespan" value="2024-02-21 - 2024-05-21" ></label>',
-			'<label class="">Last 1 year<input type="radio" aria-hidden="true" name="timespan" value="2023-05-22 - 2024-05-21" ></label>',
-			'<label class="">Custom<input type="radio" aria-hidden="true" name="timespan" value="custom" ></label>',
-		];
+		list( $choices, $chosen_filter, $value ) = $this->process_datepicker_choices();
 
 		// An array of allowed HTML elements and attributes for the datepicker choices.
 		$choices_allowed_html = [
 			'li'    => [],
 			'label' => [],
 			'input' => [
-				'type'        => [],
-				'name'        => [],
-				'value'       => [],
-				'checked'     => [],
-				'aria-hidden' => [],
+				'type'         => [],
+				'name'         => [],
+				'value'        => [],
+				'checked'      => [],
+				'aria-hidden'  => [],
+				'data-default' => [],
 			],
 		];
 
@@ -169,5 +181,215 @@ abstract class ListPageBase extends PluginSettingsBase {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Sets the timespan (or date range) for performing mysql queries.
+	 *
+	 * Includes:
+	 * 1. A list of date filter options for the datepicker module.
+	 * 2. Currently selected filter or date range values. Last "X" days, or i.e. Feb 8, 2023 - Mar 9, 2023.
+	 * 3. Assigned timespan dates.
+	 *
+	 * @param array|null $timespan Given timespan (dates) preferably in WP timezone.
+	 *
+	 * @return array
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpSameParameterValueInspection
+	 * @noinspection HtmlUnknownAttribute
+	 */
+	private function process_datepicker_choices( $timespan = null ): array {
+		// Retrieve and validate timespan if none is given.
+		if ( empty( $timespan ) || ! is_array( $timespan ) ) {
+			$timespan = $this->process_timespan();
+		}
+
+		list( $start_date, $end_date, $days ) = $timespan;
+
+		$filters       = $this->get_date_filter_choices();
+		$selected      = isset( $filters[ $days ] ) ? $days : 'custom';
+		$value         = $this->concat_dates( $start_date, $end_date );
+		$chosen_filter = 'custom' === $selected ? $value : $filters[ $selected ];
+		$choices       = [];
+
+		foreach ( $filters as $choice => $label ) {
+			$timespan_dates = $this->get_timespan_dates( $choice );
+			$checked        = checked( $selected, $choice, false );
+			$default        = (int) self::DEFAULT_TIMESPAN_DAYS === $choice ? 'data-default' : '';
+			$choices[]      = sprintf(
+				'<label %s>%s<input type="radio" aria-hidden="true" name="timespan" value="%s" %s %s></label>',
+				$checked ? 'class="is-selected"' : '',
+				esc_html( $label ),
+				esc_attr( $this->concat_dates( ...$timespan_dates ) ),
+				esc_attr( $checked ),
+				esc_attr( $default )
+			);
+		}
+
+		return [ $choices, $chosen_filter, $value ];
+	}
+
+	/**
+	 * Sets the timespan (or date range) selected.
+	 *
+	 * Includes:
+	 * 1. Start date object in WP timezone.
+	 * 2. End date object in WP timezone.
+	 * 3. Number of "Last X days", if applicable, otherwise returns "custom".
+	 * 4. Label associated with the selected date filter choice. @see "get_date_filter_choices".
+	 *
+	 * @return array
+	 */
+	private function process_timespan(): array {
+		$dates = (string) filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		// Return default timespan if dates are empty.
+		if ( empty( $dates ) ) {
+			return $this->get_timespan_dates( self::DEFAULT_TIMESPAN_DAYS );
+		}
+
+		$dates = $this->maybe_validate_string_timespan( $dates );
+
+		list( $start_date, $end_date ) = explode( self::TIMESPAN_DELIMITER, $dates );
+
+		// Return default timespan if the start date is more recent than the end date.
+		if ( strtotime( $start_date ) > strtotime( $end_date ) ) {
+			return $this->get_timespan_dates( self::DEFAULT_TIMESPAN_DAYS );
+		}
+
+		$timezone   = wp_timezone(); // Retrieve the timezone string for the site.
+		$start_date = date_create_immutable( $start_date, $timezone );
+		$end_date   = date_create_immutable( $end_date, $timezone );
+
+		// Return default timespan if date creation fails.
+		if ( ! $start_date || ! $end_date ) {
+			return $this->get_timespan_dates( self::DEFAULT_TIMESPAN_DAYS );
+		}
+
+		// Set time to 0:0:0 for start date and 23:59:59 for end date.
+		$start_date = $start_date->setTime( 0, 0, 0 );
+		$end_date   = $end_date->setTime( 23, 59, 59 );
+
+		$days_diff    = '';
+		$current_date = date_create_immutable( 'now', $timezone )->setTime( 23, 59, 59 );
+
+		// Calculate day difference only if the end date is equal to the current date.
+		if ( ! $current_date->diff( $end_date )->format( '%a' ) ) {
+			$days_diff = $end_date->diff( $start_date )->format( '%a' );
+		}
+
+		list( $days, $timespan_label ) = $this->get_date_filter_choices( $days_diff );
+
+		return [
+			$start_date,     // WP timezone.
+			$end_date,       // WP timezone.
+			$days,           // e.g., 22.
+			$timespan_label, // e.g., Custom.
+		];
+	}
+
+	/**
+	 * Check the delimiter to see if the end date is specified.
+	 * We can assume that the start and end dates are the same if the end date is missing.
+	 *
+	 * @param string $dates Given timespan (dates) in string. i.e. "2024-04-16 - 2024-05-16" or "2024-04-16".
+	 *
+	 * @return string
+	 */
+	private function maybe_validate_string_timespan( string $dates ): string {
+		// The '-' is used as a delimiter for the datepicker module.
+		if ( false !== strpos( $dates, self::TIMESPAN_DELIMITER ) ) {
+			return $dates;
+		}
+
+		return $dates . self::TIMESPAN_DELIMITER . $dates;
+	}
+
+	/**
+	 * The number of days is converted to the start and end date range.
+	 *
+	 * @param string $days Timespan days.
+	 *
+	 * @return array
+	 */
+	private function get_timespan_dates( string $days ): array {
+		list( $timespan_key, $timespan_label ) = $this->get_date_filter_choices( $days );
+
+		// Bail early, if the given number of days is NOT a number nor a numeric string.
+		if ( ! is_numeric( $days ) ) {
+			return [ '', '', $timespan_key, $timespan_label ];
+		}
+
+		$end_date   = date_create_immutable( 'now', wp_timezone() );
+		$start_date = $end_date;
+
+		if ( (int) $days > 0 ) {
+			$start_date = $start_date->modify( "-{$days} day" );
+		}
+
+		$start_date = $start_date->setTime( 0, 0, 0 );
+		$end_date   = $end_date->setTime( 23, 59, 59 );
+
+		return [
+			$start_date,     // WP timezone.
+			$end_date,       // WP timezone.
+			$timespan_key,   // i.e. 30.
+			$timespan_label, // i.e. Last 30 days.
+		];
+	}
+
+	/**
+	 * Returns a list of date filter options for the datepicker module.
+	 *
+	 * @param string|null $key Optional. Key associated with available filters.
+	 *
+	 * @return array
+	 * @noinspection PhpMissingParamTypeInspection
+	 */
+	private function get_date_filter_choices( $key = null ): array {
+		// Available date filters.
+		$choices = [
+			'0'      => esc_html__( 'Today', 'wpforms-lite' ),
+			'1'      => esc_html__( 'Yesterday', 'wpforms-lite' ),
+			'7'      => esc_html__( 'Last 7 days', 'wpforms-lite' ),
+			'30'     => esc_html__( 'Last 30 days', 'wpforms-lite' ),
+			'90'     => esc_html__( 'Last 90 days', 'wpforms-lite' ),
+			'365'    => esc_html__( 'Last 1 year', 'wpforms-lite' ),
+			'custom' => esc_html__( 'Custom', 'wpforms-lite' ),
+		];
+
+		// Bail early, and return the full list of options.
+		if ( is_null( $key ) ) {
+			return $choices;
+		}
+
+		// Return the "Custom" filter if the given key is not found.
+		$key = isset( $choices[ $key ] ) ? $key : 'custom';
+
+		return [ $key, $choices[ $key ] ];
+	}
+
+	/**
+	 * Concatenate given dates into a single string. i.e. "2024-04-16 - 2024-05-16".
+	 *
+	 * @param DateTimeImmutable|mixed $start_date Start date.
+	 * @param DateTimeImmutable|mixed $end_date   End date.
+	 * @param int|string              $fallback   Fallback value if dates are not valid.
+	 *
+	 * @return string
+	 */
+	private function concat_dates( $start_date, $end_date, $fallback = '' ) {
+		// Bail early, if the given dates are not valid.
+		if ( ! ( $start_date instanceof DateTimeImmutable ) || ! ( $end_date instanceof DateTimeImmutable ) ) {
+			return $fallback;
+		}
+
+		return implode(
+			self::TIMESPAN_DELIMITER,
+			[
+				$start_date->format( self::DATE_FORMAT ),
+				$end_date->format( self::DATE_FORMAT ),
+			]
+		);
 	}
 }
