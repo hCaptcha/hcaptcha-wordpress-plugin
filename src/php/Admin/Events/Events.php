@@ -114,7 +114,7 @@ class Events {
 		$columns    = implode( ',', $args['columns'] );
 		$columns    = $columns ?: '*';
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
-		$where_date = self::get_where_date( $args );
+		$where_date = self::get_where_date_gmt( $args );
 		$orderby    = self::get_order_by( $args );
 		$offset     = absint( $args['offset'] );
 		$limit      = absint( $args['limit'] );
@@ -168,7 +168,7 @@ class Events {
 		);
 
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
-		$where_date = self::get_where_date( $args );
+		$where_date = self::get_where_date_gmt( $args );
 		$orderby    = self::get_order_by( $args );
 		$offset     = absint( $args['offset'] );
 		$limit      = absint( $args['limit'] );
@@ -256,13 +256,13 @@ class Events {
 	}
 
 	/**
-	 * Get where date.
+	 * Get where date GMT.
 	 *
 	 * @param array $args Arguments.
 	 *
 	 * @return string
 	 */
-	private static function get_where_date( array $args ): string {
+	private static function get_where_date_gmt( array $args ): string {
 		$dates = $args['dates'];
 
 		if ( $dates ) {
@@ -270,6 +270,12 @@ class Events {
 
 			$dates[0] .= ' 00:00:00';
 			$dates[1] .= ' 23:59:59';
+
+			foreach ( $dates as &$date ) {
+				$date = wp_date( 'Y-m-d H:i:s', strtotime( $date ) );
+			}
+
+			unset( $date );
 
 			$where_date = sprintf(
 				"date_gmt BETWEEN '%s' AND '%s'",
