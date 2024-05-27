@@ -568,11 +568,12 @@ Instructions for popular native integrations are below:
 = 4.2.0 =
 * The minimum required WordPress version is now 5.3.
 * Added support for Multisite Network Admin synced with network-wide plugin options.
-* Added scrolling of the Integrations page during search.
+* Added selection by date range on Forms and Events pages.
 * Added automatic activation of dependent plugins on the Integrations page.
+* Added scrolling on the Integrations page during the search.
+* Fixed color flickering of hCaptcha placeholder with custom themes.
 * Fixed JS error on the Lost Password page.
 * Fixed missing site key notification on the General page.
-* Fixed color flickering of hCaptcha placeholder with custom themes.
 
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.
