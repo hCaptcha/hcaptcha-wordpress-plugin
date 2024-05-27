@@ -111,30 +111,13 @@ class Events {
 			]
 		);
 
-		if ( $args['dates'] ) {
-			$args['dates'][1] = $args['dates'][1] ?? $args['dates'][0];
-
-			$args['dates'][0] .= ' 00:00:00';
-			$args['dates'][1] .= ' 23:59:59';
-
-			$where_date = sprintf(
-				"date_gmt BETWEEN '%s' AND '%s'",
-				esc_sql( $args['dates'][0] ),
-				esc_sql( $args['dates'][1] )
-			);
-		} else {
-			$where_date = '1=1';
-		}
-
-		$columns = implode( ',', $args['columns'] );
-		$columns = $columns ?: '*';
-		$order   = strtoupper( $args['order'] );
-		$order   = 'ASC' === $order ? '' : $order;
-		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
-		$offset  = absint( $args['offset'] );
-		$limit   = absint( $args['limit'] );
-
+		$columns    = implode( ',', $args['columns'] );
+		$columns    = $columns ?: '*';
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$where_date = self::get_where_date( $args );
+		$orderby    = self::get_order_by( $args );
+		$offset     = absint( $args['offset'] );
+		$limit      = absint( $args['limit'] );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
@@ -184,28 +167,11 @@ class Events {
 			]
 		);
 
-		if ( $args['dates'] ) {
-			$args['dates'][1] = $args['dates'][1] ?? $args['dates'][0];
-
-			$args['dates'][0] .= ' 00:00:00';
-			$args['dates'][1] .= ' 23:59:59';
-
-			$where_date = sprintf(
-				"date_gmt BETWEEN '%s' AND '%s'",
-				esc_sql( $args['dates'][0] ),
-				esc_sql( $args['dates'][1] )
-			);
-		} else {
-			$where_date = '1=1';
-		}
-
-		$order   = strtoupper( $args['order'] );
-		$order   = 'ASC' === $order ? '' : $order;
-		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
-		$offset  = absint( $args['offset'] );
-		$limit   = absint( $args['limit'] );
-
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$where_date = self::get_where_date( $args );
+		$orderby    = self::get_order_by( $args );
+		$offset     = absint( $args['offset'] );
+		$limit      = absint( $args['limit'] );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
@@ -216,7 +182,8 @@ class Events {
     					source, form_id, COUNT(*) as served
 						FROM $table_name
 						WHERE $where_date
-						GROUP BY source, form_id $orderby
+						GROUP BY source, form_id
+						$orderby
 						LIMIT %d, %d",
 				$offset,
 				$limit
@@ -286,5 +253,47 @@ class Events {
 		) $charset_collate;";
 
 		dbDelta( $sql );
+	}
+
+	/**
+	 * Get where date.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	private static function get_where_date( array $args ): string {
+		$dates = $args['dates'];
+
+		if ( $dates ) {
+			$dates[1] = $dates[1] ?? $dates[0];
+
+			$dates[0] .= ' 00:00:00';
+			$dates[1] .= ' 23:59:59';
+
+			$where_date = sprintf(
+				"date_gmt BETWEEN '%s' AND '%s'",
+				esc_sql( $dates[0] ),
+				esc_sql( $dates[1] )
+			);
+		} else {
+			$where_date = '1=1';
+		}
+
+		return $where_date;
+	}
+
+	/**
+	 * Get ODER BY / ORDER clause
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	private static function get_order_by( array $args ): string {
+		$order = strtoupper( $args['order'] );
+		$order = 'ASC' === $order ? '' : $order;
+
+		return $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
 	}
 }
