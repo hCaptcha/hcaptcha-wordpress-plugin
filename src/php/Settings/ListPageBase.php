@@ -8,7 +8,6 @@
 namespace HCaptcha\Settings;
 
 use DateTimeImmutable;
-use HCaptcha\Helpers\Utils;
 
 /**
  * Class ListPageBase.
@@ -217,10 +216,9 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @return array
 	 * @noinspection PhpMissingParamTypeInspection
-	 * @noinspection PhpSameParameterValueInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function process_datepicker_choices( $timespan = null ): array {
+	protected function process_datepicker_choices( $timespan = null ): array {
 		// Retrieve and validate timespan if none is given.
 		if ( empty( $timespan ) || ! is_array( $timespan ) ) {
 			$timespan = $this->process_timespan();
@@ -262,7 +260,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function process_timespan(): array {
+	protected function process_timespan(): array {
 		$dates = (string) filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 		// Return default timespan if dates are empty.
@@ -285,11 +283,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		// Return default timespan if date creation fails.
 		if ( ! $start_date || ! $end_date ) {
+			// @codeCoverageIgnoreStart
 			return $this->get_timespan_dates( self::DEFAULT_TIMESPAN_DAYS );
+			// @codeCoverageIgnoreEnd
 		}
 
 		// Set time to 0:0:0 for start date and 23:59:59 for end date.
-		$start_date = $start_date->setTime( 0, 0, 0 );
+		$start_date = $start_date->setTime( 0, 0 );
 		$end_date   = $end_date->setTime( 23, 59, 59 );
 
 		$days_diff    = '';
@@ -318,7 +318,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	private function maybe_validate_string_timespan( string $dates ): string {
+	protected function maybe_validate_string_timespan( string $dates ): string {
 		// The '-' is used as a delimiter for the datepicker module.
 		if ( false !== strpos( $dates, self::TIMESPAN_DELIMITER ) ) {
 			return $dates;
@@ -334,7 +334,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	private function get_timespan_dates( string $days ): array {
+	protected function get_timespan_dates( string $days ): array {
 		list( $timespan_key, $timespan_label ) = $this->get_date_filter_choices( $days );
 
 		// Bail early, if the given number of days is NOT a number nor a numeric string.
@@ -346,10 +346,10 @@ abstract class ListPageBase extends PluginSettingsBase {
 		$start_date = $end_date;
 
 		if ( (int) $days > 0 ) {
-			$start_date = $start_date->modify( "-{$days} day" );
+			$start_date = $start_date->modify( "-$days day" );
 		}
 
-		$start_date = $start_date->setTime( 0, 0, 0 );
+		$start_date = $start_date->setTime( 0, 0 );
 		$end_date   = $end_date->setTime( 23, 59, 59 );
 
 		return [
@@ -368,7 +368,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * @return array
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	private function get_date_filter_choices( $key = null ): array {
+	protected function get_date_filter_choices( $key = null ): array {
 		// Available date filters.
 		$choices = [
 			'0'      => esc_html__( 'Today', 'wpforms-lite' ),
