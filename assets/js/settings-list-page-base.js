@@ -4,6 +4,12 @@
  * @param flatpickr.l10ns
  */
 document.addEventListener( 'DOMContentLoaded', function() {
+	const datepicker = document.getElementById( 'hcaptcha-datepicker' );
+
+	if ( ! datepicker ) {
+		return;
+	}
+
 	const classNames = {
 		hide: 'hcaptcha-hide',
 		selected: 'hcaptcha-is-selected',
@@ -13,7 +19,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	let flatPickerObj;
 
 	const wrapper = document.getElementById( 'hcaptcha-options' );
-	const datepicker = document.getElementById( 'hcaptcha-datepicker' );
 	const filterForm = document.querySelector( '.hcaptcha-filter' );
 	const filterBtn = document.getElementById( 'hcaptcha-datepicker-popover-button' );
 	const defaultChoice = filterForm.querySelector( 'input[type="radio"][data-default]' );

@@ -18,6 +18,11 @@ use HCaptcha\Helpers\Utils;
 abstract class ListPageBase extends PluginSettingsBase {
 
 	/**
+	 * Flatpickr handle.
+	 */
+	const FLATPICKR_HANDLE = 'flatpickr';
+
+	/**
 	 * Base handle.
 	 */
 	const SETTINGS_LIST_PAGE_BASE_HANDLE = 'settings-list-page-base';
@@ -92,14 +97,14 @@ abstract class ListPageBase extends PluginSettingsBase {
 		);
 
 		wp_enqueue_style(
-			'flatpickr',
+			self::FLATPICKR_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . '/assets/lib/flatpickr/flatpickr.min.css',
 			[],
 			'4.6.13'
 		);
 
 		wp_enqueue_script(
-			'flatpickr',
+			self::FLATPICKR_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . '/assets/lib/flatpickr/flatpickr.min.js',
 			[],
 			'4.6.13',
@@ -109,14 +114,14 @@ abstract class ListPageBase extends PluginSettingsBase {
 		wp_enqueue_style(
 			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/settings-list-page-base$min.css",
-			[],
+			[ self::FLATPICKR_HANDLE ],
 			HCAPTCHA_VERSION
 		);
 
 		wp_enqueue_script(
 			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/settings-list-page-base$min.js",
-			[],
+			[ self::FLATPICKR_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);

@@ -99,7 +99,7 @@ class Events {
 	public static function get_events( array $args = [] ): array {
 		global $wpdb;
 
-		$args    = wp_parse_args(
+		$args = wp_parse_args(
 			$args,
 			[
 				'columns' => [],
@@ -107,8 +107,25 @@ class Events {
 				'limit'   => 20,
 				'order'   => 'ASC',
 				'orderby' => '',
+				'dates'   => [],
 			]
 		);
+
+		if ( $args['dates'] ) {
+			$args['dates'][1] = $args['dates'][1] ?? $args['dates'][0];
+
+			$args['dates'][0] .= ' 00:00:00';
+			$args['dates'][1] .= ' 23:59:59';
+
+			$where_date = sprintf(
+				"date_gmt BETWEEN '%s' AND '%s'",
+				esc_sql( $args['dates'][0] ),
+				esc_sql( $args['dates'][1] )
+			);
+		} else {
+			$where_date = '1=1';
+		}
+
 		$columns = implode( ',', $args['columns'] );
 		$columns = $columns ?: '*';
 		$order   = strtoupper( $args['order'] );
@@ -126,7 +143,9 @@ class Events {
 				"SELECT
 						SQL_CALC_FOUND_ROWS
     					$columns
-						FROM $table_name $orderby
+						FROM $table_name
+						WHERE $where_date
+						$orderby
 						LIMIT %d, %d",
 				$offset,
 				$limit

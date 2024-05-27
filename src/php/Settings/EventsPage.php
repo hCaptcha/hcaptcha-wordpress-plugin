@@ -194,6 +194,8 @@ class EventsPage extends ListPageBase {
 			return;
 		}
 
+		$this->date_picker_display();
+
 		?>
 		<div id="hcaptcha-events-chart">
 			<canvas id="eventsChart" aria-label="The hCaptcha Events Chart" role="img">
