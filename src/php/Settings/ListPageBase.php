@@ -18,6 +18,11 @@ use HCaptcha\Helpers\Utils;
 abstract class ListPageBase extends PluginSettingsBase {
 
 	/**
+	 * Chart handle.
+	 */
+	const CHART_HANDLE = 'chart';
+
+	/**
 	 * Flatpickr handle.
 	 */
 	const FLATPICKR_HANDLE = 'flatpickr';
@@ -25,7 +30,12 @@ abstract class ListPageBase extends PluginSettingsBase {
 	/**
 	 * Base handle.
 	 */
-	const SETTINGS_LIST_PAGE_BASE_HANDLE = 'settings-list-page-base';
+	const HANDLE = 'settings-list-page-base';
+
+	/**
+	 * Base object.
+	 */
+	const OBJECT = 'HCaptchaFlatPickerObject';
 
 	/**
 	 * Number of timespan days by default.
@@ -81,7 +91,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'chart',
+			self::CHART_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chartjs/chart.umd.min.js',
 			[],
 			'v4.4.2',
@@ -91,7 +101,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 		wp_enqueue_script(
 			'chart-adapter-date-fns',
 			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chartjs/chartjs-adapter-date-fns.bundle.min.js',
-			[ 'chart' ],
+			[ self::CHART_HANDLE ],
 			'v3.0.0',
 			true
 		);
@@ -112,26 +122,26 @@ abstract class ListPageBase extends PluginSettingsBase {
 		);
 
 		wp_enqueue_style(
-			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
+			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/settings-list-page-base$min.css",
 			[ self::FLATPICKR_HANDLE ],
-			HCAPTCHA_VERSION
+			constant( 'HCAPTCHA_VERSION' )
 		);
 
 		wp_enqueue_script(
-			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
+			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/settings-list-page-base$min.js",
 			[ self::FLATPICKR_HANDLE ],
-			HCAPTCHA_VERSION,
+			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);
 
 		wp_localize_script(
-			self::SETTINGS_LIST_PAGE_BASE_HANDLE,
-			'HCaptchaFlatPickerObject',
+			self::HANDLE,
+			self::OBJECT,
 			[
 				'delimiter' => self::TIMESPAN_DELIMITER,
-				'locale'    => Utils::get_language_code(),
+				'locale'    => $this->get_language_code(),
 			]
 		);
 	}
@@ -403,5 +413,27 @@ abstract class ListPageBase extends PluginSettingsBase {
 				$end_date->format( self::DATE_FORMAT ),
 			]
 		);
+	}
+
+	/**
+	 * Get the ISO 639-2 Language Code from user/site locale.
+	 *
+	 * @see   http://www.loc.gov/standards/iso639-2/php/code_list.php
+	 *
+	 * @return string
+	 */
+	private function get_language_code(): string {
+		$default_lang = 'en';
+		$locale       = get_user_locale();
+
+		if ( ! empty( $locale ) ) {
+			$lang = explode( '_', $locale );
+
+			if ( ! empty( $lang ) && is_array( $lang ) ) {
+				$default_lang = strtolower( $lang[0] );
+			}
+		}
+
+		return $default_lang;
 	}
 }

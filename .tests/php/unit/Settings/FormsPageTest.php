@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Unit\Settings;
 use HCaptcha\Admin\Events\FormsTable;
 use HCaptcha\Main;
 use HCaptcha\Settings\FormsPage;
+use HCaptcha\Settings\ListPageBase;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
@@ -137,6 +138,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$plugin_version = '1.0.0';
 		$min_suffix     = '.min';
 		$served         = [ 'some served events' ];
+		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
@@ -171,8 +173,8 @@ class FormsPageTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
-				'chart',
-				$plugin_url . '/assets/lib/chart.umd.min.js',
+				ListPageBase::CHART_HANDLE,
+				$plugin_url . '/assets/lib/chartjs/chart.umd.min.js',
 				[],
 				'v4.4.2',
 				true
@@ -182,10 +184,59 @@ class FormsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				'chart-adapter-date-fns',
-				$plugin_url . '/assets/lib/chartjs-adapter-date-fns.bundle.min.js',
-				[ 'chart' ],
+				$plugin_url . '/assets/lib/chartjs/chartjs-adapter-date-fns.bundle.min.js',
+				[ ListPageBase::CHART_HANDLE ],
 				'v3.0.0',
 				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				ListPageBase::FLATPICKR_HANDLE,
+				$plugin_url . '/assets/lib/flatpickr/flatpickr.min.css',
+				[],
+				'4.6.13'
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				ListPageBase::FLATPICKR_HANDLE,
+				$plugin_url . '/assets/lib/flatpickr/flatpickr.min.js',
+				[],
+				'4.6.13',
+				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				ListPageBase::HANDLE,
+				$plugin_url . "/assets/css/settings-list-page-base$min_suffix.css",
+				[ ListPageBase::FLATPICKR_HANDLE ],
+				$plugin_version
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				ListPageBase::HANDLE,
+				$plugin_url . "/assets/js/settings-list-page-base$min_suffix.js",
+				[ ListPageBase::FLATPICKR_HANDLE ],
+				$plugin_version,
+				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				ListPageBase::HANDLE,
+				ListPageBase::OBJECT,
+				[
+					'delimiter' => ListPageBase::TIMESPAN_DELIMITER,
+					'locale'    => $language_code,
+				]
 			)
 			->times( $times );
 
@@ -210,6 +261,8 @@ class FormsPageTest extends HCaptchaTestCase {
 			)
 			->times( $times );
 
+		WP_Mock::userFunction( 'get_user_locale' )->andReturn( $language_code );
+
 		$subject->admin_enqueue_scripts();
 	}
 
@@ -231,9 +284,10 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback() {
-		$expected = '		<h2>
+		$datepicker = '<div class="hcaptcha-filter"></div>';
+		$expected   = '		<h2>
 			Forms		</h2>
-				<div id="hcaptcha-forms-chart">
+		' . $datepicker . '		<div id="hcaptcha-forms-chart">
 			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
 					Your browser does not support the canvas element.				</p>
@@ -244,7 +298,15 @@ class FormsPageTest extends HCaptchaTestCase {
 		';
 
 		$list_table = Mockery::mock( FormsTable::class )->makePartial();
-		$subject    = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject    = Mockery::mock( FormsPage::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'date_picker_display' )->andReturnUsing(
+			static function () use ( $datepicker ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $datepicker;
+			}
+		);
 
 		$list_table->shouldReceive( 'display' )->once();
 		$this->set_protected_property( $subject, 'allowed', true );
