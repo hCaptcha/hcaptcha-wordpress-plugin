@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
 use HCaptcha\Settings\ListPageBase;
@@ -167,6 +168,17 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 
 		FunctionMocker::replace(
+			'date_create_immutable',
+			static function ( $datetime, $timezone ) {
+				if ( 'now' === $datetime ) {
+					$datetime = '2024-05-27';
+				}
+
+				return new DateTimeImmutable( $datetime, $timezone );
+			}
+		);
+
+		FunctionMocker::replace(
 			'filter_input',
 			static function ( $type, $name, $filter ) use ( $dates ) {
 				if (
@@ -293,6 +305,17 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+
+		FunctionMocker::replace(
+			'date_create_immutable',
+			static function ( $datetime, $timezone ) {
+				if ( 'now' === $datetime ) {
+					$datetime = '2024-05-27';
+				}
+
+				return new DateTimeImmutable( $datetime, $timezone );
+			}
+		);
 
 		$actual = $subject->get_timespan_dates( $days );
 
