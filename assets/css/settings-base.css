@@ -48,7 +48,7 @@ body.settings_page_hcaptcha {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin: 0 0 20px;
+	margin: 0;
 }
 
 #hcaptcha-options h2 {
@@ -274,5 +274,9 @@ body.settings_page_hcaptcha {
 
 	#hcaptcha-options .helper {
 		z-index: 1;
+	}
+
+	.hcaptcha-settings-tab {
+		margin-right: 15px;
 	}
 }
