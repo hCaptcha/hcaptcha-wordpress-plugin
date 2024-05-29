@@ -99,7 +99,7 @@ class Integrations extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_action( 'kagg_settings_tab', [ $this, 'search_box' ] );
+		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 	}
 
@@ -649,12 +649,12 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function search_box() {
 		?>
-		<span id="hcaptcha-integrations-search-wrap">
+		<div id="hcaptcha-integrations-search-wrap">
 			<label for="hcaptcha-integrations-search"></label>
 			<input
 					type="search" id="hcaptcha-integrations-search"
 					placeholder="<?php esc_html_e( 'Search plugins and themes...', 'hcaptcha-for-forms-and-more' ); ?>">
-		</span>
+		</div>
 		<?php
 	}
 

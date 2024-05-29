@@ -64,7 +64,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
 		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
 
-		WP_Mock::expectActionAdded( 'kagg_settings_tab', [ $subject, 'search_box' ] );
+		WP_Mock::expectActionAdded( 'kagg_settings_header', [ $subject, 'search_box' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Integrations::ACTIVATE_ACTION, [ $subject, 'activate' ] );
 
 		$method = 'init_hooks';
@@ -162,12 +162,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 */
 	public function test_search_box() {
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
-		$expected = '		<span id="hcaptcha-integrations-search-wrap">
+		$expected = '		<div id="hcaptcha-integrations-search-wrap">
 			<label for="hcaptcha-integrations-search"></label>
 			<input
 					type="search" id="hcaptcha-integrations-search"
 					placeholder="Search plugins and themes...">
-		</span>
+		</div>
 		';
 
 		ob_start();
