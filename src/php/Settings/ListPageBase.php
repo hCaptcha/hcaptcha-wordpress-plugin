@@ -60,6 +60,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected $unit;
 
 	/**
+	 * The page is allowed to be shown.
+	 *
+	 * @var bool
+	 */
+	protected $allowed = false;
+
+	/**
 	 * Get suggested data format from items array.
 	 *
 	 * @param array $items Items array.
@@ -177,6 +184,10 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function date_picker_display() {
+		if ( ! $this->allowed ) {
+			return;
+		}
+
 		list( $choices, $chosen_filter, $value ) = $this->process_datepicker_choices();
 
 		// An array of allowed HTML elements and attributes for the datepicker choices.

@@ -288,9 +288,13 @@ class FormsPageTest extends HCaptchaTestCase {
 	 */
 	public function test_section_callback() {
 		$datepicker = '<div class="hcaptcha-filter"></div>';
-		$expected   = '		<h2>
-			Forms		</h2>
-		' . $datepicker . '		<div id="hcaptcha-forms-chart">
+		$expected   = '		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
+					Forms				</h2>
+			</div>
+			' . $datepicker . '		</div>
+				<div id="hcaptcha-forms-chart">
 			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
 					Your browser does not support the canvas element.				</p>
@@ -311,6 +315,8 @@ class FormsPageTest extends HCaptchaTestCase {
 			}
 		);
 
+		WP_Mock::onAction( 'kagg_settings_header' )->with( null )->perform( [ $subject, 'date_picker_display' ] );
+
 		$list_table->shouldReceive( 'display' )->once();
 		$this->set_protected_property( $subject, 'allowed', true );
 		$this->set_protected_property( $subject, 'list_table', $list_table );
@@ -326,8 +332,12 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function test_section_callback_when_not_allowed() {
-		$expected = '		<h2>
-			Forms		</h2>
+		$expected = '		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
+					Forms				</h2>
+			</div>
+					</div>
 					<div class="hcaptcha-forms-sample-bg"></div>
 
 			<div class="hcaptcha-forms-sample-text">

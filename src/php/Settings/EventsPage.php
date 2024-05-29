@@ -49,13 +49,6 @@ class EventsPage extends ListPageBase {
 	protected $failed;
 
 	/**
-	 * The page is allowed to be shown.
-	 *
-	 * @var bool
-	 */
-	protected $allowed = false;
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string

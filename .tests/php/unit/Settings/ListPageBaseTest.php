@@ -13,6 +13,7 @@ use Exception;
 use HCaptcha\Settings\ListPageBase;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
+use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
 
@@ -26,6 +27,8 @@ class ListPageBaseTest extends HCaptchaTestCase {
 
 	/**
 	 * Test date_picker_display().
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_date_picker_display() {
 		$choices       = [
@@ -72,6 +75,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 
+		$this->set_protected_property( $subject, 'allowed', true );
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'process_datepicker_choices' )->with()
 			->andReturn( [ $choices, $chosen_filter, $value ] );
@@ -83,6 +87,23 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject->date_picker_display();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test date_picker_display() when not allowed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_date_picker_display_when_not_allowed() {
+		$subject = Mockery::mock( ListPageBase::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'allowed', false );
+
+		ob_start();
+
+		$subject->date_picker_display();
+
+		self::assertSame( '', ob_get_clean() );
 	}
 
 	/**

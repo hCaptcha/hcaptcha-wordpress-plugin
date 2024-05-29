@@ -42,13 +42,6 @@ class FormsPage extends ListPageBase {
 	protected $served;
 
 	/**
-	 * The page is allowed to be shown.
-	 *
-	 * @var bool
-	 */
-	protected $allowed = false;
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
