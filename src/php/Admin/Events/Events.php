@@ -99,7 +99,7 @@ class Events {
 	public static function get_events( array $args = [] ): array {
 		global $wpdb;
 
-		$args = wp_parse_args(
+		$args          = wp_parse_args(
 			$args,
 			[
 				'columns' => [],
@@ -110,6 +110,7 @@ class Events {
 				'dates'   => [],
 			]
 		);
+		$args['dates'] = $args['dates'] ?: self::get_default_dates();
 
 		$columns    = implode( ',', $args['columns'] );
 		$columns    = $columns ?: '*';
@@ -156,7 +157,7 @@ class Events {
 	public static function get_forms( array $args = [] ): array {
 		global $wpdb;
 
-		$args = wp_parse_args(
+		$args          = wp_parse_args(
 			$args,
 			[
 				'offset'  => 0,
@@ -166,6 +167,7 @@ class Events {
 				'dates'   => [],
 			]
 		);
+		$args['dates'] = $args['dates'] ?: self::get_default_dates();
 
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
 		$where_date = self::get_where_date_gmt( $args );
@@ -301,5 +303,21 @@ class Events {
 		$order = 'ASC' === $order ? '' : $order;
 
 		return $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
+	}
+
+	/**
+	 * Get default dates.
+	 *
+	 * @return array
+	 */
+	private static function get_default_dates(): array {
+		$end_date   = date_create_immutable( 'now', wp_timezone() );
+		$start_date = $end_date;
+		$start_date = $start_date->modify( '-30 day' );
+		$start_date = $start_date->setTime( 0, 0 );
+		$end_date   = $end_date->setTime( 23, 59, 59 );
+		$format     = 'Y-m-d';
+
+		return [ $start_date->format( $format ), $end_date->format( $format ) ];
 	}
 }
