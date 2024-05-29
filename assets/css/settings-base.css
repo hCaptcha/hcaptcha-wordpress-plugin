@@ -44,6 +44,13 @@ body.settings_page_hcaptcha {
 	border-bottom: 2px solid #0075ab;
 }
 
+.hcaptcha-header-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 0 0 20px;
+}
+
 #hcaptcha-options h2 {
 	font-size: 1.5em;
 	color: #5c6f8a;

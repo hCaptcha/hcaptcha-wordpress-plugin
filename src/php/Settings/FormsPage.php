@@ -82,6 +82,7 @@ class FormsPage extends ListPageBase {
 		parent::init_hooks();
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
+		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
 	}
 
 	/**
@@ -145,11 +146,7 @@ class FormsPage extends ListPageBase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
-		?>
-		<h2>
-			<?php echo esc_html( $this->page_title() ); ?>
-		</h2>
-		<?php
+		$this->print_header();
 
 		if ( ! $this->allowed ) {
 			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
@@ -176,8 +173,6 @@ class FormsPage extends ListPageBase {
 
 			return;
 		}
-
-		$this->date_picker_display();
 
 		?>
 		<div id="hcaptcha-forms-chart">

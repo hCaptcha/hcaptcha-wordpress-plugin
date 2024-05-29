@@ -176,7 +176,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function date_picker_display() {
+	public function date_picker_display() {
 		list( $choices, $chosen_filter, $value ) = $this->process_datepicker_choices();
 
 		// An array of allowed HTML elements and attributes for the datepicker choices.

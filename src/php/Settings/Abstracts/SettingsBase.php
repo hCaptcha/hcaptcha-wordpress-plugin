@@ -1544,4 +1544,29 @@ abstract class SettingsBase {
 	protected function get_menu_position(): string {
 		return [ 'on' ] === $this->get( 'menu_position' ) ? self::MODE_TABS : self::MODE_PAGES;
 	}
+
+	/**
+	 * Print header.
+	 *
+	 * @return void
+	 */
+	protected function print_header() {
+		?>
+		<div class="<?php echo esc_attr( static::PREFIX . '-header-bar' ); ?>">
+			<div class="<?php echo esc_attr( static::PREFIX . '-header' ); ?>">
+				<h2>
+					<?php echo esc_html( $this->page_title() ); ?>
+				</h2>
+			</div>
+			<?php
+
+			/**
+			 * Fires before settings tab closing tag.
+			 */
+			do_action( 'kagg_settings_header' );
+
+			?>
+		</div>
+		<?php
+	}
 }
