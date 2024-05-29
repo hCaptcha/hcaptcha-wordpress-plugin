@@ -143,6 +143,7 @@ class EventsPage extends ListPageBase {
 				'failed'       => $this->failed,
 				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
 				'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
+				'unit'         => $this->unit,
 			]
 		);
 	}

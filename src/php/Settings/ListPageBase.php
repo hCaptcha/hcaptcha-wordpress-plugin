@@ -53,6 +53,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 	const DATE_FORMAT = 'Y-m-d';
 
 	/**
+	 * Chart time unit.
+	 *
+	 * @var string
+	 */
+	protected $unit;
+
+	/**
 	 * Get suggested data format from items array.
 	 *
 	 * @param array $items Items array.
@@ -71,6 +78,25 @@ abstract class ListPageBase extends PluginSettingsBase {
 		}
 
 		$time_diff = $max_time - $min_time;
+
+		$time_units = [
+			[ 1, 'second' ],
+			[ MINUTE_IN_SECONDS, 'minute' ],
+			[ HOUR_IN_SECONDS, 'hour' ],
+			[ DAY_IN_SECONDS, 'day' ],
+			[ WEEK_IN_SECONDS, 'week' ],
+			[ MONTH_IN_SECONDS, 'month' ],
+			[ YEAR_IN_SECONDS, 'year' ],
+		];
+
+		foreach ( $time_units as $index => $time_unit ) {
+			$i          = max( 0, $index - 1 );
+			$this->unit = $time_units[ $i ][1];
+
+			if ( $time_diff < $time_unit[0] * 2 ) {
+				break;
+			}
+		}
 
 		if ( $time_diff < constant( 'MINUTE_IN_SECONDS' ) ) {
 			$date_format = 'Y-m-d H:i:s';
