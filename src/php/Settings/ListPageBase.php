@@ -81,12 +81,12 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		$time_units = [
 			[ 1, 'second' ],
-			[ MINUTE_IN_SECONDS, 'minute' ],
-			[ HOUR_IN_SECONDS, 'hour' ],
-			[ DAY_IN_SECONDS, 'day' ],
-			[ WEEK_IN_SECONDS, 'week' ],
-			[ MONTH_IN_SECONDS, 'month' ],
-			[ YEAR_IN_SECONDS, 'year' ],
+			[ constant( 'MINUTE_IN_SECONDS' ), 'minute' ],
+			[ constant( 'HOUR_IN_SECONDS' ), 'hour' ],
+			[ constant( 'DAY_IN_SECONDS' ), 'day' ],
+			[ constant( 'WEEK_IN_SECONDS' ), 'week' ],
+			[ constant( 'MONTH_IN_SECONDS' ), 'month' ],
+			[ constant( 'YEAR_IN_SECONDS' ), 'year' ],
 		];
 
 		foreach ( $time_units as $index => $time_unit ) {

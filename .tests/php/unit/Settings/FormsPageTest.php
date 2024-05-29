@@ -138,6 +138,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$plugin_version = '1.0.0';
 		$min_suffix     = '.min';
 		$served         = [ 'some served events' ];
+		$unit           = 'hour';
 		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
 
@@ -146,6 +147,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'served', $served );
+		$this->set_protected_property( $subject, 'unit', $unit );
 
 		FunctionMocker::replace(
 			'constant',
@@ -257,6 +259,7 @@ class FormsPageTest extends HCaptchaTestCase {
 				[
 					'served'      => $served,
 					'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
+					'unit'        => $unit,
 				]
 			)
 			->times( $times );

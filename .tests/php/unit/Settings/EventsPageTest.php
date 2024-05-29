@@ -146,6 +146,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		$min_suffix     = '.min';
 		$succeed        = [ 'some succeed events' ];
 		$failed         = [ 'some failed events' ];
+		$unit           = 'day';
 		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
 
@@ -155,6 +156,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'succeed', $succeed );
 		$this->set_protected_property( $subject, 'failed', $failed );
+		$this->set_protected_property( $subject, 'unit', $unit );
 
 		FunctionMocker::replace(
 			'constant',
@@ -268,6 +270,7 @@ class EventsPageTest extends HCaptchaTestCase {
 					'failed'       => $failed,
 					'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
 					'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
+					'unit'         => $unit,
 				]
 			)
 			->times( $times );
@@ -388,6 +391,18 @@ class EventsPageTest extends HCaptchaTestCase {
 					return 86400;
 				}
 
+				if ( 'WEEK_IN_SECONDS' === $name ) {
+					return 604800;
+				}
+
+				if ( 'MONTH_IN_SECONDS' === $name ) {
+					return 2592000;
+				}
+
+				if ( 'YEAR_IN_SECONDS' === $name ) {
+					return 31536000;
+				}
+
 				return null;
 			}
 		);
@@ -405,6 +420,7 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		self::assertSame( $expected['succeed'], $this->get_protected_property( $subject, 'succeed' ) );
 		self::assertSame( $expected['failed'], $this->get_protected_property( $subject, 'failed' ) );
+		self::assertSame( $expected['unit'], $this->get_protected_property( $subject, 'unit' ) );
 	}
 
 	/**
@@ -590,6 +606,7 @@ class EventsPageTest extends HCaptchaTestCase {
 						'2024-04-02' => 2,
 						'2024-04-01' => 2,
 					],
+					'unit'    => 'day',
 				],
 			],
 			'items within a day'    => [
@@ -628,6 +645,7 @@ class EventsPageTest extends HCaptchaTestCase {
 						'2024-04-13 10:00' => 0,
 						'2024-04-13 11:17' => 1,
 					],
+					'unit'    => 'minute',
 				],
 			],
 			'items within a minute' => [
@@ -668,6 +686,7 @@ class EventsPageTest extends HCaptchaTestCase {
 						'2024-04-13 11:17:33' => 1,
 						'2024-04-13 11:17:32' => 0,
 					],
+					'unit'    => 'second',
 				],
 			],
 		];
