@@ -483,7 +483,7 @@ class Notifications {
 	 *
 	 * @return array
 	 */
-	private function make_key_first( array $arr, string $key ): array {
+	protected function make_key_first( array $arr, string $key ): array {
 		if ( ! array_key_exists( $key, $arr ) ) {
 			return $arr;
 		}
