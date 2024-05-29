@@ -677,10 +677,9 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
+		$this->print_header();
+
 		?>
-		<h2>
-			<?php echo esc_html( $this->page_title() ); ?>
-		</h2>
 		<div id="hcaptcha-message"></div>
 		<p>
 			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>

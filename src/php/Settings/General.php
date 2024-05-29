@@ -619,12 +619,7 @@ class General extends PluginSettingsBase {
 	public function section_callback( array $arguments ) {
 		switch ( $arguments['id'] ) {
 			case self::SECTION_KEYS:
-				?>
-				<h2>
-					<?php echo esc_html( $this->page_title() ); ?>
-				</h2>
-				<div id="hcaptcha-message"></div>
-				<?php
+				$this->print_header();
 				$this->notifications->show();
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;

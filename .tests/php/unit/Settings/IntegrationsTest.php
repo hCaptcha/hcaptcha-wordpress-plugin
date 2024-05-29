@@ -211,9 +211,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 			],
 			'default'  => [
 				'',
-				'		<h2>
-			Integrations		</h2>
-		<div id="hcaptcha-message"></div>
+				'		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
+					Integrations				</h2>
+			</div>
+					</div>
+				<div id="hcaptcha-message"></div>
 		<p>
 			Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.		</p>
 		<p>

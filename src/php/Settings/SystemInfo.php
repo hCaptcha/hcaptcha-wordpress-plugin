@@ -106,10 +106,9 @@ class SystemInfo extends PluginSettingsBase {
 	 * @param array $arguments Section arguments.
 	 */
 	public function section_callback( array $arguments ) {
+		$this->print_header();
+
 		?>
-		<h2>
-			<?php echo esc_html__( 'System Information', 'hcaptcha-for-forms-and-more' ); ?>
-		</h2>
 		<div id="hcaptcha-system-info-wrap">
 			<span class="helper">
 				<span class="helper-content"><?php esc_html_e( 'Copy system info to clipboard', 'hcaptcha-for-forms-and-more' ); ?></span>
