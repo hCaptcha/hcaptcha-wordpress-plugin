@@ -9,7 +9,7 @@ modules:
             dbHost: '%DB_HOST%'
             dbUser: '%DB_USER%'
             dbPassword: '%DB_PASSWORD%'
-            dump: '../../_data/dump.sql'
+            dump: '.codeception/_data/dumps/db.sql'
             wpDebug: true
             tablePrefix: '%DB_TABLE_PREFIX%'
             domain: '%WP_URL%'
