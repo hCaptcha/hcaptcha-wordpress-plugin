@@ -229,12 +229,17 @@ class Events {
 	public static function create_table() {
 		global $wpdb;
 
+		$table_name = self::TABLE_NAME;
+
+		if ( self::table_exists( $wpdb->prefix . $table_name ) ) {
+			return;
+		}
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$table_name      = self::TABLE_NAME;
 
-		$sql = "CREATE TABLE IF NOT EXISTS $wpdb->prefix$table_name (
+		$sql = "CREATE TABLE $wpdb->prefix$table_name (
 		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		    source      VARCHAR(256)    NOT NULL,
 		    form_id     VARCHAR(20)     NOT NULL,
@@ -317,5 +322,61 @@ class Events {
 		$format     = 'Y-m-d';
 
 		return [ $start_date->format( $format ), $end_date->format( $format ) ];
+	}
+
+	/**
+	 * Check if the database table exists and cache the result.
+	 *
+	 * @param string $table_name Table name. Can have SQL wildcard.
+	 *
+	 * @return bool
+	 */
+	private static function table_exists( string $table_name ): bool {
+		foreach ( self::get_existing_tables( $table_name ) as $existing_table ) {
+			if ( self::wildcard_match( $table_name, $existing_table ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the list of existing tables and cache the result.
+	 *
+	 * @param string $table_name Table name. Can have SQL wildcard.
+	 *
+	 * @return array List of table names.
+	 */
+	private static function get_existing_tables( string $table_name ): array {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$tables = $wpdb->get_results(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ),
+			'ARRAY_N'
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return ! empty( $tables ) ? wp_list_pluck( $tables, 0 ) : [];
+	}
+
+	/**
+	 * Wildcard match.
+	 * Works as MySQL LIKE match.
+	 *
+	 * @param string $pattern Pattern.
+	 * @param string $subject String to search into.
+	 *
+	 * @return false|int
+	 */
+	private static function wildcard_match( string $pattern, string $subject ) {
+		$regex = str_replace(
+			[ '%', '_' ], // MySQL wildcard chars.
+			[ '.*', '.' ],  // Regexp chars.
+			preg_quote( $pattern, '/' )
+		);
+
+		return preg_match( '/^' . $regex . '$/is', $subject );
 	}
 }

@@ -569,6 +569,7 @@ Instructions for popular native integrations are below:
 * Fixed color flickering of hCaptcha placeholder with custom themes.
 * Fixed JS error on the Lost Password page.
 * Fixed missing site key notification on the General page.
+* Fixed fatal error on some sites during migration to 4.0.0.
 
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.
