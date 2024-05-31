@@ -1,15 +1,26 @@
 bootstrap: ./_bootstrap.php
 modules:
     enabled:
+        - WPDb
         - WPLoader
     config:
+        WPDb:
+            dsn: 'mysql:host=localhost;dbname=%DB_NAME%'
+            user: '%DB_USER%'
+            password: '%DB_PASSWORD%'
+            dump: '.codeception/_data/dumps/db.sql'
+            populate: true
+            cleanup: false
+            waitlock: 5
+            url: '%WP_URL%'
+            urlReplacement: true
+            tablePrefix: 'wp_'
         WPLoader:
             wpRootFolder: '%WP_ROOT_PATH%'
             dbName: '%DB_NAME%'
             dbHost: '%DB_HOST%'
             dbUser: '%DB_USER%'
             dbPassword: '%DB_PASSWORD%'
-            dump: '../../.codeception/_data/dumps/db.sql'
             wpDebug: true
             tablePrefix: '%DB_TABLE_PREFIX%'
             domain: '%WP_URL%'
