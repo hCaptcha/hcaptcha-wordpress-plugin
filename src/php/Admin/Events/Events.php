@@ -48,7 +48,6 @@ class Events {
 	 * @param array             $error_codes Error codes.
 	 *
 	 * @return void
-	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
@@ -74,7 +73,7 @@ class Events {
 		$info = HCaptcha::decode_id_info();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$res = $wpdb->insert(
+		$wpdb->insert(
 			$wpdb->prefix . self::TABLE_NAME,
 			[
 				'source'      => (string) wp_json_encode( $info['id']['source'] ),
@@ -263,7 +262,7 @@ class Events {
 	 *
 	 * @return string
 	 */
-	private static function get_where_date_gmt( array $args ): string {
+	public static function get_where_date_gmt( array $args ): string {
 		$dates = $args['dates'];
 
 		if ( $dates ) {
