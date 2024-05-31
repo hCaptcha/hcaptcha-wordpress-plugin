@@ -86,10 +86,6 @@ class Events {
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
-
-		// phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_var_dump
-		var_dump( $res );
-		var_dump( $wpdb->last_error );
 	}
 
 	/**

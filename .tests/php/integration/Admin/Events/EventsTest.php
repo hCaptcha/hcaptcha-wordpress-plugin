@@ -54,6 +54,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$subject = new Events();
 
+		$subject::create_table();
 		$subject->save_event( $result, $error_codes );
 
 		// Query the database to check if the event was saved.

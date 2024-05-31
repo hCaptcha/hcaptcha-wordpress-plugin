@@ -1,20 +1,8 @@
 bootstrap: ./_bootstrap.php
 modules:
     enabled:
-        - WPDb
         - WPLoader
     config:
-        WPDb:
-            dsn: 'mysql:host=localhost;dbname=%DB_NAME%'
-            user: '%DB_USER%'
-            password: '%DB_PASSWORD%'
-            dump: '.codeception/_data/dumps/db.sql'
-            populate: true
-            cleanup: false
-            waitlock: 5
-            url: '%WP_URL%'
-            urlReplacement: true
-            tablePrefix: 'wp_'
         WPLoader:
             wpRootFolder: '%WP_ROOT_PATH%'
             dbName: '%DB_NAME%'
