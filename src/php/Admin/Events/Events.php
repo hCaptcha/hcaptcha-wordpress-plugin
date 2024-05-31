@@ -47,13 +47,13 @@ class Events {
 	 * @param string|null|mixed $result      The hCaptcha verification result.
 	 * @param array             $error_codes Error codes.
 	 *
-	 * @return string|null|mixed
+	 * @return void
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
-			return $result;
+			return;
 		}
 
 		$settings   = hcaptcha()->settings();
@@ -73,7 +73,7 @@ class Events {
 		$info = HCaptcha::decode_id_info();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->insert(
+		$res = $wpdb->insert(
 			$wpdb->prefix . self::TABLE_NAME,
 			[
 				'source'      => (string) wp_json_encode( $info['id']['source'] ),
@@ -86,7 +86,8 @@ class Events {
 			]
 		);
 
-		return $result;
+		var_dump( $res );
+		var_dump( $wpdb->last_error );
 	}
 
 	/**
