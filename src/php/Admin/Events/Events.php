@@ -48,6 +48,7 @@ class Events {
 	 * @param array             $error_codes Error codes.
 	 *
 	 * @return void
+	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
@@ -86,6 +87,7 @@ class Events {
 			]
 		);
 
+		// phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_var_dump
 		var_dump( $res );
 		var_dump( $wpdb->last_error );
 	}
