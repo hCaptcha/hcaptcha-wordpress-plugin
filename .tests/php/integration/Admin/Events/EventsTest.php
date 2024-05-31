@@ -217,6 +217,39 @@ class EventsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test create_table().
+	 *
+	 * @return void
+	 */
+	public function test_create_table() {
+		global $wpdb;
+
+		$charset_collate = $wpdb->get_charset_collate();
+		$expected_query  = "CREATE TEMPORARY TABLE {$wpdb->prefix}hcaptcha_events (
+		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		    source      VARCHAR(256)    NOT NULL,
+		    form_id     VARCHAR(20)     NOT NULL,
+		    ip          VARCHAR(39)     NOT NULL,
+		    user_agent  VARCHAR(256)    NOT NULL,
+		    uuid        VARCHAR(36)     NOT NULL,
+		    error_codes VARCHAR(256)    NOT NULL,
+		    date_gmt    DATETIME        NOT NULL,
+		    PRIMARY KEY (id),
+		    KEY source (source),
+		    KEY form_id (form_id),
+		    KEY hcaptcha_id (source, form_id),
+		    KEY ip (ip),
+		    KEY uuid (uuid),
+		    KEY date_gmt (date_gmt)
+		) $charset_collate";
+
+		$this->drop_table();
+		Events::create_table();
+
+		$this->assertSame( $expected_query, $wpdb->last_query );
+	}
+
+	/**
 	 * Test get_where_date_gmt().
 	 *
 	 * @return void

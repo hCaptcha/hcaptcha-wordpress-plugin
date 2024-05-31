@@ -232,7 +232,9 @@ class Events {
 		$table_name = self::TABLE_NAME;
 
 		if ( self::table_exists( $wpdb->prefix . $table_name ) ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -255,7 +257,7 @@ class Events {
 		    KEY ip (ip),
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt)
-		) $charset_collate;";
+		) $charset_collate";
 
 		dbDelta( $sql );
 	}
