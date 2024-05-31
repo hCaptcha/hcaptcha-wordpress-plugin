@@ -5,11 +5,15 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\Admin\Events;
 
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
 
 /**
  * Test EventsTest class.
@@ -17,6 +21,19 @@ use Mockery;
  * @group events
  */
 class EventsTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Tear down test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+		unset( $_SERVER['HTTP_USER_AGENT'], $_SERVER['HTTP_TRUE_CLIENT_IP'] );
+
+		$this->drop_table();
+
+		parent::tearDown();
+	}
 
 	/**
 	 * Test constructor and init_hooks().
@@ -146,13 +163,11 @@ class EventsTest extends HCaptchaWPTestCase {
 		$actual = $subject::get_events();
 
 		// Make sure the dates are the same (no more than 10 sec difference).
-		self::assertSame(
-			0,
-			( strtotime( $actual['items'][0]->date_gmt ) - strtotime( $expected['items'][0]->date_gmt ) ) % 10
+		self::assertTrue(
+			( strtotime( $actual['items'][0]->date_gmt ) - strtotime( $expected['items'][0]->date_gmt ) ) < 10
 		);
-		self::assertSame(
-			0,
-			( strtotime( $actual['items'][1]->date_gmt ) - strtotime( $expected['items'][1]->date_gmt ) ) % 10
+		self::assertTrue(
+			( strtotime( $actual['items'][1]->date_gmt ) - strtotime( $expected['items'][1]->date_gmt ) ) < 10
 		);
 
 		$actual['items'][0]->date_gmt = $expected['items'][0]->date_gmt;
@@ -201,13 +216,11 @@ class EventsTest extends HCaptchaWPTestCase {
 		$actual = $subject::get_forms();
 
 		// Make sure the dates are the same (no more than 10 sec difference).
-		self::assertSame(
-			0,
-			( strtotime( $actual['served'][0]->date_gmt ) - strtotime( $expected['served'][0]->date_gmt ) ) % 10
+		self::assertTrue(
+			( strtotime( $actual['served'][0]->date_gmt ) - strtotime( $expected['served'][0]->date_gmt ) ) < 10
 		);
-		self::assertSame(
-			0,
-			( strtotime( $actual['served'][1]->date_gmt ) - strtotime( $expected['served'][1]->date_gmt ) ) % 10
+		self::assertTrue(
+			( strtotime( $actual['served'][1]->date_gmt ) - strtotime( $expected['served'][1]->date_gmt ) ) < 10
 		);
 
 		$actual['served'][0]->date_gmt = $expected['served'][0]->date_gmt;
@@ -255,9 +268,9 @@ class EventsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_get_where_date_gmt() {
-		$dates = [ '2021-01-01', '2021-01-02' ];
+		$dates = [ '2024-05-01', '2024-05-02' ];
 
-		$expected = "date_gmt BETWEEN '2021-01-01 00:00:00' AND '2021-01-02 23:59:59'";
+		$expected = "date_gmt BETWEEN '2024-05-01 00:00:00' AND '2024-05-02 23:59:59'";
 
 		$subject = new Events();
 
