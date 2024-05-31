@@ -38,7 +38,7 @@ class Events {
 			return;
 		}
 
-		add_action( 'hcap_verify_request', [ $this, 'save_event' ], - PHP_INT_MAX, 2 );
+		add_action( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
 	}
 
 	/**
@@ -47,13 +47,13 @@ class Events {
 	 * @param string|null|mixed $result      The hCaptcha verification result.
 	 * @param array             $error_codes Error codes.
 	 *
-	 * @return string|null|mixed
+	 * @return void
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
-			return $result;
+			return;
 		}
 
 		$settings   = hcaptcha()->settings();
@@ -85,8 +85,6 @@ class Events {
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
-
-		return $result;
 	}
 
 	/**
@@ -99,7 +97,7 @@ class Events {
 	public static function get_events( array $args = [] ): array {
 		global $wpdb;
 
-		$args    = wp_parse_args(
+		$args          = wp_parse_args(
 			$args,
 			[
 				'columns' => [],
@@ -107,29 +105,38 @@ class Events {
 				'limit'   => 20,
 				'order'   => 'ASC',
 				'orderby' => '',
+				'dates'   => [],
 			]
 		);
-		$columns = implode( ',', $args['columns'] );
-		$columns = $columns ?: '*';
-		$order   = strtoupper( $args['order'] );
-		$order   = 'ASC' === $order ? '' : $order;
-		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
-		$offset  = absint( $args['offset'] );
-		$limit   = absint( $args['limit'] );
+		$args['dates'] = $args['dates'] ?: self::get_default_dates();
 
+		$columns    = implode( ',', $args['columns'] );
+		$columns    = $columns ?: '*';
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$where_date = self::get_where_date_gmt( $args );
+		$orderby    = self::get_order_by( $args );
+		$offset     = absint( $args['offset'] );
+		$limit      = absint( $args['limit'] );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS $columns FROM $table_name $orderby LIMIT %d, %d",
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT
+						SQL_CALC_FOUND_ROWS
+    					$columns
+						FROM $table_name
+						WHERE $where_date
+						$orderby
+						LIMIT %d, %d",
 				$offset,
 				$limit
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			)
 		);
 
 		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return [
@@ -148,37 +155,46 @@ class Events {
 	public static function get_forms( array $args = [] ): array {
 		global $wpdb;
 
-		$args    = wp_parse_args(
+		$args          = wp_parse_args(
 			$args,
 			[
 				'offset'  => 0,
 				'limit'   => 20,
 				'order'   => 'ASC',
 				'orderby' => '',
+				'dates'   => [],
 			]
 		);
-		$order   = strtoupper( $args['order'] );
-		$order   = 'ASC' === $order ? '' : $order;
-		$orderby = $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
-		$offset  = absint( $args['offset'] );
-		$limit   = absint( $args['limit'] );
+		$args['dates'] = $args['dates'] ?: self::get_default_dates();
 
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$where_date = self::get_where_date_gmt( $args );
+		$orderby    = self::get_order_by( $args );
+		$offset     = absint( $args['offset'] );
+		$limit      = absint( $args['limit'] );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS id, source, form_id, COUNT(*) as served FROM $table_name GROUP BY source, form_id $orderby LIMIT %d, %d",
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT
+						SQL_CALC_FOUND_ROWS
+    					source, form_id, COUNT(*) as served
+						FROM $table_name
+						WHERE $where_date
+						GROUP BY source, form_id
+						$orderby
+						LIMIT %d, %d",
 				$offset,
 				$limit
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			)
 		);
 
 		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-		$where = 'WHERE 1=0';
+		$where = '1=0';
 
 		foreach ( $results as $result ) {
 			$source  = esc_sql( $result->source );
@@ -187,11 +203,16 @@ class Events {
 			$where .= " OR (source='$source' AND form_id='$form_id')";
 		}
 
+		$where = "($where) AND " . $where_date;
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT date_gmt FROM $table_name $where"
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT date_gmt FROM $table_name WHERE $where"
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
+
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return [
 			'items'  => $results,
@@ -208,12 +229,19 @@ class Events {
 	public static function create_table() {
 		global $wpdb;
 
+		$table_name = self::TABLE_NAME;
+
+		if ( self::table_exists( $wpdb->prefix . $table_name ) ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$table_name      = self::TABLE_NAME;
 
-		$sql = "CREATE TABLE IF NOT EXISTS $wpdb->prefix$table_name (
+		$sql = "CREATE TABLE $wpdb->prefix$table_name (
 		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		    source      VARCHAR(256)    NOT NULL,
 		    form_id     VARCHAR(20)     NOT NULL,
@@ -229,8 +257,128 @@ class Events {
 		    KEY ip (ip),
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt)
-		) $charset_collate;";
+		) $charset_collate";
 
 		dbDelta( $sql );
+	}
+
+	/**
+	 * Get where date GMT.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	public static function get_where_date_gmt( array $args ): string {
+		$dates = $args['dates'];
+
+		if ( $dates ) {
+			$dates[1] = $dates[1] ?? $dates[0];
+
+			$dates[0] .= ' 00:00:00';
+			$dates[1] .= ' 23:59:59';
+
+			foreach ( $dates as &$date ) {
+				$date = wp_date( 'Y-m-d H:i:s', strtotime( $date ) );
+			}
+
+			unset( $date );
+
+			$where_date = sprintf(
+				"date_gmt BETWEEN '%s' AND '%s'",
+				esc_sql( $dates[0] ),
+				esc_sql( $dates[1] )
+			);
+		} else {
+			$where_date = '1=1';
+		}
+
+		return $where_date;
+	}
+
+	/**
+	 * Get ODER BY / ORDER clause
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	private static function get_order_by( array $args ): string {
+		$order = strtoupper( $args['order'] );
+		$order = 'ASC' === $order ? '' : $order;
+
+		return $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
+	}
+
+	/**
+	 * Get default dates.
+	 *
+	 * @return array
+	 */
+	private static function get_default_dates(): array {
+		$end_date   = date_create_immutable( 'now', wp_timezone() );
+		$start_date = $end_date;
+		$start_date = $start_date->modify( '-30 day' );
+		$start_date = $start_date->setTime( 0, 0 );
+		$end_date   = $end_date->setTime( 23, 59, 59 );
+		$format     = 'Y-m-d';
+
+		return [ $start_date->format( $format ), $end_date->format( $format ) ];
+	}
+
+	/**
+	 * Check if the database table exists and cache the result.
+	 *
+	 * @param string $table_name Table name. Can have SQL wildcard.
+	 *
+	 * @return bool
+	 */
+	private static function table_exists( string $table_name ): bool {
+		foreach ( self::get_existing_tables( $table_name ) as $existing_table ) {
+			if ( self::wildcard_match( $table_name, $existing_table ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the list of existing tables and cache the result.
+	 *
+	 * @param string $table_name Table name. Can have SQL wildcard.
+	 *
+	 * @return array List of table names.
+	 */
+	private static function get_existing_tables( string $table_name ): array {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$tables = $wpdb->get_results(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ),
+			'ARRAY_N'
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		return ! empty( $tables ) ? wp_list_pluck( $tables, 0 ) : [];
+	}
+
+	/**
+	 * Wildcard match.
+	 * Works as MySQL LIKE match.
+	 *
+	 * @param string $pattern Pattern.
+	 * @param string $subject String to search into.
+	 *
+	 * @return false|int
+	 */
+	private static function wildcard_match( string $pattern, string $subject ) {
+		$regex = str_replace(
+			[ '%', '_' ], // MySQL wildcard chars.
+			[ '.*', '.' ],  // Regexp chars.
+			preg_quote( $pattern, '/' )
+		);
+
+		return preg_match( '/^' . $regex . '$/is', $subject );
 	}
 }

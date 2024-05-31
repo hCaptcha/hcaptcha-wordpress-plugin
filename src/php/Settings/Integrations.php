@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use KAGG\Settings\Abstracts\SettingsBase;
+use WP_Error;
 use WP_Theme;
 
 /**
@@ -48,11 +49,31 @@ class Integrations extends PluginSettingsBase {
 	const SECTION_DISABLED = 'disabled';
 
 	/**
+	 * Plugin dependencies not specified in their headers.
+	 * Key is a plugin slug.
+	 * Value is a plugin slug or an array of slugs.
+	 */
+	const PLUGIN_DEPENDENCIES = [
+		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php' => 'woocommerce/woocommerce.php',
+		'elementor-pro/elementor-pro.php'                               => 'elementor/elementor.php',
+		'woocommerce-wishlists/woocommerce-wishlists.php'               => 'woocommerce/woocommerce.php',
+		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+	];
+
+	/**
 	 * Entity name to activate/deactivate. Can be 'plugin' or 'theme'.
 	 *
 	 * @var string
 	 */
 	protected $entity = '';
+
+	/**
+	 * Plugins tree.
+	 *
+	 * @var array
+	 */
+	protected $plugins_tree;
 
 	/**
 	 * Get page title.
@@ -78,7 +99,7 @@ class Integrations extends PluginSettingsBase {
 	protected function init_hooks() {
 		parent::init_hooks();
 
-		add_action( 'kagg_settings_tab', [ $this, 'search_box' ] );
+		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 	}
 
@@ -628,12 +649,12 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function search_box() {
 		?>
-		<span id="hcaptcha-integrations-search-wrap">
+		<div id="hcaptcha-integrations-search-wrap">
 			<label for="hcaptcha-integrations-search"></label>
 			<input
 					type="search" id="hcaptcha-integrations-search"
 					placeholder="<?php esc_html_e( 'Search plugins and themes...', 'hcaptcha-for-forms-and-more' ); ?>">
-		</span>
+		</div>
 		<?php
 	}
 
@@ -656,10 +677,9 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
+		$this->print_header();
+
 		?>
-		<h2>
-			<?php echo esc_html( $this->page_title() ); ?>
-		</h2>
 		<div id="hcaptcha-message"></div>
 		<p>
 			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
@@ -814,10 +834,16 @@ class Integrations extends PluginSettingsBase {
 				$this->send_json_error( esc_html( $message ) );
 			}
 
-			$message = sprintf(
+			$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
+			$message      = sprintf(
 			/* translators: 1: Plugin name. */
-				__( '%s plugin is activated.', 'hcaptcha-for-forms-and-more' ),
-				$plugin_name
+				_n(
+					'%s plugin is activated.',
+					'%s plugins are activated.',
+					count( $plugin_names ),
+					'hcaptcha-for-forms-and-more'
+				),
+				implode( ', ', $plugin_names )
 			);
 
 			$this->send_json_success( esc_html( $message ) );
@@ -873,11 +899,8 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function activate_plugins( array $plugins ): bool {
 		foreach ( $plugins as $plugin ) {
-			ob_start();
-
-			$result = activate_plugin( $plugin );
-
-			ob_end_clean();
+			$this->plugins_tree = $this->build_plugins_tree( $plugin );
+			$result             = $this->activate_plugin_tree( $this->plugins_tree );
 
 			if ( null === $result ) {
 				// Activate the first available plugin only.
@@ -886,6 +909,135 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Activate plugins.
+	 *
+	 * @param array $node Node of the plugin tree.
+	 *
+	 * @return int|null|true|WP_Error
+	 */
+	protected function activate_plugin_tree( array &$node ) {
+		if ( $node['children'] ) {
+			foreach ( $node['children'] as $child ) {
+				$result = $this->activate_plugin_tree( $child );
+
+				if ( null !== $result ) {
+					return $result;
+				}
+			}
+		}
+
+		ob_start();
+		$result = activate_plugin( $node['plugin'] );
+		ob_end_clean();
+
+		$node['result'] = $result;
+
+		return $result;
+	}
+
+	/**
+	 * Get plugins' tree.
+	 *
+	 * @param string $plugin Plugin slug.
+	 *
+	 * @return array
+	 */
+	protected function build_plugins_tree( string $plugin ): array {
+		$dependencies = $this->plugin_dependencies( $plugin );
+		$tree         = [
+			'plugin'   => $plugin,
+			'children' => [],
+		];
+
+		foreach ( $dependencies as $dependency ) {
+			$tree['children'][] = $this->build_plugins_tree( $dependency );
+		}
+
+		return $tree;
+	}
+
+	/**
+	 * Get plugin dependencies.
+	 *
+	 * @param string $plugin Plugin slug.
+	 *
+	 * @return array
+	 */
+	private function plugin_dependencies( string $plugin ): array {
+		$plugin_headers   = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin );
+		$requires_plugins = $plugin_headers['RequiresPlugins'] ?? '';
+		$wp_dependencies  = $this->plugin_dirs_to_slugs(
+			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
+		);
+		$dependencies     = (array) ( self::PLUGIN_DEPENDENCIES[ $plugin ] ?? [] );
+
+		return array_merge( $wp_dependencies, $dependencies );
+	}
+
+	/**
+	 * Convert plugin directories to slugs.
+	 *
+	 * @param array $dirs Plugin directories.
+	 *
+	 * @return array
+	 */
+	protected function plugin_dirs_to_slugs( array $dirs ): array {
+		if ( ! $dirs ) {
+			return $dirs;
+		}
+
+		$slugs = array_keys( get_plugins() );
+
+		foreach ( $dirs as &$dir ) {
+			$slug = preg_grep( "#^$dir/#", $slugs );
+
+			if ( $slug ) {
+				$dir = reset( $slug );
+			}
+		}
+
+		return $dirs;
+	}
+
+	/**
+	 * Get plugin names from the tree.
+	 *
+	 * @param array $node Node of the plugin tree.
+	 *
+	 * @return array
+	 */
+	protected function plugin_names_from_tree( array $node ): array {
+		$plugin_names = [];
+
+		if ( $node['children'] ) {
+			foreach ( $node['children'] as $child ) {
+				$plugin_names[] = $this->plugin_names_from_tree( $child );
+			}
+
+			$plugin_names = array_merge( [], ...$plugin_names );
+		}
+
+		$status = '';
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $module[1] === $node['plugin'] ) {
+				$status = $module[0][0];
+
+				break;
+			}
+		}
+
+		$plugin_name = $this->form_fields[ $status ]['label'] ?? '';
+
+		if ( ! $plugin_name ) {
+			$plugin_data = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $node['plugin'] );
+			$plugin_name = $plugin_data['Name'] ?? '';
+		}
+
+		return array_unique( array_merge( [ $plugin_name ], $plugin_names ) );
 	}
 
 	/**
@@ -941,12 +1093,31 @@ class Integrations extends PluginSettingsBase {
 	protected function json_data( string $message ): array {
 		$data = [ 'message' => esc_html( $message ) ];
 
+		if ( 'plugin' === $this->entity ) {
+			$data['stati'] = $this->get_activation_stati();
+		}
+
 		if ( 'theme' === $this->entity ) {
 			$data['themes']       = $this->get_themes();
 			$data['defaultTheme'] = $this->get_default_theme();
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get activation stati of all integrated plugins and themes.
+	 *
+	 * @return array
+	 */
+	protected function get_activation_stati(): array {
+		$stati = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			$stati[ $module[0][0] ] = hcaptcha()->plugin_or_theme_active( $module[1] );
+		}
+
+		return $stati;
 	}
 
 	/**

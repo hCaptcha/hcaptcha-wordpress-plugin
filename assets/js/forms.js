@@ -3,6 +3,7 @@
 /**
  * @param HCaptchaFormsObject.served
  * @param HCaptchaFormsObject.servedLabel
+ * @param HCaptchaFormsObject.unit
  */
 document.addEventListener( 'DOMContentLoaded', function() {
 	const ctx = document.getElementById( 'formsChart' );
@@ -40,6 +41,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 							year: 'dd.MM.yyyy',
 						},
 						tooltipFormat: 'dd.MM.yyyy HH:mm',
+						unit: HCaptchaFormsObject.unit,
 					},
 				},
 				y: {

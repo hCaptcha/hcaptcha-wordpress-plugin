@@ -154,7 +154,7 @@ class Form {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-otter$min.js",
-			[ 'wp-hooks' ],
+			[],
 			HCAPTCHA_VERSION,
 			true
 		);

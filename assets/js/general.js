@@ -103,7 +103,10 @@ const general = function( $ ) {
 	}
 
 	function getCleanConsoleLogs() {
-		const ignore = [ 'recaptchacompat disabled' ];
+		const ignore = [
+			'recaptchacompat disabled',
+			'Missing sitekey - https://hcaptcha.com/docs/configuration#jsapi',
+		];
 		const logs = [];
 
 		for ( let i = 0; i < consoleLogs.length; i++ ) {
@@ -199,6 +202,14 @@ const general = function( $ ) {
 
 		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
 		sampleHCaptcha.innerHTML = '';
+
+		// Map the theme to the palette mode.
+		params.theme = params?.theme?.palette?.mode;
+
+		if ( ! params.theme ) {
+			// Remove the theme if it's not set.
+			delete params.theme;
+		}
 
 		for ( const key in params ) {
 			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );

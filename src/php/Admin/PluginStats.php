@@ -144,7 +144,7 @@ class PluginStats {
 		}
 
 		$settings   = hcaptcha()->settings();
-		$license    = (int) hcaptcha()->is_pro() ? 'Pro' : 'Publisher';
+		$license    = (int) $settings->is_pro() ? 'Pro' : 'Publisher';
 		$api_host   = $settings->get( 'api_host' );
 		$backend    = $settings->get( 'backend' );
 		$enterprise = (

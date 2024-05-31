@@ -22,6 +22,11 @@ abstract class PluginSettingsBase extends SettingsBase {
 	const PREFIX = 'hcaptcha';
 
 	/**
+	 * Settings option name.
+	 */
+	const OPTION_NAME = 'hcaptcha_settings';
+
+	/**
 	 * The 'submit' button was shown.
 	 *
 	 * @var bool
@@ -97,7 +102,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @return string
 	 */
 	protected function option_name(): string {
-		return 'hcaptcha_settings';
+		return self::OPTION_NAME;
 	}
 
 	/**

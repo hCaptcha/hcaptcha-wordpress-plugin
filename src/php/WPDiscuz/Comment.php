@@ -114,7 +114,7 @@ class Comment extends Base {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-wpdiscuz-comment$min.js",
-			[ 'wp-hooks' ],
+			[],
 			HCAPTCHA_VERSION,
 			true
 		);

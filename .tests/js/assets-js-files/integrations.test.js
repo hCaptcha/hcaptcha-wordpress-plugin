@@ -104,11 +104,16 @@ describe( 'integrations', () => {
 		window.hCaptchaIntegrations( $ );
 
 		const mockSuccessResponse = {
-			data: successMessage,
+			data: {
+				message: successMessage,
+				stati: [],
+			},
 			success: true,
 		};
 		const mockErrorResponse = {
-			data: errorMessage,
+			data: {
+				message: errorMessage,
+			},
 			success: false,
 		};
 		const mockPostPromise = {

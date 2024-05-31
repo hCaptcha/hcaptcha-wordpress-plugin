@@ -49,13 +49,6 @@ class EventsPage extends ListPageBase {
 	protected $failed;
 
 	/**
-	 * The page is allowed to be shown.
-	 *
-	 * @var bool
-	 */
-	protected $allowed = false;
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -89,6 +82,7 @@ class EventsPage extends ListPageBase {
 		parent::init_hooks();
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
+		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
 	}
 
 	/**
@@ -97,7 +91,9 @@ class EventsPage extends ListPageBase {
 	 * @return void
 	 */
 	public function admin_init() {
-		$this->allowed = ( hcaptcha()->settings()->is_on( 'statistics' ) && hcaptcha()->is_pro() );
+		$settings = hcaptcha()->settings();
+
+		$this->allowed = ( $settings->is_on( 'statistics' ) && $settings->is_pro() );
 
 		if ( ! $this->allowed ) {
 			return;
@@ -123,21 +119,7 @@ class EventsPage extends ListPageBase {
 			return;
 		}
 
-		wp_enqueue_script(
-			'chart',
-			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chart.umd.min.js',
-			[],
-			'v4.4.2',
-			true
-		);
-
-		wp_enqueue_script(
-			'chart-adapter-date-fns',
-			constant( 'HCAPTCHA_URL' ) . '/assets/lib/chartjs-adapter-date-fns.bundle.min.js',
-			[ 'chart' ],
-			'v3.0.0',
-			true
-		);
+		parent::admin_enqueue_scripts();
 
 		wp_enqueue_script(
 			self::HANDLE,
@@ -155,6 +137,7 @@ class EventsPage extends ListPageBase {
 				'failed'       => $this->failed,
 				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
 				'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
+				'unit'         => $this->unit,
 			]
 		);
 	}
@@ -167,11 +150,7 @@ class EventsPage extends ListPageBase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ) {
-		?>
-		<h2>
-			<?php echo esc_html( $this->page_title() ); ?>
-		</h2>
-		<?php
+		$this->print_header();
 
 		if ( ! $this->allowed ) {
 			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );

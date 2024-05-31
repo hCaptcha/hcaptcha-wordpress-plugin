@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Unit\Settings;
 use HCaptcha\Admin\Events\EventsTable;
 use HCaptcha\Main;
 use HCaptcha\Settings\EventsPage;
+use HCaptcha\Settings\ListPageBase;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
@@ -99,7 +100,7 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		$settings->shouldReceive( 'is_on' )->with( 'statistics' )->andReturn( $statistics );
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
-		$main->shouldReceive( 'is_pro' )->andReturn( $is_pro );
+		$settings->shouldReceive( 'is_pro' )->andReturn( $is_pro );
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'option_page' )->times( $times )->andReturn( $option_page );
 		$subject->shouldReceive( 'prepare_chart_data' )->times( $times );
@@ -145,6 +146,8 @@ class EventsPageTest extends HCaptchaTestCase {
 		$min_suffix     = '.min';
 		$succeed        = [ 'some succeed events' ];
 		$failed         = [ 'some failed events' ];
+		$unit           = 'day';
+		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
 
 		$subject = Mockery::mock( EventsPage::class )->makePartial();
@@ -153,6 +156,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'succeed', $succeed );
 		$this->set_protected_property( $subject, 'failed', $failed );
+		$this->set_protected_property( $subject, 'unit', $unit );
 
 		FunctionMocker::replace(
 			'constant',
@@ -180,8 +184,8 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
-				'chart',
-				$plugin_url . '/assets/lib/chart.umd.min.js',
+				ListPageBase::CHART_HANDLE,
+				$plugin_url . '/assets/lib/chartjs/chart.umd.min.js',
 				[],
 				'v4.4.2',
 				true
@@ -191,10 +195,59 @@ class EventsPageTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
 				'chart-adapter-date-fns',
-				$plugin_url . '/assets/lib/chartjs-adapter-date-fns.bundle.min.js',
-				[ 'chart' ],
+				$plugin_url . '/assets/lib/chartjs/chartjs-adapter-date-fns.bundle.min.js',
+				[ ListPageBase::CHART_HANDLE ],
 				'v3.0.0',
 				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				ListPageBase::FLATPICKR_HANDLE,
+				$plugin_url . '/assets/lib/flatpickr/flatpickr.min.css',
+				[],
+				'4.6.13'
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				ListPageBase::FLATPICKR_HANDLE,
+				$plugin_url . '/assets/lib/flatpickr/flatpickr.min.js',
+				[],
+				'4.6.13',
+				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				ListPageBase::HANDLE,
+				$plugin_url . "/assets/css/settings-list-page-base$min_suffix.css",
+				[ ListPageBase::FLATPICKR_HANDLE ],
+				$plugin_version
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				ListPageBase::HANDLE,
+				$plugin_url . "/assets/js/settings-list-page-base$min_suffix.js",
+				[ ListPageBase::FLATPICKR_HANDLE ],
+				$plugin_version,
+				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				ListPageBase::HANDLE,
+				ListPageBase::OBJECT,
+				[
+					'delimiter' => ListPageBase::TIMESPAN_DELIMITER,
+					'locale'    => $language_code,
+				]
 			)
 			->times( $times );
 
@@ -217,9 +270,12 @@ class EventsPageTest extends HCaptchaTestCase {
 					'failed'       => $failed,
 					'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
 					'failedLabel'  => __( 'Failed', 'hcaptcha-for-forms-and-more' ),
+					'unit'         => $unit,
 				]
 			)
 			->times( $times );
+
+		WP_Mock::userFunction( 'get_user_locale' )->andReturn( $language_code );
 
 		$subject->admin_enqueue_scripts();
 	}
@@ -242,8 +298,13 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback() {
-		$expected = '		<h2>
-			Events		</h2>
+		$datepicker = '<div class="hcaptcha-filter"></div>';
+		$expected   = '		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
+					Events				</h2>
+			</div>
+			' . $datepicker . '		</div>
 				<div id="hcaptcha-events-chart">
 			<canvas id="eventsChart" aria-label="The hCaptcha Events Chart" role="img">
 				<p>
@@ -255,7 +316,17 @@ class EventsPageTest extends HCaptchaTestCase {
 		';
 
 		$list_table = Mockery::mock( EventsTable::class )->makePartial();
-		$subject    = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject    = Mockery::mock( EventsPage::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'date_picker_display' )->andReturnUsing(
+			static function () use ( $datepicker ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $datepicker;
+			}
+		);
+
+		WP_Mock::onAction( 'kagg_settings_header' )->with( null )->perform( [ $subject, 'date_picker_display' ] );
 
 		$list_table->shouldReceive( 'display' )->once();
 		$this->set_protected_property( $subject, 'allowed', true );
@@ -272,8 +343,12 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function test_section_callback_when_not_allowed() {
-		$expected = '		<h2>
-			Events		</h2>
+		$expected = '		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
+					Events				</h2>
+			</div>
+					</div>
 					<div class="hcaptcha-events-sample-bg"></div>
 
 			<div class="hcaptcha-events-sample-text">
@@ -326,6 +401,18 @@ class EventsPageTest extends HCaptchaTestCase {
 					return 86400;
 				}
 
+				if ( 'WEEK_IN_SECONDS' === $name ) {
+					return 604800;
+				}
+
+				if ( 'MONTH_IN_SECONDS' === $name ) {
+					return 2592000;
+				}
+
+				if ( 'YEAR_IN_SECONDS' === $name ) {
+					return 31536000;
+				}
+
 				return null;
 			}
 		);
@@ -343,6 +430,7 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		self::assertSame( $expected['succeed'], $this->get_protected_property( $subject, 'succeed' ) );
 		self::assertSame( $expected['failed'], $this->get_protected_property( $subject, 'failed' ) );
+		self::assertSame( $expected['unit'], $this->get_protected_property( $subject, 'unit' ) );
 	}
 
 	/**
@@ -528,6 +616,7 @@ class EventsPageTest extends HCaptchaTestCase {
 						'2024-04-02' => 2,
 						'2024-04-01' => 2,
 					],
+					'unit'    => 'day',
 				],
 			],
 			'items within a day'    => [
@@ -566,6 +655,7 @@ class EventsPageTest extends HCaptchaTestCase {
 						'2024-04-13 10:00' => 0,
 						'2024-04-13 11:17' => 1,
 					],
+					'unit'    => 'minute',
 				],
 			],
 			'items within a minute' => [
@@ -606,6 +696,7 @@ class EventsPageTest extends HCaptchaTestCase {
 						'2024-04-13 11:17:33' => 1,
 						'2024-04-13 11:17:32' => 0,
 					],
+					'unit'    => 'second',
 				],
 			],
 		];

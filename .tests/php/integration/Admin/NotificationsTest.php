@@ -5,10 +5,16 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\Admin;
 
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 use ReflectionException;
 
 /**
@@ -33,11 +39,13 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test init().
 	 *
 	 * @param bool $empty_keys Whether keys are empty.
+	 * @param bool $pro Whether it is a Pro account.
+	 * @param bool $force Whether a force option is on.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init( bool $empty_keys ) {
+	public function test_init( bool $empty_keys, bool $pro, bool $force ) {
 		$site_key   = '';
 		$secret_key = '';
 
@@ -127,6 +135,20 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			unset( $expected['register'] );
 		}
 
+		if ( $pro ) {
+			unset( $expected['pro-free-trial'] );
+
+			update_option( 'hcaptcha_settings', [ 'license' => 'pro' ] );
+		}
+
+		if ( $force ) {
+			unset( $expected['force'] );
+
+			update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
+		}
+
+		hcaptcha()->init_hooks();
+
 		add_filter(
 			'hcap_site_key',
 			static function () use ( $site_key ) {
@@ -176,8 +198,9 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_init(): array {
 		return [
-			'empty keys'     => [ true ],
-			'not empty keys' => [ false ],
+			'empty_keys' => [ true, false, false ],
+			'pro'        => [ false, true, false ],
+			'force'      => [ false, false, true ],
 		];
 	}
 
@@ -773,6 +796,30 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		self::assertSame( '', $dismissed );
 		self::assertSame( $expected, $die_arr );
 		self::assertSame( '{"success":true,"data":""}', $json );
+	}
+
+	/**
+	 * Test make_key_first().
+	 *
+	 * @return void
+	 */
+	public function test_make_key_first() {
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$notifications = [
+			'first'  => 'first',
+			'second' => 'second',
+			'third'  => 'third',
+		];
+		$expected      = [
+			'third'  => 'third',
+			'first'  => 'first',
+			'second' => 'second',
+		];
+
+		self::assertSame( $notifications, $subject->make_key_first( $notifications, 'some' ) );
+		self::assertSame( $expected, $subject->make_key_first( $notifications, 'third' ) );
 	}
 
 	/**

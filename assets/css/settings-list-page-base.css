@@ -1,0 +1,142 @@
+.hcaptcha-filter {
+	position: relative;
+	display: flex;
+	flex-direction: row-reverse;
+	margin-bottom: 15px;
+}
+
+#hcaptcha-datepicker-popover-button {
+	background: #ffffff;
+	border-color: #8c8f94;
+	color: #3c434a;
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	gap: 16px;
+}
+
+.hcaptcha-datepicker-popover {
+	background: #ffffff;
+	border-radius: 6px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+	display: none;
+	margin-top: 10px;
+	position: absolute;
+	z-index: 30;
+	right: 0;
+	width: 416px;
+	max-width: 80vw;
+	top: 32px
+}
+
+.hcaptcha-datepicker-popover-content {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices {
+	flex-grow: 1;
+	padding: 20px;
+	margin: 0;
+	font-size: 14px;
+	line-height: 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 15px;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices .hcaptcha-is-selected {
+	color: #0075ab;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar {
+	padding: 10px;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-action {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 10px;
+	width: 100%;
+	border-top: 1px solid #ccd0d4;
+	padding: 15px 20px;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices [type="radio"],
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .form-control {
+	border: none;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar.inline {
+	top: 0;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar {
+	box-shadow: none;
+	width: 100%;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+	font-size: 14px;
+	font-weight: 700;
+	opacity: 0.7;
+}
+
+.flatpickr-current-month input.cur-year {
+	font-size: 14px;
+	font-weight: 700;
+	opacity: 0.7;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .flatpickr-rContainer,
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .flatpickr-days,
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .dayContainer {
+	font-size: 13px;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .flatpickr-rContainer, .hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .flatpickr-days, .hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .dayContainer {
+	width: 100%;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .dayContainer {
+	max-width: 100%;
+	min-width: 100%;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar * {
+	box-sizing: border-box;
+}
+
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar .flatpickr-calendar .flatpickr-day {
+	display: flex;
+	align-items: center;
+	height: auto;
+	line-height: 30px;
+	margin: 0;
+	aspect-ratio: 1;
+	box-shadow: none;
+	max-width: none;
+	border-style: hidden;
+}
+
+@media (min-width: 601px) {
+	.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-calendar {
+		width: 245px;
+	}
+
+	.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices {
+		border-right: 1px solid #ccd0d4;
+		margin-right: 4px;
+	}
+}

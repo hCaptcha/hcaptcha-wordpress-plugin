@@ -50,6 +50,13 @@ abstract class SettingsBase {
 	const POSITION = 58.99;
 
 	/**
+	 * Network-wide menu position.
+	 *
+	 * A number before 25 (Settings) to avoid conflicts with other plugins.
+	 */
+	const NETWORK_WIDE_POSITION = 24.99;
+
+	/**
 	 * Form fields.
 	 *
 	 * @var array
@@ -213,32 +220,7 @@ abstract class SettingsBase {
 	public function __construct( $tabs = [], $args = [] ) {
 		$this->tabs = $tabs;
 
-		$args = wp_parse_args(
-			$args,
-			[
-				'mode'     => self::MODE_PAGES,
-				'parent'   => null,
-				'position' => null,
-			]
-		);
-
-		$this->admin_mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
-			$args['mode'] :
-			self::MODE_PAGES;
-
-		if ( null === $args['parent'] ) {
-			$this->parent_slug = self::MODE_PAGES === $this->admin_mode ? '' : 'options-general.php';
-		} else {
-			$this->parent_slug = $args['parent'];
-		}
-
-		if ( null === $args['position'] ) {
-			$hash           = hexdec( sha1( self::PREFIX ) );
-			$pow            = floor( log10( $hash ) );
-			$this->position = round( self::POSITION + $hash / 10 ** ( $pow + 4 ), 6 );
-		} else {
-			$this->position = (float) $args['position'];
-		}
+		$this->process_args( $args );
 
 		$this->fields = [
 			'text'     => [ $this, 'print_text_field' ],
@@ -256,7 +238,10 @@ abstract class SettingsBase {
 
 		if ( self::MODE_PAGES === $this->admin_mode || ! $this->is_tab() ) {
 			add_action( 'current_screen', [ $this, 'setup_tabs_section' ], 9 );
-			add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
+
+			$tag = $this->is_network_wide() ? 'network_admin_menu' : 'admin_menu';
+
+			add_action( $tag, [ $this, 'add_settings_page' ] );
 		}
 
 		$this->init();
@@ -283,6 +268,7 @@ abstract class SettingsBase {
 	 */
 	protected function init_hooks() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
+		add_action( 'admin_page_access_denied', [ $this, 'base_admin_page_access_denied' ] );
 
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
@@ -308,6 +294,44 @@ abstract class SettingsBase {
 	 */
 	public function init_form_fields() {
 		$this->form_fields = [];
+	}
+
+	/**
+	 * Process arguments.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return void
+	 */
+	protected function process_args( array $args ) {
+		$args = wp_parse_args(
+			$args,
+			[
+				'mode'     => $this->get_menu_position(),
+				'parent'   => null,
+				'position' => null,
+			]
+		);
+
+		$this->admin_mode = in_array( $args['mode'], [ self::MODE_PAGES, self::MODE_TABS ], true ) ?
+			$args['mode'] :
+			self::MODE_PAGES;
+
+		if ( null === $args['parent'] ) {
+			$wp_settings_slug  = is_multisite() && $this->is_network_wide() ? 'settings.php' : 'options-general.php';
+			$this->parent_slug = self::MODE_PAGES === $this->admin_mode ? '' : $wp_settings_slug;
+		} else {
+			$this->parent_slug = $args['parent'];
+		}
+
+		if ( null === $args['position'] ) {
+			$hash           = hexdec( sha1( self::PREFIX ) );
+			$pow            = floor( log10( $hash ) );
+			$position       = is_multisite() && $this->is_network_wide() ? self::NETWORK_WIDE_POSITION : self::POSITION;
+			$this->position = round( $position + $hash / 10 ** ( $pow + 4 ), 6 );
+		} else {
+			$this->position = (float) $args['position'];
+		}
 	}
 
 	/**
@@ -380,12 +404,10 @@ abstract class SettingsBase {
 	 * or the settings stored in the database.
 	 */
 	protected function init_settings() {
-		$network_wide = get_site_option( $this->option_name() . self::NETWORK_WIDE, [] );
-
-		if ( empty( $network_wide ) ) {
-			$this->settings = get_option( $this->option_name(), null );
-		} else {
+		if ( $this->is_network_wide() ) {
 			$this->settings = get_site_option( $this->option_name(), null );
+		} else {
+			$this->settings = get_option( $this->option_name(), null );
 		}
 
 		$settings_exist                       = is_array( $this->settings );
@@ -393,7 +415,7 @@ abstract class SettingsBase {
 		$form_fields                          = $this->form_fields();
 		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, $this->settings ) ?
 			$this->settings[ self::NETWORK_WIDE ] :
-			$network_wide;
+			$this->get_network_wide();
 		$this->settings[ self::NETWORK_WIDE ] = $network_wide_setting;
 
 		if ( $settings_exist ) {
@@ -566,6 +588,44 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Filter denied access to the settings page.
+	 * It is needed when switching network_wide option.
+	 *
+	 * @return void
+	 */
+	public function base_admin_page_access_denied() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
+		if ( static::PREFIX !== $page ) {
+			return;
+		}
+
+		$url = is_multisite() && $this->is_network_wide() ?
+			network_admin_url( 'admin.php?page=' . $this->option_page() ) :
+			admin_url( 'admin.php?page=' . $this->option_page() );
+
+		if ( wp_get_raw_referer() === $url ) {
+			// Prevent infinite loop.
+			return;
+		}
+
+		wp_safe_redirect( $url );
+		$this->exit();
+	}
+
+	/**
+	 * Exit wrapper for test purposes.
+	 *
+	 * @return void
+	 */
+	protected function exit() {
+		// @codeCoverageIgnoreStart
+		exit();
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
 	 * Setup settings sections.
 	 *
 	 * @return void
@@ -657,7 +717,9 @@ abstract class SettingsBase {
 	 * @param SettingsBase $tab Tabs of the current settings page.
 	 */
 	private function tab_link( SettingsBase $tab ) {
-		$url = menu_page_url( $tab->option_page(), false );
+		$url = is_multisite() && $this->is_network_wide() ?
+			network_admin_url( 'admin.php?page=' . $tab->option_page() ) :
+			menu_page_url( $tab->option_page(), false );
 
 		if ( self::MODE_TABS === $this->admin_mode ) {
 			$url = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
@@ -1407,6 +1469,10 @@ abstract class SettingsBase {
 
 		$current_suffix = preg_replace( '/.+_page_/', '', $current_screen->id );
 
+		if ( is_multisite() && $this->is_network_wide() ) {
+			$current_suffix = preg_replace( '/-network$/', '', $current_suffix );
+		}
+
 		return $this->option_page() === $current_suffix || in_array( $current_suffix, $ids, true );
 	}
 
@@ -1429,7 +1495,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Print supplemental id it exists.
+	 * Print supplemental id if it exists.
 	 *
 	 * @param string $supplemental Supplemental.
 	 *
@@ -1444,5 +1510,63 @@ abstract class SettingsBase {
 			'<p class="description">%s</p>',
 			wp_kses_post( $supplemental )
 		);
+	}
+
+	/**
+	 * Get network_wide setting.
+	 *
+	 * @return array
+	 */
+	protected function get_network_wide(): array {
+		static $network_wide = null;
+
+		if ( null === $network_wide ) {
+			$network_wide = (array) get_site_option( $this->option_name() . self::NETWORK_WIDE, [] );
+		}
+
+		return $network_wide;
+	}
+
+	/**
+	 * Whether network_wide setting is on.
+	 *
+	 * @return bool
+	 */
+	protected function is_network_wide(): bool {
+		return ! empty( $this->get_network_wide() );
+	}
+
+	/**
+	 * Get menu position.
+	 *
+	 * @return string
+	 */
+	protected function get_menu_position(): string {
+		return [ 'on' ] === $this->get( 'menu_position' ) ? self::MODE_TABS : self::MODE_PAGES;
+	}
+
+	/**
+	 * Print header.
+	 *
+	 * @return void
+	 */
+	protected function print_header() {
+		?>
+		<div class="<?php echo esc_attr( static::PREFIX . '-header-bar' ); ?>">
+			<div class="<?php echo esc_attr( static::PREFIX . '-header' ); ?>">
+				<h2>
+					<?php echo esc_html( $this->page_title() ); ?>
+				</h2>
+			</div>
+			<?php
+
+			/**
+			 * Fires before settings tab closing tag.
+			 */
+			do_action( 'kagg_settings_header' );
+
+			?>
+		</div>
+		<?php
 	}
 }

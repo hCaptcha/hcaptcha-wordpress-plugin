@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Admin\Events;
 
+use HCaptcha\Settings\ListPageBase;
 use WP_List_Table;
 
 // If this file is called directly, abort.
@@ -180,8 +181,13 @@ class EventsTable extends WP_List_Table {
 		$paged   = isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1;
 		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'DESC';
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date_gmt';
+		$date    = isset( $_GET['date'] )
+			? filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: ''; // We need filter_input here to keep delimiter intact.
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
+		$dates        = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
+		$dates        = array_filter( array_map( 'trim', $dates ) );
 		$column_slugs = str_replace( 'name', 'source', array_keys( $this->columns ) );
 		$per_page     = $this->get_items_per_page( self::EVENTS_PER_PAGE, $this->per_page_default );
 		$offset       = ( $paged - 1 ) * $per_page;
@@ -191,6 +197,7 @@ class EventsTable extends WP_List_Table {
 			'limit'   => $per_page,
 			'order'   => $order,
 			'orderby' => $orderby,
+			'dates'   => $dates,
 		];
 
 		$events      = Events::get_events( $args );

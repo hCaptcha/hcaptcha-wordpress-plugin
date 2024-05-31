@@ -31,6 +31,7 @@ use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
@@ -45,6 +46,11 @@ class Main {
 	 * Main script handle.
 	 */
 	const HANDLE = 'hcaptcha';
+
+	/**
+	 * WP hooks handle.
+	 */
+	const WP_HOOKS_HANDLE = 'wp-hooks';
 
 	/**
 	 * Main script localization object.
@@ -134,18 +140,12 @@ class Main {
 	public function init_hooks() {
 		$this->load_textdomain();
 
-		$settings      = get_option( 'hcaptcha_settings', [] );
-		$menu_position = $settings['menu_position'] ?? [];
-		$args          = [
-			'mode' => [ 'on' ] === $menu_position ? SettingsBase::MODE_TABS : SettingsBase::MODE_PAGES,
-		];
-
 		/**
 		 *  Filters the settings system initialization arguments.
 		 *
 		 * @param array $args Settings system initialization arguments.
 		 */
-		$args = (array) apply_filters( 'hcap_settings_init_args', $args );
+		$args = (array) apply_filters( 'hcap_settings_init_args', [] );
 
 		$this->settings = new Settings(
 			[
@@ -251,15 +251,6 @@ class Main {
 		 * @param bool $activate Activate the hcaptcha functionality.
 		 */
 		return (bool) apply_filters( 'hcap_activate', $activate );
-	}
-
-	/**
-	 * Check if it is a Pro account.
-	 *
-	 * @return false
-	 */
-	public function is_pro(): bool {
-		return 'pro' === $this->settings->get_license();
 	}
 
 	/**
@@ -496,6 +487,20 @@ class Main {
 	}
 CSS;
 
+		$settings = $this->settings();
+
+		if ( $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
+			$bg = $settings->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? '';
+
+			if ( $bg ) {
+				$css .= <<<CSS
+	.h-captcha::before {
+		background-color: $bg !important;	
+	}
+CSS;
+			}
+		}
+
 		HCaptcha::css_display( $css );
 	}
 
@@ -577,7 +582,7 @@ CSS;
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
+		if ( $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
 			$params['custom'] = 'true';
 		}
 
@@ -675,10 +680,11 @@ CSS;
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
+		wp_enqueue_script( self::WP_HOOKS_HANDLE );
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
-			[ 'wp-hooks' ],
+			[ self::WP_HOOKS_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
@@ -697,11 +703,9 @@ CSS;
 			$params['hl'] = $language;
 		}
 
-		$config_params = [];
-
-		if ( $settings->is_on( 'custom_themes' ) && $this->is_pro_or_general() ) {
-			$config_params = $settings->get_config_params();
-		}
+		$config_params = $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general()
+			? $settings->get_config_params()
+			: [];
 
 		$params = array_merge( $params, $config_params );
 
@@ -824,12 +828,12 @@ CSS;
 			],
 			'Affiliates Login'                     => [
 				[ 'affiliates_status', 'login' ],
-				[ 'affiliates/affiliates.php' ],
+				'affiliates/affiliates.php',
 				Affiliates\Login::class,
 			],
 			'Affiliates Register'                  => [
 				[ 'affiliates_status', 'register' ],
-				[ 'affiliates/affiliates.php' ],
+				'affiliates/affiliates.php',
 				Affiliates\Register::class,
 			],
 			'Asgaros Form'                         => [
@@ -1314,7 +1318,7 @@ CSS;
 	 *
 	 * @return bool
 	 */
-	private function plugin_or_theme_active( $plugin_or_theme_names ): bool {
+	public function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
 			if ( '' === $plugin_or_theme_name ) {
 				// WP Core is always active.
@@ -1362,14 +1366,5 @@ CSS;
 	 */
 	protected function is_xml_rpc(): bool {
 		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
-	}
-
-	/**
-	 * Whether option is allowed to use.
-	 *
-	 * @return bool
-	 */
-	private function is_pro_or_general(): bool {
-		return $this->is_pro() || ( is_admin() && 'General' === $this->settings->get_active_tab_name() );
 	}
 }

@@ -1,10 +1,10 @@
 === hCaptcha for WordPress ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect form
-Requires at least: 5.1
+Requires at least: 5.3
 Tested up to: 6.5
 Requires PHP: 7.0.0
-Stable tag: 4.1.2
+Stable tag: 4.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -353,7 +353,7 @@ To load the hCaptcha widget instantly, you can use the following filter:
 /**
 * Filters delay time for hCaptcha API script.
 *
-* Any negative value will prevent API script from loading at all,
+* Any negative value will prevent the API script from loading at all,
 * until user interaction: mouseenter, click, scroll or touch.
 * This significantly improves Google Pagespeed Insights score.
 *
@@ -447,10 +447,6 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 `mode`: 'pages' or 'tabs' (default 'pages') — the appearance of the admin menu;
 `parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
 `position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
-
-= Why isn't my WPForms Lite installation working? =
-
-Please make sure you have removed the reCAPTCHA keys under WPForms > Settings > reCAPTCHA to avoid a conflict.
 
 = Where can I get more information about hCaptcha? =
 
@@ -554,16 +550,26 @@ For feature requests and issue reports, please
 
 We also suggest emailing the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support. This will simplify your use of hCaptcha, and is the best solution in the long run.
 
-Some plugins listed have been superseded by native support, and are included only for legacy purposes.
+You may use native hCaptcha support if available for your plugin. Please check with your plugin author if native support is not yet available.
 
-You should always use native hCaptcha support if available for your plugin.
-Please check with your plugin author if native support is not yet available.
+However, the hCaptcha plugin provides a broader set of options and features so that you can use it with any form on your site.
 
 Instructions for popular native integrations are below:
 
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.2.0 =
+* The minimum required WordPress version is now 5.3.
+* Added support for Multisite Network Admin synced with network-wide plugin options.
+* Added selection by date range on Forms and Events pages.
+* Added automatic activation of dependent plugins on the Integrations page.
+* Added scrolling on the Integrations page during the search.
+* Fixed color flickering of hCaptcha placeholder with custom themes.
+* Fixed JS error on the Lost Password page.
+* Fixed missing site key notification on the General page.
+* Fixed fatal error on some sites during migration to 4.0.0.
 
 = 4.1.2 =
 * Added option to have the hCaptcha admin menu under Settings.

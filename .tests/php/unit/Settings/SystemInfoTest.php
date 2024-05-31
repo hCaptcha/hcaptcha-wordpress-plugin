@@ -156,9 +156,13 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 */
 	public function test_section_callback() {
 		$subject  = Mockery::mock( SystemInfo::class )->makePartial();
-		$expected = '		<h2>
-			System Information		</h2>
-		<div id="hcaptcha-system-info-wrap">
+		$expected = '		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
+					System Info				</h2>
+			</div>
+					</div>
+				<div id="hcaptcha-system-info-wrap">
 			<span class="helper">
 				<span class="helper-content">Copy system info to clipboard</span>
 			</span>

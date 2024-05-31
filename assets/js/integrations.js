@@ -155,6 +155,24 @@ const integrations = function( $ ) {
 			return select.value ?? '';
 		}
 
+		function updateActivationStati( stati ) {
+			const $tables = $( '.form-table' );
+
+			for ( const [ key, status ] of Object.entries( stati ) ) {
+				const statusClass = 'hcaptcha-integrations-' + key.replace( /_/g, '-' );
+
+				const $tr = $( `tr.${ statusClass }` );
+				const currStatus = isActiveTable( $tr.closest( '.form-table' ) );
+
+				if ( currStatus !== status ) {
+					const $toTable = $tables.eq( status ? 0 : 1 );
+					const alt = $tr.find( '.hcaptcha-integrations-logo img' ).attr( 'alt' );
+
+					insertIntoTable( $toTable, alt, $tr );
+				}
+			}
+		}
+
 		function toggleActivation() {
 			const activateClass = activate ? 'on' : 'off';
 			const newTheme = getSelectedTheme();
@@ -174,6 +192,14 @@ const integrations = function( $ ) {
 				url: HCaptchaIntegrationsObject.ajaxUrl,
 				data,
 			} )
+				/**
+				 * @param {Object} response.data
+				 * @param {Object} response.data.defaultTheme
+				 * @param {Object} response.data.message
+				 * @param {Object} response.data.stati
+				 * @param {Object} response.data.themes
+				 * @param {Object} response.success
+				 */
 				.done( function( response ) {
 					if ( response.success === undefined ) {
 						showUnexpectedErrorMessage();
@@ -200,6 +226,7 @@ const integrations = function( $ ) {
 					swapThemes( activate, entity, newTheme );
 					insertIntoTable( $table, alt, $tr );
 					showSuccessMessage( response.data.message );
+					updateActivationStati( response.data.stati );
 
 					$( 'html, body' ).animate(
 						{
@@ -329,6 +356,7 @@ const integrations = function( $ ) {
 		function() {
 			const search = $search.val().trim().toLowerCase();
 			const $logo = $( '.hcaptcha-integrations-logo img' );
+			let $trFirst = null;
 
 			$logo.each( function( i, el ) {
 				const $el = $( el );
@@ -341,10 +369,22 @@ const integrations = function( $ ) {
 
 				if ( $el.data( 'label' ).toLowerCase().includes( search ) ) {
 					$tr.show();
+					$trFirst = $trFirst ?? $tr;
 				} else {
 					$tr.hide();
 				}
 			} );
+
+			if ( ! $trFirst ) {
+				return;
+			}
+
+			const scrollTop = $trFirst.offset().top + $trFirst.outerHeight() - $( window ).height() + 5;
+
+			$( 'html' ).stop().animate(
+				{ scrollTop },
+				1000
+			);
 		},
 		100
 	) );

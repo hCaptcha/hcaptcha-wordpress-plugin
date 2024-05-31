@@ -78,6 +78,7 @@ FunctionMocker::init(
 		'redefinable-internals' => [
 			'class_exists',
 			'constant',
+			'date_create_immutable',
 			'defined',
 			'extension_loaded',
 			'filter_input',

@@ -79,7 +79,7 @@ abstract class Base extends LoginBase {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-beaver-builder$min.js",
-			[ 'jquery', 'wp-hooks' ],
+			[ 'jquery' ],
 			HCAPTCHA_VERSION,
 			true
 		);

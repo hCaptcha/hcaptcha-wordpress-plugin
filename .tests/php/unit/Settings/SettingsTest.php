@@ -139,6 +139,100 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_tabs_names().
+	 *
+	 * @return void
+	 */
+	public function test_is_pro() {
+		$license = 'free';
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+		$subject->shouldReceive( 'get_license' )
+			->with()->andReturnUsing(
+				static function () use ( &$license ) {
+					return $license;
+				}
+			);
+
+		self::assertFalse( $subject->is_pro() );
+
+		$license = 'pro';
+
+		self::assertTrue( $subject->is_pro() );
+	}
+
+	/**
+	 * Test is_pro_or_general().
+	 *
+	 * @param bool $is_pro     Is pro.
+	 * @param bool $is_general Is general.
+	 * @param bool $is_admin   Is admin.
+	 * @param bool $expected   Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_is_pro_or_general
+	 */
+	public function test_is_pro_or_general( bool $is_pro, bool $is_general, bool $is_admin, bool $expected ) {
+		$active_tab_name = $is_general ? 'General' : 'some';
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+		$subject->shouldReceive( 'is_pro' )->andReturn( $is_pro );
+		$subject->shouldReceive( 'get_active_tab_name' )->andReturn( $active_tab_name );
+
+		WP_Mock::userFunction( 'is_admin' )->andReturn( $is_admin );
+
+		self::assertSame( $subject->is_pro_or_general(), $expected );
+	}
+
+	/**
+	 * Data provider for test_is_pro_or_general().
+	 *
+	 * @return array
+	 */
+	public function dp_test_is_pro_or_general(): array {
+		return [
+			[ true, true, true, true ],
+			[ true, true, false, true ],
+			[ true, false, true, true ],
+			[ true, false, false, true ],
+			[ false, true, true, true ],
+			[ false, true, false, false ],
+			[ false, false, true, false ],
+			[ false, false, false, false ],
+		];
+	}
+
+	/**
+	 * Test get_config_params().
+	 *
+	 * @param mixed $config_params Config params.
+	 * @param array $expected      Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_config_params
+	 */
+	public function test_get_config_params( $config_params, array $expected ) {
+		$subject = Mockery::mock( Settings::class )->makePartial();
+		$subject->shouldReceive( 'get' )->with( 'config_params' )->andReturn( $config_params );
+
+		self::assertSame( $expected, $subject->get_config_params( $config_params ) );
+	}
+
+	/**
+	 * Data provider for test_get_config_params().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_config_params(): array {
+		return [
+			[ null, [] ],
+			[ '', [] ],
+			[ 'some string', [] ],
+			[ '{"some":"object"}', [ 'some' => 'object' ] ],
+		];
+	}
+
+	/**
 	 * Test get().
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -409,16 +503,52 @@ class SettingsTest extends HCaptchaTestCase {
 
 	/**
 	 * Test get_theme().
+	 *
+	 * @param bool $is_custom         Is custom.
+	 * @param bool $is_pro_or_general Is pro or general.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_get_theme
 	 */
-	public function test_get_theme() {
-		$theme   = 'some theme';
+	public function test_get_theme( bool $is_custom, bool $is_pro_or_general ) {
+		$theme         = 'some theme';
+		$config_theme  = 'some config theme';
+		$config_params = [
+			'theme' => [
+				'palette' => [
+					'mode' => $config_theme,
+				],
+			],
+		];
+		$expected      = $theme;
+
 		$subject = Mockery::mock( Settings::class )->makePartial();
-
 		$subject->shouldReceive( 'get' )->with( 'theme' )->andReturn( $theme );
+		$subject->shouldReceive( 'is_on' )->with( 'custom_themes' )->andReturn( $is_custom );
+		$subject->shouldReceive( 'is_pro_or_general' )->with()->andReturn( $is_pro_or_general );
 
-		WP_Mock::expectFilter( 'hcap_theme', $theme );
+		if ( $is_custom && $is_pro_or_general ) {
+			$subject->shouldReceive( 'get_config_params' )->with()->andReturn( $config_params );
+			$expected = $config_theme;
+		}
 
-		self::assertSame( $theme, $subject->get_theme() );
+		WP_Mock::expectFilter( 'hcap_theme', $expected );
+
+		self::assertSame( $expected, $subject->get_theme() );
+	}
+
+	/**
+	 * Data provider for test_get_theme().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_theme(): array {
+		return [
+			[ false, false ],
+			[ false, true ],
+			[ true, false ],
+			[ true, true ],
+		];
 	}
 
 	/**

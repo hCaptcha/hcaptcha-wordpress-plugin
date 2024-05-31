@@ -250,10 +250,13 @@ class GeneralTest extends HCaptchaTestCase {
 		return [
 			'keys'       => [
 				General::SECTION_KEYS,
-				'				<h2>
+				'		<div class="hcaptcha-header-bar">
+			<div class="hcaptcha-header">
+				<h2>
 					General				</h2>
-				<div id="hcaptcha-message"></div>
-						<h3 class="hcaptcha-section-keys">
+			</div>
+					</div>
+				<h3 class="hcaptcha-section-keys">
 			<span class="hcaptcha-section-header-title">
 				Keys			</span>
 			<span class="hcaptcha-section-header-toggle">
