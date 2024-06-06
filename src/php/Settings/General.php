@@ -620,6 +620,11 @@ class General extends PluginSettingsBase {
 		switch ( $arguments['id'] ) {
 			case self::SECTION_KEYS:
 				$this->print_header();
+
+				?>
+				<div id="hcaptcha-message"></div>
+				<?php
+
 				$this->notifications->show();
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;
@@ -954,7 +959,7 @@ class General extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function flatten_array( array $arr ): array {
-		static $level  = [];
+		static $level = [];
 		static $result = [];
 
 		foreach ( $arr as $key => $value ) {

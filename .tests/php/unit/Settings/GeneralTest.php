@@ -256,7 +256,8 @@ class GeneralTest extends HCaptchaTestCase {
 					General				</h2>
 			</div>
 					</div>
-				<h3 class="hcaptcha-section-keys">
+						<div id="hcaptcha-message"></div>
+						<h3 class="hcaptcha-section-keys">
 			<span class="hcaptcha-section-header-title">
 				Keys			</span>
 			<span class="hcaptcha-section-header-toggle">
