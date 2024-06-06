@@ -959,8 +959,7 @@ class General extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function flatten_array( array $arr ): array {
-		static $level = [];
-		static $result = [];
+		static $level = [], $result = [];
 
 		foreach ( $arr as $key => $value ) {
 			$level[] = $key;
