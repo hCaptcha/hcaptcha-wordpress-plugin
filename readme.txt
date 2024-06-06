@@ -562,6 +562,7 @@ Instructions for popular native integrations are below:
 
 = 4.2.1 =
 * Fixed message layout on the General and Integrations pages.
+* Fixed processing of WooCommerce Register form.
 
 = 4.2.0 =
 * The minimum required WordPress version is now 5.3.

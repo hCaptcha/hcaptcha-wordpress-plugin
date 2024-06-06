@@ -38,7 +38,7 @@ class Events {
 			return;
 		}
 
-		add_action( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
+		add_filter( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
 	}
 
 	/**
@@ -47,13 +47,13 @@ class Events {
 	 * @param string|null|mixed $result      The hCaptcha verification result.
 	 * @param array             $error_codes Error codes.
 	 *
-	 * @return void
+	 * @return string|null
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
-			return;
+			return $result;
 		}
 
 		$settings   = hcaptcha()->settings();
@@ -85,6 +85,8 @@ class Events {
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
+
+		return $result;
 	}
 
 	/**
