@@ -217,8 +217,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 					Integrations				</h2>
 			</div>
 					</div>
-				<div id="hcaptcha-message"></div>
-		<p>
+				<p>
 			Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.		</p>
 		<p>
 			You can activate and deactivate a plugin by clicking on its logo.		</p>
