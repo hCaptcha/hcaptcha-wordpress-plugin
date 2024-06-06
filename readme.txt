@@ -560,6 +560,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.2.1 =
+* Fixed message layout on the General and Integrations pages.
+
 = 4.2.0 =
 * The minimum required WordPress version is now 5.3.
 * Added support for Multisite Network Admin synced with network-wide plugin options.
