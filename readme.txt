@@ -564,6 +564,7 @@ Instructions for popular native integrations are below:
 * Fixed missing sitekey error processing on General page.
 * Fixed naming of the first submenu item.
 * Fixed storing of check config events to the database.
+* Fixed notifications links in menu pages mode.
 
 = 4.2.1 =
 * Fixed message layout on the General and Integrations pages.
