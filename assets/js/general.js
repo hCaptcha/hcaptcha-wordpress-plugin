@@ -105,7 +105,7 @@ const general = function( $ ) {
 	function getCleanConsoleLogs() {
 		const ignore = [
 			'recaptchacompat disabled',
-			'Missing sitekey - https://hcaptcha.com/docs/configuration#jsapi',
+			'Missing sitekey - https://docs.hcaptcha.com/configuration#javascript-api',
 		];
 		const logs = [];
 
