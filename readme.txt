@@ -562,6 +562,7 @@ Instructions for popular native integrations are below:
 
 = 4.3.0 =
 * Fixed missing sitekey error processing on General page.
+* Fixed naming of the first submenu item.
 * Fixed storing of check config events to the database.
 
 = 4.2.1 =
