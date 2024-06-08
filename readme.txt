@@ -560,6 +560,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.3.0 =
+* Fixed missing sitekey error processing on General page.
+
 = 4.2.1 =
 * Fixed message layout on the General and Integrations pages.
 * Fixed processing of WooCommerce Register form.
