@@ -753,6 +753,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			WP_Mock::userFunction( 'add_menu_page' )
 				->with( $page_title, $menu_title, $capability, $slug, $callback, $icon_url, $position + 1e-6 );
 			WP_Mock::userFunction( 'add_submenu_page' )
+				->with( $slug, $page_title, $page_title, $capability, $slug, $callback );
+			WP_Mock::userFunction( 'add_submenu_page' )
 				->with( $slug, $tab_page_title, $tab_page_title, $capability, $tab_slug, $tab_callback );
 		}
 

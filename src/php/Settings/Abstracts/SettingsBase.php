@@ -521,6 +521,15 @@ abstract class SettingsBase {
 				$this->position
 			);
 
+			add_submenu_page(
+				$this->option_page(),
+				$this->page_title(),
+				$this->page_title(),
+				'manage_options',
+				$this->option_page(),
+				[ $this, 'settings_base_page' ]
+			);
+
 			foreach ( $this->tabs as $tab ) {
 				add_submenu_page(
 					$this->option_page(),
