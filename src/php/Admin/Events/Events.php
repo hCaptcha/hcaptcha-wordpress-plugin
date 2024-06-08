@@ -8,6 +8,7 @@
 namespace HCaptcha\Admin\Events;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Settings\General;
 
 /**
  * Class Events.
@@ -71,6 +72,14 @@ class Events {
 		}
 
 		$info = HCaptcha::decode_id_info();
+
+		if (
+			[ General::class ] === $info['id']['source'] &&
+			General::CHECK_CONFIG_FORM_ID === $info['id']['form_id']
+		) {
+			// Do not store events from the check config form.
+			return $result;
+		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->insert(

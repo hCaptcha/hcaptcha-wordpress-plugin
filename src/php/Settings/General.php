@@ -115,6 +115,11 @@ class General extends PluginSettingsBase {
 	const USER_SETTINGS_META = 'hcaptcha_user_settings';
 
 	/**
+	 * Check config form id.
+	 */
+	const CHECK_CONFIG_FORM_ID = 'check-config';
+
+	/**
 	 * Notifications class instance.
 	 *
 	 * @var Notifications
@@ -788,7 +793,14 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function print_hcaptcha_field() {
-		HCaptcha::form_display();
+		$args = [
+			'id' => [
+				'source'  => [ __CLASS__ ],
+				'form_id' => self::CHECK_CONFIG_FORM_ID,
+			],
+		];
+
+		HCaptcha::form_display( $args );
 
 		$display = 'none';
 

@@ -312,6 +312,7 @@ const general = function( $ ) {
 			siteKey: $siteKey.val(),
 			secretKey: $secretKey.val(),
 			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
+			'hcaptcha-widget-id': $( 'input[name="hcaptcha-widget-id"]' ).val(),
 		};
 
 		// noinspection JSVoidFunctionReturnValueUsed,JSCheckFunctionSignatures
