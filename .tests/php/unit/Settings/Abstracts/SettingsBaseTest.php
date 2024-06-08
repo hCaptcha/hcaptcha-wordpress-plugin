@@ -213,6 +213,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'plugin_action_links_' . $plugin_base_name,
 				[ $subject, 'add_settings_link' ]
 			);
+			WP_Mock::expectFilterAdded(
+				'network_admin_plugin_action_links_' . $plugin_base_name,
+				[ $subject, 'add_settings_link' ]
+			);
 		}
 
 		if ( $is_active ) {
