@@ -273,6 +273,7 @@ abstract class SettingsBase {
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
 			add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
+			add_filter( 'network_admin_plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
 		}
 
 		if ( $this->is_tab_active( $this ) ) {
