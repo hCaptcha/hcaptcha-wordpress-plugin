@@ -90,12 +90,12 @@ class Notifications {
 	}
 
 	/**
-	 * Init notifications.
+	 * Get notifications.
 	 *
-	 * @return void
+	 * @return array
 	 * @noinspection HtmlUnknownTarget
 	 */
-	private function init_notifications() {
+	protected function get_notifications(): array {
 		$general_url             = $this->tab_url( General::class );
 		$integrations_url        = $this->tab_url( Integrations::class );
 		$forms_url               = $this->tab_url( FormsPage::class );
@@ -111,7 +111,7 @@ class Notifications {
 		$statistics_url          = $general_url . '#statistics_1';
 		$force_url               = $general_url . '#force_1';
 
-		$this->notifications = [
+		$notifications = [
 			'register'            => [
 				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
@@ -272,16 +272,18 @@ class Notifications {
 		$settings = hcaptcha()->settings();
 
 		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
-			unset( $this->notifications['register'] );
+			unset( $notifications['register'] );
 		}
 
 		if ( $settings->is_pro() ) {
-			unset( $this->notifications['pro-free-trial'] );
+			unset( $notifications['pro-free-trial'] );
 		}
 
 		if ( $settings->is_on( 'force' ) ) {
-			unset( $this->notifications['force'] );
+			unset( $notifications['force'] );
 		}
+
+		return $notifications;
 	}
 
 	/**
@@ -290,14 +292,14 @@ class Notifications {
 	 * @return void
 	 */
 	public function show() {
-		$this->init_notifications();
+		$notifications = $this->get_notifications();
 
-		$user = wp_get_current_user();
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
 		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-		/** @noinspection NullPointerExceptionInspection */
-		$dismissed     = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
-		$notifications = array_diff_key( $this->notifications, array_flip( $dismissed ) );
+		$dismissed     = get_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
+		$notifications = array_diff_key( $notifications, array_flip( $dismissed ) );
 
 		if ( ! $notifications ) {
 			return;
