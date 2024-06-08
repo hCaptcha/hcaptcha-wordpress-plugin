@@ -6,6 +6,12 @@
  * @param {Object} $ jQuery instance.
  */
 const settingsBase = function( $ ) {
+	const h2Selector = '.hcaptcha-header h2';
+	const msgSelector = '#hcaptcha-message';
+
+	// Move WP notices to the message area.
+	$( h2Selector ).siblings().appendTo( msgSelector );
+
 	/**
 	 * Highlight element if hash is present in the URL.
 	 */

@@ -28,6 +28,7 @@
  * @param {Object} $ jQuery instance.
  */
 const general = function( $ ) {
+	const headerBarSelector = '.hcaptcha-header-bar';
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 	const $form = $( 'form.hcaptcha-general' );
@@ -151,7 +152,7 @@ const general = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		$( '<div id="hcaptcha-message"></div>' ).insertAfter( '.hcaptcha-header-bar' );
+		$( '<div id="hcaptcha-message"></div>' ).insertAfter( headerBarSelector );
 		$message = $( msgSelector );
 	}
 
