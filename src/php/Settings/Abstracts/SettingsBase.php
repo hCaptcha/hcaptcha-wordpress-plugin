@@ -722,11 +722,13 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Show a tab link.
+	 * Get tab url.
 	 *
 	 * @param SettingsBase $tab Tabs of the current settings page.
+	 *
+	 * @return string
 	 */
-	private function tab_link( SettingsBase $tab ) {
+	public function tab_url( SettingsBase $tab ): string {
 		$url = is_multisite() && $this->is_network_wide() ?
 			network_admin_url( 'admin.php?page=' . $tab->option_page() ) :
 			menu_page_url( $tab->option_page(), false );
@@ -735,6 +737,16 @@ abstract class SettingsBase {
 			$url = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
 		}
 
+		return $url;
+	}
+
+	/**
+	 * Show a tab link.
+	 *
+	 * @param SettingsBase $tab Tabs of the current settings page.
+	 */
+	private function tab_link( SettingsBase $tab ) {
+		$url    = $this->tab_url( $tab );
 		$active = $tab->is_tab_active( $tab ) ? ' active' : '';
 		$class  = static::PREFIX . '-settings-tab' . $active;
 

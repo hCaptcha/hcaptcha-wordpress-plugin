@@ -96,6 +96,25 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get tab.
+	 *
+	 * @param string $classname Class name.
+	 *
+	 * @return PluginSettingsBase|null
+	 */
+	public function get_tab( string $classname ) {
+		$tabs = hcaptcha()->settings()->get_tabs();
+
+		foreach ( $tabs as $tab ) {
+			if ( is_a( $tab, $classname ) ) {
+				return $tab;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Get active tab name.
 	 *
 	 * @return string

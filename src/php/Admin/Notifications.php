@@ -7,6 +7,11 @@
 
 namespace HCaptcha\Admin;
 
+use HCaptcha\Settings\EventsPage;
+use HCaptcha\Settings\FormsPage;
+use HCaptcha\Settings\General;
+use HCaptcha\Settings\Integrations;
+
 /**
  * Class Notifications.
  *
@@ -57,7 +62,6 @@ class Notifications {
 	 * Init class.
 	 */
 	public function init() {
-		$this->init_notifications();
 		$this->init_hooks();
 	}
 
@@ -73,24 +77,39 @@ class Notifications {
 	}
 
 	/**
+	 * Get tab url.
+	 *
+	 * @param string $classname Tab class name.
+	 *
+	 * @return string
+	 */
+	private function tab_url( string $classname ): string {
+		$tab = hcaptcha()->settings()->get_tab( $classname );
+
+		return $tab ? $tab->tab_url( $tab ) : '';
+	}
+
+	/**
 	 * Init notifications.
 	 *
 	 * @return void
 	 * @noinspection HtmlUnknownTarget
 	 */
 	private function init_notifications() {
+		$general_url             = $this->tab_url( General::class );
+		$integrations_url        = $this->tab_url( Integrations::class );
+		$forms_url               = $this->tab_url( FormsPage::class );
+		$events_url              = $this->tab_url( EventsPage::class );
 		$hcaptcha_url            = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
 		$register_url            = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
 		$pro_url                 = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$dashboard_url           = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$rate_url                = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
-		$search_integrations_url = admin_url( 'options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search' );
+		$search_integrations_url = $integrations_url . '#hcaptcha-integrations-search';
 		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$statistics_url          = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
-		$forms_url               = admin_url( 'options-general.php?page=hcaptcha&tab=forms' );
-		$events_url              = admin_url( 'options-general.php?page=hcaptcha&tab=events' );
-		$force_url               = admin_url( 'options-general.php?page=hcaptcha&tab=general#force_1' );
+		$statistics_url          = $general_url . '#statistics_1';
+		$force_url               = $general_url . '#force_1';
 
 		$this->notifications = [
 			'register'            => [
@@ -239,6 +258,15 @@ class Notifications {
 					'text' => __( 'Turn on force', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.2.0.
+			'auto-activation'     => [
+				'title'   => __( 'Activation of dependent plugins', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Automatic activation of dependent plugins on the Integrations page. Try to activate Elementor or Woo Wishlists.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $integrations_url,
+					'text' => __( 'Try auto-activation', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
@@ -262,6 +290,8 @@ class Notifications {
 	 * @return void
 	 */
 	public function show() {
+		$this->init_notifications();
+
 		$user = wp_get_current_user();
 
 		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
