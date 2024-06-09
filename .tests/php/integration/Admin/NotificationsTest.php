@@ -386,10 +386,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		self::assertSame( $expected_notifications, $sorted_actual_notifications );
 
 		// Dismiss Pro notification.
-		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [
-			'pro-free-trial',
-			'some-other-key',
-		] );
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial' ] );
 
 		$dismissed_notification = '
 <div
