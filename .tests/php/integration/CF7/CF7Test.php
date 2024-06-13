@@ -97,9 +97,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		update_option(
 			'hcaptcha_settings',
 			[
-				'site_key' => $hcaptcha_site_key,
-				'theme'    => $hcaptcha_theme,
-				'size'     => $hcaptcha_size,
+				'site_key'   => $hcaptcha_site_key,
+				'theme'      => $hcaptcha_theme,
+				'size'       => $hcaptcha_size,
+				'cf7_status' => [ 'form', 'embed' ],
 			]
 		);
 
@@ -128,8 +129,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			data-force="false">' . '
 		</span>
 		' . $nonce .
-		'</span><input type="submit" value="Send">' .
-		'</form>';
+			'</span><input type="submit" value="Send">' .
+			'</form>';
 
 		$subject = new CF7();
 
@@ -185,9 +186,10 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		update_option(
 			'hcaptcha_settings',
 			[
-				'site_key' => $hcaptcha_site_key,
-				'theme'    => $hcaptcha_theme,
-				'size'     => $hcaptcha_size,
+				'site_key'   => $hcaptcha_site_key,
+				'theme'      => $hcaptcha_theme,
+				'size'       => $hcaptcha_size,
+				'cf7_status' => [ 'form', 'embed' ],
 			]
 		);
 
@@ -376,7 +378,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => $hcaptcha_site_key,
+				'cf7_status' => [ 'form', 'embed' ],
+			]
+		);
 
 		hcaptcha()->init_hooks();
 
@@ -429,7 +437,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		update_option( 'hcaptcha_settings', [ 'site_key' => $hcaptcha_site_key ] );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => $hcaptcha_site_key,
+				'cf7_status' => [ 'form', 'embed' ],
+			]
+		);
 
 		hcaptcha()->init_hooks();
 

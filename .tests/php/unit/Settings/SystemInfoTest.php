@@ -315,7 +315,8 @@ Migrations:
 --- Active plugins and themes ---
 
 Contact Form 7:                       
-  Form:                               On
+  Form Auto-Add:                      On
+  Form Embed:                         Off
 WP Core:                              
   Comment Form:                       Off
   Login Form:                         Off
