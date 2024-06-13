@@ -132,10 +132,6 @@ class CF7 {
 		$attr = (array) $attr;
 
 		foreach ( $attr as $key => $value ) {
-			if ( is_array( $value ) ) {
-				continue;
-			}
-
 			if ( preg_match( '/(^id|^class):([\w-]+)/', $value, $m ) ) {
 				$attr[ 'cf7-' . $m[1] ] = $m[2];
 				unset( $attr[ $key ] );
@@ -245,7 +241,7 @@ class CF7 {
 	 *
 	 * @return bool
 	 */
-	private function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
+	protected function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
 		$form_fields = $submission->get_contact_form()->scan_form_tags();
 
 		foreach ( $form_fields as $form_field ) {
@@ -432,7 +428,7 @@ CSS;
 	 *
 	 * @return string
 	 */
-	private function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
+	protected function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
 		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
 		if ( ! $cf7_hcap_shortcode ) {
