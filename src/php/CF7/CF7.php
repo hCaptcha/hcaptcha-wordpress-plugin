@@ -20,9 +20,34 @@ use WPCF7_Validation;
  * Class CF7.
  */
 class CF7 {
-	const HANDLE    = 'hcaptcha-cf7';
+	/**
+	 * Script handle.
+	 */
+	const HANDLE = 'hcaptcha-cf7';
+
+	/**
+	 * CF7 shortcode.
+	 */
 	const SHORTCODE = 'cf7-hcaptcha';
+
+	/**
+	 * Data name.
+	 */
 	const DATA_NAME = 'hcap-cf7';
+
+	/**
+	 * Whether hCaptcha should be auto-added to any form.
+	 *
+	 * @var bool
+	 */
+	private $mode_auto = false;
+
+	/**
+	 * Whether hCaptcha can be embedded into form in the form editor.
+	 *
+	 * @var bool
+	 */
+	private $mode_embed = false;
 
 	/**
 	 * CF7 constructor.
@@ -35,6 +60,9 @@ class CF7 {
 	 * Init hooks.
 	 */
 	public function init_hooks() {
+		$this->mode_auto  = hcaptcha()->settings()->is( 'cf7_status', 'form' );
+		$this->mode_embed = hcaptcha()->settings()->is( 'cf7_status', 'embed' );
+
 		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
 		add_filter( 'rest_authentication_errors', [ $this, 'check_rest_nonce' ] );
@@ -60,23 +88,30 @@ class CF7 {
 			return $output;
 		}
 
-		remove_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20 );
+		$output             = (string) $output;
+		$form_id            = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
-		$output  = (string) $output;
-		$form_id = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+		if ( $cf7_hcap_shortcode ) {
+			if ( $this->mode_embed ) {
+				remove_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20 );
 
-		if ( has_shortcode( $output, self::SHORTCODE ) ) {
-			$output = do_shortcode( $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) );
+				$output = do_shortcode( $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) );
 
-			add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
+				add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 
+				return $output;
+			}
+
+			$output = str_replace( $cf7_hcap_shortcode, '', $output );
+		}
+
+		if ( ! $this->mode_auto ) {
 			return $output;
 		}
 
 		$cf7_hcap_form = do_shortcode( '[' . self::SHORTCODE . " form_id=\"$form_id\"]" );
 		$submit_button = '/(<(input|button) .*?type="submit")/';
-
-		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 
 		return preg_replace(
 			$submit_button,
@@ -174,6 +209,13 @@ class CF7 {
 			return $this->get_invalidated_result( $result );
 		}
 
+		if (
+			! $this->mode_auto &&
+			! ( $this->mode_embed && $this->has_hcaptcha_field( $submission ) )
+		) {
+			return $result;
+		}
+
 		$data           = $submission->get_posted_data();
 		$response       = $data['h-captcha-response'] ?? '';
 		$captcha_result = hcaptcha_request_verify( $response );
@@ -183,6 +225,36 @@ class CF7 {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Whether the field is hCaptcha field.
+	 *
+	 * @param WPCF7_FormTag $field Field.
+	 *
+	 * @return bool
+	 */
+	private function is_hcaptcha_field( WPCF7_FormTag $field ): bool {
+		return ( 'hcaptcha' === $field->type );
+	}
+
+	/**
+	 * Whether form has its own hCaptcha field.
+	 *
+	 * @param WPCF7_Submission $submission Submission.
+	 *
+	 * @return bool
+	 */
+	private function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
+		$form_fields = $submission->get_contact_form()->scan_form_tags();
+
+		foreach ( $form_fields as $form_field ) {
+			if ( $this->is_hcaptcha_field( $form_field ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -337,6 +409,21 @@ CSS;
 	}
 
 	/**
+	 * Get CF7 hCaptcha shortcode.
+	 *
+	 * @param string $output CF7 form output.
+	 *
+	 * @return string
+	 */
+	private function get_cf7_hcap_shortcode( string $output ): string {
+		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
+
+		return preg_match( "/$cf7_hcap_sc_regex/", $output, $matches )
+			? $matches[0]
+			: '';
+	}
+
+	/**
 	 * Add form_id to cf7_hcaptcha shortcode if it does not exist.
 	 * Replace to proper form_id if needed.
 	 *
@@ -346,22 +433,18 @@ CSS;
 	 * @return string
 	 */
 	private function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
-		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
+		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
-		// The preg_match should always be true, because $output has shortcode.
-		if ( ! preg_match( "/$cf7_hcap_sc_regex/", $output, $matches ) ) {
-			// @codeCoverageIgnoreStart
+		if ( ! $cf7_hcap_shortcode ) {
 			return $output;
-			// @codeCoverageIgnoreEnd
 		}
 
-		$cf7_hcap_shortcode = $matches[0];
-		$cf7_hcap_sc        = preg_replace(
+		$cf7_hcap_sc = preg_replace(
 			[ '/\s*\[|]\s*/', '/(id|class)\s*:\s*([\w-]+)/' ],
 			[ '', '$1=$2' ],
 			$cf7_hcap_shortcode
 		);
-		$atts               = shortcode_parse_atts( $cf7_hcap_sc );
+		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );
 

@@ -561,6 +561,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.3.0 =
+* Added support for Contact Form 7 embedded forms.
 * Fixed missing sitekey error processing on General page.
 * Fixed naming of the first submenu item.
 * Fixed storing of check config events to the database.

@@ -20,7 +20,6 @@ use Quform_Form;
  * Class Form.
  */
 class Form {
-
 	/**
 	 * Verify action.
 	 */
@@ -307,7 +306,7 @@ class Form {
 	}
 
 	/**
-	 * Whether for has its own hCaptcha field.
+	 * Whether form has its own hCaptcha field.
 	 *
 	 * @param array $form_fields Form fields.
 	 *

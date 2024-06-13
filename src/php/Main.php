@@ -31,12 +31,10 @@ use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
-use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
-use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
  * Class Main.
@@ -927,7 +925,7 @@ CSS;
 				ColorlibCustomizer\Register::class,
 			],
 			'Contact Form 7'                       => [
-				[ 'cf7_status', 'form' ],
+				[ 'cf7_status', null ],
 				'contact-form-7/wp-contact-form-7.php',
 				CF7::class,
 			],
