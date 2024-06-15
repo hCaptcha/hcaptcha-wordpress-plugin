@@ -31,12 +31,13 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 1. Login page with hCaptcha widget
 2. Login page with hCaptcha challenge
 3. WooCommerce Login/Register page
-4. Contact From 7 with hCaptcha
-5. General settings page
-6. Integrations settings page
-7. Activating plugin from the Integration settings page
-8. (Optional) Local Forms statistics
-9. (Optional) Local Events statistics
+4. Contact Form 7 with hCaptcha
+5. Contact Form 7 live form in the admin editor. 
+6. General settings page
+7. Integrations settings page
+8. Activating plugin from the Integration settings page
+9. (Optional) Local Forms statistics
+10. (Optional) Local Events statistics
 
 == Installation ==
 
@@ -561,6 +562,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.3.0 =
+* Added a live form in the Contact Form 7 admin editor.
 * Added support for Contact Form 7 embedded forms.
 * Fixed missing sitekey error processing on General page.
 * Fixed naming of the first submenu item.

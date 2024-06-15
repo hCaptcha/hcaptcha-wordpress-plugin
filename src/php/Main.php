@@ -16,6 +16,7 @@ use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
@@ -927,7 +928,7 @@ CSS;
 			'Contact Form 7'                       => [
 				[ 'cf7_status', null ],
 				'contact-form-7/wp-contact-form-7.php',
-				CF7::class,
+				[ CF7::class, Admin::class ],
 			],
 			'Divi Comment Form'                    => [
 				[ 'divi_status', 'comment' ],
