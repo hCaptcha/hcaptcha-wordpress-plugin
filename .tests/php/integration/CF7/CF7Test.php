@@ -18,7 +18,6 @@ use Mockery;
 use tad\FunctionMocker\FunctionMocker;
 use WPCF7_FormTag;
 use WPCF7_Submission;
-use WPCF7_TagGenerator;
 use WPCF7_Validation;
 
 /**
@@ -27,6 +26,7 @@ use WPCF7_Validation;
  * @requires PHP >= 7.4
  *
  * @group    cf7
+ * @group    cf7-cf7
  */
 class CF7Test extends HCaptchaPluginWPTestCase {
 
@@ -194,6 +194,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test wpcf7_shortcode() when NOT active.
+	 *
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_wpcf7_shortcode_when_NOT_active() {
 		$output            =
@@ -683,102 +685,6 @@ CSS;
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
-	}
-
-	/**
-	 * Test add_tag_generator_hcaptcha().
-	 *
-	 * @return void
-	 */
-	public function test_add_tag_generator_hcaptcha() {
-		$subject = new CF7();
-
-		require_once WPCF7_PLUGIN_DIR . '/admin/includes/tag-generator.php';
-
-		$tag_generator = WPCF7_TagGenerator::get_instance();
-
-		ob_start();
-		$tag_generator->print_buttons();
-		$buttons = ob_get_clean();
-
-		self::assertFalse( strpos( $buttons, 'hcaptcha' ) );
-
-		$subject->add_tag_generator_hcaptcha();
-
-		ob_start();
-		$tag_generator->print_buttons();
-		$buttons = ob_get_clean();
-
-		self::assertNotFalse( strpos( $buttons, 'hcaptcha' ) );
-	}
-
-	/**
-	 * Test tag_generator_hcaptcha().
-	 *
-	 * @return void
-	 */
-	public function test_tag_generator_hcaptcha() {
-		$args     = [
-			'id'      => 'cf7-hcaptcha',
-			'title'   => 'hCaptcha',
-			'content' => 'tag-generator-panel-cf7-hcaptcha',
-		];
-		$expected = '		<div class="control-box">
-			<fieldset>
-				<legend>Generate a form-tag for a hCaptcha field.</legend>
-
-				<table class="form-table">
-					<tbody>
-
-					<tr>
-						<th scope="row">
-							<label for="tag-generator-panel-cf7-hcaptcha-id">
-								Id attribute							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="id" class="idvalue oneline option"
-									id="tag-generator-panel-cf7-hcaptcha-id"/>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="tag-generator-panel-cf7-hcaptcha-class">
-								Class attribute							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="class" class="classvalue oneline option"
-									id="tag-generator-panel-cf7-hcaptcha-class"/>
-						</td>
-					</tr>
-
-					</tbody>
-				</table>
-			</fieldset>
-		</div>
-
-		<div class="insert-box">
-			<label>
-				<input
-						type="text" name="cf7-hcaptcha" class="tag code" readonly="readonly"
-						onfocus="this.select()"/>
-			</label>
-
-			<div class="submitbox">
-				<input
-						type="button" class="button button-primary insert-tag"
-						value="Insert Tag"/>
-			</div>
-		</div>
-		';
-
-		$subject = new CF7();
-
-		ob_start();
-		$subject->tag_generator_hcaptcha( [], $args );
 		self::assertSame( $expected, ob_get_clean() );
 	}
 

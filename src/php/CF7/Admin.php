@@ -29,7 +29,7 @@ class Admin extends Base {
 	public function init_hooks() {
 		parent::init_hooks();
 
-		if ( ( ! $this->mode_embed && ! $this->mode_auto ) || ! is_admin() ) {
+		if ( ( ! $this->mode_auto && ! $this->mode_embed ) || ! is_admin() ) {
 			return;
 		}
 
@@ -194,7 +194,6 @@ class Admin extends Base {
 	 * Enqueue admin scripts before CF7 admin scripts.
 	 *
 	 * @return void
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function enqueue_admin_scripts_before_cf7() {
 		wp_enqueue_style(
@@ -244,10 +243,6 @@ class Admin extends Base {
 				'namespace' => 'contact-form-7/v1',
 			],
 		];
-
-		if ( defined( 'WP_CACHE' ) && WP_CACHE ) {
-			$wpcf7['cached'] = 1;
-		}
 
 		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
 
