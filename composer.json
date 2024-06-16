@@ -31,7 +31,7 @@
   },
   "require": {
     "ext-json": "*",
-    "matthiasmullie/minify": "^1.3"
+    "matthiasmullie/minify": "^1.3.73"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
