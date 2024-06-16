@@ -59,8 +59,10 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $block_content, array $block, WP_Block $instance ): string {
+		$block_content = (string) $block_content;
+
 		if ( 'coblocks/form' !== $block['blockName'] ) {
-			return (string) $block_content;
+			return $block_content;
 		}
 
 		$form_id = 0;
