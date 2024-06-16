@@ -72,25 +72,39 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 		$subject = new Admin();
 
 		if ( $expected ) {
-			self::assertSame( 54, has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] ) );
-			self::assertSame( 0, has_action( 'toplevel_page_wpcf7', [ $subject, 'before_toplevel_page_wpcf7' ] ) );
-			self::assertSame( 20, has_action( 'toplevel_page_wpcf7', [ $subject, 'after_toplevel_page_wpcf7' ] ) );
-			self::assertSame( 0, has_action( 'admin_enqueue_scripts', [
-				$subject,
-				'enqueue_admin_scripts_before_cf7',
-			] ) );
-			self::assertSame( 20, has_action( 'admin_enqueue_scripts', [
-				$subject,
-				'enqueue_admin_scripts_after_cf7',
-			] ) );
+			self::assertSame(
+				54,
+				has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] )
+			);
+			self::assertSame(
+				0,
+				has_action( 'toplevel_page_wpcf7', [ $subject, 'before_toplevel_page_wpcf7' ] )
+			);
+			self::assertSame(
+				20,
+				has_action( 'toplevel_page_wpcf7', [ $subject, 'after_toplevel_page_wpcf7' ] )
+			);
+			self::assertSame(
+				0,
+				has_action( 'admin_enqueue_scripts', [ $subject, 'enqueue_admin_scripts_before_cf7' ] )
+			);
+			self::assertSame(
+				20,
+				has_action( 'admin_enqueue_scripts', [ $subject, 'enqueue_admin_scripts_after_cf7' ] )
+			);
 		} else {
-			self::assertFalse( has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] ) );
-			self::assertFalse( has_action( 'toplevel_page_wpcf7', [ $subject, 'before_toplevel_page_wpcf7' ] ) );
-			self::assertFalse( has_action( 'toplevel_page_wpcf7', [ $subject, 'after_toplevel_page_wpcf7' ] ) );
-			self::assertFalse( has_action( 'admin_enqueue_scripts', [
-				$subject,
-				'enqueue_admin_scripts_before_cf7',
-			] ) );
+			self::assertFalse(
+				has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] )
+			);
+			self::assertFalse(
+				has_action( 'toplevel_page_wpcf7', [ $subject, 'before_toplevel_page_wpcf7' ] )
+			);
+			self::assertFalse(
+				has_action( 'toplevel_page_wpcf7', [ $subject, 'after_toplevel_page_wpcf7' ] )
+			);
+			self::assertFalse(
+				has_action( 'admin_enqueue_scripts', [ $subject, 'enqueue_admin_scripts_before_cf7' ] )
+			);
 			self::assertFalse( has_action( 'admin_enqueue_scripts', [ $subject, 'enqueue_admin_scripts_after_cf7' ] ) );
 		}
 	}
@@ -187,6 +201,8 @@ HTML;
 
 		// No form tag.
 		ob_start();
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		/** @noinspection HtmlUnknownAttribute */
 		$no_shortcode = '<form some-html <div id="poststuff">';
 		$subject->before_toplevel_page_wpcf7();
 		echo $no_shortcode; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
