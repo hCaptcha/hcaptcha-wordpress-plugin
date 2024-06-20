@@ -35,11 +35,6 @@ class Checkout {
 	const HANDLE = 'hcaptcha-wc-checkout';
 
 	/**
-	 * Block script handle.
-	 */
-	const BLOCK_HANDLE = 'hcaptcha-wc-checkout';
-
-	/**
 	 * The hCaptcha was added.
 	 *
 	 * @var bool
@@ -65,11 +60,10 @@ class Checkout {
 	 */
 	private function init_hooks() {
 		add_action( 'woocommerce_review_order_before_submit', [ $this, 'add_captcha' ] );
-		add_filter( 'render_block', [ $this, 'add_block_hcaptcha' ], 10, 3 );
+		add_filter( 'render_block', [ $this, 'add_block_captcha' ], 10, 3 );
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_filter( 'rest_request_before_callbacks', [ $this, 'verify_block' ], 10, 3 );
-		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -93,13 +87,17 @@ class Checkout {
 	}
 
 	/**
-	 * Add hCaptcha to the checkout block.
+	 * Add captcha to the checkout block.
 	 *
 	 * @param string|mixed $block_content The block content.
 	 * @param array        $block         The full block, including name and attributes.
 	 * @param WP_Block     $instance      The block instance.
+	 *
+	 * @return string
+	 *
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_block_hcaptcha( $block_content, array $block, WP_Block $instance ): string {
+	public function add_block_captcha( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
 
 		if ( 'woocommerce/checkout' !== $block['blockName'] ) {
@@ -139,7 +137,7 @@ class Checkout {
 	}
 
 	/**
-	 * Verify hCaptcha in the checkout block.
+	 * Verify checkout block.
 	 *
 	 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
 	 *                                                                   Usually a WP_REST_Response or WP_Error.
@@ -184,43 +182,5 @@ class Checkout {
 
 			return;
 		}
-
-		if ( $this->captcha_added_to_block ) {
-			wp_enqueue_script(
-				self::BLOCK_HANDLE,
-				HCAPTCHA_URL . "/assets/js/hcaptcha-wc-block-checkout$min.js",
-				[ 'hcaptcha' ],
-				HCAPTCHA_VERSION,
-				true
-			);
-		}
-	}
-
-	/**
-	 * Add type="module" attribute to script tag.
-	 *
-	 * @param string|mixed $tag    Script tag.
-	 * @param string       $handle Script handle.
-	 * @param string       $src    Script source.
-	 *
-	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_type_module( $tag, string $handle, string $src ): string {
-		$tag = (string) $tag;
-
-		if ( self::BLOCK_HANDLE !== $handle ) {
-			return $tag;
-		}
-
-		$type = ' type="module"';
-
-		if ( false !== strpos( $tag, $type ) ) {
-			return $tag;
-		}
-
-		$search = ' src';
-
-		return str_replace( $search, $type . $search, $tag );
 	}
 }
