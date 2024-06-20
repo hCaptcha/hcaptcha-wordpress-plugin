@@ -42,13 +42,6 @@ class Checkout {
 	private $captcha_added = false;
 
 	/**
-	 * The hCaptcha was added to the Checkout block.
-	 *
-	 * @var bool
-	 */
-	private $captcha_added_to_block = false;
-
-	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -114,8 +107,6 @@ class Checkout {
 			],
 		];
 
-		$this->captcha_added_to_block = true;
-
 		return str_replace( $search, HCaptcha::form( $args ) . $search, $block_content );
 	}
 
@@ -179,8 +170,6 @@ class Checkout {
 				HCAPTCHA_VERSION,
 				true
 			);
-
-			return;
 		}
 	}
 }
