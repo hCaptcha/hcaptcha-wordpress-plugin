@@ -10,7 +10,6 @@ namespace HCaptcha\EssentialBlocks;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Block;
-use WP_Error;
 
 /**
  * Class Form.
