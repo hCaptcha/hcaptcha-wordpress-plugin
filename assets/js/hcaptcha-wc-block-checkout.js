@@ -1,10 +1,19 @@
 const { fetch: originalFetch } = window;
+const checkoutButtonClass = 'wc-block-components-checkout-place-order-button';
+
+wp.hooks.addFilter(
+	'hcaptcha.submitButtonSelector',
+	'hcaptcha',
+	( submitButtonSelector ) => {
+		return submitButtonSelector + `, .${ checkoutButtonClass }`;
+	}
+);
 
 wp.hooks.addFilter(
 	'hcaptcha.ajaxSubmitButton',
 	'hcaptcha',
 	( isAjaxSubmitButton, submitButtonElement ) => {
-		if ( submitButtonElement.classList.contains( 'wc-block-components-checkout-place-order-button' ) ) {
+		if ( submitButtonElement.classList.contains( `${ checkoutButtonClass }` ) ) {
 			return true;
 		}
 
