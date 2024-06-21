@@ -35,11 +35,23 @@ class Checkout {
 	const HANDLE = 'hcaptcha-wc-checkout';
 
 	/**
+	 * Block script handle.
+	 */
+	const BLOCK_HANDLE = 'hcaptcha-wc-block-checkout';
+
+	/**
 	 * The hCaptcha was added.
 	 *
 	 * @var bool
 	 */
 	private $captcha_added = false;
+
+	/**
+	 * The block hCaptcha was added.
+	 *
+	 * @var bool
+	 */
+	private $block_captcha_added = false;
 
 	/**
 	 * Constructor.
@@ -107,6 +119,8 @@ class Checkout {
 			],
 		];
 
+		$this->block_captcha_added = true;
+
 		return str_replace( $search, HCaptcha::form( $args ) . $search, $block_content );
 	}
 
@@ -143,7 +157,12 @@ class Checkout {
 			return $response;
 		}
 
-		$error_message = hcaptcha_request_verify( null );
+		$widget_id_name           = 'hcaptcha-widget-id';
+		$hcaptcha_response_name   = 'h-captcha-response';
+		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
+		$hcaptcha_response        = $request->get_param( $hcaptcha_response_name );
+
+		$error_message = hcaptcha_request_verify( $hcaptcha_response );
 
 		if ( null === $error_message ) {
 			return $response;
@@ -167,6 +186,16 @@ class Checkout {
 				self::HANDLE,
 				HCAPTCHA_URL . "/assets/js/hcaptcha-wc-checkout$min.js",
 				[ 'jquery', 'hcaptcha' ],
+				HCAPTCHA_VERSION,
+				true
+			);
+		}
+
+		if ( $this->block_captcha_added ) {
+			wp_enqueue_script(
+				self::BLOCK_HANDLE,
+				HCAPTCHA_URL . "/assets/js/hcaptcha-wc-block-checkout$min.js",
+				[ 'hcaptcha' ],
 				HCAPTCHA_VERSION,
 				true
 			);
