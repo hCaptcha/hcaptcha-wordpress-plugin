@@ -564,6 +564,7 @@ Instructions for popular native integrations are below:
 = 4.3.0 =
 * Added a live form in the Contact Form 7 admin editor.
 * Added support for Contact Form 7 embedded forms.
+* Added support for the WooCommerce Checkout block.
 * Fixed missing sitekey error processing on General page.
 * Fixed naming of the first submenu item.
 * Fixed storing of check config events to the database.
