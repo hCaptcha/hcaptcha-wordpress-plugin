@@ -669,13 +669,23 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$activate    = false;
 		$plugins     = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name = 'ACF Extended';
+		$stati       = [
+			'wp_status'   => true,
+			'acfe_status' => false,
+		];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
 
 		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'ACF Extended plugin is deactivated.' ] )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with(
+			[
+				'message' => 'ACF Extended plugin is deactivated.',
+				'stati'   => $stati,
+			]
+		)->once();
 
 		$subject->process_plugins( $activate, $plugins, $plugin_name );
 	}
@@ -684,19 +694,45 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test process_theme().
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_process_theme() {
-		$theme = 'Divi';
+		$theme         = 'Divi';
+		$stati         = [
+			'wp_status' => true,
+			'Divi'      => true,
+		];
+		$themes        = [
+			'twentytwentyone' => 'Twenty Twenty-One',
+		];
+		$default_theme = 'twentytwentyfour';
+		$error_arr     = [
+			'message'      => 'Error activating Divi theme.',
+			'stati'        => $stati,
+			'themes'       => $themes,
+			'defaultTheme' => $default_theme,
+		];
+		$success_arr   = [
+			'message'      => 'Divi theme is activated.',
+			'stati'        => $stati,
+			'themes'       => $themes,
+			'defaultTheme' => $default_theme,
+		];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'process_theme';
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->twice()->andReturn( $stati );
+		$subject->shouldReceive( 'get_themes' )->with()->twice()->andReturn( $themes );
+		$subject->shouldReceive( 'get_default_theme' )->with()->twice()->andReturn( $default_theme );
+		$this->set_protected_property( $subject, 'entity', 'theme' );
 
-		WP_Mock::userFunction( 'wp_send_json_error' )->with( [ 'message' => 'Error activating Divi theme.' ] )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with( [ 'message' => 'Divi theme is activated.' ] )->once();
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( $error_arr )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( $success_arr )->once();
 
-		$subject->process_theme( $theme );
+		$subject->$method( $theme );
 	}
 
 	/**
@@ -1012,38 +1048,40 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 	/**
 	 * Test json_data().
-	 */
-	public function test_json_data() {
-		$message  = 'Test message';
-		$subject  = Mockery::mock( Integrations::class )->makePartial();
-		$method   = 'json_data';
-		$expected = [
-			'message' => $message,
-		];
-
-		self::assertSame( $expected, $subject->$method( $message ) );
-	}
-
-	/**
-	 * Test json_data() for theme.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_json_data_for_theme() {
+	public function test_json_data() {
 		$message       = 'Test message';
-		$subject       = Mockery::mock( Integrations::class )->makePartial();
-		$method        = 'json_data';
-		$default_theme = 'twentytwentyone';
-		$themes        = [ $default_theme => 'Twenty Twenty-One' ];
-		$expected      = [
-			'message'      => $message,
-			'themes'       => $themes,
-			'defaultTheme' => $default_theme,
+		$stati         = [
+			'wp_status'   => true,
+			'acfe_status' => false,
 		];
+		$expected      = [
+			'message' => $message,
+			'stati'   => $stati,
+		];
+		$themes        = [
+			'twentytwentyone' => 'Twenty Twenty-One',
+		];
+		$default_theme = 'twentytwentyfour';
 
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'json_data';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_activation_stati' )->with()->twice()->andReturn( $stati );
+		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
+		$subject->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( $default_theme );
+
+		// Plugin.
+		self::assertSame( $expected, $subject->$method( $message ) );
+
+		// Theme.
 		$this->set_protected_property( $subject, 'entity', 'theme' );
-		$subject->shouldReceive( 'get_themes' )->andReturn( $themes );
-		$subject->shouldReceive( 'get_default_theme' )->andReturn( $default_theme );
+
+		$expected['themes']       = $themes;
+		$expected['defaultTheme'] = $default_theme;
 
 		self::assertSame( $expected, $subject->$method( $message ) );
 	}

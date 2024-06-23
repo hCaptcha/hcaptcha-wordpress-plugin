@@ -1171,11 +1171,8 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function json_data( string $message ): array {
-		$data = [ 'message' => esc_html( $message ) ];
-
-		if ( 'plugin' === $this->entity ) {
-			$data['stati'] = $this->get_activation_stati();
-		}
+		$data          = [ 'message' => esc_html( $message ) ];
+		$data['stati'] = $this->get_activation_stati();
 
 		if ( 'theme' === $this->entity ) {
 			$data['themes']       = $this->get_themes();
