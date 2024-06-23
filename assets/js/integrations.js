@@ -6,6 +6,7 @@
  * @param HCaptchaIntegrationsObject.nonce
  * @param HCaptchaIntegrationsObject.activateMsg
  * @param HCaptchaIntegrationsObject.deactivateMsg
+ * @param HCaptchaIntegrationsObject.installMsg
  * @param HCaptchaIntegrationsObject.activateThemeMsg
  * @param HCaptchaIntegrationsObject.deactivateThemeMsg
  * @param HCaptchaIntegrationsObject.selectThemeMsg
@@ -318,12 +319,33 @@ const integrations = function( $ ) {
 			return;
 		}
 
-		title = title.replace( '%s', alt );
+		const $logo = $tr.find( '.hcaptcha-integrations-logo' );
+
+		if ( ! $logo.data( 'installed' ) ) {
+			title = HCaptchaIntegrationsObject.installMsg;
+			title = title.replace( '%s', alt );
+
+			kaggDialog.confirm( {
+				title,
+				content,
+				type: 'install',
+				buttons: {
+					ok: {
+						text: HCaptchaIntegrationsObject.OKBtnText,
+					},
+				},
+			} );
+
+			return;
+		}
 
 		if ( event.ctrlKey ) {
 			toggleActivation();
+
 			return;
 		}
+
+		title = title.replace( '%s', alt );
 
 		kaggDialog.confirm( {
 			title,
@@ -355,10 +377,10 @@ const integrations = function( $ ) {
 	$search.on( 'input', debounce(
 		function() {
 			const search = $search.val().trim().toLowerCase();
-			const $logo = $( '.hcaptcha-integrations-logo img' );
+			const $img = $( '.hcaptcha-integrations-logo img' );
 			let $trFirst = null;
 
-			$logo.each( function( i, el ) {
+			$img.each( function( i, el ) {
 				const $el = $( el );
 
 				if ( $el.data( 'entity' ) === 'core' ) {

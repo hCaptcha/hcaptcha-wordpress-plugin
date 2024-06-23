@@ -76,6 +76,20 @@ class Integrations extends PluginSettingsBase {
 	protected $plugins_tree;
 
 	/**
+	 * Installed plugins.
+	 *
+	 * @var array[]
+	 */
+	private $plugins;
+
+	/**
+	 * Installed themes.
+	 *
+	 * @var WP_Theme[]
+	 */
+	private $themes;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -91,6 +105,22 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function section_title(): string {
 		return 'integrations';
+	}
+
+	/**
+	 * Init class.
+	 */
+	public function init() {
+		if ( ! function_exists( 'get_plugins' ) ) {
+			// @codeCoverageIgnoreStart
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			// @codeCoverageIgnoreEnd
+		}
+
+		$this->plugins = get_plugins();
+		$this->themes  = wp_get_themes();
+
+		parent::init();
 	}
 
 	/**
@@ -577,9 +607,10 @@ class Integrations extends PluginSettingsBase {
 		$entity    = $form_field['entity'] ?? 'plugin';
 
 		return sprintf(
-			'<div class="hcaptcha-integrations-logo">' .
-			'<img src="%1$s" alt="%2$s Logo" data-label="%2$s" data-entity="%3$s">' .
+			'<div class="hcaptcha-integrations-logo" data-installed="%1$s">' .
+			'<img src="%2$s" alt="%3$s Logo" data-label="%3$s" data-entity="%4$s">' .
 			'</div>',
+			$form_field['installed'] ? '1' : '0',
 			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/logo/$logo_file" ),
 			$label,
 			$entity
@@ -594,23 +625,66 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
+		$installed = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $this->plugin_or_theme_installed( $module[1] ) ) {
+				$installed[] = $module[0][0];
+			}
+		}
+
+		$installed = array_unique( $installed );
+
 		$this->form_fields = $this->sort_fields( $this->form_fields );
 
-		foreach ( $this->form_fields as &$form_field ) {
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['section']   = ( ! $form_field['installed'] ) || $form_field['disabled']
+				? self::SECTION_DISABLED
+				: self::SECTION_ENABLED;
+
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field );
-			}
-
-			if ( $form_field['disabled'] ) {
-				$form_field['section'] = self::SECTION_DISABLED;
-			} else {
-				$form_field['section'] = self::SECTION_ENABLED;
 			}
 		}
 
 		unset( $form_field );
 
 		parent::setup_fields();
+	}
+
+	/**
+	 * Check whether one of the plugins or themes is installed.
+	 *
+	 * @param string|array $plugin_or_theme_names Plugin or theme names.
+	 *
+	 * @return bool
+	 */
+	private function plugin_or_theme_installed( $plugin_or_theme_names ): bool {
+		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
+			if ( '' === $plugin_or_theme_name ) {
+				// WP Core is always installed.
+				return true;
+			}
+
+			if (
+				array_key_exists( $plugin_or_theme_name, $this->plugins ) &&
+				false !== strpos( $plugin_or_theme_name, '.php' )
+			) {
+				// The plugin is installed.
+				return true;
+			}
+
+			if (
+				array_key_exists( $plugin_or_theme_name, $this->themes ) &&
+				false === strpos( $plugin_or_theme_name, '.php' )
+			) {
+				// The theme is installed.
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -753,10 +827,14 @@ class Integrations extends PluginSettingsBase {
 				'activateMsg'        => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
 				'deactivateMsg'      => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Plugin name. */
+				'installMsg'         => __( 'Please install %s plugin manually.', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
 				'activateThemeMsg'   => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
 				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Theme name. */
+				'installThemeMsg'    => __( 'Please install %s theme manually.', 'hcaptcha-for-forms-and-more' ),
 				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
 				'onlyOneThemeMsg'    => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
 				'unexpectedErrorMsg' => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
@@ -990,7 +1068,7 @@ class Integrations extends PluginSettingsBase {
 			return $dirs;
 		}
 
-		$slugs = array_keys( get_plugins() );
+		$slugs = array_keys( $this->plugins );
 
 		foreach ( $dirs as &$dir ) {
 			$slug = preg_grep( "#^$dir/#", $slugs );
@@ -1131,7 +1209,7 @@ class Integrations extends PluginSettingsBase {
 			static function ( $theme ) {
 				return $theme->get( 'Name' );
 			},
-			wp_get_themes()
+			$this->themes
 		);
 
 		unset( $themes[ wp_get_theme()->get_stylesheet() ] );
