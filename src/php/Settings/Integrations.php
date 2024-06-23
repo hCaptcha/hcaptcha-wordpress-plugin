@@ -80,14 +80,14 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @var array[]
 	 */
-	private $plugins;
+	protected $plugins;
 
 	/**
 	 * Installed themes.
 	 *
 	 * @var WP_Theme[]
 	 */
-	private $themes;
+	protected $themes;
 
 	/**
 	 * Get page title.
@@ -660,7 +660,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return bool
 	 */
-	private function plugin_or_theme_installed( $plugin_or_theme_names ): bool {
+	protected function plugin_or_theme_installed( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
 			if ( '' === $plugin_or_theme_name ) {
 				// WP Core is always installed.

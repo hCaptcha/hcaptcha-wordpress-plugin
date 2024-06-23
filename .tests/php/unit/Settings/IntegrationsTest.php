@@ -105,12 +105,32 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$form_fields['wp_status']['disabled'] = false;
 
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->modules = [
+			'WooCommerce Register'  => [
+				[ 'woocommerce_status', 'register' ],
+				'woocommerce/woocommerce.php',
+				'wc_register_class',
+			],
+			'WooCommerce Wishlists' => [
+				[ 'woocommerce_wishlists_status', 'create_list' ],
+				'woocommerce-wishlists/woocommerce-wishlists.php',
+				'create_class',
+			],
+		];
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'plugin_or_theme_installed' )
+			->with( 'woocommerce/woocommerce.php' )->andReturn( true );
+		$subject->shouldReceive( 'plugin_or_theme_installed' )
+			->with( 'woocommerce-wishlists/woocommerce-wishlists.php' )->andReturn( false );
 
 		$this->set_protected_property( $subject, 'form_fields', $form_fields );
 
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
 		WP_Mock::passthruFunction( 'register_setting' );
 		WP_Mock::passthruFunction( 'add_settings_field' );
 		WP_Mock::passthruFunction( 'sanitize_file_name' );
@@ -136,7 +156,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 		self::assertSame( 'wp_status', $first_key );
 
 		foreach ( $form_fields as $form_field ) {
-			$section = $form_field['disabled'] ? Integrations::SECTION_DISABLED : Integrations::SECTION_ENABLED;
+			$section = ( ! $form_field['installed'] ) || $form_field['disabled']
+				? Integrations::SECTION_DISABLED
+				: Integrations::SECTION_ENABLED;
 
 			self::assertTrue( (bool) preg_match( '<img src="' . $plugin_url . '/assets/images/.+?" alt=".+?">', $form_field['label'] ) );
 			self::assertArrayHasKey( 'class', $form_field );
@@ -266,6 +288,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( true );
 		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
+		$this->set_protected_property( $subject, 'themes', $themes );
 
 		FunctionMocker::replace(
 			'constant',
@@ -311,7 +334,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 			)
 			->once();
 
-		WP_Mock::userFunction( 'wp_get_themes' )->with()->andReturn( $themes )->once();
 		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme )->once();
 
 		WP_Mock::userFunction( 'admin_url' )
@@ -334,8 +356,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'nonce'              => $nonce,
 					'activateMsg'        => 'Activate %s plugin?',
 					'deactivateMsg'      => 'Deactivate %s plugin?',
+					'installMsg'         => 'Please install %s plugin manually.',
 					'activateThemeMsg'   => 'Activate %s theme?',
 					'deactivateThemeMsg' => 'Deactivate %s theme?',
+					'installThemeMsg'    => 'Please install %s theme manually.',
 					'selectThemeMsg'     => 'Select theme to activate:',
 					'onlyOneThemeMsg'    => 'Cannot deactivate the only theme on the site.',
 					'unexpectedErrorMsg' => 'Unexpected error.',
@@ -784,6 +808,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test plugin_dirs_to_slugs().
 	 *
 	 * @return void
+	 * @throws ReflectionException
 	 */
 	public function test_plugin_dirs_to_slugs() {
 		$dirs    = [ 'woocommerce-wishlists', 'woocommerce/woocommerce.php' ];
@@ -794,6 +819,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$this->set_protected_property( $subject, 'plugins', $plugins );
 
 		$subject->shouldAllowMockingProtectedMethods();
 
