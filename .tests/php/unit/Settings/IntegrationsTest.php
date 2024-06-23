@@ -138,7 +138,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		unset( $form_field );
 
-		$form_fields['wp_status']['disabled'] = false;
+		$form_fields['wp_status']['disabled']          = false;
 		$form_fields['woocommerce_status']['disabled'] = false;
 
 		$main = Mockery::mock( Main::class )->makePartial();
@@ -775,6 +775,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_activate_plugins_with_plugins_tree
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function test_activate_plugins_with_plugins_tree( $wish_result, $woo_result, bool $expected ) {
 		$wish_slug    = 'woocommerce-wishlists/woocommerce-wishlists.php';
@@ -874,7 +875,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test plugin_dirs_to_slugs().
 	 *
 	 * @return void
-	 * @throws ReflectionException
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_plugin_dirs_to_slugs() {
 		$dirs    = [ 'woocommerce-wishlists', 'woocommerce/woocommerce.php' ];
@@ -900,6 +901,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test plugin_names_from_tree().
 	 *
 	 * @return void
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_plugin_names_from_tree() {
 		$plugin_dir    = '/path/to/plugins';
