@@ -573,6 +573,7 @@ Instructions for popular native integrations are below:
 * Fixed notifications links in menu pages mode.
 * Fixed Firefox issue with not showing hCaptcha when the API script was delayed until user interaction.
 * Fixed error on activation/deactivation of a theme.
+* Fixed error on activating Brizy plugin.
 * Tested with WooCommerce 9.0.
 
 = 4.2.1 =

@@ -141,6 +141,16 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Activated plugin action.
+	 * Do not allow redirect during plugin activation.
+	 *
+	 * @return void
+	 */
+	public function activated_plugin_action() {
+		remove_action( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' );
+	}
+
+	/**
 	 * Init form fields.
 	 */
 	public function init_form_fields() {
@@ -1062,6 +1072,9 @@ class Integrations extends PluginSettingsBase {
 		if ( is_plugin_active( $plugin ) ) {
 			return true;
 		}
+
+		// Do not allow redirect during plugin activation.
+		add_action( 'activated_plugin', [ $this, 'activated_plugin_action' ], PHP_INT_MIN );
 
 		ob_start();
 		$result = activate_plugin( $plugin );

@@ -109,6 +109,21 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test activated_plugin_action().
+	 *
+	 * @return void
+	 */
+	public function test_activated_plugin_action() {
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		WP_Mock::userFunction( 'remove_action' )
+			->with( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' )
+			->once();
+
+		$subject->activated_plugin_action();
+	}
+
+	/**
 	 * Test init_form_fields().
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -881,6 +896,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 
+		WP_Mock::expectActionAdded( 'activated_plugin', [ $subject, 'activated_plugin_action' ], PHP_INT_MIN );
 		WP_Mock::userFunction( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
 		WP_Mock::userFunction( 'activate_plugin' )->with( $plugin )->once()->andReturn( true );
 
@@ -899,6 +915,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 
+		WP_Mock::expectActionNotAdded( 'activated_plugin', [ $subject, 'activated_plugin_action' ], PHP_INT_MIN );
 		WP_Mock::userFunction( 'is_plugin_active' )->with( $plugin )->once()->andReturn( true );
 		WP_Mock::userFunction( 'activate_plugin' )->with( $plugin )->never();
 
