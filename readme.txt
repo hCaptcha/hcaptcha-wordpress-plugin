@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 * Added support for Contact Form 7 embedded forms.
 * Added support for the WooCommerce Checkout block.
 * Added check if a plugin or theme is installed before activation.
+* Added activation of dependent plugins with a theme.
 * Fixed missing sitekey error processing on General page.
 * Fixed naming of the first submenu item.
 * Fixed storing of check config events to the database.

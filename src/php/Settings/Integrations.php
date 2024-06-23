@@ -55,6 +55,10 @@ class Integrations extends PluginSettingsBase {
 	 */
 	const PLUGIN_DEPENDENCIES = [
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+		'Avada'                                                             => [
+			'fusion-builder/fusion-builder.php',
+			'fusion-core/fusion-core.php',
+		],
 		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
 		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
@@ -948,6 +952,21 @@ class Integrations extends PluginSettingsBase {
 	 * @return void
 	 */
 	protected function process_theme( string $theme ) {
+		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
+		$plugin_names = [];
+
+		/**
+		 * Activate dependent plugins before activating the theme.
+		 * The activate_plugins() function will activate the first available plugin only.
+		 * That is why we should cycle through the list of dependencies.
+		 */
+		foreach ( $plugins as $plugin ) {
+			$this->activate_plugins( [ $plugin ] );
+			$plugin_names[] = $this->plugin_names_from_tree( $this->plugins_tree );
+		}
+
+		$plugin_names = array_merge( [], ...$plugin_names );
+
 		if ( ! $this->activate_theme( $theme ) ) {
 			$message = sprintf(
 			/* translators: 1: Theme name. */
@@ -963,6 +982,21 @@ class Integrations extends PluginSettingsBase {
 			__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
 			$theme
 		);
+
+		if ( $plugin_names ) {
+			$message .=
+				' Also, dependent ' .
+				sprintf(
+				/* translators: 1: Plugin name. */
+					_n(
+						'%s plugin is activated.',
+						'%s plugins are activated.',
+						count( $plugin_names ),
+						'hcaptcha-for-forms-and-more'
+					),
+					implode( ', ', $plugin_names )
+				);
+		}
 
 		$this->send_json_success( esc_html( $message ) );
 	}
@@ -996,7 +1030,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $node Node of the plugin tree.
 	 *
-	 * @return int|null|true|WP_Error
+	 * @return null|true|WP_Error
 	 */
 	protected function activate_plugin_tree( array &$node ) {
 		if ( $node['children'] ) {
@@ -1009,11 +1043,27 @@ class Integrations extends PluginSettingsBase {
 			}
 		}
 
-		ob_start();
-		$result = activate_plugin( $node['plugin'] );
-		ob_end_clean();
+		$node['result'] = $this->activate_plugin( $node['plugin'] );
 
-		$node['result'] = $result;
+		return $node['result'];
+	}
+
+	/**
+	 * Activate plugin.
+	 *
+	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return null|true|WP_Error
+	 */
+	private function activate_plugin( string $plugin ) {
+
+		if ( is_plugin_active( $plugin ) ) {
+			return true;
+		}
+
+		ob_start();
+		$result = activate_plugin( $plugin );
+		ob_end_clean();
 
 		return $result;
 	}
@@ -1098,6 +1148,10 @@ class Integrations extends PluginSettingsBase {
 			}
 
 			$plugin_names = array_merge( [], ...$plugin_names );
+		}
+
+		if ( null !== $node['result'] ) {
+			return array_unique( array_merge( [], $plugin_names ) );
 		}
 
 		$status = '';
