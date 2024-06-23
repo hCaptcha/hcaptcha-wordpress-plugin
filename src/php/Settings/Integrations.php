@@ -54,11 +54,12 @@ class Integrations extends PluginSettingsBase {
 	 * Value is a plugin slug or an array of slugs.
 	 */
 	const PLUGIN_DEPENDENCIES = [
-		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
-		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php' => 'woocommerce/woocommerce.php',
-		'elementor-pro/elementor-pro.php'                               => 'elementor/elementor.php',
-		'woocommerce-wishlists/woocommerce-wishlists.php'               => 'woocommerce/woocommerce.php',
-		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
+		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
+		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
+		'woocommerce-wishlists/woocommerce-wishlists.php'                   => 'woocommerce/woocommerce.php',
+		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 	];
 
 	/**
