@@ -1055,7 +1055,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return null|true|WP_Error
 	 */
-	private function activate_plugin( string $plugin ) {
+	protected function activate_plugin( string $plugin ) {
 
 		if ( is_plugin_active( $plugin ) ) {
 			return true;

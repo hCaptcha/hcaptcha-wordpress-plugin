@@ -21,6 +21,7 @@ use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Error;
 use WP_Mock;
 
 /**
@@ -697,23 +698,28 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_process_theme() {
-		$theme         = 'Divi';
+		$theme         = 'Avada';
+		$plugin_tree   = [ 'some plugin tree' ];
+		$plugin_names  = [ 'Avada Builder', 'Avada Core' ];
 		$stati         = [
 			'wp_status' => true,
-			'Divi'      => true,
+			'Avada'     => true,
 		];
 		$themes        = [
 			'twentytwentyone' => 'Twenty Twenty-One',
 		];
 		$default_theme = 'twentytwentyfour';
 		$error_arr     = [
-			'message'      => 'Error activating Divi theme.',
+			'message'      => 'Error activating Avada theme.',
 			'stati'        => $stati,
 			'themes'       => $themes,
 			'defaultTheme' => $default_theme,
 		];
 		$success_arr   = [
-			'message'      => 'Divi theme is activated.',
+			'message'      =>
+				'Avada theme is activated. Also, dependent ' .
+				implode( ', ', $plugin_names ) .
+				' plugins are activated.',
 			'stati'        => $stati,
 			'themes'       => $themes,
 			'defaultTheme' => $default_theme,
@@ -723,11 +729,18 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$method  = 'process_theme';
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'activate_plugins' )
+			->with( [ 'fusion-builder/fusion-builder.php' ] )->once()->andReturn( true );
+		$subject->shouldReceive( 'activate_plugins' )
+			->with( [ 'fusion-core/fusion-core.php' ] )->once()->andReturn( true );
+		$subject->shouldReceive( 'plugin_names_from_tree' )
+			->with( $plugin_tree )->andReturnValues( [ [ $plugin_names[0] ], [ $plugin_names[1] ] ] );
 		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->twice()->andReturn( $stati );
 		$subject->shouldReceive( 'get_themes' )->with()->twice()->andReturn( $themes );
 		$subject->shouldReceive( 'get_default_theme' )->with()->twice()->andReturn( $default_theme );
 		$this->set_protected_property( $subject, 'entity', 'theme' );
+		$this->set_protected_property( $subject, 'plugins_tree', $plugin_tree );
 
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( $error_arr )->once();
 		WP_Mock::userFunction( 'wp_send_json_success' )->with( $success_arr )->once();
@@ -834,7 +847,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'build_plugins_tree' )
 			->with( $wish_slug )->once()->andReturn( $plugins_tree );
 
+		WP_Mock::userFunction( 'is_plugin_active' )->with( $wish_slug )->andReturn( false );
 		WP_Mock::userFunction( 'activate_plugin' )->with( $wish_slug )->andReturn( $wish_result );
+		WP_Mock::userFunction( 'is_plugin_active' )->with( $woo_slug )->andReturn( false );
 		WP_Mock::userFunction( 'activate_plugin' )->with( $woo_slug )->andReturn( $woo_result );
 
 		self::assertSame( $expected, $subject->$method( [ $wish_slug ] ) );
@@ -852,6 +867,42 @@ class IntegrationsTest extends HCaptchaTestCase {
 			// phpcs:ignore WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 			'Wishlist and WooCommerce activated'            => [ null, null, true ],
 		];
+	}
+
+	/**
+	 * Test activate_plugin().
+	 *
+	 * @return void
+	 */
+	public function test_activate_plugin() {
+		$plugin = 'some-plugin/some-plugin.php';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
+		WP_Mock::userFunction( 'activate_plugin' )->with( $plugin )->once()->andReturn( true );
+
+		self::assertTrue( $subject->activate_plugin( $plugin ) );
+	}
+
+	/**
+	 * Test activate_plugin() when plugin is active.
+	 *
+	 * @return void
+	 */
+	public function test_activate_plugin_when_plugin_is_active() {
+		$plugin = 'some-plugin/some-plugin.php';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'is_plugin_active' )->with( $plugin )->once()->andReturn( true );
+		WP_Mock::userFunction( 'activate_plugin' )->with( $plugin )->never();
+
+		self::assertTrue( $subject->activate_plugin( $plugin ) );
 	}
 
 	/**
@@ -955,10 +1006,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 						[
 							'plugin'   => $woo_slug,
 							'children' => [],
+							'result'   => null,
 						],
 					],
+					'result'   => null,
 				],
 			],
+			'result'   => null,
 		];
 		$expected      = [ 'Some Plugin Requiring Wishlist', 'WooCommerce Wishlists', 'WooCommerce' ];
 
@@ -1001,6 +1055,18 @@ class IntegrationsTest extends HCaptchaTestCase {
 			);
 
 		$subject->init_form_fields();
+
+		// All plugins are successfully activated.
+		self::assertSame( $expected, $subject->plugin_names_from_tree( $plugins_tree ) );
+
+		// One plugin was not activated.
+		$error = Mockery::mock( WP_Error::class );
+
+		$plugins_tree['result'] = $error;
+
+		unset( $expected[0] );
+
+		$expected = array_values( $expected );
 
 		self::assertSame( $expected, $subject->plugin_names_from_tree( $plugins_tree ) );
 	}
