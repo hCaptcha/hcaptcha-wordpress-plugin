@@ -52,6 +52,41 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test init().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init() {
+		$plugins = [ 'some plugins' ];
+		$themes  = [ 'some themes' ];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'form_fields' )->once();
+		$subject->shouldReceive( 'init_settings' )->once();
+		$subject->shouldReceive( 'is_main_menu_page' )->once()->andReturn( false );
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->once()->andReturn( false );
+		$this->set_protected_property( $subject, 'plugins', $plugins );
+		$this->set_protected_property( $subject, 'themes', $themes );
+
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'get_plugins' === $function_name;
+			}
+		);
+
+		WP_Mock::userFunction( 'get_plugins' )->andReturn( $plugins );
+		WP_Mock::userFunction( 'wp_get_themes' )->andReturn( $themes );
+
+		$method = 'init';
+		$subject->$method();
+
+		self::assertSame( $plugins, $this->get_protected_property( $subject, 'plugins' ) );
+		self::assertSame( $themes, $this->get_protected_property( $subject, 'themes' ) );
+	}
+
+	/**
 	 * Test init_hooks().
 	 *
 	 * @return void
@@ -104,6 +139,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		unset( $form_field );
 
 		$form_fields['wp_status']['disabled'] = false;
+		$form_fields['woocommerce_status']['disabled'] = false;
 
 		$main = Mockery::mock( Main::class )->makePartial();
 
@@ -153,7 +189,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		reset( $form_fields );
 		$first_key = key( $form_fields );
 
-		self::assertSame( 'wp_status', $first_key );
+		self::assertSame( 'woocommerce_status', $first_key );
 
 		foreach ( $form_fields as $form_field ) {
 			$section = ( ! $form_field['installed'] ) || $form_field['disabled']
@@ -177,6 +213,36 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
 
 		$subject->setup_fields();
+	}
+
+	/**
+	 * Test plugin_or_theme_installed().
+	 *
+	 * @return void
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_plugin_or_theme_installed() {
+		$plugins = [
+			'woocommerce/woocommerce.php' => [ 'some plugin data' ],
+		];
+		$themes  = [
+			'twentytwentyone' => [ 'some theme data' ],
+		];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'plugin_or_theme_installed';
+		$this->set_protected_property( $subject, 'plugins', $plugins );
+		$this->set_protected_property( $subject, 'themes', $themes );
+
+		self::assertTrue( $subject->$method( '' ) );
+
+		self::assertFalse( $subject->$method( 'contact-form-7/wp-contact-form-7.php' ) );
+		self::assertTrue( $subject->$method( 'woocommerce/woocommerce.php' ) );
+
+		self::assertFalse( $subject->$method( 'Divi' ) );
+		self::assertTrue( $subject->$method( 'twentytwentyone' ) );
 	}
 
 	/**
