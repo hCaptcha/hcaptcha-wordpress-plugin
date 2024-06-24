@@ -709,6 +709,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test process_theme().
 	 *
+	 * @requires PHP >= 7.4
+	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
