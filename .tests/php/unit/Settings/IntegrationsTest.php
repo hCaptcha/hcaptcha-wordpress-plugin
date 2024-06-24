@@ -749,7 +749,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'activate_plugins' )
 			->with( [ 'fusion-core/fusion-core.php' ] )->once()->andReturn( true );
 		$subject->shouldReceive( 'plugin_names_from_tree' )
-			->with( $plugin_tree )->andReturn( [ $plugin_names[0] ], [ $plugin_names[1] ] );
+			->with( $plugin_tree )->andReturnUsing(
+				static function () use ( $plugin_names ) {
+					static $i = -1;
+					$i++;
+
+					return [ $plugin_names[ $i ] ];
+				}
+			);
 		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->twice()->andReturn( $stati );
 		$subject->shouldReceive( 'get_themes' )->with()->twice()->andReturn( $themes );
