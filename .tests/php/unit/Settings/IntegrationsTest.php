@@ -709,6 +709,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test process_theme().
 	 *
+	 * There is a unique issue with _n() and lower phpunit versions.
 	 * @requires PHP >= 7.4
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
