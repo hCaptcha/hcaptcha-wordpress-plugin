@@ -32,7 +32,7 @@ abstract class Base {
 	const OBJECT = 'HCaptchaGiveWPObject';
 
 	/**
-	 * Form Id.
+	 * Form ID.
 	 *
 	 * @var int
 	 */
