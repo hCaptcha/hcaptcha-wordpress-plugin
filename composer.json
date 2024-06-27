@@ -35,12 +35,12 @@
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
-    "10up/wp_mock": "0.3 - 0.5",
+    "10up/wp_mock": "0.4.2 - 1.0.1",
     "codeception/codeception": "^4.2.2",
     "codeception/module-db": "^1.2.0",
     "codeception/module-webdriver": "^1.4.1",
     "lucatume/function-mocker": "dev-master",
-    "lucatume/wp-browser": "^3.6.4",
+    "lucatume/wp-browser": "^3.6.5",
     "squizlabs/php_codesniffer": "^3.10.1",
     "phpcompatibility/php-compatibility": "^9.3.5",
     "phpcompatibility/phpcompatibility-wp": "^2.1.5",
@@ -63,19 +63,13 @@
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
     }
   },
-  "bin": [
-    "bin/update-tests"
-  ],
   "scripts": {
-    "pre-update-cmd": "update-tests",
     "post-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
     "post-install-cmd": "@post-cmd",
     "post-update-cmd": "@post-cmd",
     "post-package-install": "HCaptcha\\Scoper\\Scoper::post_package_install",
     "post-package-update": "HCaptcha\\Scoper\\Scoper::post_package_update",
     "post-package-uninstall": "HCaptcha\\Scoper\\Scoper::post_package_uninstall",
-    "update-tests": "update-tests",
-    "revert-tests": "update-tests revert",
     "phpcs": "vendor/bin/phpcs --colors --standard=phpcs.xml",
     "integration": "codecept run integration -c codeception.yml",
     "unit": "codecept run unit -c codeception.yml"
