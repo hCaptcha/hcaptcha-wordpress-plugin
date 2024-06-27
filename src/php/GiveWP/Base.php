@@ -164,12 +164,10 @@ abstract class Base {
 			return;
 		}
 
-		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
 		wp_send_json_error(
 			[
 				'type'   => DonationFormErrorTypes::VALIDATION,
-				'errors' => new WP_Error( $code, $error_message ),
+				'errors' => new WP_Error( DonationFormErrorTypes::GATEWAY, $error_message ),
 			]
 		);
 	}
