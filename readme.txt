@@ -565,6 +565,7 @@ Instructions for popular native integrations are below:
 * Added a live form in the Contact Form 7 admin editor.
 * Added support for Contact Form 7 embedded forms.
 * Added support for the WooCommerce Checkout block.
+* Added support for GiveWP block forms created via Form Builder.
 * Added check if a plugin or theme is installed before activation.
 * Added activation of dependent plugins with a theme.
 * Fixed missing sitekey error processing on General page.
