@@ -11,7 +11,7 @@
  * Plugin URI:           https://www.hcaptcha.com/
  * Description:          hCaptcha keeps out bots and spam while putting privacy first. It is a drop-in replacement for reCAPTCHA.
  * Version:              4.2.1
- * Requires at least:    5.1
+ * Requires at least:    5.3
  * Requires PHP:         7.0
  * Author:               hCaptcha
  * Author URI:           https://www.hcaptcha.com/

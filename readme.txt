@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.3
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 7.0.0
 Stable tag: 4.2.1
 License: GPLv2 or later
@@ -562,6 +562,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.3.0 =
+* Dropped support for PHP 7.0 and 7.1. The minimum required PHP version is now 7.2.
 * Added a live form in the Contact Form 7 admin editor.
 * Added support for Contact Form 7 embedded forms.
 * Added support for the WooCommerce Checkout block.
@@ -575,6 +576,7 @@ Instructions for popular native integrations are below:
 * Fixed Firefox issue with not showing hCaptcha when the API script was delayed until user interaction.
 * Fixed error on activation/deactivation of a theme.
 * Fixed error on activating Brizy plugin.
+* Tested with WordPress 6.6.
 * Tested with WooCommerce 9.0.
 
 = 4.2.1 =
