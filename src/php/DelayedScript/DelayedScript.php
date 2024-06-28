@@ -85,7 +85,7 @@ JS;
 	 * @param array $args  Arguments.
 	 * @param int   $delay Delay in ms.
 	 */
-	public static function launch( array $args, int $delay = 3000 ) {
+	public static function launch( array $args, int $delay = 3000 ): void {
 		$js = <<<JS
 			const t = document.getElementsByTagName( 'script' )[0];
 			const s = document.createElement('script');

@@ -18,8 +18,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'rtcl_login_form', [ $this, 'add_captcha' ] );

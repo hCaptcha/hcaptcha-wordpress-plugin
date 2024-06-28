@@ -18,28 +18,28 @@ class PluginStats {
 	/**
 	 * Event API URL.
 	 */
-	const EVENT_API = 'https://a.hcaptcha.com/api/event';
+	private const EVENT_API = 'https://a.hcaptcha.com/api/event';
 
 	/**
 	 * Event name.
 	 */
-	const NAME = 'plugin-stats';
+	private const NAME = 'plugin-stats';
 
 	/**
 	 * Report domain.
 	 */
-	const DOMAIN = 'wp-plugin.hcaptcha.com';
+	private const DOMAIN = 'wp-plugin.hcaptcha.com';
 
 	/**
 	 * Max props to send.
 	 */
-	const MAX_PROPS = 30;
+	private const MAX_PROPS = 30;
 
 	/**
 	 * Max prop value length.
 	 * (Max prop key length is 300).
 	 */
-	const MAX_PROP_VALUE_LENGTH = 2000;
+	private const MAX_PROP_VALUE_LENGTH = 2000;
 
 	/**
 	 * Class constructor.
@@ -53,7 +53,7 @@ class PluginStats {
 	 *
 	 * @return void
 	 */
-	private function init() {
+	private function init(): void {
 		$this->init_hooks();
 	}
 
@@ -62,7 +62,7 @@ class PluginStats {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'hcap_send_plugin_stats', [ $this, 'send_plugin_stats' ] );
 	}
 
@@ -72,7 +72,7 @@ class PluginStats {
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function send_plugin_stats() {
+	public function send_plugin_stats(): void {
 		$stats = $this->get_plugin_stats();
 
 		$url     = self::EVENT_API;
@@ -165,7 +165,7 @@ class PluginStats {
 		$stats['Secret key'] = $this->is_not_empty( $settings->get_secret_key() );
 		$stats['Multisite']  = (int) is_multisite();
 
-		list( $fields, $integration_settings ) = $system_info_obj->get_integrations();
+		[ $fields, $integration_settings ] = $system_info_obj->get_integrations();
 
 		$fields = array_filter(
 			$fields,

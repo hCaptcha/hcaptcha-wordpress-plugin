@@ -23,8 +23,10 @@ class OrderTracking {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'do_shortcode_tag' ], 10, 4 );
 	}
 

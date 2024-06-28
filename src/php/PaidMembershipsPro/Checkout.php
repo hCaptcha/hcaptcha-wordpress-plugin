@@ -17,12 +17,12 @@ class Checkout {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_pmpro_checkout';
+	private const ACTION = 'hcaptcha_pmpro_checkout';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_pmpro_checkout_nonce';
+	private const NONCE = 'hcaptcha_pmpro_checkout_nonce';
 
 	/**
 	 * Constructor.
@@ -33,8 +33,10 @@ class Checkout {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'pmpro_checkout_before_submit_button', [ $this, 'add_captcha' ] );
 		add_action( 'pmpro_checkout_after_parameters_set', [ $this, 'verify' ] );
 	}
@@ -44,7 +46,7 @@ class Checkout {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -63,7 +65,7 @@ class Checkout {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify() {
+	public function verify(): void {
 		global $pmpro_msg, $pmpro_msgt;
 
 		if ( ! pmpro_was_checkout_form_submitted() ) {

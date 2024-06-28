@@ -22,102 +22,102 @@ class General extends PluginSettingsBase {
 	/**
 	 * Dialog scripts and style handle.
 	 */
-	const DIALOG_HANDLE = 'kagg-dialog';
+	public const DIALOG_HANDLE = 'kagg-dialog';
 
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-general';
+	public const HANDLE = 'hcaptcha-general';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaGeneralObject';
+	public const OBJECT = 'HCaptchaGeneralObject';
 
 	/**
 	 * Check config ajax action.
 	 */
-	const CHECK_CONFIG_ACTION = 'hcaptcha-general-check-config';
+	public const CHECK_CONFIG_ACTION = 'hcaptcha-general-check-config';
 
 	/**
 	 * Toggle section ajax action.
 	 */
-	const TOGGLE_SECTION_ACTION = 'hcaptcha-general-toggle-section';
+	public const TOGGLE_SECTION_ACTION = 'hcaptcha-general-toggle-section';
 
 	/**
 	 * Keys section id.
 	 */
-	const SECTION_KEYS = 'keys';
+	public const SECTION_KEYS = 'keys';
 
 	/**
 	 * Appearance section id.
 	 */
-	const SECTION_APPEARANCE = 'appearance';
+	public const SECTION_APPEARANCE = 'appearance';
 
 	/**
 	 * Custom section id.
 	 */
-	const SECTION_CUSTOM = 'custom';
+	public const SECTION_CUSTOM = 'custom';
 
 	/**
 	 * Enterprise section id.
 	 */
-	const SECTION_ENTERPRISE = 'enterprise';
+	public const SECTION_ENTERPRISE = 'enterprise';
 
 	/**
 	 * Other section id.
 	 */
-	const SECTION_OTHER = 'other';
+	public const SECTION_OTHER = 'other';
 
 	/**
 	 * Statistics section id.
 	 */
-	const SECTION_STATISTICS = 'statistics';
+	public const SECTION_STATISTICS = 'statistics';
 
 	/**
 	 * Live mode.
 	 */
-	const MODE_LIVE = 'live';
+	public const MODE_LIVE = 'live';
 
 	/**
 	 * Test publisher mode.
 	 */
-	const MODE_TEST_PUBLISHER = 'test:publisher';
+	public const MODE_TEST_PUBLISHER = 'test:publisher';
 
 	/**
 	 * Test enterprise safe end user mode.
 	 */
-	const MODE_TEST_ENTERPRISE_SAFE_END_USER = 'test:enterprise_safe_end_user';
+	public const MODE_TEST_ENTERPRISE_SAFE_END_USER = 'test:enterprise_safe_end_user';
 
 	/**
 	 * Test enterprise bot detected mode.
 	 */
-	const MODE_TEST_ENTERPRISE_BOT_DETECTED = 'test:enterprise_bot_detected';
+	public const MODE_TEST_ENTERPRISE_BOT_DETECTED = 'test:enterprise_bot_detected';
 
 	/**
 	 * Test publisher mode site key.
 	 */
-	const MODE_TEST_PUBLISHER_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001';
+	public const MODE_TEST_PUBLISHER_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001';
 
 	/**
 	 * Test enterprise safe end user mode site key.
 	 */
-	const MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY = '20000000-ffff-ffff-ffff-000000000002';
+	public const MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY = '20000000-ffff-ffff-ffff-000000000002';
 
 	/**
 	 * Test enterprise bot detected mode site key.
 	 */
-	const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
+	public const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
 	/**
 	 * User settings meta.
 	 */
-	const USER_SETTINGS_META = 'hcaptcha_user_settings';
+	public const USER_SETTINGS_META = 'hcaptcha_user_settings';
 
 	/**
 	 * Check config form id.
 	 */
-	const CHECK_CONFIG_FORM_ID = 'check-config';
+	public const CHECK_CONFIG_FORM_ID = 'check-config';
 
 	/**
 	 * Notifications class instance.
@@ -146,8 +146,10 @@ class General extends PluginSettingsBase {
 
 	/**
 	 * Init class hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		$hcaptcha = hcaptcha();
@@ -169,15 +171,17 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	public function init_notifications() {
+	public function init_notifications(): void {
 		$this->notifications = new Notifications();
 		$this->notifications->init();
 	}
 
 	/**
 	 * Init form fields.
+	 *
+	 * @return void
 	 */
-	public function init_form_fields() {
+	public function init_form_fields(): void {
 		$this->form_fields = [
 			'site_key'             => [
 				'label'        => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
@@ -576,7 +580,7 @@ class General extends PluginSettingsBase {
 	/**
 	 * Setup settings fields.
 	 */
-	public function setup_fields() {
+	public function setup_fields(): void {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
@@ -621,7 +625,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 */
-	public function section_callback( array $arguments ) {
+	public function section_callback( array $arguments ): void {
 		switch ( $arguments['id'] ) {
 			case self::SECTION_KEYS:
 				$this->print_header();
@@ -661,7 +665,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function print_section_header( string $id, string $title ) {
+	private function print_section_header( string $id, string $title ): void {
 		$user                   = wp_get_current_user();
 		$hcaptcha_user_settings = [];
 
@@ -711,8 +715,10 @@ class General extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		wp_enqueue_script(
 			self::DIALOG_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_suffix.js",
@@ -792,7 +798,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	public function print_hcaptcha_field() {
+	public function print_hcaptcha_field(): void {
 		$args = [
 			'id' => [
 				'source'  => [ __CLASS__ ],
@@ -823,7 +829,7 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function check_config() {
+	public function check_config(): void {
 		$this->run_checks( self::CHECK_CONFIG_ACTION );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
@@ -894,7 +900,7 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function toggle_section() {
+	public function toggle_section(): void {
 		$this->run_checks( self::TOGGLE_SECTION_ACTION );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
@@ -952,7 +958,7 @@ class General extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_check_config_error( string $error, bool $raw_result = false ) {
+	private function send_check_config_error( string $error, bool $raw_result = false ): void {
 		$prefix = '';
 
 		if ( ! $raw_result ) {

@@ -22,22 +22,22 @@ class Checkout {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_wc_checkout';
+	private const ACTION = 'hcaptcha_wc_checkout';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_wc_checkout_nonce';
+	private const NONCE = 'hcaptcha_wc_checkout_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-wc-checkout';
+	private const HANDLE = 'hcaptcha-wc-checkout';
 
 	/**
 	 * Block script handle.
 	 */
-	const BLOCK_HANDLE = 'hcaptcha-wc-block-checkout';
+	private const BLOCK_HANDLE = 'hcaptcha-wc-block-checkout';
 
 	/**
 	 * The hCaptcha was added.
@@ -62,8 +62,10 @@ class Checkout {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'woocommerce_review_order_before_submit', [ $this, 'add_captcha' ] );
 		add_filter( 'render_block', [ $this, 'add_block_captcha' ], 10, 3 );
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
@@ -76,7 +78,7 @@ class Checkout {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -130,7 +132,7 @@ class Checkout {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify() {
+	public function verify(): void {
 		$error_message = hcaptcha_get_verify_message(
 			self::NONCE,
 			self::ACTION
@@ -178,7 +180,7 @@ class Checkout {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		if ( $this->captcha_added ) {

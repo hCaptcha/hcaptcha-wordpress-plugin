@@ -17,17 +17,17 @@ class Protect {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-passster';
+	private const HANDLE = 'hcaptcha-passster';
 
 	/**
 	 * Verify action.
 	 */
-	const ACTION = 'hcaptcha_passster';
+	private const ACTION = 'hcaptcha_passster';
 
 	/**
 	 * Verify nonce.
 	 */
-	const NONCE = 'hcaptcha_passster_nonce';
+	private const NONCE = 'hcaptcha_passster_nonce';
 
 	/**
 	 * Constructor.
@@ -38,8 +38,10 @@ class Protect {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'do_shortcode_tag' ], 10, 4 );
 		add_action( 'wp_ajax_validate_input', [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_validate_input', [ $this, 'verify' ], 9 );
@@ -103,7 +105,7 @@ class Protect {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( string $input ) {
+	public function verify( string $input ): void {
 		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
@@ -119,7 +121,7 @@ class Protect {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
@@ -169,7 +171,7 @@ class Protect {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.passster-form .h-captcha {
 		margin-bottom: 5px;

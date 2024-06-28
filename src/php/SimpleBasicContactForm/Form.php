@@ -17,12 +17,12 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_simple_basic_contact_form';
+	private const ACTION = 'hcaptcha_simple_basic_contact_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_simple_basic_contact_form_nonce';
+	private const NONCE = 'hcaptcha_simple_basic_contact_form_nonce';
 
 	/**
 	 * Captcha error message.
@@ -43,7 +43,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'scf_filter_contact_form', [ $this, 'add_captcha' ] );
 		add_filter( 'pre_do_shortcode_tag', [ $this, 'verify' ], 10, 4 );
 	}

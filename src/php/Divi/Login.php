@@ -8,9 +8,6 @@
 namespace HCaptcha\Divi;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-use WP_User;
 
 /**
  * Class Login.
@@ -20,12 +17,14 @@ class Login extends LoginBase {
 	/**
 	 * Login form shortcode tag.
 	 */
-	const TAG = 'et_pb_login';
+	public const TAG = 'et_pb_login';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_divi_captcha' ], 10, 2 );

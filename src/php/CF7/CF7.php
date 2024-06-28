@@ -22,22 +22,24 @@ class CF7 extends Base {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-cf7';
+	public const HANDLE = 'hcaptcha-cf7';
 
 	/**
 	 * CF7 shortcode.
 	 */
-	const SHORTCODE = 'cf7-hcaptcha';
+	private const SHORTCODE = 'cf7-hcaptcha';
 
 	/**
 	 * Data name.
 	 */
-	const DATA_NAME = 'hcap-cf7';
+	private const DATA_NAME = 'hcap-cf7';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
@@ -259,7 +261,7 @@ class CF7 extends Base {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
@@ -281,7 +283,7 @@ class CF7 extends Base {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	span[data-name="hcap-cf7"] .h-captcha {
 		margin-bottom: 0;

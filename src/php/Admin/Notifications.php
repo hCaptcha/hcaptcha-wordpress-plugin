@@ -22,27 +22,27 @@ class Notifications {
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-notifications';
+	public const HANDLE = 'hcaptcha-notifications';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaNotificationsObject';
+	private const OBJECT = 'HCaptchaNotificationsObject';
 
 	/**
 	 * Dismiss notification ajax action.
 	 */
-	const DISMISS_NOTIFICATION_ACTION = 'hcaptcha-dismiss-notification';
+	public const DISMISS_NOTIFICATION_ACTION = 'hcaptcha-dismiss-notification';
 
 	/**
 	 * Reset notifications ajax action.
 	 */
-	const RESET_NOTIFICATIONS_ACTION = 'hcaptcha-reset-notifications';
+	public const RESET_NOTIFICATIONS_ACTION = 'hcaptcha-reset-notifications';
 
 	/**
 	 * Dismissed user meta.
 	 */
-	const HCAPTCHA_DISMISSED_META_KEY = 'hcaptcha_dismissed';
+	public const HCAPTCHA_DISMISSED_META_KEY = 'hcaptcha_dismissed';
 
 	/**
 	 * Notifications.
@@ -60,8 +60,10 @@ class Notifications {
 
 	/**
 	 * Init class.
+	 *
+	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		$this->init_hooks();
 	}
 
@@ -70,7 +72,7 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::DISMISS_NOTIFICATION_ACTION, [ $this, 'dismiss_notification' ] );
 		add_action( 'wp_ajax_' . self::RESET_NOTIFICATIONS_ACTION, [ $this, 'reset_notifications' ] );
@@ -291,7 +293,7 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	public function show() {
+	public function show(): void {
 		$notifications = $this->get_notifications();
 
 		$user    = wp_get_current_user();
@@ -365,8 +367,10 @@ class Notifications {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -402,7 +406,7 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	public function dismiss_notification() {
+	public function dismiss_notification(): void {
 		// Run a security check.
 		if ( ! check_ajax_referer( self::DISMISS_NOTIFICATION_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
@@ -453,7 +457,7 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	public function reset_notifications() {
+	public function reset_notifications(): void {
 		// Run a security check.
 		if ( ! check_ajax_referer( self::RESET_NOTIFICATIONS_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );

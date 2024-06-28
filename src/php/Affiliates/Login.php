@@ -17,8 +17,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
@@ -53,7 +55,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.affiliates-dashboard .h-captcha {
 		margin-top: 2rem;

@@ -19,17 +19,17 @@ abstract class LoginBase {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_login';
+	protected const ACTION = 'hcaptcha_login';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_login_nonce';
+	protected const NONCE = 'hcaptcha_login_nonce';
 
 	/**
 	 * Login attempts data option name.
 	 */
-	const LOGIN_DATA = 'hcaptcha_login_data';
+	public const LOGIN_DATA = 'hcaptcha_login_data';
 
 	/**
 	 * User IP.
@@ -68,8 +68,10 @@ abstract class LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'hcap_signature', [ $this, 'display_signature' ] );
 		add_action( 'login_form', [ $this, 'display_signature' ], PHP_INT_MAX );
 		add_filter( 'login_form_middle', [ $this, 'add_signature' ], PHP_INT_MAX, 2 );
@@ -84,7 +86,7 @@ abstract class LoginBase {
 	 *
 	 * @return void
 	 */
-	public function display_signature() {
+	public function display_signature(): void {
 		HCaptcha::display_signature( static::class, 'login', $this->hcaptcha_shown );
 	}
 
@@ -146,7 +148,7 @@ abstract class LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function login( string $user_login, WP_User $user ) {
+	public function login( string $user_login, WP_User $user ): void {
 		unset( $this->login_data[ $this->ip ] );
 
 		update_option( self::LOGIN_DATA, $this->login_data, false );
@@ -162,7 +164,7 @@ abstract class LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function login_failed( string $username, $error = null ) {
+	public function login_failed( string $username, $error = null ): void {
 		$this->login_data[ $this->ip ][] = time();
 
 		$now            = time();
@@ -189,7 +191,7 @@ abstract class LoginBase {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return;
 		}

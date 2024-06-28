@@ -17,12 +17,12 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_wp_job_openings';
+	public const ACTION = 'hcaptcha_wp_job_openings';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_wp_job_openings_nonce';
+	public const NONCE = 'hcaptcha_wp_job_openings_nonce';
 
 	/**
 	 * Form constructor.
@@ -36,7 +36,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'before_awsm_application_form', [ $this, 'before_application_form' ] );
 		add_action( 'after_awsm_application_form', [ $this, 'add_captcha' ] );
 		add_action( 'awsm_job_application_submitting', [ $this, 'verify' ] );
@@ -50,7 +50,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_application_form( $form_attrs ) {
+	public function before_application_form( $form_attrs ): void {
 		ob_start();
 	}
 
@@ -61,7 +61,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function add_captcha( $form_attrs ) {
+	public function add_captcha( $form_attrs ): void {
 		$html = ob_get_clean();
 
 		$args = [
@@ -86,7 +86,7 @@ class Form {
 	/**
 	 * Verify captcha.
 	 */
-	public function verify() {
+	public function verify(): void {
 		global $awsm_response;
 
 		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );

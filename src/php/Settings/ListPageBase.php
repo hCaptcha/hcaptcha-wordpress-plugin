@@ -19,38 +19,38 @@ abstract class ListPageBase extends PluginSettingsBase {
 	/**
 	 * Chart handle.
 	 */
-	const CHART_HANDLE = 'chart';
+	public const CHART_HANDLE = 'chart';
 
 	/**
 	 * Flatpickr handle.
 	 */
-	const FLATPICKR_HANDLE = 'flatpickr';
+	public const FLATPICKR_HANDLE = 'flatpickr';
 
 	/**
 	 * Base handle.
 	 */
-	const HANDLE = 'settings-list-page-base';
+	public const HANDLE = 'settings-list-page-base';
 
 	/**
 	 * Base object.
 	 */
-	const OBJECT = 'HCaptchaFlatPickerObject';
+	public const OBJECT = 'HCaptchaFlatPickerObject';
 
 	/**
 	 * Number of timespan days by default.
 	 * "Last 30 Days", by default.
 	 */
-	const DEFAULT_TIMESPAN_DAYS = '30';
+	public const DEFAULT_TIMESPAN_DAYS = '30';
 
 	/**
 	 * Timespan (date range) delimiter.
 	 */
-	const TIMESPAN_DELIMITER = ' - ';
+	public const TIMESPAN_DELIMITER = ' - ';
 
 	/**
 	 * Default date format.
 	 */
-	const DATE_FORMAT = 'Y-m-d';
+	private const DATE_FORMAT = 'Y-m-d';
 
 	/**
 	 * Chart time unit.
@@ -118,8 +118,10 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -183,12 +185,12 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	public function date_picker_display() {
+	public function date_picker_display(): void {
 		if ( ! $this->allowed ) {
 			return;
 		}
 
-		list( $choices, $chosen_filter, $value ) = $this->process_datepicker_choices();
+		[ $choices, $chosen_filter, $value ] = $this->process_datepicker_choices();
 
 		// An array of allowed HTML elements and attributes for the datepicker choices.
 		$choices_allowed_html = [
@@ -261,7 +263,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			$timespan = $this->process_timespan();
 		}
 
-		list( $start_date, $end_date, $days ) = $timespan;
+		[ $start_date, $end_date, $days ] = $timespan;
 
 		$filters       = $this->get_date_filter_choices();
 		$selected      = isset( $filters[ $days ] ) ? $days : 'custom';
@@ -307,7 +309,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		$dates = $this->maybe_validate_string_timespan( $dates );
 
-		list( $start_date, $end_date ) = explode( self::TIMESPAN_DELIMITER, $dates );
+		[ $start_date, $end_date ] = explode( self::TIMESPAN_DELIMITER, $dates );
 
 		// Return default timespan if the start date is more recent than the end date.
 		if ( strtotime( $start_date ) > strtotime( $end_date ) ) {
@@ -337,7 +339,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			$days_diff = $end_date->diff( $start_date )->format( '%a' );
 		}
 
-		list( $days, $timespan_label ) = $this->get_date_filter_choices( $days_diff );
+		[ $days, $timespan_label ] = $this->get_date_filter_choices( $days_diff );
 
 		return [
 			$start_date,     // WP timezone.
@@ -372,7 +374,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function get_timespan_dates( string $days ): array {
-		list( $timespan_key, $timespan_label ) = $this->get_date_filter_choices( $days );
+		[ $timespan_key, $timespan_label ] = $this->get_date_filter_choices( $days );
 
 		// Bail early, if the given number of days is NOT a number nor a numeric string.
 		if ( ! is_numeric( $days ) ) {

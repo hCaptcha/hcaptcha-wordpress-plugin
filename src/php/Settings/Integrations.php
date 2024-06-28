@@ -21,39 +21,39 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Dialog scripts and style handle.
 	 */
-	const DIALOG_HANDLE = 'kagg-dialog';
+	public const DIALOG_HANDLE = 'kagg-dialog';
 
 	/**
 	 * Admin script and style handle.
 	 */
-	const HANDLE = 'hcaptcha-integrations';
+	public const HANDLE = 'hcaptcha-integrations';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaIntegrationsObject';
+	public const OBJECT = 'HCaptchaIntegrationsObject';
 
 	/**
 	 * Activate plugin ajax action.
 	 */
-	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
+	public const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
 	 * Enabled section id.
 	 */
-	const SECTION_ENABLED = 'enabled';
+	public const SECTION_ENABLED = 'enabled';
 
 	/**
 	 * Disabled section id.
 	 */
-	const SECTION_DISABLED = 'disabled';
+	public const SECTION_DISABLED = 'disabled';
 
 	/**
 	 * Plugin dependencies not specified in their headers.
 	 * Key is a plugin slug.
 	 * Value is a plugin slug or an array of slugs.
 	 */
-	const PLUGIN_DEPENDENCIES = [
+	private const PLUGIN_DEPENDENCIES = [
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 		'Avada'                                                             => [
 			'fusion-builder/fusion-builder.php',
@@ -116,8 +116,10 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Init class.
+	 *
+	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			// @codeCoverageIgnoreStart
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -133,7 +135,7 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Init class hooks.
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
@@ -146,14 +148,16 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	public function activated_plugin_action() {
+	public function activated_plugin_action(): void {
 		remove_action( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' );
 	}
 
 	/**
 	 * Init form fields.
+	 *
+	 * @return void
 	 */
-	public function init_form_fields() {
+	public function init_form_fields(): void {
 		$this->form_fields = [
 			'wp_status'                        => [
 				'entity'  => 'core',
@@ -637,7 +641,7 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Setup settings fields.
 	 */
-	public function setup_fields() {
+	public function setup_fields(): void {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
@@ -738,8 +742,10 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Show search box.
+	 *
+	 * @return void
 	 */
-	public function search_box() {
+	public function search_box(): void {
 		?>
 		<div id="hcaptcha-integrations-search-wrap">
 			<label for="hcaptcha-integrations-search"></label>
@@ -755,9 +761,10 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownTarget
 	 */
-	public function section_callback( array $arguments ) {
+	public function section_callback( array $arguments ): void {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
 			$this->submit_button();
 
@@ -808,8 +815,10 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		wp_enqueue_script(
 			self::DIALOG_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_suffix.js",
@@ -875,7 +884,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	public function activate() {
+	public function activate(): void {
 		$this->run_checks( self::ACTIVATE_ACTION );
 
 		$activate     = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
@@ -918,7 +927,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ) {
+	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ): void {
 		if ( $activate ) {
 			if ( ! $this->activate_plugins( $plugins ) ) {
 				$message = sprintf(
@@ -963,7 +972,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function process_theme( string $theme ) {
+	protected function process_theme( string $theme ): void {
 		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
 		$plugin_names = [];
 
@@ -1217,7 +1226,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_json_success( string $message ) {
+	private function send_json_success( string $message ): void {
 		wp_send_json_success( $this->json_data( $message ) );
 	}
 
@@ -1228,7 +1237,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_json_error( string $message ) {
+	private function send_json_error( string $message ): void {
 		wp_send_json_error( $this->json_data( $message ) );
 	}
 

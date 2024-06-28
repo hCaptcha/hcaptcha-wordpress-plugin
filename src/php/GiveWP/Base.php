@@ -24,12 +24,12 @@ abstract class Base {
 	/**
 	 * Block script handle.
 	 */
-	const BLOCK_HANDLE = 'hcaptcha-wc-block-checkout';
+	private const BLOCK_HANDLE = 'hcaptcha-wc-block-checkout';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaGiveWPObject';
+	private const OBJECT = 'HCaptchaGiveWPObject';
 
 	/**
 	 * Form ID.
@@ -50,7 +50,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ] );
 		add_action( static::VERIFY_HOOK, [ $this, 'verify' ] );
 
@@ -82,7 +82,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function add_captcha( int $form_id ) {
+	public function add_captcha( int $form_id ): void {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
@@ -104,7 +104,7 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $valid_data ) {
+	public function verify( $valid_data ): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$action = isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '';
 
@@ -127,7 +127,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function verify_block() {
+	public function verify_block(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 		$request_method = isset( $_SERVER['REQUEST_METHOD'] )
 			? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) )
@@ -177,7 +177,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function print_footer_scripts() {
+	public function print_footer_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

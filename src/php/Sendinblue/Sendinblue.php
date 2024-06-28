@@ -26,7 +26,7 @@ class Sendinblue {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'hcap_verify_request', [ $this, 'verify_request' ], 10, 2 );
 	}
@@ -85,7 +85,7 @@ class Sendinblue {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function verify_request( $result, array $error_codes ) {
+	public function verify_request( $result, array $error_codes ): ?string {
 		// Nonce is checked in the hcaptcha_verify_post().
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing

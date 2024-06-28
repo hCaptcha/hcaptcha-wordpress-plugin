@@ -18,7 +18,7 @@ class Events {
 	/**
 	 * Table name.
 	 */
-	const TABLE_NAME = 'hcaptcha_events';
+	public const TABLE_NAME = 'hcaptcha_events';
 
 	/**
 	 * Class constructor.
@@ -34,7 +34,7 @@ class Events {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		if ( ! hcaptcha()->settings()->is_on( 'statistics' ) ) {
 			return;
 		}
@@ -48,7 +48,7 @@ class Events {
 	 * @param string|null|mixed $result      The hCaptcha verification result.
 	 * @param array             $error_codes Error codes.
 	 *
-	 * @return string|null
+	 * @return string|null|mixed
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
@@ -237,7 +237,7 @@ class Events {
 	 *
 	 * @return void
 	 */
-	public static function create_table() {
+	public static function create_table(): void {
 		global $wpdb;
 
 		$table_name = self::TABLE_NAME;

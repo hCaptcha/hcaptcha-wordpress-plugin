@@ -21,12 +21,14 @@ class Admin extends Base {
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-cf7';
+	public const ADMIN_HANDLE = 'admin-cf7';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		parent::init_hooks();
 
 		if ( ( ! $this->mode_auto && ! $this->mode_embed ) || ! is_admin() ) {
@@ -45,7 +47,7 @@ class Admin extends Base {
 	 *
 	 * @return void
 	 */
-	public function before_toplevel_page_wpcf7() {
+	public function before_toplevel_page_wpcf7(): void {
 		ob_start();
 	}
 
@@ -54,7 +56,7 @@ class Admin extends Base {
 	 *
 	 * @return void
 	 */
-	public function after_toplevel_page_wpcf7() {
+	public function after_toplevel_page_wpcf7(): void {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $this->insert_live_form( (string) ob_get_clean() );
 	}
@@ -107,7 +109,7 @@ class Admin extends Base {
 	 *
 	 * @return void
 	 */
-	public function add_tag_generator_hcaptcha() {
+	public function add_tag_generator_hcaptcha(): void {
 		if ( ! $this->mode_embed ) {
 			return;
 		}
@@ -130,7 +132,7 @@ class Admin extends Base {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function tag_generator_hcaptcha( $contact_form, $args = '' ) {
+	public function tag_generator_hcaptcha( $contact_form, $args = '' ): void {
 		$args        = wp_parse_args( $args );
 		$type        = $args['id'];
 		$description = __( 'Generate a form-tag for a hCaptcha field.', 'hcaptcha-for-forms-and-more' );
@@ -194,8 +196,9 @@ class Admin extends Base {
 	 * Enqueue admin scripts before CF7 admin scripts.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function enqueue_admin_scripts_before_cf7() {
+	public function enqueue_admin_scripts_before_cf7(): void {
 		wp_enqueue_style(
 			'contact-form-7',
 			wpcf7_plugin_url( 'includes/css/styles.css' ),
@@ -234,7 +237,7 @@ class Admin extends Base {
 	 *
 	 * @return void
 	 */
-	public function enqueue_admin_scripts_after_cf7() {
+	public function enqueue_admin_scripts_after_cf7(): void {
 		global $wp_scripts;
 
 		$wpcf7 = [

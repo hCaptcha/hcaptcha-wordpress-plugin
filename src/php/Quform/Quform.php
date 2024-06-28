@@ -23,32 +23,32 @@ class Quform {
 	/**
 	 * Verify action.
 	 */
-	const ACTION = 'hcaptcha_quform';
+	private const ACTION = 'hcaptcha_quform';
 
 	/**
 	 * Verify nonce.
 	 */
-	const NONCE = 'hcaptcha_quform_nonce';
+	private const NONCE = 'hcaptcha_quform_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-quform';
+	private const HANDLE = 'hcaptcha-quform';
 
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-quform';
+	private const ADMIN_HANDLE = 'admin-quform';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaQuformObject';
+	private const OBJECT = 'HCaptchaQuformObject';
 
 	/**
 	 * Max form element id.
 	 */
-	const MAX_ID = '9999_9999';
+	private const MAX_ID = '9999_9999';
 
 	/**
 	 * Quform constructor.
@@ -62,7 +62,7 @@ class Quform {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'quform_pre_validate', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'quform_element_valid', [ $this, 'element_valid' ], 10, 3 );
@@ -205,7 +205,7 @@ class Quform {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		wp_dequeue_script( 'quform-hcaptcha' );
 		wp_deregister_script( 'quform-hcaptcha' );
 
@@ -225,7 +225,7 @@ class Quform {
 	 *
 	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		if ( ! $this->is_quform_admin_page() ) {
 			return;
 		}

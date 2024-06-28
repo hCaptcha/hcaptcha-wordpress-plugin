@@ -23,8 +23,10 @@ abstract class Base {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'login_head', [ $this, 'login_head' ] );
 	}
 
@@ -33,7 +35,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function login_head() {
+	public function login_head(): void {
 		$hcaptcha_size = hcaptcha()->settings()->get( 'size' );
 
 		if ( 'invisible' === $hcaptcha_size ) {

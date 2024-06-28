@@ -17,17 +17,17 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_simple_download_monitor';
+	private const ACTION = 'hcaptcha_simple_download_monitor';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_simple_download_monitor_nonce';
+	private const NONCE = 'hcaptcha_simple_download_monitor_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-simple-download-monitor';
+	private const HANDLE = 'hcaptcha-simple-download-monitor';
 
 	/**
 	 * Form constructor.
@@ -41,7 +41,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'sdm_download_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
 		add_action( 'init', [ $this, 'verify' ], 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
@@ -79,7 +79,7 @@ class Form {
 	 *
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function verify() {
+	public function verify(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$smd_process_download = isset( $_REQUEST['smd_process_download'] ) ?
 			sanitize_text_field( wp_unslash( $_REQUEST['smd_process_download'] ) ) :
@@ -121,7 +121,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}

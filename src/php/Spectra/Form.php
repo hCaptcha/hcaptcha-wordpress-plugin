@@ -19,17 +19,17 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_spectra_form';
+	private const ACTION = 'hcaptcha_spectra_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_spectra_form_nonce';
+	private const NONCE = 'hcaptcha_spectra_form_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-spectra';
+	private const HANDLE = 'hcaptcha-spectra';
 
 	/**
 	 * Whether form has reCaptcha field.
@@ -50,7 +50,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_action( 'wp_ajax_uagb_process_forms', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_uagb_process_forms', [ $this, 'process_ajax' ], 9 );
 
@@ -113,7 +113,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function process_ajax() {
+	public function process_ajax(): void {
 		if ( $this->has_recaptcha() ) {
 			return;
 		}
@@ -145,7 +145,7 @@ class Form {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		static $style_shown;
 
 		if ( $style_shown ) {
@@ -180,7 +180,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -198,8 +198,7 @@ CSS;
 	 * @return bool
 	 */
 	private function has_recaptcha(): bool {
-		// Spectra check nonce.
-
+		// Spectra checks nonce.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_id  = isset( $_POST['post_id'] ) ? sanitize_text_field( wp_unslash( $_POST['post_id'] ) ) : '';
 		$block_id = isset( $_POST['block_id'] ) ? sanitize_text_field( wp_unslash( $_POST['block_id'] ) ) : '';

@@ -28,7 +28,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_action( 'wp_ajax_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
 
@@ -89,7 +89,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function process_ajax() {
+	public function process_ajax(): void {
 		if ( $this->has_recaptcha() ) {
 			return;
 		}
@@ -125,7 +125,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public static function enqueue_scripts() {
+	public static function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

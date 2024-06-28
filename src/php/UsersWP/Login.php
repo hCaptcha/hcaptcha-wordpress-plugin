@@ -19,22 +19,24 @@ class Login extends LoginBase {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_users_wp_login';
+	protected const ACTION = 'hcaptcha_users_wp_login';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_users_wp_login_nonce';
+	protected const NONCE = 'hcaptcha_users_wp_login_nonce';
 
 	/**
 	 * UsersWP action.
 	 */
-	const USERS_WP_ACTION = 'login';
+	private const USERS_WP_ACTION = 'login';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'uwp_template_before', [ $this, 'uwp_template_before' ] );
@@ -50,7 +52,7 @@ class Login extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function uwp_template_before( string $name ) {
+	public function uwp_template_before( string $name ): void {
 		if ( self::USERS_WP_ACTION !== $name ) {
 			return;
 		}
@@ -65,7 +67,7 @@ class Login extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function uwp_template_after( string $name ) {
+	public function uwp_template_after( string $name ): void {
 		if ( self::USERS_WP_ACTION !== $name ) {
 			return;
 		}

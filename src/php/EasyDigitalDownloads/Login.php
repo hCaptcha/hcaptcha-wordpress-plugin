@@ -18,12 +18,12 @@ class Login {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_easy_digital_downloads_login';
+	private const ACTION = 'hcaptcha_easy_digital_downloads_login';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_easy_digital_downloads_login_nonce';
+	private const NONCE = 'hcaptcha_easy_digital_downloads_login_nonce';
 
 	/**
 	 * The hCaptcha error message.
@@ -44,7 +44,7 @@ class Login {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
 		add_action( 'edd_user_login', [ $this, 'verify' ], 9 );
 		add_filter( 'edd_errors', [ $this, 'errors' ] );
@@ -86,7 +86,7 @@ class Login {
 	 *
 	 * @return void
 	 */
-	public function verify() {
+	public function verify(): void {
 		$this->error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $this->error_message ) {

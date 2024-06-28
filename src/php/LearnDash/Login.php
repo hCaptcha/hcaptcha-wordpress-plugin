@@ -17,8 +17,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( 'login_form_middle', [ $this, 'add_learn_dash_captcha' ], 10, 2 );

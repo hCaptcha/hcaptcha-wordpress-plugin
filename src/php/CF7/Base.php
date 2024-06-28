@@ -35,8 +35,10 @@ class Base {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		$this->mode_auto  = hcaptcha()->settings()->is( 'cf7_status', 'form' );
 		$this->mode_embed = hcaptcha()->settings()->is( 'cf7_status', 'embed' );
 	}

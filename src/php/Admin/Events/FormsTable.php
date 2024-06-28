@@ -32,7 +32,7 @@ class FormsTable extends WP_List_Table {
 	/**
 	 * Forms per page option.
 	 */
-	const FORMS_PER_PAGE = 'hcaptcha_forms_per_page';
+	private const FORMS_PER_PAGE = 'hcaptcha_forms_per_page';
 
 	/**
 	 * Plugin page hook.
@@ -93,7 +93,7 @@ class FormsTable extends WP_List_Table {
 	 *
 	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		$this->columns = [
 			'name'    => __( 'Source', 'hcaptcha-for-forms-and-more' ),
 			'form_id' => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
@@ -113,7 +113,7 @@ class FormsTable extends WP_List_Table {
 	 *
 	 * @return void
 	 */
-	public function add_screen_option() {
+	public function add_screen_option(): void {
 		$args = [
 			'label'   => __( 'Number of items per page:', 'hcaptcha-for-forms-and-more' ),
 			'default' => $this->per_page_default,
@@ -177,8 +177,10 @@ class FormsTable extends WP_List_Table {
 
 	/**
 	 * Fetch and set up the final data for the table.
+	 *
+	 * @return void
 	 */
-	public function prepare_items() {
+	public function prepare_items(): void {
 		$hidden                = get_hidden_columns( $this->screen );
 		$sortable              = $this->get_sortable_columns();
 		$this->_column_headers = [ $this->columns, $hidden, $sortable ];
@@ -229,7 +231,7 @@ class FormsTable extends WP_List_Table {
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_name( $item ): string {
+	protected function column_name( object $item ): string {
 		$source = (array) json_decode( $item->source, true );
 
 		foreach ( $source as &$slug ) {

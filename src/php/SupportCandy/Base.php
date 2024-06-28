@@ -33,7 +33,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ] );
 		add_action( 'wp_ajax_' . static::VERIFY_HOOK, [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_' . static::VERIFY_HOOK, [ $this, 'verify' ], 9 );
@@ -48,7 +48,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
@@ -66,7 +66,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function verify() {
+	public function verify(): void {
 		$error_message = hcaptcha_get_verify_message(
 			static::NAME,
 			static::ACTION
@@ -112,7 +112,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -130,7 +130,7 @@ abstract class Base {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		static $style_shown;
 
 		if ( $style_shown ) {

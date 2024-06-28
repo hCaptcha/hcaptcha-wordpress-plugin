@@ -5,6 +5,11 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Helpers;
 
 use HCaptcha\Vendor\MatthiasMullie\Minify\CSS;
@@ -19,12 +24,12 @@ class HCaptcha {
 	/**
 	 * Widget id.
 	 */
-	const HCAPTCHA_WIDGET_ID = 'hcaptcha-widget-id';
+	public const HCAPTCHA_WIDGET_ID = 'hcaptcha-widget-id';
 
 	/**
 	 * Signature prefix.
 	 */
-	const HCAPTCHA_SIGNATURE = 'hcaptcha-signature';
+	public const HCAPTCHA_SIGNATURE = 'hcaptcha-signature';
 
 	/**
 	 * Default widget id.
@@ -55,7 +60,7 @@ class HCaptcha {
 	 *
 	 * @param array $args Arguments.
 	 */
-	public static function form_display( array $args = [] ) {
+	public static function form_display( array $args = [] ): void {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_theme    = $settings->get_theme();
@@ -146,7 +151,7 @@ class HCaptcha {
 	 *
 	 * @return void
 	 */
-	private static function display_widget( array $id ) {
+	private static function display_widget( array $id ): void {
 		$id['source']  = (array) ( $id['source'] ?? [] );
 		$id['form_id'] = $id['form_id'] ?? 0;
 
@@ -172,8 +177,7 @@ class HCaptcha {
 	 *
 	 * @return void
 	 */
-	public static function display_signature( string $class_name, $form_id, bool $hcaptcha_shown ) {
-
+	public static function display_signature( string $class_name, $form_id, bool $hcaptcha_shown ): void {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$name = self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
 
@@ -194,7 +198,7 @@ class HCaptcha {
 	 *
 	 * @return bool|null True if signature is valid, false if not or does not exist. Null if valid and hCaptcha was shown.
 	 */
-	public static function check_signature( string $class_name, $form_id ) {
+	public static function check_signature( string $class_name, $form_id ): ?bool {
 		$info = self::decode_id_info(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name )
@@ -336,7 +340,7 @@ class HCaptcha {
 	 *
 	 * @return void
 	 */
-	public static function css_display( string $css, bool $wrap = true ) {
+	public static function css_display( string $css, bool $wrap = true ): void {
 		if ( $wrap ) {
 			echo "<style>\n";
 		}
@@ -377,7 +381,7 @@ class HCaptcha {
 	 * @return void
 	 * @noinspection PhpUnused
 	 */
-	public static function js_display( string $js, bool $wrap = true ) {
+	public static function js_display( string $js, bool $wrap = true ): void {
 		if ( $wrap ) {
 			echo "<script>\n";
 		}
@@ -804,7 +808,7 @@ class HCaptcha {
 			];
 		}
 
-		list( $encoded_id, $hash ) = explode( '-', $hashed_id );
+		[ $encoded_id, $hash ] = explode( '-', $hashed_id );
 
 		$id = wp_parse_args(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode

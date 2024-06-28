@@ -23,7 +23,7 @@ class Settings implements SettingsInterface {
 	/**
 	 * Existing licenses.
 	 */
-	const EXISTING_LICENSES = [ 'free', 'pro', 'enterprise' ];
+	private const EXISTING_LICENSES = [ 'free', 'pro', 'enterprise' ];
 
 	/**
 	 * Menu pages class names.
@@ -52,8 +52,10 @@ class Settings implements SettingsInterface {
 
 	/**
 	 * Init class.
+	 *
+	 * @return void
 	 */
-	protected function init() {
+	protected function init(): void {
 		foreach ( $this->menu_groups as $menu_group ) {
 			$classes = (array) ( $menu_group['classes'] ?? [] );
 			$args    = $menu_group['args'] ?? [];
@@ -102,7 +104,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return PluginSettingsBase|null
 	 */
-	public function get_tab( string $classname ) {
+	public function get_tab( string $classname ): ?PluginSettingsBase {
 		$tabs = hcaptcha()->settings()->get_tabs();
 
 		foreach ( $tabs as $tab ) {
@@ -207,7 +209,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Check whether option value equals to the compared.
+	 * Check whether option value equals to the compared one.
 	 *
 	 * @param string $key     Setting name.
 	 * @param string $compare Compared value.
@@ -568,7 +570,7 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return void
 	 */
-	public function set_field( string $key, string $field_key, $value ) {
+	public function set_field( string $key, string $field_key, $value ): void {
 		foreach ( $this->tabs as $tab ) {
 			/**
 			 * Page / Tab.

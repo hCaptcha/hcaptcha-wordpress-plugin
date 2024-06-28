@@ -23,8 +23,10 @@ class General {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		if ( hcaptcha()->settings()->is( 'wordfence_status', 'login' ) ) {
 			// Disable recaptcha compatibility, otherwise a Wordfence login script fails and cannot show 2FA.
 			hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
@@ -41,7 +43,7 @@ class General {
 	 *
 	 * @return void
 	 */
-	public function remove_wordfence_recaptcha_script() {
+	public function remove_wordfence_recaptcha_script(): void {
 		wp_dequeue_script( 'wordfence-ls-recaptcha' );
 		wp_deregister_script( 'wordfence-ls-recaptcha' );
 	}
@@ -61,7 +63,7 @@ class General {
 	 *
 	 * @return void
 	 */
-	public function remove_wp_login_hcaptcha_hooks() {
+	public function remove_wp_login_hcaptcha_hooks(): void {
 		$wp_login = hcaptcha()->get( Login::class );
 
 		if ( ! $wp_login ) {
