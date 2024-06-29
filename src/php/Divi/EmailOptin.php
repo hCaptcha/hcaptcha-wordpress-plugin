@@ -132,14 +132,6 @@ class EmailOptin {
 			return $tag;
 		}
 
-		$type = ' type="module"';
-
-		if ( false !== strpos( $tag, $type ) ) {
-			return $tag;
-		}
-
-		$search = ' src';
-
-		return str_replace( $search, $type . $search, $tag );
+		return HCaptcha::add_type_module( $tag );
 	}
 }

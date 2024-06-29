@@ -127,11 +127,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
 			$this->get_hcap_widget( $id ) . '
 				<span id="' . $uniqid . '" class="wpcf7-form-control h-captcha "
-			data-sitekey="' . $hcaptcha_site_key . '"
-			data-theme="' . $hcaptcha_theme . '"
-			data-size="' . $hcaptcha_size . '"
-			data-auto="false"
-			data-force="false">' . '
+				data-sitekey="' . $hcaptcha_site_key . '"
+				data-theme="' . $hcaptcha_theme . '"
+				data-size="' . $hcaptcha_size . '"
+				data-auto="false"
+				data-force="false">' . '
 		</span>
 		' . $nonce .
 			'</span><input type="submit" value="Send">' .
