@@ -196,8 +196,8 @@ class HCaptcha {
 	 * @param string     $class_name Class name.
 	 * @param int|string $form_id    Form id.
 	 *
-	 * @return bool|null True if signature is valid, false if not or does not exist. Null if valid and hCaptcha was
-	 *                   shown.
+	 * @return bool|null True if signature is valid, false if not or does not exist.
+	 *                     Null if valid and hCaptcha was shown.
 	 */
 	public static function check_signature( string $class_name, $form_id ): ?bool {
 		$info = self::decode_id_info(
@@ -297,11 +297,11 @@ class HCaptcha {
 	 *
 	 * Introduced in WP 6.1.0.
 	 *
+	 * @global int[] $wp_filters Stores the number of times each filter was triggered.
+	 *
 	 * @param string $hook_name  The name of the filter hook.
 	 *
 	 * @return int The number of times the filter hook has been applied.
-	 * @global int[] $wp_filters Stores the number of times each filter was triggered.
-	 *
 	 */
 	public static function did_filter( string $hook_name ): int {
 		global $wp_filters;
