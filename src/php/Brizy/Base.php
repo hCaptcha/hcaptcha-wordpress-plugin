@@ -180,5 +180,4 @@ CSS;
 
 		return HCaptcha::add_type_module( $tag );
 	}
-
 }
