@@ -46,9 +46,17 @@ window.fetch = async ( ...args ) => {
 
 // Insert hCaptcha to the GiveWP donation form.
 wp.domReady( () => {
+	const hcaptchaForm = HCaptchaGiveWPObject?.hcaptchaForm;
+
+	if ( ! hcaptchaForm ) {
+		// Something is wrong - no script data available.
+		return;
+	}
+
 	const targetNode = document.getElementById( 'root-givewp-donation-form' );
 
 	if ( ! targetNode ) {
+		// No GiveWP form.
 		return;
 	}
 
@@ -57,28 +65,42 @@ wp.domReady( () => {
 		subtree: true,
 	};
 
-	const observerCallback = ( mutationsList, observer ) => {
+	const observerCallback = ( mutationsList ) => {
 		for ( const mutation of mutationsList ) {
-			if ( mutation.type === 'childList' ) {
-				observer.disconnect();
-
-				const submitSection = document.querySelector( 'button[type="submit"]' ).closest( 'section' );
-				const hcaptchaForm = HCaptchaGiveWPObject?.hcaptchaForm;
-
-				if ( ! submitSection || ! hcaptchaForm ) {
-					return;
-				}
-
-				const hcaptcha = document.createElement( 'section' );
-
-				hcaptcha.classList.add( 'givewp-layouts', 'givewp-layouts-section' );
-
-				hcaptcha.innerHTML = JSON.parse( hcaptchaForm );
-
-				// Prepend the new element to the parent element
-				submitSection.parentElement.insertBefore( hcaptcha, submitSection );
-				hCaptchaBindEvents();
+			if ( mutation.type !== 'childList' ) {
+				continue;
 			}
+
+			const submitButton = document.querySelector( 'button[type="submit"]' );
+
+			if ( ! submitButton ) {
+				// No "submit" button on the current form step page.
+				return;
+			}
+
+			const hCaptchaElement = targetNode.querySelector( '.h-captcha' );
+
+			if ( hCaptchaElement ) {
+				// We have added the hCaptcha already.
+				return;
+			}
+
+			const submitSection = submitButton ? submitButton.closest( 'section' ) : null;
+
+			// On multistep form, submit button is not in the section.
+			const submitElement = submitSection ?? submitButton;
+
+			const hcaptcha = document.createElement( 'section' );
+
+			hcaptcha.classList.add( 'givewp-layouts', 'givewp-layouts-section' );
+
+			hcaptcha.innerHTML = JSON.parse( hcaptchaForm );
+
+			// Prepend the new element to the parent element
+			submitElement.parentElement.insertBefore( hcaptcha, submitElement );
+			hCaptchaBindEvents();
+
+			return;
 		}
 	};
 
