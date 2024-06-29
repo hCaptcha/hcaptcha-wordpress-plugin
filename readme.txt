@@ -576,7 +576,8 @@ Instructions for popular native integrations are below:
 * Fixed Firefox issue with not showing hCaptcha when the API script was delayed until user interaction.
 * Fixed error on activation/deactivation of a theme.
 * Fixed error on activating Brizy plugin.
-* Fixed compatibility issue with updated Divi EmailOptin module.
+* Fixed issue with updated Brizy plugin.
+* Fixed issue with updated Divi EmailOptin module.
 * Tested with WordPress 6.6.
 * Tested with WooCommerce 9.0.
 

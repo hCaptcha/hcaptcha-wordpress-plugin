@@ -12,6 +12,10 @@ namespace HCaptcha\Brizy;
  * Supports Brizy form.
  */
 class Form extends Base {
+	/**
+	 * Script handle.
+	 */
+	public const HANDLE = 'hcaptcha-brizy';
 
 	/**
 	 * Nonce action.
