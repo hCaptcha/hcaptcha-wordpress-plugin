@@ -17,17 +17,17 @@ class Contact {
 	/**
 	 * Contact form shortcode tag.
 	 */
-	const TAG = 'et_pb_contact_form';
+	private const TAG = 'et_pb_contact_form';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_divi_cf';
+	private const ACTION = 'hcaptcha_divi_cf';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_divi_cf_nonce';
+	private const NONCE = 'hcaptcha_divi_cf_nonce';
 
 	/**
 	 * Render counter.
@@ -52,8 +52,10 @@ class Contact {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
 		add_filter( 'pre_do_shortcode_tag', [ $this, 'verify' ], 10, 4 );
 
@@ -196,7 +198,7 @@ class Contact {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

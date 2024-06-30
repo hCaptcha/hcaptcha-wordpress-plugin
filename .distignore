@@ -20,6 +20,7 @@
 /.distignore
 /.editorconfig
 /.eslintrc.json
+/.gitattributes
 /.gitignore
 /.phpcs.cache
 /.yarnrc.yml

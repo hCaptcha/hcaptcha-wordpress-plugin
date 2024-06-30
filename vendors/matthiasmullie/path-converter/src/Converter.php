@@ -37,13 +37,13 @@ class Converter implements ConverterInterface
         if ($shared === '') {
             // when both paths have nothing in common, one of them is probably
             // absolute while the other is relative
-            $root = $root ?: \getcwd();
-            $from = \strpos($from, $root) === 0 ? $from : \preg_replace('/\\/+/', '/', $root . '/' . $from);
-            $to = \strpos($to, $root) === 0 ? $to : \preg_replace('/\\/+/', '/', $root . '/' . $to);
+            $root = $root ?: getcwd();
+            $from = (strpos($from, $root) === 0) ? $from : preg_replace('/\/+/', '/', $root . '/' . $from);
+            $to = (strpos($to, $root) === 0) ? $to : preg_replace('/\/+/', '/', $root . '/' . $to);
             // or traveling the tree via `..`
             // attempt to resolve path, or assume it's fine if it doesn't exist
-            $from = @\realpath($from) ?: $from;
-            $to = @\realpath($to) ?: $to;
+            $from = (@realpath($from)) ?: $from;
+            $to = (@realpath($to)) ?: $to;
         }
         $from = $this->dirname($from);
         $to = $this->dirname($to);
@@ -62,13 +62,13 @@ class Converter implements ConverterInterface
     protected function normalize($path)
     {
         // deal with different operating systems' directory structure
-        $path = \rtrim(\str_replace(\DIRECTORY_SEPARATOR, '/', $path), '/');
+        $path = rtrim(str_replace(\DIRECTORY_SEPARATOR, '/', $path), '/');
         // remove leading current directory.
-        if (\substr($path, 0, 2) === './') {
-            $path = \substr($path, 2);
+        if (substr($path, 0, 2) === './') {
+            $path = substr($path, 2);
         }
         // remove references to current directory in the path.
-        $path = \str_replace('/./', '/', $path);
+        $path = str_replace('/./', '/', $path);
         /*
          * Example:
          *     /home/forkcms/frontend/cache/compiled_templates/../../core/layout/css/../images/img.gif
@@ -76,7 +76,7 @@ class Converter implements ConverterInterface
          *     /home/forkcms/frontend/core/layout/images/img.gif
          */
         do {
-            $path = \preg_replace('/[^\\/]+(?<!\\.\\.)\\/\\.\\.\\//', '', $path, -1, $count);
+            $path = preg_replace('/[^\/]+(?<!\.\.)\/\.\.\//', '', $path, -1, $count);
         } while ($count);
         return $path;
     }
@@ -100,8 +100,8 @@ class Converter implements ConverterInterface
         // $path could theoretically be empty (e.g. no path is given), in which
         // case it shouldn't expand to array(''), which would compare to one's
         // root /
-        $path1 = $path1 ? \explode('/', $path1) : array();
-        $path2 = $path2 ? \explode('/', $path2) : array();
+        $path1 = $path1 ? explode('/', $path1) : array();
+        $path2 = $path2 ? explode('/', $path2) : array();
         $shared = array();
         // compare paths & strip identical ancestors
         foreach ($path1 as $i => $chunk) {
@@ -111,7 +111,7 @@ class Converter implements ConverterInterface
                 break;
             }
         }
-        return \implode('/', $shared);
+        return implode('/', $shared);
     }
     /**
      * Convert paths relative from 1 file to another.
@@ -134,18 +134,18 @@ class Converter implements ConverterInterface
         }
         $path = $this->normalize($path);
         // if we're not dealing with a relative path, just return absolute
-        if (\strpos($path, '/') === 0) {
+        if (strpos($path, '/') === 0) {
             return $path;
         }
         // normalize paths
         $path = $this->normalize($this->from . '/' . $path);
         // strip shared ancestor paths
         $shared = $this->shared($path, $this->to);
-        $path = \mb_substr($path, \mb_strlen($shared));
-        $to = \mb_substr($this->to, \mb_strlen($shared));
+        $path = mb_substr($path, mb_strlen($shared));
+        $to = mb_substr($this->to, mb_strlen($shared));
         // add .. for every directory that needs to be traversed to new path
-        $to = \str_repeat('../', \count(\array_filter(\explode('/', $to))));
-        return $to . \ltrim($path, '/');
+        $to = str_repeat('../', count(array_filter(explode('/', $to))));
+        return $to . ltrim($path, '/');
     }
     /**
      * Attempt to get the directory name from a path.
@@ -156,20 +156,20 @@ class Converter implements ConverterInterface
      */
     protected function dirname($path)
     {
-        if (@\is_file($path)) {
-            return \dirname($path);
+        if (@is_file($path)) {
+            return dirname($path);
         }
-        if (@\is_dir($path)) {
-            return \rtrim($path, '/');
+        if (@is_dir($path)) {
+            return rtrim($path, '/');
         }
         // no known file/dir, start making assumptions
         // ends in / = dir
-        if (\mb_substr($path, -1) === '/') {
-            return \rtrim($path, '/');
+        if (mb_substr($path, -1) === '/') {
+            return rtrim($path, '/');
         }
         // has a dot in the name, likely a file
-        if (\preg_match('/.*\\..*$/', \basename($path)) !== 0) {
-            return \dirname($path);
+        if (preg_match('/.*\..*$/', basename($path)) !== 0) {
+            return dirname($path);
         }
         // you're on your own here!
         return $path;

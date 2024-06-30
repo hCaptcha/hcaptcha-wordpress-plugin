@@ -16,17 +16,17 @@ class EmailOptin {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-divi-email-optin';
+	public const HANDLE = 'hcaptcha-divi-email-optin';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_divi_email_optin';
+	public const ACTION = 'hcaptcha_divi_email_optin';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_divi_email_optin_nonce';
+	public const NONCE = 'hcaptcha_divi_email_optin_nonce';
 
 	/**
 	 * Constructor.
@@ -37,8 +37,10 @@ class EmailOptin {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_filter( 'et_pb_signup_form_field_html_submit_button', [ $this, 'add_captcha' ], 10, 2 );
 		add_action( 'wp_ajax_et_pb_submit_subscribe_form', [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_et_pb_submit_subscribe_form', [ $this, 'verify' ], 9 );
@@ -79,7 +81,7 @@ class EmailOptin {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify() {
+	public function verify(): void {
 		$error_message = hcaptcha_get_verify_message_html(
 			self::NONCE,
 			self::ACTION
@@ -97,7 +99,7 @@ class EmailOptin {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
@@ -130,14 +132,6 @@ class EmailOptin {
 			return $tag;
 		}
 
-		$type = ' type="module"';
-
-		if ( false !== strpos( $tag, $type ) ) {
-			return $tag;
-		}
-
-		$search = ' src';
-
-		return str_replace( $search, $type . $search, $tag );
+		return HCaptcha::add_type_module( $tag );
 	}
 }

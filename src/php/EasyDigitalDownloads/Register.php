@@ -18,12 +18,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_easy_digital_downloads_register';
+	private const ACTION = 'hcaptcha_easy_digital_downloads_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
+	private const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
 
 	/**
 	 * Form constructor.
@@ -37,7 +37,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
 		add_filter( 'edd_errors', [ $this, 'verify' ] );
 	}

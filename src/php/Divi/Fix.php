@@ -15,14 +15,16 @@ class Fix {
 	/**
 	 * Init.
 	 */
-	public function init() {
+	public function init(): void {
 		$this->init_hooks();
 	}
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_action( 'init', [ $this, 'register_autoload' ], - PHP_INT_MAX );
 	}
 
@@ -31,7 +33,7 @@ class Fix {
 	 *
 	 * @return void
 	 */
-	public function register_autoload() {
+	public function register_autoload(): void {
 		if ( ! defined( 'ET_BUILDER_THEME' ) ) {
 			return;
 		}
@@ -47,7 +49,7 @@ class Fix {
 	 *
 	 * @return true|null
 	 */
-	public function prevent_loading_of_wp_test_case( string $classname ) {
+	public function prevent_loading_of_wp_test_case( string $classname ): ?bool {
 		if ( 'Codeception\TestCase\WPTestCase' === $classname ) {
 			require 'WPTestCaseStub.php';
 

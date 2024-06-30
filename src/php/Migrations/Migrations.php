@@ -18,27 +18,27 @@ class Migrations {
 	/**
 	 * Migrated versions options name.
 	 */
-	const MIGRATED_VERSIONS_OPTION_NAME = 'hcaptcha_versions';
+	public const MIGRATED_VERSIONS_OPTION_NAME = 'hcaptcha_versions';
 
 	/**
 	 * Plugin version.
 	 */
-	const PLUGIN_VERSION = HCAPTCHA_VERSION;
+	private const PLUGIN_VERSION = HCAPTCHA_VERSION;
 
 	/**
 	 * Migration started status.
 	 */
-	const STARTED = - 1;
+	public const STARTED = - 1;
 
 	/**
 	 * Migration failed status.
 	 */
-	const FAILED = - 2;
+	public const FAILED = - 2;
 
 	/**
 	 * Plugin name.
 	 */
-	const PLUGIN_NAME = 'hCaptcha Plugin';
+	private const PLUGIN_NAME = 'hCaptcha Plugin';
 
 	/**
 	 * Migration constructor.
@@ -52,7 +52,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		if ( ! $this->is_allowed() ) {
 			return;
 		}
@@ -65,7 +65,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'plugins_loaded', [ $this, 'migrate' ], - PHP_INT_MAX );
 	}
 
@@ -74,7 +74,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	public function migrate() {
+	public function migrate(): void {
 		$migrated = (array) get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
 
 		$this->check_plugin_update( $migrated );
@@ -151,7 +151,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	private function check_plugin_update( array $migrated ) {
+	private function check_plugin_update( array $migrated ): void {
 		if ( isset( $migrated[ self::PLUGIN_VERSION ] ) ) {
 			return;
 		}
@@ -205,7 +205,7 @@ class Migrations {
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	private function log( string $message ) {
+	private function log( string $message ): void {
 		if ( ! ( defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) ) ) {
 			// @codeCoverageIgnoreStart
 			return;
@@ -224,8 +224,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	private function log_migration_message( bool $migrated, string $upgrade_version ) {
-
+	private function log_migration_message( bool $migrated, string $upgrade_version ): void {
 		$message = $migrated ?
 			sprintf( 'Migration of %1$s to %2$s completed.', self::PLUGIN_NAME, $upgrade_version ) :
 			// @codeCoverageIgnoreStart
@@ -239,10 +238,9 @@ class Migrations {
 	 * Migrate to 2.0.0
 	 *
 	 * @return bool|null
-	 * @noinspection MultiAssignmentUsageInspection
 	 * @noinspection PhpUnused
 	 */
-	protected function migrate_200() {
+	protected function migrate_200(): ?bool {
 		$options_map = [
 			'hcaptcha_api_key'                     => 'site_key',
 			'hcaptcha_secret_key'                  => 'secret_key',
@@ -296,7 +294,7 @@ class Migrations {
 				continue;
 			}
 
-			list( $new_option_key, $new_option_value ) = $new_option_name;
+			[ $new_option_key, $new_option_value ] = $new_option_name;
 
 			$new_options[ $new_option_key ] = $new_options[ $new_option_key ] ?? [];
 
@@ -320,7 +318,7 @@ class Migrations {
 	 * @return bool|null
 	 * @noinspection PhpUnused
 	 */
-	protected function migrate_360() {
+	protected function migrate_360(): ?bool {
 		$option         = get_option( PluginSettingsBase::OPTION_NAME, [] );
 		$wpforms_status = $option['wpforms_status'] ?? [];
 
@@ -342,7 +340,7 @@ class Migrations {
 	 * @return bool|null
 	 * @noinspection PhpUnused
 	 */
-	protected function migrate_4_0_0() {
+	protected function migrate_4_0_0(): ?bool {
 		Events::create_table();
 
 		add_action( 'plugins_loaded', [ $this, 'save_license_level' ] );
@@ -355,7 +353,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	public function save_license_level() {
+	public function save_license_level(): void {
 		// Check the license level.
 		$result = hcap_check_site_config();
 

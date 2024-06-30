@@ -18,12 +18,12 @@ class Comment {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_comment';
+	private const ACTION = 'hcaptcha_comment';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_comment_nonce';
+	private const NONCE = 'hcaptcha_comment_nonce';
 
 	/**
 	 * Add captcha to the form.
@@ -50,8 +50,10 @@ class Comment {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
 		add_filter( 'preprocess_comment', [ $this, 'verify' ], - PHP_INT_MAX );
 		add_filter( 'pre_comment_approved', [ $this, 'pre_comment_approved' ], 20, 2 );

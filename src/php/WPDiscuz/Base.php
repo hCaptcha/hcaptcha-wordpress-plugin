@@ -24,7 +24,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_filter(
 			'wpdiscuz_recaptcha_site_key',
 			static function () {
@@ -41,7 +41,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		wp_dequeue_script( 'wpdiscuz-google-recaptcha' );
 		wp_deregister_script( 'wpdiscuz-google-recaptcha' );
 	}

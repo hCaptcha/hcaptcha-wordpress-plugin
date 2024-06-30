@@ -18,12 +18,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_classified_listing_register';
+	private const ACTION = 'hcaptcha_classified_listing_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_classified_listing_register_nonce';
+	private const NONCE = 'hcaptcha_classified_listing_register_nonce';
 
 	/**
 	 * Constructor.
@@ -34,8 +34,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'rtcl_register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'rtcl_process_registration_errors', [ $this, 'verify' ], 10, 5 );
 	}
@@ -45,7 +47,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,

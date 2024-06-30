@@ -18,14 +18,14 @@ class Comment extends Base {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-wpdiscuz-comment';
+	private const HANDLE = 'hcaptcha-wpdiscuz-comment';
 
 	/**
 	 * Add hooks.
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( 'wpdiscuz_form_render', [ $this, 'add_hcaptcha' ], 10, 3 );
@@ -106,7 +106,7 @@ class Comment extends Base {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		parent::enqueue_scripts();
 
 		$min = hcap_min_suffix();
@@ -126,7 +126,7 @@ class Comment extends Base {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.wpd-field-hcaptcha .h-captcha {
 		margin-left: auto;

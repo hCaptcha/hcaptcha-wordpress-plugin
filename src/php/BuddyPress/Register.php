@@ -17,12 +17,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_bp_register';
+	private const ACTION = 'hcaptcha_bp_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_bp_register_nonce';
+	private const NAME = 'hcaptcha_bp_register_nonce';
 
 	/**
 	 * Register constructor.
@@ -36,15 +36,17 @@ class Register {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'bp_before_registration_submit_buttons', [ $this, 'add_captcha' ] );
 		add_action( 'bp_signup_validate', [ $this, 'verify' ] );
 	}
 
 	/**
 	 * Add captcha to the register form.
+	 *
+	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		global $bp;
 
 		if ( ! empty( $bp->signup->errors['hcaptcha_response_verify'] ) ) {

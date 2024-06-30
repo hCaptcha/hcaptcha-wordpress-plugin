@@ -39,8 +39,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'eael/login-register/after-password-field', [ $this, 'add_register_hcaptcha' ] );
 		add_action( 'eael/login-register/before-register', [ $this, 'verify' ] );
 
@@ -55,7 +57,7 @@ class Register {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_register_hcaptcha( Widget_Base $widget ) {
+	public function add_register_hcaptcha( Widget_Base $widget ): void {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
@@ -73,7 +75,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function verify() {
+	public function verify(): void {
 		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
@@ -105,7 +107,7 @@ class Register {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	#eael-register-form .h-captcha {
 		margin-top: 1rem;

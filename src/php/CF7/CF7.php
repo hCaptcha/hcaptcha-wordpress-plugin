@@ -13,35 +13,41 @@ namespace HCaptcha\CF7;
 use HCaptcha\Helpers\HCaptcha;
 use WPCF7_FormTag;
 use WPCF7_Submission;
-use WPCF7_TagGenerator;
 use WPCF7_Validation;
 
 /**
  * Class CF7.
  */
-class CF7 {
-	const HANDLE    = 'hcaptcha-cf7';
-	const SHORTCODE = 'cf7-hcaptcha';
-	const DATA_NAME = 'hcap-cf7';
+class CF7 extends Base {
+	/**
+	 * Script handle.
+	 */
+	public const HANDLE = 'hcaptcha-cf7';
 
 	/**
-	 * CF7 constructor.
+	 * CF7 shortcode.
 	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
+	private const SHORTCODE = 'cf7-hcaptcha';
+
+	/**
+	 * Data name.
+	 */
+	private const DATA_NAME = 'hcap-cf7';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
+		parent::init_hooks();
+
 		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
 		add_filter( 'rest_authentication_errors', [ $this, 'check_rest_nonce' ] );
 		add_filter( 'wpcf7_validate', [ $this, 'verify_hcaptcha' ], 20, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
-		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
 	}
 
 	/**
@@ -60,23 +66,30 @@ class CF7 {
 			return $output;
 		}
 
-		remove_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20 );
+		$output             = (string) $output;
+		$form_id            = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
-		$output  = (string) $output;
-		$form_id = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+		if ( $cf7_hcap_shortcode ) {
+			if ( $this->mode_embed ) {
+				remove_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20 );
 
-		if ( has_shortcode( $output, self::SHORTCODE ) ) {
-			$output = do_shortcode( $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) );
+				$output = do_shortcode( $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) );
 
-			add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
+				add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 
+				return $output;
+			}
+
+			$output = str_replace( $cf7_hcap_shortcode, '', $output );
+		}
+
+		if ( ! $this->mode_auto ) {
 			return $output;
 		}
 
 		$cf7_hcap_form = do_shortcode( '[' . self::SHORTCODE . " form_id=\"$form_id\"]" );
 		$submit_button = '/(<(input|button) .*?type="submit")/';
-
-		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 
 		return preg_replace(
 			$submit_button,
@@ -97,10 +110,6 @@ class CF7 {
 		$attr = (array) $attr;
 
 		foreach ( $attr as $key => $value ) {
-			if ( is_array( $value ) ) {
-				continue;
-			}
-
 			if ( preg_match( '/(^id|^class):([\w-]+)/', $value, $m ) ) {
 				$attr[ 'cf7-' . $m[1] ] = $m[2];
 				unset( $attr[ $key ] );
@@ -174,6 +183,13 @@ class CF7 {
 			return $this->get_invalidated_result( $result );
 		}
 
+		if (
+			! $this->mode_auto &&
+			! ( $this->mode_embed && $this->has_hcaptcha_field( $submission ) )
+		) {
+			return $result;
+		}
+
 		$data           = $submission->get_posted_data();
 		$response       = $data['h-captcha-response'] ?? '';
 		$captcha_result = hcaptcha_request_verify( $response );
@@ -183,6 +199,36 @@ class CF7 {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Whether the field is hCaptcha field.
+	 *
+	 * @param WPCF7_FormTag $field Field.
+	 *
+	 * @return bool
+	 */
+	private function is_hcaptcha_field( WPCF7_FormTag $field ): bool {
+		return ( 'hcaptcha' === $field->type );
+	}
+
+	/**
+	 * Whether form has its own hCaptcha field.
+	 *
+	 * @param WPCF7_Submission $submission Submission.
+	 *
+	 * @return bool
+	 */
+	protected function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
+		$form_fields = $submission->get_contact_form()->scan_form_tags();
+
+		foreach ( $form_fields as $form_field ) {
+			if ( $this->is_hcaptcha_field( $form_field ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -215,7 +261,7 @@ class CF7 {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
@@ -237,7 +283,7 @@ class CF7 {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	span[data-name="hcap-cf7"] .h-captcha {
 		margin-bottom: 0;
@@ -253,87 +299,18 @@ CSS;
 	}
 
 	/**
-	 * Add tag generator to admin editor.
+	 * Get CF7 hCaptcha shortcode.
 	 *
-	 * @return void
+	 * @param string $output CF7 form output.
+	 *
+	 * @return string
 	 */
-	public function add_tag_generator_hcaptcha() {
-		$tag_generator = WPCF7_TagGenerator::get_instance();
+	private function get_cf7_hcap_shortcode( string $output ): string {
+		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
 
-		$tag_generator->add(
-			'cf7-hcaptcha',
-			__( 'hCaptcha', 'hcaptcha-for-forms-and-more' ),
-			[ $this, 'tag_generator_hcaptcha' ]
-		);
-	}
-
-	/**
-	 * Show tag generator.
-	 *
-	 * @param mixed        $contact_form Contact form.
-	 * @param array|string $args         Arguments.
-	 *
-	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function tag_generator_hcaptcha( $contact_form, $args = '' ) {
-		$args        = wp_parse_args( $args );
-		$type        = $args['id'];
-		$description = __( 'Generate a form-tag for a hCaptcha field.', 'hcaptcha-for-forms-and-more' );
-
-		?>
-		<div class="control-box">
-			<fieldset>
-				<legend><?php echo esc_html( $description ); ?></legend>
-
-				<table class="form-table">
-					<tbody>
-
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-id' ); ?>">
-								<?php echo esc_html( __( 'Id attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="id" class="idvalue oneline option"
-									id="<?php echo esc_attr( $args['content'] . '-id' ); ?>"/>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-class' ); ?>">
-								<?php echo esc_html( __( 'Class attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="class" class="classvalue oneline option"
-									id="<?php echo esc_attr( $args['content'] . '-class' ); ?>"/>
-						</td>
-					</tr>
-
-					</tbody>
-				</table>
-			</fieldset>
-		</div>
-
-		<div class="insert-box">
-			<label>
-				<input
-						type="text" name="<?php echo esc_attr( $type ); ?>" class="tag code" readonly="readonly"
-						onfocus="this.select()"/>
-			</label>
-
-			<div class="submitbox">
-				<input
-						type="button" class="button button-primary insert-tag"
-						value="<?php echo esc_attr( __( 'Insert Tag', 'hcaptcha-for-forms-and-more' ) ); ?>"/>
-			</div>
-		</div>
-		<?php
+		return preg_match( "/$cf7_hcap_sc_regex/", $output, $matches )
+			? $matches[0]
+			: '';
 	}
 
 	/**
@@ -345,23 +322,19 @@ CSS;
 	 *
 	 * @return string
 	 */
-	private function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
-		$cf7_hcap_sc_regex = get_shortcode_regex( [ self::SHORTCODE ] );
+	protected function add_form_id_to_cf7_hcap_shortcode( string $output, int $form_id ): string {
+		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
-		// The preg_match should always be true, because $output has shortcode.
-		if ( ! preg_match( "/$cf7_hcap_sc_regex/", $output, $matches ) ) {
-			// @codeCoverageIgnoreStart
+		if ( ! $cf7_hcap_shortcode ) {
 			return $output;
-			// @codeCoverageIgnoreEnd
 		}
 
-		$cf7_hcap_shortcode = $matches[0];
-		$cf7_hcap_sc        = preg_replace(
+		$cf7_hcap_sc = preg_replace(
 			[ '/\s*\[|]\s*/', '/(id|class)\s*:\s*([\w-]+)/' ],
 			[ '', '$1=$2' ],
 			$cf7_hcap_shortcode
 		);
-		$atts               = shortcode_parse_atts( $cf7_hcap_sc );
+		$atts        = shortcode_parse_atts( $cf7_hcap_sc );
 
 		unset( $atts[0] );
 

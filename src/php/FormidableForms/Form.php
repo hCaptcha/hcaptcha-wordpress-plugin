@@ -23,22 +23,22 @@ class Form {
 	/**
 	 * Verify action.
 	 */
-	const ACTION = 'hcaptcha_formidable_forms';
+	private const ACTION = 'hcaptcha_formidable_forms';
 
 	/**
 	 * Verify nonce.
 	 */
-	const NONCE = 'hcaptcha_formidable_forms_nonce';
+	private const NONCE = 'hcaptcha_formidable_forms_nonce';
 
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-formidable-forms';
+	private const ADMIN_HANDLE = 'admin-formidable-forms';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaFormidableFormsObject';
+	private const OBJECT = 'HCaptchaFormidableFormsObject';
 
 	/**
 	 * The hCaptcha field id.
@@ -59,7 +59,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_filter( 'option_frm_options', [ $this, 'get_option' ], 10, 2 );
 		add_filter( 'frm_replace_shortcodes', [ $this, 'add_captcha' ], 10, 3 );
 		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 10, 3 );
@@ -117,7 +117,7 @@ class Form {
 			return $html;
 		}
 
-		list( $captcha_div, $div_id ) = $m;
+		[ $captcha_div, $div_id ] = $m;
 
 		$args = [
 			'action' => self::ACTION,
@@ -194,7 +194,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		wp_dequeue_script( 'captcha-api' );
 		wp_deregister_script( 'captcha-api' );
 	}
@@ -204,7 +204,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		if ( ! $this->is_formidable_forms_admin_page() ) {
 			return;
 		}

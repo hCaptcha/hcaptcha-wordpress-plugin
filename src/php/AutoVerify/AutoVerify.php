@@ -18,19 +18,23 @@ class AutoVerify {
 	/**
 	 * Transient name where to store registered forms.
 	 */
-	const TRANSIENT = 'hcaptcha_auto_verify';
+	public const TRANSIENT = 'hcaptcha_auto_verify';
 
 	/**
 	 * Init class.
+	 *
+	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		$this->init_hooks();
 	}
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'init', [ $this, 'verify_form' ], - PHP_INT_MAX );
 		add_filter( 'the_content', [ $this, 'content_filter' ], PHP_INT_MAX );
 		add_filter( 'widget_block_content', [ $this, 'widget_block_content_filter' ], PHP_INT_MAX, 3 );
@@ -68,7 +72,7 @@ class AutoVerify {
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function verify_form() {
+	public function verify_form(): void {
 		if ( ! Request::is_frontend() ) {
 			return;
 		}
@@ -109,7 +113,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms Forms found in the content.
 	 */
-	protected function register_forms( array $forms ) {
+	protected function register_forms( array $forms ): void {
 		$forms_data = [];
 
 		foreach ( $forms as $form ) {
@@ -221,7 +225,7 @@ class AutoVerify {
 	 *
 	 * @return string|null
 	 */
-	private function get_input_name( string $input ) {
+	private function get_input_name( string $input ): ?string {
 		if ( preg_match( '#name\s*?=\s*?["\'](.+?)["\']#', $input, $matches ) ) {
 			return $matches[1];
 		}
@@ -236,7 +240,7 @@ class AutoVerify {
 	 *
 	 * @return string|null
 	 */
-	private function get_form_auto( string $form ) {
+	private function get_form_auto( string $form ): ?string {
 		if ( preg_match( '#class="h-captcha"[\S\s]+?data-auto="(.*)"[\S\s]*?>#', $form, $matches ) ) {
 			return $matches[1];
 		}
@@ -260,7 +264,7 @@ class AutoVerify {
 	 *
 	 * @param array $forms_data Forms data to update in transient.
 	 */
-	protected function update_transient( array $forms_data ) {
+	protected function update_transient( array $forms_data ): void {
 		$transient        = get_transient( self::TRANSIENT );
 		$registered_forms = $transient ?: [];
 

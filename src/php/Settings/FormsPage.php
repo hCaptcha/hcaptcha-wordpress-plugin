@@ -20,12 +20,12 @@ class FormsPage extends ListPageBase {
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-forms';
+	public const HANDLE = 'hcaptcha-forms';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaFormsObject';
+	public const OBJECT = 'HCaptchaFormsObject';
 
 	/**
 	 * ListTable instance.
@@ -71,7 +71,7 @@ class FormsPage extends ListPageBase {
 	/**
 	 * Init class hooks.
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
@@ -83,7 +83,7 @@ class FormsPage extends ListPageBase {
 	 *
 	 * @return void
 	 */
-	public function admin_init() {
+	public function admin_init(): void {
 		$this->allowed = hcaptcha()->settings()->is_on( 'statistics' );
 
 		if ( ! $this->allowed ) {
@@ -97,8 +97,10 @@ class FormsPage extends ListPageBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/forms$this->min_suffix.css",
@@ -136,9 +138,10 @@ class FormsPage extends ListPageBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownTarget
 	 */
-	public function section_callback( array $arguments ) {
+	public function section_callback( array $arguments ): void {
 		$this->print_header();
 
 		if ( ! $this->allowed ) {
@@ -188,7 +191,7 @@ class FormsPage extends ListPageBase {
 	 *
 	 * @return void
 	 */
-	protected function prepare_chart_data() {
+	protected function prepare_chart_data(): void {
 		$this->served = [];
 
 		$this->list_table->prepare_items();

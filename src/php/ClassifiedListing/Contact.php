@@ -18,12 +18,12 @@ class Contact {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_classified_listing_contact';
+	private const ACTION = 'hcaptcha_classified_listing_contact';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_classified_listing_contact_nonce';
+	private const NONCE = 'hcaptcha_classified_listing_contact_nonce';
 
 	/**
 	 * Class constructor.
@@ -37,7 +37,7 @@ class Contact {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'rtcl_before_template_part', [ $this, 'before_template_part' ], 10, 3 );
 		add_action( 'rtcl_after_template_part', [ $this, 'after_template_part' ], 10, 3 );
 		add_action( 'rtcl_listing_seller_contact_form_validation', [ $this, 'verify' ], 10, 2 );
@@ -53,7 +53,7 @@ class Contact {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_template_part( string $template_name, string $located, $template_args ) {
+	public function before_template_part( string $template_name, string $located, $template_args ): void {
 		if ( 'listing/email-to-seller-form' !== $template_name ) {
 			return;
 		}
@@ -71,7 +71,7 @@ class Contact {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function after_template_part( string $template_name, string $located, $template_args ) {
+	public function after_template_part( string $template_name, string $located, $template_args ): void {
 		if ( 'listing/email-to-seller-form' !== $template_name ) {
 			return;
 		}
@@ -105,7 +105,7 @@ class Contact {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function verify( WP_Error $error, array $data ) {
+	public function verify( WP_Error $error, array $data ): void {
 		$error_message = hcaptcha_verify_post(
 			static::NONCE,
 			static::ACTION

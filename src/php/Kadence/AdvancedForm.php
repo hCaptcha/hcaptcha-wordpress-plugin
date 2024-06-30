@@ -19,12 +19,12 @@ class AdvancedForm {
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-kadence-advanced';
+	private const ADMIN_HANDLE = 'admin-kadence-advanced';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
+	private const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
 
 	/**
 	 * Whether hCaptcha was replaced.
@@ -45,7 +45,7 @@ class AdvancedForm {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'dequeue_kadence_hcaptcha_api' ], 8 );
 
@@ -120,7 +120,7 @@ class AdvancedForm {
 	 *
 	 * @return void
 	 */
-	public function process_ajax() {
+	public function process_ajax(): void {
 		// Nonce is checked by Kadence.
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -151,7 +151,7 @@ class AdvancedForm {
 	 *
 	 * @return void
 	 */
-	public function dequeue_kadence_hcaptcha_api() {
+	public function dequeue_kadence_hcaptcha_api(): void {
 		wp_dequeue_script( 'kadence-blocks-hcaptcha' );
 		wp_deregister_script( 'kadence-blocks-hcaptcha' );
 	}
@@ -161,7 +161,7 @@ class AdvancedForm {
 	 *
 	 * @return void
 	 */
-	public static function enqueue_scripts() {
+	public static function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -178,7 +178,7 @@ class AdvancedForm {
 	 *
 	 * @return void
 	 */
-	public function editor_assets() {
+	public function editor_assets(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

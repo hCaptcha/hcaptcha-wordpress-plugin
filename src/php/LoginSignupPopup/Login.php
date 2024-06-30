@@ -19,12 +19,14 @@ class Login extends LoginBase {
 	/**
 	 * Form ID.
 	 */
-	const FORM_ID = 'login';
+	private const FORM_ID = 'login';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'xoo_el_form_start', [ $this, 'form_start' ], 10, 2 );
@@ -43,7 +45,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function form_start( string $form, array $args ) {
+	public function form_start( string $form, array $args ): void {
 		if ( self::FORM_ID !== $form ) {
 			return;
 		}
@@ -60,7 +62,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_login_signup_popup_hcaptcha( string $form, array $args ) {
+	public function add_login_signup_popup_hcaptcha( string $form, array $args ): void {
 		if ( self::FORM_ID !== $form ) {
 			return;
 		}
@@ -116,7 +118,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.xoo-el-form-container div[data-section="login"] .h-captcha {
 		margin-bottom: 25px;
@@ -131,7 +133,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

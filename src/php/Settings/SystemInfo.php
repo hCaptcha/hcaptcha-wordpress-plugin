@@ -20,22 +20,22 @@ class SystemInfo extends PluginSettingsBase {
 	/**
 	 * Dialog scripts and style handle.
 	 */
-	const DIALOG_HANDLE = 'kagg-dialog';
+	public const DIALOG_HANDLE = 'kagg-dialog';
 
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-system-info';
+	public const HANDLE = 'hcaptcha-system-info';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaSystemInfoObject';
+	public const OBJECT = 'HCaptchaSystemInfoObject';
 
 	/**
 	 * Data key length.
 	 */
-	const DATA_KEY_LENGTH = 36;
+	private const DATA_KEY_LENGTH = 36;
 
 	/**
 	 * Get page title.
@@ -57,8 +57,10 @@ class SystemInfo extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		wp_enqueue_script(
 			self::DIALOG_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_suffix.js",
@@ -105,7 +107,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 */
-	public function section_callback( array $arguments ) {
+	public function section_callback( array $arguments ): void {
 		$this->print_header();
 
 		?>
@@ -212,7 +214,7 @@ class SystemInfo extends PluginSettingsBase {
 	 * @return string
 	 */
 	public function integration_info(): string {
-		list( $integration_fields, $integration_settings ) = $this->get_integrations();
+		[ $integration_fields, $integration_settings ] = $this->get_integrations();
 
 		$disabled = false;
 

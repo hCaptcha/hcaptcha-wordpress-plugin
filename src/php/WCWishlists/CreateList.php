@@ -19,12 +19,12 @@ class CreateList {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_wc_create_wishlists_action';
+	private const ACTION = 'hcaptcha_wc_create_wishlists_action';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_wc_create_wishlists_nonce';
+	private const NONCE = 'hcaptcha_wc_create_wishlists_nonce';
 
 	/**
 	 * Create List constructor.
@@ -38,7 +38,7 @@ class CreateList {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'woocommerce_wishlists_before_wrapper', [ $this, 'before_wrapper' ] );
 		add_action( 'woocommerce_wishlists_after_wrapper', [ $this, 'after_wrapper' ] );
 		add_filter( 'woocommerce_validate_wishlist_create', [ $this, 'verify' ] );
@@ -49,7 +49,7 @@ class CreateList {
 	 *
 	 * @return void
 	 */
-	public function before_wrapper() {
+	public function before_wrapper(): void {
 		ob_start();
 	}
 
@@ -58,7 +58,7 @@ class CreateList {
 	 *
 	 * @return void
 	 */
-	public function after_wrapper() {
+	public function after_wrapper(): void {
 		$wrapper = ob_get_clean();
 
 		$args = [

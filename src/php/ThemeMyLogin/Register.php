@@ -18,12 +18,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_theme_my_login_register';
+	private const ACTION = 'hcaptcha_theme_my_login_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_theme_my_login_register_nonce';
+	private const NONCE = 'hcaptcha_theme_my_login_register_nonce';
 
 	/**
 	 * Constructor.
@@ -34,8 +34,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
@@ -45,7 +47,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		if ( ! did_action( 'tml_render_form' ) ) {
 			return;
 		}

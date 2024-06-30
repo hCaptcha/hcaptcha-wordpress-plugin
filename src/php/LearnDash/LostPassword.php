@@ -23,8 +23,10 @@ class LostPassword {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_captcha' ], 10, 4 );
 	}
 

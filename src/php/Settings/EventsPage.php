@@ -20,12 +20,12 @@ class EventsPage extends ListPageBase {
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-events';
+	public const HANDLE = 'hcaptcha-events';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaEventsObject';
+	public const OBJECT = 'HCaptchaEventsObject';
 
 	/**
 	 * ListTable instance.
@@ -78,7 +78,7 @@ class EventsPage extends ListPageBase {
 	/**
 	 * Init class hooks.
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
@@ -90,7 +90,7 @@ class EventsPage extends ListPageBase {
 	 *
 	 * @return void
 	 */
-	public function admin_init() {
+	public function admin_init(): void {
 		$settings = hcaptcha()->settings();
 
 		$this->allowed = ( $settings->is_on( 'statistics' ) && $settings->is_pro() );
@@ -106,8 +106,10 @@ class EventsPage extends ListPageBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/events$this->min_suffix.css",
@@ -147,9 +149,10 @@ class EventsPage extends ListPageBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownTarget
 	 */
-	public function section_callback( array $arguments ) {
+	public function section_callback( array $arguments ): void {
 		$this->print_header();
 
 		if ( ! $this->allowed ) {
@@ -206,7 +209,7 @@ class EventsPage extends ListPageBase {
 	 *
 	 * @return void
 	 */
-	protected function prepare_chart_data() {
+	protected function prepare_chart_data(): void {
 		$this->succeed = [];
 		$this->failed  = [];
 

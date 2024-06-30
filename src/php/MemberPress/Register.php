@@ -16,12 +16,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_memberpress_register';
+	private const ACTION = 'hcaptcha_memberpress_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_memberpress_register_nonce';
+	private const NONCE = 'hcaptcha_memberpress_register_nonce';
 
 	/**
 	 * Constructor.
@@ -32,8 +32,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'mepr-checkout-before-submit', [ $this, 'add_captcha' ] );
 		add_filter( 'mepr-validate-signup', [ $this, 'verify' ] );
 	}
@@ -43,7 +45,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,

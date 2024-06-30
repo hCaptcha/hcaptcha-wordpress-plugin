@@ -25,17 +25,17 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_mailpoet';
+	private const ACTION = 'hcaptcha_mailpoet';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_mailpoet_nonce';
+	private const NONCE = 'hcaptcha_mailpoet_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-mailpoet';
+	private const HANDLE = 'hcaptcha-mailpoet';
 
 	/**
 	 * Form constructor.
@@ -49,7 +49,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
 		add_action( 'mailpoet_api_setup', [ $this, 'verify' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
@@ -93,7 +93,7 @@ class Form {
 	 *
 	 * @param API $api MailPoet API instance.
 	 */
-	public function verify( API $api ) {
+	public function verify( API $api ): void {
 		if ( is_admin() ) {
 			return;
 		}
@@ -115,7 +115,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}

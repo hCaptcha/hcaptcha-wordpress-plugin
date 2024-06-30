@@ -18,12 +18,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_profile_builder_register';
+	private const ACTION = 'hcaptcha_profile_builder_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_profile_builder_register_nonce';
+	private const NONCE = 'hcaptcha_profile_builder_register_nonce';
 
 	/**
 	 * The hCaptcha validation error message.
@@ -41,8 +41,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'wppb_register_form_content', [ $this, 'add_captcha' ] );
 		add_filter( 'wppb_output_field_errors_filter', [ $this, 'verify' ], 10, 4 );
 		add_filter( 'wppb_general_top_error_message', [ $this, 'general_top_error_message' ] );

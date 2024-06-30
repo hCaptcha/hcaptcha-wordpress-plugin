@@ -18,12 +18,12 @@ abstract class JetpackBase {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_jetpack';
+	protected const ACTION = 'hcaptcha_jetpack';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_jetpack_nonce';
+	protected const NAME = 'hcaptcha_jetpack_nonce';
 
 	/**
 	 * Error message.
@@ -41,8 +41,10 @@ abstract class JetpackBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'the_content', [ $this, 'add_captcha' ] );
 		add_filter( 'widget_text', [ $this, 'add_captcha' ], 0 );
 
@@ -118,7 +120,7 @@ HTML;
 	 * @return void
 	 * @noinspection CssUnusedSymbol CssUnusedSymbol.
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	form.contact-form .grunion-field-wrap .h-captcha,
 	form.wp-block-jetpack-contact-form .grunion-field-wrap .h-captcha {

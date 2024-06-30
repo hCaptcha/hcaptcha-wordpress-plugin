@@ -41,8 +41,8 @@ class DelayedScript {
 			clearTimeout( timerId );
 
 			window.removeEventListener( 'touchstart', load );
-			document.removeEventListener( 'mouseenter', load );
-			document.removeEventListener( 'click', load );
+			document.body.removeEventListener( 'mouseenter', load );
+			document.body.removeEventListener( 'click', load );
 			window.removeEventListener( 'load', delayedLoad );
 
 $js
@@ -70,8 +70,8 @@ $js
 		}
 
 		window.addEventListener( 'touchstart', load );
-		document.addEventListener( 'mouseenter', load );
-		document.addEventListener( 'click', load );
+		document.body.addEventListener( 'mouseenter', load );
+		document.body.addEventListener( 'click', load );
 		window.addEventListener( 'load', delayedLoad );
 	} )();
 JS;
@@ -85,7 +85,7 @@ JS;
 	 * @param array $args  Arguments.
 	 * @param int   $delay Delay in ms.
 	 */
-	public static function launch( array $args, int $delay = 3000 ) {
+	public static function launch( array $args, int $delay = 3000 ): void {
 		$js = <<<JS
 			const t = document.getElementsByTagName( 'script' )[0];
 			const s = document.createElement('script');

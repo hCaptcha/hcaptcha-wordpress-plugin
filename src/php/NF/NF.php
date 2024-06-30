@@ -19,22 +19,22 @@ class NF {
 	/**
 	 * Dialog scripts and style handle.
 	 */
-	const DIALOG_HANDLE = 'kagg-dialog';
+	private const DIALOG_HANDLE = 'kagg-dialog';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-nf';
+	private const HANDLE = 'hcaptcha-nf';
 
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-nf';
+	private const ADMIN_HANDLE = 'admin-nf';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaAdminNFObject';
+	private const OBJECT = 'HCaptchaAdminNFObject';
 
 	/**
 	 * Form id.
@@ -61,8 +61,10 @@ class NF {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
 		add_action( 'nf_admin_enqueue_scripts', [ $this, 'nf_admin_enqueue_scripts' ] );
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
@@ -78,7 +80,7 @@ class NF {
 	 *
 	 * @return void
 	 */
-	public function admin_template() {
+	public function admin_template(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! isset( $_GET['form_id'] ) ) {
 			return;
@@ -104,7 +106,7 @@ class NF {
 	 *
 	 * @return void
 	 */
-	public function nf_admin_enqueue_scripts() {
+	public function nf_admin_enqueue_scripts(): void {
 		global $wp_scripts;
 
 		// Add hCaptcha to the preloaded form data.
@@ -195,7 +197,7 @@ class NF {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function place_hcaptcha_before_recaptcha_field() {
+	public function place_hcaptcha_before_recaptcha_field(): void {
 		$fields = Ninja_Forms()->fields;
 		$index  = array_search( 'recaptcha', array_keys( $fields ), true );
 
@@ -237,7 +239,7 @@ class NF {
 	 *
 	 * @return void
 	 */
-	public function set_form_id( int $form_id ) {
+	public function set_form_id( int $form_id ): void {
 		$this->form_id = $form_id;
 	}
 
@@ -288,7 +290,7 @@ class NF {
 	 *
 	 * @return void
 	 */
-	public function nf_captcha_script() {
+	public function nf_captcha_script(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

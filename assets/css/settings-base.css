@@ -56,6 +56,10 @@ body.settings_page_hcaptcha {
 	color: #5c6f8a;
 }
 
+#hcaptcha-options h2 ~ * {
+	display: none;
+}
+
 #hcaptcha-options h3 {
 	margin: 1.5em 0 1em;
 	color: #5c6f8a;
@@ -197,7 +201,7 @@ body.settings_page_hcaptcha {
 	box-sizing: border-box;
 }
 
-#hcaptcha-message p {
+#hcaptcha-message > p {
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 1.5;

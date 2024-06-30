@@ -879,7 +879,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'form' => 'Form',
+							'form'  => 'Form Auto-Add',
+							'embed' => 'Form Embed',
 						],
 				],
 			'divi_status'                      =>

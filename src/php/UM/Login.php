@@ -15,17 +15,19 @@ class Login extends Base {
 	/**
 	 * UM action.
 	 */
-	const UM_ACTION = 'um_submit_form_errors_hook_login';
+	protected const UM_ACTION = 'um_submit_form_errors_hook_login';
 
 	/**
 	 * UM mode.
 	 */
-	const UM_MODE = 'login';
+	public const UM_MODE = 'login';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( 'login_errors', [ $this, 'mute_login_hcaptcha_notice' ], 10, 2 );
@@ -70,7 +72,7 @@ class Login extends Base {
 	 *
 	 * @return void
 	 */
-	public function verify( array $submitted_data, array $form_data = [] ) {
+	public function verify( array $submitted_data, array $form_data = [] ): void {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return;
 		}

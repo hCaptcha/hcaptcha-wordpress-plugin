@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\CoBlocks;
 
 use CoBlocks_Form;
@@ -20,17 +23,17 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_coblocks';
+	private const ACTION = 'hcaptcha_coblocks';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_coblocks_nonce';
+	private const NONCE = 'hcaptcha_coblocks_nonce';
 
 	/**
 	 * Fake hCaptcha token.
 	 */
-	const HCAPTCHA_DUMMY_TOKEN = 'hcaptcha_token';
+	private const HCAPTCHA_DUMMY_TOKEN = 'hcaptcha_token';
 
 	/**
 	 * Form constructor.
@@ -41,8 +44,10 @@ class Form {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'render_block_data', [ $this, 'render_block_data' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
@@ -59,8 +64,10 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $block_content, array $block, WP_Block $instance ): string {
+		$block_content = (string) $block_content;
+
 		if ( 'coblocks/form' !== $block['blockName'] ) {
-			return (string) $block_content;
+			return $block_content;
 		}
 
 		$form_id = 0;
@@ -134,7 +141,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function before_form_submit( array $post, array $atts ) {
+	public function before_form_submit( array $post, array $atts ): void {
 		add_filter( 'pre_option_coblocks_google_recaptcha_site_key', '__return_true' );
 		add_filter( 'pre_option_coblocks_google_recaptcha_secret_key', '__return_true' );
 
@@ -194,7 +201,7 @@ class Form {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.wp-block-coblocks-form .h-captcha {
 		margin-bottom: 25px;

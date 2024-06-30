@@ -23,22 +23,22 @@ class Field extends GF_Field {
 	/**
 	 * Dialog scripts and style handle.
 	 */
-	const DIALOG_HANDLE = 'kagg-dialog';
+	public const DIALOG_HANDLE = 'kagg-dialog';
 
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-gravity-forms';
+	public const ADMIN_HANDLE = 'admin-gravity-forms';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaGravityFormsObject';
+	private const OBJECT = 'HCaptchaGravityFormsObject';
 
 	/**
 	 * Editor screen id.
 	 */
-	const EDITOR_SCREEN_ID = 'toplevel_page_gf_edit_forms';
+	public const EDITOR_SCREEN_ID = 'toplevel_page_gf_edit_forms';
 
 	/**
 	 * Field type.
@@ -52,7 +52,7 @@ class Field extends GF_Field {
 	 *
 	 * @param array $data Data.
 	 */
-	public function __construct( $data = [] ) {
+	public function __construct( array $data = [] ) {
 		parent::__construct( $data );
 
 		$this->init();
@@ -62,8 +62,9 @@ class Field extends GF_Field {
 	 * Init class.
 	 *
 	 * @return void
+	 * @noinspection PhpDynamicFieldDeclarationInspection
 	 */
-	private function init() {
+	private function init(): void {
 		if ( ! hcaptcha()->settings()->is( 'gravity_status', 'embed' ) ) {
 			return;
 		}
@@ -86,7 +87,7 @@ class Field extends GF_Field {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'gform_field_groups_form_editor', [ $this, 'add_to_field_groups' ] );
 		add_filter( 'gform_duplicate_field_link', [ $this, 'disable_duplication' ] );
 		add_action( 'admin_print_footer_scripts-' . self::EDITOR_SCREEN_ID, [ $this, 'enqueue_admin_script' ] );
@@ -170,8 +171,9 @@ class Field extends GF_Field {
 	 *
 	 * @return string
 	 * @noinspection PhpCastIsUnnecessaryInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function get_field_input( $form, $value = '', $entry = null ): string {
+	public function get_field_input( array $form, $value = '', $entry = null ): string {
 		$form_id         = (int) $form['id'];
 		$is_entry_detail = $this->is_entry_detail();
 		$is_form_editor  = $this->is_form_editor();
@@ -204,6 +206,7 @@ class Field extends GF_Field {
 	 * @param string $duplicate_field_link Duplicate link.
 	 *
 	 * @return string
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function disable_duplication( string $duplicate_field_link ): string {
 		$action = rgpost( 'action' );
@@ -230,7 +233,7 @@ class Field extends GF_Field {
 	 *
 	 * @return void
 	 */
-	public function enqueue_admin_script() {
+	public function enqueue_admin_script(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

@@ -17,12 +17,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_wc_register';
+	private const ACTION = 'hcaptcha_wc_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_wc_register_nonce';
+	private const NONCE = 'hcaptcha_wc_register_nonce';
 
 	/**
 	 * Constructor.
@@ -33,8 +33,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'woocommerce_register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'woocommerce_process_registration_errors', [ $this, 'verify' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
@@ -45,7 +47,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -90,7 +92,7 @@ class Register {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.woocommerce-form-register .h-captcha {
 		margin-top: 2rem;

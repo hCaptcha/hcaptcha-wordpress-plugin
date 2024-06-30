@@ -17,17 +17,17 @@ class Comment {
 	/**
 	 * Comment form shortcode tag.
 	 */
-	const TAG = 'et_pb_comments';
+	public const TAG = 'et_pb_comments';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_comment';
+	public const ACTION = 'hcaptcha_comment';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_comment_nonce';
+	public const NONCE = 'hcaptcha_comment_nonce';
 
 	/**
 	 * Constructor.
@@ -38,8 +38,10 @@ class Comment {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
 	}
 

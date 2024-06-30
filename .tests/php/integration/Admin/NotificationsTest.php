@@ -36,16 +36,50 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init().
+	 * Test init() and init_hooks().
+	 */
+	public function test_init_and_init_hooks() {
+		$subject = new Notifications();
+
+		$subject->init();
+
+		self::assertSame(
+			10,
+			has_action(
+				'admin_enqueue_scripts',
+				[ $subject, 'admin_enqueue_scripts' ]
+			)
+		);
+		self::assertSame(
+			10,
+			has_action(
+				'wp_ajax_' . Notifications::DISMISS_NOTIFICATION_ACTION,
+				[ $subject, 'dismiss_notification' ]
+			)
+		);
+		self::assertSame(
+			10,
+			has_action(
+				'wp_ajax_' . Notifications::RESET_NOTIFICATIONS_ACTION,
+				[ $subject, 'reset_notifications' ]
+			)
+		);
+	}
+
+	/**
+	 * Test get_notifications().
 	 *
 	 * @param bool $empty_keys Whether keys are empty.
-	 * @param bool $pro Whether it is a Pro account.
-	 * @param bool $force Whether a force option is on.
+	 * @param bool $pro        Whether it is a Pro account.
+	 * @param bool $force      Whether a force option is on.
 	 *
-	 * @dataProvider dp_test_init
-	 * @throws ReflectionException ReflectionException.
+	 * @dataProvider dp_test_get_notifications
+	 * @return void
 	 */
-	public function test_init( bool $empty_keys, bool $pro, bool $force ) {
+	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force ) {
+		global $current_user;
+
+		$user_id    = 1;
 		$site_key   = '';
 		$secret_key = '';
 
@@ -80,7 +114,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'please-rate'         => [
 				'title'   => 'Rate hCaptcha plugin',
-				'message' => 'Please rate <strong>hCaptcha for WordPress</strong> <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">★★★★★</a> on <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">WordPress.org</a>. Thank you!',
+				'message' => 'Please rate <strong>hCaptcha for WP</strong> <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">★★★★★</a> on <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">WordPress.org</a>. Thank you!',
 				'button'  => [
 					'url'  => 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post',
 					'text' => 'Rate',
@@ -126,6 +160,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Turn on force',
 				],
 			],
+			'auto-activation'     => [
+				'title'   => 'Activation of dependent plugins',
+				'message' => 'Automatic activation of dependent plugins on the Integrations page. Try to activate Elementor or Woo Wishlists.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
+					'text' => 'Try auto-activation',
+				],
+			],
 		];
 
 		if ( ! $empty_keys ) {
@@ -135,19 +177,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			unset( $expected['register'] );
 		}
 
-		if ( $pro ) {
-			unset( $expected['pro-free-trial'] );
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
 
-			update_option( 'hcaptcha_settings', [ 'license' => 'pro' ] );
-		}
-
-		if ( $force ) {
-			unset( $expected['force'] );
-
-			update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
-		}
-
-		hcaptcha()->init_hooks();
+				return $args;
+			}
+		);
 
 		add_filter(
 			'hcap_site_key',
@@ -162,41 +199,37 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$subject = new Notifications();
+		if ( $pro ) {
+			unset( $expected['pro-free-trial'] );
 
-		$subject->init();
+			update_option( 'hcaptcha_settings', [ 'license' => 'pro' ] );
+		}
 
-		self::assertSame(
-			10,
-			has_action(
-				'admin_enqueue_scripts',
-				[ $subject, 'admin_enqueue_scripts' ]
-			)
-		);
-		self::assertSame(
-			10,
-			has_action(
-				'wp_ajax_' . Notifications::DISMISS_NOTIFICATION_ACTION,
-				[ $subject, 'dismiss_notification' ]
-			)
-		);
-		self::assertSame(
-			10,
-			has_action(
-				'wp_ajax_' . Notifications::RESET_NOTIFICATIONS_ACTION,
-				[ $subject, 'reset_notifications' ]
-			)
-		);
+		if ( $force ) {
+			unset( $expected['force'] );
 
-		$this->assertSame( $expected, $this->get_protected_property( $subject, 'notifications' ) );
+			update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
+		}
+
+		unset( $current_user );
+		wp_set_current_user( $user_id );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertSame( $expected, $subject->get_notifications() );
 	}
 
 	/**
-	 * Data provider for test_init().
+	 * Data provider for test_get_notifications().
 	 *
 	 * @return array
 	 */
-	public function dp_test_init(): array {
+	public function dp_test_get_notifications(): array {
 		return [
 			'empty_keys' => [ true, false, false ],
 			'pro'        => [ false, true, false ],
@@ -300,7 +333,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$expected = $this->trim_tags( $expected );
 
 		$subject = new Notifications();
-		$subject->init();
 
 		ob_start();
 		$subject->show();
@@ -354,7 +386,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		self::assertSame( $expected_notifications, $sorted_actual_notifications );
 
 		// Dismiss Pro notification.
-		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial', 'some-other-key' ] );
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial' ] );
 
 		$dismissed_notification = '
 <div
@@ -434,11 +466,19 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	public function test_show_without_notifications() {
 		global $current_user;
 
-		unset( $current_user );
-
+		$user_id  = 1;
 		$expected = '';
 
-		$subject = new Notifications();
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$notifications = $subject->get_notifications();
+		$dismissed     = array_keys( $notifications );
+
+		unset( $current_user );
+		wp_set_current_user( $user_id );
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, $dismissed );
 
 		ob_start();
 		$subject->show();
@@ -704,6 +744,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test reset_notifications().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_reset_notifications() {
 		$die_arr  = [];
@@ -723,7 +764,9 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$subject = new Notifications();
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
 
 		// Test the case when bad admin referer.
 		ob_start();
@@ -787,6 +830,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		remove_all_filters( 'delete_user_metadata' );
 
 		// Test successful case.
+		$this->set_protected_property( $subject, 'shuffle', false );
+
+		ob_start();
+		$subject->show();
+		$notifications = wp_json_encode( wp_kses_post( ob_get_clean() ) );
+
 		ob_start();
 		$subject->reset_notifications();
 		$json = ob_get_clean();
@@ -795,7 +844,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		self::assertSame( '', $dismissed );
 		self::assertSame( $expected, $die_arr );
-		self::assertSame( '{"success":true,"data":""}', $json );
+		self::assertSame( '{"success":true,"data":' . $notifications . '}', $json );
 	}
 
 	/**

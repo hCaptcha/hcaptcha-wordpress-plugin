@@ -94,12 +94,16 @@
 	left: -14px;
 }
 
+.hcaptcha-integrations > table ~ table tr th .hcaptcha-integrations-logo:hover::before {
+	background-color: #00a32a;
+}
+
 .hcaptcha-integrations > table tr th .hcaptcha-integrations-logo:hover::before {
 	background-color: #d63638;
 }
 
-.hcaptcha-integrations > table ~ table tr th .hcaptcha-integrations-logo:hover::before {
-	background-color: #00a32a;
+.hcaptcha-integrations > table ~ table tr th .hcaptcha-integrations-logo[data-installed="0"]:hover::before {
+	background-color: #dba617;
 }
 
 .hcaptcha-integrations table tr th img {
@@ -174,6 +178,7 @@
 body div.kagg-dialog {
 	--color-activate: #00a32a;
 	--color-deactivate: #d63638;
+	--color-install: #dba617;
 }
 
 body div.kagg-dialog.activate .kagg-dialog-container .kagg-dialog-box {
@@ -191,5 +196,14 @@ body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box {
 
 body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
 	background: var(--color-deactivate);
+	color: #ffffff
+}
+
+body div.kagg-dialog.install .kagg-dialog-container .kagg-dialog-box {
+	color: var(--color-install);
+}
+
+body div.kagg-dialog.install .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
+	background: var(--color-install);
 	color: #ffffff
 }

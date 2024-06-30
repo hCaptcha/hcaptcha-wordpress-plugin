@@ -19,17 +19,17 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_users_wp_register';
+	private const ACTION = 'hcaptcha_users_wp_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_users_wp_register_nonce';
+	private const NONCE = 'hcaptcha_users_wp_register_nonce';
 
 	/**
 	 * UsersWP action.
 	 */
-	const USERS_WP_ACTION = 'register';
+	private const USERS_WP_ACTION = 'register';
 
 	/**
 	 * Class constructor.
@@ -40,8 +40,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'uwp_template_before', [ $this, 'uwp_template_before' ] );
 		add_action( 'uwp_template_after', [ $this, 'uwp_template_after' ] );
 		add_filter( 'uwp_validate_result', [ $this, 'verify' ], 10, 3 );
@@ -55,7 +57,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function uwp_template_before( string $name ) {
+	public function uwp_template_before( string $name ): void {
 		if ( self::USERS_WP_ACTION !== $name ) {
 			return;
 		}
@@ -70,7 +72,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function uwp_template_after( string $name ) {
+	public function uwp_template_after( string $name ): void {
 		if ( self::USERS_WP_ACTION !== $name ) {
 			return;
 		}

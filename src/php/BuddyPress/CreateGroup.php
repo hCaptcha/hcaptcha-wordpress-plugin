@@ -17,12 +17,12 @@ class CreateGroup {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_bp_create_group';
+	private const ACTION = 'hcaptcha_bp_create_group';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_bp_create_group_nonce';
+	private const NAME = 'hcaptcha_bp_create_group_nonce';
 
 	/**
 	 * Create Group constructor.
@@ -36,7 +36,7 @@ class CreateGroup {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'bp_after_group_details_creation_step', [ $this, 'add_captcha' ] );
 		add_action( 'groups_group_before_save', [ $this, 'verify' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
@@ -47,7 +47,7 @@ class CreateGroup {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		echo '<div class="hcap_buddypress_group_form">';
 
 		$args = [
@@ -98,7 +98,7 @@ class CreateGroup {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<'CSS'
 	#buddypress .h-captcha {
 		margin-top: 15px;

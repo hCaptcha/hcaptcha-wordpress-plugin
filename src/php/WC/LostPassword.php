@@ -19,32 +19,34 @@ class LostPassword extends LostPasswordBase {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_wc_lost_password';
+	protected const ACTION = 'hcaptcha_wc_lost_password';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_wc_lost_password_nonce';
+	protected const NONCE = 'hcaptcha_wc_lost_password_nonce';
 
 	/**
 	 * Add hCaptcha action.
 	 */
-	const ADD_CAPTCHA_ACTION = 'woocommerce_lostpassword_form';
+	protected const ADD_CAPTCHA_ACTION = 'woocommerce_lostpassword_form';
 
 	/**
 	 * $_POST key to check.
 	 */
-	const POST_KEY = 'wc_reset_password';
+	protected const POST_KEY = 'wc_reset_password';
 
 	/**
 	 * $_POST value to check.
 	 */
-	const POST_VALUE = 'true';
+	protected const POST_VALUE = 'true';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
@@ -56,7 +58,7 @@ class LostPassword extends LostPasswordBase {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.woocommerce-ResetPassword .h-captcha {
 		margin-top: 0.5rem;

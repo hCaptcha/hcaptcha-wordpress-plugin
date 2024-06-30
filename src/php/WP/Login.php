@@ -13,10 +13,7 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
 use WordfenceLS\Controller_WordfenceLS;
-use WP_Error;
-use WP_User;
 
 /**
  * Class Login
@@ -25,8 +22,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
@@ -37,7 +36,7 @@ class Login extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		if ( ! $this->is_wp_login_form() ) {
 			return;
 		}

@@ -19,11 +19,22 @@ use Composer\EventDispatcher\Event as BaseEvent;
 use Composer\Script\Event;
 use Composer\Installer\PackageEvent;
 use Isolated\Symfony\Component\Finder\Finder;
+use Seld\JsonLint\ParsingException;
 
 /**
  * Class Scoper.
  */
 class Scoper {
+
+	/**
+	 * Vendor dir.
+	 */
+	private const VENDOR = '/vendor';
+
+	/**
+	 * Vendor prefixed dir.
+	 */
+	private const VENDOR_PREFIXED = '/vendors';
 
 	/**
 	 * Do scope, as some scope-packages were updated.
@@ -47,7 +58,7 @@ class Scoper {
 	 * @return void
 	 * @noinspection PhpUnused
 	 */
-	public static function post_cmd( Event $event ) {
+	public static function post_cmd( Event $event ): void {
 		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
 		if ( self::$do_scope ) {
@@ -65,7 +76,7 @@ class Scoper {
 			);
 
 			$removed_packages = array_diff( $packages, $locked_packages );
-			$vendor_prefixed  = getcwd() . '/lib';
+			$vendor_prefixed  = self::get_vendor_prefixed();
 
 			foreach ( $removed_packages as $removed_package ) {
 				self::delete_package( $vendor_prefixed, $removed_package );
@@ -85,7 +96,7 @@ class Scoper {
 	 * @return void
 	 * @noinspection PhpUnused
 	 */
-	public static function post_package_install( PackageEvent $package_event ) {
+	public static function post_package_install( PackageEvent $package_event ): void {
 		$packages  = $package_event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 		$operation = $package_event->getOperation();
 
@@ -100,7 +111,7 @@ class Scoper {
 			return;
 		}
 
-		$vendor_prefixed = getcwd() . '/lib';
+		$vendor_prefixed = self::get_vendor_prefixed();
 
 		// Do not run scoper after installation if we already have package scoped.
 		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( $vendor_prefixed . '/' . $package );
@@ -114,7 +125,7 @@ class Scoper {
 	 * @return void
 	 * @noinspection PhpUnused
 	 */
-	public static function post_package_update( PackageEvent $event ) {
+	public static function post_package_update( PackageEvent $event ): void {
 		$packages  = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 		$operation = $event->getOperation();
 
@@ -140,7 +151,7 @@ class Scoper {
 	 * @return void
 	 * @noinspection PhpUnused
 	 */
-	public static function post_package_uninstall( PackageEvent $event ) {
+	public static function post_package_uninstall( PackageEvent $event ): void {
 		$packages  = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 		$operation = $event->getOperation();
 
@@ -155,7 +166,7 @@ class Scoper {
 			return;
 		}
 
-		self::delete_package( getcwd() . '/lib/', $package );
+		self::delete_package( self::get_vendor_prefixed(), $package );
 
 		self::$do_dump = true;
 	}
@@ -167,10 +178,8 @@ class Scoper {
 	 * @param Event $event Composer event.
 	 *
 	 * @return void
-	 * @noinspection MkdirRaceConditionInspection
-	 * @noinspection PhpUnused
 	 */
-	private static function prepare_scope( Event $event ) {
+	private static function prepare_scope( Event $event ): void {
 		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
 		if ( ! $packages ) {
@@ -178,11 +187,11 @@ class Scoper {
 		}
 
 		// Bail if .php-scoper/vendor dir already exists and not empty.
-		if ( self::is_not_empty_dir( __DIR__ . '/vendor' ) ) {
+		if ( self::is_not_empty_dir( __DIR__ . self::VENDOR ) ) {
 			return;
 		}
 
-		$vendor_prefixed = getcwd() . '/lib';
+		$vendor_prefixed = self::get_vendor_prefixed();
 
 		if ( ! is_dir( $vendor_prefixed ) ) {
 			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
@@ -204,7 +213,7 @@ class Scoper {
 	 *
 	 * @return void
 	 */
-	private static function scope( Event $event ) {
+	private static function scope( Event $event ): void {
 		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
 		if ( ! $scope_packages ) {
@@ -212,8 +221,8 @@ class Scoper {
 		}
 
 		$slug       = basename( getcwd() );
-		$vendor     = getcwd() . '/vendor';
-		$output_dir = getcwd() . '/lib';
+		$vendor     = self::get_vendor();
+		$output_dir = self::get_vendor_prefixed();
 
 		$vendors = array_unique(
 			array_map(
@@ -237,7 +246,7 @@ class Scoper {
 
 		self::fix_logo_on_windows();
 
-		$scoper_file = __DIR__ . '/vendor/humbug/php-scoper/bin/php-scoper';
+		$scoper_file = __DIR__ . self::VENDOR . '/humbug/php-scoper/bin/php-scoper';
 		$scoper_args =
 			'" add-prefix' .
 			' --config=.php-scoper/' . $slug . '-scoper.php' .
@@ -263,7 +272,7 @@ class Scoper {
 	 *
 	 * @return void
 	 */
-	private static function dump( BaseEvent $event ) {
+	private static function dump( BaseEvent $event ): void {
 		/**
 		 * Current event.
 		 *
@@ -294,18 +303,22 @@ class Scoper {
 		$generator->setRunScripts( false );
 		$generator->setApcu( $apcu );
 
-		$class_map = $generator->dump(
-			$config,
-			$local_repo,
-			$package,
-			$installation_manager,
-			'composer',
-			$optimize,
-			null,
-			$composer->getLocker()
-		);
+		try {
+			$class_map = $generator->dump(
+				$config,
+				$local_repo,
+				$package,
+				$installation_manager,
+				'composer',
+				$optimize,
+				null,
+				$composer->getLocker()
+			);
 
-		$number_of_classes = count( $class_map );
+			$number_of_classes = count( $class_map );
+		} catch ( ParsingException $e ) {
+			$number_of_classes = 0;
+		}
 
 		if ( $authoritative ) {
 			$event->getIO()
@@ -322,12 +335,13 @@ class Scoper {
 	 * Get finders for the scoper.
 	 *
 	 * @return Finder[]
+	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public static function get_finders(): array {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$composer_json = json_decode( file_get_contents( getcwd() . '/composer.json' ), true );
 		$packages      = $composer_json['extra']['scope-packages'] ?? [];
-		$vendor_dir    = getcwd() . '/vendor';
+		$vendor_dir    = self::get_vendor();
 		$filenames     = [ '*.php', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
 		$finders       = [];
 
@@ -354,8 +368,9 @@ class Scoper {
 	 * @param string $message Message.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedPrivateMethodInspection
 	 */
-	private static function show_message( string $message ) {
+	private static function show_message( string $message ): void {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo "\033[31m$message\033[0m" . PHP_EOL;
 	}
@@ -364,12 +379,12 @@ class Scoper {
 	 * Fix scoper logo on Windows.
 	 * On Windows, we have to replace EOLs to output Scoper logo properly.
 	 */
-	private static function fix_logo_on_windows() {
-		if ( stripos( PHP_OS, 'WIN' ) !== 0 ) {
+	private static function fix_logo_on_windows(): void {
+		if ( PHP_OS_FAMILY !== 'Windows' ) {
 			return;
 		}
 
-		$file = __DIR__ . '/vendor/humbug/php-scoper/src/Console/Application.php';
+		$file = __DIR__ . self::VENDOR . '/humbug/php-scoper/src/Console/Application.php';
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$contents = file_get_contents( $file );
@@ -387,7 +402,7 @@ class Scoper {
 	 *
 	 * @return void
 	 */
-	private static function delete_package( string $dir, string $package ) {
+	private static function delete_package( string $dir, string $package ): void {
 		self::delete_all( $dir . '/' . $package );
 
 		$vendor_name     = explode( '/', $package )[0];
@@ -453,5 +468,23 @@ class Scoper {
 			is_dir( $filename ) &&
 			! empty( glob( rtrim( $filename, '/' ) . '/{,.}[!.,!..]*', GLOB_NOSORT | GLOB_BRACE ) )
 		);
+	}
+
+	/**
+	 * Get vendor dir.
+	 *
+	 * @return string
+	 */
+	private static function get_vendor(): string {
+		return getcwd() . self::VENDOR;
+	}
+
+	/**
+	 * Get vendor prefixed dir.
+	 *
+	 * @return string
+	 */
+	private static function get_vendor_prefixed(): string {
+		return getcwd() . self::VENDOR_PREFIXED;
 	}
 }

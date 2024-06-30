@@ -19,17 +19,19 @@ class Login extends LoginBase {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_memberpress_login';
+	protected const ACTION = 'hcaptcha_memberpress_login';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_memberpress_login_nonce';
+	protected const NONCE = 'hcaptcha_memberpress_login_nonce';
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'mepr-login-form-before-submit', [ $this, 'add_captcha' ] );

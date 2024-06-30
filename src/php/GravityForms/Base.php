@@ -15,10 +15,10 @@ abstract class Base {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'gravity_forms_form';
+	public const ACTION = 'gravity_forms_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'gravity_forms_form_nonce';
+	public const NONCE = 'gravity_forms_form_nonce';
 }

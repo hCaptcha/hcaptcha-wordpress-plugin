@@ -33,7 +33,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_action( 'fusion_form_after_open', [ $this, 'form_after_open' ], 10, 2 );
 		add_action( 'fusion_element_button_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'fusion_form_demo_mode', [ $this, 'verify' ] );
@@ -48,7 +48,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function form_after_open( array $args, array $params ) {
+	public function form_after_open( array $args, array $params ): void {
 		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
 	}
 

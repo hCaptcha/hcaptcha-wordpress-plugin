@@ -27,14 +27,45 @@ use HCaptcha\Main;
  */
 class HCaptchaHandler {
 
-	const OPTION_NAME_SITE_KEY   = 'site_key';
-	const OPTION_NAME_SECRET_KEY = 'secret_key';
-	const OPTION_NAME_THEME      = 'theme';
-	const OPTION_NAME_SIZE       = 'size';
-	const FIELD_ID               = 'hcaptcha';
-	const HANDLE                 = 'hcaptcha-elementor-pro';
-	const ADMIN_HANDLE           = 'admin-elementor-pro';
-	const HCAPTCHA_HANDLE        = 'hcaptcha';
+	/**
+	 * Site Key option name.
+	 */
+	private const OPTION_NAME_SITE_KEY = 'site_key';
+
+	/**
+	 * Secret Key option name.
+	 */
+	private const OPTION_NAME_SECRET_KEY = 'secret_key';
+
+	/**
+	 * Theme option name.
+	 */
+	private const OPTION_NAME_THEME = 'theme';
+
+	/**
+	 * Size option name.
+	 */
+	private const OPTION_NAME_SIZE = 'size';
+
+	/**
+	 * Field ID.
+	 */
+	private const FIELD_ID = 'hcaptcha';
+
+	/**
+	 * Handle.
+	 */
+	public const  HANDLE = 'hcaptcha-elementor-pro';
+
+	/**
+	 * Admin handle.
+	 */
+	private const ADMIN_HANDLE = 'admin-elementor-pro';
+
+	/**
+	 * The hCaptcha handle.
+	 */
+	private const HCAPTCHA_HANDLE = 'hcaptcha';
 
 	/**
 	 * Main class instance.
@@ -61,7 +92,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function after_enqueue_scripts() {
+	public function after_enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -78,7 +109,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		$this->register_scripts();
 
 		add_action( 'elementor_pro/forms/register/action', [ $this, 'register_action' ] );
@@ -112,7 +143,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function register_action( Module $module ) {
+	public function register_action( Module $module ): void {
 		$module->add_component( self::FIELD_ID, $this );
 	}
 
@@ -217,7 +248,7 @@ class HCaptchaHandler {
 	/**
 	 * Register scripts.
 	 */
-	private function register_scripts() {
+	private function register_scripts(): void {
 		$src = $this->main->get_api_src();
 		$min = hcap_min_suffix();
 
@@ -251,7 +282,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$this->main->print_inline_styles();
 		wp_enqueue_script( static::get_script_handle() );
 		wp_enqueue_script( self::HCAPTCHA_HANDLE );
@@ -266,7 +297,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function validation( Form_Record $record, Ajax_Handler $ajax_handler ) {
+	public function validation( Form_Record $record, Ajax_Handler $ajax_handler ): void {
 		$fields = $record->get_field( [ 'type' => static::get_hcaptcha_name() ] );
 
 		if ( empty( $fields ) ) {
@@ -302,7 +333,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function render_field( array $item, int $item_index, Widget_Base $widget ) {
+	public function render_field( array $item, int $item_index, Widget_Base $widget ): void {
 		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . $item['custom_id'] . '">';
 
 		$this->add_render_attributes( $item, $item_index, $widget );
@@ -337,7 +368,7 @@ class HCaptchaHandler {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function add_render_attributes( array $item, int $item_index, Widget_Base $widget ) {
+	protected function add_render_attributes( array $item, int $item_index, Widget_Base $widget ): void {
 		$widget->add_render_attribute(
 			[
 				static::get_hcaptcha_name() . $item_index => [
@@ -379,7 +410,7 @@ class HCaptchaHandler {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function modify_controls( Controls_Stack $controls_stack, array $args ) {
+	public function modify_controls( Controls_Stack $controls_stack, array $args ): void {
 		$control_id   = 'form_fields';
 		$control_data = Plugin::$instance->controls_manager->get_control_from_stack(
 			$controls_stack->get_unique_name(),
@@ -425,7 +456,7 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	public function print_footer_scripts() {
+	public function print_footer_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -443,7 +474,7 @@ class HCaptchaHandler {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.elementor-field-type-hcaptcha .elementor-field {
 		background: transparent !important;

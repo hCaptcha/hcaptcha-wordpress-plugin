@@ -17,12 +17,12 @@ class Checkout {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_easy_digital_downloads_register';
+	private const ACTION = 'hcaptcha_easy_digital_downloads_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
+	private const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
 
 	/**
 	 * Constructor.
@@ -33,8 +33,10 @@ class Checkout {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'edd_purchase_form_before_submit', [ $this, 'add_captcha' ] );
 		add_filter( 'edd_errors', [ $this, 'verify' ] );
 	}
@@ -44,7 +46,7 @@ class Checkout {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
