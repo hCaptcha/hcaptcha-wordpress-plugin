@@ -53,7 +53,7 @@
       "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
     },
     "classmap": [
-      "lib"
+      "vendors"
     ]
   },
   "autoload-dev": {

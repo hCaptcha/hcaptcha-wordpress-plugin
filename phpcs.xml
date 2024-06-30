@@ -13,10 +13,10 @@
 	<exclude-pattern>*/bin/*</exclude-pattern>
 	<exclude-pattern>*/coverage/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
-	<exclude-pattern>*/lib/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/src/js/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/vendors/*</exclude-pattern>
 
 	<!-- How to scan -->
 	<arg value="sp"/><!-- Show sniff and progress -->

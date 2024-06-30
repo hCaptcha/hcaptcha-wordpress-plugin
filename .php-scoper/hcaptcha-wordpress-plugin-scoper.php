@@ -5,6 +5,12 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedMethodInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 declare(strict_types=1);
 
 use HCaptcha\Scoper\Scoper;
