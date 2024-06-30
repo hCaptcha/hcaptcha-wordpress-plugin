@@ -1,4 +1,4 @@
-# hCaptcha for WordPress
+# hCaptcha for WP
 
 ![Build Status](https://github.com/hCaptcha/hcaptcha-wordpress-plugin/actions/workflows/ci.yml/badge.svg?branch=master)
 

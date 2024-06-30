@@ -114,7 +114,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'please-rate'         => [
 				'title'   => 'Rate hCaptcha plugin',
-				'message' => 'Please rate <strong>hCaptcha for WordPress</strong> <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">★★★★★</a> on <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">WordPress.org</a>. Thank you!',
+				'message' => 'Please rate <strong>hCaptcha for WP</strong> <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">★★★★★</a> on <a href="https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post" target="_blank" rel="noopener noreferrer">WordPress.org</a>. Thank you!',
 				'button'  => [
 					'url'  => 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post',
 					'text' => 'Rate',

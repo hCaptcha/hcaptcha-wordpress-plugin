@@ -1,4 +1,4 @@
-=== hCaptcha for WordPress ===
+=== hCaptcha for WP ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.3
