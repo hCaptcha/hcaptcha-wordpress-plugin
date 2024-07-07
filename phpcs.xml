@@ -10,7 +10,6 @@
 	<exclude-pattern>*/\.wordpress-org/*</exclude-pattern>
 	<exclude-pattern>*/\.yarn/*</exclude-pattern>
 	<exclude-pattern>*/assets/*</exclude-pattern>
-	<exclude-pattern>*/bin/*</exclude-pattern>
 	<exclude-pattern>*/coverage/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
