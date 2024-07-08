@@ -562,6 +562,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.3.0 =
+* NOTE: the plugin has been renamed from "hCaptcha for WordPress" to "hCaptcha for WP"
 * Dropped support for PHP 7.0 and 7.1. The minimum required PHP version is now 7.2.
 * Added a live form in the Contact Form 7 admin editor.
 * Added support for Contact Form 7 embedded forms.
