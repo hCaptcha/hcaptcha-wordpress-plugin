@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        php-version: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        php-version: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
 
     env:
       wp-directory: wordpress
@@ -92,17 +92,7 @@ jobs:
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress ultimate-member wpforms-lite
-
-      - name: Install plugins requiring 7.1
-        if: ${{ matrix.php-version >= '7.1' }}
-        working-directory: ${{ env.wp-directory }}
-        run: wp plugin install wpforo
-
-      - name: Install plugins requiring 7.2
-        if: ${{ matrix.php-version >= '7.2' }}
-        working-directory: ${{ env.wp-directory }}
-        run: wp plugin install ninja-forms
+        run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo ninja-forms
 
       - name: Install plugins requiring 7.4
         if: ${{ matrix.php-version >= '7.4' }}

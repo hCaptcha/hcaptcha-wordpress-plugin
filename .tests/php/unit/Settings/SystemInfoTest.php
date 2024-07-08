@@ -253,7 +253,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 				'Version' => '5.9.3',
 			],
 			'hcaptcha-wordpress-plugin/hcaptcha.php' => [
-				'Name'    => 'hCaptcha for WordPress',
+				'Name'    => 'hCaptcha for WP',
 				'Version' => '3.10.1',
 			],
 			'woocommerce/woocommerce.php'            => [
@@ -315,7 +315,8 @@ Migrations:
 --- Active plugins and themes ---
 
 Contact Form 7:                       
-  Form:                               On
+  Form Auto-Add:                      On
+  Form Embed:                         Off
 WP Core:                              
   Comment Form:                       Off
   Login Form:                         Off
@@ -512,7 +513,7 @@ kagg-shortcuts.php:
 -- WordPress Active Plugins --
 
 Contact Form 7:                       5.9.3
-hCaptcha for WordPress:               3.10.1
+hCaptcha for WP:                      3.10.1
 
 -- WordPress Inactive Plugins --
 

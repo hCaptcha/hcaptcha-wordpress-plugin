@@ -28,6 +28,7 @@
  * @param {Object} $ jQuery instance.
  */
 const general = function( $ ) {
+	const headerBarSelector = '.hcaptcha-header-bar';
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 	const $form = $( 'form.hcaptcha-general' );
@@ -105,7 +106,7 @@ const general = function( $ ) {
 	function getCleanConsoleLogs() {
 		const ignore = [
 			'recaptchacompat disabled',
-			'Missing sitekey - https://hcaptcha.com/docs/configuration#jsapi',
+			'Missing sitekey - https://docs.hcaptcha.com/configuration#javascript-api',
 		];
 		const logs = [];
 
@@ -151,7 +152,7 @@ const general = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		$( '<div id="hcaptcha-message"></div>' ).insertAfter( '#hcaptcha-options h2' );
+		$( '<div id="hcaptcha-message"></div>' ).insertAfter( headerBarSelector );
 		$message = $( msgSelector );
 	}
 
@@ -311,6 +312,7 @@ const general = function( $ ) {
 			siteKey: $siteKey.val(),
 			secretKey: $secretKey.val(),
 			'h-captcha-response': $( 'textarea[name="h-captcha-response"]' ).val(),
+			'hcaptcha-widget-id': $( 'input[name="hcaptcha-widget-id"]' ).val(),
 		};
 
 		// noinspection JSVoidFunctionReturnValueUsed,JSCheckFunctionSignatures

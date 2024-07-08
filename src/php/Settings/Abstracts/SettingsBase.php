@@ -19,27 +19,27 @@ abstract class SettingsBase {
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'settings-base';
+	public const HANDLE = 'settings-base';
 
 	/**
 	 * Plugin prefix.
 	 */
-	const PREFIX = 'kagg';
+	public const PREFIX = 'kagg';
 
 	/**
 	 * Network-wide option suffix.
 	 */
-	const NETWORK_WIDE = '_network_wide';
+	public const NETWORK_WIDE = '_network_wide';
 
 	/**
 	 * Pages mode.
 	 */
-	const MODE_PAGES = 'pages';
+	public const MODE_PAGES = 'pages';
 
 	/**
 	 * Tabs mode.
 	 */
-	const MODE_TABS = 'tabs';
+	public const MODE_TABS = 'tabs';
 
 	/**
 	 * Menu position.
@@ -47,14 +47,14 @@ abstract class SettingsBase {
 	 * A number after 58.9 (WPForms),
 	 * but before 59 (Separator) and 60 (Appearance) to avoid conflicts with other plugins.
 	 */
-	const POSITION = 58.99;
+	private const POSITION = 58.99;
 
 	/**
 	 * Network-wide menu position.
 	 *
 	 * A number before 25 (Settings) to avoid conflicts with other plugins.
 	 */
-	const NETWORK_WIDE_POSITION = 24.99;
+	private const NETWORK_WIDE_POSITION = 24.99;
 
 	/**
 	 * Form fields.
@@ -250,9 +250,10 @@ abstract class SettingsBase {
 	/**
 	 * Init class.
 	 *
+	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function init() {
+	public function init(): void {
 		$this->min_suffix = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
 
 		$this->form_fields();
@@ -265,14 +266,17 @@ abstract class SettingsBase {
 
 	/**
 	 * Init class hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
 		add_action( 'admin_page_access_denied', [ $this, 'base_admin_page_access_denied' ] );
 
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
 			add_filter( 'plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
+			add_filter( 'network_admin_plugin_action_links_' . $this->plugin_basename(), [ $this, 'add_settings_link' ] );
 		}
 
 		if ( $this->is_tab_active( $this ) ) {
@@ -291,8 +295,10 @@ abstract class SettingsBase {
 
 	/**
 	 * Init form fields.
+	 *
+	 * @return void
 	 */
-	public function init_form_fields() {
+	public function init_form_fields(): void {
 		$this->form_fields = [];
 	}
 
@@ -303,7 +309,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function process_args( array $args ) {
+	protected function process_args( array $args ): void {
 		$args = wp_parse_args(
 			$args,
 			[
@@ -402,8 +408,10 @@ abstract class SettingsBase {
 	 * Store all settings in a single database entry
 	 * and make sure the $settings array is either the default
 	 * or the settings stored in the database.
+	 *
+	 * @return void
 	 */
-	protected function init_settings() {
+	protected function init_settings(): void {
 		if ( $this->is_network_wide() ) {
 			$this->settings = get_site_option( $this->option_name(), null );
 		} else {
@@ -478,7 +486,7 @@ abstract class SettingsBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function set_defaults( array &$field, string $id ) {
+	protected function set_defaults( array &$field, string $id ): void {
 		$field = wp_parse_args(
 			$field,
 			[
@@ -498,7 +506,7 @@ abstract class SettingsBase {
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function add_settings_page() {
+	public function add_settings_page(): void {
 		if ( $this->parent_slug ) {
 			add_submenu_page(
 				$this->parent_slug,
@@ -521,6 +529,15 @@ abstract class SettingsBase {
 				$this->position
 			);
 
+			add_submenu_page(
+				$this->option_page(),
+				$this->page_title(),
+				$this->page_title(),
+				'manage_options',
+				$this->option_page(),
+				[ $this, 'settings_base_page' ]
+			);
+
 			foreach ( $this->tabs as $tab ) {
 				add_submenu_page(
 					$this->option_page(),
@@ -536,8 +553,10 @@ abstract class SettingsBase {
 
 	/**
 	 * Invoke relevant settings_page() basing on tabs.
+	 *
+	 * @return void
 	 */
-	public function settings_base_page() {
+	public function settings_base_page(): void {
 		echo '<div class="wrap">';
 
 		$this->get_active_tab()->settings_page();
@@ -547,8 +566,10 @@ abstract class SettingsBase {
 
 	/**
 	 * Enqueue scripts in admin.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 	}
 
 	/**
@@ -557,7 +578,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function base_admin_enqueue_scripts() {
+	public function base_admin_enqueue_scripts(): void {
 		wp_enqueue_style(
 			static::PREFIX . '-settings-admin',
 			$this->plugin_url() . "/assets/css/settings-admin$this->min_suffix.css",
@@ -593,7 +614,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function base_admin_page_access_denied() {
+	public function base_admin_page_access_denied(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
@@ -619,7 +640,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function exit() {
+	protected function exit(): void {
 		// @codeCoverageIgnoreStart
 		exit();
 		// @codeCoverageIgnoreEnd
@@ -630,7 +651,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function setup_sections() {
+	public function setup_sections(): void {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
@@ -663,7 +684,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function setup_tabs_section() {
+	public function setup_tabs_section(): void {
 		if ( ! $this->is_main_menu_page() ) {
 			return;
 		}
@@ -685,7 +706,7 @@ abstract class SettingsBase {
 	/**
 	 * Show tabs.
 	 */
-	public function tabs_callback() {
+	public function tabs_callback(): void {
 		?>
 		<div class="<?php echo esc_attr( static::PREFIX . '-settings-tabs' ); ?>">
 			<span class="<?php echo esc_attr( static::PREFIX . '-settings-links' ); ?>">
@@ -712,11 +733,13 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Show a tab link.
+	 * Get tab url.
 	 *
 	 * @param SettingsBase $tab Tabs of the current settings page.
+	 *
+	 * @return string
 	 */
-	private function tab_link( SettingsBase $tab ) {
+	public function tab_url( SettingsBase $tab ): string {
 		$url = is_multisite() && $this->is_network_wide() ?
 			network_admin_url( 'admin.php?page=' . $tab->option_page() ) :
 			menu_page_url( $tab->option_page(), false );
@@ -725,6 +748,18 @@ abstract class SettingsBase {
 			$url = add_query_arg( 'tab', strtolower( $tab->tab_name() ), $url );
 		}
 
+		return $url;
+	}
+
+	/**
+	 * Show a tab link.
+	 *
+	 * @param SettingsBase $tab Tabs of the current settings page.
+	 *
+	 * @return void
+	 */
+	private function tab_link( SettingsBase $tab ): void {
+		$url    = $this->tab_url( $tab );
 		$active = $tab->is_tab_active( $tab ) ? ' active' : '';
 		$class  = static::PREFIX . '-settings-tab' . $active;
 
@@ -846,7 +881,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function setup_fields() {
+	public function setup_fields(): void {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
@@ -878,8 +913,10 @@ abstract class SettingsBase {
 	 * Print text/password field.
 	 *
 	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
 	 */
-	protected function print_text_field( array $arguments ) {
+	protected function print_text_field( array $arguments ): void {
 		$value        = $this->get( $arguments['field_id'] );
 		$autocomplete = '';
 		$lp_ignore    = '';
@@ -910,8 +947,10 @@ abstract class SettingsBase {
 	 * Print number field.
 	 *
 	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
 	 */
-	protected function print_number_field( array $arguments ) {
+	protected function print_number_field( array $arguments ): void {
 		$value = $this->get( $arguments['field_id'] );
 		$min   = $arguments['min'];
 		$max   = $arguments['max'];
@@ -937,9 +976,10 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	protected function print_textarea_field( array $arguments ) {
+	protected function print_textarea_field( array $arguments ): void {
 		$value = $this->get( $arguments['field_id'] );
 
 		printf(
@@ -957,10 +997,11 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 * @noinspection HtmlWrongAttributeValue
 	 */
-	protected function print_checkbox_field( array $arguments ) {
+	protected function print_checkbox_field( array $arguments ): void {
 		$value = (array) $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -1023,10 +1064,11 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 * @noinspection HtmlWrongAttributeValue
 	 */
-	protected function print_radio_field( array $arguments ) {
+	protected function print_radio_field( array $arguments ): void {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -1089,9 +1131,10 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	protected function print_select_field( array $arguments ) {
+	protected function print_select_field( array $arguments ): void {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -1139,9 +1182,10 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	protected function print_multiple_select_field( array $arguments ) {
+	protected function print_multiple_select_field( array $arguments ): void {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( empty( $arguments['options'] ) || ! is_array( $arguments['options'] ) ) {
@@ -1195,9 +1239,10 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	protected function print_table_field( array $arguments ) {
+	protected function print_table_field( array $arguments ): void {
 		$value = $this->get( $arguments['field_id'] );
 
 		if ( ! is_array( $value ) ) {
@@ -1244,9 +1289,10 @@ abstract class SettingsBase {
 	 *
 	 * @param array $arguments Field arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	protected function print_button_field( array $arguments ) {
+	protected function print_button_field( array $arguments ): void {
 		$disabled = $arguments['disabled'] ?? '';
 		$field_id = $arguments['field_id'] ?? '';
 		$text     = $arguments['text'] ?? '';
@@ -1263,8 +1309,10 @@ abstract class SettingsBase {
 	 * Output settings field.
 	 *
 	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
 	 */
-	public function field_callback( array $arguments ) {
+	public function field_callback( array $arguments ): void {
 		if ( empty( $arguments['field_id'] ) ) {
 			return;
 		}
@@ -1383,8 +1431,10 @@ abstract class SettingsBase {
 	 *
 	 * @param string $key   Setting name.
 	 * @param mixed  $value Setting value.
+	 *
+	 * @return void
 	 */
-	public function update_option( string $key, $value ) {
+	public function update_option( string $key, $value ): void {
 		if ( empty( $this->settings ) ) {
 			$this->init_settings();
 		}
@@ -1439,7 +1489,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function load_plugin_textdomain() {
+	public function load_plugin_textdomain(): void {
 		load_plugin_textdomain(
 			$this->text_domain(),
 			false,
@@ -1483,7 +1533,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function print_helper( string $helper ) {
+	protected function print_helper( string $helper ): void {
 		if ( ! $helper ) {
 			return;
 		}
@@ -1501,7 +1551,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function print_supplemental( string $supplemental ) {
+	protected function print_supplemental( string $supplemental ): void {
 		if ( ! $supplemental ) {
 			return;
 		}
@@ -1550,7 +1600,7 @@ abstract class SettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function print_header() {
+	protected function print_header(): void {
 		?>
 		<div class="<?php echo esc_attr( static::PREFIX . '-header-bar' ); ?>">
 			<div class="<?php echo esc_attr( static::PREFIX . '-header' ); ?>">

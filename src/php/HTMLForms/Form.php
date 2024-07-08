@@ -22,17 +22,17 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'html_forms_form';
+	private const ACTION = 'html_forms_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'html_forms_form_nonce';
+	private const NONCE = 'html_forms_form_nonce';
 
 	/**
 	 * The hCaptcha general error code.
 	 */
-	const HCAPTCHA_ERROR = 'hcaptcha_error';
+	private const HCAPTCHA_ERROR = 'hcaptcha_error';
 
 	/**
 	 * Error message.
@@ -50,8 +50,10 @@ class Form {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'hf_form_html', [ $this, 'add_captcha' ], 10, 2 );
 		add_action( 'hf_admin_output_form_tab_fields', [ $this, 'add_to_fields' ] );
 		add_filter( 'hf_validate_form_request_size', '__return_false' );
@@ -107,7 +109,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function add_to_fields( \HTML_Forms\Form $form ) {
+	public function add_to_fields( \HTML_Forms\Form $form ): void {
 		if ( false !== strpos( $form->markup, 'class="h-captcha"' ) ) {
 			return;
 		}
@@ -152,6 +154,7 @@ class Form {
 	 *
 	 * @return array
 	 * @noinspection RegExpRedundantEscape
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function insert_post_data( $data, array $postarr, array $unsanitized_postarr, bool $update ): array {
 		$data = (array) $data;
@@ -181,7 +184,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function get_message( string $error_code ) {
+	public function get_message( string $error_code ): ?string {
 
 		return $this->error_message;
 	}
@@ -192,7 +195,7 @@ class Form {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	#form-preview .h-captcha {
 		margin-bottom: 2rem;

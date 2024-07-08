@@ -19,12 +19,12 @@ abstract class PluginSettingsBase extends SettingsBase {
 	/**
 	 * Plugin prefix.
 	 */
-	const PREFIX = 'hcaptcha';
+	public const PREFIX = 'hcaptcha';
 
 	/**
 	 * Settings option name.
 	 */
-	const OPTION_NAME = 'hcaptcha_settings';
+	public const OPTION_NAME = 'hcaptcha_settings';
 
 	/**
 	 * The 'submit' button was shown.
@@ -162,7 +162,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	/**
 	 * Setup settings fields.
 	 */
-	public function setup_fields() {
+	public function setup_fields(): void {
 		$prefix = self::PREFIX . '-' . static::section_title() . '-';
 
 		foreach ( $this->form_fields as $key => $form_field ) {
@@ -176,8 +176,10 @@ abstract class PluginSettingsBase extends SettingsBase {
 
 	/**
 	 * Show settings page.
+	 *
+	 * @return void
 	 */
-	public function settings_page() {
+	public function settings_page(): void {
 		?>
 		<img
 				src="<?php echo esc_url( constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-logo.svg' ); ?>"
@@ -207,7 +209,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return void
 	 */
-	public function submit_button() {
+	public function submit_button(): void {
 		if ( $this->submit_shown ) {
 			return;
 		}
@@ -236,7 +238,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 			sprintf(
 			/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
 				__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
-				'<strong>hCaptcha for WordPress</strong>',
+				'<strong>hCaptcha for WP</strong>',
 				sprintf(
 					'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
 					$url
@@ -282,7 +284,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function run_checks( string $action ) {
+	protected function run_checks( string $action ): void {
 		// Run a security check.
 		if ( ! check_ajax_referer( $action, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );

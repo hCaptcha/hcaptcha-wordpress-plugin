@@ -6,13 +6,22 @@ export class helper {
 			return;
 		}
 
+		const hCaptchaData = helper.getHCaptchaData( $node, nonceName );
+
+		options.data +=
+			'&h-captcha-response=' + hCaptchaData.response +
+			'&hcaptcha-widget-id=' + hCaptchaData.id +
+			'&' + nonceName + '=' + hCaptchaData.nonce;
+	}
+
+	static getHCaptchaData( $node, nonceName ) {
 		let response = $node.find( '[name="h-captcha-response"]' ).val();
 		response = response ? response : '';
 		let id = $node.find( '[name="hcaptcha-widget-id"]' ).val();
 		id = id ? id : '';
 		let nonce = $node.find( '[name="' + nonceName + '"]' ).val();
 		nonce = nonce ? nonce : '';
-		options.data +=
-			'&h-captcha-response=' + response + '&hcaptcha-widget-id=' + id + '&' + nonceName + '=' + nonce;
+
+		return { response, id, nonce };
 	}
 }

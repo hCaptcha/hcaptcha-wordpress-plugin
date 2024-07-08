@@ -25,17 +25,17 @@ class Form {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-otter';
+	private const HANDLE = 'hcaptcha-otter';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_otter';
+	private const ACTION = 'hcaptcha_otter';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_otter_nonce';
+	private const NONCE = 'hcaptcha_otter_nonce';
 
 	/**
 	 * Otter Form constructor.
@@ -49,7 +49,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_filter( 'option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 10, 2 );
 		add_filter( 'default_option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 99, 3 );
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
@@ -115,7 +115,7 @@ class Form {
 	 *
 	 * @return Form_Data_Request|null
 	 */
-	public function verify( $form_data ) {
+	public function verify( $form_data ): ?Form_Data_Request {
 		if ( ! isset( $form_data ) ) {
 			return $form_data;
 		}
@@ -144,7 +144,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}

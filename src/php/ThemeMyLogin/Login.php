@@ -18,8 +18,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
@@ -31,7 +33,7 @@ class Login extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		if ( ! did_action( 'tml_render_form' ) ) {
 			return;
 		}

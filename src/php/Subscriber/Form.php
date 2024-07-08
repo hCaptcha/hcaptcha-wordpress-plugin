@@ -17,12 +17,12 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_subscriber_form';
+	private const ACTION = 'hcaptcha_subscriber_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_subscriber_form_nonce';
+	private const NAME = 'hcaptcha_subscriber_form_nonce';
 
 	/**
 	 * Form constructor.
@@ -36,7 +36,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'sbscrbr_add_field', [ $this, 'add_captcha' ] );
 		add_filter( 'sbscrbr_check', [ $this, 'verify' ] );
 	}

@@ -20,19 +20,19 @@ class Contact extends Base {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_beaver_builder';
+	protected const ACTION = 'hcaptcha_beaver_builder';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_beaver_builder_nonce';
+	protected const NONCE = 'hcaptcha_beaver_builder_nonce';
 
 	/**
 	 * Add hooks.
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( 'fl_builder_render_module_content', [ $this, 'add_beaver_builder_captcha' ], 10, 2 );
@@ -69,7 +69,7 @@ class Contact extends Base {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( string $mailto, string $subject, string $template, array $headers, stdClass $settings ) {
+	public function verify( string $mailto, string $subject, string $template, array $headers, stdClass $settings ): void {
 
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 

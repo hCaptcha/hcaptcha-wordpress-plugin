@@ -8,6 +8,7 @@
 namespace HCaptcha\Admin\Events;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Settings\General;
 
 /**
  * Class Events.
@@ -17,7 +18,7 @@ class Events {
 	/**
 	 * Table name.
 	 */
-	const TABLE_NAME = 'hcaptcha_events';
+	public const TABLE_NAME = 'hcaptcha_events';
 
 	/**
 	 * Class constructor.
@@ -33,12 +34,12 @@ class Events {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		if ( ! hcaptcha()->settings()->is_on( 'statistics' ) ) {
 			return;
 		}
 
-		add_action( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
+		add_filter( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
 	}
 
 	/**
@@ -47,13 +48,13 @@ class Events {
 	 * @param string|null|mixed $result      The hCaptcha verification result.
 	 * @param array             $error_codes Error codes.
 	 *
-	 * @return void
+	 * @return string|null|mixed
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
-			return;
+			return $result;
 		}
 
 		$settings   = hcaptcha()->settings();
@@ -72,6 +73,14 @@ class Events {
 
 		$info = HCaptcha::decode_id_info();
 
+		if (
+			[ General::class ] === $info['id']['source'] &&
+			General::CHECK_CONFIG_FORM_ID === $info['id']['form_id']
+		) {
+			// Do not store events from the check config form.
+			return $result;
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->insert(
 			$wpdb->prefix . self::TABLE_NAME,
@@ -85,6 +94,8 @@ class Events {
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
+
+		return $result;
 	}
 
 	/**
@@ -226,7 +237,7 @@ class Events {
 	 *
 	 * @return void
 	 */
-	public static function create_table() {
+	public static function create_table(): void {
 		global $wpdb;
 
 		$table_name = self::TABLE_NAME;

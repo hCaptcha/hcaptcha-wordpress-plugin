@@ -24,8 +24,10 @@ abstract class LostPasswordBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( static::ADD_CAPTCHA_ACTION, [ $this, 'add_captcha' ] );
 		add_action( 'lostpassword_post', [ $this, 'verify' ] );
 	}
@@ -35,7 +37,7 @@ abstract class LostPasswordBase {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
@@ -56,7 +58,7 @@ abstract class LostPasswordBase {
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function verify( $errors ) {
+	public function verify( $errors ): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_value = isset( $_POST[ static::POST_KEY ] ) ?
 			sanitize_text_field( wp_unslash( $_POST[ static::POST_KEY ] ) ) :

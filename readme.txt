@@ -1,10 +1,10 @@
-=== hCaptcha for WordPress ===
+=== hCaptcha for WP ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.3
-Tested up to: 6.5
-Requires PHP: 7.0.0
-Stable tag: 4.2.0
+Tested up to: 6.6
+Requires PHP: 7.2
+Stable tag: 4.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,12 +31,13 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 1. Login page with hCaptcha widget
 2. Login page with hCaptcha challenge
 3. WooCommerce Login/Register page
-4. Contact From 7 with hCaptcha
-5. General settings page
-6. Integrations settings page
-7. Activating plugin from the Integration settings page
-8. (Optional) Local Forms statistics
-9. (Optional) Local Events statistics
+4. Contact Form 7 with hCaptcha
+5. Contact Form 7 live form in the admin editor. 
+6. General settings page
+7. Integrations settings page
+8. Activating plugin from the Integration settings page
+9. (Optional) Local Forms statistics
+10. (Optional) Local Events statistics
 
 == Installation ==
 
@@ -559,6 +560,30 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.3.0 =
+* Dropped support for PHP 7.0 and 7.1. The minimum required PHP version is now 7.2.
+* Added a live form in the Contact Form 7 admin editor.
+* Added support for Contact Form 7 embedded forms.
+* Added support for the WooCommerce Checkout block.
+* Added support for GiveWP block forms created via Form Builder.
+* Added check if a plugin or theme is installed before activation.
+* Added activation of dependent plugins with a theme.
+* Fixed missing sitekey error processing on General page.
+* Fixed naming of the first submenu item.
+* Fixed storing of check config events to the database.
+* Fixed notifications links in menu pages mode.
+* Fixed Firefox issue with not showing hCaptcha when the API script was delayed until user interaction.
+* Fixed error on activation/deactivation of a theme.
+* Fixed error on activating Brizy plugin.
+* Fixed issue with updated Brizy plugin.
+* Fixed issue with updated Divi EmailOptin module.
+* Tested with WordPress 6.6.
+* Tested with WooCommerce 9.0.
+
+= 4.2.1 =
+* Fixed message layout on the General and Integrations pages.
+* Fixed processing of WooCommerce Register form.
 
 = 4.2.0 =
 * The minimum required WordPress version is now 5.3.

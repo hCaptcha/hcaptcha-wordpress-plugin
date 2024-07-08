@@ -26,27 +26,27 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_fluentform';
+	private const ACTION = 'hcaptcha_fluentform';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_fluentform_nonce';
+	private const NONCE = 'hcaptcha_fluentform_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-fluentform';
+	private const HANDLE = 'hcaptcha-fluentform';
 
 	/**
 	 * Admin script handle.
 	 */
-	const ADMIN_HANDLE = 'admin-fluentform';
+	private const ADMIN_HANDLE = 'admin-fluentform';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaFluentFormObject';
+	private const OBJECT = 'HCaptchaFluentFormObject';
 
 	/**
 	 * Conversational form id.
@@ -64,8 +64,10 @@ class Form {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'fluentform/rendering_field_html_hcaptcha', [ $this, 'render_field_hcaptcha' ], 10, 3 );
 		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_captcha' ], 9, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
@@ -104,7 +106,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( array $submit_button, stdClass $form ) {
+	public function add_captcha( array $submit_button, stdClass $form ): void {
 		// Do not add if the form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return;
@@ -163,7 +165,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		global $wp_scripts;
 
 		$fluent_forms_conversational_script = 'fluent_forms_conversational_form';
@@ -221,7 +223,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		if ( ! $this->is_fluent_forms_admin_page() ) {
 			return;
 		}
@@ -343,7 +345,7 @@ class Form {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.frm-fluent-form .h-captcha {
 		line-height: 0;

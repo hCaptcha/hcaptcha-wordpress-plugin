@@ -17,6 +17,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
 use HCaptcha\BuddyPress\CreateGroup;
+use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
@@ -849,8 +850,8 @@ CSS;
 			clearTimeout( timerId );
 
 			window.removeEventListener( 'touchstart', load );
-			document.removeEventListener( 'mouseenter', load );
-			document.removeEventListener( 'click', load );
+			document.body.removeEventListener( 'mouseenter', load );
+			document.body.removeEventListener( 'click', load );
 			window.removeEventListener( 'load', delayedLoad );
 
 			const t = document.getElementsByTagName( 'script' )[0];
@@ -884,8 +885,8 @@ CSS;
 		}
 
 		window.addEventListener( 'touchstart', load );
-		document.addEventListener( 'mouseenter', load );
-		document.addEventListener( 'click', load );
+		document.body.addEventListener( 'mouseenter', load );
+		document.body.addEventListener( 'click', load );
 		window.addEventListener( 'load', delayedLoad );
 	} )();
 JS;
@@ -1369,7 +1370,7 @@ JS;
 			'Contact Form 7'                    => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
-				CF7::class,
+				[ CF7::class, Admin::class ],
 			],
 			'Divi Comment Form'                 => [
 				[ 'divi_status', 'comment' ],

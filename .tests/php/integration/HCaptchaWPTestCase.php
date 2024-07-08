@@ -168,12 +168,12 @@ class HCaptchaWPTestCase extends WPTestCase {
 
 		return $this->get_hcap_widget( $id ) . '
 				<div
-			class="h-captcha"
-			data-sitekey="' . $data_sitekey . '"
-			data-theme="' . $data_theme . '"
-			data-size="' . $data_size . '"
-			data-auto="' . $data_auto . '"
-			data-force="' . $data_force . '">
+				class="h-captcha"
+				data-sitekey="' . $data_sitekey . '"
+				data-theme="' . $data_theme . '"
+				data-size="' . $data_size . '"
+				data-auto="' . $data_auto . '"
+				data-force="' . $data_force . '">
 		</div>
 		' . $nonce_field;
 	}

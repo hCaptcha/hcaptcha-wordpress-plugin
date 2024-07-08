@@ -17,17 +17,17 @@ class Form {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-acfe';
+	public const HANDLE = 'hcaptcha-acfe';
 
 	/**
 	 * Render hook.
 	 */
-	const RENDER_HOOK = 'acf/render_field/type=acfe_recaptcha';
+	public const RENDER_HOOK = 'acf/render_field/type=acfe_recaptcha';
 
 	/**
 	 * Validation hook.
 	 */
-	const VALIDATION_HOOK = 'acf/validate_value/type=acfe_recaptcha';
+	public const VALIDATION_HOOK = 'acf/validate_value/type=acfe_recaptcha';
 
 	/**
 	 * Form id.
@@ -55,7 +55,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_action( 'acfe/form/render/before_fields', [ $this, 'before_fields' ] );
 		add_action( self::RENDER_HOOK, [ $this, 'remove_recaptcha_render' ], 8 );
 		add_action( self::RENDER_HOOK, [ $this, 'add_hcaptcha' ], 11 );
@@ -71,7 +71,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function before_fields( array $args ) {
+	public function before_fields( array $args ): void {
 		$this->form_id = $args['ID'];
 	}
 
@@ -83,7 +83,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function remove_recaptcha_render( array $field ) {
+	public function remove_recaptcha_render( array $field ): void {
 		if ( ! $this->is_recaptcha( $field ) ) {
 			return;
 		}
@@ -100,7 +100,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function add_hcaptcha( array $field ) {
+	public function add_hcaptcha( array $field ): void {
 		if ( ! $this->is_recaptcha( $field ) ) {
 			return;
 		}
@@ -183,7 +183,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! $this->captcha_added ) {
 			return;
 		}

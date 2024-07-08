@@ -22,12 +22,12 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_mailchimp';
+	private const ACTION = 'hcaptcha_mailchimp';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_mailchimp_nonce';
+	private const NAME = 'hcaptcha_mailchimp_nonce';
 
 	/**
 	 * Form constructor.
@@ -41,7 +41,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_filter( 'mc4wp_form_messages', [ $this, 'add_hcap_error_messages' ], 10, 2 );
 		add_filter( 'mc4wp_form_content', [ $this, 'add_captcha' ], 20, 3 );
 		add_filter( 'mc4wp_form_errors', [ $this, 'verify' ], 10, 2 );

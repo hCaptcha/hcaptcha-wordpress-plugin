@@ -85,8 +85,9 @@ class Field extends NF_Abstracts_Field {
 	 * @param mixed       $data  Data.
 	 *
 	 * @return null|string
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function validate( $field, $data ) {
+	public function validate( $field, $data ): ?string {
 		$value = $field['value'] ?? '';
 
 		return hcaptcha_request_verify( $value );

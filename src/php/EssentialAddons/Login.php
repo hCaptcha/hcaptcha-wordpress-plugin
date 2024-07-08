@@ -23,8 +23,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'eael/login-register/before-login-footer', [ $this, 'add_login_hcaptcha' ] );
@@ -39,7 +41,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_login_hcaptcha( Widget_Base $widget ) {
+	public function add_login_hcaptcha( Widget_Base $widget ): void {
 		$this->add_captcha();
 	}
 
@@ -53,7 +55,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( array $post, array $settings, Bootstrap $bootstrap ) {
+	public function verify( array $post, array $settings, Bootstrap $bootstrap ): void {
 		if ( ! $this->is_login_limit_exceeded() ) {
 			return;
 		}

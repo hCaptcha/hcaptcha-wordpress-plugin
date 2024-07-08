@@ -21,7 +21,7 @@ class Form extends Base {
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-gravity-forms';
+	public const HANDLE = 'hcaptcha-gravity-forms';
 
 	/**
 	 * The hCaptcha error message.
@@ -53,8 +53,10 @@ class Form extends Base {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		$this->mode_auto  = hcaptcha()->settings()->is( 'gravity_status', 'form' );
 		$this->mode_embed = hcaptcha()->settings()->is( 'gravity_status', 'embed' );
 
@@ -190,7 +192,7 @@ class Form extends Base {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.gform_previous_button + .h-captcha {
 		margin-top: 2rem;
@@ -234,7 +236,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}

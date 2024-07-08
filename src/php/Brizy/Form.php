@@ -12,24 +12,28 @@ namespace HCaptcha\Brizy;
  * Supports Brizy form.
  */
 class Form extends Base {
+	/**
+	 * Script handle.
+	 */
+	public const HANDLE = 'hcaptcha-brizy';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_brizy_form';
+	protected const ACTION = 'hcaptcha_brizy_form';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_brizy_nonce';
+	protected const NAME = 'hcaptcha_brizy_nonce';
 
 	/**
 	 * Add captcha hook.
 	 */
-	const ADD_CAPTCHA_HOOK = 'brizy_content';
+	protected const ADD_CAPTCHA_HOOK = 'brizy_content';
 
 	/**
 	 * Verify hook.
 	 */
-	const VERIFY_HOOK = 'brizy_form';
+	protected const VERIFY_HOOK = 'brizy_form';
 }

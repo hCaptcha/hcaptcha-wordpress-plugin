@@ -26,8 +26,11 @@ function getDom() {
 		<tbody>
 		<tr class="hcaptcha-integrations-wp-status">
 			<th scope="row">
-				<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/wp-core-logo.png"
-					 alt="WP Core Logo" data-entity="core">
+				<div class="hcaptcha-integrations-logo">
+					<img
+						src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/wp-core-logo.png"
+					 	alt="WP Core Logo" data-entity="core">
+				 </div>
 			</th>
 			<td>
 				<fieldset>
@@ -70,8 +73,11 @@ function getDom() {
 		<tbody>
 		<tr class="hcaptcha-integrations-acfe-status">
 			<th scope="row">
-				<img src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/acf-extended-logo.png"
-					 alt="ACF Extended Logo" data-entity="plugin">
+				<div class="hcaptcha-integrations-logo">
+					<img
+						src="https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/acf-extended-logo.png"
+					 	alt="ACF Extended Logo" data-entity="plugin">
+				 </div>
 			</th>
 			<td>
 				<fieldset disabled="disabled">
@@ -146,6 +152,9 @@ describe( 'integrations', () => {
 
 	test( 'clicking on an image sends an AJAX request', () => {
 		const $img = $( '.form-table img' );
+		const $logo = $img.closest( '.hcaptcha-integrations-logo' );
+
+		$logo.data( 'installed', true );
 
 		// No ajax call on click at WP Core.
 		$( $img.get( 0 ) ).trigger( 'click' );

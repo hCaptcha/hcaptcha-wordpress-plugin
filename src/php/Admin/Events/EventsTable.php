@@ -32,7 +32,7 @@ class EventsTable extends WP_List_Table {
 	/**
 	 * Events per page option.
 	 */
-	const EVENTS_PER_PAGE = 'hcaptcha_events_per_page';
+	private const EVENTS_PER_PAGE = 'hcaptcha_events_per_page';
 
 	/**
 	 * Plugin page hook.
@@ -93,7 +93,7 @@ class EventsTable extends WP_List_Table {
 	 *
 	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		$this->datetime_format = [
 			'date' => get_option( 'date_format' ),
 			'time' => get_option( 'time_format' ),
@@ -121,7 +121,7 @@ class EventsTable extends WP_List_Table {
 	 *
 	 * @return void
 	 */
-	public function add_screen_option() {
+	public function add_screen_option(): void {
 		$args = [
 			'label'   => __( 'Number of items per page:', 'hcaptcha-for-forms-and-more' ),
 			'default' => $this->per_page_default,
@@ -172,7 +172,7 @@ class EventsTable extends WP_List_Table {
 	/**
 	 * Fetch and set up the final data for the table.
 	 */
-	public function prepare_items() {
+	public function prepare_items(): void {
 		$hidden                = get_hidden_columns( $this->screen );
 		$sortable              = $this->get_sortable_columns();
 		$this->_column_headers = [ $this->columns, $hidden, $sortable ];
@@ -224,7 +224,7 @@ class EventsTable extends WP_List_Table {
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_name( $item ): string {
+	protected function column_name( object $item ): string {
 		$source = (array) json_decode( $item->source, true );
 
 		foreach ( $source as &$slug ) {
@@ -251,7 +251,7 @@ class EventsTable extends WP_List_Table {
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_user_agent( $item ): string {
+	protected function column_user_agent( object $item ): string {
 		return $this->excerpt( $item->user_agent );
 	}
 
@@ -262,7 +262,7 @@ class EventsTable extends WP_List_Table {
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_error_codes( $item ): string {
+	protected function column_error_codes( object $item ): string {
 		$error_codes = (array) json_decode( $item->error_codes, true );
 		$errors      = hcap_get_error_messages();
 		$message_arr = [];
@@ -287,7 +287,7 @@ class EventsTable extends WP_List_Table {
 	 *
 	 * @noinspection PhpUnused PhpUnused.
 	 */
-	protected function column_date_gmt( $item ): string {
+	protected function column_date_gmt( object $item ): string {
 		$date    = $item->date_gmt;
 		$wp_date = wp_date( $this->datetime_format['date'] . ' ' . $this->datetime_format['time'], strtotime( $date ) );
 

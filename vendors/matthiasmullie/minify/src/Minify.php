@@ -52,8 +52,8 @@ abstract class Minify
     public function __construct()
     {
         // it's possible to add the source through the constructor as well ;)
-        if (\func_num_args()) {
-            \call_user_func_array(array($this, 'add'), \func_get_args());
+        if (func_num_args()) {
+            call_user_func_array(array($this, 'add'), func_get_args());
         }
     }
     /**
@@ -69,21 +69,21 @@ abstract class Minify
         // not used (we're using func_get_args instead to support overloading),
         // but it still needs to be defined because it makes no sense to have
         // this function without argument :)
-        $args = array($data) + \func_get_args();
+        $args = array($data) + func_get_args();
         // this method can be overloaded
         foreach ($args as $data) {
-            if (\is_array($data)) {
-                \call_user_func_array(array($this, 'add'), $data);
+            if (is_array($data)) {
+                call_user_func_array(array($this, 'add'), $data);
                 continue;
             }
             // redefine var
             $data = (string) $data;
             // load data
             $value = $this->load($data);
-            $key = $data != $value ? $data : \count($this->data);
+            $key = ($data != $value) ? $data : count($this->data);
             // replace CR linefeeds etc.
             // @see https://github.com/matthiasmullie/minify/pull/139
-            $value = \str_replace(array("\r\n", "\r"), "\n", $value);
+            $value = str_replace(array("\r\n", "\r"), "\n", $value);
             // store data
             $this->data[$key] = $value;
         }
@@ -104,11 +104,11 @@ abstract class Minify
         // not used (we're using func_get_args instead to support overloading),
         // but it still needs to be defined because it makes no sense to have
         // this function without argument :)
-        $args = array($data) + \func_get_args();
+        $args = array($data) + func_get_args();
         // this method can be overloaded
         foreach ($args as $path) {
-            if (\is_array($path)) {
-                \call_user_func_array(array($this, 'addFile'), $path);
+            if (is_array($path)) {
+                call_user_func_array(array($this, 'addFile'), $path);
                 continue;
             }
             // redefine var
@@ -148,7 +148,7 @@ abstract class Minify
     public function gzip($path = null, $level = 9)
     {
         $content = $this->execute($path);
-        $content = \gzencode($content, $level, \FORCE_GZIP);
+        $content = gzencode($content, $level, \FORCE_GZIP);
         // save to path
         if ($path !== null) {
             $this->save($content, $path);
@@ -175,7 +175,7 @@ abstract class Minify
      *
      * @return string The minified data
      */
-    public abstract function execute($path = null);
+    abstract public function execute($path = null);
     /**
      * Load data.
      *
@@ -187,10 +187,10 @@ abstract class Minify
     {
         // check if the data is a file
         if ($this->canImportFile($data)) {
-            $data = \file_get_contents($data);
+            $data = file_get_contents($data);
             // strip BOM, if any
-            if (\substr($data, 0, 3) == "﻿") {
-                $data = \substr($data, 3);
+            if (substr($data, 0, 3) == "﻿") {
+                $data = substr($data, 3);
             }
         }
         return $data;
@@ -207,7 +207,7 @@ abstract class Minify
     {
         $handler = $this->openFileForWriting($path);
         $this->writeToFile($handler, $content);
-        @\fclose($handler);
+        @fclose($handler);
     }
     /**
      * Register a pattern to execute against the source content.
@@ -232,18 +232,18 @@ abstract class Minify
         // First extract comments we want to keep, so they can be restored later
         // PHP only supports $this inside anonymous functions since 5.4
         $minifier = $this;
-        $callback = function ($match) use($minifier) {
-            $count = \count($minifier->extracted);
+        $callback = function ($match) use ($minifier) {
+            $count = count($minifier->extracted);
             $placeholder = '/*' . $count . '*/';
             $minifier->extracted[$placeholder] = $match[0];
             return $placeholder;
         };
         $this->registerPattern('/
             # optional newline
-            \\n?
+            \n?
 
             # start comment
-            \\/\\*
+            \/\*
 
             # comment content
             (?:
@@ -251,18 +251,18 @@ abstract class Minify
                 !
             |
                 # or, after some number of characters which do not end the comment
-                (?:(?!\\*\\/).)*?
+                (?:(?!\*\/).)*?
 
                 # there is either a @license or @preserve tag
                 @(?:license|preserve)
             )
 
             # then match to the end of the comment
-            .*?\\*\\/\\n?
+            .*?\*\/\n?
 
             /ixs', $callback);
         // Then strip all other comments
-        $this->registerPattern('/\\/\\*.*?\\*\\//s', '');
+        $this->registerPattern('/\/\*.*?\*\//s', '');
     }
     /**
      * We can't "just" run some regular expressions against JavaScript: it's a
@@ -278,10 +278,10 @@ abstract class Minify
      */
     protected function replace($content)
     {
-        $contentLength = \strlen($content);
+        $contentLength = strlen($content);
         $output = '';
         $processedOffset = 0;
-        $positions = \array_fill(0, \count($this->patterns), -1);
+        $positions = array_fill(0, count($this->patterns), -1);
         $matches = array();
         while ($processedOffset < $contentLength) {
             // find first match for all patterns
@@ -289,7 +289,7 @@ abstract class Minify
                 list($pattern, $replacement) = $pattern;
                 // we can safely ignore patterns for positions we've unset earlier,
                 // because we know these won't show up anymore
-                if (\array_key_exists($i, $positions) == \false) {
+                if (array_key_exists($i, $positions) == \false) {
                     continue;
                 }
                 // no need to re-run matches that are still in the part of the
@@ -298,7 +298,7 @@ abstract class Minify
                     continue;
                 }
                 $match = null;
-                if (\preg_match($pattern, $content, $match, \PREG_OFFSET_CAPTURE, $processedOffset)) {
+                if (preg_match($pattern, $content, $match, \PREG_OFFSET_CAPTURE, $processedOffset)) {
                     $matches[$i] = $match;
                     // we'll store the match position as well; that way, we
                     // don't have to redo all preg_matches after changing only
@@ -314,24 +314,24 @@ abstract class Minify
             // no more matches to find: everything's been processed, break out
             if (!$matches) {
                 // output the remaining content
-                $output .= \substr($content, $processedOffset);
+                $output .= substr($content, $processedOffset);
                 break;
             }
             // see which of the patterns actually found the first thing (we'll
             // only want to execute that one, since we're unsure if what the
             // other found was not inside what the first found)
-            $matchOffset = \min($positions);
-            $firstPattern = \array_search($matchOffset, $positions);
+            $matchOffset = min($positions);
+            $firstPattern = array_search($matchOffset, $positions);
             $match = $matches[$firstPattern];
             // execute the pattern that matches earliest in the content string
             list(, $replacement) = $this->patterns[$firstPattern];
             // add the part of the input between $processedOffset and the first match;
             // that content wasn't matched by anything
-            $output .= \substr($content, $processedOffset, $matchOffset - $processedOffset);
+            $output .= substr($content, $processedOffset, $matchOffset - $processedOffset);
             // add the replacement for the match
             $output .= $this->executeReplacement($replacement, $match);
             // advance $processedOffset past the match
-            $processedOffset = $matchOffset + \strlen($match[0][0]);
+            $processedOffset = $matchOffset + strlen($match[0][0]);
         }
         return $output;
     }
@@ -346,7 +346,7 @@ abstract class Minify
      */
     protected function executeReplacement($replacement, $match)
     {
-        if (!\is_callable($replacement)) {
+        if (!is_callable($replacement)) {
             return $replacement;
         }
         // convert $match from the PREG_OFFSET_CAPTURE form to the form the callback expects
@@ -373,7 +373,7 @@ abstract class Minify
     {
         // PHP only supports $this inside anonymous functions since 5.4
         $minifier = $this;
-        $callback = function ($match) use($minifier, $placeholderPrefix) {
+        $callback = function ($match) use ($minifier, $placeholderPrefix) {
             // check the second index here, because the first always contains a quote
             if ($match[2] === '') {
                 /*
@@ -384,7 +384,7 @@ abstract class Minify
                  */
                 return $match[0];
             }
-            $count = \count($minifier->extracted);
+            $count = count($minifier->extracted);
             $placeholder = $match[1] . $placeholderPrefix . $count . $match[1];
             $minifier->extracted[$placeholder] = $match[1] . $match[2] . $match[1];
             return $placeholder;
@@ -401,7 +401,7 @@ abstract class Minify
          * considered as escape-char (times 2) and to get it in the regex,
          * escaped (times 2)
          */
-        $this->registerPattern('/([' . $chars . '])(.*?(?<!\\\\)(\\\\\\\\)*+)\\1/s', $callback);
+        $this->registerPattern('/([' . $chars . '])(.*?(?<!\\\\)(\\\\\\\\)*+)\1/s', $callback);
     }
     /**
      * This method will restore all extracted data (strings, regexes) that were
@@ -418,7 +418,7 @@ abstract class Minify
             // nothing was extracted, nothing to restore
             return $content;
         }
-        $content = \strtr($content, $this->extracted);
+        $content = strtr($content, $this->extracted);
         $this->extracted = array();
         return $content;
     }
@@ -431,11 +431,15 @@ abstract class Minify
      */
     protected function canImportFile($path)
     {
-        $parsed = \parse_url($path);
+        $parsed = parse_url($path);
         if (isset($parsed['host']) || isset($parsed['query'])) {
             return \false;
         }
-        return \strlen($path) < \PHP_MAXPATHLEN && @\is_file($path) && \is_readable($path);
+        try {
+            return strlen($path) < \PHP_MAXPATHLEN && @is_file($path) && is_readable($path);
+        } catch (\Exception $e) {
+            return \false;
+        }
     }
     /**
      * Attempts to open file specified by $path for writing.
@@ -448,7 +452,7 @@ abstract class Minify
      */
     protected function openFileForWriting($path)
     {
-        if ($path === '' || ($handler = @\fopen($path, 'w')) === \false) {
+        if ($path === '' || ($handler = @fopen($path, 'w')) === \false) {
             throw new IOException('The file "' . $path . '" could not be opened for writing. Check if PHP has enough permissions.');
         }
         return $handler;
@@ -464,15 +468,15 @@ abstract class Minify
      */
     protected function writeToFile($handler, $content, $path = '')
     {
-        if (!\is_resource($handler) || ($result = @\fwrite($handler, $content)) === \false || $result < \strlen($content)) {
+        if (!is_resource($handler) || ($result = @fwrite($handler, $content)) === \false || $result < strlen($content)) {
             throw new IOException('The file "' . $path . '" could not be written to. Check your disk space and file permissions.');
         }
     }
     protected static function str_replace_first($search, $replace, $subject)
     {
-        $pos = \strpos($subject, $search);
+        $pos = strpos($subject, $search);
         if ($pos !== \false) {
-            return \substr_replace($subject, $replace, $pos, \strlen($search));
+            return substr_replace($subject, $replace, $pos, strlen($search));
         }
         return $subject;
     }

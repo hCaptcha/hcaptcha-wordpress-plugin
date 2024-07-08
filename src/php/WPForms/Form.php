@@ -20,12 +20,12 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_wpforms';
+	public const ACTION = 'hcaptcha_wpforms';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_wpforms_nonce';
+	public const NAME = 'hcaptcha_wpforms_nonce';
 
 	/**
 	 * Whether hCaptcha should be auto-added to any form.
@@ -54,7 +54,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		$this->mode_auto  = hcaptcha()->settings()->is( 'wpforms_status', 'form' );
 		$this->mode_embed =
 			hcaptcha()->settings()->is( 'wpforms_status', 'embed' ) &&
@@ -91,7 +91,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( array $fields, array $entry, array $form_data ) {
+	public function verify( array $fields, array $entry, array $form_data ): void {
 		if ( ! $this->process_hcaptcha( $form_data ) ) {
 			return;
 		}
@@ -120,7 +120,7 @@ class Form {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	div.wpforms-container-full .wpforms-form .h-captcha {
 		position: relative;
@@ -253,7 +253,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function block_assets_recaptcha() {
+	public function block_assets_recaptcha(): void {
 		if ( ! $this->is_wpforms_provider_hcaptcha() ) {
 			return;
 		}
@@ -281,7 +281,7 @@ HTML;
 	 * @noinspection HtmlUnknownAttribute
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function wpforms_frontend_output( $form_data, $deprecated, bool $title, bool $description, array $errors ) {
+	public function wpforms_frontend_output( $form_data, $deprecated, bool $title, bool $description, array $errors ): void {
 		$form_data = (array) $form_data;
 
 		if ( ! $this->process_hcaptcha( $form_data ) ) {
@@ -318,7 +318,7 @@ HTML;
 	 * @return void
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	private function show_hcaptcha( array $form_data ) {
+	private function show_hcaptcha( array $form_data ): void {
 		$frontend_obj = wpforms()->get( 'frontend' );
 
 		if ( ! $frontend_obj ) {
@@ -423,7 +423,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	private function use_wpforms_settings() {
+	private function use_wpforms_settings(): void {
 		$captcha_settings = wpforms_get_captcha_settings();
 		$site_key         = $captcha_settings['site_key'] ?? '';
 		$secret_key       = $captcha_settings['secret_key'] ?? '';

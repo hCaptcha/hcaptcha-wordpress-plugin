@@ -18,17 +18,17 @@ class Register {
 	/**
 	 * WP login URL.
 	 */
-	const WP_LOGIN_URL = '/wp-login.php';
+	private const WP_LOGIN_URL = '/wp-login.php';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_registration';
+	private const ACTION = 'hcaptcha_registration';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_registration_nonce';
+	private const NONCE = 'hcaptcha_registration_nonce';
 
 	/**
 	 * Constructor.
@@ -39,8 +39,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
@@ -50,7 +52,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
 			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';

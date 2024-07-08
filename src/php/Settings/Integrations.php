@@ -21,44 +21,51 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Dialog scripts and style handle.
 	 */
-	const DIALOG_HANDLE = 'kagg-dialog';
+	public const DIALOG_HANDLE = 'kagg-dialog';
 
 	/**
 	 * Admin script and style handle.
 	 */
-	const HANDLE = 'hcaptcha-integrations';
+	public const HANDLE = 'hcaptcha-integrations';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaIntegrationsObject';
+	public const OBJECT = 'HCaptchaIntegrationsObject';
 
 	/**
 	 * Activate plugin ajax action.
 	 */
-	const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
+	public const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
 	 * Enabled section id.
 	 */
-	const SECTION_ENABLED = 'enabled';
+	public const SECTION_ENABLED = 'enabled';
 
 	/**
 	 * Disabled section id.
 	 */
-	const SECTION_DISABLED = 'disabled';
+	public const SECTION_DISABLED = 'disabled';
 
 	/**
 	 * Plugin dependencies not specified in their headers.
 	 * Key is a plugin slug.
 	 * Value is a plugin slug or an array of slugs.
 	 */
-	const PLUGIN_DEPENDENCIES = [
-		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
-		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php' => 'woocommerce/woocommerce.php',
-		'elementor-pro/elementor-pro.php'                               => 'elementor/elementor.php',
-		'woocommerce-wishlists/woocommerce-wishlists.php'               => 'woocommerce/woocommerce.php',
-		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+	private const PLUGIN_DEPENDENCIES = [
+		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+		'Avada'                                                             => [
+			'fusion-builder/fusion-builder.php',
+			'fusion-core/fusion-core.php',
+		],
+		'acf-extended-pro/acf-extended.php'                                 => 'advanced-custom-fields-pro/acf.php',
+		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
+		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
+		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
+		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
+		'woocommerce-wishlists/woocommerce-wishlists.php'                   => 'woocommerce/woocommerce.php',
+		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 	];
 
 	/**
@@ -74,6 +81,20 @@ class Integrations extends PluginSettingsBase {
 	 * @var array
 	 */
 	protected $plugins_tree;
+
+	/**
+	 * Installed plugins.
+	 *
+	 * @var array[]
+	 */
+	protected $plugins;
+
+	/**
+	 * Installed themes.
+	 *
+	 * @var WP_Theme[]
+	 */
+	protected $themes;
 
 	/**
 	 * Get page title.
@@ -94,9 +115,27 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+		if ( ! function_exists( 'get_plugins' ) ) {
+			// @codeCoverageIgnoreStart
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			// @codeCoverageIgnoreEnd
+		}
+
+		$this->plugins = get_plugins();
+		$this->themes  = wp_get_themes();
+
+		parent::init();
+	}
+
+	/**
 	 * Init class hooks.
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
@@ -104,9 +143,21 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Init form fields.
+	 * Activated plugin action.
+	 * Do not allow redirect during plugin activation.
+	 *
+	 * @return void
 	 */
-	public function init_form_fields() {
+	public function activated_plugin_action(): void {
+		remove_action( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' );
+	}
+
+	/**
+	 * Init form fields.
+	 *
+	 * @return void
+	 */
+	public function init_form_fields(): void {
 		$this->form_fields = [
 			'wp_status'                        => [
 				'entity'  => 'core',
@@ -222,7 +273,8 @@ class Integrations extends PluginSettingsBase {
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
-					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
+					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [
@@ -576,9 +628,10 @@ class Integrations extends PluginSettingsBase {
 		$entity    = $form_field['entity'] ?? 'plugin';
 
 		return sprintf(
-			'<div class="hcaptcha-integrations-logo">' .
-			'<img src="%1$s" alt="%2$s Logo" data-label="%2$s" data-entity="%3$s">' .
+			'<div class="hcaptcha-integrations-logo" data-installed="%1$s">' .
+			'<img src="%2$s" alt="%3$s Logo" data-label="%3$s" data-entity="%4$s">' .
 			'</div>',
+			$form_field['installed'] ? '1' : '0',
 			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/logo/$logo_file" ),
 			$label,
 			$entity
@@ -588,28 +641,71 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Setup settings fields.
 	 */
-	public function setup_fields() {
+	public function setup_fields(): void {
 		if ( ! $this->is_options_screen() ) {
 			return;
 		}
 
+		$installed = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $this->plugin_or_theme_installed( $module[1] ) ) {
+				$installed[] = $module[0][0];
+			}
+		}
+
+		$installed = array_unique( $installed );
+
 		$this->form_fields = $this->sort_fields( $this->form_fields );
 
-		foreach ( $this->form_fields as &$form_field ) {
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['section']   = ( ! $form_field['installed'] ) || $form_field['disabled']
+				? self::SECTION_DISABLED
+				: self::SECTION_ENABLED;
+
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field );
-			}
-
-			if ( $form_field['disabled'] ) {
-				$form_field['section'] = self::SECTION_DISABLED;
-			} else {
-				$form_field['section'] = self::SECTION_ENABLED;
 			}
 		}
 
 		unset( $form_field );
 
 		parent::setup_fields();
+	}
+
+	/**
+	 * Check whether one of the plugins or themes is installed.
+	 *
+	 * @param string|array $plugin_or_theme_names Plugin or theme names.
+	 *
+	 * @return bool
+	 */
+	protected function plugin_or_theme_installed( $plugin_or_theme_names ): bool {
+		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
+			if ( '' === $plugin_or_theme_name ) {
+				// WP Core is always installed.
+				return true;
+			}
+
+			if (
+				array_key_exists( $plugin_or_theme_name, $this->plugins ) &&
+				false !== strpos( $plugin_or_theme_name, '.php' )
+			) {
+				// The plugin is installed.
+				return true;
+			}
+
+			if (
+				array_key_exists( $plugin_or_theme_name, $this->themes ) &&
+				false === strpos( $plugin_or_theme_name, '.php' )
+			) {
+				// The theme is installed.
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -646,8 +742,10 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Show search box.
+	 *
+	 * @return void
 	 */
-	public function search_box() {
+	public function search_box(): void {
 		?>
 		<div id="hcaptcha-integrations-search-wrap">
 			<label for="hcaptcha-integrations-search"></label>
@@ -663,9 +761,10 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $arguments Section arguments.
 	 *
+	 * @return void
 	 * @noinspection HtmlUnknownTarget
 	 */
-	public function section_callback( array $arguments ) {
+	public function section_callback( array $arguments ): void {
 		if ( self::SECTION_DISABLED === $arguments['id'] ) {
 			$this->submit_button();
 
@@ -716,8 +815,10 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		wp_enqueue_script(
 			self::DIALOG_HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/kagg-dialog$this->min_suffix.js",
@@ -752,10 +853,14 @@ class Integrations extends PluginSettingsBase {
 				'activateMsg'        => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
 				'deactivateMsg'      => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Plugin name. */
+				'installMsg'         => __( 'Please install %s plugin manually.', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
 				'activateThemeMsg'   => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
 				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Theme name. */
+				'installThemeMsg'    => __( 'Please install %s theme manually.', 'hcaptcha-for-forms-and-more' ),
 				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
 				'onlyOneThemeMsg'    => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
 				'unexpectedErrorMsg' => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
@@ -779,7 +884,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	public function activate() {
+	public function activate(): void {
 		$this->run_checks( self::ACTIVATE_ACTION );
 
 		$activate     = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
@@ -822,7 +927,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ) {
+	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ): void {
 		if ( $activate ) {
 			if ( ! $this->activate_plugins( $plugins ) ) {
 				$message = sprintf(
@@ -867,7 +972,22 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	protected function process_theme( string $theme ) {
+	protected function process_theme( string $theme ): void {
+		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
+		$plugin_names = [];
+
+		/**
+		 * Activate dependent plugins before activating the theme.
+		 * The activate_plugins() function will activate the first available plugin only.
+		 * That is why we should cycle through the list of dependencies.
+		 */
+		foreach ( $plugins as $plugin ) {
+			$this->activate_plugins( [ $plugin ] );
+			$plugin_names[] = $this->plugin_names_from_tree( $this->plugins_tree );
+		}
+
+		$plugin_names = array_merge( [], ...$plugin_names );
+
 		if ( ! $this->activate_theme( $theme ) ) {
 			$message = sprintf(
 			/* translators: 1: Theme name. */
@@ -883,6 +1003,21 @@ class Integrations extends PluginSettingsBase {
 			__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
 			$theme
 		);
+
+		if ( $plugin_names ) {
+			$message .=
+				' Also, dependent ' .
+				sprintf(
+				/* translators: 1: Plugin name. */
+					_n(
+						'%s plugin is activated.',
+						'%s plugins are activated.',
+						count( $plugin_names ),
+						'hcaptcha-for-forms-and-more'
+					),
+					implode( ', ', $plugin_names )
+				);
+		}
 
 		$this->send_json_success( esc_html( $message ) );
 	}
@@ -916,7 +1051,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $node Node of the plugin tree.
 	 *
-	 * @return int|null|true|WP_Error
+	 * @return null|true|WP_Error
 	 */
 	protected function activate_plugin_tree( array &$node ) {
 		if ( $node['children'] ) {
@@ -929,11 +1064,30 @@ class Integrations extends PluginSettingsBase {
 			}
 		}
 
-		ob_start();
-		$result = activate_plugin( $node['plugin'] );
-		ob_end_clean();
+		$node['result'] = $this->activate_plugin( $node['plugin'] );
 
-		$node['result'] = $result;
+		return $node['result'];
+	}
+
+	/**
+	 * Activate plugin.
+	 *
+	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return null|true|WP_Error
+	 */
+	protected function activate_plugin( string $plugin ) {
+
+		if ( is_plugin_active( $plugin ) ) {
+			return true;
+		}
+
+		// Do not allow redirect during plugin activation.
+		add_action( 'activated_plugin', [ $this, 'activated_plugin_action' ], PHP_INT_MIN );
+
+		ob_start();
+		$result = activate_plugin( $plugin );
+		ob_end_clean();
 
 		return $result;
 	}
@@ -989,7 +1143,7 @@ class Integrations extends PluginSettingsBase {
 			return $dirs;
 		}
 
-		$slugs = array_keys( get_plugins() );
+		$slugs = array_keys( $this->plugins );
 
 		foreach ( $dirs as &$dir ) {
 			$slug = preg_grep( "#^$dir/#", $slugs );
@@ -1018,6 +1172,10 @@ class Integrations extends PluginSettingsBase {
 			}
 
 			$plugin_names = array_merge( [], ...$plugin_names );
+		}
+
+		if ( null !== $node['result'] ) {
+			return array_unique( array_merge( [], $plugin_names ) );
 		}
 
 		$status = '';
@@ -1068,7 +1226,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_json_success( string $message ) {
+	private function send_json_success( string $message ): void {
 		wp_send_json_success( $this->json_data( $message ) );
 	}
 
@@ -1079,7 +1237,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function send_json_error( string $message ) {
+	private function send_json_error( string $message ): void {
 		wp_send_json_error( $this->json_data( $message ) );
 	}
 
@@ -1091,11 +1249,8 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function json_data( string $message ): array {
-		$data = [ 'message' => esc_html( $message ) ];
-
-		if ( 'plugin' === $this->entity ) {
-			$data['stati'] = $this->get_activation_stati();
-		}
+		$data          = [ 'message' => esc_html( $message ) ];
+		$data['stati'] = $this->get_activation_stati();
 
 		if ( 'theme' === $this->entity ) {
 			$data['themes']       = $this->get_themes();
@@ -1130,7 +1285,7 @@ class Integrations extends PluginSettingsBase {
 			static function ( $theme ) {
 				return $theme->get( 'Name' );
 			},
-			wp_get_themes()
+			$this->themes
 		);
 
 		unset( $themes[ wp_get_theme()->get_stylesheet() ] );

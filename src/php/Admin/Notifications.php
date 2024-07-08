@@ -7,6 +7,11 @@
 
 namespace HCaptcha\Admin;
 
+use HCaptcha\Settings\EventsPage;
+use HCaptcha\Settings\FormsPage;
+use HCaptcha\Settings\General;
+use HCaptcha\Settings\Integrations;
+
 /**
  * Class Notifications.
  *
@@ -17,27 +22,27 @@ class Notifications {
 	/**
 	 * Admin script handle.
 	 */
-	const HANDLE = 'hcaptcha-notifications';
+	public const HANDLE = 'hcaptcha-notifications';
 
 	/**
 	 * Script localization object.
 	 */
-	const OBJECT = 'HCaptchaNotificationsObject';
+	private const OBJECT = 'HCaptchaNotificationsObject';
 
 	/**
 	 * Dismiss notification ajax action.
 	 */
-	const DISMISS_NOTIFICATION_ACTION = 'hcaptcha-dismiss-notification';
+	public const DISMISS_NOTIFICATION_ACTION = 'hcaptcha-dismiss-notification';
 
 	/**
 	 * Reset notifications ajax action.
 	 */
-	const RESET_NOTIFICATIONS_ACTION = 'hcaptcha-reset-notifications';
+	public const RESET_NOTIFICATIONS_ACTION = 'hcaptcha-reset-notifications';
 
 	/**
 	 * Dismissed user meta.
 	 */
-	const HCAPTCHA_DISMISSED_META_KEY = 'hcaptcha_dismissed';
+	public const HCAPTCHA_DISMISSED_META_KEY = 'hcaptcha_dismissed';
 
 	/**
 	 * Notifications.
@@ -55,9 +60,10 @@ class Notifications {
 
 	/**
 	 * Init class.
+	 *
+	 * @return void
 	 */
-	public function init() {
-		$this->init_notifications();
+	public function init(): void {
 		$this->init_hooks();
 	}
 
@@ -66,33 +72,48 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::DISMISS_NOTIFICATION_ACTION, [ $this, 'dismiss_notification' ] );
 		add_action( 'wp_ajax_' . self::RESET_NOTIFICATIONS_ACTION, [ $this, 'reset_notifications' ] );
 	}
 
 	/**
-	 * Init notifications.
+	 * Get tab url.
 	 *
-	 * @return void
+	 * @param string $classname Tab class name.
+	 *
+	 * @return string
+	 */
+	private function tab_url( string $classname ): string {
+		$tab = hcaptcha()->settings()->get_tab( $classname );
+
+		return $tab ? $tab->tab_url( $tab ) : '';
+	}
+
+	/**
+	 * Get notifications.
+	 *
+	 * @return array
 	 * @noinspection HtmlUnknownTarget
 	 */
-	private function init_notifications() {
+	protected function get_notifications(): array {
+		$general_url             = $this->tab_url( General::class );
+		$integrations_url        = $this->tab_url( Integrations::class );
+		$forms_url               = $this->tab_url( FormsPage::class );
+		$events_url              = $this->tab_url( EventsPage::class );
 		$hcaptcha_url            = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
 		$register_url            = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
 		$pro_url                 = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$dashboard_url           = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$rate_url                = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
-		$search_integrations_url = admin_url( 'options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search' );
+		$search_integrations_url = $integrations_url . '#hcaptcha-integrations-search';
 		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$statistics_url          = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
-		$forms_url               = admin_url( 'options-general.php?page=hcaptcha&tab=forms' );
-		$events_url              = admin_url( 'options-general.php?page=hcaptcha&tab=events' );
-		$force_url               = admin_url( 'options-general.php?page=hcaptcha&tab=general#force_1' );
+		$statistics_url          = $general_url . '#statistics_1';
+		$force_url               = $general_url . '#force_1';
 
-		$this->notifications = [
+		$notifications = [
 			'register'            => [
 				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
@@ -148,7 +169,7 @@ class Notifications {
 				'message' => sprintf(
 				/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
 					__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
-					'<strong>hCaptcha for WordPress</strong>',
+					'<strong>hCaptcha for WP</strong>',
 					sprintf(
 						'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
 						$rate_url
@@ -239,21 +260,32 @@ class Notifications {
 					'text' => __( 'Turn on force', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.2.0.
+			'auto-activation'     => [
+				'title'   => __( 'Activation of dependent plugins', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Automatic activation of dependent plugins on the Integrations page. Try to activate Elementor or Woo Wishlists.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $integrations_url,
+					'text' => __( 'Try auto-activation', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
 
 		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
-			unset( $this->notifications['register'] );
+			unset( $notifications['register'] );
 		}
 
 		if ( $settings->is_pro() ) {
-			unset( $this->notifications['pro-free-trial'] );
+			unset( $notifications['pro-free-trial'] );
 		}
 
 		if ( $settings->is_on( 'force' ) ) {
-			unset( $this->notifications['force'] );
+			unset( $notifications['force'] );
 		}
+
+		return $notifications;
 	}
 
 	/**
@@ -261,13 +293,15 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	public function show() {
-		$user = wp_get_current_user();
+	public function show(): void {
+		$notifications = $this->get_notifications();
+
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
 
 		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-		/** @noinspection NullPointerExceptionInspection */
-		$dismissed     = get_user_meta( $user->ID, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
-		$notifications = array_diff_key( $this->notifications, array_flip( $dismissed ) );
+		$dismissed     = get_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
+		$notifications = array_diff_key( $notifications, array_flip( $dismissed ) );
 
 		if ( ! $notifications ) {
 			return;
@@ -333,8 +367,10 @@ class Notifications {
 
 	/**
 	 * Enqueue class scripts.
+	 *
+	 * @return void
 	 */
-	public function admin_enqueue_scripts() {
+	public function admin_enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -370,7 +406,7 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	public function dismiss_notification() {
+	public function dismiss_notification(): void {
 		// Run a security check.
 		if ( ! check_ajax_referer( self::DISMISS_NOTIFICATION_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
@@ -421,7 +457,7 @@ class Notifications {
 	 *
 	 * @return void
 	 */
-	public function reset_notifications() {
+	public function reset_notifications(): void {
 		// Run a security check.
 		if ( ! check_ajax_referer( self::RESET_NOTIFICATIONS_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );

@@ -16,6 +16,7 @@ use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
@@ -31,12 +32,10 @@ use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
-use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\PasswordProtected;
-use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
  * Class Main.
@@ -45,27 +44,27 @@ class Main {
 	/**
 	 * Main script handle.
 	 */
-	const HANDLE = 'hcaptcha';
+	public const HANDLE = 'hcaptcha';
 
 	/**
 	 * WP hooks handle.
 	 */
-	const WP_HOOKS_HANDLE = 'wp-hooks';
+	private const WP_HOOKS_HANDLE = 'wp-hooks';
 
 	/**
 	 * Main script localization object.
 	 */
-	const OBJECT = 'HCaptchaMainObject';
+	private const OBJECT = 'HCaptchaMainObject';
 
 	/**
 	 * Default API host.
 	 */
-	const API_HOST = 'js.hcaptcha.com';
+	public const API_HOST = 'js.hcaptcha.com';
 
 	/**
 	 * Default verify host.
 	 */
-	const VERIFY_HOST = 'api.hcaptcha.com';
+	public const VERIFY_HOST = 'api.hcaptcha.com';
 
 	/**
 	 * Form shown somewhere, use this flag to run the script.
@@ -118,9 +117,11 @@ class Main {
 	private $active;
 
 	/**
-	 * Input class.
+	 * Init class.
+	 *
+	 * @return void
 	 */
-	public function init() {
+	public function init(): void {
 		if ( $this->is_xml_rpc() ) {
 			return;
 		}
@@ -137,7 +138,7 @@ class Main {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		$this->load_textdomain();
 
 		/**
@@ -193,7 +194,7 @@ class Main {
 	 *
 	 * @return object|null
 	 */
-	public function get( string $class_name ) {
+	public function get( string $class_name ): ?object {
 		return $this->loaded_classes[ $class_name ] ?? null;
 	}
 
@@ -204,7 +205,7 @@ class Main {
 	 *
 	 * @return void
 	 */
-	private function load( string $class_name ) {
+	private function load( string $class_name ): void {
 		$this->loaded_classes[ $class_name ] = new $class_name();
 	}
 
@@ -407,7 +408,7 @@ class Main {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 
@@ -510,7 +511,7 @@ CSS;
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function login_head() {
+	public function login_head(): void {
 		$css = <<<'CSS'
 	@media (max-width: 349px) {
 		.h-captcha {
@@ -652,7 +653,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function print_footer_scripts() {
+	public function print_footer_scripts(): void {
 		$status = $this->form_shown;
 
 		/**
@@ -721,7 +722,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function declare_wc_compatibility() {
+	public function declare_wc_compatibility(): void {
 		// @codeCoverageIgnoreStart
 		if ( class_exists( FeaturesUtil::class ) ) {
 			FeaturesUtil::declare_compatibility( 'custom_order_tables', constant( 'HCAPTCHA_FILE' ), true );
@@ -781,7 +782,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function load_modules() {
+	public function load_modules(): void {
 		/**
 		 * Plugins modules.
 		 *
@@ -927,9 +928,9 @@ CSS;
 				ColorlibCustomizer\Register::class,
 			],
 			'Contact Form 7'                       => [
-				[ 'cf7_status', 'form' ],
+				[ 'cf7_status', null ],
 				'contact-form-7/wp-contact-form-7.php',
-				CF7::class,
+				[ CF7::class, Admin::class ],
 			],
 			'Divi Comment Form'                    => [
 				[ 'divi_status', 'comment' ],
@@ -1285,7 +1286,7 @@ CSS;
 		}
 
 		foreach ( $this->modules as $module ) {
-			list( $option_name, $option_value ) = $module[0];
+			[ $option_name, $option_value ] = $module[0];
 
 			$option = (array) $this->settings()->get( $option_name );
 
@@ -1350,7 +1351,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function load_textdomain() {
+	public function load_textdomain(): void {
 		load_default_textdomain();
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',

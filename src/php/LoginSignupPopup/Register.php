@@ -21,17 +21,17 @@ class Register {
 	/**
 	 * Form ID.
 	 */
-	const FORM_ID = 'register';
+	private const FORM_ID = 'register';
 
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_login_signup_popup_register';
+	private const ACTION = 'hcaptcha_login_signup_popup_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_login_signup_popup_register_nonce';
+	private const NONCE = 'hcaptcha_login_signup_popup_register_nonce';
 
 	/**
 	 * Constructor.
@@ -42,8 +42,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'xoo_el_form_start', [ $this, 'form_start' ], 10, 2 );
 		add_action( 'xoo_el_form_end', [ $this, 'add_login_signup_popup_hcaptcha' ], 10, 2 );
 		add_filter( 'xoo_el_process_registration_errors', [ $this, 'verify' ], 10, 4 );
@@ -59,7 +61,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function form_start( string $form, array $args ) {
+	public function form_start( string $form, array $args ): void {
 		if ( self::FORM_ID !== $form ) {
 			return;
 		}
@@ -76,7 +78,7 @@ class Register {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_login_signup_popup_hcaptcha( string $form, array $args ) {
+	public function add_login_signup_popup_hcaptcha( string $form, array $args ): void {
 		if ( self::FORM_ID !== $form ) {
 			return;
 		}
@@ -137,7 +139,7 @@ class Register {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.xoo-el-form-container div[data-section="register"] .h-captcha {
 		margin-bottom: 25px;
@@ -152,7 +154,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

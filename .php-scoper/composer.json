@@ -1,6 +1,6 @@
 {
     "require": {
-        "humbug/php-scoper": "^0.17.5"
+        "humbug/php-scoper": "^0.18.14"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest"

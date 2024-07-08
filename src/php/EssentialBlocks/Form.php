@@ -10,7 +10,6 @@ namespace HCaptcha\EssentialBlocks;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Block;
-use WP_Error;
 
 /**
  * Class Form.
@@ -20,17 +19,17 @@ class Form {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_essential_blocks';
+	private const ACTION = 'hcaptcha_essential_blocks';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_essential_blocks_nonce';
+	private const NONCE = 'hcaptcha_essential_blocks_nonce';
 
 	/**
 	 * Script handle.
 	 */
-	const HANDLE = 'hcaptcha-essential-blocks';
+	private const HANDLE = 'hcaptcha-essential-blocks';
 
 	/**
 	 * Form constructor.
@@ -41,8 +40,10 @@ class Form {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		// Disable recaptcha compatibility, otherwise, the Essential Blocks script fails.
 		hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
 
@@ -97,7 +98,7 @@ class Form {
 	 *
 	 * @return void
 	 */
-	public function verify() {
+	public function verify(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$form_data_str = isset( $_POST['form_data'] ) ? sanitize_text_field( wp_unslash( $_POST['form_data'] ) ) : '';
 		$form_data     = (array) json_decode( $form_data_str, true );
@@ -121,7 +122,7 @@ class Form {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.wp-block-essential-blocks-form .h-captcha {
 		margin: 15px 0 0 0;
@@ -136,7 +137,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

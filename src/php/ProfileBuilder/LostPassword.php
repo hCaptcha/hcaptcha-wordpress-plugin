@@ -17,22 +17,22 @@ class LostPassword {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_profile_builder_lost_password';
+	private const ACTION = 'hcaptcha_profile_builder_lost_password';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_profile_builder_lost_password_nonce';
+	private const NONCE = 'hcaptcha_profile_builder_lost_password_nonce';
 
 	/**
 	 * $_POST key to check.
 	 */
-	const POST_KEY = 'action';
+	private const POST_KEY = 'action';
 
 	/**
 	 * $_POST value to check.
 	 */
-	const POST_VALUE = 'recover_password';
+	private const POST_VALUE = 'recover_password';
 
 	/**
 	 * The hCaptcha validation error message.
@@ -57,8 +57,10 @@ class LostPassword {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		add_action( 'wppb_recover_password_before_content_output', [ $this, 'add_captcha' ] );
 		add_filter( 'pre_do_shortcode_tag', [ $this, 'verify' ], 10, 4 );
 		add_filter( 'wppb_recover_password_displayed_message1', [ $this, 'recover_password_displayed_message1' ] );

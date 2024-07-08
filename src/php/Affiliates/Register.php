@@ -17,24 +17,24 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_registration';
+	private const ACTION = 'hcaptcha_registration';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_registration_nonce';
+	private const NONCE = 'hcaptcha_registration_nonce';
 
 	/**
 	 * Affiliates dashboard registration section key.
 	 */
-	const SECTION_KEY = 'registration';
+	private const SECTION_KEY = 'registration';
 
 	/**
 	 * Error message.
 	 *
 	 * @var string|null
 	 */
-	private $error_message = null;
+	private $error_message;
 
 	/**
 	 * Constructor.
@@ -45,8 +45,10 @@ class Register {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( 'affiliates_dashboard_before_section', [ $this, 'before_section' ] );
 		add_action( 'affiliates_dashboard_after_section', [ $this, 'after_section' ] );
 		add_filter( 'affiliates_registration_error_validate', [ $this, 'verify' ] );
@@ -59,7 +61,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function before_section( string $current_section_key ) {
+	public function before_section( string $current_section_key ): void {
 		if ( self::SECTION_KEY !== $current_section_key ) {
 			return;
 		}
@@ -74,7 +76,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	public function after_section( string $current_section_key ) {
+	public function after_section( string $current_section_key ): void {
 		if ( self::SECTION_KEY !== $current_section_key ) {
 			return;
 		}
@@ -125,7 +127,7 @@ class Register {
 	 *
 	 * @return void
 	 */
-	private function show_error() {
+	private function show_error(): void {
 		if ( null === $this->error_message ) {
 			return;
 		}

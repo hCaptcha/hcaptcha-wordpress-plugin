@@ -18,12 +18,12 @@ class PasswordProtected {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_password_protected';
+	private const ACTION = 'hcaptcha_password_protected';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_password_protected_nonce';
+	private const NONCE = 'hcaptcha_password_protected_nonce';
 
 	/**
 	 * PasswordProtected constructor.
@@ -37,7 +37,7 @@ class PasswordProtected {
 	 *
 	 * @return void
 	 */
-	public function init_hooks() {
+	public function init_hooks(): void {
 		add_filter( 'the_password_form', [ $this, 'add_captcha' ], PHP_INT_MAX, 2 );
 		add_action( 'login_form_postpass', [ $this, 'verify' ] );
 	}
@@ -73,7 +73,7 @@ class PasswordProtected {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function verify() {
+	public function verify(): void {
 		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {

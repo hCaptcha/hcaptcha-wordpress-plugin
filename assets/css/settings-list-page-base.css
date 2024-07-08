@@ -46,6 +46,10 @@
 	gap: 15px;
 }
 
+.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices label {
+	cursor: pointer;
+}
+
 .hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices .hcaptcha-is-selected {
 	color: #0075ab;
 }

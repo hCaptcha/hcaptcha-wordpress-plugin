@@ -18,17 +18,17 @@ abstract class Base extends LoginBase {
 	/**
 	 * Field key.
 	 */
-	const KEY = 'hcaptcha';
+	protected const KEY = 'hcaptcha';
 
 	/**
 	 * UM action.
 	 */
-	const UM_ACTION = '';
+	protected const UM_ACTION = '';
 
 	/**
 	 * UM mode.
 	 */
-	const UM_MODE = '';
+	protected const UM_MODE = '';
 
 	/**
 	 * Field key.
@@ -79,8 +79,10 @@ abstract class Base extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		$mode = static::UM_MODE;
 
 		add_action( "um_main_{$mode}_fields", [ $this, 'set_form_id' ] );
@@ -96,7 +98,7 @@ abstract class Base extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function set_form_id( array $args ) {
+	public function set_form_id( array $args ): void {
 		$this->form_id = isset( $args['form_id'] ) ? (int) $args['form_id'] : 0;
 	}
 
@@ -170,7 +172,6 @@ abstract class Base extends LoginBase {
 	 * @return string|mixed
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection PhpUndefinedConstantInspection
-	 * @noinspection PhpParamsInspection
 	 */
 	public function display_captcha( $output, string $mode ) {
 		if ( $this->um_mode !== $mode || '' !== $output ) {
@@ -219,7 +220,7 @@ abstract class Base extends LoginBase {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( array $submitted_data, array $form_data = [] ) {
+	public function verify( array $submitted_data, array $form_data = [] ): void {
 		$um = UM();
 
 		if (

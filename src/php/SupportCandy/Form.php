@@ -16,20 +16,20 @@ class Form extends Base {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_support_candy_new_topic';
+	protected const ACTION = 'hcaptcha_support_candy_new_topic';
 
 	/**
 	 * Nonce name.
 	 */
-	const NAME = 'hcaptcha_support_candy_new_topic_nonce';
+	protected const NAME = 'hcaptcha_support_candy_new_topic_nonce';
 
 	/**
 	 * Add captcha hook.
 	 */
-	const ADD_CAPTCHA_HOOK = 'wpsc_print_tff';
+	protected const ADD_CAPTCHA_HOOK = 'wpsc_print_tff';
 
 	/**
 	 * Verify hook.
 	 */
-	const VERIFY_HOOK = 'wpsc_set_ticket_form';
+	protected const VERIFY_HOOK = 'wpsc_set_ticket_form';
 }

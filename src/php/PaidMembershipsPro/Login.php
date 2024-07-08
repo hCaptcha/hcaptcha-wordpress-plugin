@@ -8,9 +8,6 @@
 namespace HCaptcha\PaidMembershipsPro;
 
 use HCaptcha\Abstracts\LoginBase;
-use HCaptcha\Helpers\HCaptcha;
-use WP_Error;
-use WP_User;
 
 /**
  * Class Login.
@@ -19,8 +16,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_filter( 'pmpro_pages_shortcode_login', [ $this, 'add_pmpro_captcha' ] );

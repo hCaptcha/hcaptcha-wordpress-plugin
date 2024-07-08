@@ -23,8 +23,10 @@ class Login extends LoginBase {
 
 	/**
 	 * Init hooks.
+	 *
+	 * @return void
 	 */
-	protected function init_hooks() {
+	protected function init_hooks(): void {
 		parent::init_hooks();
 
 		add_action( 'elementor/frontend/widget/before_render', [ $this, 'before_render' ] );
@@ -40,7 +42,7 @@ class Login extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function before_render( Element_Base $element ) {
+	public function before_render( Element_Base $element ): void {
 		if ( ! is_a( $element, \ElementorPro\Modules\Forms\Widgets\Login::class ) ) {
 			return;
 		}
@@ -55,7 +57,7 @@ class Login extends LoginBase {
 	 *
 	 * @return void
 	 */
-	public function add_elementor_login_hcaptcha( Element_Base $element ) {
+	public function add_elementor_login_hcaptcha( Element_Base $element ): void {
 		if ( ! is_a( $element, \ElementorPro\Modules\Forms\Widgets\Login::class ) ) {
 			return;
 		}
@@ -103,7 +105,7 @@ class Login extends LoginBase {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function print_inline_styles() {
+	public function print_inline_styles(): void {
 		$css = <<<CSS
 	.elementor-widget-login .h-captcha {
 		margin-bottom: 0;

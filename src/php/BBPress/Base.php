@@ -26,7 +26,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		add_action( static::ADD_CAPTCHA_HOOK, [ $this, 'add_captcha' ] );
 		add_action( static::VERIFY_HOOK, [ $this, 'verify' ] );
 	}
@@ -36,7 +36,7 @@ abstract class Base {
 	 *
 	 * @return void
 	 */
-	public function add_captcha() {
+	public function add_captcha(): void {
 		$form_id = str_replace( 'hcaptcha_bbp_', '', static::ACTION );
 		$args    = [
 			'action' => static::ACTION,

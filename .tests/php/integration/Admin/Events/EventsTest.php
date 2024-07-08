@@ -13,7 +13,9 @@
 namespace HCaptcha\Tests\Integration\Admin\Events;
 
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test EventsTest class.
@@ -117,6 +119,31 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 
 		$subject->save_event( [ 'not a string' ], [] );
+	}
+
+	/**
+	 * Test test_save_event_from_check_config().
+	 *
+	 * @return void
+	 */
+	public function test_save_event_from_check_config() {
+
+		$subject = new Events();
+
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\HCaptcha::decode_id_info',
+			[
+				'id' =>
+					[
+						'source'  => [ General::class ],
+						'form_id' => General::CHECK_CONFIG_FORM_ID,
+					],
+			]
+		);
+
+		$this->drop_table();
+
+		$subject->save_event( null, [] );
 	}
 
 	/**
