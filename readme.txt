@@ -6,7 +6,7 @@ Tested up to: 6.6
 Requires PHP: 7.2
 Stable tag: 4.3.1
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Enables hCaptcha integration with WordPress and popular plugins.
 
