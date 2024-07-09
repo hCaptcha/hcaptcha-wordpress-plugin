@@ -192,7 +192,6 @@ HTML;
 
 			<br class="clear" />
 		</div><!-- #poststuff -->
-	
 </div><!-- .wrap -->
 HTML;
 

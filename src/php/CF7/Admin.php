@@ -97,6 +97,12 @@ class Admin extends Base {
 
 		$form_start = $m[1];
 
+		if ( ! preg_match( '~(</div><!-- #poststuff -->).*?</form>~s', $output, $m ) ) {
+			return $output;
+		}
+
+		[ $form_end, $stuff_end ] = $m;
+
 		if ( ! preg_match( '/<input type="text" id="wpcf7-shortcode" .+ value="(.+)"/', $output, $m ) ) {
 			return $output;
 		}
@@ -114,7 +120,7 @@ class Admin extends Base {
 			"\n";
 
 		// Remove form tag.
-		$output = str_replace( [ $form_start, '</form>' ], '', $output );
+		$output = str_replace( [ $form_start, $form_end ], [ '', $stuff_end ], $output );
 
 		// Insert form start at the beginning of the id="post-body".
 		$search = '<div id="post-body-content">';
