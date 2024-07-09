@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 use HCaptcha\Scoper\Scoper;
 
-require_once __DIR__ . '/Scoper.php';
+require_once __DIR__ . '/src/Scoper.php';
 
 $finders = Scoper::get_finders();
 

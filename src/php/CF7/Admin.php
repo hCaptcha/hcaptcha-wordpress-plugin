@@ -35,9 +35,31 @@ class Admin extends Base {
 			return;
 		}
 
+		if ( ! $this->is_cf7_form_admin_page() ) {
+			return;
+		}
+
 		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
-		add_action( 'toplevel_page_wpcf7', [ $this, 'before_toplevel_page_wpcf7' ], 0 );
-		add_action( 'toplevel_page_wpcf7', [ $this, 'after_toplevel_page_wpcf7' ], 20 );
+		add_action( 'current_screen', [ $this, 'current_screen' ] );
+	}
+
+	/**
+	 * Current screen.
+	 *
+	 * @param mixed $current_screen Current screen.
+	 *
+	 * @return void
+	 */
+	public function current_screen( $current_screen ): void {
+		$current_screen_id = $current_screen->id ?? '';
+
+		if ( ! $current_screen ) {
+			return;
+		}
+
+		add_action( $current_screen_id, [ $this, 'before_toplevel_page_wpcf7' ], 0 );
+		add_action( $current_screen_id, [ $this, 'after_toplevel_page_wpcf7' ], 20 );
+
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts_before_cf7' ], 0 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts_after_cf7' ], 20 );
 	}
@@ -75,6 +97,12 @@ class Admin extends Base {
 
 		$form_start = $m[1];
 
+		if ( ! preg_match( '~(</div><!-- #poststuff -->).*?</form>~s', $output, $m ) ) {
+			return $output;
+		}
+
+		[ $form_end, $stuff_end ] = $m;
+
 		if ( ! preg_match( '/<input type="text" id="wpcf7-shortcode" .+ value="(.+)"/', $output, $m ) ) {
 			return $output;
 		}
@@ -92,7 +120,7 @@ class Admin extends Base {
 			"\n";
 
 		// Remove form tag.
-		$output = str_replace( [ $form_start, '</form>' ], '', $output );
+		$output = str_replace( [ $form_start, $form_end ], [ '', $stuff_end ], $output );
 
 		// Insert form start at the beginning of the id="post-body".
 		$search = '<div id="post-body-content">';
@@ -254,5 +282,27 @@ class Admin extends Base {
 
 			$wp_scripts->registered['wpcf7-admin']->extra['data'] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
+	}
+
+	/**
+	 * Check if the current page is a CF7 form create, edit or view page.
+	 *
+	 * @return bool
+	 */
+	private function is_cf7_form_admin_page(): bool {
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
+		if ( ! in_array( $page, [ 'wpcf7-new', 'wpcf7' ], true ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ( 'wpcf7' === $page ) && ! isset( $_GET['post'] ) ) {
+			return false;
+		}
+
+		return true;
 	}
 }

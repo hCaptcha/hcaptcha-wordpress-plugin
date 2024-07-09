@@ -16,8 +16,8 @@ use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UninstallOperation;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\EventDispatcher\Event as BaseEvent;
-use Composer\Script\Event;
 use Composer\Installer\PackageEvent;
+use Composer\Script\Event;
 use Isolated\Symfony\Component\Finder\Finder;
 use Seld\JsonLint\ParsingException;
 
@@ -76,12 +76,15 @@ class Scoper {
 			);
 
 			$removed_packages = array_diff( $packages, $locked_packages );
-			$vendor_prefixed  = self::get_vendor_prefixed();
+			$vendor_prefixed  = self::get_vendor_prefixed_dir();
 
 			foreach ( $removed_packages as $removed_package ) {
 				self::delete_package( $vendor_prefixed, $removed_package );
 			}
 		}
+
+		// Always delete scoped packages from vendor.
+		self::cleanup_scope( $event );
 
 		if ( self::$do_dump ) {
 			self::dump( $event );
@@ -111,10 +114,8 @@ class Scoper {
 			return;
 		}
 
-		$vendor_prefixed = self::get_vendor_prefixed();
-
 		// Do not run scoper after installation if we already have package scoped.
-		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( $vendor_prefixed . '/' . $package );
+		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( self::get_vendor_prefixed_dir( $package ) );
 	}
 
 	/**
@@ -166,7 +167,7 @@ class Scoper {
 			return;
 		}
 
-		self::delete_package( self::get_vendor_prefixed(), $package );
+		self::delete_package( self::get_vendor_prefixed_dir(), $package );
 
 		self::$do_dump = true;
 	}
@@ -178,6 +179,7 @@ class Scoper {
 	 * @param Event $event Composer event.
 	 *
 	 * @return void
+	 * @noinspection MkdirRaceConditionInspection
 	 */
 	private static function prepare_scope( Event $event ): void {
 		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
@@ -187,19 +189,18 @@ class Scoper {
 		}
 
 		// Bail if .php-scoper/vendor dir already exists and not empty.
-		if ( self::is_not_empty_dir( __DIR__ . self::VENDOR ) ) {
+		if ( self::is_not_empty_dir( self::get_scoper_dir( self::VENDOR ) ) ) {
 			return;
 		}
 
-		$vendor_prefixed = self::get_vendor_prefixed();
+		$vendor_prefixed = self::get_vendor_prefixed_dir();
 
 		if ( ! is_dir( $vendor_prefixed ) ) {
-			// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
 			mkdir( $vendor_prefixed );
-			// phpcs:enable WordPress.WP.AlternativeFunctions.file_system_operations_mkdir, Generic.Commenting.DocComment.MissingShort
 		}
 
-		$composer_cmd = 'composer --working-dir="' . __DIR__ . '" --no-plugins --no-scripts --no-dev install';
+		$composer_cmd = 'composer --working-dir="' . self::get_scoper_dir() . '" --no-plugins --no-scripts --no-dev install';
 
 		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo shell_exec( $composer_cmd );
@@ -221,8 +222,7 @@ class Scoper {
 		}
 
 		$slug       = basename( getcwd() );
-		$vendor     = self::get_vendor();
-		$output_dir = self::get_vendor_prefixed();
+		$output_dir = self::get_vendor_prefixed_dir();
 
 		$vendors = array_unique(
 			array_map(
@@ -246,7 +246,7 @@ class Scoper {
 
 		self::fix_logo_on_windows();
 
-		$scoper_file = __DIR__ . self::VENDOR . '/humbug/php-scoper/bin/php-scoper';
+		$scoper_file = self::get_scoper_dir( self::VENDOR . '/humbug/php-scoper/bin/php-scoper' );
 		$scoper_args =
 			'" add-prefix' .
 			' --config=.php-scoper/' . $slug . '-scoper.php' .
@@ -257,12 +257,29 @@ class Scoper {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo shell_exec( $scoper_cmd );
 
+		self::$do_dump = true;
+	}
+
+	/**
+	 * Cleanup scoped libraries.
+	 *
+	 * @param Event $event Composer event.
+	 *
+	 * @return void
+	 */
+	private static function cleanup_scope( Event $event ): void {
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+
+		if ( ! $scope_packages ) {
+			return;
+		}
+
+		$vendor = self::get_vendor_dir();
+
 		// Loop through the list of  packages and delete relevant dirs in vendor.
 		foreach ( $scope_packages as $package ) {
 			self::delete_package( $vendor, $package );
 		}
-
-		self::$do_dump = true;
 	}
 
 	/**
@@ -341,7 +358,7 @@ class Scoper {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$composer_json = json_decode( file_get_contents( getcwd() . '/composer.json' ), true );
 		$packages      = $composer_json['extra']['scope-packages'] ?? [];
-		$vendor_dir    = self::get_vendor();
+		$vendor_dir    = self::get_vendor_dir();
 		$filenames     = [ '*.php', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
 		$finders       = [];
 
@@ -384,7 +401,7 @@ class Scoper {
 			return;
 		}
 
-		$file = __DIR__ . self::VENDOR . '/humbug/php-scoper/src/Console/Application.php';
+		$file = self::get_scoper_dir( self::VENDOR . '/humbug/php-scoper/src/Console/Application.php' );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$contents = file_get_contents( $file );
@@ -473,18 +490,49 @@ class Scoper {
 	/**
 	 * Get vendor dir.
 	 *
+	 * @param string $path Path relative to the vendor prefixed dir.
+	 *
 	 * @return string
+	 * @noinspection PhpSameParameterValueInspection
 	 */
-	private static function get_vendor(): string {
-		return getcwd() . self::VENDOR;
+	private static function get_vendor_dir( string $path = '' ): string {
+		return self::add_path_to_dir( getcwd() . self::VENDOR, $path );
 	}
 
 	/**
 	 * Get vendor prefixed dir.
 	 *
+	 * @param string $path Path relative to the vendor prefixed dir.
+	 *
 	 * @return string
 	 */
-	private static function get_vendor_prefixed(): string {
-		return getcwd() . self::VENDOR_PREFIXED;
+	private static function get_vendor_prefixed_dir( string $path = '' ): string {
+		return self::add_path_to_dir( getcwd() . self::VENDOR_PREFIXED, $path );
+	}
+
+	/**
+	 * Get scoper dir.
+	 *
+	 * @param string $path Path relative to the scoper dir.
+	 *
+	 * @return string
+	 */
+	private static function get_scoper_dir( string $path = '' ): string {
+		return self::add_path_to_dir( dirname( __DIR__ ), $path );
+	}
+
+	/**
+	 * Add a path to dir.
+	 *
+	 * @param string $dir  Dir.
+	 * @param string $path Path.
+	 *
+	 * @return string
+	 */
+	private static function add_path_to_dir( string $dir, string $path ): string {
+		$dir  = rtrim( $dir, '/' );
+		$path = ltrim( $path, '/' );
+
+		return rtrim( $dir . '/' . $path, '/' );
 	}
 }
