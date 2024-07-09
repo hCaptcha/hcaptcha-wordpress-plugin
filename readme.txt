@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 4.3.0
+Stable tag: 4.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -560,6 +560,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.3.1 =
+* Added a live form in the Contact Form 7 admin form view.
+* Fixed warnings and deprecation messages in admin when CF7 is active.
 
 = 4.3.0 =
 * NOTE: the plugin has been renamed from "hCaptcha for WordPress" to "hCaptcha for WP"

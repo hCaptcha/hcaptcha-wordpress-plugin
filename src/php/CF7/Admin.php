@@ -35,11 +35,30 @@ class Admin extends Base {
 			return;
 		}
 
-		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
-		add_action( 'toplevel_page_wpcf7', [ $this, 'before_toplevel_page_wpcf7' ], 0 );
-		add_action( 'toplevel_page_wpcf7', [ $this, 'after_toplevel_page_wpcf7' ], 20 );
+		add_action( 'current_screen', [ $this, 'current_screen' ] );
+	}
+
+	/**
+	 * Current screen.
+	 *
+	 * @param mixed $current_screen Current screen.
+	 *
+	 * @return void
+	 */
+	public function current_screen( $current_screen ): void {
+		$current_screen_id = $current_screen->id ?? '';
+
+		if ( ! $this->is_cf7_editor_page( $current_screen_id ) ) {
+			return;
+		}
+
+		add_action( $current_screen_id, [ $this, 'before_toplevel_page_wpcf7' ], 0 );
+		add_action( $current_screen_id, [ $this, 'after_toplevel_page_wpcf7' ], 20 );
+
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts_before_cf7' ], 0 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts_after_cf7' ], 20 );
+
+		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
 	}
 
 	/**
@@ -254,5 +273,26 @@ class Admin extends Base {
 
 			$wp_scripts->registered['wpcf7-admin']->extra['data'] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
+	}
+
+	/**
+	 * Check if the current page is a CF7 editor page.
+	 *
+	 * @param string $current_screen_id Hook suffix.
+	 *
+	 * @return bool
+	 */
+	private function is_cf7_editor_page( string $current_screen_id ): bool {
+
+		if ( ! preg_match( '/^toplevel_page_wpcf7$|.+page_wpcf7-new$/', $current_screen_id ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ( 'toplevel_page_wpcf7' === $current_screen_id ) && ! isset( $_GET['post'] ) ) {
+			return false;
+		}
+
+		return true;
 	}
 }
