@@ -80,7 +80,7 @@ abstract class Minify
             $data = (string) $data;
             // load data
             $value = $this->load($data);
-            $key = ($data != $value) ? $data : count($this->data);
+            $key = $data != $value ? $data : count($this->data);
             // replace CR linefeeds etc.
             // @see https://github.com/matthiasmullie/minify/pull/139
             $value = str_replace(array("\r\n", "\r"), "\n", $value);
