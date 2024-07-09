@@ -564,6 +564,7 @@ Instructions for popular native integrations are below:
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.
 * Fixed warnings and deprecation messages in admin when CF7 is active.
+* Fixed fatal error with Gravity Forms.
 
 = 4.3.0 =
 * NOTE: the plugin has been renamed from "hCaptcha for WordPress" to "hCaptcha for WP"
