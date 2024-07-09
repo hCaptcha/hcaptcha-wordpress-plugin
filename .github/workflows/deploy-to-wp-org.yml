@@ -15,9 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Remove scoped packages
-        run: rm -rf vendors/*
-
       - name: Install dependencies with caching
         uses: kagg-design/composer-install@v2
         with:

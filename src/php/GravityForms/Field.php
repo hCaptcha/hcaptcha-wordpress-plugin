@@ -114,8 +114,10 @@ class Field extends GF_Field {
 	 * Get form editor field title.
 	 *
 	 * @return string
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
-	public function get_form_editor_field_title(): string {
+	public function get_form_editor_field_title() {
 		return esc_attr( 'hCaptcha' );
 	}
 
@@ -123,8 +125,10 @@ class Field extends GF_Field {
 	 * Returns the field's form editor description.
 	 *
 	 * @return string
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
-	public function get_form_editor_field_description(): string {
+	public function get_form_editor_field_description() {
 		return (
 			esc_attr__(
 				'Adds a hCaptcha field to your form to help protect your website from spam and bot abuse.',
@@ -144,8 +148,10 @@ class Field extends GF_Field {
 	 * This could be an icon url or a gform-icon class.
 	 *
 	 * @return string
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
-	public function get_form_editor_field_icon(): string {
+	public function get_form_editor_field_icon() {
 		return HCAPTCHA_URL . '/assets/images/hcaptcha-icon-black-and-white.svg';
 	}
 
@@ -153,8 +159,10 @@ class Field extends GF_Field {
 	 * Get field settings.
 	 *
 	 * @return array
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
-	public function get_form_editor_field_settings(): array {
+	public function get_form_editor_field_settings() {
 		return [
 			'label_placement_setting',
 			'description_setting',
@@ -172,8 +180,11 @@ class Field extends GF_Field {
 	 * @return string
 	 * @noinspection PhpCastIsUnnecessaryInspection
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
-	public function get_field_input( array $form, $value = '', $entry = null ): string {
+	public function get_field_input( $form, $value = '', $entry = null ) {
 		$form_id         = (int) $form['id'];
 		$is_entry_detail = $this->is_entry_detail();
 		$is_form_editor  = $this->is_form_editor();

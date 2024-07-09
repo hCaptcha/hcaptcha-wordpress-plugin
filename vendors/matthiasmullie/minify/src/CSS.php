@@ -380,7 +380,7 @@ class CSS extends Minify
         // loop all urls
         foreach ($matches as $match) {
             // determine if it's a url() or an @import match
-            $type = (strpos($match[0], '@import') === 0) ? 'import' : 'url';
+            $type = strpos($match[0], '@import') === 0 ? 'import' : 'url';
             $url = $match['path'];
             if ($this->canImportByPath($url)) {
                 // attempting to interpret GET-params makes no sense, so let's discard them for awhile

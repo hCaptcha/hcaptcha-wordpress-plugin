@@ -38,12 +38,12 @@ class Converter implements ConverterInterface
             // when both paths have nothing in common, one of them is probably
             // absolute while the other is relative
             $root = $root ?: getcwd();
-            $from = (strpos($from, $root) === 0) ? $from : preg_replace('/\/+/', '/', $root . '/' . $from);
-            $to = (strpos($to, $root) === 0) ? $to : preg_replace('/\/+/', '/', $root . '/' . $to);
+            $from = strpos($from, $root) === 0 ? $from : preg_replace('/\/+/', '/', $root . '/' . $from);
+            $to = strpos($to, $root) === 0 ? $to : preg_replace('/\/+/', '/', $root . '/' . $to);
             // or traveling the tree via `..`
             // attempt to resolve path, or assume it's fine if it doesn't exist
-            $from = (@realpath($from)) ?: $from;
-            $to = (@realpath($to)) ?: $to;
+            $from = @realpath($from) ?: $from;
+            $to = @realpath($to) ?: $to;
         }
         $from = $this->dirname($from);
         $to = $this->dirname($to);

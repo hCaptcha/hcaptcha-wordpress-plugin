@@ -505,7 +505,7 @@ class JS extends Minify
             if (trim($match[1]) === '.') {
                 return $match[0];
             }
-            return $match[1] . (($match[2] === 'true') ? '!0' : '!1');
+            return $match[1] . ($match[2] === 'true' ? '!0' : '!1');
         };
         $content = preg_replace_callback('/(^|.\s*)\b(true|false)\b(?!:)/', $callback, $content);
         // for(;;) is exactly the same as while(true), but shorter :)

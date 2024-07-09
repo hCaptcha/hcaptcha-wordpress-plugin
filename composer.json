@@ -49,11 +49,14 @@
   "autoload": {
     "psr-4": {
       "HCaptcha\\": "src/php",
-      "HCaptcha\\Scoper\\": ".php-scoper",
+      "HCaptcha\\Scoper\\": ".php-scoper/src",
       "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
     },
     "classmap": [
       "vendors"
+    ],
+    "exclude-from-classmap": [
+      "src/php/Divi/WPTestCaseStub.php"
     ]
   },
   "autoload-dev": {
