@@ -38,7 +38,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		unset( $GLOBALS['current_screen'], $_GET['post'] );
+		unset( $GLOBALS['current_screen'], $_GET['post'], $_GET['page'] );
 
 		parent::tearDown();
 	}
@@ -57,6 +57,9 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 		$cf7_status = array_filter( [ $mode_auto ? 'form' : '', $mode_embed ? 'embed' : '' ] );
 
 		if ( $is_admin ) {
+			$_GET['page'] = 'wpcf7';
+			$_GET['post'] = 177;
+
 			set_current_screen( 'some' );
 		}
 
@@ -72,8 +75,6 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 		$subject = new Admin();
 
 		if ( $is_admin && $cf7_status ) {
-			$_GET['post'] = 177;
-
 			set_current_screen( 'toplevel_page_wpcf7' );
 		}
 
