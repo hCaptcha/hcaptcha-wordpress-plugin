@@ -69,6 +69,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	$.ajaxPrefilter( function( options ) {
 		const data = options.data ?? '';
 
+		if ( ! ( typeof data === 'string' || data instanceof String ) ) {
+			return;
+		}
+
 		if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
 			return;
 		}

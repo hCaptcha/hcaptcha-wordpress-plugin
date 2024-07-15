@@ -561,6 +561,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.4.0 =
+* Fixed conflict with Ninja Forms Upload field.
+
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.
 * Fixed warnings and deprecation messages in admin when Contact Form 7 is active.
