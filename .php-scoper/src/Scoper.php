@@ -290,6 +290,8 @@ class Scoper {
 	 * @return void
 	 */
 	private static function dump( BaseEvent $event ): void {
+		global $argv;
+
 		/**
 		 * Current event.
 		 *
@@ -302,9 +304,9 @@ class Scoper {
 		$package              = $composer->getPackage();
 		$config               = $composer->getConfig();
 
-		$optimize      = $config->get( 'optimize-autoloader' );
-		$authoritative = $config->get( 'classmap-authoritative' );
-		$apcu          = $config->get( 'apcu-autoloader' );
+		$optimize      = in_array( '--optimize-autoloader', $argv, true );
+		$authoritative = in_array( '--classmap-authoritative', $argv, true );
+		$apcu          = in_array( '--apcu-autoloader', $argv, true );
 
 		if ( $authoritative ) {
 			$event->getIO()->write( '<info>Generating optimized autoload files (authoritative)</info>' );
@@ -332,7 +334,7 @@ class Scoper {
 				$composer->getLocker()
 			);
 
-			$number_of_classes = count( $class_map );
+			$number_of_classes = $class_map->count();
 		} catch ( ParsingException $e ) {
 			$number_of_classes = 0;
 		}
