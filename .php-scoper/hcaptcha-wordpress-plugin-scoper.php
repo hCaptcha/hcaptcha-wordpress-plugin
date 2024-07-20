@@ -22,7 +22,7 @@ $finders = Scoper::get_finders();
 $finders[0]->name( [ 'keywords*.txt', 'operators*.txt' ] );
 
 $config = [
-	'prefix'   => 'HCaptcha\Vendor',
+	'prefix'   => 'HCaptcha\Vendors',
 	'finders'  => $finders,
 	'patchers' => [
 		static function ( string $file_path, string $prefix, string $content ): string {
@@ -31,9 +31,9 @@ $config = [
 			if ( false !== strpos( $file_path, 'matthiasmullie/minify/src/CSS.php' ) ) {
 				return str_replace(
 					[
-						"'HCaptcha\\\\Vendor\\\\1\\\\2\\\\3'",
-						"'HCaptcha\\\\Vendor\\\\1\\\\2'",
-						"'HCaptcha\\\\Vendor\\\\1'",
+						"'HCaptcha\\\\Vendors\\\\1\\\\2\\\\3'",
+						"'HCaptcha\\\\Vendors\\\\1\\\\2'",
+						"'HCaptcha\\\\Vendors\\\\1'",
 					],
 					[
 						"'\\\\1\\\\2\\\\3'",
