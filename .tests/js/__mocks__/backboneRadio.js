@@ -1,7 +1,5 @@
 // noinspection JSUnresolvedVariable
 
-/* global Backbone */
-
 const submitChannel = {
 	listenTo: jest.fn(),
 };
@@ -11,7 +9,7 @@ const fieldsChannel = {
 	request: jest.fn(),
 };
 
-Backbone.Radio = {
+nfRadio = {
 	channel: jest.fn( ( channelName ) => {
 		if ( channelName === 'submit' ) {
 			return submitChannel;
