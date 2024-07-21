@@ -43,13 +43,6 @@ class Scoper {
 	private static $do_scope = false;
 
 	/**
-	 * Do dump-autoload, as some packages were updated or removed.
-	 *
-	 * @var bool
-	 */
-	private static $do_dump = false;
-
-	/**
 	 * Post-update composer command.
 	 *
 	 * @param Event $event Composer event.
@@ -85,9 +78,8 @@ class Scoper {
 		// Always delete scoped packages from vendor.
 		self::cleanup_scope( $event );
 
-		if ( self::$do_dump ) {
-			self::dump( $event );
-		}
+		// Always do dump.
+		self::dump( $event );
 	}
 
 	/**
@@ -167,8 +159,6 @@ class Scoper {
 		}
 
 		self::delete_package( self::get_vendor_prefixed_dir(), $package );
-
-		self::$do_dump = true;
 	}
 
 	/**
@@ -254,8 +244,6 @@ class Scoper {
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo shell_exec( $scoper_cmd );
-
-		self::$do_dump = true;
 	}
 
 	/**
