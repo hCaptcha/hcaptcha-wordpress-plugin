@@ -20,7 +20,7 @@ class Request {
 	 * @return bool
 	 */
 	public static function is_frontend(): bool {
-		return ! ( self::is_cli() || is_admin() || wp_doing_ajax() || self::is_rest() );
+		return ! ( self::is_cli() || is_admin() || wp_doing_ajax() || self::is_wc_ajax() || self::is_rest() );
 	}
 
 	/**
@@ -77,5 +77,28 @@ class Request {
 		$rest_url    = wp_parse_url( trailingslashit( rest_url() ), PHP_URL_PATH );
 
 		return 0 === strpos( $current_url, $rest_url );
+	}
+
+	/**
+	 * Check if it is a POST request.
+	 *
+	 * @return bool
+	 */
+	public static function is_post(): bool {
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] )
+			? strtoupper( filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) )
+			: '';
+
+		return 'POST' === $request_method;
+	}
+
+	/**
+	 * Check if it is a WooCommerce AJAX request.
+	 *
+	 * @return bool
+	 */
+	public static function is_wc_ajax(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return isset( $_GET['wc-ajax'] );
 	}
 }

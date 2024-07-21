@@ -565,6 +565,7 @@ Instructions for popular native integrations are below:
 * Fixed conflict with Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
 * Fixed error in cron with Matomo Analytics.
+* Fixed error with the Elementor Checkout Element.
 
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.
