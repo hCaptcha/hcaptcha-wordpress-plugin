@@ -1,7 +1,5 @@
 // noinspection JSUnresolvedVariable
 
-/* global nfRadio */
-
 const submitChannel = {
 	listenTo: jest.fn(),
 };
@@ -11,7 +9,7 @@ const fieldsChannel = {
 	request: jest.fn(),
 };
 
-nfRadio = {
+const nfRadio = {
 	channel: jest.fn( ( channelName ) => {
 		if ( channelName === 'submit' ) {
 			return submitChannel;
@@ -21,3 +19,5 @@ nfRadio = {
 		}
 	} ),
 };
+
+global.nfRadio = nfRadio;
