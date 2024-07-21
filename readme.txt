@@ -562,6 +562,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.4.0 =
+* Added integration with WPS Hide Login plugin.
 * Fixed conflict with Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
 * Fixed error in cron with Matomo Analytics.

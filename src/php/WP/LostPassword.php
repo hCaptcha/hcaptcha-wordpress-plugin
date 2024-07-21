@@ -13,6 +13,7 @@ use HCaptcha\Abstracts\LostPasswordBase;
  * Class LostPassword
  */
 class LostPassword extends LostPasswordBase {
+	use Base;
 
 	/**
 	 * Nonce action.
@@ -40,11 +41,6 @@ class LostPassword extends LostPasswordBase {
 	protected const POST_VALUE = null;
 
 	/**
-	 * WP login URL.
-	 */
-	private const WP_LOGIN_URL = '/wp-login.php';
-
-	/**
 	 * WP login action.
 	 */
 	private const WP_LOGIN_ACTION = 'lostpassword';
@@ -55,20 +51,7 @@ class LostPassword extends LostPasswordBase {
 	 * @return void
 	 */
 	public function add_captcha(): void {
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
-
-		if ( false === strpos( $request_uri, self::WP_LOGIN_URL ) ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
-
-		if ( self::WP_LOGIN_ACTION !== $action ) {
+		if ( ! $this->is_login_url() || ! $this->is_login_action() ) {
 			return;
 		}
 
