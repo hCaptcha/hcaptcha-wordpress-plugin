@@ -564,6 +564,7 @@ Instructions for popular native integrations are below:
 = 4.4.0 =
 * Fixed conflict with Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
+* Fixed error in cron with Matomo Analytics.
 
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.
