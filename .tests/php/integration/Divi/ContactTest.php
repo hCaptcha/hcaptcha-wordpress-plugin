@@ -42,11 +42,8 @@ class ContactTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		unset(
 			$_POST[ $this->cf_nonce_field ],
@@ -60,7 +57,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Contact();
 
 		self::assertSame(
@@ -87,7 +84,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
 
 		$output = '
@@ -196,7 +193,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_captcha_in_frontend_builder() {
+	public function test_add_captcha_in_frontend_builder(): void {
 		FunctionMocker::replace( 'et_core_is_fb_enabled', true );
 
 		$output      = [ 'some array' ];
@@ -214,7 +211,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$return = 'some html';
 		$tag    = 'et_pb_contact_form';
 
@@ -277,7 +274,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$return = 'some html';
 		$tag    = 'et_pb_contact_form';
 
@@ -338,7 +335,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() with wrong tag.
 	 */
-	public function test_verify_wrong_tag() {
+	public function test_verify_wrong_tag(): void {
 		$return = 'some html';
 		$tag    = 'wrong tag';
 
@@ -357,7 +354,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_shortcode_attributes( $captcha, string $own_captcha ) {
+	public function test_shortcode_attributes( $captcha, string $own_captcha ): void {
 		$props    = [ 'foo' => 'bar' ];
 		$attrs    = [];
 		$slug     = 'et_pb_contact_form';
@@ -401,7 +398,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_shortcode_attributes_with_wrong_slug() {
+	public function test_shortcode_attributes_with_wrong_slug(): void {
 		$props    = [
 			'foo'     => 'bar',
 			'captcha' => 'some',
@@ -423,7 +420,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	/**
 	 * Test enqueue_scripts().
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		$subject = new Contact();
 
 		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );

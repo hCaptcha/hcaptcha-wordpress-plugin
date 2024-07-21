@@ -37,7 +37,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $GLOBALS['current_screen'], $_GET['post'], $_GET['page'] );
 
 		parent::tearDown();
@@ -53,7 +53,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks( bool $mode_auto, bool $mode_embed, bool $is_admin, bool $expected ) {
+	public function test_init_hooks( bool $mode_auto, bool $mode_embed, bool $is_admin, bool $expected ): void {
 		$cf7_status = array_filter( [ $mode_auto ? 'form' : '', $mode_embed ? 'embed' : '' ] );
 
 		if ( $is_admin ) {
@@ -139,7 +139,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_toplevel_page_wpcf7() {
+	public function test_toplevel_page_wpcf7(): void {
 		$form = <<<HTML
 <div class="wrap" id="wpcf7-contact-form-editor">
 	<h1 class="wp-heading-inline">Edit Contact Form</h1>
@@ -227,8 +227,9 @@ HTML;
 	 * Test add_tag_generator_hcaptcha().
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedConstantInspection
 	 */
-	public function test_add_tag_generator_hcaptcha() {
+	public function test_add_tag_generator_hcaptcha(): void {
 		require_once WPCF7_PLUGIN_DIR . '/admin/includes/tag-generator.php';
 
 		$tag_generator = WPCF7_TagGenerator::get_instance();
@@ -280,7 +281,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_tag_generator_hcaptcha() {
+	public function test_tag_generator_hcaptcha(): void {
 		$args     = [
 			'id'      => 'cf7-hcaptcha',
 			'title'   => 'hCaptcha',
@@ -348,8 +349,9 @@ HTML;
 	 * Test enqueue_admin_scripts_before_cf7() and enqueue_admin_scripts_after_cf7().
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @noinspection PhpUndefinedConstantInspection
 	 */
-	public function test_enqueue_admin_scripts() {
+	public function test_enqueue_admin_scripts(): void {
 		global $wp_scripts;
 
 		set_current_screen( 'some' );

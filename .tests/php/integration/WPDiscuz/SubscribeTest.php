@@ -9,8 +9,6 @@ namespace HCaptcha\Tests\Integration\WPDiscuz;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPDiscuz\Subscribe;
-use Mockery;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Subscribe class.
@@ -23,10 +21,8 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 *
 	 * @return void
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 	}
 
@@ -35,7 +31,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Subscribe();
 
 		self::assertTrue( has_filter( 'wpdiscuz_recaptcha_site_key' ) );
@@ -54,7 +50,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
 
@@ -82,7 +78,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_hcaptcha() {
+	public function test_add_hcaptcha(): void {
 		$args     = [
 			'id' => [
 				'source'  => [ 'wpdiscuz/class.WpdiscuzCore.php' ],
@@ -105,7 +101,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
@@ -123,7 +119,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_NOT_verified() {
+	public function test_verify_NOT_verified(): void {
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
 		$expected          = [
@@ -164,7 +160,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		$expected = '#wpdiscuz-subscribe-form .h-captcha{margin-top:5px;margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 

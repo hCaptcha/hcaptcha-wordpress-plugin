@@ -26,7 +26,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );
 		delete_transient( AutoVerify::TRANSIENT );
 
@@ -36,7 +36,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init() and init_hooks().
 	 */
-	public function test_init_and_init_hooks() {
+	public function test_init_and_init_hooks(): void {
 		$subject = new AutoVerify();
 		$subject->init();
 
@@ -52,7 +52,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter().
 	 */
-	public function test_content_filter() {
+	public function test_content_filter(): void {
 		$request_uri = $this->get_test_request_uri();
 		$content     = $this->get_test_content();
 
@@ -70,7 +70,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test widget_block_content_filter().
 	 */
-	public function test_widget_block_content_filter() {
+	public function test_widget_block_content_filter(): void {
 		$wp_widget_block = Mockery::mock( 'WP_Widget_Block' );
 
 		$request_uri = $this->get_test_request_uri();
@@ -90,7 +90,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter() with action containing host.
 	 */
-	public function test_content_filter_with_action() {
+	public function test_content_filter_with_action(): void {
 		$request_uri = $this->get_test_request_uri();
 		$content     = $this->get_test_content();
 		$content     = str_replace(
@@ -113,7 +113,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter() when form action cannot be determined.
 	 */
-	public function test_content_filter_without_form_action() {
+	public function test_content_filter_without_form_action(): void {
 		$content = $this->get_test_content();
 
 		unset( $_SERVER['REQUEST_URI'] );
@@ -128,7 +128,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter() when no input in form (really?).
 	 */
-	public function test_content_filter_without_form_inputs() {
+	public function test_content_filter_without_form_inputs(): void {
 		$request_uri = wp_parse_url( $this->get_test_request_uri(), PHP_URL_PATH );
 		$content     = $this->get_test_content();
 		$content     = preg_replace( '#<input[\S\s]+?>#', '', $content );
@@ -152,7 +152,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter() when no data-auto in form (really?).
 	 */
-	public function test_content_filter_without_form_data_auto() {
+	public function test_content_filter_without_form_data_auto(): void {
 		$request_uri = $this->get_test_request_uri();
 		$content     = $this->get_test_content();
 		$content     = preg_replace( '#data-auto=".*?">#', '', $content );
@@ -179,7 +179,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter() in admin.
 	 */
-	public function test_content_filter_in_admin() {
+	public function test_content_filter_in_admin(): void {
 		set_current_screen( 'some-screen' );
 
 		$content = $this->get_test_content();
@@ -194,7 +194,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test content_filter() in ajax.
 	 */
-	public function test_content_filter_in_ajax() {
+	public function test_content_filter_in_ajax(): void {
 		$content = $this->get_test_content();
 
 		$subject = new AutoVerify();
@@ -214,7 +214,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() when not POST request.
 	 */
-	public function test_verify_form_when_not_post() {
+	public function test_verify_form_when_not_post(): void {
 		$subject = new AutoVerify();
 		$subject->verify_form();
 
@@ -225,7 +225,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() when no $_SERVER['REQUEST_URI'] defined.
 	 */
-	public function test_verify_form_when_no_request_uri() {
+	public function test_verify_form_when_no_request_uri(): void {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 
 		unset( $_SERVER['REQUEST_URI'] );
@@ -237,7 +237,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() when no forms are registered.
 	 */
-	public function test_verify_form_when_no_forms_are_registered() {
+	public function test_verify_form_when_no_forms_are_registered(): void {
 		$request_uri = $this->get_test_request_uri();
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
@@ -250,7 +250,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() when forms on another uri are registered.
 	 */
-	public function test_verify_form_when_forms_on_another_uri_are_registered() {
+	public function test_verify_form_when_forms_on_another_uri_are_registered(): void {
 		$request_uri = $this->get_test_request_uri();
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
@@ -267,9 +267,9 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify_form() when another forms on the same uri are registered.
+	 * Test verify_form() when other forms on the same uri are registered.
 	 */
-	public function test_verify_form_when_another_forms_on_the_same_uri_are_registered() {
+	public function test_verify_form_when_other_forms_on_the_same_uri_are_registered(): void {
 		$request_uri = $this->get_test_request_uri();
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
@@ -290,7 +290,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_verify_form_when_no_success() {
+	public function test_verify_form_when_no_success(): void {
 		$request_uri = $this->get_test_request_uri();
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
@@ -330,7 +330,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() when verify is successful.
 	 */
-	public function test_verify_form_when_success() {
+	public function test_verify_form_when_success(): void {
 		$request_uri       = $this->get_test_request_uri();
 		$hcaptcha_response = 'some response';
 		$expected          = [
@@ -360,7 +360,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() in admin.
 	 */
-	public function test_verify_form_in_admin() {
+	public function test_verify_form_in_admin(): void {
 		set_current_screen( 'some-screen' );
 
 		$subject = new AutoVerify();
@@ -370,7 +370,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() in ajax.
 	 */
-	public function test_verify_form_in_ajax() {
+	public function test_verify_form_in_ajax(): void {
 		add_filter(
 			'wp_doing_ajax',
 			static function () {
@@ -385,7 +385,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_form() in rest, case 3 and 4.
 	 */
-	public function test_verify_form_in_rest_case_3_and_4() {
+	public function test_verify_form_in_rest_case_3_and_4(): void {
 		$old_wp_rewrite = $GLOBALS['wp_rewrite'];
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited

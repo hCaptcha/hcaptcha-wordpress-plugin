@@ -19,6 +19,7 @@ class GF_Fields {
 	 * @param GF_Field $field Field.
 	 *
 	 * @return void
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public static function register( GF_Field $field ) {}
 }

@@ -22,7 +22,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks.
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new JetpackForm();
 
 		self::assertSame(
@@ -52,7 +52,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test jetpack_verify().
 	 */
-	public function test_jetpack_verify() {
+	public function test_jetpack_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
 
 		$subject = new JetpackForm();
@@ -64,7 +64,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test jetpack_verify() not verified.
 	 */
-	public function test_jetpack_verify_not_verified() {
+	public function test_jetpack_verify_not_verified(): void {
 		$error = new WP_Error( 'invalid_hcaptcha', 'The hCaptcha is invalid.' );
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
@@ -81,7 +81,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_error_message() {
+	public function test_error_message(): void {
 		$hcaptcha_content = 'some content';
 		$error_message    = 'some error message';
 

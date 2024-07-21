@@ -30,7 +30,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_POST );
 

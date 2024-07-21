@@ -41,7 +41,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $GLOBALS['wpdb'], $_SERVER['SERVER_SOFTWARE'], $_SESSION );
 
 		parent::tearDown();

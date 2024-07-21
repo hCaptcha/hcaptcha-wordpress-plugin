@@ -24,11 +24,9 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down the test.
 	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		$this->set_protected_property( hcaptcha(), 'loaded_classes', [] );
 
 		parent::tearDown();
@@ -37,7 +35,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
 
 		self::assertSame(
@@ -53,7 +51,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args     = [
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
@@ -76,7 +74,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$validation_error = new WP_Error();
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_login_nonce', 'hcaptcha_login' );
@@ -94,7 +92,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() when not in the WC filter.
 	 */
-	public function test_verify_NOT_wc_filter() {
+	public function test_verify_NOT_wc_filter(): void {
 		$validation_error = new WP_Error();
 
 		$subject = new Login();
@@ -105,7 +103,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() when not login limit exceeded.
 	 */
-	public function test_verify_NOT_login_limit_exceeded() {
+	public function test_verify_NOT_login_limit_exceeded(): void {
 		$validation_error = new WP_Error();
 
 		$subject = new Login();
@@ -128,7 +126,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$validation_error = 'some wrong error, to be replaced by WP_Error';
 		$expected         = new WP_Error();
 		$expected->add( 'hcaptcha_error', 'The hCaptcha is invalid.' );
@@ -149,8 +147,9 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {

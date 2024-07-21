@@ -39,7 +39,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_REQUEST['_wpnonce'], $_POST['_wpcf7'], $_SERVER['REQUEST_URI'] );
 
 		hcaptcha()->form_shown = false;

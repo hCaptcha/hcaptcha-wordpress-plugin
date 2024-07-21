@@ -38,7 +38,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function setUp(): void {
 		set_current_screen( 'edit-post' );
 
 		parent::setUp();
@@ -51,7 +51,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		WPF()->session_token = '';
 		WPF()->notice->clear();
 		WPF()->session_token = '';
@@ -62,7 +62,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$topic    = 2;
 		$args     = [
 			'action' => 'hcaptcha_wpforo_new_topic',
@@ -86,7 +86,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$data    = [ 'some data' ];
 		$subject = new NewTopic();
 
@@ -102,7 +102,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify() when not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$expected = '<p class="error">The hCaptcha is invalid.</p>';
 		$subject  = new NewTopic();
 
@@ -125,7 +125,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_print_hcaptcha_scripts() {
+	public function test_print_hcaptcha_scripts(): void {
 		$subject = new NewTopic();
 
 		self::assertFalse( $subject->print_hcaptcha_scripts( false ) );
@@ -142,7 +142,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		$subject = new NewTopic();
 
 		self::assertFalse( wp_script_is( 'hcaptcha-wpforo' ) );
@@ -157,8 +157,9 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {

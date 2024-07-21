@@ -29,7 +29,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_REQUEST['action'], $_REQUEST['nonce'] );
 
 		parent::tearDown();
@@ -38,7 +38,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init() and init_hooks().
 	 */
-	public function test_init_and_init_hooks() {
+	public function test_init_and_init_hooks(): void {
 		$subject = new Notifications();
 
 		$subject->init();
@@ -76,7 +76,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_get_notifications
 	 * @return void
 	 */
-	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force ) {
+	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force ): void {
 		global $current_user;
 
 		$user_id    = 1;
@@ -244,7 +244,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @noinspection UnusedFunctionResultInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	public function test_show() {
+	public function test_show(): void {
 		global $current_user;
 
 		unset( $current_user );
@@ -463,7 +463,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_show_without_notifications() {
+	public function test_show_without_notifications(): void {
 		global $current_user;
 
 		$user_id  = 1;
@@ -490,7 +490,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_admin_enqueue_scripts() {
+	public function test_admin_enqueue_scripts(): void {
 		$params         = [
 			'ajaxUrl'                   => 'http://test.test/wp-admin/admin-ajax.php',
 			'dismissNotificationAction' => Notifications::DISMISS_NOTIFICATION_ACTION,
@@ -528,7 +528,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_dismiss_notification() {
+	public function test_dismiss_notification(): void {
 		$user_id = 1;
 
 		wp_set_current_user( $user_id );
@@ -575,7 +575,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_dismiss_notification_with_bad_ajax_referer() {
+	public function test_dismiss_notification_with_bad_ajax_referer(): void {
 		$die_arr  = [];
 		$expected = [
 			'',
@@ -614,7 +614,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_dismiss_notification_when_user_has_no_caps() {
+	public function test_dismiss_notification_when_user_has_no_caps(): void {
 		$action = Notifications::DISMISS_NOTIFICATION_ACTION;
 		$nonce  = wp_create_nonce( $action );
 
@@ -659,7 +659,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_dismiss_notification_when_update_error() {
+	public function test_dismiss_notification_when_update_error(): void {
 		$user_id = 1;
 
 		wp_set_current_user( $user_id );
@@ -746,7 +746,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_reset_notifications() {
+	public function test_reset_notifications(): void {
 		$die_arr  = [];
 		$expected = [
 			'',
@@ -852,7 +852,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_make_key_first() {
+	public function test_make_key_first(): void {
 		$subject = Mockery::mock( Notifications::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 

@@ -35,7 +35,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST );
 		bbpress()->errors = new WP_Error();
@@ -46,7 +46,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args = [
 			'action' => 'hcaptcha_bbp_reply',
 			'name'   => 'hcaptcha_bbp_reply_nonce',
@@ -71,7 +71,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply' );
 
 		$expected = new WP_Error();
@@ -87,7 +87,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$expected = new WP_Error( 'hcap_error', 'Please complete the hCaptcha.' );
 		$subject  = new Reply();
 

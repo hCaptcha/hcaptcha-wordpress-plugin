@@ -30,10 +30,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		UM()->form()->errors = null;
 
 		parent::tearDown();
@@ -42,7 +40,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = $this->get_subject();
 
 		self::assertSame(
@@ -72,7 +70,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @dataProvider dp_test_add_um_captcha
 	 * @return void
 	 */
-	public function test_add_um_captcha( array $fields, array $expected ) {
+	public function test_add_um_captcha( array $fields, array $expected ): void {
 		$subject = $this->get_subject();
 
 		self::assertSame( $expected, $subject->add_um_captcha( $fields ) );
@@ -220,7 +218,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_display_captcha() {
+	public function test_display_captcha(): void {
 		$subject = $this->get_subject();
 
 		$mode   = 'wrong mode';
@@ -264,7 +262,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$subject = $this->get_subject();
 		$mode    = $subject::UM_MODE;
 		$args    = [];
@@ -292,7 +290,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$subject = $this->get_subject();
 		$mode    = $subject::UM_MODE;
 
@@ -311,7 +309,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_mute_login_hcaptcha_notice() {
+	public function test_mute_login_hcaptcha_notice(): void {
 		$subject = $this->get_subject();
 
 		$message   = 'some error message';

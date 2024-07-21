@@ -20,6 +20,8 @@ class GFFormsModel {
 	 *
 	 * @return array|null
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public static function get_form_meta( int $form_id ) {
 		return [];
@@ -32,6 +34,9 @@ class GFFormsModel {
 	 * @param string|int $field_id   The field or input ID.
 	 *
 	 * @return GF_Field|null
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public static function get_field( $form_or_id, $field_id ) {
 		return null;

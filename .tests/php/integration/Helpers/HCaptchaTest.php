@@ -27,7 +27,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		hcaptcha()->form_shown = false;
@@ -40,7 +40,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
-	public function test_form() {
+	public function test_form(): void {
 		hcaptcha()->init_hooks();
 
 		self::assertSame( $this->get_hcap_form(), HCaptcha::form() );
@@ -71,7 +71,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
-	public function test_form_display() {
+	public function test_form_display(): void {
 		self::assertFalse( hcaptcha()->form_shown );
 
 		ob_start();
@@ -125,7 +125,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_check_signature() {
+	public function test_check_signature(): void {
 		$const      = HCaptcha::HCAPTCHA_SIGNATURE;
 		$class_name = 'SomeClass';
 		$form_id    = 'some_id';
@@ -157,7 +157,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_widget_id() {
+	public function test_get_widget_id(): void {
 		$default_id = [
 			'source'  => [],
 			'form_id' => 0,
@@ -186,7 +186,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_hcaptcha_plugin_notice() {
+	public function test_get_hcaptcha_plugin_notice(): void {
 		$expected = [
 			'label'       => 'hCaptcha plugin is active',
 			'description' => 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general" target="_blank">General settings page</a>.',
@@ -200,7 +200,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_js_display() {
+	public function test_js_display(): void {
 		$js       = <<<JS
 	var a = 1;
 	console.log( a );
@@ -216,7 +216,7 @@ JS;
 
 		// Wrapped.
 		ob_start();
-		HCaptcha::js_display( $js, true );
+		HCaptcha::js_display( $js );
 		self::assertSame( $expected_wrapped, ob_get_clean() );
 
 		// Not minified.
@@ -247,7 +247,7 @@ JS;
 	 * @return void
 	 * @dataProvider dp_test_get_hcap_locale
 	 */
-	public function test_get_hcap_locale( string $locale, string $expected ) {
+	public function test_get_hcap_locale( string $locale, string $expected ): void {
 		add_filter(
 			'locale',
 			static function () use ( $locale ) {

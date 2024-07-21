@@ -33,7 +33,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		global $bp;
 
 		unset( $bp->signup );
@@ -44,7 +44,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_hcap_bp_group_form() {
+	public function test_hcap_bp_group_form(): void {
 		$args     = [
 			'action' => 'hcaptcha_bp_create_group',
 			'name'   => 'hcaptcha_bp_create_group_nonce',
@@ -70,7 +70,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		FunctionMocker::replace(
 			'bp_is_group_creation_step',
 			static function ( $step_slug ) {
@@ -88,7 +88,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify() when not in step.
 	 */
-	public function test_verify_not_in_step() {
+	public function test_verify_not_in_step(): void {
 		FunctionMocker::replace( 'bp_is_group_creation_step', false );
 
 		$subject = new CreateGroup();
@@ -102,7 +102,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		FunctionMocker::replace(
 			'bp_is_group_creation_step',
 			static function ( $step_slug ) {
@@ -142,8 +142,9 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {

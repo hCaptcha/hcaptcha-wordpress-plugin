@@ -23,10 +23,8 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 *
 	 * @return void
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 	}
 
@@ -35,7 +33,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Comment();
 
 		self::assertTrue( has_filter( 'wpdiscuz_recaptcha_site_key' ) );
@@ -53,7 +51,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
 
@@ -81,7 +79,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args      = [
 			'id' => [
 				'source'  => [ 'wpdiscuz/class.WpdiscuzCore.php' ],
@@ -108,7 +106,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$comment_data      = [ 'some comment data' ];
 		$hcaptcha_response = 'some response';
 
@@ -130,8 +128,9 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Test verify() when not verified.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_verify_NOT_verified() {
+	public function test_verify_NOT_verified(): void {
 		$comment_data      = [ 'some comment data' ];
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
@@ -175,7 +174,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		$expected = '.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 

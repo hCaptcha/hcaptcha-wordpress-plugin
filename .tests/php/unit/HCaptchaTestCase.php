@@ -30,7 +30,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * Setup test
 	 */
-	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function setUp(): void {
 		FunctionMocker::setUp();
 		parent::setUp();
 		WP_Mock::setUp();
@@ -39,7 +39,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * End test
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		WP_Mock::tearDown();
 		Mockery::close();
 		parent::tearDown();

@@ -39,7 +39,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks( bool $mode_auto, bool $mode_embed ) {
+	public function test_init_hooks( bool $mode_auto, bool $mode_embed ): void {
 		$status = [];
 
 		if ( $mode_auto ) {
@@ -117,7 +117,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
 
@@ -140,7 +140,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_when_not_process_hcaptcha() {
+	public function test_verify_when_not_process_hcaptcha(): void {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
 
@@ -156,7 +156,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$fields    = [ 'some field' ];
 		$form_data = [ 'id' => 5 ];
 		$expected  = 'The hCaptcha is invalid.';
@@ -180,7 +180,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified_with_wpforms_settings() {
+	public function test_verify_not_verified_with_wpforms_settings(): void {
 		$fields                = [ 'some field' ];
 		$form_data             = [
 			'id'       => 5,
@@ -225,8 +225,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
@@ -284,7 +285,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_settings_fields() {
+	public function test_wpforms_settings_fields(): void {
 		$fields = [
 			'hcaptcha-heading'    => '<div>Some hCaptcha heading</div>',
 			'hcaptcha-site-key'   => '<div><span class="wpforms-setting-field"><input type="text"></span></div>',
@@ -336,7 +337,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_hcap_print_hcaptcha_scripts() {
+	public function test_hcap_print_hcaptcha_scripts(): void {
 		$subject = new Form();
 
 		// Not in admin.
@@ -378,7 +379,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_admin_settings_captcha_enqueues_disable() {
+	public function test_wpforms_admin_settings_captcha_enqueues_disable(): void {
 		$subject = new Form();
 
 		// Not in admin.
@@ -420,7 +421,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_block_assets_recaptcha() {
+	public function test_block_assets_recaptcha(): void {
 		wpforms()->register(
 			[
 				'name' => 'Frontend\Captcha',
@@ -467,7 +468,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_frontend_output_when_not_processing_hcaptcha() {
+	public function test_wpforms_frontend_output_when_not_processing_hcaptcha(): void {
 		$form_data   = [ 'id' => 5 ];
 		$deprecated  = null;
 		$title       = 'some title';
@@ -487,7 +488,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_frontend_output_when_mode_embed() {
+	public function test_wpforms_frontend_output_when_mode_embed(): void {
 		$form_id     = 5;
 		$form_data   = [
 			'id'       => $form_id,
@@ -558,7 +559,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_frontend_output_when_mode_auto() {
+	public function test_wpforms_frontend_output_when_mode_auto(): void {
 		$form_id     = 5;
 		$form_data   = [ 'id' => $form_id ];
 		$deprecated  = null;
@@ -608,7 +609,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_frontend_output_when_mode_auto_and_form_has_hcaptcha() {
+	public function test_wpforms_frontend_output_when_mode_auto_and_form_has_hcaptcha(): void {
 		$form_id     = 5;
 		$form_data   = [
 			'id'       => $form_id,
@@ -685,7 +686,7 @@ HTML;
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_process_hcaptcha( bool $mode_auto, bool $mode_embed, bool $has_hcaptcha, bool $expected ) {
+	public function test_process_hcaptcha( bool $mode_auto, bool $mode_embed, bool $has_hcaptcha, bool $expected ): void {
 		$form_data        = [ 'id' => 5 ];
 		$status           = [];
 		$init_hooks       = 'init_hooks';

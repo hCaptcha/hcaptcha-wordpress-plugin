@@ -41,7 +41,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	/**
 	 * Teardown after class.
 	 */
-	public static function tearDownAfterClass(): void {  // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public static function tearDownAfterClass(): void {
 		deactivate_plugins( static::$plugin );
 
 		parent::tearDownAfterClass();
@@ -50,7 +50,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	/**
 	 * Setup test.
 	 */
-	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function setUp(): void {
 		$plugins_requiring_php = [
 			'7.2' => [ 'ninja-forms/ninja-forms.php' ],
 			'7.4' => [ 'contact-form-7/wp-contact-form-7.php', 'woocommerce/woocommerce.php' ],

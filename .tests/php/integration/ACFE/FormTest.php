@@ -29,7 +29,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_POST['_acf_post_id'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		wp_dequeue_script( 'hcaptcha' );
@@ -44,7 +44,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init_hooks().
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Form();
 
 		self::assertSame( 10, has_action( 'acfe/form/render/before_fields', [ $subject, 'before_fields' ] ) );
@@ -61,7 +61,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_before_fields() {
+	public function test_before_fields(): void {
 		$id = 5;
 
 		$subject = new Form();
@@ -82,7 +82,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_remove_recaptcha_render
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_remove_recaptcha_render( array $field, $expected ) {
+	public function test_remove_recaptcha_render( array $field, $expected ): void {
 		$recaptcha = Mockery::mock( 'acfe_field_recaptcha' );
 		$recaptcha->shouldReceive( 'render_field' );
 
@@ -126,7 +126,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_add_hcaptcha
 	 */
-	public function test_add_hcaptcha( array $field, string $expected ) {
+	public function test_add_hcaptcha( array $field, string $expected ): void {
 		$subject = new Form();
 
 		hcaptcha()->init_hooks();
@@ -176,7 +176,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_remove_recaptcha_verify() {
+	public function test_remove_recaptcha_verify(): void {
 		$value = 'some value';
 		$field = [ 'type' => 'some' ];
 		$input = 'some_input_name';
@@ -207,7 +207,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_verify
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify( bool $result, bool $expected ) {
+	public function test_verify( bool $result, bool $expected ): void {
 		$valid   = ! $expected;
 		$value   = 'some hcaptcha response';
 		$input   = 'some_input_name';
@@ -242,7 +242,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_when_NOT_required() {
+	public function test_verify_when_NOT_required(): void {
 		$value = 'some hcaptcha response';
 		$input = 'some_input_name';
 		$field = [ 'required' => false ];
@@ -259,7 +259,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify_ajax() {
+	public function test_verify_ajax(): void {
 		$value = 'some hcaptcha response';
 		$input = 'some_input_name';
 		$field = [ 'required' => true ];
@@ -279,7 +279,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test enqueue_scripts().
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		$field = [
 			'type' => 'acfe_recaptcha',
 			'key'  => 'some-key',

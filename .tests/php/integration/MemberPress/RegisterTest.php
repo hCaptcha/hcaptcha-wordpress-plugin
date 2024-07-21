@@ -20,7 +20,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init hooks.
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Register();
 
 		self::assertSame(
@@ -36,7 +36,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$subject = new Register();
 
 		$expected = $this->get_hcap_form(
@@ -61,7 +61,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$subject = new Register();
 
 		$errors = [ 'some errors' ];
@@ -79,7 +79,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_no_success() {
+	public function test_verify_no_success(): void {
 		$subject = new Register();
 
 		$errors        = [ 'some errors' ];

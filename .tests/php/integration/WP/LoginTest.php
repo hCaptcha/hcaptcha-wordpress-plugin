@@ -26,11 +26,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset(
 			$_POST['log'],
@@ -47,7 +44,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
 
 		self::assertSame(
@@ -61,7 +58,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_display_signature() {
+	public function test_display_signature(): void {
 		$subject = new Login();
 
 		$expected = $this->get_signature( get_class( $subject ) );
@@ -76,7 +73,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_signature() {
+	public function test_add_signature(): void {
 		$content = 'some content';
 
 		$subject = new Login();
@@ -91,11 +88,11 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_check_signature() {
+	public function test_check_signature(): void {
 		$user     = wp_get_current_user();
 		$password = 'some password';
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature', null );
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
@@ -115,7 +112,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_check_signature_when_NOT_wp_login_form() {
+	public function test_check_signature_when_NOT_wp_login_form(): void {
 		$user     = wp_get_current_user();
 		$password = 'some password';
 
@@ -129,7 +126,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_check_signature_when_good_signature() {
+	public function test_check_signature_when_good_signature(): void {
 		$user     = wp_get_current_user();
 		$password = 'some password';
 
@@ -151,7 +148,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_check_signature_when_bad_signature() {
+	public function test_check_signature_when_bad_signature(): void {
 		$user     = wp_get_current_user();
 		$password = 'some password';
 
@@ -174,7 +171,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_login() {
+	public function test_login(): void {
 		$ip                      = '1.1.1.1';
 		$login_data[ $ip ][]     = time();
 		$login_data['2.2.2.2'][] = time();
@@ -205,7 +202,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_login_failed() {
+	public function test_login_failed(): void {
 		$ip                           = '1.1.1.1';
 		$ip2                          = '2.2.2.2';
 		$time                         = time();
@@ -233,7 +230,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		FunctionMocker::replace( 'time', $time );
 
-		$subject->login_failed( $username, null );
+		$subject->login_failed( $username );
 
 		self::assertSame( $expected_login_data, $this->get_protected_property( $subject, 'login_data' ) );
 		self::assertSame( $expected_login_data, get_option( LoginBase::LOGIN_DATA ) );
@@ -242,7 +239,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['wp_actions']['login_init']           = 1;
 		$GLOBALS['wp_actions']['login_form_login']     = 1;
@@ -271,7 +268,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() when not WP login form.
 	 */
-	public function test_add_captcha_when_NOT_wp_login_form() {
+	public function test_add_captcha_when_NOT_wp_login_form(): void {
 		$expected = '';
 
 		$subject = new Login();
@@ -286,7 +283,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() when not login limit exceeded.
 	 */
-	public function test_add_captcha_when_NOT_login_limit_exceeded() {
+	public function test_add_captcha_when_NOT_login_limit_exceeded(): void {
 		$expected = '';
 
 		$subject = new Login();
@@ -314,7 +311,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$user = new WP_User( 1 );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
@@ -336,7 +333,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() when login limit is not exceeded.
 	 */
-	public function test_verify_NOT_limit_exceeded() {
+	public function test_verify_NOT_limit_exceeded(): void {
 		$user = new WP_User( 1 );
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
@@ -360,7 +357,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$user     = new WP_User( 1 );
 		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 

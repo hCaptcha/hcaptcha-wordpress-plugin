@@ -32,7 +32,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tear down the test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		global $bp;
 
 		unset( $bp->signup );
@@ -43,7 +43,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args     = [
 			'action' => 'hcaptcha_bp_register',
 			'name'   => 'hcaptcha_bp_register_nonce',
@@ -66,7 +66,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test add_captcha() with error.
 	 */
-	public function test_register_error() {
+	public function test_register_error(): void {
 		global $bp;
 
 		$args                     = [
@@ -102,7 +102,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register' );
 
 		$subject = new Register();
@@ -113,7 +113,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		global $bp;
 
 		$bp->signup = (object) [

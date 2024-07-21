@@ -23,12 +23,8 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @return void
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_GET['service-worker'], $GLOBALS['current_screen'] );
 
 		parent::tearDown();
@@ -43,7 +39,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_init_and_init_hooks
 	 */
-	public function test_init_and_init_hooks( bool $worker, bool $admin, $expected ) {
+	public function test_init_and_init_hooks( bool $worker, bool $admin, $expected ): void {
 		if ( $worker ) {
 			$_GET['service-worker'] = 'some';
 		}
@@ -76,7 +72,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_migrate() {
+	public function test_migrate(): void {
 		FunctionMocker::replace( 'time', time() );
 
 		$time              = time();
@@ -168,7 +164,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_migrate_360_when_wpforms_status_not_set() {
+	public function test_migrate_360_when_wpforms_status_not_set(): void {
 		$method  = 'migrate_360';
 		$subject = Mockery::mock( Migrations::class )->makePartial();
 
@@ -187,7 +183,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_migrate_4_0_0() {
+	public function test_migrate_4_0_0(): void {
 		global $wpdb;
 
 		$method          = 'migrate_4_0_0';

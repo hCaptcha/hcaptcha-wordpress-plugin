@@ -27,7 +27,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init hooks.
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Form();
 
 		self::assertSame(
@@ -51,7 +51,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		hcaptcha()->init_hooks();
 
 		$form_id = 1;
@@ -99,7 +99,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() with own captcha.
 	 */
-	public function test_add_captcha_with_own_captcha() {
+	public function test_add_captcha_with_own_captcha(): void {
 		hcaptcha()->init_hooks();
 
 		$form = (object) [];
@@ -120,7 +120,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_no_success() {
+	public function test_verify_no_success(): void {
 		$errors = [
 			'some_error'         => 'Some error description',
 			'h-captcha-response' => [ 'Please complete the hCaptcha.' ],
@@ -142,7 +142,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$errors                         = [
 			'some_error' => 'Some error description',
 		];

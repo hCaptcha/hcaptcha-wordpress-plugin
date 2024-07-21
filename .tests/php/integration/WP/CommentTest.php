@@ -29,7 +29,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $GLOBALS['current_screen'] );
 
@@ -43,7 +43,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_constructor_and_init_hooks
 	 */
-	public function test_constructor_and_init_hooks( bool $active ) {
+	public function test_constructor_and_init_hooks( bool $active ): void {
 		if ( $active ) {
 			update_option( 'hcaptcha_settings', [ 'wp_status' => 'comment' ] );
 		}
@@ -74,7 +74,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$form_id      = '1';
 		$submit_field =
 			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
@@ -107,7 +107,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_captcha_when_NOT_active() {
+	public function test_add_captcha_when_NOT_active(): void {
 		$form_id      = '1';
 		$submit_field =
 			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
@@ -136,7 +136,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$commentdata = [ 'some comment data' ];
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
@@ -155,7 +155,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify_in_admin() {
+	public function test_verify_in_admin(): void {
 		$commentdata = [ 'some comment data' ];
 
 		set_current_screen( 'edit-post' );
@@ -171,7 +171,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$commentdata = [ 'some comment data' ];
 		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
@@ -188,7 +188,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_pre_comment_approved() {
+	public function test_pre_comment_approved(): void {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 
@@ -203,7 +203,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_pre_comment_approved_when_not_verified() {
+	public function test_pre_comment_approved_when_not_verified(): void {
 		$approved      = 1;
 		$commentdata   = [ 'some comment data' ];
 		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
@@ -221,7 +221,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function est_verify() {
+	public function est_verify(): void {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 
@@ -235,7 +235,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified in admin.
 	 */
-	public function est_verify_not_verified_in_admin() {
+	public function est_verify_not_verified_in_admin(): void {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 
@@ -249,7 +249,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() do not need to verify, not in admin.
 	 */
-	public function est_verify_do_not_need_to_verify_not_admin() {
+	public function est_verify_do_not_need_to_verify_not_admin(): void {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 		$expected    = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> Please complete the hCaptcha.', 400 );
@@ -262,7 +262,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified, not in admin.
 	 */
-	public function est_verify_not_verified_not_admin() {
+	public function est_verify_not_verified_not_admin(): void {
 		$approved    = 1;
 		$commentdata = [ 'some comment data' ];
 		$expected    = new WP_Error( 'invalid_hcaptcha', '<strong>hCaptcha error:</strong> The hCaptcha is invalid.', 400 );

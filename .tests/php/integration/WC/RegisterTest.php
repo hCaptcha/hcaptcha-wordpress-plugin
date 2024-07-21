@@ -23,7 +23,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Register();
 
 		self::assertSame(
@@ -39,7 +39,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		hcaptcha()->init_hooks();
 
 		$args     = [
@@ -64,7 +64,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$validation_error = new WP_Error( 'some error' );
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_register_nonce', 'hcaptcha_wc_register' );
@@ -76,7 +76,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$validation_error = 'some wrong error, to be replaced by WP_Error';
 		$expected         = new WP_Error();
 
@@ -92,8 +92,9 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {

@@ -36,11 +36,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
@@ -61,7 +58,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_constructor() {
+	public function test_constructor(): void {
 		$subject = new HCaptchaHandler();
 
 		self::assertInstanceOf( Main::class, $this->get_protected_property( $subject, 'main' ) );
@@ -80,7 +77,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test after_enqueue_scripts().
 	 */
-	public function test_after_enqueue_scripts() {
+	public function test_after_enqueue_scripts(): void {
 		self::assertFalse( wp_script_is( 'admin-elementor-pro' ) );
 
 		$subject = new HCaptchaHandler();
@@ -102,7 +99,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_init
 	 */
-	public function test_init( bool $enabled ) {
+	public function test_init( bool $enabled ): void {
 		if ( $enabled ) {
 			update_option(
 				'hcaptcha_settings',
@@ -209,7 +206,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test register_action().
 	 */
-	public function test_register_action() {
+	public function test_register_action(): void {
 		$subject = new HCaptchaHandler();
 
 		$module = Mockery::mock( Module::class );
@@ -221,7 +218,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test get_site_key().
 	 */
-	public function test_get_site_key() {
+	public function test_get_site_key(): void {
 		$site_key = 'some site key';
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $site_key ] );
@@ -233,7 +230,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test get_secret_key().
 	 */
-	public function test_get_secret_key() {
+	public function test_get_secret_key(): void {
 		$secret_key = 'some secret key';
 
 		update_option( 'hcaptcha_settings', [ 'secret_key' => $secret_key ] );
@@ -245,7 +242,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test get_hcaptcha_theme().
 	 */
-	public function test_get_hcaptcha_theme() {
+	public function test_get_hcaptcha_theme(): void {
 		$theme = 'some theme';
 
 		update_option( 'hcaptcha_settings', [ 'theme' => $theme ] );
@@ -257,7 +254,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test get_hcaptcha_size().
 	 */
-	public function test_get_hcaptcha_size() {
+	public function test_get_hcaptcha_size(): void {
 		$size = 'some size';
 
 		update_option( 'hcaptcha_settings', [ 'size' => $size ] );
@@ -269,7 +266,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test get_setup_message().
 	 */
-	public function test_get_setup_message() {
+	public function test_get_setup_message(): void {
 		self::assertSame(
 			'To use hCaptcha, you need to add the Site and Secret keys.',
 			HCaptchaHandler::get_setup_message()
@@ -286,7 +283,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_is_enabled
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_is_enabled( $site_key, $secret_key, bool $expected ) {
+	public function test_is_enabled( $site_key, $secret_key, bool $expected ): void {
 		$settings = [];
 
 		if ( $site_key ) {
@@ -323,7 +320,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test localize_settings().
 	 */
-	public function test_localize_settings() {
+	public function test_localize_settings(): void {
 		$settings = [
 			'forms' => [
 				'hcaptcha'  => [
@@ -380,7 +377,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test enqueue_scripts().
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro' ) );
@@ -403,7 +400,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test validation.
 	 */
-	public function test_validation() {
+	public function test_validation(): void {
 		$fields = [
 			'field_014ea7c' =>
 				[
@@ -433,7 +430,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test validation.
 	 */
-	public function test_validation_with_empty_fields() {
+	public function test_validation_with_empty_fields(): void {
 		$fields = [];
 
 		$record = Mockery::mock( Form_Record::class );
@@ -449,7 +446,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test validation with no hCaptcha response.
 	 */
-	public function test_validation_with_no_captcha() {
+	public function test_validation_with_no_captcha(): void {
 		$fields = [
 			'field_014ea7c' =>
 				[
@@ -477,7 +474,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test validation with failed hCaptcha.
 	 */
-	public function test_validation_with_failed_captcha() {
+	public function test_validation_with_failed_captcha(): void {
 		$fields = [
 			'field_014ea7c' =>
 				[
@@ -508,7 +505,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test validation with empty hCaptcha.
 	 */
-	public function test_validation_with_empty_captcha() {
+	public function test_validation_with_empty_captcha(): void {
 		$fields = [
 			'field_014ea7c' =>
 				[
@@ -539,7 +536,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test render_field.
 	 */
-	public function test_render_field() {
+	public function test_render_field(): void {
 		$site_key = 'some site key';
 		$theme    = 'some theme';
 		$size     = 'some size';
@@ -599,7 +596,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_field_type().
 	 */
-	public function test_add_field_type() {
+	public function test_add_field_type(): void {
 		$field_types = [
 			'text'      => 'text',
 			'recaptcha' => 'reCaptcha',
@@ -616,7 +613,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test modify_controls().
 	 */
-	public function test_modify_controls() {
+	public function test_modify_controls(): void {
 		$args = [];
 
 		$control_id  = 'form_fields';
@@ -856,7 +853,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test filter_field_item().
 	 */
-	public function test_filter_field_item() {
+	public function test_filter_field_item(): void {
 		$text_item = [
 			'field_type'  => 'text',
 			'field_label' => true,
@@ -877,7 +874,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_print_footer_scripts() {
+	public function test_print_footer_scripts(): void {
 		$subject = new HCaptchaHandler();
 
 		$subject->print_footer_scripts();
@@ -894,8 +891,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {

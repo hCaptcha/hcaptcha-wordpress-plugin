@@ -27,7 +27,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_SERVER['REQUEST_URI'], $_GET['rest_route'] );
 
 		parent::tearDown();
@@ -37,8 +37,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * Test is_rest().
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_is_rest() {
+	public function test_is_rest(): void {
 		// No REQUEST_URI.
 		unset( $_SERVER['REQUEST_URI'] );
 

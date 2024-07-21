@@ -24,7 +24,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_hcap_error_messages().
 	 */
-	public function test_add_hcap_error_messages() {
+	public function test_add_hcap_error_messages(): void {
 		$form = Mockery::mock( MC4WP_Form::class );
 
 		$messages = [
@@ -94,7 +94,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$form_id  = 5;
 		$content  = '<input type="submit">';
 		$args     = [
@@ -120,7 +120,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
@@ -133,7 +133,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );

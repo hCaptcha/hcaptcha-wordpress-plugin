@@ -26,7 +26,7 @@ class EmailOptinTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		wp_dequeue_script( EmailOptin::HANDLE );
 
 		parent::tearDown();
@@ -35,7 +35,7 @@ class EmailOptinTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new EmailOptin();
 
 		self::assertSame( 10, has_filter( 'et_pb_signup_form_field_html_submit_button', [ $subject, 'add_captcha' ] ) );
@@ -47,7 +47,7 @@ class EmailOptinTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$wrap              = '<p class="et_pb_newsletter_button_wrap">';
 		$html              = <<<HTML
 <form>
@@ -79,7 +79,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message_html( EmailOptin::NONCE, EmailOptin::ACTION );
 
 		$subject = new EmailOptin();
@@ -92,7 +92,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
 		$et_core_die = FunctionMocker::replace( 'et_core_die' );
@@ -111,7 +111,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		hcaptcha()->form_shown = true;
 
 		self::assertFalse( wp_script_is( EmailOptin::HANDLE ) );
@@ -128,7 +128,7 @@ HTML;
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts_when_form_was_not_shown() {
+	public function test_enqueue_scripts_when_form_was_not_shown(): void {
 		self::assertFalse( wp_script_is( EmailOptin::HANDLE ) );
 
 		$subject = new EmailOptin();
