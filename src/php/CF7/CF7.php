@@ -66,6 +66,11 @@ class CF7 extends Base {
 			return $output;
 		}
 
+		if ( false !== strpos( $output, '<div class="wpcf7-stripe">' ) ) {
+			// Stripe payment form already contains hCaptcha.
+			return $output;
+		}
+
 		$output             = (string) $output;
 		$form_id            = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
 		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
@@ -183,6 +188,10 @@ class CF7 extends Base {
 			return $this->get_invalidated_result( $result );
 		}
 
+		if ( $this->has_stripe_field( $submission ) ) {
+			return $result;
+		}
+
 		if (
 			! $this->mode_auto &&
 			! ( $this->mode_embed && $this->has_hcaptcha_field( $submission ) )
@@ -202,14 +211,23 @@ class CF7 extends Base {
 	}
 
 	/**
-	 * Whether the field is hCaptcha field.
+	 * Whether form has a field of given type.
 	 *
-	 * @param WPCF7_FormTag $field Field.
+	 * @param WPCF7_Submission $submission Submission.
+	 * @param string           $type       Field type.
 	 *
 	 * @return bool
 	 */
-	private function is_hcaptcha_field( WPCF7_FormTag $field ): bool {
-		return ( 'hcaptcha' === $field->type );
+	private function has_field( WPCF7_Submission $submission, string $type ): bool {
+		$form_fields = $submission->get_contact_form()->scan_form_tags();
+
+		foreach ( $form_fields as $form_field ) {
+			if ( $type === $form_field->type ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -220,15 +238,18 @@ class CF7 extends Base {
 	 * @return bool
 	 */
 	protected function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
-		$form_fields = $submission->get_contact_form()->scan_form_tags();
+		return $this->has_field( $submission, 'hcaptcha' );
+	}
 
-		foreach ( $form_fields as $form_field ) {
-			if ( $this->is_hcaptcha_field( $form_field ) ) {
-				return true;
-			}
-		}
-
-		return false;
+	/**
+	 * Whether form has its own Stripe field.
+	 *
+	 * @param WPCF7_Submission $submission Submission.
+	 *
+	 * @return bool
+	 */
+	protected function has_stripe_field( WPCF7_Submission $submission ): bool {
+		return $this->has_field( $submission, 'stripe' );
 	}
 
 	/**
