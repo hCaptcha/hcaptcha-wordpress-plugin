@@ -1,5 +1,7 @@
 // noinspection JSUnresolvedVariable
 
+/* global nfRadio */
+
 const submitChannel = {
 	listenTo: jest.fn(),
 };

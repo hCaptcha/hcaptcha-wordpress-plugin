@@ -39,5 +39,5 @@ const Marionette = {
 };
 
 global.Backbone = Backbone;
-global.nfRadio  = Backbone.Radio;
+global.nfRadio = Backbone.Radio;
 global.Marionette = Marionette;
