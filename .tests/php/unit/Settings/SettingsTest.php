@@ -8,6 +8,8 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
 /** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 // phpcs:disable WordPress.WP.AlternativeFunctions.json_encode_json_encode
@@ -43,7 +45,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_constructor
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_constructor( $menu_groups ) {
+	public function test_constructor( $menu_groups ): void {
 		$class_name = Settings::class;
 
 		$subject = Mockery::mock( $class_name )->makePartial()->shouldAllowMockingProtectedMethods();
@@ -82,7 +84,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init() {
+	public function test_init(): void {
 		$subject = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'init';
 
@@ -106,7 +108,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_tabs() {
+	public function test_get_tabs(): void {
 		$general      = Mockery::mock( General::class )->makePartial();
 		$integrations = Mockery::mock( Integrations::class )->makePartial();
 
@@ -123,7 +125,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_active_tab_name() {
+	public function test_get_active_tab_name(): void {
 		$general_tab_name = General::class;
 		$general          = Mockery::mock( $general_tab_name )->makePartial();
 		$integrations     = Mockery::mock( Integrations::class )->makePartial();
@@ -143,7 +145,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_is_pro() {
+	public function test_is_pro(): void {
 		$license = 'free';
 
 		$subject = Mockery::mock( Settings::class )->makePartial();
@@ -172,7 +174,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_is_pro_or_general
 	 */
-	public function test_is_pro_or_general( bool $is_pro, bool $is_general, bool $is_admin, bool $expected ) {
+	public function test_is_pro_or_general( bool $is_pro, bool $is_general, bool $is_admin, bool $expected ): void {
 		$active_tab_name = $is_general ? 'General' : 'some';
 
 		$subject = Mockery::mock( Settings::class )->makePartial();
@@ -211,11 +213,11 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_get_config_params
 	 */
-	public function test_get_config_params( $config_params, array $expected ) {
+	public function test_get_config_params( $config_params, array $expected ): void {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( 'config_params' )->andReturn( $config_params );
 
-		self::assertSame( $expected, $subject->get_config_params( $config_params ) );
+		self::assertSame( $expected, $subject->get_config_params() );
 	}
 
 	/**
@@ -237,7 +239,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get() {
+	public function test_get(): void {
 		$general_key        = 'some general key';
 		$general_value      = 'some general value';
 		$integrations_key   = 'some integrations key';
@@ -302,8 +304,9 @@ class SettingsTest extends HCaptchaTestCase {
 	 * Test set().
 	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_set() {
+	public function test_set(): void {
 		$general_key      = 'some general key';
 		$integrations_key = 'some integrations key';
 
@@ -345,7 +348,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_is
 	 */
-	public function test_is( string $key, $value, string $compare, bool $expected ) {
+	public function test_is( string $key, $value, string $compare, bool $expected ): void {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( $key )->andReturn( $value );
 
@@ -375,7 +378,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_is_on
 	 */
-	public function test_is_on( string $key, $value ) {
+	public function test_is_on( string $key, $value ): void {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( $key )->andReturn( $value );
 
@@ -406,7 +409,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_get_keys
 	 */
-	public function test_get_keys( string $mode, array $expected ) {
+	public function test_get_keys( string $mode, array $expected ): void {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( 'mode' )->andReturn( $mode );
 
@@ -470,7 +473,7 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test get_site_key().
 	 */
-	public function test_get_site_key() {
+	public function test_get_site_key(): void {
 		$site_key   = 'some site key';
 		$secret_key = 'some secret key';
 		$subject    = Mockery::mock( Settings::class )->makePartial();
@@ -487,7 +490,7 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test get_secret_key().
 	 */
-	public function test_get_secret_key() {
+	public function test_get_secret_key(): void {
 		$site_key   = 'some site key';
 		$secret_key = 'some secret key';
 		$subject    = Mockery::mock( Settings::class )->makePartial();
@@ -510,7 +513,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_get_theme
 	 */
-	public function test_get_theme( bool $is_custom, bool $is_pro_or_general ) {
+	public function test_get_theme( bool $is_custom, bool $is_pro_or_general ): void {
 		$theme         = 'some theme';
 		$config_theme  = 'some config theme';
 		$config_params = [
@@ -554,7 +557,7 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test get_language().
 	 */
-	public function test_get_language() {
+	public function test_get_language(): void {
 		$language = 'some language';
 		$subject  = Mockery::mock( Settings::class )->makePartial();
 
@@ -568,7 +571,7 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test get_mode().
 	 */
-	public function test_get_mode() {
+	public function test_get_mode(): void {
 		$mode    = 'some mode';
 		$subject = Mockery::mock( Settings::class )->makePartial();
 
@@ -588,7 +591,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_get_license
 	 * @return void
 	 */
-	public function test_get_license( string $license, string $expected ) {
+	public function test_get_license( string $license, string $expected ): void {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 
 		$subject->shouldReceive( 'get' )->with( 'license' )->andReturn( $license );
@@ -613,7 +616,7 @@ class SettingsTest extends HCaptchaTestCase {
 	/**
 	 * Test get_default_theme().
 	 */
-	public function test_get_default_theme() {
+	public function test_get_default_theme(): void {
 		$expected = [
 			'palette'   => [
 				'mode'    => 'light',
@@ -816,7 +819,7 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_set_field
 	 */
-	public function test_set_field( array $has_field, array $called ) {
+	public function test_set_field( array $has_field, array $called ): void {
 		$general      = Mockery::mock( General::class )->makePartial();
 		$integrations = Mockery::mock( Integrations::class )->makePartial();
 		$tabs         = empty( $has_field ) ? [] : [ $general, $integrations ];

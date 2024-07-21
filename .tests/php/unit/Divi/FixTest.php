@@ -27,7 +27,7 @@ class FixTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 */
-	public function test_init() {
+	public function test_init(): void {
 		$mock = Mockery::mock( Fix::class )->makePartial();
 		$mock->shouldReceive( 'init_hooks' )->with()->once();
 
@@ -37,7 +37,7 @@ class FixTest extends HCaptchaTestCase {
 	/**
 	 * Test init_hooks().
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Fix();
 
 		WP_Mock::expectActionAdded( 'init', [ $subject, 'register_autoload' ], - PHP_INT_MAX );
@@ -48,7 +48,7 @@ class FixTest extends HCaptchaTestCase {
 	/**
 	 * Test register_autoload().
 	 */
-	public function test_register_autoload() {
+	public function test_register_autoload(): void {
 		$autoload = FunctionMocker::replace( 'spl_autoload_register' );
 
 		FunctionMocker::replace(
@@ -67,7 +67,7 @@ class FixTest extends HCaptchaTestCase {
 	/**
 	 * Test register_autoload() without the Divi theme.
 	 */
-	public function test_register_autoload_without_divi_theme() {
+	public function test_register_autoload_without_divi_theme(): void {
 		$autoload = FunctionMocker::replace( 'spl_autoload_register' );
 
 		$subject = new Fix();
@@ -79,7 +79,7 @@ class FixTest extends HCaptchaTestCase {
 	/**
 	 * Test prevent_loading_of_wp_test_case().
 	 */
-	public function test_prevent_loading_of_wp_test_case() {
+	public function test_prevent_loading_of_wp_test_case(): void {
 		$subject = new Fix();
 
 		$codeception_wp_test_case = 'Codeception\TestCase\WPTestCase';

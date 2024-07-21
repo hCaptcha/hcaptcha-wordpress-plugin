@@ -21,7 +21,7 @@ class MainTest extends HCaptchaTestCase {
 	/**
 	 * Test init().
 	 */
-	public function test_is_xml_rpc() {
+	public function test_is_xml_rpc(): void {
 		$mock = Mockery::mock( Main::class )->makePartial();
 
 		$mock->shouldAllowMockingProtectedMethods();
@@ -50,7 +50,7 @@ class MainTest extends HCaptchaTestCase {
 	 * @return void
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_declare_wc_compatibility() {
+	public function test_declare_wc_compatibility(): void {
 		$mock = Mockery::mock( 'alias:Automattic\WooCommerce\Utilities\FeaturesUtil' );
 		$mock->shouldReceive( 'declare_compatibility' )
 			->with( 'custom_order_tables', HCAPTCHA_TEST_FILE, true )

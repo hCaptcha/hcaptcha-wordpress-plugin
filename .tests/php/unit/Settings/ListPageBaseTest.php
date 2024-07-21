@@ -29,8 +29,9 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * Test date_picker_display().
 	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection HtmlWrongAttributeValue
 	 */
-	public function test_date_picker_display() {
+	public function test_date_picker_display(): void {
 		$choices       = [
 			'<label >Today<input type="radio" aria-hidden="true" name="timespan" value="2024-05-27 - 2024-05-27"  ></label>',
 			'<label >Yesterday<input type="radio" aria-hidden="true" name="timespan" value="2024-05-26 - 2024-05-27"  ></label>',
@@ -94,7 +95,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_date_picker_display_when_not_allowed() {
+	public function test_date_picker_display_when_not_allowed(): void {
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 
 		$this->set_protected_property( $subject, 'allowed', false );
@@ -111,7 +112,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_process_datepicker_choices() {
+	public function test_process_datepicker_choices(): void {
 		$start_date    = date_create_immutable( '2024-04-27 00:00:00' );
 		$end_date      = date_create_immutable( '2024-05-27 23:59:59' );
 		$days          = '30';
@@ -149,7 +150,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 					return [ '', '', 'custom', 'Custom' ];
 				}
 
-				$start_date = $end_date->modify( "-{$days} days" );
+				$start_date = $end_date->modify( "-$days days" );
 				$choices    = [
 					'0'   => 'Today',
 					'1'   => 'Yesterday',
@@ -177,8 +178,9 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @throws Exception Exception.
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
-	public function test_process_timespan() {
+	public function test_process_timespan(): void {
 		$dates      = '2024-04-27 - 2024-05-27';
 		$start_date = date_create_immutable( '2024-04-27 00:00:00' );
 		$end_date   = date_create_immutable( '2024-05-27 23:59:59' );
@@ -229,7 +231,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_process_timespan_with_empty_get() {
+	public function test_process_timespan_with_empty_get(): void {
 		$start_date = date_create_immutable( '2024-04-27 00:00:00' );
 		$end_date   = date_create_immutable( '2024-05-27 23:59:59' );
 		$expected   = [ $start_date, $end_date, '30', 'Last 30 days' ];
@@ -262,8 +264,9 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * Test process_timespan() with wrong dates in $_GET.
 	 *
 	 * @return void
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
-	public function test_process_timespan_with_wrong_dates() {
+	public function test_process_timespan_with_wrong_dates(): void {
 		$dates      = '2024-06-27 - 2024-05-27';
 		$start_date = date_create_immutable( '2024-06-27 00:00:00' );
 		$end_date   = date_create_immutable( '2024-05-27 23:59:59' );
@@ -298,7 +301,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_maybe_validate_string_timespan() {
+	public function test_maybe_validate_string_timespan(): void {
 		$dates = '2024-04-27 - 2024-05-27';
 
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
@@ -322,7 +325,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_get_timespan_dates
 	 * @return void
 	 */
-	public function test_get_timespan_dates( string $days, array $expected ) {
+	public function test_get_timespan_dates( string $days, array $expected ): void {
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
@@ -382,7 +385,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_date_filter_choices() {
+	public function test_get_date_filter_choices(): void {
 		$choices = [
 			'0'      => 'Today',
 			'1'      => 'Yesterday',

@@ -50,7 +50,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 	/**
 	 * Test page_title().
 	 */
-	public function test_page_title() {
+	public function test_page_title(): void {
 		$subject = Mockery::mock( SystemInfo::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'page_title';
 
@@ -60,7 +60,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 	/**
 	 * Test section_title().
 	 */
-	public function test_section_title() {
+	public function test_section_title(): void {
 		$subject = Mockery::mock( SystemInfo::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'section_title';
 
@@ -72,7 +72,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_admin_enqueue_scripts() {
+	public function test_admin_enqueue_scripts(): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min_suffix     = '.min';
@@ -154,7 +154,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_section_callback() {
+	public function test_section_callback(): void {
 		$subject  = Mockery::mock( SystemInfo::class )->makePartial();
 		$expected = '		<div class="hcaptcha-header-bar">
 			<div class="hcaptcha-header">
@@ -190,7 +190,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_system_info() {
+	public function test_get_system_info(): void {
 		$plugin_version         = '1.0.0';
 		$migrations             = [
 			'2.0.0'  => 1662205373,
@@ -666,20 +666,12 @@ Use Only Cookies:                     On
 					return '2G';
 				}
 
-				if ( 'upload_max_filesize' === $name ) {
-					return '2G';
-				}
-
 				if ( 'max_execution_time' === $name ) {
 					return '0';
 				}
 
 				if ( 'max_input_vars' === $name ) {
 					return '1000';
-				}
-
-				if ( 'max_input_vars' === $name ) {
-					return '0';
 				}
 
 				if ( 'session.name' === $name ) {
@@ -756,7 +748,7 @@ Use Only Cookies:                     On
 		WP_Mock::userFunction( 'get_option' )->with( 'permalink_structure' )->andReturn( '/%postname%/' );
 		WP_Mock::userFunction( 'get_option' )->with( 'show_on_front' )->andReturn( 'page' );
 		WP_Mock::userFunction( 'get_option' )->with( 'page_on_front' )->andReturn( $front_page_id );
-		WP_Mock::userFunction( 'get_option' )->with( 'page_for_posts' )->andReturn( $blog_page_id . '' );
+		WP_Mock::userFunction( 'get_option' )->with( 'page_for_posts' )->andReturn( $blog_page_id );
 		WP_Mock::userFunction( 'get_the_title' )->with( $front_page_id )->andReturn( 'Untitled' );
 		WP_Mock::userFunction( 'get_the_title' )->with( $blog_page_id )->andReturn( 'Untitled' );
 		WP_Mock::userFunction( 'get_post_stati' )->with()->andReturn( $post_stati );
@@ -772,7 +764,7 @@ Use Only Cookies:                     On
 	/**
 	 * Test get_integrations().
 	 */
-	public function test_get_integrations_without_integrations_class() {
+	public function test_get_integrations_without_integrations_class(): void {
 		$general = Mockery::mock( General::class )->makePartial();
 
 		$tabs = [ $general ];
@@ -790,11 +782,11 @@ Use Only Cookies:                     On
 	}
 
 	/**
-	 * Test multisite_plugins() when it is not a multisite.
+	 * Test multisite_plugins() when it is not multisite.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_multisite_plugins_not_multisite() {
+	public function test_multisite_plugins_not_multisite(): void {
 		$subject = Mockery::mock( SystemInfo::class )->makePartial();
 		$method  = 'multisite_plugins';
 

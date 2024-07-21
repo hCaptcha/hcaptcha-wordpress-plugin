@@ -48,7 +48,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test page_title().
 	 */
-	public function test_page_title() {
+	public function test_page_title(): void {
 		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'page_title';
 
@@ -58,7 +58,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test section_title().
 	 */
-	public function test_section_title() {
+	public function test_section_title(): void {
 		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'section_title';
 
@@ -68,7 +68,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test init_hooks().
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$plugin_base_name = 'hcaptcha-for-forms-and-more/hcaptcha.php';
 		$option_name      = 'hcaptcha_settings';
 		$hcaptcha         = Mockery::mock( Main::class )->makePartial();
@@ -100,7 +100,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_notifications() {
+	public function test_init_notifications(): void {
 		$hcaptcha      = Mockery::mock( Main::class )->makePartial();
 		$settings      = Mockery::mock( Settings::class )->makePartial();
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
@@ -124,7 +124,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_form_fields() {
+	public function test_init_form_fields(): void {
 		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
@@ -143,7 +143,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_setup_fields
 	 */
-	public function test_setup_fields( string $mode ) {
+	public function test_setup_fields( string $mode ): void {
 		$settings = Mockery::mock( Settings::class )->makePartial();
 		$settings->shouldReceive( 'get_mode' )->andReturn( $mode );
 
@@ -194,7 +194,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_setup_fields_not_on_options_screen() {
+	public function test_setup_fields_not_on_options_screen(): void {
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
@@ -212,7 +212,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_section_callback
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_section_callback( string $section_id, string $expected ) {
+	public function test_section_callback( string $section_id, string $expected ): void {
 		$user     = (object) [ 'ID' => 1 ];
 		$settings = Mockery::mock( Settings::class )->makePartial();
 
@@ -324,7 +324,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_admin_enqueue_scripts() {
+	public function test_admin_enqueue_scripts(): void {
 		$plugin_url          = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version      = '1.0.0';
 		$min_suffix          = '.min';
@@ -450,7 +450,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_settings_fields() {
+	public function test_settings_fields(): void {
 		$fields = [
 			'text' => [ 'some_class', 'some_method' ],
 		];
@@ -467,7 +467,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test print_hcaptcha_field().
 	 */
-	public function test_print_hcaptcha_field() {
+	public function test_print_hcaptcha_field(): void {
 		$size      = 'invisible';
 		$hcap_form = '<div class="h-captcha"></div>';
 		$main      = Mockery::mock( Main::class )->makePartial();
@@ -502,7 +502,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test check_config().
 	 */
-	public function test_check_config() {
+	public function test_check_config(): void {
 		$ajax_mode         = 'live';
 		$ajax_site_key     = 'some-site-key';
 		$ajax_secret_key   = 'some-secret-key';
@@ -541,7 +541,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test toggle_section().
 	 */
-	public function test_toggle_section() {
+	public function test_toggle_section(): void {
 		$section                = 'some-section';
 		$status                 = '1';
 		$user_id                = 1;
@@ -584,7 +584,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test toggle_section() without a user.
 	 */
-	public function test_toggle_section_without_a_user() {
+	public function test_toggle_section_without_a_user(): void {
 		$section                = 'some-section';
 		$status                 = '1';
 		$hcaptcha_user_settings = [
@@ -631,7 +631,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_maybe_send_stats
 	 */
-	public function test_maybe_send_stats( bool $stats, bool $old_stats, bool $expected ) {
+	public function test_maybe_send_stats( bool $stats, bool $old_stats, bool $expected ): void {
 		$value['statistics'][0]     = $stats ? 'on' : 'off';
 		$old_value['statistics'][0] = $old_stats ? 'on' : 'off';
 

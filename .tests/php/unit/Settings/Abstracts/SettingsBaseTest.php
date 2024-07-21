@@ -42,7 +42,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_constructor
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_constructor( bool $is_tab, string $admin_mode, bool $is_network_wide ) {
+	public function test_constructor( bool $is_tab, string $admin_mode, bool $is_network_wide ): void {
 		$tabs = [ 'some class instance 1', 'some class instance 2' ];
 		$args = [ 'some' => 'args' ];
 
@@ -127,7 +127,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init( bool $script_debug, bool $is_main_menu_page, bool $is_tab_active ) {
+	public function test_init( bool $script_debug, bool $is_main_menu_page, bool $is_tab_active ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'form_fields' )->once();
@@ -194,7 +194,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_init_hooks
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_hooks( bool $is_active, bool $is_main_menu_page ) {
+	public function test_init_hooks( bool $is_active, bool $is_main_menu_page ): void {
 		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
 		$option_name      = 'hcaptcha_settings';
 
@@ -262,7 +262,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_form_fields() {
+	public function test_init_form_fields(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$method  = 'init_form_fields';
 
@@ -283,7 +283,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_process_args
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_process_args( array $args, $expected ) {
+	public function test_process_args( array $args, array $expected ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$method  = 'process_args';
 
@@ -377,7 +377,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_process_args_when_network_wide
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_process_args_when_network_wide( array $args, $expected ) {
+	public function test_process_args_when_network_wide( array $args, array $expected ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$method  = 'process_args';
 
@@ -471,7 +471,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpMissingParamTypeInspection PhpMissingParamTypeInspection.
 	 */
-	public function test_is_main_menu_page( $tabs, bool $expected ) {
+	public function test_is_main_menu_page( $tabs, bool $expected ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$method = 'is_main_menu_page';
@@ -499,7 +499,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_tab_name() {
+	public function test_tab_name(): void {
 		$class_name = 'SomeClassName';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -517,7 +517,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_class_name() {
+	public function test_get_class_name(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
 		$method = 'get_class_name';
@@ -544,7 +544,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_is_tab() {
+	public function test_is_tab(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
 		$method = 'is_tab';
@@ -563,7 +563,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_add_settings_link
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_settings_link( string $parent_slug ) {
+	public function test_add_settings_link( string $parent_slug ): void {
 		$option_page         = 'hcaptcha';
 		$settings_link_label = 'hCaptcha Settings';
 		$settings_link_text  = 'Settings';
@@ -608,7 +608,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_init_settings
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_settings( $settings, bool $network_wide ) {
+	public function test_init_settings( $settings, bool $network_wide ): void {
 		$option_name          = 'hcaptcha_settings';
 		$network_wide_setting = $network_wide ? [ 'on' ] : [];
 
@@ -676,7 +676,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_form_fields
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_form_fields( $form_fields, array $expected ) {
+	public function test_form_fields( $form_fields, array $expected ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$method = 'form_fields';
@@ -721,7 +721,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_add_settings_page
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_settings_page( bool $is_main_menu_page ) {
+	public function test_add_settings_page( bool $is_main_menu_page ): void {
 		$page_title     = 'General';
 		$tab_page_title = 'Integrations';
 		$menu_title     = 'hCaptcha';
@@ -782,7 +782,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_settings_page_with_parent_slug() {
+	public function test_add_settings_page_with_parent_slug(): void {
 		$parent_slug = 'options-general.php';
 		$page_title  = 'General';
 		$menu_title  = 'hCaptcha';
@@ -808,7 +808,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test settings_base_page().
 	 */
-	public function test_settings_base_page() {
+	public function test_settings_base_page(): void {
 		$page = Mockery::mock( SettingsBase::class );
 		$page->shouldReceive( 'settings_page' )->with()->once();
 
@@ -828,7 +828,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_admin_enqueue_scripts() {
+	public function test_admin_enqueue_scripts(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$method  = 'admin_enqueue_scripts';
 
@@ -838,7 +838,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_enqueue_base_scripts().
 	 */
-	public function test_base_admin_enqueue_scripts() {
+	public function test_base_admin_enqueue_scripts(): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-for-forms-and-more';
 		$plugin_version = '1.0.0';
 
@@ -884,7 +884,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_enqueue_base_scripts() when not options screen.
 	 */
-	public function test_base_admin_enqueue_scripts_when_not_options_screen() {
+	public function test_base_admin_enqueue_scripts_when_not_options_screen(): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-for-forms-and-more';
 		$plugin_version = '1.0.0';
 
@@ -912,7 +912,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_base_admin_page_access_denied() {
+	public function test_base_admin_page_access_denied(): void {
 		$is_network_wide = false;
 		$option_page     = 'hcaptcha';
 
@@ -965,7 +965,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_setup_sections
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_setup_sections( array $tabs ) {
+	public function test_setup_sections( array $tabs ): void {
 		$tab_option_page = 'hcaptcha';
 
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1015,7 +1015,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test setup_sections() not on the options screen.
 	 */
-	public function test_setup_sections_not_on_options_screen() {
+	public function test_setup_sections_not_on_options_screen(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
@@ -1030,7 +1030,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_setup_sections
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_setup_sections_when_empty_form_fields( array $tabs ) {
+	public function test_setup_sections_when_empty_form_fields( array $tabs ): void {
 		$tab_option_page = 'hcaptcha';
 		$title           = 'some title';
 
@@ -1067,7 +1067,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_setup_tabs_section
 	 * @return void
 	 */
-	public function test_setup_tabs_section( bool $is_main_page, bool $is_options_screen ) {
+	public function test_setup_tabs_section( bool $is_main_page, bool $is_options_screen ): void {
 		$tab_option_page = 'hcaptcha';
 
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1112,7 +1112,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test setup_tabs_section() not the main menu page.
 	 */
-	public function test_setup_tabs_section_not_on_options_screen() {
+	public function test_setup_tabs_section_not_on_options_screen(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_main_menu_page' )->andReturn( false );
@@ -1128,7 +1128,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_tabs_callback
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_tabs_callback( bool $is_network_wide ) {
+	public function test_tabs_callback( bool $is_network_wide ): void {
 		$option_page         = 'hcaptcha';
 		$tab_option_page     = 'hcaptcha';
 		$subject_class_name  = 'General';
@@ -1222,7 +1222,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_is_tab_active_in_tabs_mode( $on_page, $input_tab, $referer_names, bool $is_tab, string $class_name, bool $expected ) {
+	public function test_is_tab_active_in_tabs_mode( $on_page, $input_tab, $referer_names, bool $is_tab, string $class_name, bool $expected ): void {
 		$option_page = 'own-option-page';
 		$input_page  = $on_page ? $option_page : 'some-page';
 
@@ -1364,7 +1364,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_is_tab_active_in_pages_mode( $on_page, $referer_names, bool $expected ) {
+	public function test_is_tab_active_in_pages_mode( $on_page, $referer_names, bool $expected ): void {
 		$option_page = 'hcaptcha';
 		$input_page  = $on_page ? $option_page : null;
 
@@ -1433,7 +1433,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_is_tab_active_in_wrong_mode() {
+	public function test_is_tab_active_in_wrong_mode(): void {
 		$tab     = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
@@ -1455,7 +1455,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_get_tab_name_from_referer
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function test_get_tab_name_from_referer( bool $doing_ajax, $referer, $expected ) {
+	public function test_get_tab_name_from_referer( bool $doing_ajax, $referer, $expected ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
@@ -1563,7 +1563,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_tabs() {
+	public function test_get_tabs(): void {
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
 
@@ -1580,7 +1580,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_active_tab() {
+	public function test_get_active_tab(): void {
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
 
@@ -1605,7 +1605,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_setup_fields() {
+	public function test_setup_fields(): void {
 		$option_group = 'hcaptcha_group';
 		$option_name  = 'hcaptcha_settings';
 		$option_page  = 'hcaptcha';
@@ -1647,7 +1647,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_setup_fields_with_empty_form_fields() {
+	public function test_setup_fields_with_empty_form_fields(): void {
 		$option_group = 'hcaptcha_group';
 		$option_name  = 'hcaptcha_settings';
 
@@ -1671,7 +1671,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test setup_fields() not on the options screen.
 	 */
-	public function test_setup_fields_not_on_options_screen() {
+	public function test_setup_fields_not_on_options_screen(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
@@ -1693,7 +1693,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_field_callback( array $arguments, string $expected ) {
+	public function test_field_callback( array $arguments, string $expected ): void {
 		$option_name = 'hcaptcha_settings';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -2325,7 +2325,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test field_callback() without a field id.
 	 */
-	public function test_field_callback_without_field_id() {
+	public function test_field_callback_without_field_id(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
 		$arguments = [];
@@ -2340,7 +2340,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_field_callback_without_callable() {
+	public function test_field_callback_without_callable(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
 		$arguments = [
@@ -2370,7 +2370,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_get
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get( array $settings, string $key, $empty_value, $expected ) {
+	public function test_get( array $settings, string $key, $empty_value, $expected ): void {
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
 		$tab->shouldAllowMockingProtectedMethods();
 		$tab->shouldReceive( 'form_fields' )->andReturn( [] );
@@ -2411,7 +2411,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test get() with no settings.
 	 */
-	public function test_get_with_no_settings() {
+	public function test_get_with_no_settings(): void {
 		$settings = $this->get_test_settings();
 		$key      = 'wp_status';
 		$expected = $settings[ $key ];
@@ -2433,7 +2433,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_set() {
+	public function test_set(): void {
 		$settings         = $this->get_test_settings();
 		$key              = 'wp_status';
 		$value            = 'new_value';
@@ -2458,7 +2458,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_field_default
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_field_default( array $field, string $expected ) {
+	public function test_field_default( array $field, string $expected ): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$method  = 'field_default';
 		$this->set_method_accessibility( $subject, $method );
@@ -2484,7 +2484,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_set_field() {
+	public function test_set_field(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
@@ -2510,7 +2510,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_update_option
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_update_option( array $settings, string $key, $value, $expected ) {
+	public function test_update_option( array $settings, string $key, $value, $expected ): void {
 		$option_name = 'hcaptcha_settings';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -2565,7 +2565,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_update_option_with_no_settings() {
+	public function test_update_option_with_no_settings(): void {
 		$option_name = 'hcaptcha_settings';
 		$settings    = $this->get_test_settings();
 		$key         = 'page_title';
@@ -2609,7 +2609,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_pre_update_option_filter
 	 * @noinspection RepetitiveMethodCallsInspection
 	 */
-	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ) {
+	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ): void {
 		$option_name                   = 'hcaptcha_settings';
 		$network_wide                  = '_network_wide';
 		$merged_value                  = array_merge( $old_value, $value );
@@ -2785,7 +2785,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test load_plugin_textdomain().
 	 */
-	public function test_load_plugin_text_domain() {
+	public function test_load_plugin_text_domain(): void {
 		$text_domain      = 'hcaptcha-for-forms-and-more';
 		$plugin_base_name = 'hcaptcha-for-forms-and-more/hcaptcha.php';
 
@@ -2808,7 +2808,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_is_options_screen
 	 */
-	public function test_is_options_screen( $current_screen, bool $expected ) {
+	public function test_is_options_screen( $current_screen, bool $expected ): void {
 		$option_page = 'hcaptcha';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -2846,7 +2846,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @dataProvider dp_test_is_options_screen_when_network_wide
 	 */
-	public function test_is_options_screen_when_network_wide( $current_screen, bool $expected ) {
+	public function test_is_options_screen_when_network_wide( $current_screen, bool $expected ): void {
 		$option_page = 'hcaptcha';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -2879,7 +2879,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test is_options_screen() when get_current_screen() does not exist.
 	 */
-	public function test_is_options_screen_when_get_current_screen_does_not_exist() {
+	public function test_is_options_screen_when_get_current_screen_does_not_exist(): void {
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
@@ -2898,7 +2898,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_network_wide() {
+	public function test_get_network_wide(): void {
 		$option_name  = 'hcaptcha_settings';
 		$network_wide = [ 'on' ];
 
@@ -2922,7 +2922,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_is_network_wide() {
+	public function test_is_network_wide(): void {
 		$network_wide = [ 'on' ];
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -2948,7 +2948,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_menu_position() {
+	public function test_get_menu_position(): void {
 		$menu_position = [ 'on' ];
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();

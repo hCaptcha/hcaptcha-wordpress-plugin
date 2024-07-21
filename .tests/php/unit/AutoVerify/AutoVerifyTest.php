@@ -42,7 +42,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_and_init_hooks() {
+	public function test_init_and_init_hooks(): void {
 		$subject = new AutoVerify();
 
 		WP_Mock::expectActionAdded( 'init', [ $subject, 'verify_form' ], -PHP_INT_MAX );
@@ -61,7 +61,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test content_filter() on frontend.
 	 */
-	public function test_content_filter_on_frontend() {
+	public function test_content_filter_on_frontend(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -81,7 +81,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test content_filter() not on frontend.
 	 */
-	public function test_content_filter_not_on_frontend() {
+	public function test_content_filter_not_on_frontend(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			false
@@ -97,7 +97,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test widget_block_content_filter() on frontend.
 	 */
-	public function test_widget_block_content_filter_on_frontend() {
+	public function test_widget_block_content_filter_on_frontend(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -118,7 +118,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test verify_form() not on frontend.
 	 */
-	public function test_verify_form_not_on_frontend() {
+	public function test_verify_form_not_on_frontend(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			false
@@ -131,7 +131,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test verify_form() when not POST request.
 	 */
-	public function test_verify_form_when_not_post_request() {
+	public function test_verify_form_when_not_post_request(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -148,10 +148,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test verify_form() when no path.
 	 */
-	public function test_verify_form_when_no_path() {
-		$url  = '';
-		$path = '';
-
+	public function test_verify_form_when_no_path(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -181,7 +178,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test verify_form() when form is not registered.
 	 */
-	public function test_verify_form_when_form_is_not_registered() {
+	public function test_verify_form_when_form_is_not_registered(): void {
 		$url = 'https://test.test/auto-verify?test=1';
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
@@ -219,7 +216,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test verify_form() when the form is verified.
 	 */
-	public function test_verify_form_when_the_form_is_verified() {
+	public function test_verify_form_when_the_form_is_verified(): void {
 		$url = 'https://test.test/auto-verify?test=1';
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
@@ -258,7 +255,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	/**
 	 * Test verify_form() when the form is not verified.
 	 */
-	public function test_verify_form_when_the_form_is_not_verified() {
+	public function test_verify_form_when_the_form_is_not_verified(): void {
 		$url    = 'https://test.test/auto-verify?test=1';
 		$result = 'Some hCaptcha error.';
 
@@ -314,7 +311,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_register_forms_with_empty_forms() {
+	public function test_register_forms_with_empty_forms(): void {
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
@@ -328,7 +325,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_register_forms() {
+	public function test_register_forms(): void {
 		$forms    = [ $this->get_test_form() ];
 		$action   = '/action-page';
 		$expected = [
@@ -394,7 +391,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_update_transient
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_update_transient( $transient, array $forms_data, array $expected ) {
+	public function test_update_transient( $transient, array $forms_data, array $expected ): void {
 		$day_in_seconds = 24 * 60 * 60;
 
 		FunctionMocker::replace(
@@ -549,7 +546,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_is_form_registered
 	 * @return void
 	 */
-	public function test_is_form_registered( $transient, string $path, array $post, bool $expected ) {
+	public function test_is_form_registered( $transient, string $path, array $post, bool $expected ): void {
 		$_POST = $post;
 
 		WP_Mock::userFunction( 'get_transient' )
