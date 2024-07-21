@@ -58,23 +58,24 @@ class CF7 extends Base {
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string|mixed
+	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ) {
+	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ): string {
+		$output = (string) $output;
+
 		if ( 'contact-form-7' !== $tag ) {
 			return $output;
 		}
 
-		if ( false !== strpos( $output, '<div class="wpcf7-stripe">' ) ) {
+		if ( $this->has_stripe_element( $output ) ) {
 			/**
 			 * Do not show hCaptcha in the CF7 form having Stripe field.
 			 * Stripe payment form has its own hidden hCaptcha field.
 			 */
-			return $output;
+			return preg_replace( '/\[cf7-hcaptcha.*?]/', '', $output );
 		}
 
-		$output             = (string) $output;
 		$form_id            = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
 		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 

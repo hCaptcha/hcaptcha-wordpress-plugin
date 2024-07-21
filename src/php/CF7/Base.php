@@ -42,4 +42,15 @@ class Base {
 		$this->mode_auto  = hcaptcha()->settings()->is( 'cf7_status', 'form' );
 		$this->mode_embed = hcaptcha()->settings()->is( 'cf7_status', 'embed' );
 	}
+
+	/**
+	 * Whether the form contains a Stripe element.
+	 *
+	 * @param string $output Output.
+	 *
+	 * @return bool
+	 */
+	protected function has_stripe_element( string $output ): bool {
+		return false !== strpos( $output, '<div class="wpcf7-stripe">' );
+	}
 }

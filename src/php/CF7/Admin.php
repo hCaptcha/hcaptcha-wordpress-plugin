@@ -108,13 +108,23 @@ class Admin extends Base {
 		}
 
 		$form_shortcode = htmlspecialchars_decode( $m[1] );
+		$live_form      = do_shortcode( $form_shortcode );
+		$stripe_message = '';
+
+		if ( $this->has_stripe_element( $live_form ) ) {
+			$stripe_message =
+				'<h4><em>' .
+				__( 'The Stripe payment element already contains an invisible hCaptcha. No need to add it to the form.', 'hcaptcha-for-forms-and-more' ) .
+				'</em></h4>';
+		}
 
 		$live_container =
 			"\n" .
 			'<div id="postbox-container-live" class="postbox-container">' .
 			'<div id="form-live">' .
-			'<h3>Live Form</h3>' .
-			do_shortcode( $form_shortcode ) .
+			'<h3>' . __( 'Live Form', 'hcaptcha-for-forms-and-more' ) . '</h3>' .
+			$stripe_message .
+			$live_form .
 			'</div>' .
 			'</div>' .
 			"\n";
