@@ -51,7 +51,7 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_cmd( Event $event ): void {
-		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
 		if ( self::$do_scope ) {
 			self::prepare_scope( $event );
@@ -67,7 +67,7 @@ class Scoper {
 				)
 			);
 
-			$removed_packages = array_diff( $packages, $locked_packages );
+			$removed_packages = array_diff( $scope_packages, $locked_packages );
 			$vendor_prefixed  = self::get_vendor_prefixed_dir();
 
 			foreach ( $removed_packages as $removed_package ) {
@@ -91,8 +91,8 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_package_install( PackageEvent $package_event ): void {
-		$packages  = $package_event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation = $package_event->getOperation();
+		$scope_packages = $package_event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$operation      = $package_event->getOperation();
 
 		/**
 		 * Current operation.
@@ -101,7 +101,7 @@ class Scoper {
 		 */
 		$package = $operation->getPackage()->getName();
 
-		if ( ! in_array( $package, $packages, true ) ) {
+		if ( ! in_array( $package, $scope_packages, true ) ) {
 			return;
 		}
 
@@ -118,8 +118,8 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_package_update( PackageEvent $event ): void {
-		$packages  = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation = $event->getOperation();
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$operation      = $event->getOperation();
 
 		/**
 		 * Current operation.
@@ -128,7 +128,7 @@ class Scoper {
 		 */
 		$package = $operation->getInitialPackage()->getName();
 
-		if ( ! in_array( $package, $packages, true ) ) {
+		if ( ! in_array( $package, $scope_packages, true ) ) {
 			return;
 		}
 
@@ -144,8 +144,8 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_package_uninstall( PackageEvent $event ): void {
-		$packages  = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation = $event->getOperation();
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$operation      = $event->getOperation();
 
 		/**
 		 * Current operation.
@@ -154,7 +154,7 @@ class Scoper {
 		 */
 		$package = $operation->getPackage()->getName();
 
-		if ( ! in_array( $package, $packages, true ) ) {
+		if ( ! in_array( $package, $scope_packages, true ) ) {
 			return;
 		}
 
@@ -170,9 +170,9 @@ class Scoper {
 	 * @return void
 	 */
 	private static function prepare_scope( Event $event ): void {
-		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
-		if ( ! $packages ) {
+		if ( ! $scope_packages ) {
 			return;
 		}
 
@@ -263,8 +263,8 @@ class Scoper {
 		$vendor = self::get_vendor_dir();
 
 		// Loop through the list of  packages and delete relevant dirs in vendor.
-		foreach ( $scope_packages as $package ) {
-			self::delete_package( $vendor, $package );
+		foreach ( $scope_packages as $scope_package ) {
+			self::delete_package( $vendor, $scope_package );
 		}
 	}
 
