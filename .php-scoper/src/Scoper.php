@@ -19,7 +19,6 @@ use Composer\EventDispatcher\Event as BaseEvent;
 use Composer\Installer\PackageEvent;
 use Composer\Script\Event;
 use Isolated\Symfony\Component\Finder\Finder;
-use Seld\JsonLint\ParsingException;
 
 /**
  * Class Scoper.
@@ -179,7 +178,6 @@ class Scoper {
 	 * @param Event $event Composer event.
 	 *
 	 * @return void
-	 * @noinspection MkdirRaceConditionInspection
 	 */
 	private static function prepare_scope( Event $event ): void {
 		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
@@ -304,6 +302,17 @@ class Scoper {
 		$package              = $composer->getPackage();
 		$config               = $composer->getConfig();
 
+		$scope_packages = $package->getExtra()['scope-packages'] ?? [];
+		$local_packages = $local_repo->getPackages();
+
+		foreach ( $local_packages as $local_package ) {
+			$package_name = $local_package->getName();
+
+			if ( in_array( $package_name, $scope_packages, true ) ) {
+				$local_repo->removePackage( $local_package );
+			}
+		}
+
 		$optimize      = in_array( '--optimize-autoloader', $argv, true );
 		$authoritative = in_array( '--classmap-authoritative', $argv, true );
 		$apcu          = in_array( '--apcu-autoloader', $argv, true );
@@ -322,22 +331,18 @@ class Scoper {
 		$generator->setRunScripts( false );
 		$generator->setApcu( $apcu );
 
-		try {
-			$class_map = $generator->dump(
-				$config,
-				$local_repo,
-				$package,
-				$installation_manager,
-				'composer',
-				$optimize,
-				null,
-				$composer->getLocker()
-			);
+		$class_map = $generator->dump(
+			$config,
+			$local_repo,
+			$package,
+			$installation_manager,
+			'composer',
+			$optimize,
+			null,
+			$composer->getLocker()
+		);
 
-			$number_of_classes = $class_map->count();
-		} catch ( ParsingException $e ) {
-			$number_of_classes = 0;
-		}
+		$number_of_classes = $class_map->count();
 
 		if ( $authoritative ) {
 			$event->getIO()
