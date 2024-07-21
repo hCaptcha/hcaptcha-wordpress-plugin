@@ -67,7 +67,10 @@ class CF7 extends Base {
 		}
 
 		if ( false !== strpos( $output, '<div class="wpcf7-stripe">' ) ) {
-			// Stripe payment form already contains hCaptcha.
+			/**
+			 * Do not show hCaptcha in the CF7 form having Stripe field.
+			 * Stripe payment form has its own hidden hCaptcha field.
+			 */
 			return $output;
 		}
 
@@ -188,13 +191,17 @@ class CF7 extends Base {
 			return $this->get_invalidated_result( $result );
 		}
 
-		if ( $this->has_stripe_field( $submission ) ) {
+		if ( $this->has_field( $submission, 'stripe' ) ) {
+			/**
+			 * Do not verify CF7 form having Stripe field.
+			 * Stripe payment form has its own hidden hCaptcha field.
+			 */
 			return $result;
 		}
 
 		if (
 			! $this->mode_auto &&
-			! ( $this->mode_embed && $this->has_hcaptcha_field( $submission ) )
+			! ( $this->mode_embed && $this->has_field( $submission, 'hcaptcha' ) )
 		) {
 			return $result;
 		}
@@ -218,7 +225,7 @@ class CF7 extends Base {
 	 *
 	 * @return bool
 	 */
-	private function has_field( WPCF7_Submission $submission, string $type ): bool {
+	protected function has_field( WPCF7_Submission $submission, string $type ): bool {
 		$form_fields = $submission->get_contact_form()->scan_form_tags();
 
 		foreach ( $form_fields as $form_field ) {
@@ -228,28 +235,6 @@ class CF7 extends Base {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Whether form has its own hCaptcha field.
-	 *
-	 * @param WPCF7_Submission $submission Submission.
-	 *
-	 * @return bool
-	 */
-	protected function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
-		return $this->has_field( $submission, 'hcaptcha' );
-	}
-
-	/**
-	 * Whether form has its own Stripe field.
-	 *
-	 * @param WPCF7_Submission $submission Submission.
-	 *
-	 * @return bool
-	 */
-	protected function has_stripe_field( WPCF7_Submission $submission ): bool {
-		return $this->has_field( $submission, 'stripe' );
 	}
 
 	/**

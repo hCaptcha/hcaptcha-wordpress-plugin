@@ -29,7 +29,6 @@ use WPCF7_Validation;
  * @group    cf7-cf7
  */
 class CF7Test extends HCaptchaPluginWPTestCase {
-
 	/**
 	 * Plugin relative path.
 	 *
@@ -54,7 +53,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test init_hooks().
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new CF7();
 
 		self::assertSame( 20, has_filter( 'do_shortcode_tag', [ $subject, 'wpcf7_shortcode' ] ) );
@@ -71,7 +70,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @dataProvider dp_test_wpcf7_shortcode
 	 */
-	public function test_wpcf7_shortcode( bool $mode_auto, bool $mode_embed ) {
+	public function test_wpcf7_shortcode( bool $mode_auto, bool $mode_embed ): void {
 		$output            =
 			'<form>' .
 			'<input type="submit" value="Send">' .
@@ -197,7 +196,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
-	public function test_wpcf7_shortcode_when_NOT_active() {
+	public function test_wpcf7_shortcode_when_NOT_active(): void {
 		$output            =
 			'<form>' .
 			'<input type="submit" value="Send">' .
@@ -274,7 +273,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_check_rest_nonce() {
+	public function test_check_rest_nonce(): void {
 		$result = 'some result';
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
@@ -308,7 +307,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
-	public function test_verify_hcaptcha() {
+	public function test_verify_hcaptcha(): void {
 		$data              = [ 'h-captcha-response' => 'some response' ];
 		$wpcf7_id          = 23;
 		$hcaptcha_site_key = 'some site key';
@@ -317,8 +316,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<input type="submit" value="Send">' .
 			$hcaptcha_site_key .
 			'</form>';
+		$field             = Mockery::mock( WPCF7_FormTag::class );
+		$field->type       = 'some';
+		$form_fields       = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
@@ -356,7 +362,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify_hcaptcha() without submission.
 	 */
-	public function test_verify_hcaptcha_without_submission() {
+	public function test_verify_hcaptcha_without_submission(): void {
 		$result = Mockery::mock( WPCF7_Validation::class );
 		$result->shouldReceive( 'invalidate' )->with(
 			[
@@ -374,12 +380,45 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test verify_hcaptcha() with Stripe field.
+	 *
+	 * @return void
+	 */
+	public function test_verify_hcaptcha_with_stripe_field(): void {
+		$result      = Mockery::mock( WPCF7_Validation::class );
+		$tag         = Mockery::mock( WPCF7_FormTag::class );
+		$field       = Mockery::mock( WPCF7_FormTag::class );
+		$field->type = 'some';
+		$form_fields = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
+
+		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
+
+		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
+
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
+	}
+
+	/**
 	 * Test verify_hcaptcha() without a mode set.
 	 */
-	public function test_verify_hcaptcha_without_mode_set() {
-		$result     = Mockery::mock( WPCF7_Validation::class );
-		$tag        = Mockery::mock( WPCF7_FormTag::class );
+	public function test_verify_hcaptcha_without_mode_set(): void {
+		$result      = Mockery::mock( WPCF7_Validation::class );
+		$tag         = Mockery::mock( WPCF7_FormTag::class );
+		$field       = Mockery::mock( WPCF7_FormTag::class );
+		$field->type = 'some';
+		$form_fields = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
+
 		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
@@ -400,10 +439,18 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify_hcaptcha() without posted data.
 	 */
-	public function test_verify_hcaptcha_without_posted_data() {
+	public function test_verify_hcaptcha_without_posted_data(): void {
 		$data              = [];
 		$hcaptcha_site_key = 'some site key';
-		$submission        = Mockery::mock( WPCF7_Submission::class );
+		$field             = Mockery::mock( WPCF7_FormTag::class );
+		$field->type       = 'some';
+		$form_fields       = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
+
+		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
@@ -436,10 +483,17 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test verify_hcaptcha() without a site key.
 	 */
-	public function test_verify_hcaptcha_without_site_key() {
-		$data = [];
+	public function test_verify_hcaptcha_without_site_key(): void {
+		$data        = [];
+		$field       = Mockery::mock( WPCF7_FormTag::class );
+		$field->type = 'some';
+		$form_fields = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
@@ -473,7 +527,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
-	public function test_verify_hcaptcha_without_response() {
+	public function test_verify_hcaptcha_without_response(): void {
 		$data              = [];
 		$wpcf7_id          = 23;
 		$hcaptcha_site_key = 'some site key';
@@ -482,8 +536,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<input type="submit" value="Send">' .
 			$hcaptcha_site_key .
 			'</form>';
+		$field             = Mockery::mock( WPCF7_FormTag::class );
+		$field->type       = 'some';
+		$form_fields       = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
@@ -532,7 +593,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
-	public function test_verify_hcaptcha_not_verified() {
+	public function test_verify_hcaptcha_not_verified(): void {
 		$data              = [ 'h-captcha-response' => 'some response' ];
 		$wpcf7_id          = 23;
 		$hcaptcha_site_key = 'some site key';
@@ -541,8 +602,15 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<input type="submit" value="Send">' .
 			$hcaptcha_site_key .
 			'</form>';
+		$field             = Mockery::mock( WPCF7_FormTag::class );
+		$field->type       = 'some';
+		$form_fields       = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
 		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
 
@@ -590,18 +658,18 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 
 	/**
-	 * Test has_hcaptcha_field().
+	 * Test has_field().
 	 *
 	 * @return void
 	 */
-	public function test_has_hcaptcha_field() {
+	public function test_has_field(): void {
 		$submission   = Mockery::mock( WPCF7_Submission::class );
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
 		$field        = Mockery::mock( WPCF7_FormTag::class );
-		$field->type  = 'hcaptcha';
-		$form_fields  = [
-			$field,
-		];
+		$field_type   = 'hcaptcha';
+		$field->type  = $field_type;
+		$form_fields  = [ $field ];
+
 		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
@@ -609,17 +677,17 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		self::assertTrue( $subject->has_hcaptcha_field( $submission ) );
+		self::assertTrue( $subject->has_field( $submission, $field_type ) );
 
 		$field->type = 'some';
 
-		self::assertFalse( $subject->has_hcaptcha_field( $submission ) );
+		self::assertFalse( $subject->has_field( $submission, $field_type ) );
 	}
 
 	/**
 	 * Test hcap_cf7_enqueue_scripts().
 	 */
-	public function test_hcap_cf7_enqueue_scripts() {
+	public function test_hcap_cf7_enqueue_scripts(): void {
 		$hcaptcha_size = 'normal';
 
 		$subject = new CF7();
@@ -651,8 +719,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
@@ -693,7 +762,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function test_add_form_id_to_cf7_hcap_shortcode() {
+	public function test_add_form_id_to_cf7_hcap_shortcode(): void {
 		$subject = Mockery::mock( CF7::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
