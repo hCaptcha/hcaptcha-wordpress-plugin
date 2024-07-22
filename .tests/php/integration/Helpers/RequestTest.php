@@ -34,6 +34,30 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test is_xml_rpc().
+	 */
+	public function test_is_xml_rpc(): void {
+		self::assertFalse( Request::is_xml_rpc() );
+
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'XMLRPC_REQUEST' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'XMLRPC_REQUEST' === $name;
+			}
+		);
+
+		self::assertTrue( Request::is_xml_rpc() );
+	}
+
+
+	/**
 	 * Test is_rest().
 	 *
 	 * @return void

@@ -19,32 +19,6 @@ use tad\FunctionMocker\FunctionMocker;
 class MainTest extends HCaptchaTestCase {
 
 	/**
-	 * Test init().
-	 */
-	public function test_is_xml_rpc(): void {
-		$mock = Mockery::mock( Main::class )->makePartial();
-
-		$mock->shouldAllowMockingProtectedMethods();
-
-		self::assertFalse( $mock->is_xml_rpc() );
-
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'XMLRPC_REQUEST' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'XMLRPC_REQUEST' === $name;
-			}
-		);
-
-		self::assertTrue( $mock->is_xml_rpc() );
-	}
-	/**
 	 * Test declare_wc_compatibility().
 	 *
 	 * @return void

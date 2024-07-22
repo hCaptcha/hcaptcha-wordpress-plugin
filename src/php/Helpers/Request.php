@@ -20,7 +20,19 @@ class Request {
 	 * @return bool
 	 */
 	public static function is_frontend(): bool {
-		return ! ( self::is_cli() || is_admin() || wp_doing_ajax() || self::is_wc_ajax() || self::is_rest() );
+		return ! (
+			self::is_xml_rpc() || self::is_cli() || self::is_wc_ajax() || is_admin() ||
+			wp_doing_ajax() || wp_doing_cron() || self::is_rest()
+		);
+	}
+
+	/**
+	 * Check if it is the xml-rpc request.
+	 *
+	 * @return bool
+	 */
+	public static function is_xml_rpc(): bool {
+		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 
 	/**
@@ -30,6 +42,16 @@ class Request {
 	 */
 	public static function is_cli(): bool {
 		return defined( 'WP_CLI' ) && constant( 'WP_CLI' );
+	}
+
+	/**
+	 * Check if it is a WooCommerce AJAX request.
+	 *
+	 * @return bool
+	 */
+	public static function is_wc_ajax(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return isset( $_GET['wc-ajax'] );
 	}
 
 	/**
@@ -90,15 +112,5 @@ class Request {
 			: '';
 
 		return 'POST' === $request_method;
-	}
-
-	/**
-	 * Check if it is a WooCommerce AJAX request.
-	 *
-	 * @return bool
-	 */
-	public static function is_wc_ajax(): bool {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return isset( $_GET['wc-ajax'] );
 	}
 }

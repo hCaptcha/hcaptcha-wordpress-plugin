@@ -23,6 +23,7 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
@@ -122,7 +123,7 @@ class Main {
 	 * @return void
 	 */
 	public function init(): void {
-		if ( $this->is_xml_rpc() ) {
+		if ( Request::is_xml_rpc() || wp_doing_cron() ) {
 			return;
 		}
 
@@ -1358,14 +1359,5 @@ CSS;
 			false,
 			dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/'
 		);
-	}
-
-	/**
-	 * Check if it is the xml-rpc request.
-	 *
-	 * @return bool
-	 */
-	protected function is_xml_rpc(): bool {
-		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }
