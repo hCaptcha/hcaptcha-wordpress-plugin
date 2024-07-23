@@ -31,9 +31,54 @@ class RequestTest extends HCaptchaTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_URI'], $_GET['rest_route'] );
+		unset( $_SERVER['REQUEST_URI'], $_GET['wc-ajax'], $_GET['rest_route'], $_SERVER['REQUEST_METHOD'] );
 
 		parent::tearDown();
+	}
+
+	/**
+	 * Test is_frontend().
+	 *
+	 * @return void
+	 */
+	public function test_is_frontend(): void {
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_xml_rpc', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_xml_rpc', false );
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_cli', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_cli', false );
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_wc_ajax', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_wc_ajax', false );
+		FunctionMocker::replace( 'is_admin', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( 'is_admin', false );
+		FunctionMocker::replace( 'wp_doing_ajax', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( 'wp_doing_ajax', false );
+		FunctionMocker::replace( 'wp_doing_cron', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( 'wp_doing_cron', false );
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_rest', true );
+
+		self::assertFalse( Request::is_frontend() );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_rest', false );
+
+		self::assertTrue( Request::is_frontend() );
 	}
 
 	/**
@@ -59,6 +104,41 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertTrue( Request::is_xml_rpc() );
 	}
 
+	/**
+	 * Test is_cli().
+	 */
+	public function test_is_cli(): void {
+		self::assertFalse( Request::is_cli() );
+
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'WP_CLI' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'WP_CLI' === $name;
+			}
+		);
+
+		self::assertTrue( Request::is_cli() );
+	}
+
+	/**
+	 * Test is_wc_ajax().
+	 *
+	 * @return void
+	 */
+	public function test_is_wp_ajax(): void {
+		self::assertFalse( Request::is_wc_ajax() );
+
+		$_GET['wc-ajax'] = 'some-action';
+
+		self::assertTrue( Request::is_wc_ajax() );
+	}
 
 	/**
 	 * Test is_rest().
@@ -149,5 +229,20 @@ class RequestTest extends HCaptchaTestCase {
 		$_SERVER['REQUEST_URI'] = $request_uri;
 
 		self::assertFalse( Request::is_rest() );
+	}
+
+	/**
+	 * Test is_post().
+	 *
+	 * @return void
+	 */
+	public function test_is_post(): void {
+		self::assertFalse( Request::is_post() );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+
+		self::assertTrue( Request::is_post() );
 	}
 }
