@@ -21,8 +21,9 @@ class Request {
 	 */
 	public static function is_frontend(): bool {
 		return ! (
-			self::is_xml_rpc() || self::is_cli() || self::is_wc_ajax() || is_admin() ||
-			wp_doing_ajax() || wp_doing_cron() || self::is_rest()
+			self::is_xml_rpc() || self::is_cli() || self::is_wc_ajax() ||
+			is_admin() || wp_doing_ajax() || wp_doing_cron() ||
+			self::is_rest()
 		);
 	}
 
