@@ -14,7 +14,10 @@ namespace HCaptcha\Tests\Unit\Helpers;
 
 use HCaptcha\Helpers\Request;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
+use Mockery;
+use Mockery\Mock;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Mock;
 
 /**
  * Test Request class.
@@ -70,7 +73,8 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertFalse( Request::is_rest() );
 
 		// Case #1.
-		$_SERVER['REQUEST_URI'] = 'https://test.test/wp-json/some-request/';
+		$request_uri            = 'https://test.test/wp-json/some-request/';
+		$_SERVER['REQUEST_URI'] = $request_uri;
 
 		FunctionMocker::replace(
 			'defined',
@@ -114,23 +118,35 @@ class RequestTest extends HCaptchaTestCase {
 			}
 		);
 
+		WP_Mock::userFunction( 'rest_get_url_prefix' )->andreturn( 'wp-json' );
+
 		self::assertTrue( Request::is_rest() );
 
 		// Case #3.
 		unset( $_GET['rest_route'] );
 
+		Mockery::mock( 'WP_Rewrite' );
+
 		// Case #4.
-		add_filter(
-			'rest_url',
-			static function ( $url ) {
-				return 'https://test.test/wp-json/';
+		WP_Mock::userFunction( 'add_query_arg' )->with( [] )->andReturnUsing(
+			static function ( $args ) use ( &$request_uri ) {
+				return $request_uri;
 			}
 		);
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $url, $component ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $url, $component );
+			}
+		);
+		WP_Mock::userFunction( 'rest_url' )->with()->andReturn( 'https://test.test/wp-json/' );
+		WP_Mock::passthruFunction( 'trailingslashit' );
 
 		self::assertTrue( Request::is_rest() );
 
 		// Not a REST request.
-		$_SERVER['REQUEST_URI'] = 'https://test.test/some-page/';
+		$request_uri            = 'https://test.test/some-page/';
+		$_SERVER['REQUEST_URI'] = $request_uri;
 
 		self::assertFalse( Request::is_rest() );
 	}
