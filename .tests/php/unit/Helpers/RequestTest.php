@@ -10,10 +10,10 @@
 /** @noinspection PhpUndefinedClassInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-namespace HCaptcha\Tests\Integration\Helpers;
+namespace HCaptcha\Tests\Unit\Helpers;
 
 use HCaptcha\Helpers\Request;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -22,7 +22,7 @@ use tad\FunctionMocker\FunctionMocker;
  * @group helpers
  * @group helpers-request
  */
-class RequestTest extends HCaptchaWPTestCase {
+class RequestTest extends HCaptchaTestCase {
 
 	/**
 	 * Tear down test.
