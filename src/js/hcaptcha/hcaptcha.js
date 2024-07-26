@@ -2,7 +2,7 @@
  * @file class HCaptcha.
  */
 
-/* global hcaptcha, HCaptchaMainObject */
+/* global hcaptcha */
 
 /**
  * Class hCaptcha.
