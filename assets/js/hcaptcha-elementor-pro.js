@@ -18,6 +18,15 @@ const hcaptchaElementorPro = function() {
 		return;
 	}
 
+	wp.hooks.addFilter(
+		'hcaptcha.params',
+		'hcaptcha',
+		() => {
+			// noinspection JSUnresolvedReference
+			return window?.parent?.HCaptchaMainObject?.params ?? '';
+		}
+	);
+
 	elementorFrontend.hooks.addAction(
 		'frontend/element_ready/widget',
 		function( $scope ) {

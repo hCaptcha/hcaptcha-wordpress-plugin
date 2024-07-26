@@ -12,12 +12,26 @@ require( '../../../assets/js/hcaptcha-elementor-pro' );
 
 describe( 'Elementor Frontend hCaptcha', () => {
 	beforeEach( () => {
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
 		elementorFrontendHooks.addAction.mockClear();
 	} );
 
-	test( 'addAction is called with correct arguments', () => {
+	test( 'filter and action are called with correct arguments', () => {
 		// Simulate jQuery.ready
 		window.hCaptchaElementorPro();
+
+		expect( wp.hooks.addFilter ).toHaveBeenCalledTimes( 1 );
+		expect( wp.hooks.addFilter ).toHaveBeenCalledWith(
+			'hcaptcha.params',
+			'hcaptcha',
+			expect.any( Function )
+		);
 
 		expect( elementorFrontendHooks.addAction ).toHaveBeenCalledTimes( 1 );
 		expect( elementorFrontendHooks.addAction ).toHaveBeenCalledWith(

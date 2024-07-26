@@ -166,7 +166,7 @@ class HCaptcha {
 		let params;
 
 		try {
-			params = JSON.parse( HCaptchaMainObject.params );
+			params = JSON.parse( wp.hooks.applyFilters( 'hcaptcha.params', window?.HCaptchaMainObject?.params ?? '' ) );
 		} catch ( e ) {
 			params = {};
 		}
