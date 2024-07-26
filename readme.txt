@@ -28,18 +28,18 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 
 == Screenshots ==
 
-1. Login page with hCaptcha widget
-2. Login page with hCaptcha challenge
-3. WooCommerce Login/Register page
-4. Contact Form 7 with hCaptcha
+1. Login page with hCaptcha widget.
+2. Login page with hCaptcha challenge.
+3. WooCommerce Login/Register page.
+4. Contact Form 7 with hCaptcha.
 5. Contact Form 7 live form in the admin editor. 
 6. Elementor Pro Form.
 7. Elementor Pro From in admin editor.
-8. General settings page
-9. Integrations settings page
-10. Activating plugin from the Integration settings page
-11. (Optional) Local Forms statistics
-12. (Optional) Local Events statistics
+8. General settings page.
+9. Integrations settings page.
+10. Activating plugin from the Integration settings page.
+11. (Optional) Local Forms statistics.
+12. (Optional) Local Events statistics.
 
 == Installation ==
 
