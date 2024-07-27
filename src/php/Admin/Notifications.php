@@ -365,6 +365,11 @@ class Notifications {
 			?>
 			<div id="hcaptcha-notifications-footer">
 				<div id="hcaptcha-navigation">
+					<span>
+						<span id="hcaptcha-navigation-page">1</span>
+						<?php esc_html_e( 'of', 'hcaptcha-for-forms-and-more' ); ?>
+						<span id="hcaptcha-navigation-pages"><?php echo count( $notifications ); ?></span>
+					</span>
 					<a class="prev disabled"></a>
 					<a class="next <?php echo esc_attr( $next_disabled ); ?>"></a>
 				</div>

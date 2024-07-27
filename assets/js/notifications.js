@@ -9,7 +9,7 @@
  */
 
 /**
- * Notifications logic.
+ * Notification logic.
  *
  * @param {Object} $ jQuery instance.
  */
@@ -19,6 +19,9 @@ const notifications = ( $ ) => {
 	const notificationsSelector = 'div#hcaptcha-notifications';
 	const notificationSelector = 'div.hcaptcha-notification';
 	const dismissSelector = notificationsSelector + ' button.notice-dismiss';
+	const navSpanSelector = '#hcaptcha-navigation span';
+	const navPageSelector = '#hcaptcha-navigation-page';
+	const navPagesSelector = '#hcaptcha-navigation-pages';
 	const navPrevSelector = '#hcaptcha-navigation .prev';
 	const navNextSelector = '#hcaptcha-navigation .next';
 	const navSelectors = navPrevSelector + ', ' + navNextSelector;
@@ -50,8 +53,12 @@ const notifications = ( $ ) => {
 		const index = getVisibleNotificationIndex();
 
 		if ( index >= 0 ) {
+			$( navPageSelector ).text( index + 1 );
+			$( navPagesSelector ).text( $notifications.length );
+			$( navSpanSelector ).show();
 			$( navSelectors ).removeClass( 'disabled' );
 		} else {
+			$( navSpanSelector ).hide();
 			$( navSelectors ).addClass( 'disabled' );
 			return;
 		}
