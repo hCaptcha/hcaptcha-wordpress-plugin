@@ -1037,7 +1037,7 @@ class Integrations extends PluginSettingsBase {
 			$this->plugins_tree = $this->build_plugins_tree( $plugin );
 			$result             = $this->activate_plugin_tree( $this->plugins_tree );
 
-			if ( null === $result ) {
+			if ( ! is_wp_error( $result ) ) {
 				// Activate the first available plugin only.
 				return true;
 			}
@@ -1055,13 +1055,15 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function activate_plugin_tree( array &$node ) {
 		if ( $node['children'] ) {
-			foreach ( $node['children'] as $child ) {
-				$result = $this->activate_plugin_tree( $child );
+			foreach ( $node['children'] as & $child ) {
+				$child['result'] = $this->activate_plugin_tree( $child );
 
-				if ( null !== $result ) {
-					return $result;
+				if ( is_wp_error( $child['result'] ) ) {
+					return $child['result'];
 				}
 			}
+
+			unset( $child );
 		}
 
 		$node['result'] = $this->activate_plugin( $node['plugin'] );
@@ -1074,7 +1076,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
 	 *
-	 * @return null|true|WP_Error
+	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
 	protected function activate_plugin( string $plugin ) {
 
@@ -1086,6 +1088,7 @@ class Integrations extends PluginSettingsBase {
 		add_action( 'activated_plugin', [ $this, 'activated_plugin_action' ], PHP_INT_MIN );
 
 		ob_start();
+		// Null on success, WP_Error on failure.
 		$result = activate_plugin( $plugin );
 		ob_end_clean();
 
