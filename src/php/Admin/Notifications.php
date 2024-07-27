@@ -293,7 +293,46 @@ class Notifications {
 			unset( $notifications['force'] );
 		}
 
-		return $notifications;
+		// Added in 4.4.0.
+		return array_merge( $notifications, $this->cf7_admin_notification() );
+	}
+
+	/**
+	 * Contact Form 7 admin notification.
+	 *
+	 * @return array
+	 */
+	private function cf7_admin_notification(): array {
+		if ( ! class_exists( 'WPCF7_ContactForm' ) ) {
+			return [];
+		}
+
+		// Get the latest CF7 form.
+		$args      = [
+			'post_type'      => 'wpcf7_contact_form',
+			'posts_per_page' => 1,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		];
+		$cf7_forms = get_posts( $args );
+
+		if ( empty( $cf7_forms ) ) {
+			return [];
+		}
+
+		$form_id  = $cf7_forms[0]->ID;
+		$edit_url = admin_url( "?page=wpcf7&post=$form_id&action=edit#postbox-container-live" );
+
+		return [
+			'admin-cf7' => [
+				'title'   => __( 'Live form in Contact Form 7 admin', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'With the hCaptcha plugin, you can see a live form on the form edit admin page.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $edit_url,
+					'text' => __( 'Use live form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+		];
 	}
 
 	/**
