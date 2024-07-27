@@ -46,14 +46,14 @@ class Admin extends Base {
 	/**
 	 * Current screen.
 	 *
-	 * @param mixed $current_screen Current screen.
+	 * @param WP_Screen|mixed $current_screen Current screen.
 	 *
 	 * @return void
 	 */
 	public function current_screen( $current_screen ): void {
 		$current_screen_id = $current_screen->id ?? '';
 
-		if ( ! $current_screen ) {
+		if ( ! $current_screen_id ) {
 			return;
 		}
 
@@ -299,7 +299,7 @@ class Admin extends Base {
 	 *
 	 * @return bool
 	 */
-	private function is_cf7_form_admin_page(): bool {
+	protected function is_cf7_form_admin_page(): bool {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
