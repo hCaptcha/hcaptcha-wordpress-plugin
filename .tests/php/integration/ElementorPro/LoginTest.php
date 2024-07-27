@@ -12,11 +12,14 @@
 
 namespace HCaptcha\Tests\Integration\ElementorPro;
 
+use Elementor\Element_Base;
+use HCaptcha\CF7\CF7;
 use HCaptcha\ElementorPro\Login;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ElementorPro\Modules\Forms\Widgets\Login as ElementorLogin;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Class HCaptchaHandlerTest
@@ -129,6 +132,91 @@ HTML;
 		echo $form;
 
 		$subject->add_elementor_login_hcaptcha( $element );
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test before_render() and add_elementor_login_hcaptcha() with a wrong element.
+	 *
+	 * @return void
+	 */
+	public function test_render_with_wrong_element(): void {
+		$element = Mockery::mock( Element_Base::class );
+		$form    = 'Some form';
+
+		$subject = new Login();
+
+		ob_start();
+
+		$subject->before_render( $element );
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $form;
+
+		$subject->add_elementor_login_hcaptcha( $element );
+
+		self::assertSame( $form, ob_get_clean() );
+	}
+
+	/**
+	 * Test before_render() and add_elementor_login_hcaptcha() when login limit is not exceeded.
+	 *
+	 * @return void
+	 */
+	public function test_render_when_login_limit_is_not_exceeded(): void {
+		$element = new ElementorLogin();
+		$form    = 'Some form';
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
+
+		$subject = new Login();
+
+		ob_start();
+
+		$subject->before_render( $element );
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $form;
+
+		$subject->add_elementor_login_hcaptcha( $element );
+
+		self::assertSame( $form, ob_get_clean() );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function test_print_inline_styles(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	.elementor-widget-login .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new Login();
+
+		ob_start();
+
+		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
 	}
