@@ -13,7 +13,6 @@
 namespace HCaptcha\Tests\Integration\ElementorPro;
 
 use Elementor\Element_Base;
-use HCaptcha\CF7\CF7;
 use HCaptcha\ElementorPro\Login;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -22,7 +21,7 @@ use ElementorPro\Modules\Forms\Widgets\Login as ElementorLogin;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
- * Class HCaptchaHandlerTest
+ * Class LoginTest
  *
  * @group elementor-pro
  * @group elementor-pro-login
