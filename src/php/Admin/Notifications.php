@@ -281,6 +281,14 @@ class Notifications {
 			unset( $notifications['pro-free-trial'] );
 		}
 
+		if ( $settings->is_on( 'statistics' ) ) {
+			unset( $notifications['statistics'] );
+		}
+
+		if ( $settings->is_on( 'statistics' ) && $settings->is_pro() ) {
+			unset( $notifications['events_page'] );
+		}
+
 		if ( $settings->is_on( 'force' ) ) {
 			unset( $notifications['force'] );
 		}

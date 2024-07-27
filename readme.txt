@@ -564,8 +564,8 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.4.0 =
-* Added integration with WPS Hide Login plugin.
 * Added compatibility with Contact Form 7 Stripe integration.
+* Added integration with WPS Hide Login plugin.
 * Updated MailPoet integration.
 * Fixed conflict with Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
