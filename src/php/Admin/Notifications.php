@@ -112,6 +112,7 @@ class Notifications {
 		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$statistics_url          = $general_url . '#statistics_1';
 		$force_url               = $general_url . '#force_1';
+		$elementor_edit_form_url = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
 
 		$notifications = [
 			'register'            => [
@@ -269,6 +270,15 @@ class Notifications {
 					'text' => __( 'Try auto-activation', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.4.0.
+			'admin-elementor'     => [
+				'title'   => __( 'Add hCaptcha to Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Add hCaptcha to Elementor Pro Form in the Elementor admin editor.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $elementor_edit_form_url,
+					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
@@ -291,6 +301,10 @@ class Notifications {
 
 		if ( $settings->is_on( 'force' ) ) {
 			unset( $notifications['force'] );
+		}
+
+		if ( ! class_exists( '\ElementorPro\Plugin', false ) ) {
+			unset( $notifications['admin-elementor'] );
 		}
 
 		// Added in 4.4.0.
