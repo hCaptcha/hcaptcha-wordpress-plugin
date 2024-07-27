@@ -81,7 +81,18 @@ class Login extends LoginBase {
 		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
 			wp_safe_redirect( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
 
-			exit();
+			$this->exit();
 		}
+	}
+
+	/**
+	 * Wrapper for exit(). Used for tests.
+	 *
+	 * @return void
+	 */
+	protected function exit(): void {
+		// @codeCoverageIgnoreStart
+		exit();
+		// @codeCoverageIgnoreEnd
 	}
 }
