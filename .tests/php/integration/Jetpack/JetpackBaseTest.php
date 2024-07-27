@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\Jetpack;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -100,5 +101,43 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 </div>';
 
 		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function test_print_inline_styles(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	form.contact-form .grunion-field-wrap .h-captcha,
+	form.wp-block-jetpack-contact-form .grunion-field-wrap .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new JetpackForm();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
 	}
 }
