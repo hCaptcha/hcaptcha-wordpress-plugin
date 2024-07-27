@@ -30,7 +30,7 @@ use tad\FunctionMocker\FunctionMocker;
  * Class HCaptchaHandlerTest
  *
  * @group elementor-pro
- * @group hcaptcha-handler
+ * @group elementor-pro-hcaptcha-handler
  */
 class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 

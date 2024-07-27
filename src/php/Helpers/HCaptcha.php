@@ -169,6 +169,22 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get signature.
+	 *
+	 * @param string     $class_name     Class name.
+	 * @param int|string $form_id        Form id.
+	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
+	 *
+	 * @return string
+	 */
+	public static function get_signature( string $class_name, $form_id, bool $hcaptcha_shown ): string {
+		ob_start();
+		self::display_signature( $class_name, $form_id, $hcaptcha_shown );
+
+		return (string) ob_get_clean();
+	}
+
+	/**
 	 * Display signature.
 	 *
 	 * @param string     $class_name     Class name.

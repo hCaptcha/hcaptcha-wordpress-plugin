@@ -91,7 +91,7 @@ class Login extends LoginBase {
 
 		$signatures = (string) ob_get_clean();
 
-		$pattern     = '/(<div class="elementor-field-group.+<button type="submit")/s';
+		$pattern     = '/(<div class="elementor-field-group.+?<button type="submit")/s';
 		$replacement = $hcaptcha . $signatures . "\n$1";
 		$form        = preg_replace( $pattern, $replacement, $form );
 

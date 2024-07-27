@@ -61,7 +61,6 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "": [ ".tests/php/integration/Stubs", ".tests/php/unit/Stubs" ],
       "HCaptcha\\": "src/php",
       "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
       "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"

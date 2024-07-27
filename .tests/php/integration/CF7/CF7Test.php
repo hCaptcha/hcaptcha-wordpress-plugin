@@ -75,6 +75,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<form>' .
 			'<input type="submit" value="Send">' .
 			'</form>';
+		$cf7_hcaptcha      = '[cf7-hcaptcha some_args]';
+		$output_stripe     =
+			'<form>' .
+			'<div class="wpcf7-stripe"></div>' .
+			$cf7_hcaptcha .
+			'<input type="submit" value="Send">' .
+			'</form>';
+		$expected_stripe   = str_replace( $cf7_hcaptcha, '', $output_stripe );
 		$tag               = 'contact-form-7';
 		$form_id           = 177;
 		$attr              = [ 'id' => $form_id ];
@@ -167,6 +175,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$subject = new CF7();
 
 		self::assertSame( $expected1, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
+		self::assertSame( $expected_stripe, $subject->wpcf7_shortcode( $output_stripe, $tag, $attr, $m ) );
 
 		$output = str_replace( '<input', '[cf7-hcaptcha]<input', $output );
 
@@ -388,7 +397,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$result      = Mockery::mock( WPCF7_Validation::class );
 		$tag         = Mockery::mock( WPCF7_FormTag::class );
 		$field       = Mockery::mock( WPCF7_FormTag::class );
-		$field->type = 'some';
+		$field->type = 'stripe';
 		$form_fields = [ $field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
