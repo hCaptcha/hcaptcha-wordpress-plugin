@@ -17,6 +17,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use Essential_Addons_Elementor\Classes\Bootstrap;
 use tad\FunctionMocker\FunctionMocker;
+use Elementor\Widget_Base;
 
 /**
  * Class LoginTest
@@ -56,10 +57,10 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_action( 'wp_login', [ $subject, 'login' ] ) );
 		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
 
-		self::assertSame( 10, has_action( 'eael/login-register/before-login-footer', [
-			$subject,
-			'add_login_hcaptcha',
-		] ) );
+		self::assertSame(
+			10,
+			has_action( 'eael/login-register/before-login-footer', [ $subject, 'add_login_hcaptcha' ] )
+		);
 		self::assertSame( 10, has_action( 'eael/login-register/before-login', [ $subject, 'verify' ] ) );
 	}
 
@@ -69,7 +70,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_login_hcaptcha(): void {
-		$widget   = Mockery::mock( 'Elementor\Widget_Base' );
+		$widget   = Mockery::mock( Widget_Base::class );
 		$args     = [
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
