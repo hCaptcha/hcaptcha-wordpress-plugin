@@ -788,6 +788,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 			$plugins[0] => [],
 			$plugins[1] => [],
 		];
+		$wp_error     = Mockery::mock( 'WP_Error' );
+
+		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
+			static function ( $thing ) {
+				return is_a( $thing, 'WP_Error', true );
+			}
+		);
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'activate_plugins';
@@ -800,7 +807,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with( $plugins[1] )->once()->andReturn( $plugin_trees[ $plugins[1] ] );
 
 		$subject->shouldReceive( 'activate_plugin_tree' )
-			->with( $plugin_trees[ $plugins[0] ] )->once()->andReturn( false );
+			->with( $plugin_trees[ $plugins[0] ] )->once()->andReturn( $wp_error );
 		$subject->shouldReceive( 'activate_plugin_tree' )
 			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( null );
 
@@ -821,6 +828,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 			$plugins[0] => [],
 			$plugins[1] => [],
 		];
+		$wp_error     = Mockery::mock( 'WP_Error' );
+
+		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
+			static function ( $thing ) {
+				return is_a( $thing, 'WP_Error', true );
+			}
+		);
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'activate_plugins';
@@ -833,9 +847,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with( $plugins[1] )->once()->andReturn( $plugin_trees[ $plugins[1] ] );
 
 		$subject->shouldReceive( 'activate_plugin_tree' )
-			->with( $plugin_trees[ $plugins[0] ] )->once()->andReturn( false );
+			->with( $plugin_trees[ $plugins[0] ] )->once()->andReturn( $wp_error );
 		$subject->shouldReceive( 'activate_plugin_tree' )
-			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( false );
+			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( $wp_error );
 
 		self::assertFalse( $subject->$method( $plugins ) );
 	}
@@ -864,6 +878,16 @@ class IntegrationsTest extends HCaptchaTestCase {
 				],
 			],
 		];
+		$wp_error     = Mockery::mock( 'WP_Error' );
+
+		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
+			static function ( $thing ) {
+				return is_a( $thing, 'WP_Error', true );
+			}
+		);
+
+		$wish_result = false === $wish_result ? $wp_error : $wish_result;
+		$woo_result  = false === $woo_result ? $wp_error : $woo_result;
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'activate_plugins';
