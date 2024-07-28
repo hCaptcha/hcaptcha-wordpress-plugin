@@ -16,6 +16,8 @@ Enables hCaptcha integration with WordPress and popular plugins.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
 
+[The hCaptcha for WP many advantages over similar captcha plugins](https://kagg.eu/why-choose-hcaptcha-for-wp/).
+
 == How hCaptcha Works ==
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
