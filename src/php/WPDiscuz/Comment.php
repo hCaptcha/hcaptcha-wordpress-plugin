@@ -78,6 +78,16 @@ class Comment extends Base {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify( $comment_data ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$action = isset( $_POST['action'] )
+			? sanitize_text_field( wp_unslash( $_POST['action'] ) )
+			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! ( 'wpdAddComment' === $action && wp_doing_ajax() ) ) {
+			return $comment_data;
+		}
+
 		$wp_discuz = wpDiscuz();
 
 		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
