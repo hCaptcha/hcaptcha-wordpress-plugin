@@ -78,6 +78,8 @@ class Comment extends Base {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify( $comment_data ) {
+		// Nonce is checked by wpDiscuz.
+
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$action = isset( $_POST['action'] )
 			? sanitize_text_field( wp_unslash( $_POST['action'] ) )
@@ -91,8 +93,6 @@ class Comment extends Base {
 		$wp_discuz = wpDiscuz();
 
 		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
-
-		// Nonce is checked by wpDiscuz.
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
