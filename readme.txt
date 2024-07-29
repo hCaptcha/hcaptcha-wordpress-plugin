@@ -577,6 +577,7 @@ Instructions for popular native integrations are below:
 * Fixed inability to activate the Elementor Pro plugin when Elementor plugin is activated.
 * Fixed sending replies to wpDiscuz comments.
 * Fixed replies in the WP Dashboard with wpDiscuz active.
+* Fixed sending several wpDiscuz comments without a page reload.
 
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.

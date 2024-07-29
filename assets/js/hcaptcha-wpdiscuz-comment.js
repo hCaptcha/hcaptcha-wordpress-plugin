@@ -2,6 +2,8 @@
  * WPDiscuz script file.
  */
 
+/* global jQuery */
+
 document.addEventListener( 'DOMContentLoaded', function() {
 	wp.hooks.addFilter(
 		'hcaptcha.ajaxSubmitButton',
@@ -48,4 +50,14 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 	// Start observing the #wpd-threads element for child node additions.
 	observer.observe( threadsElement, config );
+} );
+
+jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
+	const params = new URLSearchParams( settings.data );
+
+	if ( params.get( 'action' ) !== 'wpdAddComment' ) {
+		return;
+	}
+
+	window.hCaptchaBindEvents();
 } );
