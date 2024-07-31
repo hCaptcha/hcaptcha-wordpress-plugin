@@ -635,11 +635,16 @@ CSS;
 			display: flex;
 			justify-content: center;
 		}
+		.h-captcha[data-size="normal"] {
+			scale: calc(270 / 303);
+		    transform: translate(-20px, 0);
+		}
 	}
 
 	@media (min-width: 350px) {
 		#login {
 			width: 350px;
+			box-sizing: content-box;
 		}
 	}
 CSS;
