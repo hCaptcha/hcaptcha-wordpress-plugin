@@ -642,7 +642,7 @@ CSS;
 	}
 
 	@media (min-width: 350px) {
-		#login {
+		body #login {
 			width: 350px;
 			box-sizing: content-box;
 		}
