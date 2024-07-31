@@ -34,7 +34,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 2. Login page with hCaptcha challenge.
 3. WooCommerce Login/Register page.
 4. Contact Form 7 with hCaptcha.
-5. Contact Form 7 live form in the admin editor. 
+5. Contact Form 7 live form in the admin editor.
 6. Elementor Pro Form.
 7. Elementor Pro From in admin editor.
 8. General settings page.
@@ -568,6 +568,7 @@ Instructions for popular native integrations are below:
 = 4.4.0 =
 * Added compatibility with Contact Form 7 Stripe integration.
 * Added compatibility with WPS Hide Login plugin.
+* Added compatibility with LoginPress plugin.
 * Updated MailPoet integration.
 * Fixed conflict with Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
