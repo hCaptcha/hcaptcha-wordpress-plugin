@@ -569,6 +569,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Contact Form 7 Stripe integration.
 * Added compatibility with WPS Hide Login plugin.
 * Added compatibility with LoginPress plugin.
+* Improved compatibility with Wordfence Login Security plugin.
 * Updated MailPoet integration.
 * Fixed conflict with Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
