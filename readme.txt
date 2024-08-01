@@ -565,6 +565,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.5.0 =
+* Fixed frontend error when recaptcha was activated in wpDiscuz.
+
 = 4.4.0 =
 * Added compatibility with Contact Form 7 Stripe integration.
 * Added compatibility with WPS Hide Login plugin.

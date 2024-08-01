@@ -9,6 +9,8 @@ namespace HCaptcha\Tests\Integration\WPDiscuz;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPDiscuz\Subscribe;
+use Mockery;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Subscribe class.
@@ -16,6 +18,33 @@ use HCaptcha\WPDiscuz\Subscribe;
  * @group wpdiscuz
  */
 class SubscribeTest extends HCaptchaWPTestCase {
+
+	/**
+	 * wpDiscuz core class mock.
+	 *
+	 * @var Mockery\MockInterface|WpdiscuzCore
+	 */
+	private $wp_discuz;
+
+	/**
+	 * Setup test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		$options                  = Mockery::mock( 'WpdiscuzOptions' );
+		$options->recaptcha       = [
+			'siteKey'       => 'some site key',
+			'showForGuests' => 1,
+			'showForUsers'  => 1,
+		];
+		$this->wp_discuz          = Mockery::mock( 'WpdiscuzCore' );
+		$this->wp_discuz->options = $options;
+
+		FunctionMocker::replace( 'wpDiscuz', $this->wp_discuz );
+	}
 
 	/**
 	 * Tear down test.
@@ -34,15 +63,12 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	public function test_init_hooks(): void {
 		$subject = new Subscribe();
 
-		self::assertTrue( has_filter( 'wpdiscuz_recaptcha_site_key' ) );
 		self::assertSame( 11, has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] ) );
 
 		self::assertSame( 10, has_action( 'wpdiscuz_after_subscription_form', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 9, has_action( 'wp_ajax_wpdAddSubscription', [ $subject, 'verify' ] ) );
 		self::assertSame( 9, has_action( 'wp_ajax_nopriv_wpdAddSubscription', [ $subject, 'verify' ] ) );
 		self::assertSame( 20, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
-
-		self::assertSame( '', apply_filters( 'wpdiscuz_recaptcha_site_key', 'some site key' ) );
 	}
 
 	/**

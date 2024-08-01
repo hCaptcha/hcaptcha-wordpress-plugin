@@ -20,6 +20,33 @@ use tad\FunctionMocker\FunctionMocker;
 class CommentTest extends HCaptchaWPTestCase {
 
 	/**
+	 * wpDiscuz core class mock.
+	 *
+	 * @var Mockery\MockInterface|WpdiscuzCore
+	 */
+	private $wp_discuz;
+
+	/**
+	 * Setup test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		$options                  = Mockery::mock( 'WpdiscuzOptions' );
+		$options->recaptcha       = [
+			'siteKey'       => 'some site key',
+			'showForGuests' => 1,
+			'showForUsers'  => 1,
+		];
+		$this->wp_discuz          = Mockery::mock( 'WpdiscuzCore' );
+		$this->wp_discuz->options = $options;
+
+		FunctionMocker::replace( 'wpDiscuz', $this->wp_discuz );
+	}
+
+	/**
 	 * Tear down test.
 	 *
 	 * @return void
@@ -36,14 +63,11 @@ class CommentTest extends HCaptchaWPTestCase {
 	public function test_init_hooks(): void {
 		$subject = new Comment();
 
-		self::assertTrue( has_filter( 'wpdiscuz_recaptcha_site_key' ) );
 		self::assertSame( 11, has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] ) );
 
 		self::assertSame( 10, has_filter( 'wpdiscuz_form_render', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 9, has_filter( 'preprocess_comment', [ $subject, 'verify' ] ) );
 		self::assertSame( 20, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
-
-		self::assertSame( '', apply_filters( 'wpdiscuz_recaptcha_site_key', 'some site key' ) );
 	}
 
 	/**
@@ -112,19 +136,15 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$_POST['action'] = 'wpdAddComment';
 
-		$wp_discuz = Mockery::mock( 'WpdiscuzCore' );
-
-		FunctionMocker::replace( 'wpDiscuz', $wp_discuz );
-
 		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
+		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
 
 		$subject = new Comment();
 
 		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
-		self::assertFalse( has_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] ) );
+		self::assertFalse( has_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] ) );
 	}
 
 	/**
@@ -167,12 +187,8 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$_POST['action'] = 'wpdAddComment';
 
-		$wp_discuz = Mockery::mock( 'WpdiscuzCore' );
-
-		FunctionMocker::replace( 'wpDiscuz', $wp_discuz );
-
 		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
+		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
 
@@ -194,7 +210,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );
 		self::assertSame( $expected, $die_arr );
-		self::assertFalse( has_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] ) );
+		self::assertFalse( has_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] ) );
 	}
 
 	/**
