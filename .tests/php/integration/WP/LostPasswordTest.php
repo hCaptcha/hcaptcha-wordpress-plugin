@@ -21,11 +21,8 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_URI'], $_GET['action'] );
 
@@ -35,7 +32,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new LostPassword();
 
 		self::assertSame(
@@ -51,7 +48,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'lostpassword';
 
@@ -77,7 +74,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() when not WP login url.
 	 */
-	public function test_add_captcha_when_NOT_wp_login_url() {
+	public function test_add_captcha_when_NOT_wp_login_url(): void {
 		unset( $_SERVER['REQUEST_URI'] );
 
 		$_GET['action'] = 'lostpassword';
@@ -96,7 +93,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() when not WP login action.
 	 */
-	public function test_add_captcha_when_NOT_wp_login_action() {
+	public function test_add_captcha_when_NOT_wp_login_action(): void {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 
 		$expected = '';
@@ -113,7 +110,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$validation_error   = new WP_Error( 'some error' );
 		$expected           = clone $validation_error;
 		$_POST['wp-submit'] = 'some';
@@ -129,7 +126,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$validation_error   = new WP_Error( 'some error' );
 		$expected           = clone $validation_error;
 		$_POST['wp-submit'] = 'some';
@@ -147,7 +144,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() when not proper post key.
 	 */
-	public function test_verify_when_NOT_proper_post_key() {
+	public function test_verify_when_NOT_proper_post_key(): void {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = clone $validation_error;
 

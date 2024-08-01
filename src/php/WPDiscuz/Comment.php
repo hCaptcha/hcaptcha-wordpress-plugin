@@ -56,7 +56,7 @@ class Comment extends Base {
 		ob_start();
 		?>
 		<div class="wpd-field-hcaptcha wpdiscuz-item">
-			<div class="wpdiscuz-hcaptcha" id="wpdiscuz-hcaptcha"></div>
+			<div class="wpdiscuz-hcaptcha"></div>
 			<?php HCaptcha::form_display( $args ); ?>
 			<div class="clearfix"></div>
 		</div>
@@ -78,11 +78,21 @@ class Comment extends Base {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify( $comment_data ) {
+		// Nonce is checked by wpDiscuz.
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$action = isset( $_POST['action'] )
+			? sanitize_text_field( wp_unslash( $_POST['action'] ) )
+			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( ! ( 'wpdAddComment' === $action && wp_doing_ajax() ) ) {
+			return $comment_data;
+		}
+
 		$wp_discuz = wpDiscuz();
 
 		remove_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
-
-		// Nonce is checked by wpDiscuz.
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?

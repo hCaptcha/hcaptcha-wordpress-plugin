@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Wordfence;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\WP\Login;
 
 /**
@@ -36,6 +37,8 @@ class General {
 		} else {
 			add_action( 'plugins_loaded', [ $this, 'remove_wp_login_hcaptcha_hooks' ] );
 		}
+
+		add_action( 'login_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -72,5 +75,21 @@ class General {
 
 		remove_action( 'login_form', [ $wp_login, 'add_captcha' ] );
 		remove_filter( 'wp_authenticate_user', [ $wp_login, 'check_signature' ], PHP_INT_MAX );
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles(): void {
+		$css = <<<CSS
+#loginform[style="position: relative;"] > .h-captcha {
+    visibility: hidden !important;
+}
+CSS;
+
+		HCaptcha::css_display( $css );
 	}
 }

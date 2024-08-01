@@ -29,7 +29,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_SERVER['HTTP_USER_AGENT'], $_SERVER['HTTP_TRUE_CLIENT_IP'] );
 
 		$this->drop_table();
@@ -42,7 +42,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		update_option( 'hcaptcha_settings', [ 'statistics' => [ 'on' ] ] );
 
 		hcaptcha()->init_hooks();
@@ -60,7 +60,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_save_event() {
+	public function test_save_event(): void {
 		global $wpdb;
 
 		$result      = 'empty';
@@ -94,7 +94,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		// Query the database to check if the event was saved.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$event = $wpdb->get_row( "SELECT * FROM {$wpdb->prefix}$table_name ORDER BY id DESC LIMIT 1" );
+		$event = $wpdb->get_row( "SELECT * FROM $wpdb->prefix$table_name ORDER BY id DESC LIMIT 1" );
 
 		// Check that the event data matches the test data.
 		// phpcs:disable WordPress.WP.AlternativeFunctions.json_encode_json_encode
@@ -112,7 +112,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_save_event_with_wrong_params() {
+	public function test_save_event_with_wrong_params(): void {
 
 		$subject = new Events();
 
@@ -126,7 +126,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_save_event_from_check_config() {
+	public function test_save_event_from_check_config(): void {
 
 		$subject = new Events();
 
@@ -151,7 +151,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_events() {
+	public function test_get_events(): void {
 		$date = wp_date( 'Y-m-d H:i:s' );
 
 		$expected = [
@@ -208,7 +208,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_forms() {
+	public function test_get_forms(): void {
 		$date = wp_date( 'Y-m-d H:i:s' );
 
 		$expected = [
@@ -261,7 +261,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_create_table() {
+	public function test_create_table(): void {
 		global $wpdb;
 
 		$charset_collate = $wpdb->get_charset_collate();
@@ -294,7 +294,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_where_date_gmt() {
+	public function test_get_where_date_gmt(): void {
 		$dates = [ '2024-05-01', '2024-05-02' ];
 
 		$expected = "date_gmt BETWEEN '2024-05-01 00:00:00' AND '2024-05-02 23:59:59'";
@@ -315,12 +315,12 @@ class EventsTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	private function drop_table() {
+	private function drop_table(): void {
 		global $wpdb;
 
 		$table_name = Events::TABLE_NAME;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}$table_name" );
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
 	}
 }

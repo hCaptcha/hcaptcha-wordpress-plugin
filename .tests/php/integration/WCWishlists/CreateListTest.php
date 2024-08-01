@@ -31,7 +31,7 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test before_wrapper() and after_wrapper().
 	 */
-	public function test_wrapper() {
+	public function test_wrapper(): void {
 		$row      = '<p class="form-row">';
 		$expected =
 			"\n" .
@@ -65,7 +65,7 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$valid_captcha = 'some captcha';
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
@@ -84,7 +84,7 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$valid_captcha = 'some captcha';
 		$expected      = [
 			'error' => [

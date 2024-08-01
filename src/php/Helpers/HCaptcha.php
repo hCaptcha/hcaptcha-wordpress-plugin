@@ -12,8 +12,8 @@
 
 namespace HCaptcha\Helpers;
 
-use HCaptcha\Vendor\MatthiasMullie\Minify\CSS;
-use HCaptcha\Vendor\MatthiasMullie\Minify\JS;
+use HCaptcha\Vendors\MatthiasMullie\Minify\CSS;
+use HCaptcha\Vendors\MatthiasMullie\Minify\JS;
 use WP_Error;
 
 /**
@@ -166,6 +166,22 @@ class HCaptcha {
 				name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
 				value="<?php echo esc_attr( $widget_id ); ?>">
 		<?php
+	}
+
+	/**
+	 * Get signature.
+	 *
+	 * @param string     $class_name     Class name.
+	 * @param int|string $form_id        Form id.
+	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
+	 *
+	 * @return string
+	 */
+	public static function get_signature( string $class_name, $form_id, bool $hcaptcha_shown ): string {
+		ob_start();
+		self::display_signature( $class_name, $form_id, $hcaptcha_shown );
+
+		return (string) ob_get_clean();
 	}
 
 	/**

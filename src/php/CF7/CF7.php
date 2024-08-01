@@ -58,15 +58,24 @@ class CF7 extends Base {
 	 * @param array|string $attr   Shortcode attributes array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
-	 * @return string|mixed
+	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ) {
+	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ): string {
+		$output = (string) $output;
+
 		if ( 'contact-form-7' !== $tag ) {
 			return $output;
 		}
 
-		$output             = (string) $output;
+		if ( $this->has_stripe_element( $output ) ) {
+			/**
+			 * Do not show hCaptcha in the CF7 form having Stripe field.
+			 * Stripe payment form has its own hidden hCaptcha field.
+			 */
+			return preg_replace( '/\[cf7-hcaptcha.*?]/', '', $output );
+		}
+
 		$form_id            = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
 		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
@@ -183,9 +192,17 @@ class CF7 extends Base {
 			return $this->get_invalidated_result( $result );
 		}
 
+		if ( $this->has_field( $submission, 'stripe' ) ) {
+			/**
+			 * Do not verify CF7 form having Stripe field.
+			 * Stripe payment form has its own hidden hCaptcha field.
+			 */
+			return $result;
+		}
+
 		if (
 			! $this->mode_auto &&
-			! ( $this->mode_embed && $this->has_hcaptcha_field( $submission ) )
+			! ( $this->mode_embed && $this->has_field( $submission, 'hcaptcha' ) )
 		) {
 			return $result;
 		}
@@ -202,28 +219,18 @@ class CF7 extends Base {
 	}
 
 	/**
-	 * Whether the field is hCaptcha field.
-	 *
-	 * @param WPCF7_FormTag $field Field.
-	 *
-	 * @return bool
-	 */
-	private function is_hcaptcha_field( WPCF7_FormTag $field ): bool {
-		return ( 'hcaptcha' === $field->type );
-	}
-
-	/**
-	 * Whether form has its own hCaptcha field.
+	 * Whether form has a field of given type.
 	 *
 	 * @param WPCF7_Submission $submission Submission.
+	 * @param string           $type       Field type.
 	 *
 	 * @return bool
 	 */
-	protected function has_hcaptcha_field( WPCF7_Submission $submission ): bool {
+	protected function has_field( WPCF7_Submission $submission, string $type ): bool {
 		$form_fields = $submission->get_contact_form()->scan_form_tags();
 
 		foreach ( $form_fields as $form_field ) {
-			if ( $this->is_hcaptcha_field( $form_field ) ) {
+			if ( $type === $form_field->type ) {
 				return true;
 			}
 		}

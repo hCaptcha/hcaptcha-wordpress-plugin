@@ -27,7 +27,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $GLOBALS['awsm_response'] );
 	}
 
@@ -36,7 +36,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Form();
 
 		self::assertSame( 10, has_action( 'before_awsm_application_form', [ $subject, 'before_application_form' ] ) );
@@ -49,7 +49,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$form_id    = 5;
 		$form_attrs = [
 			'job_id' => $form_id,
@@ -83,7 +83,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		global $awsm_response;
 
 		$awsm_response = [];
@@ -94,7 +94,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject->verify();
 
-		self::assertSame( $awsm_response, [] );
+		self::assertSame( [], $awsm_response );
 	}
 
 	/**
@@ -102,7 +102,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		global $awsm_response;
 
 		$awsm_response = [];
@@ -113,6 +113,6 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject->verify();
 
-		self::assertSame( $awsm_response, [ 'error' => [ 'The hCaptcha is invalid.' ] ] );
+		self::assertSame( [ 'error' => [ 'The hCaptcha is invalid.' ] ], $awsm_response );
 	}
 }

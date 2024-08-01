@@ -19,7 +19,6 @@ use Composer\EventDispatcher\Event as BaseEvent;
 use Composer\Installer\PackageEvent;
 use Composer\Script\Event;
 use Isolated\Symfony\Component\Finder\Finder;
-use Seld\JsonLint\ParsingException;
 
 /**
  * Class Scoper.
@@ -44,13 +43,6 @@ class Scoper {
 	private static $do_scope = false;
 
 	/**
-	 * Do dump-autoload, as some packages were updated or removed.
-	 *
-	 * @var bool
-	 */
-	private static $do_dump = false;
-
-	/**
 	 * Post-update composer command.
 	 *
 	 * @param Event $event Composer event.
@@ -59,7 +51,7 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_cmd( Event $event ): void {
-		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
 		if ( self::$do_scope ) {
 			self::prepare_scope( $event );
@@ -75,7 +67,7 @@ class Scoper {
 				)
 			);
 
-			$removed_packages = array_diff( $packages, $locked_packages );
+			$removed_packages = array_diff( $scope_packages, $locked_packages );
 			$vendor_prefixed  = self::get_vendor_prefixed_dir();
 
 			foreach ( $removed_packages as $removed_package ) {
@@ -86,9 +78,8 @@ class Scoper {
 		// Always delete scoped packages from vendor.
 		self::cleanup_scope( $event );
 
-		if ( self::$do_dump ) {
-			self::dump( $event );
-		}
+		// Always do dump.
+		self::dump( $event );
 	}
 
 	/**
@@ -100,8 +91,8 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_package_install( PackageEvent $package_event ): void {
-		$packages  = $package_event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation = $package_event->getOperation();
+		$scope_packages = $package_event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$operation      = $package_event->getOperation();
 
 		/**
 		 * Current operation.
@@ -110,7 +101,7 @@ class Scoper {
 		 */
 		$package = $operation->getPackage()->getName();
 
-		if ( ! in_array( $package, $packages, true ) ) {
+		if ( ! in_array( $package, $scope_packages, true ) ) {
 			return;
 		}
 
@@ -127,8 +118,8 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_package_update( PackageEvent $event ): void {
-		$packages  = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation = $event->getOperation();
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$operation      = $event->getOperation();
 
 		/**
 		 * Current operation.
@@ -137,7 +128,7 @@ class Scoper {
 		 */
 		$package = $operation->getInitialPackage()->getName();
 
-		if ( ! in_array( $package, $packages, true ) ) {
+		if ( ! in_array( $package, $scope_packages, true ) ) {
 			return;
 		}
 
@@ -153,8 +144,8 @@ class Scoper {
 	 * @noinspection PhpUnused
 	 */
 	public static function post_package_uninstall( PackageEvent $event ): void {
-		$packages  = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation = $event->getOperation();
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$operation      = $event->getOperation();
 
 		/**
 		 * Current operation.
@@ -163,13 +154,11 @@ class Scoper {
 		 */
 		$package = $operation->getPackage()->getName();
 
-		if ( ! in_array( $package, $packages, true ) ) {
+		if ( ! in_array( $package, $scope_packages, true ) ) {
 			return;
 		}
 
 		self::delete_package( self::get_vendor_prefixed_dir(), $package );
-
-		self::$do_dump = true;
 	}
 
 	/**
@@ -179,12 +168,11 @@ class Scoper {
 	 * @param Event $event Composer event.
 	 *
 	 * @return void
-	 * @noinspection MkdirRaceConditionInspection
 	 */
 	private static function prepare_scope( Event $event ): void {
-		$packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
+		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
-		if ( ! $packages ) {
+		if ( ! $scope_packages ) {
 			return;
 		}
 
@@ -256,8 +244,6 @@ class Scoper {
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo shell_exec( $scoper_cmd );
-
-		self::$do_dump = true;
 	}
 
 	/**
@@ -277,8 +263,8 @@ class Scoper {
 		$vendor = self::get_vendor_dir();
 
 		// Loop through the list of  packages and delete relevant dirs in vendor.
-		foreach ( $scope_packages as $package ) {
-			self::delete_package( $vendor, $package );
+		foreach ( $scope_packages as $scope_package ) {
+			self::delete_package( $vendor, $scope_package );
 		}
 	}
 
@@ -290,6 +276,8 @@ class Scoper {
 	 * @return void
 	 */
 	private static function dump( BaseEvent $event ): void {
+		global $argv;
+
 		/**
 		 * Current event.
 		 *
@@ -302,9 +290,20 @@ class Scoper {
 		$package              = $composer->getPackage();
 		$config               = $composer->getConfig();
 
-		$optimize      = $config->get( 'optimize-autoloader' );
-		$authoritative = $config->get( 'classmap-authoritative' );
-		$apcu          = $config->get( 'apcu-autoloader' );
+		$scope_packages = $package->getExtra()['scope-packages'] ?? [];
+		$local_packages = $local_repo->getPackages();
+
+		foreach ( $local_packages as $local_package ) {
+			$package_name = $local_package->getName();
+
+			if ( in_array( $package_name, $scope_packages, true ) ) {
+				$local_repo->removePackage( $local_package );
+			}
+		}
+
+		$optimize      = in_array( '--optimize-autoloader', $argv, true );
+		$authoritative = in_array( '--classmap-authoritative', $argv, true );
+		$apcu          = in_array( '--apcu-autoloader', $argv, true );
 
 		if ( $authoritative ) {
 			$event->getIO()->write( '<info>Generating optimized autoload files (authoritative)</info>' );
@@ -320,22 +319,18 @@ class Scoper {
 		$generator->setRunScripts( false );
 		$generator->setApcu( $apcu );
 
-		try {
-			$class_map = $generator->dump(
-				$config,
-				$local_repo,
-				$package,
-				$installation_manager,
-				'composer',
-				$optimize,
-				null,
-				$composer->getLocker()
-			);
+		$class_map = $generator->dump(
+			$config,
+			$local_repo,
+			$package,
+			$installation_manager,
+			'composer',
+			$optimize,
+			null,
+			$composer->getLocker()
+		);
 
-			$number_of_classes = count( $class_map );
-		} catch ( ParsingException $e ) {
-			$number_of_classes = 0;
-		}
+		$number_of_classes = $class_map->count();
 
 		if ( $authoritative ) {
 			$event->getIO()

@@ -73,13 +73,7 @@ class AutoVerify {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify_form(): void {
-		if ( ! Request::is_frontend() ) {
-			return;
-		}
-
-		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? filter_var( wp_unslash( $_SERVER['REQUEST_METHOD'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : '';
-
-		if ( 'POST' !== $request_method ) {
+		if ( ! Request::is_post() || ! Request::is_frontend() ) {
 			return;
 		}
 

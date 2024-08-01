@@ -21,7 +21,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
 
 		self::assertSame( 10, has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_divi_captcha' ] ) );
@@ -30,7 +30,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_divi_captcha().
 	 */
-	public function test_add_divi_captcha() {
+	public function test_add_divi_captcha(): void {
 		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
 
 		$output = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
@@ -118,7 +118,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_divi_captcha() in frontend builder.
 	 */
-	public function test_add_divi_captcha_in_frontend_builder() {
+	public function test_add_divi_captcha_in_frontend_builder(): void {
 		FunctionMocker::replace( 'et_core_is_fb_enabled', true );
 
 		$output      = 'some string';
@@ -132,7 +132,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_divi_captcha() when the login limit is not exceeded.
 	 */
-	public function test_add_divi_captcha_when_login_limit_is_not_exceeded() {
+	public function test_add_divi_captcha_when_login_limit_is_not_exceeded(): void {
 		$output      = 'some string';
 		$module_slug = 'et_pb_login';
 

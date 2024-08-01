@@ -30,7 +30,7 @@ class GeneralTest extends HCaptchaWPTestCase {
 	 * @param string $wordfence_status Wordfence status.
 	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks( string $wordfence_status ) {
+	public function test_init_hooks( string $wordfence_status ): void {
 		if ( 'login' === $wordfence_status ) {
 			update_option(
 				'hcaptcha_settings',
@@ -70,7 +70,7 @@ class GeneralTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_remove_wordfence_recaptcha_script() {
+	public function test_remove_wordfence_recaptcha_script(): void {
 		$handle = 'wordfence-ls-recaptcha';
 
 		wp_enqueue_script(
@@ -95,7 +95,7 @@ class GeneralTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_block_wordfence_recaptcha() {
+	public function test_block_wordfence_recaptcha(): void {
 		$subject = new General();
 
 		self::assertFalse( $subject->block_wordfence_recaptcha() );
@@ -107,7 +107,7 @@ class GeneralTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_remove_wp_login_hcaptcha_hooks() {
+	public function test_remove_wp_login_hcaptcha_hooks(): void {
 		$subject = new General();
 
 		$subject->remove_wp_login_hcaptcha_hooks();

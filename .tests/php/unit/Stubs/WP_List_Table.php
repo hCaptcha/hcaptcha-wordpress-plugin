@@ -5,6 +5,9 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpMultipleClassDeclarationsInspection */
+
 /**
  * WP_List_Table Stub.
  */

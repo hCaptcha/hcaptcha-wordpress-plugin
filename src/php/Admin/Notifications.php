@@ -112,6 +112,7 @@ class Notifications {
 		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 		$statistics_url          = $general_url . '#statistics_1';
 		$force_url               = $general_url . '#force_1';
+		$elementor_edit_form_url = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
 
 		$notifications = [
 			'register'            => [
@@ -269,6 +270,15 @@ class Notifications {
 					'text' => __( 'Try auto-activation', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.4.0.
+			'admin-elementor'     => [
+				'title'   => __( 'Add hCaptcha to Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Add hCaptcha to Elementor Pro Form in the Elementor admin editor.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $elementor_edit_form_url,
+					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
@@ -281,11 +291,62 @@ class Notifications {
 			unset( $notifications['pro-free-trial'] );
 		}
 
+		if ( $settings->is_on( 'statistics' ) ) {
+			unset( $notifications['statistics'] );
+		}
+
+		if ( $settings->is_on( 'statistics' ) && $settings->is_pro() ) {
+			unset( $notifications['events_page'] );
+		}
+
 		if ( $settings->is_on( 'force' ) ) {
 			unset( $notifications['force'] );
 		}
 
-		return $notifications;
+		if ( ! class_exists( '\ElementorPro\Plugin', false ) ) {
+			unset( $notifications['admin-elementor'] );
+		}
+
+		// Added in 4.4.0.
+		return array_merge( $notifications, $this->cf7_admin_notification() );
+	}
+
+	/**
+	 * Contact Form 7 admin notification.
+	 *
+	 * @return array
+	 */
+	private function cf7_admin_notification(): array {
+		if ( ! class_exists( 'WPCF7_ContactForm' ) ) {
+			return [];
+		}
+
+		// Get the latest CF7 form.
+		$args      = [
+			'post_type'      => 'wpcf7_contact_form',
+			'posts_per_page' => 1,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		];
+		$cf7_forms = get_posts( $args );
+
+		if ( empty( $cf7_forms ) ) {
+			return [];
+		}
+
+		$form_id  = $cf7_forms[0]->ID;
+		$edit_url = admin_url( "?page=wpcf7&post=$form_id&action=edit#postbox-container-live" );
+
+		return [
+			'admin-cf7' => [
+				'title'   => __( 'Live form in Contact Form 7 admin', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'With the hCaptcha plugin, you can see a live form on the form edit admin page.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $edit_url,
+					'text' => __( 'Use live form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+		];
 	}
 
 	/**
@@ -357,6 +418,11 @@ class Notifications {
 			?>
 			<div id="hcaptcha-notifications-footer">
 				<div id="hcaptcha-navigation">
+					<span>
+						<span id="hcaptcha-navigation-page">1</span>
+						<?php esc_html_e( 'of', 'hcaptcha-for-forms-and-more' ); ?>
+						<span id="hcaptcha-navigation-pages"><?php echo count( $notifications ); ?></span>
+					</span>
 					<a class="prev disabled"></a>
 					<a class="next <?php echo esc_attr( $next_disabled ); ?>"></a>
 				</div>

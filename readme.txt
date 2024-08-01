@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 4.3.1
+Stable tag: 4.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +15,8 @@ Enables hCaptcha integration with WordPress and popular plugins.
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
+
+[The hCaptcha for WP many advantages over similar captcha plugins](https://kagg.eu/why-choose-hcaptcha-for-wp/).
 
 == How hCaptcha Works ==
 
@@ -28,16 +30,18 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 
 == Screenshots ==
 
-1. Login page with hCaptcha widget
-2. Login page with hCaptcha challenge
-3. WooCommerce Login/Register page
-4. Contact Form 7 with hCaptcha
-5. Contact Form 7 live form in the admin editor. 
-6. General settings page
-7. Integrations settings page
-8. Activating plugin from the Integration settings page
-9. (Optional) Local Forms statistics
-10. (Optional) Local Events statistics
+1. Login page with hCaptcha widget.
+2. Login page with hCaptcha challenge.
+3. WooCommerce Login/Register page.
+4. Contact Form 7 with hCaptcha.
+5. Contact Form 7 live form in the admin editor.
+6. Elementor Pro Form.
+7. Elementor Pro From in admin editor.
+8. General settings page.
+9. Integrations settings page.
+10. Activating plugin from the Integration settings page.
+11. (Optional) Local Forms statistics.
+12. (Optional) Local Events statistics.
 
 == Installation ==
 
@@ -560,6 +564,22 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.4.0 =
+* Added compatibility with Contact Form 7 Stripe integration.
+* Added compatibility with WPS Hide Login plugin.
+* Added compatibility with LoginPress plugin.
+* Improved compatibility with Wordfence Login Security plugin.
+* Updated MailPoet integration.
+* Fixed conflict with Ninja Forms Upload field.
+* Fixed Ninja Forms Ajax processing.
+* Fixed error in cron with Matomo Analytics.
+* Fixed error with the Elementor Checkout Element.
+* Fixed ignorance of Pro params in the Elementor admin editor.
+* Fixed inability to activate the Elementor Pro plugin when Elementor plugin is activated.
+* Fixed sending replies to wpDiscuz comments.
+* Fixed replies in the WP Dashboard with wpDiscuz active.
+* Fixed sending several wpDiscuz comments without a page reload.
 
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.

@@ -31,7 +31,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedMethodInspection
 	 */
-	public function test_constructor() {
+	public function test_constructor(): void {
 		$subject = new Field();
 
 		self::assertSame( 'hCaptcha', $subject->get_nicename() );
@@ -40,7 +40,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test validate().
 	 */
-	public function test_validate() {
+	public function test_validate(): void {
 		$field = [ 'value' => 'some value' ];
 		$this->prepare_hcaptcha_request_verify( $field['value'] );
 
@@ -50,9 +50,9 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test validate() without field.
+	 * Test validate() without a field.
 	 */
-	public function test_validate_without_field() {
+	public function test_validate_without_field(): void {
 		$subject = new Field();
 
 		self::assertSame( 'Please complete the hCaptcha.', $subject->validate( [], null ) );
@@ -61,7 +61,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test validate() when not validated.
 	 */
-	public function test_validate_not_validated() {
+	public function test_validate_not_validated(): void {
 		$field = [ 'value' => 'some value' ];
 		$this->prepare_hcaptcha_request_verify( $field['value'], false );
 

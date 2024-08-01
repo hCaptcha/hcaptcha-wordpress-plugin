@@ -23,6 +23,7 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
@@ -122,13 +123,17 @@ class Main {
 	 * @return void
 	 */
 	public function init(): void {
-		if ( $this->is_xml_rpc() ) {
+		if ( Request::is_xml_rpc() ) {
+			return;
+		}
+
+		new Migrations();
+
+		if ( wp_doing_cron() ) {
 			return;
 		}
 
 		( new Fix() )->init();
-
-		new Migrations();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], -PHP_INT_MAX );
 	}
@@ -518,11 +523,16 @@ CSS;
 			display: flex;
 			justify-content: center;
 		}
+		.h-captcha[data-size="normal"] {
+			scale: calc(270 / 303);
+		    transform: translate(-20px, 0);
+		}
 	}
 
 	@media (min-width: 350px) {
-		#login {
+		body #login {
 			width: 350px;
+			box-sizing: content-box;
 		}
 	}
 CSS;
@@ -1358,14 +1368,5 @@ CSS;
 			false,
 			dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/'
 		);
-	}
-
-	/**
-	 * Check if it is the xml-rpc request.
-	 *
-	 * @return bool
-	 */
-	protected function is_xml_rpc(): bool {
-		return defined( 'XMLRPC_REQUEST' ) && constant( 'XMLRPC_REQUEST' );
 	}
 }

@@ -23,11 +23,9 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 *
 	 * @return void
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
+	public function tearDown(): void {
+		unset( $_POST['action'], $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 	}
 
 	/**
@@ -35,7 +33,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Comment();
 
 		self::assertTrue( has_filter( 'wpdiscuz_recaptcha_site_key' ) );
@@ -53,7 +51,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
 
@@ -81,7 +79,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args      = [
 			'id' => [
 				'source'  => [ 'wpdiscuz/class.WpdiscuzCore.php' ],
@@ -93,7 +91,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		$expected  =
 			'Some comment output' .
 			'		<div class="wpd-field-hcaptcha wpdiscuz-item">
-			<div class="wpdiscuz-hcaptcha" id="wpdiscuz-hcaptcha"></div>
+			<div class="wpdiscuz-hcaptcha"></div>
 			' . $hcap_form . '			<div class="clearfix"></div>
 		</div>
 		' . '<div class="wc-field-submit">Submit</div>';
@@ -108,14 +106,17 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$comment_data      = [ 'some comment data' ];
 		$hcaptcha_response = 'some response';
+
+		$_POST['action'] = 'wpdAddComment';
 
 		$wp_discuz = Mockery::mock( 'WpdiscuzCore' );
 
 		FunctionMocker::replace( 'wpDiscuz', $wp_discuz );
 
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
@@ -127,11 +128,34 @@ class CommentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify() when not wpd action.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function test_verify_when_not_wpd_action(): void {
+		$comment_data = [ 'some comment data' ];
+
+		$subject = new Comment();
+
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
+
+		$_POST['action'] = 'some-action';
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		$subject = new Comment();
+
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
+	}
+
+	/**
 	 * Test verify() when not verified.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_verify_NOT_verified() {
+	public function test_verify_not_verified(): void {
 		$comment_data      = [ 'some comment data' ];
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
@@ -141,10 +165,13 @@ class CommentTest extends HCaptchaWPTestCase {
 			[],
 		];
 
+		$_POST['action'] = 'wpdAddComment';
+
 		$wp_discuz = Mockery::mock( 'WpdiscuzCore' );
 
 		FunctionMocker::replace( 'wpDiscuz', $wp_discuz );
 
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'preprocess_comment', [ $wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
@@ -152,7 +179,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 
 		add_filter(
-			'wp_die_handler',
+			'wp_die_ajax_handler',
 			static function ( $name ) use ( &$die_arr ) {
 				return static function ( $message, $title, $args ) use ( &$die_arr ) {
 					$die_arr = [ $message, $title, $args ];
@@ -175,7 +202,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		$expected = '.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 

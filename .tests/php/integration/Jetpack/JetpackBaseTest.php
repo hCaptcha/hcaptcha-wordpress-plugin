@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\Jetpack;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -22,7 +23,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks.
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new JetpackForm();
 
 		self::assertSame(
@@ -52,7 +53,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test jetpack_verify().
 	 */
-	public function test_jetpack_verify() {
+	public function test_jetpack_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
 
 		$subject = new JetpackForm();
@@ -64,7 +65,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test jetpack_verify() not verified.
 	 */
-	public function test_jetpack_verify_not_verified() {
+	public function test_jetpack_verify_not_verified(): void {
 		$error = new WP_Error( 'invalid_hcaptcha', 'The hCaptcha is invalid.' );
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
@@ -81,7 +82,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_error_message() {
+	public function test_error_message(): void {
 		$hcaptcha_content = 'some content';
 		$error_message    = 'some error message';
 
@@ -100,5 +101,43 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 </div>';
 
 		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function test_print_inline_styles(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+	form.contact-form .grunion-field-wrap .h-captcha,
+	form.wp-block-jetpack-contact-form .grunion-field-wrap .h-captcha {
+		margin-bottom: 0;
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new JetpackForm();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
 	}
 }

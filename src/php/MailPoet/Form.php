@@ -94,7 +94,7 @@ class Form {
 	 * @param API $api MailPoet API instance.
 	 */
 	public function verify( API $api ): void {
-		if ( is_admin() ) {
+		if ( ! wp_doing_ajax() ) {
 			return;
 		}
 

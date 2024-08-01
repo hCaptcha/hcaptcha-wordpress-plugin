@@ -1,6 +1,6 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-/* global Backbone */
+/* global nfRadio */
 
 import $ from 'jquery';
 
@@ -28,13 +28,13 @@ describe( 'Ninja Forms hCaptcha', () => {
 		controller = window.hCaptchaFieldController;
 
 		// Reset the request mock function
-		Backbone.Radio.channel( 'fields' ).request.mockReset();
+		nfRadio.channel( 'fields' ).request.mockReset();
 	} );
 
 	test( 'initialize registers listeners', () => {
 		controller.initialize();
-		expect( Backbone.Radio.channel ).toHaveBeenCalledWith( 'submit' );
-		expect( Backbone.Radio.channel ).toHaveBeenCalledWith( 'fields' );
+		expect( nfRadio.channel ).toHaveBeenCalledWith( 'submit' );
+		expect( nfRadio.channel ).toHaveBeenCalledWith( 'fields' );
 
 		expect( controller.listenTo ).toHaveBeenCalledWith(
 			expect.any( Object ),
@@ -57,7 +57,7 @@ describe( 'Ninja Forms hCaptcha', () => {
 
 		controller.updateHcaptcha( model );
 
-		expect( Backbone.Radio.channel( 'fields' ).request ).not.toHaveBeenCalled();
+		expect( nfRadio.channel( 'fields' ).request ).not.toHaveBeenCalled();
 	} );
 
 	test( 'updateHcaptcha removes error if value is set', () => {
@@ -68,7 +68,7 @@ describe( 'Ninja Forms hCaptcha', () => {
 
 		controller.updateHcaptcha( model );
 
-		expect( Backbone.Radio.channel( 'fields' ).request ).toHaveBeenCalledWith(
+		expect( nfRadio.channel( 'fields' ).request ).toHaveBeenCalledWith(
 			'remove:error',
 			expect.anything(),
 			'required-error'

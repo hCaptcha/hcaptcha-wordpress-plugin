@@ -48,7 +48,7 @@ class FunctionsTest extends HCaptchaTestCase {
 	 * @return void
 	 * @dataProvider dp_test_hcap_shortcode
 	 */
-	public function test_hcap_shortcode( array $atts, array $expected ) {
+	public function test_hcap_shortcode( array $atts, array $expected ): void {
 		$pairs = [
 			'action'  => HCAPTCHA_ACTION,
 			'name'    => HCAPTCHA_NONCE,
@@ -159,7 +159,7 @@ class FunctionsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_hcap_min_suffix() {
+	public function test_hcap_min_suffix(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) use ( &$script_debug ) {

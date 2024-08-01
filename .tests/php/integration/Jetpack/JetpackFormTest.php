@@ -25,7 +25,7 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_add_captcha
 	 */
-	public function test_add_captcha( string $content, string $expected ) {
+	public function test_add_captcha( string $content, string $expected ): void {
 		$subject = new JetpackForm();
 
 		self::assertSame( $expected, $subject->add_captcha( $content ) );

@@ -21,11 +21,8 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_URI'], $_GET['action'] );
 
@@ -35,7 +32,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Register();
 
 		self::assertSame(
@@ -51,7 +48,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'register';
 
@@ -77,7 +74,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() when not WP login url.
 	 */
-	public function test_add_captcha_when_NOT_login_url() {
+	public function test_add_captcha_when_NOT_login_url(): void {
 		unset( $_SERVER['REQUEST_URI'] );
 
 		$_GET['action'] = 'register';
@@ -96,7 +93,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() when not register action.
 	 */
-	public function test_add_captcha_when_NOT_register_action() {
+	public function test_add_captcha_when_NOT_register_action(): void {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'some';
 
@@ -114,7 +111,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$_GET['action'] = 'register';
 
 		$errors = new WP_Error( 'some error' );
@@ -129,7 +126,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$_GET['action'] = 'register';
 
 		$errors = new WP_Error( 'some error' );
@@ -146,7 +143,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not register action.
 	 */
-	public function test_verify_when_NOT_register_action() {
+	public function test_verify_when_NOT_register_action(): void {
 		$_GET['action'] = 'some';
 
 		$errors = new WP_Error( 'some error' );

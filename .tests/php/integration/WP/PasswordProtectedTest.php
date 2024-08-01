@@ -9,8 +9,6 @@ namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\PasswordProtected;
-use HCaptcha\WP\Register;
-use WP_Error;
 use WP_Post;
 
 /**
@@ -23,11 +21,8 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_URI'], $_GET['action'] );
 
@@ -37,7 +32,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new PasswordProtected();
 
 		self::assertSame(
@@ -53,7 +48,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'register';
 
@@ -85,7 +80,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected' );
 
 		$subject = new PasswordProtected();
@@ -95,8 +90,9 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify() not verified.
-	 */
-	public function test_verify_not_verified() {
+	 *
+	 * @noinspection PhpUnusedParameterInspection*/
+	public function test_verify_not_verified(): void {
 		$die_arr  = [];
 		$expected = [
 			'The hCaptcha is invalid.',

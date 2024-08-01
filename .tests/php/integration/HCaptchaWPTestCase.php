@@ -13,7 +13,6 @@
 namespace HCaptcha\Tests\Integration;
 
 use Codeception\TestCase\WPTestCase;
-use HCaptcha\Helpers\HCaptcha;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
@@ -28,7 +27,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Setup test
 	 */
-	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function setUp(): void {
 		FunctionMocker::setUp();
 		parent::setUp();
 
@@ -41,7 +40,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * End test
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST, $_SERVER['REQUEST_URI'], $_SERVER['HTTP_CLIENT_IP'] );
 
@@ -63,7 +62,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function get_protected_property( $subject, string $property_name ) {
+	protected function get_protected_property( object $subject, string $property_name ) {
 		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 
 		$property->setAccessible( true );
@@ -84,7 +83,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_protected_property( $subject, string $property_name, $value ) {
+	protected function set_protected_property( object $subject, string $property_name, $value ): void {
 		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 
 		$property->setAccessible( true );
@@ -103,7 +102,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_method_accessibility( $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
+	protected function set_method_accessibility( object $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
 		$method = ( new ReflectionClass( $subject ) )->getMethod( $method_name );
 
 		$method->setAccessible( $accessible );
@@ -186,7 +185,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_request_verify( string $hcaptcha_response, $result = true ) {
+	protected function prepare_hcaptcha_request_verify( string $hcaptcha_response, $result = true ): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['h-captcha-response'] ) ) {
 			$_POST[ HCAPTCHA_NONCE ]     = wp_create_nonce( HCAPTCHA_ACTION );
@@ -245,7 +244,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @param bool|null $result            Desired result.
 	 *
 	 * @noinspection PhpMissingParamTypeInspection*/
-	protected function prepare_hcaptcha_verify_post( string $nonce_field_name, string $nonce_action_name, $result = true ) {
+	protected function prepare_hcaptcha_verify_post( string $nonce_field_name, string $nonce_action_name, $result = true ): void {
 		if ( null === $result ) {
 			return;
 		}
@@ -267,7 +266,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name, $result = true ) {
+	protected function prepare_hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name, $result = true ): void {
 		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, $result );
 	}
 
@@ -280,7 +279,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 *
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name, $result = true ) {
+	protected function prepare_hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name, $result = true ): void {
 		$this->prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, $result );
 	}
 

@@ -9,11 +9,11 @@
  * @copyright Copyright (c) 2012, Matthias Mullie. All rights reserved
  * @license MIT License
  */
-namespace HCaptcha\Vendor\MatthiasMullie\Minify;
+namespace HCaptcha\Vendors\MatthiasMullie\Minify;
 
-use HCaptcha\Vendor\MatthiasMullie\Minify\Exceptions\FileImportException;
-use HCaptcha\Vendor\MatthiasMullie\PathConverter\Converter;
-use HCaptcha\Vendor\MatthiasMullie\PathConverter\ConverterInterface;
+use HCaptcha\Vendors\MatthiasMullie\Minify\Exceptions\FileImportException;
+use HCaptcha\Vendors\MatthiasMullie\PathConverter\Converter;
+use HCaptcha\Vendors\MatthiasMullie\PathConverter\ConverterInterface;
 /**
  * CSS minifier.
  *

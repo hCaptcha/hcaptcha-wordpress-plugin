@@ -2,7 +2,7 @@
  * Ninja Forms controller file.
  */
 
-/* global hcaptcha, Marionette, Backbone */
+/* global hcaptcha, Marionette, nfRadio */
 
 wp.hooks.addFilter(
 	'hcaptcha.ajaxSubmitButton',
@@ -20,12 +20,12 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const HCaptchaFieldController = Marionette.Object.extend( {
 		initialize() {
 			// On the Form Submission's field validation.
-			const submitChannel = Backbone.Radio.channel( 'submit' );
+			const submitChannel = nfRadio.channel( 'submit' );
 			this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
 			this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
 
 			// On the Field's model value change.
-			const fieldsChannel = Backbone.Radio.channel( 'fields' );
+			const fieldsChannel = nfRadio.channel( 'fields' );
 			this.listenTo( fieldsChannel, 'change:modelValue', this.updateHcaptcha );
 		},
 
@@ -38,7 +38,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			// Check if the Model has a value.
 			if ( model.get( 'value' ) ) {
 				// Remove Error from Model.
-				Backbone.Radio.channel( 'fields' ).request(
+				nfRadio.channel( 'fields' ).request(
 					'remove:error',
 					model.get( 'id' ),
 					'required-error'
@@ -68,6 +68,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
 		const data = options.data ?? '';
+
+		if ( ! ( typeof data === 'string' || data instanceof String ) ) {
+			return;
+		}
 
 		if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
 			return;

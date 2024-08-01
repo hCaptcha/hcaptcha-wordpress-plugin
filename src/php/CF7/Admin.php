@@ -46,14 +46,14 @@ class Admin extends Base {
 	/**
 	 * Current screen.
 	 *
-	 * @param mixed $current_screen Current screen.
+	 * @param WP_Screen|mixed $current_screen Current screen.
 	 *
 	 * @return void
 	 */
 	public function current_screen( $current_screen ): void {
 		$current_screen_id = $current_screen->id ?? '';
 
-		if ( ! $current_screen ) {
+		if ( ! $current_screen_id ) {
 			return;
 		}
 
@@ -108,13 +108,23 @@ class Admin extends Base {
 		}
 
 		$form_shortcode = htmlspecialchars_decode( $m[1] );
+		$live_form      = do_shortcode( $form_shortcode );
+		$stripe_message = '';
+
+		if ( $this->has_stripe_element( $live_form ) ) {
+			$stripe_message =
+				'<h4><em>' .
+				__( 'The Stripe payment element already contains an invisible hCaptcha. No need to add it to the form.', 'hcaptcha-for-forms-and-more' ) .
+				'</em></h4>';
+		}
 
 		$live_container =
 			"\n" .
 			'<div id="postbox-container-live" class="postbox-container">' .
 			'<div id="form-live">' .
-			'<h3>Live Form</h3>' .
-			do_shortcode( $form_shortcode ) .
+			'<h3>' . __( 'Live Form', 'hcaptcha-for-forms-and-more' ) . '</h3>' .
+			$stripe_message .
+			$live_form .
 			'</div>' .
 			'</div>' .
 			"\n";
@@ -289,7 +299,7 @@ class Admin extends Base {
 	 *
 	 * @return bool
 	 */
-	private function is_cf7_form_admin_page(): bool {
+	protected function is_cf7_form_admin_page(): bool {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';

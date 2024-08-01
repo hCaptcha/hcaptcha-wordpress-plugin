@@ -25,7 +25,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_hcap_shortcode
 	 */
-	public function test_hcap_shortcode( string $action, string $name, string $auto ) {
+	public function test_hcap_shortcode( string $action, string $name, string $auto ): void {
 		$filtered = ' filtered ';
 
 		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;

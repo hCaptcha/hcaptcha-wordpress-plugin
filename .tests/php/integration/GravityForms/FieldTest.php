@@ -14,7 +14,6 @@ namespace HCaptcha\Tests\Integration\GravityForms;
 
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Field;
-use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -30,7 +29,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_POST['action'], $_POST['field'], $_GET['id'] );
 		parent::tearDown();
 	}
@@ -42,7 +41,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_constructor_init_and_init_hooks
 	 */
-	public function test_constructor_init_and_init_hooks( bool $mode_embed ) {
+	public function test_constructor_init_and_init_hooks( bool $mode_embed ): void {
 		if ( $mode_embed ) {
 			update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'embed' ] ] );
 		} else {
@@ -94,7 +93,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_to_field_groups() {
+	public function test_add_to_field_groups(): void {
 		$expected = [
 			'advanced_fields' => [
 				'fields' => [
@@ -116,7 +115,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_form_editor_field_title() {
+	public function test_get_form_editor_field_title(): void {
 		$subject = new Field();
 
 		self::assertSame( 'hCaptcha', $subject->get_form_editor_field_title() );
@@ -127,7 +126,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_form_editor_field_description() {
+	public function test_get_form_editor_field_description(): void {
 		$expected =
 			'Adds a hCaptcha field to your form to help protect your website from spam and bot abuse.' .
 			' ' .
@@ -143,7 +142,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_form_editor_field_icon() {
+	public function test_get_form_editor_field_icon(): void {
 		$expected = HCAPTCHA_URL . '/assets/images/hcaptcha-icon-black-and-white.svg';
 
 		$subject = new Field();
@@ -156,7 +155,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_form_editor_field_settings() {
+	public function test_get_form_editor_field_settings(): void {
 		$expected = [
 			'label_placement_setting',
 			'description_setting',
@@ -173,7 +172,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_get_field_input() {
+	public function test_get_field_input(): void {
 		$form_id  = 23;
 		$field_id = 'input_0';
 		$tabindex = 0;
@@ -207,7 +206,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_disable_duplication() {
+	public function test_disable_duplication(): void {
 		$duplicate_field_link = '#some-link';
 		$field_id             = 55;
 		$field                = (object) [];
@@ -263,7 +262,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_admin_script() {
+	public function test_enqueue_admin_script(): void {
 		$params = [
 			'onlyOne'   => 'Only one hCaptcha field can be added to the form.',
 			'OKBtnText' => 'OK',
@@ -306,7 +305,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_print_hcaptcha_scripts() {
+	public function test_print_hcaptcha_scripts(): void {
 		$subject = new Field();
 
 		self::assertFalse( $subject->print_hcaptcha_scripts( false ) );

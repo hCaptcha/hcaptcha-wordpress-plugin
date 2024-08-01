@@ -61,6 +61,11 @@
 	column-gap: 3px;
 }
 
+#hcaptcha-navigation > span {
+	margin-right: 10px;
+	align-self: center;
+}
+
 #hcaptcha-navigation a {
 	width: 30px;
 	height: 30px;

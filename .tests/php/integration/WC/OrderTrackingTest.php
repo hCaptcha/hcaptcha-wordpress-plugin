@@ -20,7 +20,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init hooks.
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new OrderTracking();
 
 		self::assertSame(
@@ -32,7 +32,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 	/**
 	 * Test do_shortcode_tag().
 	 */
-	public function test_do_shortcode_tag() {
+	public function test_do_shortcode_tag(): void {
 		$site_key  = 'some site key';
 		$theme     = 'some theme';
 		$size      = 'some size';
@@ -105,7 +105,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 	/**
 	 * Test do_shortcode_tag() when not order_tracking tag.
 	 */
-	public function test_do_shortcode_tag_when_NOT_order_tracking() {
+	public function test_do_shortcode_tag_when_NOT_order_tracking(): void {
 		$output  = 'some output';
 		$tag     = 'some_tag';
 		$subject = new OrderTracking();

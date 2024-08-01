@@ -8,7 +8,6 @@
 namespace HCaptcha\Tests\Integration\includes;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test request file.
@@ -19,11 +18,8 @@ class RequestTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down the test.
-	 *
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset(
 			$_SERVER['HTTP_TRUE_CLIENT_IP'],
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
@@ -49,7 +45,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_hcap_get_user_ip
 	 */
-	public function test_hcap_get_user_ip( array $headers, $expected ) {
+	public function test_hcap_get_user_ip( array $headers, $expected ): void {
 		unset(
 			$_SERVER['HTTP_TRUE_CLIENT_IP'],
 			$_SERVER['HTTP_CF_CONNECTING_IP'],
@@ -150,7 +146,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_hcap_get_error_message() {
+	public function test_hcap_get_error_message(): void {
 		self::assertSame( '', hcap_get_error_message( 'wrong-error-code' ) );
 		self::assertSame(
 			'hCaptcha error: The request is invalid or malformed.',
@@ -165,7 +161,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_request_verify().
 	 */
-	public function test_hcaptcha_request_verify() {
+	public function test_hcaptcha_request_verify(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
@@ -176,7 +172,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_request_verify() when protection is not enabled.
 	 */
-	public function test_hcaptcha_request_verify_when_protection_not_enabled() {
+	public function test_hcaptcha_request_verify_when_protection_not_enabled(): void {
 		$hcaptcha_response = 'some response';
 
 		add_filter( 'hcap_protect_form', '__return_false' );
@@ -187,7 +183,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_request_verify() with empty string as argument.
 	 */
-	public function test_hcaptcha_request_verify_empty() {
+	public function test_hcaptcha_request_verify_empty(): void {
 		self::assertSame(
 			'Please complete the hCaptcha.',
 			hcaptcha_request_verify( '' )
@@ -197,7 +193,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_request_verify() not verified.
 	 */
-	public function test_hcaptcha_request_verify_not_verified() {
+	public function test_hcaptcha_request_verify_not_verified(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
@@ -208,7 +204,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_request_verify() not verified with empty body.
 	 */
-	public function test_hcaptcha_request_verify_not_verified_empty_body() {
+	public function test_hcaptcha_request_verify_not_verified_empty_body(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, null );
@@ -219,7 +215,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_verify_POST() with no argument.
 	 */
-	public function test_hcaptcha_verify_POST_default_success() {
+	public function test_hcaptcha_verify_POST_default_success(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
@@ -230,14 +226,14 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_verify_POST() with no argument.
 	 */
-	public function test_hcaptcha_verify_POST_default_empty() {
+	public function test_hcaptcha_verify_POST_default_empty(): void {
 		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_verify_post() );
 	}
 
 	/**
 	 * Test hcaptcha_verify_POST().
 	 */
-	public function test_hcaptcha_verify_POST() {
+	public function test_hcaptcha_verify_POST(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -257,7 +253,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_verify_POST() not verified.
 	 */
-	public function test_hcaptcha_verify_POST_not_verified() {
+	public function test_hcaptcha_verify_POST_not_verified(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -269,7 +265,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_verify_POST() not verified with empty POST.
 	 */
-	public function test_hcaptcha_verify_POST_not_verified_empty_POST() {
+	public function test_hcaptcha_verify_POST_not_verified_empty_POST(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -281,7 +277,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_verify_POST() not verified with logged-in user.
 	 */
-	public function test_hcaptcha_verify_POST_not_verified_logged_in() {
+	public function test_hcaptcha_verify_POST_not_verified_logged_in(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -296,7 +292,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_output().
 	 */
-	public function test_hcaptcha_get_verify_output() {
+	public function test_hcaptcha_get_verify_output(): void {
 		$empty_message     = '';
 		$fail_message      = '';
 		$nonce_field_name  = 'some nonce field';
@@ -310,7 +306,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_output() not validated.
 	 */
-	public function test_hcaptcha_get_verify_output_not_validated() {
+	public function test_hcaptcha_get_verify_output_not_validated(): void {
 		$empty_message     = '';
 		$fail_message      = '';
 		$nonce_field_name  = 'some nonce field';
@@ -324,7 +320,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_output() not validated with empty_POST.
 	 */
-	public function test_hcaptcha_get_verify_output_not_validated_empty_POST() {
+	public function test_hcaptcha_get_verify_output_not_validated_empty_POST(): void {
 		$empty_message     = '';
 		$fail_message      = '';
 		$nonce_field_name  = 'some nonce field';
@@ -338,7 +334,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_message().
 	 */
-	public function test_hcaptcha_get_verify_message() {
+	public function test_hcaptcha_get_verify_message(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -350,7 +346,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_message() not validated.
 	 */
-	public function test_hcaptcha_get_verify_message_not_validated() {
+	public function test_hcaptcha_get_verify_message_not_validated(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -362,7 +358,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_message() not validated with empty POST.
 	 */
-	public function test_hcaptcha_get_verify_message_not_validated_empty_POST() {
+	public function test_hcaptcha_get_verify_message_not_validated_empty_POST(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -374,7 +370,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_message_html().
 	 */
-	public function test_hcaptcha_get_verify_message_html() {
+	public function test_hcaptcha_get_verify_message_html(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -386,7 +382,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_message_html() not validated.
 	 */
-	public function test_hcaptcha_get_verify_message_html_not_validated() {
+	public function test_hcaptcha_get_verify_message_html_not_validated(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -401,7 +397,7 @@ class RequestTest extends HCaptchaWPTestCase {
 	/**
 	 * Test hcaptcha_get_verify_message_html() not validated with empty POST.
 	 */
-	public function test_hcaptcha_get_verify_message_html_not_validated_empty_POST() {
+	public function test_hcaptcha_get_verify_message_html_not_validated_empty_POST(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 

@@ -29,7 +29,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Tear down test.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $GLOBALS['current_screen'] );
 
@@ -43,7 +43,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_constructor_and_init_hooks
 	 */
-	public function test_constructor_and_init_hooks( bool $mode_auto ) {
+	public function test_constructor_and_init_hooks( bool $mode_auto ): void {
 		if ( $mode_auto ) {
 			update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'form' ] ] );
 		} else {
@@ -89,7 +89,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_add_captcha
 	 */
-	public function test_add_captcha( bool $is_admin ) {
+	public function test_add_captcha( bool $is_admin ): void {
 		$form_id = 23;
 		$form    = [
 			'id' => $form_id,
@@ -131,7 +131,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() in embed mode.
 	 */
-	public function test_add_captcha_in_embed_mode() {
+	public function test_add_captcha_in_embed_mode(): void {
 		$button_input   = '';
 		$hcaptcha_field = (object) [
 			'type' => 'hcaptcha',
@@ -183,7 +183,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_verify
 	 */
-	public function test_verify( string $mode ) {
+	public function test_verify( string $mode ): void {
 		$form_id           = 23;
 		$hcaptcha_field    = (object) [
 			'type' => 'hcaptcha',
@@ -222,7 +222,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_verify
 	 */
-	public function test_verify_not_verified( string $mode ) {
+	public function test_verify_not_verified( string $mode ): void {
 		$form_id           = 23;
 		$hcaptcha_field    = (object) [
 			'type' => 'hcaptcha',
@@ -249,7 +249,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
-		$this->prepare_hcaptcha_verify_post( Form::NONCE, Form::ACTION, false );
+		$this->prepare_hcaptcha_verify_post( Base::NONCE, Base::ACTION, false );
 
 		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ $mode ] ] );
 		hcaptcha()->init_hooks();
@@ -276,7 +276,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_when_should_not_be_verified() {
+	public function test_verify_when_should_not_be_verified(): void {
 		$form_id           = 2;
 		$nested_form_id    = 9;
 		$multipage_form_id = 3;
@@ -379,7 +379,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_form_validation_errors() {
+	public function test_form_validation_errors(): void {
 		$errors        = [];
 		$form          = [];
 		$error_message = 'Some hCaptcha error.';
@@ -406,7 +406,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_form_validation_errors_markup() {
+	public function test_form_validation_errors_markup(): void {
 		$error_message            = 'Some hCaptcha error.';
 		$validation_errors_markup = '<a href="https:://test.test/some-url">Some text with hCaptcha: </a>';
 		$expected                 = "<div>$error_message</div>";
@@ -425,8 +425,9 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
@@ -491,7 +492,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		self::assertFalse( wp_script_is( Form::HANDLE ) );
 
 		$subject = new Form();

@@ -1,3 +1,19 @@
+= 4.4.0 =
+* Added compatibility with Contact Form 7 Stripe integration.
+* Added compatibility with WPS Hide Login plugin.
+* Added compatibility with LoginPress plugin.
+* Improved compatibility with Wordfence Login Security plugin.
+* Updated MailPoet integration.
+* Fixed conflict with Ninja Forms Upload field.
+* Fixed Ninja Forms Ajax processing.
+* Fixed error in cron with Matomo Analytics.
+* Fixed error with the Elementor Checkout Element.
+* Fixed ignorance of Pro params in the Elementor admin editor.
+* Fixed inability to activate the Elementor Pro plugin when Elementor plugin is activated.
+* Fixed sending replies to wpDiscuz comments.
+* Fixed replies in the WP Dashboard with wpDiscuz active.
+* Fixed sending several wpDiscuz comments without a page reload.
+
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.
 * Fixed warnings and deprecation messages in admin when Contact Form 7 is active.

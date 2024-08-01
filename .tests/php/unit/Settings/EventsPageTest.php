@@ -32,7 +32,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	/**
 	 * Test page_title().
 	 */
-	public function test_page_title() {
+	public function test_page_title(): void {
 		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		$method = 'page_title';
@@ -42,7 +42,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	/**
 	 * Test section_title().
 	 */
-	public function test_section_title() {
+	public function test_section_title(): void {
 		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		$method = 'section_title';
@@ -52,7 +52,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	/**
 	 * Test tab_name().
 	 */
-	public function test_tab_name() {
+	public function test_tab_name(): void {
 		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		$method = 'tab_name';
@@ -64,7 +64,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = Mockery::mock( EventsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
@@ -86,7 +86,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_admin_init
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_admin_init( bool $statistics, bool $is_pro ) {
+	public function test_admin_init( bool $statistics, bool $is_pro ): void {
 		$times       = $statistics && $is_pro ? 1 : 0;
 		$option_page = 'hcaptcha-events';
 		$parent_slug = '';
@@ -140,7 +140,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_admin_enqueue_scripts
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_admin_enqueue_scripts( bool $allowed ) {
+	public function test_admin_enqueue_scripts( bool $allowed ): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min_suffix     = '.min';
@@ -297,7 +297,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_section_callback() {
+	public function test_section_callback(): void {
 		$datepicker = '<div class="hcaptcha-filter"></div>';
 		$expected   = '		<div class="hcaptcha-header-bar">
 			<div class="hcaptcha-header">
@@ -342,7 +342,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 *
 	 * @noinspection HtmlUnknownTarget
 	 */
-	public function test_section_callback_when_not_allowed() {
+	public function test_section_callback_when_not_allowed(): void {
 		$expected = '		<div class="hcaptcha-header-bar">
 			<div class="hcaptcha-header">
 				<h2>
@@ -376,7 +376,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_prepare_chart_data
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_prepare_chart_data( array $items, array $expected ) {
+	public function test_prepare_chart_data( array $items, array $expected ): void {
 		$gmt_offset = 3.0;
 
 		$list_table = Mockery::mock( EventsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
@@ -707,7 +707,7 @@ class EventsPageTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_prepare_chart_data_when_no_items() {
+	public function test_prepare_chart_data_when_no_items(): void {
 		$items = [];
 
 		$list_table = Mockery::mock( EventsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();

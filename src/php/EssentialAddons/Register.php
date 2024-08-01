@@ -23,12 +23,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	const ACTION = 'hcaptcha_essential_addons_register';
+	private const ACTION = 'hcaptcha_essential_addons_register';
 
 	/**
 	 * Nonce name.
 	 */
-	const NONCE = 'hcaptcha_essential_addons_register_nonce';
+	private const NONCE = 'hcaptcha_essential_addons_register_nonce';
 
 	/**
 	 * Constructor.
@@ -97,7 +97,7 @@ class Register {
 		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
 			wp_safe_redirect( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
 
-			exit();
+			$this->exit();
 		}
 	}
 
@@ -116,5 +116,16 @@ class Register {
 CSS;
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Wrapper for exit(). Used for tests.
+	 *
+	 * @return void
+	 */
+	protected function exit(): void {
+		// @codeCoverageIgnoreStart
+		exit();
+		// @codeCoverageIgnoreEnd
 	}
 }

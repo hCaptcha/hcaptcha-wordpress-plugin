@@ -14,6 +14,9 @@ class GeneralStub {
 
 	/**
 	 * Get screen id.
+	 *
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function screen_id() {
 		return 'general-screen-id';

@@ -14,6 +14,7 @@ namespace HCaptcha\GiveWP;
 
 use Give\DonationForms\ValueObjects\DonationFormErrorTypes;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Error;
 
 /**
@@ -128,13 +129,7 @@ abstract class Base {
 	 * @return void
 	 */
 	public function verify_block(): void {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
-		$request_method = isset( $_SERVER['REQUEST_METHOD'] )
-			? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) )
-			: '';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
-
-		if ( 'POST' !== $request_method ) {
+		if ( ! Request::is_post() ) {
 			return;
 		}
 

@@ -1,4 +1,3 @@
-// Mock Backbone
 // noinspection JSUnresolvedReference
 
 const Backbone = {
@@ -40,4 +39,5 @@ const Marionette = {
 };
 
 global.Backbone = Backbone;
+global.nfRadio = Backbone.Radio;
 global.Marionette = Marionette;

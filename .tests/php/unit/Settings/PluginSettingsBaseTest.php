@@ -35,7 +35,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_constructor() {
+	public function test_constructor(): void {
 		$classname = PluginSettingsBase::class;
 
 		$subject = Mockery::mock( $classname )->makePartial();
@@ -66,7 +66,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_menu_title_in_tabs_mode() {
+	public function test_menu_title_in_tabs_mode(): void {
 		$plugin_url = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$menu_title = 'hCaptcha';
 		$icon       = "<img class=\"kagg-settings-menu-image\" src=\"$plugin_url/assets/images/hcaptcha-icon.svg\" alt=\"hCaptcha icon\">";
@@ -85,7 +85,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_menu_title_in_pages_mode() {
+	public function test_menu_title_in_pages_mode(): void {
 		$menu_title = 'hCaptcha';
 		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
@@ -98,7 +98,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test option_group().
 	 */
-	public function test_option_group() {
+	public function test_option_group(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'option_group';
 
@@ -115,7 +115,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_option_page
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_option_page( string $admin_mode, bool $is_main_menu_page, string $expected ) {
+	public function test_option_page( string $admin_mode, bool $is_main_menu_page, string $expected ): void {
 		$tab_name = 'integrations';
 
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
@@ -146,7 +146,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test option_name().
 	 */
-	public function test_option_name() {
+	public function test_option_name(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'option_name';
 
@@ -156,7 +156,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test plugin_basename().
 	 */
-	public function test_plugin_basename() {
+	public function test_plugin_basename(): void {
 		$plugin_file      = '/var/www/wp-content/plugins/hcaptcha-wordpress-plugin/hcaptcha.php';
 		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
 
@@ -174,7 +174,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test plugin_url().
 	 */
-	public function test_plugin_url() {
+	public function test_plugin_url(): void {
 		$plugin_url = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$constant   = FunctionMocker::replace( 'constant', $plugin_url );
@@ -187,7 +187,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test plugin_version().
 	 */
-	public function test_plugin_version() {
+	public function test_plugin_version(): void {
 		$plugin_version = '1.0.0';
 
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
@@ -202,7 +202,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test settings_link_label().
 	 */
-	public function test_settings_link_label() {
+	public function test_settings_link_label(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		$method = 'settings_link_label';
@@ -212,7 +212,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test settings_link_text().
 	 */
-	public function test_settings_link_text() {
+	public function test_settings_link_text(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'settings_link_text';
 
@@ -222,7 +222,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test text_domain().
 	 */
-	public function test_text_domain() {
+	public function test_text_domain(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$method  = 'text_domain';
 
@@ -235,7 +235,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_setup_fields() {
+	public function test_setup_fields(): void {
 		$subject       = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method        = 'setup_fields';
 		$option_page   = 'hcaptcha';
@@ -264,7 +264,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_settings_page() {
+	public function test_settings_page(): void {
 		$plugin_url  = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$title       = 'some-section-title';
 		$option_page = 'hcaptcha';
@@ -315,7 +315,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_submit_button() {
+	public function test_submit_button(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method  = 'submit_button';
 		$submit  = '<input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes">';
@@ -341,7 +341,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_footer_text().
 	 */
-	public function test_admin_footer_text() {
+	public function test_admin_footer_text(): void {
 		$subject  = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method   = 'admin_footer_text';
 		$text     = 'Some text';
@@ -358,7 +358,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_footer_text() on not options' screen.
 	 */
-	public function test_admin_footer_text_on_not_options_screen() {
+	public function test_admin_footer_text_on_not_options_screen(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method  = 'admin_footer_text';
 		$text    = 'Some text';
@@ -372,7 +372,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test update_footer().
 	 */
-	public function test_update_footer() {
+	public function test_update_footer(): void {
 		$plugin_version = '1.0.0';
 		$constant       = FunctionMocker::replace( 'constant', $plugin_version );
 		$subject        = Mockery::mock( PluginSettingsBase::class )->makePartial();
@@ -390,7 +390,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test update_footer() not on options' screen.
 	 */
-	public function test_update_footer_not_on_options_screen() {
+	public function test_update_footer_not_on_options_screen(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method  = 'update_footer';
 		$content = 'Some content';
@@ -413,7 +413,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_run_checks
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_run_checks( bool $referer, bool $user_can, string $expected ) {
+	public function test_run_checks( bool $referer, bool $user_can, string $expected ): void {
 		$action  = 'some-action';
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method  = 'run_checks';

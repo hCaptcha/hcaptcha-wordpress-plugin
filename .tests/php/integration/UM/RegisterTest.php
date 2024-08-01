@@ -30,10 +30,8 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
-	 * @noinspection PhpLanguageLevelInspection
-	 * @noinspection PhpUndefinedClassInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		UM()->form()->errors = null;
 
 		parent::tearDown();
@@ -42,7 +40,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = $this->get_subject();
 
 		self::assertSame(

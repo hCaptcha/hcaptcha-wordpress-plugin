@@ -13,7 +13,7 @@
 namespace Elementor;
 
 /**
- * Class Plugin
+ * Class Plugin.
  */
 class Plugin {
 

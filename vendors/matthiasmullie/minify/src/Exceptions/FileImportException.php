@@ -9,7 +9,7 @@
  * @copyright Copyright (c) 2012, Matthias Mullie. All rights reserved
  * @license MIT License
  */
-namespace HCaptcha\Vendor\MatthiasMullie\Minify\Exceptions;
+namespace HCaptcha\Vendors\MatthiasMullie\Minify\Exceptions;
 
 /**
  * File Import Exception Class.

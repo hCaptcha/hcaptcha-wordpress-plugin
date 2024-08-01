@@ -67,7 +67,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		$hcaptcha = hcaptcha();
 
 		$loaded_classes = $this->get_protected_property( $hcaptcha, 'loaded_classes' );
@@ -105,7 +105,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init() {
+	public function test_init(): void {
 		$hcaptcha = hcaptcha();
 
 		// The plugin was loaded by codeception.
@@ -133,7 +133,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUnitTestsInspection
 	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $whitelisted, bool $hcaptcha_active ) {
+	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $whitelisted, bool $hcaptcha_active ): void {
 		global $current_user;
 
 		$hcaptcha = hcaptcha();
@@ -256,7 +256,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		array $get,
 		array $post,
 		bool $hcaptcha_active
-	) {
+	): void {
 		global $current_user;
 
 		add_filter(
@@ -368,7 +368,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_and_init_hooks_on_xml_rpc_request() {
+	public function test_init_and_init_hooks_on_xml_rpc_request(): void {
 		$subject = Mockery::mock( Main::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods()->shouldReceive( 'is_xml_rpc' )->andReturn( true );
 
@@ -389,7 +389,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test prefetch_hcaptcha_dns().
 	 */
-	public function test_prefetch_hcaptcha_dns() {
+	public function test_prefetch_hcaptcha_dns(): void {
 		$urls     = [
 			'//s.w.org',
 		];
@@ -409,7 +409,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_csp_headers() {
+	public function test_csp_headers(): void {
 		$headers  = [
 			'some_header' => 'some header content',
 		];
@@ -457,7 +457,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_print_inline_styles
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles( $custom_themes ) {
+	public function test_print_inline_styles( $custom_themes ): void {
 		$license       = 'pro';
 		$bg            = '#f0f0f0';
 		$config_params = 'on' === $custom_themes
@@ -614,7 +614,7 @@ CSS;
 	 * Test login_head().
 	 *
 	 * @noinspection CssUnusedSymbol*/
-	public function test_login_head() {
+	public function test_login_head(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
@@ -635,11 +635,16 @@ CSS;
 			display: flex;
 			justify-content: center;
 		}
+		.h-captcha[data-size="normal"] {
+			scale: calc(270 / 303);
+		    transform: translate(-20px, 0);
+		}
 	}
 
 	@media (min-width: 350px) {
-		#login {
+		body #login {
 			width: 350px;
+			box-sizing: content-box;
 		}
 	}
 CSS;
@@ -664,7 +669,7 @@ CSS;
 	 * @return void
 	 * @dataProvider dp_test_get_api_url
 	 */
-	public function test_get_api_url( string $api_host, string $expected ) {
+	public function test_get_api_url( string $api_host, string $expected ): void {
 		update_option(
 			'hcaptcha_settings',
 			[
@@ -699,7 +704,7 @@ CSS;
 	 *
 	 * @return void
 	 */
-	public function test_get_api_src() {
+	public function test_get_api_src(): void {
 		update_option(
 			'hcaptcha_settings',
 			[
@@ -733,7 +738,7 @@ CSS;
 	 * @return void
 	 * @dataProvider dp_test_get_verify_url
 	 */
-	public function test_get_verify_url( string $backend, string $expected ) {
+	public function test_get_verify_url( string $backend, string $expected ): void {
 		update_option(
 			'hcaptcha_settings',
 			[
@@ -772,7 +777,7 @@ CSS;
 	 * @return void
 	 * @dataProvider dp_test_get_check_site_config_url
 	 */
-	public function test_get_check_site_config_url( string $backend, string $expected ) {
+	public function test_get_check_site_config_url( string $backend, string $expected ): void {
 		update_option(
 			'hcaptcha_settings',
 			[
@@ -814,7 +819,7 @@ CSS;
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection BadExpressionStatementJS
 	 */
-	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ) {
+	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
@@ -984,7 +989,7 @@ JS;
 	 *
 	 * @return void
 	 */
-	public function test_print_footer_script_when_blocked_by_filter() {
+	public function test_print_footer_script_when_blocked_by_filter(): void {
 		add_filter( 'hcap_activate', '__return_true' );
 		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
 
@@ -1058,7 +1063,7 @@ JS;
 	 * @dataProvider dp_test_whitelist_ip
 	 * @return void
 	 */
-	public function test_whitelist_ip( $whitelisted_ips, $client_ip, bool $expected ) {
+	public function test_whitelist_ip( $whitelisted_ips, $client_ip, bool $expected ): void {
 		update_option( 'hcaptcha_settings', [ 'whitelisted_ips' => $whitelisted_ips ] );
 
 		$subject = new Main();
@@ -1087,7 +1092,7 @@ JS;
 	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
-	public function test_print_footer_scripts_when_form_NOT_shown() {
+	public function test_print_footer_scripts_when_form_NOT_shown(): void {
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		$site_key = 'some key';
@@ -1116,8 +1121,8 @@ JS;
 	 * @dataProvider dp_test_load_modules
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_load_modules( array $module ) {
-		list( $option_name, $option_value ) = $module[0];
+	public function test_load_modules( array $module ): void {
+		[ $option_name, $option_value ] = $module[0];
 
 		update_option(
 			'hcaptcha_settings',
@@ -1668,7 +1673,7 @@ JS;
 	/**
 	 * Test load_textdomain().
 	 */
-	public function test_load_textdomain() {
+	public function test_load_textdomain(): void {
 		$subject = new Main();
 		$subject->init_hooks();
 
@@ -1721,7 +1726,7 @@ JS;
 	 *
 	 * @param array $component Component.
 	 */
-	public function check_component_loaded( array $component ) {
+	public function check_component_loaded( array $component ): void {
 		$intersect = array_intersect( $component, $this->normalize_path( get_included_files() ) );
 		$included  = array_intersect( $component, self::$included_components );
 		self::assertSame( $included, $intersect );

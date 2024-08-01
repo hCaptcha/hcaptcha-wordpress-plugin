@@ -20,7 +20,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Tests add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		hcaptcha()->init_hooks();
 
 		$content  = '<!--some form content-->';
@@ -41,7 +41,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify().
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
 
 		$subject = new Form();
@@ -53,7 +53,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form', false );
 
 		$subject = new Form();

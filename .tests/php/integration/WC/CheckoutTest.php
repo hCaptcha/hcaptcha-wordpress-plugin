@@ -42,7 +42,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		if ( did_action( 'woocommerce_init' ) ) {
 			wc_clear_notices();
 		}
@@ -56,7 +56,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Checkout();
 
 		self::assertSame(
@@ -84,7 +84,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tests add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args     = [
 			'action' => 'hcaptcha_wc_checkout',
 			'name'   => 'hcaptcha_wc_checkout_nonce',
@@ -107,7 +107,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Tests add_captcha().
 	 */
-	public function test_add_block_captcha() {
+	public function test_add_block_captcha(): void {
 		$content1       = 'some block content 1';
 		$checkout_block = '<div data-block-name="woocommerce/checkout-actions-block" class="wp-block-woocommerce-checkout-actions-block"></div>';
 		$content2       = 'some block content 2';
@@ -142,7 +142,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
 
 		WC()->init();
@@ -159,7 +159,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$expected = [
 			'error' => [
 				[
@@ -185,7 +185,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_verify_block() {
+	public function test_verify_block(): void {
 		$widget_id_name         = 'hcaptcha-widget-id';
 		$hcaptcha_response_name = 'h-captcha-response';
 		$hcaptcha_response      = 'some hcaptcha response';
@@ -225,7 +225,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test enqueue_scripts().
 	 */
-	public function test_enqueue_scripts() {
+	public function test_enqueue_scripts(): void {
 		$subject = new Checkout();
 
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );
@@ -255,7 +255,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test enqueue_scripts() when captcha was NOT added.
 	 */
-	public function test_enqueue_scripts_when_captcha_was_NOT_added() {
+	public function test_enqueue_scripts_when_captcha_was_NOT_added(): void {
 		$subject = new Checkout();
 
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );

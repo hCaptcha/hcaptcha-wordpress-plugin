@@ -21,7 +21,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new Comment();
 
 		self::assertSame( 10, has_filter( Comment::TAG . '_shortcode_output', [ $subject, 'add_captcha' ] ) );
@@ -30,7 +30,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$form_id     = '3075';
 		$output      = <<<HTML
 <form>
@@ -61,7 +61,7 @@ HTML;
 	/**
 	 * Test add_captcha() when output is not a string.
 	 */
-	public function test_add_captcha_when_output_is_not_a_string() {
+	public function test_add_captcha_when_output_is_not_a_string(): void {
 		$output      = [ 'some string' ];
 		$module_slug = 'et_pb_comments';
 
@@ -73,7 +73,7 @@ HTML;
 	/**
 	 * Test add_captcha() when output has hCaptcha.
 	 */
-	public function test_add_captcha_when_output_has_hcaptcha() {
+	public function test_add_captcha_when_output_has_hcaptcha(): void {
 		$output      = 'some output with h-captcha attr';
 		$module_slug = 'et_pb_comments';
 
@@ -85,7 +85,7 @@ HTML;
 	/**
 	 * Test add_captcha() in frontend builder.
 	 */
-	public function test_add_captcha_in_frontend_builder() {
+	public function test_add_captcha_in_frontend_builder(): void {
 		$output      = 'some string';
 		$module_slug = 'et_pb_comments';
 

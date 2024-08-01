@@ -27,7 +27,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		unset( $_POST['formData'], $_POST['hcaptcha-widget-id'] );
 
 		parent::tearDown();
@@ -38,7 +38,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new Form();
 
 		self::assertSame( 10, has_action( 'fusion_form_after_open', [ $subject, 'form_after_open' ] ) );
@@ -51,7 +51,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_add_hcaptcha() {
+	public function test_add_hcaptcha(): void {
 		$form_id    = 5;
 		$args       = [
 			'id' =>
@@ -79,7 +79,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
-	public function test_verify() {
+	public function test_verify(): void {
 		$demo_mode         = true;
 		$hcaptcha_response = 'some_response';
 		$form_data         = "h-captcha-response=$hcaptcha_response";
@@ -97,8 +97,9 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() when not verified.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_verify_not_verified() {
+	public function test_verify_not_verified(): void {
 		$hcaptcha_response = 'some_response';
 		$die_arr           = [];
 		$expected          = [

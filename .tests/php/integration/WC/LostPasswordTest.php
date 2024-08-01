@@ -22,7 +22,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test constructor and init_hooks().
 	 */
-	public function test_constructor_and_init_hooks() {
+	public function test_constructor_and_init_hooks(): void {
 		$subject = new LostPassword();
 
 		self::assertSame(
@@ -34,7 +34,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha().
 	 */
-	public function test_add_captcha() {
+	public function test_add_captcha(): void {
 		$args     = [
 			'action' => 'hcaptcha_wc_lost_password',
 			'name'   => 'hcaptcha_wc_lost_password_nonce',
@@ -58,8 +58,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles() {
+	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace HCaptcha\Vendor\MatthiasMullie\PathConverter;
+namespace HCaptcha\Vendors\MatthiasMullie\PathConverter;
 
 /**
  * Convert file paths.

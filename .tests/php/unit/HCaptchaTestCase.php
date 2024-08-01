@@ -30,7 +30,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * Setup test
 	 */
-	public function setUp(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function setUp(): void {
 		FunctionMocker::setUp();
 		parent::setUp();
 		WP_Mock::setUp();
@@ -39,7 +39,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	/**
 	 * End test
 	 */
-	public function tearDown(): void { // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
+	public function tearDown(): void {
 		WP_Mock::tearDown();
 		Mockery::close();
 		parent::tearDown();
@@ -56,7 +56,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function get_protected_property( $subject, string $property_name ) {
+	protected function get_protected_property( object $subject, string $property_name ) {
 		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 		$property->setAccessible( true );
 		$value = $property->getValue( $subject );
@@ -74,7 +74,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_protected_property( $subject, string $property_name, $value ) {
+	protected function set_protected_property( object $subject, string $property_name, $value ): void {
 		$property = ( new ReflectionClass( $subject ) )->getProperty( $property_name );
 		$property->setAccessible( true );
 		$property->setValue( $subject, $value );
@@ -92,7 +92,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	protected function set_method_accessibility( $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
+	protected function set_method_accessibility( object $subject, string $method_name, bool $accessible = true ): ReflectionMethod {
 		$method = ( new ReflectionClass( $subject ) )->getMethod( $method_name );
 		$method->setAccessible( $accessible );
 
@@ -331,7 +331,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function set_defaults( array &$field, string $id ) {
+	protected function set_defaults( array &$field, string $id ): void {
 		$field = array_merge(
 			[
 				'default'  => '',

@@ -31,7 +31,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test init_hooks().
 	 */
-	public function test_init_hooks() {
+	public function test_init_hooks(): void {
 		$subject = new NF();
 
 		self::assertSame(
@@ -52,7 +52,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test register_fields.
 	 */
-	public function test_register_fields() {
+	public function test_register_fields(): void {
 		$fields = [ 'some field' ];
 
 		$fields = ( new NF() )->register_fields( $fields );
@@ -63,7 +63,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test template_file_paths().
 	 */
-	public function test_template_file_paths() {
+	public function test_template_file_paths(): void {
 		$paths    = [ 'some path' ];
 		$expected = array_merge( $paths, [ str_replace( '\\', '/', HCAPTCHA_PATH . '/src/php/NF/templates/' ) ] );
 
@@ -81,7 +81,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test localize_field().
 	 */
-	public function test_localize_field() {
+	public function test_localize_field(): void {
 		$form_id  = 1;
 		$field_id = 5;
 		$field    = [
@@ -143,7 +143,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test nf_captcha_script().
 	 */
-	public function test_nf_captcha_script() {
+	public function test_nf_captcha_script(): void {
 		$subject = new NF();
 
 		$subject->nf_captcha_script();

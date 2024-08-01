@@ -14,6 +14,9 @@ class IntegrationsStub {
 
 	/**
 	 * Get screen id.
+	 *
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function screen_id() {
 		return 'integrations-screen-id';

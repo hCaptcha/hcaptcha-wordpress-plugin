@@ -25,7 +25,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	 * @noinspection JSUnresolvedReference
 	 * @noinspection JSUnusedLocalSymbols
 	 */
-	public function test_create() {
+	public function test_create(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
@@ -108,7 +108,7 @@ JS;
 	 *
 	 * @noinspection BadExpressionStatementJS
 	 */
-	public function test_launch() {
+	public function test_launch(): void {
 		FunctionMocker::replace(
 			'defined',
 			static function ( $constant_name ) {
