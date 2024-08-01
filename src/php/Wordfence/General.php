@@ -84,7 +84,6 @@ class General {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		error_log( 'print_inline_styles' );
 		$css = <<<CSS
 #loginform[style="position: relative;"] > .h-captcha {
     visibility: hidden !important;
