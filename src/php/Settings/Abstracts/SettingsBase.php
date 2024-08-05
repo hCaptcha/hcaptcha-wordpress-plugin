@@ -232,6 +232,7 @@ abstract class SettingsBase {
 			'radio'    => [ $this, 'print_radio_field' ],
 			'select'   => [ $this, 'print_select_field' ],
 			'multiple' => [ $this, 'print_multiple_select_field' ],
+			'file'     => [ $this, 'print_file_field' ],
 			'table'    => [ $this, 'print_table_field' ],
 			'button'   => [ $this, 'print_button_field' ],
 		];
@@ -1235,6 +1236,29 @@ abstract class SettingsBase {
 					],
 				]
 			)
+		);
+	}
+
+	/**
+	 * Print file field.
+	 *
+	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAttribute
+	 */
+	protected function print_file_field( array $arguments ): void {
+		$multiple = (bool) ( $arguments['multiple'] ?? '' );
+		$accept   = $arguments['accept'] ?? '';
+
+		printf(
+			'<input %1$s name="%2$s[%3$s]%4$s" id="%3$s" type="file" %5$s %6$s/>',
+			disabled( $arguments['disabled'], true, false ),
+			esc_html( $this->option_name() ),
+			esc_attr( $arguments['field_id'] ),
+			esc_attr( $multiple ? '[]' : '' ),
+			esc_attr( $multiple ? 'mu1ltiple' : '' ),
+			$accept ? 'accept="' . esc_attr( $accept ) . '"' : ''
 		);
 	}
 
