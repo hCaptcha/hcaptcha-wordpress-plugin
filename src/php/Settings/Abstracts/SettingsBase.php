@@ -707,6 +707,10 @@ abstract class SettingsBase {
 	 * Show tabs.
 	 */
 	public function tabs_callback(): void {
+		if ( count( $this->tabs ) < 2 ) {
+			return;
+		}
+
 		?>
 		<div class="<?php echo esc_attr( static::PREFIX . '-settings-tabs' ); ?>">
 			<span class="<?php echo esc_attr( static::PREFIX . '-settings-links' ); ?>">
