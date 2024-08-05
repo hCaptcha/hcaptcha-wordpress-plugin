@@ -1652,4 +1652,20 @@ abstract class SettingsBase {
 		</div>
 		<?php
 	}
+
+	/**
+	 * Get savable for fields.
+	 *
+	 * @return array
+	 */
+	protected function get_savable_form_fields(): array {
+		$not_savable_form_fields = [ 'button', 'file' ];
+
+		return array_filter(
+			$this->form_fields,
+			static function ( $field ) use ( $not_savable_form_fields ) {
+				return ! in_array( $field['type'], $not_savable_form_fields, true );
+			}
+		);
+	}
 }
