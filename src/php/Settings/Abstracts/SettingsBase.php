@@ -1257,7 +1257,7 @@ abstract class SettingsBase {
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $multiple ? '[]' : '' ),
-			esc_attr( $multiple ? 'mu1ltiple' : '' ),
+			esc_attr( $multiple ? 'multiple' : '' ),
 			$accept ? 'accept="' . esc_attr( $accept ) . '"' : ''
 		);
 	}
