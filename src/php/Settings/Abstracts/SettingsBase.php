@@ -1488,6 +1488,11 @@ abstract class SettingsBase {
 		$old_value = is_array( $old_value ) ? $old_value : [];
 
 		foreach ( $this->form_fields() as $key => $form_field ) {
+			if ( 'file' === $form_field['type'] ) {
+				unset( $value[ $key ], $old_value[ $key ] );
+				continue;
+			}
+
 			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
 				continue;
 			}
