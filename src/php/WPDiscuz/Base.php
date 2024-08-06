@@ -26,6 +26,10 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	protected function init_hooks(): void {
+		if ( ! function_exists( 'wpDiscuz' ) ) {
+			return;
+		}
+
 		$wpd_recaptcha = wpDiscuz()->options->recaptcha;
 		$wpd_recaptcha = array_merge(
 			$wpd_recaptcha,
