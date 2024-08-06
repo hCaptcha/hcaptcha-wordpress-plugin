@@ -708,7 +708,7 @@ abstract class SettingsBase {
 	 * Show tabs.
 	 */
 	public function tabs_callback(): void {
-		if ( count( $this->tabs ) < 2 ) {
+		if ( ! count( $this->tabs ) ) {
 			return;
 		}
 
@@ -1664,7 +1664,7 @@ abstract class SettingsBase {
 		return array_filter(
 			$this->form_fields,
 			static function ( $field ) use ( $not_savable_form_fields ) {
-				return ! in_array( $field['type'], $not_savable_form_fields, true );
+				return ! in_array( $field['type'] ?? '', $not_savable_form_fields, true );
 			}
 		);
 	}

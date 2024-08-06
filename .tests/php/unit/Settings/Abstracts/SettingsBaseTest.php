@@ -64,6 +64,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			'radio'    => [ $subject, 'print_radio_field' ],
 			'select'   => [ $subject, 'print_select_field' ],
 			'multiple' => [ $subject, 'print_multiple_select_field' ],
+			'file'     => [ $subject, 'print_file_field' ],
 			'table'    => [ $subject, 'print_table_field' ],
 			'button'   => [ $subject, 'print_button_field' ],
 		];
