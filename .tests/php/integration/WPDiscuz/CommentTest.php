@@ -20,7 +20,7 @@ use tad\FunctionMocker\FunctionMocker;
 class CommentTest extends HCaptchaWPTestCase {
 
 	/**
-	 * wpDiscuz core class mock.
+	 * The wpDiscuz core class mock.
 	 *
 	 * @var Mockery\MockInterface|WpdiscuzCore
 	 */
