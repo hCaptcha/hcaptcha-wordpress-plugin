@@ -105,9 +105,7 @@ class Settings implements SettingsInterface {
 	 * @return PluginSettingsBase|null
 	 */
 	public function get_tab( string $classname ): ?PluginSettingsBase {
-		$tabs = hcaptcha()->settings()->get_tabs();
-
-		foreach ( $tabs as $tab ) {
+		foreach ( $this->tabs as $tab ) {
 			if ( is_a( $tab, $classname ) ) {
 				return $tab;
 			}

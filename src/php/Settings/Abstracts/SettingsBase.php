@@ -708,7 +708,7 @@ abstract class SettingsBase {
 	 * Show tabs.
 	 */
 	public function tabs_callback(): void {
-		if ( ! count( $this->tabs ) ) {
+		if ( ! count( $this->tabs ?? [] ) ) {
 			return;
 		}
 

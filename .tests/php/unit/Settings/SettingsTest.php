@@ -121,6 +121,25 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_tab().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_tab(): void {
+		$general      = Mockery::mock( General::class )->makePartial();
+		$integrations = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		self::assertNull( $subject->get_tab( Integrations::class ) );
+
+		$tabs = [ $general, $integrations ];
+		$this->set_protected_property( $subject, 'tabs', $tabs );
+
+		self::assertSame( $integrations, $subject->get_tab( Integrations::class ) );
+	}
+
+	/**
 	 * Test get_active_tab_name().
 	 *
 	 * @throws ReflectionException ReflectionException.

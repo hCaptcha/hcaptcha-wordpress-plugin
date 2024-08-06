@@ -1198,6 +1198,19 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test tabs_callback() when no tabs.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_tabs_callback_when_no_tabs(): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		ob_start();
+		$subject->tabs_callback();
+		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
 	 * Data provider for test_tabs_callback().
 	 *
 	 * @return array
@@ -1711,6 +1724,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			'radio'    => [ $subject, 'print_radio_field' ],
 			'select'   => [ $subject, 'print_select_field' ],
 			'multiple' => [ $subject, 'print_multiple_select_field' ],
+			'file'     => [ $subject, 'print_file_field' ],
 			'table'    => [ $subject, 'print_table_field' ],
 			'button'   => [ $subject, 'print_button_field' ],
 		];
@@ -1782,6 +1796,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			$this->dp_radio_field_callback(),
 			$this->dp_select_field_callback(),
 			$this->dp_multiple_field_callback(),
+			$this->dp_file_field_callback(),
 			$this->dp_table_field_callback(),
 			$this->dp_button_field_callback()
 		);
@@ -2237,6 +2252,64 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'<option value="1" selected="selected" >yellow</option>' .
 				'<option value="2" selected="selected" >red</option>' .
 				'</select>',
+			],
+		];
+	}
+
+	/**
+	 * Data provider for file field.
+	 *
+	 * @return array
+	 */
+	private function dp_file_field_callback(): array {
+		return [
+			'File'                         => [
+				[
+					'label'        => 'file',
+					'section'      => 'some_section',
+					'type'         => 'file',
+					'placeholder'  => '',
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => 1,
+					'field_id'     => 'some_id',
+					'disabled'     => false,
+					'multiple'     => false,
+					'accept'       => '',
+				],
+				'<input  name="hcaptcha_settings[some_id]" id="some_id" type="file"  />'
+			],
+			'File disabled'                => [
+				[
+					'label'        => 'file',
+					'section'      => 'some_section',
+					'type'         => 'file',
+					'placeholder'  => '',
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => 1,
+					'field_id'     => 'some_id',
+					'disabled'     => true,
+					'multiple'     => false,
+					'accept'       => '',
+				],
+				'<input disabled="disabled" name="hcaptcha_settings[some_id]" id="some_id" type="file"  />'
+			],
+			'File multiple accept xml'     => [
+				[
+					'label'        => 'file',
+					'section'      => 'some_section',
+					'type'         => 'file',
+					'placeholder'  => '',
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => 1,
+					'field_id'     => 'some_id',
+					'disabled'     => false,
+					'multiple'     => true,
+					'accept'       => '.xml',
+				],
+				'<input  name="hcaptcha_settings[some_id][]" id="some_id" type="file" multiple accept=".xml"/>'
 			],
 		];
 	}
@@ -2749,6 +2822,23 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'another_value' => '1',
 					'_network_wide' => [],
 				],
+			],
+			[
+				[
+					'some_file' => [
+						'label'        => 'some field',
+						'section'      => 'some_section',
+						'type'         => 'file',
+						'placeholder'  => '',
+						'helper'       => '',
+						'supplemental' => '',
+						'default'      => [ '' ],
+						'disabled'     => false,
+					],
+				],
+				[ 'some_file' => 'a.xml' ],
+				[ 'some_file' => 'b.xml' ],
+				[ '_network_wide' => [] ]
 			],
 			[
 				[],
