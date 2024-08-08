@@ -2838,7 +2838,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				[ 'some_file' => 'a.xml' ],
 				[ 'some_file' => 'b.xml' ],
-				[ '_network_wide' => [] ]
+				[ '_network_wide' => [] ],
 			],
 			[
 				[],
