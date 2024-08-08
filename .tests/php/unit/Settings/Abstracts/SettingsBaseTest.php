@@ -2263,7 +2263,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	private function dp_file_field_callback(): array {
 		return [
-			'File'                         => [
+			'File'                     => [
 				[
 					'label'        => 'file',
 					'section'      => 'some_section',
@@ -2277,9 +2277,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'multiple'     => false,
 					'accept'       => '',
 				],
-				'<input  name="hcaptcha_settings[some_id]" id="some_id" type="file"  />'
+				'<input  name="hcaptcha_settings[some_id]" id="some_id" type="file"  />',
 			],
-			'File disabled'                => [
+			'File disabled'            => [
 				[
 					'label'        => 'file',
 					'section'      => 'some_section',
@@ -2293,9 +2293,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'multiple'     => false,
 					'accept'       => '',
 				],
-				'<input disabled="disabled" name="hcaptcha_settings[some_id]" id="some_id" type="file"  />'
+				'<input disabled="disabled" name="hcaptcha_settings[some_id]" id="some_id" type="file"  />',
 			],
-			'File multiple accept xml'     => [
+			'File multiple accept xml' => [
 				[
 					'label'        => 'file',
 					'section'      => 'some_section',
@@ -2309,7 +2309,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'multiple'     => true,
 					'accept'       => '.xml',
 				],
-				'<input  name="hcaptcha_settings[some_id][]" id="some_id" type="file" multiple accept=".xml"/>'
+				'<input  name="hcaptcha_settings[some_id][]" id="some_id" type="file" multiple accept=".xml"/>',
 			],
 		];
 	}
