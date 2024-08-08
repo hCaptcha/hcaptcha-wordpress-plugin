@@ -16,7 +16,7 @@
 # Files
 /.DS_Store
 /.babelrc
-/.codeception.yml
+/codeception.yml
 /.distignore
 /.editorconfig
 /.eslintrc.json
