@@ -260,7 +260,7 @@ abstract class SettingsBase {
 		$this->form_fields();
 		$this->init_settings();
 
-		if ( $this->is_main_menu_page() || $this->is_tab_active( $this ) ) {
+		if ( is_admin() && ( $this->is_main_menu_page() || $this->is_tab_active( $this ) ) ) {
 			$this->init_hooks();
 		}
 	}

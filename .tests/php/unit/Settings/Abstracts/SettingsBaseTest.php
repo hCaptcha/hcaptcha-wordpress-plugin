@@ -162,10 +162,31 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			}
 		);
 
+		WP_Mock::userFunction( 'is_admin' )->once()->andReturn( true );
+
 		$subject->init();
 
 		$min_suffix = $script_debug ? '' : '.min';
 		self::assertSame( $min_suffix, $this->get_protected_property( $subject, 'min_suffix' ) );
+	}
+
+	/**
+	 * Test init() when not in admin.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_when_not_in_admin(): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'form_fields' )->once();
+		$subject->shouldReceive( 'init_settings' )->once();
+		$subject->shouldReceive( 'is_main_menu_page' )->never();
+		$subject->shouldReceive( 'is_tab_active' )->never();
+		$subject->shouldReceive( 'init_hooks' )->never();
+
+		WP_Mock::userFunction( 'is_admin' )->once()->andReturn( false );
+
+		$subject->init();
 	}
 
 	/**
