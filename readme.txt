@@ -394,7 +394,7 @@ add_filter( 'hcap_language', 'my_hcap_language' );
 
 = How to whitelist certain IPs =
 
-You can use the following filter:
+You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
 
 `
 /**
