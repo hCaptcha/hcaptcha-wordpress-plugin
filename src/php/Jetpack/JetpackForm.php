@@ -77,6 +77,11 @@ class JetpackForm extends JetpackBase {
 		);
 	}
 
+	/**
+	 * Prepare hCaptcha.
+	 *
+	 * @param array $matches Matches.
+	 */
 	private function prepare_hcaptcha( array $matches ): string {
 		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
 			return '';
