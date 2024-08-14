@@ -47,22 +47,13 @@ class JetpackForm extends JetpackBase {
 	 * @return string
 	 */
 	public function classic_callback( array $matches ): string {
-		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
+		$hcaptcha = $this->prepare_hcaptcha( $matches );
+
+		if ( '' === $hcaptcha ) {
 			return $matches[0];
 		}
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'contact',
-			],
-		];
-
-		$hcaptcha = '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
-
-		return $matches[1] . $this->error_message( $hcaptcha ) . $matches[2];
+		return $matches[1] . $hcaptcha . $matches[2];
 	}
 
 	/**
@@ -73,8 +64,22 @@ class JetpackForm extends JetpackBase {
 	 * @return string
 	 */
 	public function block_callback( array $matches ): string {
-		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
+		$hcaptcha = $this->prepare_hcaptcha( $matches );
+
+		if ( '' === $hcaptcha ) {
 			return $matches[0];
+		}
+
+		return str_replace(
+			$matches[1],
+			$hcaptcha . $matches[1],
+			$matches[0]
+		);
+	}
+
+	private function prepare_hcaptcha( array $matches ): string {
+		if ( has_shortcode( $matches[0], 'hcaptcha' ) ) {
+			return '';
 		}
 
 		$args = [
@@ -88,10 +93,10 @@ class JetpackForm extends JetpackBase {
 
 		$hcaptcha = '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
 
-		return str_replace(
-			$matches[1],
-			$this->error_message( $hcaptcha ) . $matches[1],
-			$matches[0]
-		);
+		if ( false !== strpos( $matches[0], $hcaptcha ) ) {
+			return '';
+		}
+
+		return $this->error_message( $hcaptcha );
 	}
 }

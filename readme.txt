@@ -566,6 +566,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.5.0 =
+* Added support for Jetpack forms in block theme templates.
 * Fixed frontend error when recaptcha was activated in wpDiscuz.
 * Fixed unconditional forcing hCaptcha in Jetpack forms.
 
