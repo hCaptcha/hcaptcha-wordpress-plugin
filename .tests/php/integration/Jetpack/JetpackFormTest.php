@@ -43,7 +43,6 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 		$args     = [
 			'action' => 'hcaptcha_jetpack',
 			'name'   => 'hcaptcha_jetpack_nonce',
-			'force'  => true,
 			'id'     => [
 				'source'  => [ 'jetpack/jetpack.php' ],
 				'form_id' => 'contact',

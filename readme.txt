@@ -567,6 +567,7 @@ Instructions for popular native integrations are below:
 
 = 4.5.0 =
 * Fixed frontend error when recaptcha was activated in wpDiscuz.
+* Fixed unconditional forcing hCaptcha in Jetpack forms.
 
 = 4.4.0 =
 * Added compatibility with Contact Form 7 Stripe integration.
