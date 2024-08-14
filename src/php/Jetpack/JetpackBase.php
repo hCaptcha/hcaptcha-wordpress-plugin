@@ -118,7 +118,7 @@ abstract class JetpackBase {
 			return $hcaptcha;
 		}
 
-		$hash  = $atts['id']['form_id'] ?? '';
+		$hash = $atts['id']['form_id'] ?? '';
 		$hash = str_replace( 'contact_', '', $hash );
 
 		if ( $hash !== $this->error_form_hash ) {
@@ -174,8 +174,10 @@ CSS;
 	 * @return string|null
 	 */
 	private function get_submitted_form_hash(): ?string {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		return isset( $_POST['contact-form-hash'] )
 			? sanitize_text_field( wp_unslash( $_POST['contact-form-hash'] ) )
 			: null;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}
 }
