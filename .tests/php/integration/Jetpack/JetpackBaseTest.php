@@ -76,7 +76,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	/**
 	 * Test jetpack_verify() not verified.
 	 *
-	 * @throws ReflectionException
+	 * @throws ReflectionException ReflectionExceptionю
 	 */
 	public function test_jetpack_verify_not_verified(): void {
 		$hash  = 'some hash';
