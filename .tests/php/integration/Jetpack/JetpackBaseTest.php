@@ -85,12 +85,19 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	public function test_error_message(): void {
 		$hcaptcha_content = 'some content';
 		$error_message    = 'some error message';
+		$error_form_hash  = 'some hash';
+		$args             = [
+			'id' => [
+				'form_id' => $error_form_hash,
+			],
+		];
 
 		$subject = new JetpackForm();
 
 		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content ) );
 
 		$this->set_protected_property( $subject, 'error_message', $error_message );
+		$this->set_protected_property( $subject, 'error_form_hash', $error_form_hash );
 
 		$expected = $hcaptcha_content . '<div class="contact-form__input-error">
 	<span class="contact-form__warning-icon">
@@ -100,7 +107,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	<span>' . $error_message . '</span>
 </div>';
 
-		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
+		self::assertSame( $expected, $subject->error_message( $hcaptcha_content, $args ) );
 	}
 
 	/**

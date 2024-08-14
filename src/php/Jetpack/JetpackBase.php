@@ -33,6 +33,13 @@ abstract class JetpackBase {
 	protected $error_message;
 
 	/**
+	 * Errored form hash.
+	 *
+	 * @var string|null
+	 */
+	protected $error_form_hash;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -88,7 +95,10 @@ abstract class JetpackBase {
 			return $is_spam;
 		}
 
+		$this->error_form_hash = $this->get_submitted_form_hash();
+
 		$error = new WP_Error();
+
 		$error->add( 'invalid_hcaptcha', $this->error_message );
 		add_filter( 'hcap_hcaptcha_content', [ $this, 'error_message' ] );
 
@@ -98,13 +108,21 @@ abstract class JetpackBase {
 	/**
 	 * Print error message.
 	 *
-	 * @param string|mixed $hcaptcha_content Content of hCaptcha.
+	 * @param string|mixed $hcaptcha The hCaptcha form.
+	 * @param array        $atts     The hCaptcha shortcode attributes.
 	 *
 	 * @return string|mixed
 	 */
-	public function error_message( $hcaptcha_content = '' ) {
+	public function error_message( $hcaptcha = '', array $atts = [] ) {
 		if ( null === $this->error_message ) {
-			return $hcaptcha_content;
+			return $hcaptcha;
+		}
+
+		$hash  = $atts['id']['form_id'] ?? '';
+		$hash = str_replace( 'contact_', '', $hash );
+
+		if ( $hash !== $this->error_form_hash ) {
+			return $hcaptcha;
 		}
 
 		$message = <<< HTML
@@ -117,7 +135,7 @@ abstract class JetpackBase {
 </div>
 HTML;
 
-		return $hcaptcha_content . $message;
+		return $hcaptcha . $message;
 	}
 
 	/**
@@ -135,5 +153,29 @@ HTML;
 CSS;
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get form hash.
+	 *
+	 * @param string $form Jetpack form.
+	 *
+	 * @return string
+	 */
+	protected function get_form_hash( string $form ): string {
+		return preg_match( "/name='contact-form-hash' value='(.+)'/", $form, $m )
+			? '_' . $m[1]
+			: '';
+	}
+
+	/**
+	 * Get form hash.
+	 *
+	 * @return string|null
+	 */
+	private function get_submitted_form_hash(): ?string {
+		return isset( $_POST['contact-form-hash'] )
+			? sanitize_text_field( wp_unslash( $_POST['contact-form-hash'] ) )
+			: null;
 	}
 }

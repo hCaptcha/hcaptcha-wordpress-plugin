@@ -82,12 +82,14 @@ class JetpackForm extends JetpackBase {
 			return '';
 		}
 
+		$hash = $this->get_form_hash( $matches[0] );
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'contact',
+				'form_id' => 'contact' . $hash,
 			],
 		];
 
@@ -97,6 +99,6 @@ class JetpackForm extends JetpackBase {
 			return '';
 		}
 
-		return $this->error_message( $hcaptcha );
+		return $this->error_message( $hcaptcha, $args );
 	}
 }

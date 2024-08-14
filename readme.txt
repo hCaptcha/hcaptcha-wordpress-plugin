@@ -232,7 +232,7 @@ Elementor Pro
 
 Jetpack
 `$source: 'jetpack/jetpack.php'`
-`$form_id: 'contact'`
+`$form_id: 'contact_$form_hash'`
 
 Kadence Form
 `$source: 'kadence-blocks/kadence-blocks.php'`
@@ -567,6 +567,8 @@ Instructions for popular native integrations are below:
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
+* Added the second argument $atts to the 'hcap_hcaptcha_content' filter.
+* Fixed error messaging when there are several Jetpack forms on the same page.
 * Fixed frontend error when recaptcha was activated in wpDiscuz.
 * Fixed unconditional forcing hCaptcha in Jetpack forms.
 
