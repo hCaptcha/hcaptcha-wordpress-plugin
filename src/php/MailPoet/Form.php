@@ -13,6 +13,7 @@
 namespace HCaptcha\MailPoet;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use MailPoet\API\JSON\API;
 use MailPoet\API\JSON\Response;
 use WP_Block;
@@ -94,7 +95,7 @@ class Form {
 	 * @param API $api MailPoet API instance.
 	 */
 	public function verify( API $api ): void {
-		if ( ! wp_doing_ajax() ) {
+		if ( ! Request::is_frontend_ajax() ) {
 			return;
 		}
 

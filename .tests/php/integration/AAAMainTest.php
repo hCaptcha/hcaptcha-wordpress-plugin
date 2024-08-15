@@ -109,7 +109,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha = hcaptcha();
 
 		// The plugin was loaded by codeception.
-		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
 		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], -PHP_INT_MAX );
 
@@ -117,7 +117,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		$hcaptcha->init();
 
-		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 	}
 
 	/**
@@ -166,9 +166,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			)
 		);
 
-		self::assertSame( - PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		self::assertSame( - PHP_INT_MAX + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
+		self::assertSame( -PHP_INT_MAX + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
 		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
@@ -188,11 +188,11 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			- PHP_INT_MAX + 1,
+			-PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
-			- PHP_INT_MAX,
+			-PHP_INT_MAX,
 			has_filter(
 				'hcap_whitelist_ip',
 				[ $subject, 'whitelist_ip' ]
@@ -285,11 +285,11 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			- PHP_INT_MAX + 1,
+			-PHP_INT_MAX + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
-			- PHP_INT_MAX,
+			-PHP_INT_MAX,
 			has_filter(
 				'hcap_whitelist_ip',
 				[ $subject, 'whitelist_ip' ]
@@ -613,7 +613,8 @@ CSS;
 	/**
 	 * Test login_head().
 	 *
-	 * @noinspection CssUnusedSymbol*/
+	 * @noinspection CssUnusedSymbol
+	 */
 	public function test_login_head(): void {
 		FunctionMocker::replace(
 			'defined',
@@ -930,7 +931,7 @@ JS;
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 				'config_params'        => json_encode( $config_params ),
-				'delay'                => - 100,
+				'delay'                => -100,
 				'license'              => 'pro',
 			]
 		);
@@ -1302,10 +1303,37 @@ JS;
 				'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php',
 				\HCaptcha\BackInStockNotifier\Form::class,
 			],
+			'bbPress Login Form'                => [
+				[ 'bbp_status', 'login' ],
+				'bbpress/bbpress.php',
+				[
+					\HCaptcha\BBPress\Login::class,
+					\HCaptcha\BBPress\LostPassword::class,
+					\HCaptcha\BBPress\Register::class,
+				],
+			],
+			'bbPress Lost Password Form'        => [
+				[ 'bbp_status', 'lost_pass' ],
+				'bbpress/bbpress.php',
+				[
+					\HCaptcha\BBPress\Login::class,
+					\HCaptcha\BBPress\LostPassword::class,
+					\HCaptcha\BBPress\Register::class,
+				],
+			],
 			'bbPress New Topic'                 => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
 				NewTopic::class,
+			],
+			'bbPress Register Form'             => [
+				[ 'bbp_status', 'register' ],
+				'bbpress/bbpress.php',
+				[
+					\HCaptcha\BBPress\Login::class,
+					\HCaptcha\BBPress\LostPassword::class,
+					\HCaptcha\BBPress\Register::class,
+				],
 			],
 			'bbPress Reply'                     => [
 				[ 'bbp_status', 'reply' ],
@@ -1696,7 +1724,7 @@ JS;
 
 				return $override;
 			},
-			- PHP_INT_MAX,
+			-PHP_INT_MAX,
 			3
 		);
 

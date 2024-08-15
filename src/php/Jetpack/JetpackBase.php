@@ -52,11 +52,8 @@ abstract class JetpackBase {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		// This filter works for a Jetpack block form on a page or in a template.
+		// This filter works for a Jetpack classic and block form on a page or in a template.
 		add_filter( 'jetpack_contact_form_html', [ $this, 'add_captcha' ] );
-
-		// This filter works for a Jetpack classic form.
-		add_filter( 'the_content', [ $this, 'add_captcha' ] );
 
 		// This filter works for a Jetpack form in a classic widget.
 		add_filter( 'widget_text', [ $this, 'add_captcha' ], 0 );

@@ -338,7 +338,10 @@ Avada:
 Back In Stock Notifier:               
   Back In Stock Notifier Form:        Off
 bbPress:                              
+  Login Form:                         Off
+  Lost Password Form:                 Off
   New Topic Form:                     On
+  Register Form:                      Off
   Reply Form:                         On
 Beaver Builder:                       
   Contact Form:                       On

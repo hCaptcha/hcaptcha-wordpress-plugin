@@ -812,7 +812,10 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
+							'login'     => 'Login Form',
+							'lost_pass' => 'Lost Password Form',
 							'new_topic' => 'New Topic Form',
+							'register'  => 'Register Form',
 							'reply'     => 'Reply Form',
 						],
 				],

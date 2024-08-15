@@ -5,20 +5,14 @@
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\Divi;
+namespace HCaptcha\BBPress;
 
 use HCaptcha\Abstracts\LoginBase;
-use Patchwork\Exceptions\NonNullToVoid;
 
 /**
  * Class Login.
  */
 class Login extends LoginBase {
-
-	/**
-	 * Login form shortcode tag.
-	 */
-	public const TAG = 'et_pb_login';
 
 	/**
 	 * Init hooks.
@@ -28,23 +22,22 @@ class Login extends LoginBase {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_divi_captcha' ], 10, 2 );
+		add_filter( 'do_shortcode_tag', [ $this, 'do_shortcode_tag' ], 10, 4 );
 	}
 
 	/**
-	 * Add hCaptcha to the login form.
+	 * Filters the output created by a shortcode callback.
 	 *
-	 * @param string|mixed $output      Module output.
-	 * @param string       $module_slug Module slug.
+	 * @param string|mixed $output Shortcode output.
+	 * @param string       $tag    Shortcode name.
+	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_divi_captcha( $output, string $module_slug ) {
-		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
-			// Do not add captcha in frontend builder.
-
+	public function do_shortcode_tag( $output, string $tag, $attr, array $m ) {
+		if ( 'bbp-login' !== $tag || is_user_logged_in() ) {
 			return $output;
 		}
 
@@ -54,8 +47,8 @@ class Login extends LoginBase {
 
 		$hcaptcha = '';
 
-		// Check the login status, because class is always loading when Divi theme is active.
-		if ( hcaptcha()->settings()->is( 'divi_status', 'login' ) ) {
+		// Check the login status, because class is always loading when bbPress is active.
+		if ( hcaptcha()->settings()->is( 'bbp_status', 'login' ) ) {
 			ob_start();
 
 			$this->add_captcha();
@@ -71,7 +64,7 @@ class Login extends LoginBase {
 
 		$signatures = (string) ob_get_clean();
 
-		$pattern     = '/(<p>[\s]*?<button)/';
+		$pattern     = '/(<button type="submit")/';
 		$replacement = $hcaptcha . $signatures . "\n$1";
 
 		// Insert hCaptcha.

@@ -39,7 +39,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_filter( 'the_content', [ $subject, 'add_captcha' ] )
+			has_filter( 'jetpack_contact_form_html', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
 			0,

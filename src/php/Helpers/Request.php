@@ -1,6 +1,6 @@
 <?php
 /**
- * Request class file.
+ * Request class' file.
  *
  * @package hcaptcha-wp
  */
@@ -113,5 +113,62 @@ class Request {
 			: '';
 
 		return 'POST' === $request_method;
+	}
+
+	/**
+	 * Determine if request is frontend AJAX.
+	 *
+	 * @return bool
+	 */
+	public static function is_frontend_ajax(): bool {
+		return self::is_ajax() && ! self::is_admin_ajax();
+	}
+
+	/**
+	 * Determine if the request is AJAX.
+	 *
+	 * @return bool
+	 */
+	public static function is_ajax(): bool {
+		if ( ! wp_doing_ajax() ) {
+			return false;
+		}
+
+		// Make sure the request target is admin-ajax.php.
+		$script_filename = isset( $_SERVER['SCRIPT_FILENAME'] )
+			? wp_normalize_path( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_FILENAME'] ) ) )
+			: '';
+
+		if ( 'admin-ajax.php' !== basename( $script_filename ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( $_REQUEST['action'] ) : '';
+
+		return (bool) $action;
+	}
+
+	/**
+	 * Determine if request is admin AJAX.
+	 *
+	 * @return bool
+	 */
+	public static function is_admin_ajax(): bool {
+		if ( ! self::is_ajax() ) {
+			return false;
+		}
+
+		$referer = wp_get_raw_referer();
+
+		if ( ! $referer ) {
+			return false;
+		}
+
+		$path       = wp_parse_url( $referer, PHP_URL_PATH );
+		$admin_path = wp_parse_url( admin_url(), PHP_URL_PATH );
+
+		// It is an admin AJAX call if HTTP referer contain an admin path.
+		return strpos( $path, $admin_path ) !== false;
 	}
 }

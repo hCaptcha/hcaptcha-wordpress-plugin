@@ -862,10 +862,25 @@ CSS;
 				'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php',
 				BackInStockNotifier\Form::class,
 			],
+			'bbPress Login Form'                   => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				BBPress\Login::class,
+			],
+			'bbPress Lost Password Form'           => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				BBPress\LostPassword::class,
+			],
 			'bbPress New Topic'                    => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
 				BBPress\NewTopic::class,
+			],
+			'bbPress Register Form'                => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				BBPress\Register::class,
 			],
 			'bbPress Reply'                        => [
 				[ 'bbp_status', 'reply' ],

@@ -196,7 +196,7 @@ Back In Stock Notifier
 
 BBPress
 `$source: 'bbpress/bbpress.php'`
-`$form_id: 'new_topic' or 'reply'`
+`$form_id: 'new_topic', 'reply', 'login', 'register' or 'lost_password'`
 
 Beaver Builder
 `$source: 'bb-plugin/fl-builder.php'`
@@ -494,7 +494,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Asgaros Forum New Topic and Reply Form
 * Avada Form
 * Back In Stock Notifier Form
-* bbPress New Topic and Reply Forms
+* bbPress New Topic, Reply, Login, Register and Lost Password Forms
 * Beaver Builder Contact and Login Forms
 * BuddyPress — Create Group and Registration Forms
 * Classified Listing Contact, Login, Lost Password, and Listing Register Forms
@@ -567,10 +567,12 @@ Instructions for popular native integrations are below:
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
+* Added support for bbPress Login, Register and Lost Password forms.
 * Added the second argument $atts to the 'hcap_hcaptcha_content' filter.
 * Fixed error messaging when there are several Jetpack forms on the same page.
-* Fixed frontend error when recaptcha was activated in wpDiscuz.
 * Fixed unconditional forcing hCaptcha in Jetpack forms.
+* Fixed hCaptcha nonce error on MailPoet admin pages.
+* Fixed frontend error when recaptcha was activated in wpDiscuz.
 
 = 4.4.0 =
 * Added compatibility with Contact Form 7 Stripe integration.

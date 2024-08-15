@@ -64,8 +64,8 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 		return [
 			'Empty contact form'                 => [ '', '' ],
 			'Classic contact form'               => [
-				'[contact-form] Some contact form [/contact-form]',
-				'[contact-form] Some contact form <div class="grunion-field-wrap">' . $classic_hcaptcha . '</div>[/contact-form]',
+				'<form class=\'contact-form\' <button type=\'submit\'>Contact Us</button>' . $hash_input . '</form>',
+				'<form class=\'contact-form\' <div class="grunion-field-wrap">' . $hcaptcha . '</div><button type=\'submit\'>Contact Us</button>' . $hash_input . '</form>',
 			],
 			'Classic contact form with hcaptcha' => [
 				'[contact-form] Some contact form [hcaptcha][/contact-form]',
