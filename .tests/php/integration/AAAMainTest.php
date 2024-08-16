@@ -109,15 +109,15 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha = hcaptcha();
 
 		// The plugin was loaded by codeception.
-		self::assertSame( -PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], -PHP_INT_MAX );
+		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], Main::LOAD_PRIORITY );
 
 		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
 		$hcaptcha->init();
 
-		self::assertSame( -PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 	}
 
 	/**
@@ -166,9 +166,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			)
 		);
 
-		self::assertSame( -PHP_INT_MAX, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		self::assertSame( -PHP_INT_MAX + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
+		self::assertSame( Main::LOAD_PRIORITY + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
 		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
@@ -188,7 +188,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			-PHP_INT_MAX + 1,
+			Main::LOAD_PRIORITY + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
@@ -285,7 +285,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			-PHP_INT_MAX + 1,
+			Main::LOAD_PRIORITY + 1,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
@@ -1724,7 +1724,7 @@ JS;
 
 				return $override;
 			},
-			-PHP_INT_MAX,
+			Main::LOAD_PRIORITY,
 			3
 		);
 

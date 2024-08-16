@@ -116,59 +116,26 @@ class Request {
 	}
 
 	/**
-	 * Determine if request is frontend AJAX.
+	 * Filter input in WP style.
+	 * Nonce must be checked in the calling function.
 	 *
-	 * @return bool
-	 */
-	public static function is_frontend_ajax(): bool {
-		return self::is_ajax() && ! self::is_admin_ajax();
-	}
-
-	/**
-	 * Determine if the request is AJAX.
+	 * @param int    $type     Input type.
+	 * @param string $var_name Variable name.
 	 *
-	 * @return bool
+	 * @return string
 	 */
-	public static function is_ajax(): bool {
-		if ( ! wp_doing_ajax() ) {
-			return false;
+	public static function filter_input( int $type, string $var_name ): string {
+		switch ( $type ) {
+			case INPUT_GET:
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				return isset( $_GET[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_GET[ $var_name ] ) ) : '';
+			case INPUT_POST:
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing
+				return isset( $_POST[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_POST[ $var_name ] ) ) : '';
+			case INPUT_SERVER:
+				return isset( $_SERVER[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $var_name ] ) ) : '';
+			default:
+				return '';
 		}
-
-		// Make sure the request target is admin-ajax.php.
-		$script_filename = isset( $_SERVER['SCRIPT_FILENAME'] )
-			? wp_normalize_path( sanitize_text_field( wp_unslash( $_SERVER['SCRIPT_FILENAME'] ) ) )
-			: '';
-
-		if ( 'admin-ajax.php' !== basename( $script_filename ) ) {
-			return false;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action = isset( $_REQUEST['action'] ) ? sanitize_key( $_REQUEST['action'] ) : '';
-
-		return (bool) $action;
-	}
-
-	/**
-	 * Determine if request is admin AJAX.
-	 *
-	 * @return bool
-	 */
-	public static function is_admin_ajax(): bool {
-		if ( ! self::is_ajax() ) {
-			return false;
-		}
-
-		$referer = wp_get_raw_referer();
-
-		if ( ! $referer ) {
-			return false;
-		}
-
-		$path       = wp_parse_url( $referer, PHP_URL_PATH );
-		$admin_path = wp_parse_url( admin_url(), PHP_URL_PATH );
-
-		// It is an admin AJAX call if HTTP referer contain an admin path.
-		return strpos( $path, $admin_path ) !== false;
 	}
 }

@@ -569,8 +569,19 @@ Instructions for popular native integrations are below:
 * Added support for Jetpack forms in block theme templates.
 * Added support for bbPress Login, Register and Lost Password forms.
 * Added the second argument $atts to the 'hcap_hcaptcha_content' filter.
+* Added support for MailPoet forms at any placement.
+* Added the ability to have multiple MailPoet forms on the same page.
+* Improved UX of the Integrations page.
 * Fixed error messaging when there are several Jetpack forms on the same page.
 * Fixed unconditional forcing hCaptcha in Jetpack forms.
+* Fixed appearance of Beaver Builder editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Contact Form 7 editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Essential Addons editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Gravity Forms editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Fluent Forms editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Forminator editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Formidable Forms with "Turn Off When Logged In" setting.
+* Fixed appearance of WPForms editor with "Turn Off When Logged In" setting.
 * Fixed hCaptcha nonce error on MailPoet admin pages.
 * Fixed frontend error when recaptcha was activated in wpDiscuz.
 

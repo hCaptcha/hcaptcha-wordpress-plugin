@@ -36,6 +36,11 @@ class Migrations {
 	public const FAILED = - 2;
 
 	/**
+	 * Priority of the plugins_loaded action to load Migrations.
+	 */
+	public const LOAD_PRIORITY = -PHP_INT_MAX;
+
+	/**
 	 * Plugin name.
 	 */
 	private const PLUGIN_NAME = 'hCaptcha Plugin';
@@ -66,7 +71,7 @@ class Migrations {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'plugins_loaded', [ $this, 'migrate' ], - PHP_INT_MAX );
+		add_action( 'plugins_loaded', [ $this, 'migrate' ], self::LOAD_PRIORITY );
 	}
 
 	/**
@@ -141,7 +146,11 @@ class Migrations {
 			return false;
 		}
 
-		return wp_doing_cron() || is_admin() || ( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) );
+		return (
+			( is_admin() && ! wp_doing_ajax() ) ||
+			wp_doing_cron() ||
+			( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) )
+		);
 	}
 
 	/**
@@ -198,7 +207,7 @@ class Migrations {
 	}
 
 	/**
-	 * Output message into log file.
+	 * Output message into the log file.
 	 *
 	 * @param string $message Message to log.
 	 *

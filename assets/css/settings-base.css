@@ -16,6 +16,9 @@ body.settings_page_hcaptcha {
 }
 
 .hcaptcha-settings-tabs {
+	position: sticky;
+	top: 0;
+	z-index: 100001; /* 2 more than the wpadminbar */
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
@@ -45,10 +48,15 @@ body.settings_page_hcaptcha {
 }
 
 .hcaptcha-header-bar {
+	position: sticky;
+	top: 60px;
+	z-index: 100000; /* 1 more than the wpadminbar */
+	background: #f0f2f5;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin: 0;
+	margin: 0 -20px;
+	padding: 0 20px;
 }
 
 #hcaptcha-options h2 {

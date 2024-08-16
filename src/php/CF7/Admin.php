@@ -10,6 +10,7 @@
 
 namespace HCaptcha\CF7;
 
+use HCaptcha\Helpers\Pages;
 use WPCF7_TagGenerator;
 
 /**
@@ -35,7 +36,7 @@ class Admin extends Base {
 			return;
 		}
 
-		if ( ! $this->is_cf7_form_admin_page() ) {
+		if ( ! Pages::is_cf7_edit_page() ) {
 			return;
 		}
 
@@ -292,27 +293,5 @@ class Admin extends Base {
 
 			$wp_scripts->registered['wpcf7-admin']->extra['data'] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
-	}
-
-	/**
-	 * Check if the current page is a CF7 form create, edit or view page.
-	 *
-	 * @return bool
-	 */
-	protected function is_cf7_form_admin_page(): bool {
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
-
-		if ( ! in_array( $page, [ 'wpcf7-new', 'wpcf7' ], true ) ) {
-			return false;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ( 'wpcf7' === $page ) && ! isset( $_GET['post'] ) ) {
-			return false;
-		}
-
-		return true;
 	}
 }

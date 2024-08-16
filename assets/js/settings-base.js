@@ -5,12 +5,28 @@
  *
  * @param {Object} $ jQuery instance.
  */
-const settingsBase = function( $ ) {
+const settingsBase = function ( $ ) {
 	const h2Selector = '.hcaptcha-header h2';
 	const msgSelector = '#hcaptcha-message';
 
-	// Move WP notices to the message area.
-	$( h2Selector ).siblings().appendTo( msgSelector );
+	function setHeaderBarTop() {
+		const adminBar = document.querySelector( '#wpadminbar' );
+		const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+		const headerBar = document.querySelector( '.hcaptcha-header-bar' );
+
+		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
+		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
+		const tabsHeight = tabs ? tabs.offsetHeight : 0;
+		const totalHeight = adminBarHeight + tabsHeight;
+
+		if ( tabs ) {
+			tabs.style.top = `${adminBarHeight}px`;
+		}
+
+		if ( headerBar ) {
+			headerBar.style.top = `${totalHeight}px`;
+		}
+	}
 
 	/**
 	 * Highlight element if hash is present in the URL.
@@ -19,19 +35,19 @@ const settingsBase = function( $ ) {
 		const url = window.location.href;
 		const referrer = document.referrer;
 
-		if ( ! referrer || referrer === url ) {
+		if ( !referrer || referrer === url ) {
 			return;
 		}
 
 		const hash = window.location.hash;
 
-		if ( ! hash ) {
+		if ( !hash ) {
 			return;
 		}
 
 		const $element = $( hash );
 
-		if ( ! $element ) {
+		if ( !$element ) {
 			return;
 		}
 
@@ -41,6 +57,15 @@ const settingsBase = function( $ ) {
 			$element.addClass( 'blink' );
 		}
 	}
+
+	// Move WP notices to the message area.
+	$( h2Selector ).siblings().appendTo( msgSelector );
+
+	window.addEventListener( 'resize', function () {
+		setHeaderBarTop();
+	} );
+
+	setHeaderBarTop();
 
 	highLight();
 };
