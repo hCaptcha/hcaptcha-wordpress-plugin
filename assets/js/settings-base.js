@@ -5,7 +5,7 @@
  *
  * @param {Object} $ jQuery instance.
  */
-const settingsBase = function ( $ ) {
+const settingsBase = function( $ ) {
 	const h2Selector = '.hcaptcha-header h2';
 	const msgSelector = '#hcaptcha-message';
 
@@ -20,11 +20,11 @@ const settingsBase = function ( $ ) {
 		const totalHeight = adminBarHeight + tabsHeight;
 
 		if ( tabs ) {
-			tabs.style.top = `${adminBarHeight}px`;
+			tabs.style.top = `${ adminBarHeight }px`;
 		}
 
 		if ( headerBar ) {
-			headerBar.style.top = `${totalHeight}px`;
+			headerBar.style.top = `${ totalHeight }px`;
 		}
 	}
 
@@ -35,19 +35,19 @@ const settingsBase = function ( $ ) {
 		const url = window.location.href;
 		const referrer = document.referrer;
 
-		if ( !referrer || referrer === url ) {
+		if ( ! referrer || referrer === url ) {
 			return;
 		}
 
 		const hash = window.location.hash;
 
-		if ( !hash ) {
+		if ( ! hash ) {
 			return;
 		}
 
 		const $element = $( hash );
 
-		if ( !$element ) {
+		if ( ! $element ) {
 			return;
 		}
 
@@ -61,7 +61,7 @@ const settingsBase = function ( $ ) {
 	// Move WP notices to the message area.
 	$( h2Selector ).siblings().appendTo( msgSelector );
 
-	window.addEventListener( 'resize', function () {
+	window.addEventListener( 'resize', function() {
 		setHeaderBarTop();
 	} );
 

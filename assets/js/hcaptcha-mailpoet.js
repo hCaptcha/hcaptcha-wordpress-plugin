@@ -14,6 +14,7 @@
 			return;
 		}
 
+		// eslint-disable-next-line @wordpress/no-global-active-element
 		const eventTarget = options.context || document.activeElement;
 		const $form = $( eventTarget.closest( 'form' ) );
 

@@ -23,7 +23,7 @@
  *
  * @param {jQuery} $ The jQuery instance.
  */
-const integrations = function ( $ ) {
+const integrations = function( $ ) {
 	const adminBar = document.querySelector( '#wpadminbar' );
 	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
 	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
@@ -51,7 +51,7 @@ const integrations = function ( $ ) {
 	function showMessage( message, msgClass ) {
 		$message.removeClass();
 		$message.addClass( msgClass + ' notice settings-error is-dismissible' );
-		$message.html( `<p>${message}</p>` );
+		$message.html( `<p>${ message }</p>` );
 		$( document ).trigger( 'wp-updates-notice-added' );
 
 		const $fixed = $message.clone();
@@ -107,7 +107,7 @@ const integrations = function ( $ ) {
 
 		const $img = $fromTable.find( '.hcaptcha-integrations-logo img[data-entity="theme"]' + dataLabel );
 
-		if ( !$img.length ) {
+		if ( ! $img.length ) {
 			return;
 		}
 
@@ -121,7 +121,7 @@ const integrations = function ( $ ) {
 		let inserted = false;
 		const lowerKey = key.toLowerCase();
 
-		const disable = !isActiveTable( $table );
+		const disable = ! isActiveTable( $table );
 		const $fieldset = $element.find( 'fieldset' );
 
 		$fieldset.attr( 'disabled', disable );
@@ -130,7 +130,7 @@ const integrations = function ( $ ) {
 		$table
 			.find( 'tbody' )
 			.children()
-			.each( function ( i, el ) {
+			.each( function( i, el ) {
 				let alt = $( el ).find( '.hcaptcha-integrations-logo img' ).attr( 'alt' );
 				alt = alt ? alt : '';
 				alt = alt.replace( ' Logo', '' );
@@ -144,14 +144,14 @@ const integrations = function ( $ ) {
 				}
 			} );
 
-		if ( !inserted ) {
+		if ( ! inserted ) {
 			$table.find( 'tbody' ).append( $element );
 		}
 	}
 
-	$( '.form-table img' ).on( 'click', function ( event ) {
+	$( '.form-table img' ).on( 'click', function( event ) {
 		function maybeToggleActivation( confirmation ) {
-			if ( !confirmation ) {
+			if ( ! confirmation ) {
 				return;
 			}
 
@@ -161,7 +161,7 @@ const integrations = function ( $ ) {
 		function getSelectedTheme() {
 			const select = document.querySelector( '.kagg-dialog select' );
 
-			if ( !select ) {
+			if ( ! select ) {
 				return '';
 			}
 
@@ -171,10 +171,10 @@ const integrations = function ( $ ) {
 		function updateActivationStati( stati ) {
 			const $tables = $( '.form-table' );
 
-			for ( const [key, status] of Object.entries( stati ) ) {
+			for ( const [ key, status ] of Object.entries( stati ) ) {
 				const statusClass = 'hcaptcha-integrations-' + key.replace( /_/g, '-' );
 
-				const $tr = $( `tr.${statusClass}` );
+				const $tr = $( `tr.${ statusClass }` );
 				const currStatus = isActiveTable( $tr.closest( '.form-table' ) );
 
 				if ( currStatus !== status ) {
@@ -213,7 +213,7 @@ const integrations = function ( $ ) {
 				 * @param {Object} response.data.themes
 				 * @param {Object} response.success
 				 */
-				.done( function ( response ) {
+				.done( function( response ) {
 					if ( response.success === undefined ) {
 						showUnexpectedErrorMessage();
 
@@ -225,7 +225,7 @@ const integrations = function ( $ ) {
 						window.HCaptchaIntegrationsObject.defaultTheme = response.data.defaultTheme;
 					}
 
-					if ( !response.success ) {
+					if ( ! response.success ) {
 						const message = response.data?.message ?? response.data;
 
 						showErrorMessage( message );
@@ -247,10 +247,10 @@ const integrations = function ( $ ) {
 						1000
 					);
 				} )
-				.fail( function ( response ) {
+				.fail( function( response ) {
 					showErrorMessage( response.statusText );
 				} )
-				.always( function () {
+				.always( function() {
 					$tr.removeClass( 'on off' );
 				} );
 		}
@@ -262,12 +262,12 @@ const integrations = function ( $ ) {
 		let entity = $target.data( 'entity' );
 		entity = entity ? entity : '';
 
-		if ( -1 === $.inArray( entity, ['core', 'theme', 'plugin'] ) ) {
+		if ( -1 === $.inArray( entity, [ 'core', 'theme', 'plugin' ] ) ) {
 			// Wrong entity type.
 			return;
 		}
 
-		if ( -1 !== $.inArray( entity, ['core'] ) ) {
+		if ( -1 !== $.inArray( entity, [ 'core' ] ) ) {
 			// Cannot activate/deactivate WP Core.
 			return;
 		}
@@ -301,7 +301,7 @@ const integrations = function ( $ ) {
 				for ( const slug in HCaptchaIntegrationsObject.themes ) {
 					const selected = slug === HCaptchaIntegrationsObject.defaultTheme ? ' selected="selected"' : '';
 
-					content += `<option value="${slug}"${selected}>${HCaptchaIntegrationsObject.themes[ slug ]}</option>`;
+					content += `<option value="${ slug }"${ selected }>${ HCaptchaIntegrationsObject.themes[ slug ] }</option>`;
 				}
 
 				content += '</select>';
@@ -311,8 +311,8 @@ const integrations = function ( $ ) {
 		}
 
 		if (
-			-1 !== $.inArray( entity, ['theme'] ) &&
-			!activate &&
+			-1 !== $.inArray( entity, [ 'theme' ] ) &&
+			! activate &&
 			Object.keys( HCaptchaIntegrationsObject.themes ).length === 0
 		) {
 			// Cannot deactivate a theme when it is the only one on the site.
@@ -332,7 +332,7 @@ const integrations = function ( $ ) {
 
 		const $logo = $tr.find( '.hcaptcha-integrations-logo' );
 
-		if ( !$logo.data( 'installed' ) ) {
+		if ( ! $logo.data( 'installed' ) ) {
 			title = HCaptchaIntegrationsObject.installMsg;
 			title = title.replace( '%s', alt );
 
@@ -377,7 +377,7 @@ const integrations = function ( $ ) {
 	const debounce = ( func, delay ) => {
 		let debounceTimer;
 
-		return function () {
+		return function() {
 			const context = this;
 			const args = arguments;
 			clearTimeout( debounceTimer );
@@ -386,12 +386,12 @@ const integrations = function ( $ ) {
 	};
 
 	$search.on( 'input', debounce(
-		function () {
+		function() {
 			const search = $search.val().trim().toLowerCase();
 			const $img = $( '.hcaptcha-integrations-logo img' );
 			let $trFirst = null;
 
-			$img.each( function ( i, el ) {
+			$img.each( function( i, el ) {
 				const $el = $( el );
 
 				if ( $el.data( 'entity' ) === 'core' ) {
@@ -408,14 +408,14 @@ const integrations = function ( $ ) {
 				}
 			} );
 
-			if ( !$trFirst ) {
+			if ( ! $trFirst ) {
 				return;
 			}
 
 			const scrollTop = $trFirst.offset().top + $trFirst.outerHeight() - $( window ).height() + 5;
 
 			$( 'html' ).stop().animate(
-				{scrollTop},
+				{ scrollTop },
 				1000
 			);
 		},
@@ -423,7 +423,7 @@ const integrations = function ( $ ) {
 	) );
 
 	$( '#hcaptcha-options' ).keydown(
-		function ( e ) {
+		function( e ) {
 			if ( $( e.target ).is( $search ) && e.which === 13 ) {
 				e.preventDefault();
 			}
