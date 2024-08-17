@@ -18,6 +18,8 @@ use Mockery;
 
 /**
  * Test Form class.
+ *
+ * @group mailchimp
  */
 class FormTest extends HCaptchaWPTestCase {
 

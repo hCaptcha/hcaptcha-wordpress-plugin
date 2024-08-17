@@ -5,6 +5,9 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\WPDiscuz;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -23,6 +26,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 * The wpDiscuz core class mock.
 	 *
 	 * @var Mockery\MockInterface|WpdiscuzCore
+	 * @noinspection PhpPrivateFieldCanBeLocalVariableInspection
 	 */
 	private $wp_discuz;
 
@@ -43,6 +47,12 @@ class SubscribeTest extends HCaptchaWPTestCase {
 		$this->wp_discuz          = Mockery::mock( 'WpdiscuzCore' );
 		$this->wp_discuz->options = $options;
 
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'wpDiscuz' === $function_name;
+			}
+		);
 		FunctionMocker::replace( 'wpDiscuz', $this->wp_discuz );
 	}
 

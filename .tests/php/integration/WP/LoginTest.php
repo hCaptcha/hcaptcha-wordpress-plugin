@@ -288,12 +288,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		add_filter(
-			'hcap_login_limit_exceeded',
-			static function () {
-				return false;
-			}
-		);
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
 		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['wp_actions']['login_init']           = 1;

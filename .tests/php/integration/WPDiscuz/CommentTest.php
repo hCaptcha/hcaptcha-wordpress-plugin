@@ -5,6 +5,9 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\WPDiscuz;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -43,6 +46,12 @@ class CommentTest extends HCaptchaWPTestCase {
 		$this->wp_discuz          = Mockery::mock( 'WpdiscuzCore' );
 		$this->wp_discuz->options = $options;
 
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'wpDiscuz' === $function_name;
+			}
+		);
 		FunctionMocker::replace( 'wpDiscuz', $this->wp_discuz );
 	}
 
@@ -68,6 +77,24 @@ class CommentTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_filter( 'wpdiscuz_form_render', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 9, has_filter( 'preprocess_comment', [ $subject, 'verify' ] ) );
 		self::assertSame( 20, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+	}
+
+	/**
+	 * Test init_hooks() without wpDiscuz.
+	 *
+	 * @return void
+	 */
+	public function test_init_hooks_without_wpdiscuz(): void {
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'wpDiscuz' !== $function_name;
+			}
+		);
+
+		$subject = new Comment();
+
+		self::assertFalse( has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] ) );
 	}
 
 	/**

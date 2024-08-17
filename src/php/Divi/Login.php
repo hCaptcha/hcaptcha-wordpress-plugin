@@ -33,7 +33,7 @@ class Login extends LoginBase {
 
 	/**
 	 * Add hCaptcha to the login form.
-	 *
+	 *1
 	 * @param string|mixed $output      Module output.
 	 * @param string       $module_slug Module slug.
 	 *

@@ -20,6 +20,7 @@ use tad\FunctionMocker\FunctionMocker;
  * Class EmailOptinTest
  *
  * @group divi
+ * @group divi-email-optin
  */
 class EmailOptinTest extends HCaptchaWPTestCase {
 
@@ -136,5 +137,36 @@ HTML;
 		$subject->enqueue_scripts();
 
 		self::assertFalse( wp_script_is( EmailOptin::HANDLE ) );
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module(): void {
+		$subject = new EmailOptin();
+
+		// Wrong handle.
+
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag    = '<script src="https://example.com/script.js"></script>';
+		$handle = 'some';
+		$src    = 'https://example.com/script.js';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, $handle, $src ) );
+
+		// Proper handle.
+		$handle   = EmailOptin::HANDLE;
+		$expected = '<script type="module" src="https://example.com/script.js"></script>';
+
+		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
+
+		// Script has a type.
+		$tag = '<script type="text/javascript" src="https://example.com/script.js"></script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
 	}
 }

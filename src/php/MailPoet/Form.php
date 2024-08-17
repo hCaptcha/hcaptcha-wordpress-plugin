@@ -13,6 +13,7 @@
 namespace HCaptcha\MailPoet;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use MailPoet\API\JSON\API;
 use MailPoet\API\JSON\Response;
 
@@ -101,12 +102,14 @@ class Form {
 	 * Verify MailPoet captcha.
 	 *
 	 * @param API $api MailPoet API instance.
+	 *
+	 * @return void
 	 */
 	public function verify( API $api ): void {
 		if (
-			$this->get_post( 'action' ) !== 'mailpoet' ||
-			$this->get_post( 'endpoint' ) !== 'subscribers' ||
-			$this->get_post( 'method' ) !== 'subscribe'
+			Request::filter_input( INPUT_POST, 'action' ) !== 'mailpoet' ||
+			Request::filter_input( INPUT_POST, 'endpoint' ) !== 'subscribers' ||
+			Request::filter_input( INPUT_POST, 'method' ) !== 'subscribe'
 		) {
 			// Process frontend subscription ajax request only.
 			return;
@@ -143,18 +146,5 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
-	}
-
-	/**
-	 * Get $_POST field.
-	 *
-	 * @param string $field Field name.
-	 *
-	 * @return string
-	 */
-	public function get_post( string $field ): string {
-		// Nonce is checked by MailPoet API.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		return isset( $_POST[ $field ] ) ? sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) : '';
 	}
 }

@@ -26,6 +26,7 @@ use HCaptcha\FluentForm\Form;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
@@ -118,6 +119,32 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha->init();
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+	}
+
+	/**
+	 * Test init() on cron request.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_on_cron(): void {
+		$hcaptcha = hcaptcha();
+
+		// The plugin was loaded by codeception.
+		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+
+		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], Main::LOAD_PRIORITY );
+
+		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+
+		add_filter( 'wp_doing_cron', '__return_true' );
+
+		$hcaptcha->init();
+
+		$migrations = $this->get_protected_property( $hcaptcha, 'migrations' );
+
+		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+		self::assertSame( Migrations::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $migrations, 'migrate' ] ) );
 	}
 
 	/**

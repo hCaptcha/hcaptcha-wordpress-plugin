@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Unit\Helpers;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
-use Mockery\Mock;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
 
@@ -244,5 +243,47 @@ class RequestTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'wp_unslash' );
 
 		self::assertTrue( Request::is_post() );
+	}
+
+	/**
+	 * Test filter_input().
+	 *
+	 * @return void
+	 */
+	public function test_filter_input(): void {
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+
+		// Test with GET.
+		$type              = INPUT_GET;
+		$var_name          = 'some_var';
+		$value             = 'some_value';
+		$_GET[ $var_name ] = $value;
+
+		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
+		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
+
+		// Test with POST.
+		unset( $_GET );
+		$type               = INPUT_POST;
+		$_POST[ $var_name ] = $value;
+
+		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
+		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
+
+		// Test with SERVER.
+		unset( $_POST );
+		$type                 = INPUT_SERVER;
+		$_SERVER[ $var_name ] = $value;
+
+		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
+		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
+
+		// Test with a wrong input type.
+		unset( $_SERVER );
+		$type = 999;
+
+		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
+		self::assertSame( '', Request::filter_input( $type, $var_name ) );
 	}
 }

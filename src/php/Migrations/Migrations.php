@@ -154,6 +154,18 @@ class Migrations {
 	}
 
 	/**
+	 * Send plugin statistics.
+	 *
+	 * @return void
+	 */
+	public function send_plugin_stats(): void {
+		/**
+		 * Send plugin statistics.
+		 */
+		do_action( 'hcap_send_plugin_stats' );
+	}
+
+	/**
 	 * Check if the plugin was updated.
 	 *
 	 * @param array $migrated Migrated versions.
@@ -166,15 +178,7 @@ class Migrations {
 		}
 
 		// Send statistics on plugin update.
-		add_action(
-			'init',
-			static function () {
-				/**
-				 * Send plugin statistics.
-				 */
-				do_action( 'hcap_send_plugin_stats' );
-			}
-		);
+		add_action( 'init', [ $this, 'send_plugin_stats' ] );
 	}
 
 	/**

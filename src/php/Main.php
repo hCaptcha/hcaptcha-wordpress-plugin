@@ -103,6 +103,13 @@ class Main {
 	protected $loaded_classes = [];
 
 	/**
+	 * Migrations class instance.
+	 *
+	 * @var Migrations
+	 */
+	protected $migrations;
+
+	/**
 	 * Settings class instance.
 	 *
 	 * @var Settings
@@ -130,10 +137,12 @@ class Main {
 	 */
 	public function init(): void {
 		if ( Request::is_xml_rpc() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
-		new Migrations();
+		$this->migrations = new Migrations();
 
 		if ( wp_doing_cron() ) {
 			return;

@@ -9,7 +9,6 @@
 /.tests
 /.wordpress-org
 /.yarn
-/bin
 /node_modules
 /src/js
 

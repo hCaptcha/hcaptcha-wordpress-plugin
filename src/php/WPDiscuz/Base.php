@@ -40,6 +40,7 @@ abstract class Base {
 			]
 		);
 
+		// Block output of reCaptcha by wpDiscuz.
 		wpDiscuz()->options->recaptcha = $wpd_recaptcha;
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );

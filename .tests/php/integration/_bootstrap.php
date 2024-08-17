@@ -28,6 +28,7 @@ FunctionMocker::init(
 			'constant',
 			'defined',
 			'filter_input',
+			'function_exists',
 			'setcookie',
 			'time',
 			'uniqid',
