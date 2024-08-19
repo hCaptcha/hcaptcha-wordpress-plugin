@@ -30,7 +30,7 @@ class RequestTest extends HCaptchaTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_URI'], $_GET['wc-ajax'], $_GET['rest_route'], $_SERVER['REQUEST_METHOD'] );
+		unset( $_GET, $_SERVER );
 
 		parent::tearDown();
 	}
@@ -147,8 +147,6 @@ class RequestTest extends HCaptchaTestCase {
 	 */
 	public function test_is_rest(): void {
 		// No REQUEST_URI.
-		unset( $_SERVER['REQUEST_URI'] );
-
 		self::assertFalse( Request::is_rest() );
 
 		// Case #1.
