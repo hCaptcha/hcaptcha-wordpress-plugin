@@ -18,7 +18,7 @@ body.settings_page_hcaptcha {
 .hcaptcha-settings-tabs {
 	position: sticky;
 	top: 0;
-	z-index: 100001; /* 2 more than the wpadminbar */
+	z-index: 2; /* +1 to .hcaptcha-header bar z-index, to overlap a bit */
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
@@ -50,7 +50,7 @@ body.settings_page_hcaptcha {
 .hcaptcha-header-bar {
 	position: sticky;
 	top: 60px;
-	z-index: 100000; /* 1 more than the wpadminbar */
+	z-index: 1;
 	background: #f0f2f5;
 	display: flex;
 	justify-content: space-between;

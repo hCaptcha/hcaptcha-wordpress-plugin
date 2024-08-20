@@ -17,7 +17,8 @@ const settingsBase = function( $ ) {
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
 		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
 		const tabsHeight = tabs ? tabs.offsetHeight : 0;
-		const totalHeight = adminBarHeight + tabsHeight;
+		// The -1 to put header bar a bit under tabs. It is a precaution when heights are in fractional pixels.
+		const totalHeight = adminBarHeight + tabsHeight - 1;
 
 		if ( tabs ) {
 			tabs.style.top = `${ adminBarHeight }px`;
