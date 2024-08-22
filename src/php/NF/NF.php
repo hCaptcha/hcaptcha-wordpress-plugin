@@ -74,7 +74,7 @@ class NF {
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( "ninja_forms_localize_field_$name", [ $this, 'localize_field' ] );
-		add_filter( "ninja_forms_localize_field_${name}_preview", [ $this, 'localize_field' ] );
+		add_filter( "ninja_forms_localize_field_{$name}_preview", [ $this, 'localize_field' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
 	}
 
