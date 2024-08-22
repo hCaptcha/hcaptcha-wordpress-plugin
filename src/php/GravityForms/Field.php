@@ -52,7 +52,7 @@ class Field extends GF_Field {
 	 *
 	 * @param array $data Data.
 	 */
-	public function __construct( array $data = [] ) {
+	public function __construct( $data = [] ) {
 		parent::__construct( $data );
 
 		$this->init();
