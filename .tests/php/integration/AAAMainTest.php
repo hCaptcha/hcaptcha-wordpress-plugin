@@ -368,8 +368,12 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			],
 			'request2'             => [
 				'on',
-				[ 'REQUEST_URI' => '/elementor?elementor-preview=23' ],
-				[ 'elementor-preview' => 23 ],
+				[],
+				[
+					'preview_id'    => 23,
+					'preview_nonce' => 'some',
+					'preview'       => true,
+				],
 				[],
 				true,
 			],

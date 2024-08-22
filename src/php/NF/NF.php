@@ -14,7 +14,7 @@ use HCaptcha\Main;
  * Class NF
  * Support Ninja Forms.
  */
-class NF {
+class NF implements Base {
 
 	/**
 	 * Dialog scripts and style handle.
@@ -65,7 +65,7 @@ class NF {
 	 * @return void
 	 */
 	public function init_hooks(): void {
-		$name = Field::NAME;
+		$name = Base::NAME;
 
 		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
 		add_action( 'nf_admin_enqueue_scripts', [ $this, 'nf_admin_enqueue_scripts' ] );
@@ -98,8 +98,8 @@ class NF {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo str_replace(
-			'tmpl-nf-field-' . Field::TYPE,
-			'tmpl-nf-field-' . Field::NAME,
+			'tmpl-nf-field-' . Base::TYPE,
+			'tmpl-nf-field-' . Base::NAME,
 			$template
 		);
 	}
@@ -124,7 +124,7 @@ class NF {
 
 		foreach ( $vars['preloadedFormData']['fields'] as & $field ) {
 			// See comment in admin_template().
-			if ( Field::NAME === $field['type'] ) {
+			if ( Base::NAME === $field['type'] ) {
 				$found             = true;
 				$search            = 'class="h-captcha"';
 				$field['hcaptcha'] = str_replace(
@@ -191,7 +191,7 @@ class NF {
 	public function register_fields( $fields ): array {
 		$fields = (array) $fields;
 
-		$fields[ Field::NAME ] = new Field();
+		$fields[ Base::NAME ] = new Field();
 
 		return $fields;
 	}
@@ -210,7 +210,7 @@ class NF {
 			return;
 		}
 
-		$hcaptcha_key   = Field::NAME;
+		$hcaptcha_key   = Base::NAME;
 		$hcaptcha_value = $fields[ $hcaptcha_key ];
 
 		unset( $fields[ $hcaptcha_key ] );
