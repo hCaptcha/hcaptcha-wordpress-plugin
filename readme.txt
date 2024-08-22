@@ -583,6 +583,7 @@ Instructions for popular native integrations are below:
 * Fixed appearance of Formidable Forms with "Turn Off When Logged In" setting.
 * Fixed appearance of WPForms editor with "Turn Off When Logged In" setting.
 * Fixed fatal error on Gravity Forms Entries page.
+* Fixed Elementor preview.
 * Fixed Ninja Forms preview.
 * Fixed hCaptcha nonce error on MailPoet admin pages.
 * Fixed frontend error when recaptcha was activated in wpDiscuz.

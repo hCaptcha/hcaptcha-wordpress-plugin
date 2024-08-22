@@ -57,6 +57,7 @@ class Pages {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$request_uri = Request::filter_input( INPUT_SERVER, 'REQUEST_URI' );
 		$get_action  = Request::filter_input( INPUT_GET, 'action' );
+		$preview     = Request::filter_input( INPUT_GET, 'preview' );
 		$post_action = Request::filter_input( INPUT_POST, 'action' );
 
 		$request1 = (
@@ -65,15 +66,14 @@ class Pages {
 			'elementor' === $get_action
 		);
 		$request2 = (
-			isset( $_GET['elementor-preview'] ) &&
-			0 === strpos( $request_uri, '/elementor' )
+			isset( $_GET['preview_id'], $_GET['preview_nonce'] ) &&
+			filter_var( $preview, FILTER_VALIDATE_BOOLEAN )
 		);
 		$request3 = 'elementor_ajax' === $post_action;
-		$request4 = isset( $_GET['elementor-preview'] );
 
 		// phpcs:enable WordPress.Security.NonceVerification
 
-		return $request1 || $request2 || $request3 || $request4;
+		return $request1 || $request2 || $request3;
 	}
 
 	/**

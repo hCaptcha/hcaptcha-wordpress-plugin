@@ -91,8 +91,9 @@ class PagesTest extends HCaptchaTestCase {
 		// Request 2.
 		unset( $_GET, $_POST, $_SERVER );
 
-		$_GET['elementor-preview'] = 'some';
-		$_SERVER['REQUEST_URI']    = '/elementor';
+		$_GET['preview_id']    = 'some';
+		$_GET['preview_nonce'] = 'some';
+		$_GET['preview']       = 'true';
 
 		self::assertTrue( Pages::is_elementor_pro_edit_page() );
 
@@ -100,13 +101,6 @@ class PagesTest extends HCaptchaTestCase {
 		unset( $_GET, $_POST, $_SERVER );
 
 		$_POST['action'] = 'elementor_ajax';
-
-		self::assertTrue( Pages::is_elementor_pro_edit_page() );
-
-		// Request 4.
-		unset( $_GET, $_POST, $_SERVER );
-
-		$_GET['elementor-preview'] = 'some';
 
 		self::assertTrue( Pages::is_elementor_pro_edit_page() );
 	}
