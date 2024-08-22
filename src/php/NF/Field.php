@@ -22,18 +22,28 @@ class Field extends NF_Abstracts_Field {
 	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
 	/**
-	 * Name.
-	 *
-	 * @var string
+	 * Field name.
 	 */
-	protected $_name = 'hcaptcha-for-ninja-forms';
+	public const NAME = 'hcaptcha-for-ninja-forms';
 
 	/**
-	 * Type.
+	 * Field type.
+	 */
+	public const TYPE = 'hcaptcha';
+
+	/**
+	 * Field name.
 	 *
 	 * @var string
 	 */
-	protected $_type = 'hcaptcha';
+	protected $_name = self::NAME;
+
+	/**
+	 * Filed type.
+	 *
+	 * @var string
+	 */
+	protected $_type = self::TYPE;
 
 	/**
 	 * Section.

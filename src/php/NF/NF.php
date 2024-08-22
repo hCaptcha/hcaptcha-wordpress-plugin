@@ -65,13 +65,16 @@ class NF {
 	 * @return void
 	 */
 	public function init_hooks(): void {
+		$name = Field::NAME;
+
 		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
 		add_action( 'nf_admin_enqueue_scripts', [ $this, 'nf_admin_enqueue_scripts' ] );
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
 		add_action( 'ninja_forms_loaded', [ $this, 'place_hcaptcha_before_recaptcha_field' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
-		add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $this, 'localize_field' ] );
+		add_filter( "ninja_forms_localize_field_$name", [ $this, 'localize_field' ] );
+		add_filter( "ninja_forms_localize_field_${name}_preview", [ $this, 'localize_field' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
 	}
 
@@ -95,8 +98,8 @@ class NF {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo str_replace(
-			'tmpl-nf-field-hcaptcha',
-			'tmpl-nf-field-hcaptcha-for-ninja-forms',
+			'tmpl-nf-field-' . Field::TYPE,
+			'tmpl-nf-field-' . Field::NAME,
 			$template
 		);
 	}
@@ -120,7 +123,8 @@ class NF {
 		$found = false;
 
 		foreach ( $vars['preloadedFormData']['fields'] as & $field ) {
-			if ( 'hcaptcha-for-ninja-forms' === $field['type'] ) {
+			// See comment in admin_template().
+			if ( Field::NAME === $field['type'] ) {
 				$found             = true;
 				$search            = 'class="h-captcha"';
 				$field['hcaptcha'] = str_replace(
@@ -128,6 +132,7 @@ class NF {
 					$search . ' style="z-index: 2;"',
 					$this->get_hcaptcha( (int) $field['id'] )
 				);
+
 				break;
 			}
 		}
@@ -186,7 +191,7 @@ class NF {
 	public function register_fields( $fields ): array {
 		$fields = (array) $fields;
 
-		$fields['hcaptcha-for-ninja-forms'] = new Field();
+		$fields[ Field::NAME ] = new Field();
 
 		return $fields;
 	}
@@ -205,7 +210,7 @@ class NF {
 			return;
 		}
 
-		$hcaptcha_key   = 'hcaptcha-for-ninja-forms';
+		$hcaptcha_key   = Field::NAME;
 		$hcaptcha_value = $fields[ $hcaptcha_key ];
 
 		unset( $fields[ $hcaptcha_key ] );
@@ -254,6 +259,9 @@ class NF {
 		$field = (array) $field;
 
 		$field['settings']['hcaptcha'] = $field['settings']['hcaptcha'] ?? $this->get_hcaptcha( (int) $field['id'] );
+
+		// Mark hCaptcha as shown in any case. Needed on the preview page.
+		hcaptcha()->form_shown = true;
 
 		return $field;
 	}
