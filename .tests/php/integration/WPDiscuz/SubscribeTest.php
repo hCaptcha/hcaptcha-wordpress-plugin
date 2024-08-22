@@ -63,6 +63,8 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
+
+		parent::tearDown();
 	}
 
 	/**
