@@ -24,7 +24,7 @@ class PagesTest extends HCaptchaTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_GET, $_POST, $_SERVER );
+		unset( $_GET, $_POST, $_SERVER['REQUEST_URI'] );
 
 		parent::tearDown();
 	}
@@ -89,7 +89,7 @@ class PagesTest extends HCaptchaTestCase {
 		self::assertTrue( Pages::is_elementor_pro_edit_page() );
 
 		// Request 2.
-		unset( $_GET, $_POST, $_SERVER );
+		unset( $_GET, $_POST, $_SERVER['REQUEST_URI'] );
 
 		$_GET['preview_id']    = 'some';
 		$_GET['preview_nonce'] = 'some';
@@ -98,7 +98,7 @@ class PagesTest extends HCaptchaTestCase {
 		self::assertTrue( Pages::is_elementor_pro_edit_page() );
 
 		// Request 3.
-		unset( $_GET, $_POST, $_SERVER );
+		unset( $_GET, $_POST );
 
 		$_POST['action'] = 'elementor_ajax';
 
@@ -174,7 +174,7 @@ class PagesTest extends HCaptchaTestCase {
 		self::assertTrue( Pages::is_formidable_forms_edit_page() );
 
 		// Request 2.
-		unset( $_GET, $_POST, $_SERVER );
+		unset( $_GET, $_POST, $_SERVER['REQUEST_URI'] );
 
 		$_SERVER['REQUEST_URI'] = '/wp-admin/admin.php';
 		$_GET['page']           = 'formidable-styles';
@@ -182,7 +182,7 @@ class PagesTest extends HCaptchaTestCase {
 		self::assertTrue( Pages::is_formidable_forms_edit_page() );
 
 		// Request 3.
-		unset( $_GET, $_POST, $_SERVER );
+		unset( $_GET, $_POST, $_SERVER['REQUEST_URI'] );
 
 		$_SERVER['REQUEST_URI'] = '/wp-admin/admin.php';
 		$_GET['page']           = 'formidable-settings';
@@ -209,7 +209,7 @@ class PagesTest extends HCaptchaTestCase {
 		self::assertTrue( Pages::is_wpforms_edit_page() );
 
 		// Request 2.
-		unset( $_GET, $_POST, $_SERVER );
+		unset( $_GET );
 
 		$_GET['wpforms_form_preview'] = 'some';
 

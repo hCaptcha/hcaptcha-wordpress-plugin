@@ -30,7 +30,7 @@ class RequestTest extends HCaptchaTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_GET, $_SERVER );
+		unset( $_GET, $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'] );
 
 		parent::tearDown();
 	}
@@ -278,7 +278,7 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
 
 		// Test with a wrong input type.
-		unset( $_SERVER );
+		unset( $_SERVER[ $var_name ] );
 		$type = 999;
 
 		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
