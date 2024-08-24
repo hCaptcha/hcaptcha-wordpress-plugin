@@ -581,6 +581,7 @@ Instructions for popular native integrations are below:
 * Fixed appearance of Fluent Forms editor with "Turn Off When Logged In" setting.
 * Fixed appearance of Forminator editor with "Turn Off When Logged In" setting.
 * Fixed appearance of Formidable Forms with "Turn Off When Logged In" setting.
+* Fixed appearance of Ninja Forms editor with "Turn Off When Logged In" setting.
 * Fixed appearance of WPForms editor with "Turn Off When Logged In" setting.
 * Fixed fatal error on Gravity Forms Entries page.
 * Fixed Elementor preview.

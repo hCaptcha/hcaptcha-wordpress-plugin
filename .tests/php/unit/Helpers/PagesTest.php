@@ -191,6 +191,23 @@ class PagesTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test is_is_ninja_edit_page().
+	 *
+	 * @return void
+	 */
+	public function test_is_ninja_edit_page(): void {
+		$this->mock_filter_input();
+
+		self::assertFalse( Pages::is_ninja_edit_page() );
+
+		$_GET['form_id']        = 'some';
+		$_SERVER['REQUEST_URI'] = '/wp-admin/admin.php';
+		$_GET['page']           = 'ninja-forms';
+
+		self::assertTrue( Pages::is_ninja_edit_page() );
+	}
+
+	/**
 	 * Test is_wpforms_edit_page().
 	 *
 	 * @return void

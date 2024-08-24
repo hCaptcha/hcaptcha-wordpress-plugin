@@ -289,6 +289,7 @@ class Main {
 			'fluent',
 			'forminator',
 			'formidable_forms',
+			'ninja',
 			'wpforms',
 		];
 

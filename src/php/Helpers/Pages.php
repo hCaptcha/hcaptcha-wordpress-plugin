@@ -130,7 +130,7 @@ class Pages {
 	}
 
 	/**
-	 * Check if the current page is a Formidable Forms form edit page.
+	 * Check if the current page is a Formidable Forms form edit or settings page.
 	 *
 	 * @return bool
 	 * @noinspection PhpUnused
@@ -161,7 +161,26 @@ class Pages {
 	}
 
 	/**
-	 * Check if the current page is a CF7 form create, edit or view page.
+	 * Check if the current page is a Ninja form create, edit or view page.
+	 *
+	 * @return bool
+	 * @noinspection PhpUnused
+	 */
+	public static function is_ninja_edit_page(): bool {
+		$request_uri   = Request::filter_input( INPUT_SERVER, 'REQUEST_URI' );
+		$page          = Request::filter_input( INPUT_GET, 'page' );
+		$admin_request = 0 === strpos( $request_uri, '/wp-admin/admin.php' );
+
+		return (
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			isset( $_GET['form_id'] ) &&
+			$admin_request &&
+			'ninja-forms' === $page
+		);
+	}
+
+	/**
+	 * Check if the current page is a WPForms form preview or settings page.
 	 *
 	 * @return bool
 	 * @noinspection PhpUnused
