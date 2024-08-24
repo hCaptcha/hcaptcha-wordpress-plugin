@@ -391,23 +391,22 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * Test hcaptcha_get_verify_output() with deprecated argument.
 	 *
 	 * @return void
+	 * @expectedDeprecated
 	 */
 	public function test_hcaptcha_get_verify_output_with_deprecated_argument(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
-		$test_case         = $this;
 
 		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
 
-		remove_action( 'deprecated_argument_run', [ $this, 'deprecated_function_run' ] );
 		add_action(
 			'deprecated_argument_run',
-			static function ( $f, $m, $v ) use ( &$function_name, &$message, &$version, $test_case ) {
+			static function ( $f, $m, $v ) use ( &$function_name, &$message, &$version ) {
 				$function_name = $f;
 				$message       = $m;
 				$version       = $v;
 			},
-			PHP_INT_MAX,
+			10,
 			3
 		);
 
