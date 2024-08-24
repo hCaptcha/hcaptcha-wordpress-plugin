@@ -13,7 +13,6 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * Test request file.
  *
  * @group request
- * @expectedDeprecated hcaptcha_get_verify_output
  */
 class RequestTest extends HCaptchaWPTestCase {
 
@@ -386,41 +385,6 @@ class RequestTest extends HCaptchaWPTestCase {
 		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, null );
 
 		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_get_verify_output( $empty_message, $fail_message, $nonce_field_name, $nonce_action_name ) );
-	}
-
-	/**
-	 * Test hcaptcha_get_verify_output() with deprecated argument.
-	 *
-	 * @return void
-	 */
-	public function test_hcaptcha_get_verify_output_with_deprecated_argument(): void {
-		$nonce_field_name  = 'some nonce field';
-		$nonce_action_name = 'some nonce action';
-
-		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
-
-//		add_action(
-//			'deprecated_argument_run',
-//			static function ( $f, $m, $v ) use ( &$function_name, &$message, &$version ) {
-//				$function_name = $f;
-//				$message       = $m;
-//				$version       = $v;
-//			},
-//			10,
-//			3
-//		);
-
-		self::assertNull( hcaptcha_get_verify_output( 'some', '', $nonce_field_name, $nonce_action_name ) );
-//		self::assertSame( 1, did_action( 'deprecated_argument_run' ) );
-//		self::assertSame( 'hcaptcha_get_verify_output', $function_name );
-//		self::assertSame( '', $message );
-//		self::assertSame( '2.1.0', $version );
-
-		self::assertNull( hcaptcha_get_verify_output( '', 'some', $nonce_field_name, $nonce_action_name ) );
-//		self::assertSame( 2, did_action( 'deprecated_argument_run' ) );
-//		self::assertSame( 'hcaptcha_get_verify_output', $function_name );
-//		self::assertSame( '', $message );
-//		self::assertSame( '2.1.0', $version );
 	}
 
 	/**
