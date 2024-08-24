@@ -176,7 +176,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 JSON;
 
 		$form_id       = 1;
-		$form_data_obj = json_decode( $form_data, false );
+		$form_data_arr = json_decode( $form_data, true );
 		$expected      = json_decode( $form_data, true );
 
 		$args = [
@@ -211,7 +211,7 @@ JSON;
 		wp_localize_script(
 			'nf-builder',
 			'nfDashInlineVars',
-			$form_data_obj
+			$form_data_arr
 		);
 
 		$this->set_protected_property( $subject, 'form_id', $form_id );
