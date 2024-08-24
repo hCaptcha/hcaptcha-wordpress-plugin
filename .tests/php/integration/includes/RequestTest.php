@@ -409,6 +409,8 @@ class RequestTest extends HCaptchaWPTestCase {
 			3
 		);
 
+		add_action( 'deprecated_argument_trigger_error', '__return_false' );
+
 		self::assertNull( hcaptcha_get_verify_output( 'some', '', $nonce_field_name, $nonce_action_name ) );
 		self::assertSame( 1, did_action( 'deprecated_argument_run' ) );
 		self::assertSame( 'hcaptcha_get_verify_output', $function_name );
