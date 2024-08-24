@@ -36,6 +36,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$subject = new Field();
 
 		self::assertSame( 'hCaptcha', $subject->get_nicename() );
+		self::assertSame( 10, has_filter( 'nf_sub_hidden_field_types', [ $subject, 'hide_field_type' ] ) );
 	}
 
 	/**
@@ -69,5 +70,19 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$subject = new Field();
 
 		self::assertSame( 'The hCaptcha is invalid.', $subject->validate( $field, null ) );
+	}
+
+	/**
+	 * Test hide_field_type().
+	 *
+	 * @return void
+	 */
+	public function test_hide_field_type(): void {
+		$hidden_field_types = [ 'some type' ];
+		$expected           = [ 'some type', 'hcaptcha-for-ninja-forms' ];
+
+		$subject = new Field();
+
+		self::assertSame( $expected, $subject->hide_field_type( $hidden_field_types ) );
 	}
 }

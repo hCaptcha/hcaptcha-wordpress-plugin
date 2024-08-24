@@ -41,14 +41,14 @@ class NF implements Base {
 	 *
 	 * @var int
 	 */
-	private $form_id = 0;
+	protected $form_id = 0;
 
 	/**
 	 * Templates dir.
 	 *
 	 * @var string
 	 */
-	private $templates_dir;
+	protected $templates_dir;
 
 	/**
 	 * NF constructor.
@@ -113,7 +113,7 @@ class NF implements Base {
 		global $wp_scripts;
 
 		// Add hCaptcha to the preloaded form data.
-		$data = $wp_scripts->registered['nf-builder']->extra['data'];
+		$data = $wp_scripts->registered['nf-builder']->extra['data'] ?? '';
 
 		if ( ! preg_match( '/var nfDashInlineVars = (.+);/', $data, $m ) ) {
 			return;
@@ -207,7 +207,9 @@ class NF implements Base {
 		$index  = array_search( 'recaptcha', array_keys( $fields ), true );
 
 		if ( false === $index ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$hcaptcha_key   = Base::NAME;
