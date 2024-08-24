@@ -268,7 +268,6 @@ JSON;
 
 		self::assertFalse( $hcap_index );
 
-
 		$subject = new NF();
 
 		Ninja_Forms()->fields = $subject->register_fields( Ninja_Forms()->fields );
