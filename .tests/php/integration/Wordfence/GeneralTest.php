@@ -16,6 +16,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Wordfence\General;
 use HCaptcha\WP\Login;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test General class.
@@ -129,5 +130,42 @@ class GeneralTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( has_action( 'login_form', [ $wp_login, 'add_captcha' ] ) );
 		self::assertFalse( has_filter( 'wp_authenticate_user', [ $wp_login, 'check_signature' ] ) );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function test_print_inline_styles(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<CSS
+#loginform[style="position: relative;"] > .h-captcha {
+    visibility: hidden !important;
+}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new General();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
 	}
 }
