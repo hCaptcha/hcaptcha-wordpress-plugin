@@ -13,6 +13,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * Test request file.
  *
  * @group request
+ * @expectedDeprecated hcaptcha_get_verify_output
  */
 class RequestTest extends HCaptchaWPTestCase {
 
@@ -391,7 +392,6 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * Test hcaptcha_get_verify_output() with deprecated argument.
 	 *
 	 * @return void
-	 * @expectedDeprecated hcaptcha_get_verify_output
 	 */
 	public function test_hcaptcha_get_verify_output_with_deprecated_argument(): void {
 		$nonce_field_name  = 'some nonce field';
