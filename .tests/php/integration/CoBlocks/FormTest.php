@@ -16,7 +16,6 @@ use CoBlocks_Form;
 use HCaptcha\CoBlocks\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
-use ReflectionException;
 use WP_Block;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -126,7 +125,6 @@ HTML;
 	/**
 	 * Test render_block_data().
 	 *
-	 *
 	 * @return void
 	 */
 	public function test_render_block_data(): void {
@@ -148,7 +146,7 @@ HTML;
 
 		self::assertFalse( has_action( 'coblocks_before_form_submit', [ $subject, 'before_form_submit' ] ) );
 
-		// Ignore for coblocks/form if no POST data..
+		// Ignore for coblocks/form if no POST data.
 		$parsed_block['blockName'] = 'coblocks/form';
 
 		$subject->render_block_data( $parsed_block, $source_block );
