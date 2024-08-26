@@ -36,7 +36,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 4. Contact Form 7 with hCaptcha.
 5. Contact Form 7 live form in the admin editor.
 6. Elementor Pro Form.
-7. Elementor Pro From in admin editor.
+7. Elementor Pro Form in admin editor.
 8. General settings page.
 9. Integrations settings page.
 10. Activating plugin from the Integration settings page.
