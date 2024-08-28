@@ -16,7 +16,7 @@ Enables hCaptcha integration with WordPress and popular plugins.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
 
-hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp). Broad integration support, detailed analytics, and strong protection make it an easy choice. Start protecting logins, forms, and more in minutes.
+hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp) with broad integration support, detailed analytics, and strong protection. Start protecting logins, forms, and more in minutes.
 
 == How hCaptcha Works ==
 
