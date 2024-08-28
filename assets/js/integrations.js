@@ -24,11 +24,23 @@
  * @param {jQuery} $ The jQuery instance.
  */
 const integrations = function( $ ) {
+	const adminBar = document.querySelector( '#wpadminbar' );
+	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 	const $wpWrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 	const $search = $( '#hcaptcha-integrations-search' );
+
+	function getStickyHeight() {
+		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
+		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
+		const tabsHeight = tabs ? tabs.offsetHeight : 0;
+		const headerBarHeight = headerBar ? headerBar.offsetHeight : 0;
+
+		return adminBarHeight + tabsHeight + headerBarHeight;
+	}
 
 	function clearMessage() {
 		$message.remove();
@@ -222,7 +234,6 @@ const integrations = function( $ ) {
 					}
 
 					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
-					const top = $wpWrap.position().top;
 
 					swapThemes( activate, entity, newTheme );
 					insertIntoTable( $table, alt, $tr );
@@ -231,7 +242,7 @@ const integrations = function( $ ) {
 
 					$( 'html, body' ).animate(
 						{
-							scrollTop: $tr.offset().top - top - $message.outerHeight(),
+							scrollTop: $tr.offset().top - getStickyHeight(),
 						},
 						1000
 					);

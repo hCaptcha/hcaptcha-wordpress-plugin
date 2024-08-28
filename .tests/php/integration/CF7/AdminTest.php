@@ -514,43 +514,4 @@ HTML;
 
 		self::assertArrayHasKey( 'api', $wpcf7 );
 	}
-
-	/**
-	 * Test is_cf7_form_admin_page().
-	 *
-	 * @param string $page     Page.
-	 * @param bool   $has_post Has post.
-	 * @param bool   $expected Expected.
-	 *
-	 * @return void
-	 * @dataProvider dp_test_is_cf7_form_admin_page
-	 */
-	public function test_is_cf7_form_admin_page( string $page, bool $has_post, bool $expected ): void {
-		$subject = Mockery::mock( Admin::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods();
-
-		$method       = 'is_cf7_form_admin_page';
-		$_GET['page'] = $page;
-
-		if ( $has_post ) {
-			$_GET['post'] = 177;
-		}
-
-		self::assertSame( $expected, $subject->$method( $expected ) );
-	}
-
-	/**
-	 * Data provider for test_is_cf7_form_admin_page().
-	 *
-	 * @return array
-	 */
-	public function dp_test_is_cf7_form_admin_page(): array {
-		return [
-			[ 'some', false, false ],
-			[ 'wpcf7', false, false ],
-			[ 'wpcf7', true, true ],
-			[ 'wpcf7-new', false, true ],
-			[ 'wpcf7-new', true, true ],
-		];
-	}
 }

@@ -313,7 +313,9 @@ if ( ! function_exists( 'hcaptcha_get_verify_output' ) ) {
 	 */
 	function hcaptcha_get_verify_output( string $empty_message, string $fail_message, string $nonce_field_name, string $nonce_action_name ): ?string {
 		if ( ! empty( $empty_message ) || ! empty( $fail_message ) ) {
+			// @codeCoverageIgnoreStart
 			_deprecated_argument( __FUNCTION__, '2.1.0' );
+			// @codeCoverageIgnoreEnd
 		}
 
 		return hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );

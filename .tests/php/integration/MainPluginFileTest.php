@@ -68,6 +68,10 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	 * Test that readme.txt contains proper stable tag.
 	 */
 	public function test_stable_tag_in_readme_txt(): void {
+		if ( preg_match( '/-.+$/', HCAPTCHA_VERSION ) ) {
+			$this->markTestSkipped( 'Not a final version, skipping stable tag in readme.txt test.' );
+		}
+
 		$expected    = [
 			'stable_tag' => HCAPTCHA_VERSION,
 		];
@@ -86,6 +90,10 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	 * Test that readme.txt contains changelog records for the current version.
 	 */
 	public function test_changelog(): void {
+		if ( preg_match( '/-.+$/', HCAPTCHA_VERSION ) ) {
+			$this->markTestSkipped( 'Not a final version, skipping changelog test.' );
+		}
+
 		$readme_file    = HCAPTCHA_PATH . '/readme.txt';
 		$changelog_file = HCAPTCHA_PATH . '/changelog.txt';
 

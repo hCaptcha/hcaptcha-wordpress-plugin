@@ -212,7 +212,10 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'bbPress',
 				'type'    => 'checkbox',
 				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'new_topic' => __( 'New Topic Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],

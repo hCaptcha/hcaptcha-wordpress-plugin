@@ -196,7 +196,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 			do_settings_sections( $this->option_page() ); // Sections with options.
 			settings_fields( $this->option_group() ); // Hidden protection fields.
 
-			if ( ! empty( $this->form_fields ) ) {
+			if ( ! empty( $this->get_savable_form_fields() ) ) {
 				$this->submit_button();
 			}
 			?>

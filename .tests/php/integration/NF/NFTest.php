@@ -7,9 +7,11 @@
 
 namespace HCaptcha\Tests\Integration\NF;
 
+use HCaptcha\NF\Base;
 use HCaptcha\NF\Field;
 use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -17,7 +19,8 @@ use tad\FunctionMocker\FunctionMocker;
  *
  * Ninja Forms requires PHP 7.2.
  *
- * @requires PHP <= 8.2
+ * @requires PHP < 8.3
+ * @group    nf
  */
 class NFTest extends HCaptchaPluginWPTestCase {
 
@@ -29,14 +32,44 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'ninja-forms/ninja-forms.php';
 
 	/**
-	 * Test init_hooks().
+	 * Tear down the test.
+	 *
+	 * @return void
 	 */
-	public function test_init_hooks(): void {
+	public function tearDown(): void {
+		unset( $_GET['form_id'] );
+
+		parent::tearDown();
+	}
+
+	/**
+	 * Test init() and init_hooks().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_and_init_hooks(): void {
 		$subject = new NF();
 
 		self::assertSame(
+			str_replace( '\\', '/', HCAPTCHA_PATH . '/src/php/NF/templates/' ),
+			str_replace( '\\', '/', $this->get_protected_property( $subject, 'templates_dir' ) )
+		);
+
+		self::assertSame(
+			11,
+			has_filter( 'toplevel_page_ninja-forms', [ $subject, 'admin_template' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'nf_admin_enqueue_scripts', [ $subject, 'nf_admin_enqueue_scripts' ] )
+		);
+		self::assertSame(
 			10,
 			has_filter( 'ninja_forms_register_fields', [ $subject, 'register_fields' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'ninja_forms_loaded', [ $subject, 'place_hcaptcha_before_recaptcha_field' ] )
 		);
 		self::assertSame(
 			10,
@@ -44,9 +77,171 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		);
 		self::assertSame(
 			10,
+			has_filter( 'nf_get_form_id', [ $subject, 'set_form_id' ] )
+		);
+		self::assertSame(
+			10,
 			has_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', [ $subject, 'localize_field' ] )
 		);
+		self::assertSame(
+			10,
+			has_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms_preview', [ $subject, 'localize_field' ] )
+		);
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'nf_captcha_script' ] ) );
+	}
+
+	/**
+	 * Test admin_template().
+	 *
+	 * @return void
+	 */
+	public function test_admin_template(): void {
+		$subject = new NF();
+
+		ob_start();
+		$subject->admin_template();
+		self::assertSame( '', ob_get_clean() );
+
+		$_GET['form_id'] = 'some';
+		$templates_dir   = $this->get_protected_property( $subject, 'templates_dir' );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$template = file_get_contents( $templates_dir . 'fields-hcaptcha.html' );
+		$expected = str_replace(
+			'tmpl-nf-field-' . Base::TYPE,
+			'tmpl-nf-field-' . Base::NAME,
+			$template
+		);
+
+		ob_start();
+		$subject->admin_template();
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test nf_admin_enqueue_scripts().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_nf_admin_enqueue_scripts(): void {
+		global $wp_scripts;
+
+		$subject = new NF();
+
+		$subject->nf_admin_enqueue_scripts();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-nf' ) );
+
+		$field_id    = 27;
+		$hcaptcha_id = 'hcaptcha-nf-625d3b9b318fc0.86180601';
+		$form_data   = <<<JSON
+{
+  "preloadedFormData": {
+    "id": 1,
+    "fields": [
+      {
+        "objectType": "Field",
+        "objectDomain": "fields",
+        "editActive": false,
+        "order": 5,
+        "idAttribute": "id",
+        "type": "hcaptcha-for-ninja-forms",
+        "label": "hCaptcha",
+        "container_class": "",
+        "element_class": "",
+        "key": "hcaptcha-for-ninja-forms_1724338923491",
+        "drawerDisabled": false,
+        "id": "$field_id"
+      },
+      {
+        "objectType": "Field",
+        "objectDomain": "fields",
+        "editActive": false,
+        "order": 6,
+        "idAttribute": "id",
+        "type": "submit",
+        "label": "Submit",
+        "processing_label": "Processing",
+        "container_class": "",
+        "element_class": "",
+        "key": "submit_1630502490417",
+        "drawerDisabled": false,
+        "admin_label": "",
+        "id": "7"
+      }
+    ]
+  }
+}
+JSON;
+
+		$form_id       = 1;
+		$form_data_arr = json_decode( $form_data, true );
+		$expected      = json_decode( $form_data, true );
+
+		$args = [
+			'id' => [
+				'source'  => 'ninja-forms/ninja-forms.php',
+				'form_id' => $form_id,
+			],
+		];
+
+		$hcaptcha = $this->get_hcap_form( $args );
+		$hcaptcha = str_replace(
+			'<div',
+			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $field_id . '"',
+			$hcaptcha
+		);
+		$search   = 'class="h-captcha"';
+
+		$expected['preloadedFormData']['fields'][0]['hcaptcha'] = str_replace(
+			$search,
+			$search . ' style="z-index: 2;"',
+			$hcaptcha
+		);
+
+		wp_register_script(
+			'nf-builder',
+			'',
+			[],
+			'1.0',
+			false
+		);
+
+		wp_localize_script(
+			'nf-builder',
+			'nfDashInlineVars',
+			$form_data_arr
+		);
+
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		FunctionMocker::replace( 'uniqid', $hcaptcha_id );
+
+		$subject->nf_admin_enqueue_scripts();
+
+		$data = $wp_scripts->registered['nf-builder']->extra['data'];
+
+		preg_match( '/var nfDashInlineVars = (.+);/', $data, $m );
+
+		self::assertSame( $expected, json_decode( $m[1], true ) );
+
+		self::assertTrue( wp_script_is( 'kagg-dialog' ) );
+		self::assertTrue( wp_style_is( 'kagg-dialog' ) );
+		self::assertTrue( wp_script_is( 'admin-nf' ) );
+
+		$data = $wp_scripts->registered['admin-nf']->extra['data'];
+
+		preg_match( '/var HCaptchaAdminNFObject = ({.+});/', $data, $m );
+
+		$admin_nf_obj = json_decode( $m[1], true );
+		self::assertSame(
+			[
+				'onlyOne'   => 'Only one hCaptcha field allowed.',
+				'OKBtnText' => 'OK',
+			],
+			$admin_nf_obj
+		);
 	}
 
 	/**
@@ -58,6 +253,31 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		$fields = ( new NF() )->register_fields( $fields );
 
 		self::assertInstanceOf( Field::class, $fields['hcaptcha-for-ninja-forms'] );
+	}
+
+	/**
+	 * Test place_hcaptcha_before_recaptcha_field().
+	 *
+	 * @return void
+	 */
+	public function test_place_hcaptcha_before_recaptcha_field(): void {
+		$hcaptcha_key = Base::NAME;
+
+		$fields     = Ninja_Forms()->fields;
+		$hcap_index = array_search( $hcaptcha_key, array_keys( $fields ), true );
+
+		self::assertFalse( $hcap_index );
+
+		$subject = new NF();
+
+		Ninja_Forms()->fields = $subject->register_fields( Ninja_Forms()->fields );
+		$subject->place_hcaptcha_before_recaptcha_field();
+
+		$fields      = Ninja_Forms()->fields;
+		$hcap_index  = array_search( $hcaptcha_key, array_keys( $fields ), true );
+		$recap_index = array_search( 'recaptcha', array_keys( $fields ), true );
+
+		self::assertSame( $recap_index, $hcap_index + 1 );
 	}
 
 	/**
@@ -76,6 +296,24 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		);
 
 		self::assertSame( $expected, $paths );
+	}
+
+	/**
+	 * Test set_form_id().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_set_form_id(): void {
+		$form_id = 23;
+
+		$subject = new NF();
+
+		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
+
+		$subject->set_form_id( $form_id );
+
+		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
 	}
 
 	/**

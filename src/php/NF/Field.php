@@ -17,23 +17,23 @@ use NF_Abstracts_Field;
 /**
  * Class Field
  */
-class Field extends NF_Abstracts_Field {
+class Field extends NF_Abstracts_Field implements Base {
 
 	// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
 
 	/**
-	 * Name.
+	 * Field name.
 	 *
 	 * @var string
 	 */
-	protected $_name = 'hcaptcha-for-ninja-forms';
+	protected $_name = self::NAME;
 
 	/**
-	 * Type.
+	 * Filed type.
 	 *
 	 * @var string
 	 */
-	protected $_type = 'hcaptcha';
+	protected $_type = self::TYPE;
 
 	/**
 	 * Section.

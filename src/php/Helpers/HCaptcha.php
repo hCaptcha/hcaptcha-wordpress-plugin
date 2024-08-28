@@ -872,12 +872,12 @@ class HCaptcha {
 	 */
 	public static function add_type_module( string $tag ): string {
 		$search  = [
-			'/type=".+?"/',
+			'/type=".+?" /',
 			'/<script /',
 		];
 		$replace = [
 			'',
-			'<script type="module"',
+			'<script type="module" ',
 		];
 
 		return (string) preg_replace( $search, $replace, $tag );

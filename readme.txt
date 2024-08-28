@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect form
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 4.4.0
+Stable tag: 4.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,7 +16,7 @@ Enables hCaptcha integration with WordPress and popular plugins.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
 
-[The hCaptcha for WP many advantages over similar captcha plugins](https://kagg.eu/why-choose-hcaptcha-for-wp/).
+hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp) with broad integration support, detailed analytics, and strong protection. Start protecting logins, forms, and more in minutes.
 
 == How hCaptcha Works ==
 
@@ -36,7 +36,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 4. Contact Form 7 with hCaptcha.
 5. Contact Form 7 live form in the admin editor.
 6. Elementor Pro Form.
-7. Elementor Pro From in admin editor.
+7. Elementor Pro Form in admin editor.
 8. General settings page.
 9. Integrations settings page.
 10. Activating plugin from the Integration settings page.
@@ -196,7 +196,7 @@ Back In Stock Notifier
 
 BBPress
 `$source: 'bbpress/bbpress.php'`
-`$form_id: 'new_topic' or 'reply'`
+`$form_id: 'new_topic', 'reply', 'login', 'register' or 'lost_password'`
 
 Beaver Builder
 `$source: 'bb-plugin/fl-builder.php'`
@@ -232,7 +232,7 @@ Elementor Pro
 
 Jetpack
 `$source: 'jetpack/jetpack.php'`
-`$form_id: 'contact'`
+`$form_id: 'contact_$form_hash'`
 
 Kadence Form
 `$source: 'kadence-blocks/kadence-blocks.php'`
@@ -394,7 +394,7 @@ add_filter( 'hcap_language', 'my_hcap_language' );
 
 = How to whitelist certain IPs =
 
-You can use the following filter:
+You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
 
 `
 /**
@@ -494,7 +494,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Asgaros Forum New Topic and Reply Form
 * Avada Form
 * Back In Stock Notifier Form
-* bbPress New Topic and Reply Forms
+* bbPress New Topic, Reply, Login, Register and Lost Password Forms
 * Beaver Builder Contact and Login Forms
 * BuddyPress — Create Group and Registration Forms
 * Classified Listing Contact, Login, Lost Password, and Listing Register Forms
@@ -564,6 +564,30 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.5.0 =
+* Added support for Jetpack forms in block theme templates.
+* Added support for bbPress Login, Register and Lost Password forms.
+* Added the second argument $atts to the 'hcap_hcaptcha_content' filter.
+* Added support for MailPoet forms at any placement.
+* Added the ability to have multiple MailPoet forms on the same page.
+* Improved UX of the Integrations page.
+* Fixed error messaging when there are several Jetpack forms on the same page.
+* Fixed unconditional forcing hCaptcha in Jetpack forms.
+* Fixed appearance of Beaver Builder editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Contact Form 7 editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Essential Addons editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Gravity Forms editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Fluent Forms editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Forminator editor with "Turn Off When Logged In" setting.
+* Fixed appearance of Formidable Forms with "Turn Off When Logged In" setting.
+* Fixed appearance of Ninja Forms editor with "Turn Off When Logged In" setting.
+* Fixed appearance of WPForms editor with "Turn Off When Logged In" setting.
+* Fixed fatal error on Gravity Forms Entries page.
+* Fixed Elementor preview.
+* Fixed Ninja Forms preview.
+* Fixed hCaptcha nonce error on MailPoet admin pages.
+* Fixed frontend error when recaptcha was activated in wpDiscuz.
 
 = 4.4.0 =
 * Added compatibility with Contact Form 7 Stripe integration.

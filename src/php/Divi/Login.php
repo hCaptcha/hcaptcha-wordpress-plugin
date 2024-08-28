@@ -8,6 +8,7 @@
 namespace HCaptcha\Divi;
 
 use HCaptcha\Abstracts\LoginBase;
+use Patchwork\Exceptions\NonNullToVoid;
 
 /**
  * Class Login.
@@ -33,10 +34,10 @@ class Login extends LoginBase {
 	/**
 	 * Add hCaptcha to the login form.
 	 *
-	 * @param string|string[] $output      Module output.
-	 * @param string          $module_slug Module slug.
+	 * @param string|mixed $output      Module output.
+	 * @param string       $module_slug Module slug.
 	 *
-	 * @return string|string[]
+	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
@@ -74,6 +75,6 @@ class Login extends LoginBase {
 		$replacement = $hcaptcha . $signatures . "\n$1";
 
 		// Insert hCaptcha.
-		return preg_replace( $pattern, $replacement, $output );
+		return (string) preg_replace( $pattern, $replacement, $output );
 	}
 }

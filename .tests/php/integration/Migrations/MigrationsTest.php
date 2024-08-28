@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\Migrations;
 
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -29,6 +30,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		parent::tearDown();
 	}
+
 	/**
 	 * Test init() and init_hooks().
 	 *
@@ -62,7 +64,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		return [
 			[ false, false, false ],
 			[ true, false, false ],
-			[ false, true, - PHP_INT_MAX ],
+			[ false, true, -PHP_INT_MAX ],
 			[ true, true, false ],
 		];
 	}
@@ -122,6 +124,8 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		$subject->migrate();
 
+		self::assertSame( 10, has_action( 'init', [ $subject, 'send_plugin_stats' ] ) );
+
 		self::assertTrue( $this->compare_migrated( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) ) );
 		self::assertSame( $expected_settings, get_option( 'hcaptcha_settings', [] ) );
 		self::assertFalse( get_option( 'hcaptcha_size' ) );
@@ -156,6 +160,21 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Test send_plugin_stats().
+	 *
+	 * @return void
+	 */
+	public function test_send_plugin_stats(): void {
+		$subject = new Migrations();
+
+		self::assertSame( 0, did_action( 'hcap_send_plugin_stats' ) );
+
+		$subject->send_plugin_stats();
+
+		self::assertSame( 1, did_action( 'hcap_send_plugin_stats' ) );
 	}
 
 	/**
@@ -223,5 +242,89 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject->$method();
 
 		self::assertSame( array_filter( explode( ';', $expected_query ) ), $actual_query );
+	}
+
+	/**
+	 * Test save_license_level().
+	 *
+	 * @param string $license_level License level.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_save_license_level
+	 */
+	public function test_save_license_level( string $license_level ): void {
+		$subject = new Migrations();
+
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		self::assertSame( [], $option );
+
+		switch ( $license_level ) {
+			case 'free':
+				$result   = [
+					'features' => [],
+					'pass'     => true,
+				];
+				$expected = [
+					'license' => $license_level,
+				];
+
+				break;
+			case 'pro':
+				$result   = [
+					'features' => [
+						'custom_theme' => [ 'some theme' ],
+					],
+					'pass'     => true,
+				];
+				$expected = [
+					'license' => $license_level,
+				];
+
+				break;
+			case 'error':
+				$result['pass']  = false;
+				$result['error'] = 'some error';
+				$expected        = [];
+
+				break;
+			default:
+				$result   = [];
+				$expected = [];
+
+				break;
+		}
+
+		add_filter(
+			'pre_http_request',
+			static function ( $value, $parsed_args, $url ) use ( $result ) {
+				if ( false !== strpos( $url, 'hcaptcha.com' ) ) {
+					return [
+						'body' => wp_json_encode( $result ),
+					];
+				}
+
+				return $value;
+			},
+			10,
+			3
+		);
+
+		$subject->save_license_level();
+
+		self::assertSame( $expected, get_option( PluginSettingsBase::OPTION_NAME, [] ) );
+	}
+
+	/**
+	 * Data provider for test_save_license_level().
+	 *
+	 * @return array
+	 */
+	public function dp_test_save_license_level(): array {
+		return [
+			[ 'free' ],
+			[ 'pro' ],
+			[ 'error' ],
+		];
 	}
 }

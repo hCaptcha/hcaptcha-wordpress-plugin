@@ -9,8 +9,25 @@ const settingsBase = function( $ ) {
 	const h2Selector = '.hcaptcha-header h2';
 	const msgSelector = '#hcaptcha-message';
 
-	// Move WP notices to the message area.
-	$( h2Selector ).siblings().appendTo( msgSelector );
+	function setHeaderBarTop() {
+		const adminBar = document.querySelector( '#wpadminbar' );
+		const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+		const headerBar = document.querySelector( '.hcaptcha-header-bar' );
+
+		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
+		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
+		const tabsHeight = tabs ? tabs.offsetHeight : 0;
+		// The -1 to put header bar a bit under tabs. It is a precaution when heights are in fractional pixels.
+		const totalHeight = adminBarHeight + tabsHeight - 1;
+
+		if ( tabs ) {
+			tabs.style.top = `${ adminBarHeight }px`;
+		}
+
+		if ( headerBar ) {
+			headerBar.style.top = `${ totalHeight }px`;
+		}
+	}
 
 	/**
 	 * Highlight element if hash is present in the URL.
@@ -41,6 +58,15 @@ const settingsBase = function( $ ) {
 			$element.addClass( 'blink' );
 		}
 	}
+
+	// Move WP notices to the message area.
+	$( h2Selector ).siblings().appendTo( msgSelector );
+
+	window.addEventListener( 'resize', function() {
+		setHeaderBarTop();
+	} );
+
+	setHeaderBarTop();
 
 	highLight();
 };

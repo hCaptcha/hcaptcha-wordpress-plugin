@@ -23,6 +23,7 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
@@ -68,6 +69,11 @@ class Main {
 	public const VERIFY_HOST = 'api.hcaptcha.com';
 
 	/**
+	 * Priority of the plugins_loaded action to load Main.
+	 */
+	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 1;
+
+	/**
 	 * Form shown somewhere, use this flag to run the script.
 	 *
 	 * @var boolean
@@ -97,6 +103,13 @@ class Main {
 	protected $loaded_classes = [];
 
 	/**
+	 * Migrations class instance.
+	 *
+	 * @var Migrations
+	 */
+	protected $migrations;
+
+	/**
 	 * Settings class instance.
 	 *
 	 * @var Settings
@@ -124,10 +137,12 @@ class Main {
 	 */
 	public function init(): void {
 		if ( Request::is_xml_rpc() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
-		new Migrations();
+		$this->migrations = new Migrations();
 
 		if ( wp_doing_cron() ) {
 			return;
@@ -135,7 +150,7 @@ class Main {
 
 		( new Fix() )->init();
 
-		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], -PHP_INT_MAX );
+		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
 	}
 
 	/**
@@ -171,7 +186,7 @@ class Main {
 		$this->load( PluginStats::class );
 		$this->load( Events::class );
 
-		add_action( 'plugins_loaded', [ $this, 'load_modules' ], -PHP_INT_MAX + 1 );
+		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
@@ -249,7 +264,7 @@ class Main {
 			( '' === $settings->get_site_key() || '' === $settings->get_secret_key() )
 		);
 
-		$activate = ( ! $deactivate ) || $this->is_elementor_pro_edit_page();
+		$activate = ( ! $deactivate ) || $this->is_edit_page();
 
 		/**
 		 * Filters the hCaptcha activation flag.
@@ -260,32 +275,40 @@ class Main {
 	}
 
 	/**
-	 * Whether we are on the Elementor Pro edit post/page and hCaptcha for Elementor Pro is active.
+	 * Whether we are on the admin edit page for a component and component is active.
 	 *
 	 * @return bool
 	 */
-	private function is_elementor_pro_edit_page(): bool {
-		if ( ! $this->settings()->is_on( 'elementor_pro_status' ) ) {
-			return false;
-		}
+	private function is_edit_page(): bool {
+		$settings   = $this->settings();
+		$components = [
+			'beaver_builder',
+			'cf7',
+			'elementor_pro',
+			'gravity',
+			'fluent',
+			'forminator',
+			'formidable_forms',
+			'ninja',
+			'wpforms',
+		];
 
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
-		$request1 = (
-			isset( $_SERVER['REQUEST_URI'], $_GET['post'], $_GET['action'] ) &&
-			0 === strpos( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '/wp-admin/post.php' ) &&
-			'elementor' === $_GET['action']
-		);
-		$request2 = (
-			isset( $_SERVER['REQUEST_URI'], $_GET['elementor-preview'] ) &&
-			0 === strpos( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '/elementor' )
-		);
-		$request3 = (
-			isset( $_POST['action'] ) && 'elementor_ajax' === $_POST['action']
-		);
+		return array_reduce(
+			$components,
+			static function ( $carry, $component ) use ( $settings ) {
+				$method = 'is_' . $component . '_edit_page';
 
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+				if (
+					! method_exists( Pages::class, $method ) ||
+					! $settings->is_on( $component . '_status' )
+				) {
+					return $carry;
+				}
 
-		return $request1 || $request2 || $request3;
+				return $carry || Pages::$method();
+			},
+			false
+		);
 	}
 
 	/**
@@ -322,7 +345,7 @@ class Main {
 		 * Filters whether to add Content Security Policy (CSP) headers.
 		 *
 		 * @param bool  $add_csp_headers Add Content Security Policy (CSP) headers.
-		 * @param array $headers Current headers.
+		 * @param array $headers         Current headers.
 		 */
 		if ( ! apply_filters( 'hcap_add_csp_headers', false, $headers ) ) {
 			return $headers;
@@ -862,10 +885,25 @@ CSS;
 				'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php',
 				BackInStockNotifier\Form::class,
 			],
+			'bbPress Login Form'                   => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				BBPress\Login::class,
+			],
+			'bbPress Lost Password Form'           => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				BBPress\LostPassword::class,
+			],
 			'bbPress New Topic'                    => [
 				[ 'bbp_status', 'new_topic' ],
 				'bbpress/bbpress.php',
 				BBPress\NewTopic::class,
+			],
+			'bbPress Register Form'                => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				BBPress\Register::class,
 			],
 			'bbPress Reply'                        => [
 				[ 'bbp_status', 'reply' ],

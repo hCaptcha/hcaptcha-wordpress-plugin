@@ -10,7 +10,7 @@ use HCaptcha\Helpers\HCaptcha;
 /**
  * Display hCaptcha shortcode.
  *
- * @param array|string $atts hcaptcha shortcode attributes.
+ * @param array|string $atts The hCaptcha shortcode attributes.
  *
  * @return string
  */
@@ -37,11 +37,12 @@ function hcap_shortcode( $atts ): string {
 	);
 
 	/**
-	 * Filters the content of the hcaptcha form.
+	 * Filters the content of the hCaptcha form.
 	 *
-	 * @param string $form The hcaptcha form.
+	 * @param string $form The hCaptcha form.
+	 * @param array  $atts The hCaptcha shortcode attributes.
 	 */
-	return (string) apply_filters( 'hcap_hcaptcha_content', HCaptcha::form( $atts ) );
+	return (string) apply_filters( 'hcap_hcaptcha_content', HCaptcha::form( $atts ), $atts );
 }
 
 add_shortcode( 'hcaptcha', 'hcap_shortcode' );

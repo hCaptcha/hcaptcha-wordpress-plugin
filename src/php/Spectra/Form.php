@@ -36,7 +36,7 @@ class Form {
 	 *
 	 * @var bool
 	 */
-	private $has_recaptcha_field;
+	protected $has_recaptcha_field;
 
 	/**
 	 * Form constructor.
@@ -79,6 +79,8 @@ class Form {
 			return $block_content;
 		}
 
+		$block_content = (string) $block_content;
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -87,8 +89,6 @@ class Form {
 				'form_id' => isset( $block['attrs']['block_id'] ) ? (int) $block['attrs']['block_id'] : 0,
 			],
 		];
-
-		$block_content = (string) $block_content;
 
 		$this->has_recaptcha_field = false;
 
@@ -197,7 +197,7 @@ CSS;
 	 *
 	 * @return bool
 	 */
-	private function has_recaptcha(): bool {
+	protected function has_recaptcha(): bool {
 		// Spectra checks nonce.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_id  = isset( $_POST['post_id'] ) ? sanitize_text_field( wp_unslash( $_POST['post_id'] ) ) : '';

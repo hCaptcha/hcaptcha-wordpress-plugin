@@ -1,6 +1,6 @@
 <?php
 /**
- * Request class file.
+ * Request class' file.
  *
  * @package hcaptcha-wp
  */
@@ -113,5 +113,29 @@ class Request {
 			: '';
 
 		return 'POST' === $request_method;
+	}
+
+	/**
+	 * Filter input in WP style.
+	 * Nonce must be checked in the calling function.
+	 *
+	 * @param int    $type     Input type.
+	 * @param string $var_name Variable name.
+	 *
+	 * @return string
+	 */
+	public static function filter_input( int $type, string $var_name ): string {
+		switch ( $type ) {
+			case INPUT_GET:
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				return isset( $_GET[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_GET[ $var_name ] ) ) : '';
+			case INPUT_POST:
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing
+				return isset( $_POST[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_POST[ $var_name ] ) ) : '';
+			case INPUT_SERVER:
+				return isset( $_SERVER[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $var_name ] ) ) : '';
+			default:
+				return '';
+		}
 	}
 }

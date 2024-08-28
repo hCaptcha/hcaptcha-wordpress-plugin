@@ -23,15 +23,25 @@ abstract class Base {
 	 * Add hooks.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	protected function init_hooks(): void {
-		add_filter(
-			'wpdiscuz_recaptcha_site_key',
-			static function () {
-				// Block output of reCaptcha by wpDiscuz.
-				return '';
-			}
+		if ( ! function_exists( 'wpDiscuz' ) ) {
+			return;
+		}
+
+		$wpd_recaptcha = wpDiscuz()->options->recaptcha;
+		$wpd_recaptcha = array_merge(
+			$wpd_recaptcha,
+			[
+				'siteKey'       => '',
+				'showForGuests' => 0,
+				'showForUsers'  => 0,
+			]
 		);
+
+		// Block output of reCaptcha by wpDiscuz.
+		wpDiscuz()->options->recaptcha = $wpd_recaptcha;
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );
 	}

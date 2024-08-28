@@ -232,6 +232,7 @@ abstract class SettingsBase {
 			'radio'    => [ $this, 'print_radio_field' ],
 			'select'   => [ $this, 'print_select_field' ],
 			'multiple' => [ $this, 'print_multiple_select_field' ],
+			'file'     => [ $this, 'print_file_field' ],
 			'table'    => [ $this, 'print_table_field' ],
 			'button'   => [ $this, 'print_button_field' ],
 		];
@@ -259,7 +260,7 @@ abstract class SettingsBase {
 		$this->form_fields();
 		$this->init_settings();
 
-		if ( $this->is_main_menu_page() || $this->is_tab_active( $this ) ) {
+		if ( is_admin() && ( $this->is_main_menu_page() || $this->is_tab_active( $this ) ) ) {
 			$this->init_hooks();
 		}
 	}
@@ -707,6 +708,10 @@ abstract class SettingsBase {
 	 * Show tabs.
 	 */
 	public function tabs_callback(): void {
+		if ( ! count( $this->tabs ?? [] ) ) {
+			return;
+		}
+
 		?>
 		<div class="<?php echo esc_attr( static::PREFIX . '-settings-tabs' ); ?>">
 			<span class="<?php echo esc_attr( static::PREFIX . '-settings-links' ); ?>">
@@ -1235,6 +1240,29 @@ abstract class SettingsBase {
 	}
 
 	/**
+	 * Print file field.
+	 *
+	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAttribute
+	 */
+	protected function print_file_field( array $arguments ): void {
+		$multiple = (bool) ( $arguments['multiple'] ?? '' );
+		$accept   = $arguments['accept'] ?? '';
+
+		printf(
+			'<input %1$s name="%2$s[%3$s]%4$s" id="%3$s" type="file" %5$s %6$s/>',
+			disabled( $arguments['disabled'], true, false ),
+			esc_html( $this->option_name() ),
+			esc_attr( $arguments['field_id'] ),
+			esc_attr( $multiple ? '[]' : '' ),
+			esc_attr( $multiple ? 'multiple' : '' ),
+			$accept ? 'accept="' . esc_attr( $accept ) . '"' : ''
+		);
+	}
+
+	/**
 	 * Print table field.
 	 *
 	 * @param array $arguments Field arguments.
@@ -1460,6 +1488,11 @@ abstract class SettingsBase {
 		$old_value = is_array( $old_value ) ? $old_value : [];
 
 		foreach ( $this->form_fields() as $key => $form_field ) {
+			if ( 'file' === $form_field['type'] ) {
+				unset( $value[ $key ], $old_value[ $key ] );
+				continue;
+			}
+
 			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
 				continue;
 			}
@@ -1618,5 +1651,21 @@ abstract class SettingsBase {
 			?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get savable for fields.
+	 *
+	 * @return array
+	 */
+	protected function get_savable_form_fields(): array {
+		$not_savable_form_fields = [ 'button', 'file' ];
+
+		return array_filter(
+			$this->form_fields,
+			static function ( $field ) use ( $not_savable_form_fields ) {
+				return ! in_array( $field['type'] ?? '', $not_savable_form_fields, true );
+			}
+		);
 	}
 }

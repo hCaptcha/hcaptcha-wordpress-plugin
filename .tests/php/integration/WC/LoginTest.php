@@ -108,12 +108,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		add_filter(
-			'hcap_login_limit_exceeded',
-			static function () {
-				return false;
-			}
-		);
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
 		add_filter( 'woocommerce_process_login_errors', [ $subject, 'verify' ] );
 

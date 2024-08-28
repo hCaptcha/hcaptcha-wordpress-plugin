@@ -159,6 +159,62 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hcap_check_site_config.
+	 *
+	 * @return void
+	 */
+	public function test_hcap_check_site_config(): void {
+		add_filter(
+			'pre_http_request',
+			static function ( $value, $parsed_args, $url ) use ( &$result ) {
+				if ( false !== strpos( $url, 'hcaptcha.com' ) ) {
+					return null === $result ? [] : [ 'body' => wp_json_encode( $result ) ];
+				}
+
+				return $value;
+			},
+			10,
+			3
+		);
+
+		// Cannot communicate.
+		$result   = null;
+		$expected = [
+			'error' => 'Cannot communicate with hCaptcha server.',
+		];
+
+		self::assertSame( $expected, hcap_check_site_config() );
+
+		// Cannot decode.
+		$result   = [];
+		$expected = [
+			'error' => 'Cannot decode hCaptcha server response.',
+		];
+
+		self::assertSame( $expected, hcap_check_site_config() );
+
+		// Error.
+		$error    = 'some error';
+		$result   = [
+			'pass'  => false,
+			'error' => $error,
+		];
+		$expected = [
+			'error' => $error,
+		];
+
+		self::assertSame( $expected, hcap_check_site_config() );
+
+		// Success.
+		$result   = [
+			'pass' => true,
+		];
+		$expected = $result;
+
+		self::assertSame( $expected, hcap_check_site_config() );
+	}
+
+	/**
 	 * Test hcaptcha_request_verify().
 	 */
 	public function test_hcaptcha_request_verify(): void {
@@ -213,9 +269,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_verify_POST() with no argument.
+	 * Test hcaptcha_verify_post() with no argument.
 	 */
-	public function test_hcaptcha_verify_POST_default_success(): void {
+	public function test_hcaptcha_verify_post_default_success(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
@@ -224,16 +280,16 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_verify_POST() with no argument.
+	 * Test hcaptcha_verify_post() with no argument.
 	 */
-	public function test_hcaptcha_verify_POST_default_empty(): void {
+	public function test_hcaptcha_verify_post_default_empty(): void {
 		self::assertSame( 'Please complete the hCaptcha.', hcaptcha_verify_post() );
 	}
 
 	/**
-	 * Test hcaptcha_verify_POST().
+	 * Test hcaptcha_verify_post().
 	 */
-	public function test_hcaptcha_verify_POST(): void {
+	public function test_hcaptcha_verify_post(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -251,9 +307,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_verify_POST() not verified.
+	 * Test hcaptcha_verify_post() not verified.
 	 */
-	public function test_hcaptcha_verify_POST_not_verified(): void {
+	public function test_hcaptcha_verify_post_not_verified(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -263,9 +319,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_verify_POST() not verified with empty POST.
+	 * Test hcaptcha_verify_post() not verified with empty POST.
 	 */
-	public function test_hcaptcha_verify_POST_not_verified_empty_POST(): void {
+	public function test_hcaptcha_verify_post_not_verified_empty_POST(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
@@ -275,9 +331,9 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcaptcha_verify_POST() not verified with logged-in user.
+	 * Test hcaptcha_verify_post() not verified with logged-in user.
 	 */
-	public function test_hcaptcha_verify_POST_not_verified_logged_in(): void {
+	public function test_hcaptcha_verify_post_not_verified_logged_in(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 

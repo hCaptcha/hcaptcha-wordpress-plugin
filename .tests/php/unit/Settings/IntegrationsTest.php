@@ -79,6 +79,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'get_plugins' )->andReturn( $plugins );
 		WP_Mock::userFunction( 'wp_get_themes' )->andReturn( $themes );
+		WP_Mock::userFunction( 'is_admin' )->andReturn( true );
 
 		$method = 'init';
 		$subject->$method();
