@@ -26,7 +26,7 @@ const HCAPTCHA_PATH = __DIR__;
  *
  * @return void
  */
-function hcap_delete_site_meta_options( array $options ) {
+function hcap_delete_site_meta_options( array $options ): void {
 	foreach ( $options as $option ) {
 		delete_site_option( $option );
 	}
@@ -39,7 +39,7 @@ function hcap_delete_site_meta_options( array $options ) {
  *
  * @return void
  */
-function hcap_delete_options( array $options ) {
+function hcap_delete_options( array $options ): void {
 	foreach ( $options as $option ) {
 		delete_option( $option );
 	}
@@ -50,9 +50,10 @@ function hcap_delete_options( array $options ) {
  *
  * @return void
  */
-function hcap_delete_events_table() {
+function hcap_delete_events_table(): void {
 	global $wpdb;
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 	$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}hcaptcha_events`" );
 }
 
@@ -63,7 +64,7 @@ function hcap_delete_events_table() {
  *
  * @return void
  */
-function hcap_cleanup_site_data( array $options ) {
+function hcap_cleanup_site_data( array $options ): void {
 	hcap_delete_options( $options );
 	hcap_delete_events_table();
 }
@@ -74,7 +75,7 @@ function hcap_cleanup_site_data( array $options ) {
  * @return void
  * @noinspection DisconnectedForeachInstructionInspection
  */
-function hcap_cleanup_data() {
+function hcap_cleanup_data(): void {
 	$settings    = [ PluginSettingsBase::OPTION_NAME, PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ];
 	$other       = [ LoginBase::LOGIN_DATA, Migrations::MIGRATED_VERSIONS_OPTION_NAME ];
 	$all_options = array_merge( $settings, $other );
