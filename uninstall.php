@@ -15,6 +15,11 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
+ * Path to the plugin dir.
+ */
+const HCAPTCHA_PATH = __DIR__;
+
+/**
  * Delete several options from 'sitemeta' table.
  *
  * @param array $options Options.
@@ -89,13 +94,13 @@ function hcap_cleanup_data() {
 
 	foreach ( $sites as $site ) {
 		// Switch to each site and delete options.
-		switch_to_blog( $site->blog_id );
+		switch_to_blog( (int) $site->blog_id );
 		hcap_cleanup_site_data( $all_options );
 		restore_current_blog();
 	}
 }
 
+require_once HCAPTCHA_PATH . '/vendor/autoload.php';
+
 // Perform plugin cleanup tasks.
 hcap_cleanup_data();
-
-exit;
