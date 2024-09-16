@@ -516,6 +516,7 @@ const general = function( $ ) {
 
 		// Remove the existing API script.
 		document.getElementById( 'hcaptcha-api' ).remove();
+		// noinspection JSUnresolvedReference
 		delete global.hcaptcha;
 
 		// Remove sample hCaptcha.
