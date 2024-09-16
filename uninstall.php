@@ -11,13 +11,17 @@ use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+	// @codeCoverageIgnoreStart
 	exit();
+	// @codeCoverageIgnoreEnd
 }
 
 /**
  * Path to the plugin dir.
  */
-const HCAPTCHA_PATH = __DIR__;
+if ( ! defined( 'HCAPTCHA_PATH' ) ) {
+	define( 'HCAPTCHA_PATH', __DIR__ );
+}
 
 /**
  * Delete several options from 'sitemeta' table.
