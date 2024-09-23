@@ -375,7 +375,7 @@ const general = function( $ ) {
 		event.preventDefault();
 
 		// Check if hCaptcha is solved.
-		if ( $( '.hcaptcha-general-sample-hcaptcha iframe' ).attr( 'data-hcaptcha-response' ) === '' ) {
+		if ( $( '.hcaptcha-general-sample-hcaptcha textarea[name="h-captcha-response"]' ).val() === '' ) {
 			kaggDialog.confirm( {
 				title: HCaptchaGeneralObject.completeHCaptchaTitle,
 				content: HCaptchaGeneralObject.completeHCaptchaContent,
