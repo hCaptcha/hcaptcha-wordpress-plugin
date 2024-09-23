@@ -385,12 +385,8 @@ class HCaptcha {
 				return formElement;
 			}
 
-			const iframe = hcaptchaElement.querySelector( 'iframe' );
-
-			// Re-render.
-			if ( null !== iframe ) {
-				iframe.remove();
-			}
+			// Render or re-render.
+			hcaptchaElement.innerHTML = '';
 
 			const hCaptchaId = this.generateID();
 			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
