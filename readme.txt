@@ -566,6 +566,10 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.5.0 =
+* Added uninstallation code to delete plugin data.
+* Improved compatibility with hCaptcha API.
+
+= 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
 * Added support for bbPress Login, Register and Lost Password forms.
 * Added the second argument $atts to the 'hcap_hcaptcha_content' filter.
