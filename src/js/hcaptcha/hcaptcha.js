@@ -107,6 +107,7 @@ class HCaptcha {
 		const formElement = event.currentTarget.closest( this.formSelector );
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = form.submitButtonElement;
+		const widgetId = form.widgetId;
 
 		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
 			return;
@@ -116,14 +117,13 @@ class HCaptcha {
 		event.stopPropagation();
 
 		this.currentForm = { formElement, submitButtonElement };
-		const widgetId = this.getWidgetId( formElement );
 
 		if ( ! widgetId ) {
 			return;
 		}
 
-		const iframe = formElement.querySelector( '.h-captcha iframe' );
-		const token = iframe.dataset.hcaptchaResponse;
+		const response = formElement.querySelector( this.responseSelector );
+		const token = response ? response.value : '';
 
 		// Do not execute hCaptcha twice.
 		if ( token === '' ) {
@@ -271,7 +271,7 @@ class HCaptcha {
 	 * @return {HTMLDivElement} Widget.
 	 */
 	getWidgetByToken( token ) {
-		const responses = document.querySelectorAll( '.h-captcha textarea[name="h-captcha-response"]' );
+		const responses = document.querySelectorAll( this.responseSelector );
 
 		const response = [ ...responses ].find( ( el ) => {
 			return el.value === token;
@@ -370,6 +370,7 @@ class HCaptcha {
 			', .forminator-button-submit, .frm_button_submit, a.sdm_download' +
 			', .uagb-forms-main-submit-button' // Spectra.
 		);
+		this.responseSelector = 'textarea[name="h-captcha-response"]';
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
