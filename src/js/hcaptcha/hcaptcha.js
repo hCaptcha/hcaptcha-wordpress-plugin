@@ -37,10 +37,12 @@ class HCaptcha {
 	 * Get found form by id.
 	 *
 	 * @param {string} id hCaptcha id.
+	 *
 	 * @return {*} Form id.
 	 */
 	getFoundFormById( id ) {
 		const forms = this.foundForms.filter( ( form ) => id === form.hCaptchaId );
+
 		return forms[ 0 ];
 	}
 
@@ -48,6 +50,7 @@ class HCaptcha {
 	 * Get hCaptcha widget id.
 	 *
 	 * @param {HTMLDivElement} el Form element.
+	 *
 	 * @return {string} Widget id.
 	 */
 	getWidgetId( el ) {
@@ -55,19 +58,9 @@ class HCaptcha {
 			return '';
 		}
 
-		const hcaptcha = el.getElementsByClassName( 'h-captcha' )[ 0 ];
+		const form = this.getFoundFormById( el.dataset.hCaptchaId );
 
-		if ( typeof hcaptcha === 'undefined' ) {
-			return '';
-		}
-
-		const iframe = hcaptcha.getElementsByTagName( 'iframe' )[ 0 ];
-
-		if ( typeof iframe === 'undefined' ) {
-			return '';
-		}
-
-		return iframe.dataset.hcaptchaWidgetId ?? '';
+		return form.widgetId ?? '';
 	}
 
 	/**
@@ -342,16 +335,18 @@ class HCaptcha {
 	}
 
 	/**
-	 * Render hCaptcha.
+	 * Render hCaptcha explicitly.
 	 *
 	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
+	 *
+	 * @return {string} Widget Id.
 	 */
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
 
 		const params = this.applyAutoTheme( this.getParams() );
 
-		hcaptcha.render( hcaptchaElement, params );
+		return hcaptcha.render( hcaptchaElement, params );
 	}
 
 	/**
@@ -396,7 +391,12 @@ class HCaptcha {
 				iframe.remove();
 			}
 
-			this.render( hcaptchaElement );
+			const hCaptchaId = this.generateID();
+			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
+			const widgetId = this.render( hcaptchaElement );
+			formElement.dataset.hCaptchaId = hCaptchaId;
+
+			this.foundForms.push( { hCaptchaId, submitButtonElement, widgetId } );
 
 			if (
 				( 'invisible' !== hcaptchaElement.dataset.size ) &&
@@ -405,17 +405,9 @@ class HCaptcha {
 				return formElement;
 			}
 
-			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
-
 			if ( ! submitButtonElement ) {
 				return formElement;
 			}
-
-			const hCaptchaId = this.generateID();
-
-			this.foundForms.push( { hCaptchaId, submitButtonElement } );
-
-			formElement.dataset.hCaptchaId = hCaptchaId;
 
 			submitButtonElement.addEventListener( 'click', this.validate, true );
 
