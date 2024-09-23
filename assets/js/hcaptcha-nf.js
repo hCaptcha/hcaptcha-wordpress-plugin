@@ -2,7 +2,7 @@
  * Ninja Forms controller file.
  */
 
-/* global hcaptcha, Marionette, nfRadio */
+/* global Marionette, nfRadio */
 
 wp.hooks.addFilter(
 	'hcaptcha.ajaxSubmitButton',
