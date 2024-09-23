@@ -114,10 +114,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			const callback = ( mutationList ) => {
 				for ( const mutation of mutationList ) {
 					[ ...mutation.addedNodes ].map( ( node ) => {
-						if (
-							document.querySelector( '.h-captcha' ) &&
-							! document.querySelector( '.h-captcha iframe' )
-						) {
+						const hCaptcha = document.querySelector( '.h-captcha' );
+
+						if ( hCaptcha && hCaptcha.innerHTML.trim() === '' ) {
 							window.hCaptchaBindEvents();
 						}
 
