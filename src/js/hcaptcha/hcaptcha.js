@@ -38,12 +38,12 @@ class HCaptcha {
 	 *
 	 * @param {string} id hCaptcha id.
 	 *
-	 * @return {*} Form id.
+	 * @return {Object|null} Form data.
 	 */
 	getFoundFormById( id ) {
 		const forms = this.foundForms.filter( ( form ) => id === form.hCaptchaId );
 
-		return forms[ 0 ];
+		return forms[ 0 ] ?? null;
 	}
 
 	/**
@@ -54,13 +54,19 @@ class HCaptcha {
 	 * @return {string} Widget id.
 	 */
 	getWidgetId( el ) {
-		if ( typeof el === 'undefined' ) {
+		if ( el === undefined ) {
 			return '';
 		}
 
-		const form = this.getFoundFormById( el.dataset.hCaptchaId );
+		const id = el.closest( this.formSelector )?.dataset?.hCaptchaId ?? '';
 
-		return form.widgetId ?? '';
+		if ( ! id ) {
+			return '';
+		}
+
+		const form = this.getFoundFormById( id );
+
+		return form?.widgetId ?? '';
 	}
 
 	/**
