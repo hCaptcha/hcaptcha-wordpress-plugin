@@ -71,7 +71,7 @@ describe( 'HCaptcha', () => {
 
 		// Mock hcaptcha object
 		global.hcaptcha = {
-			render: jest.fn( ( hcaptchaElement ) => {
+			render: jest.fn( () => {
 				return generateUniqueId();
 			} ),
 			execute: jest.fn(),
