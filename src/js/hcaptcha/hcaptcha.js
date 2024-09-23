@@ -271,6 +271,23 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get widget by token.
+	 *
+	 * @param {string} token Token.
+	 *
+	 * @return {HTMLDivElement} Widget.
+	 */
+	getWidgetByToken( token ) {
+		const responses = document.querySelectorAll( '.h-captcha textarea[name="h-captcha-response"]' );
+
+		const response = [ ...responses ].find( ( el ) => {
+			return el.value === token;
+		} );
+
+		return response ? response.closest( '.h-captcha' ) : null;
+	}
+
+	/**
 	 * Called when the user submits a successful response.
 	 *
 	 * @param {string} token The h-captcha-response token.
@@ -283,12 +300,12 @@ class HCaptcha {
 		);
 
 		const params = this.getParams();
-		const iframe = document.querySelector( 'iframe[data-hcaptcha-response="' + token + '"]' );
-		const hcaptcha = iframe ? iframe.closest( '.h-captcha' ) : null;
+		const hcaptcha = this.getWidgetByToken( token );
 		const force = hcaptcha ? hcaptcha.dataset.force : null;
 
 		if (
 			params.size === 'invisible' ||
+
 			// Prevent form submit when hCaptcha widget was manually solved.
 			( force === 'true' && this.isValidated() )
 		) {
