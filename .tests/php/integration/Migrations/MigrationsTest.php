@@ -245,6 +245,25 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test migrate_4_6_0().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_migrate_4_6_0(): void {
+		$method  = 'migrate_4_6_0';
+		$subject = Mockery::mock( Migrations::class )->makePartial();
+
+		$this->set_method_accessibility( $subject, $method );
+
+		$subject->$method();
+
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		self::assertSame( [ 'live' ], $option['cf7_status'] );
+	}
+
+	/**
 	 * Test save_license_level().
 	 *
 	 * @param string $license_level License level.
