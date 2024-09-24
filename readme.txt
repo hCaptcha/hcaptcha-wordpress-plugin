@@ -565,7 +565,8 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
-= 4.5.0 =
+= 4.6.0 =
+* Added option to show Live Form in CF7 admin.
 * Added uninstallation code to delete plugin data.
 * Improved compatibility with hCaptcha API.
 
