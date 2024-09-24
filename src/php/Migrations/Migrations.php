@@ -362,6 +362,24 @@ class Migrations {
 	}
 
 	/**
+	 * Migrate to 4.6.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_4_6_0(): ?bool {
+		$option     = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$cf7_status = $option['cf7_status'] ?? [];
+
+		// Turn on Live Form in admin by default.
+		$option['cf7_status'] = array_merge( $cf7_status, [ 'live' ] );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
+
+		return true;
+	}
+
+	/**
 	 * Save license level in settings.
 	 *
 	 * @return void

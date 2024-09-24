@@ -884,6 +884,7 @@ abstract class HCaptchaTestCase extends TestCase {
 						[
 							'form'  => 'Form Auto-Add',
 							'embed' => 'Form Embed',
+							'live'  => 'Live Form in Admin',
 						],
 				],
 			'divi_status'                      =>

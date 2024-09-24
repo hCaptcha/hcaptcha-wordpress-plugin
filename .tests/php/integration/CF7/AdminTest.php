@@ -47,15 +47,14 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test init_hooks().
 	 *
-	 * @param bool $mode_auto  Mode auto.
 	 * @param bool $mode_embed Mode embed.
+	 * @param bool $mode_live  Mode live.
 	 * @param bool $is_admin   Admin mode.
-	 * @param bool $expected   Hooks expected to be added.
 	 *
 	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks( bool $mode_auto, bool $mode_embed, bool $is_admin, bool $expected ): void {
-		$cf7_status = array_filter( [ $mode_auto ? 'form' : '', $mode_embed ? 'embed' : '' ] );
+	public function test_init_hooks( bool $mode_embed, bool $mode_live, bool $is_admin ): void {
+		$cf7_status = array_filter( [ $mode_embed ? 'embed' : '', $mode_live ? 'live' : '' ] );
 		$cf7_screen = 'toplevel_page_wpcf7';
 
 		if ( $is_admin ) {
@@ -76,15 +75,22 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Admin();
 
-		if ( $is_admin && $cf7_status ) {
+		if ( $is_admin ) {
 			set_current_screen( $cf7_screen );
 		}
 
-		if ( $expected ) {
+		if ( $mode_embed && $is_admin ) {
 			self::assertSame(
 				54,
 				has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] )
 			);
+		} else {
+			self::assertFalse(
+				has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] )
+			);
+		}
+
+		if ( $mode_live && $is_admin ) {
 			self::assertSame(
 				10,
 				has_action( 'current_screen', [ $subject, 'current_screen' ] )
@@ -107,9 +113,6 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 			);
 		} else {
 			self::assertFalse(
-				has_action( 'wpcf7_admin_init', [ $subject, 'add_tag_generator_hcaptcha' ] )
-			);
-			self::assertFalse(
 				has_action( 'current_screen', [ $subject, 'current_screen' ] )
 			);
 			self::assertFalse(
@@ -123,6 +126,24 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 			);
 			self::assertFalse( has_action( 'admin_enqueue_scripts', [ $subject, 'enqueue_admin_scripts_after_cf7' ] ) );
 		}
+	}
+
+	/**
+	 * Data provider for test_init_hooks().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_hooks(): array {
+		return [
+			[ false, false, false ],
+			[ false, false, true ],
+			[ false, true, false ],
+			[ false, true, true ],
+			[ true, false, false ],
+			[ true, false, true ],
+			[ true, true, false ],
+			[ true, true, true ],
+		];
 	}
 
 	/**
@@ -150,24 +171,6 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 		self::assertFalse(
 			has_action( 'current_screen', [ $subject, 'current_screen' ] )
 		);
-	}
-
-	/**
-	 * Data provider for test_init_hooks().
-	 *
-	 * @return array
-	 */
-	public function dp_test_init_hooks(): array {
-		return [
-			[ false, false, false, false ],
-			[ false, false, true, false ],
-			[ false, true, false, false ],
-			[ false, true, true, true ],
-			[ true, false, false, false ],
-			[ true, false, true, true ],
-			[ true, true, false, false ],
-			[ true, true, true, true ],
-		];
 	}
 
 	/**

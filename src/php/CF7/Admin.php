@@ -32,16 +32,17 @@ class Admin extends Base {
 	public function init_hooks(): void {
 		parent::init_hooks();
 
-		if ( ( ! $this->mode_auto && ! $this->mode_embed ) || ! is_admin() ) {
-			return;
-		}
-
 		if ( ! Pages::is_cf7_edit_page() ) {
 			return;
 		}
 
-		add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
-		add_action( 'current_screen', [ $this, 'current_screen' ] );
+		if ( $this->mode_embed ) {
+			add_action( 'wpcf7_admin_init', [ $this, 'add_tag_generator_hcaptcha' ], 54 );
+		}
+
+		if ( $this->mode_live ) {
+			add_action( 'current_screen', [ $this, 'current_screen' ] );
+		}
 	}
 
 	/**

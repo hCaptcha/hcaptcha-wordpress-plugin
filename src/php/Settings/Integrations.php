@@ -278,6 +278,7 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
 					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
+					'live'  => __( 'Live Form in Admin', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [
