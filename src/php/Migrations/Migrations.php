@@ -370,11 +370,14 @@ class Migrations {
 	protected function migrate_4_6_0(): ?bool {
 		$option     = get_option( PluginSettingsBase::OPTION_NAME, [] );
 		$cf7_status = $option['cf7_status'] ?? [];
+		$cf7_status = array_unique( array_merge( $cf7_status, [ 'live' ] ) );
 
-		// Turn on Live Form in admin by default.
-		$option['cf7_status'] = array_merge( $cf7_status, [ 'live' ] );
+		if ( $cf7_status !== $option['cf7_status'] ) {
+			// Turn on CF7 Live Form in admin by default.
+			$option['cf7_status'] = $cf7_status;
 
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
+			update_option( PluginSettingsBase::OPTION_NAME, $option );
+		}
 
 		return true;
 	}
