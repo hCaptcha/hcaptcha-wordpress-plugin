@@ -41,6 +41,11 @@ class Field extends GF_Field {
 	public const EDITOR_SCREEN_ID = 'toplevel_page_gf_edit_forms';
 
 	/**
+	 * Settings screen id.
+	 */
+	public const SETTINGS_SCREEN_ID = 'forms_page_gf_settings';
+
+	/**
 	 * Field type.
 	 *
 	 * @var string
@@ -62,7 +67,6 @@ class Field extends GF_Field {
 	 * Init class.
 	 *
 	 * @return void
-	 * @noinspection PhpDynamicFieldDeclarationInspection
 	 */
 	private function init(): void {
 		if ( ! hcaptcha()->settings()->is( 'gravity_status', 'embed' ) ) {
@@ -91,6 +95,7 @@ class Field extends GF_Field {
 		add_filter( 'gform_field_groups_form_editor', [ $this, 'add_to_field_groups' ] );
 		add_filter( 'gform_duplicate_field_link', [ $this, 'disable_duplication' ] );
 		add_action( 'admin_print_footer_scripts-' . self::EDITOR_SCREEN_ID, [ $this, 'enqueue_admin_script' ] );
+		add_action( 'admin_print_footer_scripts-' . self::SETTINGS_SCREEN_ID, [ $this, 'enqueue_admin_script' ] );
 		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 	}
 
@@ -285,13 +290,24 @@ class Field extends GF_Field {
 			true
 		);
 
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
 		wp_localize_script(
 			self::ADMIN_HANDLE,
 			self::OBJECT,
 			[
-				'onlyOne'   => __( 'Only one hCaptcha field can be added to the form.', 'hcaptcha-for-forms-and-more' ),
-				'OKBtnText' => __( 'OK', 'hcaptcha-for-forms-and-more' ),
+				'onlyOne'           => __( 'Only one hCaptcha field can be added to the form.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText'         => __( 'OK', 'hcaptcha-for-forms-and-more' ),
+				'noticeLabel'       => $notice['label'],
+				'noticeDescription' => $notice['description'],
 			]
+		);
+
+		wp_enqueue_style(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/admin-gravity-forms$min.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
 

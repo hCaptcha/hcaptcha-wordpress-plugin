@@ -1,0 +1,24 @@
+.hcaptcha-nav.active:focus {
+	border: 1px solid #e3e6ef;
+	box-shadow: 0 1px 4px rgba(18, 25, 97, .0779552);
+	margin-top: .125rem;
+}
+
+i.gform-icon--hcaptcha::before {
+	content: '';
+	display: block;
+	width: 24px;
+	height: 24px;
+	background-image: url(../images/hcaptcha-icon-black-and-white.svg);
+}
+
+.hcaptcha-notice label {
+	display: inline-block;
+	font-weight: 500;
+	margin-bottom: 8px;
+}
+
+.hcaptcha-notice p {
+	background: #edf2f7;
+	padding: 8px;
+}
