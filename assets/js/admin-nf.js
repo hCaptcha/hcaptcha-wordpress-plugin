@@ -20,9 +20,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 			const appChannel = nfRadio.channel( 'app' );
 
-			// this.monitorChannel( appChannel );
-			// this.monitorChannel( nfRadio.channel( 'fields' ) );
-
 			this.listenTo( appChannel, 'click:edit', this.editField );
 			this.listenTo( appChannel, 'click:closeDrawer', this.closeDrawer );
 
@@ -165,23 +162,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			const observer = new MutationObserver( callback );
 
 			observer.observe( document.getElementById( 'nf-main-body' ), config );
-		},
-
-		/**
-		 * Monitor channel.
-		 *
-		 * @param {Object} channel Channel.
-		 */
-		monitorChannel( channel ) {
-			const originalTrigger = channel.trigger;
-
-			channel.trigger = function( eventName, ...args ) {
-				// eslint-disable-next-line no-console
-				console.log( `Event in ${ channel.channelName }: ${ eventName }`, ...args );
-
-				// Call the original triggerMethod to ensure normal functionality.
-				return originalTrigger.apply( this, arguments );
-			};
 		},
 	} );
 
