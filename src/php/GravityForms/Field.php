@@ -102,10 +102,25 @@ class Field extends GF_Field {
 	 * @return array
 	 */
 	public function add_to_field_groups( array $field_groups ): array {
-		$field_groups['advanced_fields']['fields'][] = [
-			'data-type' => 'hcaptcha',
-			'value'     => 'hCaptcha',
-		];
+		$advanced_fields = $field_groups['advanced_fields']['fields'] ?? [];
+		$index           = array_search( 'captcha', array_column( $advanced_fields, 'data-type' ), true );
+
+		if ( false === $index ) {
+			return $field_groups;
+		}
+
+		$advanced_fields = array_merge(
+			array_slice( $advanced_fields, 0, $index ),
+			[
+				[
+					'data-type' => 'hcaptcha',
+					'value'     => 'hCaptcha',
+				],
+			],
+			array_slice( $advanced_fields, $index )
+		);
+
+		$field_groups['advanced_fields']['fields'] = $advanced_fields;
 
 		return $field_groups;
 	}

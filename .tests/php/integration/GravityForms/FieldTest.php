@@ -94,12 +94,42 @@ class FieldTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_to_field_groups(): void {
-		$expected = [
+		$field_groups = [
 			'advanced_fields' => [
 				'fields' => [
 					[
+						'data-type' => 'fileupload',
+						'value'     => 'File Upload',
+					],
+					[
+						'data-type' => 'captcha',
+						'value'     => 'CAPTCHA',
+					],
+					[
+						'data-type' => 'list',
+						'value'     => 'List',
+					],
+				],
+			],
+		];
+		$expected     = [
+			'advanced_fields' => [
+				'fields' => [
+					[
+						'data-type' => 'fileupload',
+						'value'     => 'File Upload',
+					],
+					[
 						'data-type' => 'hcaptcha',
 						'value'     => 'hCaptcha',
+					],
+					[
+						'data-type' => 'captcha',
+						'value'     => 'CAPTCHA',
+					],
+					[
+						'data-type' => 'list',
+						'value'     => 'List',
 					],
 				],
 			],
@@ -107,7 +137,8 @@ class FieldTest extends HCaptchaWPTestCase {
 
 		$subject = new Field();
 
-		self::assertSame( $expected, $subject->add_to_field_groups( [] ) );
+		self::assertSame( [], $subject->add_to_field_groups( [] ) );
+		self::assertSame( $expected, $subject->add_to_field_groups( $field_groups ) );
 	}
 
 	/**
