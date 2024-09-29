@@ -14,22 +14,6 @@ window.SetDefaultValues_hcaptcha = function( field ) {
 	return field;
 };
 
-const originalAddEventListener = EventTarget.prototype.addEventListener;
-
-EventTarget.prototype.addEventListener = function( type, listener, options ) {
-	const wrappedListener = function( event ) {
-		const ignoreTypes = [ 'mouseover', 'mousemove', 'mouseout', 'pointermove', 'blur' ];
-
-		if ( ! ignoreTypes.includes( type ) ) {
-			console.log( `Event: ${ type }`, event );
-		}
-
-		return listener.apply( this, arguments );
-	};
-
-	return originalAddEventListener.call( this, type, wrappedListener, options );
-};
-
 document.addEventListener( 'DOMContentLoaded', function() {
 	gform.addFilter(
 		'gform_form_editor_can_field_be_added',
