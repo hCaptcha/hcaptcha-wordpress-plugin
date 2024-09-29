@@ -570,6 +570,7 @@ Instructions for popular native integrations are below:
 * Added uninstallation code to delete plugin data.
 * Improved compatibility with hCaptcha API.
 * Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
+* Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.

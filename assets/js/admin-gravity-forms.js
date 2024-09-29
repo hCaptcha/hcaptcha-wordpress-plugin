@@ -1,4 +1,4 @@
-/* global gform, GetFieldsByType, HCaptchaGravityFormsObject, kaggDialog */
+/* global jQuery, gform, GetFieldsByType, HCaptchaGravityFormsObject, kaggDialog */
 
 /**
  * @param HCaptchaGravityFormsObject.onlyOne
@@ -12,6 +12,22 @@ window.SetDefaultValues_hcaptcha = function( field ) {
 	field.labelPlacement = 'hidden_label';
 
 	return field;
+};
+
+const originalAddEventListener = EventTarget.prototype.addEventListener;
+
+EventTarget.prototype.addEventListener = function( type, listener, options ) {
+	const wrappedListener = function( event ) {
+		const ignoreTypes = [ 'mouseover', 'mousemove', 'mouseout', 'pointermove', 'blur' ];
+
+		if ( ! ignoreTypes.includes( type ) ) {
+			console.log( `Event: ${ type }`, event );
+		}
+
+		return listener.apply( this, arguments );
+	};
+
+	return originalAddEventListener.call( this, type, wrappedListener, options );
 };
 
 document.addEventListener( 'DOMContentLoaded', function() {
@@ -36,4 +52,12 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			return value;
 		}
 	);
+} );
+
+jQuery( document ).ready( function( $ ) {
+	$( document ).on( 'gform_field_added', function( event, form, field ) {
+		if ( field.type === 'hcaptcha' ) {
+			window.hCaptchaBindEvents();
+		}
+	} );
 } );
