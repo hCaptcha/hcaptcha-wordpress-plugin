@@ -569,6 +569,7 @@ Instructions for popular native integrations are below:
 * Added option to show Live Form in CF7 admin.
 * Added uninstallation code to delete plugin data.
 * Improved compatibility with hCaptcha API.
+* Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.

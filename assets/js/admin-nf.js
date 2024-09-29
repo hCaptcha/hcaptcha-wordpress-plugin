@@ -1,8 +1,10 @@
-/* global Marionette, Backbone, HCaptchaAdminNFObject, kaggDialog */
+/* global Marionette, Backbone, HCaptchaAdminNFObject, kaggDialog, nfDashInlineVars */
 
 /**
- * @param HCaptchaAdminNFObject.onlyOne
  * @param HCaptchaAdminNFObject.OKBtnText
+ * @param HCaptchaAdminNFObject.hCaptchaTemplate
+ * @param HCaptchaAdminNFObject.onlyOne
+ * @param nfDashInlineVars.preloadedFormData.fields
  */
 
 document.addEventListener( 'DOMContentLoaded', function() {
@@ -17,6 +19,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			document.getElementById( 'nf-builder' ).addEventListener( 'mousedown', this.checkAddingHCaptcha, true );
 
 			const appChannel = nfRadio.channel( 'app' );
+
+			// this.monitorChannel( appChannel );
+			// this.monitorChannel( nfRadio.channel( 'fields' ) );
 
 			this.listenTo( appChannel, 'click:edit', this.editField );
 			this.listenTo( appChannel, 'click:closeDrawer', this.closeDrawer );
@@ -56,6 +61,30 @@ document.addEventListener( 'DOMContentLoaded', function() {
 					},
 				} );
 			}
+		},
+
+		/**
+		 * Render hCaptcha.
+		 *
+		 * @param {Object} node Node.
+		 */
+		renderHCaptcha( node ) {
+			const realElDiv = node.querySelector( '.nf-realistic-field--element div' );
+
+			if ( ! realElDiv ) {
+				return;
+			}
+
+			const hCaptcha = realElDiv.querySelector( '.h-captcha' );
+
+			if ( hCaptcha ) {
+				return;
+			}
+
+			const fields = nfDashInlineVars.preloadedFormData.fields;
+			const hCaptchaField = fields.find( ( field ) => field.type === fieldClass );
+
+			realElDiv.insertAdjacentHTML( 'beforeend', hCaptchaField.hcaptcha );
 		},
 
 		/**
@@ -120,6 +149,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 							window.hCaptchaBindEvents();
 						}
 
+						if ( node.classList && node.classList.contains( fieldClass ) ) {
+							this.renderHCaptcha( node );
+						}
+
 						return node;
 					} );
 				}
@@ -132,6 +165,23 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			const observer = new MutationObserver( callback );
 
 			observer.observe( document.getElementById( 'nf-main-body' ), config );
+		},
+
+		/**
+		 * Monitor channel.
+		 *
+		 * @param {Object} channel Channel.
+		 */
+		monitorChannel( channel ) {
+			const originalTrigger = channel.trigger;
+
+			channel.trigger = function( eventName, ...args ) {
+				// eslint-disable-next-line no-console
+				console.log( `Event in ${ channel.channelName }: ${ eventName }`, ...args );
+
+				// Call the original triggerMethod to ensure normal functionality.
+				return originalTrigger.apply( this, arguments );
+			};
 		},
 	} );
 
