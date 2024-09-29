@@ -285,7 +285,7 @@ class Field extends GF_Field {
 		wp_enqueue_script(
 			self::ADMIN_HANDLE,
 			HCAPTCHA_URL . "/assets/js/admin-gravity-forms$min.js",
-			[ self::DIALOG_HANDLE ],
+			[ 'jquery', 'hcaptcha', self::DIALOG_HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
