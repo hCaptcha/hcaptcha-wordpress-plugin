@@ -129,14 +129,14 @@ class HCaptcha {
 		}
 
 		?>
-		<div
+		<h-captcha
 				class="h-captcha"
 				data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 				data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
 				data-size="<?php echo esc_attr( $args['size'] ); ?>"
 				data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
 				data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
-		</div>
+		</h-captcha>
 		<?php
 
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {

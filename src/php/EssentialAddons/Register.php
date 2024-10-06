@@ -48,6 +48,8 @@ class Register {
 		add_action( 'eael/login-register/before-register', [ $this, 'verify' ] );
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
