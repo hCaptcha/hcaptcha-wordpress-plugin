@@ -188,8 +188,8 @@ JSON;
 
 		$hcaptcha = $this->get_hcap_form( $args );
 		$hcaptcha = str_replace(
-			'<div',
-			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $field_id . '"',
+			'<h-captcha',
+			'<h-captcha id="' . $hcaptcha_id . '" data-fieldId="' . $field_id . '"',
 			$hcaptcha
 		);
 		$search   = 'class="h-captcha"';
@@ -362,14 +362,14 @@ JSON;
 			]
 		);
 		$expected['settings']['hcaptcha'] =
-			$hcap_widget . "\n" . '				<div id="' . $uniqid . '" data-fieldId="' . $field_id . '"
+			$hcap_widget . "\n" . '				<h-captcha id="' . $uniqid . '" data-fieldId="' . $field_id . '"
 				class="h-captcha"
 				data-sitekey="some key"
 				data-theme="some theme"
 				data-size="some size"
 				data-auto="false"
 				data-force="false">
-		</div>
+		</h-captcha>
 		';
 
 		$subject = new NF();

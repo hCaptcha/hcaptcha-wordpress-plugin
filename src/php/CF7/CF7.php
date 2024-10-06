@@ -137,7 +137,7 @@ class CF7 extends Base {
 		$id        = $attr['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
 		$class     = $attr['cf7-class'] ?? '';
 		$hcap_form = preg_replace(
-			[ '/(<div\s+?class="h-captcha")/', '#</div>#' ],
+			[ '/(<h-captcha\s+?class="h-captcha")/', '#</h-captcha>#' ],
 			[ '<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"', '</span>' ],
 			$hcap_form
 		);

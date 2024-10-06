@@ -341,7 +341,7 @@ class FieldTest extends HCaptchaWPTestCase {
 
 		$script = wp_scripts()->registered[ Field::ADMIN_HANDLE ];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/admin-gravity-forms.min.js', $script->src );
-		self::assertSame( [ Field::DIALOG_HANDLE ], $script->deps );
+		self::assertSame( [ 'jquery', 'hcaptcha', Field::DIALOG_HANDLE ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
 
