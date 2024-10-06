@@ -7,6 +7,7 @@
 
 namespace HCaptcha\EssentialAddons;
 
+use HCaptcha\Helpers\Pages;
 use HCaptcha\Main;
 
 /**
@@ -28,6 +29,22 @@ trait Base {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Print hCaptcha script on edit page.
+	 *
+	 * @param bool|mixed $status Current print status.
+	 *
+	 * @return bool
+	 */
+	public function print_hcaptcha_scripts( $status ): bool {
+
+		if ( Pages::is_elementor_preview_page() ) {
+			return true;
+		}
+
+		return $status;
 	}
 
 	/**

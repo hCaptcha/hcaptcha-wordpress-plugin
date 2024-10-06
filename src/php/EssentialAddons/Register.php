@@ -50,6 +50,7 @@ class Register {
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 	}
 
 	/**
