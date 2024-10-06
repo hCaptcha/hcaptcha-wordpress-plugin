@@ -16,6 +16,11 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
 	margin-right: 0;
 }
 
+body.rtl.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
+	margin-right: unset;
+	margin-left: 0;
+}
+
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
 	display: grid;
 	grid-template-rows: subgrid;
@@ -66,6 +71,11 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1 {
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2 {
 	grid-row: 3;
 	grid-column: 1;
+}
+
+body.rtl.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2 {
+	margin-right: unset;
+	margin-left: 0;
 }
 
 @media screen and (max-width: 850px) {
