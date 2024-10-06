@@ -567,8 +567,8 @@ Instructions for popular native integrations are below:
 
 = 4.6.0 =
 * Added option to show Live Form in CF7 admin.
-* Added uninstallation code to delete plugin data.
 * Added hCaptcha tab on Gravity Forms settings page.
+* Added uninstallation code to delete plugin data.
 * Improved compatibility with hCaptcha API.
 * Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
 * Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
