@@ -20,6 +20,10 @@ trait Base {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
+		if ( ! Pages::is_elementor_preview_page() ) {
+			return;
+		}
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -39,12 +43,11 @@ trait Base {
 	 * @return bool
 	 */
 	public function print_hcaptcha_scripts( $status ): bool {
-
-		if ( Pages::is_elementor_preview_page() ) {
-			return true;
+		if ( ! Pages::is_elementor_preview_page() ) {
+			return (bool) $status;
 		}
 
-		return $status;
+		return true;
 	}
 
 	/**
