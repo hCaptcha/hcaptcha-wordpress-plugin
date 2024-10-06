@@ -573,6 +573,7 @@ Instructions for popular native integrations are below:
 * Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
 * Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
 * Fixed not rendering of hCaptcha in Essential Addons admin editor.
+* Fixed switching between Security Settings on Fluent Forms Global Settings page.
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
