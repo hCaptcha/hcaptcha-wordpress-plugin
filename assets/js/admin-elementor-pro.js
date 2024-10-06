@@ -49,6 +49,7 @@ class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 		inputField += HCaptchaAdminElementorPro.getHCaptchaForm( item );
 		inputField += '</div>';
 		inputField += '</div>';
+
 		return inputField;
 	}
 
