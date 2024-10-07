@@ -574,6 +574,7 @@ Instructions for popular native integrations are below:
 * Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
 * Fixed not rendering of hCaptcha in Essential Addons admin editor.
 * Fixed switching between Security Settings on Fluent Forms Global Settings page.
+* Fixed layout for settings pages with RTL languages.
 * Fixed layout for Contact Form 7 with RTL languages.
 
 = 4.5.0 =
