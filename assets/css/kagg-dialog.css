@@ -1,8 +1,8 @@
 body div.kagg-dialog {
 	position: fixed;
 	top: 0;
-	left: 0;
-	right: 0;
+	inset-inline-start: 0;
+	inset-inline-end: 0;
 	bottom: 0;
 	z-index: 99999999;
 	font-family: inherit;
@@ -24,8 +24,8 @@ body div.kagg-dialog .kagg-dialog-bg {
 body div.kagg-dialog .kagg-dialog-bg {
 	position: fixed;
 	top: 0;
-	left: 0;
-	right: 0;
+	inset-inline-start: 0;
+	inset-inline-end: 0;
 	bottom: 0;
 	-webkit-transition: opacity .4s;
 	transition: opacity .4s;
@@ -144,6 +144,9 @@ body div.kagg-dialog.info .kagg-dialog-container .kagg-dialog-box .kagg-dialog-b
 
 @media (max-width: 782px) {
 	body div.kagg-dialog .kagg-dialog-container {
-		margin: 0 12px 0 10px;
+		margin-block-start: 0;
+		margin-inline-end: 12px;
+		margin-block-end: 0;
+		margin-inline-start: 10px;
 	}
 }
