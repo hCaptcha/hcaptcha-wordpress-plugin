@@ -1,6 +1,6 @@
 === hCaptcha for WP ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, antispam, abuse, protect form
+Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.2
