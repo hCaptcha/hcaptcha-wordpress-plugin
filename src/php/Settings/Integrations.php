@@ -508,6 +508,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'simple_membership_status'         => [
+				'label'   => 'Simple Membership',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'spectra_status'                   => [
 				'label'   => 'Spectra',
 				'logo'    => 'svg',
