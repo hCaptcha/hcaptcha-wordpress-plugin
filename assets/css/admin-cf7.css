@@ -16,12 +16,6 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
 	margin-inline-end: 0;
 }
 
-body.rtl.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
-	/* margin-right: unset; */
-	/* margin-left: 0; */
-	/* direction: rtl; */
-}
-
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
 	display: grid;
 	grid-template-rows: subgrid;
