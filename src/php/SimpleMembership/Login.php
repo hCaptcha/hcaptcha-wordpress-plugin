@@ -48,15 +48,10 @@ class Login extends LoginBase {
 			return $output;
 		}
 
-		$hcaptcha = '';
+		ob_start();
 
-		// Check the login status, because class is always loading when Simple Membership is active.
-		if ( hcaptcha()->settings()->is( 'simple_membership_status', 'login' ) ) {
-			ob_start();
-
-			$this->add_captcha();
-			$hcaptcha = (string) ob_get_clean();
-		}
+		$this->add_captcha();
+		$hcaptcha = (string) ob_get_clean();
 
 		ob_start();
 

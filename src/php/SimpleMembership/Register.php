@@ -18,12 +18,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	private const ACTION = 'hcaptcha_profile_builder_register';
+	private const ACTION = 'hcaptcha_simple_membership_register';
 
 	/**
 	 * Nonce name.
 	 */
-	private const NONCE = 'hcaptcha_profile_builder_register_nonce';
+	private const NONCE = 'hcaptcha_simple_membership_register_nonce';
 
 	/**
 	 * The hCaptcha validation error message.
@@ -36,7 +36,7 @@ class Register {
 	 * Constructor.
 	 */
 	public function __construct() {
-//		$this->init_hooks();
+		$this->init_hooks();
 	}
 
 	/**
@@ -45,19 +45,27 @@ class Register {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
-		add_action( 'wppb_register_form_content', [ $this, 'add_captcha' ] );
-		add_filter( 'wppb_output_field_errors_filter', [ $this, 'verify' ], 10, 4 );
-		add_filter( 'wppb_general_top_error_message', [ $this, 'general_top_error_message' ] );
+		add_action( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
+		add_filter( 'swpm_validate_registration_form_submission', [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
-	 * Add captcha.
+	 * Filters the output created by a shortcode callback and adds hCaptcha.
 	 *
-	 * @param string|mixed $form_content Form content.
+	 * @param string|mixed $output Shortcode output.
+	 * @param string       $tag    Shortcode name.
+	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $form_content ) {
+	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
+		if ( 'swpm_registration_form' !== $tag ) {
+			return $output;
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -67,55 +75,42 @@ class Register {
 			],
 		];
 
-		// Do not close this tag.
-		$search = '<p class="form-submit"';
+		$hcaptcha = HCaptcha::form( $args );
 
-		return str_replace( $search, HCaptcha::form( $args ) . $search, $form_content );
+		$pattern     = '/(<div class="swpm-form-row swpm-submit-section swpm-registration-submit-section">)/';
+		$replacement = $hcaptcha . "\n$1";
+
+		// Insert hCaptcha.
+		return (string) preg_replace( $pattern, $replacement, $output );
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify a login form.
 	 *
-	 * @param string[]|mixed $output_field_errors Validation errors.
-	 * @param array          $form_fields         Form fields.
-	 * @param array          $global_request      Copy of $_POST.
-	 * @param string         $form_type           Form type.
-	 *
-	 * @return WP_Error|mixed
-	 * @noinspection PhpUnusedParameterInspection
+	 * @return string
 	 */
-	public function verify( $output_field_errors, array $form_fields, array $global_request, string $form_type ) {
-		if ( 'register' !== $form_type ) {
-			return $output_field_errors;
-		}
-
-		$this->error_message = hcaptcha_verify_post(
+	public function verify(): string {
+		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
 		);
 
-		if ( null === $this->error_message ) {
-			return $output_field_errors;
-		}
-
-		$output_field_errors   = (array) $output_field_errors;
-		$output_field_errors[] = $this->error_message;
-
-		return $output_field_errors;
+		return (string) $error_message;
 	}
 
 	/**
-	 * Error message.
+	 * Print inline styles.
 	 *
-	 * @param string|mixed $top_error_message Error message.
-	 *
-	 * @return string|mixed
+	 * @return void
+	 * @noinspection CssUnusedSymbol
 	 */
-	public function general_top_error_message( $top_error_message ) {
-		if ( ! $this->error_message ) {
-			return $top_error_message;
-		}
+	public function print_inline_styles(): void {
+		$css = <<<CSS
+	#swpm-registration-form .h-captcha {
+		margin: 10px 0;
+	}
+CSS;
 
-		return $top_error_message . '<p class="wppb-error">' . $this->error_message . '</p>';
+		HCaptcha::css_display( $css );
 	}
 }
