@@ -50,14 +50,14 @@ class Form {
 	 *
 	 * @var int
 	 */
-	private $form_id = 0;
+	protected $form_id = 0;
 
 	/**
 	 * Form has hCaptcha field.
 	 *
 	 * @var bool
 	 */
-	private $has_hcaptcha_field;
+	protected $has_hcaptcha_field = false;
 
 	/**
 	 * Quform constructor.
@@ -274,7 +274,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_forminator_admin_page(): bool {
+	protected function is_forminator_admin_page(): bool {
 		if ( ! is_admin() ) {
 			return false;
 		}

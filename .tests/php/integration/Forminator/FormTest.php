@@ -12,15 +12,16 @@
 
 namespace HCaptcha\Tests\Integration\Forminator;
 
-use FluentForm\App\Models\Form as FluentForm;
-use HCaptcha\FluentForm\Form;
+use Forminator_Front_Action;
+use HCaptcha\Forminator\Form;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 
 /**
- * Test FluentForm.
+ * Test Forminator Form.
  *
- * @group fluentform
+ * @group forminator
  */
 class FormTest extends HCaptchaWPTestCase {
 
@@ -30,89 +31,71 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_constructor_and_init_hooks(): void {
 		$subject = new Form();
 
-		self::assertSame(
-			9,
-			has_action( 'fluentform/render_item_submit_button', [ $subject, 'add_captcha' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'fluentform/validation_errors', [ $subject, 'verify' ] )
-		);
-		self::assertSame(
-			9,
-			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
-		);
-		self::assertSame(
-			10,
-			has_filter( 'fluentform/rendering_form', [ $subject, 'fluentform_rendering_form_filter' ] )
-		);
+		self::assertSame( 10, has_action( 'forminator_before_form_render', [ $subject, 'before_form_render' ] ) );
+		self::assertSame( 10, has_filter( 'forminator_render_button_markup', [ $subject, 'add_hcaptcha' ] ) );
+		self::assertSame( 10, has_filter( 'forminator_cform_form_is_submittable', [ $subject, 'verify' ] ) );
+
+		self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
+		self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
+
+		self::assertSame( 10, has_filter( 'forminator_field_markup', [ $subject, 'replace_hcaptcha_field' ] ) );
 	}
 
 	/**
-	 * Test add_captcha().
+	 * Test before_form_render().
+	 *
+	 * @return void
 	 */
-	public function test_add_captcha(): void {
-		hcaptcha()->init_hooks();
-
-		$form_id = 1;
-		$form    = (object) [
-			'id' => $form_id,
+	public function test_before_form_render(): void {
+		$id            = 5;
+		$form_type     = 'some form type';
+		$post_id       = 123;
+		$form_fields   = [
+			[
+				'type'             => 'captcha',
+				'captcha_provider' => 'hcaptcha',
+			],
 		];
+		$form_settings = [ 'some form settings' ];
 
-		$mock = Mockery::mock( Form::class )->makePartial();
-		$mock->shouldAllowMockingProtectedMethods();
+		$subject = new Form();
 
-		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( false );
+		$subject->before_form_render( $id, $form_type, $post_id, $form_fields, $form_settings );
 
+		self::assertTrue( $this->get_protected_property( $subject, 'has_hcaptcha_field' ) );
+		self::assertSame( $id, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
+	 * Test add_hcaptcha().
+	 */
+	public function test_add_hcaptcha(): void {
+		$form_id   = 5;
 		$hcap_form = $this->get_hcap_form(
 			[
-				'action' => 'hcaptcha_fluentform',
-				'name'   => 'hcaptcha_fluentform_nonce',
+				'action' => 'hcaptcha_forminator',
+				'name'   => 'hcaptcha_forminator_nonce',
 				'id'     => [
-					'source'  => [ 'fluentform/fluentform.php' ],
+					'source'  => [ 'forminator/forminator.php' ],
 					'form_id' => $form_id,
 				],
 			]
 		);
+		$html      = '<form>Some content<button>Submit</button></form>';
+		$button    = 'Some button';
+		$expected  = str_replace( '<button ', $hcap_form . '<button ', $html );
 
-		ob_start();
-		?>
-		<div class="ff-el-group">
-			<div class="ff-el-input--content">
-				<div data-fluent_id="<?php echo (int) $form->id; ?>" name="h-captcha-response">
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $hcap_form;
-					?>
-				</div>
-			</div>
-		</div>
-		<?php
-		$expected = ob_get_clean();
+		$subject = new Form();
 
-		ob_start();
-		$mock->add_captcha( [], $form );
+		$this->set_protected_property( $subject, 'form_id', $form_id );
 
-		self::assertSame( $expected, ob_get_clean() );
-	}
+		self::assertSame( $html, $subject->add_hcaptcha( $html, $button ) );
 
-	/**
-	 * Test add_captcha() with own captcha.
-	 */
-	public function test_add_captcha_with_own_captcha(): void {
-		hcaptcha()->init_hooks();
+		$this->set_protected_property( $subject, 'has_hcaptcha_field', true );
 
-		$form = (object) [];
-
-		$mock = Mockery::mock( Form::class )->makePartial();
-		$mock->shouldAllowMockingProtectedMethods();
-
-		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( true );
-
-		ob_start();
-		$mock->add_captcha( [], $form );
-
-		self::assertSame( '', ob_get_clean() );
+		self::assertSame( $expected, $subject->add_hcaptcha( $html, $button ) );
 	}
 
 	/**
@@ -121,20 +104,35 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_no_success(): void {
-		$errors = [
-			'some_error'         => 'Some error description',
-			'h-captcha-response' => [ 'Please complete the hCaptcha.' ],
+		$id            = 5;
+		$form_settings = [ 'some form settings' ];
+		$error_message = 'The hCaptcha is invalid.';
+		$module_object = (object) [
+			'fields' => [
+				(object) [
+					'raw' => [
+						'captcha_provider' => 'hcaptcha',
+					],
+				],
+			],
 		];
-		$data   = [];
-		$form   = Mockery::mock( FluentForm::class );
-		$fields = [];
+		$expected      = [
+			'can_submit' => false,
+			'error'      => $error_message,
+		];
 
-		$mock = Mockery::mock( Form::class )->makePartial();
-		$mock->shouldAllowMockingProtectedMethods();
+		$this->prepare_hcaptcha_get_verify_message(
+			'hcaptcha_forminator_nonce',
+			'hcaptcha_forminator',
+			false
+		);
 
-		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( true );
+		Forminator_Front_Action::$module_object = $module_object;
 
-		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
+		$subject = new Form();
+
+		self::assertSame( $expected, $subject->verify( true, $id, $form_settings ) );
+		self::assertEquals( (object) [ 'fields' => [] ], $module_object );
 	}
 
 	/**
@@ -143,23 +141,146 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$errors                         = [
-			'some_error' => 'Some error description',
+		$id            = 5;
+		$form_settings = [ 'some form settings' ];
+		$module_object = (object) [
+			'fields' => [
+				(object) [
+					'raw' => [
+						'captcha_provider' => 'hcaptcha',
+					],
+				],
+			],
 		];
-		$data                           = [];
-		$form                           = Mockery::mock( FluentForm::class );
-		$fields                         = [];
-		$response                       = 'some response';
-		$expected                       = $errors;
-		$expected['h-captcha-response'] = [ 'Please complete the hCaptcha.' ];
 
-		$mock = Mockery::mock( Form::class )->makePartial();
-		$mock->shouldAllowMockingProtectedMethods();
+		$this->prepare_hcaptcha_get_verify_message(
+			'hcaptcha_forminator_nonce',
+			'hcaptcha_forminator'
+		);
 
-		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( false );
+		Forminator_Front_Action::$module_object = $module_object;
 
-		$this->prepare_hcaptcha_request_verify( $response, false );
+		$subject = new Form();
 
-		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+		self::assertTrue( $subject->verify( true, $id, $form_settings ) );
+		self::assertEquals( (object) [ 'fields' => [] ], $module_object );
+	}
+
+	/**
+	 * Test print_hcaptcha_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_print_hcaptcha_scripts(): void {
+		wp_enqueue_script(
+			'forminator-hcaptcha',
+			'forminator-hcaptcha.js',
+			[],
+			'1.0.0',
+			true
+		);
+
+		self::assertTrue( wp_script_is( 'forminator-hcaptcha' ) );
+		self::assertTrue( wp_script_is( 'forminator-hcaptcha', 'registered' ) );
+
+		$subject = new Form();
+
+		$this->set_protected_property( $subject, 'has_hcaptcha_field', true );
+
+		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
+
+		self::assertFalse( wp_script_is( 'forminator-hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'forminator-hcaptcha', 'registered' ) );
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_scripts(): void {
+		$handle = 'hcaptcha-forminator';
+
+		$subject = new Form();
+
+		self::assertFalse( wp_script_is( $handle ) );
+
+		$subject->enqueue_scripts();
+
+		self::assertFalse( wp_script_is( $handle ) );
+
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( $handle ) );
+	}
+
+	/**
+	 * Test admin_enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_admin_enqueue_scripts(): void {
+		$admin_handle   = 'admin-forminator';
+		$notice         = HCaptcha::get_hcaptcha_plugin_notice();
+		$params         = [
+			'noticeLabel'       => $notice['label'],
+			'noticeDescription' => html_entity_decode( $notice['description'] ),
+		];
+		$expected_extra = [
+			'group' => 1,
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'data'  => 'var HCaptchaForminatorObject = ' . json_encode( $params ) . ';',
+		];
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_forminator_admin_page' )->andReturn( true );
+
+		self::assertFalse( wp_script_is( $admin_handle ) );
+
+		$subject->admin_enqueue_scripts();
+
+		self::assertTrue( wp_script_is( $admin_handle ) );
+
+		$script = wp_scripts()->registered[ $admin_handle ];
+
+		self::assertSame( HCAPTCHA_URL . '/assets/js/admin-forminator.min.js', $script->src );
+		self::assertSame( [ 'jquery' ], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+		self::assertSame( $expected_extra, $script->extra );
+
+		self::assertTrue( wp_style_is( $admin_handle ) );
+
+		$style = wp_styles()->registered[ $admin_handle ];
+
+		self::assertSame( HCAPTCHA_URL . '/assets/css/admin-forminator.min.css', $style->src );
+		self::assertSame( [], $style->deps );
+		self::assertSame( HCAPTCHA_VERSION, $style->ver );
+	}
+
+	/**
+	 * Test admin_enqueue_scripts() when not on Forminator page.
+	 *
+	 * @return void
+	 */
+	public function test_admin_enqueue_scripts_not_on_forminator_page(): void {
+		$admin_handle = 'admin-forminator';
+
+		wp_dequeue_script( $admin_handle );
+		wp_deregister_script( $admin_handle );
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_forminator_admin_page' )->andReturn( false );
+
+		self::assertFalse( wp_script_is( $admin_handle ) );
+
+		$subject->admin_enqueue_scripts();
+
+		self::assertFalse( wp_script_is( $admin_handle ) );
 	}
 }
