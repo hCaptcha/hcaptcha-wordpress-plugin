@@ -266,6 +266,10 @@ Profile Builder
 `$source: 'profile-builder/index.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
 
+Simple Membership
+`$source: 'simple-membership/simple-wp-membership.php'`
+`$form_id: 'login', 'lost_password' or 'register'`
+
 Subscriber
 `$source: 'subscriber/subscriber.php'`
 `$form_id: 'form'`
@@ -566,6 +570,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.6.0 =
+* Added support for Simple Membership Login, Register and Lost Password forms.
 * Added option to show Live Form in CF7 admin.
 * Added hCaptcha tab on Gravity Forms settings page.
 * Added uninstallation code to delete plugin data.
