@@ -1147,6 +1147,15 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'simple_membership_status'         => [
+				'label'   => 'Simple Membership',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => 'Login Form',
+					'register'  => 'Register Form',
+					'lost_pass' => 'Password Reset Form',
+				],
+			],
 			'spectra_status'                   => [
 				'label'   => 'Spectra',
 				'logo'    => 'svg',

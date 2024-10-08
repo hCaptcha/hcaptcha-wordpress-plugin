@@ -436,6 +436,10 @@ Simple Basic Contact Form:
   Form:                               Off
 Simple Download Monitor:              
   Form:                               Off
+Simple Membership:                    
+  Login Form:                         Off
+  Register Form:                      Off
+  Password Reset Form:                Off
 Spectra:                              
   Form:                               Off
 Subscriber:                           
