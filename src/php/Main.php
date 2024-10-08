@@ -1210,6 +1210,11 @@ CSS;
 				'simple-membership/simple-wp-membership.php',
 				SimpleMembership\Register::class,
 			],
+			'Simple Membership Password Reset'           => [
+				[ 'simple_membership_status', 'lost_pass' ],
+				'simple-membership/simple-wp-membership.php',
+				SimpleMembership\LostPassword::class,
+			],
 			'Spectra'                              => [
 				[ 'spectra_status', 'form' ],
 				'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php',

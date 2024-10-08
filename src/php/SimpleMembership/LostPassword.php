@@ -1,6 +1,6 @@
 <?php
 /**
- * `Register` class file.
+ * LostPassword class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,9 +10,9 @@ namespace HCaptcha\SimpleMembership;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
- * Class Register.
+ * Class LostPassword.
  */
-class Register {
+class LostPassword {
 
 	/**
 	 * Nonce action.
@@ -38,7 +38,7 @@ class Register {
 	 */
 	protected function init_hooks(): void {
 		add_action( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
-		add_filter( 'swpm_validate_registration_form_submission', [ $this, 'verify' ] );
+		add_filter( 'swpm_validate_pass_reset_form_submission', [ $this, 'verify' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
@@ -54,7 +54,7 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
-		if ( 'swpm_registration_form' !== $tag ) {
+		if ( 'swpm_reset_form' !== $tag ) {
 			return $output;
 		}
 
@@ -63,13 +63,13 @@ class Register {
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
+				'form_id' => 'lost_password',
 			],
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
 
-		$pattern     = '/(<div class="swpm-form-row swpm-submit-section swpm-registration-submit-section">)/';
+		$pattern     = '/(<div class="swpm-pw-reset-submit-button">)/';
 		$replacement = $hcaptcha . "\n$1";
 
 		// Insert hCaptcha.
@@ -98,7 +98,7 @@ class Register {
 	 */
 	public function print_inline_styles(): void {
 		$css = <<<CSS
-	#swpm-registration-form .h-captcha {
+	#swpm-pw-reset-form .h-captcha {
 		margin: 10px 0;
 	}
 CSS;

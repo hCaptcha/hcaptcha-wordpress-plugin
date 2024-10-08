@@ -512,8 +512,9 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'Simple Membership',
 				'type'    => 'checkbox',
 				'options' => [
-					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Password Reset Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'spectra_status'                   => [
