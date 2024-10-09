@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 4.5.0
+Stable tag: 4.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -533,6 +533,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Quform Forms
 * Sendinblue Form
 * Simple Download Monitor Form
+* Simple Membership Login, Lost Password, and Register Forms
 * Simple Basic Contact Form
 * Spectra — WordPress Gutenberg Blocks Form
 * Subscriber Form

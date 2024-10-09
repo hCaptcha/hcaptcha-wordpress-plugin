@@ -96,7 +96,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'wp_status'                    => [],
 			'bbp_status'                   => [],
 			'bp_status'                    => [],
-			'cf7_status'                   => [],
+			'cf7_status'                   => [ 'live' ],
 			'divi_status'                  => [],
 			'elementor_pro_status'         => [],
 			'fluent_status'                => [],
