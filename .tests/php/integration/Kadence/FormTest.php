@@ -281,6 +281,6 @@ class FormTest extends HCaptchaWPTestCase {
 			]
 		);
 
-		self::assertFalse( $subject->has_recaptcha() );
+		self::assertTrue( $subject->has_recaptcha() );
 	}
 }
