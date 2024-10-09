@@ -48,6 +48,19 @@ class Pages {
 	}
 
 	/**
+	 * Check if the current page is an Elementor preview page.
+	 *
+	 * @return bool
+	 * @noinspection PhpUnused
+	 */
+	public static function is_elementor_preview_page(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$elementor_preview = Request::filter_input( INPUT_GET, 'elementor-preview' );
+
+		return (bool) filter_var( $elementor_preview, FILTER_VALIDATE_INT );
+	}
+
+	/**
 	 * Check if the current page is an Elementor Pro post/page edit page.
 	 *
 	 * @return bool

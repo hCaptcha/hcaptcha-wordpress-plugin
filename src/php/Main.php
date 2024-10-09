@@ -1200,6 +1200,21 @@ CSS;
 				'simple-download-monitor/main.php',
 				SimpleDownloadMonitor\Form::class,
 			],
+			'Simple Membership Login'              => [
+				[ 'simple_membership_status', 'login' ],
+				'simple-membership/simple-wp-membership.php',
+				SimpleMembership\Login::class,
+			],
+			'Simple Membership Register'           => [
+				[ 'simple_membership_status', 'register' ],
+				'simple-membership/simple-wp-membership.php',
+				SimpleMembership\Register::class,
+			],
+			'Simple Membership Password Reset'     => [
+				[ 'simple_membership_status', 'lost_pass' ],
+				'simple-membership/simple-wp-membership.php',
+				SimpleMembership\LostPassword::class,
+			],
 			'Spectra'                              => [
 				[ 'spectra_status', 'form' ],
 				'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php',

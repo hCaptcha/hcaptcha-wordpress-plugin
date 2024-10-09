@@ -2,7 +2,7 @@
  * Ninja Forms controller file.
  */
 
-/* global hcaptcha, Marionette, nfRadio */
+/* global Marionette, nfRadio */
 
 wp.hooks.addFilter(
 	'hcaptcha.ajaxSubmitButton',
@@ -45,14 +45,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				);
 			} else {
 				const fieldId = model.get( 'id' );
-				const widget = document.querySelector( '.h-captcha[data-fieldId="' + fieldId + '"] iframe' );
+				const hcapResponse = document.querySelector(
+					'.h-captcha[data-fieldId="' + fieldId + '"] textarea[name="h-captcha-response"]'
+				);
 
-				if ( ! widget ) {
-					return;
-				}
-
-				const widgetId = widget.dataset.hcaptchaWidgetId;
-				const hcapResponse = hcaptcha.getResponse( widgetId );
 				model.set( 'value', hcapResponse );
 			}
 		},

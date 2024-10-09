@@ -96,7 +96,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'wp_status'                    => [],
 			'bbp_status'                   => [],
 			'bp_status'                    => [],
-			'cf7_status'                   => [],
+			'cf7_status'                   => [ 'live' ],
 			'divi_status'                  => [],
 			'elementor_pro_status'         => [],
 			'fluent_status'                => [],
@@ -242,6 +242,25 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject->$method();
 
 		self::assertSame( array_filter( explode( ';', $expected_query ) ), $actual_query );
+	}
+
+	/**
+	 * Test migrate_4_6_0().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_migrate_4_6_0(): void {
+		$method  = 'migrate_4_6_0';
+		$subject = Mockery::mock( Migrations::class )->makePartial();
+
+		$this->set_method_accessibility( $subject, $method );
+
+		$subject->$method();
+
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		self::assertSame( [ 'live' ], $option['cf7_status'] );
 	}
 
 	/**

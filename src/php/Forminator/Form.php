@@ -50,14 +50,14 @@ class Form {
 	 *
 	 * @var int
 	 */
-	private $form_id = 0;
+	protected $form_id = 0;
 
 	/**
 	 * Form has hCaptcha field.
 	 *
 	 * @var bool
 	 */
-	private $has_hcaptcha_field;
+	protected $has_hcaptcha_field = false;
 
 	/**
 	 * Quform constructor.
@@ -168,9 +168,7 @@ class Form {
 			return true;
 		}
 
-		$is_forminator_wizard_page = $this->is_forminator_admin_page();
-
-		return $is_forminator_wizard_page ? true : $status;
+		return $this->is_forminator_admin_page() ? true : $status;
 	}
 
 	/**
@@ -274,7 +272,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_forminator_admin_page(): bool {
+	protected function is_forminator_admin_page(): bool {
 		if ( ! is_admin() ) {
 			return false;
 		}
@@ -282,7 +280,9 @@ class Form {
 		$screen = get_current_screen();
 
 		if ( ! $screen ) {
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$forminator_admin_pages = [

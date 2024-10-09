@@ -62,6 +62,13 @@ class FieldTest extends HCaptchaWPTestCase {
 					[ $subject, 'enqueue_admin_script' ]
 				)
 			);
+			self::assertSame(
+				10,
+				has_action(
+					'admin_print_footer_scripts-' . Field::SETTINGS_SCREEN_ID,
+					[ $subject, 'enqueue_admin_script' ]
+				)
+			);
 			self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 		} else {
 			self::assertFalse( has_filter( 'gform_field_groups_form_editor', [ $subject, 'add_to_field_groups' ] ) );
@@ -69,6 +76,12 @@ class FieldTest extends HCaptchaWPTestCase {
 			self::assertFalse(
 				has_action(
 					'admin_print_footer_scripts-' . Field::EDITOR_SCREEN_ID,
+					[ $subject, 'enqueue_admin_script' ]
+				)
+			);
+			self::assertFalse(
+				has_action(
+					'admin_print_footer_scripts-' . Field::SETTINGS_SCREEN_ID,
 					[ $subject, 'enqueue_admin_script' ]
 				)
 			);
@@ -94,12 +107,42 @@ class FieldTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_to_field_groups(): void {
-		$expected = [
+		$field_groups = [
 			'advanced_fields' => [
 				'fields' => [
 					[
+						'data-type' => 'fileupload',
+						'value'     => 'File Upload',
+					],
+					[
+						'data-type' => 'captcha',
+						'value'     => 'CAPTCHA',
+					],
+					[
+						'data-type' => 'list',
+						'value'     => 'List',
+					],
+				],
+			],
+		];
+		$expected     = [
+			'advanced_fields' => [
+				'fields' => [
+					[
+						'data-type' => 'fileupload',
+						'value'     => 'File Upload',
+					],
+					[
 						'data-type' => 'hcaptcha',
 						'value'     => 'hCaptcha',
+					],
+					[
+						'data-type' => 'captcha',
+						'value'     => 'CAPTCHA',
+					],
+					[
+						'data-type' => 'list',
+						'value'     => 'List',
 					],
 				],
 			],
@@ -107,7 +150,8 @@ class FieldTest extends HCaptchaWPTestCase {
 
 		$subject = new Field();
 
-		self::assertSame( $expected, $subject->add_to_field_groups( [] ) );
+		self::assertSame( [], $subject->add_to_field_groups( [] ) );
+		self::assertSame( $expected, $subject->add_to_field_groups( $field_groups ) );
 	}
 
 	/**
@@ -264,8 +308,10 @@ class FieldTest extends HCaptchaWPTestCase {
 	 */
 	public function test_enqueue_admin_script(): void {
 		$params = [
-			'onlyOne'   => 'Only one hCaptcha field can be added to the form.',
-			'OKBtnText' => 'OK',
+			'onlyOne'           => 'Only one hCaptcha field can be added to the form.',
+			'OKBtnText'         => 'OK',
+			'noticeLabel'       => 'hCaptcha plugin is active',
+			'noticeDescription' => 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general" target="_blank">General settings page</a>.',
 		];
 
 		$expected_extra = [
@@ -295,9 +341,14 @@ class FieldTest extends HCaptchaWPTestCase {
 
 		$script = wp_scripts()->registered[ Field::ADMIN_HANDLE ];
 		self::assertSame( HCAPTCHA_URL . '/assets/js/admin-gravity-forms.min.js', $script->src );
-		self::assertSame( [ Field::DIALOG_HANDLE ], $script->deps );
+		self::assertSame( [ 'jquery', 'hcaptcha', Field::DIALOG_HANDLE ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
+
+		$style = wp_styles()->registered[ Field::ADMIN_HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/css/admin-gravity-forms.min.css', $style->src );
+		self::assertSame( [], $style->deps );
+		self::assertSame( HCAPTCHA_VERSION, $style->ver );
 	}
 
 	/**

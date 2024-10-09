@@ -289,8 +289,8 @@ class NF implements Base {
 		$hcaptcha = HCaptcha::form( $args );
 
 		return str_replace(
-			'<div',
-			'<div id="' . $hcaptcha_id . '" data-fieldId="' . $field_id . '"',
+			'<h-captcha',
+			'<h-captcha id="' . $hcaptcha_id . '" data-fieldId="' . $field_id . '"',
 			$hcaptcha
 		);
 	}

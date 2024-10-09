@@ -37,37 +37,36 @@ class HCaptcha {
 	 * Get found form by id.
 	 *
 	 * @param {string} id hCaptcha id.
-	 * @return {*} Form id.
+	 *
+	 * @return {Object|null} Form data.
 	 */
 	getFoundFormById( id ) {
 		const forms = this.foundForms.filter( ( form ) => id === form.hCaptchaId );
-		return forms[ 0 ];
+
+		return forms[ 0 ] ?? null;
 	}
 
 	/**
 	 * Get hCaptcha widget id.
 	 *
 	 * @param {HTMLDivElement} el Form element.
+	 *
 	 * @return {string} Widget id.
 	 */
 	getWidgetId( el ) {
-		if ( typeof el === 'undefined' ) {
+		if ( el === undefined ) {
 			return '';
 		}
 
-		const hcaptcha = el.getElementsByClassName( 'h-captcha' )[ 0 ];
+		const id = el.closest( this.formSelector )?.dataset?.hCaptchaId ?? '';
 
-		if ( typeof hcaptcha === 'undefined' ) {
+		if ( ! id ) {
 			return '';
 		}
 
-		const iframe = hcaptcha.getElementsByTagName( 'iframe' )[ 0 ];
+		const form = this.getFoundFormById( id );
 
-		if ( typeof iframe === 'undefined' ) {
-			return '';
-		}
-
-		return iframe.dataset.hcaptchaWidgetId ?? '';
+		return form?.widgetId ?? '';
 	}
 
 	/**
@@ -114,6 +113,7 @@ class HCaptcha {
 		const formElement = event.currentTarget.closest( this.formSelector );
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
 		const submitButtonElement = form.submitButtonElement;
+		const widgetId = form.widgetId;
 
 		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
 			return;
@@ -123,14 +123,13 @@ class HCaptcha {
 		event.stopPropagation();
 
 		this.currentForm = { formElement, submitButtonElement };
-		const widgetId = this.getWidgetId( formElement );
 
 		if ( ! widgetId ) {
 			return;
 		}
 
-		const iframe = formElement.querySelector( '.h-captcha iframe' );
-		const token = iframe.dataset.hcaptchaResponse;
+		const response = formElement.querySelector( this.responseSelector );
+		const token = response ? response.value : '';
 
 		// Do not execute hCaptcha twice.
 		if ( token === '' ) {
@@ -271,6 +270,23 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get widget by token.
+	 *
+	 * @param {string} token Token.
+	 *
+	 * @return {HTMLDivElement} Widget.
+	 */
+	getWidgetByToken( token ) {
+		const responses = document.querySelectorAll( this.responseSelector );
+
+		const response = [ ...responses ].find( ( el ) => {
+			return el.value === token;
+		} );
+
+		return response ? response.closest( '.h-captcha' ) : null;
+	}
+
+	/**
 	 * Called when the user submits a successful response.
 	 *
 	 * @param {string} token The h-captcha-response token.
@@ -283,12 +299,12 @@ class HCaptcha {
 		);
 
 		const params = this.getParams();
-		const iframe = document.querySelector( 'iframe[data-hcaptcha-response="' + token + '"]' );
-		const hcaptcha = iframe ? iframe.closest( '.h-captcha' ) : null;
+		const hcaptcha = this.getWidgetByToken( token );
 		const force = hcaptcha ? hcaptcha.dataset.force : null;
 
 		if (
 			params.size === 'invisible' ||
+
 			// Prevent form submit when hCaptcha widget was manually solved.
 			( force === 'true' && this.isValidated() )
 		) {
@@ -325,16 +341,18 @@ class HCaptcha {
 	}
 
 	/**
-	 * Render hCaptcha.
+	 * Render hCaptcha explicitly.
 	 *
 	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
+	 *
+	 * @return {string} Widget Id.
 	 */
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
 
 		const params = this.applyAutoTheme( this.getParams() );
 
-		hcaptcha.render( hcaptchaElement, params );
+		return hcaptcha.render( hcaptchaElement, params );
 	}
 
 	/**
@@ -358,6 +376,7 @@ class HCaptcha {
 			', .forminator-button-submit, .frm_button_submit, a.sdm_download' +
 			', .uagb-forms-main-submit-button' // Spectra.
 		);
+		this.responseSelector = 'textarea[name="h-captcha-response"]';
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
@@ -372,14 +391,15 @@ class HCaptcha {
 				return formElement;
 			}
 
-			const iframe = hcaptchaElement.querySelector( 'iframe' );
+			// Render or re-render.
+			hcaptchaElement.innerHTML = '';
 
-			// Re-render.
-			if ( null !== iframe ) {
-				iframe.remove();
-			}
+			const hCaptchaId = this.generateID();
+			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
+			const widgetId = this.render( hcaptchaElement );
+			formElement.dataset.hCaptchaId = hCaptchaId;
 
-			this.render( hcaptchaElement );
+			this.foundForms.push( { hCaptchaId, submitButtonElement, widgetId } );
 
 			if (
 				( 'invisible' !== hcaptchaElement.dataset.size ) &&
@@ -388,17 +408,9 @@ class HCaptcha {
 				return formElement;
 			}
 
-			const submitButtonElement = formElement.querySelectorAll( this.submitButtonSelector )[ 0 ];
-
 			if ( ! submitButtonElement ) {
 				return formElement;
 			}
-
-			const hCaptchaId = this.generateID();
-
-			this.foundForms.push( { hCaptchaId, submitButtonElement } );
-
-			formElement.dataset.hCaptchaId = hCaptchaId;
 
 			submitButtonElement.addEventListener( 'click', this.validate, true );
 

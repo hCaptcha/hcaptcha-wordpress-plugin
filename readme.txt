@@ -1,10 +1,10 @@
 === hCaptcha for WP ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, antispam, abuse, protect form
+Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 4.5.0
+Stable tag: 4.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -264,6 +264,10 @@ Passster
 
 Profile Builder
 `$source: 'profile-builder/index.php'`
+`$form_id: 'login', 'lost_password' or 'register'`
+
+Simple Membership
+`$source: 'simple-membership/simple-wp-membership.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
 
 Subscriber
@@ -529,6 +533,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Quform Forms
 * Sendinblue Form
 * Simple Download Monitor Form
+* Simple Membership Login, Lost Password, and Register Forms
 * Simple Basic Contact Form
 * Spectra — WordPress Gutenberg Blocks Form
 * Subscriber Form
@@ -564,6 +569,19 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.6.0 =
+* Added support for Simple Membership Login, Register and Lost Password forms.
+* Added option to show Live Form in CF7 admin.
+* Added hCaptcha tab on Gravity Forms settings page.
+* Added uninstallation code to delete plugin data.
+* Improved compatibility with hCaptcha API.
+* Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
+* Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
+* Fixed not rendering of hCaptcha in Essential Addons admin editor.
+* Fixed switching between Security Settings on Fluent Forms Global Settings page.
+* Fixed layout for settings pages with RTL languages.
+* Fixed layout for Contact Form 7 with RTL languages.
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.

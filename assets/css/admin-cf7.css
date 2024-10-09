@@ -13,7 +13,7 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
 	grid-template-columns: subgrid;
 	grid-row: 1/5;
 	grid-column: 1/3;
-	margin-right: 0;
+	margin-inline-end: 0;
 }
 
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
@@ -54,7 +54,7 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #post-body-content {
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1,
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2 {
 	float: none;
-	margin-right: 0;
+	margin-inline-end: 0;
 	width: 100%;
 }
 

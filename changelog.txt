@@ -1,3 +1,16 @@
+= 4.6.0 =
+* Added support for Simple Membership Login, Register and Lost Password forms.
+* Added option to show Live Form in CF7 admin.
+* Added hCaptcha tab on Gravity Forms settings page.
+* Added uninstallation code to delete plugin data.
+* Improved compatibility with hCaptcha API.
+* Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
+* Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
+* Fixed not rendering of hCaptcha in Essential Addons admin editor.
+* Fixed switching between Security Settings on Fluent Forms Global Settings page.
+* Fixed layout for settings pages with RTL languages.
+* Fixed layout for Contact Form 7 with RTL languages.
+
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
 * Added support for bbPress Login, Register and Lost Password forms.

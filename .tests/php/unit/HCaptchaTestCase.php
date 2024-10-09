@@ -884,6 +884,7 @@ abstract class HCaptchaTestCase extends TestCase {
 						[
 							'form'  => 'Form Auto-Add',
 							'embed' => 'Form Embed',
+							'live'  => 'Live Form in Admin',
 						],
 				],
 			'divi_status'                      =>
@@ -1144,6 +1145,15 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
+				],
+			],
+			'simple_membership_status'         => [
+				'label'   => 'Simple Membership',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => 'Login Form',
+					'register'  => 'Register Form',
+					'lost_pass' => 'Password Reset Form',
 				],
 			],
 			'spectra_status'                   => [

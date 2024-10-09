@@ -46,7 +46,10 @@
 
 @media (max-width: 600px) {
 	#hcaptcha-options #hcaptcha-forms-wrap table tbody tr td {
-		padding: 3px 8px 3px 35%;
+		padding-block-start: 3px;
+		padding-inline-end: 8px;
+		padding-block-end: 3px;
+		padding-inline-start: 35%;
 	}
 
 	#hcaptcha-options #hcaptcha-forms-wrap table tbody tr td.column-primary {

@@ -23,7 +23,7 @@
 	margin-top: 10px;
 	position: absolute;
 	z-index: 30;
-	right: 0;
+	inset-inline-end: 0;
 	width: 416px;
 	max-width: 80vw;
 	top: 32px
@@ -140,7 +140,7 @@
 	}
 
 	.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices {
-		border-right: 1px solid #ccd0d4;
-		margin-right: 4px;
+		border-inline-end: 1px solid #ccd0d4;
+		margin-inline-end: 4px;
 	}
 }

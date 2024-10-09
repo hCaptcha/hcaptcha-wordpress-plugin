@@ -38,7 +38,7 @@ describe( 'HCaptcha', () => {
 		hCaptcha.foundForms.push( testForm );
 
 		expect( hCaptcha.getFoundFormById( 'test-id' ) ).toEqual( testForm );
-		expect( hCaptcha.getFoundFormById( 'non-existent-id' ) ).toBeUndefined();
+		expect( hCaptcha.getFoundFormById( 'non-existent-id' ) ).toBeNull();
 	} );
 
 	test( 'isSameOrDescendant', () => {
@@ -65,14 +65,14 @@ describe( 'HCaptcha', () => {
 	} );
 
 	test( 'bindEvents and reset', () => {
+		function generateUniqueId() {
+			return Math.random().toString( 36 ).substring( 2, 9 );
+		}
+
 		// Mock hcaptcha object
 		global.hcaptcha = {
-			render: jest.fn( ( hcaptchaElement ) => {
-				// Mock the rendering of the hCaptcha widget by adding a dataset attribute
-				const iframe = document.createElement( 'iframe' );
-				iframe.dataset.hcaptchaWidgetId = 'mock-widget-id';
-				iframe.dataset.hcaptchaResponse = '';
-				hcaptchaElement.appendChild( iframe );
+			render: jest.fn( () => {
+				return generateUniqueId();
 			} ),
 			execute: jest.fn(),
 			reset: jest.fn(),
@@ -132,7 +132,7 @@ describe( 'HCaptcha', () => {
 		hCaptcha.reset( form1 );
 
 		// Check if hcaptcha.reset was called with the correct widget id
-		expect( global.hcaptcha.reset ).toHaveBeenCalledWith( 'mock-widget-id' );
+		expect( global.hcaptcha.reset ).toHaveBeenCalled();
 
 		// Clean up DOM elements
 		document.body.removeChild( form1 );

@@ -317,6 +317,7 @@ Migrations:
 Contact Form 7:                       
   Form Auto-Add:                      On
   Form Embed:                         Off
+  Live Form in Admin:                 Off
 WP Core:                              
   Comment Form:                       Off
   Login Form:                         Off
@@ -435,6 +436,10 @@ Simple Basic Contact Form:
   Form:                               Off
 Simple Download Monitor:              
   Form:                               Off
+Simple Membership:                    
+  Login Form:                         Off
+  Register Form:                      Off
+  Password Reset Form:                Off
 Spectra:                              
   Form:                               Off
 Subscriber:                           

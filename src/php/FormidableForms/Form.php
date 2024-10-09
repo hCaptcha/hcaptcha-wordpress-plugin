@@ -45,7 +45,7 @@ class Form {
 	 *
 	 * @var int|string
 	 */
-	private $hcaptcha_field_id;
+	protected $hcaptcha_field_id;
 
 	/**
 	 * Class constructor.
@@ -94,9 +94,9 @@ class Form {
 	}
 
 	/**
-	 * Filter field html created and add hcaptcha.
+	 * Filter field HTML created and add hcaptcha.
 	 *
-	 * @param string|mixed $html  Html code of the field.
+	 * @param string|mixed $html  HTML code of the field.
 	 * @param array        $field Field.
 	 * @param array        $atts  Attributes.
 	 *
@@ -236,7 +236,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_formidable_forms_admin_page(): bool {
+	protected function is_formidable_forms_admin_page(): bool {
 		if ( ! is_admin() ) {
 			return false;
 		}

@@ -278,6 +278,7 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
 					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
+					'live'  => __( 'Live Form in Admin', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [
@@ -505,6 +506,15 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'simple_membership_status'         => [
+				'label'   => 'Simple Membership',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Password Reset Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'spectra_status'                   => [

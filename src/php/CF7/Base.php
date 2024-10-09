@@ -27,6 +27,13 @@ class Base {
 	protected $mode_embed = false;
 
 	/**
+	 * Whether to show the live hCaptcha form in the form editor.
+	 *
+	 * @var bool
+	 */
+	protected $mode_live = false;
+
+	/**
 	 * Base constructor.
 	 */
 	public function __construct() {
@@ -41,6 +48,7 @@ class Base {
 	public function init_hooks(): void {
 		$this->mode_auto  = hcaptcha()->settings()->is( 'cf7_status', 'form' );
 		$this->mode_embed = hcaptcha()->settings()->is( 'cf7_status', 'embed' );
+		$this->mode_live  = hcaptcha()->settings()->is( 'cf7_status', 'live' );
 	}
 
 	/**

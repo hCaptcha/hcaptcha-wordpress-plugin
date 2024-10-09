@@ -6,7 +6,7 @@
 #hcaptcha-system-info-wrap .dashicons-before.dashicons-media-text {
 	position: absolute;
 	top: 10px;
-	right: 26px;
+	inset-inline-end: 26px;
 	opacity: 0.7;
 	cursor: pointer;
 }
@@ -22,7 +22,7 @@
 	width: 30px;
 	height: 30px;
 	top: 10px;
-	right: 26px;
+	inset-inline-end: 26px;
 	z-index: 1;
 }
 
@@ -33,7 +33,7 @@
 #hcaptcha-options .helper::before {
 	content: '';
 	top: 0;
-	left: 0;
+	inset-inline-start: 0;
 	transform: translate( 0, 0 );
 	background: transparent;
 }
@@ -44,6 +44,10 @@
 	max-width: 300px;
 	width: max-content;
 	transform: translate(-6px, 38px);
+}
+
+.rtl #hcaptcha-options .helper:hover .helper-content {
+	transform: translate(6px, 38px);
 }
 
 textarea#hcaptcha-system-info {
