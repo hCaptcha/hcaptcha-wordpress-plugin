@@ -191,7 +191,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject->process_ajax();
 		$json = ob_get_clean();
 
-		$expected_json['data']['headers_sent'] = $json['data']['headers_sent'];
+		$expected_json['data']['headers_sent'] = json_decode( $json, true )['data']['headers_sent'];
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		self::assertFalse( isset( $_POST['h-captcha-response'] ) );
