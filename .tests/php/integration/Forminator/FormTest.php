@@ -17,6 +17,7 @@ use HCaptcha\Forminator\Form;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 
 /**
  * Test Forminator Form.
@@ -58,6 +59,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test before_form_render().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_before_form_render(): void {
 		$id            = 5;
@@ -189,6 +191,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test print_hcaptcha_scripts().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_print_hcaptcha_scripts(): void {
 		wp_enqueue_script(
@@ -315,6 +318,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test replace_hcaptcha_field().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_replace_hcaptcha_field(): void {
 		$form_id        = 5;
