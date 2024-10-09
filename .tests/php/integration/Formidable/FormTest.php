@@ -17,6 +17,7 @@ use HCaptcha\FormidableForms\Form;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -33,7 +34,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-//		unset( $GLOBALS['current_screen'] );
+		unset( $GLOBALS['current_screen'] );
 
 		parent::tearDown();
 	}
@@ -154,6 +155,7 @@ HTML;
 	 * Test prevent_native_validation().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_prevent_native_validation(): void {
 		$field_id                     = 5;
@@ -223,8 +225,7 @@ HTML;
 
 		$this->prepare_hcaptcha_get_verify_message(
 			'hcaptcha_formidable_forms_nonce',
-			'hcaptcha_formidable_forms',
-			true
+			'hcaptcha_formidable_forms'
 		);
 
 		$subject = new Form();
