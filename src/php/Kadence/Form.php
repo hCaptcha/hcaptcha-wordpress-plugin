@@ -55,13 +55,6 @@ class Form {
 			return $block_content;
 		}
 
-		$args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => isset( $block['attrs']['postID'] ) ? (int) $block['attrs']['postID'] : 0,
-			],
-		];
-
 		$pattern       = '/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/';
 		$block_content = (string) $block_content;
 
@@ -74,6 +67,13 @@ class Form {
 			// Do not replace reCaptcha V3.
 			return $block_content;
 		}
+
+		$args = [
+			'id' => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => isset( $block['attrs']['postID'] ) ? (int) $block['attrs']['postID'] : 0,
+			],
+		];
 
 		$search = '<div class="kadence-blocks-form-field kb-submit-field';
 
@@ -95,7 +95,6 @@ class Form {
 		}
 
 		// Nonce is checked by Kadence.
-
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
@@ -142,7 +141,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function has_recaptcha(): bool {
+	protected function has_recaptcha(): bool {
 		// Nonce is checked by Kadence.
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
