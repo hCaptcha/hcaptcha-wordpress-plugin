@@ -26,6 +26,17 @@ use Mockery;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Tear down test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['current_screen'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test constructor and init hooks.
 	 */
 	public function test_constructor_and_init_hooks(): void {
@@ -54,6 +65,9 @@ class FormTest extends HCaptchaWPTestCase {
 		$post_id       = 123;
 		$form_fields   = [
 			[
+				'type' => 'some',
+			],
+			[
 				'type'             => 'captcha',
 				'captcha_provider' => 'hcaptcha',
 			],
@@ -65,6 +79,11 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject->before_form_render( $id, $form_type, $post_id, $form_fields, $form_settings );
 
 		self::assertTrue( $this->get_protected_property( $subject, 'has_hcaptcha_field' ) );
+		self::assertSame( $id, $this->get_protected_property( $subject, 'form_id' ) );
+
+		$subject->before_form_render( $id, $form_type, $post_id, [], $form_settings );
+
+		self::assertFalse( $this->get_protected_property( $subject, 'has_hcaptcha_field' ) );
 		self::assertSame( $id, $this->get_protected_property( $subject, 'form_id' ) );
 	}
 
@@ -191,6 +210,14 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( wp_script_is( 'forminator-hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'forminator-hcaptcha', 'registered' ) );
+
+		$this->set_protected_property( $subject, 'has_hcaptcha_field', false );
+
+		self::assertFalse( $subject->print_hcaptcha_scripts( false ) );
+
+		set_current_screen( 'forminator_page_forminator-cform' );
+
+		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
 	}
 
 	/**
@@ -282,5 +309,71 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject->admin_enqueue_scripts();
 
 		self::assertFalse( wp_script_is( $admin_handle ) );
+	}
+
+	/**
+	 * Test replace_hcaptcha_field().
+	 *
+	 * @return void
+	 */
+	public function test_replace_hcaptcha_field(): void {
+		$form_id        = 5;
+		$hcap_form      = $this->get_hcap_form(
+			[
+				'action' => 'hcaptcha_forminator',
+				'name'   => 'hcaptcha_forminator_nonce',
+				'id'     => [
+					'source'  => [ 'forminator/forminator.php' ],
+					'form_id' => $form_id,
+				],
+			]
+		);
+		$html           = 'some html';
+		$some_field     = [
+			'type' => 'some',
+		];
+		$hcaptcha_field = [
+			'type'             => 'captcha',
+			'captcha_provider' => 'hcaptcha',
+		];
+		$front_instance = Mockery::mock( 'Forminator_CForm_Front' );
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		self::assertSame( $html, $subject->replace_hcaptcha_field( $html, $some_field, $front_instance ) );
+		self::assertSame( $hcap_form, $subject->replace_hcaptcha_field( $html, $hcaptcha_field, $front_instance ) );
+	}
+
+	/**
+	 * Test is_forminator_admin_page().
+	 *
+	 * @return void
+	 * @noinspection DisconnectedForeachInstructionInspection
+	 */
+	public function test_is_forminator_admin_page(): void {
+		$forminator_admin_pages = [
+			'forminator_page_forminator-cform',
+			'forminator_page_forminator-cform-wizard',
+			'forminator_page_forminator-settings',
+		];
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertFalse( $subject->is_forminator_admin_page() );
+
+		set_current_screen( 'some' );
+
+		self::assertFalse( $subject->is_forminator_admin_page() );
+
+		foreach ( $forminator_admin_pages as $page ) {
+			set_current_screen( $page );
+
+			self::assertTrue( $subject->is_forminator_admin_page() );
+		}
 	}
 }

@@ -168,9 +168,7 @@ class Form {
 			return true;
 		}
 
-		$is_forminator_wizard_page = $this->is_forminator_admin_page();
-
-		return $is_forminator_wizard_page ? true : $status;
+		return $this->is_forminator_admin_page() ? true : $status;
 	}
 
 	/**
@@ -282,7 +280,9 @@ class Form {
 		$screen = get_current_screen();
 
 		if ( ! $screen ) {
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$forminator_admin_pages = [
