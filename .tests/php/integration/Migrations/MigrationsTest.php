@@ -83,6 +83,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'2.0.0'          => $time,
 			'3.6.0'          => $time,
 			'4.0.0'          => $time,
+			'4.6.0'          => $time,
 			HCAPTCHA_VERSION => $time,
 		];
 		$expected_settings = [
