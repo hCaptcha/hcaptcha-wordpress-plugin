@@ -570,6 +570,8 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.7.0 =
+
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
 * Added option to show Live Form in CF7 admin.
