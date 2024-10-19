@@ -218,7 +218,7 @@ abstract class LoginBase {
 	protected function is_wp_login_form(): bool {
 		return (
 			did_action( 'login_init' ) &&
-			did_action( 'login_form_login' ) &&
+			( did_action( 'login_form_login' ) || did_action( 'login_form_entered_recovery_mode' ) ) &&
 			HCaptcha::did_filter( 'login_link_separator' )
 		);
 	}

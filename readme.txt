@@ -571,6 +571,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.7.0 =
+* Added compatibility with WordPress Recovery Mode.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
