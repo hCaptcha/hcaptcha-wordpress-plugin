@@ -572,6 +572,7 @@ Instructions for popular native integrations are below:
 
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
+* Fixed racing condition when loading hCaptcha API.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
