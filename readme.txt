@@ -575,6 +575,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Akismet tag in Contact Form 7.
 * Fixed racing condition when loading hCaptcha API.
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
+* Fixed launching notifications script on every admin page.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
