@@ -12,6 +12,4 @@ class HCaptchaCustomElement extends HTMLElement {
 	}
 }
 
-window.customElements.define( 'h-captcha', HCaptchaCustomElement );
-
 export default HCaptchaCustomElement;

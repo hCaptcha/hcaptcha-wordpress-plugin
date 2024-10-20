@@ -10,8 +10,7 @@ import HCaptchaCustomElement from './hcaptcha-custom-element';
 const hCaptcha = new HCaptcha();
 
 window.hCaptcha = hCaptcha;
-
-new HCaptchaCustomElement();
+window.customElements.define( 'h-captcha', HCaptchaCustomElement );
 
 window.hCaptchaGetWidgetId = ( el ) => {
 	hCaptcha.getWidgetId( el );
