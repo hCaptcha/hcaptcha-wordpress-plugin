@@ -16,6 +16,7 @@ class HCaptcha {
 		this.darkClass = null;
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
+		this.addedDCLCallbacks = new Set();
 	}
 
 	/**
@@ -363,6 +364,12 @@ class HCaptcha {
 	addSyncedEventListener( callback ) {
 		// Sync with DOMContentLoaded event.
 		if ( document.readyState === 'loading' ) {
+			if ( this.addedDCLCallbacks.has( callback ) ) {
+				return;
+			}
+
+			this.addedDCLCallbacks.add( callback );
+
 			window.addEventListener( 'DOMContentLoaded', callback );
 		} else {
 			callback();
