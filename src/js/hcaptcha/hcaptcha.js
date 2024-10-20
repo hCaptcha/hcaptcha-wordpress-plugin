@@ -356,6 +356,20 @@ class HCaptcha {
 	}
 
 	/**
+	 * Add event listener that syncs with DOMContentLoaded event.
+	 *
+	 * @param {Function} callback
+	 */
+	addSyncedEventListener( callback ) {
+		// Sync with DOMContentLoaded event.
+		if ( document.readyState === 'loading' ) {
+			window.addEventListener( 'DOMContentLoaded', callback );
+		} else {
+			callback();
+		}
+	}
+
+	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
