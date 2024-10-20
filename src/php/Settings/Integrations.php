@@ -794,10 +794,10 @@ class Integrations extends PluginSettingsBase {
 		?>
 		<div id="hcaptcha-message"></div>
 		<p>
-			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
+			<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
 		<p>
-			<?php esc_html_e( 'You can activate and deactivate a plugin by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
+			<?php esc_html_e( 'You can activate and deactivate a plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
 		<p>
 			<?php
@@ -807,7 +807,7 @@ class Integrations extends PluginSettingsBase {
 			echo wp_kses_post(
 				sprintf(
 				/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
-					__( 'Don\'t see your plugin here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
+					__( 'Don\'t see your plugin or theme here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$shortcode_url,
