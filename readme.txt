@@ -572,7 +572,9 @@ Instructions for popular native integrations are below:
 
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
+* Added compatibility with Akismet tag in Contact Form 7.
 * Fixed racing condition when loading hCaptcha API.
+* Fixed non-active hCaptcha when editing a page containing a Forminator form.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
