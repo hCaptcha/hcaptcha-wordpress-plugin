@@ -889,7 +889,7 @@ CSS;
 			window.removeEventListener( 'touchstart', load );
 			document.body.removeEventListener( 'mouseenter', load );
 			document.body.removeEventListener( 'click', load );
-			window.removeEventListener( 'load', delayedLoad );
+			window.removeEventListener( 'scroll', scrollHandler );
 
 			const t = document.getElementsByTagName( 'script' )[0];
 			const s = document.createElement('script');
@@ -907,24 +907,24 @@ CSS;
 				return;
 			}
 
-			window.removeEventListener( 'scroll', scrollHandler );
 			load();
 		}
 
-		function delayedLoad() {
-			window.addEventListener( 'scroll', scrollHandler );
+		document.addEventListener( 'hCaptchaBeforeAPI', function() {
 			// noinspection JSAnnotator
 			const delay = -100;
 
 			if ( delay >= 0 ) {
 				setTimeout( load, delay );
-			}
-		}
 
-		window.addEventListener( 'touchstart', load );
-		document.body.addEventListener( 'mouseenter', load );
-		document.body.addEventListener( 'click', load );
-		window.addEventListener( 'load', delayedLoad );
+				return;
+			}
+
+			window.addEventListener( 'touchstart', load );
+			document.body.addEventListener( 'mouseenter', load );
+			document.body.addEventListener( 'click', load );
+			window.addEventListener( 'scroll', scrollHandler );
+		} );
 	} )();
 JS;
 

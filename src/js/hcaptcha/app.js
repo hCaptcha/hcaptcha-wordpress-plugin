@@ -39,3 +39,5 @@ window.hCaptchaOnLoad = () => {
 		hCaptchaOnLoad();
 	}
 };
+
+document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeAPI' ) );
