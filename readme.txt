@@ -574,6 +574,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with WordPress Recovery Mode.
 * Added compatibility with Akismet tag in Contact Form 7.
 * Fixed racing condition when loading hCaptcha API.
+* Fixed problem with sending a Ninja form with solved hCaptcha.
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
 * Fixed launching notifications script on every admin page.
 
