@@ -113,7 +113,7 @@ class Form {
 			return $html;
 		}
 
-		if ( ! preg_match( '#<div id="(.+)" class="h-captcha" .+></div>#', (string) $html, $m ) ) {
+		if ( ! preg_match( '#<div\s+id="(.+)"\s+class="h-captcha" .+></div>#', (string) $html, $m ) ) {
 			return $html;
 		}
 

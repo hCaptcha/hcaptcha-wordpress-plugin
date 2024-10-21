@@ -577,6 +577,7 @@ Instructions for popular native integrations are below:
 * Fixed sending a Ninja form with solved hCaptcha.
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
 * Fixed launching notifications script on every admin page.
+* Fixed missing hCaptcha in Formidable forms.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
