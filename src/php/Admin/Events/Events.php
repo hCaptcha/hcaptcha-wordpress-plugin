@@ -308,17 +308,19 @@ class Events {
 	}
 
 	/**
-	 * Get ODER BY / ORDER clause
+	 * Get ORDER BY / ORDER clause
 	 *
 	 * @param array $args Arguments.
 	 *
 	 * @return string
 	 */
 	private static function get_order_by( array $args ): string {
-		$order = strtoupper( $args['order'] );
-		$order = 'ASC' === $order ? '' : $order;
+		$orderby = $args['orderby'];
+		$orderby = 'name' === $orderby ? 'source' : $orderby;
+		$order   = strtoupper( $args['order'] );
+		$order   = 'ASC' === $order ? '' : $order;
 
-		return $args['orderby'] ? 'ORDER BY ' . $args['orderby'] . ' ' . $order : '';
+		return $orderby ? 'ORDER BY ' . $orderby . ' ' . $order : '';
 	}
 
 	/**
