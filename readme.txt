@@ -579,6 +579,7 @@ Instructions for popular native integrations are below:
 * Fixed launching notifications script on every admin page.
 * Fixed missing hCaptcha in Formidable forms.
 * Fixed non-blocking of reCaptcha scripts with Kadence Forms.
+* Fixed showing hCaptcha in Elementor admin in some cases.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
