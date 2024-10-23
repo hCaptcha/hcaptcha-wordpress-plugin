@@ -150,19 +150,11 @@ class Protect {
 	public function add_type_module( $tag, string $handle, string $src ): string {
 		$tag = (string) $tag;
 
-		if ( self::HANDLE !== $handle ) {
+		if ( static::HANDLE !== $handle ) {
 			return $tag;
 		}
 
-		$type = ' type="module"';
-
-		if ( false !== strpos( $tag, $type ) ) {
-			return $tag;
-		}
-
-		$search = ' src';
-
-		return str_replace( $search, $type . $search, $tag );
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**
