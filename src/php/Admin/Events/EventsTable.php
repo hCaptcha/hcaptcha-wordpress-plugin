@@ -163,9 +163,24 @@ class EventsTable extends WP_List_Table {
 	public function get_sortable_columns(): array {
 
 		return [
-			'name'     => [ 'name', false, __( 'Source', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Source.' ) ],
-			'form_id'  => [ 'form_id', false, __( 'Form Id', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Form Id.' ) ],
-			'date_gmt' => [ 'date_gmt', false, __( 'Date GMT', 'hcaptcha-for-forms-and-more' ), __( 'Table ordered by Date GMT.' ) ],
+			'name'     => [
+				'name',
+				false,
+				__( 'Source', 'hcaptcha-for-forms-and-more' ),
+				__( 'Table ordered by Source.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'form_id'  => [
+				'form_id',
+				false,
+				__( 'Form Id', 'hcaptcha-for-forms-and-more' ),
+				__( 'Table ordered by Form Id.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'date_gmt' => [
+				'date_gmt',
+				false,
+				__( 'Date GMT', 'hcaptcha-for-forms-and-more' ),
+				__( 'Table ordered by Date GMT.', 'hcaptcha-for-forms-and-more' ),
+			],
 		];
 	}
 

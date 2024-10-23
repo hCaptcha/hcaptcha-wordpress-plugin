@@ -391,7 +391,7 @@ class HCaptchaHandler {
 	public function add_field_type( $field_types ): array {
 		$field_types = (array) $field_types;
 
-		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'elementor-pro' );
+		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 
 		return $field_types;
 	}

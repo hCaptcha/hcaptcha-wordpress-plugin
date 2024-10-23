@@ -73,7 +73,7 @@ class Field extends NF_Abstracts_Field implements Base {
 	public function __construct() {
 		parent::__construct();
 
-		$this->_nicename = __( 'hCaptcha', 'ninja-forms' );
+		$this->_nicename = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 
 		add_filter( 'nf_sub_hidden_field_types', [ $this, 'hide_field_type' ] );
 	}

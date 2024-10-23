@@ -410,13 +410,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected function get_date_filter_choices( $key = null ): array {
 		// Available date filters.
 		$choices = [
-			'0'      => esc_html__( 'Today', 'wpforms-lite' ),
-			'1'      => esc_html__( 'Yesterday', 'wpforms-lite' ),
-			'7'      => esc_html__( 'Last 7 days', 'wpforms-lite' ),
-			'30'     => esc_html__( 'Last 30 days', 'wpforms-lite' ),
-			'90'     => esc_html__( 'Last 90 days', 'wpforms-lite' ),
-			'365'    => esc_html__( 'Last 1 year', 'wpforms-lite' ),
-			'custom' => esc_html__( 'Custom', 'wpforms-lite' ),
+			'0'      => esc_html__( 'Today', 'hcaptcha-for-forms-and-more' ),
+			'1'      => esc_html__( 'Yesterday', 'hcaptcha-for-forms-and-more' ),
+			'7'      => esc_html__( 'Last 7 days', 'hcaptcha-for-forms-and-more' ),
+			'30'     => esc_html__( 'Last 30 days', 'hcaptcha-for-forms-and-more' ),
+			'90'     => esc_html__( 'Last 90 days', 'hcaptcha-for-forms-and-more' ),
+			'365'    => esc_html__( 'Last 1 year', 'hcaptcha-for-forms-and-more' ),
+			'custom' => esc_html__( 'Custom', 'hcaptcha-for-forms-and-more' ),
 		];
 
 		// Bail early, and return the full list of options.

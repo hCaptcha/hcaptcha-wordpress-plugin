@@ -447,7 +447,7 @@ class General extends PluginSettingsBase {
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'default' => Main::API_HOST,
-				'helper'  => __( 'See Enterprise docs.' ),
+				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'asset_host'           => [
 				'label'   => __( 'Asset Host', 'hcaptcha-for-forms-and-more' ),
