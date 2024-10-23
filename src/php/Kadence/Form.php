@@ -14,7 +14,7 @@ use WP_Block;
 /**
  * Class Form.
  */
-class Form {
+class Form extends Base {
 
 	/**
 	 * Form constructor.
@@ -29,6 +29,8 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks(): void {
+		parent::init_hooks();
+
 		add_action( 'wp_ajax_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_kb_process_ajax_submit', [ $this, 'process_ajax' ], 9 );
 
@@ -67,6 +69,8 @@ class Form {
 			// Do not replace reCaptcha V3.
 			return $block_content;
 		}
+
+		$this->has_hcaptcha = true;
 
 		$args = [
 			'id' => [

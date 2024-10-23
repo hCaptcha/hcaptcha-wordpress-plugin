@@ -578,6 +578,7 @@ Instructions for popular native integrations are below:
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
 * Fixed launching notifications script on every admin page.
 * Fixed missing hCaptcha in Formidable forms.
+* Fixed non-blocking of reCaptcha scripts with Kadence Forms.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
