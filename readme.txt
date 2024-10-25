@@ -573,6 +573,7 @@ Instructions for popular native integrations are below:
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
 * Added compatibility with Akismet tag in Contact Form 7.
+* Added ability to use shortcode in the Mailchimp for WP form.
 * Fixed racing condition when loading hCaptcha API.
 * Fixed sending a Ninja form with solved hCaptcha.
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
@@ -800,7 +801,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha field to Gravity Forms admin editor.
 * Added hCaptcha field to Ninja Forms admin editor.
 * Added invisible hCaptcha support for Ninja Forms.
-* Added the ability to process customized MailChimp forms.
+* Added the ability to process customized Mailchimp forms.
 * Added HTML Forms integration.
 * Added the Auto Theme option to follow light/dark theme settings on site.
 * Added support for WP Twenty Twenty-One theme dark mode.

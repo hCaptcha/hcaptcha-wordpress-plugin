@@ -80,6 +80,12 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
+		$content = (string) $content;
+
+		if ( false !== strpos( $content, '<h-captcha' ) ) {
+			return $content;
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
@@ -92,7 +98,7 @@ class Form {
 		return preg_replace(
 			'/(<input .*?type="submit")/',
 			HCaptcha::form( $args ) . '$1',
-			(string) $content
+			$content
 		);
 	}
 
@@ -106,7 +112,25 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, MC4WP_Form $form ) {
-		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
+		$content = $form->content ?? '';
+
+		$hcap_shortcode = $this->get_hcap_shortcode( $content );
+
+		if ( $hcap_shortcode ) {
+			$hcap_sc           = preg_replace(
+				[ '/\s*\[|]\s*/' ],
+				[ '' ],
+				$hcap_shortcode
+			);
+			$atts              = shortcode_parse_atts( $hcap_sc );
+			$nonce_field_name  = $atts['name'] ?? HCAPTCHA_NONCE;
+			$nonce_action_name = $atts  ['action'] ?? HCAPTCHA_ACTION;
+		} else {
+			$nonce_field_name  = self::NAME;
+			$nonce_action_name = self::ACTION;
+		}
+
+		$error_message = hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'empty';
@@ -115,5 +139,20 @@ class Form {
 		}
 
 		return $errors;
+	}
+
+	/**
+	 * Get hCaptcha shortcode.
+	 *
+	 * @param string $content Content.
+	 *
+	 * @return string
+	 */
+	private function get_hcap_shortcode( string $content ): string {
+		$hcap_sc_regex = get_shortcode_regex( [ 'hcaptcha' ] );
+
+		return preg_match( "/$hcap_sc_regex/", $content, $matches )
+			? $matches[0]
+			: '';
 	}
 }
