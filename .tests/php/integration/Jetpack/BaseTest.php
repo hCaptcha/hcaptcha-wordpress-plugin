@@ -7,8 +7,10 @@
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
+use HCaptcha\Jetpack\Base;
 use HCaptcha\Jetpack\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -26,45 +28,61 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['contact-form-hash'] );
+		unset( $_POST['contact-form-hash'], $GLOBALS['pagenow'], $_GET );
 
 		parent::tearDown();
 	}
 
 	/**
 	 * Test constructor and init_hooks.
+	 *
+	 * @param bool $is_editing_jetpack_form_post Is editing a post with a Jetpack form.
+	 *
+	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks(): void {
-		$subject = new Form();
+	public function test_init_hooks( bool $is_editing_jetpack_form_post ): void {
+		$subject = Mockery::mock( Form::class )->makePartial();
 
-		self::assertSame(
-			10,
-			has_filter( 'jetpack_contact_form_html', [ $subject, 'add_hcaptcha' ] )
-		);
-		self::assertSame(
-			0,
-			has_filter( 'widget_text', [ $subject, 'add_hcaptcha' ] )
-		);
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_editing_jetpack_form_post' )->andReturn( $is_editing_jetpack_form_post );
 
-		self::assertSame(
-			10,
-			has_filter( 'widget_text', 'shortcode_unautop' )
-		);
-		self::assertSame(
-			10,
-			has_filter( 'widget_text', 'do_shortcode' )
-		);
+		$subject->__construct();
 
-		self::assertSame(
-			100,
-			has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] )
-		);
+		self::assertSame( 10, has_filter( 'jetpack_contact_form_html', [ $subject, 'add_hcaptcha' ] ) );
+		self::assertSame( 0, has_filter( 'widget_text', [ $subject, 'add_hcaptcha' ] ) );
+
+		self::assertSame( 10, has_filter( 'widget_text', 'shortcode_unautop' ) );
+		self::assertSame( 10, has_filter( 'widget_text', 'do_shortcode' ) );
+
+		self::assertSame( 100, has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] ) );
+
+		self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+
+		if ( $is_editing_jetpack_form_post ) {
+			self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+			self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
+		} else {
+			self::assertFalse( has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+			self::assertFalse( has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
+		}
 	}
 
 	/**
-	 * Test jetpack_verify().
+	 * Data provider for test_init_hooks.
+	 *
+	 * @return array
 	 */
-	public function test_jetpack_verify(): void {
+	public function dp_test_init_hooks(): array {
+		return [
+			[ false ],
+			[ true ],
+		];
+	}
+
+	/**
+	 * Test verify().
+	 */
+	public function test_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
 
 		$subject = new Form();
@@ -74,11 +92,11 @@ class BaseTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test jetpack_verify() not verified.
+	 * Test verify() not verified.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_jetpack_verify_not_verified(): void {
+	public function test_verify_not_verified(): void {
 		$hash  = 'some hash';
 		$error = new WP_Error( 'invalid_hcaptcha', 'The hCaptcha is invalid.' );
 
@@ -135,6 +153,58 @@ class BaseTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test print_hcaptcha_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_print_hcaptcha_scripts(): void {
+		$subject = new Form();
+
+		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
+	}
+
+	/**
+	 * Test admin_enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_admin_enqueue_scripts(): void {
+		$admin_handle   = 'admin-jetpack';
+		$args           = [
+			'action' => 'hcaptcha_jetpack',
+			'name'   => 'hcaptcha_jetpack_nonce',
+			'id'     => [
+				'source'  => [ 'jetpack/jetpack.php' ],
+				'form_id' => 'contact',
+			],
+		];
+		$hcaptcha       = '<div class="grunion-field-wrap">' . $this->get_hcap_form( $args ) . '</div>';
+		$params         = [
+			'hCaptcha' => $hcaptcha,
+		];
+		$expected_extra = [
+			'group' => 1,
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'data'  => 'var HCaptchaJetpackObject = ' . json_encode( $params ) . ';',
+		];
+
+		$subject = new Form();
+
+		self::assertFalse( wp_script_is( $admin_handle ) );
+
+		$subject->admin_enqueue_scripts();
+
+		self::assertTrue( wp_script_is( $admin_handle ) );
+
+		$script = wp_scripts()->registered[ $admin_handle ];
+
+		self::assertSame( HCAPTCHA_URL . '/assets/js/admin-jetpack.min.js', $script->src );
+		self::assertSame( [ 'hcaptcha' ], $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+		self::assertSame( $expected_extra, $script->extra );
+	}
+
+	/**
 	 * Test print_inline_styles().
 	 *
 	 * @return void
@@ -170,5 +240,47 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test is_editing_jetpack_form_post().
+	 *
+	 * @return void
+	 */
+	public function test_is_editing_jetpack_form_post(): void {
+		$subject = Mockery::mock( Base::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['pagenow'] = 'post.php';
+
+		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+
+		$_GET['post'] = 1;
+
+		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+
+		$_GET['action'] = 'some';
+
+		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+
+		$_GET['action'] = 'edit';
+
+		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+
+		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
+
+		$_GET['post'] = $post_id;
+
+		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+
+		$post_id = wp_insert_post( [ 'post_content' => '<!-- wp:jetpack/contact-form' ] );
+
+		$_GET['post'] = $post_id;
+
+		self::assertTrue( $subject->is_editing_jetpack_form_post() );
 	}
 }

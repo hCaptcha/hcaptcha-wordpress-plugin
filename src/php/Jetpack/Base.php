@@ -74,6 +74,11 @@ abstract class Base {
 		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'verify' ], 100, 2 );
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+
+		if ( ! $this->is_editing_jetpack_form_post() ) {
+			return;
+		}
+
 		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
@@ -153,38 +158,9 @@ HTML;
 	 * @param bool|mixed $status Current print status.
 	 *
 	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function print_hcaptcha_scripts( $status ): bool {
-		$status = (bool) $status;
-
-		if ( ! function_exists( 'get_current_screen' ) ) {
-			// @codeCoverageIgnoreStart
-			return $status;
-			// @codeCoverageIgnoreEnd
-		}
-
-		$pagenow = $GLOBALS['pagenow'] ?? '';
-
-		if ( 'post.php' !== $pagenow ) {
-			return $status;
-		}
-
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
-		$action  = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
-
-		if ( ! $post_id || 'edit' !== $action ) {
-			return $status;
-		}
-
-		$post    = get_post( $post_id );
-		$content = $post->post_content ?? '';
-
-		if ( false === strpos( $content, '<!-- wp:jetpack/contact-form -->' ) ) {
-			return $status;
-		}
-
 		return true;
 	}
 
@@ -194,10 +170,6 @@ HTML;
 	 * @return void
 	 */
 	public function admin_enqueue_scripts(): void {
-		if ( ! $this->is_jetpack_post_page() ) {
-			return;
-		}
-
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -212,6 +184,7 @@ HTML;
 			self::ADMIN_HANDLE,
 			self::OBJECT,
 			[
+				// We do not verify forms in admin, so no form hash is needed.
 				'hCaptcha' => $this->get_hcaptcha( $this->get_args() ),
 			]
 		);
@@ -246,7 +219,7 @@ CSS;
 			'action' => self::ACTION,
 			'name'   => self::NAME,
 			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'source'  => HCaptcha::get_class_source( static::class ),
 				'form_id' => 'contact' . $hash,
 			],
 		];
@@ -290,11 +263,29 @@ CSS;
 	}
 
 	/**
-	 * Check if the current page is a post page containing a Jetpack form.
+	 * Check if currently editing post contains a Jetpack form.
 	 *
 	 * @return bool
 	 */
-	private function is_jetpack_post_page(): bool {
-		return true;
+	protected function is_editing_jetpack_form_post(): bool {
+		$pagenow = $GLOBALS['pagenow'] ?? '';
+
+		if ( 'post.php' !== $pagenow ) {
+			return false;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
+		$action  = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! $post_id || 'edit' !== $action ) {
+			return false;
+		}
+
+		$post    = get_post( $post_id );
+		$content = $post->post_content ?? '';
+
+		return false !== strpos( html_entity_decode( $content ), '<!-- wp:jetpack/contact-form' );
 	}
 }

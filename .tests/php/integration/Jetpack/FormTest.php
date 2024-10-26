@@ -40,18 +40,9 @@ class FormTest extends HCaptchaWPTestCase {
 	public function dp_test_add_captcha(): array {
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 
-		$hash             = 'some hash';
-		$hash_input       = "<input name='contact-form-hash' value='$hash'>";
-		$classic_args     = [
-			'action' => 'hcaptcha_jetpack',
-			'name'   => 'hcaptcha_jetpack_nonce',
-			'id'     => [
-				'source'  => [ 'jetpack/jetpack.php' ],
-				'form_id' => 'contact',
-			],
-		];
-		$classic_hcaptcha = $this->get_hcap_form( $classic_args );
-		$args             = [
+		$hash       = 'some hash';
+		$hash_input = "<input name='contact-form-hash' value='$hash'>";
+		$args       = [
 			'action' => 'hcaptcha_jetpack',
 			'name'   => 'hcaptcha_jetpack_nonce',
 			'id'     => [
@@ -59,7 +50,7 @@ class FormTest extends HCaptchaWPTestCase {
 				'form_id' => 'contact_' . $hash,
 			],
 		];
-		$hcaptcha         = $this->get_hcap_form( $args );
+		$hcaptcha   = $this->get_hcap_form( $args );
 
 		return [
 			'Empty contact form'                 => [ '', '' ],
