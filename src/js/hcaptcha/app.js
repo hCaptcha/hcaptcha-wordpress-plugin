@@ -30,6 +30,7 @@ window.hCaptchaSubmit = () => {
 
 window.hCaptchaOnLoad = () => {
 	function hCaptchaOnLoad() {
+		document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
 		window.hCaptchaBindEvents();
 		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
 	}

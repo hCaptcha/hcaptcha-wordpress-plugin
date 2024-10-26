@@ -23,7 +23,6 @@ use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
-use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Migrations\Migrations;
@@ -1505,7 +1504,7 @@ JS;
 			'Jetpack'                           => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
-				JetpackForm::class,
+				\HCaptcha\Jetpack\Form::class,
 			],
 			'Kadence Form'                      => [
 				[ 'kadence_status', 'form' ],

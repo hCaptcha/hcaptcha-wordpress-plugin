@@ -1,24 +1,24 @@
 <?php
 /**
- * JetpackBaseTest class file.
+ * BaseTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
-use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\Jetpack\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
- * Class JetpackBaseTest.
+ * Class BaseTest.
  *
  * @group jetpack
  */
-class JetpackBaseTest extends HCaptchaWPTestCase {
+class BaseTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Tear down test.
@@ -35,15 +35,15 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	 * Test constructor and init_hooks.
 	 */
 	public function test_init_hooks(): void {
-		$subject = new JetpackForm();
+		$subject = new Form();
 
 		self::assertSame(
 			10,
-			has_filter( 'jetpack_contact_form_html', [ $subject, 'add_captcha' ] )
+			has_filter( 'jetpack_contact_form_html', [ $subject, 'add_hcaptcha' ] )
 		);
 		self::assertSame(
 			0,
-			has_filter( 'widget_text', [ $subject, 'add_captcha' ] )
+			has_filter( 'widget_text', [ $subject, 'add_hcaptcha' ] )
 		);
 
 		self::assertSame(
@@ -67,7 +67,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 	public function test_jetpack_verify(): void {
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
 
-		$subject = new JetpackForm();
+		$subject = new Form();
 
 		self::assertFalse( $subject->verify() );
 		self::assertTrue( $subject->verify( true ) );
@@ -84,7 +84,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 
 		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
 
-		$subject = new JetpackForm();
+		$subject = new Form();
 
 		self::assertEquals( $error, $subject->verify() );
 		self::assertNull( $this->get_protected_property( $subject, 'error_form_hash' ) );
@@ -113,7 +113,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		$subject = new JetpackForm();
+		$subject = new Form();
 
 		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content ) );
 
@@ -163,7 +163,7 @@ class JetpackBaseTest extends HCaptchaWPTestCase {
 CSS;
 		$expected = "<style>\n$expected\n</style>\n";
 
-		$subject = new JetpackForm();
+		$subject = new Form();
 
 		ob_start();
 

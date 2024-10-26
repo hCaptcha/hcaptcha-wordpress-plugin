@@ -1,6 +1,6 @@
 <?php
 /**
- * Jetpack class file.
+ * Base class file.
  *
  * @package hcaptcha-wp
  */
@@ -11,9 +11,9 @@ use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
 /**
- * Class Jetpack
+ * Class Base
  */
-abstract class JetpackBase {
+abstract class Base {
 
 	/**
 	 * Nonce action.
@@ -24,6 +24,16 @@ abstract class JetpackBase {
 	 * Nonce name.
 	 */
 	protected const NAME = 'hcaptcha_jetpack_nonce';
+
+	/**
+	 * Admin script handle.
+	 */
+	private const ADMIN_HANDLE = 'admin-jetpack';
+
+	/**
+	 * Admin script object.
+	 */
+	private const OBJECT = 'HCaptchaJetpackObject';
 
 	/**
 	 * Error message.
@@ -53,10 +63,10 @@ abstract class JetpackBase {
 	 */
 	private function init_hooks(): void {
 		// This filter works for a Jetpack classic and block form on a page or in a template.
-		add_filter( 'jetpack_contact_form_html', [ $this, 'add_captcha' ] );
+		add_filter( 'jetpack_contact_form_html', [ $this, 'add_hcaptcha' ] );
 
 		// This filter works for a Jetpack form in a classic widget.
-		add_filter( 'widget_text', [ $this, 'add_captcha' ], 0 );
+		add_filter( 'widget_text', [ $this, 'add_hcaptcha' ], 0 );
 
 		add_filter( 'widget_text', 'shortcode_unautop' );
 		add_filter( 'widget_text', 'do_shortcode' );
@@ -64,6 +74,8 @@ abstract class JetpackBase {
 		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'verify' ], 100, 2 );
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
 	/**
@@ -73,7 +85,7 @@ abstract class JetpackBase {
 	 *
 	 * @return string
 	 */
-	abstract public function add_captcha( $content ): string;
+	abstract public function add_hcaptcha( $content ): string;
 
 	/**
 	 * Verify hCaptcha answer from the Jetpack Contact Form.
@@ -136,6 +148,76 @@ HTML;
 	}
 
 	/**
+	 * Print hCaptcha script when editing a page with Jetpack form.
+	 *
+	 * @param bool|mixed $status Current print status.
+	 *
+	 * @return bool
+	 */
+	public function print_hcaptcha_scripts( $status ): bool {
+		$status = (bool) $status;
+
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			// @codeCoverageIgnoreStart
+			return $status;
+			// @codeCoverageIgnoreEnd
+		}
+
+		$pagenow = $GLOBALS['pagenow'] ?? '';
+
+		if ( 'post.php' !== $pagenow ) {
+			return $status;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
+		$action  = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! $post_id || 'edit' !== $action ) {
+			return $status;
+		}
+
+		$post    = get_post( $post_id );
+		$content = $post->post_content ?? '';
+
+		if ( false === strpos( $content, '<!-- wp:jetpack/contact-form -->' ) ) {
+			return $status;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Enqueue script in admin.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts(): void {
+		if ( ! $this->is_jetpack_post_page() ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-jetpack$min.js",
+			[ 'hcaptcha' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'hCaptcha' => $this->get_hcaptcha( $this->get_args() ),
+			]
+		);
+	}
+
+	/**
 	 * Print inline styles.
 	 *
 	 * @return void
@@ -153,6 +235,24 @@ CSS;
 	}
 
 	/**
+	 * Get hCaptcha arguments.
+	 *
+	 * @param string $hash Form hash.
+	 *
+	 * @return array
+	 */
+	protected function get_args( string $hash = '' ): array {
+		return [
+			'action' => self::ACTION,
+			'name'   => self::NAME,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'contact' . $hash,
+			],
+		];
+	}
+
+	/**
 	 * Get form hash.
 	 *
 	 * @param string $form Jetpack form.
@@ -166,6 +266,17 @@ CSS;
 	}
 
 	/**
+	 * Get hCaptcha.
+	 *
+	 * @param array $args The hCaptcha arguments.
+	 *
+	 * @return string
+	 */
+	protected function get_hcaptcha( array $args ): string {
+		return '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
+	}
+
+	/**
 	 * Get form hash.
 	 *
 	 * @return string|null
@@ -176,5 +287,14 @@ CSS;
 			? sanitize_text_field( wp_unslash( $_POST['contact-form-hash'] ) )
 			: null;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Check if the current page is a post page containing a Jetpack form.
+	 *
+	 * @return bool
+	 */
+	private function is_jetpack_post_page(): bool {
+		return true;
 	}
 }

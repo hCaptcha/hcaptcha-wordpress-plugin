@@ -25,7 +25,6 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
-use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
@@ -1083,7 +1082,7 @@ CSS;
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
-				JetpackForm::class,
+				Jetpack\Form::class,
 			],
 			'Kadence Form'                         => [
 				[ 'kadence_status', 'form' ],

@@ -1,18 +1,16 @@
 <?php
 /**
- * JetpackContactForm class file.
+ * Form class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Jetpack;
 
-use HCaptcha\Helpers\HCaptcha;
-
 /**
- * Class JetpackContactForm
+ * Class Form
  */
-class JetpackForm extends JetpackBase {
+class Form extends Base {
 
 	/**
 	 * Add hCaptcha to a Jetpack contact form.
@@ -21,7 +19,7 @@ class JetpackForm extends JetpackBase {
 	 *
 	 * @return string
 	 */
-	public function add_captcha( $content ): string {
+	public function add_hcaptcha( $content ): string {
 		$content = (string) $content;
 
 		// Jetpack classic form.
@@ -51,18 +49,9 @@ class JetpackForm extends JetpackBase {
 			return $matches[0];
 		}
 
-		$hash = $this->get_form_hash( $matches[0] );
-
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'contact' . $hash,
-			],
-		];
-
-		$hcaptcha = '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
+		$hash     = $this->get_form_hash( $matches[0] );
+		$args     = $this->get_args( $hash );
+		$hcaptcha = $this->get_hcaptcha( $args );
 
 		if ( false !== strpos( $matches[0], $hcaptcha ) ) {
 			return $matches[0];

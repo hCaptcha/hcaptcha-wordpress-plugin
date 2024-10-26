@@ -1,21 +1,21 @@
 <?php
 /**
- * JetpackFormTest class file.
+ * FormTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
-use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\Jetpack\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
- * Class JetpackFormTest.
+ * Class FormTest.
  *
  * @group jetpack
  */
-class JetpackFormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
@@ -26,9 +26,9 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_add_captcha
 	 */
 	public function test_add_captcha( string $content, string $expected ): void {
-		$subject = new JetpackForm();
+		$subject = new Form();
 
-		self::assertSame( $expected, $subject->add_captcha( $content ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $content ) );
 	}
 
 	/**
