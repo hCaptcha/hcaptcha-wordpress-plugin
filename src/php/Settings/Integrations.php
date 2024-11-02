@@ -140,6 +140,7 @@ class Integrations extends PluginSettingsBase {
 
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
+		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
 	}
 
 	/**
@@ -150,6 +151,24 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function activated_plugin_action(): void {
 		remove_action( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' );
+	}
+
+	/**
+	 * After switch theme action.
+	 * Do not allow redirect during Divi theme activation.
+	 *
+	 * @return void
+	 */
+	public function after_switch_theme_action(): void {
+		if ( ! wp_doing_ajax() ) {
+			return;
+		}
+
+		$this->run_checks( self::ACTIVATE_ACTION );
+
+		// Do not allow redirect during Divi theme activation.
+//		remove_action( 'switch_theme', 'et_onboarding_remove_transients' );
+		remove_action( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 	}
 
 	/**
@@ -1227,9 +1246,7 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		ob_start();
-
 		switch_theme( $theme );
-
 		ob_end_clean();
 
 		return true;

@@ -582,6 +582,7 @@ Instructions for popular native integrations are below:
 * Fixed non-blocking of reCaptcha scripts with Kadence Forms.
 * Fixed showing hCaptcha in Elementor admin in some cases.
 * Fixed inability to sort by Source column on Forms and Events admin pages.
+* Fixed inability to deactivate Divi theme right after activation.
 * Tested with WordPress 6.7.
 * Tested with WooCommerce 9.3.
 
