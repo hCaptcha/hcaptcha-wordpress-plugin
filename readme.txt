@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 7.2
 Stable tag: 4.6.0
 License: GPLv2 or later
@@ -582,6 +582,8 @@ Instructions for popular native integrations are below:
 * Fixed non-blocking of reCaptcha scripts with Kadence Forms.
 * Fixed showing hCaptcha in Elementor admin in some cases.
 * Fixed inability to sort by Source column on Forms and Events admin pages.
+* Tested with WordPress 6.7.
+* Tested with WooCommerce 9.3.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
