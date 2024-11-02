@@ -44,6 +44,7 @@ use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
+use WP_Textdomain_Registry;
 
 /**
  * Test Main class.
@@ -1758,14 +1759,22 @@ JS;
 			3
 		);
 
+		$saved_wp_textdomain_registry      = $GLOBALS['wp_textdomain_registry'] ?? null;
+		$GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+
+		self::assertFalse( $GLOBALS['wp_textdomain_registry']->get( 'hcaptcha-for-forms-and-more', 'ko_KR' ) );
+
+		$GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+
 		$subject->load_textdomain();
+
+		self::assertNotEmpty( $GLOBALS['wp_textdomain_registry']->get( 'hcaptcha-for-forms-and-more', 'ko_KR' ) );
+
+		$GLOBALS['wp_textdomain_registry'] = $saved_wp_textdomain_registry;
 
 		self::assertFalse( $override_filter_params[0][0] );
 		self::assertSame( $default_domain, $override_filter_params[0][1] );
 		self::assertSame( $default_mofile, $override_filter_params[0][2] );
-		self::assertFalse( $override_filter_params[1][0] );
-		self::assertSame( $domain, $override_filter_params[1][1] );
-		self::assertSame( basename( $mofile ), basename( $override_filter_params[1][2] ) );
 	}
 
 	/**
