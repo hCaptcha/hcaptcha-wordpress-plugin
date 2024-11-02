@@ -167,7 +167,6 @@ class Integrations extends PluginSettingsBase {
 		$this->run_checks( self::ACTIVATE_ACTION );
 
 		// Do not allow redirect during Divi theme activation.
-//		remove_action( 'switch_theme', 'et_onboarding_remove_transients' );
 		remove_action( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 	}
 
