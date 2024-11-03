@@ -103,6 +103,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		WP_Mock::expectActionAdded( 'kagg_settings_header', [ $subject, 'search_box' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Integrations::ACTIVATE_ACTION, [ $subject, 'activate' ] );
+		WP_Mock::expectActionAdded( 'after_switch_theme', [ $subject, 'after_switch_theme_action' ], 0 );
 
 		$method = 'init_hooks';
 
