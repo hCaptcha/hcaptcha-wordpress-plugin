@@ -121,9 +121,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 
 		$subject->shouldReceive( 'run_checks' )->once()->with( $subject::ACTIVATE_ACTION );
+		$subject->shouldReceive( 'remove_action_regex' )
+			->once()->with( '/^Avada/', 'after_switch_theme' );
 
 		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( true );
 		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
+		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'avada_compat_switch_theme' );
 
 		$subject->after_switch_theme_action();
 	}
