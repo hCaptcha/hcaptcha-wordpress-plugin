@@ -975,7 +975,7 @@ class Integrations extends PluginSettingsBase {
 			$this->send_json_success( esc_html( $message ) );
 		}
 
-		deactivate_plugins( $plugins );
+		deactivate_plugins( $plugins, true );
 
 		$message = sprintf(
 		/* translators: 1: Plugin name. */
