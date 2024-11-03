@@ -144,16 +144,6 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Activated plugin action.
-	 * Do not allow redirect during plugin activation.
-	 *
-	 * @return void
-	 */
-	public function activated_plugin_action(): void {
-		remove_action( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' );
-	}
-
-	/**
 	 * After switch theme action.
 	 * Do not allow redirect during Divi theme activation.
 	 *
@@ -1115,12 +1105,10 @@ class Integrations extends PluginSettingsBase {
 			return true;
 		}
 
-		// Do not allow redirect during plugin activation.
-		add_action( 'activated_plugin', [ $this, 'activated_plugin_action' ], PHP_INT_MIN );
-
 		ob_start();
-		// Null on success, WP_Error on failure.
-		$result = activate_plugin( $plugin );
+		// Activate plugins silently to avoid redirects.
+		// Result is null on success, WP_Error on failure.
+		$result = activate_plugin( $plugin, '', false, true );
 		ob_end_clean();
 
 		return $result;
@@ -1331,6 +1319,7 @@ class Integrations extends PluginSettingsBase {
 	 * Get default theme.
 	 *
 	 * @return string
+	 * @noinspection PhpVoidFunctionResultUsedInspection
 	 */
 	public function get_default_theme(): string {
 		$core_default_theme_obj = WP_Theme::get_core_default_theme();

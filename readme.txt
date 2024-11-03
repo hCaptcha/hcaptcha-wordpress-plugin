@@ -583,6 +583,7 @@ Instructions for popular native integrations are below:
 * Fixed showing hCaptcha in Elementor admin in some cases.
 * Fixed inability to sort by Source column on Forms and Events admin pages.
 * Fixed inability to deactivate Divi theme right after activation.
+* Fixed error on plugin activation when plugin makes redirect on activation.
 * Tested with WordPress 6.7.
 * Tested with WooCommerce 9.3.
 
