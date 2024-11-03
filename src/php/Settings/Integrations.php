@@ -968,6 +968,8 @@ class Integrations extends PluginSettingsBase {
 					);
 
 					$this->send_json_success( esc_html( $message ) );
+
+					return; // For testing purposes.
 				}
 			}
 
@@ -978,11 +980,11 @@ class Integrations extends PluginSettingsBase {
 			);
 
 			$this->send_json_error( esc_html( $message ) );
+
+			return; // For testing purposes.
 		}
 
-		$network_wide = is_multisite() && $this->is_network_wide();
-
-		deactivate_plugins( $plugins, true, $network_wide );
+		$this->deactivate_plugins( $plugins );
 
 		$message = sprintf(
 		/* translators: 1: Plugin name. */
@@ -991,6 +993,19 @@ class Integrations extends PluginSettingsBase {
 		);
 
 		$this->send_json_success( esc_html( $message ) );
+	}
+
+	/**
+	 * Deactivate plugins.
+	 *
+	 * @param array $plugins Plugins to deactivate.
+	 *
+	 * @return void
+	 */
+	protected function deactivate_plugins( array $plugins ): void {
+		$network_wide = is_multisite() && $this->is_network_wide();
+
+		deactivate_plugins( $plugins, true, $network_wide );
 	}
 
 	/**
@@ -1094,19 +1109,19 @@ class Integrations extends PluginSettingsBase {
 			unset( $child );
 		}
 
-		$node['result'] = $this->activate_plugin( $node['plugin'] );
+		$node['result'] = $this->maybe_activate_plugin( $node['plugin'] );
 
 		return $node['result'];
 	}
 
 	/**
-	 * Activate plugin.
+	 * Maybe activate plugin.
 	 *
 	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
 	 *
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
-	protected function activate_plugin( string $plugin ) {
+	protected function maybe_activate_plugin( string $plugin ) {
 
 		if ( hcaptcha()->is_plugin_active( $plugin ) ) {
 			return true;
@@ -1114,15 +1129,25 @@ class Integrations extends PluginSettingsBase {
 
 		ob_start();
 
-		$network_wide = is_multisite() && $this->is_network_wide();
-
-		// Activate plugins silently to avoid redirects.
-		// Result is null on success, WP_Error on failure.
-		$result = activate_plugin( $plugin, '', $network_wide, true );
+		$result = $this->activate_plugin( $plugin );
 
 		ob_end_clean();
 
 		return $result;
+	}
+
+	/**
+	 * Activate plugin.
+	 *
+	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return null|WP_Error Null on success, WP_Error on failure.
+	 */
+	protected function activate_plugin( string $plugin ): ?WP_Error {
+		$network_wide = is_multisite() && $this->is_network_wide();
+
+		// Activate plugins silently to avoid redirects.
+		return activate_plugin( $plugin, '', $network_wide, true );
 	}
 
 	/**
