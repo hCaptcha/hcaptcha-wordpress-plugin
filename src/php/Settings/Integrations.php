@@ -1372,10 +1372,9 @@ class Integrations extends PluginSettingsBase {
 	 * @param string $callback_pattern Callback pattern to match. A regex matching to SomeNameSpace\SomeClass::some_method.
 	 * @param string $hook_name        Action name.
 	 *
-	 * @noinspection PhpSameParameterValueInspection
+	 * @return void
 	 */
 	protected function remove_action_regex( string $callback_pattern, string $hook_name = '' ): void {
-
 		global $wp_filter;
 
 		$hook_name = $hook_name ?: current_action();
@@ -1399,8 +1398,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return void
 	 */
-	private function maybe_remove_action_regex( string $callback_pattern, string $hook_name, array $action, int $priority ): void {
-
+	protected function maybe_remove_action_regex( string $callback_pattern, string $hook_name, array $action, int $priority ): void {
 		$callback = $action['function'] ?? '';
 
 		if ( $callback instanceof Closure ) {
