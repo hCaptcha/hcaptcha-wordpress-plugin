@@ -950,32 +950,39 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ): void {
 		if ( $activate ) {
-			if ( ! $this->activate_plugins( $plugins ) ) {
-				$message = sprintf(
-				/* translators: 1: Plugin name. */
-					__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
-					$plugin_name
-				);
+			$activate_plugins = $this->activate_plugins( $plugins );
 
-				$this->send_json_error( esc_html( $message ) );
+			if ( $activate_plugins ) {
+				$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
+
+				if ( array_filter( $plugin_names ) ) {
+					$message = sprintf(
+					/* translators: 1: Plugin name. */
+						_n(
+							'%s plugin is activated.',
+							'%s plugins are activated.',
+							count( $plugin_names ),
+							'hcaptcha-for-forms-and-more'
+						),
+						implode( ', ', $plugin_names )
+					);
+
+					$this->send_json_success( esc_html( $message ) );
+				}
 			}
 
-			$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
-			$message      = sprintf(
+			$message = sprintf(
 			/* translators: 1: Plugin name. */
-				_n(
-					'%s plugin is activated.',
-					'%s plugins are activated.',
-					count( $plugin_names ),
-					'hcaptcha-for-forms-and-more'
-				),
-				implode( ', ', $plugin_names )
+				__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
+				$plugin_name
 			);
 
-			$this->send_json_success( esc_html( $message ) );
+			$this->send_json_error( esc_html( $message ) );
 		}
 
-		deactivate_plugins( $plugins, true );
+		$network_wide = is_multisite() && $this->is_network_wide();
+
+		deactivate_plugins( $plugins, true, $network_wide );
 
 		$message = sprintf(
 		/* translators: 1: Plugin name. */
@@ -1101,14 +1108,18 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function activate_plugin( string $plugin ) {
 
-		if ( is_plugin_active( $plugin ) ) {
+		if ( hcaptcha()->is_plugin_active( $plugin ) ) {
 			return true;
 		}
 
 		ob_start();
+
+		$network_wide = is_multisite() && $this->is_network_wide();
+
 		// Activate plugins silently to avoid redirects.
 		// Result is null on success, WP_Error on failure.
-		$result = activate_plugin( $plugin, '', false, true );
+		$result = activate_plugin( $plugin, '', $network_wide, true );
+
 		ob_end_clean();
 
 		return $result;
