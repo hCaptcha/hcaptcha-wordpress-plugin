@@ -287,12 +287,12 @@ class Admin extends Base {
 			],
 		];
 
-		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
+		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
 
-		if ( preg_match( '/var wpcf7 = ({.+});/', $data, $m ) ) {
+		if ( preg_match( '/var wpcf7 = ({.+});/s', $data, $m ) ) {
 			$wpcf7 = array_merge( $wpcf7, json_decode( $m[1], true ) );
 
-			$wp_scripts->registered['wpcf7-admin']->extra['data'] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
+			$wp_scripts->registered['wpcf7-admin']->extra['before'][1] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
 	}
 }

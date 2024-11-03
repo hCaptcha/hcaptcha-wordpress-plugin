@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\Admin;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
-use Mockery;
 use WPCF7_TagGenerator;
 
 /**
@@ -503,16 +502,16 @@ HTML;
 
 		wpcf7_admin_enqueue_scripts( 'wpcf7' );
 
-		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
-		preg_match( '/var wpcf7 = ({.+});/', $data, $m );
+		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
+		preg_match( '/var wpcf7 = ({.+});/s', $data, $m );
 		$wpcf7 = json_decode( $m[1], true );
 
 		self::assertArrayNotHasKey( 'api', $wpcf7 );
 
 		$subject->enqueue_admin_scripts_after_cf7();
 
-		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
-		preg_match( '/var wpcf7 = ({.+});/', $data, $m );
+		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
+		preg_match( '/var wpcf7 = ({.+});/s', $data, $m );
 		$wpcf7 = json_decode( $m[1], true );
 
 		self::assertArrayHasKey( 'api', $wpcf7 );
