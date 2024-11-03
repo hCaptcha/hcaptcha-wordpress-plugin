@@ -749,10 +749,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test process_plugins() with deactivation.
 	 *
+	 * @param bool $is_multisite    Is multisite.
+	 * @param bool $is_network_wide Is network wide.
+	 *
+	 * @return void
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @dataProvider dp_test_process_deactivate_plugins
 	 */
-	public function test_process_deactivate_plugins( $is_multisite, $is_network_wide ): void {
+	public function test_process_deactivate_plugins( bool $is_multisite, bool $is_network_wide ): void {
 		$activate    = false;
 		$plugins     = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name = 'ACF Extended';
@@ -952,7 +956,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_activate_plugins_with_plugins_tree
-	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function test_activate_plugins_with_plugins_tree( $wish_result, $woo_result, bool $expected ): void {
