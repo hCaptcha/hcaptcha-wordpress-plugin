@@ -111,6 +111,37 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test after_switch_theme_action().
+	 *
+	 * @return void
+	 */
+	public function test_after_switch_theme_action(): void {
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->shouldReceive( 'run_checks' )->once()->with( $subject::ACTIVATE_ACTION );
+
+		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( true );
+		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
+
+		$subject->after_switch_theme_action();
+	}
+
+	/**
+	 * Test after_switch_theme_action() when not ajax.
+	 *
+	 * @return void
+	 */
+	public function test_after_switch_theme_action_when_not_ajax(): void {
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( false );
+
+		$subject->after_switch_theme_action();
+	}
+
+	/**
 	 * Test init_form_fields().
 	 *
 	 * @throws ReflectionException ReflectionException.
