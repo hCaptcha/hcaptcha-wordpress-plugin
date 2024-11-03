@@ -4,6 +4,8 @@
 
 	<!-- What to scan -->
 	<file>.</file>
+	<!-- Exclude all dirs except needed -->
+	<exclude-pattern>^(?!.*/hcaptcha-wordpress-plugin).*</exclude-pattern>
 	<exclude-pattern>*/\.codeception/*</exclude-pattern>
 	<exclude-pattern>*/\.github/*</exclude-pattern>
 	<exclude-pattern>*/\.php-scoper/vendor/*</exclude-pattern>

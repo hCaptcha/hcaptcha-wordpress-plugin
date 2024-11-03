@@ -572,6 +572,7 @@ Instructions for popular native integrations are below:
 
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
+* Added compatibility with Contact Form 7 v6.0.
 * Added compatibility with Akismet tag in Contact Form 7.
 * Added activation and deactivation of plugins network wide if hCaptcha is set network wide.
 * Added ability to use shortcode in the Mailchimp for WP form.
