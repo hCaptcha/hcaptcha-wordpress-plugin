@@ -128,6 +128,7 @@ class HCaptchaHandler {
 			3
 		);
 		add_filter( 'elementor_pro/forms/render/item', [ $this, 'filter_field_item' ] );
+		add_filter( 'elementor/frontend/the_content', [ $this, 'elementor_content' ] );
 		add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ] );
 
 		if ( static::is_enabled() ) {
@@ -449,6 +450,23 @@ class HCaptchaHandler {
 		}
 
 		return $item;
+	}
+
+	/**
+	 * Filter Elementor content.
+	 *
+	 * @param string|mixed $content Content.
+	 *
+	 * @return string
+	 */
+	public function elementor_content( $content ): string {
+		$content = (string) $content;
+
+		if ( ! hcaptcha()->form_shown && false !== strpos( $content, '<h-captcha' ) ) {
+			hcaptcha()->form_shown = true;
+		}
+
+		return $content;
 	}
 
 	/**
