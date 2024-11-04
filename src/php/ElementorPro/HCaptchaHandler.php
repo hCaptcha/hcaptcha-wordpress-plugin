@@ -454,6 +454,10 @@ class HCaptchaHandler {
 
 	/**
 	 * Filter Elementor content.
+	 * This filter is needed to support Elementor Element Caching feature.
+	 * With Caching feature active, Elementor does not render the content of the form fields.
+	 * Therefore, we have to analyze the content and check if the hCaptcha field is present
+	 * to enqueue scripts in the Main class.
 	 *
 	 * @param string|mixed $content Content.
 	 *
