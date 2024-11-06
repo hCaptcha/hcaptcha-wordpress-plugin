@@ -588,6 +588,7 @@ Instructions for popular native integrations are below:
 * Fixed inability to deactivate Avada theme right after activation.
 * Fixed inability to deactivate Divi theme right after activation.
 * Fixed error on plugin activation when plugin makes redirect on activation.
+* Fixed open_basedir restriction warning in Query Monitor.
 * Tested with WordPress 6.7.
 * Tested with WooCommerce 9.3.
 

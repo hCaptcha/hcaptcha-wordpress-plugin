@@ -12,8 +12,8 @@
 
 namespace HCaptcha\Helpers;
 
-use HCaptcha\Vendors\MatthiasMullie\Minify\CSS;
-use HCaptcha\Vendors\MatthiasMullie\Minify\JS;
+use HCaptcha\Helpers\Minify\CSS;
+use HCaptcha\Helpers\Minify\JS;
 use WP_Error;
 
 /**
