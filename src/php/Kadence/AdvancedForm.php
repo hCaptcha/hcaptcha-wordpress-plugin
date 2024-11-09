@@ -80,11 +80,13 @@ class AdvancedForm extends Base {
 	 * @param array        $block         Block.
 	 * @param WP_Block     $instance      Instance.
 	 *
-	 * @return string|mixed
+	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	public function render_block( $block_content, array $block, WP_Block $instance ) {
+	public function render_block( $block_content, array $block, WP_Block $instance ): string {
+		$block_content = (string) $block_content;
+
 		if ( 'kadence/advanced-form-submit' === $block['blockName'] && ! $this->has_hcaptcha ) {
 
 			$search = '<div class="kb-adv-form-field kb-submit-field';
@@ -99,7 +101,7 @@ class AdvancedForm extends Base {
 		$block_content = (string) preg_replace(
 			'#<div class="h-captcha" .*?></div>#',
 			$this->get_hcaptcha(),
-			(string) $block_content,
+			$block_content,
 			1,
 			$count
 		);

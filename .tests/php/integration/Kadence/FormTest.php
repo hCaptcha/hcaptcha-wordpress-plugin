@@ -20,6 +20,7 @@ use Mockery;
  * Test Kadence Form.
  *
  * @group kadence
+ * @group kadence-form
  */
 class FormTest extends HCaptchaWPTestCase {
 
@@ -48,6 +49,8 @@ class FormTest extends HCaptchaWPTestCase {
 		}
 
 		$subject = new Form();
+
+		self::assertSame( 8, has_action( 'wp_print_footer_scripts', [ $subject, 'dequeue_kadence_captcha_api' ] ) );
 
 		self::assertSame( 9, has_action( 'wp_ajax_kb_process_ajax_submit', [ $subject, 'process_ajax' ] ) );
 		self::assertSame( 9, has_action( 'wp_ajax_nopriv_kb_process_ajax_submit', [ $subject, 'process_ajax' ] ) );
