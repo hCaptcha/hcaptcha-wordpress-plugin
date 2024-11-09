@@ -17,5 +17,4 @@ namespace HCaptcha\Tests\Integration\Stubs\ThemeIsle\GutenbergBlocks\Integration
  */
 class FormDataResponseStub {
 	public const ERROR_MISSING_CAPTCHA = '102';
-
 }
