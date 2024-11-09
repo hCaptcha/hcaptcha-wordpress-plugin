@@ -12,6 +12,7 @@ use HCaptcha\Kadence\AdvancedBlockParser;
 use HCaptcha\Kadence\AdvancedForm;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 
 /**
  * Test Kadence AdvancedForm.
@@ -90,6 +91,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	 * Test render_block().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_render_block(): void {
 		$block_content              = 'some block content';
