@@ -32,24 +32,20 @@ class AdvancedBlockParser extends WP_Block_Parser {
 	 * @return array[]
 	 */
 	public function parse( $document ): array {
-		$output = parent::parse( $document );
+		$output     = parent::parse( $document );
+		$block      = $output[0];
+		$block_name = $block['blockName'] ?? '';
 
-		if ( ! isset( $output[0] ) ) {
+		if ( 'kadence/advanced-form' !== $block_name ) {
 			return $output;
 		}
 
-		$block = $output[0];
-
-		if ( ! ( isset( $block['blockName'] ) && 'kadence/advanced-form' === $block['blockName'] ) ) {
-			return $output;
-		}
-
-		if ( isset( $block['attrs']['id'] ) ) {
-			self::$form_id = $block['attrs']['id'];
-		}
+		self::$form_id = $block['attrs']['id'] ?? 0;
 
 		if ( ! ( isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) ) {
+			// @CodeCoverageIgnoreStart
 			return $output;
+			// @codeCoverageIgnoreEnd
 		}
 
 		foreach ( $block['innerBlocks'] as $index => $inner_block ) {
