@@ -155,7 +155,7 @@ body.settings_page_hcaptcha {
 	position: absolute;
 	inset-inline-end: 0;
 	top: 0;
-	transform: translate(0, -26px);
+	transform: translate(0, -27px);
 	background: #5c6f8a;
 	color: #fff;
 	width: 1.2em;
@@ -165,7 +165,7 @@ body.settings_page_hcaptcha {
 }
 
 #hcaptcha-options fieldset + .helper::before {
-	transform: translate(25px, -0.8em);
+	transform: translate(25px, -0.7em);
 	top: 50%;
 }
 
