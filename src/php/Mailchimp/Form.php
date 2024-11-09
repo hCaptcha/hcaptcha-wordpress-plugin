@@ -43,7 +43,7 @@ class Form {
 	 */
 	private function init_hooks(): void {
 		add_filter( 'mc4wp_form_messages', [ $this, 'add_hcap_error_messages' ], 10, 2 );
-		add_filter( 'mc4wp_form_content', [ $this, 'add_captcha' ], 20, 3 );
+		add_filter( 'mc4wp_form_content', [ $this, 'add_hcaptcha' ], 20, 3 );
 		add_filter( 'mc4wp_form_errors', [ $this, 'verify' ], 10, 2 );
 	}
 
@@ -79,7 +79,7 @@ class Form {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
+	public function add_hcaptcha( $content, MC4WP_Form $form, MC4WP_Form_Element $element ): string {
 		$content = (string) $content;
 
 		if ( false !== strpos( $content, '<h-captcha' ) ) {
