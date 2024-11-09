@@ -325,7 +325,7 @@ HTML;
 	 * @noinspection DisconnectedForeachInstructionInspection
 	 */
 	public function test_is_formidable_forms_admin_page(): void {
-		$forminator_admin_pages = [
+		$formidable_admin_pages = [
 			'formidable_page_formidable-settings',
 		];
 
@@ -342,7 +342,7 @@ HTML;
 		self::assertFalse( $subject->is_formidable_forms_admin_page() );
 
 		// Success path. Formidable admin pages.
-		foreach ( $forminator_admin_pages as $page ) {
+		foreach ( $formidable_admin_pages as $page ) {
 			set_current_screen( $page );
 
 			self::assertTrue( $subject->is_formidable_forms_admin_page() );

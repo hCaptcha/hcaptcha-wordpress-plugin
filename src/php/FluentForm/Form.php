@@ -53,7 +53,7 @@ class Form {
 	 *
 	 * @var int
 	 */
-	private $form_id;
+	protected $form_id = 0;
 
 	/**
 	 * Constructor.
@@ -69,7 +69,7 @@ class Form {
 	 */
 	private function init_hooks(): void {
 		add_filter( 'fluentform/rendering_field_html_hcaptcha', [ $this, 'render_field_hcaptcha' ], 10, 3 );
-		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_captcha' ], 9, 2 );
+		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_hcaptcha' ], 9, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 		add_filter( 'fluentform/has_hcaptcha', [ $this, 'fluentform_has_hcaptcha' ] );
@@ -106,7 +106,7 @@ class Form {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( array $submit_button, stdClass $form ): void {
+	public function add_hcaptcha( array $submit_button, stdClass $form ): void {
 		// Do not add if the form has its own hcaptcha.
 		if ( $this->has_own_hcaptcha( $form ) ) {
 			return;
@@ -262,7 +262,7 @@ class Form {
 	 *
 	 * @return bool
 	 */
-	private function is_fluent_forms_admin_page(): bool {
+	protected function is_fluent_forms_admin_page(): bool {
 		if ( ! is_admin() ) {
 			return false;
 		}
@@ -270,7 +270,9 @@ class Form {
 		$screen = get_current_screen();
 
 		if ( ! $screen ) {
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$fluent_forms_admin_pages = [
@@ -292,7 +294,7 @@ class Form {
 			return $form;
 		}
 
-		$this->form_id = (int) $form->id;
+		$this->form_id = (int) ( $form->id ?? 0 );
 
 		return $form;
 	}
