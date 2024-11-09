@@ -46,7 +46,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( 10, has_filter( 'option_frm_options', [ $subject, 'get_option' ] ) );
-		self::assertSame( 10, has_filter( 'frm_replace_shortcodes', [ $subject, 'add_captcha' ] ) );
+		self::assertSame( 10, has_filter( 'frm_replace_shortcodes', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_filter( 'frm_is_field_hidden', [ $subject, 'prevent_native_validation' ] ) );
 		self::assertSame( 10, has_filter( 'frm_validate_entry', [ $subject, 'verify' ] ) );
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
@@ -99,9 +99,9 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha().
+	 * Test add_hcaptcha().
 	 */
-	public function test_add_captcha(): void {
+	public function test_add_hcaptcha(): void {
 		$form_id                      = 5;
 		$hcap_form                    = $this->get_hcap_form(
 			[
@@ -113,18 +113,23 @@ class FormTest extends HCaptchaWPTestCase {
 				],
 			]
 		);
-		$captcha_div                  = '';
-		$html                         = <<<HTML
+		$class                        = 'class="h-captcha"';
+		$div_id                       = 'some_id';
+		$hcap_form                    = str_replace( $class, 'id="' . $div_id . '"' . $class, $hcap_form );
+		$hcaptcha_div                 = '<div id="' . $div_id . '" class="h-captcha" data-sitekey="some_site_key"></div>';
+		$html_with_hcaptcha           = <<<HTML
 <form>
 	Some content
-	$captcha_div
+	$hcaptcha_div
 	<button>Submit</button>
 </form>
 HTML;
+		$html                         = str_replace( $hcaptcha_div, '', $html_with_hcaptcha );
 		$field                        = [ 'type' => 'some' ];
-		$atts                         = [];
+		$atts                         = [ 'form' => (object) [ 'id' => $form_id ] ];
 		$frm_settings                 = new FrmSettings();
 		$frm_settings->active_captcha = 'recaptcha';
+		$expected                     = str_replace( $hcaptcha_div, $hcap_form, $html_with_hcaptcha );
 
 		FunctionMocker::replace(
 			'FrmAppHelper::get_settings',
@@ -135,20 +140,21 @@ HTML;
 
 		$subject = new Form();
 
-		self::assertSame( $html, $subject->add_captcha( $html, $field, $atts ) );
+		// Field type is not captcha.
+		self::assertSame( $html, $subject->add_hcaptcha( $html, $field, $atts ) );
 
+		// Active captcha is not hCaptcha.
 		$field['type'] = 'captcha';
 
-		self::assertSame( $html, $subject->add_captcha( $html, $field, $atts ) );
+		self::assertSame( $html, $subject->add_hcaptcha( $html, $field, $atts ) );
 
+		// No hCaptcha div in $html.
 		$frm_settings->active_captcha = 'hcaptcha';
 
-		self::assertSame( $html, $subject->add_captcha( $html, $field, $atts ) );
+		self::assertSame( $html, $subject->add_hcaptcha( $html, $field, $atts ) );
 
-		$captcha_div = '<div id="some_id" class="h-captcha" data-sitekey="some_site_key"></div>';
-		$expected    = str_replace( $captcha_div, $hcap_form, $html );
-
-		self::assertSame( $expected, $subject->add_captcha( $html, $field, $atts ) );
+		// Success path.
+		self::assertSame( $expected, $subject->add_hcaptcha( $html_with_hcaptcha, $field, $atts ) );
 	}
 
 	/**
@@ -318,7 +324,7 @@ HTML;
 	 * @return void
 	 * @noinspection DisconnectedForeachInstructionInspection
 	 */
-	public function is_formidable_forms_admin_page(): void {
+	public function test_is_formidable_forms_admin_page(): void {
 		$forminator_admin_pages = [
 			'formidable_page_formidable-settings',
 		];
@@ -327,12 +333,15 @@ HTML;
 
 		$subject->shouldAllowMockingProtectedMethods();
 
+		// Not admin page.
 		self::assertFalse( $subject->is_formidable_forms_admin_page() );
 
+		// Not Formidable admin page.
 		set_current_screen( 'some' );
 
 		self::assertFalse( $subject->is_formidable_forms_admin_page() );
 
+		// Success path. Formidable admin pages.
 		foreach ( $forminator_admin_pages as $page ) {
 			set_current_screen( $page );
 
