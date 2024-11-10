@@ -6,7 +6,7 @@
 * Added activation and deactivation of plugins network wide if hCaptcha is set network wide.
 * Added ability to use shortcode in the Jetpack Classic form.
 * Added ability to use shortcode in the Mailchimp for WP form.
-* Fixed racing condition when loading hCaptcha API.
+* Fixed race condition when loading hCaptcha API.
 * Fixed sending a Ninja form with solved hCaptcha.
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
 * Fixed launching notifications script on every admin page.
