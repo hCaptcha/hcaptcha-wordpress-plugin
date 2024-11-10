@@ -158,7 +158,7 @@ class BaseTest extends HCaptchaWPTestCase {
 		// No error with wrong form_id.
 		$wrong_args = [
 			'id' => [
-				'form_id' => 'wrong hash',
+				'form_id' => 'contact_wrong hash',
 			],
 		];
 		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content, $wrong_args ) );
@@ -279,7 +279,7 @@ CSS;
 
 		// With contact-form and hcaptcha shortcode inside.
 		$content  = '[contact-form]Some form content[hcaptcha][/contact-form]';
-		$expected = '[contact-form]Some form content[hcaptcha ][/contact-form]';
+		$expected = '[contact-form]Some form content[hcaptcha force="" size="" id--source--0="jetpack/jetpack.php" id--form_id="0" protect="1" action="hcaptcha_jetpack" name="hcaptcha_jetpack_nonce" auto=""][/contact-form]';
 
 		self::assertSame( $expected, $subject->the_content_filter( $content ) );
 	}
