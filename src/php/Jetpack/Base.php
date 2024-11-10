@@ -134,10 +134,11 @@ abstract class Base {
 			return $hcaptcha;
 		}
 
-		$form_id = $atts['id']['form_id'] ?? '';
-		$hash    = str_replace( 'contact_', '', $form_id );
+		$form_id  = $atts['id']['form_id'] ?? '';
+		$hash     = str_replace( 'contact_', '', $form_id );
+		$has_hash = $form_id !== $hash;
 
-		if ( $form_id && $hash !== $this->error_form_hash ) {
+		if ( $has_hash && $hash !== $this->error_form_hash ) {
 			return $hcaptcha;
 		}
 
@@ -237,26 +238,31 @@ CSS;
 
 		$atts = shortcode_parse_atts( $hcaptcha_sc );
 
+		unset( $atts[0] );
+
 		$settings       = hcaptcha()->settings();
 		$hcaptcha_force = $settings->is_on( 'force' );
 		$hcaptcha_size  = $settings->get( 'size' );
 
-		$atts = wp_parse_args(
-			$atts,
+		$atts = shortcode_atts(
 			[
 				'force'   => $hcaptcha_force,
 				'size'    => $hcaptcha_size,
-				'id'      => [
-					'source'  => HCaptcha::get_class_source( static::class ),
-					'form_id' => $GLOBALS['post']->ID ?? 0,
-				],
+				'id'      =>
+					[
+						'source'  => HCaptcha::get_class_source( static::class ),
+						'form_id' => $GLOBALS['post']->ID ?? 0,
+					],
 				'protect' => true,
-			]
+			],
+			$atts
 		);
 
 		$atts['action'] = self::ACTION;
 		$atts['name']   = self::NAME;
 		$atts['auto']   = false;
+
+		$atts = HCaptcha::flatten_array( $atts, '--' );
 
 		array_walk(
 			$atts,
@@ -265,9 +271,9 @@ CSS;
 			}
 		);
 
-		$updated_cf_hcap_sc = 'hcaptcha ' . implode( ' ', $atts );
+		$updated_hcaptcha_sc = 'hcaptcha ' . implode( ' ', $atts );
 
-		return str_replace( $hcaptcha_shortcode, "[$updated_cf_hcap_sc]", $content );
+		return str_replace( $hcaptcha_shortcode, "[$updated_hcaptcha_sc]", $content );
 	}
 
 	/**

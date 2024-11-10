@@ -58,6 +58,8 @@ class BaseTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
 
+		self::assertSame( 10, has_action( 'the_content', [ $subject, 'the_content_filter' ] ) );
+
 		if ( $is_editing_jetpack_form_post ) {
 			self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 			self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
@@ -250,6 +252,36 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test the_content_filter().
+	 *
+	 * @return void
+	 */
+	public function test_the_content_filter(): void {
+		$subject = new Form();
+
+		// Some content.
+		$content = 'some content';
+
+		self::assertSame( $content, $subject->the_content_filter( $content ) );
+
+		// With contact-form shortcode.
+		$content = '[contact-form]Some form content[/contact-form]';
+
+		self::assertSame( $content, $subject->the_content_filter( $content ) );
+
+		// With contact-form and hcaptcha shortcode outside.
+		$content = '[contact-form]Some form content[/contact-form][hcaptcha]';
+
+		self::assertSame( $content, $subject->the_content_filter( $content ) );
+
+		// With contact-form and hcaptcha shortcode inside.
+		$content  = '[contact-form]Some form content[hcaptcha][/contact-form]';
+		$expected = '[contact-form]Some form content[hcaptcha ][/contact-form]';
+
+		self::assertSame( $expected, $subject->the_content_filter( $content ) );
 	}
 
 	/**
