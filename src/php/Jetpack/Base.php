@@ -75,6 +75,8 @@ abstract class Base {
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
+		add_filter( 'the_content', [ $this, 'the_content_filter' ] );
+
 		if ( ! $this->is_editing_jetpack_form_post() ) {
 			return;
 		}
@@ -205,6 +207,83 @@ HTML;
 CSS;
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * The content filter.
+	 *
+	 * @param string|mixed $content Content.
+	 *
+	 * @return string
+	 */
+	public function the_content_filter( $content ): string {
+		$contact_form_shortcode = $this->get_shortcode( $content, 'contact-form' );
+
+		if ( ! $contact_form_shortcode ) {
+			return $content;
+		}
+
+		$hcaptcha_shortcode = $this->get_shortcode( $contact_form_shortcode, 'hcaptcha' );
+
+		if ( ! $hcaptcha_shortcode ) {
+			return $content;
+		}
+
+		$hcaptcha_sc = preg_replace(
+			'/\s*\[|]\s*/',
+			'',
+			$hcaptcha_shortcode
+		);
+
+		$atts = shortcode_parse_atts( $hcaptcha_sc );
+
+		$settings       = hcaptcha()->settings();
+		$hcaptcha_force = $settings->is_on( 'force' );
+		$hcaptcha_size  = $settings->get( 'size' );
+
+		$atts = wp_parse_args(
+			$atts,
+			[
+				'force'   => $hcaptcha_force,
+				'size'    => $hcaptcha_size,
+				'id'      => [
+					'source'  => HCaptcha::get_class_source( static::class ),
+					'form_id' => $GLOBALS['post']->ID ?? 0,
+				],
+				'protect' => true,
+			]
+		);
+
+		$atts['action'] = self::ACTION;
+		$atts['name']   = self::NAME;
+		$atts['auto']   = false;
+
+		array_walk(
+			$atts,
+			static function ( &$value, $key ) {
+				$value = "$key=\"$value\"";
+			}
+		);
+
+		$updated_cf_hcap_sc = 'hcaptcha ' . implode( ' ', $atts );
+
+		return str_replace( $hcaptcha_shortcode, "[$updated_cf_hcap_sc]", $content );
+	}
+
+	/**
+	 * Get shortcode in content.
+	 *
+	 * @param string $content   Content.
+	 * @param string $shortcode Shortcode.
+	 *
+	 * @return string
+	 */
+	private function get_shortcode( string $content, string $shortcode ): string {
+		$regex = get_shortcode_regex( [ $shortcode ] );
+
+		return preg_match( "/$regex/", $content, $matches )
+			? $matches[0]
+			: '';
 	}
 
 	/**

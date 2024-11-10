@@ -576,6 +576,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Akismet tag in Contact Form 7.
 * Added compatibility with Elementor Element Caching.
 * Added activation and deactivation of plugins network wide if hCaptcha is set network wide.
+* Added ability to use shortcode in the Jetpack Classic form.
 * Added ability to use shortcode in the Mailchimp for WP form.
 * Fixed racing condition when loading hCaptcha API.
 * Fixed sending a Ninja form with solved hCaptcha.

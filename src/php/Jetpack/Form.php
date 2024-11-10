@@ -49,14 +49,13 @@ class Form extends Base {
 			return $matches[0];
 		}
 
-		$hash     = $this->get_form_hash( $matches[0] );
-		$args     = $this->get_args( $hash );
-		$hcaptcha = $this->get_hcaptcha( $args );
-
-		if ( false !== strpos( $matches[0], $hcaptcha ) ) {
+		if ( false !== strpos( $matches[0], '<h-captcha' ) ) {
 			return $matches[0];
 		}
 
+		$hash     = $this->get_form_hash( $matches[0] );
+		$args     = $this->get_args( $hash );
+		$hcaptcha = $this->get_hcaptcha( $args );
 		$hcaptcha = $this->error_message( $hcaptcha, $args );
 
 		return str_replace(
