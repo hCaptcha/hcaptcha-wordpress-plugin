@@ -80,7 +80,7 @@ class GeneralTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $hcaptcha );
 
-		WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'init_notifications' ] );
+		WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'init_notifications' ] );
 		WP_Mock::expectActionAdded( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		WP_Mock::expectActionAdded( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
@@ -109,6 +109,8 @@ class GeneralTest extends HCaptchaTestCase {
 		$hcaptcha->shouldReceive( 'settings' )->andReturn( $settings );
 		$hcaptcha->shouldReceive( 'is_pro' )->andReturn( false );
 		$notifications->shouldReceive( 'init' );
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 
 		WP_Mock::passthruFunction( 'admin_url' );
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $hcaptcha );
@@ -117,6 +119,23 @@ class GeneralTest extends HCaptchaTestCase {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		self::assertSame( json_encode( $notifications ), json_encode( $this->get_protected_property( $subject, 'notifications' ) ) );
+	}
+
+	/**
+	 * Test init_notifications() not on the options screen.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_init_notifications_not_on_options_screen(): void {
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
+
+		$subject->init_notifications();
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		self::assertNull( $this->get_protected_property( $subject, 'notifications' ) );
 	}
 
 	/**

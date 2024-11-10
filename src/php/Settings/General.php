@@ -155,7 +155,7 @@ class General extends PluginSettingsBase {
 		$hcaptcha = hcaptcha();
 
 		// Current class loaded early on plugins_loaded. Init Notifications later, when Settings class is ready.
-		add_action( 'plugins_loaded', [ $this, 'init_notifications' ] );
+		add_action( 'current_screen', [ $this, 'init_notifications' ] );
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
@@ -172,6 +172,10 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function init_notifications(): void {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
 		$this->notifications = new Notifications();
 		$this->notifications->init();
 	}
@@ -443,7 +447,7 @@ class General extends PluginSettingsBase {
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'default' => Main::API_HOST,
-				'helper'  => __( 'See Enterprise docs.' ),
+				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'asset_host'           => [
 				'label'   => __( 'Asset Host', 'hcaptcha-for-forms-and-more' ),

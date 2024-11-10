@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.6.0
+Stable tag: 4.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -570,6 +570,29 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.7.0 =
+* Added compatibility with WordPress Recovery Mode.
+* Added compatibility with Contact Form 7 v6.0.
+* Added compatibility with Akismet tag in Contact Form 7.
+* Added compatibility with Elementor Element Caching.
+* Added activation and deactivation of plugins network wide if hCaptcha is set network wide.
+* Added ability to use shortcode in the Jetpack Classic form.
+* Added ability to use shortcode in the Mailchimp for WP form.
+* Fixed race condition when loading hCaptcha API.
+* Fixed sending a Ninja form with solved hCaptcha.
+* Fixed non-active hCaptcha when editing a page containing a Forminator form.
+* Fixed launching notifications script on every admin page.
+* Fixed missing hCaptcha in Formidable forms.
+* Fixed non-blocking of reCaptcha scripts with Kadence Forms.
+* Fixed showing hCaptcha in Elementor admin in some cases.
+* Fixed inability to sort by Source column on Forms and Events admin pages.
+* Fixed inability to deactivate Avada theme right after activation.
+* Fixed inability to deactivate Divi theme right after activation.
+* Fixed error on plugin activation when plugin makes redirect on activation.
+* Fixed open_basedir restriction warning in Query Monitor.
+* Tested with WordPress 6.7.
+* Tested with WooCommerce 9.3.
+
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
 * Added option to show Live Form in CF7 admin.
@@ -788,7 +811,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha field to Gravity Forms admin editor.
 * Added hCaptcha field to Ninja Forms admin editor.
 * Added invisible hCaptcha support for Ninja Forms.
-* Added the ability to process customized MailChimp forms.
+* Added the ability to process customized Mailchimp forms.
 * Added HTML Forms integration.
 * Added the Auto Theme option to follow light/dark theme settings on site.
 * Added support for WP Twenty Twenty-One theme dark mode.

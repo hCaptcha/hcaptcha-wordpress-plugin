@@ -14,7 +14,7 @@ use WP_Block;
 /**
  * Class AdvancedForm.
  */
-class AdvancedForm {
+class AdvancedForm extends Base {
 
 	/**
 	 * Admin script handle.
@@ -25,13 +25,6 @@ class AdvancedForm {
 	 * Script localization object.
 	 */
 	private const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
-
-	/**
-	 * Whether hCaptcha was replaced.
-	 *
-	 * @var bool
-	 */
-	private $hcaptcha_found = false;
 
 	/**
 	 * Form constructor.
@@ -46,8 +39,9 @@ class AdvancedForm {
 	 * @return void
 	 */
 	public function init_hooks(): void {
+		parent::init_hooks();
+
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'dequeue_kadence_hcaptcha_api' ], 8 );
 
 		if ( Request::is_frontend() ) {
 			add_filter(
@@ -86,12 +80,14 @@ class AdvancedForm {
 	 * @param array        $block         Block.
 	 * @param WP_Block     $instance      Instance.
 	 *
-	 * @return string|mixed
+	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
-	public function render_block( $block_content, array $block, WP_Block $instance ) {
-		if ( 'kadence/advanced-form-submit' === $block['blockName'] && ! $this->hcaptcha_found ) {
+	public function render_block( $block_content, array $block, WP_Block $instance ): string {
+		$block_content = (string) $block_content;
+
+		if ( 'kadence/advanced-form-submit' === $block['blockName'] && ! $this->has_hcaptcha ) {
 
 			$search = '<div class="kb-adv-form-field kb-submit-field';
 
@@ -105,12 +101,12 @@ class AdvancedForm {
 		$block_content = (string) preg_replace(
 			'#<div class="h-captcha" .*?></div>#',
 			$this->get_hcaptcha(),
-			(string) $block_content,
+			$block_content,
 			1,
 			$count
 		);
 
-		$this->hcaptcha_found = (bool) $count;
+		$this->has_hcaptcha = (bool) $count;
 
 		return $block_content;
 	}
@@ -144,16 +140,6 @@ class AdvancedForm {
 		];
 
 		wp_send_json_error( $data );
-	}
-
-	/**
-	 * Dequeue Kadence hcaptcha API script.
-	 *
-	 * @return void
-	 */
-	public function dequeue_kadence_hcaptcha_api(): void {
-		wp_dequeue_script( 'kadence-blocks-hcaptcha' );
-		wp_deregister_script( 'kadence-blocks-hcaptcha' );
 	}
 
 	/**

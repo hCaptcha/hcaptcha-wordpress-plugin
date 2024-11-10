@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\UM;
 
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UM\Login;
+use Mockery;
 
 /**
  * Class LoginTest.
@@ -83,7 +84,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function dp_test_add_um_captcha(): array {
 		return [
-			'empty fields' => [
+			'empty fields'                                 => [
 				[],
 				[
 					'hcaptcha' => [
@@ -103,7 +104,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 					],
 				],
 			],
-			'login fields' => [
+			'login fields'                                 => [
 				[
 					'username'      =>
 						[
@@ -209,7 +210,144 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 						],
 				],
 			],
+			'login fields with wrong field position order' => [
+				[
+					'username'      =>
+						[
+							'title'      => 'Username or E-mail',
+							'metakey'    => 'username',
+							'type'       => 'text',
+							'label'      => 'Username or E-mail',
+							'required'   => 1,
+							'public'     => 1,
+							'editable'   => 0,
+							'validate'   => 'unique_username_or_email',
+							'position'   => '2',
+							'in_row'     => '_um_row_1',
+							'in_sub_row' => '0',
+							'in_column'  => '1',
+							'in_group'   => '',
+						],
+					'user_password' =>
+						[
+							'title'              => 'Password',
+							'metakey'            => 'user_password',
+							'type'               => 'password',
+							'label'              => 'Password',
+							'required'           => 1,
+							'public'             => 1,
+							'editable'           => 1,
+							'min_chars'          => 8,
+							'max_chars'          => 30,
+							'force_good_pass'    => 1,
+							'force_confirm_pass' => 1,
+							'position'           => '1',
+							'in_row'             => '_um_row_1',
+							'in_sub_row'         => '0',
+							'in_column'          => '1',
+							'in_group'           => '',
+						],
+					'_um_row_1'     =>
+						[
+							'type'     => 'row',
+							'id'       => '_um_row_1',
+							'sub_rows' => '1',
+							'cols'     => '1',
+						],
+				],
+				[
+					'username'      =>
+						[
+							'title'      => 'Username or E-mail',
+							'metakey'    => 'username',
+							'type'       => 'text',
+							'label'      => 'Username or E-mail',
+							'required'   => 1,
+							'public'     => 1,
+							'editable'   => 0,
+							'validate'   => 'unique_username_or_email',
+							'position'   => '2',
+							'in_row'     => '_um_row_1',
+							'in_sub_row' => '0',
+							'in_column'  => '1',
+							'in_group'   => '',
+						],
+					'user_password' =>
+						[
+							'title'              => 'Password',
+							'metakey'            => 'user_password',
+							'type'               => 'password',
+							'label'              => 'Password',
+							'required'           => 1,
+							'public'             => 1,
+							'editable'           => 1,
+							'min_chars'          => 8,
+							'max_chars'          => 30,
+							'force_good_pass'    => 1,
+							'force_confirm_pass' => 1,
+							'position'           => '1',
+							'in_row'             => '_um_row_1',
+							'in_sub_row'         => '0',
+							'in_column'          => '1',
+							'in_group'           => '',
+						],
+					'_um_row_1'     =>
+						[
+							'type'     => 'row',
+							'id'       => '_um_row_1',
+							'sub_rows' => '1',
+							'cols'     => '1',
+						],
+					'hcaptcha'      =>
+						[
+							'title'        => 'hCaptcha',
+							'metakey'      => 'hcaptcha',
+							'type'         => 'hcaptcha',
+							'label'        => 'hCaptcha',
+							'required'     => 0,
+							'public'       => 0,
+							'editable'     => 0,
+							'account_only' => true,
+							'position'     => '3',
+							'in_row'       => '_um_row_1',
+							'in_sub_row'   => '0',
+							'in_column'    => '1',
+							'in_group'     => '',
+						],
+				],
+			],
 		];
+	}
+
+	/**
+	 * Test add_um_captcha() when login limit is not exceeded.
+	 *
+	 * @return void
+	 */
+	public function test_add_um_captcha_when_login_limit_is_not_exceeded(): void {
+		$fields  = [ 'some fields' ];
+		$subject = Mockery::mock( Login::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_login_limit_exceeded' )
+			->once()
+			->andReturnFalse();
+
+		self::assertSame( $fields, $subject->add_um_captcha( $fields ) );
+	}
+
+	/**
+	 * Test add_um_captcha() with wrong mode.
+	 *
+	 * @return void
+	 */
+	public function test_add_um_captcha_with_wrong_mode(): void {
+		$fields  = [ 'some fields' ];
+		$subject = Mockery::mock( Login::class )->makePartial();
+
+		UM()->fields()->set_mode = 'wrong mode';
+
+		self::assertSame( $fields, $subject->add_um_captcha( $fields ) );
 	}
 
 	/**
@@ -263,24 +401,22 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
+		$submitted_data = [];
+
 		$subject = $this->get_subject();
-		$mode    = $subject::UM_MODE;
-		$args    = [];
+
+		// Wrong mode.
+		$form_data['mode'] = 'wrong mode';
+
+		$subject->verify( $submitted_data, $form_data );
+
+		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
+
+		// Login mode.
+		$mode = $subject::UM_MODE;
 
 		$this->prepare_hcaptcha_get_verify_message( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
-		$subject->verify( $args );
-
-		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
-
-		$args['mode'] = 'wrong mode';
-
-		$subject->verify( $args );
-
-		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
-
-		$args['mode'] = $subject::UM_MODE;
-
-		$subject->verify( $args );
+		$subject->verify( $submitted_data );
 
 		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
 	}
@@ -302,6 +438,26 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( UM()->form()->has_error( 'hcaptcha' ) );
 		self::assertSame( 'The hCaptcha is invalid.', UM()->form()->errors['hcaptcha'] );
+	}
+
+	/**
+	 * Test verify() when login limit is not exceeded.
+	 *
+	 * @return void
+	 */
+	public function test_verify_when_login_limit_is_not_exceeded(): void {
+		$submitted_data = [ 'some submitted data' ];
+		$form_data      = [ 'some form data' ];
+		$subject        = Mockery::mock( Login::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_login_limit_exceeded' )
+			->once()
+			->andReturnFalse();
+
+		$subject->verify( $submitted_data, $form_data );
+
+		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
 	}
 
 	/**

@@ -61,7 +61,7 @@ class Form {
 	 */
 	public function init_hooks(): void {
 		add_filter( 'option_frm_options', [ $this, 'get_option' ], 10, 2 );
-		add_filter( 'frm_replace_shortcodes', [ $this, 'add_captcha' ], 10, 3 );
+		add_filter( 'frm_replace_shortcodes', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 10, 3 );
 		add_filter( 'frm_validate_entry', [ $this, 'verify' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
@@ -94,7 +94,7 @@ class Form {
 	}
 
 	/**
-	 * Filter field HTML created and add hcaptcha.
+	 * Filter field HTML created and add hCaptcha.
 	 *
 	 * @param string|mixed $html  HTML code of the field.
 	 * @param array        $field Field.
@@ -102,18 +102,18 @@ class Form {
 	 *
 	 * @return string|mixed
 	 */
-	public function add_captcha( $html, array $field, array $atts ) {
+	public function add_hcaptcha( $html, array $field, array $atts ) {
 		if ( 'captcha' !== $field['type'] ) {
 			return $html;
 		}
 
 		$frm_settings = FrmAppHelper::get_settings();
 
-		if ( 'recaptcha' === $frm_settings->active_captcha ) {
+		if ( 'hcaptcha' !== $frm_settings->active_captcha ) {
 			return $html;
 		}
 
-		if ( ! preg_match( '#<div id="(.+)" class="h-captcha" .+></div>#', (string) $html, $m ) ) {
+		if ( ! preg_match( '#<div\s+id="(.+)"\s+class="h-captcha" .+></div>#', (string) $html, $m ) ) {
 			return $html;
 		}
 
@@ -244,7 +244,9 @@ class Form {
 		$screen = get_current_screen();
 
 		if ( ! $screen ) {
+			// @codeCoverageIgnoreStart
 			return false;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$formidable_forms_admin_pages = [

@@ -128,6 +128,7 @@ class HCaptchaHandler {
 			3
 		);
 		add_filter( 'elementor_pro/forms/render/item', [ $this, 'filter_field_item' ] );
+		add_filter( 'elementor/frontend/the_content', [ $this, 'elementor_content' ] );
 		add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ] );
 
 		if ( static::is_enabled() ) {
@@ -391,7 +392,7 @@ class HCaptchaHandler {
 	public function add_field_type( $field_types ): array {
 		$field_types = (array) $field_types;
 
-		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'elementor-pro' );
+		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
 
 		return $field_types;
 	}
@@ -449,6 +450,27 @@ class HCaptchaHandler {
 		}
 
 		return $item;
+	}
+
+	/**
+	 * Filter Elementor content.
+	 * This filter is needed to support Elementor Element Caching feature.
+	 * With Caching feature active, Elementor does not render the content of the form fields.
+	 * Therefore, we have to analyze the content and check if the hCaptcha field is present
+	 * to enqueue scripts in the Main class.
+	 *
+	 * @param string|mixed $content Content.
+	 *
+	 * @return string
+	 */
+	public function elementor_content( $content ): string {
+		$content = (string) $content;
+
+		if ( ! hcaptcha()->form_shown && false !== strpos( $content, '<h-captcha' ) ) {
+			hcaptcha()->form_shown = true;
+		}
+
+		return $content;
 	}
 
 	/**

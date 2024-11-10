@@ -1,21 +1,21 @@
 <?php
 /**
- * JetpackFormTest class file.
+ * FormTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
-use HCaptcha\Jetpack\JetpackForm;
+use HCaptcha\Jetpack\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
- * Class JetpackFormTest.
+ * Class FormTest.
  *
  * @group jetpack
  */
-class JetpackFormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
@@ -26,9 +26,9 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_add_captcha
 	 */
 	public function test_add_captcha( string $content, string $expected ): void {
-		$subject = new JetpackForm();
+		$subject = new Form();
 
-		self::assertSame( $expected, $subject->add_captcha( $content ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $content ) );
 	}
 
 	/**
@@ -40,18 +40,9 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 	public function dp_test_add_captcha(): array {
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 
-		$hash             = 'some hash';
-		$hash_input       = "<input name='contact-form-hash' value='$hash'>";
-		$classic_args     = [
-			'action' => 'hcaptcha_jetpack',
-			'name'   => 'hcaptcha_jetpack_nonce',
-			'id'     => [
-				'source'  => [ 'jetpack/jetpack.php' ],
-				'form_id' => 'contact',
-			],
-		];
-		$classic_hcaptcha = $this->get_hcap_form( $classic_args );
-		$args             = [
+		$hash       = 'some hash';
+		$hash_input = "<input name='contact-form-hash' value='$hash'>";
+		$args       = [
 			'action' => 'hcaptcha_jetpack',
 			'name'   => 'hcaptcha_jetpack_nonce',
 			'id'     => [
@@ -59,7 +50,7 @@ class JetpackFormTest extends HCaptchaWPTestCase {
 				'form_id' => 'contact_' . $hash,
 			],
 		];
-		$hcaptcha         = $this->get_hcap_form( $args );
+		$hcaptcha   = $this->get_hcap_form( $args );
 
 		return [
 			'Empty contact form'                 => [ '', '' ],

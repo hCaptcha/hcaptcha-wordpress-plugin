@@ -23,7 +23,6 @@ use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
-use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Migrations\Migrations;
@@ -45,6 +44,7 @@ use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
+use WP_Textdomain_Registry;
 
 /**
  * Test Main class.
@@ -889,7 +889,7 @@ CSS;
 			window.removeEventListener( 'touchstart', load );
 			document.body.removeEventListener( 'mouseenter', load );
 			document.body.removeEventListener( 'click', load );
-			window.removeEventListener( 'load', delayedLoad );
+			window.removeEventListener( 'scroll', scrollHandler );
 
 			const t = document.getElementsByTagName( 'script' )[0];
 			const s = document.createElement('script');
@@ -907,24 +907,24 @@ CSS;
 				return;
 			}
 
-			window.removeEventListener( 'scroll', scrollHandler );
 			load();
 		}
 
-		function delayedLoad() {
-			window.addEventListener( 'scroll', scrollHandler );
+		document.addEventListener( 'hCaptchaBeforeAPI', function() {
 			// noinspection JSAnnotator
 			const delay = -100;
 
 			if ( delay >= 0 ) {
 				setTimeout( load, delay );
-			}
-		}
 
-		window.addEventListener( 'touchstart', load );
-		document.body.addEventListener( 'mouseenter', load );
-		document.body.addEventListener( 'click', load );
-		window.addEventListener( 'load', delayedLoad );
+				return;
+			}
+
+			window.addEventListener( 'touchstart', load );
+			document.body.addEventListener( 'mouseenter', load );
+			document.body.addEventListener( 'click', load );
+			window.addEventListener( 'scroll', scrollHandler );
+		} );
 	} )();
 JS;
 
@@ -1505,7 +1505,7 @@ JS;
 			'Jetpack'                           => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
-				JetpackForm::class,
+				\HCaptcha\Jetpack\Form::class,
 			],
 			'Kadence Form'                      => [
 				[ 'kadence_status', 'form' ],
@@ -1759,14 +1759,22 @@ JS;
 			3
 		);
 
+		$saved_wp_textdomain_registry      = $GLOBALS['wp_textdomain_registry'] ?? null;
+		$GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+
+		self::assertFalse( $GLOBALS['wp_textdomain_registry']->get( 'hcaptcha-for-forms-and-more', 'ko_KR' ) );
+
+		$GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+
 		$subject->load_textdomain();
+
+		self::assertNotEmpty( $GLOBALS['wp_textdomain_registry']->get( 'hcaptcha-for-forms-and-more', 'ko_KR' ) );
+
+		$GLOBALS['wp_textdomain_registry'] = $saved_wp_textdomain_registry;
 
 		self::assertFalse( $override_filter_params[0][0] );
 		self::assertSame( $default_domain, $override_filter_params[0][1] );
 		self::assertSame( $default_mofile, $override_filter_params[0][2] );
-		self::assertFalse( $override_filter_params[1][0] );
-		self::assertSame( $domain, $override_filter_params[1][1] );
-		self::assertSame( basename( $mofile ), basename( $override_filter_params[1][2] ) );
 	}
 
 	/**

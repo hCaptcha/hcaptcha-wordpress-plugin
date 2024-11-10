@@ -25,7 +25,6 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
-use HCaptcha\Jetpack\JetpackForm;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
@@ -1083,7 +1082,7 @@ CSS;
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',
-				JetpackForm::class,
+				Jetpack\Form::class,
 			],
 			'Kadence Form'                         => [
 				[ 'kadence_status', 'form' ],
@@ -1391,7 +1390,7 @@ CSS;
 
 			if (
 				false !== strpos( $plugin_or_theme_name, '.php' ) &&
-				is_plugin_active( $plugin_or_theme_name )
+				$this->is_plugin_active( $plugin_or_theme_name )
 			) {
 				// The plugin is active.
 				return true;
@@ -1407,6 +1406,27 @@ CSS;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Is plugin active.
+	 * When network wide activated, check if the plugin is network active.
+	 *
+	 * @param string $plugin_name Plugin name.
+	 *
+	 * @return bool
+	 */
+	public function is_plugin_active( string $plugin_name ): bool {
+		if ( is_multisite() ) {
+			$tab          = $this->settings->get_tab( Integrations::class );
+			$network_wide = $tab && $tab->is_network_wide();
+
+			if ( $network_wide ) {
+				return is_plugin_active_for_network( $plugin_name );
+			}
+		}
+
+		return is_plugin_active( $plugin_name );
 	}
 
 	/**

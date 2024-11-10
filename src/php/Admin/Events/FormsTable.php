@@ -158,19 +158,19 @@ class FormsTable extends WP_List_Table {
 				'name',
 				false,
 				__( 'Source', 'hcaptcha-for-forms-and-more' ),
-				__( 'Table ordered by Source.' ),
+				__( 'Table ordered by Source.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'form_id' => [
 				'form_id',
 				false,
 				__( 'Form Id', 'hcaptcha-for-forms-and-more' ),
-				__( 'Table ordered by Form Id.' ),
+				__( 'Table ordered by Form Id.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'served'  => [
 				'served',
 				false,
 				__( 'Served', 'hcaptcha-for-forms-and-more' ),
-				__( 'Table ordered by Served Count.' ),
+				__( 'Table ordered by Served Count.', 'hcaptcha-for-forms-and-more' ),
 			],
 		];
 	}

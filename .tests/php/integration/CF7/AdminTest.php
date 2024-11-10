@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\Admin;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
-use Mockery;
 use WPCF7_TagGenerator;
 
 /**
@@ -416,55 +415,39 @@ HTML;
 			'title'   => 'hCaptcha',
 			'content' => 'tag-generator-panel-cf7-hcaptcha',
 		];
-		$expected = '		<div class="control-box">
+		$expected = '		<header class="description-box">
+			<h3>hCaptcha field form-tag generator</h3>
+			<p>Generate a form-tag for a hCaptcha field.</p>
+		</header>
+
+		<div class="control-box">
 			<fieldset>
-				<legend>Generate a form-tag for a hCaptcha field.</legend>
+	<legend id="tag-generator-panel-cf7-hcaptcha-type-legend">Field type</legend>
 
-				<table class="form-table">
-					<tbody>
+	<select data-tag-part="basetype" aria-labelledby="tag-generator-panel-cf7-hcaptcha-type-legend"><option value="cf7-hcaptcha">hCaptcha field</option></select>
 
-					<tr>
-						<th scope="row">
-							<label for="tag-generator-panel-cf7-hcaptcha-id">
-								Id attribute							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="id" class="idvalue oneline option"
-									id="tag-generator-panel-cf7-hcaptcha-id"/>
-						</td>
-					</tr>
+		<br />
+	<label>
+		<input type="checkbox" data-tag-part="type-suffix" value="*" />
+		This is a required field.	</label>
+	</fieldset>
+<fieldset>
+	<legend id="tag-generator-panel-cf7-hcaptcha-name-legend">Field name</legend>
+	<input type="text" data-tag-part="name" pattern="[A-Za-z][A-Za-z0-9_\-]*" aria-labelledby="tag-generator-panel-cf7-hcaptcha-name-legend" />
 
-					<tr>
-						<th scope="row">
-							<label for="tag-generator-panel-cf7-hcaptcha-class">
-								Class attribute							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="class" class="classvalue oneline option"
-									id="tag-generator-panel-cf7-hcaptcha-class"/>
-						</td>
-					</tr>
-
-					</tbody>
-				</table>
-			</fieldset>
+</fieldset>
+<fieldset>
+	<legend id="tag-generator-panel-cf7-hcaptcha-class-legend">Class attribute</legend>
+	<input type="text" data-tag-part="option" data-tag-option="class:" pattern="[A-Za-z0-9_\-\s]*" aria-labelledby="tag-generator-panel-cf7-hcaptcha-class-legend" />
+</fieldset>
 		</div>
 
-		<div class="insert-box">
-			<label>
-				<input
-						type="text" name="cf7-hcaptcha" class="tag code" readonly="readonly"
-						onfocus="this.select()"/>
-			</label>
-
-			<div class="submitbox">
-				<input
-						type="button" class="button button-primary insert-tag"
-						value="Insert Tag"/>
-			</div>
-		</div>
+		<footer class="insert-box">
+			<div class="flex-container">
+	<input type="text" class="code" readonly="readonly" onfocus="this.select();" data-tag-part="tag" aria-label="The form-tag to be inserted into the form template" />	<button type="button" class="button button-primary" data-taggen="insert-tag">Insert Tag</button>
+</div>
+<p class="mail-tag-tip">To use the user input in the email, insert the corresponding mail-tag <strong data-tag-part="mail-tag"></strong> into the email template.</p>
+		</footer>
 		';
 
 		$subject = new Admin();
@@ -478,7 +461,6 @@ HTML;
 	 * Test enqueue_admin_scripts_before_cf7() and enqueue_admin_scripts_after_cf7().
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
-	 * @noinspection PhpUndefinedConstantInspection
 	 */
 	public function test_enqueue_admin_scripts(): void {
 		global $wp_scripts;
@@ -503,16 +485,16 @@ HTML;
 
 		wpcf7_admin_enqueue_scripts( 'wpcf7' );
 
-		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
-		preg_match( '/var wpcf7 = ({.+});/', $data, $m );
+		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
+		preg_match( '/var wpcf7 = ({.+});/s', $data, $m );
 		$wpcf7 = json_decode( $m[1], true );
 
 		self::assertArrayNotHasKey( 'api', $wpcf7 );
 
 		$subject->enqueue_admin_scripts_after_cf7();
 
-		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
-		preg_match( '/var wpcf7 = ({.+});/', $data, $m );
+		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
+		preg_match( '/var wpcf7 = ({.+});/s', $data, $m );
 		$wpcf7 = json_decode( $m[1], true );
 
 		self::assertArrayHasKey( 'api', $wpcf7 );

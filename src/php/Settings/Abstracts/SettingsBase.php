@@ -1615,7 +1615,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_network_wide(): bool {
+	public function is_network_wide(): bool {
 		return ! empty( $this->get_network_wide() );
 	}
 

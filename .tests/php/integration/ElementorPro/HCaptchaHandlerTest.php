@@ -169,6 +169,10 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
+			has_filter( 'elementor/frontend/the_content', [ $subject, 'elementor_content' ] )
+		);
+		self::assertSame(
+			10,
 			has_filter( 'elementor_pro/editor/localize_settings', [ $subject, 'localize_settings' ] )
 		);
 
@@ -867,6 +871,27 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$subject = new HCaptchaHandler();
 		self::assertTrue( $subject->filter_field_item( $text_item )['field_label'] );
 		self::assertFalse( $subject->filter_field_item( $hcaptcha_item )['field_label'] );
+	}
+
+	/**
+	 * Test elementor_content().
+	 *
+	 * @return void
+	 */
+	public function test_elementor_content(): void {
+		hcaptcha()->form_shown = false;
+
+		$subject = new HCaptchaHandler();
+
+		// Some content.
+		$subject->elementor_content( 'some content' );
+
+		self::assertFalse( hcaptcha()->form_shown );
+
+		// Content with hCaptcha.
+		$subject->elementor_content( 'some content <h-captcha ...' );
+
+		self::assertTrue( hcaptcha()->form_shown );
 	}
 
 	/**

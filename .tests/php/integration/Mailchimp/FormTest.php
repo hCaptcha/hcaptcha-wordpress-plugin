@@ -94,12 +94,13 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha().
+	 * Test add_hcaptcha().
 	 */
-	public function test_add_captcha(): void {
-		$form_id  = 5;
-		$content  = '<input type="submit">';
-		$args     = [
+	public function test_add_hcaptcha(): void {
+		$form_id               = 5;
+		$content               = '<input type="submit">';
+		$content_with_hcaptcha = 'Some content with hCaptcha <h-captcha ... >...</h-captcha>';
+		$args                  = [
 			'action' => 'hcaptcha_mailchimp',
 			'name'   => 'hcaptcha_mailchimp_nonce',
 			'id'     => [
@@ -107,7 +108,7 @@ class FormTest extends HCaptchaWPTestCase {
 				'form_id' => $form_id,
 			],
 		];
-		$expected = $this->get_hcap_form( $args ) . $content;
+		$expected              = $this->get_hcap_form( $args ) . $content;
 
 		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
 		$mc4wp_form->ID = $form_id;
@@ -116,7 +117,8 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
-		self::assertSame( $expected, $subject->add_captcha( $content, $mc4wp_form, $element ) );
+		self::assertSame( $content_with_hcaptcha, $subject->add_hcaptcha( $content_with_hcaptcha, $mc4wp_form, $element ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $content, $mc4wp_form, $element ) );
 	}
 
 	/**
@@ -126,6 +128,24 @@ class FormTest extends HCaptchaWPTestCase {
 		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
+
+		$subject = new Form();
+
+		self::assertSame( [], $subject->verify( [], $mc4wp_form ) );
+	}
+
+	/**
+	 * Test verify() with shortcode.
+	 */
+	public function test_verify_with_shortcode(): void {
+		$name   = 'some_nonce';
+		$action = 'some';
+
+		$this->prepare_hcaptcha_verify_post( $name, $action );
+
+		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
+
+		$mc4wp_form->content = sprintf( '[hcaptcha name="%s" action="%s"]', $name, $action );
 
 		$subject = new Form();
 

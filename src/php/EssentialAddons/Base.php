@@ -8,33 +8,11 @@
 namespace HCaptcha\EssentialAddons;
 
 use HCaptcha\Helpers\Pages;
-use HCaptcha\Main;
 
 /**
  * Base trait.
  */
 trait Base {
-	/**
-	 * Enqueue admin scripts.
-	 *
-	 * @return void
-	 */
-	public function enqueue_scripts(): void {
-		if ( ! Pages::is_elementor_preview_page() ) {
-			return;
-		}
-
-		$min = hcap_min_suffix();
-
-		wp_enqueue_script(
-			'admin-essential-addons',
-			HCAPTCHA_URL . "/assets/js/admin-essential-addons$min.js",
-			[ Main::HANDLE ],
-			HCAPTCHA_VERSION,
-			true
-		);
-	}
-
 	/**
 	 * Print hCaptcha script on edit page.
 	 *

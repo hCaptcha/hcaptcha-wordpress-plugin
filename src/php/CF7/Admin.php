@@ -12,6 +12,7 @@ namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\Pages;
 use WPCF7_TagGenerator;
+use WPCF7_TagGeneratorGenerator;
 
 /**
  * Class Admin.
@@ -159,7 +160,8 @@ class Admin extends Base {
 		$tag_generator->add(
 			'cf7-hcaptcha',
 			__( 'hCaptcha', 'hcaptcha-for-forms-and-more' ),
-			[ $this, 'tag_generator_hcaptcha' ]
+			[ $this, 'tag_generator_hcaptcha' ],
+			[ 'version' => '2' ]
 		);
 	}
 
@@ -167,68 +169,48 @@ class Admin extends Base {
 	 * Show tag generator.
 	 *
 	 * @param mixed        $contact_form Contact form.
-	 * @param array|string $args         Arguments.
+	 * @param array|string $options      Options.
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function tag_generator_hcaptcha( $contact_form, $args = '' ): void {
-		$args        = wp_parse_args( $args );
-		$type        = $args['id'];
-		$description = __( 'Generate a form-tag for a hCaptcha field.', 'hcaptcha-for-forms-and-more' );
+	public function tag_generator_hcaptcha( $contact_form, $options = '' ): void {
+		$field = [
+			'display_name' => __( 'hCaptcha field', 'hcaptcha-for-forms-and-more' ),
+			'heading'      => __( 'hCaptcha field form-tag generator', 'hcaptcha-for-forms-and-more' ),
+			'description'  => __( 'Generate a form-tag for a hCaptcha field.', 'hcaptcha-for-forms-and-more' ),
+		];
+
+		$tgg = new WPCF7_TagGeneratorGenerator( $options['content'] );
 
 		?>
+		<header class="description-box">
+			<h3><?php echo esc_html( $field['heading'] ); ?></h3>
+			<p><?php echo esc_html( $field['description'] ); ?></p>
+		</header>
+
 		<div class="control-box">
-			<fieldset>
-				<legend><?php echo esc_html( $description ); ?></legend>
-
-				<table class="form-table">
-					<tbody>
-
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-id' ); ?>">
-								<?php echo esc_html( __( 'Id attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="id" class="idvalue oneline option"
-									id="<?php echo esc_attr( $args['content'] . '-id' ); ?>"/>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="<?php echo esc_attr( $args['content'] . '-class' ); ?>">
-								<?php echo esc_html( __( 'Class attribute', 'hcaptcha-for-forms-and-more' ) ); ?>
-							</label>
-						</th>
-						<td>
-							<input
-									type="text" name="class" class="classvalue oneline option"
-									id="<?php echo esc_attr( $args['content'] . '-class' ); ?>"/>
-						</td>
-					</tr>
-
-					</tbody>
-				</table>
-			</fieldset>
+			<?php
+			$tgg->print(
+				'field_type',
+				[
+					'with_required'  => true,
+					'select_options' => [
+						'cf7-hcaptcha' => $field['display_name'],
+					],
+				]
+			);
+			$tgg->print( 'field_name' );
+			$tgg->print( 'class_attr' );
+			?>
 		</div>
 
-		<div class="insert-box">
-			<label>
-				<input
-						type="text" name="<?php echo esc_attr( $type ); ?>" class="tag code" readonly="readonly"
-						onfocus="this.select()"/>
-			</label>
-
-			<div class="submitbox">
-				<input
-						type="button" class="button button-primary insert-tag"
-						value="<?php echo esc_attr( __( 'Insert Tag', 'hcaptcha-for-forms-and-more' ) ); ?>"/>
-			</div>
-		</div>
+		<footer class="insert-box">
+			<?php
+			$tgg->print( 'insert_box_content' );
+			$tgg->print( 'mail_tag_tip' );
+			?>
+		</footer>
 		<?php
 	}
 
@@ -287,12 +269,12 @@ class Admin extends Base {
 			],
 		];
 
-		$data = $wp_scripts->registered['wpcf7-admin']->extra['data'];
+		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
 
-		if ( preg_match( '/var wpcf7 = ({.+});/', $data, $m ) ) {
+		if ( preg_match( '/var wpcf7 = ({.+});/s', $data, $m ) ) {
 			$wpcf7 = array_merge( $wpcf7, json_decode( $m[1], true ) );
 
-			$wp_scripts->registered['wpcf7-admin']->extra['data'] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
+			$wp_scripts->registered['wpcf7-admin']->extra['before'][1] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
 	}
 }

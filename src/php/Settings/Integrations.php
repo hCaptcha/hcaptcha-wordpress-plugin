@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use Closure;
 use KAGG\Settings\Abstracts\SettingsBase;
 use WP_Error;
 use WP_Theme;
@@ -140,16 +141,26 @@ class Integrations extends PluginSettingsBase {
 
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
+		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
 	}
 
 	/**
-	 * Activated plugin action.
-	 * Do not allow redirect during plugin activation.
+	 * After switch theme action.
+	 * Do not allow redirect during Divi theme activation.
 	 *
 	 * @return void
 	 */
-	public function activated_plugin_action(): void {
-		remove_action( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' );
+	public function after_switch_theme_action(): void {
+		if ( ! wp_doing_ajax() ) {
+			return;
+		}
+
+		$this->run_checks( self::ACTIVATE_ACTION );
+
+		// Do not allow redirect during Divi theme activation.
+		remove_action( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
+		remove_action( 'after_switch_theme', 'avada_compat_switch_theme' );
+		$this->remove_action_regex( '/^Avada/', 'after_switch_theme' );
 	}
 
 	/**
@@ -794,10 +805,10 @@ class Integrations extends PluginSettingsBase {
 		?>
 		<div id="hcaptcha-message"></div>
 		<p>
-			<?php esc_html_e( 'Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
+			<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
 		<p>
-			<?php esc_html_e( 'You can activate and deactivate a plugin by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
+			<?php esc_html_e( 'You can activate and deactivate a plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
 		<p>
 			<?php
@@ -807,7 +818,7 @@ class Integrations extends PluginSettingsBase {
 			echo wp_kses_post(
 				sprintf(
 				/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
-					__( 'Don\'t see your plugin here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
+					__( 'Don\'t see your plugin or theme here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$shortcode_url,
@@ -942,32 +953,41 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ): void {
 		if ( $activate ) {
-			if ( ! $this->activate_plugins( $plugins ) ) {
-				$message = sprintf(
-				/* translators: 1: Plugin name. */
-					__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
-					$plugin_name
-				);
+			$activate_plugins = $this->activate_plugins( $plugins );
 
-				$this->send_json_error( esc_html( $message ) );
+			if ( $activate_plugins ) {
+				$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
+
+				if ( array_filter( $plugin_names ) ) {
+					$message = sprintf(
+					/* translators: 1: Plugin name. */
+						_n(
+							'%s plugin is activated.',
+							'%s plugins are activated.',
+							count( $plugin_names ),
+							'hcaptcha-for-forms-and-more'
+						),
+						implode( ', ', $plugin_names )
+					);
+
+					$this->send_json_success( esc_html( $message ) );
+
+					return; // For testing purposes.
+				}
 			}
 
-			$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
-			$message      = sprintf(
+			$message = sprintf(
 			/* translators: 1: Plugin name. */
-				_n(
-					'%s plugin is activated.',
-					'%s plugins are activated.',
-					count( $plugin_names ),
-					'hcaptcha-for-forms-and-more'
-				),
-				implode( ', ', $plugin_names )
+				__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
+				$plugin_name
 			);
 
-			$this->send_json_success( esc_html( $message ) );
+			$this->send_json_error( esc_html( $message ) );
+
+			return; // For testing purposes.
 		}
 
-		deactivate_plugins( $plugins );
+		$this->deactivate_plugins( $plugins );
 
 		$message = sprintf(
 		/* translators: 1: Plugin name. */
@@ -976,6 +996,19 @@ class Integrations extends PluginSettingsBase {
 		);
 
 		$this->send_json_success( esc_html( $message ) );
+	}
+
+	/**
+	 * Deactivate plugins.
+	 *
+	 * @param array $plugins Plugins to deactivate.
+	 *
+	 * @return void
+	 */
+	protected function deactivate_plugins( array $plugins ): void {
+		$network_wide = is_multisite() && $this->is_network_wide();
+
+		deactivate_plugins( $plugins, true, $network_wide );
 	}
 
 	/**
@@ -1079,9 +1112,31 @@ class Integrations extends PluginSettingsBase {
 			unset( $child );
 		}
 
-		$node['result'] = $this->activate_plugin( $node['plugin'] );
+		$node['result'] = $this->maybe_activate_plugin( $node['plugin'] );
 
 		return $node['result'];
+	}
+
+	/**
+	 * Maybe activate plugin.
+	 *
+	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
+	 */
+	protected function maybe_activate_plugin( string $plugin ) {
+
+		if ( hcaptcha()->is_plugin_active( $plugin ) ) {
+			return true;
+		}
+
+		ob_start();
+
+		$result = $this->activate_plugin( $plugin );
+
+		ob_end_clean();
+
+		return $result;
 	}
 
 	/**
@@ -1089,23 +1144,13 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
 	 *
-	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
+	 * @return null|WP_Error Null on success, WP_Error on failure.
 	 */
-	protected function activate_plugin( string $plugin ) {
+	protected function activate_plugin( string $plugin ): ?WP_Error {
+		$network_wide = is_multisite() && $this->is_network_wide();
 
-		if ( is_plugin_active( $plugin ) ) {
-			return true;
-		}
-
-		// Do not allow redirect during plugin activation.
-		add_action( 'activated_plugin', [ $this, 'activated_plugin_action' ], PHP_INT_MIN );
-
-		ob_start();
-		// Null on success, WP_Error on failure.
-		$result = activate_plugin( $plugin );
-		ob_end_clean();
-
-		return $result;
+		// Activate plugins silently to avoid redirects.
+		return activate_plugin( $plugin, '', $network_wide, true );
 	}
 
 	/**
@@ -1227,9 +1272,7 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		ob_start();
-
 		switch_theme( $theme );
-
 		ob_end_clean();
 
 		return true;
@@ -1296,7 +1339,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array
 	 */
-	public function get_themes(): array {
+	protected function get_themes(): array {
 		$themes = array_map(
 			static function ( $theme ) {
 				return $theme->get( 'Name' );
@@ -1315,10 +1358,65 @@ class Integrations extends PluginSettingsBase {
 	 * Get default theme.
 	 *
 	 * @return string
+	 * @noinspection PhpVoidFunctionResultUsedInspection
 	 */
-	public function get_default_theme(): string {
+	protected function get_default_theme(): string {
 		$core_default_theme_obj = WP_Theme::get_core_default_theme();
 
 		return $core_default_theme_obj ? $core_default_theme_obj->get_stylesheet() : '';
+	}
+
+	/**
+	 * Remove action or filter.
+	 *
+	 * @param string $callback_pattern Callback pattern to match. A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param string $hook_name        Action name.
+	 *
+	 * @return void
+	 */
+	protected function remove_action_regex( string $callback_pattern, string $hook_name = '' ): void {
+		global $wp_filter;
+
+		$hook_name = $hook_name ?: current_action();
+		$hooks     = $wp_filter[ $hook_name ] ?? null;
+		$callbacks = $hooks->callbacks ?? [];
+
+		foreach ( $callbacks as $priority => $actions ) {
+			foreach ( $actions as $action ) {
+				$this->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+			}
+		}
+	}
+
+	/**
+	 * Maybe remove action.
+	 *
+	 * @param string $callback_pattern Callback pattern to match. A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param string $hook_name        Hook name.
+	 * @param array  $action           Action data.
+	 * @param int    $priority         Priority.
+	 *
+	 * @return void
+	 */
+	protected function maybe_remove_action_regex( string $callback_pattern, string $hook_name, array $action, int $priority ): void {
+		$callback = $action['function'] ?? '';
+
+		if ( $callback instanceof Closure ) {
+			return;
+		}
+
+		if ( is_array( $callback ) ) {
+			$callback_class  = is_object( $callback[0] ) ? get_class( $callback[0] ) : (string) $callback[0];
+			$callback_method = (string) $callback[1];
+			$callback_name   = $callback_class . '::' . $callback_method;
+		} else {
+			$callback_name = (string) $callback;
+		}
+
+		if ( ! preg_match( $callback_pattern, $callback_name ) ) {
+			return;
+		}
+
+		remove_action( $hook_name, $callback, $priority );
 	}
 }

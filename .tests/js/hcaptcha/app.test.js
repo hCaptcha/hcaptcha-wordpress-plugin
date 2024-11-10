@@ -9,6 +9,7 @@ jest.mock( '../../../src/js/hcaptcha/hcaptcha.js', () => {
 		getWidgetId: jest.fn(),
 		reset: jest.fn(),
 		bindEvents: jest.fn(),
+		addSyncedEventListener: jest.fn(),
 		submit: jest.fn(),
 	};
 	return jest.fn( () => mockHCaptcha );
@@ -46,6 +47,6 @@ describe( 'app.js', () => {
 
 	test( 'hCaptchaOnLoad should call bindEvents', () => {
 		window.hCaptchaOnLoad();
-		expect( hCaptcha.bindEvents ).toHaveBeenCalled();
+		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalled();
 	} );
 } );

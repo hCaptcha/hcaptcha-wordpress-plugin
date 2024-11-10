@@ -337,7 +337,7 @@ CSS;
 		}
 
 		$cf7_hcap_sc = preg_replace(
-			[ '/\s*\[|]\s*/', '/(id|class)\s*:\s*([\w-]+)/' ],
+			[ '/\s*\[|]\s*/', '/(id|class|akismet)\s*:\s*([\w-]+)/' ],
 			[ '', '$1=$2' ],
 			$cf7_hcap_shortcode
 		);
@@ -354,7 +354,7 @@ CSS;
 		array_walk(
 			$atts,
 			static function ( &$value, $key ) {
-				if ( in_array( $key, [ 'id', 'class' ], true ) ) {
+				if ( in_array( $key, [ 'id', 'class', 'akismet' ], true ) ) {
 					$value = "$key:$value";
 
 					return;

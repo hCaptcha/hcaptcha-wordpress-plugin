@@ -33,6 +33,17 @@ use WP_Mock;
 class IntegrationsTest extends HCaptchaTestCase {
 
 	/**
+	 * Tear down test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['wp_filter'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
@@ -103,6 +114,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		WP_Mock::expectActionAdded( 'kagg_settings_header', [ $subject, 'search_box' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Integrations::ACTIVATE_ACTION, [ $subject, 'activate' ] );
+		WP_Mock::expectActionAdded( 'after_switch_theme', [ $subject, 'after_switch_theme_action' ], 0 );
 
 		$method = 'init_hooks';
 
@@ -110,18 +122,37 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test activated_plugin_action().
+	 * Test after_switch_theme_action().
 	 *
 	 * @return void
 	 */
-	public function test_activated_plugin_action(): void {
+	public function test_after_switch_theme_action(): void {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
-		WP_Mock::userFunction( 'remove_action' )
-			->with( 'activated_plugin', 'Brizy_Admin_GettingStarted::redirectAfterActivation' )
-			->once();
+		$subject->shouldAllowMockingProtectedMethods();
 
-		$subject->activated_plugin_action();
+		$subject->shouldReceive( 'run_checks' )->once()->with( $subject::ACTIVATE_ACTION );
+		$subject->shouldReceive( 'remove_action_regex' )
+			->once()->with( '/^Avada/', 'after_switch_theme' );
+
+		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( true );
+		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
+		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'avada_compat_switch_theme' );
+
+		$subject->after_switch_theme_action();
+	}
+
+	/**
+	 * Test after_switch_theme_action() when not ajax.
+	 *
+	 * @return void
+	 */
+	public function test_after_switch_theme_action_when_not_ajax(): void {
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( false );
+
+		$subject->after_switch_theme_action();
 	}
 
 	/**
@@ -324,11 +355,11 @@ class IntegrationsTest extends HCaptchaTestCase {
 					</div>
 				<div id="hcaptcha-message"></div>
 		<p>
-			Manage integrations with popular plugins such as Contact Form 7, WPForms, Gravity Forms, and more.		</p>
+			Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.		</p>
 		<p>
-			You can activate and deactivate a plugin by clicking on its logo.		</p>
+			You can activate and deactivate a plugin or theme by clicking on its logo.		</p>
 		<p>
-			Don\'t see your plugin here? Use the `[hcaptcha]` <a href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F" target="_blank">shortcode</a> or <a href="https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues" target="_blank">request an integration</a>.		</p>
+			Don\'t see your plugin or theme here? Use the `[hcaptcha]` <a href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F" target="_blank">shortcode</a> or <a href="https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues" target="_blank">request an integration</a>.		</p>
 		<h3>Active plugins and themes</h3>
 		',
 			],
@@ -591,12 +622,82 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test process_plugins() with activation.
+	 * Test process_plugins() with activation when success.
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_process_activate_plugins(): void {
+	public function test_process_activate_plugins_success(): void {
+		$activate         = true;
+		$plugins          = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugin_name      = 'ACF Extended';
+		$plugins_tree     = [ 'acf-extended-pro/acf-extended.php' => [] ];
+		$activation_stati = [];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$this->set_protected_property( $subject, 'plugins_tree', $plugins_tree );
+		$this->set_protected_property( $subject, 'entity', 'plugin' );
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( true );
+		$subject->shouldReceive( 'plugin_names_from_tree' )
+			->with( $plugins_tree )->once()->andReturn( [ $plugin_name ] );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->andReturn( $activation_stati );
+
+		WP_Mock::userFunction( 'wp_send_json_success' )
+			->with(
+				[
+					'message' => 'ACF Extended plugin is activated.',
+					'stati'   => $activation_stati,
+				]
+			)
+			->once();
+
+		$subject->process_plugins( $activate, $plugins, $plugin_name );
+	}
+
+	/**
+	 * Test process_plugins() with activation when already activated.
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_activate_plugins_already_activated(): void {
+		$activate         = true;
+		$plugins          = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
+		$plugin_name      = 'ACF Extended';
+		$plugins_tree     = [ 'acf-extended-pro/acf-extended.php' => [] ];
+		$activation_stati = [];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$this->set_protected_property( $subject, 'plugins_tree', $plugins_tree );
+		$this->set_protected_property( $subject, 'entity', 'plugin' );
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( true );
+		$subject->shouldReceive( 'plugin_names_from_tree' )
+			->with( $plugins_tree )->once()->andReturn( [] );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->andReturn( $activation_stati );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )
+			->with(
+				[
+					'message' => 'Error activating ACF Extended plugin.',
+					'stati'   => $activation_stati,
+				]
+			)
+			->once();
+
+		$subject->process_plugins( $activate, $plugins, $plugin_name );
+	}
+
+	/**
+	 * Test process_plugins() with activation when error.
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_activate_plugins_error(): void {
 		$activate         = true;
 		$plugins          = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name      = 'ACF Extended';
@@ -609,30 +710,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( false );
-		$subject->shouldReceive( 'plugin_names_from_tree' )
-			->with( $plugins_tree )->once()->andReturn( [ $plugin_name ] );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->andReturn( $activation_stati );
 
 		WP_Mock::userFunction( 'wp_send_json_error' )
 			->with(
 				[
 					'message' => 'Error activating ACF Extended plugin.',
-					'stati'   => $activation_stati,
-				]
-			)->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )
-			->with(
-				[
-					'message' => 'ACF Extended plugin is activated.',
-					'stati'   => $activation_stati,
-				]
-			)
-			->once();
-		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )
-			->with(
-				[
-					'message' => 'ACF Extended plugin is deactivated.',
 					'stati'   => $activation_stati,
 				]
 			)->once();
@@ -680,9 +763,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test process_plugins() with deactivation.
 	 *
+	 * @param bool $is_multisite    Is multisite.
+	 * @param bool $is_network_wide Is network wide.
+	 *
+	 * @return void
 	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @dataProvider dp_test_process_deactivate_plugins
 	 */
-	public function test_process_deactivate_plugins(): void {
+	public function test_process_deactivate_plugins( bool $is_multisite, bool $is_network_wide ): void {
 		$activate    = false;
 		$plugins     = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name = 'ACF Extended';
@@ -694,9 +782,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_network_wide' )->with()->andReturn( $is_network_wide );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
 
-		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins )->once();
+		$network_wide = $is_multisite && $is_network_wide;
+
+		WP_Mock::userFunction( 'is_multisite' )->with()->once()->andReturn( $is_multisite );
+		WP_Mock::userFunction( 'deactivate_plugins' )->with( $plugins, true, $network_wide )->once();
 		WP_Mock::userFunction( 'wp_send_json_success' )->with(
 			[
 				'message' => 'ACF Extended plugin is deactivated.',
@@ -705,6 +797,20 @@ class IntegrationsTest extends HCaptchaTestCase {
 		)->once();
 
 		$subject->process_plugins( $activate, $plugins, $plugin_name );
+	}
+
+	/**
+	 * Data provider for test_process_deactivate_plugins().
+	 *
+	 * @return array
+	 */
+	public function dp_test_process_deactivate_plugins(): array {
+		return [
+			'not multisite, not network wide' => [ false, false ],
+			'multisite, not network wide'     => [ true, false ],
+			'not multisite, network wide'     => [ false, true ],
+			'multisite, network wide'         => [ true, true ],
+		];
 	}
 
 	/**
@@ -864,7 +970,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_activate_plugins_with_plugins_tree
-	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function test_activate_plugins_with_plugins_tree( $wish_result, $woo_result, bool $expected ): void {
@@ -890,20 +995,22 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$wish_result = false === $wish_result ? $wp_error : $wish_result;
 		$woo_result  = false === $woo_result ? $wp_error : $woo_result;
 
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->shouldReceive( 'is_plugin_active' )->with( $wish_slug )->andReturn( false );
+		$main->shouldReceive( 'is_plugin_active' )->with( $woo_slug )->andReturn( false );
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
-		$method  = 'activate_plugins';
 
 		$subject->shouldAllowMockingProtectedMethods();
-
 		$subject->shouldReceive( 'build_plugins_tree' )
 			->with( $wish_slug )->once()->andReturn( $plugins_tree );
+		$subject->shouldReceive( 'activate_plugin' )->with( $wish_slug )->andReturn( $wish_result );
+		$subject->shouldReceive( 'activate_plugin' )->with( $woo_slug )->andReturn( $woo_result );
 
-		WP_Mock::userFunction( 'is_plugin_active' )->with( $wish_slug )->andReturn( false );
-		WP_Mock::userFunction( 'activate_plugin' )->with( $wish_slug )->andReturn( $wish_result );
-		WP_Mock::userFunction( 'is_plugin_active' )->with( $woo_slug )->andReturn( false );
-		WP_Mock::userFunction( 'activate_plugin' )->with( $woo_slug )->andReturn( $woo_result );
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
-		self::assertSame( $expected, $subject->$method( [ $wish_slug ] ) );
+		self::assertSame( $expected, $subject->activate_plugins( [ $wish_slug ] ) );
 	}
 
 	/**
@@ -921,41 +1028,46 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test activate_plugin().
+	 * Test maybe_activate_plugin().
 	 *
 	 * @return void
 	 */
-	public function test_activate_plugin(): void {
+	public function test_maybe_activate_plugin(): void {
 		$plugin = 'some-plugin/some-plugin.php';
+
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'activate_plugin' )->with( $plugin )->once()->andReturn( null );
 
-		WP_Mock::expectActionAdded( 'activated_plugin', [ $subject, 'activated_plugin_action' ], PHP_INT_MIN );
-		WP_Mock::userFunction( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
-		WP_Mock::userFunction( 'activate_plugin' )->with( $plugin )->once()->andReturn( true );
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
-		self::assertTrue( $subject->activate_plugin( $plugin ) );
+		self::assertNull( $subject->maybe_activate_plugin( $plugin ) );
 	}
 
 	/**
-	 * Test activate_plugin() when plugin is active.
+	 * Test maybe_activate_plugin() when plugin is active.
 	 *
 	 * @return void
 	 */
-	public function test_activate_plugin_when_plugin_is_active(): void {
+	public function test_maybe_activate_plugin_when_plugin_is_active(): void {
 		$plugin = 'some-plugin/some-plugin.php';
+
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( true );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		WP_Mock::expectActionNotAdded( 'activated_plugin', [ $subject, 'activated_plugin_action' ] );
-		WP_Mock::userFunction( 'is_plugin_active' )->with( $plugin )->once()->andReturn( true );
-		WP_Mock::userFunction( 'activate_plugin' )->with( $plugin )->never();
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
-		self::assertTrue( $subject->activate_plugin( $plugin ) );
+		self::assertTrue( $subject->maybe_activate_plugin( $plugin ) );
 	}
 
 	/**
@@ -1203,5 +1315,125 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$expected['defaultTheme'] = $default_theme;
 
 		self::assertSame( $expected, $subject->$method( $message ) );
+	}
+
+	/**
+	 * Test remove_action_regex().
+	 *
+	 * @return void
+	 */
+	public function test_remove_action_regex(): void {
+		global $wp_filter;
+
+		for ( $i = 1; $i <= 6; $i++ ) {
+			$action[ $i ] = [
+				'name' . $i => [
+					'function'      => [ 'SomeClass' . $i, 'some_method' . $i ],
+					'accepted_args' => 1,
+				],
+			];
+		}
+
+		$init_callbacks = (object) [
+			'callbacks' => [
+				10 => array_merge( $action[1], $action[2] ),
+				20 => $action[3],
+			],
+		];
+		$ast_callbacks  = (object) [
+			'callbacks' => [
+				0 => $action[4],
+				5 => array_merge( $action[5], $action[6] ),
+			],
+		];
+
+		$callback_pattern = '/^Avada/';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		foreach ( $init_callbacks->callbacks as $priority => $actions ) {
+			foreach ( $actions as $action ) {
+				$subject->shouldReceive( 'maybe_remove_action_regex' )
+					->with( $callback_pattern, 'init', $action, $priority )->once();
+			}
+		}
+
+		foreach ( $ast_callbacks->callbacks as $priority => $actions ) {
+			foreach ( $actions as $action ) {
+				$subject->shouldReceive( 'maybe_remove_action_regex' )
+					->with( $callback_pattern, 'after_switch_theme', $action, $priority )->once();
+			}
+		}
+
+		WP_Mock::userFunction( 'current_action' )->andReturn( 'init' );
+
+		// No actions.
+		$subject->remove_action_regex( $callback_pattern );
+
+		// No callbacks for 'init'.
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_filter['init'] = [];
+
+		$subject->remove_action_regex( $callback_pattern );
+
+		// Three callback for 'init'.
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_filter['init'] = $init_callbacks;
+
+		$subject->remove_action_regex( $callback_pattern );
+
+		// Three callback for 'after_switch_theme'.
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_filter['after_switch_theme'] = $ast_callbacks;
+
+		$subject->remove_action_regex( $callback_pattern, 'after_switch_theme' );
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+	}
+
+	/**
+	 * Test maybe_remove_action_regex().
+	 *
+	 * @return void
+	 */
+	public function test_maybe_remove_action_regex(): void {
+		$callback_pattern = '/^Avada/';
+		$hook_name        = 'after_switch_theme';
+		$action           = [];
+		$priority         = 10;
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Callback is closure.
+		$action['function'] = static function () {
+			return true;
+		};
+
+		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+
+		// Callback is array. Class is an object.
+		$action['function'] = [ $this, 'some_method' ];
+
+		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+
+		// Callback is array. Class is a string.
+		$action['function'] = [ 'SomeClass', 'some_method' ];
+
+		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+
+		// Callback is a string.
+		$action['function'] = 'some_function';
+
+		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+
+		// Callback is matched class and method.
+		$action['function'] = [ 'AvadaClass', 'some_method' ];
+
+		WP_Mock::userFunction( 'remove_action' )->with( $hook_name, $action['function'], $priority )->once();
+
+		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
 	}
 }

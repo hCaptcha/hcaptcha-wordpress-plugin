@@ -34,7 +34,7 @@ class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 		hCaptchaData += ' data-size="' + config.hcaptcha_size + '"';
 		hCaptchaData += ' data-auto="false"';
 
-		return '<div class="h-captcha" ' + hCaptchaData + '></div>';
+		return '<h-captcha class="h-captcha" ' + hCaptchaData + '></h-captcha>';
 	}
 
 	renderField( inputField, item ) {

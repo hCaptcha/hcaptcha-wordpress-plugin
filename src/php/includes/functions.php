@@ -19,6 +19,8 @@ function hcap_shortcode( $atts ): string {
 	$hcaptcha_force = $settings->is_on( 'force' );
 	$hcaptcha_size  = $settings->get( 'size' );
 
+	$atts = HCaptcha::unflatten_array( $atts, '--' );
+
 	/**
 	 * Do not set the default size here.
 	 * If size is not normal|compact|invisible, it will be taken from plugin settings in HCaptcha::form().
