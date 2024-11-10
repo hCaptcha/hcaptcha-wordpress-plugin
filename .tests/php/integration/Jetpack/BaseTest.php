@@ -133,12 +133,11 @@ class BaseTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
+		// No error.
 		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content ) );
 
+		// Error without form_id.
 		$this->set_protected_property( $subject, 'error_message', $error_message );
-
-		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content ) );
-
 		$this->set_protected_property( $subject, 'error_form_hash', $error_form_hash );
 
 		$expected = $hcaptcha_content . '<div class="contact-form__input-error">
@@ -149,7 +148,18 @@ class BaseTest extends HCaptchaWPTestCase {
 	<span>' . $error_message . '</span>
 </div>';
 
+		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
+
+		// Error with form_id.
 		self::assertSame( $expected, $subject->error_message( $hcaptcha_content, $args ) );
+
+		// No error with wrong form_id.
+		$wrong_args = [
+			'id' => [
+				'form_id' => 'wrong hash',
+			],
+		];
+		self::assertSame( $hcaptcha_content, $subject->error_message( $hcaptcha_content, $wrong_args ) );
 	}
 
 	/**

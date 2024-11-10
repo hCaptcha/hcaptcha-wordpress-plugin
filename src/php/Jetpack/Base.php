@@ -114,7 +114,7 @@ abstract class Base {
 		$error = new WP_Error();
 
 		$error->add( 'invalid_hcaptcha', $this->error_message );
-		add_filter( 'hcap_hcaptcha_content', [ $this, 'error_message' ] );
+		add_filter( 'hcap_hcaptcha_content', [ $this, 'error_message' ], 10, 2 );
 
 		return $error;
 	}
@@ -132,10 +132,10 @@ abstract class Base {
 			return $hcaptcha;
 		}
 
-		$hash = $atts['id']['form_id'] ?? '';
-		$hash = str_replace( 'contact_', '', $hash );
+		$form_id = $atts['id']['form_id'] ?? '';
+		$hash    = str_replace( 'contact_', '', $form_id );
 
-		if ( $hash !== $this->error_form_hash ) {
+		if ( $form_id && $hash !== $this->error_form_hash ) {
 			return $hcaptcha;
 		}
 
