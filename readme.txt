@@ -570,6 +570,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.7.1 =
+* Fixed _load_textdomain_just_in_time notice with WordPress 6.7.
+
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
 * Added compatibility with Contact Form 7 v6.0.
