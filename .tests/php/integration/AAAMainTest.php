@@ -22,7 +22,6 @@ use HCaptcha\CF7\CF7;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
-use HCaptcha\ErrorHandler;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
@@ -1177,7 +1176,6 @@ JS;
 		// Test with hCaptcha plugin not active.
 		$subject->load_modules();
 		$expected_loaded_classes = [
-			ErrorHandler::class,
 			PluginStats::class,
 			Events::class,
 		];
