@@ -572,6 +572,7 @@ Instructions for popular native integrations are below:
 
 = 4.7.1 =
 * Fixed _load_textdomain_just_in_time notice with WordPress 6.7.
+* Some translations were empty with WordPress 6.5+.
 
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
