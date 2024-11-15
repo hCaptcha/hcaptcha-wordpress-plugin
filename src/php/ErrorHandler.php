@@ -72,7 +72,7 @@ class ErrorHandler {
 				break;
 
 			case 20:
-				add_action( 'doing_it_wrong_run', [ $qm_collector_doing_it_wrong, 'action_doing_it_wrong_run' ] );
+				add_action( 'doing_it_wrong_run', [ $qm_collector_doing_it_wrong, 'action_doing_it_wrong_run' ], 10, 3 );
 				break;
 
 			default:
@@ -108,7 +108,7 @@ class ErrorHandler {
 	 *
 	 * @return bool
 	 */
-	private function is_just_in_time_for_plugin_domain( string $function_name, string $message ): bool {
+	protected function is_just_in_time_for_plugin_domain( string $function_name, string $message ): bool {
 		return '_load_textdomain_just_in_time' === $function_name && false !== strpos( $message, '<code>hcaptcha-for-forms-and-more</code>' );
 	}
 }
