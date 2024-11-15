@@ -158,6 +158,8 @@ class Main {
 	 * @return void
 	 */
 	public function init_hooks(): void {
+		( new ErrorHandler() )->init();
+
 		$this->load_textdomain();
 
 		/**
