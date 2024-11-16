@@ -845,6 +845,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'defaultTheme' => $default_theme,
 		];
 
+		$theme_obj = Mockery::mock( 'WP_Theme' );
+
+		$theme_obj->shouldReceive( 'get' )->with( 'Name' )->andReturn( $theme );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme_obj );
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'process_theme';
 
@@ -887,15 +893,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_process_theme_with_empty_theme(): void {
 		$theme         = '';
 		$plugin_tree   = [];
-		$plugin_names  = [];
 		$stati         = [
 			'wp_status' => true,
 			'Avada'     => true,
 		];
-		$themes        = [
-			'twentytwentyone' => 'Twenty Twenty-One',
-		];
 		$default_theme = 'twentytwentyfour';
+		$themes        = [
+			$default_theme => 'Twenty Twenty-Four',
+		];
 		$success_arr   = [
 			'message'      =>
 				"$default_theme theme is activated.",
@@ -903,6 +908,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'themes'       => $themes,
 			'defaultTheme' => $default_theme,
 		];
+
+		$theme_obj = Mockery::mock( 'WP_Theme' );
+
+		$theme_obj->shouldReceive( 'get' )->with( 'Name' )->andReturn( $default_theme );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme_obj );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'process_theme';
@@ -975,7 +986,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_process_theme_when_cannot_be_activated(): void {
 		$theme         = 'Avada';
 		$plugin_tree   = [ 'some plugin tree' ];
-		$plugin_names  = [ 'Avada Builder', 'Avada Core' ];
 		$stati         = [
 			'wp_status' => true,
 			'Avada'     => true,
@@ -1003,7 +1013,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with( [ 'fusion-core/fusion-core.php' ] )->once()->andReturn( true );
 		$subject->shouldReceive( 'plugin_names_from_tree' )
 			->with( $plugin_tree )->andReturnUsing(
-				static function () use ( $plugin_names ) {
+				static function () {
+					$plugin_names = [ 'Avada Builder', 'Avada Core' ];
+
 					static $i = -1;
 					$i++;
 

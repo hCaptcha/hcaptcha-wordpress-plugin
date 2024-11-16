@@ -1064,7 +1064,7 @@ class Integrations extends PluginSettingsBase {
 		$message = sprintf(
 		/* translators: 1: Theme name. */
 			__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
-			$theme
+			wp_get_theme()->get( 'Name' ) ?? $theme
 		);
 
 		if ( $plugin_names ) {

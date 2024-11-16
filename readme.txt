@@ -572,6 +572,7 @@ Instructions for popular native integrations are below:
 
 = 4.8.0 =
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
+* Fixed theme name display upon activation.
 
 = 4.7.1 =
 * Fixed _load_textdomain_just_in_time notice with WordPress 6.7.
