@@ -17,6 +17,7 @@ use HCaptcha\Helpers\HCaptcha;
 function hcap_shortcode( $atts ): string {
 	$settings       = hcaptcha()->settings();
 	$hcaptcha_force = $settings->is_on( 'force' );
+	$hcaptcha_theme = $settings->get_theme();
 	$hcaptcha_size  = $settings->get( 'size' );
 
 	$atts = HCaptcha::unflatten_array( $atts, '--' );
@@ -31,6 +32,7 @@ function hcap_shortcode( $atts ): string {
 			'name'    => HCAPTCHA_NONCE,
 			'auto'    => false,
 			'force'   => $hcaptcha_force,
+			'theme'   => $hcaptcha_theme,
 			'size'    => $hcaptcha_size,
 			'id'      => [],
 			'protect' => true,

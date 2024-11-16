@@ -63,9 +63,10 @@ class HCaptcha {
 	public static function form_display( array $args = [] ): void {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
-		$hcaptcha_theme    = $settings->get_theme();
 		$hcaptcha_force    = $settings->is_on( 'force' );
+		$hcaptcha_theme    = $settings->get_theme();
 		$hcaptcha_size     = $settings->get( 'size' );
+		$allowed_themes    = [ 'light', 'dark', 'auto' ];
 		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
 
 		$args = wp_parse_args(
@@ -75,6 +76,7 @@ class HCaptcha {
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
 				'force'   => $hcaptcha_force, // Whether to execute hCaptcha widget before submit (like for invisible).
+				'theme'   => $hcaptcha_theme, // The hCaptcha theme.
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
 				/**
 				 * The hCaptcha widget id.
@@ -101,7 +103,8 @@ class HCaptcha {
 		$args['name']    = (string) $args['name'];
 		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
 		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
-		$args['size']    = in_array( $args['size'], $allowed_sizes, true ) ? $args['size'] : $hcaptcha_size;
+		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true ) ? (string) $args['theme'] : $hcaptcha_theme;
+		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true ) ? (string) $args['size'] : $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
@@ -132,7 +135,7 @@ class HCaptcha {
 		<h-captcha
 				class="h-captcha"
 				data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
-				data-theme="<?php echo esc_attr( $hcaptcha_theme ); ?>"
+				data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
 				data-size="<?php echo esc_attr( $args['size'] ); ?>"
 				data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
 				data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
