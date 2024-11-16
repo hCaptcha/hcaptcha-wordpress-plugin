@@ -46,10 +46,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				}
 			} )
 			.catch( ( error ) => {
-				if ( error.name === 'AbortError' ) {
-					// eslint-disable-next-line no-console
-					console.log( 'Fetch aborted' );
-				} else {
+				if ( error.name !== 'AbortError' ) {
 					// eslint-disable-next-line no-console
 					console.error( 'Error:', error );
 				}

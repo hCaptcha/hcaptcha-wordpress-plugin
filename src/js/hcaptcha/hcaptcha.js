@@ -351,7 +351,7 @@ class HCaptcha {
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
 
-		const params = this.applyAutoTheme( this.getParams() );
+		const params = this.applyAutoTheme( Object.assign( this.getParams(), hcaptchaElement.dataset ) );
 
 		return hcaptcha.render( hcaptchaElement, params );
 	}

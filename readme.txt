@@ -574,6 +574,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha display on the Mailchimp form preview.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.
+* Fixed display of the hCaptcha shortcode with individual parameters.
 
 = 4.7.1 =
 * Fixed _load_textdomain_just_in_time notice with WordPress 6.7.
