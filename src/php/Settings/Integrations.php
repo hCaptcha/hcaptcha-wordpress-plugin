@@ -1019,6 +1019,21 @@ class Integrations extends PluginSettingsBase {
 	 * @return void
 	 */
 	protected function process_theme( string $theme ): void {
+		// With Ctrl+Click, $theme is empty.
+		$theme = $theme ?: $this->get_default_theme();
+
+		if ( ! $theme ) {
+			$message = sprintf(
+			/* translators: 1: Theme name. */
+				__( 'No default theme found.', 'hcaptcha-for-forms-and-more' ),
+				$theme
+			);
+
+			$this->send_json_error( esc_html( $message ) );
+
+			return; // For test purposes.
+		}
+
 		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
 		$plugin_names = [];
 
@@ -1042,6 +1057,8 @@ class Integrations extends PluginSettingsBase {
 			);
 
 			$this->send_json_error( esc_html( $message ) );
+
+			return; // For test purposes.
 		}
 
 		$message = sprintf(
