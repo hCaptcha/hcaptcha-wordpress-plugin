@@ -38,7 +38,7 @@ class Form {
 	/**
 	 * Script localization object.
 	 */
-	public const OBJECT = 'HCaptchaGeneralObject';
+	public const OBJECT = 'HCaptchaMailchimpObject';
 
 	/**
 	 * Get shortcode HTML action.
@@ -199,6 +199,8 @@ class Form {
 	public function get_shortcode_html(): void {
 		if ( ! check_ajax_referer( self::GET_SHORTCODE_HTML_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
 		}
 
 		$form_id   = Request::filter_input( INPUT_POST, 'form_id' );
@@ -208,6 +210,8 @@ class Form {
 
 		if ( ! $hcap_shortcode ) {
 			wp_send_json_error( esc_html__( 'hCaptcha shortcode not found.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
 		}
 
 		$hcap_sc           = preg_replace(
@@ -226,7 +230,7 @@ class Form {
 			'name'   => $nonce_field_name,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form_id,
+				'form_id' => (int) $form_id,
 			],
 		];
 

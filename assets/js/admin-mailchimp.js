@@ -1,8 +1,8 @@
-/* global HCaptchaGeneralObject */
+/* global HCaptchaMailchimpObject */
 
 /**
- * @param HCaptchaGeneralObject.getShortcodeHTMLAction
- * @param HCaptchaGeneralObject.getShortcodeHTMLNonce
+ * @param HCaptchaMailchimpObject.getShortcodeHTMLAction
+ * @param HCaptchaMailchimpObject.getShortcodeHTMLNonce
  */
 
 document.addEventListener( 'DOMContentLoaded', function() {
@@ -29,12 +29,12 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 		const formData = new FormData();
 
-		formData.append( 'action', HCaptchaGeneralObject.getShortcodeHTMLAction );
-		formData.append( 'nonce', HCaptchaGeneralObject.getShortcodeHTMLNonce );
+		formData.append( 'action', HCaptchaMailchimpObject.getShortcodeHTMLAction );
+		formData.append( 'nonce', HCaptchaMailchimpObject.getShortcodeHTMLNonce );
 		formData.append( 'formId', formId );
 		formData.append( 'shortcode', matches[ 0 ] );
 
-		fetch( HCaptchaGeneralObject.ajaxUrl, {
+		fetch( HCaptchaMailchimpObject.ajaxUrl, {
 			method: 'POST',
 			body: formData,
 			signal: abortController.signal,
