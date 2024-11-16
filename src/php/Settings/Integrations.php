@@ -1031,7 +1031,7 @@ class Integrations extends PluginSettingsBase {
 
 			$this->send_json_error( esc_html( $message ) );
 
-			return; // For test purposes.
+			return; // For testing purposes.
 		}
 
 		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
@@ -1058,7 +1058,7 @@ class Integrations extends PluginSettingsBase {
 
 			$this->send_json_error( esc_html( $message ) );
 
-			return; // For test purposes.
+			return; // For testing purposes.
 		}
 
 		$message = sprintf(
