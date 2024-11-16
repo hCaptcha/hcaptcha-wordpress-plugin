@@ -571,6 +571,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.8.0 =
+* Added hCaptcha display on the Mailchimp form preview.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.
 
