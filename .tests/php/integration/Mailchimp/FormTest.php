@@ -45,11 +45,6 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( 20, has_filter( 'mc4wp_form_content', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_filter( 'mc4wp_form_errors', [ $subject, 'verify' ] ) );
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'preview_scripts' ] ) );
-
-		self::assertSame(
-			10,
-			has_action( 'wp_ajax_hcaptcha-mailchimp-get-shortcode-html', [ $subject, 'get_shortcode_html' ] )
-		);
 	}
 
 	/**
@@ -200,11 +195,19 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_preview_scripts(): void {
+		$form_id        = 123;
+		$action         = 'hcaptcha_mailchimp';
+		$name           = 'hcaptcha_mailchimp_nonce';
 		$admin_handle   = 'admin-mailchimp';
+		$id             = [
+			'source'  => [ 'mailchimp-for-wp/mailchimp-for-wp.php' ],
+			'form_id' => $form_id,
+		];
 		$params         = [
-			'ajaxUrl'                => admin_url( 'admin-ajax.php' ),
-			'getShortcodeHTMLAction' => 'hcaptcha-mailchimp-get-shortcode-html',
-			'getShortcodeHTMLNonce'  => wp_create_nonce( 'hcaptcha-mailchimp-get-shortcode-html' ),
+			'action'     => $action,
+			'name'       => $name,
+			'nonceField' => wp_nonce_field( $action, $name, true, false ),
+			'widget'     => HCaptcha::get_widget( $id ),
 		];
 		$expected_extra = [
 			'group' => 1,
@@ -220,7 +223,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( wp_script_is( $admin_handle ) );
 
-		$_GET['mc4wp_preview_form'] = 123;
+		$_GET['mc4wp_preview_form'] = $form_id;
 
 		$subject->preview_scripts();
 
@@ -232,159 +235,5 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( [], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
-	}
-
-	/**
-	 * Test get_shortcode_html().
-	 *
-	 * @return void
-	 */
-	public function test_get_shortcode_html(): void {
-		$action   = 'hcaptcha-mailchimp-get-shortcode-html';
-		$nonce    = wp_create_nonce( $action );
-		$die_arr  = [];
-		$expected = [
-			'',
-			'',
-			[ 'response' => null ],
-		];
-
-		$_REQUEST['action'] = $action;
-		$_REQUEST['nonce']  = $nonce;
-		$form_id            = 123;
-		$_POST['form_id']   = $form_id;
-		$_POST['shortcode'] = '[hcaptcha]';
-
-		$args = [
-			'action' => HCAPTCHA_ACTION,
-			'name'   => HCAPTCHA_NONCE,
-			'id'     => [
-				'source'  => 'mailchimp-for-wp/mailchimp-for-wp.php',
-				'form_id' => $form_id,
-			],
-		];
-
-		$hcap_form     = $this->get_hcap_form( $args );
-		$expected_json = wp_json_encode(
-			[
-				'success' => true,
-				'data'    => $hcap_form,
-			]
-		);
-
-		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter(
-			'wp_die_ajax_handler',
-			static function () use ( &$die_arr ) {
-				return static function ( $message, $title, $args ) use ( &$die_arr ) {
-					$die_arr = [ $message, $title, $args ];
-				};
-			}
-		);
-
-		$subject = new Form();
-
-		ob_start();
-		$subject->get_shortcode_html();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame( $expected_json, $json );
-	}
-
-	/**
-	 * Test get_shortcode_html() with bad referer.
-	 *
-	 * @return void
-	 */
-	public function test_get_shortcode_html_with_bad_referer(): void {
-		$action   = 'hcaptcha-mailchimp-get-shortcode-html';
-		$nonce    = 'some nonce';
-		$die_arr  = [];
-		$expected = [
-			'',
-			'',
-			[ 'response' => null ],
-		];
-
-		$_REQUEST['action'] = $action;
-		$_REQUEST['nonce']  = $nonce;
-		$form_id            = 123;
-		$_POST['form_id']   = $form_id;
-		$_POST['shortcode'] = '[hcaptcha]';
-
-		$expected_json = wp_json_encode(
-			[
-				'success' => false,
-				'data'    => 'Your session has expired. Please reload the page.',
-			]
-		);
-
-		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter(
-			'wp_die_ajax_handler',
-			static function () use ( &$die_arr ) {
-				return static function ( $message, $title, $args ) use ( &$die_arr ) {
-					$die_arr = [ $message, $title, $args ];
-				};
-			}
-		);
-
-		$subject = new Form();
-
-		ob_start();
-		$subject->get_shortcode_html();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame( $expected_json, $json );
-	}
-
-	/**
-	 * Test get_shortcode_html() with bad shortcode.
-	 *
-	 * @return void
-	 */
-	public function test_get_shortcode_html_with_bad_shortcode(): void {
-		$action   = 'hcaptcha-mailchimp-get-shortcode-html';
-		$nonce    = wp_create_nonce( $action );
-		$die_arr  = [];
-		$expected = [
-			'',
-			'',
-			[ 'response' => null ],
-		];
-
-		$_REQUEST['action'] = $action;
-		$_REQUEST['nonce']  = $nonce;
-		$form_id            = 123;
-		$_POST['form_id']   = $form_id;
-		$_POST['shortcode'] = '[hcaptcha - broken shortcode';
-
-		$expected_json = wp_json_encode(
-			[
-				'success' => false,
-				'data'    => 'hCaptcha shortcode not found.',
-			]
-		);
-
-		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter(
-			'wp_die_ajax_handler',
-			static function () use ( &$die_arr ) {
-				return static function ( $message, $title, $args ) use ( &$die_arr ) {
-					$die_arr = [ $message, $title, $args ];
-				};
-			}
-		);
-
-		$subject = new Form();
-
-		ob_start();
-		$subject->get_shortcode_html();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame( $expected_json, $json );
 	}
 }

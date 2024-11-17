@@ -41,11 +41,6 @@ class Form {
 	public const OBJECT = 'HCaptchaMailchimpObject';
 
 	/**
-	 * Get shortcode HTML action.
-	 */
-	private const GET_SHORTCODE_HTML_ACTION = 'hcaptcha-mailchimp-get-shortcode-html';
-
-	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -62,8 +57,6 @@ class Form {
 		add_filter( 'mc4wp_form_content', [ $this, 'add_hcaptcha' ], 20, 3 );
 		add_filter( 'mc4wp_form_errors', [ $this, 'verify' ], 10, 2 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'preview_scripts' ], 9 );
-
-		add_action( 'wp_ajax_' . self::GET_SHORTCODE_HTML_ACTION, [ $this, 'get_shortcode_html' ] );
 	}
 
 	/**
@@ -131,25 +124,9 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, MC4WP_Form $form ) {
-		$content = $form->content ?? '';
-
-		$hcap_shortcode = $this->get_hcap_shortcode( $content );
-
-		if ( $hcap_shortcode ) {
-			$hcap_sc           = preg_replace(
-				[ '/\s*\[|]\s*/' ],
-				[ '' ],
-				$hcap_shortcode
-			);
-			$atts              = shortcode_parse_atts( $hcap_sc );
-			$nonce_field_name  = $atts['name'] ?? HCAPTCHA_NONCE;
-			$nonce_action_name = $atts  ['action'] ?? HCAPTCHA_ACTION;
-		} else {
-			$nonce_field_name  = self::NAME;
-			$nonce_action_name = self::ACTION;
-		}
-
-		$error_message = hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
+		// Do not allow modification of nonce field in the shortcode.
+		// During preview, we cannot recalculate the nonce field.
+		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'empty';
@@ -166,11 +143,17 @@ class Form {
 	 * @return void
 	 */
 	public function preview_scripts(): void {
-		if ( ! (int) Request::filter_input( INPUT_GET, 'mc4wp_preview_form' ) ) {
+		$form_id = (int) Request::filter_input( INPUT_GET, 'mc4wp_preview_form' );
+
+		if ( ! $form_id ) {
 			return;
 		}
 
 		$min = hcap_min_suffix();
+		$id  = [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 
 		wp_enqueue_script(
 			self::ADMIN_HANDLE,
@@ -184,73 +167,11 @@ class Form {
 			self::ADMIN_HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'                => admin_url( 'admin-ajax.php' ),
-				'getShortcodeHTMLAction' => self::GET_SHORTCODE_HTML_ACTION,
-				'getShortcodeHTMLNonce'  => wp_create_nonce( self::GET_SHORTCODE_HTML_ACTION ),
+				'action'     => self::ACTION,
+				'name'       => self::NAME,
+				'nonceField' => wp_nonce_field( self::ACTION, self::NAME, true, false ),
+				'widget'     => HCaptcha::get_widget( $id ),
 			]
 		);
-	}
-
-	/**
-	 * Get shortcode HTML.
-	 *
-	 * @return void
-	 */
-	public function get_shortcode_html(): void {
-		if ( ! check_ajax_referer( self::GET_SHORTCODE_HTML_ACTION, 'nonce', false ) ) {
-			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
-
-			return; // For testing purposes.
-		}
-
-		$form_id   = Request::filter_input( INPUT_POST, 'form_id' );
-		$shortcode = Request::filter_input( INPUT_POST, 'shortcode' );
-
-		$hcap_shortcode = $this->get_hcap_shortcode( $shortcode );
-
-		if ( ! $hcap_shortcode ) {
-			wp_send_json_error( esc_html__( 'hCaptcha shortcode not found.', 'hcaptcha-for-forms-and-more' ) );
-
-			return; // For testing purposes.
-		}
-
-		$hcap_sc           = preg_replace(
-			[ '/\s*\[|]\s*/' ],
-			[ '' ],
-			$hcap_shortcode
-		);
-		$atts              = shortcode_parse_atts( $hcap_sc );
-		$nonce_field_name  = $atts['name'] ?? HCAPTCHA_NONCE;
-		$nonce_action_name = $atts['action'] ?? HCAPTCHA_ACTION;
-
-		unset( $atts[0] );
-
-		$args = [
-			'action' => $nonce_action_name,
-			'name'   => $nonce_field_name,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => (int) $form_id,
-			],
-		];
-
-		$args = wp_parse_args( $args, $atts );
-
-		wp_send_json_success( HCaptcha::form( $args ) );
-	}
-
-	/**
-	 * Get hCaptcha shortcode.
-	 *
-	 * @param string $content Content.
-	 *
-	 * @return string
-	 */
-	private function get_hcap_shortcode( string $content ): string {
-		$hcap_sc_regex = get_shortcode_regex( [ 'hcaptcha' ] );
-
-		return preg_match( "/$hcap_sc_regex/", $content, $matches )
-			? $matches[0]
-			: '';
 	}
 }

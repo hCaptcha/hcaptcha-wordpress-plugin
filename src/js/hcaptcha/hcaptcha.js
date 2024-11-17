@@ -346,7 +346,7 @@ class HCaptcha {
 	 *
 	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
 	 *
-	 * @return {string} Widget Id.
+	 * @return {string} Widget ID.
 	 */
 	render( hcaptchaElement ) {
 		this.observeDarkMode();

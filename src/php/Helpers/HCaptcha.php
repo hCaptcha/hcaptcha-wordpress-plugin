@@ -150,7 +150,7 @@ class HCaptcha {
 	/**
 	 * Display widget.
 	 *
-	 * @param array|mixed $id The hCaptcha widget id.
+	 * @param array $id The hCaptcha widget id.
 	 *
 	 * @return void
 	 */
@@ -169,6 +169,21 @@ class HCaptcha {
 				name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
 				value="<?php echo esc_attr( $widget_id ); ?>">
 		<?php
+	}
+
+	/**
+	 * Get widget.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return string
+	 */
+	public static function get_widget( array $id ): string {
+		ob_start();
+
+		self::display_widget( $id );
+
+		return (string) ob_get_clean();
 	}
 
 	/**
