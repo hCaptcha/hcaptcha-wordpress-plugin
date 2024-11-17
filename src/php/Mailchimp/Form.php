@@ -95,7 +95,11 @@ class Form {
 		$content = (string) $content;
 
 		if ( false !== strpos( $content, '<h-captcha' ) ) {
-			return $content;
+			$name  = self::NAME;
+			$value = wp_create_nonce( self::ACTION );
+
+			// Force nonce name.
+			return preg_replace( '/id=".+?" name=".+?" value=".+?"/', "id=\"$name\" name=\"$name\" value=\"$value\"", $content );
 		}
 
 		$args = [

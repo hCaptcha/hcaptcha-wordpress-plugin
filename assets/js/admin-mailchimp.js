@@ -16,7 +16,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	 * @return {Object|null} The parsed attributes or null if the content does not contain a shortcode.
 	 */
 	function parseShortcode( content ) {
-		const scRegex = /\[hcaptcha\s+([^\]]+)]/;
+		const scRegex = /\[hcaptcha\s*([^\]]*)]/;
 		const match = content.match( scRegex );
 
 		if ( ! match ) {
@@ -111,7 +111,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	 * Add hCaptcha to the form.
 	 */
 	function addHCaptcha() {
-		if ( ! ( mc4wpRefreshFired && hCaptchaLoadedFired ) ) {
+		if ( ! ( mc4wpRefreshFired && hCaptchaLoadedFired && timeoutFired ) ) {
 			return;
 		}
 
@@ -140,7 +140,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 		// We cannot use non-standard nonce without making an ajax call.
 		args.action = HCaptchaMailchimpObject.action;
-		args.name = HCaptchaMailchimpObject.nonce;
+		args.name = HCaptchaMailchimpObject.name;
 
 		const hcapForm = form( args );
 
@@ -151,6 +151,20 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		}
 	}
 
+	/**
+	 * Set hCaptcha timeout.
+	 */
+	function setHCaptchaTimeout() {
+		if ( timeoutId ) {
+			clearTimeout( timeoutId );
+		}
+
+		timeoutId = setTimeout( function() {
+			timeoutFired = true;
+			addHCaptcha();
+		}, 500 );
+	}
+
 	const fields = document.querySelector( 'div.mc4wp-form-fields' );
 
 	if ( ! fields ) {
@@ -159,14 +173,18 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 	let mc4wpRefreshFired = false;
 	let hCaptchaLoadedFired = false;
+	let timeoutFired = false;
+	let timeoutId;
 
 	fields.addEventListener( 'mc4wp-refresh', function() {
 		mc4wpRefreshFired = true;
-		addHCaptcha();
+		setHCaptchaTimeout();
 	} );
 
 	document.addEventListener( 'hCaptchaLoaded', function() {
 		hCaptchaLoadedFired = true;
 		addHCaptcha();
 	} );
+
+	setHCaptchaTimeout();
 } );
