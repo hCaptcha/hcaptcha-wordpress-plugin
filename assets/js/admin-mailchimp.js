@@ -143,11 +143,16 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		args.name = HCaptchaMailchimpObject.name;
 
 		const hcapForm = form( args );
+		const hCaptchaButton = parent.document.querySelector( 'button[value="hcaptcha"]' );
 
 		if ( parsedAtts ) {
 			fields.innerHTML = fields.innerHTML.replace( search, hcapForm );
+			hCaptchaButton.classList.add( 'in-form' );
+			hCaptchaButton.classList.remove( 'not-in-form' );
 		} else {
 			fields.innerHTML = fields.innerHTML.replace( search, `<p>${ hcapForm }${ search }</p>` );
+			hCaptchaButton.classList.remove( 'in-form' );
+			hCaptchaButton.classList.add( 'not-in-form' );
 		}
 	}
 
@@ -165,11 +170,60 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		}, 500 );
 	}
 
+	/**
+	 * Add hCaptcha button to the form
+	 */
+	function addHCaptchaButton() {
+		const availableFields = parent.document.querySelector( '#mc4wp-available-fields' );
+
+		if ( ! availableFields ) {
+			return;
+		}
+
+		const secondDiv = availableFields.querySelectorAll( 'div' )[ 1 ];
+
+		if ( ! secondDiv ) {
+			return;
+		}
+
+		const hCaptchaButton = document.createElement( 'button' );
+
+		hCaptchaButton.className = 'button not-in-form';
+		hCaptchaButton.type = 'button';
+		hCaptchaButton.value = 'hcaptcha';
+		hCaptchaButton.textContent = 'hCaptcha';
+
+		const secondButton = secondDiv.querySelectorAll( 'button' )[ 1 ];
+
+		if ( secondButton ) {
+			secondDiv.insertBefore( hCaptchaButton, secondButton );
+		} else {
+			secondDiv.appendChild( hCaptchaButton );
+		}
+
+		hCaptchaButton.addEventListener( 'click', function() {
+			const editor = parent.window.mc4wp.forms.editor;
+			const parsedAtts = parseShortcode( editor.getValue() );
+
+			if ( parsedAtts ) {
+				// hCaptcha already in the form.
+				return;
+			}
+
+			// Add hCaptcha to the form at the current cursor position.
+			editor.insert( '[hcaptcha]' );
+
+			fields.dispatchEvent( new Event( 'mc4wp-refresh' ) );
+		} );
+	}
+
 	const fields = document.querySelector( 'div.mc4wp-form-fields' );
 
 	if ( ! fields ) {
 		return;
 	}
+
+	addHCaptchaButton();
 
 	let mc4wpRefreshFired = false;
 	let hCaptchaLoadedFired = false;
