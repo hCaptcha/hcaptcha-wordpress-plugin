@@ -353,13 +353,13 @@ class HCaptcha {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public static function add_error_message( $errors, $error_message ): WP_Error {
+		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();
+
 		if ( null === $error_message ) {
 			return $errors;
 		}
 
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
-		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();
 
 		if ( ! isset( $errors->errors[ $code ] ) || ! in_array( $error_message, $errors->errors[ $code ], true ) ) {
 			$errors->add( $code, $error_message );
@@ -844,7 +844,9 @@ class HCaptcha {
 			];
 		}
 
-		[ $encoded_id, $hash ] = explode( '-', $hashed_id );
+		$hashed_id_arr = explode( '-', $hashed_id );
+		$encoded_id    = $hashed_id_arr[0];
+		$hash          = $hashed_id_arr[1] ?? '';
 
 		$id = wp_parse_args(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
