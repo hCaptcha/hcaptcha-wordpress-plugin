@@ -73,7 +73,7 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 Full list of arguments:
 
 `
-[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" size="normal|compact|invisible"]
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
 `
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
@@ -573,6 +573,7 @@ Instructions for popular native integrations are below:
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.
 * Added hCaptcha display on the Mailchimp form preview.
+* Added theme argument to the [hcaptcha] shortcode.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.
 * Fixed display of the hCaptcha shortcode with individual parameters.
