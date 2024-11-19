@@ -167,7 +167,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		timeoutId = setTimeout( function() {
 			timeoutFired = true;
 			addHCaptcha();
-		}, 500 );
+		}, 300 );
 	}
 
 	/**
