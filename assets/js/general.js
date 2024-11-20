@@ -204,8 +204,10 @@ const general = function( $ ) {
 		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
 		sampleHCaptcha.innerHTML = '';
 
-		// Map the theme to the palette mode.
-		params.theme = params?.theme?.palette?.mode;
+		// Check if params.theme is an object and map the theme to the palette mode.
+		if ( typeof params.theme === 'object' ) {
+			params.theme = params.theme?.palette?.mode;
+		}
 
 		if ( ! params.theme ) {
 			// Remove the theme if it's not set.
