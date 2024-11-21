@@ -351,17 +351,17 @@ class HCaptcha {
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
 
-		let params = this.getParams();
+		let globalParams = this.getParams();
 
-		if ( typeof params.theme === 'string' ) {
-			// Do not overwrite custom theme.
-			params.theme = hcaptchaElement.dataset.theme;
+		// Do not overwrite custom theme.
+		if ( typeof globalParams.theme !== 'object' ) {
+			globalParams.theme = hcaptchaElement.dataset.theme;
 		}
 
-		params.size = hcaptchaElement.dataset.size;
-		params = this.applyAutoTheme( params );
+		globalParams.size = hcaptchaElement.dataset.size;
+		globalParams = this.applyAutoTheme( globalParams );
 
-		return hcaptcha.render( hcaptchaElement, params );
+		return hcaptcha.render( hcaptchaElement, globalParams );
 	}
 
 	/**

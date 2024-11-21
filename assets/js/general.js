@@ -198,23 +198,27 @@ const general = function( $ ) {
 	}
 
 	function hCaptchaUpdate( params = {} ) {
-		const updatedParams = Object.assign( hCaptcha.getParams(), params );
-		hCaptcha.setParams( updatedParams );
+		const globalParams = Object.assign( {}, hCaptcha.getParams(), params );
+
+		if (
+			( $customThemes.prop( 'checked' ) && typeof params.theme === 'object' ) ||
+			( ! $customThemes.prop( 'checked' ) && typeof params.theme !== 'object' )
+		) {
+			globalParams.theme = params.theme;
+		} else {
+			globalParams.theme = hCaptcha.getParams().theme;
+		}
+
+		hCaptcha.setParams( globalParams );
 
 		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
 		sampleHCaptcha.innerHTML = '';
 
-		// Check if params.theme is an object and map the theme to the palette mode.
-		if ( typeof params.theme === 'object' ) {
-			params.theme = params.theme?.palette?.mode;
-		}
-
-		if ( ! params.theme ) {
-			// Remove the theme if it's not set.
-			delete params.theme;
-		}
-
 		for ( const key in params ) {
+			if ( typeof params[ key ] === 'object' ) {
+				continue;
+			}
+
 			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
 		}
 
