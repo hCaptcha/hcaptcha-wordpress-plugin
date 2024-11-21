@@ -351,7 +351,15 @@ class HCaptcha {
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
 
-		const params = this.applyAutoTheme( Object.assign( this.getParams(), hcaptchaElement.dataset ) );
+		let params = this.getParams();
+
+		if ( typeof params.theme === 'string' ) {
+			// Do not overwrite custom theme.
+			params.theme = hcaptchaElement.dataset.theme;
+		}
+
+		params.size = hcaptchaElement.dataset.size;
+		params = this.applyAutoTheme( params );
 
 		return hcaptcha.render( hcaptchaElement, params );
 	}
