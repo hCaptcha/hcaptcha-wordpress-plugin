@@ -197,12 +197,83 @@ const general = function( $ ) {
 		showMessage( message, 'notice-error' );
 	}
 
+	/**
+	 * Find CSS rules by selector.
+	 *
+	 * @param {string} selector Selector.
+	 *
+	 * @return {Array} CSS rules.
+	 */
+	function findCSSRules( selector ) {
+		const foundRules = [];
+
+		for ( let i = 0; i < document.styleSheets.length; i++ ) {
+			const styleSheet = document.styleSheets[ i ];
+
+			try {
+				/**
+				 * @type {CSSRuleList}
+				 */
+				const rules = styleSheet.cssRules;
+
+				for ( let j = 0; j < rules.length; j++ ) {
+					/**
+					 * @type {CSSStyleRule}
+					 */
+					const rule = rules[ j ];
+
+					if ( rule.selectorText === selector ) {
+						foundRules.push( rule );
+					}
+				}
+			} catch ( e ) {
+				// Ignore errors from cross-origin stylesheets.
+			}
+		}
+
+		return foundRules;
+	}
+
+	/**
+	 * Add ::before background.
+	 *
+	 * @param {string} selector The element selector.
+	 * @param {string} color    The background color.
+	 */
+	function addBackground( selector, color ) {
+		findCSSRules( selector ).forEach( function( rule ) {
+			if ( rule.style.backgroundColor === '' ) {
+				rule.style.backgroundColor = color;
+			}
+		} );
+	}
+
+	/**
+	 * Remove ::before background.
+	 *
+	 * @param {string} selector The element selector.
+	 */
+	function removeBackground( selector ) {
+		findCSSRules( selector ).forEach( function( rule ) {
+			if ( rule.style.backgroundColor !== 'initial' ) {
+				rule.style.removeProperty( 'background-color' );
+			}
+		} );
+	}
+
 	function hCaptchaUpdate( params = {} ) {
 		const globalParams = Object.assign( {}, hCaptcha.getParams(), params );
+		const isCustomThemeActive = $customThemes.prop( 'checked' );
+
+		if ( isCustomThemeActive ) {
+			addBackground( '.h-captcha::before', params?.theme?.component?.checkbox?.main?.fill ?? '#fafafa' );
+		} else {
+			removeBackground( '.h-captcha::before' );
+		}
 
 		if (
-			( $customThemes.prop( 'checked' ) && typeof params.theme === 'object' ) ||
-			( ! $customThemes.prop( 'checked' ) && typeof params.theme !== 'object' )
+			( isCustomThemeActive && typeof params.theme === 'object' ) ||
+			( ! isCustomThemeActive && typeof params.theme !== 'object' )
 		) {
 			globalParams.theme = params.theme;
 		} else {

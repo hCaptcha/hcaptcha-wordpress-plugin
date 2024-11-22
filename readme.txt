@@ -579,6 +579,9 @@ Instructions for popular native integrations are below:
 * Fixed display of the hCaptcha shortcode with individual parameters.
 * Fixed usage of theme in shortcode and form args.
 * Fixed instant update upon theme selection on the General admin page.
+* Fixed custom themes on the frontend.
+* Fixed custom themes on the General page.
+* Fixed switching from custom themes to standard and back on the General page.
 
 = 4.7.1 =
 * Fixed _load_textdomain_just_in_time notice with WordPress 6.7.
