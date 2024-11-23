@@ -10,8 +10,19 @@ const settingsBase = function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 
 	function setHeaderBarTop() {
+		/**
+		 * @type {HTMLElement}
+		 */
 		const adminBar = document.querySelector( '#wpadminbar' );
+
+		/**
+		 * @type {HTMLElement}
+		 */
 		const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+
+		/**
+		 * @type {HTMLElement}
+		 */
 		const headerBar = document.querySelector( '.hcaptcha-header-bar' );
 
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;

@@ -28,10 +28,12 @@ const integrations = function( $ ) {
 	 * @type {HTMLElement}
 	 */
 	const adminBar = document.querySelector( '#wpadminbar' );
+
 	/**
 	 * @type {HTMLElement}
 	 */
 	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+
 	/**
 	 * @type {HTMLElement}
 	 */
