@@ -29,8 +29,13 @@ document.addEventListener( 'hCaptchaLoaded', function() {
 			const hCaptchaClass = 'h-captcha';
 			const hiddenCaptcha = document.getElementsByClassName( hCaptchaHiddenClass )[ 0 ];
 			const submitBtn = form.querySelector( submitBtnSelector );
+
+			/**
+			 * @type {HTMLElement}
+			 */
 			const hCaptcha = hiddenCaptcha.cloneNode( true );
 			const wrappingForm = document.createElement( 'form' );
+
 			wrappingForm.setAttribute( 'method', 'POST' );
 			submitBtn.parentNode.insertBefore( wrappingForm, submitBtn );
 			wrappingForm.appendChild( submitBtn );
@@ -149,8 +154,15 @@ window.fetch = async ( ...args ) => {
 	let data = body.get( 'data' );
 
 	if ( 'fluentform_submit' === body.get( 'action' ) && ! data.includes( inputName ) ) {
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const hCaptchaResponse =
 			document.querySelector( '.ff_conv_app_' + formId + ' [name="' + inputName + '"]' );
+
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const id =
 			document.querySelector( '.ff_conv_app_' + formId + ' [name="' + widgetName + '"]' );
 

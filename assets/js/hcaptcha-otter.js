@@ -28,8 +28,20 @@ window.fetch = async ( ...args ) => {
 
 	if ( resource.includes( '/otter/v1/form/frontend' ) && ! formData.hasOwnProperty( inputName ) ) {
 		const form = document.getElementById( formData.payload.formId );
+
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const hCaptchaResponse = form.querySelector( '[name="' + inputName + '"]' );
+
+		/**
+		 * @type {HTMLInputElement}
+		 */
 		const id = form.querySelector( '[name="' + widgetName + '"]' );
+
+		/**
+		 * @type {HTMLInputElement}
+		 */
 		const nonce = form.querySelector( '[name="' + nonceName + '"]' );
 
 		if ( hCaptchaResponse ) {

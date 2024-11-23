@@ -45,6 +45,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				);
 			} else {
 				const fieldId = model.get( 'id' );
+
+				/**
+				 * @type {HTMLTextAreaElement}
+				 */
 				const hcapResponse = document.querySelector(
 					'.h-captcha[data-fieldId="' + fieldId + '"] textarea[name="h-captcha-response"]'
 				);

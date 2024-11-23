@@ -24,6 +24,10 @@ window.fetch = async ( ...args ) => {
 	if ( 'eb_form_submit' === body.get( 'action' ) ) {
 		const widgetId = formData[ 'hcaptcha-widget-id' ];
 		const widget = document.querySelector( 'input[value="' + widgetId + '"]' );
+
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const hCaptchaResponse = widget.closest( 'form' ).querySelector( '[name="' + inputName + '"]' );
 
 		if ( hCaptchaResponse ) {
