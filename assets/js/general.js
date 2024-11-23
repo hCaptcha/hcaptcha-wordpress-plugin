@@ -350,9 +350,14 @@ const general = function( $ ) {
 				showSuccessMessage( response.data );
 				$submit.attr( 'disabled', false );
 			} )
-			.fail( function( response ) {
-				showErrorMessage( response.statusText );
-			} )
+			.fail(
+				/**
+				 * @param {Object} response
+				 */
+				function( response ) {
+					showErrorMessage( response.statusText );
+				}
+			)
 			.always( function() {
 				hCaptchaUpdate();
 			} );
@@ -575,9 +580,14 @@ const general = function( $ ) {
 					showErrorMessage( response.data );
 				}
 			} )
-			.fail( function( response ) {
-				showErrorMessage( response.statusText );
-			} );
+			.fail(
+				/**
+				 * @param {Object} response
+				 */
+				function( response ) {
+					showErrorMessage( response.statusText );
+				}
+			);
 	} );
 
 	// Prevent saving values of some form elements.
