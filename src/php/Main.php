@@ -488,7 +488,7 @@ class Main {
 		height: 136px;
 		background-position: 50% 79%;
 	}
-	
+
 	.h-captcha[data-theme="light"]::before,
 	body.is-light-theme .h-captcha[data-theme="auto"]::before,
 	.h-captcha[data-theme="auto"]::before {
@@ -505,7 +505,7 @@ class Main {
 		background-color: #333;
 		border: 1px solid #f5f5f5;
 	}
-	
+
 	.h-captcha[data-theme="custom"]::before {
 		background-color: $bg;
 	}
