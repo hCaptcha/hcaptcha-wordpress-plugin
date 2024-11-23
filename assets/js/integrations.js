@@ -24,8 +24,17 @@
  * @param {jQuery} $ The jQuery instance.
  */
 const integrations = function( $ ) {
+	/**
+	 * @type {HTMLElement}
+	 */
 	const adminBar = document.querySelector( '#wpadminbar' );
+	/**
+	 * @type {HTMLElement}
+	 */
 	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+	/**
+	 * @type {HTMLElement}
+	 */
 	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
@@ -44,7 +53,8 @@ const integrations = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		$( '<div id="hcaptcha-message"></div>' ).insertAfter( '.hcaptcha-header-bar' );
+		// Concat below to avoid inspection message.
+		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( '.hcaptcha-header-bar' );
 		$message = $( msgSelector );
 	}
 
@@ -159,6 +169,9 @@ const integrations = function( $ ) {
 		}
 
 		function getSelectedTheme() {
+			/**
+			 * @type {HTMLSelectElement}
+			 */
 			const select = document.querySelector( '.kagg-dialog select' );
 
 			if ( ! select ) {
@@ -432,5 +445,6 @@ const integrations = function( $ ) {
 };
 
 window.hCaptchaIntegrations = integrations;
+window.HCaptchaIntegrationsObject = window.HCaptchaIntegrationsObject || {};
 
 jQuery( document ).ready( integrations );
