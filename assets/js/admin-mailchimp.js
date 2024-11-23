@@ -202,6 +202,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		}
 
 		hCaptchaButton.addEventListener( 'click', function() {
+			// noinspection JSUnresolvedReference
 			const editor = parent.window.mc4wp.forms.editor;
 			const parsedAtts = parseShortcode( editor.getValue() );
 
