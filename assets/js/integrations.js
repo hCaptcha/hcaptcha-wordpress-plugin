@@ -215,7 +215,7 @@ const integrations = function( $ ) {
 
 			// noinspection JSVoidFunctionReturnValueUsed
 			$.post( {
-				url: HCaptchaIntegrationsObject.ajaxUrl,
+				url: HCaptchaIntegrationsObject.ajaxUrl + '123',
 				data,
 			} )
 				/**
@@ -234,8 +234,8 @@ const integrations = function( $ ) {
 					}
 
 					if ( response.data.themes !== undefined ) {
-						window.HCaptchaIntegrationsObject.themes = response.data.themes;
-						window.HCaptchaIntegrationsObject.defaultTheme = response.data.defaultTheme;
+						HCaptchaIntegrationsObject.themes = response.data.themes;
+						HCaptchaIntegrationsObject.defaultTheme = response.data.defaultTheme;
 					}
 
 					if ( ! response.success ) {
@@ -260,9 +260,14 @@ const integrations = function( $ ) {
 						1000
 					);
 				} )
-				.fail( function( response ) {
-					showErrorMessage( response.statusText );
-				} )
+				.fail(
+					/**
+					 * @param {Object} response
+					 */
+					function( response ) {
+						showErrorMessage( response.statusText );
+					}
+				)
 				.always( function() {
 					$tr.removeClass( 'on off' );
 				} );
@@ -445,6 +450,5 @@ const integrations = function( $ ) {
 };
 
 window.hCaptchaIntegrations = integrations;
-window.HCaptchaIntegrationsObject = window.HCaptchaIntegrationsObject || {};
 
 jQuery( document ).ready( integrations );
