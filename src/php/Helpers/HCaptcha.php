@@ -65,9 +65,11 @@ class HCaptcha {
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_force    = $settings->is_on( 'force' );
 		$hcaptcha_theme    = $settings->get_theme();
-		$hcaptcha_size     = $settings->get( 'size' );
-		$allowed_themes    = [ 'light', 'dark', 'auto' ];
-		$allowed_sizes     = [ 'normal', 'compact', 'invisible' ];
+		$bg                = $settings->get_custom_theme_background();
+
+		$hcaptcha_size  = $settings->get( 'size' );
+		$allowed_themes = [ 'light', 'dark', 'auto' ];
+		$allowed_sizes  = [ 'normal', 'compact', 'invisible' ];
 
 		$args = wp_parse_args(
 			$args,
@@ -104,6 +106,7 @@ class HCaptcha {
 		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
 		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
 		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true ) ? (string) $args['theme'] : $hcaptcha_theme;
+		$args['theme']   = $bg ? 'custom' : $args['theme'];
 		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true ) ? (string) $args['size'] : $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );

@@ -438,8 +438,10 @@ class Main {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
+		$settings           = $this->settings();
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
+		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
 
 		$css = <<<CSS
 	.h-captcha {
@@ -486,7 +488,7 @@ class Main {
 		height: 136px;
 		background-position: 50% 79%;
 	}
-
+	
 	.h-captcha[data-theme="light"]::before,
 	body.is-light-theme .h-captcha[data-theme="auto"]::before,
 	.h-captcha[data-theme="auto"]::before {
@@ -503,6 +505,10 @@ class Main {
 		background-color: #333;
 		border: 1px solid #f5f5f5;
 	}
+	
+	.h-captcha[data-theme="custom"]::before {
+		background-color: $bg;
+	}
 
 	.h-captcha[data-size="invisible"]::before {
 		display: none;
@@ -516,20 +522,6 @@ class Main {
 		border-style: none;
 	}
 CSS;
-
-		$settings = $this->settings();
-
-		if ( $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
-			$bg = $settings->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? '';
-
-			if ( $bg ) {
-				$css .= <<<CSS
-	.h-captcha::before {
-		background-color: $bg !important;	
-	}
-CSS;
-			}
-		}
 
 		HCaptcha::css_display( $css );
 	}

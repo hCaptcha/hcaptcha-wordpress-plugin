@@ -34,6 +34,7 @@ const general = function( $ ) {
 	const $form = $( 'form.hcaptcha-general' );
 	const $siteKey = $( '[name="hcaptcha_settings[site_key]"]' );
 	const $secretKey = $( '[name="hcaptcha_settings[secret_key]"]' );
+	const $sampleHCaptcha = $( '#hcaptcha-options .h-captcha' );
 	const $checkConfig = $( '#check_config' );
 	const $resetNotifications = $( '#reset_notifications' );
 	const $theme = $( '[name="hcaptcha_settings[theme]"]' );
@@ -152,7 +153,8 @@ const general = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		$( '<div id="hcaptcha-message"></div>' ).insertAfter( headerBarSelector );
+		// Concat below to avoid inspection message.
+		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
 		$message = $( msgSelector );
 	}
 
@@ -197,78 +199,15 @@ const general = function( $ ) {
 		showMessage( message, 'notice-error' );
 	}
 
-	/**
-	 * Find CSS rules by selector.
-	 *
-	 * @param {string} selector Selector.
-	 *
-	 * @return {Array} CSS rules.
-	 */
-	function findCSSRules( selector ) {
-		const foundRules = [];
-
-		for ( let i = 0; i < document.styleSheets.length; i++ ) {
-			const styleSheet = document.styleSheets[ i ];
-
-			try {
-				/**
-				 * @type {CSSRuleList}
-				 */
-				const rules = styleSheet.cssRules;
-
-				for ( let j = 0; j < rules.length; j++ ) {
-					/**
-					 * @type {CSSStyleRule}
-					 */
-					const rule = rules[ j ];
-
-					if ( rule.selectorText === selector ) {
-						foundRules.push( rule );
-					}
-				}
-			} catch ( e ) {
-				// Ignore errors from cross-origin stylesheets.
-			}
-		}
-
-		return foundRules;
-	}
-
-	/**
-	 * Add ::before background.
-	 *
-	 * @param {string} selector The element selector.
-	 * @param {string} color    The background color.
-	 */
-	function addBackground( selector, color ) {
-		findCSSRules( selector ).forEach( function( rule ) {
-			if ( rule.style.backgroundColor === '' ) {
-				rule.style.backgroundColor = color;
-			}
-		} );
-	}
-
-	/**
-	 * Remove ::before background.
-	 *
-	 * @param {string} selector The element selector.
-	 */
-	function removeBackground( selector ) {
-		findCSSRules( selector ).forEach( function( rule ) {
-			if ( rule.style.backgroundColor !== 'initial' ) {
-				rule.style.removeProperty( 'background-color' );
-			}
-		} );
-	}
-
 	function hCaptchaUpdate( params = {} ) {
 		const globalParams = Object.assign( {}, hCaptcha.getParams(), params );
 		const isCustomThemeActive = $customThemes.prop( 'checked' );
+		const isModeLive = 'live' === $mode.val();
 
-		if ( isCustomThemeActive ) {
-			addBackground( '.h-captcha::before', params?.theme?.component?.checkbox?.main?.fill ?? '#fafafa' );
+		if ( isCustomThemeActive && isModeLive ) {
+			$sampleHCaptcha.attr( 'data-theme', 'custom' );
 		} else {
-			removeBackground( '.h-captcha::before' );
+			$sampleHCaptcha.attr( 'data-theme', $theme.val() );
 		}
 
 		if (
@@ -282,15 +221,14 @@ const general = function( $ ) {
 
 		hCaptcha.setParams( globalParams );
 
-		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
-		sampleHCaptcha.innerHTML = '';
+		$sampleHCaptcha.html( '' );
 
 		for ( const key in params ) {
 			if ( typeof params[ key ] === 'object' ) {
 				continue;
 			}
 
-			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
+			$sampleHCaptcha.attr( `data-${ key }`, `${ params[ key ] }` );
 		}
 
 		hCaptcha.bindEvents();
@@ -597,8 +535,7 @@ const general = function( $ ) {
 		delete global.hcaptcha;
 
 		// Remove sample hCaptcha.
-		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
-		sampleHCaptcha.innerHTML = '';
+		$sampleHCaptcha.html( '' );
 
 		// Re-create the API script.
 		const t = document.getElementsByTagName( 'head' )[ 0 ];

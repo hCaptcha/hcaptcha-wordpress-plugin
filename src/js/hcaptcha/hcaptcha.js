@@ -354,7 +354,14 @@ class HCaptcha {
 		let globalParams = this.getParams();
 
 		// Do not overwrite custom theme.
-		if ( typeof globalParams.theme !== 'object' ) {
+		if ( typeof globalParams.theme === 'object' ) {
+			// noinspection JSUnresolvedReference
+			const bg = globalParams?.theme?.component?.checkbox?.main?.fill ?? '';
+
+			if ( bg ) {
+				hcaptchaElement.dataset.theme = 'custom';
+			}
+		} else {
 			globalParams.theme = hcaptchaElement.dataset.theme;
 		}
 

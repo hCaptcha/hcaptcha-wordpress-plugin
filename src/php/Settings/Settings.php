@@ -153,6 +153,25 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get custom background.
+	 *
+	 * @return string
+	 */
+	public function get_custom_theme_background(): string {
+		$bg = '';
+
+		if (
+			$this->is_on( 'custom_themes' ) &&
+			$this->is_pro_or_general() &&
+			$this->is( 'mode', 'live' )
+		) {
+			$bg = $this->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? $bg;
+		}
+
+		return $bg;
+	}
+
+	/**
 	 * Get plugin option.
 	 *
 	 * @param string $key         Setting name.
