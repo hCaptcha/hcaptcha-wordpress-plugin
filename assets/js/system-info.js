@@ -9,6 +9,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	document.querySelector( '#hcaptcha-system-info-wrap .helper' ).addEventListener(
 		'click',
 		function() {
+			/**
+			 * @type {HTMLTextAreaElement}
+			 */
 			const systemInfoTextArea = document.getElementById( 'hcaptcha-system-info' );
 			let msg = '';
 
