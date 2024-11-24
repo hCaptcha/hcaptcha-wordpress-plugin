@@ -26,6 +26,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 50 other plugins and themes.
 * **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
+* **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
 * **Activation and Deactivation:** Activate and deactivate plugins and themes with hCaptcha in one click.
 * **Forced Verification:** Optionally force hCaptcha verification before form submission.
 * **Check Config:** Check hCaptcha configuration before saving keys and settings.
