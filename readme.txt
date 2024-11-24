@@ -524,6 +524,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Login/Signup Popup Login and Register Forms
 * Mailchimp for WP Form
 * MailPoet Form
+* Maintenance Login Form
 * MemberPress Login and Register Forms
 * Ninja Forms
 * Otter Blocks Forms
@@ -573,6 +574,7 @@ Instructions for popular native integrations are below:
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.
 * Added hCaptcha display on the Mailchimp form preview.
+* Added Maintenance Login Form integration.
 * Added theme argument to the [hcaptcha] shortcode.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.

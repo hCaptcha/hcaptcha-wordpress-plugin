@@ -1123,6 +1123,11 @@ CSS;
 				'mailpoet/mailpoet.php',
 				MailPoet\Form::class,
 			],
+			'Maintenance Login'                    => [
+				[ 'maintenance_status', 'login' ],
+				'maintenance/maintenance.php',
+				Maintenance\Login::class,
+			],
 			'MemberPress Login'                    => [
 				[ 'memberpress_status', 'login' ],
 				'memberpress/memberpress.php',

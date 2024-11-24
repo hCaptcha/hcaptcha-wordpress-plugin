@@ -442,6 +442,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'maintenance_status'               => [
+				'label'   => 'Maintenance',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'memberpress_status'               => [
 				'label'   => 'MemberPress',
 				'logo'    => 'svg',
