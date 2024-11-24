@@ -217,7 +217,7 @@ const integrations = function( $ ) {
 
 			// noinspection JSVoidFunctionReturnValueUsed
 			$.post( {
-				url: HCaptchaIntegrationsObject.ajaxUrl + '123',
+				url: HCaptchaIntegrationsObject.ajaxUrl,
 				data,
 			} )
 				/**
