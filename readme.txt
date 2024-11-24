@@ -18,6 +18,28 @@ Need to keep out bots? hCaptcha protects privacy while offering better protectio
 
 hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp) with broad integration support, detailed analytics, and strong protection. Start protecting logins, forms, and more in minutes.
 
+== Benefits ==
+
+* **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't track users, sell personal data, or use cookies.
+* **Ultimate Security:** hCaptcha offers better protection against bots and abuse than other CAPTCHAs.
+* **Easy to Use:** hCaptcha is easy to install and use with WordPress and popular plugins.
+* **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 50 other plugins and themes.
+* **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
+* **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
+* **Activation and Deactivation:** Activate and deactivate plugins and themes with hCaptcha in one click.
+* **Forced Verification:** Optionally force hCaptcha verification before form submission.
+* **Check Config:** Check hCaptcha configuration before saving keys and settings.
+* **Auto-Verification:** Automatically verify custom forms.
+* **Standard Sizes and Themes:** Choose the size and theme of the hCaptcha widget.
+* **Language Support:** Supports multiple languages.
+* **Test Modes:** Use hCaptcha in live and Pro/Enterprise test modes.
+* **Custom Themes:** Customize the appearance of hCaptcha to match your site.
+* **Custom Themes Editor:** Edit custom themes directly in the plugin.
+* **Login Attempts:** Protect your site from brute force attacks.
+* **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction.
+* **White List IPs:** Whitelist certain IPs to skip hCaptcha verification.
+* **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
+
 == How hCaptcha Works ==
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
