@@ -37,6 +37,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Custom Themes:** Customize the appearance of hCaptcha to match your site.
 * **Custom Themes Editor:** Edit custom themes directly in the plugin.
 * **Login Attempts:** Protect your site from brute force attacks.
+* **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction.
 * **White List IPs:** Whitelist certain IPs to skip hCaptcha verification.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
