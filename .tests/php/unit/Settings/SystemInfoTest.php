@@ -414,6 +414,8 @@ Mailchimp for WP:
   Form:                               On
 MailPoet:                             
   Form:                               Off
+Maintenance:                          
+  Login Form:                         Off
 MemberPress:                          
   Login Form:                         Off
   Register Form:                      On
