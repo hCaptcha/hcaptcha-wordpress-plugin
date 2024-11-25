@@ -146,7 +146,7 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * After switch theme action.
-	 * Do not allow redirect during Divi theme activation.
+	 * Do not allow redirect during Avada and Divi theme activation.
 	 *
 	 * @return void
 	 */
@@ -343,6 +343,18 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'extra_status'                     => [
+				'entity'  => 'theme',
+				'label'   => 'Extra',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => __( 'Extra Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'contact'     => __( 'Extra Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'email_optin' => __( 'Extra Email Optin Form', 'hcaptcha-for-forms-and-more' ),
+					'login'       => __( 'Extra Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'fluent_status'                    => [

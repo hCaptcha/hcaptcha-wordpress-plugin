@@ -537,6 +537,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Elementor Pro Form and Login Form
 * Essential Addons for Elementor Login and Register Forms
 * Essential Blocks Form
+* Extra Comment, Contact, Email Optin and Login Forms
 * Fluent Forms
 * Forminator Forms
 * Formidable Forms
@@ -600,6 +601,7 @@ Instructions for popular native integrations are below:
 * Added instant updating of the Contact Form 7 live form.
 * Added hCaptcha display on the Mailchimp form preview.
 * Added Maintenance Login Form integration.
+* Added Extra theme integration.
 * Added theme argument to the [hcaptcha] shortcode.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.

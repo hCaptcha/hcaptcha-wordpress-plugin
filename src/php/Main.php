@@ -1043,6 +1043,26 @@ CSS;
 				'essential-blocks/essential-blocks.php',
 				EssentialBlocks\Form::class,
 			],
+			'Extra Comment Form'                   => [
+				[ 'extra_status', 'comment' ],
+				'Extra',
+				[ Divi\Comment::class, WP\Comment::class ],
+			],
+			'Extra Contact Form'                   => [
+				[ 'extra_status', 'contact' ],
+				'Extra',
+				Divi\Contact::class,
+			],
+			'Extra Email Optin Form'               => [
+				[ 'extra_status', 'email_optin' ],
+				'Extra',
+				Divi\EmailOptin::class,
+			],
+			'Extra Login Form'                     => [
+				[ 'extra_status', null ],
+				'Extra',
+				[ Divi\Login::class ],
+			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
 				'fluentform/fluentform.php',
