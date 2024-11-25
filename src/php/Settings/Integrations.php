@@ -670,7 +670,7 @@ class Integrations extends PluginSettingsBase {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '.' . $logo_type );
 		$entity    = $form_field['entity'] ?? 'plugin';
 
-		return sprintf(
+		$logo = sprintf(
 			'<div class="hcaptcha-integrations-logo" data-installed="%1$s">' .
 			'<img src="%2$s" alt="%3$s Logo" data-label="%3$s" data-entity="%4$s">' .
 			'</div>',
@@ -679,6 +679,15 @@ class Integrations extends PluginSettingsBase {
 			$label,
 			$entity
 		);
+
+		if ( 'theme' === $entity ) {
+			$logo .= sprintf(
+				'<div class="hcaptcha-integrations-entity">%1$s</div>',
+				$entity
+			);
+		}
+
+		return $logo;
 	}
 
 	/**
@@ -701,6 +710,8 @@ class Integrations extends PluginSettingsBase {
 
 		$this->form_fields = $this->sort_fields( $this->form_fields );
 
+		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
+
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			$form_field['installed'] = in_array( $status, $installed, true );
 			$form_field['section']   = ( ! $form_field['installed'] ) || $form_field['disabled']
@@ -710,6 +721,10 @@ class Integrations extends PluginSettingsBase {
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field );
 			}
+
+			$entity              = $form_field['entity'] ?? '';
+			$theme               = 'theme' === $entity ? ' ' . $prefix . 'theme' : '';
+			$form_field['class'] = str_replace( '_', '-', $prefix . $status . $theme );
 		}
 
 		unset( $form_field );
