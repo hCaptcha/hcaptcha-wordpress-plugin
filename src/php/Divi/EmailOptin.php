@@ -91,6 +91,7 @@ class EmailOptin {
 			return;
 		}
 
+		// It is a bug in Divi script, which doesn't handle the error message.
 		et_core_die( esc_html( $error_message ) );
 	}
 
