@@ -61,51 +61,63 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 
 		$hcap_errors = [
-			'missing-input-secret'             => [
+			'missing-input-secret'     => [
 				'type' => 'error',
 				'text' => 'Your secret key is missing.',
 			],
-			'invalid-input-secret'             => [
+			'invalid-input-secret'     => [
 				'type' => 'error',
 				'text' => 'Your secret key is invalid or malformed.',
 			],
-			'missing-input-response'           => [
+			'missing-input-response'   => [
 				'type' => 'error',
 				'text' => 'The response parameter (verification token) is missing.',
 			],
-			'invalid-input-response'           => [
+			'invalid-input-response'   => [
 				'type' => 'error',
 				'text' => 'The response parameter (verification token) is invalid or malformed.',
 			],
-			'bad-request'                      => [
+			'expired-input-response'   => [
+				'type' => 'error',
+				'text' => 'The response parameter (verification token) is expired. (120s default)',
+			],
+			'already-seen-response'    => [
+				'type' => 'error',
+				'text' => 'The response parameter (verification token) was already verified once.',
+			],
+			'bad-request'              => [
 				'type' => 'error',
 				'text' => 'The request is invalid or malformed.',
 			],
-			'invalid-or-already-seen-response' => [
+			'missing-remoteip'         => [
 				'type' => 'error',
-				'text' => 'The response parameter has already been checked, or has another issue.',
+				'text' => 'The remoteip parameter is missing.',
 			],
-			'not-using-dummy-passcode'         => [
+			'invalid-remoteip'         => [
+				'type' => 'error',
+				'text' => 'The remoteip parameter is not a valid IP address or blinded value.',
+			],
+			'not-using-dummy-passcode' => [
 				'type' => 'error',
 				'text' => 'You have used a testing sitekey but have not used its matching secret.',
 			],
-			'sitekey-secret-mismatch'          => [
+			'sitekey-secret-mismatch'  => [
 				'type' => 'error',
 				'text' => 'The sitekey is not registered with the provided secret.',
 			],
-			'empty'                            => [
+			'empty'                    => [
 				'type' => 'error',
 				'text' => 'Please complete the hCaptcha.',
 			],
-			'fail'                             => [
+			'fail'                     => [
 				'type' => 'error',
 				'text' => 'The hCaptcha is invalid.',
 			],
-			'bad-nonce'                        => [
+			'bad-nonce'                => [
 				'type' => 'error',
 				'text' => 'Bad hCaptcha nonce!',
 			],
-			'bad-signature'                    => [
+			'bad-signature'            => [
 				'type' => 'error',
 				'text' => 'Bad hCaptcha signature!',
 			],

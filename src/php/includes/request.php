@@ -72,19 +72,22 @@ function hcap_get_error_messages(): array {
 		'hcap_error_messages',
 		[
 			// API messages.
-			'missing-input-secret'             => __( 'Your secret key is missing.', 'hcaptcha-for-forms-and-more' ),
-			'invalid-input-secret'             => __( 'Your secret key is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
-			'missing-input-response'           => __( 'The response parameter (verification token) is missing.', 'hcaptcha-for-forms-and-more' ),
-			'invalid-input-response'           => __( 'The response parameter (verification token) is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
-			'bad-request'                      => __( 'The request is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
-			'invalid-or-already-seen-response' => __( 'The response parameter has already been checked, or has another issue.', 'hcaptcha-for-forms-and-more' ),
-			'not-using-dummy-passcode'         => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
-			'sitekey-secret-mismatch'          => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
+			'missing-input-secret'     => __( 'Your secret key is missing.', 'hcaptcha-for-forms-and-more' ),
+			'invalid-input-secret'     => __( 'Your secret key is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
+			'missing-input-response'   => __( 'The response parameter (verification token) is missing.', 'hcaptcha-for-forms-and-more' ),
+			'invalid-input-response'   => __( 'The response parameter (verification token) is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
+			'expired-input-response'   => __( 'The response parameter (verification token) is expired. (120s default)', 'hcaptcha-for-forms-and-more' ),
+			'already-seen-response'    => __( 'The response parameter (verification token) was already verified once.', 'hcaptcha-for-forms-and-more' ),
+			'bad-request'              => __( 'The request is invalid or malformed.', 'hcaptcha-for-forms-and-more' ),
+			'missing-remoteip'         => __( 'The remoteip parameter is missing.', 'hcaptcha-for-forms-and-more' ),
+			'invalid-remoteip'         => __( 'The remoteip parameter is not a valid IP address or blinded value.', 'hcaptcha-for-forms-and-more' ),
+			'not-using-dummy-passcode' => __( 'You have used a testing sitekey but have not used its matching secret.', 'hcaptcha-for-forms-and-more' ),
+			'sitekey-secret-mismatch'  => __( 'The sitekey is not registered with the provided secret.', 'hcaptcha-for-forms-and-more' ),
 			// Plugin messages.
-			'empty'                            => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
-			'fail'                             => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
-			'bad-nonce'                        => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
-			'bad-signature'                    => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
+			'empty'                    => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+			'fail'                     => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
+			'bad-nonce'                => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
+			'bad-signature'            => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
 		]
 	);
 }
@@ -247,8 +250,10 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 
 		// Verification request is not verified.
 		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
-			$result      = isset( $body['error-codes'] ) ? hcap_get_error_message( $body['error-codes'] ) : $fail_message;
-			$error_codes = $body['error-codes'] ?? [ 'fail' ];
+			$error_codes        = $body['error-codes'] ?? [];
+			$hcap_error_message = hcap_get_error_message( $error_codes );
+			$result             = $hcap_error_message ?: $fail_message;
+			$error_codes        = $hcap_error_message ? $error_codes : [ 'fail' ];
 
 			/** This filter is documented above. */
 			return apply_filters( 'hcap_verify_request', $result, $error_codes );
