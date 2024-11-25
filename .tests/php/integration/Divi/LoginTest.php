@@ -108,6 +108,13 @@ class LoginTest extends HCaptchaWPTestCase {
 			]
 		);
 
+		add_filter(
+			'template',
+			static function () {
+				return 'Divi';
+			}
+		);
+
 		hcaptcha()->init_hooks();
 
 		$subject = new Login();

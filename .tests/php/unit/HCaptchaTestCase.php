@@ -946,6 +946,18 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'extra_status'                     => [
+				'entity'  => 'theme',
+				'label'   => 'Extra',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => 'Extra Comment Form',
+					'contact'     => 'Extra Contact Form',
+					'email_optin' => 'Extra Email Optin Form',
+					'login'       => 'Extra Login Form',
+				],
+			],
 			'fluent_status'                    =>
 				[
 					'label'   => 'Fluent Forms',

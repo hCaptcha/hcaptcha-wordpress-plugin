@@ -385,6 +385,11 @@ Essential Addons:
   Register:                           Off
 Essential Blocks:                     
   Form:                               Off
+Extra:                                
+  Extra Comment Form:                 Off
+  Extra Contact Form:                 Off
+  Extra Email Optin Form:             Off
+  Extra Login Form:                   Off
 Fluent Forms:                         
   Form:                               On
 Formidable Forms:                     
