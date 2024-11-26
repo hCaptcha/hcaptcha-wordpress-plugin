@@ -993,6 +993,26 @@ CSS;
 				'Divi',
 				[ Divi\Login::class ],
 			],
+			'Divi Builder Comment Form'            => [
+				[ 'divi_builder_status', 'comment' ],
+				'divi-builder/divi-builder.php',
+				[ Divi\Comment::class, WP\Comment::class ],
+			],
+			'Divi Builder Contact Form'            => [
+				[ 'divi_builder_status', 'contact' ],
+				'divi-builder/divi-builder.php',
+				Divi\Contact::class,
+			],
+			'Divi Builder Email Optin Form'        => [
+				[ 'divi_builder_status', 'email_optin' ],
+				'divi-builder/divi-builder.php',
+				Divi\EmailOptin::class,
+			],
+			'Divi Builder Login Form'              => [
+				[ 'divi_builder_status', null ],
+				'divi-builder/divi-builder.php',
+				[ Divi\Login::class ],
+			],
 			'Download Manager'                     => [
 				[ 'download_manager_status', 'button' ],
 				'download-manager/download-manager.php',

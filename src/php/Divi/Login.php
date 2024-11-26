@@ -8,7 +8,6 @@
 namespace HCaptcha\Divi;
 
 use HCaptcha\Abstracts\LoginBase;
-use Patchwork\Exceptions\NonNullToVoid;
 
 /**
  * Class Login.
@@ -53,9 +52,9 @@ class Login extends LoginBase {
 		}
 
 		$hcaptcha = '';
-		$theme    = strtolower( get_template() );
+		$theme    = $this->get_active_divi_component();
 
-		// Check the login status, because class is always loading when Divi theme is active.
+		// Check the login status, because class is always loading when Divi component is active.
 		if ( hcaptcha()->settings()->is( $theme . '_status', 'login' ) ) {
 			ob_start();
 
@@ -77,5 +76,24 @@ class Login extends LoginBase {
 
 		// Insert hCaptcha.
 		return (string) preg_replace( $pattern, $replacement, $output );
+	}
+
+	/**
+	 * Get active Divi component.
+	 *
+	 * @return string
+	 */
+	private function get_active_divi_component(): string {
+		if ( defined( 'ET_BUILDER_PLUGIN_VERSION' ) ) {
+			return 'divi_builder';
+		}
+
+		$theme = get_template();
+
+		if ( in_array( $theme, [ 'Divi', 'Extra' ], true ) ) {
+			return strtolower( $theme );
+		}
+
+		return '';
 	}
 }

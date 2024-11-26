@@ -602,6 +602,7 @@ Instructions for popular native integrations are below:
 * Added hCaptcha display on the Mailchimp form preview.
 * Added Maintenance Login Form integration.
 * Added Extra theme integration.
+* Added Divi Builder plugin integration.
 * Added theme argument to the [hcaptcha] shortcode.
 * Added 'theme' badge to themes on the Integrations page.
 * Updated hCaptcha API error codes.

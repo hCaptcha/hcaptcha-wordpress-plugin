@@ -303,6 +303,16 @@ class Integrations extends PluginSettingsBase {
 					'login'       => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'divi_builder_status'              => [
+				'label'   => 'Divi Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => __( 'Divi Builder Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'contact'     => __( 'Divi Builder Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'email_optin' => __( 'Divi Builder Email Optin Form', 'hcaptcha-for-forms-and-more' ),
+					'login'       => __( 'Divi Builder Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'download_manager_status'          => [
 				'label'   => 'Download Manager',
 				'type'    => 'checkbox',
