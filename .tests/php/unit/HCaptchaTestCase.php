@@ -900,6 +900,16 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'       => 'Divi Login Form',
 						],
 				],
+			'divi_builder_status'              => [
+				'label'   => 'Divi Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => 'Divi Builder Comment Form',
+					'contact'     => 'Divi Builder Contact Form',
+					'email_optin' => 'Divi Builder Email Optin Form',
+					'login'       => 'Divi Builder Login Form',
+				],
+			],
 			'download_manager_status'          =>
 				[
 					'label'   => 'Download Manager',

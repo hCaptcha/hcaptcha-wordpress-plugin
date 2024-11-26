@@ -370,6 +370,11 @@ Divi:
   Divi Contact Form:                  On
   Divi Email Optin Form:              Off
   Divi Login Form:                    On
+Divi Builder:                         
+  Divi Builder Comment Form:          Off
+  Divi Builder Contact Form:          Off
+  Divi Builder Email Optin Form:      Off
+  Divi Builder Login Form:            Off
 Download Manager:                     
   Button:                             On
 Easy Digital Downloads:               
