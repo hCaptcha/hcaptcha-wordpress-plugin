@@ -83,7 +83,7 @@ class Login extends LoginBase {
 	 *
 	 * @return string
 	 */
-	private function get_active_divi_component(): string {
+	protected function get_active_divi_component(): string {
 		if ( defined( 'ET_BUILDER_PLUGIN_VERSION' ) ) {
 			return 'divi_builder';
 		}
