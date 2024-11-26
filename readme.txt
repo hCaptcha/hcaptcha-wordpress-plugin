@@ -605,6 +605,7 @@ Instructions for popular native integrations are below:
 * Added theme argument to the [hcaptcha] shortcode.
 * Added 'theme' badge to themes on the Integrations page.
 * Updated hCaptcha API error codes.
+* Fixed processing of Divi form with diacritical marks.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.
 * Fixed display of the hCaptcha shortcode with individual parameters.
