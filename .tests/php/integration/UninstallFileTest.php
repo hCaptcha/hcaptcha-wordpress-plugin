@@ -21,6 +21,20 @@ use tad\FunctionMocker\FunctionMocker;
 class UninstallFileTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Set up test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+
+		parent::setUp();
+
+		// Disable temporary tables creating.
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+	}
+
+	/**
 	 * Test uninstall.php file.
 	 *
 	 * @param bool $is_multisite Whether the site is multisite.
@@ -52,10 +66,6 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		update_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE, [ 'some network settings' ] );
 		update_option( LoginBase::LOGIN_DATA, [ 'some login data' ] );
 		update_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [ 'some migration data' ] );
-
-		// Disable temporary tables creating.
-		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
 
 		$table_name      = 'hcaptcha_events';
 		$full_table_name = $wpdb->prefix . $table_name;
