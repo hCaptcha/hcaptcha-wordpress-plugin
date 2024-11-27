@@ -297,7 +297,7 @@ const integrations = function( $ ) {
 		alt = alt.replace( ' Logo', '' );
 
 		const $tr = $target.closest( 'tr' );
-		const match = $tr.attr( 'class' ).match( /hcaptcha-integrations-([a-z-]+)/ );
+		const match = $tr.attr( 'class' ).match( /hcaptcha-integrations-([a-z0-9-]+)/ );
 		const status = match ? match[ 1 ] : '';
 
 		const $fieldset = $tr.find( 'fieldset' );
