@@ -11,6 +11,7 @@
 namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\Pages;
+use WPCF7_ContactForm;
 use WPCF7_TagGenerator;
 use WPCF7_TagGeneratorGenerator;
 
@@ -323,6 +324,8 @@ class Admin extends Base {
 	public function update_form(): void {
 		if ( ! check_ajax_referer( self::UPDATE_FORM_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
 		}
 
 		$shortcode = html_entity_decode( filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
@@ -331,6 +334,11 @@ class Admin extends Base {
 		add_action(
 			'wpcf7_contact_form',
 			static function ( $contact_form ) use ( $form ) {
+				/**
+				 * Contact Form instance.
+				 *
+				 * @var WPCF7_ContactForm $contact_form
+				 */
 				$properties         = $contact_form->get_properties();
 				$properties['form'] = $form;
 

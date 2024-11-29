@@ -15,6 +15,8 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\Admin;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
+use WPCF7_ContactForm;
 use WPCF7_TagGenerator;
 
 /**
@@ -498,5 +500,201 @@ HTML;
 		$wpcf7 = json_decode( $m[1], true );
 
 		self::assertArrayHasKey( 'api', $wpcf7 );
+	}
+
+	/**
+	 * Test update_form().
+	 *
+	 * @return void
+	 */
+	public function test_update_form(): void {
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$action = Admin::UPDATE_FORM_ACTION;
+		$nonce  = wp_create_nonce( $action );
+
+		$shortcode = '[contact-form-7 id="6d74d54" title="Contact form 1"]';
+		$form      = 'Form 1
+[cf7-hcaptcha cf7-hcaptcha-123 theme="dark"]
+<label> Your name
+    [text* your-name autocomplete:name] </label>
+
+<label> Your email
+    [email* your-email autocomplete:email] </label>
+
+<label> Subject
+    [text* your-subject] </label>
+
+<label> Your message (optional)
+    [textarea your-message] </label>
+
+[checkbox usercopy label_first "Send me a copy"]
+
+[hidden ABC]
+
+<button type="submit">Submit</button>';
+
+		$live_header = '<h3>Live Form</h3>';
+		$cf7_form    = '
+<div class="wpcf7 no-js" id="wpcf7-f177-o1" lang="ru-RU" dir="ltr" data-wpcf7-id="177">
+<div class="screen-reader-response"><p role="status" aria-live="polite" aria-atomic="true"></p> <ul></ul></div>
+<form action="/wp-admin/admin-ajax.php#wpcf7-f177-o1" method="post" class="wpcf7-form init" aria-label="Контактная форма" novalidate="novalidate" data-status="init">
+<div style="display: none;">
+<input type="hidden" name="_wpcf7" value="177" />
+<input type="hidden" name="_wpcf7_version" value="6.0.1" />
+<input type="hidden" name="_wpcf7_locale" value="ru_RU" />
+<input type="hidden" name="_wpcf7_unit_tag" value="wpcf7-f177-o1" />
+<input type="hidden" name="_wpcf7_container_post" value="0" />
+<input type="hidden" name="_wpcf7_posted_data_hash" value="" />
+</div>
+<p>Form 1<br />
+<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">		<input
+				type="hidden"
+				class="hcaptcha-widget-id"
+				name="hcaptcha-widget-id"
+				value="eyJzb3VyY2UiOlsiY29udGFjdC1mb3JtLTdcL3dwLWNvbnRhY3QtZm9ybS03LnBocCJdLCJmb3JtX2lkIjo2fQ==-8b2d80c7e4713f806a63502e2b23318b">
+				<span id="hcap_cf7-674a0dcce00595.05117819" class="wpcf7-form-control h-captcha "
+				data-sitekey="30404e3e-ed1c-4658-87d4-bcce53564846"
+				data-theme="dark"
+				data-size="normal"
+				data-auto="false"
+				data-force="false">
+		</span>
+		<input type="hidden" id="_wpnonce" name="_wpnonce" value="a2f84d93bb" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/admin-ajax.php" /></span><br />
+<label> Your name<br />
+<span class="wpcf7-form-control-wrap" data-name="your-name"><input size="40" maxlength="400" class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required" autocomplete="name" aria-required="true" aria-invalid="false" value="" type="text" name="your-name" /></span> </label>
+</p>
+<p><label> Your email<br />
+<span class="wpcf7-form-control-wrap" data-name="your-email"><input size="40" maxlength="400" class="wpcf7-form-control wpcf7-email wpcf7-validates-as-required wpcf7-text wpcf7-validates-as-email" autocomplete="email" aria-required="true" aria-invalid="false" value="" type="email" name="your-email" /></span> </label>
+</p>
+<p><label> Subject<br />
+<span class="wpcf7-form-control-wrap" data-name="your-subject"><input size="40" maxlength="400" class="wpcf7-form-control wpcf7-text wpcf7-validates-as-required" aria-required="true" aria-invalid="false" value="" type="text" name="your-subject" /></span> </label>
+</p>
+<p><label> Your message (optional)<br />
+<span class="wpcf7-form-control-wrap" data-name="your-message"><textarea cols="40" rows="10" maxlength="2000" class="wpcf7-form-control wpcf7-textarea" aria-invalid="false" name="your-message"></textarea></span> </label>
+</p>
+<p><span class="wpcf7-form-control-wrap" data-name="usercopy"><span class="wpcf7-form-control wpcf7-checkbox"><span class="wpcf7-list-item first last"><span class="wpcf7-list-item-label">Send me a copy</span><input type="checkbox" name="usercopy[]" value="Send me a copy" /></span></span></span>
+</p>
+<input class="wpcf7-form-control wpcf7-hidden" value="" type="hidden" name="ABC" />
+<p><button type="submit">Submit</button>
+</p><div class="wpcf7-response-output" aria-hidden="true"></div>
+</form>
+</div>
+';
+
+		$live     = $live_header . $cf7_form;
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$expected_json = json_encode(
+			[
+				'success' => true,
+				'data'    => $live,
+			]
+		);
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $var_name, $filter ) use ( $shortcode, $form ) {
+				if ( INPUT_POST === $type && 'shortcode' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $shortcode;
+				}
+
+				if ( INPUT_POST === $type && 'form' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $form;
+				}
+
+				return null;
+			}
+		);
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		add_shortcode(
+			'contact-form-7',
+			static function () use ( $cf7_form ) {
+				return $cf7_form;
+			}
+		);
+
+		$id = wp_insert_post(
+			[
+				'post_title'   => 'Contact form 1',
+				'post_content' => $form,
+				'post_status'  => 'publish',
+				'post_type'    => 'wpcf7_contact_form',
+			]
+		);
+
+		$subject = new Admin();
+
+		ob_start();
+		$subject->update_form();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame( $expected_json, $json );
+
+		$wpcf7_contact_form = WPCF7_ContactForm::get_instance( $id );
+
+		do_action( 'wpcf7_contact_form', $wpcf7_contact_form );
+
+		self::assertSame( $form, $wpcf7_contact_form->get_properties()['form'] );
+	}
+	/**
+	 * Test update_form() with bad ajax referer.
+	 *
+	 * @return void
+	 */
+	public function test_update_form_with_bad_ajax_referer(): void {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Admin();
+
+		ob_start();
+		$subject->update_form();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Your session has expired. Please reload the page."}'
+			)
+		);
 	}
 }
