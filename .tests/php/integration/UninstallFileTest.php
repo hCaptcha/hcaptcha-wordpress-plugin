@@ -16,7 +16,11 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test the `uninstall.php` file.
  *
- * @group uninstall-file
+ * Cannot test creating/deleting of tables because of WPTestCase class.
+ *
+ * @requires PHP >= 8.0
+ *
+ * @group    uninstall-file
  */
 class UninstallFileTest extends HCaptchaWPTestCase {
 
@@ -24,6 +28,7 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 	 * Start transaction.
 	 *
 	 * @return void
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function start_transaction() {
 		parent::start_transaction();
@@ -32,7 +37,6 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
 		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
 	}
-
 
 	/**
 	 * Test uninstall.php file.
