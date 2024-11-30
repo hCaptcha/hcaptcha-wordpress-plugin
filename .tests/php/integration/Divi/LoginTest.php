@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\Login;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -108,6 +109,13 @@ class LoginTest extends HCaptchaWPTestCase {
 			]
 		);
 
+		add_filter(
+			'template',
+			static function () {
+				return 'Divi';
+			}
+		);
+
 		hcaptcha()->init_hooks();
 
 		$subject = new Login();
@@ -141,5 +149,50 @@ class LoginTest extends HCaptchaWPTestCase {
 		$subject = new Login();
 
 		self::assertSame( $output, $subject->add_divi_captcha( $output, $module_slug ) );
+	}
+
+	/**
+	 * Test get_active_divi_component().
+	 *
+	 * @return void
+	 */
+	public function test_get_active_divi_component(): void {
+		$builder_active = true;
+
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant ) use ( &$builder_active ) {
+				return ( 'ET_BUILDER_PLUGIN_VERSION' === $constant && $builder_active );
+			}
+		);
+
+		$subject = Mockery::mock( Login::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Divi Builder plugin is active.
+		self::assertSame( 'divi_builder', $subject->get_active_divi_component() );
+
+		// No Divi component is active.
+		$builder_active = false;
+
+		self::assertSame( '', $subject->get_active_divi_component() );
+
+		// Divi theme is active.
+		add_filter(
+			'template',
+			static function () use ( &$template ) {
+				return $template;
+			}
+		);
+
+		$template = 'Divi';
+
+		self::assertSame( 'divi', $subject->get_active_divi_component() );
+
+		// Extra theme is active.
+		$template = 'Extra';
+
+		self::assertSame( 'extra', $subject->get_active_divi_component() );
 	}
 }

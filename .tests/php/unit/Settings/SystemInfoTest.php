@@ -370,6 +370,11 @@ Divi:
   Divi Contact Form:                  On
   Divi Email Optin Form:              Off
   Divi Login Form:                    On
+Divi Builder:                         
+  Divi Builder Comment Form:          Off
+  Divi Builder Contact Form:          Off
+  Divi Builder Email Optin Form:      Off
+  Divi Builder Login Form:            Off
 Download Manager:                     
   Button:                             On
 Easy Digital Downloads:               
@@ -385,6 +390,11 @@ Essential Addons:
   Register:                           Off
 Essential Blocks:                     
   Form:                               Off
+Extra:                                
+  Extra Comment Form:                 Off
+  Extra Contact Form:                 Off
+  Extra Email Optin Form:             Off
+  Extra Login Form:                   Off
 Fluent Forms:                         
   Form:                               On
 Formidable Forms:                     
@@ -414,6 +424,8 @@ Mailchimp for WP:
   Form:                               On
 MailPoet:                             
   Form:                               Off
+Maintenance:                          
+  Login Form:                         Off
 MemberPress:                          
   Login Form:                         Off
   Register Form:                      On

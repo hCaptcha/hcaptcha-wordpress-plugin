@@ -490,7 +490,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 */
 	public function test_print_inline_styles( $custom_themes ): void {
 		$license       = 'pro';
-		$bg            = '#f0f0f0';
+		$bg            = 'on' === $custom_themes
+			? '#f0f0f0'
+			: 'initial';
 		$config_params = 'on' === $custom_themes
 			? [
 				'theme' => [
@@ -595,6 +597,10 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		border: 1px solid #f5f5f5;
 	}
 
+	.h-captcha[data-theme="custom"]::before {
+		background-color: $bg;
+	}
+
 	.h-captcha[data-size="invisible"]::before {
 		display: none;
 	}
@@ -607,14 +613,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		border-style: none;
 	}
 CSS;
-
-		if ( $custom_themes ) {
-			$expected .= <<<CSS
-	.h-captcha::before {
-		background-color: $bg !important;	
-	}
-CSS;
-		}
 
 		$expected = "<style>\n$expected\n</style>\n";
 

@@ -1,3 +1,24 @@
+= 4.8.0 =
+* Added instant updating of the Contact Form 7 live form.
+* Added hCaptcha display on the Mailchimp form preview.
+* Added Maintenance Login Form integration.
+* Added Extra theme integration.
+* Added Divi Builder plugin integration.
+* Added theme argument to the [hcaptcha] shortcode.
+* Added 'theme' badge to themes on the Integrations page.
+* Updated hCaptcha API error codes.
+* Fixed processing of Divi form with diacritical marks.
+* Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
+* Fixed theme name display upon activation.
+* Fixed display of the hCaptcha shortcode with individual parameters.
+* Fixed usage of theme in shortcode and form args.
+* Fixed instant update upon theme selection on the General admin page.
+* Fixed custom themes on the frontend.
+* Fixed custom themes on the General page.
+* Fixed switching from custom themes to standard and back on the General page.
+* Fixed switching from live to test mode and back on the General page.
+* Tested with PHP 8.4.1.
+
 = 4.7.1 =
 * Fixed _load_textdomain_just_in_time notice with WordPress 6.7.
 * Some translations were empty with WordPress 6.5+.

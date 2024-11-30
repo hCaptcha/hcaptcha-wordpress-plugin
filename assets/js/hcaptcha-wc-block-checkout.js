@@ -31,7 +31,15 @@ window.fetch = async ( ...args ) => {
 		const inputName = 'h-captcha-response';
 		const formData = JSON.parse( body );
 		const wcCheckoutBlock = document.querySelector( 'div[data-block-name="woocommerce/checkout"]' );
+
+		/**
+		 * @type {HTMLInputElement}
+		 */
 		const widgetId = wcCheckoutBlock.querySelector( `[name="${ widgetName }"]` );
+
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const hCaptchaResponse = wcCheckoutBlock.querySelector( `[name="${ inputName }"]` );
 
 		if ( widgetId && hCaptchaResponse ) {

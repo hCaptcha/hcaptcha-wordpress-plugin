@@ -11,6 +11,7 @@
 namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\Pages;
+use WPCF7_ContactForm;
 use WPCF7_TagGenerator;
 use WPCF7_TagGeneratorGenerator;
 
@@ -26,12 +27,26 @@ class Admin extends Base {
 	public const ADMIN_HANDLE = 'admin-cf7';
 
 	/**
+	 * Script localization object.
+	 */
+	public const OBJECT = 'HCaptchaCF7Object';
+
+	/**
+	 * Update form action.
+	 */
+	public const UPDATE_FORM_ACTION = 'hcaptcha-cf7-update-form';
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
 	 */
 	public function init_hooks(): void {
 		parent::init_hooks();
+
+		if ( $this->mode_live ) {
+			add_action( 'wp_ajax_' . self::UPDATE_FORM_ACTION, [ $this, 'update_form' ] );
+		}
 
 		if ( ! Pages::is_cf7_edit_page() ) {
 			return;
@@ -221,6 +236,7 @@ class Admin extends Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function enqueue_admin_scripts_before_cf7(): void {
+		// CF7 scripts.
 		wp_enqueue_style(
 			'contact-form-7',
 			wpcf7_plugin_url( 'includes/css/styles.css' ),
@@ -244,7 +260,26 @@ class Admin extends Base {
 			[ 'in_footer' => true ]
 		);
 
+		// The hCaptcha plugin styles.
 		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			HCAPTCHA_URL . "/assets/js/admin-cf7$min.js",
+			[ 'jquery' ],
+			HCAPTCHA_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+				'updateFormAction' => self::UPDATE_FORM_ACTION,
+				'updateFormNonce'  => wp_create_nonce( self::UPDATE_FORM_ACTION ),
+			]
+		);
 
 		wp_enqueue_style(
 			self::ADMIN_HANDLE,
@@ -262,6 +297,7 @@ class Admin extends Base {
 	public function enqueue_admin_scripts_after_cf7(): void {
 		global $wp_scripts;
 
+		// CF7 scripts.
 		$wpcf7 = [
 			'api' => [
 				'root'      => sanitize_url( get_rest_url() ),
@@ -276,5 +312,46 @@ class Admin extends Base {
 
 			$wp_scripts->registered['wpcf7-admin']->extra['before'][1] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
+	}
+
+	/**
+	 * Update form.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function update_form(): void {
+		if ( ! check_ajax_referer( self::UPDATE_FORM_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
+		}
+
+		$shortcode = html_entity_decode( filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
+		$form      = html_entity_decode( filter_input( INPUT_POST, 'form', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
+
+		add_action(
+			'wpcf7_contact_form',
+			static function ( $contact_form ) use ( $form ) {
+				/**
+				 * Contact Form instance.
+				 *
+				 * @var WPCF7_ContactForm $contact_form
+				 */
+				$properties         = $contact_form->get_properties();
+				$properties['form'] = $form;
+
+				$contact_form->set_properties( $properties );
+
+				return $form;
+			}
+		);
+
+		$live =
+			'<h3>' . __( 'Live Form', 'hcaptcha-for-forms-and-more' ) . '</h3>' .
+			do_shortcode( $shortcode );
+
+		wp_send_json_success( $live );
 	}
 }

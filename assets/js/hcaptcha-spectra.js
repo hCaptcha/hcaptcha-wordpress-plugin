@@ -13,8 +13,19 @@ window.fetch = async ( ...args ) => {
 	const formData = JSON.parse( body.get( 'form_data' ) );
 
 	if ( 'uagb_process_forms' === body.get( 'action' ) && ! formData.hasOwnProperty( inputName ) ) {
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const hCaptchaResponse = document.querySelector( '.uagb-block-' + blockId + ' [name="' + inputName + '"]' );
+
+		/**
+		 * @type {HTMLInputElement}
+		 */
 		const id = document.querySelector( '.uagb-block-' + blockId + ' [name="' + widgetName + '"]' );
+
+		/**
+		 * @type {HTMLInputElement}
+		 */
 		const nonce = document.querySelector( '.uagb-block-' + blockId + ' [name="' + nonceName + '"]' );
 
 		if ( hCaptchaResponse ) {

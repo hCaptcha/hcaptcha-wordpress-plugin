@@ -10,7 +10,6 @@ import HCaptchaCustomElement from './hcaptcha-custom-element';
 const hCaptcha = new HCaptcha();
 
 window.hCaptcha = hCaptcha;
-window.customElements.define( 'h-captcha', HCaptchaCustomElement );
 
 window.hCaptchaGetWidgetId = ( el ) => {
 	hCaptcha.getWidgetId( el );
@@ -37,5 +36,7 @@ window.hCaptchaOnLoad = () => {
 
 	hCaptcha.addSyncedEventListener( hCaptchaOnLoad );
 };
+
+window.customElements.define( 'h-captcha', HCaptchaCustomElement );
 
 document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeAPI' ) );

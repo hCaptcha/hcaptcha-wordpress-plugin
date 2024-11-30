@@ -145,7 +145,7 @@ class Contact {
 			$current_form_fields = filter_input( INPUT_POST, $current_form_field, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
 			if ( $current_form_fields ) {
-				$fields_data_json             = htmlspecialchars_decode( str_replace( '\\', '', $current_form_fields ) );
+				$fields_data_json             = html_entity_decode( str_replace( '\\', '', $current_form_fields ) );
 				$fields_data_array            = json_decode( $fields_data_json, true ) ?? [];
 				$fields_data_array            = array_filter(
 					$fields_data_array,
@@ -153,8 +153,8 @@ class Contact {
 						return false === strpos( $item['field_id'], 'captcha' );
 					}
 				);
-				$fields_data_json             = wp_json_encode( $fields_data_array );
-				$_POST[ $current_form_field ] = $fields_data_json;
+				$fields_data_json             = wp_json_encode( $fields_data_array, JSON_UNESCAPED_UNICODE );
+				$_POST[ $current_form_field ] = wp_slash( $fields_data_json );
 			}
 
 			$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );

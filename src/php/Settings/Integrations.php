@@ -146,7 +146,7 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * After switch theme action.
-	 * Do not allow redirect during Divi theme activation.
+	 * Do not allow redirect during Avada and Divi theme activation.
 	 *
 	 * @return void
 	 */
@@ -303,6 +303,16 @@ class Integrations extends PluginSettingsBase {
 					'login'       => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'divi_builder_status'              => [
+				'label'   => 'Divi Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => __( 'Divi Builder Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'contact'     => __( 'Divi Builder Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'email_optin' => __( 'Divi Builder Email Optin Form', 'hcaptcha-for-forms-and-more' ),
+					'login'       => __( 'Divi Builder Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'download_manager_status'          => [
 				'label'   => 'Download Manager',
 				'type'    => 'checkbox',
@@ -343,6 +353,18 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'extra_status'                     => [
+				'entity'  => 'theme',
+				'label'   => 'Extra',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => __( 'Extra Comment Form', 'hcaptcha-for-forms-and-more' ),
+					'contact'     => __( 'Extra Contact Form', 'hcaptcha-for-forms-and-more' ),
+					'email_optin' => __( 'Extra Email Optin Form', 'hcaptcha-for-forms-and-more' ),
+					'login'       => __( 'Extra Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'fluent_status'                    => [
@@ -440,6 +462,13 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'maintenance_status'               => [
+				'label'   => 'Maintenance',
+				'type'    => 'checkbox',
+				'options' => [
+					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'memberpress_status'               => [
@@ -651,7 +680,7 @@ class Integrations extends PluginSettingsBase {
 		$logo_file = sanitize_file_name( strtolower( $label ) . '.' . $logo_type );
 		$entity    = $form_field['entity'] ?? 'plugin';
 
-		return sprintf(
+		$logo = sprintf(
 			'<div class="hcaptcha-integrations-logo" data-installed="%1$s">' .
 			'<img src="%2$s" alt="%3$s Logo" data-label="%3$s" data-entity="%4$s">' .
 			'</div>',
@@ -660,6 +689,15 @@ class Integrations extends PluginSettingsBase {
 			$label,
 			$entity
 		);
+
+		if ( 'theme' === $entity ) {
+			$logo .= sprintf(
+				'<div class="hcaptcha-integrations-entity">%1$s</div>',
+				$entity
+			);
+		}
+
+		return $logo;
 	}
 
 	/**
@@ -682,6 +720,8 @@ class Integrations extends PluginSettingsBase {
 
 		$this->form_fields = $this->sort_fields( $this->form_fields );
 
+		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
+
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			$form_field['installed'] = in_array( $status, $installed, true );
 			$form_field['section']   = ( ! $form_field['installed'] ) || $form_field['disabled']
@@ -691,6 +731,10 @@ class Integrations extends PluginSettingsBase {
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field );
 			}
+
+			$entity              = $form_field['entity'] ?? '';
+			$theme               = 'theme' === $entity ? ' ' . $prefix . 'theme' : '';
+			$form_field['class'] = str_replace( '_', '-', $prefix . $status . $theme );
 		}
 
 		unset( $form_field );
@@ -1019,6 +1063,21 @@ class Integrations extends PluginSettingsBase {
 	 * @return void
 	 */
 	protected function process_theme( string $theme ): void {
+		// With Ctrl+Click, $theme is empty.
+		$theme = $theme ?: $this->get_default_theme();
+
+		if ( ! $theme ) {
+			$message = sprintf(
+			/* translators: 1: Theme name. */
+				__( 'No default theme found.', 'hcaptcha-for-forms-and-more' ),
+				$theme
+			);
+
+			$this->send_json_error( esc_html( $message ) );
+
+			return; // For testing purposes.
+		}
+
 		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
 		$plugin_names = [];
 
@@ -1042,12 +1101,14 @@ class Integrations extends PluginSettingsBase {
 			);
 
 			$this->send_json_error( esc_html( $message ) );
+
+			return; // For testing purposes.
 		}
 
 		$message = sprintf(
 		/* translators: 1: Theme name. */
 			__( '%s theme is activated.', 'hcaptcha-for-forms-and-more' ),
-			$theme
+			wp_get_theme()->get( 'Name' ) ?? $theme
 		);
 
 		if ( $plugin_names ) {

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.7.1
+Stable tag: 4.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,6 +18,42 @@ Need to keep out bots? hCaptcha protects privacy while offering better protectio
 
 hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp) with broad integration support, detailed analytics, and strong protection. Start protecting logins, forms, and more in minutes.
 
+== Benefits ==
+
+* **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't retain or sell personal data, unlike platforms that **g**ather, **o**wn, and m**o**netize **gl**obal b**e**havior.
+* **Better Security:** hCaptcha offers better protection against bots and abuse than other anti-abuse systems.
+* **Easy to Use:** hCaptcha is easy to install and use with WordPress and popular plugins.
+* **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 50 other plugins and themes.
+
+== Features ==
+
+**Highlights**
+
+* **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
+* **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
+* **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
+* **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
+* **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
+* **White List IPs:** Whitelist certain IPs to skip hCaptcha verification.
+* **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
+
+**Customization**
+
+* **Language Support:** Supports multiple languages.
+* **Custom Themes:** Customize the appearance of hCaptcha to match your site.
+* **Custom Themes Editor:** Edit custom themes directly in the plugin.
+* **Login Compatibility:** Compatible with all major hide login, custom login and 2FA login plugins.
+* **Login Attempts:** Protect your site from brute force attacks.
+
+**Ease of Use**
+
+* **Test Modes:** Use hCaptcha in live and Pro/Enterprise test modes.
+* **Activation and Deactivation:** Activate and deactivate plugins and themes with hCaptcha in one click.
+* **Forced Verification:** Optionally force hCaptcha verification before form submission.
+* **Check Config:** Check hCaptcha configuration before saving keys and settings.
+* **Auto-Verification:** Automatically verify custom forms.
+* **Standard Sizes and Themes:** Choose the size and theme of the hCaptcha widget.
+
 == How hCaptcha Works ==
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
@@ -27,6 +63,8 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 [hCaptcha Free](https://www.hcaptcha.com/) lets websites block bots and other forms of abuse via humanity challenges.
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
+
+[hCaptcha Enterprise](https://www.hcaptcha.com/) delivers a complete advanced security platform, including site-specific risk scores, fraud protection, and more to address both human and automated abuse.
 
 == Screenshots ==
 
@@ -73,7 +111,7 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 Full list of arguments:
 
 `
-[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" size="normal|compact|invisible"]
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
 `
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
@@ -512,6 +550,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Elementor Pro Form and Login Form
 * Essential Addons for Elementor Login and Register Forms
 * Essential Blocks Form
+* Extra Comment, Contact, Email Optin and Login Forms
 * Fluent Forms
 * Forminator Forms
 * Formidable Forms
@@ -524,6 +563,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Login/Signup Popup Login and Register Forms
 * Mailchimp for WP Form
 * MailPoet Form
+* Maintenance Login Form
 * MemberPress Login and Register Forms
 * Ninja Forms
 * Otter Blocks Forms
@@ -569,6 +609,27 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.8.0 =
+* Added instant updating of the Contact Form 7 live form.
+* Added hCaptcha display on the Mailchimp form preview.
+* Added Maintenance Login Form integration.
+* Added Extra theme integration.
+* Added Divi Builder plugin integration.
+* Added theme argument to the [hcaptcha] shortcode.
+* Added 'theme' badge to themes on the Integrations page.
+* Updated hCaptcha API error codes.
+* Fixed processing of Divi form with diacritical marks.
+* Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
+* Fixed theme name display upon activation.
+* Fixed display of the hCaptcha shortcode with individual parameters.
+* Fixed usage of theme in shortcode and form args.
+* Fixed instant update upon theme selection on the General admin page.
+* Fixed custom themes on the frontend.
+* Fixed custom themes on the General page.
+* Fixed switching from custom themes to standard and back on the General page.
+* Fixed switching from live to test mode and back on the General page.
+* Tested with PHP 8.4.1.
 
 = 4.7.1 =
 * Fixed _load_textdomain_just_in_time notice with WordPress 6.7.

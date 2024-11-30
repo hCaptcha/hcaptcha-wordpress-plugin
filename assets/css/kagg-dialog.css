@@ -61,6 +61,7 @@ body div.kagg-dialog .kagg-dialog-container .kagg-dialog-box .kagg-dialog-conten
 	font-size: 16px;
 	line-height: 24px;
 	margin-bottom: 20px;
+	padding: 0 15px;
 	overflow: inherit;
 	text-align: center;
 	grid-column: 1 / -1;

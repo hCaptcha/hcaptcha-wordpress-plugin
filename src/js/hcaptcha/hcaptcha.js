@@ -2,7 +2,11 @@
  * @file class HCaptcha.
  */
 
-/* global hcaptcha */
+/* global hcaptcha, HCaptchaMainObject */
+
+/**
+ * @param form.submitButtonElement
+ */
 
 /**
  * Class hCaptcha.
@@ -111,8 +115,21 @@ class HCaptcha {
 	 * @param {CustomEvent} event Event.
 	 */
 	validate( event ) {
-		const formElement = event.currentTarget.closest( this.formSelector );
+		/**
+		 * @type {HTMLElement}
+		 */
+		const currentTarget = event.currentTarget;
+
+		/**
+		 * @type {HTMLFormElement} formElement
+		 */
+		const formElement = currentTarget.closest( this.formSelector );
+
+		/**
+		 * @type {{submitButtonElement: HTMLElement, widgetId: string}|null}
+		 */
 		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
+
 		const submitButtonElement = form.submitButtonElement;
 		const widgetId = form.widgetId;
 
@@ -129,6 +146,9 @@ class HCaptcha {
 			return;
 		}
 
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const response = formElement.querySelector( this.responseSelector );
 		const token = response ? response.value : '';
 
@@ -166,7 +186,7 @@ class HCaptcha {
 		let params;
 
 		try {
-			params = JSON.parse( wp.hooks.applyFilters( 'hcaptcha.params', window?.HCaptchaMainObject?.params ?? '' ) );
+			params = JSON.parse( wp.hooks.applyFilters( 'hcaptcha.params', HCaptchaMainObject?.params ?? '' ) );
 		} catch ( e ) {
 			params = {};
 		}
@@ -346,14 +366,29 @@ class HCaptcha {
 	 *
 	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
 	 *
-	 * @return {string} Widget Id.
+	 * @return {string} Widget ID.
 	 */
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
 
-		const params = this.applyAutoTheme( this.getParams() );
+		let globalParams = this.getParams();
 
-		return hcaptcha.render( hcaptchaElement, params );
+		// Do not overwrite custom theme.
+		if ( typeof globalParams.theme === 'object' ) {
+			// noinspection JSUnresolvedReference
+			const bg = globalParams?.theme?.component?.checkbox?.main?.fill ?? '';
+
+			if ( bg ) {
+				hcaptchaElement.dataset.theme = 'custom';
+			}
+		} else {
+			globalParams.theme = hcaptchaElement.dataset.theme;
+		}
+
+		globalParams.size = hcaptchaElement.dataset.size;
+		globalParams = this.applyAutoTheme( globalParams );
+
+		return hcaptcha.render( hcaptchaElement, globalParams );
 	}
 
 	/**
@@ -478,5 +513,7 @@ class HCaptcha {
 		}
 	}
 }
+
+window.HCaptchaMainObject = window.HCaptchaMainObject || {};
 
 export default HCaptcha;

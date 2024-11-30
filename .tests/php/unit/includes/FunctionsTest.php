@@ -54,6 +54,7 @@ class FunctionsTest extends HCaptchaTestCase {
 			'name'    => HCAPTCHA_NONCE,
 			'auto'    => false,
 			'force'   => false,
+			'theme'   => 'light',
 			'size'    => 'normal',
 			'id'      => [],
 			'protect' => true,
@@ -65,6 +66,7 @@ class FunctionsTest extends HCaptchaTestCase {
 
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
 		$settings->shouldReceive( 'is_on' )->with( 'force' )->andReturn( false );
+		$settings->shouldReceive( 'get_theme' )->with()->andReturn( 'light' );
 		$settings->shouldReceive( 'get' )->with( 'size' )->andReturn( 'normal' );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
@@ -103,6 +105,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => false,
 					'force'   => false,
+					'theme'   => 'light',
 					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
@@ -117,6 +120,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => '1',
 					'force'   => false,
+					'theme'   => 'light',
 					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
@@ -131,6 +135,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => false,
 					'force'   => true,
+					'theme'   => 'light',
 					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,
@@ -145,6 +150,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'name'    => HCAPTCHA_NONCE,
 					'auto'    => false,
 					'force'   => false,
+					'theme'   => 'light',
 					'size'    => 'normal',
 					'id'      => [],
 					'protect' => true,

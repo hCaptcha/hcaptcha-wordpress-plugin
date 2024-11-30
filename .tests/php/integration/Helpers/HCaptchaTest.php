@@ -12,9 +12,11 @@
 
 namespace HCaptcha\Tests\Integration\Helpers;
 
+use HCaptcha\CF7\CF7;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Error;
 
 /**
  * Test HCaptcha class.
@@ -28,7 +30,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
+		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ], $_POST['hcaptcha-widget-id'], $GLOBALS['wp_filters'] );
 
 		hcaptcha()->form_shown = false;
 
@@ -118,6 +120,65 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 			),
 			ob_get_clean()
 		);
+
+		$args['protect'] = false;
+
+		ob_start();
+		HCaptcha::form_display( $args );
+		self::assertFalse( strpos( ob_get_clean(), '<h-captcha' ) );
+	}
+
+	/**
+	 * Test HCaptcha::get_widget().
+	 *
+	 * @return void
+	 */
+	public function test_get_widget(): void {
+		$hcaptcha_widget_id = 'hcaptcha-widget-id';
+		$id                 = [
+			'source'  => [ 'some source' ],
+			'form_id' => 123,
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+		$expected   = <<<HTML
+		<input
+				type="hidden"
+				class="$hcaptcha_widget_id"
+				name="$hcaptcha_widget_id"
+				value="$widget_id">\n\t\t
+HTML;
+
+		self::assertSame( $expected, HCaptcha::get_widget( $id ) );
+	}
+
+	/**
+	 * Test HCaptcha::get_signature().
+	 *
+	 * @return void
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_get_signature(): void {
+		$class_name         = CF7::class;
+		$form_id            = 123;
+		$hcaptcha_shown     = true;
+		$source             = [ 'contact-form-7/wp-contact-form-7.php' ];
+		$hcaptcha_signature = 'hcaptcha-signature';
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name              = $hcaptcha_signature . '-' . base64_encode( $class_name );
+		$encoded_signature = $this->get_encoded_signature( $source, $form_id, $hcaptcha_shown );
+		$expected          = <<<HTML
+		<input
+				type="hidden"
+				class="$hcaptcha_signature"
+				name="$name"
+				value="$encoded_signature">\n\t\t
+HTML;
+
+		self::assertSame( $expected, HCaptcha::get_signature( $class_name, $form_id, $hcaptcha_shown ) );
 	}
 
 	/**
@@ -153,6 +214,56 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test is_protection_enabled().
+	 *
+	 * @param bool $hash_ok  Hash not corrupted.
+	 * @param bool $filter   Value return by hcap_protect_form filter.
+	 * @param bool $expected Expected value.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_is_protection_enabled
+	 */
+	public function test_is_protection_enabled( bool $hash_ok, bool $filter, bool $expected ): void {
+		$id = [
+			'source'  => [ 'some source' ],
+			'form_id' => 123,
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+		$hash       = wp_hash( $encoded_id );
+
+		if ( ! $hash_ok ) {
+			$hash = 'broken hash';
+		}
+
+		add_filter(
+			'hcap_protect_form',
+			static function () use ( $filter ) {
+				return $filter;
+			}
+		);
+
+		$_POST['hcaptcha-widget-id'] = $encoded_id . '-' . $hash;
+
+		self::assertSame( $expected, HCaptcha::is_protection_enabled() );
+	}
+
+	/**
+	 * Data provider for test_is_protection_enabled().
+	 *
+	 * @return array
+	 */
+	public function dp_test_is_protection_enabled(): array {
+		return [
+			[ true, true, true ],
+			[ true, false, false ],
+			[ false, true, true ],
+			[ false, false, true ],
+		];
+	}
+
+	/**
 	 * Test get_widget_id().
 	 *
 	 * @return void
@@ -171,8 +282,8 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		];
 		$hash       = 'some hash';
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode, WordPress.WP.AlternativeFunctions.json_encode_json_encode
-		$encoded_id = base64_encode( json_encode( $id ) );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
 
 		self::assertSame( $default_id, HCaptcha::get_widget_id() );
 
@@ -193,6 +304,99 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		];
 
 		self::assertSame( $expected, HCaptcha::get_hcaptcha_plugin_notice() );
+	}
+
+	/**
+	 * Test did_filter().
+	 *
+	 * @return void
+	 */
+	public function test_did_filter(): void {
+		global $wp_filters;
+
+		$hook_name = 'some-hook';
+
+		self::assertSame( 0, HCaptcha::did_filter( $hook_name ) );
+
+		$number = 5;
+
+		$wp_filters[ $hook_name ] = $number;
+
+		self::assertSame( $number, HCaptcha::did_filter( $hook_name ) );
+	}
+
+	/**
+	 * Test add_error_message().
+	 *
+	 * @return void
+	 */
+	public function test_add_error_message(): void {
+		self::AssertEquals( new WP_Error(), HCaptcha::add_error_message( 'some', null ) );
+
+		$errors   = new WP_Error( 'some-code', 'Some message' );
+		$expected = clone $errors;
+
+		$expected->add( 'bad-nonce', 'Bad hCaptcha nonce!' );
+
+		self::AssertEquals( $expected, HCaptcha::add_error_message( $errors, 'Bad hCaptcha nonce!' ) );
+
+		$expected = clone $errors;
+
+		$expected->add( 'fail', 'Not a registered hCaptcha error message.' );
+
+		self::AssertEquals( $expected, HCaptcha::add_error_message( $errors, 'Not a registered hCaptcha error message.' ) );
+	}
+
+	/**
+	 * Test css_display().
+	 *
+	 * @return void
+	 */
+	public function test_css_display(): void {
+		$css      = '.h-captcha { display: inline-block; }';
+		$expected = "<style>\n" . '.h-captcha{display:inline-block}' . "\n</style>\n";
+
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+		FunctionMocker::replace(
+			'constant',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		ob_start();
+
+		HCaptcha::css_display( $css, false );
+
+		$css_display = ob_get_clean();
+
+		self::assertSame( $css . "\n", $css_display );
+
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' !== $constant_name;
+			}
+		);
+		FunctionMocker::replace(
+			'constant',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' !== $constant_name;
+			}
+		);
+
+		ob_start();
+
+		HCaptcha::css_display( $css );
+
+		$css_display = ob_get_clean();
+
+		self::assertSame( $expected, $css_display );
 	}
 
 	/**
@@ -300,6 +504,22 @@ JS;
 		];
 
 		self::assertSame( $expected, HCaptcha::flatten_array( $multilevel_array, '--' ) );
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		self::assertSame(
+			'<script type="module" id="some-id">...</script>',
+			HCaptcha::add_type_module( '<script id="some-id">...</script>' )
+		);
+		self::assertSame(
+			'<script type="module" id="some-id">...</script>',
+			HCaptcha::add_type_module( '<script type="text/javascript" id="some-id">...</script>' )
+		);
 	}
 
 	/**

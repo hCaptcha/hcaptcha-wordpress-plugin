@@ -29,7 +29,15 @@ window.fetch = async ( ...args ) => {
 
 	if ( params.get( 'givewp-route' ) === 'donate' ) {
 		const giveWPForm = document.getElementById( 'root-givewp-donation-form' );
+
+		/**
+		 * @type {HTMLInputElement}
+		 */
 		const widgetId = giveWPForm.querySelector( `[name="${ widgetName }"]` );
+
+		/**
+		 * @type {HTMLTextAreaElement}
+		 */
 		const hCaptchaResponse = giveWPForm.querySelector( `[name="${ inputName }"]` );
 
 		if ( widgetId && hCaptchaResponse ) {

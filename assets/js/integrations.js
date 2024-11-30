@@ -24,8 +24,19 @@
  * @param {jQuery} $ The jQuery instance.
  */
 const integrations = function( $ ) {
+	/**
+	 * @type {HTMLElement}
+	 */
 	const adminBar = document.querySelector( '#wpadminbar' );
+
+	/**
+	 * @type {HTMLElement}
+	 */
 	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+
+	/**
+	 * @type {HTMLElement}
+	 */
 	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
@@ -44,7 +55,8 @@ const integrations = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		$( '<div id="hcaptcha-message"></div>' ).insertAfter( '.hcaptcha-header-bar' );
+		// Concat below to avoid inspection message.
+		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( '.hcaptcha-header-bar' );
 		$message = $( msgSelector );
 	}
 
@@ -159,6 +171,9 @@ const integrations = function( $ ) {
 		}
 
 		function getSelectedTheme() {
+			/**
+			 * @type {HTMLSelectElement}
+			 */
 			const select = document.querySelector( '.kagg-dialog select' );
 
 			if ( ! select ) {
@@ -221,8 +236,8 @@ const integrations = function( $ ) {
 					}
 
 					if ( response.data.themes !== undefined ) {
-						window.HCaptchaIntegrationsObject.themes = response.data.themes;
-						window.HCaptchaIntegrationsObject.defaultTheme = response.data.defaultTheme;
+						HCaptchaIntegrationsObject.themes = response.data.themes;
+						HCaptchaIntegrationsObject.defaultTheme = response.data.defaultTheme;
 					}
 
 					if ( ! response.success ) {
@@ -247,9 +262,14 @@ const integrations = function( $ ) {
 						1000
 					);
 				} )
-				.fail( function( response ) {
-					showErrorMessage( response.statusText );
-				} )
+				.fail(
+					/**
+					 * @param {Object} response
+					 */
+					function( response ) {
+						showErrorMessage( response.statusText );
+					}
+				)
 				.always( function() {
 					$tr.removeClass( 'on off' );
 				} );
@@ -277,8 +297,8 @@ const integrations = function( $ ) {
 		alt = alt.replace( ' Logo', '' );
 
 		const $tr = $target.closest( 'tr' );
-		let status = $tr.attr( 'class' );
-		status = status.replace( 'hcaptcha-integrations-', '' );
+		const match = $tr.attr( 'class' ).match( /hcaptcha-integrations-([a-z0-9-]+)/ );
+		const status = match ? match[ 1 ] : '';
 
 		const $fieldset = $tr.find( 'fieldset' );
 		let title;

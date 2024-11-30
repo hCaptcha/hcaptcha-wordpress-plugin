@@ -76,6 +76,17 @@
 	width: unset;
 }
 
+.hcaptcha-integrations table tr .hcaptcha-integrations-entity {
+	color: #ffffff;
+	background: #4de1d2;
+	border: 1px #4de1d2 solid;
+	border-radius: 2px;
+	font-size: 14px;
+	line-height: 18px;
+	padding: 4px 8px;
+	cursor: default;
+}
+
 .hcaptcha-integrations-logo {
 	position: relative;
 }

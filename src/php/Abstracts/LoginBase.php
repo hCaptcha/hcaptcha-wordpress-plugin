@@ -187,13 +187,23 @@ abstract class LoginBase {
 	}
 
 	/**
-	 * Add captcha.
+	 * Add hCaptcha.
 	 *
 	 * @return void
 	 */
 	public function add_captcha(): void {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $this->get_hcaptcha();
+	}
+
+	/**
+	 * Get hCaptcha.
+	 *
+	 * @return string
+	 */
+	protected function get_hcaptcha(): string {
 		if ( ! $this->is_login_limit_exceeded() ) {
-			return;
+			return '';
 		}
 
 		$args = [
@@ -205,9 +215,9 @@ abstract class LoginBase {
 			],
 		];
 
-		HCaptcha::form_display( $args );
-
 		$this->hcaptcha_shown = true;
+
+		return HCaptcha::form( $args );
 	}
 
 	/**

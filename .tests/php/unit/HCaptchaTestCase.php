@@ -900,6 +900,16 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'       => 'Divi Login Form',
 						],
 				],
+			'divi_builder_status'              => [
+				'label'   => 'Divi Builder',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => 'Divi Builder Comment Form',
+					'contact'     => 'Divi Builder Contact Form',
+					'email_optin' => 'Divi Builder Email Optin Form',
+					'login'       => 'Divi Builder Login Form',
+				],
+			],
 			'download_manager_status'          =>
 				[
 					'label'   => 'Download Manager',
@@ -944,6 +954,18 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => 'Form',
+				],
+			],
+			'extra_status'                     => [
+				'entity'  => 'theme',
+				'label'   => 'Extra',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'comment'     => 'Extra Comment Form',
+					'contact'     => 'Extra Contact Form',
+					'email_optin' => 'Extra Email Optin Form',
+					'login'       => 'Extra Login Form',
 				],
 			],
 			'fluent_status'                    =>
@@ -1051,14 +1073,23 @@ abstract class HCaptchaTestCase extends TestCase {
 							'form' => 'Form',
 						],
 				],
-			'mailpoet_status'                  => [
-				'label'   => 'MailPoet',
-				'logo'    => 'svg',
-				'type'    => 'checkbox',
-				'options' => [
-					'form' => 'Form',
+			'mailpoet_status'                  =>
+				[
+					'label'   => 'MailPoet',
+					'logo'    => 'svg',
+					'type'    => 'checkbox',
+					'options' => [
+						'form' => 'Form',
+					],
 				],
-			],
+			'maintenance_status'               =>
+				[
+					'label'   => 'Maintenance',
+					'type'    => 'checkbox',
+					'options' => [
+						'login' => 'Login Form',
+					],
+				],
 			'memberpress_status'               =>
 				[
 					'label'   => 'MemberPress',

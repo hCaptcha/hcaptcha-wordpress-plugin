@@ -11,6 +11,7 @@
 namespace HCaptcha\Mailchimp;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use MC4WP_Form;
 use MC4WP_Form_Element;
 
@@ -30,6 +31,16 @@ class Form {
 	private const NAME = 'hcaptcha_mailchimp_nonce';
 
 	/**
+	 * Admin script handle.
+	 */
+	private const ADMIN_HANDLE = 'admin-mailchimp';
+
+	/**
+	 * Script localization object.
+	 */
+	public const OBJECT = 'HCaptchaMailchimpObject';
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -45,6 +56,7 @@ class Form {
 		add_filter( 'mc4wp_form_messages', [ $this, 'add_hcap_error_messages' ], 10, 2 );
 		add_filter( 'mc4wp_form_content', [ $this, 'add_hcaptcha' ], 20, 3 );
 		add_filter( 'mc4wp_form_errors', [ $this, 'verify' ], 10, 2 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'preview_scripts' ], 9 );
 	}
 
 	/**
@@ -83,7 +95,11 @@ class Form {
 		$content = (string) $content;
 
 		if ( false !== strpos( $content, '<h-captcha' ) ) {
-			return $content;
+			$name  = self::NAME;
+			$value = wp_create_nonce( self::ACTION );
+
+			// Force nonce name.
+			return preg_replace( '/id=".+?" name=".+?" value=".+?"/', "id=\"$name\" name=\"$name\" value=\"$value\"", $content );
 		}
 
 		$args = [
@@ -112,25 +128,9 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, MC4WP_Form $form ) {
-		$content = $form->content ?? '';
-
-		$hcap_shortcode = $this->get_hcap_shortcode( $content );
-
-		if ( $hcap_shortcode ) {
-			$hcap_sc           = preg_replace(
-				[ '/\s*\[|]\s*/' ],
-				[ '' ],
-				$hcap_shortcode
-			);
-			$atts              = shortcode_parse_atts( $hcap_sc );
-			$nonce_field_name  = $atts['name'] ?? HCAPTCHA_NONCE;
-			$nonce_action_name = $atts  ['action'] ?? HCAPTCHA_ACTION;
-		} else {
-			$nonce_field_name  = self::NAME;
-			$nonce_action_name = self::ACTION;
-		}
-
-		$error_message = hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
+		// Do not allow modification of nonce field in the shortcode.
+		// During preview, we cannot recalculate the nonce field.
+		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'empty';
@@ -142,17 +142,40 @@ class Form {
 	}
 
 	/**
-	 * Get hCaptcha shortcode.
+	 * Enqueue script in admin to preview the form.
 	 *
-	 * @param string $content Content.
-	 *
-	 * @return string
+	 * @return void
 	 */
-	private function get_hcap_shortcode( string $content ): string {
-		$hcap_sc_regex = get_shortcode_regex( [ 'hcaptcha' ] );
+	public function preview_scripts(): void {
+		$form_id = (int) Request::filter_input( INPUT_GET, 'mc4wp_preview_form' );
 
-		return preg_match( "/$hcap_sc_regex/", $content, $matches )
-			? $matches[0]
-			: '';
+		if ( ! $form_id ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+		$id  = [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
+
+		wp_enqueue_script(
+			self::ADMIN_HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/admin-mailchimp$min.js",
+			[],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+
+		wp_localize_script(
+			self::ADMIN_HANDLE,
+			self::OBJECT,
+			[
+				'action'     => self::ACTION,
+				'name'       => self::NAME,
+				'nonceField' => wp_nonce_field( self::ACTION, self::NAME, true, false ),
+				'widget'     => HCaptcha::get_widget( $id ),
+			]
+		);
 	}
 }

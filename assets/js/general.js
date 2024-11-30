@@ -34,6 +34,7 @@ const general = function( $ ) {
 	const $form = $( 'form.hcaptcha-general' );
 	const $siteKey = $( '[name="hcaptcha_settings[site_key]"]' );
 	const $secretKey = $( '[name="hcaptcha_settings[secret_key]"]' );
+	const $sampleHCaptcha = $( '#hcaptcha-options .h-captcha' );
 	const $checkConfig = $( '#check_config' );
 	const $resetNotifications = $( '#reset_notifications' );
 	const $theme = $( '[name="hcaptcha_settings[theme]"]' );
@@ -152,7 +153,8 @@ const general = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		$( '<div id="hcaptcha-message"></div>' ).insertAfter( headerBarSelector );
+		// Concat below to avoid inspection message.
+		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
 		$message = $( msgSelector );
 	}
 
@@ -198,22 +200,35 @@ const general = function( $ ) {
 	}
 
 	function hCaptchaUpdate( params = {} ) {
-		const updatedParams = Object.assign( hCaptcha.getParams(), params );
-		hCaptcha.setParams( updatedParams );
+		const globalParams = Object.assign( {}, hCaptcha.getParams(), params );
+		const isCustomThemeActive = $customThemes.prop( 'checked' );
+		const isModeLive = 'live' === $mode.val();
 
-		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
-		sampleHCaptcha.innerHTML = '';
-
-		// Map the theme to the palette mode.
-		params.theme = params?.theme?.palette?.mode;
-
-		if ( ! params.theme ) {
-			// Remove the theme if it's not set.
-			delete params.theme;
+		if ( isCustomThemeActive && isModeLive ) {
+			$sampleHCaptcha.attr( 'data-theme', 'custom' );
+		} else {
+			$sampleHCaptcha.attr( 'data-theme', $theme.val() );
 		}
 
+		if (
+			( isCustomThemeActive && typeof params.theme === 'object' ) ||
+			( ! isCustomThemeActive && typeof params.theme !== 'object' )
+		) {
+			globalParams.theme = params.theme;
+		} else {
+			globalParams.theme = hCaptcha.getParams().theme;
+		}
+
+		hCaptcha.setParams( globalParams );
+
+		$sampleHCaptcha.html( '' );
+
 		for ( const key in params ) {
-			sampleHCaptcha.setAttribute( `data-${ key }`, `${ params[ key ] }` );
+			if ( typeof params[ key ] === 'object' ) {
+				continue;
+			}
+
+			$sampleHCaptcha.attr( `data-${ key }`, `${ params[ key ] }` );
 		}
 
 		hCaptcha.bindEvents();
@@ -335,9 +350,14 @@ const general = function( $ ) {
 				showSuccessMessage( response.data );
 				$submit.attr( 'disabled', false );
 			} )
-			.fail( function( response ) {
-				showErrorMessage( response.statusText );
-			} )
+			.fail(
+				/**
+				 * @param {Object} response
+				 */
+				function( response ) {
+					showErrorMessage( response.statusText );
+				}
+			)
 			.always( function() {
 				hCaptchaUpdate();
 			} );
@@ -520,8 +540,7 @@ const general = function( $ ) {
 		delete global.hcaptcha;
 
 		// Remove sample hCaptcha.
-		const sampleHCaptcha = document.querySelector( '#hcaptcha-options .h-captcha' );
-		sampleHCaptcha.innerHTML = '';
+		$sampleHCaptcha.html( '' );
 
 		// Re-create the API script.
 		const t = document.getElementsByTagName( 'head' )[ 0 ];
@@ -561,9 +580,14 @@ const general = function( $ ) {
 					showErrorMessage( response.data );
 				}
 			} )
-			.fail( function( response ) {
-				showErrorMessage( response.statusText );
-			} );
+			.fail(
+				/**
+				 * @param {Object} response
+				 */
+				function( response ) {
+					showErrorMessage( response.statusText );
+				}
+			);
 	} );
 
 	// Prevent saving values of some form elements.

@@ -835,12 +835,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'twentytwentyone' => 'Twenty Twenty-One',
 		];
 		$default_theme = 'twentytwentyfour';
-		$error_arr     = [
-			'message'      => 'Error activating Avada theme.',
-			'stati'        => $stati,
-			'themes'       => $themes,
-			'defaultTheme' => $default_theme,
-		];
 		$success_arr   = [
 			'message'      =>
 				'Avada theme is activated. Also, dependent ' .
@@ -851,10 +845,17 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'defaultTheme' => $default_theme,
 		];
 
+		$theme_obj = Mockery::mock( 'WP_Theme' );
+
+		$theme_obj->shouldReceive( 'get' )->with( 'Name' )->andReturn( $theme );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme_obj );
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'process_theme';
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( $default_theme );
 		$subject->shouldReceive( 'activate_plugins' )
 			->with( [ 'fusion-builder/fusion-builder.php' ] )->once()->andReturn( true );
 		$subject->shouldReceive( 'activate_plugins' )
@@ -868,15 +869,166 @@ class IntegrationsTest extends HCaptchaTestCase {
 					return [ $plugin_names[ $i ] ];
 				}
 			);
-		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
-		$subject->shouldReceive( 'get_activation_stati' )->with()->twice()->andReturn( $stati );
-		$subject->shouldReceive( 'get_themes' )->with()->twice()->andReturn( $themes );
+		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( true );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
+		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
+		$this->set_protected_property( $subject, 'entity', 'theme' );
+		$this->set_protected_property( $subject, 'plugins_tree', $plugin_tree );
+
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( $success_arr )->once();
+
+		$subject->$method( $theme );
+	}
+
+	/**
+	 * Test process_theme() with empty theme.
+	 *
+	 * There is a unique issue with _n() and lower phpunit versions.
+	 *
+	 * @requires PHP >= 7.4
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_theme_with_empty_theme(): void {
+		$theme         = '';
+		$plugin_tree   = [];
+		$stati         = [
+			'wp_status' => true,
+			'Avada'     => true,
+		];
+		$default_theme = 'twentytwentyfour';
+		$themes        = [
+			$default_theme => 'Twenty Twenty-Four',
+		];
+		$success_arr   = [
+			'message'      =>
+				"$default_theme theme is activated.",
+			'stati'        => $stati,
+			'themes'       => $themes,
+			'defaultTheme' => $default_theme,
+		];
+
+		$theme_obj = Mockery::mock( 'WP_Theme' );
+
+		$theme_obj->shouldReceive( 'get' )->with( 'Name' )->andReturn( $default_theme );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->andReturn( $theme_obj );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'process_theme';
+
+		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_default_theme' )->with()->twice()->andReturn( $default_theme );
+		$subject->shouldReceive( 'activate_theme' )->with( $default_theme )->once()->andReturn( true );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
+		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
+		$this->set_protected_property( $subject, 'entity', 'theme' );
+		$this->set_protected_property( $subject, 'plugins_tree', $plugin_tree );
+
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( $success_arr )->once();
+
+		$subject->$method( $theme );
+	}
+
+	/**
+	 * Test process_theme() with empty theme and no default theme.
+	 *
+	 * There is a unique issue with _n() and lower phpunit versions.
+	 *
+	 * @requires PHP >= 7.4
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_theme_with_empty_theme_and_no_default_theme(): void {
+		$theme         = '';
+		$stati         = [
+			'wp_status' => true,
+			'Avada'     => true,
+		];
+		$themes        = [
+			'twentytwentyone' => 'Twenty Twenty-One',
+		];
+		$default_theme = '';
+		$error_arr     = [
+			'message'      =>
+				'No default theme found.',
+			'stati'        => $stati,
+			'themes'       => $themes,
+			'defaultTheme' => $default_theme,
+		];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'process_theme';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_default_theme' )->with()->twice()->andReturn( '' );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
+		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
+		$this->set_protected_property( $subject, 'entity', 'theme' );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( $error_arr )->once();
+
+		$subject->$method( $theme );
+	}
+
+	/**
+	 * Test process_theme() when cannot be activated.
+	 *
+	 * There is a unique issue with _n() and lower phpunit versions.
+	 *
+	 * @requires PHP >= 7.4
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_process_theme_when_cannot_be_activated(): void {
+		$theme         = 'Avada';
+		$plugin_tree   = [ 'some plugin tree' ];
+		$stati         = [
+			'wp_status' => true,
+			'Avada'     => true,
+		];
+		$themes        = [
+			'twentytwentyone' => 'Twenty Twenty-One',
+		];
+		$default_theme = 'twentytwentyfour';
+		$error_arr     = [
+			'message'      =>
+				"Error activating $theme theme.",
+			'stati'        => $stati,
+			'themes'       => $themes,
+			'defaultTheme' => $default_theme,
+		];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$method  = 'process_theme';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( $default_theme );
+		$subject->shouldReceive( 'activate_plugins' )
+			->with( [ 'fusion-builder/fusion-builder.php' ] )->once()->andReturn( true );
+		$subject->shouldReceive( 'activate_plugins' )
+			->with( [ 'fusion-core/fusion-core.php' ] )->once()->andReturn( true );
+		$subject->shouldReceive( 'plugin_names_from_tree' )
+			->with( $plugin_tree )->andReturnUsing(
+				static function () {
+					$plugin_names = [ 'Avada Builder', 'Avada Core' ];
+
+					static $i = -1;
+					$i++;
+
+					return [ $plugin_names[ $i ] ];
+				}
+			);
+		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
+		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
+		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
 		$this->set_protected_property( $subject, 'entity', 'theme' );
 		$this->set_protected_property( $subject, 'plugins_tree', $plugin_tree );
 
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( $error_arr )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with( $success_arr )->once();
 
 		$subject->$method( $theme );
 	}
