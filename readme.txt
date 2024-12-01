@@ -531,6 +531,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
 * Divi Comment, Contact, Email Optin and Login Forms
+* Divi Builder Comment, Contact, Email Optin and Login Forms
 * Download Manager Form
 * Droit Dark Mode
 * Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
