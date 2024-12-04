@@ -598,6 +598,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.9.0 =
+* Fixed layout of modern Jetpack form in outlined and animated styles.
+
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.
 * Added hCaptcha display on the Mailchimp form preview.
