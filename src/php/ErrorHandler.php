@@ -114,15 +114,15 @@ class ErrorHandler {
 	 * @param string|mixed $text        Text to translate.
 	 * @param string|mixed $domain      Text domain. Unique identifier for retrieving translated strings.
 	 *
-	 * @return string
+	 * @return string|mixed
 	 */
-	public function filter_gettext( $translation, $text, $domain ): string {
+	public function filter_gettext( $translation, $text, $domain ) {
 
-		$translation = (string) $translation;
-		$text        = (string) $text;
-		$domain      = (string) $domain;
+		if ( 'hcaptcha-for-forms-and-more' !== $domain ) {
+			return $translation;
+		}
 
-		if ( '' === $translation && 'hcaptcha-for-forms-and-more' === $domain ) {
+		if ( is_string( $text ) && is_string( $translation ) && trim( $translation ) === '' ) {
 			$translation = $text;
 		}
 
