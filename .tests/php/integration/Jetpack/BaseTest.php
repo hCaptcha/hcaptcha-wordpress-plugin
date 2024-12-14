@@ -190,7 +190,7 @@ class BaseTest extends HCaptchaWPTestCase {
 				'form_id' => 'contact',
 			],
 		];
-		$hcaptcha       = '<div class="grunion-field-wrap">' . $this->get_hcap_form( $args ) . '</div>';
+		$hcaptcha       = '<div class="grunion-field-hcaptcha-wrap grunion-field-wrap">' . $this->get_hcap_form( $args ) . '</div>';
 		$params         = [
 			'hCaptcha' => $hcaptcha,
 		];
@@ -238,7 +238,11 @@ class BaseTest extends HCaptchaWPTestCase {
 		);
 
 		$expected = <<<CSS
-	form.contact-form .grunion-field-wrap .h-captcha,
+	form.contact-form .grunion-field-hcaptcha-wrap.grunion-field-wrap {
+		flex-direction: row !important;
+	}
+
+	form.contact-form .grunion-field-hcaptcha-wrap.grunion-field-wrap .h-captcha,
 	form.wp-block-jetpack-contact-form .grunion-field-wrap .h-captcha {
 		margin-bottom: 0;
 	}

@@ -78,7 +78,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 		document.addEventListener( 'hCaptchaBeforeAPI', function() {
 			// noinspection JSAnnotator
-			const delay = 3000;
+			const delay = -1;
 
 			if ( delay >= 0 ) {
 				setTimeout( load, delay );
@@ -145,7 +145,7 @@ JS;
 			window.removeEventListener( 'scroll', scrollHandler );
 
 			const t = document.getElementsByTagName( 'script' )[0];
-			const s = document.createElement('script');
+			const s = document.createElement( 'script' );
 			s.type  = 'text/javascript';
 			s.id = 'hcaptcha-api';
 			s['src'] = 'https://js.hcaptcha.com/1/api.js';
@@ -165,7 +165,7 @@ JS;
 
 		document.addEventListener( 'hCaptchaBeforeAPI', function() {
 			// noinspection JSAnnotator
-			const delay = 3000;
+			const delay = -1;
 
 			if ( delay >= 0 ) {
 				setTimeout( load, delay );
