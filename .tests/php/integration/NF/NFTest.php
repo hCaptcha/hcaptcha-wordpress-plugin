@@ -247,7 +247,7 @@ JSON;
 
 		$nf_instance = Ninja_Forms::instance();
 
-		do_action( 'init' );
+		$nf_instance->instantiateTranslatableObjects();
 
 		$fields = $nf_instance->fields;
 
