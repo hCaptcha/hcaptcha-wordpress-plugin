@@ -21,12 +21,6 @@
   "support": {
     "issues": "https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more"
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/kagg-design/Codeception.git"
-    }
-  ],
   "minimum-stability": "dev",
   "prefer-stable": true,
   "config": {
@@ -43,7 +37,7 @@
     "roave/security-advisories": "dev-latest",
     "antecedent/patchwork": "^2.2.1",
     "10up/wp_mock": "0.4.2 - 1.0.1",
-    "codeception/codeception": "4.2.2 - 5.1.3",
+    "codeception/codeception": "4.2.2",
     "codeception/module-db": "1.2.0 - 3.1.4",
     "codeception/module-webdriver": "1.4.1 - 4.0.2",
     "lucatume/function-mocker": "^2.0.0",
