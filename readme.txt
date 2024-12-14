@@ -600,6 +600,7 @@ Instructions for popular native integrations are below:
 
 = 4.9.0 =
 * Fixed layout of modern Jetpack form in outlined and animated styles.
+* Added compatibility with Ninja Forms v3.8.22.
 
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.

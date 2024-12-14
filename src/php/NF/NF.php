@@ -70,7 +70,6 @@ class NF implements Base {
 		add_action( 'toplevel_page_ninja-forms', [ $this, 'admin_template' ], 11 );
 		add_action( 'nf_admin_enqueue_scripts', [ $this, 'nf_admin_enqueue_scripts' ] );
 		add_filter( 'ninja_forms_register_fields', [ $this, 'register_fields' ] );
-		add_action( 'ninja_forms_loaded', [ $this, 'place_hcaptcha_before_recaptcha_field' ] );
 		add_filter( 'ninja_forms_field_template_file_paths', [ $this, 'template_file_paths' ] );
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( "ninja_forms_localize_field_$name", [ $this, 'localize_field' ] );
@@ -191,35 +190,12 @@ class NF implements Base {
 	public function register_fields( $fields ): array {
 		$fields = (array) $fields;
 
-		$fields[ Base::NAME ] = new Field();
+		$index = array_search( 'recaptcha', array_keys( $fields ), true );
+		$index = false === $index ? count( $fields ) : $index;
 
-		return $fields;
-	}
-
-	/**
-	 * Place hCaptcha field before recaptcha field.
-	 *
-	 * @return void
-	 * @noinspection PhpUndefinedFunctionInspection
-	 */
-	public function place_hcaptcha_before_recaptcha_field(): void {
-		$fields = Ninja_Forms()->fields;
-		$index  = array_search( 'recaptcha', array_keys( $fields ), true );
-
-		if ( false === $index ) {
-			// @codeCoverageIgnoreStart
-			return;
-			// @codeCoverageIgnoreEnd
-		}
-
-		$hcaptcha_key   = Base::NAME;
-		$hcaptcha_value = $fields[ $hcaptcha_key ];
-
-		unset( $fields[ $hcaptcha_key ] );
-
-		Ninja_Forms()->fields = array_merge(
+		return array_merge(
 			array_slice( $fields, 0, $index ),
-			[ $hcaptcha_key => $hcaptcha_value ],
+			[ Base::NAME => new Field() ],
 			array_slice( $fields, $index )
 		);
 	}
