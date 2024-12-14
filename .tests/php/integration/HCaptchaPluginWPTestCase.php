@@ -66,7 +66,5 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			activate_plugin( static::$plugin );
 			static::$plugin_active[ static::$plugin ] = true;
 		}
-
-		do_action( 'plugins_loaded' );
 	}
 }
