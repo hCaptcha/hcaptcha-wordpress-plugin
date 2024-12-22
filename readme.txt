@@ -599,7 +599,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.9.0 =
-* Fixed layout of modern Jetpack form in outlined and animated styles.
+* Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Added compatibility with Ninja Forms v3.8.22.
 
 = 4.8.0 =
