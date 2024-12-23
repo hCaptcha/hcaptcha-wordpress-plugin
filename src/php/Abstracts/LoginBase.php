@@ -98,8 +98,9 @@ abstract class LoginBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function add_signature( $content, array $args ): string {
+	public function add_signature( $content, $args ): string {
 		$content = (string) $content;
 
 		ob_start();
