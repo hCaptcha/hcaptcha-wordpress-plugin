@@ -600,6 +600,7 @@ Instructions for popular native integrations are below:
 
 = 4.9.0 =
 * Added compatibility with Ninja Forms v3.8.22.
+* Added ability to install plugins from the Integrations page.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
 
