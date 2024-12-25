@@ -1010,8 +1010,11 @@ class Integrations extends PluginSettingsBase {
 		if ( $activate ) {
 			$result = $this->activate_plugins( $plugins );
 
-			if ( ! is_wp_error( $result ) ) {
-				$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
+			if ( is_wp_error( $result ) ) {
+				$error_message = $result->get_error_message();
+			} else {
+				$error_message = '';
+				$plugin_names  = $this->plugin_names_from_tree( $this->plugins_tree );
 
 				if ( array_filter( $plugin_names ) ) {
 					$message = $this->install
@@ -1047,16 +1050,16 @@ class Integrations extends PluginSettingsBase {
 				/* translators: 1: Plugin name. */
 					__( 'Error installing and activating %1$s plugin: %2$s', 'hcaptcha-for-forms-and-more' ),
 					$plugin_name,
-					$result->get_error_message()
+					$error_message
 				)
 				: sprintf(
 				/* translators: 1: Plugin name. */
 					__( 'Error activating %1$s plugin: %2$s', 'hcaptcha-for-forms-and-more' ),
 					$plugin_name,
-					$result->get_error_message()
+					$error_message
 				);
 
-			$this->send_json_error( esc_html( $message ) );
+			$this->send_json_error( esc_html( rtrim( $message, ': .' ) . '.' ) );
 
 			return; // For testing purposes.
 		}
