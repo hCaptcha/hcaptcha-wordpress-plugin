@@ -10,10 +10,12 @@ namespace HCaptcha\Settings;
 use Closure;
 use KAGG\Settings\Abstracts\SettingsBase;
 use Plugin_Upgrader;
+use Theme_Upgrader;
 use WP_Ajax_Upgrader_Skin;
 use WP_Error;
 use WP_Filesystem_Base;
 use WP_Theme;
+use WP_Upgrader;
 
 /**
  * Class Integrations
@@ -1058,13 +1060,13 @@ class Integrations extends PluginSettingsBase {
 
 			$message = $this->install
 				? sprintf(
-				/* translators: 1: Plugin name. */
+				/* translators: 1: Plugin name, 2: Error message. */
 					__( 'Error installing and activating %1$s plugin: %2$s', 'hcaptcha-for-forms-and-more' ),
 					$plugin_name,
 					$error_message
 				)
 				: sprintf(
-				/* translators: 1: Plugin name. */
+				/* translators: 1: Plugin name, 2: Error message. */
 					__( 'Error activating %1$s plugin: %2$s', 'hcaptcha-for-forms-and-more' ),
 					$plugin_name,
 					$error_message
@@ -1124,12 +1126,22 @@ class Integrations extends PluginSettingsBase {
 
 		$plugin_names = array_merge( [], ...$plugin_names );
 
-		if ( ! $this->activate_theme( $theme ) ) {
-			$message = sprintf(
-			/* translators: 1: Theme name. */
-				__( 'Error activating %s theme.', 'hcaptcha-for-forms-and-more' ),
-				$theme
-			);
+		$result = $this->activate_theme( $theme );
+
+		if ( $result && is_wp_error( $result ) ) {
+			$message = $this->install
+				? sprintf(
+				/* translators: 1: Theme name, 2: Error message. */
+					__( 'Error installing and activating %1$s theme: %2$s', 'hcaptcha-for-forms-and-more' ),
+					$theme,
+					$result->get_error_message()
+				)
+				: sprintf(
+				/* translators: 1: Theme name, 2: Error message. */
+					__( 'Error activating %1$s theme: %2$s', 'hcaptcha-for-forms-and-more' ),
+					$theme,
+					$result->get_error_message()
+				);
 
 			$this->send_json_error( esc_html( $message ) );
 
@@ -1288,38 +1300,8 @@ class Integrations extends PluginSettingsBase {
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
 		$upgrader = new Plugin_Upgrader( $skin );
-		$result   = $upgrader->install( $api->download_link );
 
-		if ( is_wp_error( $result ) ) {
-			return new WP_Error( $result->get_error_code(), $result->get_error_message() );
-		}
-
-		if ( is_wp_error( $skin->result ) ) {
-			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
-		}
-
-		if ( $skin->get_errors() && $skin->get_errors()->has_errors() ) {
-			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
-		}
-
-		if ( is_null( $result ) ) {
-			global $wp_filesystem;
-
-			$status['errorCode']    = 'unable_to_connect_to_filesystem';
-			$status['errorMessage'] = __(
-				'Unable to connect to the filesystem. Please confirm your credentials.',
-				'hcaptcha-for-forms-and-more'
-			);
-
-			// Pass through the error from WP_Filesystem if one was raised.
-			if ( $wp_filesystem instanceof WP_Filesystem_Base && is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() ) {
-				$status['errorMessage'] = esc_html( $wp_filesystem->errors->get_error_message() );
-			}
-
-			return new WP_Error( $status['errorCode'], $status['errorMessage'] );
-		}
-
-		return null;
+		return $this->install_entity( $upgrader, $skin, $api->download_link );
 	}
 
 	/**
@@ -1460,22 +1442,82 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param string $theme Theme to activate.
 	 *
-	 * @return bool
+	 * @return null|WP_Error Null on success, WP_Error on failure.
 	 */
-	protected function activate_theme( string $theme ): bool {
+	protected function activate_theme( string $theme ): ?WP_Error {
 		if ( ! wp_get_theme( $theme )->exists() ) {
-			return false;
+			return new WP_Error(
+				'theme_not_found',
+				__( 'Theme not found.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		if ( $this->install ) {
+			ob_start();
+
+			$result = $this->install_theme( $theme );
+
+			ob_end_clean();
+
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 		}
 
 		ob_start();
 		switch_theme( $theme );
 		ob_end_clean();
 
-		return true;
+		return null;
 	}
 
 	/**
-	 * Send json success.
+	 * Install theme.
+	 *
+	 * @param string $theme Theme to install.
+	 *
+	 * @return null|WP_Error Null on success, WP_Error on failure.
+	 */
+	private function install_theme( string $theme ): ?WP_Error {
+		$theme = trim( $theme );
+
+		if ( empty( $theme ) ) {
+			return new WP_Error( 'no_theme_specified', __( 'No theme specified.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		if ( ! current_user_can( 'install_themes' ) ) {
+			return new WP_Error(
+				'not_allowed',
+				__(
+					'Sorry, you are not allowed to install themes on this site.',
+					'hcaptcha-for-forms-and-more'
+				)
+			);
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/theme.php';
+
+		$api = themes_api(
+			'theme_information',
+			[
+				'slug'   => $theme,
+				'fields' => [ 'sections' => false ],
+			]
+		);
+
+		if ( is_wp_error( $api ) ) {
+			return new WP_Error( $api->get_error_code(), $api->get_error_message() );
+		}
+
+		$skin     = new WP_Ajax_Upgrader_Skin();
+		$upgrader = new Theme_Upgrader( $skin );
+
+		return $this->install_entity( $upgrader, $skin, $api->download_link );
+	}
+
+	/**
+	 * Send JSON success.
 	 *
 	 * @param string $message Message.
 	 *
@@ -1616,5 +1658,54 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		remove_action( $hook_name, $callback, $priority );
+	}
+
+	/**
+	 * Install entity (plugin or theme).
+	 *
+	 * @param WP_Upgrader           $upgrader      Upgrader instance.
+	 * @param WP_Ajax_Upgrader_Skin $skin          Upgrader skin instance.
+	 * @param string                $download_link Download link.
+	 *
+	 * @return WP_Error|null
+	 * @noinspection PhpPossiblePolymorphicInvocationInspection
+	 */
+	protected function install_entity( WP_Upgrader $upgrader, WP_Ajax_Upgrader_Skin $skin, string $download_link ): ?WP_Error {
+		$result = $upgrader->install( $download_link );
+
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( $result->get_error_code(), $result->get_error_message() );
+		}
+
+		if ( is_wp_error( $skin->result ) ) {
+			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+		}
+
+		if ( $skin->get_errors() && $skin->get_errors()->has_errors() ) {
+			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+		}
+
+		if ( is_null( $result ) ) {
+			global $wp_filesystem;
+
+			$status['errorCode']    = 'unable_to_connect_to_filesystem';
+			$status['errorMessage'] = __(
+				'Unable to connect to the filesystem. Please confirm your credentials.',
+				'hcaptcha-for-forms-and-more'
+			);
+
+			// Pass through the error from WP_Filesystem if one was raised.
+			if (
+				$wp_filesystem instanceof WP_Filesystem_Base &&
+				is_wp_error( $wp_filesystem->errors ) &&
+				$wp_filesystem->errors->has_errors()
+			) {
+				$status['errorMessage'] = esc_html( $wp_filesystem->errors->get_error_message() );
+			}
+
+			return new WP_Error( $status['errorCode'], $status['errorMessage'] );
+		}
+
+		return null;
 	}
 }
