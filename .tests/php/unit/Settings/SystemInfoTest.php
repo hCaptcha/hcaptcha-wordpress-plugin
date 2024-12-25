@@ -462,6 +462,11 @@ Theme My Login:
   Login Form:                         Off
   Lost Password Form:                 Off
   Register Form:                      Off
+Tutor LMS:                            
+  Checkout Form:                      Off
+  Login Form:                         Off
+  Lost Password Form:                 Off
+  Register Form:                      Off
 Ultimate Member:                      
   Login Form:                         On
   Lost Password Form:                 On

@@ -1220,6 +1220,17 @@ abstract class HCaptchaTestCase extends TestCase {
 					'register'  => 'Register Form',
 				],
 			],
+			'tutor_status'                     => [
+				'label'   => 'Tutor LMS',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout'  => 'Checkout Form',
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
+				],
+			],
 			'ultimate_member_status'           =>
 				[
 					'label'   => 'Ultimate Member',
