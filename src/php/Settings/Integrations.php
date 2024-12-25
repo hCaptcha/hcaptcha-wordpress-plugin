@@ -598,6 +598,17 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'tutor_status'                     => [
+				'label'   => 'Tutor LMS',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout'  => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'ultimate_member_status'           => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',

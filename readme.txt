@@ -307,6 +307,10 @@ Theme My Login
 `$source: 'theme-my-login/theme-my-login.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
 
+Tutor LMS
+`$source: 'tutor/tutor.php'`
+`$form_id: 'checkout', ''login', 'lost_password' or 'register'`
+
 Ultimate Member
 `$source: 'ultimate-member/ultimate-member.php'`
 `$form_id: form_id or 'password'`
@@ -567,6 +571,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Subscriber Form
 * Support Candy New Ticket Form
 * Theme My Login — Login, Lost Password, and Register Form
+* Tutor LMS — Checkout, Login, Lost Password, and Register Form
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
 * WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
@@ -599,6 +604,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.9.0 =
+* Added Tutor LMS integration.
 * Added compatibility with Ninja Forms v3.8.22.
 * Added the ability to install plugins from the Integrations page.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.

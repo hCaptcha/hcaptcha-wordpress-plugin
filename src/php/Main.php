@@ -1283,6 +1283,26 @@ CSS;
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\Register::class,
 			],
+			'Tutor Checkout'                       => [
+				[ 'tutor_status', 'checkout' ],
+				'tutor/tutor.php',
+				Tutor\Checkout::class,
+			],
+			'Tutor LMS Login'                      => [
+				[ 'tutor_status', 'login' ],
+				'tutor/tutor.php',
+				Tutor\Login::class,
+			],
+			'Tutor LMS LostPassword'               => [
+				[ 'tutor_status', 'lost_pass' ],
+				'tutor/tutor.php',
+				Tutor\LostPassword::class,
+			],
+			'Tutor LMS Register'                   => [
+				[ 'tutor_status', 'register' ],
+				'tutor/tutor.php',
+				Tutor\Register::class,
+			],
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',

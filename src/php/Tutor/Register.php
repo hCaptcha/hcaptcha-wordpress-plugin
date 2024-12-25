@@ -1,11 +1,11 @@
 <?php
 /**
- * Register class file.
+ * 'Register' class file.
  *
  * @package hcaptcha-wp
  */
 
-namespace HCaptcha\LearnDash;
+namespace HCaptcha\Tutor;
 
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
@@ -18,12 +18,12 @@ class Register {
 	/**
 	 * Nonce action.
 	 */
-	private const ACTION = 'hcaptcha_learn_dash_register';
+	private const ACTION = 'hcaptcha_tutor_register';
 
 	/**
 	 * Nonce name.
 	 */
-	private const NONCE = 'hcaptcha_learn_dash_register_nonce';
+	private const NONCE = 'hcaptcha_tutor_register_nonce';
 
 	/**
 	 * Constructor.
@@ -38,18 +38,17 @@ class Register {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'learndash_registration_form', [ $this, 'add_captcha' ] );
+		add_Action( 'tutor_student_reg_form_end', [ $this, 'add_hcaptcha' ] );
+		add_Action( 'tutor_instructor_reg_form_end', [ $this, 'add_hcaptcha' ] );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
-		add_filter( 'learndash_registration_errors', [ $this, 'add_registration_errors' ] );
-		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
-	 * Add captcha.
+	 * Add hCaptcha.
 	 *
 	 * @return void
 	 */
-	public function add_captcha(): void {
+	public function add_hcaptcha(): void {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -63,7 +62,7 @@ class Register {
 	}
 
 	/**
-	 * Verify register captcha.
+	 * Verify hCaptcha.
 	 *
 	 * @param WP_Error|mixed $errors               A WP_Error object containing any errors encountered during
 	 *                                             registration.
@@ -74,9 +73,9 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
-		// Nonce is checked in LearnDash.
+		// Nonce is checked in Tutor.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['learndash-registration-form'] ) ) {
+		if ( ! isset( $_POST['tutor_action'] ) ) {
 			return $errors;
 		}
 
@@ -86,32 +85,5 @@ class Register {
 		);
 
 		return HCaptcha::add_error_message( $errors, $error_message );
-	}
-
-	/**
-	 * Add registration errors.
-	 *
-	 * @param string[]|mixed $registration_errors An array of registration errors and descriptions.
-	 *
-	 * @return mixed
-	 */
-	public function add_registration_errors( $registration_errors ) {
-		return array_merge( (array) $registration_errors, hcap_get_error_messages() );
-	}
-
-	/**
-	 * Print inline styles.
-	 *
-	 * @return void
-	 * @noinspection CssUnusedSymbol
-	 */
-	public function print_inline_styles(): void {
-		$css = <<<CSS
-	#learndash_registerform .h-captcha {
-		margin-bottom: 0;
-	}
-CSS;
-
-		HCaptcha::css_display( $css );
 	}
 }
