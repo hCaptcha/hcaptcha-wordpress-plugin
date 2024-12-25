@@ -12,8 +12,8 @@ global.HCaptchaIntegrationsObject = {
 	ajaxUrl: 'https://test.test/wp-admin/admin-ajax.php',
 	action: 'test_action',
 	nonce: 'test_nonce',
-	activateMsg: 'Activate %s plugin?',
-	deactivateMsg: 'Deactivate %s plugin?',
+	activatePluginMsg: 'Activate %s plugin?',
+	deactivatePluginMsg: 'Deactivate %s plugin?',
 };
 
 function getDom() {
