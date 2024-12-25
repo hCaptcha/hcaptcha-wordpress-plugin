@@ -609,6 +609,7 @@ Instructions for popular native integrations are below:
 * Added the ability to install plugins and themes from the Integrations page.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
+* Fixed help text box layout on the General page.
 
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.

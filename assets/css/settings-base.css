@@ -196,10 +196,6 @@ body.settings_page_hcaptcha {
 	width: calc(100% + 25px);
 }
 
-#hcaptcha-options fieldset + .helper .helper-content {
-	transform: translate(-25px, 25px);
-}
-
 #hcaptcha-options .helper:hover {
 	cursor: help;
 }
