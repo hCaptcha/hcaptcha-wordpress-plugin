@@ -271,6 +271,10 @@ LearnDash
 `$source: 'sfwd-lms/sfwd_lms.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
 
+LearnPress
+`$source: 'learnpress/learnpress.php'`
+`$form_id: 'checkout', ''login', or 'register'`
+
 Login/Signup Popup
 `$source: 'easy-login-woocommerce/xoo-el-main.php'`
 `$form_id: 'login', or 'register'`
@@ -604,6 +608,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.9.0 =
+* Added LearnPress integration.
 * Added Tutor LMS integration.
 * Added compatibility with Ninja Forms v3.8.22.
 * Added the ability to install plugins and themes from the Integrations page.

@@ -1053,6 +1053,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'register'  => 'Register Form',
 						],
 				],
+			'learn_press_status'               => [
+				'label'   => 'LearnPress',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => 'Checkout Form',
+					'login'    => 'Login Form',
+					'register' => 'Register Form',
+				],
+			],
 			'login_signup_popup_status'        =>
 				[
 					'label'   => 'Login Signup Popup',

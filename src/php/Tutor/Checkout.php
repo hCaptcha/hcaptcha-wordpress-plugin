@@ -67,7 +67,8 @@ class Checkout {
 	 * @param string|mixed $template  The template.
 	 * @param array|mixed  $variables The variables.
 	 *
-	 * @noinspection PhpUnusedParameterInspection*/
+	 * @noinspection PhpUnusedParameterInspection
+	 */
 	public function template_after( $template, $variables ): void {
 		$template = (string) $template;
 

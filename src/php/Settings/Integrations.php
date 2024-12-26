@@ -452,6 +452,15 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'learn_press_status'               => [
+				'label'   => 'LearnPress',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'login_signup_popup_status'        => [
 				'label'   => 'Login Signup Popup',
 				'type'    => 'checkbox',
