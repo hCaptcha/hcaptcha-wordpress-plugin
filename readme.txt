@@ -612,6 +612,7 @@ Instructions for popular native integrations are below:
 * Added Tutor LMS integration.
 * Added compatibility with Ninja Forms v3.8.22.
 * Added the ability to install plugins and themes from the Integrations page.
+* Added comparison with reCAPTCHA and Turnstile to the Notifications sections on the General page.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
 * Fixed help text box layout on the General page.
