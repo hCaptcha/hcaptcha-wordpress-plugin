@@ -102,17 +102,23 @@ class Notifications {
 		$integrations_url        = $this->tab_url( Integrations::class );
 		$forms_url               = $this->tab_url( FormsPage::class );
 		$events_url              = $this->tab_url( EventsPage::class );
-		$hcaptcha_url            = 'https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$register_url            = 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk';
-		$pro_url                 = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$dashboard_url           = 'https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
-		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$utm                     = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
+		$utm_sk                  = $utm . 'sk';
+		$utm_not                 = $utm . 'not';
+		$hcaptcha_url            = 'https://www.hcaptcha.com' . $utm_sk;
+		$register_url            = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
+		$pro_url                 = 'https://www.hcaptcha.com/pro' . $utm_not;
+		$dashboard_url           = 'https://dashboard.hcaptcha.com' . $utm_not;
+		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
 		$rate_url                = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
 		$search_integrations_url = $integrations_url . '#hcaptcha-integrations-search';
-		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
+		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
 		$statistics_url          = $general_url . '#statistics_1';
 		$force_url               = $general_url . '#force_1';
 		$elementor_edit_form_url = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
+		$post_detection_cost_url = 'https://www.hcaptcha.com/report-how-much-is-a-recaptcha-really-worth' . $utm_not;
+		$post_vs_recaptcha_url   = 'https://www.hcaptcha.com/post/hcaptcha-vs-recaptcha' . $utm_not;
+		$post_vs_turnstile_url   = 'https://www.hcaptcha.com/post/hcaptcha-vs-turnstile' . $utm_not;
 
 		$notifications = [
 			'register'            => [
@@ -277,6 +283,31 @@ class Notifications {
 				'button'  => [
 					'url'  => $elementor_edit_form_url,
 					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 4.9.0.
+			'post-detection-cost' => [
+				'title'   => __( 'Bot detection cost', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'How much is Google’s bot detection really worth?', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $post_detection_cost_url,
+					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'post-vs-recaptcha'   => [
+				'title'   => __( 'hCaptcha vs. reCAPTCHA', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'How does reCAPTCHA compare to hCaptcha?', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $post_vs_recaptcha_url,
+					'text' => __( 'Compare', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'post-vs-turnstile'   => [
+				'title'   => __( 'hCaptcha vs. Turnstile', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'How does Turnstile compare to hCaptcha?', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $post_vs_turnstile_url,
+					'text' => __( 'Compare', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 		];
