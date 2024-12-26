@@ -517,6 +517,14 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'hide_login_errors'    => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Hide login errors', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
+			],
 			self::NETWORK_WIDE     => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,

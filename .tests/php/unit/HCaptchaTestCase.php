@@ -676,6 +676,14 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 				'helper'  => 'On multisite, use same settings for all sites of the network.',
 			],
+			'hide_login_errors'        => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_OTHER,
+				'options' => [
+					'on' => 'Hide login errors',
+				],
+				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
+			],
 			'whitelisted_ips'          => [
 				'label'   => 'Whitelisted IPs',
 				'type'    => 'textarea',

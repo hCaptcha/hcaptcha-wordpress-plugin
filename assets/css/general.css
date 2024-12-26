@@ -259,6 +259,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-areas:
 		"logged whitelisted"
 		"recaptcha whitelisted"
+		"hide-login-errors whitelisted"
 		"network whitelisted"
 		"login-limit login-interval"
 		"delay .";
@@ -272,6 +273,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off {
 	grid-area: recaptcha;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors {
+	grid-area: hide-login-errors;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
@@ -303,6 +308,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
 	padding: 0;
 }
@@ -407,6 +413,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		grid-template-areas:
 		"logged"
 		"recaptcha"
+		"hide-login-errors"
 		"network"
 		"whitelisted"
 		"login-limit"
