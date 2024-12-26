@@ -65,10 +65,18 @@ class Events {
 		if ( $settings->is_on( 'collect_ua' ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : '';
+
+			if ( $settings->is_on( 'anonymous' ) ) {
+				$user_agent = wp_hash( $user_agent );
+			}
 		}
 
 		if ( $settings->is_on( 'collect_ip' ) ) {
 			$ip = (string) hcap_get_user_ip();
+
+			if ( $settings->is_on( 'anonymous' ) ) {
+				$ip = wp_hash( $ip );
+			}
 		}
 
 		$info = HCaptcha::decode_id_info();

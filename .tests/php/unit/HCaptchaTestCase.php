@@ -680,7 +680,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'section' => General::SECTION_OTHER,
 				'options' => [
-					'on' => 'Hide login errors',
+					'on' => 'Hide Login Errors',
 				],
 				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
 			],
@@ -723,6 +723,15 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Enable Statistics',
 				],
 				'helper'  => 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.',
+			],
+			'anonymous'                => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Collect Anonymously',
+				],
+				'default' => 'on',
+				'helper'  => 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.',
 			],
 			'collect_ip'               => [
 				'label'   => 'Collection',

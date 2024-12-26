@@ -614,6 +614,7 @@ Instructions for popular native integrations are below:
 * Added the ability to install plugins and themes from the Integrations page.
 * Added comparison with reCAPTCHA and Turnstile to the Notifications sections on the General page.
 * Added ability to hide the login errors.
+* Added anonymous collection of IP and User Agent data to conform to GDPR requirements.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
 * Fixed help text box layout on the General page.

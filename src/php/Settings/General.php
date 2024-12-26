@@ -521,7 +521,7 @@ class General extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
-					'on' => __( 'Hide login errors', 'hcaptcha-for-forms-and-more' ),
+					'on' => __( 'Hide Login Errors', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
 			],
@@ -572,6 +572,15 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Enable Statistics', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'anonymous'            => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Collect Anonymously', 'hcaptcha-for-forms-and-more' ),
+				],
+				'default' => 'on',
+				'helper'  => __( 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'collect_ip'           => [
 				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
