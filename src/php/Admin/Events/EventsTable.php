@@ -260,6 +260,17 @@ class EventsTable extends WP_List_Table {
 	}
 
 	/**
+	 * Column IP.
+	 *
+	 * @param object $item Item.
+	 *
+	 * @noinspection PhpUnused PhpUnused.
+	 */
+	protected function column_ip( object $item ): string {
+		return $this->excerpt( $item->ip );
+	}
+
+	/**
 	 * Column User Agent.
 	 *
 	 * @param object $item Item.
