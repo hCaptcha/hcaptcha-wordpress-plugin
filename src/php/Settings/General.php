@@ -154,8 +154,16 @@ class General extends PluginSettingsBase {
 
 		$hcaptcha = hcaptcha();
 
-		// Current class loaded early on plugins_loaded. Init Notifications later, when Settings class is ready.
-		add_action( 'current_screen', [ $this, 'init_notifications' ] );
+		if ( wp_doing_ajax() ) {
+			// We need ajax actions in the Notifications class.
+			$this->init_notifications();
+		} else {
+			// Current class loaded early on plugins_loaded.
+			// Init Notifications later, when Settings class is ready.
+			// Also, we need to check if we are on the General screen.
+			add_action( 'current_screen', [ $this, 'init_notifications' ] );
+		}
+
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
@@ -172,7 +180,7 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function init_notifications(): void {
-		if ( ! $this->is_options_screen() ) {
+		if ( ! ( wp_doing_ajax() || $this->is_options_screen() ) ) {
 			return;
 		}
 
