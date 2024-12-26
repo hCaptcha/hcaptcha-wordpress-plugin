@@ -619,6 +619,7 @@ Instructions for popular native integrations are below:
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
 * Fixed help text box layout on the General page.
 * Fixed dismiss and reset Notifications actions.
+* Fixed duplication of entries in the Events table.
 
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.

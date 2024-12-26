@@ -76,6 +76,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		$option      = [
 			'collect_ua' => [ 'on' ],
 			'collect_ip' => [ 'on' ],
+			'anonymous'  => [],
 		];
 		$table_name  = Events::TABLE_NAME;
 
@@ -185,6 +186,10 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 		$subject::create_table();
 		$subject->save_event( 'empty', [ 'empty' ] );
+
+		// Avoid caching in Events.
+		$subject = new Events();
+
 		$subject->save_event( 'success', [] );
 
 		$actual = $subject::get_events();
@@ -238,6 +243,10 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 		$subject::create_table();
 		$subject->save_event( 'empty', [ 'empty' ] );
+
+		// Avoid caching in Events.
+		$subject = new Events();
+
 		$subject->save_event( 'success', [] );
 
 		$actual = $subject::get_forms();

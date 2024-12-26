@@ -21,6 +21,13 @@ class Events {
 	public const TABLE_NAME = 'hcaptcha_events';
 
 	/**
+	 * Saved flag.
+	 *
+	 * @var bool
+	 */
+	private $saved;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @return void
@@ -52,6 +59,12 @@ class Events {
 	 */
 	public function save_event( $result, array $error_codes ) {
 		global $wpdb;
+
+		if ( $this->saved ) {
+			return $result;
+		}
+
+		$this->saved = true;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
 			return $result;
