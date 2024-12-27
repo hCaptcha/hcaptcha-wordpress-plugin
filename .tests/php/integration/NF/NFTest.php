@@ -45,7 +45,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function est_init_and_init_hooks(): void {
+	public function test_init_and_init_hooks(): void {
 		$subject = new NF();
 
 		self::assertSame(
@@ -90,7 +90,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function est_admin_template(): void {
+	public function test_admin_template(): void {
 		$subject = new NF();
 
 		ob_start();
@@ -119,7 +119,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function est_nf_admin_enqueue_scripts(): void {
+	public function test_nf_admin_enqueue_scripts(): void {
 		global $wp_scripts;
 
 		$subject = new NF();
@@ -262,7 +262,7 @@ JSON;
 	/**
 	 * Test template_file_paths().
 	 */
-	public function est_template_file_paths(): void {
+	public function test_template_file_paths(): void {
 		$paths    = [ 'some path' ];
 		$expected = array_merge( $paths, [ str_replace( '\\', '/', HCAPTCHA_PATH . '/src/php/NF/templates/' ) ] );
 
@@ -283,7 +283,7 @@ JSON;
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function est_set_form_id(): void {
+	public function test_set_form_id(): void {
 		$form_id = 23;
 
 		$subject = new NF();
@@ -298,7 +298,7 @@ JSON;
 	/**
 	 * Test localize_field().
 	 */
-	public function est_localize_field(): void {
+	public function test_localize_field(): void {
 		$form_id  = 1;
 		$field_id = 5;
 		$field    = [
@@ -360,7 +360,7 @@ JSON;
 	/**
 	 * Test nf_captcha_script().
 	 */
-	public function est_nf_captcha_script(): void {
+	public function test_nf_captcha_script(): void {
 		$subject = new NF();
 
 		$subject->nf_captcha_script();
