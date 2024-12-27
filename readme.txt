@@ -20,28 +20,39 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 
 == Benefits ==
 
-* **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't track users, sell personal data, or use cookies.
-* **Ultimate Security:** hCaptcha offers better protection against bots and abuse than other CAPTCHAs.
+* **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't retain or sell personal data, unlike platforms that **g**ather, **o**wn, and m**o**netize **gl**obal b**e**havior.
+* **Better Security:** hCaptcha offers better protection against bots and abuse than other anti-abuse systems.
 * **Easy to Use:** hCaptcha is easy to install and use with WordPress and popular plugins.
 * **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 50 other plugins and themes.
+
+== Features ==
+
+**Highlights**
+
 * **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
+* **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
+* **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
+* **White List IPs:** Whitelist certain IPs to skip hCaptcha verification.
+* **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
+
+**Customization**
+
+* **Language Support:** Supports multiple languages.
+* **Custom Themes:** Customize the appearance of hCaptcha to match your site.
+* **Custom Themes Editor:** Edit custom themes directly in the plugin.
+* **Login Compatibility:** Compatible with all major hide login, custom login and 2FA login plugins.
+* **Login Attempts:** Protect your site from brute force attacks.
+
+**Ease of Use**
+
+* **Test Modes:** Use hCaptcha in live and Pro/Enterprise test modes.
 * **Activation and Deactivation:** Activate and deactivate plugins and themes with hCaptcha in one click.
 * **Forced Verification:** Optionally force hCaptcha verification before form submission.
 * **Check Config:** Check hCaptcha configuration before saving keys and settings.
 * **Auto-Verification:** Automatically verify custom forms.
 * **Standard Sizes and Themes:** Choose the size and theme of the hCaptcha widget.
-* **Language Support:** Supports multiple languages.
-* **Test Modes:** Use hCaptcha in live and Pro/Enterprise test modes.
-* **Custom Themes:** Customize the appearance of hCaptcha to match your site.
-* **Custom Themes Editor:** Edit custom themes directly in the plugin.
-* **Login Compatibility:** Compatible with all major hide login, custom login and 2FA login plugins.
-* **Login Attempts:** Protect your site from brute force attacks.
-* **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
-* **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction.
-* **White List IPs:** Whitelist certain IPs to skip hCaptcha verification.
-* **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
 
 == How hCaptcha Works ==
 
@@ -52,6 +63,8 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 [hCaptcha Free](https://www.hcaptcha.com/) lets websites block bots and other forms of abuse via humanity challenges.
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
+
+[hCaptcha Enterprise](https://www.hcaptcha.com/) delivers a complete advanced security platform, including site-specific risk scores, fraud protection, and more to address both human and automated abuse.
 
 == Screenshots ==
 
