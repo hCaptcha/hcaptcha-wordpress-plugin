@@ -142,13 +142,13 @@ class Events {
 		);
 		$args['dates'] = $args['dates'] ?: self::get_default_dates();
 
-		$columns    = implode( ',', $args['columns'] );
-		$columns    = $columns ?: '*';
-		$table_name = $wpdb->prefix . self::TABLE_NAME;
-		$where_date = self::get_where_date_gmt( $args );
-		$orderby    = self::get_order_by( $args );
-		$offset     = absint( $args['offset'] );
-		$limit      = absint( $args['limit'] );
+		$columns           = implode( ',', $args['columns'] );
+		$columns           = $columns ?: '*';
+		$table_name        = $wpdb->prefix . self::TABLE_NAME;
+		$where_date        = self::get_where_date_gmt( $args );
+		$where_date_nested = self::get_where_date_gmt_nested( $args );
+		$orderby           = self::get_order_by( $args );
+		$limit             = absint( $args['limit'] );
 
 		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -161,10 +161,9 @@ class Events {
 				"SELECT
     					$columns
 						FROM $table_name
-						WHERE $where_date
+						WHERE $where_date_nested
 						$orderby
-						LIMIT %d, %d",
-				$offset,
+						LIMIT %d",
 				$limit
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			),
@@ -342,6 +341,57 @@ class Events {
 				"date_gmt BETWEEN '%s' AND '%s'",
 				esc_sql( $dates[0] ),
 				esc_sql( $dates[1] )
+			);
+		} else {
+			$where_date = '1=1';
+		}
+
+		return $where_date;
+	}
+
+	/**
+	 * Get where date GMT with nested request to optimize.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	public static function get_where_date_gmt_nested( array $args ): string {
+		global $wpdb;
+
+		$dates = $args['dates'];
+
+		if ( $dates ) {
+			$dates[1] = $dates[1] ?? $dates[0];
+
+			$dates[0] .= ' 00:00:00';
+			$dates[1] .= ' 23:59:59';
+
+			foreach ( $dates as &$date ) {
+				$date = wp_date( 'Y-m-d H:i:s', strtotime( $date ) );
+			}
+
+			unset( $date );
+
+			$table_name = $wpdb->prefix . self::TABLE_NAME;
+			$offset     = absint( $args['offset'] );
+
+			$where_date = sprintf(
+				"date_gmt BETWEEN '%s' AND '%s'
+						AND date_gmt <= (
+							SELECT date_gmt
+							FROM %s
+							WHERE date_gmt BETWEEN '%s' AND '%s'
+							ORDER BY date_gmt DESC
+							LIMIT %d, 1
+						)
+						",
+				esc_sql( $dates[0] ),
+				esc_sql( $dates[1] ),
+				$table_name,
+				esc_sql( $dates[0] ),
+				esc_sql( $dates[1] ),
+				$offset
 			);
 		} else {
 			$where_date = '1=1';
