@@ -91,27 +91,29 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	}
 
 	function onPageNumberEnter( event ) {
-		if ( event.key === 'Enter' ) {
-			event.preventDefault();
+		if ( event.key !== 'Enter' ) {
+			return;
+		}
 
-			const currentUrl = new URL( window.location.href );
-			let paged = parseInt( currentUrl.searchParams.get( 'paged' ) );
-			const newPaged = parseInt( event.target.value );
+		event.preventDefault();
 
-			if ( isNaN( paged ) || paged < 1 ) {
-				paged = 1;
-			}
+		const currentUrl = new URL( window.location.href );
+		let paged = parseInt( currentUrl.searchParams.get( 'paged' ) );
+		const newPaged = parseInt( event.target.value );
 
-			if ( isNaN( newPaged ) || newPaged < 1 ) {
-				return;
-			}
+		if ( isNaN( paged ) || paged < 1 ) {
+			paged = 1;
+		}
 
-			currentUrl.searchParams.delete( 'paged' );
+		if ( isNaN( newPaged ) || newPaged < 1 ) {
+			return;
+		}
 
-			if ( newPaged !== paged ) {
-				currentUrl.searchParams.set( 'paged', newPaged.toString() );
-				window.location.href = currentUrl.href;
-			}
+		currentUrl.searchParams.delete( 'paged' );
+
+		if ( newPaged !== paged ) {
+			currentUrl.searchParams.set( 'paged', newPaged.toString() );
+			window.location.href = currentUrl.href;
 		}
 	}
 
