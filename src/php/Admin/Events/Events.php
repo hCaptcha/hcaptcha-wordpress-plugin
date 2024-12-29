@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Admin\Events;
 
+use Exception;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 
@@ -424,7 +425,13 @@ class Events {
 	private static function get_default_dates(): array {
 		$end_date   = date_create_immutable( 'now', wp_timezone() );
 		$start_date = $end_date;
-		$start_date = $start_date->modify( '-30 day' );
+
+		try {
+			$start_date = $start_date->modify( '-30 day' );
+		} catch ( Exception $e ) {
+			$start_date = $end_date;
+		}
+
 		$start_date = $start_date->setTime( 0, 0 );
 		$end_date   = $end_date->setTime( 23, 59, 59 );
 		$format     = 'Y-m-d';
