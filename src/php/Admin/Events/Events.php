@@ -150,12 +150,15 @@ class Events {
 		$offset     = absint( $args['offset'] );
 		$limit      = absint( $args['limit'] );
 
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$results = (array) $wpdb->get_results(
+		$queries = [
+			'START TRANSACTION',
+			"SELECT COUNT(*)
+				FROM $table_name
+				WHERE $where_date",
 			$wpdb->prepare(
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				"SELECT
-						SQL_CALC_FOUND_ROWS
     					$columns
 						FROM $table_name
 						WHERE $where_date
@@ -164,12 +167,31 @@ class Events {
 				$offset,
 				$limit
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			)
-		);
+			),
+			'COMMIT',
+		];
 
-		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
+		$query_results = [];
 
+		foreach ( $queries as $query ) {
+			$result          = $wpdb->query( $query );
+			$query_results[] = $wpdb->last_result;
+
+			if ( false === $result ) {
+				$wpdb->query( 'ROLLBACK' );
+				break;
+			}
+		}
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( false !== $result ) {
+			$results = (array) $query_results[2];
+			$total   = (int) $query_results[1][0]->{'COUNT(*)'};
+		} else {
+			$results = [];
+			$total   = 0;
+		}
 
 		return [
 			'items' => $results,
