@@ -38,6 +38,20 @@ class EventsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Start transaction.
+	 *
+	 * @return void
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 */
+	public function start_transaction() {
+		parent::start_transaction();
+
+		// Disable temporary tables creating.
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+	}
+
+	/**
 	 * Test constructor and init_hooks().
 	 *
 	 * @return void
@@ -274,7 +288,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		global $wpdb;
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$expected_query  = "CREATE TEMPORARY TABLE {$wpdb->prefix}hcaptcha_events (
+		$expected_query  = "CREATE TABLE {$wpdb->prefix}hcaptcha_events (
 		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		    source      VARCHAR(256)    NOT NULL,
 		    form_id     VARCHAR(20)     NOT NULL,
