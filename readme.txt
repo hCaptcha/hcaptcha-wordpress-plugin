@@ -629,6 +629,7 @@ Instructions for popular native integrations are below:
 * Added ability to hide the login errors.
 * Added anonymous collection of IP and User Agent data to conform to GDPR requirements.
 * Added extended info about IP address on the Events page on hover.
+* Optimized Events page performance for large databases with millions of entries.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
 * Fixed help text box layout on the General page.
