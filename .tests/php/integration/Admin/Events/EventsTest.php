@@ -20,7 +20,9 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test EventsTest class.
  *
- * @group events
+ * @requires PHP >= 8.0
+ *
+ * @group    events
  */
 class EventsTest extends HCaptchaWPTestCase {
 
