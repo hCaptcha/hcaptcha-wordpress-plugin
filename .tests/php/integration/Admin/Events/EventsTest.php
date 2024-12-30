@@ -120,6 +120,8 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->assertEquals( '', $event->uuid );
 		$this->assertEquals( json_encode( $error_codes ), $event->error_codes );
 		// phpcs:enable WordPress.WP.AlternativeFunctions.json_encode_json_encode
+
+		delete_option( 'hcaptcha_settings' );
 	}
 
 	/**
