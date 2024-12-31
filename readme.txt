@@ -627,7 +627,7 @@ Instructions for popular native integrations are below:
 * Added the ability to install plugins and themes from the Integrations page.
 * Added comparison with reCAPTCHA and Turnstile to the Notifications sections on the General page.
 * Added ability to hide the login errors.
-* Added anonymous collection of IP and User Agent data to conform to GDPR requirements.
+* Added anonymous collection of IP and User Agent data in locally stored analytics to simplify GDPR compliance.
 * Added extended info about IP address on the Events page on hover.
 * Added selecting any page on Forms and Events.
 * Optimized Events page performance for large databases with millions of entries.
