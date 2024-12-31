@@ -259,6 +259,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-areas:
 		"logged whitelisted"
 		"recaptcha whitelisted"
+		"hide-login-errors whitelisted"
 		"network whitelisted"
 		"login-limit login-interval"
 		"delay .";
@@ -272,6 +273,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off {
 	grid-area: recaptcha;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors {
+	grid-area: hide-login-errors;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
@@ -303,6 +308,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
 	padding: 0;
 }
@@ -329,13 +335,17 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
 		"statistics collect-ip"
-		"statistics collect-ua";
+		"anonymous collect-ua";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
 
 .hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics {
 	grid-area: statistics;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-anonymous {
+	grid-area: anonymous;
 }
 
 .hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ip {
@@ -351,6 +361,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: auto;
 }
 
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-anonymous th,
 .hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ua th {
 	padding: 0;
 }
@@ -407,6 +418,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		grid-template-areas:
 		"logged"
 		"recaptcha"
+		"hide-login-errors"
 		"network"
 		"whitelisted"
 		"login-limit"
@@ -422,6 +434,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		grid-template-columns: repeat(1, 1fr);
 		grid-template-areas:
 		"statistics"
+		"anonymous"
 		"collect-ip"
 		"collect-ua";
 	}

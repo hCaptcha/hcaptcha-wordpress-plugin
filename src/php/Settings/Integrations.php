@@ -9,8 +9,13 @@ namespace HCaptcha\Settings;
 
 use Closure;
 use KAGG\Settings\Abstracts\SettingsBase;
+use Plugin_Upgrader;
+use Theme_Upgrader;
+use WP_Ajax_Upgrader_Skin;
 use WP_Error;
+use WP_Filesystem_Base;
 use WP_Theme;
+use WP_Upgrader;
 
 /**
  * Class Integrations
@@ -70,7 +75,14 @@ class Integrations extends PluginSettingsBase {
 	];
 
 	/**
-	 * Entity name to activate/deactivate. Can be 'plugin' or 'theme'.
+	 * Install plugin or theme.
+	 *
+	 * @var mixed
+	 */
+	protected $install;
+
+	/**
+	 * Entity name to install/activate/deactivate. Can be 'plugin' or 'theme'.
 	 *
 	 * @var string
 	 */
@@ -440,6 +452,15 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'learn_press_status'               => [
+				'label'   => 'LearnPress',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'login_signup_popup_status'        => [
 				'label'   => 'Login Signup Popup',
 				'type'    => 'checkbox',
@@ -588,6 +609,17 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'tutor_status'                     => [
+				'label'   => 'Tutor LMS',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout'  => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'ultimate_member_status'           => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',
@@ -684,7 +716,7 @@ class Integrations extends PluginSettingsBase {
 			'<div class="hcaptcha-integrations-logo" data-installed="%1$s">' .
 			'<img src="%2$s" alt="%3$s Logo" data-label="%3$s" data-entity="%4$s">' .
 			'</div>',
-			$form_field['installed'] ? '1' : '0',
+			$form_field['installed'] ? 'true' : 'false',
 			esc_url( constant( 'HCAPTCHA_URL' ) . "/assets/images/logo/$logo_file" ),
 			$label,
 			$entity
@@ -914,28 +946,28 @@ class Integrations extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
-				'action'             => self::ACTIVATE_ACTION,
-				'nonce'              => wp_create_nonce( self::ACTIVATE_ACTION ),
+				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+				'action'              => self::ACTIVATE_ACTION,
+				'nonce'               => wp_create_nonce( self::ACTIVATE_ACTION ),
 				/* translators: 1: Plugin name. */
-				'activateMsg'        => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'installPluginMsg'    => __( 'Install and activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				/* translators: 1: Theme name. */
+				'installThemeMsg'     => __( 'Install and activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
-				'deactivateMsg'      => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'activatePluginMsg'   => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
-				'installMsg'         => __( 'Please install %s plugin manually.', 'hcaptcha-for-forms-and-more' ),
+				'deactivatePluginMsg' => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
-				'activateThemeMsg'   => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				'activateThemeMsg'    => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
-				'deactivateThemeMsg' => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
-				/* translators: 1: Theme name. */
-				'installThemeMsg'    => __( 'Please install %s theme manually.', 'hcaptcha-for-forms-and-more' ),
-				'selectThemeMsg'     => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
-				'onlyOneThemeMsg'    => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
-				'unexpectedErrorMsg' => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
-				'OKBtnText'          => __( 'OK', 'hcaptcha-for-forms-and-more' ),
-				'CancelBtnText'      => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
-				'themes'             => $this->get_themes(),
-				'defaultTheme'       => $this->get_default_theme(),
+				'deactivateThemeMsg'  => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				'selectThemeMsg'      => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
+				'onlyOneThemeMsg'     => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
+				'unexpectedErrorMsg'  => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText'           => __( 'OK', 'hcaptcha-for-forms-and-more' ),
+				'CancelBtnText'       => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
+				'themes'              => $this->get_themes(),
+				'defaultTheme'        => $this->get_default_theme(),
 			]
 		);
 
@@ -955,12 +987,13 @@ class Integrations extends PluginSettingsBase {
 	public function activate(): void {
 		$this->run_checks( self::ACTIVATE_ACTION );
 
-		$activate     = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
-		$this->entity = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$new_theme    = filter_input( INPUT_POST, 'newTheme', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status       = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status       = str_replace( '-', '_', $status );
-		$entity_name  = $this->form_fields[ $status ]['label'] ?? '';
+		$this->install = filter_input( INPUT_POST, 'install', FILTER_VALIDATE_BOOLEAN );
+		$activate      = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
+		$this->entity  = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$new_theme     = filter_input( INPUT_POST, 'newTheme', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status        = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status        = str_replace( '-', '_', $status );
+		$entity_name   = $this->form_fields[ $status ]['label'] ?? '';
 
 		header_remove( 'Location' );
 		http_response_code( 200 );
@@ -997,22 +1030,36 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function process_plugins( bool $activate, array $plugins, string $plugin_name ): void {
 		if ( $activate ) {
-			$activate_plugins = $this->activate_plugins( $plugins );
+			$result = $this->activate_plugins( $plugins );
 
-			if ( $activate_plugins ) {
-				$plugin_names = $this->plugin_names_from_tree( $this->plugins_tree );
+			if ( is_wp_error( $result ) ) {
+				$error_message = $result->get_error_message();
+			} else {
+				$error_message = '';
+				$plugin_names  = $this->plugin_names_from_tree( $this->plugins_tree );
 
 				if ( array_filter( $plugin_names ) ) {
-					$message = sprintf(
-					/* translators: 1: Plugin name. */
-						_n(
-							'%s plugin is activated.',
-							'%s plugins are activated.',
-							count( $plugin_names ),
-							'hcaptcha-for-forms-and-more'
-						),
-						implode( ', ', $plugin_names )
-					);
+					$message = $this->install
+						? sprintf(
+						/* translators: 1: Plugin name. */
+							_n(
+								'%s plugin is installed and activated.',
+								'%s plugins are installed and activated.',
+								count( $plugin_names ),
+								'hcaptcha-for-forms-and-more'
+							),
+							implode( ', ', $plugin_names )
+						)
+						: sprintf(
+						/* translators: 1: Plugin name. */
+							_n(
+								'%s plugin is activated.',
+								'%s plugins are activated.',
+								count( $plugin_names ),
+								'hcaptcha-for-forms-and-more'
+							),
+							implode( ', ', $plugin_names )
+						);
 
 					$this->send_json_success( esc_html( $message ) );
 
@@ -1020,13 +1067,21 @@ class Integrations extends PluginSettingsBase {
 				}
 			}
 
-			$message = sprintf(
-			/* translators: 1: Plugin name. */
-				__( 'Error activating %s plugin.', 'hcaptcha-for-forms-and-more' ),
-				$plugin_name
-			);
+			$message = $this->install
+				? sprintf(
+				/* translators: 1: Plugin name, 2: Error message. */
+					__( 'Error installing and activating %1$s plugin: %2$s', 'hcaptcha-for-forms-and-more' ),
+					$plugin_name,
+					$error_message
+				)
+				: sprintf(
+				/* translators: 1: Plugin name, 2: Error message. */
+					__( 'Error activating %1$s plugin: %2$s', 'hcaptcha-for-forms-and-more' ),
+					$plugin_name,
+					$error_message
+				);
 
-			$this->send_json_error( esc_html( $message ) );
+			$this->send_json_error( esc_html( rtrim( $message, ': .' ) . '.' ) );
 
 			return; // For testing purposes.
 		}
@@ -1040,19 +1095,6 @@ class Integrations extends PluginSettingsBase {
 		);
 
 		$this->send_json_success( esc_html( $message ) );
-	}
-
-	/**
-	 * Deactivate plugins.
-	 *
-	 * @param array $plugins Plugins to deactivate.
-	 *
-	 * @return void
-	 */
-	protected function deactivate_plugins( array $plugins ): void {
-		$network_wide = is_multisite() && $this->is_network_wide();
-
-		deactivate_plugins( $plugins, true, $network_wide );
 	}
 
 	/**
@@ -1093,12 +1135,22 @@ class Integrations extends PluginSettingsBase {
 
 		$plugin_names = array_merge( [], ...$plugin_names );
 
-		if ( ! $this->activate_theme( $theme ) ) {
-			$message = sprintf(
-			/* translators: 1: Theme name. */
-				__( 'Error activating %s theme.', 'hcaptcha-for-forms-and-more' ),
-				$theme
-			);
+		$result = $this->activate_theme( $theme );
+
+		if ( $result && is_wp_error( $result ) ) {
+			$message = $this->install
+				? sprintf(
+				/* translators: 1: Theme name, 2: Error message. */
+					__( 'Error installing and activating %1$s theme: %2$s', 'hcaptcha-for-forms-and-more' ),
+					$theme,
+					$result->get_error_message()
+				)
+				: sprintf(
+				/* translators: 1: Theme name, 2: Error message. */
+					__( 'Error activating %1$s theme: %2$s', 'hcaptcha-for-forms-and-more' ),
+					$theme,
+					$result->get_error_message()
+				);
 
 			$this->send_json_error( esc_html( $message ) );
 
@@ -1137,20 +1189,24 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $plugins Plugins to activate.
 	 *
-	 * @return bool
+	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
-	protected function activate_plugins( array $plugins ): bool {
+	protected function activate_plugins( array $plugins ) {
+		$results = new WP_Error();
+
 		foreach ( $plugins as $plugin ) {
 			$this->plugins_tree = $this->build_plugins_tree( $plugin );
 			$result             = $this->activate_plugin_tree( $this->plugins_tree );
 
 			if ( ! is_wp_error( $result ) ) {
 				// Activate the first available plugin only.
-				return true;
+				return $result;
 			}
+
+			$results->add( $result->get_error_code(), $result->get_error_message() );
 		}
 
-		return false;
+		return $results;
 	}
 
 	/**
@@ -1158,7 +1214,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param array $node Node of the plugin tree.
 	 *
-	 * @return null|true|WP_Error
+	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
 	protected function activate_plugin_tree( array &$node ) {
 		if ( $node['children'] ) {
@@ -1191,6 +1247,18 @@ class Integrations extends PluginSettingsBase {
 			return true;
 		}
 
+		if ( $this->install ) {
+			ob_start();
+
+			$result = $this->install_plugin( $plugin );
+
+			ob_end_clean();
+
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
 		ob_start();
 
 		$result = $this->activate_plugin( $plugin );
@@ -1198,6 +1266,51 @@ class Integrations extends PluginSettingsBase {
 		ob_end_clean();
 
 		return $result;
+	}
+
+	/**
+	 * Install plugin.
+	 *
+	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
+	 *
+	 * @return null|WP_Error Null on success, WP_Error on failure.
+	 */
+	protected function install_plugin( string $plugin ): ?WP_Error {
+
+		$plugin = trim( explode( '/', $plugin )[0] );
+
+		if ( empty( $plugin ) ) {
+			return new WP_Error( 'no_plugin_specified', __( 'No plugin specified.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		if ( ! current_user_can( 'install_plugins' ) ) {
+			return new WP_Error(
+				'not_allowed',
+				__( 'Sorry, you are not allowed to install plugins on this site.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+		$api = plugins_api(
+			'plugin_information',
+			[
+				'slug'   => $plugin,
+				'fields' => [
+					'sections' => false,
+				],
+			]
+		);
+
+		if ( is_wp_error( $api ) ) {
+			return $api;
+		}
+
+		$skin     = new WP_Ajax_Upgrader_Skin();
+		$upgrader = new Plugin_Upgrader( $skin );
+
+		return $this->install_entity( $upgrader, $skin, $api->download_link );
 	}
 
 	/**
@@ -1321,26 +1434,99 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Deactivate plugins.
+	 *
+	 * @param array $plugins Plugins to deactivate.
+	 *
+	 * @return void
+	 */
+	protected function deactivate_plugins( array $plugins ): void {
+		$network_wide = is_multisite() && $this->is_network_wide();
+
+		deactivate_plugins( $plugins, true, $network_wide );
+	}
+
+	/**
 	 * Activate theme.
 	 *
 	 * @param string $theme Theme to activate.
 	 *
-	 * @return bool
+	 * @return null|WP_Error Null on success, WP_Error on failure.
 	 */
-	protected function activate_theme( string $theme ): bool {
+	protected function activate_theme( string $theme ): ?WP_Error {
 		if ( ! wp_get_theme( $theme )->exists() ) {
-			return false;
+			return new WP_Error(
+				'theme_not_found',
+				__( 'Theme not found.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		if ( $this->install ) {
+			ob_start();
+
+			$result = $this->install_theme( $theme );
+
+			ob_end_clean();
+
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 		}
 
 		ob_start();
 		switch_theme( $theme );
 		ob_end_clean();
 
-		return true;
+		return null;
 	}
 
 	/**
-	 * Send json success.
+	 * Install theme.
+	 *
+	 * @param string $theme Theme to install.
+	 *
+	 * @return null|WP_Error Null on success, WP_Error on failure.
+	 */
+	private function install_theme( string $theme ): ?WP_Error {
+		$theme = trim( $theme );
+
+		if ( empty( $theme ) ) {
+			return new WP_Error( 'no_theme_specified', __( 'No theme specified.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		if ( ! current_user_can( 'install_themes' ) ) {
+			return new WP_Error(
+				'not_allowed',
+				__(
+					'Sorry, you are not allowed to install themes on this site.',
+					'hcaptcha-for-forms-and-more'
+				)
+			);
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/theme.php';
+
+		$api = themes_api(
+			'theme_information',
+			[
+				'slug'   => $theme,
+				'fields' => [ 'sections' => false ],
+			]
+		);
+
+		if ( is_wp_error( $api ) ) {
+			return new WP_Error( $api->get_error_code(), $api->get_error_message() );
+		}
+
+		$skin     = new WP_Ajax_Upgrader_Skin();
+		$upgrader = new Theme_Upgrader( $skin );
+
+		return $this->install_entity( $upgrader, $skin, $api->download_link );
+	}
+
+	/**
+	 * Send JSON success.
 	 *
 	 * @param string $message Message.
 	 *
@@ -1430,7 +1616,8 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Remove action or filter.
 	 *
-	 * @param string $callback_pattern Callback pattern to match. A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param string $callback_pattern Callback pattern to match. A regex matching to
+	 *                                 SomeNameSpace\SomeClass::some_method.
 	 * @param string $hook_name        Action name.
 	 *
 	 * @return void
@@ -1452,7 +1639,8 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Maybe remove action.
 	 *
-	 * @param string $callback_pattern Callback pattern to match. A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param string $callback_pattern Callback pattern to match. A regex matching to
+	 *                                 SomeNameSpace\SomeClass::some_method.
 	 * @param string $hook_name        Hook name.
 	 * @param array  $action           Action data.
 	 * @param int    $priority         Priority.
@@ -1479,5 +1667,54 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		remove_action( $hook_name, $callback, $priority );
+	}
+
+	/**
+	 * Install entity (plugin or theme).
+	 *
+	 * @param WP_Upgrader           $upgrader      Upgrader instance.
+	 * @param WP_Ajax_Upgrader_Skin $skin          Upgrader skin instance.
+	 * @param string                $download_link Download link.
+	 *
+	 * @return WP_Error|null
+	 * @noinspection PhpPossiblePolymorphicInvocationInspection
+	 */
+	protected function install_entity( WP_Upgrader $upgrader, WP_Ajax_Upgrader_Skin $skin, string $download_link ): ?WP_Error {
+		$result = $upgrader->install( $download_link );
+
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( $result->get_error_code(), $result->get_error_message() );
+		}
+
+		if ( is_wp_error( $skin->result ) ) {
+			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+		}
+
+		if ( $skin->get_errors() && $skin->get_errors()->has_errors() ) {
+			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+		}
+
+		if ( is_null( $result ) ) {
+			global $wp_filesystem;
+
+			$status['errorCode']    = 'unable_to_connect_to_filesystem';
+			$status['errorMessage'] = __(
+				'Unable to connect to the filesystem. Please confirm your credentials.',
+				'hcaptcha-for-forms-and-more'
+			);
+
+			// Pass through the error from WP_Filesystem if one was raised.
+			if (
+				$wp_filesystem instanceof WP_Filesystem_Base &&
+				is_wp_error( $wp_filesystem->errors ) &&
+				$wp_filesystem->errors->has_errors()
+			) {
+				$status['errorMessage'] = esc_html( $wp_filesystem->errors->get_error_message() );
+			}
+
+			return new WP_Error( $status['errorCode'], $status['errorMessage'] );
+		}
+
+		return null;
 	}
 }

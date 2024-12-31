@@ -56,7 +56,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'Empty contact form'                 => [ '', '' ],
 			'Classic contact form'               => [
 				'<form class=\'contact-form\' <button type=\'submit\'>Contact Us</button>' . $hash_input . '</form>',
-				'<form class=\'contact-form\' <div class="grunion-field-wrap">' . $hcaptcha . '</div><button type=\'submit\'>Contact Us</button>' . $hash_input . '</form>',
+				'<form class=\'contact-form\' <div class="grunion-field-hcaptcha-wrap grunion-field-wrap">' . $hcaptcha . '</div><button type=\'submit\'>Contact Us</button>' . $hash_input . '</form>',
 			],
 			'Classic contact form with hcaptcha' => [
 				'[contact-form] Some contact form [hcaptcha][/contact-form]',
@@ -64,7 +64,7 @@ class FormTest extends HCaptchaWPTestCase {
 			],
 			'Block contact form'                 => [
 				'<form class="wp-block-jetpack-contact-form" <div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button>' . $hash_input . '</form>',
-				'<form class="wp-block-jetpack-contact-form" <div class="grunion-field-wrap">' . $hcaptcha . '</div><div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button>' . $hash_input . '</form>',
+				'<form class="wp-block-jetpack-contact-form" <div class="grunion-field-hcaptcha-wrap grunion-field-wrap">' . $hcaptcha . '</div><div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button>' . $hash_input . '</form>',
 			],
 			'Block contact form with hcaptcha'   => [
 				'<form class="wp-block-jetpack-contact-form" [hcaptcha]<button type="submit">Contact Us</button></form>',
@@ -73,7 +73,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'Block contact form and search form' => [
 				'<form class="wp-block-jetpack-contact-form" <div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button>' . $hash_input . '</form>' .
 				'<form class="search-form" <input type="submit" class="search-submit" value="Search"></form>',
-				'<form class="wp-block-jetpack-contact-form" <div class="grunion-field-wrap">' . $hcaptcha . '</div><div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button>' . $hash_input . '</form>' .
+				'<form class="wp-block-jetpack-contact-form" <div class="grunion-field-hcaptcha-wrap grunion-field-wrap">' . $hcaptcha . '</div><div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button>' . $hash_input . '</form>' .
 				'<form class="search-form" <input type="submit" class="search-submit" value="Search"></form>',
 			],
 		];

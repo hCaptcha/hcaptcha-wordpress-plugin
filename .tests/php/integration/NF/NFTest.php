@@ -11,16 +11,14 @@ use HCaptcha\NF\Base;
 use HCaptcha\NF\Field;
 use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use Ninja_Forms;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test ninja-forms-hcaptcha.php file.
  *
- * Ninja Forms requires PHP 7.2.
- *
- * @requires PHP < 8.3
- * @group    nf
+ * @group nf
  */
 class NFTest extends HCaptchaPluginWPTestCase {
 
@@ -69,10 +67,6 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_filter( 'ninja_forms_loaded', [ $subject, 'place_hcaptcha_before_recaptcha_field' ] )
-		);
-		self::assertSame(
-			10,
 			has_filter( 'ninja_forms_field_template_file_paths', [ $subject, 'template_file_paths' ] )
 		);
 		self::assertSame(
@@ -94,6 +88,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	 * Test admin_template().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_admin_template(): void {
 		$subject = new NF();
@@ -248,33 +243,17 @@ JSON;
 	 * Test register_fields.
 	 */
 	public function test_register_fields(): void {
-		$fields = [ 'some field' ];
+		new NF();
 
-		$fields = ( new NF() )->register_fields( $fields );
+		$nf_instance = Ninja_Forms::instance();
+
+		$nf_instance->instantiateTranslatableObjects();
+
+		$fields = $nf_instance->fields;
 
 		self::assertInstanceOf( Field::class, $fields['hcaptcha-for-ninja-forms'] );
-	}
 
-	/**
-	 * Test place_hcaptcha_before_recaptcha_field().
-	 *
-	 * @return void
-	 */
-	public function test_place_hcaptcha_before_recaptcha_field(): void {
-		$hcaptcha_key = Base::NAME;
-
-		$fields     = Ninja_Forms()->fields;
-		$hcap_index = array_search( $hcaptcha_key, array_keys( $fields ), true );
-
-		self::assertFalse( $hcap_index );
-
-		$subject = new NF();
-
-		Ninja_Forms()->fields = $subject->register_fields( Ninja_Forms()->fields );
-		$subject->place_hcaptcha_before_recaptcha_field();
-
-		$fields      = Ninja_Forms()->fields;
-		$hcap_index  = array_search( $hcaptcha_key, array_keys( $fields ), true );
+		$hcap_index  = array_search( Base::NAME, array_keys( $fields ), true );
 		$recap_index = array_search( 'recaptcha', array_keys( $fields ), true );
 
 		self::assertSame( $recap_index, $hcap_index + 1 );

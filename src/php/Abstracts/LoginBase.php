@@ -76,6 +76,7 @@ abstract class LoginBase {
 		add_action( 'login_form', [ $this, 'display_signature' ], PHP_INT_MAX );
 		add_filter( 'login_form_middle', [ $this, 'add_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'check_signature' ], PHP_INT_MAX, 2 );
+		add_filter( 'authenticate', [ $this, 'hide_login_error' ], 100, 3 );
 
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
 		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
@@ -98,8 +99,9 @@ abstract class LoginBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public function add_signature( $content, array $args ): string {
+	public function add_signature( $content, $args ): string {
 		$content = (string) $content;
 
 		ob_start();
@@ -137,6 +139,44 @@ abstract class LoginBase {
 		}
 
 		return $this->login_base_verify( $user, $password );
+	}
+
+	/**
+	 * Hides login error when the relevant setting on.
+	 *
+	 * @param null|WP_User|WP_Error $user     WP_User if the user is authenticated.
+	 *                                        WP_Error or null otherwise.
+	 * @param string                $username Username or email address.
+	 * @param string                $password User password.
+	 *
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function hide_login_error( $user, $username, $password ) {
+		if ( ! is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		if ( ! hcaptcha()->settings()->is_on( 'hide_login_errors' ) ) {
+			return $user;
+		}
+
+		$codes         = $user->get_error_codes();
+		$messages      = $user->get_error_messages();
+		$hcap_messages = hcap_get_error_messages();
+
+		foreach ( $codes as $i => $code ) {
+			if ( ! ( array_key_exists( $code, $hcap_messages ) && $hcap_messages[ $code ] === $messages[ $i ] ) ) {
+				// Remove all non-hCaptcha messages.
+				$user->remove( $code );
+			}
+		}
+
+		if ( ! $user->has_errors() ) {
+			$user->add( 'login_error', __( 'Login failed.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		return $user;
 	}
 
 	/**

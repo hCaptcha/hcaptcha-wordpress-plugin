@@ -41,18 +41,18 @@
     }
   },
   "engines": {
-    "node": ">=20.18.0",
-    "npm": ">=10.9.0"
+    "node": ">=22.12.0",
+    "npm": ">=10.9.2"
   },
-  "packageManager": "yarn@4.5.2",
+  "packageManager": "yarn@4.5.3",
   "dependencies": {
-    "@wordpress/hooks": "^4.12.0"
+    "@wordpress/hooks": "^4.14.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@inrupt/jest-jsdom-polyfills": "^3.2.4",
-    "@wordpress/eslint-plugin": "^21.5.0",
+    "@wordpress/eslint-plugin": "^21.6.0",
     "babel-loader": "^9.2.1",
     "coveralls": "^3.1.1",
     "css-loader": "^7.1.2",
@@ -64,10 +64,10 @@
     "jest-fetch-mock": "^3.0.3",
     "jquery": "^3.7.1",
     "mini-css-extract-plugin": "^2.9.2",
-    "prettier": "^3.3.3",
-    "terser-webpack-plugin": "^5.3.10",
+    "prettier": "^3.4.2",
+    "terser-webpack-plugin": "^5.3.11",
     "typescript": "^5.7.2",
-    "webpack": "^5.96.1",
+    "webpack": "^5.97.1",
     "webpack-cli": "^5.1.4",
     "webpack-remove-empty-scripts": "^1.0.4"
   },

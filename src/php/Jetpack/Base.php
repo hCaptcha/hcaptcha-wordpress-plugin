@@ -201,7 +201,11 @@ HTML;
 	 */
 	public function print_inline_styles(): void {
 		$css = <<<CSS
-	form.contact-form .grunion-field-wrap .h-captcha,
+	form.contact-form .grunion-field-hcaptcha-wrap.grunion-field-wrap {
+		flex-direction: row !important;
+	}
+
+	form.contact-form .grunion-field-hcaptcha-wrap.grunion-field-wrap .h-captcha,
 	form.wp-block-jetpack-contact-form .grunion-field-wrap .h-captcha {
 		margin-bottom: 0;
 	}
@@ -331,7 +335,7 @@ CSS;
 	 * @return string
 	 */
 	protected function get_hcaptcha( array $args ): string {
-		return '<div class="grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
+		return '<div class="grunion-field-hcaptcha-wrap grunion-field-wrap">' . HCaptcha::form( $args ) . '</div>';
 	}
 
 	/**

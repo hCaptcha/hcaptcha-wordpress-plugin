@@ -465,22 +465,22 @@ class IntegrationsTest extends HCaptchaTestCase {
 				Integrations::HANDLE,
 				Integrations::OBJECT,
 				[
-					'ajaxUrl'            => $ajax_url,
-					'action'             => Integrations::ACTIVATE_ACTION,
-					'nonce'              => $nonce,
-					'activateMsg'        => 'Activate %s plugin?',
-					'deactivateMsg'      => 'Deactivate %s plugin?',
-					'installMsg'         => 'Please install %s plugin manually.',
-					'activateThemeMsg'   => 'Activate %s theme?',
-					'deactivateThemeMsg' => 'Deactivate %s theme?',
-					'installThemeMsg'    => 'Please install %s theme manually.',
-					'selectThemeMsg'     => 'Select theme to activate:',
-					'onlyOneThemeMsg'    => 'Cannot deactivate the only theme on the site.',
-					'unexpectedErrorMsg' => 'Unexpected error.',
-					'OKBtnText'          => 'OK',
-					'CancelBtnText'      => 'Cancel',
-					'themes'             => [ 'twentytwentyone' => 'Twenty Twenty-One' ],
-					'defaultTheme'       => 'twentytwentyone',
+					'ajaxUrl'             => $ajax_url,
+					'action'              => Integrations::ACTIVATE_ACTION,
+					'nonce'               => $nonce,
+					'installPluginMsg'    => 'Install and activate %s plugin?',
+					'installThemeMsg'     => 'Install and activate %s theme?',
+					'activatePluginMsg'   => 'Activate %s plugin?',
+					'deactivatePluginMsg' => 'Deactivate %s plugin?',
+					'activateThemeMsg'    => 'Activate %s theme?',
+					'deactivateThemeMsg'  => 'Deactivate %s theme?',
+					'selectThemeMsg'      => 'Select theme to activate:',
+					'onlyOneThemeMsg'     => 'Cannot deactivate the only theme on the site.',
+					'unexpectedErrorMsg'  => 'Unexpected error.',
+					'OKBtnText'           => 'OK',
+					'CancelBtnText'       => 'Cancel',
+					'themes'              => [ 'twentytwentyone' => 'Twenty Twenty-One' ],
+					'defaultTheme'        => 'twentytwentyone',
 				]
 			)
 			->once();
@@ -631,19 +631,24 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$activate         = true;
 		$plugins          = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name      = 'ACF Extended';
-		$plugins_tree     = [ 'acf-extended-pro/acf-extended.php' => [] ];
+		$plugins_tree     = [
+			'plugin'   => 'acf-extended-pro/acf-extended.php',
+			'children' => [],
+		];
 		$activation_stati = [];
+		$result           = null;
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$this->set_protected_property( $subject, 'plugins_tree', $plugins_tree );
 		$this->set_protected_property( $subject, 'entity', 'plugin' );
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( true );
+		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( $result );
 		$subject->shouldReceive( 'plugin_names_from_tree' )
 			->with( $plugins_tree )->once()->andReturn( [ $plugin_name ] );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->andReturn( $activation_stati );
 
+		WP_Mock::userFunction( 'is_wp_error' )->with( $result )->andReturn( false );
 		WP_Mock::userFunction( 'wp_send_json_success' )
 			->with(
 				[
@@ -666,19 +671,24 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$activate         = true;
 		$plugins          = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name      = 'ACF Extended';
-		$plugins_tree     = [ 'acf-extended-pro/acf-extended.php' => [] ];
+		$plugins_tree     = [
+			'plugin'   => 'acf-extended-pro/acf-extended.php',
+			'children' => [],
+		];
 		$activation_stati = [];
+		$result           = true;
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$this->set_protected_property( $subject, 'plugins_tree', $plugins_tree );
 		$this->set_protected_property( $subject, 'entity', 'plugin' );
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( true );
+		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( $result );
 		$subject->shouldReceive( 'plugin_names_from_tree' )
 			->with( $plugins_tree )->once()->andReturn( [] );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->andReturn( $activation_stati );
 
+		WP_Mock::userFunction( 'is_wp_error' )->with( $result )->andReturn( false );
 		WP_Mock::userFunction( 'wp_send_json_error' )
 			->with(
 				[
@@ -701,7 +711,11 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$activate         = true;
 		$plugins          = [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ];
 		$plugin_name      = 'ACF Extended';
-		$plugins_tree     = [ 'acf-extended-pro/acf-extended.php' => [] ];
+		$plugins_tree     = [
+			'plugin'   => 'acf-extended-pro/acf-extended.php',
+			'children' => [],
+			'result'   => 'some error',
+		];
 		$activation_stati = [];
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
@@ -869,7 +883,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 					return [ $plugin_names[ $i ] ];
 				}
 			);
-		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( true );
+		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( null );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
 		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
 		$this->set_protected_property( $subject, 'entity', 'theme' );
@@ -920,7 +934,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_default_theme' )->with()->twice()->andReturn( $default_theme );
-		$subject->shouldReceive( 'activate_theme' )->with( $default_theme )->once()->andReturn( true );
+		$subject->shouldReceive( 'activate_theme' )->with( $default_theme )->once()->andReturn( null );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
 		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
 		$this->set_protected_property( $subject, 'entity', 'theme' );
@@ -982,6 +996,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
+	 *
+	 * @runTestsInSeparateProcesses
+	 * @preserveGlobalState disabled
 	 */
 	public function test_process_theme_when_cannot_be_activated(): void {
 		$theme         = 'Avada';
@@ -994,13 +1011,20 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'twentytwentyone' => 'Twenty Twenty-One',
 		];
 		$default_theme = 'twentytwentyfour';
+		$error_code    = 'some error code';
+		$error_message = 'some error message';
 		$error_arr     = [
-			'message'      =>
-				"Error activating $theme theme.",
+			'message'      => "Error activating $theme theme: $error_message",
 			'stati'        => $stati,
 			'themes'       => $themes,
 			'defaultTheme' => $default_theme,
 		];
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
+		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
+		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$method  = 'process_theme';
@@ -1022,12 +1046,17 @@ class IntegrationsTest extends HCaptchaTestCase {
 					return [ $plugin_names[ $i ] ];
 				}
 			);
-		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( false );
+		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( $wp_error );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->once()->andReturn( $stati );
 		$subject->shouldReceive( 'get_themes' )->with()->once()->andReturn( $themes );
 		$this->set_protected_property( $subject, 'entity', 'theme' );
 		$this->set_protected_property( $subject, 'plugins_tree', $plugin_tree );
 
+		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
+			static function ( $thing ) {
+				return is_a( $thing, 'WP_Error', true );
+			}
+		);
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( $error_arr )->once();
 
 		$subject->$method( $theme );
@@ -1036,18 +1065,28 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test activate_plugins().
 	 *
+	 * @runTestsInSeparateProcesses
+	 * @preserveGlobalState disabled
+	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_plugins(): void {
-		$plugins      = [
+		$plugins       = [
 			'acf-extended-pro/acf-extended.php',
 			'acf-extended/acf-extended.php',
 		];
-		$plugin_trees = [
+		$plugin_trees  = [
 			$plugins[0] => [],
 			$plugins[1] => [],
 		];
-		$wp_error     = Mockery::mock( 'WP_Error' );
+		$error_code    = 'some error code';
+		$error_message = 'some error message';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
+		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
+		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
 
 		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
 			static function ( $thing ) {
@@ -1070,24 +1109,34 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'activate_plugin_tree' )
 			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( null );
 
-		self::assertTrue( $subject->$method( $plugins ) );
+		self::assertNull( $subject->$method( $plugins ) );
 	}
 
 	/**
 	 * Test activate_plugins() when no such plugins.
 	 *
+	 * @runTestsInSeparateProcesses
+	 * @preserveGlobalState disabled
+	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_plugins_when_no_such_plugins(): void {
-		$plugins      = [
+		$plugins       = [
 			'acf-extended-pro/acf-extended.php',
 			'acf-extended/acf-extended.php',
 		];
-		$plugin_trees = [
+		$plugin_trees  = [
 			$plugins[0] => [],
 			$plugins[1] => [],
 		];
-		$wp_error     = Mockery::mock( 'WP_Error' );
+		$error_code    = 'some error code';
+		$error_message = 'some error message';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
+		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
+		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
 
 		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
 			static function ( $thing ) {
@@ -1110,7 +1159,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'activate_plugin_tree' )
 			->with( $plugin_trees[ $plugins[1] ] )->once()->andReturn( $wp_error );
 
-		self::assertFalse( $subject->$method( $plugins ) );
+		$results = $subject->$method( $plugins );
+
+		self::assertEquals( $error_code, $results->get_error_code() );
+		self::assertEquals( $error_message, $results->get_error_message() );
 	}
 
 	/**
@@ -1121,13 +1173,16 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @param bool       $expected    Expected.
 	 *
 	 * @return void
-	 * @dataProvider dp_test_activate_plugins_with_plugins_tree
-	 * @noinspection PhpMissingParamTypeInspection
+	 * @dataProvider        dp_test_activate_plugins_with_plugins_tree
+	 * @noinspection        PhpMissingParamTypeInspection
+	 *
+	 * @runTestsInSeparateProcesses
+	 * @preserveGlobalState disabled
 	 */
 	public function test_activate_plugins_with_plugins_tree( $wish_result, $woo_result, bool $expected ): void {
-		$wish_slug    = 'woocommerce-wishlists/woocommerce-wishlists.php';
-		$woo_slug     = 'woocommerce/woocommerce.php';
-		$plugins_tree = [
+		$wish_slug     = 'woocommerce-wishlists/woocommerce-wishlists.php';
+		$woo_slug      = 'woocommerce/woocommerce.php';
+		$plugins_tree  = [
 			'plugin'   => $wish_slug,
 			'children' => [
 				[
@@ -1136,7 +1191,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 				],
 			],
 		];
-		$wp_error     = Mockery::mock( 'WP_Error' );
+		$error_code    = 'some error code';
+		$error_message = 'some error message';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
+		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
+		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
 
 		WP_Mock::userFunction( 'is_wp_error' )->andReturnUsing(
 			static function ( $thing ) {
@@ -1162,7 +1224,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
-		self::assertSame( $expected, $subject->activate_plugins( [ $wish_slug ] ) );
+		$results = $subject->activate_plugins( [ $wish_slug ] );
+
+		if ( $expected ) {
+			self::assertNull( $results );
+		} else {
+			self::assertEquals( $error_code, $results->get_error_code() );
+			self::assertEquals( $error_message, $results->get_error_message() );
+		}
 	}
 
 	/**
@@ -1306,6 +1375,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 *
+	 * @runTestsInSeparateProcesses
+	 * @preserveGlobalState disabled
 	 */
 	public function test_plugin_names_from_tree(): void {
 		$plugin_dir    = '/path/to/plugins';
@@ -1332,6 +1404,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'result'   => null,
 		];
 		$expected      = [ 'Some Plugin Requiring Wishlist', 'WooCommerce Wishlists', 'WooCommerce' ];
+		$error_code    = 'some error code';
+		$error_message = 'some error message';
 
 		$main = Mockery::mock( Main::class )->makePartial();
 
@@ -1377,7 +1451,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		self::assertSame( $expected, $subject->plugin_names_from_tree( $plugins_tree ) );
 
 		// One plugin was not activated.
-		$error = Mockery::mock( WP_Error::class );
+		$error = Mockery::mock( 'overload:WP_Error' );
 
 		$plugins_tree['result'] = $error;
 
@@ -1406,7 +1480,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'switch_theme' )->with( $theme )->once();
 
 		$this->set_method_accessibility( $subject, 'activate_plugins' );
-		self::assertTrue( $subject->$method( $theme ) );
+		self::assertNull( $subject->$method( $theme ) );
 	}
 
 	/**
@@ -1415,7 +1489,15 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_theme_when_not_exist(): void {
-		$theme = 'Divi';
+		$theme         = 'Divi';
+		$error_code    = 'some error code';
+		$error_message = 'some error message';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
+		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
+		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
 
 		$wp_theme = Mockery::mock( 'WP_Theme' );
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
@@ -1426,7 +1508,11 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
 
 		$this->set_method_accessibility( $subject, 'activate_plugins' );
-		self::assertFalse( $subject->$method( $theme ) );
+
+		$result = $subject->$method( $theme );
+
+		self::assertEquals( $error_code, $result->get_error_code() );
+		self::assertEquals( $error_message, $result->get_error_message() );
 	}
 
 	/**

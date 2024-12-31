@@ -890,7 +890,7 @@ CSS;
 			window.removeEventListener( 'scroll', scrollHandler );
 
 			const t = document.getElementsByTagName( 'script' )[0];
-			const s = document.createElement('script');
+			const s = document.createElement( 'script' );
 			s.type  = 'text/javascript';
 			s.id = 'hcaptcha-api';
 			s['src'] = '$expected_script_src';

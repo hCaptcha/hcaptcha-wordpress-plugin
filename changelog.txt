@@ -1,3 +1,19 @@
+= 4.9.0 =
+* Added LearnPress integration.
+* Added Tutor LMS integration.
+* Added compatibility with Ninja Forms v3.8.22.
+* Added the ability to install plugins and themes from the Integrations page.
+* Added ability to hide the login errors.
+* Added anonymous collection of IP and User Agent data in locally stored analytics to simplify GDPR compliance.
+* Added extended info about IP address on the Events page on hover.
+* Added selecting any page on Forms and Events.
+* Optimized Events page performance for large databases with millions of entries.
+* Fixed layout of a modern Jetpack form in outlined and animated styles.
+* Fixed fatal error as a consequence of a bug in the TutorLMS.
+* Fixed help text box layout on the General page.
+* Fixed dismiss and reset Notifications actions.
+* Fixed duplication of entries in the Events table.
+
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.
 * Added hCaptcha display on the Mailchimp form preview.

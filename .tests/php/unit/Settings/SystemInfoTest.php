@@ -417,6 +417,10 @@ LearnDash LMS:
   Login Form:                         Off
   Lost Password Form:                 Off
   Register Form:                      Off
+LearnPress:                           
+  Checkout Form:                      Off
+  Login Form:                         Off
+  Register Form:                      Off
 Login Signup Popup:                   
   Login Form:                         Off
   Register Form:                      Off
@@ -459,6 +463,11 @@ Subscriber:
 Support Candy:                        
   Form:                               Off
 Theme My Login:                       
+  Login Form:                         Off
+  Lost Password Form:                 Off
+  Register Form:                      Off
+Tutor LMS:                            
+  Checkout Form:                      Off
   Login Form:                         Off
   Lost Password Form:                 Off
   Register Form:                      Off

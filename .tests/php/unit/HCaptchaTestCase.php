@@ -676,6 +676,14 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 				'helper'  => 'On multisite, use same settings for all sites of the network.',
 			],
+			'hide_login_errors'        => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_OTHER,
+				'options' => [
+					'on' => 'Hide Login Errors',
+				],
+				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
+			],
 			'whitelisted_ips'          => [
 				'label'   => 'Whitelisted IPs',
 				'type'    => 'textarea',
@@ -715,6 +723,15 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Enable Statistics',
 				],
 				'helper'  => 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.',
+			],
+			'anonymous'                => [
+				'type'    => 'checkbox',
+				'section' => General::SECTION_STATISTICS,
+				'options' => [
+					'on' => 'Collect Anonymously',
+				],
+				'default' => 'on',
+				'helper'  => 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.',
 			],
 			'collect_ip'               => [
 				'label'   => 'Collection',
@@ -1053,6 +1070,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'register'  => 'Register Form',
 						],
 				],
+			'learn_press_status'               => [
+				'label'   => 'LearnPress',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout' => 'Checkout Form',
+					'login'    => 'Login Form',
+					'register' => 'Register Form',
+				],
+			],
 			'login_signup_popup_status'        =>
 				[
 					'label'   => 'Login Signup Popup',
@@ -1215,6 +1241,17 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Theme My Login',
 				'type'    => 'checkbox',
 				'options' => [
+					'login'     => 'Login Form',
+					'lost_pass' => 'Lost Password Form',
+					'register'  => 'Register Form',
+				],
+			],
+			'tutor_status'                     => [
+				'label'   => 'Tutor LMS',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'checkout'  => 'Checkout Form',
 					'login'     => 'Login Form',
 					'lost_pass' => 'Lost Password Form',
 					'register'  => 'Register Form',

@@ -1143,6 +1143,21 @@ CSS;
 				'sfwd-lms/sfwd_lms.php',
 				LearnDash\Register::class,
 			],
+			'LearnPress Checkout'                  => [
+				[ 'learn_press_status', 'checkout' ],
+				'learnpress/learnpress.php',
+				LearnPress\Checkout::class,
+			],
+			'LearnPress Login'                     => [
+				[ 'learn_press_status', 'login' ],
+				'learnpress/learnpress.php',
+				LearnPress\Login::class,
+			],
+			'LearnPress Register'                  => [
+				[ 'learn_press_status', 'register' ],
+				'learnpress/learnpress.php',
+				LearnPress\Register::class,
+			],
 			'Login/Signup Popup Login Form'        => [
 				[ 'login_signup_popup_status', 'login' ],
 				'easy-login-woocommerce/xoo-el-main.php',
@@ -1282,6 +1297,26 @@ CSS;
 				[ 'theme_my_login_status', 'register' ],
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\Register::class,
+			],
+			'Tutor Checkout'                       => [
+				[ 'tutor_status', 'checkout' ],
+				'tutor/tutor.php',
+				Tutor\Checkout::class,
+			],
+			'Tutor LMS Login'                      => [
+				[ 'tutor_status', 'login' ],
+				'tutor/tutor.php',
+				Tutor\Login::class,
+			],
+			'Tutor LMS LostPassword'               => [
+				[ 'tutor_status', 'lost_pass' ],
+				'tutor/tutor.php',
+				Tutor\LostPassword::class,
+			],
+			'Tutor LMS Register'                   => [
+				[ 'tutor_status', 'register' ],
+				'tutor/tutor.php',
+				Tutor\Register::class,
 			],
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],

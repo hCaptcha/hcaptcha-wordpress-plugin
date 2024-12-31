@@ -38,11 +38,6 @@ class ErrorHandler {
 			add_action( 'doing_it_wrong_run', [ $this, 'action_doing_it_wrong_run' ], 20, 3 );
 			add_filter( 'doing_it_wrong_trigger_error', [ $this, 'filter_doing_it_wrong_trigger_error' ], 10, 4 );
 		}
-
-		// Fix WP 6.5+ translation error.
-		if ( version_compare( $GLOBALS['wp_version'], '6.5', '>=' ) ) {
-			add_filter( 'gettext', [ $this, 'filter_gettext' ], 10, 3 );
-		}
 	}
 
 	/**
@@ -105,28 +100,6 @@ class ErrorHandler {
 		$message       = (string) $message;
 
 		return $this->is_just_in_time_for_plugin_domain( $function_name, $message ) ? false : $trigger;
-	}
-
-	/**
-	 * Filter for gettext.
-	 *
-	 * @param string|mixed $translation Translated text.
-	 * @param string|mixed $text        Text to translate.
-	 * @param string|mixed $domain      Text domain. Unique identifier for retrieving translated strings.
-	 *
-	 * @return string
-	 */
-	public function filter_gettext( $translation, $text, $domain ): string {
-
-		$translation = (string) $translation;
-		$text        = (string) $text;
-		$domain      = (string) $domain;
-
-		if ( '' === $translation && 'hcaptcha-for-forms-and-more' === $domain ) {
-			$translation = $text;
-		}
-
-		return $translation;
 	}
 
 	/**

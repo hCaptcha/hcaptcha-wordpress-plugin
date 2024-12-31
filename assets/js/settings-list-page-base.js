@@ -34,6 +34,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		} );
 		wrapper.querySelector( '[type="reset"]' ).addEventListener( 'click', onResetDatepicker );
 		wrapper.addEventListener( 'submit', onSubmitDatepicker );
+		wrapper.querySelector( '#current-page-selector' ).addEventListener( 'keydown', onPageNumberEnter );
 	}
 
 	function onSubmitDatepicker( event ) {
@@ -87,6 +88,33 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			'aria-expanded',
 			selectorElement.style.display === 'block' ? 'true' : 'false'
 		);
+	}
+
+	function onPageNumberEnter( event ) {
+		if ( event.key !== 'Enter' ) {
+			return;
+		}
+
+		event.preventDefault();
+
+		const currentUrl = new URL( window.location.href );
+		let paged = parseInt( currentUrl.searchParams.get( 'paged' ) );
+		const newPaged = parseInt( event.target.value );
+
+		if ( isNaN( paged ) || paged < 1 ) {
+			paged = 1;
+		}
+
+		if ( isNaN( newPaged ) || newPaged < 1 ) {
+			return;
+		}
+
+		currentUrl.searchParams.delete( 'paged' );
+
+		if ( newPaged !== paged ) {
+			currentUrl.searchParams.set( 'paged', newPaged.toString() );
+			window.location.href = currentUrl.href;
+		}
 	}
 
 	function onClickOutside( event ) {

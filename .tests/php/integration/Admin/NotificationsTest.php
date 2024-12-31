@@ -97,10 +97,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			'pro-free-trial'      =>
 				[
 					'title'   => 'Try Pro for free',
-					'message' => 'Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.',
+					'message' => 'Want low friction and custom themes? <a href="https://www.hcaptcha.com/pro/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">hCaptcha Pro</a> is for you. <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Start a free trial in your dashboard</a>, no credit card required.',
 					'button'  =>
 						[
-							'url'  => 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
+							'url'  => 'https://www.hcaptcha.com/pro/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
 							'text' => 'Try Pro',
 						],
 				],
@@ -132,7 +132,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Support for Enterprise features',
 				'message' => 'The hCaptcha plugin commenced support for Enterprise features. Solve your fraud and abuse problem today.',
 				'button'  => [
-					'url'  => 'https://www.hcaptcha.com/#enterprise-features?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
+					'url'  => 'https://www.hcaptcha.com/#enterprise-features/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
 					'text' => 'Get started',
 				],
 			],
@@ -298,12 +298,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			Try Pro for free
 		</div>
 		<p>Want low friction and custom themes? <a
-				href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
+				href="https://www.hcaptcha.com/pro/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
 				target="_blank">hCaptcha Pro</a> is for you. <a
 				href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
 				target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
 		<div class="hcaptcha-notification-buttons hidden">
-			<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
+			<a href="https://www.hcaptcha.com/pro/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
 			   class="button button-primary" target="_blank">
 				Try Pro </a>
 		</div>
@@ -399,12 +399,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		Try Pro for free
 	</div>
 	<p>Want low friction and custom themes? <a
-			href="https://www.hcaptcha.com/pro?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
+			href="https://www.hcaptcha.com/pro/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
 			target="_blank">hCaptcha Pro</a> is for you. <a
 			href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
 			target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
 	<div class="hcaptcha-notification-buttons hidden">
-		<a href="https://www.hcaptcha.com/pro?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
+		<a href="https://www.hcaptcha.com/pro/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
 		   class="button button-primary" target="_blank">
 			Try Pro </a>
 	</div>

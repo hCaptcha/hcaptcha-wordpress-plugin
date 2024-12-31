@@ -154,8 +154,16 @@ class General extends PluginSettingsBase {
 
 		$hcaptcha = hcaptcha();
 
-		// Current class loaded early on plugins_loaded. Init Notifications later, when Settings class is ready.
-		add_action( 'current_screen', [ $this, 'init_notifications' ] );
+		if ( wp_doing_ajax() ) {
+			// We need ajax actions in the Notifications class.
+			$this->init_notifications();
+		} else {
+			// Current class loaded early on plugins_loaded.
+			// Init Notifications later, when Settings class is ready.
+			// Also, we need to check if we are on the General screen.
+			add_action( 'current_screen', [ $this, 'init_notifications' ] );
+		}
+
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		add_action( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
@@ -172,7 +180,7 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function init_notifications(): void {
-		if ( ! $this->is_options_screen() ) {
+		if ( ! ( wp_doing_ajax() || $this->is_options_screen() ) ) {
 			return;
 		}
 
@@ -509,6 +517,14 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'hide_login_errors'    => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Hide Login Errors', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
+			],
 			self::NETWORK_WIDE     => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
@@ -556,6 +572,15 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Enable Statistics', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'anonymous'            => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_STATISTICS,
+				'options' => [
+					'on' => __( 'Collect Anonymously', 'hcaptcha-for-forms-and-more' ),
+				],
+				'default' => 'on',
+				'helper'  => __( 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'collect_ip'           => [
 				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),

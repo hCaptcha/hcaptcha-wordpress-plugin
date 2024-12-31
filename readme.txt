@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.8.0
+Stable tag: 4.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -284,6 +284,10 @@ LearnDash
 `$source: 'sfwd-lms/sfwd_lms.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
 
+LearnPress
+`$source: 'learnpress/learnpress.php'`
+`$form_id: 'checkout', ''login', or 'register'`
+
 Login/Signup Popup
 `$source: 'easy-login-woocommerce/xoo-el-main.php'`
 `$form_id: 'login', or 'register'`
@@ -319,6 +323,10 @@ Support Candy
 Theme My Login
 `$source: 'theme-my-login/theme-my-login.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
+
+Tutor LMS
+`$source: 'tutor/tutor.php'`
+`$form_id: 'checkout', ''login', 'lost_password' or 'register'`
 
 Ultimate Member
 `$source: 'ultimate-member/ultimate-member.php'`
@@ -544,6 +552,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
 * Divi Comment, Contact, Email Optin and Login Forms
+* Divi Builder Comment, Contact, Email Optin and Login Forms
 * Download Manager Form
 * Droit Dark Mode
 * Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
@@ -579,6 +588,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Subscriber Form
 * Support Candy New Ticket Form
 * Theme My Login — Login, Lost Password, and Register Form
+* Tutor LMS — Checkout, Login, Lost Password, and Register Form
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
 * WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
@@ -609,6 +619,22 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.9.0 =
+* Added LearnPress integration.
+* Added Tutor LMS integration.
+* Added compatibility with Ninja Forms v3.8.22.
+* Added the ability to install plugins and themes from the Integrations page.
+* Added ability to hide the login errors.
+* Added anonymous collection of IP and User Agent data in locally stored analytics to simplify GDPR compliance.
+* Added extended info about IP address on the Events page on hover.
+* Added selecting any page on Forms and Events.
+* Optimized Events page performance for large databases with millions of entries.
+* Fixed layout of a modern Jetpack form in outlined and animated styles.
+* Fixed fatal error as a consequence of a bug in the TutorLMS.
+* Fixed help text box layout on the General page.
+* Fixed dismiss and reset Notifications actions.
+* Fixed duplication of entries in the Events table.
 
 = 4.8.0 =
 * Added instant updating of the Contact Form 7 live form.

@@ -23,6 +23,7 @@
 	transition: all 1.5s;
 }
 
+.hcaptcha-integrations table tr.install:before,
 .hcaptcha-integrations table tr.on:before,
 .hcaptcha-integrations table tr.off:before {
 	visibility: visible;
@@ -46,6 +47,7 @@
 	background-image: url( '../images/spinner-white.svg' );
 }
 
+.hcaptcha-integrations table tr.install:after,
 .hcaptcha-integrations table tr.on:after,
 .hcaptcha-integrations table tr.off:after {
 	visibility: visible;
@@ -54,6 +56,10 @@
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: auto 80%;
+}
+
+.hcaptcha-integrations table tr.install:after {
+	background-image: url( '../images/spinner-gold.svg' );
 }
 
 .hcaptcha-integrations table tr.on:after {
@@ -113,7 +119,7 @@
 	background-color: #d63638;
 }
 
-.hcaptcha-integrations > table ~ table tr th .hcaptcha-integrations-logo[data-installed="0"]:hover::before {
+.hcaptcha-integrations > table ~ table tr th .hcaptcha-integrations-logo[data-installed="false"]:hover::before {
 	background-color: #dba617;
 }
 

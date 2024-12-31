@@ -20,7 +20,9 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test EventsTest class.
  *
- * @group events
+ * @requires PHP >= 8.0
+ *
+ * @group    events
  */
 class EventsTest extends HCaptchaWPTestCase {
 
@@ -35,6 +37,20 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 
 		parent::tearDown();
+	}
+
+	/**
+	 * Start transaction.
+	 *
+	 * @return void
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 */
+	public function start_transaction() {
+		parent::start_transaction();
+
+		// Disable temporary tables creating.
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
 	}
 
 	/**
@@ -76,6 +92,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		$option      = [
 			'collect_ua' => [ 'on' ],
 			'collect_ip' => [ 'on' ],
+			'anonymous'  => [],
 		];
 		$table_name  = Events::TABLE_NAME;
 
@@ -105,6 +122,8 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->assertEquals( '', $event->uuid );
 		$this->assertEquals( json_encode( $error_codes ), $event->error_codes );
 		// phpcs:enable WordPress.WP.AlternativeFunctions.json_encode_json_encode
+
+		delete_option( 'hcaptcha_settings' );
 	}
 
 	/**
@@ -185,6 +204,10 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 		$subject::create_table();
 		$subject->save_event( 'empty', [ 'empty' ] );
+
+		// Avoid caching in Events.
+		$subject = new Events();
+
 		$subject->save_event( 'success', [] );
 
 		$actual = $subject::get_events();
@@ -238,6 +261,10 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 		$subject::create_table();
 		$subject->save_event( 'empty', [ 'empty' ] );
+
+		// Avoid caching in Events.
+		$subject = new Events();
+
 		$subject->save_event( 'success', [] );
 
 		$actual = $subject::get_forms();
@@ -265,7 +292,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		global $wpdb;
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$expected_query  = "CREATE TEMPORARY TABLE {$wpdb->prefix}hcaptcha_events (
+		$expected_query  = "CREATE TABLE {$wpdb->prefix}hcaptcha_events (
 		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		    source      VARCHAR(256)    NOT NULL,
 		    form_id     VARCHAR(20)     NOT NULL,

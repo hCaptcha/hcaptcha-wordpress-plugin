@@ -32,13 +32,6 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static $plugin_active = [];
 
 	/**
-	 * Status of do_action after activation of ninja-forms plugin.
-	 *
-	 * @var boolean
-	 */
-	protected static $did_plugins_loaded_for_nf = false;
-
-	/**
 	 * Teardown after class.
 	 */
 	public static function tearDownAfterClass(): void {
@@ -72,14 +65,6 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		if ( ! isset( static::$plugin_active[ static::$plugin ] ) ) {
 			activate_plugin( static::$plugin );
 			static::$plugin_active[ static::$plugin ] = true;
-		}
-
-		if (
-			'ninja-forms/ninja-forms.php' === static::$plugin &&
-			! static::$did_plugins_loaded_for_nf
-		) {
-			do_action( 'plugins_loaded' );
-			static::$did_plugins_loaded_for_nf = true;
 		}
 	}
 }
