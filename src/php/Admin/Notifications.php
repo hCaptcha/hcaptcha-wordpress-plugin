@@ -116,9 +116,6 @@ class Notifications {
 		$statistics_url          = $general_url . '#statistics_1';
 		$force_url               = $general_url . '#force_1';
 		$elementor_edit_form_url = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
-		$post_detection_cost_url = 'https://www.hcaptcha.com/report-how-much-is-a-recaptcha-really-worth' . $utm_not;
-		$post_vs_recaptcha_url   = 'https://www.hcaptcha.com/post/hcaptcha-vs-recaptcha' . $utm_not;
-		$post_vs_turnstile_url   = 'https://www.hcaptcha.com/post/hcaptcha-vs-turnstile' . $utm_not;
 
 		$notifications = [
 			'register'            => [
@@ -283,31 +280,6 @@ class Notifications {
 				'button'  => [
 					'url'  => $elementor_edit_form_url,
 					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
-				],
-			],
-			// Added in 4.9.0.
-			'post-detection-cost' => [
-				'title'   => __( 'Bot detection cost', 'hcaptcha-for-forms-and-more' ),
-				'message' => __( 'How much is Google’s bot detection really worth?', 'hcaptcha-for-forms-and-more' ),
-				'button'  => [
-					'url'  => $post_detection_cost_url,
-					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
-				],
-			],
-			'post-vs-recaptcha'   => [
-				'title'   => __( 'hCaptcha vs. reCAPTCHA', 'hcaptcha-for-forms-and-more' ),
-				'message' => __( 'How does reCAPTCHA compare to hCaptcha?', 'hcaptcha-for-forms-and-more' ),
-				'button'  => [
-					'url'  => $post_vs_recaptcha_url,
-					'text' => __( 'Compare', 'hcaptcha-for-forms-and-more' ),
-				],
-			],
-			'post-vs-turnstile'   => [
-				'title'   => __( 'hCaptcha vs. Turnstile', 'hcaptcha-for-forms-and-more' ),
-				'message' => __( 'How does Turnstile compare to hCaptcha?', 'hcaptcha-for-forms-and-more' ),
-				'button'  => [
-					'url'  => $post_vs_turnstile_url,
-					'text' => __( 'Compare', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 		];
