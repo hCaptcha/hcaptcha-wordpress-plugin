@@ -168,30 +168,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Try auto-activation',
 				],
 			],
-			'post-detection-cost' => [
-				'title'   => 'Bot detection cost',
-				'message' => 'How much is Google’s bot detection really worth?',
-				'button'  => [
-					'url'  => 'https://www.hcaptcha.com/report-how-much-is-a-recaptcha-really-worth/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
-					'text' => 'Read post',
-				],
-			],
-			'post-vs-recaptcha'   => [
-				'title'   => 'hCaptcha vs. reCAPTCHA',
-				'message' => 'How does reCAPTCHA compare to hCaptcha?',
-				'button'  => [
-					'url'  => 'https://www.hcaptcha.com/post/hcaptcha-vs-recaptcha/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
-					'text' => 'Compare',
-				],
-			],
-			'post-vs-turnstile'   => [
-				'title'   => 'hCaptcha vs. Turnstile',
-				'message' => 'How does Turnstile compare to hCaptcha?',
-				'button'  => [
-					'url'  => 'https://www.hcaptcha.com/post/hcaptcha-vs-turnstile/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not',
-					'text' => 'Compare',
-				],
-			],
 		];
 
 		if ( ! $empty_keys ) {
