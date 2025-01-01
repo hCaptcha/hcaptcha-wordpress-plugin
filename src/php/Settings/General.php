@@ -580,7 +580,7 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Collect Anonymously', 'hcaptcha-for-forms-and-more' ),
 				],
 				'default' => 'on',
-				'helper'  => __( 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
+				'helper'  => __( 'Store collected IP and User Agent locally as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'collect_ip'           => [
 				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
