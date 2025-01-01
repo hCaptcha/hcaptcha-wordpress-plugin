@@ -731,7 +731,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Collect Anonymously',
 				],
 				'default' => 'on',
-				'helper'  => 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.',
+				'helper'  => 'Store collected IP and User Agent locally as hashed values to conform to GDPR requirements.',
 			],
 			'collect_ip'               => [
 				'label'   => 'Collection',
