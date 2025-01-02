@@ -5,26 +5,26 @@
  *
  * @param {Object} $ jQuery instance.
  */
-const settingsBase = function( $ ) {
+const settingsBase = ( function( $ ) {
+	/**
+	 * @type {HTMLElement}
+	 */
+	const adminBar = document.querySelector( '#wpadminbar' );
+
+	/**
+	 * @type {HTMLElement}
+	 */
+	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+
+	/**
+	 * @type {HTMLElement}
+	 */
+	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
+
 	const h2Selector = '.hcaptcha-header h2';
 	const msgSelector = '#hcaptcha-message';
 
 	function setHeaderBarTop() {
-		/**
-		 * @type {HTMLElement}
-		 */
-		const adminBar = document.querySelector( '#wpadminbar' );
-
-		/**
-		 * @type {HTMLElement}
-		 */
-		const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
-
-		/**
-		 * @type {HTMLElement}
-		 */
-		const headerBar = document.querySelector( '.hcaptcha-header-bar' );
-
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
 		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
 		const tabsHeight = tabs ? tabs.offsetHeight : 0;
@@ -70,6 +70,20 @@ const settingsBase = function( $ ) {
 		}
 	}
 
+	/**
+	 * Public properties and functions.
+	 */
+	const app = {
+		getStickyHeight() {
+			const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
+			const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
+			const tabsHeight = tabs ? tabs.offsetHeight : 0;
+			const headerBarHeight = headerBar ? headerBar.offsetHeight : 0;
+
+			return adminBarHeight + tabsHeight + headerBarHeight;
+		},
+	};
+
 	// Move WP notices to the message area.
 	$( h2Selector ).siblings().appendTo( msgSelector );
 
@@ -80,7 +94,9 @@ const settingsBase = function( $ ) {
 	setHeaderBarTop();
 
 	highLight();
-};
+
+	return app;
+}( jQuery ) );
 
 window.hCaptchaSettingsBase = settingsBase;
 
