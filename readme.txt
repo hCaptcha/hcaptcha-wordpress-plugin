@@ -622,6 +622,7 @@ Instructions for popular native integrations are below:
 
 = 4.10.0 =
 * Fixed fatal error with the WPForms plugin in rare cases.
+* Fixed error message at the first entry to the login page when Hide Login Errors in on.
 
 = 4.9.0 =
 * Added LearnPress integration.

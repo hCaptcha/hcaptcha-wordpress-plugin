@@ -161,6 +161,12 @@ abstract class LoginBase {
 			return $user;
 		}
 
+		$ignore_codes = [ 'empty_username', 'empty_password' ];
+
+		if ( in_array( $user->get_error_code(), $ignore_codes, true ) ) {
+			return $user;
+		}
+
 		$codes         = $user->get_error_codes();
 		$messages      = $user->get_error_messages();
 		$hcap_messages = hcap_get_error_messages();
