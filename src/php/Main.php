@@ -1303,17 +1303,17 @@ CSS;
 				'tutor/tutor.php',
 				Tutor\Checkout::class,
 			],
-			'Tutor LMS Login'                      => [
+			'Tutor Login'                          => [
 				[ 'tutor_status', 'login' ],
 				'tutor/tutor.php',
 				Tutor\Login::class,
 			],
-			'Tutor LMS LostPassword'               => [
+			'Tutor LostPassword'                   => [
 				[ 'tutor_status', 'lost_pass' ],
 				'tutor/tutor.php',
 				Tutor\LostPassword::class,
 			],
-			'Tutor LMS Register'                   => [
+			'Tutor Register'                       => [
 				[ 'tutor_status', 'register' ],
 				'tutor/tutor.php',
 				Tutor\Register::class,
