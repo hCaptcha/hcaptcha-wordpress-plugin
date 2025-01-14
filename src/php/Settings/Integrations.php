@@ -1683,15 +1683,17 @@ class Integrations extends PluginSettingsBase {
 		$result = $upgrader->install( $download_link );
 
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( $result->get_error_code(), $result->get_error_message() );
+			return $result;
 		}
 
 		if ( is_wp_error( $skin->result ) ) {
-			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+			return $skin->result;
 		}
 
-		if ( $skin->get_errors() && $skin->get_errors()->has_errors() ) {
-			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+		$skin_errors = $skin->get_errors();
+
+		if ( $skin_errors && $skin_errors->has_errors() ) {
+			return $skin_errors;
 		}
 
 		if ( is_null( $result ) ) {
