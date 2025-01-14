@@ -625,7 +625,8 @@ Instructions for popular native integrations are below:
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.
 * Fixed scrolling to the message on the General page.
-* Fixed fatal error during integration installation in some cases. 
+* Fixed fatal error during integration installation in some cases.
+* Fixed the Integrations page when active plugin was deleted.
 
 = 4.9.0 =
 * Added LearnPress integration.
