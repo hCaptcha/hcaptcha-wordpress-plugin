@@ -361,7 +361,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 
 if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 	/**
-	 * Get verify message html.
+	 * Get verify message HTML.
 	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.
