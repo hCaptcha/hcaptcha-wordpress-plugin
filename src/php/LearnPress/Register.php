@@ -67,6 +67,7 @@ class Register {
 	 * Verify hCaptcha.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): void {
 		$action = 'learn-press-register';
