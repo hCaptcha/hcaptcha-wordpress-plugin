@@ -621,6 +621,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.10.0 =
+* Added support for hCaptcha in HTML Gravity Forms fields.
 * Improved error messaging for hCaptcha verification.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.

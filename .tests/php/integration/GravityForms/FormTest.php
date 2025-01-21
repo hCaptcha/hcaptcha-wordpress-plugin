@@ -55,9 +55,9 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		if ( $mode_auto ) {
-			self::assertSame( 10, has_filter( 'gform_submit_button', [ $subject, 'add_captcha' ] ) );
+			self::assertSame( 10, has_filter( 'gform_submit_button', [ $subject, 'add_hcaptcha' ] ) );
 		} else {
-			self::assertFalse( has_filter( 'gform_submit_button', [ $subject, 'add_captcha' ] ) );
+			self::assertFalse( has_filter( 'gform_submit_button', [ $subject, 'add_hcaptcha' ] ) );
 		}
 
 		self::assertSame( 10, has_filter( 'gform_validation', [ $subject, 'verify' ] ) );
@@ -87,9 +87,9 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @param bool $is_admin Admin mode.
 	 *
-	 * @dataProvider dp_test_add_captcha
+	 * @dataProvider dp_test_add_hcaptcha
 	 */
-	public function test_add_captcha( bool $is_admin ): void {
+	public function test_add_hcaptcha( bool $is_admin ): void {
 		$form_id = 23;
 		$form    = [
 			'id' => $form_id,
@@ -113,7 +113,11 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
-		self::assertSame( $expected, $subject->add_captcha( '', $form ) );
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		add_filter( 'hcap_form_args', [ $subject, 'hcap_form_args' ] );
+
+		self::assertSame( $expected, $subject->add_hcaptcha( '', $form ) );
 	}
 
 	/**
@@ -121,7 +125,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return array
 	 */
-	public function dp_test_add_captcha(): array {
+	public function dp_test_add_hcaptcha(): array {
 		return [
 			'admin'     => [ true ],
 			'not admin' => [ false ],
@@ -131,7 +135,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test add_captcha() in embed mode.
 	 */
-	public function test_add_captcha_in_embed_mode(): void {
+	public function test_add_hcaptcha_in_embed_mode(): void {
 		$button_input   = '';
 		$hcaptcha_field = (object) [
 			'type' => 'hcaptcha',
@@ -157,22 +161,26 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		add_filter( 'hcap_form_args', [ $subject, 'hcap_form_args' ] );
+
 		// Form does not exist (strange case), add hCaptcha.
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta' );
 
-		self::assertSame( $expected, $subject->add_captcha( $button_input, $form ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $button_input, $form ) );
 
 		// Does not have hCaptcha in the form, add hCaptcha.
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
-		self::assertSame( $expected, $subject->add_captcha( $button_input, $form ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $button_input, $form ) );
 
 		// Has hCaptcha in the form, do not add hCaptcha.
 		$form['fields'] = [ $hcaptcha_field ];
 
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
-		self::assertSame( $button_input, $subject->add_captcha( $button_input, $form ) );
+		self::assertSame( $button_input, $subject->add_hcaptcha( $button_input, $form ) );
 	}
 
 	/**
