@@ -96,7 +96,7 @@ class Form extends Base {
 
 		$form_id = $form['id'] ?? 0;
 
-		if ( $this->mode_embed && $this->has_hcaptcha( $form_id ) ) {
+		if ( $this->has_hcaptcha( $form_id ) ) {
 			return $button_input;
 		}
 
@@ -354,7 +354,7 @@ CSS;
 			$form_meta = (array) GFFormsModel::get_form_meta( $form_id );
 
 			if (
-				0 !== (int) $_POST[ $target_page_name ] &&
+				0 !== $target_page &&
 				$target_page !== $source_page &&
 				isset(
 					$form_meta['pagination']['pages'][ $target_page - 1 ],
@@ -398,9 +398,12 @@ CSS;
 		$captcha_types = [ 'captcha', 'hcaptcha' ];
 
 		foreach ( $form['fields'] as $field ) {
+			$type    = $field->type ?? '';
+			$content = $field->content ?? '';
+
 			if (
-				in_array( $field->type, $captcha_types, true ) ||
-				has_shortcode( $field['content'], 'hcaptcha' )
+				( $this->mode_embed && in_array( $type, $captcha_types, true ) ) ||
+				has_shortcode( $content, 'hcaptcha' )
 			) {
 				return true;
 			}
