@@ -373,8 +373,8 @@ CSS;
 			return true;
 		}
 
-		if ( $this->mode_embed && $this->has_hcaptcha( $form_id ) ) {
-			// In embed mode, verify only a form having hCaptcha field.
+		if ( $this->has_hcaptcha( $form_id ) ) {
+			// Verify only a form having hCaptcha field.
 			return true;
 		}
 

@@ -117,7 +117,6 @@ class AutoVerify {
 
 		$action = $registered_form['args']['action'] ?? '';
 		$name   = $registered_form['args']['name'] ?? '';
-
 		$result = hcaptcha_verify_post( $name, $action );
 
 		if ( null !== $result ) {
@@ -297,9 +296,15 @@ class AutoVerify {
 			$args   = $data['args'];
 			$auto   = $args['auto'];
 
-			$key = isset( $registered_forms[ $action ] )
-				? array_search( $inputs, array_column( $registered_forms[ $action ], 'inputs' ), true )
-				: false;
+			$key          = false;
+			$action_forms = $registered_forms[ $action ] ?? [];
+
+			foreach ( $action_forms as $index => $action_form ) {
+				if ( $inputs === $action_form['inputs'] ) {
+					$key = $index;
+					break;
+				}
+			}
 
 			$registered = false !== $key;
 
