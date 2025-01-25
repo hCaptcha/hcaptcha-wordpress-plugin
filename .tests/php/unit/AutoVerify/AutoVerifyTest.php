@@ -26,6 +26,7 @@ use WP_Mock;
  * @group auto-verify
  */
 class AutoVerifyTest extends HCaptchaTestCase {
+	private const WIDGET_ID_VALUE = 'some_widget_id_value';
 
 	/**
 	 * Tear down test.
@@ -208,7 +209,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_form_registered' )->with( $path )->once()->andReturn( false );
+		$subject->shouldReceive( 'get_registered_form' )->with( $path )->once()->andReturn( null );
 
 		$subject->verify();
 	}
@@ -221,6 +222,21 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 		$path = parse_url( $url, PHP_URL_PATH );
+
+		$registered_form = [
+			'action' => $path,
+			'inputs' => [
+				'some_input',
+			],
+			'args'   => [
+				'action' => 'hcaptcha_action',
+				'name'   => 'hcaptcha_nonce',
+				'auto'   => true,
+			],
+		];
+
+		$action = $registered_form['args']['action'] ?? '';
+		$name   = $registered_form['args']['name'] ?? '';
 
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
@@ -239,7 +255,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return rtrim( $value, '/\\' );
 			}
 		);
-		WP_Mock::userFunction( 'hcaptcha_verify_post' )->with()->once()->andReturn( null );
+		WP_Mock::userFunction( 'hcaptcha_verify_post' )->with( $name, $action )->once()->andReturn( null );
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $url;
@@ -247,7 +263,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_form_registered' )->with( $path )->once()->andReturn( true );
+		$subject->shouldReceive( 'get_registered_form' )->with( $path )->once()->andReturn( $registered_form );
 
 		$subject->verify();
 	}
@@ -262,6 +278,21 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 		$path = parse_url( $url, PHP_URL_PATH );
 
+		$registered_form = [
+			'action' => $path,
+			'inputs' => [
+				'some_input',
+			],
+			'args'   => [
+				'action' => 'hcaptcha_action',
+				'name'   => 'hcaptcha_nonce',
+				'auto'   => true,
+			],
+		];
+
+		$action = $registered_form['args']['action'] ?? '';
+		$name   = $registered_form['args']['name'] ?? '';
+
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -279,7 +310,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return rtrim( $value, '/\\' );
 			}
 		);
-		WP_Mock::userFunction( 'hcaptcha_verify_post' )->with()->once()->andReturn( $result );
+		WP_Mock::userFunction( 'hcaptcha_verify_post' )->with( $name, $action )->once()->andReturn( $result );
 		WP_Mock::userFunction( 'wp_die' )
 			->with(
 				$result,
@@ -298,7 +329,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_form_registered' )->with( $path )->once()->andReturn( true );
+		$subject->shouldReceive( 'get_registered_form' )->with( $path )->once()->andReturn( $registered_form );
 
 		$subject->verify();
 
@@ -327,20 +358,26 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 */
 	public function test_register_forms(): void {
 		$forms    = [ $this->get_test_form() ];
+		$args     = [
+			'action' => 'hcaptcha_action',
+			'name'   => 'hcaptcha_nonce',
+			'auto'   => true,
+		];
+		$registry = [ self::WIDGET_ID_VALUE => $args ];
 		$action   = '/action-page';
 		$expected = [
 			[
 				'action' => $action,
 				'inputs' => [ 'test_input' ],
-				'auto'   => true,
+				'args'   => $args,
 			],
 		];
 
 		$expected_without_inputs              = $expected;
 		$expected_without_inputs[0]['inputs'] = [];
 
-		$expected_without_auto            = $expected_without_inputs;
-		$expected_without_auto[0]['auto'] = false;
+		$expected_without_auto                    = $expected_without_inputs;
+		$expected_without_auto[0]['args']['auto'] = false;
 
 		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
 			static function ( $value ) {
@@ -357,26 +394,35 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'update_transient' )->with( [] )->once();
-		$subject->shouldReceive( 'update_transient' )->with( $expected )->once();
-		$subject->shouldReceive( 'update_transient' )->with( $expected_without_inputs )->once();
-		$subject->shouldReceive( 'update_transient' )->with( $expected_without_auto )->once();
+		$this->set_protected_property( $subject, 'registry', $registry );
 
+		$subject->shouldReceive( 'update_transient' )->with( [] )->once(); // Case 1.
+		$subject->shouldReceive( 'update_transient' )->with( $expected )->once(); // Case 2.
+		$subject->shouldReceive( 'update_transient' )->with( $expected_without_inputs )->once(); // Case 3.
+		$subject->shouldReceive( 'update_transient' )->with( $expected_without_auto )->once(); // Case 4.
+
+		// Case 1. Update transient to be called with [].
 		$subject->register_forms( $forms );
 
 		// Add action to form.
 		$forms[0] = str_replace( '<form ', '<form action="' . $action . '" ', $forms[0] );
 
+		// Case 2. Update transient to be called with $expected.
 		$subject->register_forms( $forms );
 
 		// Remove inputs from the form.
-		$forms[0] = preg_replace( '/<input .+>/', '', $forms[0] );
+		$forms[0] = preg_replace( '/<input\s[\s\S].*?>/', '', $forms[0] );
 
+		// Case 3. Update transient to be called with $expected_without_inputs.
 		$subject->register_forms( $forms );
 
 		// Remove auto from the form.
-		$forms[0] = str_replace( 'data-auto="true"', '', $forms[0] );
+		$args['auto']                      = false;
+		$registry[ self::WIDGET_ID_VALUE ] = $args;
 
+		$this->set_protected_property( $subject, 'registry', $registry );
+
+		// Case 4. Update transient to be called with $expected_without_auto.
 		$subject->register_forms( $forms );
 	}
 
@@ -394,10 +440,14 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	public function test_update_transient( $transient, array $forms_data, array $expected ): void {
 		$day_in_seconds = 24 * 60 * 60;
 
+		global $gl_expected;
+
+		$gl_expected = $expected;
+
 		FunctionMocker::replace(
 			'constant',
-			static function ( $name ) {
-				return 'DAY_IN_SECONDS' === $name;
+			static function ( $name ) use ( $day_in_seconds ) {
+				return 'DAY_IN_SECONDS' === $name ? $day_in_seconds : 0;
 			}
 		);
 		WP_Mock::userFunction( 'get_transient' )
@@ -420,17 +470,25 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * @return array
 	 */
 	public function dp_test_update_transient(): array {
+		$args            = [
+			'action' => 'hcaptcha_action',
+			'name'   => 'hcaptcha_nonce',
+			'auto'   => true,
+		];
 		$test_forms_data = [
 			[
 				'action' => '/autoverify',
 				'inputs' => [ 'test_input' ],
-				'auto'   => true,
+				'args'   => $args,
 			],
 		];
 		$test_transient  = [
 			'/autoverify' =>
 				[
-					[ 'test_input' ],
+					[
+						'inputs' => [ 'test_input' ],
+						'args'   => $args,
+					],
 				],
 		];
 
@@ -456,12 +514,15 @@ class AutoVerifyTest extends HCaptchaTestCase {
 					[
 						'action' => '/autoverify',
 						'inputs' => [ 'test_input', 'test_input2' ],
-						'auto'   => true,
+						'args'   => $args,
 					],
 				],
 				'expected'   => [
 					'/autoverify' => [
-						[ 'test_input', 'test_input2' ],
+						[
+							'inputs' => [ 'test_input', 'test_input2' ],
+							'args'   => $args,
+						],
 					],
 				],
 			],
@@ -470,20 +531,29 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				'forms_data' => [
 					[
 						'action' => '/autoverify',
-						'inputs' => [ 'test_input', 'test_input2' ],
-						'auto'   => true,
+						'inputs' => [ 'test_input1', 'test_input2' ],
+						'args'   => $args,
 					],
 					[
 						'action' => '/autoverify',
 						'inputs' => [ 'test_input3', 'test_input4' ],
-						'auto'   => true,
+						'args'   => $args,
 					],
 				],
 				'expected'   => [
 					'/autoverify' => [
-						[ 'test_input' ],
-						[ 'test_input', 'test_input2' ],
-						[ 'test_input3', 'test_input4' ],
+						[
+							'inputs' => [ 'test_input' ],
+							'args'   => $args,
+						],
+						[
+							'inputs' => [ 'test_input1', 'test_input2' ],
+							'args'   => $args,
+						],
+						[
+							'inputs' => [ 'test_input3', 'test_input4' ],
+							'args'   => $args,
+						],
 					],
 				],
 			],
@@ -493,21 +563,30 @@ class AutoVerifyTest extends HCaptchaTestCase {
 					[
 						'action' => '/autoverify',
 						'inputs' => [ 'test_input', 'test_input2' ],
-						'auto'   => true,
+						'args'   => $args,
 					],
 					[
 						'action' => '/autoverify2',
 						'inputs' => [ 'test_input3', 'test_input4' ],
-						'auto'   => true,
+						'args'   => $args,
 					],
 				],
 				'expected'   => [
 					'/autoverify'  => [
-						[ 'test_input' ],
-						[ 'test_input', 'test_input2' ],
+						[
+							'inputs' => [ 'test_input' ],
+							'args'   => $args,
+						],
+						[
+							'inputs' => [ 'test_input', 'test_input2' ],
+							'args'   => $args,
+						],
 					],
 					'/autoverify2' => [
-						[ 'test_input3', 'test_input4' ],
+						[
+							'inputs' => [ 'test_input3', 'test_input4' ],
+							'args'   => $args,
+						],
 					],
 				],
 			],
@@ -517,18 +596,21 @@ class AutoVerifyTest extends HCaptchaTestCase {
 					[
 						'action' => '/autoverify',
 						'inputs' => [ 'test_input' ],
-						'auto'   => false,
+						'args'   => [ 'auto' => false ],
 					],
 					[
 						'action' => '/autoverify2',
 						'inputs' => [ 'test_input3', 'test_input4' ],
-						'auto'   => true,
+						'args'   => $args,
 					],
 				],
 				'expected'   => [
 					'/autoverify'  => [],
 					'/autoverify2' => [
-						[ 'test_input3', 'test_input4' ],
+						[
+							'inputs' => [ 'test_input3', 'test_input4' ],
+							'args'   => $args,
+						],
 					],
 				],
 			],
@@ -536,17 +618,17 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test is_form_registered().
+	 * Test get_registered_form().
 	 *
-	 * @param mixed  $transient Transient.
-	 * @param string $path      Path.
-	 * @param array  $post      Post.
-	 * @param bool   $expected  Expected.
+	 * @param mixed      $transient Transient.
+	 * @param string     $path      Path.
+	 * @param array      $post      Post.
+	 * @param array|null $expected  Expected.
 	 *
-	 * @dataProvider dp_test_is_form_registered
+	 * @dataProvider dp_test_get_registered_form
 	 * @return void
 	 */
-	public function test_is_form_registered( $transient, string $path, array $post, bool $expected ): void {
+	public function test_get_registered_form( $transient, string $path, array $post, ?array $expected ): void {
 		$_POST = $post;
 
 		WP_Mock::userFunction( 'get_transient' )
@@ -555,53 +637,74 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			->andReturn( $transient );
 
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
-		$method  = 'is_form_registered';
+		$method  = 'get_registered_form';
 
 		self::assertSame( $expected, $subject->$method( $path ) );
 	}
 
 	/**
-	 * Data provider for test_is_form_registered().
+	 * Data provider for test_get_registered_form().
 	 *
 	 * @return array
 	 */
-	public function dp_test_is_form_registered(): array {
+	public function dp_test_get_registered_form(): array {
+		$args = [
+			'action' => 'hcaptcha_action',
+			'name'   => 'hcaptcha_nonce',
+			'auto'   => true,
+		];
+
 		return [
 			'Empty transient'               => [
 				'transient' => false,
 				'path'      => '/autoverify',
 				'post'      => [],
-				'expected'  => false,
+				'expected'  => null,
 			],
 			'Path not in transient'         => [
 				'transient' => [
 					'/some' =>
 						[
-							[ 'test_input' ],
+							[
+								'inputs' => [ 'test_input' ],
+								'args'   => $args,
+							],
 						],
 				],
 				'path'      => '/autoverify',
 				'post'      => [],
-				'expected'  => false,
+				'expected'  => null,
 			],
 			'Path in transient, other keys' => [
 				'transient' => [
 					'/autoverify' =>
 						[
-							[ 'test_input' ],
-							[ 'test_input2', 'test_input3' ],
+							[
+								'inputs' => [ 'test_input' ],
+								'args'   => $args,
+							],
+							[
+								'inputs' => [ 'test_input2', 'test_input3' ],
+								'args'   => $args,
+							],
 						],
 				],
 				'path'      => '/autoverify',
 				'post'      => [ 'test_input4' => 'some' ],
-				'expected'  => false,
+				'expected'  => null,
 			],
 			'Path in transient, same keys'  => [
 				'transient' => [
 					'/autoverify' =>
 						[
-							[ 'test_input' ],
-							[ 'test_input2', 'test_input3' ],
+							[
+								'inputs' => [ 'test_input' ],
+								'args'   => $args,
+							],
+							[
+								'inputs' => [ 'test_input2', 'test_input3' ],
+								'args'   => $args,
+							],
 						],
 				],
 				'path'      => '/autoverify',
@@ -609,7 +712,10 @@ class AutoVerifyTest extends HCaptchaTestCase {
 					'test_input2' => 'some',
 					'test_input3' => 'some',
 				],
-				'expected'  => true,
+				'expected'  => [
+					'inputs' => [ 'test_input2', 'test_input3' ],
+					'args'   => $args,
+				],
 			],
 		];
 	}
@@ -666,6 +772,11 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		return '<form method="post">
 	<input type="text" name="test_input">
 	<input type="submit" value="Send">
+	<input
+				type="hidden"
+				class="hcaptcha-widget-id"
+				name="hcaptcha-widget-id"
+				value="' . self::WIDGET_ID_VALUE . '">
 	<div
 			class="h-captcha"
 			data-sitekey="95d60c5a-68cf-4db1-a583-6a22bdd558f2"

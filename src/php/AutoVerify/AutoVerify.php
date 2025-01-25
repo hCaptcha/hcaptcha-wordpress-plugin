@@ -26,7 +26,7 @@ class AutoVerify {
 	 *
 	 * @var array
 	 */
-	private $registry = [];
+	protected $registry = [];
 
 	/**
 	 * Init class.
@@ -293,20 +293,27 @@ class AutoVerify {
 
 			unset( $data['action'] );
 
-			$args = $data['args'];
-			$auto = $args['auto'];
+			$inputs = $data['inputs'];
+			$args   = $data['args'];
+			$auto   = $args['auto'];
 
 			$key = isset( $registered_forms[ $action ] )
-				? array_search( $data, $registered_forms[ $action ], true )
+				? array_search( $inputs, array_column( $registered_forms[ $action ], 'inputs' ), true )
 				: false;
 
 			$registered = false !== $key;
 
-			if ( $auto && ! $registered ) {
-				$registered_forms[ $action ][] = $data;
+			if ( $auto ) {
+				if ( $registered ) {
+					$registered_forms[ $action ][ $key ] = $data;
+				} else {
+					$registered_forms[ $action ][] = $data;
+				}
+
+				continue;
 			}
 
-			if ( ! $auto && $registered ) {
+			if ( $registered ) {
 				unset( $registered_forms[ $action ][ $key ] );
 			}
 		}
