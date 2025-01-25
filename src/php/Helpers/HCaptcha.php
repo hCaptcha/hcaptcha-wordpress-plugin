@@ -111,10 +111,15 @@ class HCaptcha {
 		$args['id']      = (array) $args['id'];
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
-		$id = wp_parse_args(
-			$args['id'],
-			self::$default_id
-		);
+		$args['id'] = array_merge_recursive( self::$default_id, $args['id'] );
+		$id         = $args['id'];
+
+		/**
+		 * Register hCaptcha form.
+		 *
+		 * @param array $args The hCaptcha form arguments.
+		 */
+		do_action( 'hcap_register_form', $args );
 
 		self::display_widget( $id );
 
