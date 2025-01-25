@@ -109,10 +109,15 @@ class HCaptcha {
 		$args['theme']   = $bg ? 'custom' : $args['theme'];
 		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true ) ? (string) $args['size'] : $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
+		$id              = $args['id'];
+		$source          = empty( $id['source'] ) ? self::$default_id['source'] : $id['source'];
+		$form_id         = $id['form_id'] ?? self::$default_id['form_id'];
+		$id              = [
+			'source'  => $source,
+			'form_id' => $form_id,
+		];
+		$args['id']      = $id;
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
-
-		$args['id'] = array_merge_recursive( self::$default_id, $args['id'] );
-		$id         = $args['id'];
 
 		/**
 		 * Register hCaptcha form.
