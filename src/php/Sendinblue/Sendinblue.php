@@ -66,9 +66,9 @@ class Sendinblue {
 		);
 
 		/**
-		 * Filters the HTML containing a form to register it for auto-verification.
+		 * Register a form containing hCaptcha for auto-verification purposes.
 		 *
-		 * @param string $html HTML content.
+		 * @param string $output HTML content.
 		 */
 		do_action( 'hcap_auto_verify_register', $output );
 

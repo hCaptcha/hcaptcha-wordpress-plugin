@@ -95,9 +95,9 @@ class HCaptcha {
 		);
 
 		/**
-		 * Filters the form arguments.
+		 * Filters the hCaptcha form arguments.
 		 *
-		 * @param array $args The form arguments.
+		 * @param array $args The hCaptcha form arguments.
 		 */
 		$args = (array) apply_filters( 'hcap_form_args', $args );
 
@@ -161,6 +161,23 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get widget id value.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return string
+	 */
+	public static function widget_id_value( array $id ): string {
+		$id['source']  = (array) ( $id['source'] ?? [] );
+		$id['form_id'] = $id['form_id'] ?? 0;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+
+		return $encoded_id . '-' . wp_hash( $encoded_id );
+	}
+
+	/**
 	 * Display widget.
 	 *
 	 * @param array $id The hCaptcha widget id.
@@ -168,19 +185,12 @@ class HCaptcha {
 	 * @return void
 	 */
 	private static function display_widget( array $id ): void {
-		$id['source']  = (array) ( $id['source'] ?? [] );
-		$id['form_id'] = $id['form_id'] ?? 0;
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$encoded_id = base64_encode( wp_json_encode( $id ) );
-		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
-
 		?>
 		<input
 				type="hidden"
 				class="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
 				name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
-				value="<?php echo esc_attr( $widget_id ); ?>">
+				value="<?php echo esc_attr( self::widget_id_value( $id ) ); ?>">
 		<?php
 	}
 

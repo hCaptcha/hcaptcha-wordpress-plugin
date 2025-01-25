@@ -622,6 +622,7 @@ Instructions for popular native integrations are below:
 
 = 4.10.0 =
 * Added support for hCaptcha in HTML Gravity Forms fields.
+* Added support for custom nonce action and name in the [hcaptcha] shortcode.
 * Improved error messaging for hCaptcha verification.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\AutoVerify;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Widget_Block;
 
@@ -19,6 +20,13 @@ class AutoVerify {
 	 * Transient name where to store registered forms.
 	 */
 	public const TRANSIENT = 'hcaptcha_auto_verify';
+
+	/**
+	 * The hCaptcha forms registry.
+	 *
+	 * @var array
+	 */
+	private $registry = [];
 
 	/**
 	 * Init class.
@@ -35,10 +43,11 @@ class AutoVerify {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'init', [ $this, 'verify_form' ], - PHP_INT_MAX );
+		add_action( 'init', [ $this, 'verify' ], - PHP_INT_MAX );
 		add_filter( 'the_content', [ $this, 'content_filter' ], PHP_INT_MAX );
 		add_filter( 'widget_block_content', [ $this, 'widget_block_content_filter' ], PHP_INT_MAX, 3 );
 		add_action( 'hcap_auto_verify_register', [ $this, 'content_filter' ] );
+		add_action( 'hcap_register_form', [ $this, 'register_hcaptcha' ] );
 	}
 
 	/**
@@ -67,12 +76,29 @@ class AutoVerify {
 	}
 
 	/**
+	 * Register hCaptcha form.
+	 *
+	 * @param array|mixed $args Arguments.
+	 *
+	 * @return void
+	 */
+	public function register_hcaptcha( $args ): void {
+		if ( ! is_array( $args ) ) {
+			return;
+		}
+
+		$widget_id = HCaptcha::widget_id_value( $args['id'] ?? [] );
+
+		$this->registry[ $widget_id ] = $args;
+	}
+
+	/**
 	 * Verify a form automatically.
 	 *
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function verify_form(): void {
+	public function verify(): void {
 		if ( ! Request::is_post() || ! Request::is_frontend() ) {
 			return;
 		}
@@ -83,11 +109,16 @@ class AutoVerify {
 			return;
 		}
 
-		if ( ! $this->is_form_registered( $path ) ) {
+		$registered_form = $this->get_registered_form( $path );
+
+		if ( null === $registered_form ) {
 			return;
 		}
 
-		$result = hcaptcha_verify_post();
+		$action = $registered_form['args']['action'] ?? '';
+		$name   = $registered_form['args']['name'] ?? '';
+
+		$result = hcaptcha_verify_post( $name, $action );
 
 		if ( null !== $result ) {
 			$_POST = [];
@@ -118,10 +149,13 @@ class AutoVerify {
 				continue;
 			}
 
+			$widget_id_value = $this->get_widget_id_value( $form );
+			$args            = $this->registry[ $widget_id_value ] ?? [];
+
 			$forms_data[] = [
 				'action' => $action,
 				'inputs' => $this->get_visible_input_names( $form ),
-				'auto'   => $this->is_form_auto( $form ),
+				'args'   => $args,
 			];
 		}
 
@@ -138,13 +172,30 @@ class AutoVerify {
 	private function get_form_action( string $form ): string {
 		$form_action = '';
 
-		if ( preg_match( '#<form [\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
+		if ( preg_match( '#<form\s[\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
 			$form_action = $m[1];
 		}
 
 		$form_action = $form_action ?: $this->get_request_uri();
 
 		return $this->get_path( $form_action );
+	}
+
+	/**
+	 * Get widget id value.
+	 *
+	 * @param string $form Form.
+	 *
+	 * @return string
+	 */
+	private function get_widget_id_value( string $form ): string {
+		$widget_id_value = '';
+
+		if ( preg_match( '#<input\s[\S\s]*?name="hcaptcha-widget-id"\s[\S\s]*?value="(.*?)"[\S\s]*?>#', $form, $m ) ) {
+			$widget_id_value = $m[1];
+		}
+
+		return $widget_id_value;
 	}
 
 	/**
@@ -228,32 +279,6 @@ class AutoVerify {
 	}
 
 	/**
-	 * Get form auto.
-	 *
-	 * @param string $form Form.
-	 *
-	 * @return string|null
-	 */
-	private function get_form_auto( string $form ): ?string {
-		if ( preg_match( '#class="h-captcha"[\S\s]+?data-auto="(.*)"[\S\s]*?>#', $form, $matches ) ) {
-			return $matches[1];
-		}
-
-		return null;
-	}
-
-	/**
-	 * Check if the form is auto.
-	 *
-	 * @param string $form Form.
-	 *
-	 * @return bool
-	 */
-	private function is_form_auto( string $form ): bool {
-		return 'true' === $this->get_form_auto( $form );
-	}
-
-	/**
 	 * Update form data in transient.
 	 *
 	 * @param array $forms_data Forms data to update in transient.
@@ -263,18 +288,22 @@ class AutoVerify {
 		$registered_forms = $transient ?: [];
 
 		foreach ( $forms_data as $form_data ) {
+			$data   = $form_data;
 			$action = $form_data['action'];
-			$inputs = $form_data['inputs'];
-			$auto   = $form_data['auto'];
 
-			$key = isset( $registered_forms[ $action ] ) ?
-				array_search( $inputs, $registered_forms[ $action ], true ) :
-				false;
+			unset( $data['action'] );
+
+			$args = $data['args'];
+			$auto = $args['auto'];
+
+			$key = isset( $registered_forms[ $action ] )
+				? array_search( $data, $registered_forms[ $action ], true )
+				: false;
 
 			$registered = false !== $key;
 
 			if ( $auto && ! $registered ) {
-				$registered_forms[ $action ][] = $inputs;
+				$registered_forms[ $action ][] = $data;
 			}
 
 			if ( ! $auto && $registered ) {
@@ -291,32 +320,37 @@ class AutoVerify {
 	}
 
 	/**
-	 * Is the form registered?
+	 * Get registered form.
 	 *
 	 * @param string $path URL path.
 	 *
-	 * @return bool
+	 * @return array|null
 	 */
-	protected function is_form_registered( string $path ): bool {
+	protected function get_registered_form( string $path ): ?array {
 		$registered_forms = get_transient( self::TRANSIENT );
 
 		if ( empty( $registered_forms ) ) {
-			return false;
+			return null;
 		}
 
 		if ( ! isset( $registered_forms[ $path ] ) ) {
-			return false;
+			return null;
 		}
 
+		// Nonce is verified later, in hcaptcha_verify_post().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$post_keys = array_keys( $_POST );
+
 		foreach ( $registered_forms[ $path ] as $registered_form ) {
-			// Nonce is verified later, in hcaptcha_verify_post().
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			if ( ! empty( array_intersect( array_keys( $_POST ), $registered_form ) ) ) {
-				return true;
+			$inputs = $registered_form['inputs'] ?? [];
+
+			// Make sure that all inputs are present in the $_POST array.
+			if ( $inputs && ! array_diff( $inputs, $post_keys ) ) {
+				return $registered_form;
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	/**

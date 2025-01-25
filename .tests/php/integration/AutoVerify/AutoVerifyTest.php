@@ -40,7 +40,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$subject = new AutoVerify();
 		$subject->init();
 
-		self::assertSame( -PHP_INT_MAX, has_action( 'init', [ $subject, 'verify_form' ] ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'init', [ $subject, 'verify' ] ) );
 		self::assertSame( PHP_INT_MAX, has_filter( 'the_content', [ $subject, 'content_filter' ] ) );
 		self::assertSame(
 			PHP_INT_MAX,
@@ -216,10 +216,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_form_when_not_post(): void {
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 
 		$_SERVER['REQUEST_METHOD'] = 'GET';
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -231,7 +231,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		unset( $_SERVER['REQUEST_URI'] );
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -244,7 +244,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI']    = $request_uri;
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -263,7 +263,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		set_transient( AutoVerify::TRANSIENT, $registered_forms );
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -282,7 +282,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		set_transient( AutoVerify::TRANSIENT, $registered_forms );
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -319,7 +319,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		);
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( [], $_POST );
@@ -349,7 +349,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 
 		$_POST[ HCAPTCHA_NONCE ] = $this->get_test_nonce();
 
@@ -364,7 +364,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		set_current_screen( 'some-screen' );
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -379,7 +379,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		);
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
@@ -394,7 +394,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = rest_url();
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['wp_rewrite'] = $old_wp_rewrite;

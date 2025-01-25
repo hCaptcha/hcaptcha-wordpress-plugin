@@ -45,7 +45,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	public function test_init_and_init_hooks(): void {
 		$subject = new AutoVerify();
 
-		WP_Mock::expectActionAdded( 'init', [ $subject, 'verify_form' ], -PHP_INT_MAX );
+		WP_Mock::expectActionAdded( 'init', [ $subject, 'verify' ], -PHP_INT_MAX );
 		WP_Mock::expectFilterAdded( 'the_content', [ $subject, 'content_filter' ], PHP_INT_MAX );
 		WP_Mock::expectFilterAdded(
 			'widget_block_content',
@@ -116,22 +116,22 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test verify_form() not on frontend.
+	 * Test verify() not on frontend.
 	 */
-	public function test_verify_form_not_on_frontend(): void {
+	public function test_verify_not_on_frontend(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			false
 		);
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
-	 * Test verify_form() when not POST request.
+	 * Test verify() when not POST request.
 	 */
-	public function test_verify_form_when_not_post_request(): void {
+	public function test_verify_when_not_post_request(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -142,13 +142,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$_SERVER['REQUEST_METHOD'] = '';
 
 		$subject = new AutoVerify();
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
-	 * Test verify_form() when no path.
+	 * Test verify() when no path.
 	 */
-	public function test_verify_form_when_no_path(): void {
+	public function test_verify_when_no_path(): void {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -172,13 +172,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		$subject = new AutoVerify();
 
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
-	 * Test verify_form() when form is not registered.
+	 * Test verify() when form is not registered.
 	 */
-	public function test_verify_form_when_form_is_not_registered(): void {
+	public function test_verify_when_form_is_not_registered(): void {
 		$url = 'https://test.test/auto-verify?test=1';
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
@@ -210,13 +210,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_form_registered' )->with( $path )->once()->andReturn( false );
 
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
-	 * Test verify_form() when the form is verified.
+	 * Test verify() when the form is verified.
 	 */
-	public function test_verify_form_when_the_form_is_verified(): void {
+	public function test_verify_when_the_form_is_verified(): void {
 		$url = 'https://test.test/auto-verify?test=1';
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
@@ -249,13 +249,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_form_registered' )->with( $path )->once()->andReturn( true );
 
-		$subject->verify_form();
+		$subject->verify();
 	}
 
 	/**
-	 * Test verify_form() when the form is not verified.
+	 * Test verify() when the form is not verified.
 	 */
-	public function test_verify_form_when_the_form_is_not_verified(): void {
+	public function test_verify_when_the_form_is_not_verified(): void {
 		$url    = 'https://test.test/auto-verify?test=1';
 		$result = 'Some hCaptcha error.';
 
@@ -300,7 +300,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_form_registered' )->with( $path )->once()->andReturn( true );
 
-		$subject->verify_form();
+		$subject->verify();
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( [], $_POST );
