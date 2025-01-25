@@ -62,8 +62,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$subject = new AutoVerify();
 
+		$subject->init();
+
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->content_filter( $content ) );
+		apply_filters( 'the_content', $content );
 		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
 
@@ -82,8 +84,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$subject = new AutoVerify();
 
+		$subject->init();
+
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->widget_block_content_filter( $content, [], $wp_widget_block ) );
+		apply_filters( 'widget_block_content', $content, [], $wp_widget_block );
 		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
 
@@ -99,14 +103,16 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			$content
 		);
 
-		unset( $_SERVER['REQUEST_URI'] );
+		$_SERVER['REQUEST_URI'] = 'some-uri';
 
 		$expected = $this->get_test_registered_forms();
 
 		$subject = new AutoVerify();
 
+		$subject->init();
+
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->content_filter( $content ) );
+		apply_filters( 'the_content', $content );
 		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
 
@@ -116,64 +122,15 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	public function test_content_filter_without_form_action(): void {
 		$content = $this->get_test_content();
 
-		unset( $_SERVER['REQUEST_URI'] );
+		$_SERVER['REQUEST_URI'] = '';
 
 		$subject = new AutoVerify();
 
+		$subject->init();
+
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->content_filter( $content ) );
+		apply_filters( 'the_content', $content );
 		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
-	}
-
-	/**
-	 * Test content_filter() when no input in form (really?).
-	 */
-	public function test_content_filter_without_form_inputs(): void {
-		$request_uri = wp_parse_url( $this->get_test_request_uri(), PHP_URL_PATH );
-		$content     = $this->get_test_content();
-		$content     = preg_replace( '#<input[\S\s]+?>#', '', $content );
-		$expected    = $this->get_test_registered_forms();
-
-		$expected[ untrailingslashit( $request_uri ) ][0] = [];
-
-		$_SERVER['REQUEST_URI'] = $request_uri;
-
-		$subject = new AutoVerify();
-
-		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->content_filter( $content ) );
-		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
-
-		// Test update existing transient.
-		self::assertSame( $content, $subject->content_filter( $content ) );
-		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
-	}
-
-	/**
-	 * Test content_filter() when no data-auto in form (really?).
-	 */
-	public function test_content_filter_without_form_data_auto(): void {
-		$request_uri = $this->get_test_request_uri();
-		$content     = $this->get_test_content();
-		$content     = preg_replace( '#data-auto=".*?">#', '', $content );
-
-		$_SERVER['REQUEST_URI'] = $request_uri;
-
-		$subject = new AutoVerify();
-
-		self::assertFalse( get_transient( $subject::TRANSIENT ) );
-		self::assertSame( $content, $subject->content_filter( $content ) );
-		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
-
-		$registered_forms = $this->get_test_registered_forms();
-		$expected         = $registered_forms;
-
-		$expected[ untrailingslashit( wp_parse_url( $request_uri, PHP_URL_PATH ) ) ] = [];
-
-		// Test update existing transient.
-		set_transient( AutoVerify::TRANSIENT, $registered_forms );
-		self::assertSame( $content, $subject->content_filter( $content ) );
-		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**
@@ -431,15 +388,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 <form method="post">
 	<input type="text" name="test_input" id="test_input">
 	<input type="submit" value="Send">
-	<div
-			class="h-captcha"
-			data-sitekey="95d60c5a-68cf-4db1-a583-6a22bdd558f2"
-			data-theme="light"
-			data-size="normal"
-			data-auto="true">
-	</div>
-	<input type="hidden" id="hcaptcha_nonce" name="hcaptcha_nonce" value="' . $nonce . '"/>
-	<input type="hidden" name="_wp_http_referer" value="' . $request_uri . '"/>
+	[hcaptcha auto="true"]
 </form>
 
 <form role="search" method="get" action="http://test.test/"
@@ -463,11 +412,27 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	private function get_test_registered_forms(): array {
 		$request_uri = $this->get_test_request_uri();
 		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
+		$args        = [
+			'action'  => 'hcaptcha_action',
+			'name'    => 'hcaptcha_nonce',
+			'auto'    => true,
+			'force'   => false,
+			'theme'   => '',
+			'size'    => '',
+			'id'      => [
+				'source'  => [],
+				'form_id' => 0,
+			],
+			'protect' => true,
+		];
 
 		return [
 			untrailingslashit( $request_uri ) =>
 				[
-					[ 'test_input' ],
+					[
+						'inputs' => [ 'test_input' ],
+						'args'   => $args,
+					],
 				],
 		];
 	}

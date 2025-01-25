@@ -440,10 +440,6 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	public function test_update_transient( $transient, array $forms_data, array $expected ): void {
 		$day_in_seconds = 24 * 60 * 60;
 
-		global $gl_expected;
-
-		$gl_expected = $expected;
-
 		FunctionMocker::replace(
 			'constant',
 			static function ( $name ) use ( $day_in_seconds ) {

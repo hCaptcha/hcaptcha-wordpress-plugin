@@ -312,6 +312,7 @@ class FormTest extends HCaptchaWPTestCase {
 					1 => [],
 				],
 			],
+			'fields'     => [ $hcaptcha_field ],
 		];
 		$validation_result           = [
 			'is_valid'               => true,
