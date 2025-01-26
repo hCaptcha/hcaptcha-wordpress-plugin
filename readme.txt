@@ -551,6 +551,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * CoBlocks Form
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
+* Cookies and Content Security Policy
 * Divi Comment, Contact, Email Optin and Login Forms
 * Divi Builder Comment, Contact, Email Optin and Login Forms
 * Download Manager Form
@@ -623,6 +624,7 @@ Instructions for popular native integrations are below:
 = 4.10.0 =
 * Added support for hCaptcha in HTML Gravity Forms fields.
 * Added support for custom nonce action and name in the [hcaptcha] shortcode.
+* Added compatibility with Cookies and Content Security Policy plugin.
 * Improved error messaging for hCaptcha verification.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.
