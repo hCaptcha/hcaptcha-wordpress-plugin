@@ -138,6 +138,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				data-theme="' . $hcaptcha_theme . '"
 				data-size="' . $hcaptcha_size . '"
 				data-auto="false"
+				data-ajax="false"
 				data-force="false">' . '
 		</span>
 		' . $nonce .
