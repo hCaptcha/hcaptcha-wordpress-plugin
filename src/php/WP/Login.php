@@ -5,15 +5,9 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:disable Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedNamespaceInspection */
-/** @noinspection PhpUndefinedClassInspection */
-// phpcs:enable Generic.Commenting.DocComment.MissingShort
-
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LoginBase;
-use WordfenceLS\Controller_WordfenceLS;
 
 /**
  * Class Login

@@ -34,6 +34,7 @@ use HCaptcha\WC\OrderTracking;
 use HCaptcha\WCWishlists\CreateList;
 use HCaptcha\WP\Comment;
 use HCaptcha\WP\Login;
+use HCaptcha\WP\LoginOut;
 use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\PasswordProtected;
 use HCaptcha\WP\Register;
@@ -1295,7 +1296,7 @@ JS;
 			'Login Form'                        => [
 				[ 'wp_status', 'login' ],
 				'',
-				Login::class,
+				[ Login::class, LoginOut::class ],
 			],
 			'Lost Password Form'                => [
 				[ 'wp_status', 'lost_pass' ],

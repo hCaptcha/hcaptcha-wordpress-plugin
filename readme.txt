@@ -628,6 +628,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.10.0 =
+* Added support for wp_login_form() function and LoginOut block.
 * Added support for hCaptcha in HTML Gravity Forms fields.
 * Added support for custom nonce action and name in the [hcaptcha] shortcode.
 * Added compatibility with Cookies and Content Security Policy plugin.

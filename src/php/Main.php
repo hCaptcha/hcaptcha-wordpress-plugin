@@ -832,7 +832,7 @@ CSS;
 			'Login Form'                           => [
 				[ 'wp_status', 'login' ],
 				'',
-				WP\Login::class,
+				[ WP\Login::class, WP\LoginOut::class ],
 			],
 			'Lost Password Form'                   => [
 				[ 'wp_status', 'lost_pass' ],
