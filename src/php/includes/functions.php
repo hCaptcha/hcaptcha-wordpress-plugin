@@ -25,12 +25,14 @@ function hcap_shortcode( $atts ): string {
 	/**
 	 * Do not set the default size here.
 	 * If size is not normal|compact|invisible, it will be taken from plugin settings in HCaptcha::form().
+	 * Same for theme and force.
 	 */
 	$atts = shortcode_atts(
 		[
 			'action'  => HCAPTCHA_ACTION,
 			'name'    => HCAPTCHA_NONCE,
 			'auto'    => false,
+			'ajax'    => false,
 			'force'   => $hcaptcha_force,
 			'theme'   => $hcaptcha_theme,
 			'size'    => $hcaptcha_size,

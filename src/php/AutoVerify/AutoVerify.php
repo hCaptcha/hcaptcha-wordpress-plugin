@@ -22,6 +22,16 @@ class AutoVerify {
 	public const TRANSIENT = 'hcaptcha_auto_verify';
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-auto-verify';
+
+	/**
+	 * Script localization object.
+	 */
+	private const OBJECT = 'HCaptchaAutoVerifyObject';
+
+	/**
 	 * The hCaptcha forms registry.
 	 *
 	 * @var array
@@ -48,6 +58,7 @@ class AutoVerify {
 		add_filter( 'widget_block_content', [ $this, 'widget_block_content_filter' ], PHP_INT_MAX, 3 );
 		add_action( 'hcap_auto_verify_register', [ $this, 'content_filter' ] );
 		add_action( 'hcap_register_form', [ $this, 'register_hcaptcha' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -93,6 +104,37 @@ class AutoVerify {
 	}
 
 	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! array_filter( array_column( $this->registry ?? [], 'ajax' ) ) ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-auto-verify$min.js",
+			[ 'jquery' ],
+			HCAPTCHA_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'successMsg' => __( 'The form was submitted successfully.', 'hcaptcha-for-forms-and-more' ),
+			]
+		);
+
+		wp_enqueue_script( 'hcaptcha' );
+	}
+
+	/**
 	 * Verify a form automatically.
 	 *
 	 * @return void
@@ -115,12 +157,19 @@ class AutoVerify {
 			return;
 		}
 
-		$action = $registered_form['args']['action'] ?? '';
-		$name   = $registered_form['args']['name'] ?? '';
+		$args   = $registered_form['args'] ?? [];
+		$action = $args['action'] ?? '';
+		$name   = $args['name'] ?? '';
+		$ajax   = $args['ajax'] ?? '';
 		$result = hcaptcha_verify_post( $name, $action );
+
+		if ( $ajax ) {
+			add_filter( 'wp_doing_ajax', '__return_true' );
+		}
 
 		if ( null !== $result ) {
 			$_POST = [];
+
 			wp_die(
 				esc_html( $result ),
 				'hCaptcha',

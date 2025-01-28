@@ -111,7 +111,7 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 Full list of arguments:
 
 `
-[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" ajax="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
 `
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
@@ -185,6 +185,12 @@ You can add also `force="true"` or `force="1"` argument to prevent sending a for
 
 `
 [hcaptcha auto="true" force="true"]
+`
+
+Also, arbitrary form can be verified in ajax. Use `ajax` argument. There is no need to specify `auto="true"` in this case, as `ajax` implies `auto="true"`.
+
+`
+[hcaptcha ajax="true"]
 `
 
 = How to block hCaptcha on a specific page? =
@@ -625,6 +631,7 @@ Instructions for popular native integrations are below:
 * Added support for hCaptcha in HTML Gravity Forms fields.
 * Added support for custom nonce action and name in the [hcaptcha] shortcode.
 * Added compatibility with Cookies and Content Security Policy plugin.
+* Added auto-verification of arbitrary forms in ajax.
 * Improved error messaging for hCaptcha verification.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.

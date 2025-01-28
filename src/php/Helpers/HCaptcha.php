@@ -77,6 +77,7 @@ class HCaptcha {
 				'action'  => '', // Action name for wp_nonce_field.
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
+				'ajax'    => false, // Whether a form has to be auto-verified in ajax.
 				'force'   => $hcaptcha_force, // Whether to execute hCaptcha widget before submit (like for invisible).
 				'theme'   => $hcaptcha_theme, // The hCaptcha theme.
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
@@ -103,7 +104,9 @@ class HCaptcha {
 
 		$args['action']  = (string) $args['action'];
 		$args['name']    = (string) $args['name'];
-		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$auto            = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['ajax']    = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
+		$args['auto']    = $args['ajax'] ? true : $auto; // Auto-verify in ajax.
 		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
 		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true ) ? (string) $args['theme'] : $hcaptcha_theme;
 		$args['theme']   = $bg ? 'custom' : $args['theme'];
@@ -151,6 +154,7 @@ class HCaptcha {
 				data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
 				data-size="<?php echo esc_attr( $args['size'] ); ?>"
 				data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
+				data-ajax="<?php echo $args['ajax'] ? 'true' : 'false'; ?>"
 				data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
 		</h-captcha>
 		<?php
