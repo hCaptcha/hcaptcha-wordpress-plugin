@@ -634,6 +634,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Cookies and Content Security Policy plugin.
 * Added auto-verification of arbitrary forms in ajax.
 * Improved error messaging for hCaptcha verification.
+* Fixed IP detection in the WordPress core via filter, to sync with hCaptcha events information when the IP collection is activated.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.
 * Fixed scrolling to the message on the General page.
