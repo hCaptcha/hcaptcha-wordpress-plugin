@@ -153,7 +153,7 @@ const general = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		// Concat below to avoid inspection message.
+		// Concat below to avoid an inspection message.
 		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
 		$message = $( msgSelector );
 	}

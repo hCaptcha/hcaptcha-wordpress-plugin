@@ -86,7 +86,7 @@ body.settings_page_hcaptcha {
 	position: relative;
 }
 
-#hcaptcha-options table tr td input[type="checkbox"] {
+#hcaptcha-options table tr td fieldset input[type="checkbox"] {
 	display: inline;
 	border: none;
 	box-shadow: none;
@@ -98,7 +98,7 @@ body.settings_page_hcaptcha {
 	margin-inline-start: 0;
 }
 
-#hcaptcha-options table tr td input[type="checkbox"]::before {
+#hcaptcha-options table tr td fieldset input[type="checkbox"]::before {
 	background: url('../images/checkbox-off.svg');
 	background-size: cover;
 	margin: 0;
@@ -108,7 +108,7 @@ body.settings_page_hcaptcha {
 	display: inline-block;
 }
 
-#hcaptcha-options table tr td input[type="checkbox"]:checked::before {
+#hcaptcha-options table tr td fieldset input[type="checkbox"]:checked::before {
 	background: no-repeat url('../images/checkbox-on.svg');
 	background-size: cover;
 }

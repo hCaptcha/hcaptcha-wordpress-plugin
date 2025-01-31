@@ -95,6 +95,7 @@ class FormsTable extends WP_List_Table {
 	 */
 	public function init(): void {
 		$this->columns = [
+			'cb'      => '<input type="checkbox" />',
 			'name'    => __( 'Source', 'hcaptcha-for-forms-and-more' ),
 			'form_id' => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
 			'served'  => __( 'Served', 'hcaptcha-for-forms-and-more' ),
@@ -221,6 +222,36 @@ class FormsTable extends WP_List_Table {
 	}
 
 	/**
+	 * @global string $comment_status
+	 *
+	 * @return array
+	 * @noinspection PhpMissingReturnTypeInspection
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 */
+	protected function get_bulk_actions() {
+		$actions = [];
+
+		$actions['trash'] = __( 'Delete', 'hcaptcha-for-forms-and-more' );
+
+		return $actions;
+	}
+
+	/**
+	 * Generate content for the checkbox column.
+	 *
+	 * @param object $item The current item.
+	 * @return string The checkbox HTML.
+	 */
+	protected function column_cb( $item ): string {
+		$id = isset( $item->id ) ? (int) $item->id : 0;
+
+		return sprintf(
+			'<input type="checkbox" name="bulk-checkbox[]" value="%d" />',
+			$id
+		);
+	}
+
+	/**
 	 * Column Source.
 	 * Has 'name' slug not to be hidden.
 	 * WP has no filter for special columns.
@@ -248,7 +279,7 @@ class FormsTable extends WP_List_Table {
 
 		unset( $slug );
 
-		return $this->excerpt( implode( ', ', $source ), 15 );
+		return $this->excerpt( implode( ', ', $source ), 15, $item->source );
 	}
 
 	/**
@@ -266,16 +297,18 @@ class FormsTable extends WP_List_Table {
 	 *
 	 * @param string $text   Text.
 	 * @param int    $length Excerpt length.
+	 * @param string $source Source.
 	 *
 	 * @return string
 	 */
-	private function excerpt( string $text, int $length = 35 ): string {
+	private function excerpt( string $text, int $length = 35, string $source = '' ): string {
 		$excerpt = mb_substr( $text, 0, $length );
 
 		ob_start();
 
 		?>
-		<span class="hcaptcha-excerpt"><?php echo esc_html( $excerpt ); ?>
+		<span class="hcaptcha-excerpt" data-source="<?php echo esc_attr( $source); ?>">
+			<?php echo esc_html( $excerpt ); ?>
 			<span class="hcaptcha-hide"><?php echo esc_html( $text ); ?></span>
 		</span>
 		<?php

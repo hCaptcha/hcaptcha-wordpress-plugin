@@ -69,16 +69,6 @@ class FormsPage extends ListPageBase {
 	}
 
 	/**
-	 * Init class hooks.
-	 */
-	protected function init_hooks(): void {
-		parent::init_hooks();
-
-		add_action( 'admin_init', [ $this, 'admin_init' ] );
-		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
-	}
-
-	/**
 	 * Admin init.
 	 *
 	 * @return void
@@ -143,6 +133,10 @@ class FormsPage extends ListPageBase {
 	 */
 	public function section_callback( array $arguments ): void {
 		$this->print_header();
+
+		?>
+		<div id="hcaptcha-message"></div>
+		<?php
 
 		if ( ! $this->allowed ) {
 			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
