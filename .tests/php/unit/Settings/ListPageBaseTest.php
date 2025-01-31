@@ -55,12 +55,12 @@ class ListPageBaseTest extends HCaptchaTestCase {
 					<div class="hcaptcha-datepicker-calendar">
 						<label for="hcaptcha-datepicker">
 							<input
-								type="text"
-								name="date"
-								tabindex="-1"
-								aria-hidden="true"
-								id="hcaptcha-datepicker"
-								value="2024-04-27 - 2024-05-27">
+									type="text"
+									name="date"
+									tabindex="-1"
+									aria-hidden="true"
+									id="hcaptcha-datepicker"
+									value="2024-04-27 - 2024-05-27">
 						</label>
 					</div>
 					<div class="hcaptcha-datepicker-action">

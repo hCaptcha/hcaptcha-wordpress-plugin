@@ -141,6 +141,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$unit           = 'hour';
 		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
+		$nonce          = 'some nonce';
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -236,6 +237,12 @@ class FormsPageTest extends HCaptchaTestCase {
 				ListPageBase::HANDLE,
 				ListPageBase::OBJECT,
 				[
+					'ajaxUrl'    => 'admin-ajax.php',
+					'bulkAction' => ListPageBase::BULK_ACTION,
+					'bulkNonce'  => $nonce,
+					'noAction'   => 'Please select a bulk action.',
+					'noItems'    => 'Please select at least one item to perform this action on.',
+					'DoingBulk'  => 'Doing bulk action...',
 					'delimiter' => ListPageBase::TIMESPAN_DELIMITER,
 					'locale'    => $language_code,
 				]
@@ -264,6 +271,8 @@ class FormsPageTest extends HCaptchaTestCase {
 			)
 			->times( $times );
 
+		WP_Mock::passthruFunction( 'admin_url' );
+		WP_Mock::userFunction( 'wp_create_nonce' )->andReturn( $nonce );
 		WP_Mock::userFunction( 'get_user_locale' )->andReturn( $language_code );
 
 		$subject->admin_enqueue_scripts();
@@ -294,6 +303,7 @@ class FormsPageTest extends HCaptchaTestCase {
 					Forms				</h2>
 			</div>
 			' . $datepicker . '		</div>
+				<div id="hcaptcha-message"></div>
 				<div id="hcaptcha-forms-chart">
 			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
@@ -338,6 +348,7 @@ class FormsPageTest extends HCaptchaTestCase {
 					Forms				</h2>
 			</div>
 					</div>
+				<div id="hcaptcha-message"></div>
 					<div class="hcaptcha-forms-sample-bg"></div>
 
 			<div class="hcaptcha-forms-sample-text">
