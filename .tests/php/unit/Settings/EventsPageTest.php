@@ -246,9 +246,6 @@ class EventsPageTest extends HCaptchaTestCase {
 				ListPageBase::HANDLE,
 				ListPageBase::OBJECT,
 				[
-					'ajaxUrl'    => 'admin-ajax.php',
-					'bulkAction' => ListPageBase::BULK_ACTION,
-					'bulkNonce'  => $nonce,
 					'noAction'   => 'Please select a bulk action.',
 					'noItems'    => 'Please select at least one item to perform this action on.',
 					'DoingBulk'  => 'Doing bulk action...',
@@ -273,6 +270,9 @@ class EventsPageTest extends HCaptchaTestCase {
 				EventsPage::HANDLE,
 				EventsPage::OBJECT,
 				[
+					'ajaxUrl'      => 'admin-ajax.php',
+					'bulkAction'   => EventsPage::BULK_ACTION,
+					'bulkNonce'    => $nonce,
 					'succeed'      => $succeed,
 					'failed'       => $failed,
 					'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
