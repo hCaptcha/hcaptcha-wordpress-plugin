@@ -1,27 +1,23 @@
 /* global jQuery, Chart, hCaptchaSettingsBase, HCaptchaListPageBaseObject, HCaptchaFormsObject */
 
 /**
+ * @param HCaptchaFormsObject.ajaxUrl
+ * @param HCaptchaFormsObject.bulkAction
+ * @param HCaptchaFormsObject.bulkNonce
  * @param HCaptchaFormsObject.served
  * @param HCaptchaFormsObject.servedLabel
  * @param HCaptchaFormsObject.unit
- * @param HCaptchaListPageBaseObject.ajaxUrl
- * @param HCaptchaListPageBaseObject.bulkAction
- * @param HCaptchaListPageBaseObject.bulkNonce
  * @param HCaptchaListPageBaseObject.noAction
  * @param HCaptchaListPageBaseObject.noItems
  * @param HCaptchaListPageBaseObject.DoingBulk
  */
 
 /**
- * General settings page logic.
+ * Forms page logic.
  *
  * @param {Object} $ jQuery instance.
  */
 const forms = function( $ ) {
-	const headerBarSelector = '.hcaptcha-header-bar';
-	const msgSelector = '#hcaptcha-message';
-	let $message = $( msgSelector );
-
 	function initChart() {
 		const ctx = document.getElementById( 'formsChart' );
 		const aspectRatio = window.innerWidth > 600 ? 3 : 2;
@@ -72,48 +68,7 @@ const forms = function( $ ) {
 		} );
 	}
 
-	function clearMessage() {
-		$message.remove();
-		// Concat below to avoid an inspection message.
-		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
-		$message = $( msgSelector );
-	}
-
-	function showMessage( message = '', msgClass = '' ) {
-		message = message === undefined ? '' : String( message );
-
-		if ( ! message ) {
-			return;
-		}
-
-		clearMessage();
-		$message.addClass( msgClass + ' notice is-dismissible' );
-
-		const messageLines = message.split( '\n' ).map( function( line ) {
-			return `<p>${ line }</p>`;
-		} );
-
-		$message.html( messageLines.join( '' ) );
-
-		$( document ).trigger( 'wp-updates-notice-added' );
-
-		$( 'html, body' ).animate(
-			{
-				scrollTop: $message.offset().top - hCaptchaSettingsBase.getStickyHeight(),
-			},
-			1000,
-		);
-	}
-
-	function showSuccessMessage( message = '' ) {
-		showMessage( message, 'notice-success' );
-	}
-
-	function showErrorMessage( message = '' ) {
-		showMessage( message, 'notice-error' );
-	}
-
-	function handleFormSubmit( event ) {
+	function handleBulkAction( event ) {
 		event.preventDefault();
 
 		const form = event.target.closest( 'form' );
@@ -122,7 +77,7 @@ const forms = function( $ ) {
 		const bulk = formData.get( 'action' );
 
 		if ( bulk === '-1' ) {
-			showErrorMessage( HCaptchaListPageBaseObject.noAction );
+			hCaptchaSettingsBase.showErrorMessage( HCaptchaListPageBaseObject.noAction );
 
 			return;
 		}
@@ -138,26 +93,26 @@ const forms = function( $ ) {
 		);
 
 		if ( ! ids.length ) {
-			showErrorMessage( HCaptchaListPageBaseObject.noItems );
+			hCaptchaSettingsBase.showErrorMessage( HCaptchaListPageBaseObject.noItems );
 
 			return;
 		}
 
 		const data = {
-			action: HCaptchaListPageBaseObject.bulkAction,
-			nonce: HCaptchaListPageBaseObject.bulkNonce,
+			action: HCaptchaFormsObject.bulkAction,
+			nonce: HCaptchaFormsObject.bulkNonce,
 			bulk,
 			ids: JSON.stringify( ids ),
 		};
 
 		$.post( {
-			url: HCaptchaListPageBaseObject.ajaxUrl,
+			url: HCaptchaFormsObject.ajaxUrl,
 			data,
-			beforeSend: () => showSuccessMessage( HCaptchaListPageBaseObject.DoingBulk ),
+			beforeSend: () => hCaptchaSettingsBase.showSuccessMessage( HCaptchaListPageBaseObject.DoingBulk ),
 		} )
 			.done( function( response ) {
 				if ( ! response.success ) {
-					showErrorMessage( response.data );
+					hCaptchaSettingsBase.showErrorMessage( response.data );
 
 					return;
 				}
@@ -166,15 +121,15 @@ const forms = function( $ ) {
 			} )
 			.fail(
 				function( response ) {
-					showErrorMessage( response.statusText );
+					hCaptchaSettingsBase.showErrorMessage( response.statusText );
 				},
 			);
 	}
 
 	initChart();
-	document.getElementById( 'doaction' ).addEventListener( 'click', handleFormSubmit );
+	document.getElementById( 'doaction' ).addEventListener( 'click', handleBulkAction );
 };
 
-window.hCaptchaGeneral = forms;
+window.hCaptchaForms = forms;
 
 jQuery( document ).ready( forms );

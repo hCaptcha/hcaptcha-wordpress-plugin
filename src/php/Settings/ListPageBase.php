@@ -39,11 +39,6 @@ abstract class ListPageBase extends PluginSettingsBase {
 	public const OBJECT = 'HCaptchaListPageBaseObject';
 
 	/**
-	 * Bulk ajax action.
-	 */
-	public const BULK_ACTION = 'hcaptcha-forms-bulk';
-
-	/**
 	 * Number of timespan days by default.
 	 * "Last 30 Days", by default.
 	 */
@@ -81,7 +76,6 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
 		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
-		add_action( 'wp_ajax_' . self::BULK_ACTION, [ $this, 'bulk_action' ] );
 	}
 
 	/**
@@ -192,9 +186,6 @@ abstract class ListPageBase extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-				'bulkAction' => self::BULK_ACTION,
-				'bulkNonce'  => wp_create_nonce( self::BULK_ACTION ),
 				'noAction'   => __( 'Please select a bulk action.', 'hcaptcha-for-forms-and-more' ),
 				'noItems'    => __( 'Please select at least one item to perform this action on.', 'hcaptcha-for-forms-and-more' ),
 				'DoingBulk'  => __( 'Doing bulk action...', 'hcaptcha-for-forms-and-more' ),
@@ -265,36 +256,6 @@ abstract class ListPageBase extends PluginSettingsBase {
 			</div>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Ajax callback for bulk actions.
-	 *
-	 * @return void
-	 */
-	public function bulk_action(): void {
-		$this->run_checks( self::BULK_ACTION );
-
-		// Nonce is checked by check_ajax_referer() in run_checks().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$bulk = isset( $_POST['bulk'] ) ? sanitize_text_field( wp_unslash( $_POST['bulk'] ) ) : '';
-		$ids  = isset( $_POST['ids'] )
-			? (array) json_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ), true )
-			: [];
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( 'trash' === $bulk ) {
-			if ( ! $this->delete_hcaptcha_events( $ids ) ) {
-				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
-			}
-
-			wp_send_json_success();
-
-			// For testing purposes.
-			return;
-		}
-
-		wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );
 	}
 
 	/**
@@ -535,37 +496,5 @@ abstract class ListPageBase extends PluginSettingsBase {
 		}
 
 		return $default_lang;
-	}
-
-	/**
-	 * Delete hCaptcha events by IDs.
-	 *
-	 * @param array $ids Array of event IDs to delete.
-	 *
-	 * @return bool
-	 */
-	private function delete_hcaptcha_events( array $ids ): bool {
-		global $wpdb;
-
-		$table_name = $wpdb->prefix . 'hcaptcha_events';
-		$conditions = [];
-		$values     = [];
-
-		foreach ( $ids as $item ) {
-			$conditions[] = '(source = %s AND form_id = %d)';
-			$values[]     = $item['source'];
-			$values[]     = $item['formId'];
-		}
-
-		$where_clause = implode( ' OR ', $conditions );
-
-		$query = $wpdb->prepare(
-			"DELETE FROM $table_name WHERE $where_clause",
-			...$values
-		);
-
-		$result = $wpdb->query( $query );
-
-		return (bool) $result;
 	}
 }

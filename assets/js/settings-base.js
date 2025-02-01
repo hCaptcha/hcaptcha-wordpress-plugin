@@ -22,7 +22,9 @@ const settingsBase = ( function( $ ) {
 	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
 
 	const h2Selector = '.hcaptcha-header h2';
+	const headerBarSelector = '.hcaptcha-header-bar';
 	const msgSelector = '#hcaptcha-message';
+	let $message = $( msgSelector );
 
 	function setHeaderBarTop() {
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
@@ -81,6 +83,47 @@ const settingsBase = ( function( $ ) {
 			const headerBarHeight = headerBar ? headerBar.offsetHeight : 0;
 
 			return adminBarHeight + tabsHeight + headerBarHeight;
+		},
+
+		clearMessage() {
+			$message.remove();
+			// Concat below to avoid an inspection message.
+			$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
+			$message = $( msgSelector );
+		},
+
+		showMessage( message = '', msgClass = '' ) {
+			message = message === undefined ? '' : String( message );
+
+			if ( ! message ) {
+				return;
+			}
+
+			app.clearMessage();
+			$message.addClass( msgClass + ' notice is-dismissible' );
+
+			const messageLines = message.split( '\n' ).map( function( line ) {
+				return `<p>${ line }</p>`;
+			} );
+
+			$message.html( messageLines.join( '' ) );
+
+			$( document ).trigger( 'wp-updates-notice-added' );
+
+			$( 'html, body' ).animate(
+				{
+					scrollTop: $message.offset().top - app.getStickyHeight(),
+				},
+				1000,
+			);
+		},
+
+		showSuccessMessage( message = '' ) {
+			app.showMessage( message, 'notice-success' );
+		},
+
+		showErrorMessage( message = '' ) {
+			app.showMessage( message, 'notice-error' );
 		},
 	};
 
