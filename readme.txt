@@ -644,6 +644,7 @@ Instructions for popular native integrations are below:
 * Fixed the Integrations page when active plugin was deleted.
 * Fixed error when hCaptcha is disabled for standard login but enabled for LearnPress login.
 * Fixed error when hCaptcha is disabled for standard login but enabled for Tutor login.
+* Fixed layout for Forms and Events pages on small screens.
 
 = 4.9.0 =
 * Added LearnPress integration.
