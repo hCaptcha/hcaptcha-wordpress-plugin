@@ -160,9 +160,9 @@ class FormsPage extends ListPageBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-				'bulkAction' => self::BULK_ACTION,
-				'bulkNonce'  => wp_create_nonce( self::BULK_ACTION ),
+				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+				'bulkAction'  => self::BULK_ACTION,
+				'bulkNonce'   => wp_create_nonce( self::BULK_ACTION ),
 				'served'      => $this->served,
 				'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 				'unit'        => $this->unit,
@@ -275,12 +275,14 @@ class FormsPage extends ListPageBase {
 
 		$where_clause = implode( ' OR ', $conditions );
 
-		$query = $wpdb->prepare(
-			"DELETE FROM $table_name WHERE $where_clause",
-			...$values
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->query(
+			$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				"DELETE FROM $table_name WHERE $where_clause",
+				...$values
+			)
 		);
-
-		$result = $wpdb->query( $query );
 
 		return (bool) $result;
 	}

@@ -170,9 +170,9 @@ class EventsPage extends ListPageBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-				'bulkAction' => self::BULK_ACTION,
-				'bulkNonce'  => wp_create_nonce( self::BULK_ACTION ),
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+				'bulkAction'   => self::BULK_ACTION,
+				'bulkNonce'    => wp_create_nonce( self::BULK_ACTION ),
 				'succeed'      => $this->succeed,
 				'failed'       => $this->failed,
 				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
@@ -292,11 +292,13 @@ class EventsPage extends ListPageBase {
 
 		$in = DB::prepare_in( $ids, '%d' );
 
-		$query = $wpdb->prepare(
-			"DELETE FROM $table_name WHERE id IN($in)"
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->query(
+			$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"DELETE FROM $table_name WHERE id IN($in)"
+			)
 		);
-
-		$result = $wpdb->query( $query );
 
 		return (bool) $result;
 	}
