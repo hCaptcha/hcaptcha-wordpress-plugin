@@ -627,6 +627,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.11.0 =
+* Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
+
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.
 * Added support for hCaptcha in HTML Gravity Forms fields.
