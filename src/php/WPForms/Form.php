@@ -55,6 +55,10 @@ class Form {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		if ( ! function_exists( 'wpforms' ) ) {
+			return;
+		}
+
 		$this->mode_auto  = hcaptcha()->settings()->is( 'wpforms_status', 'form' );
 		$this->mode_embed =
 			hcaptcha()->settings()->is( 'wpforms_status', 'embed' ) &&

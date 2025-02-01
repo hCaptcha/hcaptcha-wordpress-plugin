@@ -750,15 +750,20 @@ class Integrations extends PluginSettingsBase {
 
 		$installed = array_unique( $installed );
 
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
+		}
+
+		unset( $form_field );
+
 		$this->form_fields = $this->sort_fields( $this->form_fields );
 
 		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
 
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			$form_field['installed'] = in_array( $status, $installed, true );
-			$form_field['section']   = ( ! $form_field['installed'] ) || $form_field['disabled']
-				? self::SECTION_DISABLED
-				: self::SECTION_ENABLED;
+			$form_field['section']   = $form_field['disabled'] ? self::SECTION_DISABLED : self::SECTION_ENABLED;
 
 			if ( isset( $form_field['label'] ) ) {
 				$form_field['label'] = $this->logo( $form_field );
@@ -1683,15 +1688,17 @@ class Integrations extends PluginSettingsBase {
 		$result = $upgrader->install( $download_link );
 
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( $result->get_error_code(), $result->get_error_message() );
+			return $result;
 		}
 
 		if ( is_wp_error( $skin->result ) ) {
-			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+			return $skin->result;
 		}
 
-		if ( $skin->get_errors() && $skin->get_errors()->has_errors() ) {
-			return new WP_Error( $skin->result->get_error_code(), $skin->result->get_error_message() );
+		$skin_errors = $skin->get_errors();
+
+		if ( $skin_errors && $skin_errors->has_errors() ) {
+			return $skin_errors;
 		}
 
 		if ( is_null( $result ) ) {

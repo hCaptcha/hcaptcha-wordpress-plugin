@@ -1,4 +1,4 @@
-/* global jQuery, hCaptcha, HCaptchaGeneralObject, kaggDialog */
+/* global jQuery, hCaptcha, hCaptchaSettingsBase, HCaptchaGeneralObject, kaggDialog */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
@@ -153,7 +153,7 @@ const general = function( $ ) {
 
 	function clearMessage() {
 		$message.remove();
-		// Concat below to avoid inspection message.
+		// Concat below to avoid an inspection message.
 		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
 		$message = $( msgSelector );
 	}
@@ -180,12 +180,9 @@ const general = function( $ ) {
 
 		$( document ).trigger( 'wp-updates-notice-added' );
 
-		const $wpwrap = $( '#wpwrap' );
-		const top = $wpwrap.position().top;
-
 		$( 'html, body' ).animate(
 			{
-				scrollTop: $message.offset().top - top - parseInt( $message.css( 'margin-bottom' ) ),
+				scrollTop: $message.offset().top - hCaptchaSettingsBase.getStickyHeight(),
 			},
 			1000
 		);

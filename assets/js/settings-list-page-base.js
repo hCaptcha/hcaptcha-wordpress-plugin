@@ -1,4 +1,4 @@
-/* global HCaptchaFlatPickerObject, flatpickr */
+/* global HCaptchaListPageBaseObject, flatpickr */
 
 /**
  * @param flatpickr.l10ns
@@ -17,8 +17,8 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		hide: 'hcaptcha-hide',
 		selected: 'hcaptcha-is-selected',
 	};
-	const delimiter = HCaptchaFlatPickerObject.delimiter;
-	const locale = HCaptchaFlatPickerObject.locale;
+	const delimiter = HCaptchaListPageBaseObject.delimiter;
+	const locale = HCaptchaListPageBaseObject.locale;
 	let flatPickerObj;
 
 	const wrapper = document.getElementById( 'hcaptcha-options' );

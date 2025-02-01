@@ -2,7 +2,6 @@
 	position: relative;
 	display: flex;
 	flex-direction: row-reverse;
-	margin-bottom: 15px;
 }
 
 #hcaptcha-datepicker-popover-button {

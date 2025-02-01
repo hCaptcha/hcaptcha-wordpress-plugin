@@ -8,45 +8,26 @@
 namespace HCaptcha\Admin\Events;
 
 use HCaptcha\Settings\ListPageBase;
-use WP_List_Table;
-
-// If this file is called directly, abort.
-if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
-	exit;
-	// @codeCoverageIgnoreEnd
-}
-
-if ( ! class_exists( 'WP_List_Table', false ) ) {
-	// IMPORTANT NOTICE:
-	// This line is needed to prevent fatal errors in the third-party plugins.
-	// We know that Jetpack (probably others also) can load WP classes during cron jobs.
-	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-}
 
 /**
  * List forms in the table.
  */
-class FormsTable extends WP_List_Table {
+class FormsTable extends TableBase {
 
 	/**
-	 * Forms per page option.
+	 * Singular table name.
 	 */
-	private const FORMS_PER_PAGE = 'hcaptcha_forms_per_page';
+	protected const SINGULAR = 'form';
 
 	/**
-	 * Plugin page hook.
-	 *
-	 * @var string
+	 * Plural table name.
 	 */
-	private $plugin_page_hook;
+	protected const PLURAL = 'forms';
 
 	/**
-	 * Default number of forms to show per page.
-	 *
-	 * @var int
+	 * Items per page option.
 	 */
-	public $per_page_default = 20;
+	protected const ITEMS_PER_PAGE = 'hcaptcha_forms_per_page';
 
 	/**
 	 * Served events.
@@ -56,95 +37,19 @@ class FormsTable extends WP_List_Table {
 	public $served = [];
 
 	/**
-	 * Columns.
-	 *
-	 * @var array
-	 */
-	private $columns;
-
-	/**
-	 * Plugins installed.
-	 *
-	 * @var array[]
-	 */
-	private $plugins;
-
-	/**
-	 * Class constructor.
-	 *
-	 * @param string $plugin_page_hook Plugin page hook.
-	 */
-	public function __construct( string $plugin_page_hook ) {
-		parent::__construct(
-			[
-				'singular' => 'form',
-				'plural'   => 'forms',
-				'screen'   => $plugin_page_hook,
-			]
-		);
-
-		$this->plugin_page_hook = $plugin_page_hook;
-
-		$this->init();
-	}
-
-	/**
 	 * Init class.
 	 *
 	 * @return void
 	 */
 	public function init(): void {
 		$this->columns = [
+			'cb'      => '<input type="checkbox" />',
 			'name'    => __( 'Source', 'hcaptcha-for-forms-and-more' ),
 			'form_id' => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
 			'served'  => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 		];
 
-		$this->plugins = get_plugins();
-
-		add_action( 'load-' . $this->plugin_page_hook, [ $this, 'add_screen_option' ] );
-		add_filter( 'set_screen_option_' . self::FORMS_PER_PAGE, [ $this, 'set_screen_option' ], 10, 3 );
-
-		set_screen_options();
-	}
-
-	/**
-	 * Add screen options.
-	 *
-	 * @return void
-	 */
-	public function add_screen_option(): void {
-		$args = [
-			'label'   => __( 'Number of items per page:', 'hcaptcha-for-forms-and-more' ),
-			'default' => $this->per_page_default,
-			'option'  => self::FORMS_PER_PAGE,
-		];
-
-		add_screen_option( 'per_page', $args );
-	}
-
-	/**
-	 * Set screen option.
-	 *
-	 * @param mixed  $screen_option  The value to save instead of the option value.
-	 *                               Default false (to skip saving the current option).
-	 * @param string $option         The option name.
-	 * @param mixed  $value          The option value.
-	 *
-	 * @return mixed
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function set_screen_option( $screen_option, string $option, $value ) {
-		return $value;
-	}
-
-	/**
-	 * Retrieve the table columns.
-	 *
-	 * @return array Array of all the list table columns.
-	 */
-	public function get_columns(): array {
-		return $this->columns;
+		parent::init();
 	}
 
 	/**
@@ -196,7 +101,7 @@ class FormsTable extends WP_List_Table {
 
 		$dates    = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
 		$dates    = array_filter( array_map( 'trim', $dates ) );
-		$per_page = $this->get_items_per_page( self::FORMS_PER_PAGE, $this->per_page_default );
+		$per_page = $this->get_items_per_page( self::ITEMS_PER_PAGE, $this->per_page_default );
 		$offset   = ( $paged - 1 ) * $per_page;
 		$args     = [
 			'offset'  => $offset,
@@ -218,68 +123,5 @@ class FormsTable extends WP_List_Table {
 				'per_page'    => $per_page,
 			]
 		);
-	}
-
-	/**
-	 * Column Source.
-	 * Has 'name' slug not to be hidden.
-	 * WP has no filter for special columns.
-	 *
-	 * @see          \WP_Screen::render_list_table_columns_preferences.
-	 *
-	 * @param object $item Item.
-	 *
-	 * @noinspection PhpUnused PhpUnused.
-	 */
-	protected function column_name( object $item ): string {
-		$source = (array) json_decode( $item->source, true );
-
-		foreach ( $source as &$slug ) {
-			if ( 'WordPress' === $slug ) {
-				continue;
-			}
-
-			if ( false === strpos( $slug, '/' ) ) {
-				continue;
-			}
-
-			$slug = isset( $this->plugins[ $slug ] ) ? $this->plugins[ $slug ]['Name'] : $slug;
-		}
-
-		unset( $slug );
-
-		return $this->excerpt( implode( ', ', $source ), 15 );
-	}
-
-	/**
-	 * Column default.
-	 *
-	 * @param object $item        Item.
-	 * @param string $column_name Column name.
-	 */
-	protected function column_default( $item, $column_name ): string {
-		return (string) $item->$column_name;
-	}
-
-	/**
-	 * Excerpt text.
-	 *
-	 * @param string $text   Text.
-	 * @param int    $length Excerpt length.
-	 *
-	 * @return string
-	 */
-	private function excerpt( string $text, int $length = 35 ): string {
-		$excerpt = mb_substr( $text, 0, $length );
-
-		ob_start();
-
-		?>
-		<span class="hcaptcha-excerpt"><?php echo esc_html( $excerpt ); ?>
-			<span class="hcaptcha-hide"><?php echo esc_html( $text ); ?></span>
-		</span>
-		<?php
-
-		return ob_get_clean();
 	}
 }

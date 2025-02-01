@@ -137,6 +137,12 @@ function hcap_check_site_config(): array {
 
 	$raw_response = wp_remote_post( $url );
 
+	if ( is_wp_error( $raw_response ) ) {
+		return [
+			'error' => implode( "\n", $raw_response->get_error_messages() ),
+		];
+	}
+
 	$raw_body = wp_remote_retrieve_body( $raw_response );
 
 	if ( empty( $raw_body ) ) {
@@ -234,6 +240,14 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 			hcaptcha()->get_verify_url(),
 			[ 'body' => $params ]
 		);
+
+		if ( is_wp_error( $raw_response ) ) {
+			$result      = implode( "\n", $raw_response->get_error_messages() );
+			$error_codes = $raw_response->get_error_codes();
+
+			/** This filter is documented above. */
+			return apply_filters( 'hcap_verify_request', $result, $error_codes );
+		}
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
 
@@ -347,7 +361,7 @@ if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 
 if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 	/**
-	 * Get verify message html.
+	 * Get verify message HTML.
 	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.

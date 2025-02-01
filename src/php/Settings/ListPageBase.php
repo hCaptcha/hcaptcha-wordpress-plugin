@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use DateTimeImmutable;
+use Exception;
 
 /**
  * Class ListPageBase.
@@ -34,7 +35,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	/**
 	 * Base object.
 	 */
-	public const OBJECT = 'HCaptchaFlatPickerObject';
+	public const OBJECT = 'HCaptchaListPageBaseObject';
 
 	/**
 	 * Number of timespan days by default.
@@ -65,6 +66,16 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * @var bool
 	 */
 	protected $allowed = false;
+
+	/**
+	 * Init class hooks.
+	 */
+	protected function init_hooks(): void {
+		parent::init_hooks();
+
+		add_action( 'admin_init', [ $this, 'admin_init' ] );
+		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
+	}
 
 	/**
 	 * Get suggested data format from items array.
@@ -174,6 +185,9 @@ abstract class ListPageBase extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
+				'noAction'  => __( 'Please select a bulk action.', 'hcaptcha-for-forms-and-more' ),
+				'noItems'   => __( 'Please select at least one item to perform this action on.', 'hcaptcha-for-forms-and-more' ),
+				'DoingBulk' => __( 'Doing bulk action...', 'hcaptcha-for-forms-and-more' ),
 				'delimiter' => self::TIMESPAN_DELIMITER,
 				'locale'    => $this->get_language_code(),
 			]
@@ -221,12 +235,12 @@ abstract class ListPageBase extends PluginSettingsBase {
 					<div class="hcaptcha-datepicker-calendar">
 						<label for="hcaptcha-datepicker">
 							<input
-								type="text"
-								name="date"
-								tabindex="-1"
-								aria-hidden="true"
-								id="hcaptcha-datepicker"
-								value="<?php echo esc_attr( $value ); ?>">
+									type="text"
+									name="date"
+									tabindex="-1"
+									aria-hidden="true"
+									id="hcaptcha-datepicker"
+									value="<?php echo esc_attr( $value ); ?>">
 						</label>
 					</div>
 					<div class="hcaptcha-datepicker-action">
@@ -385,7 +399,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 		$start_date = $end_date;
 
 		if ( (int) $days > 0 ) {
-			$start_date = $start_date->modify( "-$days day" );
+			try {
+				$start_date = $start_date->modify( "-$days day" );
+			} catch ( Exception $e ) {
+				// @codeCoverageIgnoreStart
+				$start_date = $end_date;
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		$start_date = $start_date->setTime( 0, 0 );
@@ -431,7 +451,8 @@ abstract class ListPageBase extends PluginSettingsBase {
 	}
 
 	/**
-	 * Concatenate given dates into a single string. i.e. "2024-04-16 - 2024-05-16".
+	 * Concatenate given dates into a single string.
+	 * Should be like that: "2024-04-16 - 2024-05-16".
 	 *
 	 * @param DateTimeImmutable|mixed $start_date Start date.
 	 * @param DateTimeImmutable|mixed $end_date   End date.

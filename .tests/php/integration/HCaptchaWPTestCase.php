@@ -150,6 +150,8 @@ class HCaptchaWPTestCase extends WPTestCase {
 		$data_theme   = $args['data-theme'] ?? '';
 		$data_auto    = $args['auto'] ?? false;
 		$data_auto    = $data_auto ? 'true' : 'false';
+		$data_ajax    = $args['ajax'] ?? false;
+		$data_ajax    = $data_ajax ? 'true' : 'false';
 		$data_force   = $args['force'] ?? false;
 		$data_force   = $data_force ? 'true' : 'false';
 		$data_size    = $args['size'] ?? '';
@@ -172,6 +174,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 				data-theme="' . $data_theme . '"
 				data-size="' . $data_size . '"
 				data-auto="' . $data_auto . '"
+				data-ajax="' . $data_ajax . '"
 				data-force="' . $data_force . '">
 		</h-captcha>
 		' . $nonce_field;

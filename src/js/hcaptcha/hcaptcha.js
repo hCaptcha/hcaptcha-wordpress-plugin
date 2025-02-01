@@ -110,11 +110,12 @@ class HCaptcha {
 	}
 
 	/**
-	 * Validate hCaptcha widget.
+	 * Set current form.
 	 *
 	 * @param {CustomEvent} event Event.
+	 * @return {Object|undefined} Currently processing form.
 	 */
-	validate( event ) {
+	getCurrentForm( event ) {
 		/**
 		 * @type {HTMLElement}
 		 */
@@ -128,23 +129,37 @@ class HCaptcha {
 		/**
 		 * @type {{submitButtonElement: HTMLElement, widgetId: string}|null}
 		 */
-		const form = this.getFoundFormById( formElement.dataset.hCaptchaId );
+		const form = this.getFoundFormById( formElement?.dataset?.hCaptchaId );
 
-		const submitButtonElement = form.submitButtonElement;
-		const widgetId = form.widgetId;
+		const submitButtonElement = form?.submitButtonElement;
+		const widgetId = form?.widgetId;
 
-		if ( ! this.isSameOrDescendant( submitButtonElement, event.target ) ) {
-			return;
+		if (
+			! widgetId ||
+			! this.isSameOrDescendant( submitButtonElement, event.target )
+		) {
+			return undefined;
 		}
 
 		event.preventDefault();
 		event.stopPropagation();
 
-		this.currentForm = { formElement, submitButtonElement };
+		return { formElement, submitButtonElement, widgetId };
+	}
 
-		if ( ! widgetId ) {
+	/**
+	 * Validate hCaptcha widget.
+	 *
+	 * @param {CustomEvent} event Event.
+	 */
+	validate( event ) {
+		this.currentForm = this.getCurrentForm( event );
+
+		if ( ! this.currentForm ) {
 			return;
 		}
+
+		const { formElement, widgetId } = this.currentForm;
 
 		/**
 		 * @type {HTMLTextAreaElement}
@@ -457,18 +472,15 @@ class HCaptcha {
 
 			this.foundForms.push( { hCaptchaId, submitButtonElement, widgetId } );
 
-			if (
-				( 'invisible' !== hcaptchaElement.dataset.size ) &&
-				( 'true' !== hcaptchaElement.dataset.force )
-			) {
-				return formElement;
-			}
-
 			if ( ! submitButtonElement ) {
 				return formElement;
 			}
 
-			submitButtonElement.addEventListener( 'click', this.validate, true );
+			const dataset = hcaptchaElement.dataset;
+
+			if ( dataset.size === 'invisible' || dataset.force === 'true' ) {
+				submitButtonElement.addEventListener( 'click', this.validate, true );
+			}
 
 			return formElement;
 		}, this );
@@ -493,14 +505,18 @@ class HCaptcha {
 	 * Submit a form containing hCaptcha.
 	 */
 	submit() {
-		const formElement = this.currentForm.formElement;
-		const submitButtonElement = this.currentForm.submitButtonElement;
+		if ( ! this.currentForm ) {
+			return;
+		}
+
+		const { formElement, submitButtonElement } = this.currentForm;
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||
 			this.isAjaxSubmitButton( submitButtonElement )
 		) {
 			submitButtonElement.removeEventListener( 'click', this.validate, true );
+
 			submitButtonElement.click();
 
 			return;

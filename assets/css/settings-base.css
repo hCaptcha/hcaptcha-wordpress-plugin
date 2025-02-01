@@ -53,7 +53,7 @@ body.settings_page_hcaptcha {
 .hcaptcha-header-bar {
 	position: sticky;
 	top: 60px;
-	z-index: 1;
+	z-index: 2;
 	background: #f0f2f5;
 	display: flex;
 	justify-content: space-between;
@@ -86,7 +86,7 @@ body.settings_page_hcaptcha {
 	position: relative;
 }
 
-#hcaptcha-options table tr td input[type="checkbox"] {
+#hcaptcha-options table tr td fieldset input[type="checkbox"] {
 	display: inline;
 	border: none;
 	box-shadow: none;
@@ -98,7 +98,7 @@ body.settings_page_hcaptcha {
 	margin-inline-start: 0;
 }
 
-#hcaptcha-options table tr td input[type="checkbox"]::before {
+#hcaptcha-options table tr td fieldset input[type="checkbox"]::before {
 	background: url('../images/checkbox-off.svg');
 	background-size: cover;
 	margin: 0;
@@ -108,7 +108,7 @@ body.settings_page_hcaptcha {
 	display: inline-block;
 }
 
-#hcaptcha-options table tr td input[type="checkbox"]:checked::before {
+#hcaptcha-options table tr td fieldset input[type="checkbox"]:checked::before {
 	background: no-repeat url('../images/checkbox-on.svg');
 	background-size: cover;
 }
@@ -250,9 +250,16 @@ body.settings_page_hcaptcha {
 
 .hcaptcha-excerpt {
 	display: block;
+	position: relative;
+	width: max-content;
+	max-width: 100%;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+.hcaptcha-excerpt:hover {
+	overflow: visible;
 }
 
 .hcaptcha-excerpt:hover .hcaptcha-hide {
@@ -264,8 +271,9 @@ body.settings_page_hcaptcha {
 	max-width: 300px;
 	width: max-content;
 	padding: 8px 10px;
-	top: 0;
-	inset-inline-start: 0;
+	top: 50%;
+	inset-inline-start: 50%;
+	transform: translate(-50%, -50%);
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	border-radius: 6px;
 	border: 1px solid #c3c4c7;
@@ -274,6 +282,31 @@ body.settings_page_hcaptcha {
 }
 
 @media (max-width: 782px) {
+	#hcaptcha-options .wp-list-table .toggle-row {
+		top: 15px;
+	}
+
+	#hcaptcha-options .wp-list-table tr.is-expanded .toggle-row {
+		top: 6.5px;
+	}
+
+	#hcaptcha-options .widefat tbody th.check-column {
+		padding: 0;
+		vertical-align: middle;
+	}
+
+	#hcaptcha-options .widefat thead td.check-column, .widefat tfoot td.check-column {
+		padding-left: 0;
+	}
+
+	#hcaptcha-options .widefat th input[type="checkbox"] {
+		margin-bottom: 0;
+	}
+
+	#hcaptcha-options .wp-list-table .is-expanded td:not(.hidden) {
+		overflow: visible;
+	}
+
 	.hcaptcha-settings-tabs {
 		margin: unset;
 		margin-block-start: 10px;
@@ -284,6 +317,16 @@ body.settings_page_hcaptcha {
 		padding-inline-end: 12px;
 		padding-block-end: 0;
 		padding-inline-start: 10px;
+	}
+
+	.hcaptcha-excerpt {
+		display: table-cell;
+		vertical-align: middle;
+		height: 44px;
+	}
+
+	tr.is-expanded .hcaptcha-excerpt {
+		height: 19.5px;
 	}
 }
 

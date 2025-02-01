@@ -1,4 +1,4 @@
-/* global jQuery, HCaptchaIntegrationsObject, kaggDialog */
+/* global jQuery, hCaptchaSettingsBase, HCaptchaIntegrationsObject, kaggDialog */
 
 /**
  * @param HCaptchaIntegrationsObject.CancelBtnText
@@ -25,38 +25,15 @@
  * @param {jQuery} $ The jQuery instance.
  */
 const integrations = function( $ ) {
-	/**
-	 * @type {HTMLElement}
-	 */
-	const adminBar = document.querySelector( '#wpadminbar' );
-
-	/**
-	 * @type {HTMLElement}
-	 */
-	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
-
-	/**
-	 * @type {HTMLElement}
-	 */
-	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 	const $wpWrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 	const $search = $( '#hcaptcha-integrations-search' );
 
-	function getStickyHeight() {
-		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
-		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
-		const tabsHeight = tabs ? tabs.offsetHeight : 0;
-		const headerBarHeight = headerBar ? headerBar.offsetHeight : 0;
-
-		return adminBarHeight + tabsHeight + headerBarHeight;
-	}
-
 	function clearMessage() {
 		$message.remove();
-		// Concat below to avoid inspection message.
+		// Concat to avoid an inspection message.
 		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( '.hcaptcha-header-bar' );
 		$message = $( msgSelector );
 	}
@@ -277,7 +254,7 @@ const integrations = function( $ ) {
 
 					$( 'html, body' ).animate(
 						{
-							scrollTop: $tr.offset().top - getStickyHeight(),
+							scrollTop: $tr.offset().top - hCaptchaSettingsBase.getStickyHeight(),
 						},
 						1000
 					);

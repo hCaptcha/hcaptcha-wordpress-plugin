@@ -45,6 +45,13 @@ class Form extends Base {
 	private $mode_embed = false;
 
 	/**
+	 * Current form id.
+	 *
+	 * @var int
+	 */
+	protected $form_id = 0;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -61,8 +68,11 @@ class Form extends Base {
 		$this->mode_embed = hcaptcha()->settings()->is( 'gravity_status', 'embed' );
 
 		if ( $this->mode_auto ) {
-			add_filter( 'gform_submit_button', [ $this, 'add_captcha' ], 10, 2 );
+			add_filter( 'gform_submit_button', [ $this, 'add_hcaptcha' ], 10, 2 );
 		}
+
+		add_filter( 'gform_form_after_open', [ $this, 'gform_open' ], 10, 2 );
+		add_filter( 'gform_get_form_filter', [ $this, 'gform_close' ], 10, 2 );
 
 		add_filter( 'gform_validation', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'gform_form_validation_errors', [ $this, 'form_validation_errors' ], 10, 2 );
@@ -79,27 +89,75 @@ class Form extends Base {
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $button_input, array $form ): string {
+	public function add_hcaptcha( $button_input, array $form ): string {
 		if ( is_admin() ) {
 			return $button_input;
 		}
 
 		$form_id = $form['id'] ?? 0;
 
-		if ( $this->mode_embed && $this->has_hcaptcha( $form_id ) ) {
+		if ( $this->has_hcaptcha( $form_id ) ) {
 			return $button_input;
 		}
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form_id,
-			],
-		];
+		return HCaptcha::form() . $button_input;
+	}
 
-		return HCaptcha::form( $args ) . $button_input;
+	/**
+	 * Add hCaptcha args filter on opening the form.
+	 *
+	 * @param string|mixed $markup The current string to append.
+	 * @param array        $form   The form being displayed.
+	 *
+	 * @return string
+	 */
+	public function gform_open( $markup, array $form ): string {
+		$this->form_id = (int) ( $form['id'] ?? 0 );
+
+		add_filter( 'hcap_form_args', [ $this, 'hcap_form_args' ] );
+
+		return (string) $markup;
+	}
+
+	/**
+	 * Remove hCaptcha args filter on closing the form.
+	 *
+	 * @param string|mixed $form_string The current form string.
+	 * @param array        $form        The form being displayed.
+	 *
+	 * @return string
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function gform_close( $form_string, $form ): string {
+		$this->form_id = 0;
+
+		remove_filter( 'hcap_form_args', [ $this, 'hcap_form_args' ] );
+
+		return (string) $form_string;
+	}
+
+	/**
+	 * Filter hCaptcha from args on form.
+	 *
+	 * @param array|mixed $args The form arguments.
+	 *
+	 * @return array
+	 */
+	public function hcap_form_args( $args ): array {
+		$args = (array) $args;
+
+		return array_merge(
+			$args,
+			[
+				'action' => self::ACTION,
+				'name'   => self::NONCE,
+				'id'     => [
+					'source'  => HCaptcha::get_class_source( __CLASS__ ),
+					'form_id' => $this->form_id,
+				],
+			]
+		);
 	}
 
 	/**
@@ -296,7 +354,7 @@ CSS;
 			$form_meta = (array) GFFormsModel::get_form_meta( $form_id );
 
 			if (
-				0 !== (int) $_POST[ $target_page_name ] &&
+				0 !== $target_page &&
 				$target_page !== $source_page &&
 				isset(
 					$form_meta['pagination']['pages'][ $target_page - 1 ],
@@ -315,8 +373,8 @@ CSS;
 			return true;
 		}
 
-		if ( $this->mode_embed && $this->has_hcaptcha( $form_id ) ) {
-			// In embed mode, verify only a form having hCaptcha field.
+		if ( $this->has_hcaptcha( $form_id ) ) {
+			// Verify only a form having hCaptcha field.
 			return true;
 		}
 
@@ -340,7 +398,13 @@ CSS;
 		$captcha_types = [ 'captcha', 'hcaptcha' ];
 
 		foreach ( $form['fields'] as $field ) {
-			if ( in_array( $field->type, $captcha_types, true ) ) {
+			$type    = $field->type ?? '';
+			$content = $field->content ?? '';
+
+			if (
+				( $this->mode_embed && in_array( $type, $captcha_types, true ) ) ||
+				has_shortcode( $content, 'hcaptcha' )
+			) {
 				return true;
 			}
 		}

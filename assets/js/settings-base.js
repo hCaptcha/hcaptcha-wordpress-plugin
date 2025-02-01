@@ -5,26 +5,28 @@
  *
  * @param {Object} $ jQuery instance.
  */
-const settingsBase = function( $ ) {
+const settingsBase = ( function( $ ) {
+	/**
+	 * @type {HTMLElement}
+	 */
+	const adminBar = document.querySelector( '#wpadminbar' );
+
+	/**
+	 * @type {HTMLElement}
+	 */
+	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+
+	/**
+	 * @type {HTMLElement}
+	 */
+	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
+
 	const h2Selector = '.hcaptcha-header h2';
+	const headerBarSelector = '.hcaptcha-header-bar';
 	const msgSelector = '#hcaptcha-message';
+	let $message = $( msgSelector );
 
 	function setHeaderBarTop() {
-		/**
-		 * @type {HTMLElement}
-		 */
-		const adminBar = document.querySelector( '#wpadminbar' );
-
-		/**
-		 * @type {HTMLElement}
-		 */
-		const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
-
-		/**
-		 * @type {HTMLElement}
-		 */
-		const headerBar = document.querySelector( '.hcaptcha-header-bar' );
-
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
 		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
 		const tabsHeight = tabs ? tabs.offsetHeight : 0;
@@ -70,6 +72,61 @@ const settingsBase = function( $ ) {
 		}
 	}
 
+	/**
+	 * Public properties and functions.
+	 */
+	const app = {
+		getStickyHeight() {
+			const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
+			const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
+			const tabsHeight = tabs ? tabs.offsetHeight : 0;
+			const headerBarHeight = headerBar ? headerBar.offsetHeight : 0;
+
+			return adminBarHeight + tabsHeight + headerBarHeight;
+		},
+
+		clearMessage() {
+			$message.remove();
+			// Concat below to avoid an inspection message.
+			$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
+			$message = $( msgSelector );
+		},
+
+		showMessage( message = '', msgClass = '' ) {
+			message = message === undefined ? '' : String( message );
+
+			if ( ! message ) {
+				return;
+			}
+
+			app.clearMessage();
+			$message.addClass( msgClass + ' notice is-dismissible' );
+
+			const messageLines = message.split( '\n' ).map( function( line ) {
+				return `<p>${ line }</p>`;
+			} );
+
+			$message.html( messageLines.join( '' ) );
+
+			$( document ).trigger( 'wp-updates-notice-added' );
+
+			$( 'html, body' ).animate(
+				{
+					scrollTop: $message.offset().top - app.getStickyHeight(),
+				},
+				1000,
+			);
+		},
+
+		showSuccessMessage( message = '' ) {
+			app.showMessage( message, 'notice-success' );
+		},
+
+		showErrorMessage( message = '' ) {
+			app.showMessage( message, 'notice-error' );
+		},
+	};
+
 	// Move WP notices to the message area.
 	$( h2Selector ).siblings().appendTo( msgSelector );
 
@@ -80,7 +137,9 @@ const settingsBase = function( $ ) {
 	setHeaderBarTop();
 
 	highLight();
-};
+
+	return app;
+}( jQuery ) );
 
 window.hCaptchaSettingsBase = settingsBase;
 

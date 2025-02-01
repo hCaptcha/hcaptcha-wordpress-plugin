@@ -137,7 +137,10 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify(): void {
-		$commentdata = [ 'some comment data' ];
+		$commentdata = [
+			'some comment data',
+			'comment_author_IP' => '7.7.7.7',
+		];
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
 
@@ -172,7 +175,10 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_not_verified(): void {
-		$commentdata = [ 'some comment data' ];
+		$commentdata = [
+			'some comment data',
+			'comment_author_IP' => '7.7.7.7',
+		];
 		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
 		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );

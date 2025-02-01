@@ -118,6 +118,9 @@ class Comment {
 			return $comment_data;
 		}
 
+		// Override poor IP detection by WP Core and make sure that IP is the same in the 'comments' table and in the 'hcaptcha_events' table.
+		$comment_data['comment_author_IP'] = hcap_get_user_ip();
+
 		$this->result = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );

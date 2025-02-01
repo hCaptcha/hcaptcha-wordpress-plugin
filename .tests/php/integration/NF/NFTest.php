@@ -347,6 +347,7 @@ JSON;
 				data-theme="some theme"
 				data-size="some size"
 				data-auto="false"
+				data-ajax="false"
 				data-force="false">
 		</h-captcha>
 		';

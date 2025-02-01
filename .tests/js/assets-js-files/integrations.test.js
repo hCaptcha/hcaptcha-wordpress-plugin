@@ -5,6 +5,7 @@ import $ from 'jquery';
 global.jQuery = $;
 global.$ = $;
 
+require( '../../../assets/js/settings-base.js' );
 require( '../../../assets/js/integrations.js' );
 
 // Mock HCaptchaIntegrationsObject

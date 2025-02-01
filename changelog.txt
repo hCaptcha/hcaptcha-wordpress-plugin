@@ -1,3 +1,22 @@
+= 4.10.0 =
+* Added support for wp_login_form() function and LoginOut block.
+* Added support for hCaptcha in HTML Gravity Forms fields.
+* Added support for custom nonce action and name in the [hcaptcha] shortcode.
+* Added compatibility with Cookies and Content Security Policy plugin.
+* Added auto-verification of arbitrary forms in ajax.
+* Added deletion of events on the Forms page.
+* Added deletion of events on the Events page.
+* Improved error messaging for hCaptcha verification.
+* Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when IP collection is activated.
+* Fixed fatal error with the WPForms plugin in rare cases.
+* Fixed error message at the first entry to the login page when Hide Login Errors in on.
+* Fixed scrolling to the message on the General page.
+* Fixed fatal error during integration installation in some cases.
+* Fixed the Integrations page when active plugin was deleted.
+* Fixed error when hCaptcha is disabled for standard login but enabled for LearnPress login.
+* Fixed error when hCaptcha is disabled for standard login but enabled for Tutor login.
+* Fixed layout for Forms and Events pages on small screens.
+
 = 4.9.0 =
 * Added LearnPress integration.
 * Added Tutor LMS integration.

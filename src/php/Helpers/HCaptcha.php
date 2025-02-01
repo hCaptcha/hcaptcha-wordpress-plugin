@@ -77,6 +77,7 @@ class HCaptcha {
 				'action'  => '', // Action name for wp_nonce_field.
 				'name'    => '', // Nonce name for wp_nonce_field.
 				'auto'    => false, // Whether a form has to be auto-verified.
+				'ajax'    => false, // Whether a form has to be auto-verified in ajax.
 				'force'   => $hcaptcha_force, // Whether to execute hCaptcha widget before submit (like for invisible).
 				'theme'   => $hcaptcha_theme, // The hCaptcha theme.
 				'size'    => $hcaptcha_size, // The hCaptcha widget size.
@@ -95,26 +96,38 @@ class HCaptcha {
 		);
 
 		/**
-		 * Filters the form arguments.
+		 * Filters the hCaptcha form arguments.
 		 *
-		 * @param array $args The form arguments.
+		 * @param array $args The hCaptcha form arguments.
 		 */
 		$args = (array) apply_filters( 'hcap_form_args', $args );
 
 		$args['action']  = (string) $args['action'];
 		$args['name']    = (string) $args['name'];
-		$args['auto']    = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$auto            = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['ajax']    = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
+		$args['auto']    = $args['ajax'] ? true : $auto; // Auto-verify in ajax.
 		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
 		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true ) ? (string) $args['theme'] : $hcaptcha_theme;
 		$args['theme']   = $bg ? 'custom' : $args['theme'];
 		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true ) ? (string) $args['size'] : $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
+		$id              = $args['id'];
+		$source          = empty( $id['source'] ) ? self::$default_id['source'] : $id['source'];
+		$form_id         = $id['form_id'] ?? self::$default_id['form_id'];
+		$id              = [
+			'source'  => $source,
+			'form_id' => $form_id,
+		];
+		$args['id']      = $id;
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
-		$id = wp_parse_args(
-			$args['id'],
-			self::$default_id
-		);
+		/**
+		 * Register hCaptcha form.
+		 *
+		 * @param array $args The hCaptcha form arguments.
+		 */
+		do_action( 'hcap_register_form', $args );
 
 		self::display_widget( $id );
 
@@ -141,6 +154,7 @@ class HCaptcha {
 				data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
 				data-size="<?php echo esc_attr( $args['size'] ); ?>"
 				data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
+				data-ajax="<?php echo $args['ajax'] ? 'true' : 'false'; ?>"
 				data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
 		</h-captcha>
 		<?php
@@ -151,6 +165,23 @@ class HCaptcha {
 	}
 
 	/**
+	 * Get widget id value.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return string
+	 */
+	public static function widget_id_value( array $id ): string {
+		$id['source']  = (array) ( $id['source'] ?? [] );
+		$id['form_id'] = $id['form_id'] ?? 0;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id = base64_encode( wp_json_encode( $id ) );
+
+		return $encoded_id . '-' . wp_hash( $encoded_id );
+	}
+
+	/**
 	 * Display widget.
 	 *
 	 * @param array $id The hCaptcha widget id.
@@ -158,19 +189,12 @@ class HCaptcha {
 	 * @return void
 	 */
 	private static function display_widget( array $id ): void {
-		$id['source']  = (array) ( $id['source'] ?? [] );
-		$id['form_id'] = $id['form_id'] ?? 0;
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$encoded_id = base64_encode( wp_json_encode( $id ) );
-		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
-
 		?>
 		<input
 				type="hidden"
 				class="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
 				name="<?php echo esc_attr( self::HCAPTCHA_WIDGET_ID ); ?>"
-				value="<?php echo esc_attr( $widget_id ); ?>">
+				value="<?php echo esc_attr( self::widget_id_value( $id ) ); ?>">
 		<?php
 	}
 

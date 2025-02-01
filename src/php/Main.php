@@ -17,6 +17,7 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
+use HCaptcha\CACSP\Compatibility;
 use HCaptcha\CF7\CF7;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
@@ -831,7 +832,7 @@ CSS;
 			'Login Form'                           => [
 				[ 'wp_status', 'login' ],
 				'',
-				WP\Login::class,
+				[ WP\Login::class, WP\LoginOut::class ],
 			],
 			'Lost Password Form'                   => [
 				[ 'wp_status', 'lost_pass' ],
@@ -972,6 +973,11 @@ CSS;
 				[ 'cf7_status', null ],
 				'contact-form-7/wp-contact-form-7.php',
 				[ CF7::class, Admin::class ],
+			],
+			'Cookies and Content Security Policy'  => [
+				[ 'cacsp_status', null ],
+				'cookies-and-content-security-policy/cookies-and-content-security-policy.php',
+				[ Compatibility::class ],
 			],
 			'Divi Comment Form'                    => [
 				[ 'divi_status', 'comment' ],
@@ -1303,17 +1309,17 @@ CSS;
 				'tutor/tutor.php',
 				Tutor\Checkout::class,
 			],
-			'Tutor LMS Login'                      => [
+			'Tutor Login'                          => [
 				[ 'tutor_status', 'login' ],
 				'tutor/tutor.php',
 				Tutor\Login::class,
 			],
-			'Tutor LMS LostPassword'               => [
+			'Tutor LostPassword'                   => [
 				[ 'tutor_status', 'lost_pass' ],
 				'tutor/tutor.php',
 				Tutor\LostPassword::class,
 			],
-			'Tutor LMS Register'                   => [
+			'Tutor Register'                       => [
 				[ 'tutor_status', 'register' ],
 				'tutor/tutor.php',
 				Tutor\Register::class,

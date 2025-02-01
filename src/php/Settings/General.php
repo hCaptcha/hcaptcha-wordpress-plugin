@@ -115,7 +115,7 @@ class General extends PluginSettingsBase {
 	public const USER_SETTINGS_META = 'hcaptcha_user_settings';
 
 	/**
-	 * Check config form id.
+	 * The 'check config' form id.
 	 */
 	public const CHECK_CONFIG_FORM_ID = 'check-config';
 
@@ -580,7 +580,7 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Collect Anonymously', 'hcaptcha-for-forms-and-more' ),
 				],
 				'default' => 'on',
-				'helper'  => __( 'Store collected IP and User Agent as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
+				'helper'  => __( 'Store collected IP and User Agent locally as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'collect_ip'           => [
 				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
@@ -856,7 +856,6 @@ class General extends PluginSettingsBase {
 	 * Ajax action to check config.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_config(): void {
 		$this->run_checks( self::CHECK_CONFIG_ACTION );

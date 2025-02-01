@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.9.0
+Stable tag: 4.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -111,7 +111,7 @@ To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> t
 Full list of arguments:
 
 `
-[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" ajax="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
 `
 
 The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
@@ -185,6 +185,12 @@ You can add also `force="true"` or `force="1"` argument to prevent sending a for
 
 `
 [hcaptcha auto="true" force="true"]
+`
+
+Arbitrary forms can also be verified in ajax via the `ajax` argument. There is no need to specify `auto="true"` in this case, as `ajax` implies `auto="true"`.
+
+`
+[hcaptcha ajax="true"]
 `
 
 = How to block hCaptcha on a specific page? =
@@ -551,6 +557,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * CoBlocks Form
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
+* Cookies and Content Security Policy
 * Divi Comment, Contact, Email Optin and Login Forms
 * Divi Builder Comment, Contact, Email Optin and Login Forms
 * Download Manager Form
@@ -619,6 +626,25 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.10.0 =
+* Added support for wp_login_form() function and LoginOut block.
+* Added support for hCaptcha in HTML Gravity Forms fields.
+* Added support for custom nonce action and name in the [hcaptcha] shortcode.
+* Added compatibility with Cookies and Content Security Policy plugin.
+* Added auto-verification of arbitrary forms in ajax.
+* Added deletion of events on the Forms page.
+* Added deletion of events on the Events page.
+* Improved error messaging for hCaptcha verification.
+* Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when IP collection is activated.
+* Fixed fatal error with the WPForms plugin in rare cases.
+* Fixed error message at the first entry to the login page when Hide Login Errors in on.
+* Fixed scrolling to the message on the General page.
+* Fixed fatal error during integration installation in some cases.
+* Fixed the Integrations page when active plugin was deleted.
+* Fixed error when hCaptcha is disabled for standard login but enabled for LearnPress login.
+* Fixed error when hCaptcha is disabled for standard login but enabled for Tutor login.
+* Fixed layout for Forms and Events pages on small screens.
 
 = 4.9.0 =
 * Added LearnPress integration.

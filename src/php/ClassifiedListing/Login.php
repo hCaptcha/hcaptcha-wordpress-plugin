@@ -36,7 +36,6 @@ class Login extends LoginBase {
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -44,21 +43,6 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $user;
-		}
-
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
-
-		if ( null === $error_message ) {
-			return $user;
-		}
-
-		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
-
-		return new WP_Error( $code, $error_message, 400 );
+		return $this->login_base_verify( $user, $password );
 	}
 }
