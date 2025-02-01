@@ -48,12 +48,13 @@
 	width: 220px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 782px) {
 	#hcaptcha-options #hcaptcha-events-wrap table tbody tr td {
 		padding-block-start: 3px;
 		padding-inline-end: 8px;
 		padding-block-end: 3px;
 		padding-inline-start: 35%;
+		min-height: 19.5px;
 	}
 
 	#hcaptcha-options #hcaptcha-events-wrap table tbody tr td.column-primary {
