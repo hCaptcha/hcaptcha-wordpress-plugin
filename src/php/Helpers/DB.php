@@ -20,7 +20,7 @@ class DB {
 	 * @see https://coderwall.com/p/zepnaw
 	 * @global wpdb       $wpdb
 	 *
-	 * @param mixed|array $items  item(s) to be joined into string.
+	 * @param mixed|array $items  Item(s) to be joined into string.
 	 * @param string      $format %s or %d.
 	 *
 	 * @return string Items separated by comma and sql-escaped
