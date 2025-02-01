@@ -24,12 +24,12 @@ class AutoVerify {
 	/**
 	 * Script handle.
 	 */
-	private const HANDLE = 'hcaptcha-auto-verify';
+	public const HANDLE = 'hcaptcha-auto-verify';
 
 	/**
 	 * Script localization object.
 	 */
-	private const OBJECT = 'HCaptchaAutoVerifyObject';
+	public const OBJECT = 'HCaptchaAutoVerifyObject';
 
 	/**
 	 * The hCaptcha forms registry.
@@ -117,9 +117,9 @@ class AutoVerify {
 
 		wp_enqueue_script(
 			self::HANDLE,
-			HCAPTCHA_URL . "/assets/js/hcaptcha-auto-verify$min.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/hcaptcha-auto-verify$min.js",
 			[ 'jquery' ],
-			HCAPTCHA_VERSION,
+			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);
 

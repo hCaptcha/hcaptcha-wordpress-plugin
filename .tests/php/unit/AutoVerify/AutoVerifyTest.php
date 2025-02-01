@@ -14,6 +14,7 @@
 namespace HCaptcha\Tests\Unit\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use tad\FunctionMocker\FunctionMocker;
 use Mockery;
@@ -114,6 +115,159 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'register_forms' )->with( $forms )->once();
 
 		self::assertSame( $content, $subject->widget_block_content_filter( $content, [], $widget ) );
+	}
+
+	/**
+	 * Test register_hcaptcha().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_register_hcaptcha(): void {
+		$wrong_registry = 'wrong registry';
+
+		WP_Mock::userFunction( 'wp_json_encode' )->andReturnUsing(
+			static function ( $value ) {
+
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+				return json_encode( $value );
+			}
+		);
+		WP_Mock::passthruFunction( 'wp_hash' );
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'registry', $wrong_registry );
+
+		// Args are not an array.
+		$subject->register_hcaptcha( '' );
+
+		self::assertSame( $wrong_registry, $this->get_protected_property( $subject, 'registry' ) );
+
+		// Args are an empty array.
+		$this->set_protected_property( $subject, 'registry', [] );
+
+		$args = [];
+
+		$subject->register_hcaptcha( $args );
+
+		$widget_id = HCaptcha::widget_id_value( [] );
+		$registry  = $this->get_protected_property( $subject, 'registry' );
+
+		self::assertSame( $args, $registry[ $widget_id ] );
+
+		// Args have id.
+		$args = [
+			'id' => [
+				'source'  => [ 'some_source' ],
+				'form_id' => 5,
+			],
+		];
+
+		$subject->register_hcaptcha( $args );
+
+		$widget_id = HCaptcha::widget_id_value( $args['id'] );
+		$registry  = $this->get_protected_property( $subject, 'registry' );
+
+		self::assertSame( $args, $registry[ $widget_id ] );
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @param array $registry The hCaptcha forms registry..
+	 * @param int   $times    Number of times to call functions.
+	 *
+	 * @dataProvider dp_test_enqueue_scripts
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_enqueue_scripts( $registry, $times ): void {
+		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
+		$plugin_version = '1.0.0';
+		$min            = '.min';
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->set_protected_property( $subject, 'registry', $registry );
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $plugin_url, $plugin_version ) {
+				if ( 'HCAPTCHA_URL' === $name ) {
+					return $plugin_url;
+				}
+
+				if ( 'HCAPTCHA_VERSION' === $name ) {
+					return $plugin_version;
+				}
+
+				return '';
+			}
+		);
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				AutoVerify::HANDLE,
+				$plugin_url . "/assets/js/hcaptcha-auto-verify$min.js",
+				[ 'jquery' ],
+				$plugin_version,
+				true
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				AutoVerify::HANDLE,
+				AutoVerify::OBJECT,
+				[
+					'successMsg' => 'The form was submitted successfully.',
+				]
+			)
+			->times( $times );
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with( 'hcaptcha' )
+			->times( $times );
+
+		$subject->enqueue_scripts();
+	}
+
+	/**
+	 * Data provider for test_enqueue_scripts().
+	 *
+	 * @return array
+	 */
+	public function dp_test_enqueue_scripts(): array {
+		$registry_no_ajax                        = [
+			'some widget id' =>
+				[
+					'action'  => 'action1',
+					'name'    => 'name1',
+					'auto'    => true,
+					'ajax'    => false,
+					'force'   => false,
+					'theme'   => 'dark',
+					'size'    => 'invisible',
+					'id'      =>
+						[
+							'source'  => [],
+							'form_id' => 0,
+						],
+					'protect' => true,
+				],
+		];
+		$registry_ajax                           = $registry_no_ajax;
+		$registry_ajax['some widget id']['ajax'] = true;
+
+		return [
+			'Empty registry'       => [ [], 0 ],
+			'No ajax in registry'  => [ $registry_no_ajax, 0 ],
+			'Has ajax in registry' => [ $registry_ajax, 1 ],
+		];
 	}
 
 	/**
@@ -287,6 +441,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				'action' => 'hcaptcha_action',
 				'name'   => 'hcaptcha_nonce',
 				'auto'   => true,
+				'ajax'   => true,
 			],
 		];
 
@@ -321,6 +476,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				]
 			)
 			->once();
+		WP_Mock::expectFilterAdded( 'wp_doing_ajax', '__return_true' );
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $url;
@@ -355,6 +511,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * Test register_forms().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_register_forms(): void {
 		$forms    = [ $this->get_test_form() ];
@@ -375,9 +532,11 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		$expected_without_inputs              = $expected;
 		$expected_without_inputs[0]['inputs'] = [];
+		$expected_without_inputs[0]['args']   = [];
 
-		$expected_without_auto                    = $expected_without_inputs;
-		$expected_without_auto[0]['args']['auto'] = false;
+		$expected_without_auto              = $expected;
+		$expected_without_auto[0]['inputs'] = [];
+		$expected_without_auto[0]['args']   = [];
 
 		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
 			static function ( $value ) {
@@ -393,9 +552,9 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
-		$subject->shouldAllowMockingProtectedMethods();
 		$this->set_protected_property( $subject, 'registry', $registry );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'update_transient' )->with( [] )->once(); // Case 1.
 		$subject->shouldReceive( 'update_transient' )->with( $expected )->once(); // Case 2.
 		$subject->shouldReceive( 'update_transient' )->with( $expected_without_inputs )->once(); // Case 3.
@@ -411,7 +570,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject->register_forms( $forms );
 
 		// Remove inputs from the form.
-		$forms[0] = preg_replace( '/<input\s[\s\S].*?>/', '', $forms[0] );
+		$forms[0] = preg_replace( '/<input[\s\S]+?>/', '', $forms[0] );
 
 		// Case 3. Update transient to be called with $expected_without_inputs.
 		$subject->register_forms( $forms );
@@ -423,6 +582,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'registry', $registry );
 
 		// Case 4. Update transient to be called with $expected_without_auto.
+		$subject->shouldAllowMockingProtectedMethods();
 		$subject->register_forms( $forms );
 	}
 
