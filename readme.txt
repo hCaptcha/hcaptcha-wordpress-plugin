@@ -187,7 +187,7 @@ You can add also `force="true"` or `force="1"` argument to prevent sending a for
 [hcaptcha auto="true" force="true"]
 `
 
-Also, arbitrary form can be verified in ajax. Use `ajax` argument. There is no need to specify `auto="true"` in this case, as `ajax` implies `auto="true"`.
+Arbitrary forms can also be verified in ajax via the `ajax` argument. There is no need to specify `auto="true"` in this case, as `ajax` implies `auto="true"`.
 
 `
 [hcaptcha ajax="true"]
@@ -636,7 +636,7 @@ Instructions for popular native integrations are below:
 * Added deletion of events on the Forms page.
 * Added deletion of events on the Events page.
 * Improved error messaging for hCaptcha verification.
-* Fixed IP detection in the WordPress core via filter, to sync with hCaptcha events information when the IP collection is activated.
+* Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when IP collection is activated.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.
 * Fixed scrolling to the message on the General page.
