@@ -246,9 +246,9 @@ class EventsPageTest extends HCaptchaTestCase {
 				ListPageBase::HANDLE,
 				ListPageBase::OBJECT,
 				[
-					'noAction'   => 'Please select a bulk action.',
-					'noItems'    => 'Please select at least one item to perform this action on.',
-					'DoingBulk'  => 'Doing bulk action...',
+					'noAction'  => 'Please select a bulk action.',
+					'noItems'   => 'Please select at least one item to perform this action on.',
+					'DoingBulk' => 'Doing bulk action...',
 					'delimiter' => ListPageBase::TIMESPAN_DELIMITER,
 					'locale'    => $language_code,
 				]

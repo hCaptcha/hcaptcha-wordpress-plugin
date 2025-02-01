@@ -48,7 +48,7 @@ class EventsTable extends TableBase {
 		];
 
 		$this->columns = [
-			'cb'      => '<input type="checkbox" />',
+			'cb'          => '<input type="checkbox" />',
 			'name'        => __( 'Source', 'hcaptcha-for-forms-and-more' ),
 			'form_id'     => __( 'Form Id', 'hcaptcha-for-forms-and-more' ),
 			'ip'          => __( 'IP', 'hcaptcha-for-forms-and-more' ),

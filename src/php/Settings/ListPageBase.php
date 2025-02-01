@@ -9,7 +9,6 @@ namespace HCaptcha\Settings;
 
 use DateTimeImmutable;
 use Exception;
-use HCaptcha\Helpers\DB;
 
 /**
  * Class ListPageBase.
@@ -186,11 +185,11 @@ abstract class ListPageBase extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'noAction'   => __( 'Please select a bulk action.', 'hcaptcha-for-forms-and-more' ),
-				'noItems'    => __( 'Please select at least one item to perform this action on.', 'hcaptcha-for-forms-and-more' ),
-				'DoingBulk'  => __( 'Doing bulk action...', 'hcaptcha-for-forms-and-more' ),
-				'delimiter'  => self::TIMESPAN_DELIMITER,
-				'locale'     => $this->get_language_code(),
+				'noAction'  => __( 'Please select a bulk action.', 'hcaptcha-for-forms-and-more' ),
+				'noItems'   => __( 'Please select at least one item to perform this action on.', 'hcaptcha-for-forms-and-more' ),
+				'DoingBulk' => __( 'Doing bulk action...', 'hcaptcha-for-forms-and-more' ),
+				'delimiter' => self::TIMESPAN_DELIMITER,
+				'locale'    => $this->get_language_code(),
 			]
 		);
 	}

@@ -23,7 +23,10 @@ if ( ! class_exists( 'WP_List_Table', false ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
-class TableBase extends WP_List_Table {
+/**
+ * Class TableBase.
+ */
+abstract class TableBase extends WP_List_Table {
 
 	/**
 	 * Default number of forms to show per page.
@@ -126,6 +129,8 @@ class TableBase extends WP_List_Table {
 	}
 
 	/**
+	 * Get bulk actions.
+	 *
 	 * @global string $comment_status
 	 *
 	 * @return array
@@ -211,7 +216,7 @@ class TableBase extends WP_List_Table {
 		ob_start();
 
 		?>
-		<span class="hcaptcha-excerpt" data-source="<?php echo esc_attr( $source); ?>">
+		<span class="hcaptcha-excerpt" data-source="<?php echo esc_attr( $source ); ?>">
 			<?php echo esc_html( $excerpt ); ?>
 			<span class="hcaptcha-hide"><?php echo esc_html( $text ); ?></span>
 		</span>
