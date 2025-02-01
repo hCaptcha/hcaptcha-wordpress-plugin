@@ -7,7 +7,7 @@
 * Added deletion of events on the Forms page.
 * Added deletion of events on the Events page.
 * Improved error messaging for hCaptcha verification.
-* Fixed IP detection in the WordPress core via filter, to sync with hCaptcha events information when the IP collection is activated.
+* Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when IP collection is activated.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.
 * Fixed scrolling to the message on the General page.
