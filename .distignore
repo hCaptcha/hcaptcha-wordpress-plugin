@@ -3,6 +3,7 @@
 # Directories
 /.codeception
 /.git
+/.githooks
 /.github
 /.idea
 /.php-scoper
