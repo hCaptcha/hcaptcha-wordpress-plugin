@@ -123,11 +123,12 @@ class Form {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.wp-block-essential-blocks-form .h-captcha {
 		margin: 15px 0 0 0;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

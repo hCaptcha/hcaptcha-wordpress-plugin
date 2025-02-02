@@ -26,11 +26,12 @@ class LostPassword extends Base {
 		switch ( $hcaptcha_size ) {
 			case 'compact':
 			case 'normal':
-				$css .= <<<CSS
+				/* language=CSS */
+				$css .= '
 	.ml-container #lostpasswordform {
 		height: unset;
 	}
-CSS;
+';
 				break;
 			case 'invisible':
 			default:

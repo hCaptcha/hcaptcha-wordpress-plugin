@@ -59,11 +59,12 @@ class LostPassword extends LostPasswordBase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.woocommerce-ResetPassword .h-captcha {
 		margin-top: 0.5rem;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

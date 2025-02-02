@@ -137,11 +137,12 @@ class Comment extends Base {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.wpd-field-hcaptcha .h-captcha {
 		margin-left: auto;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

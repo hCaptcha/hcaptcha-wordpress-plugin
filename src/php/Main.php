@@ -251,15 +251,15 @@ class Main {
 		/**
 		 * Do not load hCaptcha functionality:
 		 * - if a user is logged in and the option 'off_when_logged_in' is set;
-		 * - for whitelisted IPs;
+		 * - for allowlisted IPs;
 		 * - when the site key or the secret key is empty (after first plugin activation).
 		 */
 		$deactivate = (
 			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
 			/**
-			 * Filters the user IP to check whether it is whitelisted.
+			 * Filters the user IP to check whether it is allowlisted.
 			 *
-			 * @param bool         $whitelisted IP is whitelisted.
+			 * @param bool         $whitelisted IP is allowlisted.
 			 * @param string|false $ip          IP string or false for local addresses.
 			 */
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() ) ||
@@ -437,6 +437,7 @@ class Main {
 	 *
 	 * @return void
 	 * @noinspection CssUnusedSymbol
+	 * @noinspection CssUnknownTarget
 	 */
 	public function print_inline_styles(): void {
 		$settings           = $this->settings();
@@ -444,7 +445,8 @@ class Main {
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
 
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.h-captcha {
 		position: relative;
 		display: block;
@@ -468,12 +470,12 @@ class Main {
 	}
 
 	.h-captcha::before {
-		content: '';
+		content: \'\';
 		display: block;
 		position: absolute;
 		top: 0;
 		left: 0;
-		background: url( $div_logo_url ) no-repeat;
+		background: url( ' . $div_logo_url . ' ) no-repeat;
 		border: 1px solid transparent;
 		border-radius: 4px;
 	}
@@ -501,14 +503,14 @@ class Main {
 	body.is-dark-theme .h-captcha[data-theme="auto"]::before,
 	html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,
 	html.drdt-dark-mode .h-captcha[data-theme="auto"]::before {
-		background-image: url( $div_logo_white_url );
+		background-image: url( ' . $div_logo_white_url . ' );
 		background-repeat: no-repeat;
 		background-color: #333;
 		border: 1px solid #f5f5f5;
 	}
 
 	.h-captcha[data-theme="custom"]::before {
-		background-color: $bg;
+		background-color: ' . $bg . ';
 	}
 
 	.h-captcha[data-size="invisible"]::before {
@@ -522,7 +524,7 @@ class Main {
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 		border-style: none;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}
@@ -534,7 +536,8 @@ CSS;
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function login_head(): void {
-		$css = <<<'CSS'
+		/* language=CSS */
+		$css = '
 	@media (max-width: 349px) {
 		.h-captcha {
 			display: flex;
@@ -552,7 +555,7 @@ CSS;
 			box-sizing: content-box;
 		}
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}
@@ -587,7 +590,7 @@ CSS;
 	private function force_https( string $host ): string {
 		$host = preg_replace( '#(http|https)://#', '', $host );
 
-		// We need to add scheme here, otherwise wp_parse_url returns null.
+		// We need to add a scheme here, otherwise wp_parse_url returns null.
 		$host = (string) wp_parse_url( 'https://' . $host, PHP_URL_HOST );
 
 		return 'https://' . $host;
@@ -752,16 +755,16 @@ CSS;
 	public function declare_wc_compatibility(): void {
 		// @codeCoverageIgnoreStart
 		if ( class_exists( FeaturesUtil::class ) ) {
-			FeaturesUtil::declare_compatibility( 'custom_order_tables', constant( 'HCAPTCHA_FILE' ), true );
+			FeaturesUtil::declare_compatibility( 'custom_order_tables', constant( 'HCAPTCHA_FILE' ) );
 		}
 		// @codeCoverageIgnoreEnd
 	}
 
 	/**
-	 * Filter user IP to check if it is whitelisted.
-	 * For whitelisted IPs, hCaptcha will not be shown.
+	 * Filter user IP to check if it is allowlisted.
+	 * For allowlisted IPs, hCaptcha will not be shown.
 	 *
-	 * @param bool|mixed   $whitelisted Whether IP is whitelisted.
+	 * @param bool|mixed   $whitelisted Whether IP is allowlisted.
 	 * @param string|false $client_ip   Client IP.
 	 *
 	 * @return bool|mixed
@@ -1490,7 +1493,7 @@ CSS;
 
 	/**
 	 * Is plugin active.
-	 * When network wide activated, check if the plugin is network active.
+	 * When network is widely activated, check if the plugin is network active.
 	 *
 	 * @param string $plugin_name Plugin name.
 	 *

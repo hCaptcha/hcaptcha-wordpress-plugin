@@ -64,11 +64,12 @@ abstract class Base {
 		$css         = '';
 
 		if ( 'normal' === $hcaptcha_size ) {
-			$css = <<<CSS
+			/* language=CSS */
+			$css = '
 	.ml-container #login {
 		min-width: 350px;
 	}
-CSS;
+';
 		}
 
 		return $css;

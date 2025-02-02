@@ -18,13 +18,14 @@ class DelayedScript {
 	 * Create delayed script.
 	 *
 	 * @param string $js    js code to wrap in setTimeout().
-	 * @param int    $delay Delay in ms. Negative means no delay, just wait for user interaction.
+	 * @param int    $delay Delay in ms. Negative means no delay, wait for user interaction.
 	 *
 	 * @return string
 	 * @noinspection JSUnusedAssignment
 	 */
 	public static function create( string $js, int $delay = -1 ): string {
-		$js = <<<JS
+		/* language=JS */
+		$js = "
 	( () => {
 		'use strict';
 
@@ -74,7 +75,7 @@ $js
 			window.addEventListener( 'scroll', scrollHandler );
 		} );
 	} )();
-JS;
+";
 
 		return "<script>\n" . HCaptcha::js_minify( $js ) . "\n</script>\n";
 	}
@@ -83,19 +84,20 @@ JS;
 	 * Launch script specified by source url.
 	 *
 	 * @param array $args  Arguments.
-	 * @param int   $delay Delay in ms. Negative means no delay, just wait for user interaction.
+	 * @param int   $delay Delay in ms. Negative means no delay, wait for user interaction.
 	 */
 	public static function launch( array $args, int $delay = -1 ): void {
 		unset( $args['id'], $args['async'] );
 
-		$js = <<<JS
+		/* language=JS */
+		$js = "
 			const t = document.getElementsByTagName( 'script' )[0];
 			const s = document.createElement( 'script' );
 			s.type  = 'text/javascript';
 			s.id = 'hcaptcha-api';
-JS;
+";
 
-		$js = "$js\n";
+		$js = trim( $js, " \n\r" );
 
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		foreach ( $args as $key => $arg ) {
@@ -106,13 +108,16 @@ JS;
 				continue;
 			}
 
-			$js .= "\t\t\ts['$key'] = '$arg';\n";
+			$js .= "\n\t\t\ts['$key'] = '$arg';";
 		}
 
-		$js .= <<<JS
+		/* language=JS */
+		$js .= '
 			s.async = true;
 			t.parentNode.insertBefore( s, t );
-JS;
+';
+
+		$js = trim( $js, " \n\r" );
 
 		echo self::create( $js, $delay );
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped

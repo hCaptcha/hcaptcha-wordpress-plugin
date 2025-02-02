@@ -869,7 +869,7 @@ CSS;
 
 		$hcaptcha->form_shown = true;
 
-		$expected_scripts = <<<JS
+		$expected_scripts = "
 	( () => {
 		'use strict';
 
@@ -925,9 +925,9 @@ CSS;
 			window.addEventListener( 'scroll', scrollHandler );
 		} );
 	} )();
-JS;
+";
 
-		$expected_scripts = "<script>\n$expected_scripts\n</script>\n";
+		$expected_scripts = "<script>$expected_scripts</script>\n";
 
 		$site_key       = 'some site key';
 		$secret_key     = 'some secret key';

@@ -140,11 +140,12 @@ class Register {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.xoo-el-form-container div[data-section="register"] .h-captcha {
 		margin-bottom: 25px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

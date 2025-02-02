@@ -139,11 +139,12 @@ abstract class Base {
 
 		$style_shown = true;
 
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	form.wpsc-create-ticket .h-captcha {
 		margin: 0 15px 15px 15px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

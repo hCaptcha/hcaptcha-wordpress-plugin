@@ -97,11 +97,12 @@ class LostPassword {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	#swpm-pw-reset-form .h-captcha {
 		margin: 10px 0;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

@@ -196,7 +196,8 @@ class Form {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	#form-preview .h-captcha {
 		margin-bottom: 2rem;
 	}
@@ -204,7 +205,7 @@ class Form {
 	.hf-fields-wrap .h-captcha {
 		margin-top: 2rem;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

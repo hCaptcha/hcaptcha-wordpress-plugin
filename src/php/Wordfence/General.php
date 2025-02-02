@@ -84,11 +84,12 @@ class General {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
-#loginform[style="position: relative;"] > .h-captcha {
-    visibility: hidden !important;
-}
-CSS;
+		/* language=CSS */
+		$css = '
+	#loginform[style="position: relative;"] > .h-captcha {
+	    visibility: hidden !important;
+	}
+';
 
 		HCaptcha::css_display( $css );
 	}

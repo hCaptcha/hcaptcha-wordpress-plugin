@@ -78,12 +78,13 @@ class Subscribe extends Base {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	#wpdiscuz-subscribe-form .h-captcha {
 		margin-top: 5px;
 		margin-left: auto;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

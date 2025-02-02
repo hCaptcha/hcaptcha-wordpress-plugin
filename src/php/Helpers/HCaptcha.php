@@ -404,6 +404,8 @@ class HCaptcha {
 	 * @return void
 	 */
 	public static function css_display( string $css, bool $wrap = true ): void {
+		$css = trim( $css, " \n\r" );
+
 		if ( $wrap ) {
 			echo "<style>\n";
 		}
@@ -424,6 +426,8 @@ class HCaptcha {
 	 * @return string
 	 */
 	public static function css_minify( string $css ): string {
+		$css = trim( $css, " \n\r" );
+
 		if ( defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ) {
 			return $css;
 		}
@@ -445,6 +449,8 @@ class HCaptcha {
 	 * @noinspection PhpUnused
 	 */
 	public static function js_display( string $js, bool $wrap = true ): void {
+		$js = trim( $js, " \n\r" );
+
 		if ( $wrap ) {
 			echo "<script>\n";
 		}
@@ -465,6 +471,8 @@ class HCaptcha {
 	 * @return string
 	 */
 	public static function js_minify( string $js ): string {
+		$js = trim( $js, " \n\r" );
+
 		if ( defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ) {
 			return $js;
 		}

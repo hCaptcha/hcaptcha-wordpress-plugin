@@ -154,9 +154,9 @@ class GeneralTest extends HCaptchaWPTestCase {
 		);
 
 		$expected = <<<CSS
-#loginform[style="position: relative;"] > .h-captcha {
-    visibility: hidden !important;
-}
+	#loginform[style="position: relative;"] > .h-captcha {
+	    visibility: hidden !important;
+	}
 CSS;
 		$expected = "<style>\n$expected\n</style>\n";
 

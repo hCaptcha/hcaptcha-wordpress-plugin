@@ -291,7 +291,8 @@ class CF7 extends Base {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	span[data-name="hcap-cf7"] .h-captcha {
 		margin-bottom: 0;
 	}
@@ -300,7 +301,7 @@ class CF7 extends Base {
 	span[data-name="hcap-cf7"] ~ button[type="submit"] {
 		margin-top: 2rem;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

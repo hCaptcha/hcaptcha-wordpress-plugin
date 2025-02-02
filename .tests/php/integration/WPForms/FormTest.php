@@ -296,7 +296,7 @@ CSS;
 
 		$general_page_url = esc_url( admin_url( 'options-general.php?page=hcaptcha&tab=general' ) );
 
-		$notice_content = <<<HTML
+		$notice_content = '
 <div
 		id="wpforms-setting-row-hcaptcha-heading"
 		class="wpforms-setting-row wpforms-setting-row-content wpforms-clear section-heading specific-note">
@@ -309,12 +309,12 @@ CSS;
 			</div>
 			<div class="wpforms-specific-note-content">
 				<p><strong>hCaptcha plugin is active</strong></p>
-				<p>When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the <a href="$general_page_url" target="_blank">General settings page</a>.</p>
+				<p>When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the <a href="' . $general_page_url . '" target="_blank">General settings page</a>.</p>
 			</div>
 		</div>
 	</span>
 </div>
-HTML;
+';
 
 		$hcap_form = $this->get_hcap_form();
 		$expected  = [
