@@ -31,8 +31,8 @@ if git diff --quiet changelog.txt; then
 fi
 
 # Configure Git commit information
-#git config --global user.name "github-actions[bot]"
-#git config --global user.email "github-actions[bot]@users.noreply.github.com"
+git config --global KAGG "github-actions[bot]"
+git config --global info@kagg.eu "github-actions[bot]@users.noreply.github.com"
 
 # Add, commit, and push changes
 git add changelog.txt
