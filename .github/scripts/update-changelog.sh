@@ -37,6 +37,12 @@ git config --global user.name "hCaptcha GHA"
 # Add, commit, and push changes
 git add changelog.txt
 git commit -m "Update changelog from readme.txt"
-git push
 
-echo "Changelog successfully updated and pushed to the repository."
+# Check if running in CI environment
+if [ -n "$CI" ]; then
+  # Push changes if in CI environment
+  git push
+  echo "Changelog successfully updated and pushed to the repository."
+else
+  echo "Changelog updated locally. Skipping push."
+fi
