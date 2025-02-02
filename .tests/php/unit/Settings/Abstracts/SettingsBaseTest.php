@@ -1646,6 +1646,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$option_page  = 'hcaptcha';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
 		$subject->shouldReceive( 'option_group' )->andReturn( $option_group );
@@ -1653,10 +1654,14 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 
 		$form_fields_test_data = $this->get_test_form_fields();
+		$args                  = [
+			'sanitize_callback' => [ $subject, 'sanitize_option_callback' ],
+		];
+
 		$this->set_protected_property( $subject, 'form_fields', $form_fields_test_data );
 
 		WP_Mock::userFunction( 'register_setting' )
-			->with( $option_group, $option_name )
+			->with( $option_group, $option_name, $args )
 			->once();
 
 		foreach ( $form_fields_test_data as $key => $field ) {
@@ -1694,8 +1699,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$this->set_protected_property( $subject, 'form_fields', [] );
 
+		$args = [
+			'sanitize_callback' => [ $subject, 'sanitize_option_callback' ],
+		];
+
 		WP_Mock::userFunction( 'register_setting' )
-			->with( $option_group, $option_name )
+			->with( $option_group, $option_name, $args )
 			->once();
 
 		WP_Mock::userFunction( 'add_settings_field' )->never();
