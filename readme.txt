@@ -629,9 +629,6 @@ Instructions for popular native integrations are below:
 
 = 4.11.0 =
 * Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
-* Test record.
-* Test record 2.
-* Test record 3.
 
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.
