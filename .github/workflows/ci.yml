@@ -35,7 +35,7 @@ jobs:
 
       - name: Update changelog
         if: ${{ matrix.php-version == '8.4' }}
-        run: ./update-changelog.sh
+        run: .github/scripts/update-changelog.sh
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
