@@ -186,7 +186,7 @@ class SystemInfo extends PluginSettingsBase {
 		// Other section.
 		$data .= $this->data( 'Turn Off When Logged In', $this->is_on( 'off_when_logged_in' ) );
 		$data .= $this->data( 'Disable reCAPTCHA Compatibility', $this->is_on( 'recaptcha_compat_off' ) );
-		$data .= $this->data( 'Whitelisted IPs', $this->is_empty( $settings->get( 'whitelisted_ips' ) ) );
+		$data .= $this->data( 'Allowlisted IPs', $this->is_empty( $settings->get( 'whitelisted_ips' ) ) );
 		$data .= $this->data( 'Login attempts before hCaptcha', $settings->get( 'login_limit' ) );
 		$data .= $this->data( 'Failed login attempts interval, min', $settings->get( 'login_interval' ) );
 		$data .= $this->data( 'Delay showing hCaptcha, ms', $settings->get( 'delay' ) );

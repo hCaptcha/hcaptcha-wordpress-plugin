@@ -685,7 +685,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
 			],
 			'whitelisted_ips'          => [
-				'label'   => 'Whitelisted IPs',
+				'label'   => 'Allowlisted IPs',
 				'type'    => 'textarea',
 				'section' => General::SECTION_OTHER,
 				'helper'  => 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.',

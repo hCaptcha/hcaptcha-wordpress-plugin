@@ -534,7 +534,7 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'whitelisted_ips'      => [
-				'label'   => __( 'Whitelisted IPs', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Allowlisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_OTHER,
 				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),

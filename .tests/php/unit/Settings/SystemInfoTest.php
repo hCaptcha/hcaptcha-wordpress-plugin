@@ -303,7 +303,7 @@ Sentry:
 Backend:                              
 Turn Off When Logged In:              Off
 Disable reCAPTCHA Compatibility:      Off
-Whitelisted IPs:                      Not set
+Allowlisted IPs:                      Not set
 Login attempts before hCaptcha:       
 Failed login attempts interval, min:  
 Delay showing hCaptcha, ms:           

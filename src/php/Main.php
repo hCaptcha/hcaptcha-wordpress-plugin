@@ -189,7 +189,7 @@ class Main {
 		$this->load( Events::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
-		add_filter( 'hcap_whitelist_ip', [ $this, 'whitelist_ip' ], -PHP_INT_MAX, 2 );
+		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
 		$this->active = $this->activate_hcaptcha();
@@ -259,7 +259,7 @@ class Main {
 			/**
 			 * Filters the user IP to check whether it is allowlisted.
 			 *
-			 * @param bool         $whitelisted IP is allowlisted.
+			 * @param bool         $allowlisted IP is allowlisted.
 			 * @param string|false $ip          IP string or false for local addresses.
 			 */
 			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() ) ||
@@ -764,12 +764,12 @@ class Main {
 	 * Filter user IP to check if it is allowlisted.
 	 * For allowlisted IPs, hCaptcha will not be shown.
 	 *
-	 * @param bool|mixed   $whitelisted Whether IP is allowlisted.
+	 * @param bool|mixed   $allowlisted Whether IP is allowlisted.
 	 * @param string|false $client_ip   Client IP.
 	 *
 	 * @return bool|mixed
 	 */
-	public function whitelist_ip( $whitelisted, $client_ip ) {
+	public function allowlist_ip( $allowlisted, $client_ip ) {
 		$ips = explode(
 			"\n",
 			$this->settings()->get( 'whitelisted_ips' )
@@ -804,7 +804,7 @@ class Main {
 			return true;
 		}
 
-		return $whitelisted;
+		return $allowlisted;
 	}
 
 	/**
