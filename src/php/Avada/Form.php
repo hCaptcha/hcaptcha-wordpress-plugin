@@ -63,7 +63,11 @@ class Form {
 	public function submission_data( $data ): array {
 		$data = (array) $data;
 
-		unset( $data['data']['hcaptcha-widget-id'], $data['data']['h-captcha-response'], $data['data']['g-recaptcha-response'] );
+		unset(
+			$data['data']['hcaptcha-widget-id'],
+			$data['data']['h-captcha-response'],
+			$data['data']['g-recaptcha-response']
+		);
 
 		return $data;
 	}
