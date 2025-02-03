@@ -34,7 +34,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
 * **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
-* **White List IPs:** Whitelist certain IPs to skip hCaptcha verification.
+* **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
 
 **Customization**
@@ -58,7 +58,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 
 The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
 
-To use this plugin, install it and enter your sitekey and secret in the Settings -> hCaptcha menu after signing up on hCaptcha.com.
+To use this plugin, install it and enter your sitekey and secret in the Settings → hCaptcha menu after signing up on hCaptcha.com.
 
 [hCaptcha Free](https://www.hcaptcha.com/) lets websites block bots and other forms of abuse via humanity challenges.
 
@@ -87,8 +87,8 @@ Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and sec
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
 2. Activate the hCaptcha plugin on the 'Plugins' admin page
-3. Enter your site key and secret on the Settings->hCaptcha->General page
-4. Enable desired Integrations on the Settings->hCaptcha->Integrations page
+3. Enter your site key and secret on the Settings→hCaptcha→General page
+4. Enable desired Integrations on the Settings→hCaptcha→Integrations page
 
 == Frequently Asked Questions ==
 
@@ -114,7 +114,7 @@ Full list of arguments:
 [hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" ajax="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
 `
 
-The shortcode adds not only the hCaptcha div to the form, but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
+The shortcode adds not only the hCaptcha div to the form but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
 
 `
 [hcaptcha action="my_hcap_action" name="my_hcap_name"]
@@ -397,7 +397,7 @@ function hcap_protect_form_filter( $value, $source, $form_id ) {
 		return $value;
 	}
 
-	// Turn off protection for Gravity form with id = 1.
+	// Turn off protection for a Gravity form with id = 1.
 	return false;
 }
 
@@ -448,36 +448,36 @@ function my_hcap_language( $language ) {
 add_filter( 'hcap_language', 'my_hcap_language' );
 `
 
-= How to whitelist certain IPs =
+= How to allowlist certain IPs =
 
 You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
 
 `
 /**
- * Filter user IP to check if it is whitelisted.
- * For whitelisted IPs, hCaptcha will not be shown.
+ * Filter user IP to check if it is allowlisted.
+ * For allowlisted IPs, hCaptcha will not be shown.
  *
- * @param bool   $whitelisted Whether IP is whitelisted.
+ * @param bool   $allowlisted Whether IP is allowlisted.
  * @param string $ip          IP.
  *
  * @return bool
  */
-function my_hcap_whitelist_ip( $whitelisted, $ip ) {
+function my_hcap_allowlist_ip( $allowlisted, $ip ) {
 
-  // Whitelist local IPs.
+  // Allowlist local IPs.
   if ( false === $ip ) {
     return true;
   }
 
-  // Whitelist some other IPs.
+  // Allowlist some other IPs.
   if ( '1.1.1.1' === $ip ) {
     return true;
   }
 
-  return $whitelisted;
+  return $allowlisted;
 }
 
-add_filter( 'hcap_whitelist_ip', 'my_hcap_whitelist_ip', 10, 2 );
+add_filter( 'hcap_whitelist_ip', 'my_hcap_allowlist_ip', 10, 2 );
 `
 
 = How do I change the appearance of the admin menu? =
@@ -615,7 +615,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 For feature requests and issue reports, please
 [open a pull request](https://github.com/hCaptcha/hcaptcha-wordpress-plugin).
 
-We also suggest emailing the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support. This will simplify your use of hCaptcha, and is the best solution in the long run.
+We also suggest emailing the authors of plugins you'd like to support hCaptcha: it will usually take them only an hour or two to add native support. This will simplify your use of hCaptcha and is the best solution in the long run.
 
 You may use native hCaptcha support if available for your plugin. Please check with your plugin author if native support is not yet available.
 
@@ -640,7 +640,7 @@ Instructions for popular native integrations are below:
 * Added deletion of events on the Forms page.
 * Added deletion of events on the Events page.
 * Improved error messaging for hCaptcha verification.
-* Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when IP collection is activated.
+* Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when an IP collection is activated.
 * Fixed fatal error with the WPForms plugin in rare cases.
 * Fixed error message at the first entry to the login page when Hide Login Errors in on.
 * Fixed scrolling to the message on the General page.
@@ -656,14 +656,14 @@ Instructions for popular native integrations are below:
 * Added compatibility with Ninja Forms v3.8.22.
 * Added the ability to install plugins and themes from the Integrations page.
 * Added ability to hide the login errors.
-* Added anonymous collection of IP and User Agent data in locally stored analytics to simplify GDPR compliance.
+* Added an anonymous collection of IP and User Agent data in locally stored analytics to simplify GDPR compliance.
 * Added extended info about IP address on the Events page on hover.
 * Added selecting any page on Forms and Events.
 * Optimized Events page performance for large databases with millions of entries.
 * Fixed layout of a modern Jetpack form in outlined and animated styles.
 * Fixed fatal error as a consequence of a bug in the TutorLMS.
 * Fixed help text box layout on the General page.
-* Fixed dismiss and reset Notifications actions.
+* Fixed the dismiss and reset Notifications actions.
 * Fixed duplication of entries in the Events table.
 
 = 4.8.0 =
@@ -675,7 +675,7 @@ Instructions for popular native integrations are below:
 * Added theme argument to the [hcaptcha] shortcode.
 * Added 'theme' badge to themes on the Integrations page.
 * Updated hCaptcha API error codes.
-* Fixed processing of Divi form with diacritical marks.
+* Fixed processing of a Divi form with diacritical marks.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
 * Fixed theme name display upon activation.
 * Fixed display of the hCaptcha shortcode with individual parameters.
@@ -696,7 +696,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with Contact Form 7 v6.0.
 * Added compatibility with Akismet tag in Contact Form 7.
 * Added compatibility with Elementor Element Caching.
-* Added activation and deactivation of plugins network wide if hCaptcha is set network wide.
+* Added activation and deactivation of plugin network wide if hCaptcha is set network wide.
 * Added ability to use shortcode in the Jetpack Classic form.
 * Added ability to use shortcode in the Mailchimp for WP form.
 * Fixed race condition when loading hCaptcha API.
@@ -736,15 +736,15 @@ Instructions for popular native integrations are below:
 * Improved UX of the Integrations page.
 * Fixed error messaging when there are several Jetpack forms on the same page.
 * Fixed unconditional forcing hCaptcha in Jetpack forms.
-* Fixed appearance of Beaver Builder editor with "Turn Off When Logged In" setting.
-* Fixed appearance of Contact Form 7 editor with "Turn Off When Logged In" setting.
-* Fixed appearance of Essential Addons editor with "Turn Off When Logged In" setting.
-* Fixed appearance of Gravity Forms editor with "Turn Off When Logged In" setting.
-* Fixed appearance of Fluent Forms editor with "Turn Off When Logged In" setting.
-* Fixed appearance of Forminator editor with "Turn Off When Logged In" setting.
-* Fixed appearance of Formidable Forms with "Turn Off When Logged In" setting.
-* Fixed appearance of Ninja Forms editor with "Turn Off When Logged In" setting.
-* Fixed appearance of WPForms editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Beaver Builder editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Contact Form 7 editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Essential Addons editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Gravity Forms editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Fluent Forms editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Forminator editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of Formidable Forms with "Turn Off When Logged In" setting.
+* Fixed the appearance of Ninja Forms editor with "Turn Off When Logged In" setting.
+* Fixed the appearance of WPForms editor with "Turn Off When Logged In" setting.
 * Fixed fatal error on Gravity Forms Entries page.
 * Fixed Elementor preview.
 * Fixed Ninja Forms preview.
@@ -908,7 +908,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 8.5.
 * Added optional Enterprise settings.
 * Fixed improper display of the "rate plugin" message on options.php.
-* Fixed colored border of hCaptcha challenge arrow.
+* Fixed the colored border of hCaptcha challenge arrow.
 
 = 3.6.0 =
 * Tested with WooCommerce 8.4.
@@ -991,7 +991,7 @@ Instructions for popular native integrations are below:
 * Fixed compatibility with Rename wp-admin Login.
 
 = 3.3.0 =
-* Color scheme in admin UI has been updated.
+* The color scheme in the admin UI has been updated.
 * Added compatibility with Passster.
 * Added compatibility with Theme My Login.
 * Added compatibility with Gravity Perks Nested Forms.
