@@ -567,7 +567,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Essential Addons for Elementor Login and Register Forms
 * Essential Blocks Form
 * Extra Comment, Contact, Email Optin and Login Forms
-* Fluent Forms
+* Fluent Forms, including Login Form
 * Forminator Forms
 * Formidable Forms
 * GiveWP Form
