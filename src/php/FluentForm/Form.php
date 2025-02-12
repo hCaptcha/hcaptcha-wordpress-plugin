@@ -390,20 +390,13 @@ class Form extends LoginBase {
 	 * @return bool
 	 */
 	protected function has_own_hcaptcha( $form ): bool {
-		FormFieldsParser::resetData();
-
-		if ( FormFieldsParser::hasElement( $form, 'hcaptcha' ) ) {
-			return true;
-		}
-
-		return false;
+		return $this->has_element( $form, 'hcaptcha' );
 	}
 
 	/**
 	 * Get hCaptcha.
 	 *
 	 * @return string
-	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	protected function get_hcaptcha(): string {
 		$form = FluentForm::find( $this->form_id );
@@ -427,11 +420,11 @@ class Form extends LoginBase {
 	/**
 	 * Whether the form is a login form.
 	 *
-	 * @param FluentForm $form Form.
+	 * @param FluentForm|stdClass $form Form.
 	 *
 	 * @return bool
 	 */
-	private function is_login_form( FluentForm $form ): bool {
+	private function is_login_form( $form ): bool {
 
 		return (
 			has_action( 'fluentform/before_insert_submission' ) &&
@@ -443,16 +436,15 @@ class Form extends LoginBase {
 	/**
 	 * Whether the form has an element.
 	 *
-	 * @param FluentForm $form         Form.
-	 * @param string     $element_name Element name.
+	 * @param FluentForm|stdClass $form         Form.
+	 * @param string              $element_name Element name.
 	 *
 	 * @return bool
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
-	private function has_element( FluentForm $form, string $element_name ): bool {
-		$fields_json = $form->form_fields;
+	private function has_element( $form, string $element_name ): bool {
+		FormFieldsParser::resetData();
 
-		return false !== strpos( $fields_json, '"element":"' . $element_name . '"' );
+		return FormFieldsParser::hasElement( $form, $element_name );
 	}
 
 	/**

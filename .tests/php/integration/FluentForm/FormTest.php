@@ -20,7 +20,6 @@ use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
-use FluentForm\App\Modules\Form\FormFieldsParser;
 
 /**
  * Test FluentForm.
@@ -208,6 +207,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test enqueue_scripts().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection ES6ConvertVarToLetConst
 	 */
 	public function test_enqueue_scripts(): void {
 		global $wp_scripts;
@@ -355,15 +356,15 @@ HTML;
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		// Not admin page.
+		// Not an admin page.
 		self::assertFalse( $subject->is_fluent_forms_admin_page() );
 
-		// Not Formidable admin page.
+		// Not a Fluent Forms admin page.
 		set_current_screen( 'some' );
 
 		self::assertFalse( $subject->is_fluent_forms_admin_page() );
 
-		// Success path. Formidable admin pages.
+		// Success path. Fluent Forms admin pages.
 		foreach ( $fluent_forms_admin_pages as $page ) {
 			set_current_screen( $page );
 
