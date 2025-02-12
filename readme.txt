@@ -629,6 +629,7 @@ Instructions for popular native integrations are below:
 
 = 4.11.0 =
 * Added compatibility with the UsersWP plugin v1.2.28.
+* Added support for the Fluent Login form.
 * Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
 * Fixed adding hCaptcha internal fields to Avada from submission.
 

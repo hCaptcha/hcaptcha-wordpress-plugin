@@ -10,7 +10,7 @@ namespace HCaptcha\ColorlibCustomizer;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
- * Class Login
+ * Class Base
  */
 abstract class Base {
 
