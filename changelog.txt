@@ -4,6 +4,7 @@
 * Added confirmation messages upon deletion of events on the Forms and Events pages.
 * Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
 * Fixed adding hCaptcha internal fields to Avada from submission.
+* Fixed ASC ordering by date on the Events page.
 
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.
