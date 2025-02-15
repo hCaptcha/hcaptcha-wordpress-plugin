@@ -241,7 +241,6 @@ class EventsTest extends HCaptchaWPTestCase {
 						'source'  => '[]',
 						'form_id' => '0',
 						'served'  => '2',
-						'id'      => '1',
 					],
 				],
 			'total'  => 1,
