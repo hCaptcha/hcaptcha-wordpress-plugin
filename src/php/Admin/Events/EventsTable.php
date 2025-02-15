@@ -104,8 +104,9 @@ class EventsTable extends TableBase {
 		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'DESC';
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date_gmt';
 		$date    = isset( $_GET['date'] )
+			// We need filter_input here to keep the delimiter intact.
 			? filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
-			: ''; // We need filter_input here to keep delimiter intact.
+			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		$dates        = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
