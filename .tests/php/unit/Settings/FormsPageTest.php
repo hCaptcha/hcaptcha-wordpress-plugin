@@ -264,6 +264,7 @@ class FormsPageTest extends HCaptchaTestCase {
 					'ajaxUrl'     => 'admin-ajax.php',
 					'bulkAction'  => FormsPage::BULK_ACTION,
 					'bulkNonce'   => $nonce,
+					'bulkMessage' => '',
 					'served'      => $served,
 					'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 					'unit'        => $unit,

@@ -273,6 +273,7 @@ class EventsPageTest extends HCaptchaTestCase {
 					'ajaxUrl'      => 'admin-ajax.php',
 					'bulkAction'   => EventsPage::BULK_ACTION,
 					'bulkNonce'    => $nonce,
+					'bulkMessage'  => '',
 					'succeed'      => $succeed,
 					'failed'       => $failed,
 					'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
