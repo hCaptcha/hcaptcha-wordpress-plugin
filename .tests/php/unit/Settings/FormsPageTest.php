@@ -310,7 +310,7 @@ class FormsPageTest extends HCaptchaTestCase {
 				<p>
 					Your browser does not support the canvas element.				</p>
 			</canvas>
-		</div>
+						</div>
 		<div id="hcaptcha-forms-wrap">
 					</div>
 		';

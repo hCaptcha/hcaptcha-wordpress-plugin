@@ -631,6 +631,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with the UsersWP plugin v1.2.28.
 * Added support for the Fluent Login form.
 * Added confirmation messages upon deletion of events on the Forms and Events pages.
+* Optimized Forms page performance for large databases with millions of entries.
 * Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
 * Fixed adding hCaptcha internal fields to Avada from submission.
 * Fixed ASC ordering by date on the Events page.
