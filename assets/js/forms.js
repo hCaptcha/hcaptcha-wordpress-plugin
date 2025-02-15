@@ -4,6 +4,7 @@
  * @param HCaptchaFormsObject.ajaxUrl
  * @param HCaptchaFormsObject.bulkAction
  * @param HCaptchaFormsObject.bulkNonce
+ * @param HCaptchaFormsObject.bulkMessage
  * @param HCaptchaFormsObject.served
  * @param HCaptchaFormsObject.servedLabel
  * @param HCaptchaFormsObject.unit
@@ -127,6 +128,7 @@ const forms = function( $ ) {
 	}
 
 	initChart();
+	hCaptchaSettingsBase.showSuccessMessage( HCaptchaFormsObject.bulkMessage );
 	document.getElementById( 'doaction' ).addEventListener( 'click', handleBulkAction );
 };
 

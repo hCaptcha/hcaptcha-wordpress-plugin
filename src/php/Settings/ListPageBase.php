@@ -49,6 +49,11 @@ abstract class ListPageBase extends PluginSettingsBase {
 	public const TIMESPAN_DELIMITER = ' - ';
 
 	/**
+	 * Transient name where to store a page bulk action message.
+	 */
+	protected const TRANSIENT = 'hcaptcha_page_base';
+
+	/**
 	 * Default date format.
 	 */
 	private const DATE_FORMAT = 'Y-m-d';
@@ -68,6 +73,15 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected $allowed = false;
 
 	/**
+	 * Delete hCaptcha events by IDs.
+	 *
+	 * @param array $ids Array of event IDs to delete.
+	 *
+	 * @return bool
+	 */
+	abstract protected function delete_events( array $ids ): bool;
+
+	/**
 	 * Init class hooks.
 	 */
 	protected function init_hooks(): void {
@@ -75,6 +89,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
 		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
+		add_action( 'wp_ajax_' . static::BULK_ACTION, [ $this, 'bulk_action' ] );
 	}
 
 	/**
@@ -255,6 +270,56 @@ abstract class ListPageBase extends PluginSettingsBase {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Ajax callback for bulk actions.
+	 *
+	 * @return void
+	 */
+	public function bulk_action(): void {
+		$this->run_checks( static::BULK_ACTION );
+
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$bulk = isset( $_POST['bulk'] ) ? sanitize_text_field( wp_unslash( $_POST['bulk'] ) ) : '';
+		$ids  = isset( $_POST['ids'] )
+			? (array) json_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ), true )
+			: [];
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( 'trash' === $bulk ) {
+			if ( ! $this->delete_events( $ids ) ) {
+				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
+			}
+
+			set_transient(
+				self::TRANSIENT,
+				__( 'Selected items have been successfully deleted.', 'hcaptcha-for-forms-and-more' )
+			);
+
+			wp_send_json_success();
+
+			// For testing purposes.
+			return;
+		}
+
+		wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );
+	}
+
+	/**
+	 * Get and clean the transient.
+	 *
+	 * @return string
+	 */
+	protected function get_clean_transient(): string {
+		$bulk_message = (string) get_transient( self::TRANSIENT );
+
+		if ( $bulk_message ) {
+			delete_transient( self::TRANSIENT );
+		}
+
+		return $bulk_message;
 	}
 
 	/**
