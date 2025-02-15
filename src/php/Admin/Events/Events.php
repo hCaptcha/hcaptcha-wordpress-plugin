@@ -22,6 +22,11 @@ class Events {
 	public const TABLE_NAME = 'hcaptcha_events';
 
 	/**
+	 * Served items limit.
+	 */
+	public const SERVED_LIMIT = 1000;
+
+	/**
 	 * Saved flag.
 	 *
 	 * @var bool
@@ -210,7 +215,7 @@ class Events {
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS id, source, form_id, COUNT(*) as served
+				"SELECT SQL_CALC_FOUND_ROWS source, form_id
 						FROM $table_name
 						WHERE $where_date
 						GROUP BY source, form_id
@@ -234,12 +239,13 @@ class Events {
 			$where .= " OR (source='$source' AND form_id='$form_id')";
 		}
 
-		$where = "($where) AND " . $where_date;
+		$where        = "($where) AND " . $where_date;
+		$served_limit = self::SERVED_LIMIT;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT date_gmt FROM $table_name WHERE $where"
+			"SELECT date_gmt FROM $table_name WHERE $where LIMIT $served_limit"
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 

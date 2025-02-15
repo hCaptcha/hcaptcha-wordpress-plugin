@@ -181,6 +181,17 @@ class FormsPage extends ListPageBase {
 					<?php esc_html_e( 'Your browser does not support the canvas element.', 'hcaptcha-for-forms-and-more' ); ?>
 				</p>
 			</canvas>
+				<?php
+				if ( count( $this->list_table->served ) >= Events::SERVED_LIMIT ) {
+					echo '<div id="hcaptcha-chart-message">';
+					printf(
+					/* translators: 1: Number of elements. */
+						esc_html__( 'The chart is limited to displaying a maximum of %1$s elements.', 'hcaptcha-for-forms-and-more' ),
+						esc_html( number_format_i18n( Events::SERVED_LIMIT ) )
+					);
+					echo '</div>';
+				}
+				?>
 		</div>
 		<div id="hcaptcha-forms-wrap">
 			<?php
