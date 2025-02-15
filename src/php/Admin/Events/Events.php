@@ -244,7 +244,11 @@ class Events {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT date_gmt FROM $table_name WHERE $where LIMIT $served_limit"
+			"SELECT date_gmt
+					FROM $table_name FORCE INDEX (date_gmt)
+					WHERE $where
+					ORDER BY date_gmt
+					LIMIT $served_limit"
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 

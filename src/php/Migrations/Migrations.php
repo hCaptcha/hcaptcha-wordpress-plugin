@@ -383,6 +383,49 @@ class Migrations {
 	}
 
 	/**
+	 * Migrate to 4.11.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_4_11_0(): ?bool {
+		global $wpdb;
+
+		$transient = 'hcaptcha_migration_4_11_0';
+		$started   = get_transient( $transient );
+
+		if ( $started ) {
+			// If this migration has already started, do nothing.
+			// It may be aborted due to time limits, so we do not try to run it again.
+			delete_transient( $transient );
+
+			return true;
+		}
+
+		set_transient( $transient, true, 600 );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$result = $wpdb->query(
+			"CREATE INDEX idx_date_source_form
+					ON $table_name
+					(date_gmt, source, form_id)"
+		);
+
+		if ( $result ) {
+			$wpdb->query( "DROP INDEX hcaptcha_id on $table_name" );
+		}
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		delete_transient( $transient );
+
+		return true;
+	}
+
+	/**
 	 * Save license level in settings.
 	 *
 	 * @return void
