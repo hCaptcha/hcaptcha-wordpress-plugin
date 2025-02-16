@@ -312,28 +312,17 @@ class Events {
 	public static function get_where_date_gmt( array $args ): string {
 		$dates = $args['dates'];
 
-		if ( $dates ) {
-			$dates[1] = $dates[1] ?? $dates[0];
-
-			$dates[0] .= ' 00:00:00';
-			$dates[1] .= ' 23:59:59';
-
-			foreach ( $dates as &$date ) {
-				$date = wp_date( 'Y-m-d H:i:s', strtotime( $date ) );
-			}
-
-			unset( $date );
-
-			$where_date = sprintf(
-				"date_gmt BETWEEN '%s' AND '%s'",
-				esc_sql( $dates[0] ),
-				esc_sql( $dates[1] )
-			);
-		} else {
-			$where_date = '1=1';
+		if ( ! $dates ) {
+			return '1=1';
 		}
 
-		return $where_date;
+		$dates = self::prepare_gmt_dates( $dates );
+
+		return sprintf(
+			"date_gmt BETWEEN '%s' AND '%s'",
+			esc_sql( $dates[0] ),
+			esc_sql( $dates[1] )
+		);
 	}
 
 	/**
@@ -348,46 +337,57 @@ class Events {
 
 		$dates = $args['dates'];
 
-		if ( $dates ) {
-			$dates[1] = $dates[1] ?? $dates[0];
-
-			$dates[0] .= ' 00:00:00';
-			$dates[1] .= ' 23:59:59';
-
-			foreach ( $dates as &$date ) {
-				$date = wp_date( 'Y-m-d H:i:s', strtotime( $date ) );
-			}
-
-			unset( $date );
-
-			$table_name = $wpdb->prefix . self::TABLE_NAME;
-			$order      = $args['order'];
-			$offset     = $args['offset'];
-			$compare    = 'DESC' === $order ? '<=' : '>=';
-			$where_date = sprintf(
-				"date_gmt BETWEEN '%s' AND '%s'
-						AND date_gmt %s (
-							SELECT date_gmt
-							FROM %s
-							WHERE date_gmt BETWEEN '%s' AND '%s'
-							ORDER BY date_gmt %s
-							LIMIT %d, 1
-						)
-						",
-				esc_sql( $dates[0] ),
-				esc_sql( $dates[1] ),
-				$compare,
-				$table_name,
-				esc_sql( $dates[0] ),
-				esc_sql( $dates[1] ),
-				$order,
-				$offset
-			);
-		} else {
-			$where_date = '1=1';
+		if ( ! $dates ) {
+			return '1=1';
 		}
 
-		return $where_date;
+		$dates      = self::prepare_gmt_dates( $dates );
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$order      = $args['order'];
+		$offset     = $args['offset'];
+		$compare    = 'DESC' === $order ? '<=' : '>=';
+
+		return sprintf(
+			"date_gmt BETWEEN '%s' AND '%s'
+					AND date_gmt %s (
+						SELECT date_gmt
+						FROM %s
+						WHERE date_gmt BETWEEN '%s' AND '%s'
+						ORDER BY date_gmt %s
+						LIMIT %d, 1
+					)
+					",
+			esc_sql( $dates[0] ),
+			esc_sql( $dates[1] ),
+			$compare,
+			$table_name,
+			esc_sql( $dates[0] ),
+			esc_sql( $dates[1] ),
+			$order,
+			$offset
+		);
+	}
+
+	/**
+	 * Prepare dates.
+	 *
+	 * @param array $dates Dates.
+	 *
+	 * @return array
+	 */
+	private static function prepare_gmt_dates( array $dates ): array {
+		$dates[1] = $dates[1] ?? $dates[0];
+
+		$dates[0] .= ' 00:00:00';
+		$dates[1] .= ' 23:59:59';
+
+		foreach ( $dates as &$date ) {
+			$date = get_gmt_from_date( $date );
+		}
+
+		unset( $date );
+
+		return $dates;
 	}
 
 	/**
@@ -510,7 +510,8 @@ class Events {
 		$args['order']   = in_array( $order, [ 'ASC', 'DESC' ], true ) ? $order : 'ASC';
 		$orderby         = strtolower( $args['orderby'] );
 		$args['orderby'] = in_array( $orderby, $args['columns'], true ) ? $orderby : '';
-		$args['dates']   = $args['dates'] ?: self::get_default_dates();
+		$dates           = (array) $args['dates'];
+		$args['dates']   = $dates ?: self::get_default_dates();
 
 		return $args;
 	}

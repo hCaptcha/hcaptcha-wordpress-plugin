@@ -635,6 +635,7 @@ Instructions for popular native integrations are below:
 * Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
 * Fixed adding hCaptcha internal fields to Avada from submission.
 * Fixed ASC ordering by date on the Events page.
+* Fixed selection of a time interval on the Events page when site local time was not GMT.
 
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.
