@@ -637,6 +637,7 @@ Instructions for popular native integrations are below:
 * Fixed adding hCaptcha internal fields to Avada from submission.
 * Fixed ASC ordering by date on the Events page.
 * Fixed selection of a time interval on the Events page when site local time was not GMT.
+* Fixed losing options during plugin update in rare cases.
 
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.

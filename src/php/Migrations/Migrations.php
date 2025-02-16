@@ -340,7 +340,11 @@ class Migrations {
 			}
 		}
 
-		update_option( PluginSettingsBase::OPTION_NAME, $new_options );
+		// This two lines is a precaution for a case if options in a new format already exist.
+		$options = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$options = array_merge( $new_options, $options );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $options );
 
 		foreach ( array_keys( $options_map ) as $old_option_name ) {
 			delete_option( $old_option_name );
