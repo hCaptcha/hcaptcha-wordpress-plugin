@@ -59,6 +59,8 @@ class Admin extends Base {
 		if ( $this->mode_live ) {
 			add_action( 'current_screen', [ $this, 'current_screen' ] );
 		}
+
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true' );
 	}
 
 	/**

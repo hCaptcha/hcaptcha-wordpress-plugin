@@ -638,6 +638,7 @@ Instructions for popular native integrations are below:
 * Fixed ASC ordering by date on the Events page.
 * Fixed selection of a time interval on the Events page when site local time was not GMT.
 * Fixed losing options during plugin update in rare cases.
+* Fixed the live hCaptcha tag on the Contact Form 7 edit page after insertion but before saving the form.
 * Fixed shortcode processing in the Contact Form 7 form when Auto-Add was off.
 
 = 4.10.0 =
