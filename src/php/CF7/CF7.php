@@ -35,6 +35,11 @@ class CF7 extends Base {
 	private const DATA_NAME = 'hcap-cf7';
 
 	/**
+	 * Field type.
+	 */
+	private const FIELD_TYPE = 'hcaptcha';
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
@@ -202,7 +207,7 @@ class CF7 extends Base {
 
 		if (
 			! $this->mode_auto &&
-			! ( $this->mode_embed && $this->has_field( $submission, 'hcaptcha' ) )
+			! ( $this->mode_embed && $this->has_field( $submission, self::FIELD_TYPE ) )
 		) {
 			return $result;
 		}
@@ -227,7 +232,13 @@ class CF7 extends Base {
 	 * @return bool
 	 */
 	protected function has_field( WPCF7_Submission $submission, string $type ): bool {
-		$form_fields = $submission->get_contact_form()->scan_form_tags();
+		$contact_form = $submission->get_contact_form();
+
+		if ( self::FIELD_TYPE === $type && has_shortcode( $contact_form->form_html(), 'cf7-hcaptcha' ) ) {
+			return true;
+		}
+
+		$form_fields = $contact_form->scan_form_tags();
 
 		foreach ( $form_fields as $form_field ) {
 			if ( $type === $form_field->type ) {
@@ -254,7 +265,7 @@ class CF7 extends Base {
 
 		$result->invalidate(
 			[
-				'type' => 'hcaptcha',
+				'type' => self::FIELD_TYPE,
 				'name' => self::DATA_NAME,
 			],
 			$captcha_result
