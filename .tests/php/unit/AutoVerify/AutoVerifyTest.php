@@ -687,6 +687,11 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				'forms_data' => [
 					[
 						'action' => '/autoverify',
+						'inputs' => [ 'test_input' ],
+						'args'   => $args,
+					],
+					[
+						'action' => '/autoverify',
 						'inputs' => [ 'test_input1', 'test_input2' ],
 						'args'   => $args,
 					],
