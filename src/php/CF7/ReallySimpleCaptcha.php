@@ -32,9 +32,6 @@ class ReallySimpleCaptcha extends Base {
 		// Replace captchac/captchar shortcodes with hCaptcha.
 		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 10, 4 );
 
-		// Remove original captcha verification.
-//		remove_filter( 'wpcf7_validate_captchar', 'wpcf7_captcha_validation_filter' );
-
 		add_filter( 'hcap_cf7_has_field', [ $this, 'has_field' ], 10, 3 );
 	}
 
