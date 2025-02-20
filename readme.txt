@@ -633,6 +633,7 @@ Instructions for popular native integrations are below:
 * Added support for the Fluent Login form.
 * Added confirmation messages upon deletion of events on the Forms and Events pages.
 * Added asynchronous migrations for large databases.
+* Added hCaptcha error messages to the Contact Form 7 when JavaScript is disabled.
 * Optimized Forms page performance for large databases with millions of entries.
 * Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
 * Fixed adding hCaptcha internal fields to Avada from submission.

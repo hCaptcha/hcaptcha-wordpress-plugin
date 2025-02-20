@@ -142,15 +142,27 @@ class CF7 extends Base {
 		$id        = $attr['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
 		$class     = $attr['cf7-class'] ?? '';
 		$hcap_form = preg_replace(
-			[ '/(<h-captcha\s+?class="h-captcha")/', '#</h-captcha>#' ],
-			[ '<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"', '</span>' ],
+			[
+				'/(<h-captcha\s+?class="h-captcha")/',
+				'#</h-captcha>#',
+			],
+			[
+				'<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"',
+				'</span>',
+			],
 			$hcap_form
 		);
+
+		$submission         = WPCF7_Submission::get_instance();
+		$hcap_invalid_field = $submission ? $submission->get_invalid_field( 'hcap-cf7' ) : [];
+		$reason             = $hcap_invalid_field['reason'] ?? '';
+		$not_valid_tip      = $reason ? '<span class="wpcf7-not-valid-tip" aria-hidden="true">' . $reason . '</span>' : '';
 
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
 			$hcap_form .
-			'</span>'
+			'</span>' .
+			$not_valid_tip
 		);
 	}
 
