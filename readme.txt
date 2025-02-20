@@ -586,6 +586,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Paid Memberships Pro Checkout and Login Forms
 * Passster Protection Form
 * Profile Builder Login, Recover Password, and Register Forms
+* Really Simple CAPTCHA
 * Quform Forms
 * Sendinblue Form
 * Simple Download Monitor Form
