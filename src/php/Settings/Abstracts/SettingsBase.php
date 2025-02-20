@@ -921,13 +921,13 @@ abstract class SettingsBase {
 	/**
 	 * Filters an option value following sanitization.
 	 *
-	 * @param mixed $value The sanitized option value.
+	 * @param array|mixed $value The sanitized option value.
 	 *
-	 * @return mixed
+	 * @return array
 	 */
-	public function sanitize_option_callback( $value ) {
+	public function sanitize_option_callback( $value ): array {
 		// Remove unexpected settings.
-		$settings = array_intersect_key( $value, $this->form_fields() );
+		$settings = array_intersect_key( (array) $value, $this->form_fields() );
 
 		foreach ( $settings as $key => $setting ) {
 			$type = $this->form_fields[ $key ]['type'];

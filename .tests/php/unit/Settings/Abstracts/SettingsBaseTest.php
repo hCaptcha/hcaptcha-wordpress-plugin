@@ -7,8 +7,6 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
-/** @noinspection TypoSafeNamingInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 // phpcs:disable WordPress.WP.AlternativeFunctions.json_encode_json_encode
@@ -1725,6 +1723,50 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'add_settings_field' )->never();
 
 		$subject->setup_fields();
+	}
+
+	/**
+	 * Test sanitize_option_callback().
+	 *
+	 * @return void
+	 * @throws ReflectionException
+	 */
+	public function test_sanitize_option_callback(): void {
+		$form_fields = [
+			'collect_ip'      => [
+				'default' => '',
+				'type'    => 'checkbox',
+			],
+			'whitelisted_ips' => [
+				'default' => '',
+				'type'    => 'textarea',
+			],
+			'size'            => [
+				'default' => '',
+				'type'    => 'select',
+			],
+		];
+		$value       = [
+			'collect_ip'      => [ 'on' ],
+			'whitelisted_ips' => "some ips\nline1\nline2",
+			'size'            => 'some size',
+			'foo'             => 'bar',
+		];
+		$expected    = [
+			'collect_ip'      => [ 'on' ],
+			'whitelisted_ips' => "some ips\nline1\nline2",
+			'size'            => 'some size',
+		];
+
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::passthruFunction( 'wp_kses_post' );
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
+
+		self::assertSame( $expected, $subject->sanitize_option_callback( $value ) );
 	}
 
 	/**
