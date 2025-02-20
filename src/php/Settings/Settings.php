@@ -6,7 +6,6 @@
  */
 
 // phpcs:ignore Generic.Commenting.DocComment.MissingShort
-/** @noinspection ContractViolationInspection */
 
 namespace HCaptcha\Settings;
 
