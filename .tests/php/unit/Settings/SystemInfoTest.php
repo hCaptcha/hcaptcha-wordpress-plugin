@@ -318,6 +318,7 @@ Contact Form 7:
   Form Auto-Add:                      On
   Form Embed:                         Off
   Live Form in Admin:                 Off
+  Replace Really Simple CAPTCHA:      Off
 WP Core:                              
   Comment Form:                       Off
   Login Form:                         Off

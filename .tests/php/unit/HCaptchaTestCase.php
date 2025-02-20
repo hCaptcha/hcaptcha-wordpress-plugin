@@ -899,9 +899,10 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'form'  => 'Form Auto-Add',
-							'embed' => 'Form Embed',
-							'live'  => 'Live Form in Admin',
+							'form'        => 'Form Auto-Add',
+							'embed'       => 'Form Embed',
+							'live'        => 'Live Form in Admin',
+							'replace_rsc' => 'Replace Really Simple CAPTCHA',
 						],
 				],
 			'divi_status'                      =>

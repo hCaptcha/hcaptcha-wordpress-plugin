@@ -19,6 +19,7 @@ use HCaptcha\BBPress\Reply;
 use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
+use HCaptcha\CF7\ReallySimpleCaptcha;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
@@ -1432,7 +1433,7 @@ CSS;
 			'Contact Form 7'                    => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
-				[ CF7::class, Admin::class ],
+				[ CF7::class, Admin::class, ReallySimpleCaptcha::class ],
 			],
 			'Divi Comment Form'                 => [
 				[ 'divi_status', 'comment' ],

@@ -19,6 +19,7 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
 use HCaptcha\CF7\CF7;
+use HCaptcha\CF7\ReallySimpleCaptcha;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
@@ -975,7 +976,7 @@ class Main {
 			'Contact Form 7'                       => [
 				[ 'cf7_status', null ],
 				'contact-form-7/wp-contact-form-7.php',
-				[ CF7::class, Admin::class ],
+				[ CF7::class, Admin::class, ReallySimpleCaptcha::class ],
 			],
 			'Cookies and Content Security Policy'  => [
 				[ 'cacsp_status', null ],

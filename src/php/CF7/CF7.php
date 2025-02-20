@@ -37,7 +37,7 @@ class CF7 extends Base {
 	/**
 	 * Field type.
 	 */
-	private const FIELD_TYPE = 'hcaptcha';
+	public const FIELD_TYPE = 'hcaptcha';
 
 	/**
 	 * Init hooks.
@@ -244,21 +244,27 @@ class CF7 extends Base {
 	 * @return bool
 	 */
 	protected function has_field( WPCF7_Submission $submission, string $type ): bool {
+		$has_field    = false;
 		$contact_form = $submission->get_contact_form();
 
 		if ( self::FIELD_TYPE === $type && has_shortcode( $contact_form->form_html(), 'cf7-hcaptcha' ) ) {
-			return true;
-		}
+			$has_field = true;
+		} else {
+			$form_fields = $contact_form->scan_form_tags();
 
-		$form_fields = $contact_form->scan_form_tags();
-
-		foreach ( $form_fields as $form_field ) {
-			if ( $type === $form_field->type ) {
-				return true;
+			foreach ( $form_fields as $form_field ) {
+				if ( $type === $form_field->type ) {
+					$has_field = true;
+				}
 			}
 		}
 
-		return false;
+		/**
+		 * Filter whether form has a field of given type.
+		 *
+		 * @param bool $has_field Form has field.
+		 */
+		return apply_filters( 'hcap_cf7_has_field', $has_field, $submission, $type );
 	}
 
 	/**

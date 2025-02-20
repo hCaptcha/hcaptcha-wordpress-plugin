@@ -628,6 +628,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.11.0 =
+* Added Really Simple CAPTCHA plugin integration.
 * Added compatibility with the UsersWP plugin v1.2.28.
 * Added compatibility with Perfmatters plugin.
 * Added support for the Fluent Login form.

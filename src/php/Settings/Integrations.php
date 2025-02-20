@@ -299,9 +299,10 @@ class Integrations extends PluginSettingsBase {
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
-					'form'  => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
-					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
-					'live'  => __( 'Live Form in Admin', 'hcaptcha-for-forms-and-more' ),
+					'form'        => __( 'Form Auto-Add', 'hcaptcha-for-forms-and-more' ),
+					'embed'       => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
+					'live'        => __( 'Live Form in Admin', 'hcaptcha-for-forms-and-more' ),
+					'replace_rsc' => __( 'Replace Really Simple CAPTCHA', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [
