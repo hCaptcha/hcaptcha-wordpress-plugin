@@ -1729,7 +1729,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * Test sanitize_option_callback().
 	 *
 	 * @return void
-	 * @throws ReflectionException
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_sanitize_option_callback(): void {
 		$form_fields = [

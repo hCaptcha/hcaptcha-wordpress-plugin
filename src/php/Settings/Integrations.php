@@ -1611,7 +1611,6 @@ class Integrations extends PluginSettingsBase {
 	 * Get default theme.
 	 *
 	 * @return string
-	 * @noinspection PhpVoidFunctionResultUsedInspection
 	 */
 	protected function get_default_theme(): string {
 		$core_default_theme_obj = WP_Theme::get_core_default_theme();
