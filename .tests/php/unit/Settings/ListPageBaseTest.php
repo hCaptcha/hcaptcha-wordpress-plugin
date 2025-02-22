@@ -168,9 +168,6 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	public function test_bulk_action_with_delete_error(): void {
 		$ids = [ 1, 2, 3 ];
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-		$ids_encoded = json_encode( $ids );
-
 		$_POST['bulk'] = 'trash';
 
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
