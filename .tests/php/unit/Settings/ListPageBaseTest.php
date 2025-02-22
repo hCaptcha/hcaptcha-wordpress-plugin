@@ -16,6 +16,7 @@ use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
+use function PHPUnit\Framework\assertSame;
 
 /**
  * Class ListPageBaseTest
@@ -24,6 +25,17 @@ use WP_Mock;
  * @group settings-list-page-base
  */
 class ListPageBaseTest extends HCaptchaTestCase {
+
+	/**
+	 * Tear down test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $_POST['bulk'], $_POST['ids'] );
+
+		parent::tearDown();
+	}
 
 	/**
 	 * Test date_picker_display().
@@ -105,6 +117,96 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject->date_picker_display();
 
 		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
+	 * Test bulk_action().
+	 *
+	 * @return void
+	 */
+	public function test_bulk_action(): void {
+		$ids = [ 1, 2, 3 ];
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$ids_encoded = json_encode( $ids );
+
+		$_POST['bulk'] = 'trash';
+		$_POST['ids']  = $ids_encoded;
+
+		$subject = Mockery::mock( ListPageBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' );
+		$subject->shouldReceive( 'delete_events' )->with( $ids )->andReturn( true );
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'set_transient' )->once()->with( 'hcaptcha_page_base', 'Selected items have been successfully deleted.' );
+		WP_Mock::userFunction( 'wp_send_json_success' )->once()->with();
+
+		$subject->bulk_action();
+	}
+
+	/**
+	 * Test bulk_action() with invalid action.
+	 *
+	 * @return void
+	 */
+	public function test_bulk_action_with_invalid_action(): void {
+		$subject = Mockery::mock( ListPageBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )->once()->with( 'Invalid bulk action.' );
+
+		$subject->bulk_action();
+	}
+
+	/**
+	 * Test bulk_action() with delete error.
+	 *
+	 * @return void
+	 */
+	public function test_bulk_action_with_delete_error(): void {
+		$ids = [ 1, 2, 3 ];
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$ids_encoded = json_encode( $ids );
+
+		$_POST['bulk'] = 'trash';
+
+		$subject = Mockery::mock( ListPageBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' );
+		$subject->shouldReceive( 'delete_events' )->with( [] )->andReturn( false );
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'wp_send_json_error' )->once()->with( 'Failed to delete the selected items.' );
+
+		$subject->bulk_action();
+	}
+
+	/**
+	 * Test get_clean_transient().
+	 *
+	 * @return void
+	 */
+	public function test_get_clean_transient(): void {
+		$subject = Mockery::mock( ListPageBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// With transient.
+		$message = 'some';
+
+		WP_Mock::userFunction( 'get_transient' )->once()->with( 'hcaptcha_page_base' )->andReturn( $message );
+		WP_Mock::userFunction( 'delete_transient' )->once()->with( 'hcaptcha_page_base' );
+
+		self::assertSame( $message, $subject->get_clean_transient() );
+
+		// With empty transient.
+		WP_Mock::userFunction( 'get_transient' )->once()->with( 'hcaptcha_page_base' )->andReturn( false );
+
+		self::assertSame( '', $subject->get_clean_transient() );
 	}
 
 	/**

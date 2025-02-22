@@ -59,6 +59,13 @@ abstract class ListPageBase extends PluginSettingsBase {
 	private const DATE_FORMAT = 'Y-m-d';
 
 	/**
+	 * Bulk ajax action.
+	 * Must be overridden in child classes.
+	 * Here is for testing purposes.
+	 */
+	public const BULK_ACTION = '';
+
+	/**
 	 * Chart time unit.
 	 *
 	 * @var string
@@ -291,6 +298,9 @@ abstract class ListPageBase extends PluginSettingsBase {
 		if ( 'trash' === $bulk ) {
 			if ( ! $this->delete_events( $ids ) ) {
 				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
+
+				// For testing purposes.
+				return;
 			}
 
 			set_transient(
