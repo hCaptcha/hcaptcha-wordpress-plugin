@@ -142,6 +142,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
 		$nonce          = 'some nonce';
+		$transient      = 'some message';
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -149,6 +150,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'allowed', $allowed );
 		$this->set_protected_property( $subject, 'served', $served );
 		$this->set_protected_property( $subject, 'unit', $unit );
+		$subject->shouldReceive( 'get_clean_transient' )->andReturn( $transient );
 
 		FunctionMocker::replace(
 			'constant',
@@ -264,7 +266,7 @@ class FormsPageTest extends HCaptchaTestCase {
 					'ajaxUrl'     => 'admin-ajax.php',
 					'bulkAction'  => FormsPage::BULK_ACTION,
 					'bulkNonce'   => $nonce,
-					'bulkMessage' => '',
+					'bulkMessage' => $transient,
 					'served'      => $served,
 					'servedLabel' => __( 'Served', 'hcaptcha-for-forms-and-more' ),
 					'unit'        => $unit,
