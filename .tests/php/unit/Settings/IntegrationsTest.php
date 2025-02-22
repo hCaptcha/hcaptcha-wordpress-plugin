@@ -2003,8 +2003,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
-		global $wp_filesystem;
-
 		$status['errorCode']    = 'unable_to_connect_to_filesystem';
 		$status['errorMessage'] = 'Unable to connect to the filesystem. Please confirm your credentials.';
 

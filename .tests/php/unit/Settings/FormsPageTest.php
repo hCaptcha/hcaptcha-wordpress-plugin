@@ -29,6 +29,18 @@ use tad\FunctionMocker\FunctionMocker;
  * @group settings-forms-page
  */
 class FormsPageTest extends HCaptchaTestCase {
+
+	/**
+	 * Tear down.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+
+		parent::tearDown();
+	}
+
 	/**
 	 * Test page_title().
 	 */

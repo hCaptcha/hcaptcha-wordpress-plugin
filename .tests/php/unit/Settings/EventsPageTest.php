@@ -30,6 +30,17 @@ use tad\FunctionMocker\FunctionMocker;
 class EventsPageTest extends HCaptchaTestCase {
 
 	/**
+	 * Tear down.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
