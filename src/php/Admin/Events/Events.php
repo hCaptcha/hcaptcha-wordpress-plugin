@@ -210,11 +210,12 @@ class Events {
 		$offset     = $args['offset'];
 		$limit      = $args['limit'];
 
+		// We need to collect id also to distinguish rows on the Forms page.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS source, form_id, COUNT(*) as served
+				"SELECT SQL_CALC_FOUND_ROWS id, source, form_id, COUNT(*) as served
 						FROM $table_name
 						WHERE $where_date
 						GROUP BY source, form_id
