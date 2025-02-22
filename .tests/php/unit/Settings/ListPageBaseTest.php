@@ -31,7 +31,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['bulk'], $_POST['ids'] );
+		unset( $_POST );
 
 		parent::tearDown();
 	}
