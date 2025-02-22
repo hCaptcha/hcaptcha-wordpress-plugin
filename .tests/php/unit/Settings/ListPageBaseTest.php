@@ -16,7 +16,6 @@ use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Class ListPageBaseTest
