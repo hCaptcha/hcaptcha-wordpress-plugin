@@ -15,7 +15,6 @@ use WP_Ajax_Upgrader_Skin;
 use WP_Error;
 use WP_Filesystem_Base;
 use WP_Theme;
-use WP_Upgrader;
 
 /**
  * Class Integrations
@@ -1248,7 +1247,6 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
 	protected function maybe_activate_plugin( string $plugin ) {
-
 		if ( hcaptcha()->is_plugin_active( $plugin ) ) {
 			return true;
 		}
@@ -1282,7 +1280,6 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|WP_Error Null on success, WP_Error on failure.
 	 */
 	protected function install_plugin( string $plugin ): ?WP_Error {
-
 		$plugin = trim( explode( '/', $plugin )[0] );
 
 		if ( empty( $plugin ) ) {
@@ -1296,8 +1293,12 @@ class Integrations extends PluginSettingsBase {
 			);
 		}
 
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+		if ( ! class_exists( 'Plugin_Upgrader', false ) ) {
+			// @codeCoverageIgnoreStart
+			require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+			// @codeCoverageIgnoreEnd
+		}
 
 		$api = plugins_api(
 			'plugin_information',
@@ -1493,7 +1494,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return null|WP_Error Null on success, WP_Error on failure.
 	 */
-	private function install_theme( string $theme ): ?WP_Error {
+	protected function install_theme( string $theme ): ?WP_Error {
 		$theme = trim( $theme );
 
 		if ( empty( $theme ) ) {
@@ -1510,8 +1511,12 @@ class Integrations extends PluginSettingsBase {
 			);
 		}
 
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-		require_once ABSPATH . 'wp-admin/includes/theme.php';
+		if ( ! class_exists( 'Theme_Upgrader', false ) ) {
+			// @codeCoverageIgnoreStart
+			require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+			require_once ABSPATH . 'wp-admin/includes/theme.php';
+			// @codeCoverageIgnoreEnd
+		}
 
 		$api = themes_api(
 			'theme_information',
@@ -1522,7 +1527,7 @@ class Integrations extends PluginSettingsBase {
 		);
 
 		if ( is_wp_error( $api ) ) {
-			return new WP_Error( $api->get_error_code(), $api->get_error_message() );
+			return $api;
 		}
 
 		$skin     = new WP_Ajax_Upgrader_Skin();
@@ -1677,14 +1682,13 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Install entity (plugin or theme).
 	 *
-	 * @param WP_Upgrader           $upgrader      Upgrader instance.
-	 * @param WP_Ajax_Upgrader_Skin $skin          Upgrader skin instance.
-	 * @param string                $download_link Download link.
+	 * @param Plugin_Upgrader|Theme_Upgrader|object $upgrader      Upgrader instance.
+	 * @param WP_Ajax_Upgrader_Skin|object          $skin          Upgrader skin instance.
+	 * @param string                                $download_link Download link.
 	 *
 	 * @return WP_Error|null
-	 * @noinspection PhpPossiblePolymorphicInvocationInspection
 	 */
-	protected function install_entity( WP_Upgrader $upgrader, WP_Ajax_Upgrader_Skin $skin, string $download_link ): ?WP_Error {
+	protected function install_entity( object $upgrader, object $skin, string $download_link ): ?WP_Error {
 		$result = $upgrader->install( $download_link );
 
 		if ( is_wp_error( $result ) ) {
