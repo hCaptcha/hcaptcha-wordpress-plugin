@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\Events\FormsTable;
 use HCaptcha\Main;
 use HCaptcha\Settings\FormsPage;
@@ -299,8 +300,9 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_section_callback(): void {
-		$datepicker = '<div class="hcaptcha-filter"></div>';
-		$expected   = '		<div class="hcaptcha-header-bar">
+		$served_limit = Events::SERVED_LIMIT;
+		$datepicker   = '<div class="hcaptcha-filter"></div>';
+		$expected     = '		<div class="hcaptcha-header-bar">
 			<div class="hcaptcha-header">
 				<h2>
 					Forms				</h2>
@@ -312,13 +314,15 @@ class FormsPageTest extends HCaptchaTestCase {
 				<p>
 					Your browser does not support the canvas element.				</p>
 			</canvas>
-						</div>
+				<div id="hcaptcha-chart-message">The chart is limited to displaying a maximum of ' . $served_limit . ' elements.</div>		</div>
 		<div id="hcaptcha-forms-wrap">
 					</div>
 		';
 
-		$list_table = Mockery::mock( FormsTable::class )->makePartial();
-		$subject    = Mockery::mock( FormsPage::class )->makePartial();
+		$list_table         = Mockery::mock( FormsTable::class )->makePartial();
+		$list_table->served = array_fill( 0, $served_limit, 'some served event' );
+
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'date_picker_display' )->andReturnUsing(
@@ -328,6 +332,7 @@ class FormsPageTest extends HCaptchaTestCase {
 			}
 		);
 
+		WP_Mock::passthruFunction( 'number_format_i18n' );
 		WP_Mock::onAction( 'kagg_settings_header' )->with( null )->perform( [ $subject, 'date_picker_display' ] );
 
 		$list_table->shouldReceive( 'display' )->once();
@@ -584,5 +589,44 @@ class FormsPageTest extends HCaptchaTestCase {
 		$subject->$method();
 
 		self::assertSame( [], $this->get_protected_property( $subject, 'served' ) );
+	}
+
+	/**
+	 * Test delete_events().
+	 *
+	 * @return void
+	 */
+	public function test_delete_events(): void {
+		global $wpdb;
+
+		$ids          = [
+			[
+				'source' => 'WordPress',
+				'formId' => 'login',
+			],
+			[
+				'source' => 'Contact Form 7',
+				'formId' => '177',
+			],
+		];
+		$where_clause = '(source = %s AND form_id = %d) OR (source = %s AND form_id = %d)';
+		$prefix       = 'wp_';
+		$table_name   = 'hcaptcha_events';
+		$sql          = "DELETE FROM $prefix$table_name WHERE $where_clause";
+		$prepared     = "DELETE FROM $prefix$table_name WHERE (source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = 177)";
+		$result       = count( $ids );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $sql, 'WordPress', 'login', 'Contact Form 7', '177' )
+			->andReturn( $prepared );
+		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( $result );
+
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertTrue( $subject->delete_events( $ids ) );
 	}
 }
