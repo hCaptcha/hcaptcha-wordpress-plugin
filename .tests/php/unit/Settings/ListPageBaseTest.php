@@ -166,8 +166,6 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_bulk_action_with_delete_error(): void {
-		$ids = [ 1, 2, 3 ];
-
 		$_POST['bulk'] = 'trash';
 
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
