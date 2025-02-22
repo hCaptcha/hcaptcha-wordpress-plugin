@@ -644,6 +644,7 @@ Instructions for popular native integrations are below:
 * Fixed losing options during plugin update in rare cases.
 * Fixed the live hCaptcha tag on the Contact Form 7 edit page after insertion but before saving the form.
 * Fixed shortcode processing in the Contact Form 7 form when Auto-Add was off.
+* Fixed error on theme installation.
 
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.

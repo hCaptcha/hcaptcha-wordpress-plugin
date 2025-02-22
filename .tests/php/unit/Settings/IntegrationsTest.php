@@ -1589,9 +1589,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
 		$method   = 'activate_theme';
 
-		$wp_theme->shouldReceive( 'exists' )->andReturn( true );
+		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyfive' );
 
-		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
 		WP_Mock::userFunction( 'switch_theme' )->with( $theme )->once();
 
 		$this->set_method_accessibility( $subject, 'activate_plugins' );
@@ -1599,35 +1599,22 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test activate_theme() when it does not exist.
+	 * Test activate_theme() when it is already activated.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_activate_theme_when_not_exist(): void {
-		$theme         = 'Divi';
-		$error_code    = 'some error code';
-		$error_message = 'some error message';
-
-		$wp_error = Mockery::mock( 'overload:WP_Error' );
-
-		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
-		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
-		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
+	public function test_activate_theme_already_activated(): void {
+		$theme = 'Divi';
 
 		$wp_theme = Mockery::mock( 'WP_Theme' );
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
 		$method   = 'activate_theme';
 
-		$wp_theme->shouldReceive( 'exists' )->andReturn( false );
+		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( $theme );
 
-		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
 
-		$this->set_method_accessibility( $subject, 'activate_plugins' );
-
-		$result = $subject->$method( $theme );
-
-		self::assertEquals( $error_code, $result->get_error_code() );
-		self::assertEquals( $error_message, $result->get_error_message() );
+		self::assertTrue( $subject->$method( $theme ) );
 	}
 
 	/**

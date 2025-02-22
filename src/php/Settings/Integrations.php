@@ -1264,9 +1264,7 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		ob_start();
-
 		$result = $this->activate_plugin( $plugin );
-
 		ob_end_clean();
 
 		return $result;
@@ -1458,14 +1456,11 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param string $theme Theme to activate.
 	 *
-	 * @return null|WP_Error Null on success, WP_Error on failure.
+	 * @return null|true|WP_Error Null on success, WP_Error on failure.
 	 */
-	protected function activate_theme( string $theme ): ?WP_Error {
-		if ( ! wp_get_theme( $theme )->exists() ) {
-			return new WP_Error(
-				'theme_not_found',
-				__( 'Theme not found.', 'hcaptcha-for-forms-and-more' )
-			);
+	protected function activate_theme( string $theme ) {
+		if ( wp_get_theme()->get_stylesheet() === $theme ) {
+			return true;
 		}
 
 		if ( $this->install ) {
