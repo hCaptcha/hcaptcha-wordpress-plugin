@@ -621,11 +621,11 @@ class FormsPageTest extends HCaptchaTestCase {
 				'formId' => '177',
 			],
 		];
-		$where_clause = '(source = %s AND form_id = %d) OR (source = %s AND form_id = %d)';
+		$where_clause = '(source = %s AND form_id = %s) OR (source = %s AND form_id = %s)';
 		$prefix       = 'wp_';
 		$table_name   = 'hcaptcha_events';
 		$sql          = "DELETE FROM $prefix$table_name WHERE $where_clause";
-		$prepared     = "DELETE FROM $prefix$table_name WHERE (source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = 177)";
+		$prepared     = "DELETE FROM $prefix$table_name WHERE (source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = '177')";
 		$result       = count( $ids );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited

@@ -242,7 +242,7 @@ class FormsPage extends ListPageBase {
 		$values     = [];
 
 		foreach ( $ids as $item ) {
-			$conditions[] = '(source = %s AND form_id = %d)';
+			$conditions[] = '(source = %s AND form_id = %s)';
 			$values[]     = $item['source'];
 			$values[]     = $item['formId'];
 		}
