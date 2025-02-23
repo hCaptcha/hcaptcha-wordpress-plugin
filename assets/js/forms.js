@@ -99,11 +99,13 @@ const forms = function( $ ) {
 			return;
 		}
 
+		const datepicker = document.getElementById( 'hcaptcha-datepicker' );
 		const data = {
 			action: HCaptchaFormsObject.bulkAction,
 			nonce: HCaptchaFormsObject.bulkNonce,
 			bulk,
 			ids: JSON.stringify( ids ),
+			date: datepicker?.value ?? '',
 		};
 
 		$.post( {

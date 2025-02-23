@@ -230,16 +230,25 @@ class FormsPage extends ListPageBase {
 	/**
 	 * Delete hCaptcha events by forms.
 	 *
-	 * @param array $ids Array of event IDs to delete.
+	 * @param array $args Arguments.
 	 *
 	 * @return bool
 	 */
-	protected function delete_events( array $ids ): bool {
+	protected function delete_events( array $args ): bool {
 		global $wpdb;
+
+		$ids   = $args['ids'] ?? [];
+		$dates = $args['dates'] ?? [];
+		$dates = $dates ?: Events::get_default_dates();
+		$dates = Events::prepare_gmt_dates( $dates );
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 		$conditions = [];
 		$values     = [];
+
+		if ( ! $ids ) {
+			return false;
+		}
 
 		foreach ( $ids as $item ) {
 			$conditions[] = '(source = %s AND form_id = %s)';
@@ -248,13 +257,15 @@ class FormsPage extends ListPageBase {
 		}
 
 		$where_clause = implode( ' OR ', $conditions );
+		$where_clause = "($where_clause) AND date_gmt BETWEEN %s AND %s";
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->query(
 			$wpdb->prepare(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 				"DELETE FROM $table_name WHERE $where_clause",
-				...$values
+				...$values,
+				...$dates
 			)
 		);
 

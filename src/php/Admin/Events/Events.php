@@ -376,7 +376,7 @@ class Events {
 	 *
 	 * @return array
 	 */
-	private static function prepare_gmt_dates( array $dates ): array {
+	public static function prepare_gmt_dates( array $dates ): array {
 		$dates[1] = $dates[1] ?? $dates[0];
 
 		$dates[0] .= ' 00:00:00';
@@ -411,7 +411,7 @@ class Events {
 	 *
 	 * @return array
 	 */
-	private static function get_default_dates(): array {
+	public static function get_default_dates(): array {
 		$end_date   = date_create_immutable( 'now', wp_timezone() );
 		$start_date = $end_date;
 

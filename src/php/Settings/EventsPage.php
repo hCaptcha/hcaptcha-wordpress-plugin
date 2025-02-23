@@ -244,16 +244,17 @@ class EventsPage extends ListPageBase {
 	/**
 	 * Delete hCaptcha events by IDs.
 	 *
-	 * @param array $ids Array of event IDs to delete.
+	 * @param array $args Arguments.
 	 *
 	 * @return bool
 	 */
-	protected function delete_events( array $ids ): bool {
+	protected function delete_events( array $args ): bool {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$ids = $args['ids'] ?? [];
 
-		$in = DB::prepare_in( $ids, '%d' );
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$in         = DB::prepare_in( $ids, '%d' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->query(

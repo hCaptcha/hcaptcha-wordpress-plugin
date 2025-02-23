@@ -82,11 +82,11 @@ abstract class ListPageBase extends PluginSettingsBase {
 	/**
 	 * Delete hCaptcha events by IDs.
 	 *
-	 * @param array $ids Array of event IDs to delete.
+	 * @param array $args Arguments.
 	 *
 	 * @return bool
 	 */
-	abstract protected function delete_events( array $ids ): bool;
+	abstract protected function delete_events( array $args ): bool;
 
 	/**
 	 * Init class hooks.
@@ -293,10 +293,22 @@ abstract class ListPageBase extends PluginSettingsBase {
 		$ids  = isset( $_POST['ids'] )
 			? (array) json_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ), true )
 			: [];
+		$date = isset( $_POST['date'] )
+			// We need filter_input here to keep the delimiter intact.
+			? filter_input( INPUT_POST, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
+		$dates = explode( self::TIMESPAN_DELIMITER, $date );
+		$dates = array_filter( array_map( 'trim', $dates ) );
+
 		if ( 'trash' === $bulk ) {
-			if ( ! $this->delete_events( $ids ) ) {
+			$args = [
+				'ids'   => $ids,
+				'dates' => $dates,
+			];
+
+			if ( ! $this->delete_events( $args ) ) {
 				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
 
 				// For testing purposes.
