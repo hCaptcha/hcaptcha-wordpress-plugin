@@ -621,24 +621,34 @@ class FormsPageTest extends HCaptchaTestCase {
 				'formId' => '177',
 			],
 		];
-		$where_clause = '(source = %s AND form_id = %s) OR (source = %s AND form_id = %s)';
+		$dates        = [
+			'2025-01-24',
+			'2025-02-23',
+		];
+		$args         = [
+			'ids'   => $ids,
+			'dates' => $dates,
+		];
+		$where_clause = '((source = %s AND form_id = %s) OR (source = %s AND form_id = %s)) AND date_gmt BETWEEN %s AND %s';
 		$prefix       = 'wp_';
 		$table_name   = 'hcaptcha_events';
 		$sql          = "DELETE FROM $prefix$table_name WHERE $where_clause";
-		$prepared     = "DELETE FROM $prefix$table_name WHERE (source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = '177')";
+		$prepared     = "DELETE FROM $prefix$table_name WHERE ((source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = '177')) AND date_gmt BETWEEN '2025-01-24 00:00:00' AND '2025-02-23 23:59:59'";
 		$result       = count( $ids );
+
+		WP_Mock::passthruFunction( 'get_gmt_from_date' );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$wpdb         = Mockery::mock( 'WPDB' );
 		$wpdb->prefix = $prefix;
 		$wpdb->shouldReceive( 'prepare' )
-			->with( $sql, 'WordPress', 'login', 'Contact Form 7', '177' )
+			->with( $sql, 'WordPress', 'login', 'Contact Form 7', '177', '2025-01-24 00:00:00', '2025-02-23 23:59:59' )
 			->andReturn( $prepared );
 		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( $result );
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
-		self::assertTrue( $subject->delete_events( $ids ) );
+		self::assertTrue( $subject->delete_events( $args ) );
 	}
 }

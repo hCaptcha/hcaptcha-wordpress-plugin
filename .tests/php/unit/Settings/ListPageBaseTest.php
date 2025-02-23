@@ -124,7 +124,11 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_bulk_action(): void {
-		$ids = [ 1, 2, 3 ];
+		$ids  = [ 1, 2, 3 ];
+		$args = [
+			'ids'   => $ids,
+			'dates' => [],
+		];
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		$ids_encoded = json_encode( $ids );
@@ -135,11 +139,12 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'run_checks' );
-		$subject->shouldReceive( 'delete_events' )->with( $ids )->andReturn( true );
+		$subject->shouldReceive( 'delete_events' )->with( $args )->andReturn( true );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
-		WP_Mock::userFunction( 'set_transient' )->once()->with( 'hcaptcha_page_base', 'Selected items have been successfully deleted.' );
+		WP_Mock::userFunction( 'set_transient' )->once()
+			->with( 'hcaptcha_page_base', 'Selected items have been successfully deleted.' );
 		WP_Mock::userFunction( 'wp_send_json_success' )->once()->with();
 
 		$subject->bulk_action();
@@ -166,12 +171,17 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_bulk_action_with_delete_error(): void {
+		$args = [
+			'ids'   => [],
+			'dates' => [],
+		];
+
 		$_POST['bulk'] = 'trash';
 
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'run_checks' );
-		$subject->shouldReceive( 'delete_events' )->with( [] )->andReturn( false );
+		$subject->shouldReceive( 'delete_events' )->with( $args )->andReturn( false );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );

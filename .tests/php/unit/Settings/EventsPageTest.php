@@ -781,6 +781,6 @@ class EventsPageTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( EventsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
-		self::assertTrue( $subject->delete_events( $ids ) );
+		self::assertTrue( $subject->delete_events( [ 'ids' => $ids ] ) );
 	}
 }
