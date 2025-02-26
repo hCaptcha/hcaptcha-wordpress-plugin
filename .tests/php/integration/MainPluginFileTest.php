@@ -87,6 +87,9 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test that readme.txt contains changelog records for the current version.
+	 * The test requires PHP 8.4 because updating of the changelog is done under PHP 8.4 on the CI.
+	 *
+	 * @requires PHP = 8.4
 	 */
 	public function test_changelog(): void {
 		if ( preg_match( '/-.+$/', HCAPTCHA_VERSION ) ) {
