@@ -645,7 +645,7 @@ Instructions for popular native integrations are below:
 * Fixed the live hCaptcha tag on the Contact Form 7 edit page after insertion but before saving the form.
 * Fixed shortcode processing in the Contact Form 7 form when Auto-Add was off.
 * Fixed error on theme installation.
-* Tested with WooCommerce 9.7.0.
+* Tested with WooCommerce 9.7.
 
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.
