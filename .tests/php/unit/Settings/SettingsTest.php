@@ -254,6 +254,62 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_custom_theme_background().
+	 *
+	 * @return void
+	 */
+	public function test_get_custom_theme_background(): void {
+		$custom_themes     = true;
+		$is_pro_or_general = true;
+		$live              = false;
+		$config_params     = [];
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'is_on' )->with( 'custom_themes' )->andReturnUsing(
+			static function ( $key ) use ( &$custom_themes ) {
+				return $custom_themes;
+			}
+		);
+		$subject->shouldReceive( 'is_pro_or_general' )->with()->andReturnUsing(
+			static function () use ( &$is_pro_or_general ) {
+				return $is_pro_or_general;
+			}
+		);
+		$subject->shouldReceive( 'is' )->with( 'mode', 'live' )->andReturnUsing(
+			static function ( $key, $compare ) use ( &$mode, &$live ) {
+				return $live;
+			}
+		);
+		$subject->shouldReceive( 'get_config_params' )->with()->andReturnUsing(
+			static function () use ( &$config_params ) {
+				return $config_params;
+			}
+		);
+
+		self::assertSame( '', $subject->get_custom_theme_background() );
+
+		$live = true;
+
+		self::assertSame( '', $subject->get_custom_theme_background() );
+
+		$bg            = 'some background';
+		$config_params = [
+			'theme' => [
+				'component' => [
+					'checkbox' => [
+						'main' => [
+							'fill' => $bg,
+						],
+					],
+				],
+			],
+		];
+
+		self::assertSame( $bg, $subject->get_custom_theme_background() );
+	}
+
+	/**
 	 * Test get().
 	 *
 	 * @throws ReflectionException ReflectionException.

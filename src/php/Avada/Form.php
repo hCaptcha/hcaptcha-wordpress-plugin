@@ -35,6 +35,7 @@ class Form {
 	 */
 	public function init_hooks(): void {
 		add_action( 'fusion_form_after_open', [ $this, 'form_after_open' ], 10, 2 );
+		add_filter( 'fusion_builder_form_submission_data', [ $this, 'submission_data' ] );
 		add_action( 'fusion_element_button_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'fusion_form_demo_mode', [ $this, 'verify' ] );
 	}
@@ -50,6 +51,25 @@ class Form {
 	 */
 	public function form_after_open( array $args, array $params ): void {
 		$this->form_id = isset( $params['id'] ) ? (int) $params['id'] : 0;
+	}
+
+	/**
+	 * Filter submission data.
+	 *
+	 * @param array|mixed $data Submission data.
+	 *
+	 * @return array
+	 */
+	public function submission_data( $data ): array {
+		$data = (array) $data;
+
+		unset(
+			$data['data']['hcaptcha-widget-id'],
+			$data['data']['h-captcha-response'],
+			$data['data']['g-recaptcha-response']
+		);
+
+		return $data;
 	}
 
 	/**

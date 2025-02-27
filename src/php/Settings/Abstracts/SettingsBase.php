@@ -891,7 +891,11 @@ abstract class SettingsBase {
 			return;
 		}
 
-		register_setting( $this->option_group(), $this->option_name() );
+		$args = [
+			'sanitize_callback' => [ $this, 'sanitize_option_callback' ],
+		];
+
+		register_setting( $this->option_group(), $this->option_name(), $args );
 
 		/**
 		 * Filters fields and their print methods to allow custom fields.
@@ -912,6 +916,35 @@ abstract class SettingsBase {
 				$field
 			);
 		}
+	}
+
+	/**
+	 * Filters an option value following sanitization.
+	 *
+	 * @param array|mixed $value The sanitized option value.
+	 *
+	 * @return array
+	 */
+	public function sanitize_option_callback( $value ): array {
+		// Remove unexpected settings.
+		$settings = array_intersect_key( (array) $value, $this->form_fields() );
+
+		foreach ( $settings as $key => $setting ) {
+			$type = $this->form_fields[ $key ]['type'];
+
+			switch ( $type ) {
+				case 'checkbox':
+					$settings[ $key ] = array_map( 'sanitize_text_field', $setting );
+					break;
+				case 'textarea':
+					$settings[ $key ] = wp_kses_post( $setting );
+					break;
+				default:
+					$settings[ $key ] = sanitize_text_field( $setting );
+			}
+		}
+
+		return $settings;
 	}
 
 	/**

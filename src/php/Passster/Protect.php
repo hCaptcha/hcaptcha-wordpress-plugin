@@ -164,11 +164,12 @@ class Protect {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.passster-form .h-captcha {
 		margin-bottom: 5px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

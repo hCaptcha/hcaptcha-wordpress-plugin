@@ -1,3 +1,22 @@
+= 4.11.0 =
+* Added Really Simple CAPTCHA plugin integration.
+* Added compatibility with the UsersWP plugin v1.2.28.
+* Added compatibility with Perfmatters plugin.
+* Added support for the Fluent Login form.
+* Added confirmation messages upon deletion of events on the Forms and Events pages.
+* Added asynchronous migrations for large databases.
+* Added hCaptcha error messages to the Contact Form 7 when JavaScript is disabled.
+* Optimized Forms page performance for large databases with millions of entries.
+* Fixed processing wpDiscuz comment form with wpDiscuz custom ajax.
+* Fixed adding hCaptcha internal fields to Avada from submission.
+* Fixed ASC ordering by date on the Events page.
+* Fixed selection of a time interval on the Events page when site local time was not GMT.
+* Fixed losing options during plugin update in rare cases.
+* Fixed the live hCaptcha tag on the Contact Form 7 edit page after insertion but before saving the form.
+* Fixed shortcode processing in the Contact Form 7 form when Auto-Add was off.
+* Fixed error on theme installation.
+* Tested with WooCommerce 9.7.
+
 = 4.10.0 =
 * Added support for wp_login_form() function and LoginOut block.
 * Added support for hCaptcha in HTML Gravity Forms fields.
@@ -218,6 +237,10 @@
 * Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
 * Fixed Content Security Policy headers processing.
 
+= 3.10.1 =
+* Added filter `hcap_add_csp_headers` to allow adding Content Security Policy headers.
+* Fixed Content Security Policy headers processing.
+
 = 3.10.0 =
 * Tested with WordPress 6.5.
 * Tested with WooCommerce 8.6.
@@ -275,7 +298,7 @@
 * Tested with WooCommerce 8.5.
 * Added optional Enterprise settings.
 * Fixed improper display of the "rate plugin" message on options.php.
-* Fixed colored border of hCaptcha challenge arrow.
+* Fixed the colored border of hCaptcha challenge arrow.
 
 = 3.6.0 =
 * Tested with WooCommerce 8.4.
@@ -299,7 +322,7 @@
 * Added hCaptcha field to Gravity Forms admin editor.
 * Added hCaptcha field to Ninja Forms admin editor.
 * Added invisible hCaptcha support for Ninja Forms.
-* Added the ability to process customized MailChimp forms.
+* Added the ability to process customized Mailchimp forms.
 * Added HTML Forms integration.
 * Added the Auto Theme option to follow light/dark theme settings on site.
 * Added support for WP Twenty Twenty-One theme dark mode.
@@ -358,7 +381,7 @@
 * Fixed compatibility with Rename wp-admin Login.
 
 = 3.3.0 =
-* Color scheme in admin UI has been updated.
+* The color scheme in the admin UI has been updated.
 * Added compatibility with Passster.
 * Added compatibility with Theme My Login.
 * Added compatibility with Gravity Perks Nested Forms.

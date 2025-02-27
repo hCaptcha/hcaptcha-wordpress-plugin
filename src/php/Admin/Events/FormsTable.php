@@ -95,15 +95,18 @@ class FormsTable extends TableBase {
 		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'ASC';
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'source';
 		$date    = isset( $_GET['date'] )
+			// We need filter_input here to keep the delimiter intact.
 			? filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
-			: ''; // We need filter_input here to keep delimiter intact.
+			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$dates    = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
-		$dates    = array_filter( array_map( 'trim', $dates ) );
-		$per_page = $this->get_items_per_page( self::ITEMS_PER_PAGE, $this->per_page_default );
-		$offset   = ( $paged - 1 ) * $per_page;
-		$args     = [
+		$dates        = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
+		$dates        = array_filter( array_map( 'trim', $dates ) );
+		$column_slugs = str_replace( [ 'cb', 'name' ], [ 'id', 'source' ], array_keys( $this->columns ) );
+		$per_page     = $this->get_items_per_page( self::ITEMS_PER_PAGE, $this->per_page_default );
+		$offset       = ( $paged - 1 ) * $per_page;
+		$args         = [
+			'columns' => $column_slugs,
 			'offset'  => $offset,
 			'limit'   => $per_page,
 			'order'   => $order,

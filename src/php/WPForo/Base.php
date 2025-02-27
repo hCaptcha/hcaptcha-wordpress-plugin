@@ -128,7 +128,8 @@ abstract class Base {
 
 		$style_shown = true;
 
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	#wpforo #wpforo-wrap div .h-captcha {
 		position: relative;
 		display: block;
@@ -141,7 +142,7 @@ abstract class Base {
 	#wpforo #wpforo-wrap.wpft-forum div .h-captcha {
 		margin: 0 -20px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

@@ -22,11 +22,17 @@ trait Base {
 	 * Get login URL.
 	 *
 	 * @return string
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function get_login_url(): string {
 		if ( class_exists( Plugin::class ) ) {
 			// Integration with WPS Hide Login plugin.
 			return wp_parse_url( Plugin::get_instance()->new_login_url(), PHP_URL_PATH );
+		}
+
+		if ( function_exists( 'perfmatters_login_url' ) ) {
+			// Integration with Perfmatters plugin.
+			return wp_parse_url( perfmatters_login_url(), PHP_URL_PATH );
 		}
 
 		return '/wp-login.php';

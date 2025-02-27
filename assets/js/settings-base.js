@@ -135,7 +135,6 @@ const settingsBase = ( function( $ ) {
 	} );
 
 	setHeaderBarTop();
-
 	highLight();
 
 	return app;

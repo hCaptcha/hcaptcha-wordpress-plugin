@@ -4,6 +4,7 @@
  * @param HCaptchaEventsObject.ajaxUrl
  * @param HCaptchaEventsObject.bulkAction
  * @param HCaptchaEventsObject.bulkNonce
+ * @param HCaptchaEventsObject.bulkMessage
  * @param HCaptchaEventsObject.failed
  * @param HCaptchaEventsObject.failedLabel
  * @param HCaptchaEventsObject.succeed
@@ -122,6 +123,7 @@ const events = function( $ ) {
 	}
 
 	initChart();
+	hCaptchaSettingsBase.showSuccessMessage( HCaptchaEventsObject.bulkMessage );
 	document.getElementById( 'doaction' ).addEventListener( 'click', handleBulkAction );
 };
 

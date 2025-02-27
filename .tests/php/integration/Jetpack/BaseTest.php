@@ -142,13 +142,15 @@ class BaseTest extends HCaptchaWPTestCase {
 		$this->set_protected_property( $subject, 'error_message', $error_message );
 		$this->set_protected_property( $subject, 'error_form_hash', $error_form_hash );
 
-		$expected = $hcaptcha_content . '<div class="contact-form__input-error">
+		$expected = $hcaptcha_content . '
+<div class="contact-form__input-error">
 	<span class="contact-form__warning-icon">
 		<span class="visually-hidden">Warning.</span>
 		<i aria-hidden="true"></i>
 	</span>
 	<span>' . $error_message . '</span>
-</div>';
+</div>
+';
 
 		self::assertSame( $expected, $subject->error_message( $hcaptcha_content ) );
 

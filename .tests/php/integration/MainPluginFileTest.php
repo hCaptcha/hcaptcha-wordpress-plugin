@@ -55,7 +55,6 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertTrue( function_exists( 'hcap_get_error_message' ) );
 		self::assertTrue( function_exists( 'hcaptcha_request_verify' ) );
 		self::assertTrue( function_exists( 'hcaptcha_verify_post' ) );
-		self::assertTrue( function_exists( 'hcaptcha_get_verify_output' ) );
 		self::assertTrue( function_exists( 'hcaptcha_get_verify_message' ) );
 		self::assertTrue( function_exists( 'hcaptcha_get_verify_message_html' ) );
 
@@ -88,6 +87,9 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test that readme.txt contains changelog records for the current version.
+	 * The test requires PHP 8.4 because updating of the changelog is done under PHP 8.4 on the CI.
+	 *
+	 * @requires PHP = 8.4
 	 */
 	public function test_changelog(): void {
 		if ( preg_match( '/-.+$/', HCAPTCHA_VERSION ) ) {

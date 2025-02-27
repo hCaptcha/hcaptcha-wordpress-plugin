@@ -14,24 +14,28 @@ namespace HCaptcha\FluentForm;
 
 use FluentForm\App\Models\Form as FluentForm;
 use FluentForm\App\Modules\Form\FormFieldsParser;
+use FluentForm\Framework\Helpers\ArrayHelper;
+use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
 use stdClass;
 
 /**
  * Class Form
+ *
+ * Can be used as a login form also.
  */
-class Form {
+class Form extends LoginBase {
 
 	/**
 	 * Nonce action.
 	 */
-	private const ACTION = 'hcaptcha_fluentform';
+	protected const ACTION = 'hcaptcha_fluentform';
 
 	/**
 	 * Nonce name.
 	 */
-	private const NONCE = 'hcaptcha_fluentform_nonce';
+	protected const NONCE = 'hcaptcha_fluentform_nonce';
 
 	/**
 	 * Script handle.
@@ -56,18 +60,11 @@ class Form {
 	protected $form_id = 0;
 
 	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		$this->init_hooks();
-	}
-
-	/**
 	 * Init hooks.
 	 *
 	 * @return void
 	 */
-	private function init_hooks(): void {
+	protected function init_hooks(): void {
 		add_filter( 'fluentform/rendering_field_html_hcaptcha', [ $this, 'render_field_hcaptcha' ], 10, 3 );
 		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_hcaptcha' ], 9, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
@@ -130,6 +127,30 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
+		if ( $this->is_login_form( $form ) ) {
+			$email    = (string) ArrayHelper::get( $data, 'email' );
+			$password = (string) ArrayHelper::get( $data, 'password' );
+			$user     = get_user_by( 'email', $email );
+
+			if ( $user && wp_check_password( $password, $user->user_pass, $user->ID ) ) {
+				$this->login( $email, $user );
+			} else {
+				$this->login_failed( $email );
+			}
+
+			if ( ! $this->is_login_limit_exceeded() ) {
+				return $errors;
+			}
+
+			wp_send_json(
+				__( 'Login failed. Please reload the page.', 'hcaptcha-for-forms-and-more' ),
+				423
+			);
+
+			// For testing purposes.
+			return $errors;
+		}
+
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
 
 		$hcaptcha_response           = $data['h-captcha-response'] ?? '';
@@ -201,7 +222,7 @@ class Form {
 		wp_dequeue_script( $fluent_forms_conversational_script );
 		wp_deregister_script( $fluent_forms_conversational_script );
 
-		$form = $this->get_captcha();
+		$form = $this->get_hcaptcha();
 		$form = str_replace(
 			[
 				'class="h-captcha"',
@@ -306,6 +327,7 @@ class Form {
 	 */
 	public function fluentform_has_hcaptcha(): bool {
 		add_filter( 'pre_http_request', [ $this, 'pre_http_request' ], 10, 3 );
+
 		return false;
 	}
 
@@ -348,12 +370,13 @@ class Form {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.frm-fluent-form .h-captcha {
 		line-height: 0;
 		margin-bottom: 0;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}
@@ -367,13 +390,7 @@ CSS;
 	 * @return bool
 	 */
 	protected function has_own_hcaptcha( $form ): bool {
-		FormFieldsParser::resetData();
-
-		if ( FormFieldsParser::hasElement( $form, 'hcaptcha' ) ) {
-			return true;
-		}
-
-		return false;
+		return $this->has_element( $form, 'hcaptcha' );
 	}
 
 	/**
@@ -381,7 +398,13 @@ CSS;
 	 *
 	 * @return string
 	 */
-	private function get_captcha(): string {
+	protected function get_hcaptcha(): string {
+		$form = FluentForm::find( $this->form_id );
+
+		if ( $this->is_login_form( $form ) && ! $this->is_login_limit_exceeded() ) {
+			return '';
+		}
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -395,6 +418,36 @@ CSS;
 	}
 
 	/**
+	 * Whether the form is a login form.
+	 *
+	 * @param FluentForm|stdClass $form Form.
+	 *
+	 * @return bool
+	 */
+	private function is_login_form( $form ): bool {
+
+		return (
+			has_action( 'fluentform/before_insert_submission' ) &&
+			$this->has_element( $form, 'input_email' ) &&
+			$this->has_element( $form, 'input_password' )
+		);
+	}
+
+	/**
+	 * Whether the form has an element.
+	 *
+	 * @param FluentForm|stdClass $form         Form.
+	 * @param string              $element_name Element name.
+	 *
+	 * @return bool
+	 */
+	private function has_element( $form, string $element_name ): bool {
+		FormFieldsParser::resetData();
+
+		return FormFieldsParser::hasElement( $form, $element_name );
+	}
+
+	/**
 	 * Get hCaptcha wrapped as Fluent Forms field.
 	 *
 	 * @return string
@@ -402,13 +455,14 @@ CSS;
 	private function get_hcaptcha_wrapped(): string {
 		ob_start();
 
+		/* language=HTML */
 		?>
 		<div class="ff-el-group">
 			<div class="ff-el-input--content">
 				<div data-fluent_id="1" name="h-captcha-response">
 					<?php
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_captcha();
+					echo $this->get_hcaptcha();
 					?>
 				</div>
 			</div>

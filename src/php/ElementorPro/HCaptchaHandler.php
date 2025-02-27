@@ -497,7 +497,8 @@ class HCaptchaHandler {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.elementor-field-type-hcaptcha .elementor-field {
 		background: transparent !important;
 	}
@@ -505,7 +506,7 @@ class HCaptchaHandler {
 	.elementor-field-type-hcaptcha .h-captcha {
 		margin-bottom: unset;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

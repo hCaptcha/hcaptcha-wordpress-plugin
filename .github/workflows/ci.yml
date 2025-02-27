@@ -33,6 +33,11 @@ jobs:
         with:
           path: ${{ env.wp-plugin-directory }}
 
+      - name: Update changelog
+        if: ${{ matrix.php-version == '8.4' }}
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: .github/scripts/update-changelog.sh
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:

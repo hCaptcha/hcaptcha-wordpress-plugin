@@ -67,8 +67,12 @@ class GeneralTest extends HCaptchaTestCase {
 
 	/**
 	 * Test init_hooks().
+	 *
+	 * @param bool $doing_ajax Whether doing AJAX.
+	 *
+	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks(): void {
+	public function test_init_hooks( bool $doing_ajax ): void {
 		$plugin_base_name = 'hcaptcha-for-forms-and-more/hcaptcha.php';
 		$option_name      = 'hcaptcha_settings';
 		$hcaptcha         = Mockery::mock( Main::class )->makePartial();
@@ -79,8 +83,14 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $hcaptcha );
+		WP_Mock::userFunction( 'wp_doing_ajax' )->with()->once()->andReturn( $doing_ajax );
 
-		WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'init_notifications' ] );
+		if ( $doing_ajax ) {
+			$subject->shouldReceive( 'init_notifications' )->with()->once();
+		} else {
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'init_notifications' ] );
+		}
+
 		WP_Mock::expectActionAdded( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
 		WP_Mock::expectActionAdded( 'admin_print_footer_scripts', [ $hcaptcha, 'print_footer_scripts' ], 0 );
 
@@ -93,6 +103,18 @@ class GeneralTest extends HCaptchaTestCase {
 		$method = 'init_hooks';
 
 		$subject->$method();
+	}
+
+	/**
+	 * Data provider for test_init_hooks().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_hooks(): array {
+		return [
+			[ false ],
+			[ true ],
+		];
 	}
 
 	/**

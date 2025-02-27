@@ -103,7 +103,8 @@ abstract class Base {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	#af-wrapper div.editor-row.editor-row-hcaptcha {
 		display: flex;
 		flex-direction: row-reverse;
@@ -112,7 +113,7 @@ abstract class Base {
 	#af-wrapper div.editor-row.editor-row-hcaptcha .h-captcha {
 		margin-bottom: 0;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

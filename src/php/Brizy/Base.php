@@ -131,11 +131,12 @@ abstract class Base {
 
 		$style_shown = true;
 
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.brz-forms2.brz-forms2__item .h-captcha {
 		margin-bottom: 0;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

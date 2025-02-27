@@ -49,9 +49,21 @@ abstract class ListPageBase extends PluginSettingsBase {
 	public const TIMESPAN_DELIMITER = ' - ';
 
 	/**
+	 * Transient name where to store a page bulk action message.
+	 */
+	protected const TRANSIENT = 'hcaptcha_page_base';
+
+	/**
 	 * Default date format.
 	 */
 	private const DATE_FORMAT = 'Y-m-d';
+
+	/**
+	 * Bulk ajax action.
+	 * Must be overridden in child classes.
+	 * Here is for testing purposes.
+	 */
+	public const BULK_ACTION = '';
 
 	/**
 	 * Chart time unit.
@@ -68,6 +80,15 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected $allowed = false;
 
 	/**
+	 * Delete hCaptcha events by IDs.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	abstract protected function delete_events( array $args ): bool;
+
+	/**
 	 * Init class hooks.
 	 */
 	protected function init_hooks(): void {
@@ -75,6 +96,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		add_action( 'admin_init', [ $this, 'admin_init' ] );
 		add_action( 'kagg_settings_header', [ $this, 'date_picker_display' ] );
+		add_action( 'wp_ajax_' . static::BULK_ACTION, [ $this, 'bulk_action' ] );
 	}
 
 	/**
@@ -255,6 +277,71 @@ abstract class ListPageBase extends PluginSettingsBase {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Ajax callback for bulk actions.
+	 *
+	 * @return void
+	 */
+	public function bulk_action(): void {
+		$this->run_checks( static::BULK_ACTION );
+
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$bulk = isset( $_POST['bulk'] ) ? sanitize_text_field( wp_unslash( $_POST['bulk'] ) ) : '';
+		$ids  = isset( $_POST['ids'] )
+			? (array) json_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ), true )
+			: [];
+		$date = isset( $_POST['date'] )
+			// We need filter_input here to keep the delimiter intact.
+			? filter_input( INPUT_POST, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$dates = explode( self::TIMESPAN_DELIMITER, $date );
+		$dates = array_filter( array_map( 'trim', $dates ) );
+
+		if ( 'trash' === $bulk ) {
+			$args = [
+				'ids'   => $ids,
+				'dates' => $dates,
+			];
+
+			if ( ! $this->delete_events( $args ) ) {
+				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
+
+				// For testing purposes.
+				return;
+			}
+
+			set_transient(
+				self::TRANSIENT,
+				__( 'Selected items have been successfully deleted.', 'hcaptcha-for-forms-and-more' )
+			);
+
+			wp_send_json_success();
+
+			// For testing purposes.
+			return;
+		}
+
+		wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );
+	}
+
+	/**
+	 * Get and clean the transient.
+	 *
+	 * @return string
+	 */
+	protected function get_clean_transient(): string {
+		$bulk_message = (string) get_transient( self::TRANSIENT );
+
+		if ( $bulk_message ) {
+			delete_transient( self::TRANSIENT );
+		}
+
+		return $bulk_message;
 	}
 
 	/**

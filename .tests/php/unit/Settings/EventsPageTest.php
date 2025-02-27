@@ -30,6 +30,17 @@ use tad\FunctionMocker\FunctionMocker;
 class EventsPageTest extends HCaptchaTestCase {
 
 	/**
+	 * Tear down.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
@@ -150,6 +161,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		$language_code  = 'en';
 		$times          = $allowed ? 1 : 0;
 		$nonce          = 'some nonce';
+		$transient      = 'some message';
 
 		$subject = Mockery::mock( EventsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -158,6 +170,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'succeed', $succeed );
 		$this->set_protected_property( $subject, 'failed', $failed );
 		$this->set_protected_property( $subject, 'unit', $unit );
+		$subject->shouldReceive( 'get_clean_transient' )->andReturn( $transient );
 
 		FunctionMocker::replace(
 			'constant',
@@ -273,6 +286,7 @@ class EventsPageTest extends HCaptchaTestCase {
 					'ajaxUrl'      => 'admin-ajax.php',
 					'bulkAction'   => EventsPage::BULK_ACTION,
 					'bulkNonce'    => $nonce,
+					'bulkMessage'  => $transient,
 					'succeed'      => $succeed,
 					'failed'       => $failed,
 					'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
@@ -733,5 +747,40 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		self::assertSame( [], $this->get_protected_property( $subject, 'succeed' ) );
 		self::assertSame( [], $this->get_protected_property( $subject, 'failed' ) );
+	}
+
+	/**
+	 * Test delete_events().
+	 *
+	 * @return void
+	 */
+	public function test_delete_events(): void {
+		global $wpdb;
+
+		$ids        = [ 1, 2, 3 ];
+		$in         = implode( ',', $ids );
+		$prefix     = 'wp_';
+		$table_name = 'hcaptcha_events';
+		$sql        = "DELETE FROM $prefix$table_name WHERE id IN($in)";
+		$prepared   = $sql;
+		$result     = count( $ids );
+
+		FunctionMocker::replace(
+			'HCaptcha\Helpers\DB::prepare_in',
+			static function ( $ids ) {
+				return implode( ',', $ids );
+			}
+		);
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+		$wpdb->shouldReceive( 'prepare' )->with( $sql )->andReturn( $prepared );
+		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( $result );
+
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertTrue( $subject->delete_events( [ 'ids' => $ids ] ) );
 	}
 }

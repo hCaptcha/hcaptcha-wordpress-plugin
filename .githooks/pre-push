@@ -1,0 +1,9 @@
+#!/bin/bash
+
+.github/scripts/update-changelog.sh
+
+# Intercept exit code from the previous command.
+exitCode="$?"
+
+echo ''
+exit $exitCode

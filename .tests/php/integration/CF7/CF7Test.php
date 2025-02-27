@@ -679,9 +679,11 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$field_type   = 'hcaptcha';
 		$field->type  = $field_type;
 		$form_fields  = [ $field ];
+		$form_html    = 'some cf7 html';
 
 		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
+		$contact_form->shouldReceive( 'form_html' )->andReturn( $form_html );
 
 		$subject = Mockery::mock( CF7::class )->makePartial();
 

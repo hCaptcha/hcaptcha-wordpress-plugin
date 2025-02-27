@@ -37,7 +37,6 @@ body.settings_page_hcaptcha {
 	text-decoration: none;
 	margin-inline-end: 30px;
 	color: #646970;
-	border-bottom: 2px solid transparent;
 }
 
 .hcaptcha-settings-tab:hover {

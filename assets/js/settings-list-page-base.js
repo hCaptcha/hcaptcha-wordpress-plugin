@@ -1,9 +1,10 @@
 /* global HCaptchaListPageBaseObject, flatpickr */
 
-/**
- * @param flatpickr.l10ns
- */
-document.addEventListener( 'DOMContentLoaded', function() {
+const settingsListPagePage = ( function() {
+	/**
+	 * @param flatpickr.l10ns
+	 */
+
 	/**
 	 * @type {HTMLInputElement}
 	 */
@@ -86,7 +87,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		// When the dropdown is open, aria-expanded="true".
 		selectorElement.setAttribute(
 			'aria-expanded',
-			selectorElement.style.display === 'block' ? 'true' : 'false'
+			selectorElement.style.display === 'block' ? 'true' : 'false',
 		);
 	}
 
@@ -221,6 +222,17 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		onUpdateDatepicker( {}, customInput.checked );
 	}
 
+	/**
+	 * Public properties and functions.
+	 */
+	const app = {};
+
 	bindEvents();
 	initFlatPicker();
+
+	return app;
 } );
+
+window.hCaptchaSettingsListPagePage = settingsListPagePage;
+
+document.addEventListener( 'DOMContentLoaded', settingsListPagePage );

@@ -319,32 +319,6 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 	}
 }
 
-if ( ! function_exists( 'hcaptcha_get_verify_output' ) ) {
-	/**
-	 * Get verify output.
-	 *
-	 * @param string $empty_message     Empty message.
-	 * @param string $fail_message      Fail message.
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
-	 *
-	 * @deprecated 4.7.0
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 */
-	function hcaptcha_get_verify_output( string $empty_message, string $fail_message, string $nonce_field_name, string $nonce_action_name ): ?string {
-		_deprecated_function( __FUNCTION__, '4.7.0', 'hcaptcha_verify_post' );
-
-		if ( ! empty( $empty_message ) || ! empty( $fail_message ) ) {
-			// @codeCoverageIgnoreStart
-			_deprecated_argument( __FUNCTION__, '2.1.0' );
-			// @codeCoverageIgnoreEnd
-		}
-
-		return hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
-	}
-}
-
 if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
 	 * Get 'verify' message.

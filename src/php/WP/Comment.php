@@ -114,7 +114,7 @@ class Comment {
 	public function verify( $comment_data ): array {
 		$comment_data = (array) $comment_data;
 
-		if ( is_admin() ) {
+		if ( is_admin() || wp_doing_ajax() ) {
 			return $comment_data;
 		}
 

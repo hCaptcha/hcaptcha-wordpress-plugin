@@ -14,6 +14,7 @@
 
 namespace FluentForm\App\Modules\Form;
 
+use FluentForm\App\Models\Form as FluentForm;
 use stdClass;
 
 /**
@@ -32,12 +33,13 @@ class FormFieldsParser {
 	/**
 	 * Has element.
 	 *
-	 * @param stdClass $form    Form object.
-	 * @param string   $element Element name.
+	 * @param FluentForm|stdClass $form    Form object.
+	 * @param string              $element Element name.
 	 *
 	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public static function hasElement( stdClass $form, string $element ): bool {
-		return true;
+	public static function hasElement( $form, string $element ): bool {
+		return false;
 	}
 }

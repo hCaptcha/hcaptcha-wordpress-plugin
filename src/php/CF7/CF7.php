@@ -35,6 +35,11 @@ class CF7 extends Base {
 	private const DATA_NAME = 'hcap-cf7';
 
 	/**
+	 * Field type.
+	 */
+	public const FIELD_TYPE = 'hcaptcha';
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
@@ -137,15 +142,27 @@ class CF7 extends Base {
 		$id        = $attr['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
 		$class     = $attr['cf7-class'] ?? '';
 		$hcap_form = preg_replace(
-			[ '/(<h-captcha\s+?class="h-captcha")/', '#</h-captcha>#' ],
-			[ '<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"', '</span>' ],
+			[
+				'/(<h-captcha\s+?class="h-captcha")/',
+				'#</h-captcha>#',
+			],
+			[
+				'<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"',
+				'</span>',
+			],
 			$hcap_form
 		);
+
+		$submission         = WPCF7_Submission::get_instance();
+		$hcap_invalid_field = $submission ? $submission->get_invalid_field( 'hcap-cf7' ) : [];
+		$reason             = $hcap_invalid_field['reason'] ?? '';
+		$not_valid_tip      = $reason ? '<span class="wpcf7-not-valid-tip" aria-hidden="true">' . $reason . '</span>' : '';
 
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
 			$hcap_form .
-			'</span>'
+			'</span>' .
+			$not_valid_tip
 		);
 	}
 
@@ -202,7 +219,7 @@ class CF7 extends Base {
 
 		if (
 			! $this->mode_auto &&
-			! ( $this->mode_embed && $this->has_field( $submission, 'hcaptcha' ) )
+			! ( $this->mode_embed && $this->has_field( $submission, self::FIELD_TYPE ) )
 		) {
 			return $result;
 		}
@@ -227,15 +244,27 @@ class CF7 extends Base {
 	 * @return bool
 	 */
 	protected function has_field( WPCF7_Submission $submission, string $type ): bool {
-		$form_fields = $submission->get_contact_form()->scan_form_tags();
+		$has_field    = false;
+		$contact_form = $submission->get_contact_form();
 
-		foreach ( $form_fields as $form_field ) {
-			if ( $type === $form_field->type ) {
-				return true;
+		if ( self::FIELD_TYPE === $type && has_shortcode( $contact_form->form_html(), 'cf7-hcaptcha' ) ) {
+			$has_field = true;
+		} else {
+			$form_fields = $contact_form->scan_form_tags();
+
+			foreach ( $form_fields as $form_field ) {
+				if ( $type === $form_field->type ) {
+					$has_field = true;
+				}
 			}
 		}
 
-		return false;
+		/**
+		 * Filter whether form has a field of given type.
+		 *
+		 * @param bool $has_field Form has field.
+		 */
+		return apply_filters( 'hcap_cf7_has_field', $has_field, $submission, $type );
 	}
 
 	/**
@@ -254,7 +283,7 @@ class CF7 extends Base {
 
 		$result->invalidate(
 			[
-				'type' => 'hcaptcha',
+				'type' => self::FIELD_TYPE,
 				'name' => self::DATA_NAME,
 			],
 			$captcha_result
@@ -291,7 +320,8 @@ class CF7 extends Base {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	span[data-name="hcap-cf7"] .h-captcha {
 		margin-bottom: 0;
 	}
@@ -300,7 +330,7 @@ class CF7 extends Base {
 	span[data-name="hcap-cf7"] ~ button[type="submit"] {
 		margin-top: 2rem;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

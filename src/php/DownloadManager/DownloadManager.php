@@ -118,7 +118,8 @@ class DownloadManager {
 	 * @noinspection CssUnresolvedCustomProperty
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.wpdm-button-area + .h-captcha {
 		margin-bottom: 1rem;
 	}
@@ -127,7 +128,7 @@ class DownloadManager {
 		background-color: var(--color-primary) !important;
 		color: #fff !important;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

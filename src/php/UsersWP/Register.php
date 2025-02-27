@@ -79,9 +79,7 @@ class Register {
 
 		$template = (string) ob_get_clean();
 
-		ob_start();
-
-		$args = [
+		$args     = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
 			'id'     => [
@@ -89,14 +87,11 @@ class Register {
 				'form_id' => 'register',
 			],
 		];
-
-		HCaptcha::form_display( $args );
-
-		$captcha = (string) ob_get_clean();
-		$search  = '<input type="submit"';
+		$hcaptcha = HCaptcha::form( $args );
+		$search   = '/(<(?:input|button) type="submit")/';
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo str_replace( $search, $captcha . $search, $template );
+		echo preg_replace( $search, $hcaptcha . '$1', $template );
 	}
 
 	/**

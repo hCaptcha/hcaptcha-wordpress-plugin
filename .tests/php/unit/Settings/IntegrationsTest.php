@@ -7,7 +7,6 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Unit\Settings;
@@ -21,7 +20,6 @@ use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
-use WP_Error;
 use WP_Mock;
 
 /**
@@ -38,7 +36,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['wp_filter'] );
+		unset( $GLOBALS['wp_filter'], $GLOBALS['wp_filesystem'] );
 
 		parent::tearDown();
 	}
@@ -136,7 +134,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->once()->with( '/^Avada/', 'after_switch_theme' );
 
 		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( true );
-		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
+		WP_Mock::userFunction( 'remove_action' )->once()
+			->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'avada_compat_switch_theme' );
 
 		$subject->after_switch_theme_action();
@@ -717,19 +716,24 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'result'   => 'some error',
 		];
 		$activation_stati = [];
+		$error_message    = $plugins_tree['result'];
+
+		$result = Mockery::mock( 'overload:WP_Error' );
+		$result->shouldReceive( 'get_error_message' )->andReturn( $error_message );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$this->set_protected_property( $subject, 'plugins_tree', $plugins_tree );
 		$this->set_protected_property( $subject, 'entity', 'plugin' );
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( false );
+		$subject->shouldReceive( 'activate_plugins' )->with( $plugins )->once()->andReturn( $result );
 		$subject->shouldReceive( 'get_activation_stati' )->with()->andReturn( $activation_stati );
 
+		WP_Mock::userFunction( 'is_wp_error' )->with( $result )->andReturn( true );
 		WP_Mock::userFunction( 'wp_send_json_error' )
 			->with(
 				[
-					'message' => 'Error activating ACF Extended plugin.',
+					'message' => "Error activating $plugin_name plugin: $error_message.",
 					'stati'   => $activation_stati,
 				]
 			)->once();
@@ -832,7 +836,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires PHP >= 7.4
+	 * @requires     PHP >= 7.4
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
@@ -899,7 +903,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires PHP >= 7.4
+	 * @requires     PHP >= 7.4
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
@@ -950,7 +954,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires PHP >= 7.4
+	 * @requires     PHP >= 7.4
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
@@ -992,9 +996,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires PHP >= 7.4
+	 * @requires            PHP >= 7.4
 	 *
-	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @noinspection        PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
 	 *
 	 * @runTestsInSeparateProcesses
@@ -1260,12 +1264,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
 
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'activate_plugin' )->with( $plugin )->once()->andReturn( null );
-
-		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
 		self::assertNull( $subject->maybe_activate_plugin( $plugin ) );
 	}
@@ -1279,16 +1283,129 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$plugin = 'some-plugin/some-plugin.php';
 
 		$main = Mockery::mock( Main::class )->makePartial();
-
 		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( true );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
-
 		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
 		self::assertTrue( $subject->maybe_activate_plugin( $plugin ) );
+	}
+
+	/**
+	 * Test install_plugin().
+	 *
+	 * @return void
+	 */
+	public function test_install_plugin(): void {
+		$plugin_dir = 'example-plugin';
+		$plugin     = $plugin_dir . '/example-plugin.php';
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'install_plugins' )
+			->andReturn( true );
+
+		$download_link = 'https://example.com/download';
+		$api           = (object) [ 'download_link' => $download_link ];
+
+		WP_Mock::userFunction( 'plugins_api' )
+			->with(
+				'plugin_information',
+				[
+					'slug'   => $plugin_dir,
+					'fields' => [ 'sections' => false ],
+				]
+			)
+			->andReturn( $api );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( $api )->andReturn( false );
+
+		Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		Mockery::mock( 'overload:Plugin_Upgrader' );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'install_entity' )->once()->andReturn( null );
+
+		$this->assertNull( $subject->install_plugin( $plugin ) );
+	}
+
+	/**
+	 * Test install_plugin() when the plugin dir is empty.
+	 *
+	 * @return void
+	 */
+	public function test_install_plugin_with_empty_plugin_dir(): void {
+		$plugin_dir = '';
+		$plugin     = $plugin_dir . '/example-plugin.php';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+		$wp_error->shouldReceive( '__construct' )
+			->once()
+			->with( 'no_plugin_specified', 'No plugin specified.' );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->assertInstanceOf( 'WP_Error', $subject->install_plugin( $plugin ) );
+	}
+
+	/**
+	 * Test install_plugin() when not allowed.
+	 *
+	 * @return void
+	 */
+	public function test_install_plugin_when_not_allowed(): void {
+		$plugin_dir = 'example-plugin';
+		$plugin     = $plugin_dir . '/example-plugin.php';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+		$wp_error->shouldReceive( '__construct' )
+			->once()
+			->with( 'not_allowed', 'Sorry, you are not allowed to install plugins on this site.' );
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'install_plugins' )
+			->andReturn( false );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->assertInstanceOf( 'WP_Error', $subject->install_plugin( $plugin ) );
+	}
+
+	/**
+	 * Test install_plugin() when API returns error.
+	 *
+	 * @return void
+	 */
+	public function test_install_plugin_when_api_error(): void {
+		$plugin_dir = 'example-plugin';
+		$plugin     = $plugin_dir . '/example-plugin.php';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'install_plugins' )
+			->andReturn( true );
+
+		WP_Mock::userFunction( 'plugins_api' )
+			->with(
+				'plugin_information',
+				[
+					'slug'   => $plugin_dir,
+					'fields' => [ 'sections' => false ],
+				]
+			)
+			->andReturn( $wp_error );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( $wp_error )->andReturn( true );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->assertInstanceOf( 'WP_Error', $subject->install_plugin( $plugin ) );
 	}
 
 	/**
@@ -1374,7 +1491,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test plugin_names_from_tree().
 	 *
 	 * @return void
-	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 * @noinspection        PhpVariableIsUsedOnlyInClosureInspection
 	 *
 	 * @runTestsInSeparateProcesses
 	 * @preserveGlobalState disabled
@@ -1404,8 +1521,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'result'   => null,
 		];
 		$expected      = [ 'Some Plugin Requiring Wishlist', 'WooCommerce Wishlists', 'WooCommerce' ];
-		$error_code    = 'some error code';
-		$error_message = 'some error message';
 
 		$main = Mockery::mock( Main::class )->makePartial();
 
@@ -1474,9 +1589,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
 		$method   = 'activate_theme';
 
-		$wp_theme->shouldReceive( 'exists' )->andReturn( true );
+		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyfive' );
 
-		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
 		WP_Mock::userFunction( 'switch_theme' )->with( $theme )->once();
 
 		$this->set_method_accessibility( $subject, 'activate_plugins' );
@@ -1484,35 +1599,133 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test activate_theme() when it does not exist.
+	 * Test activate_theme() when it is already activated.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_activate_theme_when_not_exist(): void {
-		$theme         = 'Divi';
-		$error_code    = 'some error code';
-		$error_message = 'some error message';
-
-		$wp_error = Mockery::mock( 'overload:WP_Error' );
-
-		$wp_error->shouldReceive( 'get_error_code' )->andReturn( $error_code );
-		$wp_error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
-		$wp_error->shouldReceive( 'add' )->with( $error_code, $error_message );
+	public function test_activate_theme_already_activated(): void {
+		$theme = 'Divi';
 
 		$wp_theme = Mockery::mock( 'WP_Theme' );
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
 		$method   = 'activate_theme';
 
-		$wp_theme->shouldReceive( 'exists' )->andReturn( false );
+		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( $theme );
 
-		WP_Mock::userFunction( 'wp_get_theme' )->with( $theme )->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
 
-		$this->set_method_accessibility( $subject, 'activate_plugins' );
+		self::assertTrue( $subject->$method( $theme ) );
+	}
 
-		$result = $subject->$method( $theme );
+	/**
+	 * Test install_theme().
+	 *
+	 * @return void
+	 */
+	public function test_install_theme(): void {
+		$theme = 'example-theme';
 
-		self::assertEquals( $error_code, $result->get_error_code() );
-		self::assertEquals( $error_message, $result->get_error_message() );
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'install_themes' )
+			->andReturn( true );
+
+		$download_link = 'https://example.com/download';
+		$api           = (object) [ 'download_link' => $download_link ];
+
+		WP_Mock::userFunction( 'themes_api' )
+			->with(
+				'theme_information',
+				[
+					'slug'   => $theme,
+					'fields' => [ 'sections' => false ],
+				]
+			)
+			->andReturn( $api );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( $api )->andReturn( false );
+
+		Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		Mockery::mock( 'overload:Theme_Upgrader' );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'install_entity' )->once()->andReturn( null );
+
+		$this->assertNull( $subject->install_theme( $theme ) );
+	}
+
+	/**
+	 * Test install_theme() when the theme name is empty.
+	 *
+	 * @return void
+	 */
+	public function test_install_theme_with_empty_theme(): void {
+		$theme = '';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+		$wp_error->shouldReceive( '__construct' )
+			->once()
+			->with( 'no_theme_specified', 'No theme specified.' );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->assertInstanceOf( 'WP_Error', $subject->install_theme( $theme ) );
+	}
+
+	/**
+	 * Test install_theme() when not allowed.
+	 *
+	 * @return void
+	 */
+	public function test_install_theme_when_not_allowed(): void {
+		$theme = 'example-theme';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+		$wp_error->shouldReceive( '__construct' )
+			->once()
+			->with( 'not_allowed', 'Sorry, you are not allowed to install themes on this site.' );
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'install_themes' )
+			->andReturn( false );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->assertInstanceOf( 'WP_Error', $subject->install_theme( $theme ) );
+	}
+
+	/**
+	 * Test install_theme() when API returns error.
+	 *
+	 * @return void
+	 */
+	public function est_install_theme_when_api_error(): void {
+		$theme = 'example-theme';
+
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'install_themes' )
+			->andReturn( true );
+
+		WP_Mock::userFunction( 'themes_api' )
+			->with(
+				'theme_information',
+				[
+					'slug'   => $theme,
+					'fields' => [ 'sections' => false ],
+				]
+			)
+			->andReturn( $wp_error );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( $wp_error )->andReturn( true );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->assertInstanceOf( 'WP_Error', $subject->install_theme( $theme ) );
 	}
 
 	/**
@@ -1616,13 +1829,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$subject->remove_action_regex( $callback_pattern );
 
-		// Three callback for 'init'.
+		// Two callbacks for 'init'.
 		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 		$wp_filter['init'] = $init_callbacks;
 
 		$subject->remove_action_regex( $callback_pattern );
 
-		// Three callback for 'after_switch_theme'.
+		// Two callbacks for 'after_switch_theme'.
 		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 		$wp_filter['after_switch_theme'] = $ast_callbacks;
 
@@ -1673,5 +1886,178 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'remove_action' )->with( $hook_name, $action['function'], $priority )->once();
 
 		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+	}
+
+	/**
+	 * Test install_entity().
+	 *
+	 * @return void
+	 */
+	public function test_install_entity(): void {
+		$download_link = 'https://example.com/download';
+
+		$upgrader = Mockery::mock( 'overload:WP_Upgrader' );
+		$upgrader->shouldReceive( 'install' )->with( $download_link )->andReturn( true );
+
+		$skin         = Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		$skin->result = true;
+		$skin->shouldReceive( 'get_errors' )->andReturn( null );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( true )->andReturn( false );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertNull( $subject->install_entity( $upgrader, $skin, $download_link ) );
+	}
+
+	/**
+	 * Test install_entity() with upgrader error.
+	 *
+	 * @return void
+	 */
+	public function test_install_entity_with_upgrader_error(): void {
+		$download_link = 'https://example.com/download';
+		$wp_error      = Mockery::mock( 'overload:WP_Error' );
+
+		$upgrader = Mockery::mock( 'overload:WP_Upgrader' );
+		$upgrader->shouldReceive( 'install' )->with( $download_link )->andReturn( $wp_error );
+
+		$skin = Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( $wp_error )->andReturn( true );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
+	}
+
+	/**
+	 * Test install_entity() with skin error.
+	 *
+	 * @return void
+	 */
+	public function test_install_entity_with_skin_error(): void {
+		$download_link = 'https://example.com/download';
+		$wp_error      = Mockery::mock( 'overload:WP_Error' );
+
+		$upgrader = Mockery::mock( 'overload:WP_Upgrader' );
+		$upgrader->shouldReceive( 'install' )->with( $download_link )->andReturn( true );
+
+		$skin         = Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		$skin->result = $wp_error;
+
+		WP_Mock::userFunction( 'is_wp_error' )->once()->with( true )->andReturn( false );
+		WP_Mock::userFunction( 'is_wp_error' )->once()->with( $wp_error )->andReturn( true );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
+	}
+
+	/**
+	 * Test install_entity() with skin errors.
+	 *
+	 * @return void
+	 */
+	public function test_install_entity_with_skin_errors(): void {
+		$download_link = 'https://example.com/download';
+
+		$upgrader = Mockery::mock( 'overload:WP_Upgrader' );
+		$upgrader->shouldReceive( 'install' )->with( $download_link )->andReturn( true );
+
+		$skin_errors = Mockery::mock( 'overload:WP_Error' );
+		$skin_errors->shouldReceive( 'has_errors' )->andReturn( true );
+
+		$skin         = Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		$skin->result = true;
+		$skin->shouldReceive( 'get_errors' )->andReturn( $skin_errors );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( true )->andReturn( false );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
+	}
+
+	/**
+	 * Test install_entity() with filesystem no connection error.
+	 *
+	 * @return void
+	 */
+	public function test_install_entity_with_filesystem_no_connection_error(): void {
+		$download_link = 'https://example.com/download';
+
+		$upgrader = Mockery::mock( 'overload:WP_Upgrader' );
+		$upgrader->shouldReceive( 'install' )->with( $download_link )->andReturn( null );
+
+		$skin         = Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		$skin->result = null;
+		$skin->shouldReceive( 'get_errors' )->andReturn( null );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( null )->andReturn( false );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$status['errorCode']    = 'unable_to_connect_to_filesystem';
+		$status['errorMessage'] = 'Unable to connect to the filesystem. Please confirm your credentials.';
+
+		// No connection case.
+		$no_connect = Mockery::mock( 'overload:WP_Error' );
+		$no_connect->shouldReceive( '__construct' )
+			->once()
+			->with( $status['errorCode'], $status['errorMessage'] );
+
+		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
+	}
+
+	/**
+	 * Test install_entity() with filesystem error.
+	 *
+	 * @return void
+	 */
+	public function test_install_entity_with_filesystem_error(): void {
+		$download_link = 'https://example.com/download';
+
+		$upgrader = Mockery::mock( 'overload:WP_Upgrader' );
+		$upgrader->shouldReceive( 'install' )->with( $download_link )->andReturn( null );
+
+		$skin         = Mockery::mock( 'overload:WP_Ajax_Upgrader_Skin' );
+		$skin->result = null;
+		$skin->shouldReceive( 'get_errors' )->andReturn( null );
+
+		WP_Mock::userFunction( 'is_wp_error' )->with( null )->andReturn( false );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		global $wp_filesystem;
+
+		$status['errorCode']    = 'unable_to_connect_to_filesystem';
+		$status['errorMessage'] = 'Unable to connect to the filesystem. Please confirm your credentials.';
+
+		// Filesystem error case.
+		$filesystem_error_message = 'Some filesystem error.';
+
+		$wp_filesystem_errors = Mockery::mock( 'overload:WP_Error' );
+		$wp_filesystem_errors->shouldReceive( 'has_errors' )->andReturn( true );
+		$wp_filesystem_errors->shouldReceive( 'get_error_message' )->andReturn( $filesystem_error_message );
+
+		WP_Mock::userFunction( 'is_wp_error' )->once()->with( $wp_filesystem_errors )->andReturn( true );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_filesystem         = Mockery::mock( 'WP_Filesystem_Base' );
+		$wp_filesystem->errors = $wp_filesystem_errors;
+
+		$filesystem_error = Mockery::mock( 'overload:WP_Error' );
+		$filesystem_error->shouldReceive( '__construct' )
+			->once()
+			->with( $status['errorCode'], $filesystem_error_message );
+
+		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
 	}
 }

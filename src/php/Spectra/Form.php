@@ -154,11 +154,12 @@ class Form {
 
 		$style_shown = true;
 
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.uagb-forms-main-form .h-captcha {
 		margin-bottom: 20px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

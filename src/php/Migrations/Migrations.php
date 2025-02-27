@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Migrations;
 
+use ActionScheduler;
+use ActionScheduler_Store;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Settings\PluginSettingsBase;
 
@@ -36,6 +38,11 @@ class Migrations {
 	public const FAILED = - 2;
 
 	/**
+	 * Migration completed status.
+	 */
+	public const COMPLETED = - 3;
+
+	/**
 	 * Priority of the plugins_loaded action to load Migrations.
 	 */
 	public const LOAD_PRIORITY = -PHP_INT_MAX;
@@ -44,6 +51,11 @@ class Migrations {
 	 * Plugin name.
 	 */
 	private const PLUGIN_NAME = 'hCaptcha Plugin';
+
+	/**
+	 * Action Scheduler group name.
+	 */
+	private const AS_GROUP = 'hcaptcha';
 
 	/**
 	 * Migration constructor.
@@ -57,7 +69,7 @@ class Migrations {
 	 *
 	 * @return void
 	 */
-	public function init(): void {
+	private function init(): void {
 		if ( ! $this->is_allowed() ) {
 			return;
 		}
@@ -72,6 +84,18 @@ class Migrations {
 	 */
 	private function init_hooks(): void {
 		add_action( 'plugins_loaded', [ $this, 'migrate' ], self::LOAD_PRIORITY );
+		add_action( 'plugins_loaded', [ $this, 'load_action_scheduler' ], -10 );
+
+		add_action( 'async_migrate_4_11_0', [ $this, 'async_migrate_4_11_0' ] );
+	}
+
+	/**
+	 * Load action scheduler.
+	 *
+	 * @return void
+	 */
+	public function load_action_scheduler(): void {
+		require_once HCAPTCHA_PATH . '/vendor/woocommerce/action-scheduler/action-scheduler.php';
 	}
 
 	/**
@@ -87,7 +111,7 @@ class Migrations {
 		$migrations       = array_filter(
 			get_class_methods( $this ),
 			static function ( $migration ) {
-				return false !== strpos( $migration, 'migrate_' );
+				return 0 === strpos( $migration, 'migrate_' );
 			}
 		);
 		$upgrade_versions = [];
@@ -140,14 +164,14 @@ class Migrations {
 	/**
 	 * Determine if migration is allowed.
 	 */
-	public function is_allowed(): bool {
+	private function is_allowed(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['service-worker'] ) ) {
 			return false;
 		}
 
 		return (
-			( is_admin() && ! wp_doing_ajax() ) ||
+			is_admin() ||
 			wp_doing_cron() ||
 			( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) )
 		);
@@ -316,7 +340,11 @@ class Migrations {
 			}
 		}
 
-		update_option( PluginSettingsBase::OPTION_NAME, $new_options );
+		// This two lines is a precaution for a case if options in a new format already exist.
+		$options = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$options = array_merge( $new_options, $options );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $options );
 
 		foreach ( array_keys( $options_map ) as $old_option_name ) {
 			delete_option( $old_option_name );
@@ -383,6 +411,43 @@ class Migrations {
 	}
 
 	/**
+	 * Migrate to 4.11.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_4_11_0(): ?bool {
+		return $this->run_async( __FUNCTION__ );
+	}
+
+	/**
+	 * Async migration to 4.11.0.
+	 *
+	 * @return void
+	 */
+	public function async_migrate_4_11_0(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$result = $wpdb->query(
+			"CREATE INDEX idx_date_source_form
+					ON $table_name
+					(date_gmt, source, form_id)"
+		);
+
+		if ( $result ) {
+			$wpdb->query( "DROP INDEX hcaptcha_id on $table_name" );
+		}
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$this->mark_completed();
+	}
+
+	/**
 	 * Save license level in settings.
 	 *
 	 * @return void
@@ -402,5 +467,107 @@ class Migrations {
 
 		// Save license level in settings.
 		update_option( PluginSettingsBase::OPTION_NAME, $option );
+	}
+
+	/**
+	 * Run async action.
+	 *
+	 * @param string $method Method name.
+	 * @param array  $args   Arguments.
+	 *
+	 * @return bool|null
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function run_async( string $method, array $args = [] ): ?bool {
+		$hook      = 'async_' . $method;
+		$group     = self::AS_GROUP;
+		$transient = $group . '_' . $hook;
+
+		$status = (int) get_transient( $transient );
+
+		if ( self::COMPLETED === $status ) {
+			delete_transient( $transient );
+
+			return true;
+		}
+
+		if ( ! $status ) {
+			set_transient( $transient, self::STARTED );
+		}
+
+		add_action(
+			'action_scheduler_init',
+			function () use ( $hook, $args, $group ) {
+				$transient = $group . '_' . $hook;
+				$status    = $this->create_as_action( $hook, $args, $group );
+
+				if ( self::FAILED === $status ) {
+					set_transient( $transient, $status );
+				}
+			}
+		);
+
+		return null;
+	}
+
+	/**
+	 * Create an AS action.
+	 *
+	 * @param string $hook  Hook name.
+	 * @param array  $args  Hook arguments.
+	 * @param string $group Group name.
+	 *
+	 * @return int Started or failed.
+	 */
+	private function create_as_action( string $hook, array $args, string $group ): int {
+		$actions = as_get_scheduled_actions(
+			[
+				'hook'   => $hook,
+				'args'   => $args,
+				'group'  => $group,
+				'status' => [ // All statuses except completed.
+					ActionScheduler_Store::STATUS_PENDING,
+					ActionScheduler_Store::STATUS_RUNNING,
+					ActionScheduler_Store::STATUS_FAILED,
+					ActionScheduler_Store::STATUS_CANCELED,
+				],
+			]
+		);
+
+		if ( empty( $actions ) ) {
+			// Plan the unique action.
+			$action_id = as_enqueue_async_action( $hook, $args, $group, true );
+
+			return $action_id ? self::STARTED : self::FAILED;
+		}
+
+		// Get the last action status.
+		$last_action_id = max( array_map( 'intval', array_keys( $actions ) ) );
+		$store          = ActionScheduler::store();
+		$status         = $store ? $store->get_status( $last_action_id ) : ActionScheduler_Store::STATUS_FAILED;
+
+		$started = in_array(
+			$status,
+			[
+				ActionScheduler_Store::STATUS_PENDING,
+				ActionScheduler_Store::STATUS_RUNNING,
+			],
+			true
+		);
+
+		return $started ? self::STARTED : self::FAILED;
+	}
+
+	/**
+	 * Mark async migration as completed.
+	 *
+	 * @return void
+	 */
+	private function mark_completed(): void {
+		$hook      = current_action();
+		$group     = self::AS_GROUP;
+		$transient = $group . '_' . $hook;
+
+		set_transient( $transient, self::COMPLETED );
 	}
 }

@@ -202,11 +202,12 @@ class Form {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.wp-block-coblocks-form .h-captcha {
 		margin-bottom: 25px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

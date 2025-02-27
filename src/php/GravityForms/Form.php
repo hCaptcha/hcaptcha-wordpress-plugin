@@ -251,7 +251,8 @@ class Form extends Base {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	.gform_previous_button + .h-captcha {
 		margin-top: 2rem;
 	}
@@ -284,7 +285,7 @@ class Form extends Base {
 	.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"] {
 		margin: 1em 0 0 0 !important;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

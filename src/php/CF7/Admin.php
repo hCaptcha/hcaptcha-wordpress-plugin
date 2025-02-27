@@ -59,6 +59,8 @@ class Admin extends Base {
 		if ( $this->mode_live ) {
 			add_action( 'current_screen', [ $this, 'current_screen' ] );
 		}
+
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true' );
 	}
 
 	/**
@@ -324,6 +326,12 @@ class Admin extends Base {
 	public function update_form(): void {
 		if ( ! check_ajax_referer( self::UPDATE_FORM_ACTION, 'nonce', false ) ) {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
+		}
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( esc_html__( 'You do not have permission to update the form.', 'hcaptcha-for-forms-and-more' ) );
 
 			return; // For testing purposes.
 		}

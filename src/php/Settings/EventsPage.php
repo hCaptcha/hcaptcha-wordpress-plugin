@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\Events\EventsTable;
 use HCaptcha\Helpers\DB;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -55,15 +56,6 @@ class EventsPage extends ListPageBase {
 	protected $failed;
 
 	/**
-	 * Init class hooks.
-	 */
-	protected function init_hooks(): void {
-		parent::init_hooks();
-
-		add_action( 'wp_ajax_' . self::BULK_ACTION, [ $this, 'bulk_action' ] );
-	}
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -110,36 +102,6 @@ class EventsPage extends ListPageBase {
 	}
 
 	/**
-	 * Ajax callback for bulk actions.
-	 *
-	 * @return void
-	 */
-	public function bulk_action(): void {
-		$this->run_checks( self::BULK_ACTION );
-
-		// Nonce is checked by check_ajax_referer() in run_checks().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$bulk = isset( $_POST['bulk'] ) ? sanitize_text_field( wp_unslash( $_POST['bulk'] ) ) : '';
-		$ids  = isset( $_POST['ids'] )
-			? (array) json_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ), true )
-			: [];
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( 'trash' === $bulk ) {
-			if ( ! $this->delete_hcaptcha_events( $ids ) ) {
-				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
-			}
-
-			wp_send_json_success();
-
-			// For testing purposes.
-			return;
-		}
-
-		wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );
-	}
-
-	/**
 	 * Enqueue class scripts.
 	 *
 	 * @return void
@@ -173,6 +135,7 @@ class EventsPage extends ListPageBase {
 				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
 				'bulkAction'   => self::BULK_ACTION,
 				'bulkNonce'    => wp_create_nonce( self::BULK_ACTION ),
+				'bulkMessage'  => $this->get_clean_transient(),
 				'succeed'      => $this->succeed,
 				'failed'       => $this->failed,
 				'succeedLabel' => __( 'Succeed', 'hcaptcha-for-forms-and-more' ),
@@ -281,16 +244,17 @@ class EventsPage extends ListPageBase {
 	/**
 	 * Delete hCaptcha events by IDs.
 	 *
-	 * @param array $ids Array of event IDs to delete.
+	 * @param array $args Arguments.
 	 *
 	 * @return bool
 	 */
-	private function delete_hcaptcha_events( array $ids ): bool {
+	protected function delete_events( array $args ): bool {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'hcaptcha_events';
+		$ids = $args['ids'] ?? [];
 
-		$in = DB::prepare_in( $ids, '%d' );
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$in         = DB::prepare_in( $ids, '%d' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->query(

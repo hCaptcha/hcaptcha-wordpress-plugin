@@ -121,7 +121,8 @@ class Login extends LoginBase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	body.maintenance > .login-form-container {
 		min-width: 343px;
 		max-width: 343px;
@@ -135,7 +136,7 @@ class Login extends LoginBase {
 	body.maintenance #login-form .h-captcha {
 		margin-top: 2em;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

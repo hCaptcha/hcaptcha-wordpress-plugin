@@ -85,11 +85,12 @@ class Login extends LoginBase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function print_inline_styles(): void {
-		$css = <<<CSS
+		/* language=CSS */
+		$css = '
 	#wppb-loginform .h-captcha {
 		margin-bottom: 14px;
 	}
-CSS;
+';
 
 		HCaptcha::css_display( $css );
 	}

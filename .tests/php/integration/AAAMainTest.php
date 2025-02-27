@@ -19,6 +19,7 @@ use HCaptcha\BBPress\Reply;
 use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
+use HCaptcha\CF7\ReallySimpleCaptcha;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
@@ -153,15 +154,14 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @param boolean        $logged_in                   User is logged in.
 	 * @param string         $hcaptcha_off_when_logged_in Option 'hcaptcha_off_when_logged_in' is set.
-	 * @param boolean|string $whitelisted                 Whether IP is whitelisted.
+	 * @param boolean|string $allowlisted                 Whether IP is allowlisted.
 	 * @param boolean        $hcaptcha_active             Plugin should be active.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpUnitTestsInspection
-	 * @noinspection UnusedFunctionResultInspection
 	 */
-	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $whitelisted, bool $hcaptcha_active ): void {
+	public function test_init_and_init_hooks( bool $logged_in, string $hcaptcha_off_when_logged_in, $allowlisted, bool $hcaptcha_active ): void {
 		global $current_user;
 
 		$hcaptcha = hcaptcha();
@@ -180,8 +180,8 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'hcap_whitelist_ip',
-			static function () use ( $whitelisted ) {
-				return $whitelisted;
+			static function () use ( $allowlisted ) {
+				return $allowlisted;
 			}
 		);
 
@@ -223,7 +223,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			-PHP_INT_MAX,
 			has_filter(
 				'hcap_whitelist_ip',
-				[ $subject, 'whitelist_ip' ]
+				[ $subject, 'allowlist_ip' ]
 			)
 		);
 
@@ -253,14 +253,14 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_init(): array {
 		return [
-			'not logged in, not set, not whitelisted' => [ false, 'off', false, true ],
-			'not logged in, set, not whitelisted'     => [ false, 'on', false, true ],
-			'logged in, not set, not whitelisted'     => [ true, 'off', false, true ],
-			'logged in, set, not whitelisted'         => [ true, 'on', false, false ],
-			'not logged in, not set, whitelisted'     => [ false, 'off', true, false ],
-			'not logged in, set, whitelisted'         => [ false, 'on', true, false ],
-			'logged in, not set, whitelisted'         => [ true, 'off', true, false ],
-			'logged in, set, whitelisted'             => [ true, 'on', true, false ],
+			'not logged in, not set, not allowlisted' => [ false, 'off', false, true ],
+			'not logged in, set, not allowlisted'     => [ false, 'on', false, true ],
+			'logged in, not set, not allowlisted'     => [ true, 'off', false, true ],
+			'logged in, set, not allowlisted'         => [ true, 'on', false, false ],
+			'not logged in, not set, allowlisted'     => [ false, 'off', true, false ],
+			'not logged in, set, allowlisted'         => [ false, 'on', true, false ],
+			'logged in, not set, allowlisted'         => [ true, 'off', true, false ],
+			'logged in, set, allowlisted'             => [ true, 'on', true, false ],
 		];
 	}
 
@@ -320,7 +320,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			-PHP_INT_MAX,
 			has_filter(
 				'hcap_whitelist_ip',
-				[ $subject, 'whitelist_ip' ]
+				[ $subject, 'allowlist_ip' ]
 			)
 		);
 
@@ -869,7 +869,7 @@ CSS;
 
 		$hcaptcha->form_shown = true;
 
-		$expected_scripts = <<<JS
+		$expected_scripts = "
 	( () => {
 		'use strict';
 
@@ -925,9 +925,9 @@ CSS;
 			window.addEventListener( 'scroll', scrollHandler );
 		} );
 	} )();
-JS;
+";
 
-		$expected_scripts = "<script>\n$expected_scripts\n</script>\n";
+		$expected_scripts = "<script>$expected_scripts</script>\n";
 
 		$site_key       = 'some site key';
 		$secret_key     = 'some secret key';
@@ -1085,31 +1085,31 @@ JS;
 	}
 
 	/**
-	 * Test whitelist_ip().
+	 * Test allowlist_ip().
 	 *
-	 * @param mixed        $whitelisted_ips Settings.
+	 * @param mixed        $allowlisted_ips Settings.
 	 * @param string|false $client_ip       Client IP.
 	 * @param bool         $expected        Expected result.
 	 *
-	 * @dataProvider dp_test_whitelist_ip
+	 * @dataProvider dp_test_allowlist_ip
 	 * @return void
 	 */
-	public function test_whitelist_ip( $whitelisted_ips, $client_ip, bool $expected ): void {
-		update_option( 'hcaptcha_settings', [ 'whitelisted_ips' => $whitelisted_ips ] );
+	public function test_allowlist_ip( $allowlisted_ips, $client_ip, bool $expected ): void {
+		update_option( 'hcaptcha_settings', [ 'whitelisted_ips' => $allowlisted_ips ] );
 
 		$subject = new Main();
 
 		$subject->init_hooks();
 
-		self::assertSame( $expected, $subject->whitelist_ip( false, $client_ip ) );
+		self::assertSame( $expected, $subject->allowlist_ip( false, $client_ip ) );
 	}
 
 	/**
-	 * Data provider for test_whitelist_ip().
+	 * Data provider for test_allowlist_ip().
 	 *
 	 * @return array
 	 */
-	public function dp_test_whitelist_ip(): array {
+	public function dp_test_allowlist_ip(): array {
 		return [
 			'no settings, local ip'       => [ '', false, false ],
 			'some ips, local ip'          => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", false, false ],
@@ -1433,7 +1433,7 @@ JS;
 			'Contact Form 7'                    => [
 				[ 'cf7_status', 'form' ],
 				'contact-form-7/wp-contact-form-7.php',
-				[ CF7::class, Admin::class ],
+				[ CF7::class, Admin::class, ReallySimpleCaptcha::class ],
 			],
 			'Divi Comment Form'                 => [
 				[ 'divi_status', 'comment' ],
