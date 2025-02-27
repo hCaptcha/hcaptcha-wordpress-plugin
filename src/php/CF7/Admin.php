@@ -330,6 +330,12 @@ class Admin extends Base {
 			return; // For testing purposes.
 		}
 
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( esc_html__( 'You do not have permission to update the form.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
+		}
+
 		$shortcode = html_entity_decode( filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
 		$form      = html_entity_decode( filter_input( INPUT_POST, 'form', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
 
