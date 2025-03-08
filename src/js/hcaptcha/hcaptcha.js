@@ -16,7 +16,7 @@ class HCaptcha {
 		this.foundForms = [];
 		this.params = null;
 		this.observingDarkMode = false;
-		this.observing1Password = false;
+		this.observingPasswordManagers = false;
 		this.darkElement = null;
 		this.darkClass = null;
 		this.callback = this.callback.bind( this );
@@ -307,14 +307,14 @@ class HCaptcha {
 	}
 
 	/**
-	 * Observe 1Password.
+	 * Observe password managers.
 	 */
-	observe1Password() {
-		if ( this.observing1Password ) {
+	observePasswordManagers() {
+		if ( this.observingPasswordManagers ) {
 			return;
 		}
 
-		this.observing1Password = true;
+		this.observingPasswordManagers = true;
 
 		let isProcessing = false;
 
@@ -338,7 +338,7 @@ class HCaptcha {
 						continue;
 					}
 
-					observer.disconnect(); // Stop observer after the 1Password button is loaded.
+					observer.disconnect(); // Stop observer after a password manager element was found.
 
 					this.foundForms.map( ( form ) => {
 						const { hCaptchaId, submitButtonElement } = form;
@@ -457,7 +457,7 @@ class HCaptcha {
 	 */
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
-		this.observe1Password();
+		this.observePasswordManagers();
 
 		let globalParams = this.getParams();
 
