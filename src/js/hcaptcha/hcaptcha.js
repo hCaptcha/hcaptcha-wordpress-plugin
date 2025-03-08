@@ -327,38 +327,47 @@ class HCaptcha {
 
 			requestAnimationFrame( () => {
 				for ( const mutation of mutations ) {
-					if ( mutation.type === 'childList' && document.querySelector( 'com-1password-button' ) ) {
-						observer.disconnect(); // Stop observer after the 1Password button is loaded.
-
-						this.foundForms.map( ( form ) => {
-							const { hCaptchaId, submitButtonElement } = form;
-
-							if ( ! submitButtonElement ) {
-								return form;
-							}
-
-							const formElement = document.querySelector( `[data-h-captcha-id="${ hCaptchaId }"]` );
-
-							/**
-							 * @type {HTMLElement}
-							 */
-							const hcaptchaElement = formElement.querySelector( '.h-captcha' );
-							const dataset = hcaptchaElement.dataset;
-
-							if ( dataset.size === 'invisible' || dataset.force === 'true' ) {
-								// Do not add the event listener again.
-								return form;
-							}
-
-							hcaptchaElement.dataset.force = 'true';
-
-							submitButtonElement.addEventListener( 'click', this.validate, true );
-
-							return form;
-						} );
-
-						break;
+					if ( ! ( mutation.type === 'childList' ) ) {
+						continue;
 					}
+
+					const el1Pass = document.querySelector( 'com-1password-button' );
+					const elLastPass = document.querySelector( 'div[data-lastpass-icon-root]' );
+
+					if ( ! el1Pass && ! elLastPass ) {
+						continue;
+					}
+
+					observer.disconnect(); // Stop observer after the 1Password button is loaded.
+
+					this.foundForms.map( ( form ) => {
+						const { hCaptchaId, submitButtonElement } = form;
+
+						if ( ! submitButtonElement ) {
+							return form;
+						}
+
+						const formElement = document.querySelector( `[data-h-captcha-id="${ hCaptchaId }"]` );
+
+						/**
+						 * @type {HTMLElement}
+						 */
+						const hcaptchaElement = formElement.querySelector( '.h-captcha' );
+						const dataset = hcaptchaElement.dataset;
+
+						if ( dataset.size === 'invisible' || dataset.force === 'true' ) {
+							// Do not add the event listener again.
+							return form;
+						}
+
+						hcaptchaElement.dataset.force = 'true';
+
+						submitButtonElement.addEventListener( 'click', this.validate, true );
+
+						return form;
+					} );
+
+					break;
 				}
 
 				isProcessing = false;

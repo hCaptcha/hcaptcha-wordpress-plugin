@@ -630,6 +630,7 @@ Instructions for popular native integrations are below:
 
 = 4.12.0 =
 * Added auto-forcing hCaptcha on login forms for 1Password compatibility.
+* Added auto-forcing hCaptcha on login forms for LastPass compatibility.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
