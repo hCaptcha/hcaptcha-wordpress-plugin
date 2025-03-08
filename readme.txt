@@ -628,6 +628,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.12.0 =
+* Added auto-forcing hCaptcha on login forms for 1Password compatibility.
+
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
 * Added compatibility with the UsersWP plugin v1.2.28.
