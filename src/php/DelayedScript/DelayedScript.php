@@ -44,6 +44,7 @@ class DelayedScript {
 			window.removeEventListener( 'touchstart', load );
 			document.body.removeEventListener( 'mouseenter', load );
 			document.body.removeEventListener( 'click', load );
+			window.removeEventListener( 'keydown', load );
 			window.removeEventListener( 'scroll', scrollHandler );
 
 $js
@@ -72,6 +73,7 @@ $js
 			window.addEventListener( 'touchstart', load );
 			document.body.addEventListener( 'mouseenter', load );
 			document.body.addEventListener( 'click', load );
+			window.addEventListener( 'keydown', load );
 			window.addEventListener( 'scroll', scrollHandler );
 		} );
 	} )();
