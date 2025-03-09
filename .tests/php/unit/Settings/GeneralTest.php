@@ -574,7 +574,7 @@ class GeneralTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'hcaptcha_request_verify' )->with( $hcaptcha_response )->once()->andReturn( $result2 );
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Site configuration error: ' . $error1 )->once();
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( $result2 )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with( 'Site config is valid.' )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with( 'Site config is valid. Save your changes.' )->once();
 
 		$subject->check_config();
 	}

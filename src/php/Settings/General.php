@@ -921,7 +921,7 @@ class General extends PluginSettingsBase {
 		}
 
 		wp_send_json_success(
-			esc_html__( 'Site config is valid.', 'hcaptcha-for-forms-and-more' )
+			esc_html__( 'Site config is valid. Save your changes.', 'hcaptcha-for-forms-and-more' )
 		);
 	}
 
