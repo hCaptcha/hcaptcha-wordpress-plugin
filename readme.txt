@@ -668,6 +668,7 @@ Instructions for popular native integrations are below:
 * Added auto-forcing hCaptcha on login forms for 1Password compatibility.
 * Added auto-forcing hCaptcha on login forms for LastPass compatibility.
 * Fixed printing hCaptcha scripts on Essential Addons preview page.
+* Fixed hCaptcha layout on wpDiscuz forms.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
