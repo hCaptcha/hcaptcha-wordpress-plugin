@@ -434,6 +434,11 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'some-type' ) );
 		self::assertSame( $expected, $subject->prefetch_hcaptcha_dns( $urls, 'dns-prefetch' ) );
+
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'some-type' ) );
+		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'dns-prefetch' ) );
 	}
 
 	/**
@@ -641,6 +646,25 @@ CSS;
 	}
 
 	/**
+	 * Test print_inline_styles() when prohibited.
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles_when_prohibited(): void {
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
 	 * Test login_head().
 	 *
 	 * @noinspection CssUnusedSymbol
@@ -689,6 +713,23 @@ CSS;
 		$subject->login_head();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test login_head() when prohibited.
+	 *
+	 * @return void
+	 */
+	public function test_login_head_when_prohibited(): void {
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		$subject = new Main();
+
+		ob_start();
+
+		$subject->login_head();
+
+		self::assertSame( '', ob_get_clean() );
 	}
 
 	/**

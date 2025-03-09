@@ -327,7 +327,12 @@ class Main {
 	public function prefetch_hcaptcha_dns( $urls, string $relation_type ): array {
 		$urls = (array) $urls;
 
-		if ( 'dns-prefetch' === $relation_type ) {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ( 'dns-prefetch' === $relation_type ) && apply_filters( 'hcap_print_hcaptcha_scripts', true ) ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
 
@@ -441,6 +446,15 @@ class Main {
 	 * @noinspection CssUnknownTarget
 	 */
 	public function print_inline_styles(): void {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ! apply_filters( 'hcap_print_hcaptcha_scripts', true ) ) {
+			return;
+		}
+
 		$settings           = $this->settings();
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
@@ -537,6 +551,15 @@ class Main {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function login_head(): void {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ! apply_filters( 'hcap_print_hcaptcha_scripts', true ) ) {
+			return;
+		}
+
 		/* language=CSS */
 		$css = '
 	@media (max-width: 349px) {
