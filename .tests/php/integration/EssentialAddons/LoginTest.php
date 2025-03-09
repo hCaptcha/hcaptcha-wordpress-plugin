@@ -63,7 +63,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame( 10, has_action( 'eael/login-register/before-login', [ $subject, 'verify' ] ) );
 
-		self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+		self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 	}
 
 	/**
