@@ -84,6 +84,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'3.6.0'          => $time,
 			'4.0.0'          => $time,
 			'4.6.0'          => $time,
+			'4.11.0'         => $time,
 			HCAPTCHA_VERSION => $time,
 		];
 		$expected_settings = [
@@ -122,6 +123,9 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject = new Migrations();
 
 		self::assertSame( [], get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) );
+
+		// Do not run async migrations via Action Scheduler.
+		set_transient( 'hcaptcha_async_migrate_4_11_0', Migrations::COMPLETED );
 
 		$subject->migrate();
 
