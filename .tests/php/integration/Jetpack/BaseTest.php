@@ -61,10 +61,10 @@ class BaseTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_action( 'the_content', [ $subject, 'the_content_filter' ] ) );
 
 		if ( $is_editing_jetpack_form_post ) {
-			self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 			self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
 		} else {
-			self::assertFalse( has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 			self::assertFalse( has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
 		}
 	}

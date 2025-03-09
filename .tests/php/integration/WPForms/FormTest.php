@@ -86,7 +86,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		if ( $mode_embed ) {
 			self::assertSame( 10, has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $subject, 'wpforms_admin_settings_captcha_enqueues_disable' ] ) );
-			self::assertSame( 10, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'hcap_print_hcaptcha_scripts' ] ) );
+			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'hcap_print_hcaptcha_scripts' ] ) );
 			self::assertSame( 10, has_filter( 'wpforms_settings_fields', [ $subject, 'wpforms_settings_fields' ] ) );
 		}
 

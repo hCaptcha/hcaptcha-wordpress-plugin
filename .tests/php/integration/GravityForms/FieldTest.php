@@ -69,7 +69,7 @@ class FieldTest extends HCaptchaWPTestCase {
 					[ $subject, 'enqueue_admin_script' ]
 				)
 			);
-			self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 		} else {
 			self::assertFalse( has_filter( 'gform_field_groups_form_editor', [ $subject, 'add_to_field_groups' ] ) );
 			self::assertFalse( has_filter( 'gform_duplicate_field_link', [ $subject, 'disable_duplication' ] ) );
@@ -85,7 +85,7 @@ class FieldTest extends HCaptchaWPTestCase {
 					[ $subject, 'enqueue_admin_script' ]
 				)
 			);
-			self::assertFalse( has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 		}
 	}
 

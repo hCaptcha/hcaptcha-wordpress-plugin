@@ -78,6 +78,10 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 
 		if ( $is_admin ) {
 			set_current_screen( $cf7_screen );
+
+			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', '__return_true' ) );
+		} else {
+			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', '__return_true' ) );
 		}
 
 		if ( $mode_embed && $is_admin ) {
@@ -463,6 +467,7 @@ HTML;
 	 * Test enqueue_admin_scripts_before_cf7() and enqueue_admin_scripts_after_cf7().
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @noinspection PhpUndefinedConstantInspection
 	 */
 	public function test_enqueue_admin_scripts(): void {
 		global $wp_scripts;
@@ -506,6 +511,8 @@ HTML;
 	 * Test update_form().
 	 *
 	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_update_form(): void {
 		$user_id = 1;
@@ -621,7 +628,7 @@ HTML;
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
 			'wp_die_ajax_handler',
-			static function ( $name ) use ( &$die_arr ) {
+			static function () use ( &$die_arr ) {
 				return static function ( $message, $title, $args ) use ( &$die_arr ) {
 					$die_arr = [ $message, $title, $args ];
 				};
@@ -675,7 +682,7 @@ HTML;
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
 			'wp_die_ajax_handler',
-			static function ( $name ) use ( &$die_arr ) {
+			static function () use ( &$die_arr ) {
 				return static function ( $message, $title, $args ) use ( &$die_arr ) {
 					$die_arr = [ $message, $title, $args ];
 				};

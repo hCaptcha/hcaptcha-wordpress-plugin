@@ -38,7 +38,7 @@ abstract class Base {
 		add_action( 'wp_ajax_' . static::VERIFY_HOOK, [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_' . static::VERIFY_HOOK, [ $this, 'verify' ], 9 );
 		add_filter( 'do_shortcode_tag', [ $this, 'support_candy_shortcode_tag' ], 10, 4 );
-		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
@@ -101,10 +101,10 @@ abstract class Base {
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *
-	 * @return bool|mixed
+	 * @return bool
 	 */
-	public function print_hcaptcha_scripts( $status ) {
-		return $this->did_support_candy_shortcode_tag_filter ? true : $status;
+	public function print_hcaptcha_scripts( $status ): bool {
+		return $this->did_support_candy_shortcode_tag_filter || $status;
 	}
 
 	/**

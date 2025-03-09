@@ -72,7 +72,7 @@ abstract class Base {
 
 		$this->form_id = $form_id;
 
-		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true' );
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true', 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
 	}
 
