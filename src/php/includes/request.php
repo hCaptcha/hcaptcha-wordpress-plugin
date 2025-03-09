@@ -178,7 +178,6 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 * @noinspection PhpMissingParamTypeInspection
-	 * @noinspection UnnecessaryBooleanExpressionInspection
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ): ?string {
 		static $result;
