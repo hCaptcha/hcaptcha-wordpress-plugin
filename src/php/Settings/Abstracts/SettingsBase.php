@@ -252,7 +252,6 @@ abstract class SettingsBase {
 	 * Init class.
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function init(): void {
 		$this->min_suffix = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
@@ -505,7 +504,6 @@ abstract class SettingsBase {
 	 * Add settings' page to the menu.
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function add_settings_page(): void {
 		if ( $this->parent_slug ) {
@@ -611,7 +609,7 @@ abstract class SettingsBase {
 
 	/**
 	 * Filter denied access to the settings page.
-	 * It is needed when switching network_wide option.
+	 * It is necessary when switching network_wide option.
 	 *
 	 * @return void
 	 */
