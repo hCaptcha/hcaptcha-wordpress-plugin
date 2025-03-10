@@ -665,8 +665,8 @@ Instructions for popular native integrations are below:
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.
 * Added the ability to filter printing of dsn-prefetch link and inline styles.
-* Added auto-forcing hCaptcha on login forms for 1Password compatibility.
-* Added auto-forcing hCaptcha on login forms for LastPass compatibility.
+* Added auto-forcing and prevent delaying of hCaptcha on login forms for 1Password compatibility.
+* Added auto-forcing and prevent delaying of hCaptcha on login forms for LastPass compatibility.
 * Fixed printing hCaptcha scripts on Essential Addons preview page.
 * Fixed hCaptcha layout on wpDiscuz forms.
 

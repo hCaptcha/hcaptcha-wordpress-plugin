@@ -53,9 +53,12 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame( PHP_INT_MAX, has_action( 'login_form', [ $subject, 'display_signature' ] ) );
 		self::assertSame( PHP_INT_MAX, has_filter( 'login_form_middle', [ $subject, 'add_signature' ] ) );
 		self::assertSame( PHP_INT_MAX, has_filter( 'wp_authenticate_user', [ $subject, 'check_signature' ] ) );
+		self::assertSame( 100, has_filter( 'authenticate', [ $subject, 'hide_login_error' ] ) );
 
 		self::assertSame( 10, has_action( 'wp_login', [ $subject, 'login' ] ) );
 		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
+
+		self::assertSame( 0, has_action( 'hcap_delay_api', [ $subject, 'delay_api' ] ) );
 
 		self::assertSame(
 			10,
