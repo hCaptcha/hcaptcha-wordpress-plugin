@@ -82,9 +82,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 			const delay = -1;
 
 			if ( delay >= 0 ) {
-				setTimeout( load, delay );
-
-				return;
+				timerId = setTimeout( load, delay );
 			}
 
 			window.addEventListener( 'touchstart', load );
@@ -171,9 +169,7 @@ JS;
 			const delay = -1;
 
 			if ( delay >= 0 ) {
-				setTimeout( load, delay );
-
-				return;
+				timerId = setTimeout( load, delay );
 			}
 
 			window.addEventListener( 'touchstart', load );
