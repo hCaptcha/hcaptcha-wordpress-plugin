@@ -116,6 +116,7 @@ class Notifications {
 		$statistics_url          = $general_url . '#statistics_1';
 		$force_url               = $general_url . '#force_1';
 		$elementor_edit_form_url = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
+		$size_url                = $general_url . '#size';
 
 		$notifications = [
 			'register'            => [
@@ -191,7 +192,7 @@ class Notifications {
 			// Added in 3.8.0.
 			'search-integrations' => [
 				'title'   => __( 'Search on Integrations page', 'hcaptcha-for-forms-and-more' ),
-				'message' => __( 'Now you can search for plugin an themes on the Integrations page.', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'You can search for plugin an themes on the Integrations page.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
 					'url'  => $search_integrations_url,
 					'text' => __( 'Start search', 'hcaptcha-for-forms-and-more' ),
@@ -282,6 +283,28 @@ class Notifications {
 					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.12.0.
+			'passive-mode'        => [
+				'title'   => __( 'Friction-free “No CAPTCHA” & 99.9% passive modes', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: Pro link, 2: size select link. */
+					__( '%1$s and use %2$s. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$dashboard_url,
+						__( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$size_url,
+						__( 'Invisible Size', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $elementor_edit_form_url,
+					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
@@ -308,6 +331,10 @@ class Notifications {
 
 		if ( ! class_exists( '\ElementorPro\Plugin', false ) ) {
 			unset( $notifications['admin-elementor'] );
+		}
+
+		if ( $settings->is_pro() && $settings->is( 'size', 'invisible' ) ) {
+			unset( $notifications['passive-mode'] );
 		}
 
 		// Added in 4.4.0.

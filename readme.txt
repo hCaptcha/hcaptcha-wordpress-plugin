@@ -668,6 +668,7 @@ Instructions for popular native integrations are below:
 * Added auto-forcing and prevent delaying of hCaptcha on login forms for 1Password compatibility.
 * Added auto-forcing and prevent delaying of hCaptcha on login forms for LastPass compatibility.
 * Improved API script delay behavior. Now, scripts are loaded after a delay interval or any user interaction, whichever happens first.
+* Improved scrolling behavior to highlighted elements in admin.
 * Fixed printing hCaptcha scripts on Essential Addons preview page.
 * Fixed hCaptcha layout on wpDiscuz forms.
 
