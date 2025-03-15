@@ -39,13 +39,13 @@ jobs:
         run: .github/scripts/update-changelog.sh
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: hCaptcha/setup-php@42a9487ddd45db247decea2acf7de871a8178226
         with:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
 
       - name: Install dependencies with caching
-        uses: ramsey/composer-install@v3
+        uses: hCaptcha/composer-install@e52779489de843a9f022c7b8faa648b608b02c70
         with:
           working-directory: ${{ env.wp-plugin-directory }}
 
