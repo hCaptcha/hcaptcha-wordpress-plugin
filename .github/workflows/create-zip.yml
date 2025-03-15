@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies with caching
-        uses: ramsey/composer-install@v3
+        uses: hCaptcha/composer-install@e52779489de843a9f022c7b8faa648b608b02c70
         with:
           composer-options: "--no-dev --optimize-autoloader --classmap-authoritative"
 
@@ -36,7 +36,7 @@ jobs:
           echo "✓ Zip file generated!"
 
       - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+        uses: hCaptcha/action-gh-release@ab50eebb6488051c6788d97fa95232267c6a4e23
         with:
           files: ${{github.workspace}}/${{ env.SLUG }}.zip
           draft: true
