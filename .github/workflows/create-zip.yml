@@ -25,20 +25,25 @@ jobs:
           yarn
           yarn prod
 
+      - name: Get version from PHP file
+        id: get_version
+        run: |
+          VERSION=$(grep -oP "const HCAPTCHA_VERSION = '\K[^']+" hcaptcha.php)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Create zip file
         run: |
           echo "➤ Copying files..."
-          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/ --delete --delete-excluded
+          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/${SLUG} --delete --delete-excluded
           echo "➤ Generating zip file..."
           cd trunk
-          zip -r "${{github.workspace}}/${{ env.SLUG }}.zip" .
-          echo "zip-path=${GITHUB_WORKSPACE}/${SLUG}.zip" >> "${GITHUB_OUTPUT}"
+          zip -r "${{github.workspace}}/${{ env.SLUG }}.${{ env.VERSION }}.zip" .
+          echo "zip-path=${GITHUB_WORKSPACE}/${SLUG}.${VERSION}.zip" >> "${GITHUB_OUTPUT}"
           echo "✓ Zip file generated!"
 
       - name: Upload release asset
         uses: hCaptcha/action-gh-release@ab50eebb6488051c6788d97fa95232267c6a4e23
         with:
-          files: ${{github.workspace}}/${{ env.SLUG }}.zip
+          files: ${{github.workspace}}/${{ env.SLUG }}.${{ env.VERSION }}.zip
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
