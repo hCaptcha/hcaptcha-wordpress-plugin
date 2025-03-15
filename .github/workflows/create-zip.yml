@@ -33,7 +33,7 @@ jobs:
       - name: Create zip file
         run: |
           echo "➤ Copying files..."
-          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/${SLUG}/ --delete --delete-excluded
+          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/ --delete --delete-excluded
           echo "➤ Generating zip file..."
           cd trunk
           zip -r "${{github.workspace}}/${{ env.SLUG }}.${{ env.VERSION }}.zip" .
