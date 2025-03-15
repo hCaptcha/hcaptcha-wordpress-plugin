@@ -32,8 +32,10 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Create zip file
         run: |
+          echo "➤ Creating target directory..."
+          mkdir -p trunk/${SLUG}
           echo "➤ Copying files..."
-          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/ --delete --delete-excluded
+          rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/${SLUG}/ --delete --delete-excluded
           echo "➤ Generating zip file..."
           cd trunk
           zip -r "${{github.workspace}}/${{ env.SLUG }}.${{ env.VERSION }}.zip" .
