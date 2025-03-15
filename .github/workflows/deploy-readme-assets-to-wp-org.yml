@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: WordPress.org plugin asset/readme update
-        uses: 10up/action-wordpress-plugin-asset-update@stable
+        uses: hCaptcha/action-wordpress-plugin-asset-update@534608af7e569c58d740c7493117d73bd6467122
         env:
           SLUG: hcaptcha-for-forms-and-more
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
