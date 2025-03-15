@@ -170,7 +170,7 @@ class HCaptcha {
 
 		// Do not execute hCaptcha twice.
 		if ( token === '' ) {
-			hcaptcha.execute( widgetId );
+			hcaptcha.execute( widgetId, { async: false } );
 		} else {
 			this.callback( token );
 		}
