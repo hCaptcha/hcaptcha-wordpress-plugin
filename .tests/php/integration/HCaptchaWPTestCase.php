@@ -169,13 +169,13 @@ class HCaptchaWPTestCase extends WPTestCase {
 
 		return $this->get_hcap_widget( $id ) . '
 				<h-captcha
-				class="h-captcha"
-				data-sitekey="' . $data_sitekey . '"
-				data-theme="' . $data_theme . '"
-				data-size="' . $data_size . '"
-				data-auto="' . $data_auto . '"
-				data-ajax="' . $data_ajax . '"
-				data-force="' . $data_force . '">
+			class="h-captcha"
+			data-sitekey="' . $data_sitekey . '"
+			data-theme="' . $data_theme . '"
+			data-size="' . $data_size . '"
+			data-auto="' . $data_auto . '"
+			data-ajax="' . $data_ajax . '"
+			data-force="' . $data_force . '">
 		</h-captcha>
 		' . $nonce_field;
 	}
