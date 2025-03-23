@@ -673,6 +673,7 @@ Instructions for popular native integrations are below:
 * Fixed hCaptcha layout on wpDiscuz forms.
 * Fixed race condition with Pro invisible hCaptcha.
 * Fixed scroll on a page load with a Kadence form.
+* Fixed scroll on a page load with a Kadence Advanced form.
 * Fixed scrolling and focusing after submit with CF7 form.
 
 = 4.11.0 =
