@@ -674,8 +674,9 @@ Instructions for popular native integrations are below:
 * Fixed race condition with Pro invisible hCaptcha.
 * Fixed scroll on a page load with a Kadence form.
 * Fixed scroll on a page load with a Kadence Advanced form.
-* Fixed scrolling and focusing after submit with CF7 form.
-* Fixed scrolling and focusing after submit with a Forminator form.
+* Fixed scrolling and focusing after submitting with CF7 form.
+* Fixed scrolling and focusing after submitting with a Forminator form.
+* Fixed scrolling and focusing after submitting with a Quform form.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
