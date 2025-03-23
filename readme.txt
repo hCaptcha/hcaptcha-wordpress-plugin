@@ -677,6 +677,7 @@ Instructions for popular native integrations are below:
 * Fixed scrolling and focusing after submitting with CF7 form.
 * Fixed scrolling and focusing after submitting with a Forminator form.
 * Fixed scrolling and focusing after submitting with a Quform form.
+* Fixed scrolling and focusing after submitting with an Elementor form.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
