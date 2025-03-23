@@ -1,4 +1,4 @@
-/* global jQuery */
+/* global jQuery, hCaptchaBindEvents */
 
 jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 	const params = new URLSearchParams( settings.data );
@@ -7,8 +7,5 @@ jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 		return;
 	}
 
-	const formId = params.get( 'form_id' );
-	const form = jQuery( 'form[data-form-id="' + formId + '"]' );
-
-	window.hCaptchaReset( form[ 0 ] );
+	hCaptchaBindEvents();
 } );
