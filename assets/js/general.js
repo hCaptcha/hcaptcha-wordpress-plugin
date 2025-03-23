@@ -402,7 +402,7 @@ const general = function( $ ) {
 						text: HCaptchaGeneralObject.OKBtnText,
 					},
 				},
-				onAction: () => window.hCaptchaReset( document.querySelector( '.hcaptcha-general-sample-hcaptcha' ) ),
+				onAction: () => window.hCaptchaBindEvents(),
 			} );
 
 			return;
