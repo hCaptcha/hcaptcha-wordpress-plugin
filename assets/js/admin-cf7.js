@@ -4,7 +4,6 @@
  * @param HCaptchaCF7Object.updateFormAction
  * @param HCaptchaCF7Object.updateFormNonce
  * @param HCaptchaCF7Object.ajaxUrl
- * @param hCaptcha.reset
  */
 
 /**
