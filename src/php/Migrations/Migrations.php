@@ -496,7 +496,7 @@ class Migrations {
 		}
 
 		add_action(
-			'action_scheduler_init',
+			'init',
 			function () use ( $hook, $args, $group ) {
 				$transient = $group . '_' . $hook;
 				$status    = $this->create_as_action( $hook, $args, $group );
@@ -504,7 +504,8 @@ class Migrations {
 				if ( self::FAILED === $status ) {
 					set_transient( $transient, $status );
 				}
-			}
+			},
+			20
 		);
 
 		return null;

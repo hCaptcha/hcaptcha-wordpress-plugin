@@ -680,6 +680,7 @@ Instructions for popular native integrations are below:
 * Fixed scrolling and focusing after submitting with an Elementor form.
 * Fixed scrolling and focusing after submitting with Autoverify in Ajax.
 * Fixed scrolling and focusing before checking the Site Config on the General page.
+* Fixed fatal error on claiming action during migration.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
