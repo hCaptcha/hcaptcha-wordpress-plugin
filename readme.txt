@@ -682,6 +682,7 @@ Instructions for popular native integrations are below:
 * Fixed scrolling and focusing before checking the Site Config on the General page.
 * Fixed fatal error on claiming action during migration to 4.11.0.
 * Fixed fatal error when migrating to 4.0.0 via cron.
+* Fixed WordPress database error on migrating to 4.11.0 in a rare case.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
