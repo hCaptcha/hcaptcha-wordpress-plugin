@@ -145,10 +145,6 @@ class Main {
 
 		$this->migrations = new Migrations();
 
-		if ( wp_doing_cron() ) {
-			return;
-		}
-
 		( new Fix() )->init();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
@@ -185,6 +181,10 @@ class Main {
 				],
 			]
 		);
+
+		if ( wp_doing_cron() ) {
+			return;
+		}
 
 		$this->load( PluginStats::class );
 		$this->load( Events::class );

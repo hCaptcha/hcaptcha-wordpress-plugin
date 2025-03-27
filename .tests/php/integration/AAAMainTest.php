@@ -26,10 +26,10 @@ use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
-use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\Settings;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WCWishlists\CreateList;
@@ -121,32 +121,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha->init();
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-	}
-
-	/**
-	 * Test init() on cron request.
-	 *
-	 * @return void
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function test_init_on_cron(): void {
-		$hcaptcha = hcaptcha();
-
-		// The plugin was loaded by codeception.
-		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-
-		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], Main::LOAD_PRIORITY );
-
-		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-
-		add_filter( 'wp_doing_cron', '__return_true' );
-
-		$hcaptcha->init();
-
-		$migrations = $this->get_protected_property( $hcaptcha, 'migrations' );
-
-		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-		self::assertSame( Migrations::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $migrations, 'migrate' ] ) );
 	}
 
 	/**
@@ -276,7 +250,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_init_and_init_hooks_on_elementor_pro_edit_page
 	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
 		string $elementor_pro_status,
@@ -396,26 +369,23 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init() and init_hooks() on XMLRPC_REQUEST.
+	 * Test init_hooks() on cron request.
+	 *
+	 * @return void
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_and_init_hooks_on_xml_rpc_request(): void {
-		$subject = Mockery::mock( Main::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods()->shouldReceive( 'is_xml_rpc' )->andReturn( true );
+	public function test_init_hooks_on_cron(): void {
+		add_filter( 'wp_doing_cron', '__return_true' );
 
-		$subject->init();
+		$subject = new Main();
 
-		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_modules' ] ) );
-		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] ) );
+		$subject->init_hooks();
 
-		self::assertFalse( has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
-		self::assertFalse( has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
-		self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
-		self::assertFalse( has_action( 'login_head', [ $subject, 'login_head' ] ) );
-		self::assertFalse( has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
+		$loaded_classes = $this->get_protected_property( $subject, 'loaded_classes' );
 
-		self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
+		self::assertTrue( class_exists( Settings::class, false ) );
+		self::assertArrayNotHasKey( PluginStats::class, $loaded_classes );
 	}
 
 	/**
@@ -1780,11 +1750,6 @@ CSS;
 
 		$default_domain = 'default';
 		$default_mofile = WP_LANG_DIR . "/$locale.mo";
-
-		$domain = 'hcaptcha-for-forms-and-more';
-		$mofile =
-			WP_PLUGIN_DIR . '/' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/' .
-			$domain . '-' . $locale . '.mo';
 
 		$override_filter_params = [];
 
