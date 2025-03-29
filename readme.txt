@@ -570,9 +570,12 @@ For more details, please see the hCaptcha privacy policy at:
 If you enable the optional plugin-local statistics feature, the following additional data will be recorded to your database:
 
 * counts of challenge verifications per form
-* **only if you enable this optional feature:** the IP addresses challenged on each form
+* **only if you enable this optional feature: **the IP address challenged on each form
+* **only if you enable this optional feature: **the USer Agent challenged on each form
 
-We recommend leaving IP recording off, which will make these statistics fully anonymous.
+You can collect data anonymously but still distinguish sources. The hashed IP address and User Agent will be saved.
+
+We recommend leaving IP and User Agent recording off, which will make these statistics fully anonymous.
 
 If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
 
@@ -667,6 +670,7 @@ Instructions for popular native integrations are below:
 * Added the ability to filter printing of dsn-prefetch link and inline styles.
 * Added auto-forcing and prevent delaying of hCaptcha on login forms for 1Password compatibility.
 * Added auto-forcing and prevent delaying of hCaptcha on login forms for LastPass compatibility.
+* Added Privacy Policy to WordPress admin Privacy > Policy Guide page.
 * Improved API script delay behavior. Now, scripts are loaded after a delay interval or any user interaction, whichever happens first.
 * Improved scrolling behavior to highlighted elements in admin.
 * Fixed printing hCaptcha scripts on Essential Addons preview page.
