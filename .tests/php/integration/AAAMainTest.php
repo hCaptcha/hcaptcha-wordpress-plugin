@@ -13,6 +13,7 @@
 
 namespace HCaptcha\Tests\Integration;
 
+use HCaptcha\Admin\Privacy;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -1185,9 +1186,11 @@ CSS;
 
 		// Test with hCaptcha plugin not active.
 		$subject->load_modules();
+
 		$expected_loaded_classes = [
 			PluginStats::class,
 			Events::class,
+			Privacy::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
