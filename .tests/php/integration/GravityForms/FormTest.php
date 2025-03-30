@@ -88,6 +88,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @param bool $is_admin Admin mode.
 	 *
 	 * @dataProvider dp_test_add_hcaptcha
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_hcaptcha( bool $is_admin ): void {
 		$form_id = 23;
@@ -134,6 +135,8 @@ class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha() in embed mode.
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_hcaptcha_in_embed_mode(): void {
 		$button_input   = '';
@@ -181,6 +184,44 @@ class FormTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
 		self::assertSame( $button_input, $subject->add_hcaptcha( $button_input, $form ) );
+	}
+
+	/**
+	 * Test gform_open().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_gform_open(): void {
+		$markup  = '<div>Some markup</div>';
+		$form_id = 23;
+		$form    = [
+			'id' => $form_id,
+		];
+
+		$subject = new Form();
+
+		self::assertSame( $markup, $subject->gform_open( $markup, $form ) );
+		self::assertSame( 10, has_filter( 'hcap_form_args', [ $subject, 'hcap_form_args' ] ) );
+		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
+	 * Test gform_close().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_gform_close(): void {
+		$form_string = '<div>Some form string</div>';
+
+		$subject = new Form();
+
+		add_filter( 'hcap_form_args', [ $subject, 'hcap_form_args' ] );
+
+		self::assertSame( $form_string, $subject->gform_close( $form_string, [] ) );
+		self::assertFalse( has_filter( 'hcap_form_args', [ $subject, 'hcap_form_args' ] ) );
+		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
 	}
 
 	/**
