@@ -666,6 +666,7 @@ HTML;
 
 		self::assertSame( $form, $wpcf7_contact_form->get_properties()['form'] );
 	}
+
 	/**
 	 * Test update_form() with bad ajax referer.
 	 *
@@ -701,6 +702,51 @@ HTML;
 			strpos(
 				$json,
 				'{"success":false,"data":"Your session has expired. Please reload the page."}'
+			)
+		);
+	}
+
+	/**
+	 * Test update_form() without capabilities.
+	 *
+	 * @return void
+	 */
+	public function test_update_form_without_capabilities(): void {
+		$action = Admin::UPDATE_FORM_ACTION;
+		$nonce  = wp_create_nonce( $action );
+
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Admin();
+
+		ob_start();
+		$subject->update_form();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"You do not have permission to update the form."}'
 			)
 		);
 	}

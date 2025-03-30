@@ -311,8 +311,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			if ( ! $this->delete_events( $args ) ) {
 				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
 
-				// For testing purposes.
-				return;
+				return; // For testing purposes.
 			}
 
 			set_transient(
@@ -322,8 +321,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 			wp_send_json_success();
 
-			// For testing purposes.
-			return;
+			return; // For testing purposes.
 		}
 
 		wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );

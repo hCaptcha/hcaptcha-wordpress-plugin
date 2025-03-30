@@ -147,8 +147,7 @@ class Form extends LoginBase {
 				423
 			);
 
-			// For testing purposes.
-			return $errors;
+			return $errors; // For testing purposes.
 		}
 
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );

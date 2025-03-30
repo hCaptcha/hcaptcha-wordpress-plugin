@@ -947,8 +947,7 @@ class General extends PluginSettingsBase {
 		if ( ! $user_id ) {
 			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
 
-			// For testing purposes.
-			return;
+			return; // For testing purposes.
 		}
 
 		$hcaptcha_user_settings = array_filter(
