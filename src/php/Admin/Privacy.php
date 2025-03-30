@@ -77,124 +77,64 @@ class Privacy {
 				<?php esc_html_e( 'We use the hCaptcha service to protect forms on our website from spam and automated bots. hCaptcha provides a verification mechanism to distinguish between human users and bots.', 'hcaptcha-for-forms-and-more' ); ?>
 			</p>
 			<p>
-				<strong><?php esc_html_e( 'Privacy First:', 'hcaptcha-for-forms-and-more' ); ?></strong>
-				<?php esc_html_e( 'hCaptcha is designed to protect user privacy. It doesn’t retain or sell personal data, unlike platforms that', 'hcaptcha-for-forms-and-more' ); ?>
-				<strong>g</strong>ather, <strong>o</strong>wn, and m<strong>o</strong>netize <strong>gl</strong>obal
-				b<strong>e</strong>havior.
-			</p>
-			<p>
-				<?php esc_html_e( 'hCaptcha is designed to comply with privacy laws in every country, including GDPR, LGPD, CCPA, and more.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<p>
-				<?php esc_html_e( 'For example, hCaptcha has been certified under ISO 27001 and 27701 and is enrolled in the EU-US, UK-US, and Swiss-US Data Privacy Framework for GDPR compliance.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<p>
 				<?php
 				echo wp_kses_post(
-					sprintf(
-					/* translators: 1: certifications link, 2: GDPR link. */
-						__( 'Details are available at %1$s and %2$s.', 'hcaptcha-for-forms-and-more' ),
-						'<a href="https://www.hcaptcha.com/certifications" target="_blank">www.hcaptcha.com/certifications</a>',
-						'<a href="https://www.hcaptcha.com/gdpr" target="_blank">www.hcaptcha.com/gdpr</a>'
-					)
-				);
-				?>
-			</p>
-			<p>
-				<?php esc_html_e( 'With the default configuration, this plugin does not:', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<ul>
-				<li><?php esc_html_e( 'track users by stealth;', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li><?php esc_html_e( 'write any user’s personal data to the database;', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li><?php esc_html_e( 'send any data to external servers;', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li><?php esc_html_e( 'use cookies.', 'hcaptcha-for-forms-and-more' ); ?></li>
-			</ul>
-			<p>
-				<?php esc_html_e( 'Once you activate this plugin, the hCaptcha-answering user’s IP address and browser data may be sent to the hCaptcha service on pages where you have activated hCaptcha protection. However, hCaptcha is designed to minimize data used, process it very close to the user, and rapidly discard it after analysis.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<p>
-				<?php
-				echo wp_kses_post(
-					sprintf(
-					/* translators: 1: hCaptcha privacy link */
-						__( 'For more details, please see the hCaptcha privacy policy at %1$s.', 'hcaptcha-for-forms-and-more' ),
-						'<a href="https://hcaptcha.com/privacy" target="_blank">hCaptcha.com</a>'
-					)
-				);
-				?>
-			</p>
-			<p>
-				<?php esc_html_e( 'If you enable the optional plugin-local statistics feature, the following additional data will be recorded to your database:', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<ul>
-				<li><?php esc_html_e( 'counts of challenge verifications per form', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li>
-					<?php
-
-					'<strong>' .
-					esc_html_e( 'only if you enable this optional feature:', 'hcaptcha-for-forms-and-more' ) .
-					'</strong> ' .
-					esc_html_e( 'the IP address challenged on each form', 'hcaptcha-for-forms-and-more' );
-
-					?>
-				</li>
-				<li>
-					<?php
-
-					'<strong>' .
-					esc_html_e( 'only if you enable this optional feature:', 'hcaptcha-for-forms-and-more' ) .
-					'</strong> ' .
-					esc_html_e( 'the User Agent challenged on each form', 'hcaptcha-for-forms-and-more' );
-
-					?>
-				</li>
-			</ul>
-			<p>
-				<?php esc_html_e( 'You can collect data anonymously but still distinguish sources. The hashed IP address and User Agent will be saved.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<p>
-				<?php esc_html_e( 'We recommend leaving IP and User Agent recording off, which will make these statistics fully anonymous.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<p>
-				<?php esc_html_e( 'If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-
-			<h2>
-				<?php esc_html_e( 'What Data is Collected', 'hcaptcha-for-forms-and-more' ); ?>
-			</h2>
-
-			<p>
-				<?php esc_html_e( 'When hCaptcha is active, count of challenges, plugin non-private settings and active integration names may be sent to hCaptcha\'s servers for analysis. However:', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-			<ul>
-				<li><?php esc_html_e( 'hCaptcha does not track users covertly;', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li><?php esc_html_e( 'it does not store personal data in the site’s database;', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li><?php esc_html_e( 'it does not use third-party cookies;', 'hcaptcha-for-forms-and-more' ); ?></li>
-				<li><?php esc_html_e( 'it does not send data to external servers unless necessary.', 'hcaptcha-for-forms-and-more' ); ?></li>
-			</ul>
-			<p>
-				<?php esc_html_e( 'The service is built with privacy as a priority and complies with GDPR, CCPA, LGPD, and other international standards. hCaptcha is ISO 27001 and 27701 certified and participates in the EU-US, UK-US, and Swiss-US Data Privacy Framework programs.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-
-			<h2>
-				<?php esc_html_e( 'Cookies', 'hcaptcha-for-forms-and-more' ); ?>
-			</h2>
-
-			<p>
-				<?php esc_html_e( 'Plugin does not use cookies.', 'hcaptcha-for-forms-and-more' ); ?>
-			</p>
-
-			<h2>
-				<?php esc_html_e( 'Who We Share Data With', 'hcaptcha-for-forms-and-more' ); ?>
-			</h2>
-
-			<p>
-				<?php
-				echo wp_kses_post(
-					sprintf(
-					/* translators: 1: hCaptcha privacy link */
-						__( 'Data collected through hCaptcha is processed exclusively by the hCaptcha service. You can review their privacy policy at %1$s.', 'hcaptcha-for-forms-and-more' ),
-						'<a href="https://hcaptcha.com/privacy" target="_blank">hCaptcha.com</a>'
+					__(
+						'We use the hCaptcha security service (hereinafter "hCaptcha") on our website.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'This service is provided by Intuition Machines, Inc., a Delaware US Corporation ("IMI").',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'hCaptcha is used to check whether user actions on our online service (such as submitting a login or contact form) meet our security requirements.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'To do this, hCaptcha analyzes the behavior of the website or mobile app visitor based on various characteristics.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'This analysis starts automatically as soon as the website or mobile app visitor enters a part of the website or app with hCaptcha enabled.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'For the analysis, hCaptcha evaluates various information (e.g. IP address, how long the visitor has been on the website or app, or mouse movements made by the user).',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'The data collected during the analysis will be forwarded to IMI.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'hCaptcha analysis in the "invisible mode" may take place completely in the background.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'Website or app visitors are not advised that such an analysis is taking place if the user is not shown a challenge.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'Data processing is based on Art. 6(1)(b) of the GDPR: the processing of personal data is necessary for the performance of a contract to which the website visitor is party (for example, the website terms)',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'or in order to take steps at the request of the website visitor prior to entering into a contract.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'Our online service (including our website, mobile apps, and any other apps or other forms of access offered by us) needs to ensure that it is interacting with a human, not a bot,',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'and that activities performed by the user are not related to fraud or abuse.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'In addition, processing may also be based on Art. 6(1)(f) of the GDPR: our online service has a legitimate interest in protecting the service from abusive automated crawling, spam,',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'and other forms of abuse that can harm our service or other users of our service.',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . __(
+						'IMI acts as a "data processor" acting on behalf of its customers as defined under the GDPR, and a "service provider" for the purposes of the California Consumer Privacy Act (CCPA).',
+						'hcaptcha-for-forms-and-more'
+					) . ' ' . sprintf(
+					/* translators: 1: privacy link, 2: terms link. */
+						__(
+							'For more information about hCaptcha’s privacy policy and terms of use, please visit the following links: %1$s and %2$s.',
+							'hcaptcha-for-forms-and-more'
+						),
+						'<a href="https://www.hcaptcha.com/privacy" target="_blank">https://www.hcaptcha.com/privacy</a>',
+						'<a href="https://www.hcaptcha.com/terms" target="_blank">https://www.hcaptcha.com/terms</a>'
 					)
 				);
 				?>
