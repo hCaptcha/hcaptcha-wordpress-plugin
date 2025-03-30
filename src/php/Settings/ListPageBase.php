@@ -295,7 +295,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			: [];
 		$date = isset( $_POST['date'] )
 			// We need filter_input here to keep the delimiter intact.
-			? filter_input( INPUT_POST, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			? sanitize_text_field( wp_unslash( $_POST['date'] ) )
 			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 

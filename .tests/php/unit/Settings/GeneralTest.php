@@ -542,25 +542,33 @@ class GeneralTest extends HCaptchaTestCase {
 
 	/**
 	 * Test check_config().
+	 *
+	 * @param string|null $hcaptcha_response Some response.
+	 *
+	 * @dataProvider dp_test_check_config
 	 */
-	public function test_check_config(): void {
-		$ajax_mode         = 'live';
-		$ajax_site_key     = 'some-site-key';
-		$ajax_secret_key   = 'some-secret-key';
-		$hcaptcha_response = 'some-response';
-		$error1            = 'some error';
-		$result1           = [
+	public function test_check_config( ?string $hcaptcha_response ): void {
+		$ajax_mode       = 'live';
+		$ajax_site_key   = 'some-site-key';
+		$ajax_secret_key = 'some-secret-key';
+		$error1          = 'some error';
+		$result1         = [
 			'error'    => $error1,
 			'features' => [ 'custom_theme' => true ],
 		];
-		$result2           = 'Some verify error';
-		$license           = 'pro';
-		$subject           = Mockery::mock( General::class )->makePartial();
+		$result2         = 'Some verify error';
+		$license         = 'pro';
+		$subject         = Mockery::mock( General::class )->makePartial();
 
-		$_POST['mode']               = $ajax_mode;
-		$_POST['siteKey']            = $ajax_site_key;
-		$_POST['secretKey']          = $ajax_secret_key;
-		$_POST['h-captcha-response'] = $hcaptcha_response;
+		$_POST['mode']      = $ajax_mode;
+		$_POST['siteKey']   = $ajax_site_key;
+		$_POST['secretKey'] = $ajax_secret_key;
+
+		if ( $hcaptcha_response ) {
+			$_POST['h-captcha-response'] = $hcaptcha_response;
+		} else {
+			$hcaptcha_response = '';
+		}
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'update_option' )->with( 'license', $license )->once();
@@ -580,22 +588,40 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test toggle_section().
+	 * Data provider for test_check_config().
+	 *
+	 * @return array
 	 */
-	public function test_toggle_section(): void {
+	public function dp_test_check_config(): array {
+		return [
+			'No response'   => [ null ],
+			'Some response' => [ 'some-response' ],
+		];
+	}
+
+	/**
+	 * Test toggle_section().
+	 *
+	 * @param string|null $status Status.
+	 *
+	 * @dataProvider dp_test_toggle_section
+	 */
+	public function test_toggle_section( ?string $status ): void {
 		$section                = 'some-section';
-		$status                 = '1';
 		$user_id                = 1;
 		$user                   = (object) [ 'ID' => $user_id ];
 		$hcaptcha_user_settings = [
 			'sections' => [
-				$section => $status,
+				$section => (bool) $status,
 			],
 		];
 		$subject                = Mockery::mock( General::class )->makePartial();
 
 		$_POST['section'] = $section;
-		$_POST['status']  = $status;
+
+		if ( null !== $status ) {
+			$_POST['status'] = $status;
+		}
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -620,6 +646,19 @@ class GeneralTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_send_json_success' )->with()->once();
 
 		$subject->toggle_section();
+	}
+
+	/**
+	 * Data provider for test_toggle_section().
+	 *
+	 * @return array
+	 */
+	public function dp_test_toggle_section(): array {
+		return [
+			'No status' => [ null ],
+			'True'      => [ 'true' ],
+			'False'     => [ 'false' ],
+		];
 	}
 
 	/**
@@ -655,10 +694,7 @@ class GeneralTest extends HCaptchaTestCase {
 			->andReturn( true );
 		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
 		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( null );
-		WP_Mock::userFunction( 'get_user_meta' )->with( 0, General::USER_SETTINGS_META, true )->once()
-			->andReturn( false );
-		WP_Mock::userFunction( 'update_user_meta' )->with( 0, General::USER_SETTINGS_META, $hcaptcha_user_settings )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with()->once();
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Cannot save section status.' )->once();
 
 		$subject->toggle_section();
 	}
