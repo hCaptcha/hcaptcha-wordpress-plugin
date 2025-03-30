@@ -69,7 +69,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
-		assertSame( $expected, $subject->submission_data( $data ) );
+		self::assertSame( $expected, $subject->submission_data( $data ) );
 	}
 
 	/**
