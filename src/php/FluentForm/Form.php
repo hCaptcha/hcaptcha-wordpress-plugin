@@ -423,7 +423,7 @@ class Form extends LoginBase {
 	 *
 	 * @return bool
 	 */
-	private function is_login_form( $form ): bool {
+	protected function is_login_form( $form ): bool {
 
 		return (
 			has_action( 'fluentform/before_insert_submission' ) &&
