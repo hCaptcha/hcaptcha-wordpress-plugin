@@ -1526,13 +1526,10 @@ class Main {
 	 * @return bool
 	 */
 	public function is_plugin_active( string $plugin_name ): bool {
-		if ( is_multisite() ) {
-			$tab          = $this->settings->get_tab( Integrations::class );
-			$network_wide = $tab && $tab->is_network_wide();
-
-			if ( $network_wide ) {
-				return is_plugin_active_for_network( $plugin_name );
-			}
+		if ( $this->is_network_wide() ) {
+			// @codeCoverageIgnoreStart
+			return is_plugin_active_for_network( $plugin_name );
+			// @codeCoverageIgnoreEnd
 		}
 
 		return is_plugin_active( $plugin_name );
@@ -1550,5 +1547,22 @@ class Main {
 			false,
 			dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/'
 		);
+	}
+
+	/**
+	 * Determines if hCaptcha settings are defined network-wide.
+	 *
+	 * @return bool
+	 */
+	protected function is_network_wide(): bool {
+		// @codeCoverageIgnoreStart
+		if ( ! is_multisite() ) {
+			return false;
+		}
+
+		$tab = $this->settings->get_tab( Integrations::class );
+
+		return $tab && $tab->is_network_wide();
+		// @codeCoverageIgnoreEnd
 	}
 }

@@ -1743,6 +1743,34 @@ CSS;
 	}
 
 	/**
+	 * Test is_plugin_active().
+	 *
+	 * @return void
+	 */
+	public function test_is_plugin_active(): void {
+		$plugin = 'some-plugin/some-plugin.php';
+
+		add_filter(
+			'pre_option_active_plugins',
+			static function () use ( $plugin, &$active ) {
+				return $active ? [ $plugin ] : false;
+			}
+		);
+
+		$subject = new Main();
+
+		$active = false;
+
+		// Single site, not active.
+		self::assertFalse( $subject->is_plugin_active( $plugin ) );
+
+		$active = true;
+
+		// Single site, active.
+		self::assertTrue( $subject->is_plugin_active( $plugin ) );
+	}
+
+	/**
 	 * Test load_textdomain().
 	 */
 	public function test_load_textdomain(): void {
