@@ -72,12 +72,11 @@ class RegisterTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha() when not WP login url.
+	 * Test add_captcha() when not a WP login url.
 	 */
 	public function test_add_captcha_when_NOT_login_url(): void {
-		unset( $_SERVER['REQUEST_URI'] );
-
-		$_GET['action'] = 'register';
+		$_SERVER['REQUEST_URI'] = '';
+		$_GET['action']         = 'register';
 
 		$expected = '';
 

@@ -15,6 +15,7 @@ use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
+use function PHPUnit\Framework\assertSame;
 
 /**
  * Class LoginTest.
@@ -174,6 +175,60 @@ class LoginTest extends HCaptchaWPTestCase {
 		$expected = new WP_Error( 'bad-signature', 'Bad hCaptcha signature!', 400 );
 
 		self::assertSame( wp_json_encode( $expected ), wp_json_encode( $subject->check_signature( $user, $password ) ) );
+	}
+
+	/**
+	 * Test hide_login_error().
+	 *
+	 * @return void
+	 */
+	public function test_hide_login_error(): void {
+		$user     = new WP_User();
+		$username = 'some username';
+		$password = 'some password';
+		$subject  = new Login();
+
+		// Not a login error.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user = new WP_Error();
+
+		// Some login error.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		update_option( 'hcaptcha_settings', [ 'hide_login_errors' => false ] );
+		hcaptcha()->init_hooks();
+
+		// The setting 'hide_login_errors' is off.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		update_option( 'hcaptcha_settings', [ 'hide_login_errors' => true ] );
+		hcaptcha()->init_hooks();
+
+		$user = new WP_Error( 'empty_username' );
+
+		// Ignore empty_username error code.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user = new WP_Error( 'empty_password' );
+
+		// Ignore empty_password error code.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user     = new WP_Error( 'some_error', 'Some error message.', 400 );
+		$expected = new WP_Error( 'login_error', 'Login failed.' );
+
+		// Remove non-hCaptcha messages.
+		self::assertEquals( $expected, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user = new WP_Error( 'some_error', 'Some error message.', 400 );
+
+		$user->add( 'fail', 'The hCaptcha is invalid.' );
+
+		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.' );
+
+		// Remove non-hCaptcha messages.
+		self::assertEquals( $expected, $subject->hide_login_error( $user, $username, $password ) );
 	}
 
 	/**
