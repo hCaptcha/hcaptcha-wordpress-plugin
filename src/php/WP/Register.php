@@ -54,7 +54,7 @@ class Register {
 	 * @return void
 	 */
 	public function add_captcha(): void {
-		if ( ! $this->is_login_url() || ! $this->is_login_action() ) {
+		if ( ! $this->is_login_action() || ! $this->is_login_url() ) {
 			return;
 		}
 
