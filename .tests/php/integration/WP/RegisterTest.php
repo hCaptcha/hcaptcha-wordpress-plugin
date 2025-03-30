@@ -5,11 +5,18 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Register;
+use WPS\WPS_Hide_Login\Plugin;
 use WP_Error;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Class RegisterTest.
@@ -61,6 +68,19 @@ class RegisterTest extends HCaptchaWPTestCase {
 			],
 		];
 		$expected = $this->get_hcap_form( $args );
+
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'perfmatters_login_url' !== $function_name;
+			}
+		);
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $function_name ) {
+				return Plugin::class !== $function_name;
+			}
+		);
 
 		$subject = new Register();
 
