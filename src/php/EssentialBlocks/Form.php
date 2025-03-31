@@ -76,7 +76,7 @@ class Form {
 
 		$form_id = 0;
 
-		if ( preg_match( '/<form id="(.+)">/', $block_content, $m ) ) {
+		if ( preg_match( '/<form id="(.+?)"/', $block_content, $m ) ) {
 			$form_id = $m[1];
 		}
 
