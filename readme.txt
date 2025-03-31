@@ -673,6 +673,7 @@ Instructions for popular native integrations are below:
 * Added Privacy Policy to WordPress admin Privacy > Policy Guide page.
 * Improved API script delay behavior. Now, scripts are loaded after a delay interval or any user interaction, whichever happens first.
 * Improved scrolling behavior to highlighted elements in admin.
+* Fixed broken submit button with ACF, Gravity Forms and input to button snippet.
 * Fixed printing hCaptcha scripts on Essential Addons preview page.
 * Fixed hCaptcha layout on wpDiscuz forms.
 * Fixed race condition with Pro invisible hCaptcha.

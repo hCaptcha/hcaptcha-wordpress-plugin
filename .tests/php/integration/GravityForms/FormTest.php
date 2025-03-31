@@ -55,7 +55,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		if ( $mode_auto ) {
-			self::assertSame( 10, has_filter( 'gform_submit_button', [ $subject, 'add_hcaptcha' ] ) );
+			self::assertSame( 20, has_filter( 'gform_submit_button', [ $subject, 'add_hcaptcha' ] ) );
 		} else {
 			self::assertFalse( has_filter( 'gform_submit_button', [ $subject, 'add_hcaptcha' ] ) );
 		}
