@@ -342,13 +342,13 @@ JSON;
 		);
 		$expected['settings']['hcaptcha'] =
 			$hcap_widget . "\n" . '				<h-captcha id="' . $uniqid . '" data-fieldId="' . $field_id . '"
-				class="h-captcha"
-				data-sitekey="some key"
-				data-theme="some theme"
-				data-size="some size"
-				data-auto="false"
-				data-ajax="false"
-				data-force="false">
+			class="h-captcha"
+			data-sitekey="some key"
+			data-theme="some theme"
+			data-size="some size"
+			data-auto="false"
+			data-ajax="false"
+			data-force="false">
 		</h-captcha>
 		';
 

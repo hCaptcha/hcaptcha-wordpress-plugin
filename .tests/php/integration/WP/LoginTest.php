@@ -15,6 +15,7 @@ use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
+use function PHPUnit\Framework\assertSame;
 
 /**
  * Class LoginTest.
@@ -46,6 +47,17 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
+
+		self::assertSame( 10, has_action( 'hcap_signature', [ $subject, 'display_signature' ] ) );
+		self::assertSame( PHP_INT_MAX, has_action( 'login_form', [ $subject, 'display_signature' ] ) );
+		self::assertSame( PHP_INT_MAX, has_filter( 'login_form_middle', [ $subject, 'add_signature' ] ) );
+		self::assertSame( PHP_INT_MAX, has_filter( 'wp_authenticate_user', [ $subject, 'check_signature' ] ) );
+		self::assertSame( 100, has_filter( 'authenticate', [ $subject, 'hide_login_error' ] ) );
+
+		self::assertSame( 10, has_action( 'wp_login', [ $subject, 'login' ] ) );
+		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
+
+		self::assertSame( 0, has_action( 'hcap_delay_api', [ $subject, 'delay_api' ] ) );
 
 		self::assertSame(
 			10,
@@ -163,6 +175,60 @@ class LoginTest extends HCaptchaWPTestCase {
 		$expected = new WP_Error( 'bad-signature', 'Bad hCaptcha signature!', 400 );
 
 		self::assertSame( wp_json_encode( $expected ), wp_json_encode( $subject->check_signature( $user, $password ) ) );
+	}
+
+	/**
+	 * Test hide_login_error().
+	 *
+	 * @return void
+	 */
+	public function test_hide_login_error(): void {
+		$user     = new WP_User();
+		$username = 'some username';
+		$password = 'some password';
+		$subject  = new Login();
+
+		// Not a login error.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user = new WP_Error();
+
+		// Some login error.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		update_option( 'hcaptcha_settings', [ 'hide_login_errors' => false ] );
+		hcaptcha()->init_hooks();
+
+		// The setting 'hide_login_errors' is off.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		update_option( 'hcaptcha_settings', [ 'hide_login_errors' => true ] );
+		hcaptcha()->init_hooks();
+
+		$user = new WP_Error( 'empty_username' );
+
+		// Ignore empty_username error code.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user = new WP_Error( 'empty_password' );
+
+		// Ignore empty_password error code.
+		self::assertSame( $user, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user     = new WP_Error( 'some_error', 'Some error message.', 400 );
+		$expected = new WP_Error( 'login_error', 'Login failed.' );
+
+		// Remove non-hCaptcha messages.
+		self::assertEquals( $expected, $subject->hide_login_error( $user, $username, $password ) );
+
+		$user = new WP_Error( 'some_error', 'Some error message.', 400 );
+
+		$user->add( 'fail', 'The hCaptcha is invalid.' );
+
+		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.' );
+
+		// Remove non-hCaptcha messages.
+		self::assertEquals( $expected, $subject->hide_login_error( $user, $username, $password ) );
 	}
 
 	/**

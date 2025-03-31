@@ -13,6 +13,8 @@
 namespace HCaptcha\Tests\Integration\FluentForm;
 
 use FluentForm\App\Models\Form as FluentForm;
+use FluentForm\App\Modules\Form\FormFieldsParser;
+use FluentForm\Framework\Helpers\ArrayHelper;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -20,6 +22,7 @@ use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
+use WP_User;
 
 /**
  * Test FluentForm.
@@ -55,8 +58,8 @@ class FormTest extends HCaptchaWPTestCase {
 			has_filter( 'fluentform/has_hcaptcha', [ $subject, 'fluentform_has_hcaptcha' ] )
 		);
 		self::assertSame(
-			10,
-			has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] )
+			0,
+			has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] )
 		);
 		self::assertSame(
 			9,
@@ -135,51 +138,155 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() with bad response.
-	 *
-	 * @return void
-	 */
-	public function test_verify_no_success(): void {
-		$errors = [
-			'some_error'         => 'Some error description',
-			'h-captcha-response' => [ 'Please complete the hCaptcha.' ],
-		];
-		$data   = [];
-		$form   = Mockery::mock( FluentForm::class );
-		$fields = [];
-
-		$mock = Mockery::mock( Form::class )->makePartial();
-		$mock->shouldAllowMockingProtectedMethods();
-
-		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( true );
-
-		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
-	}
-
-	/**
 	 * Test verify().
 	 *
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$errors                         = [
+		$errors    = [
 			'some_error' => 'Some error description',
 		];
-		$data                           = [];
-		$form                           = Mockery::mock( FluentForm::class );
-		$fields                         = [];
-		$response                       = 'some response';
-		$expected                       = $errors;
-		$expected['h-captcha-response'] = [ 'Please complete the hCaptcha.' ];
+		$response  = 'some response';
+		$widget_id = 'some-widget-id';
+		$data      = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+		];
+		$fields    = [];
+		$form      = Mockery::mock( FluentForm::class );
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
 
-		$mock->shouldReceive( 'has_own_hcaptcha' )->with( $form )->andReturn( false );
+		$this->prepare_hcaptcha_request_verify( $response );
+
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
+
+		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
+	}
+
+	/**
+	 * Test verify() when not verified.
+	 *
+	 * @return void
+	 */
+	public function test_verify_not_verified(): void {
+		$errors    = [
+			'some_error' => 'Some error description',
+		];
+		$response  = 'some response';
+		$widget_id = 'some-widget-id';
+		$data      = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+		];
+		$expected  = [
+			'some_error'         => 'Some error description',
+			'h-captcha-response' => [ 'The hCaptcha is invalid.' ],
+		];
+		$fields    = [];
+		$form      = Mockery::mock( FluentForm::class );
+
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
 
 		$this->prepare_hcaptcha_request_verify( $response, false );
 
 		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+
+		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
+	}
+
+	/**
+	 * Test verify() a login form.
+	 *
+	 * @param bool $password_ok             Password is OK.
+	 * @param bool $is_login_limit_exceeded Whether the login limit is exceeded.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_verify_login_form
+	 */
+	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
+		$errors   = [
+			'some_error' => 'Some error description',
+		];
+		$user     = get_user_by( 'id', 1 );
+		$email    = $user->user_email;
+		$password = 'some password';
+		$data     = [
+			'email'    => $email,
+			'password' => $password,
+		];
+		$form     = Mockery::mock( FluentForm::class );
+		$fields   = [];
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[
+				'response' => null,
+			],
+		];
+
+		$array_helper = Mockery::mock( 'alias:' . ArrayHelper::class );
+
+		$array_helper->shouldReceive( 'get' )->andReturnUsing(
+			static function ( $data, $key ) {
+				return $data[ $key ];
+			}
+		);
+
+		add_filter(
+			'check_password',
+			static function () use ( $password_ok ) {
+				return $password_ok;
+			}
+		);
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$mock = Mockery::mock( Form::class )->makePartial();
+
+		$mock->shouldAllowMockingProtectedMethods();
+
+		$mock->shouldReceive( 'is_login_form' )->with( $form )->andReturn( true );
+		$mock->shouldReceive( 'is_login_limit_exceeded' )->with()->andReturn( $is_login_limit_exceeded );
+
+		if ( $password_ok ) {
+			$mock->shouldReceive( 'login' )->with( $email, Mockery::type( WP_User::class ) )->once();
+		} else {
+			$mock->shouldReceive( 'login_failed' )->with( $email )->once();
+		}
+
+		ob_start();
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
+		$json = ob_get_clean();
+
+		if ( $is_login_limit_exceeded ) {
+			self::assertSame( $expected, $die_arr );
+			self::assertSame( '"Login failed. Please reload the page."', $json );
+		}
+	}
+
+	/**
+	 * Data provider for test_verify_login_form().
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_login_form(): array {
+		return [
+			[ false, true ],
+			[ true, false ],
+		];
 	}
 
 	/**
@@ -487,14 +594,14 @@ CSS;
 		$form = new stdClass();
 
 		FunctionMocker::replace(
-			'FluentForm\App\Modules\Form\FormFieldsParser::resetData',
+			FormFieldsParser::class . '::resetData',
 			static function () {
 				// Do nothing.
 			}
 		);
 
 		FunctionMocker::replace(
-			'FluentForm\App\Modules\Form\FormFieldsParser::hasElement',
+			FormFieldsParser::class . '::hasElement',
 			static function ( $a_form, $element ) use ( $form, $has ) {
 				if ( $form === $a_form && 'hcaptcha' === $element ) {
 					return $has;
@@ -521,6 +628,49 @@ CSS;
 			'has'           => [ true ],
 			'does not have' => [ false ],
 		];
+	}
+
+	/**
+	 * Test get_hcaptcha().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_hcaptcha(): void {
+		$form_id  = 1;
+		$args     = [
+			'action' => 'hcaptcha_fluentform',
+			'name'   => 'hcaptcha_fluentform_nonce',
+			'id'     => [
+				'source'  => [ 'fluentform/fluentform.php' ],
+				'form_id' => $form_id,
+			],
+		];
+		$expected = $this->get_hcap_form( $args );
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_login_form' )->andReturn( false );
+
+		self::assertSame( $expected, $subject->get_hcaptcha() );
+	}
+
+	/**
+	 * Test get_hcaptcha() for login form.
+	 *
+	 * @return void
+	 */
+	public function test_get_hcaptcha_for_login_form(): void {
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_login_form' )->andReturn( true );
+		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( false );
+
+		self::assertSame( '', $subject->get_hcaptcha() );
 	}
 
 	/**

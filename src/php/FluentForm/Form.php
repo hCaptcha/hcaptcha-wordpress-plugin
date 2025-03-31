@@ -70,7 +70,7 @@ class Form extends LoginBase {
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 		add_filter( 'fluentform/has_hcaptcha', [ $this, 'fluentform_has_hcaptcha' ] );
-		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
@@ -147,8 +147,7 @@ class Form extends LoginBase {
 				423
 			);
 
-			// For testing purposes.
-			return $errors;
+			return $errors; // For testing purposes.
 		}
 
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
@@ -424,7 +423,7 @@ class Form extends LoginBase {
 	 *
 	 * @return bool
 	 */
-	private function is_login_form( $form ): bool {
+	protected function is_login_form( $form ): bool {
 
 		return (
 			has_action( 'fluentform/before_insert_submission' ) &&

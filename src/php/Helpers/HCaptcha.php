@@ -149,13 +149,13 @@ class HCaptcha {
 
 		?>
 		<h-captcha
-				class="h-captcha"
-				data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
-				data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
-				data-size="<?php echo esc_attr( $args['size'] ); ?>"
-				data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
-				data-ajax="<?php echo $args['ajax'] ? 'true' : 'false'; ?>"
-				data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
+			class="h-captcha"
+			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
+			data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
+			data-size="<?php echo esc_attr( $args['size'] ); ?>"
+			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
+			data-ajax="<?php echo $args['ajax'] ? 'true' : 'false'; ?>"
+			data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
 		</h-captcha>
 		<?php
 

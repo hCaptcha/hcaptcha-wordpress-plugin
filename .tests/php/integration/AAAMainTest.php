@@ -13,6 +13,7 @@
 
 namespace HCaptcha\Tests\Integration;
 
+use HCaptcha\Admin\Privacy;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -26,10 +27,10 @@ use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
-use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\Settings;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
 use HCaptcha\WCWishlists\CreateList;
@@ -121,32 +122,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha->init();
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-	}
-
-	/**
-	 * Test init() on cron request.
-	 *
-	 * @return void
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function test_init_on_cron(): void {
-		$hcaptcha = hcaptcha();
-
-		// The plugin was loaded by codeception.
-		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-
-		remove_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ], Main::LOAD_PRIORITY );
-
-		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-
-		add_filter( 'wp_doing_cron', '__return_true' );
-
-		$hcaptcha->init();
-
-		$migrations = $this->get_protected_property( $hcaptcha, 'migrations' );
-
-		self::assertFalse( has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-		self::assertSame( Migrations::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $migrations, 'migrate' ] ) );
 	}
 
 	/**
@@ -276,7 +251,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_init_and_init_hooks_on_elementor_pro_edit_page
 	 * @noinspection PhpUnitTestsInspection
 	 * @throws ReflectionException ReflectionException.
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_init_and_init_hooks_on_elementor_pro_edit_page(
 		string $elementor_pro_status,
@@ -396,26 +370,23 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init() and init_hooks() on XMLRPC_REQUEST.
+	 * Test init_hooks() on cron request.
+	 *
+	 * @return void
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_and_init_hooks_on_xml_rpc_request(): void {
-		$subject = Mockery::mock( Main::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods()->shouldReceive( 'is_xml_rpc' )->andReturn( true );
+	public function test_init_hooks_on_cron(): void {
+		add_filter( 'wp_doing_cron', '__return_true' );
 
-		$subject->init();
+		$subject = new Main();
 
-		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_modules' ] ) );
-		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_textdomain' ] ) );
+		$subject->init_hooks();
 
-		self::assertFalse( has_filter( 'wp_resource_hints', [ $subject, 'prefetch_hcaptcha_dns' ] ) );
-		self::assertFalse( has_filter( 'wp_headers', [ $subject, 'csp_headers' ] ) );
-		self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
-		self::assertFalse( has_action( 'login_head', [ $subject, 'login_head' ] ) );
-		self::assertFalse( has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] ) );
+		$loaded_classes = $this->get_protected_property( $subject, 'loaded_classes' );
 
-		self::assertNull( $this->get_protected_property( $subject, 'auto_verify' ) );
+		self::assertTrue( class_exists( Settings::class, false ) );
+		self::assertArrayNotHasKey( PluginStats::class, $loaded_classes );
 	}
 
 	/**
@@ -434,6 +405,11 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'some-type' ) );
 		self::assertSame( $expected, $subject->prefetch_hcaptcha_dns( $urls, 'dns-prefetch' ) );
+
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'some-type' ) );
+		self::assertSame( $urls, $subject->prefetch_hcaptcha_dns( $urls, 'dns-prefetch' ) );
 	}
 
 	/**
@@ -641,6 +617,25 @@ CSS;
 	}
 
 	/**
+	 * Test print_inline_styles() when prohibited.
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles_when_prohibited(): void {
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
 	 * Test login_head().
 	 *
 	 * @noinspection CssUnusedSymbol
@@ -689,6 +684,23 @@ CSS;
 		$subject->login_head();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test login_head() when prohibited.
+	 *
+	 * @return void
+	 */
+	public function test_login_head_when_prohibited(): void {
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+
+		$subject = new Main();
+
+		ob_start();
+
+		$subject->login_head();
+
+		self::assertSame( '', ob_get_clean() );
 	}
 
 	/**
@@ -888,6 +900,7 @@ CSS;
 			window.removeEventListener( 'touchstart', load );
 			document.body.removeEventListener( 'mouseenter', load );
 			document.body.removeEventListener( 'click', load );
+			window.removeEventListener( 'keydown', load );
 			window.removeEventListener( 'scroll', scrollHandler );
 
 			const t = document.getElementsByTagName( 'script' )[0];
@@ -914,14 +927,13 @@ CSS;
 			const delay = -100;
 
 			if ( delay >= 0 ) {
-				setTimeout( load, delay );
-
-				return;
+				timerId = setTimeout( load, delay );
 			}
 
 			window.addEventListener( 'touchstart', load );
 			document.body.addEventListener( 'mouseenter', load );
 			document.body.addEventListener( 'click', load );
+			window.addEventListener( 'keydown', load );
 			window.addEventListener( 'scroll', scrollHandler );
 		} );
 	} )();
@@ -1174,9 +1186,11 @@ CSS;
 
 		// Test with hCaptcha plugin not active.
 		$subject->load_modules();
+
 		$expected_loaded_classes = [
 			PluginStats::class,
 			Events::class,
+			Privacy::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
@@ -1729,6 +1743,34 @@ CSS;
 	}
 
 	/**
+	 * Test is_plugin_active().
+	 *
+	 * @return void
+	 */
+	public function test_is_plugin_active(): void {
+		$plugin = 'some-plugin/some-plugin.php';
+
+		add_filter(
+			'pre_option_active_plugins',
+			static function () use ( $plugin, &$active ) {
+				return $active ? [ $plugin ] : false;
+			}
+		);
+
+		$subject = new Main();
+
+		$active = false;
+
+		// Single site, not active.
+		self::assertFalse( $subject->is_plugin_active( $plugin ) );
+
+		$active = true;
+
+		// Single site, active.
+		self::assertTrue( $subject->is_plugin_active( $plugin ) );
+	}
+
+	/**
 	 * Test load_textdomain().
 	 */
 	public function test_load_textdomain(): void {
@@ -1739,11 +1781,6 @@ CSS;
 
 		$default_domain = 'default';
 		$default_mofile = WP_LANG_DIR . "/$locale.mo";
-
-		$domain = 'hcaptcha-for-forms-and-more';
-		$mofile =
-			WP_PLUGIN_DIR . '/' . dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/' .
-			$domain . '-' . $locale . '.mo';
 
 		$override_filter_params = [];
 

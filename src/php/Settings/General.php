@@ -856,6 +856,7 @@ class General extends PluginSettingsBase {
 	 * Ajax action to check config.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_config(): void {
 		$this->run_checks( self::CHECK_CONFIG_ACTION );
@@ -907,9 +908,11 @@ class General extends PluginSettingsBase {
 		$this->update_option( 'license', $license );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
-		$hcaptcha_response =
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			isset( $_POST['h-captcha-response'] ) ? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : '';
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$hcaptcha_response = isset( $_POST['h-captcha-response'] )
+			? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$result = hcaptcha_request_verify( $hcaptcha_response );
 
@@ -918,7 +921,7 @@ class General extends PluginSettingsBase {
 		}
 
 		wp_send_json_success(
-			esc_html__( 'Site config is valid.', 'hcaptcha-for-forms-and-more' )
+			esc_html__( 'Site config is valid. Save your changes.', 'hcaptcha-for-forms-and-more' )
 		);
 	}
 
@@ -926,7 +929,6 @@ class General extends PluginSettingsBase {
 	 * Ajax action to toggle a section.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function toggle_section(): void {
 		$this->run_checks( self::TOGGLE_SECTION_ACTION );
@@ -934,8 +936,9 @@ class General extends PluginSettingsBase {
 		// Nonce is checked by check_ajax_referer() in run_checks().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
-		$status  =
-			isset( $_POST['status'] ) ? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN ) : false;
+		$status  = isset( $_POST['status'] )
+			? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN )
+			: false;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$user    = wp_get_current_user();
@@ -943,6 +946,8 @@ class General extends PluginSettingsBase {
 
 		if ( ! $user_id ) {
 			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
 		}
 
 		$hcaptcha_user_settings = array_filter(

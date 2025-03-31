@@ -122,7 +122,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'search-integrations' => [
 				'title'   => 'Search on Integrations page',
-				'message' => 'Now you can search for plugin an themes on the Integrations page.',
+				'message' => 'You can search for plugin an themes on the Integrations page.',
 				'button'  => [
 					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations#hcaptcha-integrations-search',
 					'text' => 'Start search',
@@ -166,6 +166,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'button'  => [
 					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations',
 					'text' => 'Try auto-activation',
+				],
+			],
+			'passive-mode'        => [
+				'title'   => 'Friction-free “No CAPTCHA” & 99.9% passive modes',
+				'message' => '<a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/elementor-edit-form.png',
+					'text' => 'See an example',
 				],
 			],
 		];

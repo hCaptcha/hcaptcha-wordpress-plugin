@@ -76,7 +76,7 @@ class Form {
 		add_filter( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
 
-		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
 
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
@@ -156,9 +156,9 @@ class Form {
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *
-	 * @return bool|mixed
+	 * @return bool
 	 */
-	public function print_hcaptcha_scripts( $status ) {
+	public function print_hcaptcha_scripts( $status ): bool {
 		$forminator_api_handle = 'forminator-hcaptcha';
 
 		wp_dequeue_script( $forminator_api_handle );
@@ -168,7 +168,7 @@ class Form {
 			return true;
 		}
 
-		return $this->is_forminator_admin_page() ? true : $status;
+		return $this->is_forminator_admin_page() || $status;
 	}
 
 	/**

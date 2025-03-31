@@ -47,7 +47,7 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_filter( 'forminator_render_button_markup', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_filter( 'forminator_cform_form_is_submittable', [ $subject, 'verify' ] ) );
 
-		self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+		self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 		self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );

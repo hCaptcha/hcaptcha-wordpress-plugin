@@ -68,7 +68,7 @@ class Form extends Base {
 		$this->mode_embed = hcaptcha()->settings()->is( 'gravity_status', 'embed' );
 
 		if ( $this->mode_auto ) {
-			add_filter( 'gform_submit_button', [ $this, 'add_hcaptcha' ], 10, 2 );
+			add_filter( 'gform_submit_button', [ $this, 'add_hcaptcha' ], 20, 2 );
 		}
 
 		add_filter( 'gform_form_after_open', [ $this, 'gform_open' ], 10, 2 );

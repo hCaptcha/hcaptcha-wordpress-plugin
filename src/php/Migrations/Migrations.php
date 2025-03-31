@@ -430,17 +430,11 @@ class Migrations {
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 
+		$this->add_index( $table_name, 'idx_date_source_form', 'date_gmt, source, form_id' );
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$result = $wpdb->query(
-			"CREATE INDEX idx_date_source_form
-					ON $table_name
-					(date_gmt, source, form_id)"
-		);
-
-		if ( $result ) {
-			$wpdb->query( "DROP INDEX hcaptcha_id on $table_name" );
-		}
+		$wpdb->query( "DROP INDEX hcaptcha_id on $table_name" );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
@@ -496,7 +490,7 @@ class Migrations {
 		}
 
 		add_action(
-			'action_scheduler_init',
+			'init',
 			function () use ( $hook, $args, $group ) {
 				$transient = $group . '_' . $hook;
 				$status    = $this->create_as_action( $hook, $args, $group );
@@ -504,7 +498,8 @@ class Migrations {
 				if ( self::FAILED === $status ) {
 					set_transient( $transient, $status );
 				}
-			}
+			},
+			20
 		);
 
 		return null;
@@ -569,5 +564,40 @@ class Migrations {
 		$transient = $group . '_' . $hook;
 
 		set_transient( $transient, self::COMPLETED );
+	}
+
+	/**
+	 * Add index to a table.
+	 *
+	 * @param string $table_name Table.
+	 * @param string $index_name Index name.
+	 * @param string $key_part   Key part.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function add_index( string $table_name, string $index_name, string $key_part ): void {
+		global $wpdb;
+
+		// Check id index already exists.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_var(
+			"SELECT COUNT(1) IndexIsThere
+					FROM INFORMATION_SCHEMA.STATISTICS
+					WHERE table_schema = DATABASE()
+      					AND table_name = '$table_name'
+          				AND index_name = '$index_name'"
+		);
+
+		if ( '0' !== $result ) {
+			return;
+		}
+
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		// Change the column length for the wp_wpforms_entry_meta.type column to 255 and add an index.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( "CREATE INDEX $index_name ON $table_name ( $key_part )" );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 }

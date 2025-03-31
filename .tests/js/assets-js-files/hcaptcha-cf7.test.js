@@ -1,7 +1,7 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
 describe( 'hCaptcha Contact Form 7', () => {
-	let hCaptchaReset;
+	let hCaptchaBindEvents;
 
 	beforeEach( () => {
 		document.body.innerHTML = `
@@ -13,15 +13,15 @@ describe( 'hCaptcha Contact Form 7', () => {
 	      </form>
 	    `;
 
-		hCaptchaReset = jest.fn();
-		global.hCaptchaReset = hCaptchaReset;
+		hCaptchaBindEvents = jest.fn();
+		global.hCaptchaBindEvents = hCaptchaBindEvents;
 
 		require( '../../../assets/js/hcaptcha-cf7.js' );
 		document.dispatchEvent( new Event( 'DOMContentLoaded' ) );
 	} );
 
 	afterEach( () => {
-		global.hCaptchaReset.mockRestore();
+		global.hCaptchaBindEvents.mockRestore();
 	} );
 
 	const eventTypes = [
@@ -33,14 +33,14 @@ describe( 'hCaptcha Contact Form 7', () => {
 	];
 
 	eventTypes.forEach( ( eventType ) => {
-		test( `hCaptchaReset is called when the ${ eventType } event is triggered`, () => {
+		test( `hCaptchaBindEvents is called when the ${ eventType } event is triggered`, () => {
 			const forms = document.querySelectorAll( '.wpcf7' );
 			forms.forEach( ( form ) => {
 				const event = new CustomEvent( eventType );
 				form.dispatchEvent( event );
 			} );
 
-			expect( hCaptchaReset ).toHaveBeenCalledTimes( forms.length );
+			expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( forms.length );
 		} );
 	} );
 } );

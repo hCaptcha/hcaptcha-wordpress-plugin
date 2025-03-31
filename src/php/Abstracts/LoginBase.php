@@ -80,6 +80,8 @@ abstract class LoginBase {
 
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
 		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
+
+		add_action( 'hcap_delay_api', [ $this, 'delay_api' ], 0 );
 	}
 
 	/**
@@ -333,5 +335,19 @@ abstract class LoginBase {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Filters delay time for the hCaptcha API script.
+	 *
+	 * @param int|mixed $delay Number of milliseconds to delay hCaptcha API script.
+	 *                         Any negative value means delay until user interaction.
+	 *
+	 * @return int
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function delay_api( $delay ): int {
+		// Do not delay API request on login forms for compatibility with password managers.
+		return 0;
 	}
 }

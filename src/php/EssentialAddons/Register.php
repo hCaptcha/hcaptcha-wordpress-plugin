@@ -1,6 +1,6 @@
 <?php
 /**
- * Register class file.
+ * The Register class file.
  *
  * @package hcaptcha-wp
  */
@@ -49,7 +49,7 @@ class Register {
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
-		add_action( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
+		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
 	}
 
 	/**

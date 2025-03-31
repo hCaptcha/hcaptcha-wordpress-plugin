@@ -1,9 +1,11 @@
+/* global hCaptchaBindEvents */
+
 wp.hooks.addFilter(
 	'hcaptcha.submitButtonSelector',
 	'hcaptcha',
 	( submitButtonSelector ) => {
 		return submitButtonSelector + ', button.kb-forms-submit';
-	}
+	},
 );
 
 wp.hooks.addFilter(
@@ -17,18 +19,14 @@ wp.hooks.addFilter(
 		}
 
 		return isAjaxSubmitButton;
-	}
+	},
 );
 
 let originalStateChange;
 
 function modifyResponse() {
 	if ( this.readyState === XMLHttpRequest.DONE ) {
-		[ ...document.getElementsByClassName( 'h-captcha' ) ].map( function( widget ) {
-			window.hCaptchaReset( widget.closest( 'form' ) );
-
-			return widget;
-		} );
+		hCaptchaBindEvents();
 	}
 
 	if ( originalStateChange ) {
@@ -38,8 +36,13 @@ function modifyResponse() {
 
 const originalSend = XMLHttpRequest.prototype.send;
 
-XMLHttpRequest.prototype.send = function() {
+XMLHttpRequest.prototype.send = function( body ) {
+	if ( ! ( typeof body === 'string' && body.includes( 'h-captcha-response' ) ) ) {
+		return;
+	}
+
 	originalStateChange = this.onreadystatechange;
 	this.onreadystatechange = modifyResponse;
+
 	originalSend.apply( this, arguments );
 };

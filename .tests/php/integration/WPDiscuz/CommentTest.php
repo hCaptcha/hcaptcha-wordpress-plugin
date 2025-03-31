@@ -138,9 +138,9 @@ class CommentTest extends HCaptchaWPTestCase {
 			],
 		];
 		$hcap_form = $this->get_hcap_form( $args );
-		$output    = 'Some comment output<div class="wc-field-submit">Submit</div>';
+		$output    = 'Some comment output<div class="wpd-form-col-right"> <div class="wc-field-submit">Submit</div>';
 		$expected  =
-			'Some comment output' .
+			'Some comment output<div class="wpd-form-col-right wpd-form-col-hcaptcha"> ' .
 			'		<div class="wpd-field-hcaptcha wpdiscuz-item">
 			<div class="wpdiscuz-hcaptcha"></div>
 			' . $hcap_form . '			<div class="clearfix"></div>
@@ -246,7 +246,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_print_inline_styles(): void {
-		$expected = '.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
+		$expected = '.wpd-form-col-hcaptcha{min-width:303px}.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 
 		$subject = new Comment();

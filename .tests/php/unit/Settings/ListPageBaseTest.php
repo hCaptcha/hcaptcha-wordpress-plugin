@@ -121,13 +121,18 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test bulk_action().
 	 *
+	 * @param string|null $date Date.
+	 *
 	 * @return void
+	 * @dataProvider dp_test_bulk_action
 	 */
-	public function test_bulk_action(): void {
-		$ids  = [ 1, 2, 3 ];
-		$args = [
+	public function test_bulk_action( ?string $date ): void {
+		$ids   = [ 1, 2, 3 ];
+		$dates = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
+		$dates = array_filter( array_map( 'trim', $dates ) );
+		$args  = [
 			'ids'   => $ids,
-			'dates' => [],
+			'dates' => $date ? $dates : [],
 		];
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
@@ -135,6 +140,10 @@ class ListPageBaseTest extends HCaptchaTestCase {
 
 		$_POST['bulk'] = 'trash';
 		$_POST['ids']  = $ids_encoded;
+
+		if ( null !== $date ) {
+			$_POST['date'] = $date;
+		}
 
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -148,6 +157,18 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_send_json_success' )->once()->with();
 
 		$subject->bulk_action();
+	}
+
+	/**
+	 * Data provider for test_bulk_action().
+	 *
+	 * @return array
+	 */
+	public function dp_test_bulk_action(): array {
+		return [
+			'No date'   => [ null ],
+			'Some date' => [ '2024-04-27 - 2024-05-27' ],
+		];
 	}
 
 	/**

@@ -25,6 +25,7 @@ FunctionMocker::init(
 			realpath( HCAPTCHA_PATH . '/.tests/php/integration/Stubs' ),
 		],
 		'redefinable-internals' => [
+			'class_exists',
 			'constant',
 			'defined',
 			'filter_input',

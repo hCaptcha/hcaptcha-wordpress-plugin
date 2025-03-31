@@ -15,7 +15,8 @@ class HCaptcha {
 	constructor() {
 		this.foundForms = [];
 		this.params = null;
-		this.observing = false;
+		this.observingDarkMode = false;
+		this.observingPasswordManagers = false;
 		this.darkElement = null;
 		this.darkClass = null;
 		this.callback = this.callback.bind( this );
@@ -169,7 +170,7 @@ class HCaptcha {
 
 		// Do not execute hCaptcha twice.
 		if ( token === '' ) {
-			hcaptcha.execute( widgetId );
+			hcaptcha.execute( widgetId, { async: false } );
 		} else {
 			this.callback( token );
 		}
@@ -261,11 +262,11 @@ class HCaptcha {
 	 * Observe dark mode changes and apply auto theme.
 	 */
 	observeDarkMode() {
-		if ( this.observing ) {
+		if ( this.observingDarkMode ) {
 			return;
 		}
 
-		this.observing = true;
+		this.observingDarkMode = true;
 
 		const params = this.getParams();
 
@@ -303,6 +304,77 @@ class HCaptcha {
 
 			observer.observe( this.darkElement, config );
 		}
+	}
+
+	/**
+	 * Observe password managers.
+	 */
+	observePasswordManagers() {
+		if ( this.observingPasswordManagers ) {
+			return;
+		}
+
+		this.observingPasswordManagers = true;
+
+		let isProcessing = false;
+
+		const observer = new MutationObserver( ( mutations ) => {
+			if ( isProcessing ) {
+				return;
+			}
+
+			isProcessing = true;
+
+			requestAnimationFrame( () => {
+				for ( const mutation of mutations ) {
+					if ( ! ( mutation.type === 'childList' ) ) {
+						continue;
+					}
+
+					const el1Pass = document.querySelector( 'com-1password-button' );
+					const elLastPass = document.querySelector( 'div[data-lastpass-icon-root]' );
+
+					if ( ! el1Pass && ! elLastPass ) {
+						continue;
+					}
+
+					observer.disconnect(); // Stop observer after a password manager element was found.
+
+					this.foundForms.map( ( form ) => {
+						const { hCaptchaId, submitButtonElement } = form;
+
+						if ( ! submitButtonElement ) {
+							return form;
+						}
+
+						const formElement = document.querySelector( `[data-h-captcha-id="${ hCaptchaId }"]` );
+
+						/**
+						 * @type {HTMLElement}
+						 */
+						const hcaptchaElement = formElement.querySelector( '.h-captcha' );
+						const dataset = hcaptchaElement.dataset;
+
+						if ( dataset.size === 'invisible' || dataset.force === 'true' ) {
+							// Do not add the event listener again.
+							return form;
+						}
+
+						hcaptchaElement.dataset.force = 'true';
+
+						submitButtonElement.addEventListener( 'click', this.validate, true );
+
+						return form;
+					} );
+
+					break;
+				}
+
+				isProcessing = false;
+			} );
+		} );
+
+		observer.observe( document.body, { childList: true, subtree: true } );
 	}
 
 	/**
@@ -385,6 +457,7 @@ class HCaptcha {
 	 */
 	render( hcaptchaElement ) {
 		this.observeDarkMode();
+		this.observePasswordManagers();
 
 		let globalParams = this.getParams();
 

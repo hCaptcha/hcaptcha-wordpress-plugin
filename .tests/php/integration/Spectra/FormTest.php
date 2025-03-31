@@ -50,7 +50,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 10, has_action( 'render_block', [ $subject, 'render_block' ] ) );
 		self::assertSame( 20, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
-		self::assertSame( 10, has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+		self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 	}
 
@@ -69,7 +69,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( has_action( 'render_block', [ $subject, 'render_block' ] ) );
 		self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
-		self::assertFalse( has_action( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+		self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
 		self::assertFalse( has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 	}
 

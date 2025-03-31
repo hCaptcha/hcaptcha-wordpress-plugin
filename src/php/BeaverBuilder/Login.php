@@ -12,6 +12,7 @@ namespace HCaptcha\BeaverBuilder;
 
 use FLBuilderModule;
 use WP_Error;
+use WP_User;
 
 /**
  * Class Login.
@@ -31,7 +32,7 @@ class Login extends Base {
 	}
 
 	/**
-	 * Filters the Beaver Builder Login Form submit button html and adds hcaptcha.
+	 * Filters the Beaver Builder Login Form submit button HTML and adds hcaptcha.
 	 *
 	 * @param string|mixed    $out    Button html.
 	 * @param FLBuilderModule $module Button module.

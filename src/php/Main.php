@@ -15,6 +15,7 @@ namespace HCaptcha;
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
+use HCaptcha\Admin\Privacy;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
@@ -145,10 +146,6 @@ class Main {
 
 		$this->migrations = new Migrations();
 
-		if ( wp_doing_cron() ) {
-			return;
-		}
-
 		( new Fix() )->init();
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
@@ -186,8 +183,13 @@ class Main {
 			]
 		);
 
+		if ( wp_doing_cron() ) {
+			return;
+		}
+
 		$this->load( PluginStats::class );
 		$this->load( Events::class );
+		$this->load( Privacy::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );
@@ -327,7 +329,12 @@ class Main {
 	public function prefetch_hcaptcha_dns( $urls, string $relation_type ): array {
 		$urls = (array) $urls;
 
-		if ( 'dns-prefetch' === $relation_type ) {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ( 'dns-prefetch' === $relation_type ) && apply_filters( 'hcap_print_hcaptcha_scripts', true ) ) {
 			$urls[] = 'https://hcaptcha.com';
 		}
 
@@ -441,6 +448,15 @@ class Main {
 	 * @noinspection CssUnknownTarget
 	 */
 	public function print_inline_styles(): void {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ! apply_filters( 'hcap_print_hcaptcha_scripts', true ) ) {
+			return;
+		}
+
 		$settings           = $this->settings();
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
@@ -537,6 +553,15 @@ class Main {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function login_head(): void {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		if ( ! apply_filters( 'hcap_print_hcaptcha_scripts', true ) ) {
+			return;
+		}
+
 		/* language=CSS */
 		$css = '
 	@media (max-width: 349px) {
@@ -1501,13 +1526,10 @@ class Main {
 	 * @return bool
 	 */
 	public function is_plugin_active( string $plugin_name ): bool {
-		if ( is_multisite() ) {
-			$tab          = $this->settings->get_tab( Integrations::class );
-			$network_wide = $tab && $tab->is_network_wide();
-
-			if ( $network_wide ) {
-				return is_plugin_active_for_network( $plugin_name );
-			}
+		if ( $this->is_network_wide() ) {
+			// @codeCoverageIgnoreStart
+			return is_plugin_active_for_network( $plugin_name );
+			// @codeCoverageIgnoreEnd
 		}
 
 		return is_plugin_active( $plugin_name );
@@ -1525,5 +1547,22 @@ class Main {
 			false,
 			dirname( plugin_basename( HCAPTCHA_FILE ) ) . '/languages/'
 		);
+	}
+
+	/**
+	 * Determines if hCaptcha settings are defined network-wide.
+	 *
+	 * @return bool
+	 */
+	protected function is_network_wide(): bool {
+		// @codeCoverageIgnoreStart
+		if ( ! is_multisite() ) {
+			return false;
+		}
+
+		$tab = $this->settings->get_tab( Integrations::class );
+
+		return $tab && $tab->is_network_wide();
+		// @codeCoverageIgnoreEnd
 	}
 }

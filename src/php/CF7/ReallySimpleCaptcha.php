@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+//phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\CF7;
 
 use WPCF7_Submission;

@@ -59,17 +59,30 @@ const settingsBase = ( function( $ ) {
 			return;
 		}
 
-		const $element = $( hash );
+		// Try to find by id.
+		let $element = $( hash );
 
-		if ( ! $element ) {
+		if ( ! $element.length ) {
+			// Try to find by name.
+			$element = $( `[name="hcaptcha_settings[${ hash.slice( 1 ) }]"]` );
+		}
+
+		if ( ! $element.length ) {
 			return;
 		}
 
+		let $target = $element;
+
 		if ( $element.is( ':checkbox' ) ) {
-			$element.closest( 'fieldset' ).addClass( 'blink' );
-		} else {
-			$element.addClass( 'blink' );
+			$target = $element.closest( 'fieldset' );
 		}
+
+		$target.addClass( 'blink' )[ 0 ].scrollIntoView(
+			{
+				behavior: 'smooth',
+				block: 'center',
+			},
+		);
 	}
 
 	/**
@@ -135,7 +148,8 @@ const settingsBase = ( function( $ ) {
 	} );
 
 	setHeaderBarTop();
-	highLight();
+
+	document.addEventListener( 'DOMContentLoaded', highLight );
 
 	return app;
 }( jQuery ) );

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use DateTimeZone;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\Events\FormsTable;
 use HCaptcha\Main;
@@ -637,6 +638,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$result       = count( $ids );
 
 		WP_Mock::passthruFunction( 'get_gmt_from_date' );
+		WP_Mock::userFunction( 'wp_timezone' )->with()->andReturn( new DateTimeZone( 'UTC' ) );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$wpdb         = Mockery::mock( 'WPDB' );
@@ -649,6 +651,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
+		self::assertFalse( $subject->delete_events( [] ) );
 		self::assertTrue( $subject->delete_events( $args ) );
 	}
 }

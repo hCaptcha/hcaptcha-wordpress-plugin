@@ -24,15 +24,15 @@ trait Base {
 	 * @return string
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	private function get_login_url(): string {
-		if ( class_exists( Plugin::class ) ) {
-			// Integration with WPS Hide Login plugin.
-			return wp_parse_url( Plugin::get_instance()->new_login_url(), PHP_URL_PATH );
-		}
-
+	protected function get_login_url(): string {
 		if ( function_exists( 'perfmatters_login_url' ) ) {
 			// Integration with Perfmatters plugin.
-			return wp_parse_url( perfmatters_login_url(), PHP_URL_PATH );
+			return (string) wp_parse_url( perfmatters_login_url(), PHP_URL_PATH );
+		}
+
+		if ( class_exists( Plugin::class ) ) {
+			// Integration with WPS Hide Login plugin.
+			return (string) wp_parse_url( Plugin::get_instance()->new_login_url(), PHP_URL_PATH );
 		}
 
 		return '/wp-login.php';
@@ -49,8 +49,9 @@ trait Base {
 			'';
 
 		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
+		$login_url   = $this->get_login_url();
 
-		return false !== strpos( $request_uri, $this->get_login_url() );
+		return $request_uri && $login_url && ( false !== strpos( $request_uri, $login_url ) );
 	}
 
 	/**

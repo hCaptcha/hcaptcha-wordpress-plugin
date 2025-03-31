@@ -134,12 +134,12 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
 			$this->get_hcap_widget( $id ) . '
 				<span id="' . $uniqid . '" class="wpcf7-form-control h-captcha "
-				data-sitekey="' . $hcaptcha_site_key . '"
-				data-theme="' . $hcaptcha_theme . '"
-				data-size="' . $hcaptcha_size . '"
-				data-auto="false"
-				data-ajax="false"
-				data-force="false">' . '
+			data-sitekey="' . $hcaptcha_site_key . '"
+			data-theme="' . $hcaptcha_theme . '"
+			data-size="' . $hcaptcha_size . '"
+			data-auto="false"
+			data-ajax="false"
+			data-force="false">' . '
 		</span>
 		' . $nonce .
 			'</span><input type="submit" value="Send">' .
@@ -678,21 +678,37 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$field        = Mockery::mock( WPCF7_FormTag::class );
 		$field_type   = 'hcaptcha';
 		$field->type  = $field_type;
-		$form_fields  = [ $field ];
-		$form_html    = 'some cf7 html';
+		$form_fields  = [];
+		$form_html    = 'some cf7 html [cf7-hcaptcha] more html';
 
 		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
-		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
-		$contact_form->shouldReceive( 'form_html' )->andReturn( $form_html );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturnUsing(
+			static function () use ( &$form_fields ) {
+				return $form_fields;
+			}
+		);
+		$contact_form->shouldReceive( 'form_html' )->andReturnUsing(
+			static function () use ( &$form_html ) {
+				return $form_html;
+			}
+		);
 
 		$subject = Mockery::mock( CF7::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
 
+		// Field type is hcaptcha, has shortcode.
+		self::assertTrue( $subject->has_field( $submission, $field_type ) );
+
+		$form_fields = [ $field ];
+		$form_html   = 'some cf7 html';
+
+		// Field type is hcaptcha, no shortcode.
 		self::assertTrue( $subject->has_field( $submission, $field_type ) );
 
 		$field->type = 'some';
 
+		// Some field type.
 		self::assertFalse( $subject->has_field( $submission, $field_type ) );
 	}
 

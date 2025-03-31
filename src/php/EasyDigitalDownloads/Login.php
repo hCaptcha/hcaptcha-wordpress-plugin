@@ -48,6 +48,7 @@ class Login {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
 		add_action( 'edd_user_login', [ $this, 'verify' ], 9 );
 		add_filter( 'edd_errors', [ $this, 'errors' ] );
+		add_action( 'hcap_delay_api', [ $this, 'delay_api' ], 0 );
 	}
 
 	/**
@@ -123,5 +124,19 @@ class Login {
 		$errors[ $code ] = $this->error_message;
 
 		return $errors;
+	}
+
+	/**
+	 * Filters delay time for the hCaptcha API script.
+	 *
+	 * @param int|mixed $delay Number of milliseconds to delay hCaptcha API script.
+	 *                         Any negative value means delay until user interaction.
+	 *
+	 * @return int
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function delay_api( $delay ): int {
+		// Do not delay API request on login forms for compatibility with password managers.
+		return 0;
 	}
 }

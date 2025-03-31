@@ -60,7 +60,7 @@ class Admin extends Base {
 			add_action( 'current_screen', [ $this, 'current_screen' ] );
 		}
 
-		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true' );
+		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true', 0 );
 	}
 
 	/**

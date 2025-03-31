@@ -1294,6 +1294,60 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test maybe_activate_plugin() when can be installed.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_maybe_activate_plugin_when_can_be_installed(): void {
+		$plugin = 'some-plugin/some-plugin.php';
+
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'install', true );
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'install_plugin' )->with( $plugin )->once()->andReturn( null );
+		$subject->shouldReceive( 'activate_plugin' )->with( $plugin )->once()->andReturn( null );
+
+		self::assertNull( $subject->maybe_activate_plugin( $plugin ) );
+	}
+
+	/**
+	 * Test maybe_activate_plugin() when cannot be installed.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_maybe_activate_plugin_when_cannot_be_installed(): void {
+		$plugin = 'some-plugin/some-plugin.php';
+		$result = Mockery::mock( 'overload:WP_Error' );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+
+		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $result )->once()->andReturn( true );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'install', true );
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'install_plugin' )->with( $plugin )->once()->andReturn( $result );
+		$subject->shouldReceive( 'activate_plugin' )->never();
+
+		self::assertSame( $result, $subject->maybe_activate_plugin( $plugin ) );
+	}
+
+	/**
 	 * Test install_plugin().
 	 *
 	 * @return void
@@ -1579,42 +1633,82 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 	/**
 	 * Test activate_theme().
-	 *
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_theme(): void {
 		$theme = 'Divi';
 
 		$wp_theme = Mockery::mock( 'WP_Theme' );
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
-		$method   = 'activate_theme';
 
 		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyfive' );
+		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
 		WP_Mock::userFunction( 'switch_theme' )->with( $theme )->once();
 
-		$this->set_method_accessibility( $subject, 'activate_plugins' );
-		self::assertNull( $subject->$method( $theme ) );
+		self::assertNull( $subject->activate_theme( $theme ) );
 	}
 
 	/**
 	 * Test activate_theme() when it is already activated.
-	 *
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_activate_theme_already_activated(): void {
 		$theme = 'Divi';
 
 		$wp_theme = Mockery::mock( 'WP_Theme' );
 		$subject  = Mockery::mock( Integrations::class )->makePartial();
-		$method   = 'activate_theme';
 
 		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( $theme );
+		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
 
-		self::assertTrue( $subject->$method( $theme ) );
+		self::assertTrue( $subject->activate_theme( $theme ) );
+	}
+
+	/**
+	 * Test activate_theme() when can be installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_activate_theme_when_can_be_installed(): void {
+		$theme = 'Divi';
+
+		$wp_theme = Mockery::mock( 'WP_Theme' );
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+
+		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyfive' );
+		$this->set_protected_property( $subject, 'install', true );
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'install_theme' )->with( $theme )->once()->andReturn( null );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'switch_theme' )->with( $theme )->once();
+
+		self::assertNull( $subject->activate_theme( $theme ) );
+	}
+
+	/**
+	 * Test activate_theme() when cannot be installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_activate_theme_when_cannot_be_installed(): void {
+		$theme  = 'Divi';
+		$result = Mockery::mock( 'overload:WP_Error' );
+
+		$wp_theme = Mockery::mock( 'WP_Theme' );
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+
+		$wp_theme->shouldReceive( 'get_stylesheet' )->andReturn( 'twentytwentyfive' );
+		$this->set_protected_property( $subject, 'install', true );
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'install_theme' )->with( $theme )->once()->andReturn( $result );
+
+		WP_Mock::userFunction( 'wp_get_theme' )->with()->once()->andReturn( $wp_theme );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $result )->once()->andReturn( true );
+
+		self::assertSame( $result, $subject->activate_theme( $theme ) );
 	}
 
 	/**

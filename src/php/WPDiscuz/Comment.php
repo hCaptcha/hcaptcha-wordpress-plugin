@@ -54,6 +54,7 @@ class Comment extends Base {
 		];
 
 		ob_start();
+
 		?>
 		<div class="wpd-field-hcaptcha wpdiscuz-item">
 			<div class="wpdiscuz-hcaptcha"></div>
@@ -61,11 +62,13 @@ class Comment extends Base {
 			<div class="clearfix"></div>
 		</div>
 		<?php
+
 		$form = ob_get_clean();
 
-		$search = '<div class="wc-field-submit">';
+		$pattern     = '/<div class="(wpd-form-col-.+?)">(\s*?)<div class="wc-field-submit">/m';
+		$replacement = '<div class="$1 wpd-form-col-hcaptcha">$2' . $form . '<div class="wc-field-submit">';
 
-		return str_replace( $search, $form . $search, (string) $output );
+		return preg_replace( $pattern, $replacement, (string) $output );
 	}
 
 	/**
@@ -139,6 +142,10 @@ class Comment extends Base {
 	public function print_inline_styles(): void {
 		/* language=CSS */
 		$css = '
+	.wpd-form-col-hcaptcha {
+		min-width: 303px;
+	}
+
 	.wpd-field-hcaptcha .h-captcha {
 		margin-left: auto;
 	}

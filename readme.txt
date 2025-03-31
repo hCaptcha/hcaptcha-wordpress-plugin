@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 4.11.0
+Stable tag: 4.12.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -193,22 +193,24 @@ Arbitrary forms can also be verified in ajax via the `ajax` argument. There is n
 [hcaptcha ajax="true"]
 `
 
-= How to block hCaptcha on a specific page? =
+= How to block hCaptcha entirely on a specific page? =
 
 hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it on `my-account` page, add the following code to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
 `
 /**
-* Filter hCaptcha activation flag.
-*
-* @param bool $activate Activate flag.
-*
-* @return bool
-*/
-function my_hcap_activate( $activate ) {
+ * Filter hCaptcha activation flag.
+ *
+ * @param bool|mixed $activate Activate flag.
+ *
+ * @return bool
+ */
+function my_hcap_activate( $activate ): bool {
+  $status = (bool) $status;
+
   $url = isset( $_SERVER['REQUEST_URI'] ) ?
-  filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-  '';
+    filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+    '';
 
   if ( '/my-account/' === $url ) {
     return false;
@@ -218,6 +220,31 @@ function my_hcap_activate( $activate ) {
 }
 
 add_filter( 'hcap_activate', 'my_hcap_activate' );
+`
+
+= How to block hCaptcha scripts on a specific page? =
+
+hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it everywhere except `contact` page, add the following code.
+
+`
+/**
+ * Filter hCaptcha print hCaptcha scripts status.
+ *
+ * @param bool|mixed $status Current print status.
+ *
+ * @return bool
+ */
+function my_hcap_print_hcaptcha_scripts( $status ): bool {
+  $status = (bool) $status;
+
+  if ( is_page( 'contact' ) ) {
+    return $status;
+  }
+
+  return false;
+}
+
+add_filter( 'hcap_print_hcaptcha_scripts', 'my_hcap_print_hcaptcha_scripts' );
 `
 
 = Skipping hCaptcha verification on a specific form =
@@ -380,25 +407,27 @@ Below is an example of how to skip the hCaptcha widget on a Gravity Form with id
 /**
  * Filters the protection status of a form.
  *
- * @param string     $value   The protection status of a form.
- * @param string[]   $source  Plugin(s) serving the form.
- * @param int|string $form_id Form id.
+ * @param string|mixed $value   The protection status of a form.
+ * @param string[]     $source  Plugin(s) serving the form.
+ * @param int|string   $form_id Form id.
  *
  * @return bool
  */
-function hcap_protect_form_filter( $value, $source, $form_id ) {
-	if ( ! in_array( 'gravityforms/gravityforms.php', $source, true ) ) {
-		// The form is not sourced by Gravity Forms plugin.
-		return $value;
-	}
+function hcap_protect_form_filter( $value, $source, $form_id ): bool {
+  $value = (bool) $value;
 
-	if ( 1 !== (int) $form_id ) {
-		// The form has id !== 1.
-		return $value;
-	}
+  if ( ! in_array( 'gravityforms/gravityforms.php', $source, true ) ) {
+    // The form is not sourced by Gravity Forms plugin.
+    return $value;
+  }
 
-	// Turn off protection for a Gravity form with id = 1.
-	return false;
+  if ( 1 !== (int) $form_id ) {
+    // The form has id !== 1.
+    return $value;
+  }
+
+  // Turn off protection for a Gravity form with id = 1.
+  return false;
 }
 
 add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
@@ -412,16 +441,16 @@ To load the hCaptcha widget instantly, you can use the following filter:
 
 `
 /**
-* Filters delay time for hCaptcha API script.
-*
-* Any negative value will prevent the API script from loading at all,
-* until user interaction: mouseenter, click, scroll or touch.
-* This significantly improves Google Pagespeed Insights score.
-*
-* @param int $delay Number of milliseconds to delay hCaptcha API script.
-*                   Any negative value means delay until user interaction.
-*/
-function my_hcap_delay_api( $delay ) {
+ * Filters delay time for hCaptcha API script.
+ *
+ * Any negative value will prevent the API script from loading at all,
+ * until user interaction: mouseenter, click, scroll or touch.
+ * This significantly improves Google Pagespeed Insights score.
+ *
+ * @param int|mixed $delay Number of milliseconds to delay hCaptcha API script.
+ *                         Any negative value means delay until user interaction.
+ */
+function my_hcap_delay_api( $delay ): int {
   return 0;
 }
 
@@ -434,11 +463,13 @@ hCaptcha defaults to using the user's language as reported by the browser. Howev
 
 `
 /**
-* Filters hCaptcha language.
-*
-* @param string $language Language.
-*/
-function my_hcap_language( $language ) {
+ * Filters hCaptcha language.
+ *
+ * @param string|mixed $language Language.
+ */
+function my_hcap_language( $language ): string {
+  $language = (string) $language;
+
   // Detect page language and return it.
   $page_language = 'some lang'; // Detection depends on the multilingual plugin used.
 
@@ -457,12 +488,13 @@ You can use the following filter. It should be added to your plugin's (or mu-plu
  * Filter user IP to check if it is allowlisted.
  * For allowlisted IPs, hCaptcha will not be shown.
  *
- * @param bool   $allowlisted Whether IP is allowlisted.
- * @param string $ip          IP.
+ * @param bool|mixed $allowlisted Whether IP is allowlisted.
+ * @param string     $ip          IP.
  *
  * @return bool
  */
-function my_hcap_allowlist_ip( $allowlisted, $ip ) {
+function my_hcap_allowlist_ip( $allowlisted, $ip ): bool {
+  $allowlisted = (bool) $allowlisted;
 
   // Allowlist local IPs.
   if ( false === $ip ) {
@@ -492,9 +524,11 @@ To do this, use the following filter to your plugin's (or mu-plugin's) main file
 /**
  * Filter the settings system initialization arguments.
  *
- * @param array $args Settings system initialization arguments.
+ * @param array|mixed $args Settings system initialization arguments.
  */
-function hcap_settings_init_args_filter( $args ) {
+function hcap_settings_init_args_filter( $args ): array {
+  $args = (array) $args;
+
   $args['mode'] = 'tabs';
 
   return $args;
@@ -536,9 +570,12 @@ For more details, please see the hCaptcha privacy policy at:
 If you enable the optional plugin-local statistics feature, the following additional data will be recorded to your database:
 
 * counts of challenge verifications per form
-* **only if you enable this optional feature:** the IP addresses challenged on each form
+* **only if you enable this optional feature: **the IP address challenged on each form
+* **only if you enable this optional feature: **the USer Agent challenged on each form
 
-We recommend leaving IP recording off, which will make these statistics fully anonymous.
+You can collect data anonymously but still distinguish sources. The hashed IP address and User Agent will be saved.
+
+We recommend leaving IP and User Agent recording off, which will make these statistics fully anonymous.
 
 If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
 
@@ -627,6 +664,30 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.12.0 =
+* Added 'hcap_print_hcaptcha_scripts' filter.
+* Added the ability to filter printing of dsn-prefetch link and inline styles.
+* Added auto-forcing and prevent delaying of hCaptcha on login forms for 1Password compatibility.
+* Added auto-forcing and prevent delaying of hCaptcha on login forms for LastPass compatibility.
+* Added Privacy Policy to WordPress admin Privacy > Policy Guide page.
+* Improved API script delay behavior. Now, scripts are loaded after a delay interval or any user interaction, whichever happens first.
+* Improved scrolling behavior to highlighted elements in admin.
+* Fixed broken submit button with ACF, Gravity Forms and input to button snippet.
+* Fixed printing hCaptcha scripts on Essential Addons preview page.
+* Fixed hCaptcha layout on wpDiscuz forms.
+* Fixed race condition with Pro invisible hCaptcha.
+* Fixed scroll on a page load with a Kadence form.
+* Fixed scroll on a page load with a Kadence Advanced form.
+* Fixed scrolling and focusing after submitting with CF7 form.
+* Fixed scrolling and focusing after submitting with a Forminator form.
+* Fixed scrolling and focusing after submitting with a Quform form.
+* Fixed scrolling and focusing after submitting with an Elementor form.
+* Fixed scrolling and focusing after submitting with Autoverify in Ajax.
+* Fixed scrolling and focusing before checking the Site Config on the General page.
+* Fixed fatal error on claiming action during migration to 4.11.0.
+* Fixed fatal error when migrating to 4.0.0 via cron.
+* Fixed WordPress database error on migrating to 4.11.0 in a rare case.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
