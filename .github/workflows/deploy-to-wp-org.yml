@@ -29,7 +29,7 @@ jobs:
 
       - name: WordPress Plugin Deploy
         id: deploy
-        uses: hCaptcha/action-wordpress-plugin-asset-update@2480306f6f693672726d08b5917ea114cb2825f7
+        uses: hCaptcha/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2
         with:
           generate-zip: true
         env:
