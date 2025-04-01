@@ -164,8 +164,7 @@ class Form extends LoginBase {
 	}
 
 	/**
-	 * Filter print hCaptcha scripts status and return true, so, always run hCaptcha scripts.
-	 * Form can have own hCaptcha field, or we add hCaptcha automatically.
+	 * Filter print hCaptcha scripts status.
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *
@@ -177,7 +176,7 @@ class Form extends LoginBase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
-		return true;
+		return $status;
 	}
 
 	/**

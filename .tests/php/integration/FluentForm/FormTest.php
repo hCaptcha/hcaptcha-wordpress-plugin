@@ -304,7 +304,7 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
 
 		$result = $subject->print_hcaptcha_scripts( false );
-		self::assertTrue( $result );
+		self::assertFalse( $result );
 
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );

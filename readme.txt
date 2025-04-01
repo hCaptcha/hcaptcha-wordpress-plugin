@@ -665,6 +665,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.13.0 =
+* Fix enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
+
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.
 * Added the ability to filter printing of dsn-prefetch link and inline styles.
