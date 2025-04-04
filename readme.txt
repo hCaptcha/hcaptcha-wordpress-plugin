@@ -666,7 +666,8 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.13.0 =
-* Fix enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
+* Fixed enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
+* Fixed warning in with auto-verify forms, including Brevo.
 
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.
