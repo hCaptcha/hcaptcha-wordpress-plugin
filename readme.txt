@@ -224,7 +224,7 @@ add_filter( 'hcap_activate', 'my_hcap_activate' );
 
 = How to block hCaptcha scripts everywhere except specific page? =
 
-For instance, to block hCAptcha scripts everywhere except `contact` page, add the following code.
+For instance, to block hCaptcha scripts everywhere except `contact` page, add the following code.
 
 `
 /**
@@ -265,6 +265,8 @@ function hcap_block_inline_styles() {
 	remove_action( 'wp_head', [ $hcaptcha, 'print_inline_styles' ] );
 	remove_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] );
 }
+
+add_action( 'wp_head', 'hcap_block_inline_styles', 0 );
 `
 
 = Skipping hCaptcha verification on a specific form =
