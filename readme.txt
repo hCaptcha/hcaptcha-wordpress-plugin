@@ -222,9 +222,9 @@ function my_hcap_activate( $activate ): bool {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
-= How to block hCaptcha scripts on a specific page? =
+= How to block hCaptcha scripts everywhere except specific page? =
 
-hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it everywhere except `contact` page, add the following code.
+For instance, to block hCAptcha scripts everywhere except `contact` page, add the following code.
 
 `
 /**
@@ -235,16 +235,36 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
  * @return bool
  */
 function my_hcap_print_hcaptcha_scripts( $status ): bool {
-  $status = (bool) $status;
-
   if ( is_page( 'contact' ) ) {
-    return $status;
+    return (bool) $status;
   }
 
   return false;
 }
 
 add_filter( 'hcap_print_hcaptcha_scripts', 'my_hcap_print_hcaptcha_scripts' );
+`
+
+= How to block hCaptcha styles everywhere except specific page? =
+
+For instance, to block hCaptcha styles everywhere except `contact` page, add the following code.
+
+`
+/**
+ * Block inline styles.
+ *
+ * @return void
+ */
+function hcap_block_inline_styles() {
+	if ( is_page( 'contact' ) ) {
+		return;
+	}
+
+	$hcaptcha = hcaptcha();
+
+	remove_action( 'wp_head', [ $hcaptcha, 'print_inline_styles' ] );
+	remove_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] );
+}
 `
 
 = Skipping hCaptcha verification on a specific form =
