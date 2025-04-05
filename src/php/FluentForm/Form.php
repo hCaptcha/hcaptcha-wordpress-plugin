@@ -70,6 +70,7 @@ class Form extends LoginBase {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		add_filter( 'pre_option', [ $this, 'pre_option' ], 10, 3 );
 		add_filter( 'fluentform/rendering_field_html_hcaptcha', [ $this, 'render_field_hcaptcha' ], 10, 3 );
 		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_hcaptcha' ], 9, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
@@ -79,6 +80,32 @@ class Form extends LoginBase {
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+	}
+
+	/**
+	 * Filters the value of an existing option before it is retrieved.
+	 *
+	 * @param mixed        $pre_option    The value to return instead of the option value.
+	 * @param string|mixed $option        Option name.
+	 * @param mixed        $default_value The fallback value to return if the option does not exist.
+	 *
+	 * @return mixed
+	 *
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function pre_option( $pre_option, $option, $default_value ) {
+		if ( '_fluentform_hCaptcha_details' === $option ) {
+			return [
+				'siteKey'   => hcaptcha()->settings()->get_site_key(),
+				'secretKey' => hcaptcha()->settings()->get_secret_key(),
+			];
+		}
+
+		if ( '_fluentform_hCaptcha_keys_status' === $option ) {
+			return '1';
+		}
+
+		return $pre_option;
 	}
 
 	/**

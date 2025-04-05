@@ -39,6 +39,10 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
+			has_filter( 'pre_option', [ $subject, 'pre_option' ] )
+		);
+		self::assertSame(
+			10,
 			has_action( 'fluentform/rendering_field_html_hcaptcha', [ $subject, 'render_field_hcaptcha' ] )
 		);
 		self::assertSame(
@@ -73,6 +77,43 @@ class FormTest extends HCaptchaWPTestCase {
 			20,
 			has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
 		);
+	}
+
+	/**
+	 * Test pre_option().
+	 *
+	 * @return void
+	 */
+	public function test_pre_option(): void {
+		$pre_option    = 'some_pre_option_value';
+		$default_value = 'some_default_value';
+		$site_key      = 'some_site_key';
+		$secret_key    = 'some_secret_key';
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => $site_key,
+				'secret_key' => $secret_key,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Form();
+
+		// Some option.
+		self::assertSame( $pre_option, $subject->pre_option( $pre_option, 'some_option', $default_value ) );
+
+		$expected = [
+			'siteKey'   => $site_key,
+			'secretKey' => $secret_key,
+		];
+
+		// Details option.
+		self::assertSame( $expected, $subject->pre_option( $pre_option, '_fluentform_hCaptcha_details', $default_value ) );
+
+		// Status option.
+		self::assertSame( '1', $subject->pre_option( $pre_option, '_fluentform_hCaptcha_keys_status', $default_value ) );
 	}
 
 	/**
