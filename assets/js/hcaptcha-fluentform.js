@@ -41,7 +41,7 @@ document.addEventListener( 'hCaptchaLoaded', function() {
 			wrappingForm.appendChild( submitBtn );
 			submitBtn.before( hCaptcha );
 			hCaptcha.classList.remove( hCaptchaHiddenClass );
-			hCaptcha.classList.add( hCaptchaClass );
+			hCaptcha.querySelector( 'h-captcha' ).classList.add( hCaptchaClass );
 			hCaptcha.style.display = 'block';
 			window.hCaptchaBindEvents();
 		};

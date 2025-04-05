@@ -352,13 +352,13 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test enqueue_scripts().
+	 * Test print_footer_scripts().
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection ES6ConvertVarToLetConst
 	 */
-	public function test_enqueue_scripts(): void {
+	public function test_print_footer_scripts(): void {
 		global $wp_scripts;
 
 		$handle = 'hcaptcha-fluentform';
@@ -414,17 +414,8 @@ HTML;
 			],
 		];
 		$hcap_form      = HCaptcha::form( $args );
-		$hcap_form      = str_replace(
-			[
-				'class="h-captcha"',
-				'class="hcaptcha-widget-id"',
-			],
-			[
-				'class="h-captcha-hidden" style="display: none;"',
-				'class="h-captcha-hidden hcaptcha-widget-id"',
-			],
-			$hcap_form
-		);
+		$hcap_form      = str_replace( 'class="h-captcha"', 'class=""', $hcap_form );
+		$hcap_form      = '<div class="h-captcha-hidden" style="display: none;">' . "\n$hcap_form\n</div>";
 
 		$this->set_protected_property( $subject, 'form_id', $form_id );
 

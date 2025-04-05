@@ -255,21 +255,12 @@ class Form extends LoginBase {
 		wp_dequeue_script( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE );
 		wp_deregister_script( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE );
 
-		$hcaptcha = $this->get_hcaptcha();
-		$hcaptcha = str_replace(
-			[
-				'class="h-captcha"',
-				'class="hcaptcha-widget-id"',
-			],
-			[
-				'class="h-captcha-hidden" style="display: none;"',
-				'class="h-captcha-hidden hcaptcha-widget-id"',
-			],
-			$hcaptcha
-		);
+		$hcap_form = $this->get_hcaptcha();
+		$hcap_form = str_replace( 'class="h-captcha"', 'class=""', $hcap_form );
+		$hcap_form = '<div class="h-captcha-hidden" style="display: none;">' . "\n$hcap_form\n</div>";
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $hcaptcha;
+		echo $hcap_form;
 	}
 
 	/**
