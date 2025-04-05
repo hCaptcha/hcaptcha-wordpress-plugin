@@ -53,6 +53,11 @@ class Form extends LoginBase {
 	private const OBJECT = 'HCaptchaFluentFormObject';
 
 	/**
+	 * Fluent Forms conversational script handle.
+	 */
+	private const FLUENT_FORMS_CONVERSATIONAL_HANDLE = 'fluent_forms_conversational_form';
+
+	/**
 	 * Conversational form id.
 	 *
 	 * @var int
@@ -71,7 +76,7 @@ class Form extends LoginBase {
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 		add_filter( 'fluentform/has_hcaptcha', [ $this, 'fluentform_has_hcaptcha' ] );
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
@@ -109,7 +114,7 @@ class Form extends LoginBase {
 			return;
 		}
 
-		$this->form_id = (int) $form->id;
+		$this->form_id = (int) ( $form->id ?? 0 );
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $this->get_hcaptcha_wrapped();
@@ -176,21 +181,24 @@ class Form extends LoginBase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
+		// Always run hCaptcha main script with conversational forms.
+		if ( wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
+			return true;
+		}
+
 		return $status;
 	}
 
 	/**
-	 * Enqueue scripts.
+	 * Print footer scripts.
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts(): void {
+	public function print_footer_scripts(): void {
 		global $wp_scripts;
 
-		$fluent_forms_conversational_script = 'fluent_forms_conversational_form';
-
 		// Proceed with conversational form only.
-		if ( ! wp_script_is( $fluent_forms_conversational_script ) ) {
+		if ( ! wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
 			return;
 		}
 
@@ -208,20 +216,20 @@ class Form extends LoginBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'id'  => 'fluent_forms_conversational_form',
-				'url' => $wp_scripts->registered[ $fluent_forms_conversational_script ]->src,
+				'id'  => self::FLUENT_FORMS_CONVERSATIONAL_HANDLE,
+				'url' => $wp_scripts->registered[ self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ]->src,
 			]
 		);
 
 		// Print localization data of conversational script.
-		$wp_scripts->print_extra_script( $fluent_forms_conversational_script );
+		$wp_scripts->print_extra_script( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE );
 
 		// Remove a localization script. We will launch it from our HANDLE script on hCaptchaLoaded event.
-		wp_dequeue_script( $fluent_forms_conversational_script );
-		wp_deregister_script( $fluent_forms_conversational_script );
+		wp_dequeue_script( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE );
+		wp_deregister_script( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE );
 
-		$form = $this->get_hcaptcha();
-		$form = str_replace(
+		$hcaptcha = $this->get_hcaptcha();
+		$hcaptcha = str_replace(
 			[
 				'class="h-captcha"',
 				'class="hcaptcha-widget-id"',
@@ -230,11 +238,11 @@ class Form extends LoginBase {
 				'class="h-captcha-hidden" style="display: none;"',
 				'class="h-captcha-hidden hcaptcha-widget-id"',
 			],
-			$form
+			$hcaptcha
 		);
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $form;
+		echo $hcaptcha;
 	}
 
 	/**

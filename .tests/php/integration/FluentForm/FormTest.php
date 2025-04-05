@@ -63,7 +63,7 @@ class FormTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			9,
-			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
+			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 		);
 		self::assertSame(
 			10,
@@ -327,7 +327,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		// Without conversational form script.
-		$subject->enqueue_scripts();
+		$subject->print_footer_scripts();
 
 		self::assertFalse( wp_script_is( $handle ) );
 
@@ -388,7 +388,7 @@ HTML;
 		$this->set_protected_property( $subject, 'form_id', $form_id );
 
 		ob_start();
-		$subject->enqueue_scripts();
+		$subject->print_footer_scripts();
 		self::assertSame( $expected_fluent_forms_extra . "\n" . $hcap_form, ob_get_clean() );
 
 		self::assertTrue( wp_script_is( $handle ) );
