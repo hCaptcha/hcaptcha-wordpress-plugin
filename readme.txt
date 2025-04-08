@@ -688,6 +688,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.13.0 =
+* Added compatibility with Formidable Forms Pro.
 * Fixed enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
 * Fixed warning in with auto-verify forms, including Brevo.
 * Fixed enqueuing script with Fluent Conversational Form.
