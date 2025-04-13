@@ -16,11 +16,6 @@ use WP_Error;
 class Protect {
 
 	/**
-	 * Script handle.
-	 */
-	private const HANDLE = 'hcaptcha-password-protected';
-
-	/**
 	 * Verify action.
 	 */
 	private const ACTION = 'hcaptcha_password_protected';
@@ -57,7 +52,6 @@ class Protect {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-//			'auto'   => true,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => 0,
