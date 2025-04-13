@@ -39,7 +39,6 @@ use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCWishlists\CreateList;
-use HCaptcha\WP\PasswordProtected;
 
 /**
  * Class Main.
@@ -871,7 +870,7 @@ class Main {
 			'Post/Page Password Form'              => [
 				[ 'wp_status', 'password_protected' ],
 				'',
-				PasswordProtected::class,
+				WP\PasswordProtected::class,
 			],
 			'Register Form'                        => [
 				[ 'wp_status', 'register' ],
@@ -1252,6 +1251,11 @@ class Main {
 				[ 'passster_status', 'protect' ],
 				'content-protector/content-protector.php',
 				Passster\Protect::class,
+			],
+			'Password Protected Protect'           => [
+				[ 'password_protected_status', 'protect' ],
+				'password-protected/password-protected.php',
+				PasswordProtected\Protect::class,
 			],
 			'Profile Builder Login'                => [
 				[ 'profile_builder_status', 'login' ],

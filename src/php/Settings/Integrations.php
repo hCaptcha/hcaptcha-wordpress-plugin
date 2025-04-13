@@ -531,6 +531,13 @@ class Integrations extends PluginSettingsBase {
 					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'password_protected_status'        => [
+				'label'   => 'Password Protected',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'profile_builder_status'           => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
@@ -1611,6 +1618,7 @@ class Integrations extends PluginSettingsBase {
 	 * Get default theme.
 	 *
 	 * @return string
+	 * @noinspection PhpVoidFunctionResultUsedInspection
 	 */
 	protected function get_default_theme(): string {
 		$core_default_theme_obj = WP_Theme::get_core_default_theme();
