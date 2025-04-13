@@ -76,7 +76,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 6. Elementor Pro Form.
 7. Elementor Pro Form in admin editor.
 8. General settings page.
-9. Integrations settings page.
+9. Integrations' settings page.
 10. Activating plugin from the Integration settings page.
 11. (Optional) Local Forms statistics.
 12. (Optional) Local Events statistics.
@@ -86,7 +86,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin on the 'Plugins' admin page
+2. Activate the hCaptcha plugin on Plugins admin page
 3. Enter your site key and secret on the Settings→hCaptcha→General page
 4. Enable desired Integrations on the Settings→hCaptcha→Integrations page
 
@@ -359,6 +359,10 @@ Passster
 `$source: 'content-protector/content-protector.php'`
 `$form_id: area_id`
 
+Password Protected
+`$source: 'password-protected/password-protected.php'`
+`$form_id: 'protect'`
+
 Profile Builder
 `$source: 'profile-builder/index.php'`
 `$form_id: 'login', 'lost_password' or 'register'`
@@ -405,7 +409,7 @@ WPForms
 
 wpForo
 `$source: 'wpforo/wpforo.php'`
-`$form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.`
+`$form_id: 'new_topic' for a new topic form and topicid for a reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.`
 
 Wordfence Login Security
 `$source: 'wordfence-login-security/wordfence-login-security.php'`
@@ -607,7 +611,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * ACF Extended Form
 * Affiliates Login and Register Forms
 * Asgaros Forum New Topic and Reply Form
-* Avada Form
+* Avada standard and multistep Forms
 * Back In Stock Notifier Form
 * bbPress New Topic, Reply, Login, Register and Lost Password Forms
 * Beaver Builder Contact and Login Forms
@@ -644,6 +648,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout and Login Forms
 * Passster Protection Form
+* Password Protected Form
 * Profile Builder Login, Recover Password, and Register Forms
 * Really Simple CAPTCHA
 * Quform Forms
