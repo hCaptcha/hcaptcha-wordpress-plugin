@@ -443,6 +443,8 @@ Paid Memberships Pro:
   Login Form:                         Off
 Passster:                             
   Protection Form:                    Off
+Password Protected:                   
+  Protection Form:                    Off
 Profile Builder:                      
   Login Form:                         Off
   Recover Password Form:              Off

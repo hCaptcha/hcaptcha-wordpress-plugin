@@ -1163,6 +1163,13 @@ abstract class HCaptchaTestCase extends TestCase {
 					'protect' => 'Protection Form',
 				],
 			],
+			'password_protected_status'        => [
+				'label'   => 'Password Protected',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => 'Protection Form',
+				],
+			],
 			'profile_builder_status'           => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
