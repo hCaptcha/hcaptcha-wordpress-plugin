@@ -8,11 +8,42 @@
 namespace HCaptcha\ProtectContent;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
+use HCaptcha\Main;
 
 /**
  * Class ProtectContent
  */
 class ProtectContent {
+
+	/**
+	 * Nonce action.
+	 */
+	protected const ACTION = 'hcaptcha_protect_content';
+
+	/**
+	 * Nonce name.
+	 */
+	protected const NONCE = 'hcaptcha_protect_content_nonce';
+
+	/**
+	 * Cookie name.
+	 */
+	private const COOKIE_NAME = 'hcaptcha_content_protection';
+
+	/**
+	 * Cookie expiration.
+	 *
+	 * 5 minutes in seconds.
+	 */
+	private const COOKIE_EXPIRATION = 5 * MINUTE_IN_SECONDS;
+
+	/**
+	 * Error message.
+	 *
+	 * @var string
+	 */
+	private $error_message = '';
 
 	/**
 	 * Init class.
@@ -29,8 +60,64 @@ class ProtectContent {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'template_redirect', [ $this, 'show_protection_page' ], -PHP_INT_MAX );
-//		add_action( 'init', [ $this, 'verify' ], - PHP_INT_MAX );
+		add_action( 'template_redirect', [ $this, 'protect_content' ], -PHP_INT_MAX );
+	}
+
+	/**
+	 * Protect site content.
+	 *
+	 * @return void
+	 */
+	public function protect_content(): void {
+		if ( 'post' === strtolower( Request::filter_input( INPUT_SERVER, 'REQUEST_METHOD' ) ) ) {
+			$this->error_message = $this->verify();
+		}
+
+		if ( $this->is_valid_cookie() ) {
+			return;
+		}
+
+		$this->show_protection_page();
+	}
+
+	/**
+	 * Verify hCaptcha.
+	 *
+	 * @return string
+	 */
+	private function verify(): string {
+		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+
+		if ( null === $error_message ) {
+			$time   = time();
+			$cookie = $time . '|' . wp_hash( $time . '|' . Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
+
+			setcookie( self::COOKIE_NAME, $cookie, $time + self::COOKIE_EXPIRATION, '/' );
+			wp_safe_redirect( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
+		}
+
+		return (string) $error_message;
+	}
+
+	/**
+	 * Check whether the cookie is valid.
+	 *
+	 * @return bool
+	 */
+	private function is_valid_cookie(): bool {
+		$cookie     = Request::filter_input( INPUT_COOKIE, self::COOKIE_NAME );
+		$cookie_arr = explode( '|', $cookie );
+
+		$time       = (int) $cookie_arr[0];
+		$hashed_url = (string) ( $cookie_arr[1] ?? '' );
+
+		if ( time() - $time > self::COOKIE_EXPIRATION ) {
+			return false;
+		}
+
+		$url = Request::filter_input( INPUT_SERVER, 'REQUEST_URI' );
+
+		return wp_hash( $time . '|' . $url ) === $hashed_url;
 	}
 
 	/**
@@ -40,8 +127,7 @@ class ProtectContent {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function show_protection_page(): void {
-		/* language=CSS */
-		$css = '
+		$css = /* @lang CSS */ '
 	* {
 		box-sizing: border-box;
 		margin: 0;
@@ -148,7 +234,7 @@ class ProtectContent {
 	}
 
 	.spacer-top {
-		margin-top: 4rem;
+		margin-top: 2rem;
 	}
 
 	.spacer-bottom {
@@ -265,9 +351,16 @@ class ProtectContent {
 			border-top: 1px solid #e3e3e3;
 		}
 	}
+	
+	.main-content .h-captcha {
+		margin-bottom: 0;
+	}
+	
+	#hcaptcha-submit {
+		display: none;
+	}
 ';
 
-		/* language=HTML */
 		?>
 		<html lang="en-US" dir="ltr">
 		<head>
@@ -276,9 +369,14 @@ class ProtectContent {
 			<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 			<meta name="robots" content="noindex,nofollow">
 			<meta name="viewport" content="width=device-width,initial-scale=1">
-			<meta http-equiv="refresh" content="390">
+			<meta http-equiv="refresh" content="<?php echo esc_attr( self::COOKIE_EXPIRATION ); ?>">
 			<style>
-				<?php HCaptcha::css_display( $css ); ?>
+				<?php
+
+				HCaptcha::css_display( $css );
+				hcaptcha()->print_inline_styles();
+
+				?>
 			</style>
 		</head>
 		<body>
@@ -287,11 +385,34 @@ class ProtectContent {
 				<h1 class="zone-name-title h1">
 					<?php echo wp_kses_post( wp_parse_url( home_url(), PHP_URL_HOST ) ); ?>
 				</h1>
+
 				<p class="h2 spacer-bottom">
 					<?php esc_html_e( 'Verifying you are human. This may take a few seconds.', 'hcaptcha-for-forms-and-more' ); ?>
 				</p>
+
+				<form method="post" action="<?php echo esc_url( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) ); ?>">
+				<?php
+
+				$args = [
+					'action' => static::ACTION,
+					'name'   => static::NONCE,
+					'id'     => [
+						'source'  => HCaptcha::get_class_source( static::class ),
+						'form_id' => 'protect',
+					],
+					'force'  => true,
+				];
+
+				HCaptcha::form_display( $args );
+
+				?>
+				<p><?php echo esc_html( $this->error_message ); ?></p>
+				<input type="submit" id="hcaptcha-submit" value="Submit">
+				</form>
+
 				<div class="core-msg spacer spacer-top">
 					<?php
+
 					echo wp_kses_post(
 						sprintf(
 						/* translators: 1: Site link. */
@@ -299,6 +420,7 @@ class ProtectContent {
 							wp_parse_url( home_url(), PHP_URL_HOST )
 						)
 					);
+
 					?>
 				</div>
 			</div>
@@ -312,6 +434,7 @@ class ProtectContent {
 				</div>
 				<div>
 					<?php
+
 					echo wp_kses_post(
 						sprintf(
 						/* translators: 1: hCaptcha link. */
@@ -319,10 +442,22 @@ class ProtectContent {
 							'<a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank" rel="noopener noreferrer">hCaptcha</a>'
 						)
 					);
+
 					?>
 				</div>
 			</div>
 		</div>
+		<script>
+			document.addEventListener( 'hCaptchaLoaded', function() {
+				document.getElementById( 'hcaptcha-submit' ).click();
+			} );
+		</script>
+		<?php
+
+		hcaptcha()->print_footer_scripts();
+		_wp_footer_scripts();
+
+		?>
 		</body>
 		</html>
 		<?php
