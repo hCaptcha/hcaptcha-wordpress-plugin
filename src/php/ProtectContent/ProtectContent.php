@@ -9,7 +9,6 @@ namespace HCaptcha\ProtectContent;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
-use HCaptcha\Main;
 
 /**
  * Class ProtectContent
