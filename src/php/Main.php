@@ -30,6 +30,7 @@ use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
+use HCaptcha\ProtectContent\ProtectContent;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\EventsPage;
@@ -125,6 +126,13 @@ class Main {
 	protected $auto_verify;
 
 	/**
+	 * Instance of ProtectContent.
+	 *
+	 * @var ProtectContent
+	 */
+	protected $protect_content;
+
+	/**
 	 * Whether hCaptcha is active.
 	 *
 	 * @var bool
@@ -209,6 +217,9 @@ class Main {
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
+
+		$this->protect_content = new ProtectContent();
+		$this->protect_content->init();
 	}
 
 	/**
