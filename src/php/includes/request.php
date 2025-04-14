@@ -127,7 +127,7 @@ function hcap_get_error_message( $error_codes ): string {
 function hcap_check_site_config(): array {
 	$settings = hcaptcha()->settings();
 	$params   = [
-		'host'    => (string) wp_parse_url( site_url(), PHP_URL_HOST ),
+		'host'    => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
 		'sitekey' => $settings->get_site_key(),
 		'sc'      => 1,
 		'swa'     => 1,
