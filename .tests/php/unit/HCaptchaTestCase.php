@@ -651,6 +651,21 @@ abstract class HCaptchaTestCase extends TestCase {
 				'default' => 'api.hcaptcha.com',
 				'helper'  => 'See Enterprise docs.',
 			],
+			'protect_content'          => [
+				'label'   => 'Content Settings',
+				'type'    => 'checkbox',
+				'section' => 'content',
+				'options' => [
+					'on' => 'Protect Content',
+				],
+				'helper'  => 'Protect site content from bots with hCaptcha.',
+			],
+			'protected_urls'           => [
+				'label'   => 'Protected URLs',
+				'type'    => 'textarea',
+				'section' => 'content',
+				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
+			],
 			'off_when_logged_in'       => [
 				'label'   => 'Other Settings',
 				'type'    => 'checkbox',
