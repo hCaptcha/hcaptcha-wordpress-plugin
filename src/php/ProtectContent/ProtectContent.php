@@ -45,11 +45,47 @@ class ProtectContent {
 	private $error_message = '';
 
 	/**
+	 * Request URI.
+	 *
+	 * @var string
+	 */
+	private $request_uri;
+
+	/**
 	 * Init class.
 	 *
 	 * @return void
 	 */
 	public function init(): void {
+		if ( ! Request::is_frontend() ) {
+			return;
+		}
+
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings->is_on( 'protect_content' ) ) {
+			return;
+		}
+
+		$this->request_uri = Request::filter_input( INPUT_SERVER, 'REQUEST_URI' );
+
+		$protected_urls = explode( "\n", $settings->get( 'protected_urls' ) );
+		$protected_urls = array_filter( array_map( 'trim', $protected_urls ) );
+		$protected_urls = $protected_urls ?: [ '/' ]; // Protect all URLs by default.
+
+		$found = false;
+
+		foreach ( $protected_urls as $url ) {
+			if ( preg_match( '!' . preg_quote( $url, '!' ) . '!i', $this->request_uri ) ) {
+				$found = true;
+				break;
+			}
+		}
+
+		if ( ! $found ) {
+			return;
+		}
+
 		$this->init_hooks();
 	}
 
@@ -68,12 +104,12 @@ class ProtectContent {
 	 * @return void
 	 */
 	public function protect_content(): void {
-		if ( 'post' === strtolower( Request::filter_input( INPUT_SERVER, 'REQUEST_METHOD' ) ) ) {
-			$this->error_message = $this->verify();
-		}
-
 		if ( $this->is_valid_cookie() ) {
 			return;
+		}
+
+		if ( 'post' === strtolower( Request::filter_input( INPUT_SERVER, 'REQUEST_METHOD' ) ) ) {
+			$this->error_message = $this->verify();
 		}
 
 		$this->show_protection_page();
@@ -89,10 +125,10 @@ class ProtectContent {
 
 		if ( null === $error_message ) {
 			$time   = time();
-			$cookie = $time . '|' . wp_hash( $time . '|' . Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
+			$cookie = $time . '|' . wp_hash( $time );
 
 			setcookie( self::COOKIE_NAME, $cookie, $time + self::COOKIE_EXPIRATION, '/' );
-			wp_safe_redirect( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
+			wp_safe_redirect( $this->request_uri );
 		}
 
 		return (string) $error_message;
@@ -107,16 +143,14 @@ class ProtectContent {
 		$cookie     = Request::filter_input( INPUT_COOKIE, self::COOKIE_NAME );
 		$cookie_arr = explode( '|', $cookie );
 
-		$time       = (int) $cookie_arr[0];
-		$hashed_url = (string) ( $cookie_arr[1] ?? '' );
+		$time        = (int) $cookie_arr[0];
+		$hashed_time = (string) ( $cookie_arr[1] ?? '' );
 
-		if ( time() - $time > self::COOKIE_EXPIRATION ) {
+		if ( wp_hash( $time ) !== $hashed_time ) {
 			return false;
 		}
 
-		$url = Request::filter_input( INPUT_SERVER, 'REQUEST_URI' );
-
-		return wp_hash( $time . '|' . $url ) === $hashed_url;
+		return time() - $time < self::COOKIE_EXPIRATION;
 	}
 
 	/**
@@ -389,7 +423,7 @@ class ProtectContent {
 					<?php esc_html_e( 'Verifying you are human. This may take a few seconds.', 'hcaptcha-for-forms-and-more' ); ?>
 				</p>
 
-				<form method="post" action="<?php echo esc_url( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) ); ?>">
+				<form method="post" action="<?php echo esc_url( $this->request_uri ); ?>">
 				<?php
 
 				$args = [
@@ -405,7 +439,7 @@ class ProtectContent {
 				HCaptcha::form_display( $args );
 
 				?>
-				<p><?php echo esc_html( $this->error_message ); ?></p>
+				<p id="hcaptcha-error"><?php echo esc_html( $this->error_message ); ?></p>
 				<input type="submit" id="hcaptcha-submit" value="Submit">
 				</form>
 
@@ -448,7 +482,9 @@ class ProtectContent {
 		</div>
 		<script>
 			document.addEventListener( 'hCaptchaLoaded', function() {
-				document.getElementById( 'hcaptcha-submit' ).click();
+				if ( document.getElementById( 'hcaptcha-error' ).innerText.length === 0 ) {
+					document.getElementById( 'hcaptcha-submit' ).click();
+				}
 			} );
 		</script>
 		<?php
