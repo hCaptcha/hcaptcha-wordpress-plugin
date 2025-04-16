@@ -117,6 +117,7 @@ class Notifications {
 		$force_url                   = $general_url . '#force_1';
 		$elementor_edit_form_url     = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
 		$size_url                    = $general_url . '#size';
+		$passive_mode_example_url    = HCAPTCHA_URL . '/assets/images/passive-mode-example.gif';
 		$protect_content_url         = $general_url . '#protect_content_1';
 		$protect_content_example_url = HCAPTCHA_URL . '/assets/images/protect-content-example.gif';
 
@@ -303,7 +304,7 @@ class Notifications {
 					)
 				),
 				'button'  => [
-					'url'  => $elementor_edit_form_url,
+					'url'  => $passive_mode_example_url,
 					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
