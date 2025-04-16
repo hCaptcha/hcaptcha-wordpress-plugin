@@ -693,6 +693,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.13.0 =
+* Added site content protection.
 * Added compatibility with Formidable Forms Pro.
 * Added support for Avada multistep forms.
 * Added support for Password Protected plugin.

@@ -179,6 +179,8 @@ class ProtectContent {
 		flex-direction: column;
 		height: 100vh;
 		min-height: 100vh;
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 
 	.main-content {
@@ -429,11 +431,13 @@ class ProtectContent {
 				$args = [
 					'action' => static::ACTION,
 					'name'   => static::NONCE,
+					'force'  => true,
+					'theme'  => 'auto',
+					'size'   => 'normal',
 					'id'     => [
 						'source'  => HCaptcha::get_class_source( static::class ),
 						'form_id' => 'protect',
 					],
-					'force'  => true,
 				];
 
 				HCaptcha::form_display( $args );
