@@ -98,25 +98,27 @@ class Notifications {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	protected function get_notifications(): array {
-		$general_url             = $this->tab_url( General::class );
-		$integrations_url        = $this->tab_url( Integrations::class );
-		$forms_url               = $this->tab_url( FormsPage::class );
-		$events_url              = $this->tab_url( EventsPage::class );
-		$utm                     = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
-		$utm_sk                  = $utm . 'sk';
-		$utm_not                 = $utm . 'not';
-		$hcaptcha_url            = 'https://www.hcaptcha.com' . $utm_sk;
-		$register_url            = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
-		$pro_url                 = 'https://www.hcaptcha.com/pro' . $utm_not;
-		$dashboard_url           = 'https://dashboard.hcaptcha.com' . $utm_not;
-		$post_leadership_url     = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
-		$rate_url                = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
-		$search_integrations_url = $integrations_url . '#hcaptcha-integrations-search';
-		$enterprise_features_url = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
-		$statistics_url          = $general_url . '#statistics_1';
-		$force_url               = $general_url . '#force_1';
-		$elementor_edit_form_url = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
-		$size_url                = $general_url . '#size';
+		$general_url                 = $this->tab_url( General::class );
+		$integrations_url            = $this->tab_url( Integrations::class );
+		$forms_url                   = $this->tab_url( FormsPage::class );
+		$events_url                  = $this->tab_url( EventsPage::class );
+		$utm                         = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
+		$utm_sk                      = $utm . 'sk';
+		$utm_not                     = $utm . 'not';
+		$hcaptcha_url                = 'https://www.hcaptcha.com' . $utm_sk;
+		$register_url                = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
+		$pro_url                     = 'https://www.hcaptcha.com/pro' . $utm_not;
+		$dashboard_url               = 'https://dashboard.hcaptcha.com' . $utm_not;
+		$post_leadership_url         = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
+		$rate_url                    = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
+		$search_integrations_url     = $integrations_url . '#hcaptcha-integrations-search';
+		$enterprise_features_url     = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
+		$statistics_url              = $general_url . '#statistics_1';
+		$force_url                   = $general_url . '#force_1';
+		$elementor_edit_form_url     = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
+		$size_url                    = $general_url . '#size';
+		$protect_content_url         = $general_url . '#protect_content_1';
+		$protect_content_example_url = HCAPTCHA_URL . '/assets/images/protect-content-example.gif';
 
 		$notifications = [
 			'register'            => [
@@ -305,6 +307,28 @@ class Notifications {
 					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.13.0.
+			'protect-content'     => [
+				'title'   => __( 'Protect Site Content', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: Pro link. */
+					__( '%1$s selected site URLs from bots with hCaptcha. Works best with %2$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$protect_content_url,
+						__( 'Protect', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$dashboard_url,
+						__( 'Pro', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $protect_content_example_url,
+					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$settings = hcaptcha()->settings();
@@ -335,6 +359,10 @@ class Notifications {
 
 		if ( $settings->is_pro() && $settings->is( 'size', 'invisible' ) ) {
 			unset( $notifications['passive-mode'] );
+		}
+
+		if ( $settings->is_on( 'protect_content' ) ) {
+			unset( $notifications['protect-content'] );
 		}
 
 		// Added in 4.4.0.

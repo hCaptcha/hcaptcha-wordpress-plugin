@@ -176,6 +176,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'See an example',
 				],
 			],
+			'protect-content'     => [
+				'title'   => 'Protect Site Content',
+				'message' => 'Protects selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/elementor-edit-form.png',
+					'text' => 'See an example',
+				],
+			],
 		];
 
 		if ( ! $empty_keys ) {
