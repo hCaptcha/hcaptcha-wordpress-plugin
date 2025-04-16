@@ -32,6 +32,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
+* **Protect Site Content:** Protects selected site URLs from bots with hCaptcha. Works best with Pro 99.9% passive mode.
 * **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
 * **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
@@ -70,16 +71,17 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 
 1. Login page with hCaptcha widget.
 2. Login page with hCaptcha challenge.
-3. WooCommerce Login/Register page.
-4. Contact Form 7 with hCaptcha.
-5. Contact Form 7 live form in the admin editor.
-6. Elementor Pro Form.
-7. Elementor Pro Form in admin editor.
-8. General settings page.
-9. Integrations' settings page.
-10. Activating plugin from the Integration settings page.
-11. (Optional) Local Forms statistics.
-12. (Optional) Local Events statistics.
+3. Protected content.
+4. WooCommerce Login/Register page.
+5. Contact Form 7 with hCaptcha.
+6. Contact Form 7 live form in the admin editor.
+7. Elementor Pro Form.
+8. Elementor Pro Form in admin editor.
+9. General settings page.
+10. Integrations' settings page.
+11. Activating plugin from the Integration settings page.
+12. (Optional) Local Forms statistics.
+13. (Optional) Local Events statistics.
 
 == Installation ==
 
