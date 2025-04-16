@@ -535,7 +535,7 @@ class Main {
 		background-color: #333;
 		border: 1px solid #f5f5f5;
 	}
-	
+
 	@media (prefers-color-scheme: dark) {
 		.h-captcha[data-theme="auto"]::before {
 			background-image: url( ' . $div_logo_white_url . ' );
