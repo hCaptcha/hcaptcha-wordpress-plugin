@@ -10,6 +10,8 @@
 * Fixed enqueuing script with Fluent Conversational Form.
 * Fixed showing hCaptcha with the latest Fluent Forms version.
 * Fixed Conversational forms support with the latest Fluent Forms version.
+* Tested with WordPress 6.7.
+* Tested with WooCommerce 9.8.
 
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.
