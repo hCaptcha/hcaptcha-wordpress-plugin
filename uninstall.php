@@ -107,5 +107,10 @@ function hcap_cleanup_data(): void {
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
-// Perform plugin cleanup tasks.
-hcap_cleanup_data();
+$options              = get_option( PluginSettingsBase::OPTION_NAME, [] );
+$cleanup_on_uninstall = $options['cleanup_on_uninstall'] ?? '';
+
+if ( [ 'on' ] === $cleanup_on_uninstall ) {
+	// Perform plugin cleanup tasks.
+	hcap_cleanup_data();
+}

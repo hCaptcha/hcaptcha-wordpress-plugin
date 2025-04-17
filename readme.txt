@@ -696,6 +696,7 @@ Instructions for popular native integrations are below:
 
 = 4.13.0 =
 * Added site content protection.
+* Added 'Remove Data on Uninstall' option to improve user privacy.
 * Improved support of the device color scheme.
 * Added compatibility with Formidable Forms Pro.
 * Added support for Avada multistep forms.

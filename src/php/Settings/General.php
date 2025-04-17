@@ -545,6 +545,15 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'cleanup_on_uninstall' => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Remove Data on Uninstall', 'hcaptcha-for-forms-and-more' ),
+				],
+				'default' => '',
+				'helper'  => __( 'When enabled, all plugin data will be removed when uninstalling the plugin.', 'hcaptcha-for-forms-and-more' ),
+			],
 			self::NETWORK_WIDE     => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
@@ -879,7 +888,6 @@ class General extends PluginSettingsBase {
 	 * Ajax action to check config.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_config(): void {
 		$this->run_checks( self::CHECK_CONFIG_ACTION );
@@ -1041,11 +1049,13 @@ class General extends PluginSettingsBase {
 			if ( is_array( $value ) ) {
 				$result[] = [ implode( '--', $level ) => '' ];
 				$result[] = $this->flatten_array( $value );
+
 				array_pop( $level );
 				continue;
 			}
 
 			$result[] = [ implode( '--', $level ) => $value ];
+
 			array_pop( $level );
 		}
 
