@@ -435,7 +435,7 @@ class ProtectContent {
 					'theme'  => 'auto',
 					'size'   => 'normal',
 					'id'     => [
-						'source'  => HCaptcha::get_class_source( static::class ),
+						'source'  => hcaptcha()->settings()->get_plugin_name(),
 						'form_id' => 'protect',
 					],
 				];

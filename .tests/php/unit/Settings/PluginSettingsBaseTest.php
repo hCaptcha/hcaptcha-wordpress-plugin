@@ -12,7 +12,9 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use KAGG\Settings\Abstracts\SettingsBase;
 use Mockery;
@@ -342,6 +344,14 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * Test admin_footer_text().
 	 */
 	public function test_admin_footer_text(): void {
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_plugin_name' )->with()->andReturn( 'hCaptcha for WP' );
+
+		$hcaptcha = Mockery::mock( Main::class )->makePartial();
+		$hcaptcha->shouldReceive( 'settings' )->with()->andReturn( $settings );
+
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $hcaptcha );
+
 		$subject  = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method   = 'admin_footer_text';
 		$text     = 'Some text';

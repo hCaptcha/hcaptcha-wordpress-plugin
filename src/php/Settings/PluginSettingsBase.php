@@ -232,13 +232,14 @@ abstract class PluginSettingsBase extends SettingsBase {
 			return $text;
 		}
 
-		$url = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
+		$settings = hcaptcha()->settings();
+		$url      = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
 
 		return wp_kses(
 			sprintf(
 			/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
 				__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
-				'<strong>hCaptcha for WP</strong>',
+				'<strong>' . $settings->get_plugin_name() . '</strong>',
 				sprintf(
 					'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
 					$url
@@ -249,11 +250,12 @@ abstract class PluginSettingsBase extends SettingsBase {
 				)
 			),
 			[
-				'a' => [
+				'a'      => [
 					'href'   => [],
 					'target' => [],
 					'rel'    => [],
 				],
+				'strong' => [],
 			]
 		);
 	}

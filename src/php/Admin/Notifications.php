@@ -98,6 +98,7 @@ class Notifications {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	protected function get_notifications(): array {
+		$settings                    = hcaptcha()->settings();
 		$general_url                 = $this->tab_url( General::class );
 		$integrations_url            = $this->tab_url( Integrations::class );
 		$forms_url                   = $this->tab_url( FormsPage::class );
@@ -177,7 +178,7 @@ class Notifications {
 				'message' => sprintf(
 				/* translators: 1: plugin name, 2: wp.org review link with stars, 3: wp.org review link with text. */
 					__( 'Please rate %1$s %2$s on %3$s. Thank you!', 'hcaptcha-for-forms-and-more' ),
-					'<strong>hCaptcha for WP</strong>',
+					'<strong>' . $settings->get_plugin_name() . '</strong>',
 					sprintf(
 						'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
 						$rate_url
@@ -331,8 +332,6 @@ class Notifications {
 				],
 			],
 		];
-
-		$settings = hcaptcha()->settings();
 
 		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
 			unset( $notifications['register'] );

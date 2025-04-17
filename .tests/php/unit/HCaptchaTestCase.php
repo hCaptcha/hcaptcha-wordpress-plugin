@@ -699,6 +699,15 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
 			],
+			'cleanup_on_uninstall'     => [
+				'type'    => 'checkbox',
+				'section' => 'other',
+				'options' => [
+					'on' => 'Remove Data on Uninstall',
+				],
+				'default' => '',
+				'helper'  => 'When enabled, all plugin data will be removed when uninstalling the plugin.',
+			],
 			'whitelisted_ips'          => [
 				'label'   => 'Allowlisted IPs',
 				'type'    => 'textarea',
