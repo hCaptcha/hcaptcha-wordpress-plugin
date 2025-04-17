@@ -2,7 +2,7 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.2
 Stable tag: 4.12.0
 License: GPLv2 or later
@@ -706,6 +706,8 @@ Instructions for popular native integrations are below:
 * Fixed enqueuing script with Fluent Conversational Form.
 * Fixed showing hCaptcha with the latest Fluent Forms version.
 * Fixed Conversational forms support with the latest Fluent Forms version.
+* Tested with WordPress 6.7.
+* Tested with WooCommerce 9.8.
 
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.
