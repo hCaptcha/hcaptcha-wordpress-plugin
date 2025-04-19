@@ -229,7 +229,8 @@ class WhatsNew {
 		$version      = str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
 
 		?>
-		<div id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal" style="display: <?php echo esc_attr( $display_attr ); ?>;">
+		<div id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal"
+			 style="display: <?php echo esc_attr( $display_attr ); ?>;">
 
 			<div class="hcaptcha-whats-new-modal-bg"></div>
 			<div class="hcaptcha-whats-new-modal-popup">
@@ -272,15 +273,20 @@ class WhatsNew {
 
 		$block = [
 			'type'    => 'center',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
 			'title'   => __( 'Site Content Protection', 'hcaptcha-for-forms-and-more' ),
 			'message' => sprintf(
-			/* translators: 1: Pro link. */
-				__( 'Protect selected site URLs from bots with hCaptcha. Works best with %1$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
+				'<p>%1$s</p><p>%2$s</p>',
 				sprintf(
-					'<a href="%1$s" target="_blank">%2$s</a>',
-					$dashboard_url,
-					__( 'Pro', 'hcaptcha-for-forms-and-more' )
-				)
+				/* translators: 1: Pro link. */
+					__( 'Protect selected site URLs from bots with hCaptcha. Works best with %1$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$dashboard_url,
+						__( 'Pro', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				__( 'Set up protected URLs to prevent these pages from being accessed by bots.', 'hcaptcha-for-forms-and-more' )
 			),
 			'button'  => [
 				'url'  => $protect_content_url,
@@ -302,14 +308,29 @@ class WhatsNew {
 	 * @return void
 	 */
 	private function show_block( array $block ): void {
+		$badge = $block['badge'] ?? '';
+
+		if ( $badge ) {
+			ob_start();
+
+			?>
+			<div class="hcaptcha-whats-new-badge">
+				<?php echo esc_html( $badge ); ?>
+			</div>
+			<?php
+
+			$badge = ob_get_clean();
+		}
+
 		?>
 		<div class="hcaptcha-whats-new-block <?php echo esc_attr( $block['type'] ); ?>">
+			<?php echo wp_kses_post( $badge ); ?>
 			<h2>
 				<?php echo esc_html( $block['title'] ); ?>
 			</h2>
-			<p>
+			<div class="hcaptcha-whats-new-message">
 				<?php echo wp_kses_post( $block['message'] ); ?>
-			</p>
+			</div>
 			<div class="hcaptcha-whats-new-button">
 				<a
 						href="<?php echo esc_url( $block['button']['url'] ); ?>" class="button button-primary"

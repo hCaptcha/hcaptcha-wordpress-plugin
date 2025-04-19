@@ -124,6 +124,21 @@
 	text-align: center;
 }
 
+.hcaptcha-whats-new-badge {
+	display: inline-block;
+	margin-bottom: 10px;
+	color: #ffffff;
+	background: #4de1d2;
+	border: 1px #4de1d2 solid;
+	border-radius: 2px;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	line-height: normal;
+	padding: 4px 8px;
+	cursor: default;
+}
+
 .hcaptcha-whats-new-content h2 {
 	margin: 0;
 	font-weight: 500;
@@ -132,11 +147,13 @@
 	line-height: normal;
 }
 
-.hcaptcha-whats-new-content p {
+.hcaptcha-whats-new-message,
+.hcaptcha-whats-new-message p {
 	font-weight: 400;
 	font-size: 18px;
 	color: #3c434a;
 	line-height: normal;
+	margin: 15px 0;
 }
 
 .hcaptcha-whats-new-button {
