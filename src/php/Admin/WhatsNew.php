@@ -229,9 +229,9 @@ class WhatsNew {
 		$version      = str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
 
 		?>
-		<div id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal"
-			 style="display: <?php echo esc_attr( $display_attr ); ?>;">
-
+		<div
+				id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal"
+				style="display: <?php echo esc_attr( $display_attr ); ?>;">
 			<div class="hcaptcha-whats-new-modal-bg"></div>
 			<div class="hcaptcha-whats-new-modal-popup">
 				<button id="hcaptcha-whats-new-close" class="hcaptcha-whats-new-close"></button>
