@@ -14,6 +14,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Admin\Privacy;
+use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -1200,6 +1201,7 @@ CSS;
 			PluginStats::class,
 			Events::class,
 			Privacy::class,
+			WhatsNew::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
