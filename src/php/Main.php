@@ -16,6 +16,7 @@ use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
+use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
@@ -197,6 +198,7 @@ class Main {
 		$this->load( PluginStats::class );
 		$this->load( Events::class );
 		$this->load( Privacy::class );
+		$this->load( WhatsNew::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );

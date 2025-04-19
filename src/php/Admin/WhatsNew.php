@@ -1,0 +1,347 @@
+<?php
+/**
+ * WhatsNew class file.
+ *
+ * @package hcaptcha-wp
+ */
+
+namespace HCaptcha\Admin;
+
+use HCaptcha\Settings\General;
+
+/**
+ * Class WhatsNew.
+ *
+ * Show a What's New popup in the admin.
+ */
+class WhatsNew {
+
+	/**
+	 * Handle for assets.
+	 */
+	private const HANDLE = 'hcaptcha-whats-new';
+
+	/**
+	 * Script localization object.
+	 */
+	private const OBJECT = 'HCaptchaWhatsNewObject';
+
+	/**
+	 * Mark shown ajax action.
+	 */
+	private const MARK_SHOWN_ACTION = 'hcaptcha-mark-shown';
+
+	/**
+	 * Settings key for last shown What's New version.
+	 */
+	private const WHATS_NEW_KEY = 'whats_new_last_shown_version';
+
+	/**
+	 * Method prefix.
+	 */
+	private const PREFIX = 'whats_new_';
+
+	/**
+	 * Class is allowed to show the popup.
+	 *
+	 * @var bool
+	 */
+	private $allowed = false;
+
+	/**
+	 * Constructor.
+	 *
+	 * Initializes the class and hooks.
+	 */
+	public function __construct() {
+		$this->init();
+	}
+
+	/**
+	 * Initializes the class by setting up hooks.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+		$this->init_hooks();
+	}
+
+	/**
+	 * Init class hooks.
+	 *
+	 * @return void
+	 */
+	private function init_hooks(): void {
+		add_action( 'kagg_settings_tab', [ $this, 'action_settings_tab' ] );
+		add_action( 'admin_print_footer_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'admin_footer', [ $this, 'maybe_show_popup' ] );
+		add_action( 'wp_ajax_' . self::MARK_SHOWN_ACTION, [ $this, 'mark_shown' ] );
+	}
+
+	/**
+	 * Settings tab action.
+	 *
+	 * @return void
+	 */
+	public function action_settings_tab(): void {
+		$this->allowed = true;
+	}
+
+	/**
+	 * Enqueue assets.
+	 *
+	 * @return void
+	 */
+	public function enqueue_assets(): void {
+		if ( ! $this->allowed ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_style(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/whats-new$min.css",
+			[],
+			constant( 'HCAPTCHA_VERSION' )
+		);
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/whats-new$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+				'markShownAction' => self::MARK_SHOWN_ACTION,
+				'markShownNonce'  => wp_create_nonce( self::MARK_SHOWN_ACTION ),
+			]
+		);
+	}
+
+	/**
+	 * Maybe show popup.
+	 *
+	 * @return void
+	 */
+	public function maybe_show_popup(): void {
+		if ( ! $this->allowed ) {
+			return;
+		}
+
+		$prefix   = self::PREFIX;
+		$shown    = hcaptcha()->settings()->get( self::WHATS_NEW_KEY );
+		$current  = explode( '-', constant( 'HCAPTCHA_VERSION' ) )[0];
+		$methods  = array_filter(
+			get_class_methods( $this ),
+			static function ( $method ) use ( $prefix ) {
+				return 0 === strpos( $method, $prefix );
+			}
+		);
+		$versions = array_map(
+			static function ( $method ) use ( $prefix ) {
+				return str_replace( [ $prefix, '_' ], [ '', '.' ], $method );
+			},
+			$methods
+		);
+
+		usort( $versions, 'version_compare' );
+
+		$versions = array_reverse( $versions );
+		$method   = '';
+
+		foreach ( $versions as $version ) {
+			if (
+				version_compare( $current, $version, '>=' ) &&
+				version_compare( $shown, $version, '<' )
+			) {
+				$method = $prefix . str_replace( '.', '_', $version );
+
+				break;
+			}
+		}
+
+		if ( ! method_exists( $this, $method ) ) {
+			return;
+		}
+
+		$this->render_popup( $method );
+	}
+
+	/**
+	 * Ajax action to mark content as shown.
+	 *
+	 * @return void
+	 */
+	public function mark_shown(): void {
+		// Run a security check.
+		if ( ! check_ajax_referer( self::MARK_SHOWN_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		$version = isset( $_POST['version'] ) ? sanitize_text_field( wp_unslash( $_POST['version'] ) ) : '';
+
+		$this->update_whats_new( $version );
+		wp_send_json_success();
+	}
+
+	/**
+	 * Render popup.
+	 *
+	 * @param string $method Popup method.
+	 *
+	 * @return void
+	 */
+	private function render_popup( string $method ): void {
+		$version = str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
+
+		?>
+		<div id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal">
+			<div class="hcaptcha-whats-new-modal-bg"></div>
+			<div class="hcaptcha-whats-new-modal-popup">
+				<button id="hcaptcha-whats-new-close" class="hcaptcha-whats-new-close"></button>
+				<div class="hcaptcha-whats-new-header">
+					<div class="hcaptcha-whats-new-icon">
+						<img
+								src="<?php echo esc_url( HCAPTCHA_URL . '/assets/images/hcaptcha-icon-animated.svg' ); ?>"
+								alt="Icon">
+					</div>
+					<div class="hcaptcha-whats-new-title">
+						<h1>
+							<?php esc_html_e( "What's New in hCaptcha", 'hcaptcha-for-forms-and-more' ); ?>
+							<span id="hcaptcha-whats-new-version"><?php echo esc_html( $version ); ?></span>
+						</h1>
+					</div>
+				</div>
+				<div class="hcaptcha-whats-new-content">
+					<?php $this->$method(); ?>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * What's New 4.13.0 content.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedPrivateMethodInspection
+	 * @noinspection HtmlUnknownTarget
+	 */
+	private function whats_new_4_13_0(): void {
+		$general_url                 = $this->tab_url( General::class );
+		$utm                         = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
+		$utm_not                     = $utm . 'not';
+		$dashboard_url               = 'https://dashboard.hcaptcha.com' . $utm_not;
+		$protect_content_url         = $general_url . '#protect_content_1';
+		$protect_content_example_url = HCAPTCHA_URL . '/assets/images/protect-content-example.gif';
+
+		$block = [
+			'type'    => 'center',
+			'title'   => __( 'Site Content Protection', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+			/* translators: 1: Pro link. */
+				__( 'Protect selected site URLs from bots with hCaptcha. Works best with %1$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
+				sprintf(
+					'<a href="%1$s" target="_blank">%2$s</a>',
+					$dashboard_url,
+					__( 'Pro', 'hcaptcha-for-forms-and-more' )
+				)
+			),
+			'button'  => [
+				'url'  => $protect_content_url,
+				'text' => __( 'Protect Content', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url' => $protect_content_example_url,
+			],
+		];
+
+		$this->show_block( $block );
+	}
+
+	/**
+	 * Show block.
+	 *
+	 * @param array $block Block.
+	 *
+	 * @return void
+	 */
+	private function show_block( array $block ): void {
+		?>
+		<div class="hcaptcha-whats-new-block <?php echo esc_attr( $block['type'] ); ?>">
+			<h2>
+				<?php echo esc_html( $block['title'] ); ?>
+			</h2>
+			<p>
+				<?php echo wp_kses_post( $block['message'] ); ?>
+			</p>
+			<div class="hcaptcha-whats-new-button">
+				<a
+						href="<?php echo esc_url( $block['button']['url'] ); ?>" class="button button-primary"
+						target="_blank">
+					<?php echo esc_html( $block['button']['text'] ); ?>
+				</a>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="<?php echo esc_url( $block['image']['url'] ); ?>" target="_blank">
+					<img src="<?php echo esc_url( $block['image']['url'] ); ?>" alt="What's New block image"/>
+				</a>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Get tab url.
+	 *
+	 * @param string $classname Tab class name.
+	 *
+	 * @return string
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function tab_url( string $classname ): string {
+		$tab = hcaptcha()->settings()->get_tab( $classname );
+
+		return $tab ? $tab->tab_url( $tab ) : '';
+	}
+
+	/**
+	 * Update shown What's New version.
+	 *
+	 * @param string $version Version.
+	 */
+	private function update_whats_new( string $version ): void {
+		if ( ! $this->is_valid_version( $version ) ) {
+			return;
+		}
+
+		$tab = hcaptcha()->settings()->get_tab( General::class );
+
+		if ( ! $tab ) {
+			return;
+		}
+
+		$tab->update_option( self::WHATS_NEW_KEY, $version );
+	}
+
+	/**
+	 * Check if a version is valid.
+	 *
+	 * @param string $version Version.
+	 *
+	 * @return bool
+	 */
+	private function is_valid_version( string $version ): bool {
+		return (bool) preg_match( '/^\d+(\.\d+)*([a-zA-Z0-9\-._]*)?$/', $version );
+	}
+}
