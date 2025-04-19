@@ -620,7 +620,6 @@ class Notifications {
 	 * @param array $arr Array.
 	 *
 	 * @return array
-	 * @noinspection NonSecureShuffleUsageInspection
 	 */
 	private function shuffle_assoc( array $arr ): array {
 		$new_arr = [];

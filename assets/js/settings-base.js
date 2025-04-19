@@ -77,6 +77,17 @@ const settingsBase = ( function( $ ) {
 			$target = $element.closest( 'fieldset' );
 		}
 
+		const $sectionHeader = $target.closest( 'table' ).prev( 'h3' );
+
+		if ( $sectionHeader.hasClass( 'closed' ) ) {
+			setTimeout(
+				function() {
+					$sectionHeader.trigger( 'click' );
+				},
+				0,
+			);
+		}
+
 		$target.addClass( 'blink' )[ 0 ].scrollIntoView(
 			{
 				behavior: 'smooth',
