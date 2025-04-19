@@ -83,7 +83,9 @@ jQuery( function( $ ) {
 	$( document ).on( 'click', '#hcaptcha-whats-new-link', function( e ) {
 		e.preventDefault();
 
-		$modal.fadeIn( 200 ).css( 'display', 'flex' );
 		document.body.style.overflow = 'hidden';
+		$modal.fadeIn( 200 ).show().css( 'display', 'flex' );
+		// Some hack. Without it, background filter is not applied.
+		$modal.find( '.hcaptcha-whats-new-modal-bg' ).hide().show( 200 );
 	} );
 } );
