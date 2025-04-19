@@ -41,7 +41,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 */
 	public function __construct( $tabs = [], $args = [] ) {
 		add_filter( 'admin_footer_text', [ $this, 'admin_footer_text' ] );
-		add_filter( 'update_footer', [ $this, 'update_footer' ], PHP_INT_MAX );
+		add_filter( 'update_footer', [ $this, 'update_footer' ], 1000 );
 
 		parent::__construct( $tabs, $args );
 	}

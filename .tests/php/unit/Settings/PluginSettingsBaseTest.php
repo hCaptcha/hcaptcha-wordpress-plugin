@@ -48,7 +48,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
 		WP_Mock::expectFilterAdded( 'admin_footer_text', [ $subject, 'admin_footer_text' ] );
-		WP_Mock::expectFilterAdded( 'update_footer', [ $subject, 'update_footer' ], PHP_INT_MAX );
+		WP_Mock::expectFilterAdded( 'update_footer', [ $subject, 'update_footer' ], 1000 );
 
 		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
 			function ( $args, $defaults ) {

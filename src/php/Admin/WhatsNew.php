@@ -76,6 +76,7 @@ class WhatsNew {
 		add_action( 'admin_print_footer_scripts', [ $this, 'enqueue_assets' ] );
 		add_action( 'admin_footer', [ $this, 'maybe_show_popup' ] );
 		add_action( 'wp_ajax_' . self::MARK_SHOWN_ACTION, [ $this, 'mark_shown' ] );
+		add_filter( 'update_footer', [ $this, 'update_footer' ], 1010 );
 	}
 
 	/**
@@ -156,8 +157,7 @@ class WhatsNew {
 
 		foreach ( $versions as $version ) {
 			if (
-				version_compare( $current, $version, '>=' ) &&
-				version_compare( $shown, $version, '<' )
+				version_compare( $current, $version, '>=' )
 			) {
 				$method = $prefix . str_replace( '.', '_', $version );
 
@@ -165,11 +165,9 @@ class WhatsNew {
 			}
 		}
 
-		if ( ! method_exists( $this, $method ) ) {
-			return;
-		}
+		$display = version_compare( $shown, $current, '<' );
 
-		$this->render_popup( $method );
+		$this->render_popup( $method, $display );
 	}
 
 	/**
@@ -195,17 +193,44 @@ class WhatsNew {
 	}
 
 	/**
+	 * Show a new features link in the update footer.
+	 *
+	 * @param string|mixed $content The content that will be printed.
+	 *
+	 * @return string|mixed
+	 */
+	public function update_footer( $content ) {
+		if ( ! $this->allowed ) {
+			return $content;
+		}
+
+		$link = sprintf(
+			'<a href="#" id="hcaptcha-whats-new-link" rel="noopener noreferrer">%1$s</a>',
+			__( 'See the new features!', 'hcaptcha-for-forms-and-more' )
+		);
+
+		return $content . ' - ' . $link;
+	}
+
+	/**
 	 * Render popup.
 	 *
-	 * @param string $method Popup method.
+	 * @param string $method  Popup method.
+	 * @param bool   $display Display popup.
 	 *
 	 * @return void
 	 */
-	private function render_popup( string $method ): void {
-		$version = str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
+	private function render_popup( string $method, bool $display ): void {
+		if ( ! method_exists( $this, $method ) ) {
+			return;
+		}
+
+		$display_attr = $display ? 'flex' : 'none';
+		$version      = str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
 
 		?>
-		<div id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal">
+		<div id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal" style="display: <?php echo esc_attr( $display_attr ); ?>;">
+
 			<div class="hcaptcha-whats-new-modal-bg"></div>
 			<div class="hcaptcha-whats-new-modal-popup">
 				<button id="hcaptcha-whats-new-close" class="hcaptcha-whats-new-close"></button>

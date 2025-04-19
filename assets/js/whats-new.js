@@ -19,7 +19,9 @@ jQuery( function( $ ) {
 		return;
 	}
 
-	document.body.style.overflow = 'hidden';
+	if ( $modal.css( 'display' ) === 'flex' ) {
+		document.body.style.overflow = 'hidden';
+	}
 
 	function done() {
 		closePopup();
@@ -29,7 +31,7 @@ jQuery( function( $ ) {
 	function closePopup() {
 		$modal.fadeOut( 200, function() {
 			document.body.style.overflow = '';
-			$( this ).remove();
+			$( this ).css( 'display', 'none' );
 		} );
 	}
 
@@ -76,5 +78,12 @@ jQuery( function( $ ) {
 				window.location.href = href;
 			},
 		} );
+	} );
+
+	$( document ).on( 'click', '#hcaptcha-whats-new-link', function( e ) {
+		e.preventDefault();
+
+		$modal.fadeIn( 200 ).css( 'display', 'flex' );
+		document.body.style.overflow = 'hidden';
 	} );
 } );
