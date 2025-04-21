@@ -294,8 +294,9 @@ class WhatsNew {
 				'url'  => $protect_content_url,
 				'text' => __( 'Protect Content', 'hcaptcha-for-forms-and-more' ),
 			],
-			'image'   => [
-				'url' => $protect_content_example_url,
+			'image' => [
+				'url'      => $protect_content_example_url,
+				'lightbox' => true,
 			],
 		];
 
@@ -322,13 +323,15 @@ class WhatsNew {
 				'url'  => $dashboard_url,
 				'text' => __( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' ),
 			],
-			'image'   => [
-				'url' => $passive_mode_example_url,
+			'image' => [
+				'url'      => $passive_mode_example_url,
+				'lightbox' => true,
 			],
 		];
 
 		$this->show_block( $block1 );
 		$this->show_block( $block2 );
+		$this->show_lightbox_modal();
 	}
 
 	/**
@@ -370,10 +373,29 @@ class WhatsNew {
 				</a>
 			</div>
 			<div class="hcaptcha-whats-new-image">
-				<a href="<?php echo esc_url( $block['image']['url'] ); ?>" target="_blank">
-					<img src="<?php echo esc_url( $block['image']['url'] ); ?>" alt="What's New block image"/>
-				</a>
+				<?php if ( ! empty( $block['image']['url'] ) ) : ?>
+					<?php if ( ! empty( $block['image']['lightbox'] ) ) : ?>
+						<a href="<?php echo esc_url( $block['image']['url'] ); ?>" class="hcaptcha-lightbox">
+							<img src="<?php echo esc_url( $block['image']['url'] ); ?>" alt="What's New block image">
+						</a>
+					<?php else : ?>
+						<img src="<?php echo esc_url( $block['image']['url'] ); ?>" alt="What's New block image">
+					<?php endif; ?>
+				<?php endif; ?>
 			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Show lightbox modal.
+	 *
+	 * @return void
+	 */
+	private function show_lightbox_modal(): void {
+		?>
+		<div id="hcaptcha-lightbox-modal">
+			<img id="hcaptcha-lightbox-img" src="" alt="lightbox-image">
 		</div>
 		<?php
 	}
