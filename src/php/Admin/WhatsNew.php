@@ -268,10 +268,12 @@ class WhatsNew {
 		$utm                         = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
 		$utm_not                     = $utm . 'not';
 		$dashboard_url               = 'https://dashboard.hcaptcha.com' . $utm_not;
+		$size_url                    = $general_url . '#size';
+		$passive_mode_example_url    = HCAPTCHA_URL . '/assets/images/passive-mode-example.gif';
 		$protect_content_url         = $general_url . '#protect_content_1';
 		$protect_content_example_url = HCAPTCHA_URL . '/assets/images/protect-content-example.gif';
 
-		$block = [
+		$block1 = [
 			'type'    => 'center',
 			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
 			'title'   => __( 'Site Content Protection', 'hcaptcha-for-forms-and-more' ),
@@ -297,7 +299,36 @@ class WhatsNew {
 			],
 		];
 
-		$this->show_block( $block );
+		$block2 = [
+			'type'    => 'center',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Friction-free “No CAPTCHA” & 99.9% passive modes', 'hcaptcha-for-forms-and-more' ),
+			'message' =>
+				sprintf(
+				/* translators: 1: Pro link, 2: size select link. */
+					__( '%1$s and use %2$s. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$dashboard_url,
+						__( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' )
+					),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$size_url,
+						__( 'Invisible Size', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+			'button'  => [
+				'url'  => $dashboard_url,
+				'text' => __( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url' => $passive_mode_example_url,
+			],
+		];
+
+		$this->show_block( $block1 );
+		$this->show_block( $block2 );
 	}
 
 	/**
