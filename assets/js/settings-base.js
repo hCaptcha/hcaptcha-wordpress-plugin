@@ -57,47 +57,59 @@ const settingsBase = ( function( $ ) {
 			return;
 		}
 
-		const hash = window.location.hash;
+		const hash = window.location.hash.slice( 1 );
 
 		if ( ! hash ) {
 			return;
 		}
 
 		// Try to find by id.
-		let $element = $( hash );
+		let element = document.getElementById( hash );
 
-		if ( ! $element.length ) {
-			// Try to find by name.
-			$element = $( `[name="hcaptcha_settings[${ hash.slice( 1 ) }]"]` );
+		if ( ! element ) {
+			element = document.querySelector( `[name="hcaptcha_settings[${ hash }]"]` );
 		}
 
-		if ( ! $element.length ) {
+		if ( ! element ) {
 			return;
 		}
 
-		let $target = $element;
+		let target = element;
 
-		if ( $element.is( ':checkbox' ) ) {
-			$target = $element.closest( 'fieldset' );
+		if ( element?.type === 'checkbox' ) {
+			target = element.closest( 'fieldset' );
 		}
 
-		const $sectionHeader = $target.closest( 'table' ).prev( 'h3' );
+		const table = target.closest( 'table' );
+		let sectionHeader = null;
 
-		if ( $sectionHeader.hasClass( 'closed' ) ) {
-			setTimeout(
-				function() {
-					$sectionHeader.trigger( 'click' );
+		let prev = table?.previousElementSibling;
+
+		while ( prev ) {
+			if ( prev.tagName.toLowerCase() === 'h3' ) {
+				sectionHeader = prev;
+
+				break;
+			}
+
+			prev = prev.previousElementSibling;
+		}
+
+		if ( sectionHeader && sectionHeader.classList.contains( 'closed' ) ) {
+			setTimeout( function() {
+				sectionHeader.click();
+			}, 100 );
+		}
+
+		setTimeout( function() {
+			target.classList.add( 'blink' );
+			target.scrollIntoView(
+				{
+					behavior: 'smooth',
+					block: 'center',
 				},
-				0,
 			);
-		}
-
-		$target.addClass( 'blink' )[ 0 ].scrollIntoView(
-			{
-				behavior: 'smooth',
-				block: 'center',
-			},
-		);
+		}, 200 );
 	}
 
 	/**
@@ -185,7 +197,7 @@ const settingsBase = ( function( $ ) {
 
 	setHeaderBarTop();
 
-	document.addEventListener( 'DOMContentLoaded', highLight );
+	highLight();
 
 	setupLightBox();
 
