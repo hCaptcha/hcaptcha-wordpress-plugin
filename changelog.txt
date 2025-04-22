@@ -11,6 +11,7 @@
 * Fixed enqueuing script with Fluent Conversational Form.
 * Fixed showing hCaptcha with the latest Fluent Forms version.
 * Fixed Conversational forms support with the latest Fluent Forms version.
+* Fixed race condition when highlighting admin elements.
 * Tested with WordPress 6.7.
 * Tested with WooCommerce 9.8.
 
