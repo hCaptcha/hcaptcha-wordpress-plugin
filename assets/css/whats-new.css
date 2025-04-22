@@ -164,25 +164,6 @@
 	max-width: 100%;
 }
 
-#hcaptcha-lightbox-modal {
-	display: none;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100vw;
-	height: 100vh;
-	z-index: 9999;
-	background: rgba(0, 0, 0, 0.8);
-	justify-content: center;
-	align-items: center;
-}
-
-#hcaptcha-lightbox-img {
-	max-width: calc(100% - 100px);
-	max-height: calc(100vh - 100px);
-	box-shadow: 0 0 20px #000;
-}
-
 @media (max-width: 600px) {
 	.hcaptcha-whats-new-modal-popup {
 		max-width: calc(100% - 16px);

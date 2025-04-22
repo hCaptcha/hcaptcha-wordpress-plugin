@@ -253,6 +253,9 @@ class WhatsNew {
 				</div>
 			</div>
 		</div>
+		<div id="hcaptcha-lightbox-modal">
+			<img id="hcaptcha-lightbox-img" src="" alt="lightbox-image">
+		</div>
 		<?php
 	}
 
@@ -294,7 +297,7 @@ class WhatsNew {
 				'url'  => $protect_content_url,
 				'text' => __( 'Protect Content', 'hcaptcha-for-forms-and-more' ),
 			],
-			'image' => [
+			'image'   => [
 				'url'      => $protect_content_example_url,
 				'lightbox' => true,
 			],
@@ -323,7 +326,7 @@ class WhatsNew {
 				'url'  => $dashboard_url,
 				'text' => __( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' ),
 			],
-			'image' => [
+			'image'   => [
 				'url'      => $passive_mode_example_url,
 				'lightbox' => true,
 			],
@@ -331,7 +334,6 @@ class WhatsNew {
 
 		$this->show_block( $block1 );
 		$this->show_block( $block2 );
-		$this->show_lightbox_modal();
 	}
 
 	/**
@@ -383,19 +385,6 @@ class WhatsNew {
 					<?php endif; ?>
 				<?php endif; ?>
 			</div>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Show lightbox modal.
-	 *
-	 * @return void
-	 */
-	private function show_lightbox_modal(): void {
-		?>
-		<div id="hcaptcha-lightbox-modal">
-			<img id="hcaptcha-lightbox-img" src="" alt="lightbox-image">
 		</div>
 		<?php
 	}

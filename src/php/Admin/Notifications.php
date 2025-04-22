@@ -283,8 +283,9 @@ class Notifications {
 				'title'   => __( 'Add hCaptcha to Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'Add hCaptcha to Elementor Pro Form in the Elementor admin editor.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'  => $elementor_edit_form_url,
-					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+					'url'      => $elementor_edit_form_url,
+					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+					'lightbox' => true,
 				],
 			],
 			// Added in 4.12.0.
@@ -305,8 +306,9 @@ class Notifications {
 					)
 				),
 				'button'  => [
-					'url'  => $passive_mode_example_url,
-					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+					'url'      => $passive_mode_example_url,
+					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+					'lightbox' => true,
 				],
 			],
 			// Added in 4.13.0.
@@ -327,8 +329,9 @@ class Notifications {
 					)
 				),
 				'button'  => [
-					'url'  => $protect_content_example_url,
-					'text' => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+					'url'      => $protect_content_example_url,
+					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
+					'lightbox' => true,
 				],
 			],
 		];
@@ -439,21 +442,28 @@ class Notifications {
 			}
 
 			foreach ( $notifications as $id => $notification ) {
-				$title       = $notification['title'] ?: '';
-				$message     = $notification['message'] ?? '';
-				$button_url  = $notification['button']['url'] ?? '';
-				$button_text = $notification['button']['text'] ?? '';
-				$button      = '';
+				$title           = $notification['title'] ?: '';
+				$message         = $notification['message'] ?? '';
+				$button_url      = $notification['button']['url'] ?? '';
+				$button_text     = $notification['button']['text'] ?? '';
+				$button_lightbox = $notification['button']['lightbox'] ?? '';
+				$button          = '';
 
 				if ( $button_url && $button_text ) {
+					$lightbox_class = $button_lightbox ? ' hcaptcha-lightbox' : '';
 					ob_start();
+
 					?>
 					<div class="hcaptcha-notification-buttons hidden">
-						<a href="<?php echo esc_url( $button_url ); ?>" class="button button-primary" target="_blank">
+						<a
+								href="<?php echo esc_url( $button_url ); ?>"
+								class="button button-primary <?php echo esc_attr( $lightbox_class ); ?>"
+								target="_blank">
 							<?php echo esc_html( $button_text ); ?>
 						</a>
 					</div>
 					<?php
+
 					$button = ob_get_clean();
 				}
 

@@ -77,11 +77,13 @@ const whatsNew = ( $ ) => {
 			version: $( '#hcaptcha-whats-new-version' ).text(),
 		};
 
+		closePopup();
+
 		$.post( {
 			url: HCaptchaWhatsNewObject.ajaxUrl,
 			data,
 			success() {
-				window.location.href = href;
+				window.open( href, '_blank' );
 			},
 		} );
 	} );
@@ -94,22 +96,6 @@ const whatsNew = ( $ ) => {
 
 		// Some hack. Without it, background filter is not applied.
 		$modal.find( '.hcaptcha-whats-new-modal-bg' ).hide().show( 200 );
-	} );
-
-	// Lightbox for images.
-	$( document ).on( 'click', '.hcaptcha-lightbox', function( e ) {
-		e.preventDefault();
-
-		const imgSrc = $( this ).attr( 'href' );
-
-		$( '#hcaptcha-lightbox-img' ).attr( 'src', imgSrc );
-		$( '#hcaptcha-lightbox-modal' ).css( 'display', 'flex' );
-	} );
-
-	// Close lightbox by click on the background.
-	$( '#hcaptcha-lightbox-modal' ).on( 'click', function() {
-		$( this ).css( 'display', 'none' );
-		$( '#hcaptcha-lightbox-img' ).attr( 'src', '' );
 	} );
 };
 

@@ -26,10 +26,14 @@ const settingsBase = ( function( $ ) {
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 
+	/**
+	 * Set header bar top position.
+	 */
 	function setHeaderBarTop() {
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
 		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
 		const tabsHeight = tabs ? tabs.offsetHeight : 0;
+
 		// The -1 to put header bar a bit under tabs. It is a precaution when heights are in fractional pixels.
 		const totalHeight = adminBarHeight + tabsHeight - 1;
 
@@ -97,6 +101,27 @@ const settingsBase = ( function( $ ) {
 	}
 
 	/**
+	 * Setup lightbox.
+	 */
+	function setupLightBox() {
+		// Lightbox for images.
+		$( document ).on( 'click', '.hcaptcha-lightbox', function( e ) {
+			e.preventDefault();
+
+			const imgSrc = $( this ).attr( 'href' );
+
+			$( '#hcaptcha-lightbox-img' ).attr( 'src', imgSrc );
+			$( '#hcaptcha-lightbox-modal' ).css( 'display', 'flex' );
+		} );
+
+		// Close lightbox by click on the background.
+		$( '#hcaptcha-lightbox-modal' ).on( 'click', function() {
+			$( this ).css( 'display', 'none' );
+			$( '#hcaptcha-lightbox-img' ).attr( 'src', '' );
+		} );
+	}
+
+	/**
 	 * Public properties and functions.
 	 */
 	const app = {
@@ -161,6 +186,8 @@ const settingsBase = ( function( $ ) {
 	setHeaderBarTop();
 
 	document.addEventListener( 'DOMContentLoaded', highLight );
+
+	setupLightBox();
 
 	return app;
 }( jQuery ) );
