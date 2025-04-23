@@ -77,8 +77,6 @@ const whatsNew = ( $ ) => {
 			version: $( '#hcaptcha-whats-new-version' ).text(),
 		};
 
-		closePopup();
-
 		$.post( {
 			url: HCaptchaWhatsNewObject.ajaxUrl,
 			data,

@@ -267,7 +267,8 @@ class WhatsNew extends NotificationsBase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	private function whats_new_4_13_0(): void {
-		$urls   = $this->prepare_urls();
+		$urls = $this->prepare_urls();
+
 		$block1 = [
 			'type'    => 'center',
 			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
