@@ -7,17 +7,12 @@
 
 namespace HCaptcha\Admin;
 
-use HCaptcha\Settings\EventsPage;
-use HCaptcha\Settings\FormsPage;
-use HCaptcha\Settings\General;
-use HCaptcha\Settings\Integrations;
-
 /**
  * Class Notifications.
  *
  * Show notifications in the admin.
  */
-class Notifications {
+class Notifications extends NotificationsBase {
 
 	/**
 	 * Admin script handle.
@@ -79,48 +74,14 @@ class Notifications {
 	}
 
 	/**
-	 * Get tab url.
-	 *
-	 * @param string $classname Tab class name.
-	 *
-	 * @return string
-	 */
-	private function tab_url( string $classname ): string {
-		$tab = hcaptcha()->settings()->get_tab( $classname );
-
-		return $tab ? $tab->tab_url( $tab ) : '';
-	}
-
-	/**
 	 * Get notifications.
 	 *
 	 * @return array
 	 * @noinspection HtmlUnknownTarget
 	 */
 	protected function get_notifications(): array {
-		$settings                    = hcaptcha()->settings();
-		$general_url                 = $this->tab_url( General::class );
-		$integrations_url            = $this->tab_url( Integrations::class );
-		$forms_url                   = $this->tab_url( FormsPage::class );
-		$events_url                  = $this->tab_url( EventsPage::class );
-		$utm                         = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
-		$utm_sk                      = $utm . 'sk';
-		$utm_not                     = $utm . 'not';
-		$hcaptcha_url                = 'https://www.hcaptcha.com' . $utm_sk;
-		$register_url                = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
-		$pro_url                     = 'https://www.hcaptcha.com/pro' . $utm_not;
-		$dashboard_url               = 'https://dashboard.hcaptcha.com' . $utm_not;
-		$post_leadership_url         = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
-		$rate_url                    = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
-		$search_integrations_url     = $integrations_url . '#hcaptcha-integrations-search';
-		$enterprise_features_url     = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
-		$statistics_url              = $general_url . '#statistics_1';
-		$force_url                   = $general_url . '#force_1';
-		$elementor_edit_form_url     = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
-		$size_url                    = $general_url . '#size';
-		$passive_mode_example_url    = HCAPTCHA_URL . '/assets/images/passive-mode-example.gif';
-		$protect_content_url         = $general_url . '#protect_content_1';
-		$protect_content_example_url = HCAPTCHA_URL . '/assets/images/protect-content-example.gif';
+		$settings = hcaptcha()->settings();
+		$urls     = $this->prepare_urls();
 
 		$notifications = [
 			'register'            => [
@@ -130,17 +91,17 @@ class Notifications {
 					__( 'To use %1$s, please register %2$s to get your site and secret keys.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$hcaptcha_url,
+						$urls['hcaptcha'],
 						__( 'hCaptcha', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$register_url,
+						$urls['register'],
 						__( 'here', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				'button'  => [
-					'url'  => $register_url,
+					'url'  => $urls['register'],
 					'text' => __( 'Get site keys', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -151,17 +112,17 @@ class Notifications {
 					__( 'Want low friction and custom themes? %1$s is for you. %2$s, no credit card required.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$pro_url,
+						$urls['pro'],
 						__( 'hCaptcha Pro', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$dashboard_url,
+						$urls['dashboard'],
 						__( 'Start a free trial in your dashboard', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				'button'  => [
-					'url'  => $pro_url,
+					'url'  => $urls['pro'],
 					'text' => __( 'Try Pro', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -169,7 +130,7 @@ class Notifications {
 				'title'   => __( 'hCaptcha\'s Leadership', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'  => $post_leadership_url,
+					'url'  => $urls['post_leadership'],
 					'text' => __( 'Read post', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -181,15 +142,15 @@ class Notifications {
 					'<strong>' . $settings->get_plugin_name() . '</strong>',
 					sprintf(
 						'<a href="%1$s" target="_blank" rel="noopener noreferrer">★★★★★</a>',
-						$rate_url
+						$urls['rate']
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank" rel="noopener noreferrer">WordPress.org</a>',
-						$rate_url
+						$urls['rate']
 					)
 				),
 				'button'  => [
-					'url'  => $rate_url,
+					'url'  => $urls['rate'],
 					'text' => __( 'Rate', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -198,7 +159,7 @@ class Notifications {
 				'title'   => __( 'Search on Integrations page', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'You can search for plugin an themes on the Integrations page.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'  => $search_integrations_url,
+					'url'  => $urls['search_integrations'],
 					'text' => __( 'Start search', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -207,7 +168,7 @@ class Notifications {
 				'title'   => __( 'Support for Enterprise features', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'The hCaptcha plugin commenced support for Enterprise features. Solve your fraud and abuse problem today.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'  => $enterprise_features_url,
+					'url'  => $urls['enterprise_features'],
 					'text' => __( 'Get started', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -219,17 +180,17 @@ class Notifications {
 					__( '%1$s events statistics and %2$s how your forms are used.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$statistics_url,
+						$urls['statistics'],
 						__( 'Turn on', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$forms_url,
+						$urls['forms'],
 						__( 'see', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				'button'  => [
-					'url'  => $statistics_url,
+					'url'  => $urls['statistics'],
 					'text' => __( 'Turn on stats', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -241,22 +202,22 @@ class Notifications {
 					__( '%1$s events statistics and %2$s to %3$s complete statistics on form events.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$statistics_url,
+						$urls['statistics'],
 						__( 'Turn on', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$dashboard_url,
+						$urls['dashboard'],
 						__( 'upgrade to Pro', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$events_url,
+						$urls['events'],
 						__( 'see', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				'button'  => [
-					'url'  => $statistics_url,
+					'url'  => $urls['statistics'],
 					'text' => __( 'Turn on stats', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -265,7 +226,7 @@ class Notifications {
 				'title'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'Force hCaptcha check before submitting the form and simplify the user experience.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'  => $force_url,
+					'url'  => $urls['force'],
 					'text' => __( 'Turn on force', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -274,7 +235,7 @@ class Notifications {
 				'title'   => __( 'Activation of dependent plugins', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'Automatic activation of dependent plugins on the Integrations page. Try to activate Elementor or Woo Wishlists.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'  => $integrations_url,
+					'url'  => $urls['integrations'],
 					'text' => __( 'Try auto-activation', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
@@ -283,7 +244,7 @@ class Notifications {
 				'title'   => __( 'Add hCaptcha to Elementor Pro Form', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'Add hCaptcha to Elementor Pro Form in the Elementor admin editor.', 'hcaptcha-for-forms-and-more' ),
 				'button'  => [
-					'url'      => $elementor_edit_form_url,
+					'url'      => $urls['elementor_edit_form'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],
@@ -296,17 +257,17 @@ class Notifications {
 					__( '%1$s and use %2$s. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$dashboard_url,
+						$urls['dashboard'],
 						__( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$size_url,
+						$urls['size'],
 						__( 'Invisible Size', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				'button'  => [
-					'url'      => $passive_mode_example_url,
+					'url'      => $urls['passive_mode_example'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],
@@ -319,17 +280,17 @@ class Notifications {
 					__( '%1$s selected site URLs from bots with hCaptcha. Works best with %2$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$protect_content_url,
+						$urls['protect_content'],
 						__( 'Protect', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$dashboard_url,
+						$urls['dashboard'],
 						__( 'Pro', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				'button'  => [
-					'url'      => $protect_content_example_url,
+					'url'      => $urls['protect_content_example'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],

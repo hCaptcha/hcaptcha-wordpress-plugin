@@ -14,7 +14,7 @@ use HCaptcha\Settings\General;
  *
  * Show a What's New popup in the admin.
  */
-class WhatsNew {
+class WhatsNew extends NotificationsBase {
 
 	/**
 	 * Handle for assets.
@@ -267,15 +267,7 @@ class WhatsNew {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	private function whats_new_4_13_0(): void {
-		$general_url                 = $this->tab_url( General::class );
-		$utm                         = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
-		$utm_not                     = $utm . 'not';
-		$dashboard_url               = 'https://dashboard.hcaptcha.com' . $utm_not;
-		$size_url                    = $general_url . '#size';
-		$passive_mode_example_url    = HCAPTCHA_URL . '/assets/images/passive-mode-example.gif';
-		$protect_content_url         = $general_url . '#protect_content_1';
-		$protect_content_example_url = HCAPTCHA_URL . '/assets/images/protect-content-example.gif';
-
+		$urls   = $this->prepare_urls();
 		$block1 = [
 			'type'    => 'center',
 			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
@@ -287,18 +279,18 @@ class WhatsNew {
 					__( 'Protect selected site URLs from bots with hCaptcha. Works best with %1$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$dashboard_url,
+						$urls['dashboard'],
 						__( 'Pro', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 				__( 'Set up protected URLs to prevent these pages from being accessed by bots.', 'hcaptcha-for-forms-and-more' )
 			),
 			'button'  => [
-				'url'  => $protect_content_url,
+				'url'  => $urls['protect_content'],
 				'text' => __( 'Protect Content', 'hcaptcha-for-forms-and-more' ),
 			],
 			'image'   => [
-				'url'      => $protect_content_example_url,
+				'url'      => $urls['protect_content_example'],
 				'lightbox' => true,
 			],
 		];
@@ -313,21 +305,21 @@ class WhatsNew {
 					__( '%1$s and use %2$s. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$dashboard_url,
+						$urls['dashboard'],
 						__( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' )
 					),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
-						$size_url,
+						$urls['size'],
 						__( 'Invisible Size', 'hcaptcha-for-forms-and-more' )
 					)
 				),
 			'button'  => [
-				'url'  => $dashboard_url,
+				'url'  => $urls['dashboard'],
 				'text' => __( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' ),
 			],
 			'image'   => [
-				'url'      => $passive_mode_example_url,
+				'url'      => $urls['passive_mode_example'],
 				'lightbox' => true,
 			],
 		];
@@ -387,20 +379,6 @@ class WhatsNew {
 			</div>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Get tab url.
-	 *
-	 * @param string $classname Tab class name.
-	 *
-	 * @return string
-	 * @noinspection PhpSameParameterValueInspection
-	 */
-	private function tab_url( string $classname ): string {
-		$tab = hcaptcha()->settings()->get_tab( $classname );
-
-		return $tab ? $tab->tab_url( $tab ) : '';
 	}
 
 	/**
