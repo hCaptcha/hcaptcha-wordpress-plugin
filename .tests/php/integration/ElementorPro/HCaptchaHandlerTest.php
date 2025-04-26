@@ -562,7 +562,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			'hcaptcha' . $item_index => [
 				'class'        => 'elementor-hcaptcha',
 				'data-sitekey' => $site_key,
-				'theme'        => $theme,
+				'data-theme'   => $theme,
 				'data-size'    => $size,
 			],
 		];
