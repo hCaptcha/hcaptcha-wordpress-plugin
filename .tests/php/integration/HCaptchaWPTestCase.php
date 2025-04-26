@@ -147,7 +147,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 		}
 
 		$data_sitekey = $args['data-sitekey'] ?? '';
-		$data_theme   = $args['data-theme'] ?? '';
+		$data_theme   = $args['theme'] ?? '';
 		$data_auto    = $args['auto'] ?? false;
 		$data_auto    = $data_auto ? 'true' : 'false';
 		$data_ajax    = $args['ajax'] ?? false;

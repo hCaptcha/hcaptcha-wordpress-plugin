@@ -45,7 +45,6 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 */
 	public function setUp(): void {
 		$plugins_requiring_php = [
-			'7.2' => [ 'ninja-forms/ninja-forms.php' ],
 			'7.4' => [ 'contact-form-7/wp-contact-form-7.php', 'woocommerce/woocommerce.php' ],
 		];
 
@@ -62,7 +61,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 		parent::setUp();
 
-		if ( ! isset( static::$plugin_active[ static::$plugin ] ) ) {
+		if ( static::$plugin && ! isset( static::$plugin_active[ static::$plugin ] ) ) {
 			activate_plugin( static::$plugin );
 			static::$plugin_active[ static::$plugin ] = true;
 		}

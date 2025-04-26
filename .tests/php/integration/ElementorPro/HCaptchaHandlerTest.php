@@ -562,7 +562,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			'hcaptcha' . $item_index => [
 				'class'        => 'elementor-hcaptcha',
 				'data-sitekey' => $site_key,
-				'data-theme'   => $theme,
+				'theme'        => $theme,
 				'data-size'    => $size,
 			],
 		];
@@ -579,7 +579,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'form_id' => $form_id,
 			],
 			'data-sitekey' => $site_key,
-			'data-theme'   => $theme,
+			'theme'        => $theme,
 		];
 		$expected          =
 			'<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">' .

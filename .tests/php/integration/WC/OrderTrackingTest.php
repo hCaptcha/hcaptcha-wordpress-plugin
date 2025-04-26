@@ -46,7 +46,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 				'form_id' => 'order_tracking',
 			],
 			'data-sitekey' => $site_key,
-			'data-theme'   => $theme,
+			'theme'        => $theme,
 		];
 		$hcap_form = $this->get_hcap_form( $args );
 

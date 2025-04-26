@@ -42,14 +42,14 @@ class ProtectContent {
 	 *
 	 * @var string
 	 */
-	private $error_message = '';
+	protected $error_message = '';
 
 	/**
 	 * Request URI.
 	 *
 	 * @var string
 	 */
-	private $request_uri;
+	protected $request_uri = '';
 
 	/**
 	 * Init class.
@@ -120,14 +120,14 @@ class ProtectContent {
 	 *
 	 * @return string
 	 */
-	private function verify(): string {
+	protected function verify(): string {
 		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			$time   = time();
 			$cookie = $time . '|' . wp_hash( $time );
 
-			setcookie( self::COOKIE_NAME, $cookie, $time + self::COOKIE_EXPIRATION, '/' );
+			$this->setcookie( self::COOKIE_NAME, $cookie, $time + self::COOKIE_EXPIRATION, '/' );
 			wp_safe_redirect( $this->request_uri );
 		}
 
@@ -139,7 +139,7 @@ class ProtectContent {
 	 *
 	 * @return bool
 	 */
-	private function is_valid_cookie(): bool {
+	protected function is_valid_cookie(): bool {
 		$cookie     = Request::filter_input( INPUT_COOKIE, self::COOKIE_NAME );
 		$cookie_arr = explode( '|', $cookie );
 
@@ -159,7 +159,7 @@ class ProtectContent {
 	 * @return void
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function show_protection_page(): void {
+	protected function show_protection_page(): void {
 		$css = /* @lang CSS */ '
 	* {
 		box-sizing: border-box;
@@ -501,6 +501,46 @@ class ProtectContent {
 		</html>
 		<?php
 
+		$this->exit();
+	}
+
+	/**
+	 * Setcookie wrapper for test purposes.
+	 *
+	 * @param string $name               The name of the cookie.
+	 * @param string $value              The value of the cookie.
+	 * @param int    $expires_or_options The time the cookie expires.
+	 * @param string $path               The path on the server in which the cookie will be available on.
+	 * @param string $domain             The domain that the cookie is available.
+	 * @param bool   $secure             Indicates that the cookie should only be transmitted over a secure HTTPS
+	 *                                   connection from the client.
+	 * @param bool   $httponly           When true the cookie will be made accessible only through the HTTP protocol.
+	 *
+	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	protected function setcookie(
+		string $name,
+		string $value = '',
+		int $expires_or_options = 0,
+		string $path = '',
+		string $domain = '',
+		bool $secure = false,
+		bool $httponly = false
+	): bool {
+		// @codeCoverageIgnoreStart
+		return setcookie( $name, $value, $expires_or_options, $path );
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Exit wrapper for test purposes.
+	 *
+	 * @return void
+	 */
+	protected function exit(): void {
+		// @codeCoverageIgnoreStart
 		exit();
+		// @codeCoverageIgnoreEnd
 	}
 }
