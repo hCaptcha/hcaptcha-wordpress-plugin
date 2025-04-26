@@ -344,11 +344,21 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
 
-		$result = $subject->print_hcaptcha_scripts( false );
-		self::assertFalse( $result );
-
+		// Without conversational form script.
+		self::assertFalse( $subject->print_hcaptcha_scripts( false ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
+
+		// With conversational form script.
+		wp_register_script( 'fluent_forms_conversational_form', 'https://example.com/some-fluent-form.js', [], '1.0.0', true );
+		wp_enqueue_script( 'fluent_forms_conversational_form' );
+
+		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
+
+		wp_dequeue_script( 'fluent_forms_conversational_form' );
+		wp_deregister_script( 'fluent_forms_conversational_form' );
 	}
 
 	/**
