@@ -9,7 +9,6 @@ namespace HCaptcha\Tests\Integration\PasswordProtected;
 
 use HCaptcha\PasswordProtected\Protect;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
