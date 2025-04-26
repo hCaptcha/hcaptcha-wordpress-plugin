@@ -26,6 +26,7 @@ use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\EventsManager\Booking;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
@@ -1118,6 +1119,11 @@ class Main {
 				[ 'essential_blocks_status', 'form' ],
 				'essential-blocks/essential-blocks.php',
 				EssentialBlocks\Form::class,
+			],
+			'Events Manager'                       => [
+				[ 'events_manager_status', 'booking' ],
+				'events-manager/events-manager.php',
+				Booking::class,
 			],
 			'Extra Comment Form'                   => [
 				[ 'extra_status', 'comment' ],

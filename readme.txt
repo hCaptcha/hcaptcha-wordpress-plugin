@@ -325,6 +325,10 @@ Elementor Pro
 `$source: 'elementor-pro/elementor-pro.php'`
 `$form_id: Form ID set for the form Content->Additional Options or 'login'`
 
+Events Manager
+`$source: 'events-manager/events-manager.php'`
+`$form_id: event_id`
+
 Jetpack
 `$source: 'jetpack/jetpack.php'`
 `$form_id: 'contact_$form_hash'`
@@ -631,6 +635,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Elementor Pro Form and Login Form
 * Essential Addons for Elementor Login and Register Forms
 * Essential Blocks Form
+* Events Manager Booking Form
 * Extra Comment, Contact, Email Optin and Login Forms
 * Fluent Forms, including Login Form
 * Forminator Forms
@@ -698,10 +703,11 @@ Instructions for popular native integrations are below:
 * Added site content protection.
 * Added "Remove Data on Uninstall" option to improve user privacy.
 * Added "What's New" popup on admin pages.
-* Improved support of the device color scheme.
+* Added Events Manager integration.
+* Added Password Protected integration.
 * Added compatibility with Formidable Forms Pro.
 * Added support for Avada multistep forms.
-* Added support for Password Protected plugin.
+* Improved support of the device color scheme.
 * Fixed enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
 * Fixed warning in with auto-verify forms, including Brevo.
 * Fixed enqueuing script with Fluent Conversational Form.

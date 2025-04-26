@@ -405,7 +405,6 @@ class Form extends LoginBase {
 		HCaptcha::css_display( $css );
 	}
 
-
 	/**
 	 * Whether the form has its own hcaptcha set in admin.
 	 *

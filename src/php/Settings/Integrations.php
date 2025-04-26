@@ -367,6 +367,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'events_manager_status'            => [
+				'label'   => 'Events Manager',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'booking' => __( 'Booking', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'extra_status'                     => [
 				'entity'  => 'theme',
 				'label'   => 'Extra',
