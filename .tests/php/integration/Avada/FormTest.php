@@ -14,7 +14,6 @@ namespace HCaptcha\Tests\Integration\Avada;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Avada\Form;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test FormTest class.
