@@ -998,6 +998,14 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'events_manager_status'            => [
+				'label'   => 'Events Manager',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'booking' => 'Booking',
+				],
+			],
 			'extra_status'                     => [
 				'entity'  => 'theme',
 				'label'   => 'Extra',

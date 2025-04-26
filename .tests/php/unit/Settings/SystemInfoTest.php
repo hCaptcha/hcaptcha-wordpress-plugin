@@ -391,6 +391,8 @@ Essential Addons:
   Register:                           Off
 Essential Blocks:                     
   Form:                               Off
+Events Manager:                       
+  Booking:                            Off
 Extra:                                
   Extra Comment Form:                 Off
   Extra Contact Form:                 Off
