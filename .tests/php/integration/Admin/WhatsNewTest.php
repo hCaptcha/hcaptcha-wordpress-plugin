@@ -378,7 +378,7 @@ HTML;
 				<p>Protect selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.</p><p>Set up protected URLs to prevent these pages from being accessed by bots.</p>			</div>
 			<div class="hcaptcha-whats-new-button">
 				<a
-						href="#protect_content_1" class="button button-primary"
+						href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#protect_content_1" class="button button-primary"
 						target="_blank">
 					Protect Content				</a>
 			</div>
@@ -394,7 +394,7 @@ HTML;
 						<h2>
 				Friction-free “No CAPTCHA” &amp; 99.9% passive modes			</h2>
 			<div class="hcaptcha-whats-new-message">
-				<a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.			</div>
+				<a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.			</div>
 			<div class="hcaptcha-whats-new-button">
 				<a
 						href="https://dashboard.hcaptcha.com/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary"
@@ -409,6 +409,21 @@ HTML;
 		</div>
 		
 HTML;
+
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
 
 		$subject = Mockery::mock( WhatsNew::class )->makePartial();
 
