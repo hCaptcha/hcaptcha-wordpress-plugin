@@ -22,17 +22,6 @@ use ReflectionException;
 class WhatsNewTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
-	 *
-	 * @return void
-	 */
-	public function tearDown(): void {
-//		unset( $_REQUEST['action'], $_REQUEST['nonce'] );
-//
-		parent::tearDown();
-	}
-
-	/**
 	 * Test init() and init_hooks().
 	 */
 	public function test_init_and_init_hooks(): void {
@@ -376,6 +365,7 @@ HTML;
 	 * Test whats_new_4_13_0().
 	 *
 	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
 	 */
 	public function test_whats_new_4_13_0(): void {
 		$expected = <<<HTML
@@ -462,7 +452,6 @@ HTML;
 	 * Test show().
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function est_show(): void {
@@ -685,7 +674,6 @@ HTML;
 	 * Test show() without notifications.
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function est_show_without_notifications(): void {
 		global $current_user;
