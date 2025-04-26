@@ -46,7 +46,7 @@ class WhatsNew extends NotificationsBase {
 	 *
 	 * @var bool
 	 */
-	private $allowed = false;
+	protected $allowed = false;
 
 	/**
 	 * Constructor.
@@ -156,9 +156,7 @@ class WhatsNew extends NotificationsBase {
 		$method   = '';
 
 		foreach ( $versions as $version ) {
-			if (
-				version_compare( $current, $version, '>=' )
-			) {
+			if ( version_compare( $current, $version, '>=' ) ) {
 				$method = $prefix . str_replace( '.', '_', $version );
 
 				break;
@@ -220,7 +218,7 @@ class WhatsNew extends NotificationsBase {
 	 *
 	 * @return void
 	 */
-	private function render_popup( string $method, bool $display ): void {
+	protected function render_popup( string $method, bool $display ): void {
 		if ( ! method_exists( $this, $method ) ) {
 			return;
 		}
@@ -263,10 +261,10 @@ class WhatsNew extends NotificationsBase {
 	 * What's New 4.13.0 content.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedPrivateMethodInspection
 	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
 	 */
-	private function whats_new_4_13_0(): void {
+	protected function whats_new_4_13_0(): void {
 		$urls = $this->prepare_urls();
 
 		$block1 = [
@@ -373,9 +371,9 @@ class WhatsNew extends NotificationsBase {
 						<a href="<?php echo esc_url( $block['image']['url'] ); ?>" class="hcaptcha-lightbox">
 							<img src="<?php echo esc_url( $block['image']['url'] ); ?>" alt="What's New block image">
 						</a>
-					<?php else : ?>
+					<?php else : // @codeCoverageIgnoreStart ?>
 						<img src="<?php echo esc_url( $block['image']['url'] ); ?>" alt="What's New block image">
-					<?php endif; ?>
+					<?php endif; // @codeCoverageIgnoreEnd ?>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -387,7 +385,7 @@ class WhatsNew extends NotificationsBase {
 	 *
 	 * @param string $version Version.
 	 */
-	private function update_whats_new( string $version ): void {
+	protected function update_whats_new( string $version ): void {
 		if ( ! $this->is_valid_version( $version ) ) {
 			return;
 		}
@@ -395,7 +393,9 @@ class WhatsNew extends NotificationsBase {
 		$tab = hcaptcha()->settings()->get_tab( General::class );
 
 		if ( ! $tab ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$tab->update_option( self::WHATS_NEW_KEY, $version );
