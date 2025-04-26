@@ -146,7 +146,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 			$nonce_field = wp_nonce_field( $args['action'], $args['name'], true, false );
 		}
 
-		$data_sitekey = $args['data-sitekey'] ?? '';
+		$data_sitekey = $args['sitekey'] ?? '';
 		$data_theme   = $args['theme'] ?? '';
 		$data_auto    = $args['auto'] ?? false;
 		$data_auto    = $data_auto ? 'true' : 'false';

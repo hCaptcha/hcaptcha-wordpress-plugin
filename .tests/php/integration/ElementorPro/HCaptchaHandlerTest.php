@@ -578,7 +578,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'source'  => [ 'elementor-pro/elementor-pro.php' ],
 				'form_id' => $form_id,
 			],
-			'data-sitekey' => $site_key,
+			'sitekey'      => $site_key,
 			'theme'        => $theme,
 		];
 		$expected          =
