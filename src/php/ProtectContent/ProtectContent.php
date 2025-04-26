@@ -512,9 +512,8 @@ class ProtectContent {
 	 * @param int    $expires_or_options The time the cookie expires.
 	 * @param string $path               The path on the server in which the cookie will be available on.
 	 * @param string $domain             The domain that the cookie is available.
-	 * @param bool   $secure             Indicates that the cookie should only be transmitted over a secure HTTPS
-	 *                                   connection from the client.
-	 * @param bool   $httponly           When true the cookie will be made accessible only through the HTTP protocol.
+	 * @param bool   $secure             Indicates that the cookie should only be transmitted over HTTPS.
+	 * @param bool   $httponly           When true, the cookie will be made accessible only through the HTTP protocol.
 	 *
 	 * @return bool
 	 * @noinspection PhpUnusedParameterInspection
