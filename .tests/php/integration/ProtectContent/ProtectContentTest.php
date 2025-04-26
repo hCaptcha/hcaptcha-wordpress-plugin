@@ -13,6 +13,8 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Scripts;
+use WP_Styles;
 
 /**
  * Test ProtectContent class.
@@ -260,6 +262,15 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_show_protection_page(): void {
+		global $wp_scripts, $wp_styles;
+
+		// Clean all scripts and styles left registered in other tests.
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_scripts = new WP_Scripts();
+		$wp_styles  = new WP_Styles();
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
 		$hcap_form = $this->get_hcap_form(
 			[
 				'action' => 'hcaptcha_protect_content',
