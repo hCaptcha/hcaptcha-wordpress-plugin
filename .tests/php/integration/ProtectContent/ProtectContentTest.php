@@ -264,6 +264,8 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	public function test_show_protection_page(): void {
 		global $wp_scripts, $wp_styles;
 
+		$current_version = HCAPTCHA_VERSION;
+
 		// Clean all scripts and styles left registered in other tests.
 
 		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
@@ -353,7 +355,7 @@ window.addEventListener('touchstart',load);document.body.addEventListener('mouse
 var HCaptchaMainObject = {"params":"{\"sitekey\":\"\",\"theme\":\"\",\"size\":\"\",\"hl\":\"en\"}"};
 /* ]]> */
 </script>
-<script type="text/javascript" src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/js/apps/hcaptcha.js?ver=4.13.0-RC6" id="hcaptcha-js"></script>
+<script type="text/javascript" src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/js/apps/hcaptcha.js?ver=$current_version" id="hcaptcha-js"></script>
 		</body>
 		</html>
 		
