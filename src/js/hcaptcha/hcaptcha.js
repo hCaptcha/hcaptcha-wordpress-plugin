@@ -435,6 +435,8 @@ class HCaptcha {
 		params.theme = 'light';
 
 		if ( ! this.darkElement ) {
+			params.theme = window?.matchMedia( '(prefers-color-scheme: dark)' ).matches ? 'dark' : 'light';
+
 			return params;
 		}
 

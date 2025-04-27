@@ -25,7 +25,7 @@ class Privacy {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->name = __( 'hCaptcha for WP', 'hcaptcha-for-forms-and-more' );
+		$this->name = hcaptcha()->settings()->get_plugin_name();
 
 		$this->init();
 	}

@@ -1499,6 +1499,7 @@ abstract class SettingsBase {
 		}
 
 		$this->settings[ $key ] = $value;
+
 		update_option( $this->option_name(), $this->settings );
 	}
 

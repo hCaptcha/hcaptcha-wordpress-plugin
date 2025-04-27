@@ -45,7 +45,7 @@ class PasswordProtected {
 	/**
 	 * Filters the template created by the Download Manager plugin and adds hcaptcha.
 	 *
-	 * @param string|mixed $output The password form HTML output.
+	 * @param string|mixed $output The password form's HTML output.
 	 * @param WP_Post      $post   Post object.
 	 *
 	 * @return string

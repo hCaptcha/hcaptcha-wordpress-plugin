@@ -14,6 +14,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Admin\Privacy;
+use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -572,6 +573,15 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		background-repeat: no-repeat;
 		background-color: #333;
 		border: 1px solid #f5f5f5;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.h-captcha[data-theme="auto"]::before {
+			background-image: url( http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-div-logo-white.svg );
+			background-repeat: no-repeat;
+			background-color: #333;
+			border: 1px solid #f5f5f5;			
+		}
 	}
 
 	.h-captcha[data-theme="custom"]::before {
@@ -1191,6 +1201,7 @@ CSS;
 			PluginStats::class,
 			Events::class,
 			Privacy::class,
+			WhatsNew::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 

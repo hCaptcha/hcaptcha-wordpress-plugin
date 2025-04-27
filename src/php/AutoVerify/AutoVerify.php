@@ -337,19 +337,19 @@ class AutoVerify {
 
 		foreach ( $forms_data as $form_data ) {
 			$data   = $form_data;
-			$action = $form_data['action'];
+			$action = $data['action'] ?? '';
 
 			unset( $data['action'] );
 
-			$inputs = $data['inputs'];
-			$args   = $data['args'];
-			$auto   = $args['auto'];
+			$inputs = $data['inputs'] ?? [];
+			$args   = $data['args'] ?? [];
+			$auto   = $args['auto'] ?? false;
 
 			$key          = false;
 			$action_forms = $registered_forms[ $action ] ?? [];
 
 			foreach ( $action_forms as $index => $action_form ) {
-				if ( $inputs === $action_form['inputs'] ) {
+				if ( ( $action_form['inputs'] ?? [] ) === $inputs ) {
 					$key = $index;
 					break;
 				}

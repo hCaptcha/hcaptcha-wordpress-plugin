@@ -125,6 +125,15 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get plugin name.
+	 *
+	 * @return string
+	 */
+	public function get_plugin_name(): string {
+		return 'hCaptcha for WP';
+	}
+
+	/**
 	 * Check if it is a Pro account.
 	 *
 	 * @return false

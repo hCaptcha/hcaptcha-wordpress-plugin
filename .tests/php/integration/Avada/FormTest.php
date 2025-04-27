@@ -14,7 +14,6 @@ namespace HCaptcha\Tests\Integration\Avada;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Avada\Form;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test FormTest class.
@@ -44,7 +43,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 10, has_action( 'fusion_form_after_open', [ $subject, 'form_after_open' ] ) );
 		self::assertSame( 10, has_filter( 'fusion_builder_form_submission_data', [ $subject, 'submission_data' ] ) );
-		self::assertSame( 10, has_action( 'fusion_element_button_content', [ $subject, 'add_hcaptcha' ] ) );
+		self::assertSame( 10, has_action( 'fusion_element_form_content', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_filter( 'fusion_form_demo_mode', [ $subject, 'verify' ] ) );
 	}
 

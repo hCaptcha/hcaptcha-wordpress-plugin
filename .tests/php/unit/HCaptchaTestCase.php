@@ -651,6 +651,21 @@ abstract class HCaptchaTestCase extends TestCase {
 				'default' => 'api.hcaptcha.com',
 				'helper'  => 'See Enterprise docs.',
 			],
+			'protect_content'          => [
+				'label'   => 'Content Settings',
+				'type'    => 'checkbox',
+				'section' => 'content',
+				'options' => [
+					'on' => 'Protect Content',
+				],
+				'helper'  => 'Protect site content from bots with hCaptcha.',
+			],
+			'protected_urls'           => [
+				'label'   => 'Protected URLs',
+				'type'    => 'textarea',
+				'section' => 'content',
+				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
+			],
 			'off_when_logged_in'       => [
 				'label'   => 'Other Settings',
 				'type'    => 'checkbox',
@@ -683,6 +698,15 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Hide Login Errors',
 				],
 				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
+			],
+			'cleanup_on_uninstall'     => [
+				'type'    => 'checkbox',
+				'section' => 'other',
+				'options' => [
+					'on' => 'Remove Data on Uninstall',
+				],
+				'default' => '',
+				'helper'  => 'When enabled, all plugin data will be removed when uninstalling the plugin.',
 			],
 			'whitelisted_ips'          => [
 				'label'   => 'Allowlisted IPs',
@@ -974,6 +998,14 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'events_manager_status'            => [
+				'label'   => 'Events Manager',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'booking' => 'Booking',
+				],
+			],
 			'extra_status'                     => [
 				'entity'  => 'theme',
 				'label'   => 'Extra',
@@ -1158,6 +1190,13 @@ abstract class HCaptchaTestCase extends TestCase {
 				],
 			'passster_status'                  => [
 				'label'   => 'Passster',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => 'Protection Form',
+				],
+			],
+			'password_protected_status'        => [
+				'label'   => 'Password Protected',
 				'type'    => 'checkbox',
 				'options' => [
 					'protect' => 'Protection Form',

@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Migrations;
 
 use ActionScheduler;
@@ -513,6 +516,7 @@ class Migrations {
 	 * @param string $group Group name.
 	 *
 	 * @return int Started or failed.
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function create_as_action( string $hook, array $args, string $group ): int {
 		$actions = as_get_scheduled_actions(

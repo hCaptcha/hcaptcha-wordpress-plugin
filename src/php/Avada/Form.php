@@ -36,7 +36,7 @@ class Form {
 	public function init_hooks(): void {
 		add_action( 'fusion_form_after_open', [ $this, 'form_after_open' ], 10, 2 );
 		add_filter( 'fusion_builder_form_submission_data', [ $this, 'submission_data' ] );
-		add_action( 'fusion_element_button_content', [ $this, 'add_hcaptcha' ], 10, 2 );
+		add_action( 'fusion_element_form_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'fusion_form_demo_mode', [ $this, 'verify' ] );
 	}
 
@@ -82,9 +82,17 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_hcaptcha( string $html, array $args ): string {
-		if ( false === strpos( $html, '<button type="submit"' ) ) {
+		// Find the last occurrence of the 'submit' button.
+		// There are several submit buttons on a multistep form.
+		$last_pos = strrpos( $html, '<button type="submit"' );
+
+		if ( false === $last_pos ) {
 			return $html;
 		}
+
+		// Split the HTML into two parts at the position of the last 'submit' button.
+		$first_part  = substr( $html, 0, $last_pos );
+		$second_part = substr( $html, $last_pos );
 
 		$hcap_args = [
 			'id' => [
@@ -93,7 +101,9 @@ class Form {
 			],
 		];
 
-		return HCaptcha::form( $hcap_args ) . $html;
+		$hcaptcha = HCaptcha::form( $hcap_args );
+
+		return $first_part . $hcaptcha . $second_part;
 	}
 
 	/**

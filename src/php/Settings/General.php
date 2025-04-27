@@ -65,6 +65,11 @@ class General extends PluginSettingsBase {
 	public const SECTION_ENTERPRISE = 'enterprise';
 
 	/**
+	 * Content section id.
+	 */
+	public const SECTION_CONTENT = 'content';
+
+	/**
 	 * Other section id.
 	 */
 	public const SECTION_OTHER = 'other';
@@ -500,6 +505,21 @@ class General extends PluginSettingsBase {
 				'default' => Main::VERIFY_HOST,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'protect_content'      => [
+				'label'   => __( 'Content Settings', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_CONTENT,
+				'options' => [
+					'on' => __( 'Protect Content', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Protect site content from bots with hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'protected_urls'       => [
+				'label'   => __( 'Protected URLs', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'textarea',
+				'section' => self::SECTION_CONTENT,
+				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'off_when_logged_in'   => [
 				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
@@ -524,6 +544,15 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Hide Login Errors', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'cleanup_on_uninstall' => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Remove Data on Uninstall', 'hcaptcha-for-forms-and-more' ),
+				],
+				'default' => '',
+				'helper'  => __( 'When enabled, all plugin data will be removed when uninstalling the plugin.', 'hcaptcha-for-forms-and-more' ),
 			],
 			self::NETWORK_WIDE     => [
 				'type'    => 'checkbox',
@@ -674,6 +703,9 @@ class General extends PluginSettingsBase {
 				break;
 			case self::SECTION_ENTERPRISE:
 				$this->print_section_header( $arguments['id'], __( 'Enterprise', 'hcaptcha-for-forms-and-more' ) );
+				break;
+			case self::SECTION_CONTENT:
+				$this->print_section_header( $arguments['id'], __( 'Content', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
@@ -856,7 +888,6 @@ class General extends PluginSettingsBase {
 	 * Ajax action to check config.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_config(): void {
 		$this->run_checks( self::CHECK_CONFIG_ACTION );
@@ -1018,11 +1049,13 @@ class General extends PluginSettingsBase {
 			if ( is_array( $value ) ) {
 				$result[] = [ implode( '--', $level ) => '' ];
 				$result[] = $this->flatten_array( $value );
+
 				array_pop( $level );
 				continue;
 			}
 
 			$result[] = [ implode( '--', $level ) => $value ];
+
 			array_pop( $level );
 		}
 

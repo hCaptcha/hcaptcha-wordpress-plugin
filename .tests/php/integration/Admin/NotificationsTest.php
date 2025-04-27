@@ -172,8 +172,18 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Friction-free “No CAPTCHA” & 99.9% passive modes',
 				'message' => '<a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.',
 				'button'  => [
-					'url'  => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/elementor-edit-form.png',
-					'text' => 'See an example',
+					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/passive-mode-example.gif',
+					'text'     => 'See an example',
+					'lightbox' => true,
+				],
+			],
+			'protect-content'     => [
+				'title'   => 'Protect Site Content',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#protect_content_1" target="_blank">Protect</a> selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.',
+				'button'  => [
+					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/protect-content-example.gif',
+					'text'     => 'See an example',
+					'lightbox' => true,
 				],
 			],
 		];
@@ -295,7 +305,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				target="_blank">here</a> to get your site and secret keys.</p>
 		<div class="hcaptcha-notification-buttons hidden">
 			<a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=sk"
-			   class="button button-primary" target="_blank">
+			   class="button button-primary " target="_blank">
 				Get site keys </a>
 		</div>
 	</div>
@@ -312,7 +322,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
 		<div class="hcaptcha-notification-buttons hidden">
 			<a href="https://www.hcaptcha.com/pro/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
-			   class="button button-primary" target="_blank">
+			   class="button button-primary " target="_blank">
 				Try Pro </a>
 		</div>
 	</div>
@@ -325,7 +335,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		<p>hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™</p>
 		<div class="hcaptcha-notification-buttons hidden">
 			<a href="https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
-			   class="button button-primary" target="_blank">
+			   class="button button-primary " target="_blank">
 				Read post </a>
 		</div>
 	</div>
@@ -413,7 +423,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
 	<div class="hcaptcha-notification-buttons hidden">
 		<a href="https://www.hcaptcha.com/pro/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
-		   class="button button-primary" target="_blank">
+		   class="button button-primary " target="_blank">
 			Try Pro </a>
 	</div>
 </div>

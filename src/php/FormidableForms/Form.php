@@ -62,7 +62,7 @@ class Form {
 	public function init_hooks(): void {
 		add_filter( 'option_frm_options', [ $this, 'get_option' ], 10, 2 );
 		add_filter( 'frm_replace_shortcodes', [ $this, 'add_hcaptcha' ], 10, 3 );
-		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 10, 3 );
+		add_filter( 'frm_is_field_hidden', [ $this, 'prevent_native_validation' ], 20, 3 );
 		add_filter( 'frm_validate_entry', [ $this, 'verify' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );

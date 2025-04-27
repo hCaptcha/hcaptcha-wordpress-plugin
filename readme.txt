@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.12.0
+Stable tag: 4.13.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
+* **Protect Site Content:** Protects selected site URLs from bots with hCaptcha. Works best with Pro 99.9% passive mode.
 * **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
 * **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
@@ -70,23 +71,24 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 
 1. Login page with hCaptcha widget.
 2. Login page with hCaptcha challenge.
-3. WooCommerce Login/Register page.
-4. Contact Form 7 with hCaptcha.
-5. Contact Form 7 live form in the admin editor.
-6. Elementor Pro Form.
-7. Elementor Pro Form in admin editor.
-8. General settings page.
-9. Integrations settings page.
-10. Activating plugin from the Integration settings page.
-11. (Optional) Local Forms statistics.
-12. (Optional) Local Events statistics.
+3. Protected content.
+4. WooCommerce Login/Register page.
+5. Contact Form 7 with hCaptcha.
+6. Contact Form 7 live form in the admin editor.
+7. Elementor Pro Form.
+8. Elementor Pro Form in admin editor.
+9. General settings page.
+10. Integrations' settings page.
+11. Activating plugin from the Integration settings page.
+12. (Optional) Local Forms statistics.
+13. (Optional) Local Events statistics.
 
 == Installation ==
 
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin on the 'Plugins' admin page
+2. Activate the hCaptcha plugin on Plugins admin page
 3. Enter your site key and secret on the Settings→hCaptcha→General page
 4. Enable desired Integrations on the Settings→hCaptcha→Integrations page
 
@@ -222,9 +224,9 @@ function my_hcap_activate( $activate ): bool {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
-= How to block hCaptcha scripts on a specific page? =
+= How do I block hCaptcha scripts everywhere except on a specific page? =
 
-hCaptcha starts early, so you cannot use standard WP functions to determine the page. For instance, to block it everywhere except `contact` page, add the following code.
+An an example, to block hCaptcha scripts everywhere except on the `contact` page:
 
 `
 /**
@@ -235,16 +237,38 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
  * @return bool
  */
 function my_hcap_print_hcaptcha_scripts( $status ): bool {
-  $status = (bool) $status;
-
   if ( is_page( 'contact' ) ) {
-    return $status;
+    return (bool) $status;
   }
 
   return false;
 }
 
 add_filter( 'hcap_print_hcaptcha_scripts', 'my_hcap_print_hcaptcha_scripts' );
+`
+
+= How do I block hCaptcha scripts everywhere except on a specific page? =
+
+An an example, to block hCaptcha scripts everywhere except on the `contact` page:
+
+`
+/**
+ * Block inline styles.
+ *
+ * @return void
+ */
+function hcap_block_inline_styles() {
+	if ( is_page( 'contact' ) ) {
+		return;
+	}
+
+	$hcaptcha = hcaptcha();
+
+	remove_action( 'wp_head', [ $hcaptcha, 'print_inline_styles' ] );
+	remove_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] );
+}
+
+add_action( 'wp_head', 'hcap_block_inline_styles', 0 );
 `
 
 = Skipping hCaptcha verification on a specific form =
@@ -301,6 +325,10 @@ Elementor Pro
 `$source: 'elementor-pro/elementor-pro.php'`
 `$form_id: Form ID set for the form Content->Additional Options or 'login'`
 
+Events Manager
+`$source: 'events-manager/events-manager.php'`
+`$form_id: event_id`
+
 Jetpack
 `$source: 'jetpack/jetpack.php'`
 `$form_id: 'contact_$form_hash'`
@@ -336,6 +364,10 @@ Paid Memberships Pro
 Passster
 `$source: 'content-protector/content-protector.php'`
 `$form_id: area_id`
+
+Password Protected
+`$source: 'password-protected/password-protected.php'`
+`$form_id: 'protect'`
 
 Profile Builder
 `$source: 'profile-builder/index.php'`
@@ -383,7 +415,7 @@ WPForms
 
 wpForo
 `$source: 'wpforo/wpforo.php'`
-`$form_id: 'new_topic' for new topic form and topicid for reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.`
+`$form_id: 'new_topic' for a new topic form and topicid for a reply form. Topicid can be found in HTML code searching for 'data-topicid' in Elements.`
 
 Wordfence Login Security
 `$source: 'wordfence-login-security/wordfence-login-security.php'`
@@ -585,7 +617,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * ACF Extended Form
 * Affiliates Login and Register Forms
 * Asgaros Forum New Topic and Reply Form
-* Avada Form
+* Avada standard and multistep Forms
 * Back In Stock Notifier Form
 * bbPress New Topic, Reply, Login, Register and Lost Password Forms
 * Beaver Builder Contact and Login Forms
@@ -603,6 +635,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Elementor Pro Form and Login Form
 * Essential Addons for Elementor Login and Register Forms
 * Essential Blocks Form
+* Events Manager Booking Form
 * Extra Comment, Contact, Email Optin and Login Forms
 * Fluent Forms, including Login Form
 * Forminator Forms
@@ -622,6 +655,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout and Login Forms
 * Passster Protection Form
+* Password Protected Form
 * Profile Builder Login, Recover Password, and Register Forms
 * Really Simple CAPTCHA
 * Quform Forms
@@ -664,6 +698,24 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.13.0 =
+* Added site content protection.
+* Added "Remove Data on Uninstall" option to improve user privacy.
+* Added "What's New" popup on admin pages.
+* Added Events Manager integration.
+* Added Password Protected integration.
+* Added compatibility with Formidable Forms Pro.
+* Added support for Avada multistep forms.
+* Improved support of the device color scheme.
+* Fixed enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
+* Fixed warning in with auto-verify forms, including Brevo.
+* Fixed enqueuing script with Fluent Conversational Form.
+* Fixed showing hCaptcha with the latest Fluent Forms version.
+* Fixed Conversational forms support with the latest Fluent Forms version.
+* Fixed race condition when highlighting admin elements.
+* Tested with WordPress 6.7.
+* Tested with WooCommerce 9.8.
 
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.

@@ -37,16 +37,16 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 		$theme     = 'some theme';
 		$size      = 'some size';
 		$args      = [
-			'action'       => HCAPTCHA_ACTION,
-			'name'         => HCAPTCHA_NONCE,
-			'size'         => $size,
-			'auto'         => true,
-			'id'           => [
+			'action'  => HCAPTCHA_ACTION,
+			'name'    => HCAPTCHA_NONCE,
+			'size'    => $size,
+			'auto'    => true,
+			'id'      => [
 				'source'  => [ 'woocommerce/woocommerce.php' ],
 				'form_id' => 'order_tracking',
 			],
-			'data-sitekey' => $site_key,
-			'data-theme'   => $theme,
+			'sitekey' => $site_key,
+			'theme'   => $theme,
 		];
 		$hcap_form = $this->get_hcap_form( $args );
 

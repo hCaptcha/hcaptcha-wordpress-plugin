@@ -573,13 +573,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			],
 		];
 		$args              = [
-			'size'         => $size,
-			'id'           => [
+			'size'    => $size,
+			'id'      => [
 				'source'  => [ 'elementor-pro/elementor-pro.php' ],
 				'form_id' => $form_id,
 			],
-			'data-sitekey' => $site_key,
-			'data-theme'   => $theme,
+			'sitekey' => $site_key,
+			'theme'   => $theme,
 		];
 		$expected          =
 			'<div class="elementor-field" id="form-field-_014ea7c"><div class="elementor-hcaptcha">' .

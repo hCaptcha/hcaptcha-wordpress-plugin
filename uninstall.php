@@ -80,6 +80,14 @@ function hcap_cleanup_site_data( array $options ): void {
  * @noinspection DisconnectedForeachInstructionInspection
  */
 function hcap_cleanup_data(): void {
+	$options              = get_option( PluginSettingsBase::OPTION_NAME, [] );
+	$cleanup_on_uninstall = $options['cleanup_on_uninstall'] ?? '';
+
+	if ( [ 'on' ] !== $cleanup_on_uninstall ) {
+		return;
+	}
+
+	// Perform plugin cleanup tasks.
 	$settings    = [ PluginSettingsBase::OPTION_NAME, PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ];
 	$other       = [ LoginBase::LOGIN_DATA, Migrations::MIGRATED_VERSIONS_OPTION_NAME ];
 	$all_options = array_merge( $settings, $other );
@@ -107,5 +115,4 @@ function hcap_cleanup_data(): void {
 
 require_once HCAPTCHA_PATH . '/vendor/autoload.php';
 
-// Perform plugin cleanup tasks.
 hcap_cleanup_data();

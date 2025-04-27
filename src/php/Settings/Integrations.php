@@ -367,6 +367,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'events_manager_status'            => [
+				'label'   => 'Events Manager',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'booking' => __( 'Booking', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'extra_status'                     => [
 				'entity'  => 'theme',
 				'label'   => 'Extra',
@@ -526,6 +534,13 @@ class Integrations extends PluginSettingsBase {
 			],
 			'passster_status'                  => [
 				'label'   => 'Passster',
+				'type'    => 'checkbox',
+				'options' => [
+					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'password_protected_status'        => [
+				'label'   => 'Password Protected',
 				'type'    => 'checkbox',
 				'options' => [
 					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
@@ -1611,6 +1626,7 @@ class Integrations extends PluginSettingsBase {
 	 * Get default theme.
 	 *
 	 * @return string
+	 * @noinspection PhpVoidFunctionResultUsedInspection
 	 */
 	protected function get_default_theme(): string {
 		$core_default_theme_obj = WP_Theme::get_core_default_theme();

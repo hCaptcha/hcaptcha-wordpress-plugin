@@ -622,13 +622,13 @@ CSS;
 		$description = 'some description';
 		$errors      = [ 'some errors' ];
 		$args        = [
-			'action'     => Form::ACTION,
-			'name'       => Form::NAME,
-			'id'         => [
+			'action' => Form::ACTION,
+			'name'   => Form::NAME,
+			'id'     => [
 				'source'  => [ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
 				'form_id' => $form_id,
 			],
-			'data-theme' => 'light',
+			'theme'  => 'light',
 		];
 		$hcap_form   = $this->get_hcap_form( $args );
 		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';

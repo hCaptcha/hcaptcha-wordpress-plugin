@@ -47,7 +47,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 10, has_filter( 'option_frm_options', [ $subject, 'get_option' ] ) );
 		self::assertSame( 10, has_filter( 'frm_replace_shortcodes', [ $subject, 'add_hcaptcha' ] ) );
-		self::assertSame( 10, has_filter( 'frm_is_field_hidden', [ $subject, 'prevent_native_validation' ] ) );
+		self::assertSame( 20, has_filter( 'frm_is_field_hidden', [ $subject, 'prevent_native_validation' ] ) );
 		self::assertSame( 10, has_filter( 'frm_validate_entry', [ $subject, 'verify' ] ) );
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 		self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );

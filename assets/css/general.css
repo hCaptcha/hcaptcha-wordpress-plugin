@@ -252,6 +252,42 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: 100%;
 }
 
+/* Section Protect Content */
+.hcaptcha-section-content + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"content protected-urls";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-content + table tbody tr.hcaptcha-general-content {
+	grid-area: content;
+}
+
+.hcaptcha-section-content + table tbody tr.hcaptcha-general-protected-urls {
+	grid-area: protected-urls;
+}
+
+.hcaptcha-section-content + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-content + table tbody tr td {
+	width: max-content;
+}
+
+.hcaptcha-section-content + table tbody tr.hcaptcha-general-protected-urls td {
+	width: auto;
+}
+
+.hcaptcha-section-content + table tbody tr td textarea,
+.hcaptcha-section-content + table tbody tr td input {
+	width: 100%;
+}
+
 /* Section Other */
 .hcaptcha-section-other + table tbody {
 	display: grid;
@@ -260,7 +296,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		"logged whitelisted"
 		"recaptcha whitelisted"
 		"hide-login-errors whitelisted"
-		"network whitelisted"
+		"cleanup-on-uninstall network"
 		"login-limit login-interval"
 		"delay .";
 	gap: 0 20px;
@@ -277,6 +313,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors {
 	grid-area: hide-login-errors;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall {
+	grid-area: cleanup-on-uninstall;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
@@ -309,6 +349,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors th,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
 	padding: 0;
 }

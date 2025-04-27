@@ -1,3 +1,21 @@
+= 4.13.0 =
+* Added site content protection.
+* Added "Remove Data on Uninstall" option to improve user privacy.
+* Added "What's New" popup on admin pages.
+* Added Events Manager integration.
+* Added Password Protected integration.
+* Added compatibility with Formidable Forms Pro.
+* Added support for Avada multistep forms.
+* Improved support of the device color scheme.
+* Fixed enqueuing hCaptcha scripts on every page when Fluent Forms integration is on.
+* Fixed warning in with auto-verify forms, including Brevo.
+* Fixed enqueuing script with Fluent Conversational Form.
+* Fixed showing hCaptcha with the latest Fluent Forms version.
+* Fixed Conversational forms support with the latest Fluent Forms version.
+* Fixed race condition when highlighting admin elements.
+* Tested with WordPress 6.7.
+* Tested with WooCommerce 9.8.
+
 = 4.12.0 =
 * Added 'hcap_print_hcaptcha_scripts' filter.
 * Added the ability to filter printing of dsn-prefetch link and inline styles.

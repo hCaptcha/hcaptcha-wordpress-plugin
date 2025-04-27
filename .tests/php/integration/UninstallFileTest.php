@@ -54,9 +54,14 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 			define( 'WP_UNINSTALL_PLUGIN', true );
 		}
 
+		$settings          = [ 'some settings' ];
+		$network_settings  = [ 'some network settings' ];
+		$login_data        = [ 'some login data' ];
+		$migrated_versions = [ 'some migration data' ];
+
 		if ( $is_multisite ) {
-			update_site_option( PluginSettingsBase::OPTION_NAME, [ 'some settings' ] );
-			update_site_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE, [ 'some network settings' ] );
+			update_site_option( PluginSettingsBase::OPTION_NAME, $settings );
+			update_site_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE, $network_settings );
 
 			FunctionMocker::replace(
 				'defined',
@@ -66,10 +71,10 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 			);
 		}
 
-		update_option( PluginSettingsBase::OPTION_NAME, [ 'some settings' ] );
-		update_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE, [ 'some network settings' ] );
-		update_option( LoginBase::LOGIN_DATA, [ 'some login data' ] );
-		update_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [ 'some migration data' ] );
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
+		update_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE, $network_settings );
+		update_option( LoginBase::LOGIN_DATA, $login_data );
+		update_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, $migrated_versions );
 
 		$table_name      = 'hcaptcha_events';
 		$full_table_name = $wpdb->prefix . $table_name;
@@ -116,6 +121,24 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 			hcap_cleanup_data();
 		}
 
+		// Should be no result, as cleanup_on_uninstall not set.
+		if ( $is_multisite ) {
+			self::assertSame( $settings, get_site_option( PluginSettingsBase::OPTION_NAME ) );
+			self::assertSame( $network_settings, get_site_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
+		}
+
+		self::assertSame( $settings, get_option( PluginSettingsBase::OPTION_NAME ) );
+		self::assertSame( $network_settings, get_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
+		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+		self::assertSame( $migrated_versions, get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME ) );
+
+		$settings = [ 'cleanup_on_uninstall' => [ 'on' ] ];
+
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
+
+		hcap_cleanup_data();
+
+		// Should be cleaned up.
 		if ( $is_multisite ) {
 			self::assertFalse( get_site_option( PluginSettingsBase::OPTION_NAME ) );
 			self::assertFalse( get_site_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
@@ -139,8 +162,8 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_uninstall_file(): array {
 		return [
-			[ false ],
-			[ true ],
+			'single site' => [ false ],
+			'multisite'   => [ true ],
 		];
 	}
 }

@@ -39,6 +39,10 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
+			has_filter( 'pre_option', [ $subject, 'pre_option' ] )
+		);
+		self::assertSame(
+			10,
 			has_action( 'fluentform/rendering_field_html_hcaptcha', [ $subject, 'render_field_hcaptcha' ] )
 		);
 		self::assertSame(
@@ -63,7 +67,7 @@ class FormTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			9,
-			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
+			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
 		);
 		self::assertSame(
 			10,
@@ -73,6 +77,43 @@ class FormTest extends HCaptchaWPTestCase {
 			20,
 			has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
 		);
+	}
+
+	/**
+	 * Test pre_option().
+	 *
+	 * @return void
+	 */
+	public function test_pre_option(): void {
+		$pre_option    = 'some_pre_option_value';
+		$default_value = 'some_default_value';
+		$site_key      = 'some_site_key';
+		$secret_key    = 'some_secret_key';
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => $site_key,
+				'secret_key' => $secret_key,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Form();
+
+		// Some option.
+		self::assertSame( $pre_option, $subject->pre_option( $pre_option, 'some_option', $default_value ) );
+
+		$expected = [
+			'siteKey'   => $site_key,
+			'secretKey' => $secret_key,
+		];
+
+		// Details option.
+		self::assertSame( $expected, $subject->pre_option( $pre_option, '_fluentform_hCaptcha_details', $default_value ) );
+
+		// Status option.
+		self::assertSame( '1', $subject->pre_option( $pre_option, '_fluentform_hCaptcha_keys_status', $default_value ) );
 	}
 
 	/**
@@ -303,21 +344,31 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
 
-		$result = $subject->print_hcaptcha_scripts( false );
-		self::assertTrue( $result );
-
+		// Without conversational form script.
+		self::assertFalse( $subject->print_hcaptcha_scripts( false ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
+
+		// With conversational form script.
+		wp_register_script( 'fluent_forms_conversational_form', 'https://example.com/some-fluent-form.js', [], '1.0.0', true );
+		wp_enqueue_script( 'fluent_forms_conversational_form' );
+
+		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
+		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
+
+		wp_dequeue_script( 'fluent_forms_conversational_form' );
+		wp_deregister_script( 'fluent_forms_conversational_form' );
 	}
 
 	/**
-	 * Test enqueue_scripts().
+	 * Test print_footer_scripts().
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection ES6ConvertVarToLetConst
 	 */
-	public function test_enqueue_scripts(): void {
+	public function test_print_footer_scripts(): void {
 		global $wp_scripts;
 
 		$handle = 'hcaptcha-fluentform';
@@ -327,7 +378,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		// Without conversational form script.
-		$subject->enqueue_scripts();
+		$subject->print_footer_scripts();
 
 		self::assertFalse( wp_script_is( $handle ) );
 
@@ -373,22 +424,13 @@ HTML;
 			],
 		];
 		$hcap_form      = HCaptcha::form( $args );
-		$hcap_form      = str_replace(
-			[
-				'class="h-captcha"',
-				'class="hcaptcha-widget-id"',
-			],
-			[
-				'class="h-captcha-hidden" style="display: none;"',
-				'class="h-captcha-hidden hcaptcha-widget-id"',
-			],
-			$hcap_form
-		);
+		$hcap_form      = str_replace( 'class="h-captcha"', 'class=""', $hcap_form );
+		$hcap_form      = '<div class="h-captcha-hidden" style="display: none;">' . "\n$hcap_form\n</div>";
 
 		$this->set_protected_property( $subject, 'form_id', $form_id );
 
 		ob_start();
-		$subject->enqueue_scripts();
+		$subject->print_footer_scripts();
 		self::assertSame( $expected_fluent_forms_extra . "\n" . $hcap_form, ob_get_clean() );
 
 		self::assertTrue( wp_script_is( $handle ) );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Protect class file.
+ * 'Protect' class file.
  *
  * @package hcaptcha-wp
  */

@@ -134,6 +134,8 @@ class Request {
 				return isset( $_POST[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_POST[ $var_name ] ) ) : '';
 			case INPUT_SERVER:
 				return isset( $_SERVER[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $var_name ] ) ) : '';
+			case INPUT_COOKIE:
+				return isset( $_COOKIE[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $var_name ] ) ) : '';
 			default:
 				return '';
 		}

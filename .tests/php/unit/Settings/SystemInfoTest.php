@@ -391,6 +391,8 @@ Essential Addons:
   Register:                           Off
 Essential Blocks:                     
   Form:                               Off
+Events Manager:                       
+  Booking:                            Off
 Extra:                                
   Extra Comment Form:                 Off
   Extra Contact Form:                 Off
@@ -442,6 +444,8 @@ Paid Memberships Pro:
   Checkout Form:                      Off
   Login Form:                         Off
 Passster:                             
+  Protection Form:                    Off
+Password Protected:                   
   Protection Form:                    Off
 Profile Builder:                      
   Login Form:                         Off
