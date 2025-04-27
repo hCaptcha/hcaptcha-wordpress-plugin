@@ -224,9 +224,9 @@ function my_hcap_activate( $activate ): bool {
 add_filter( 'hcap_activate', 'my_hcap_activate' );
 `
 
-= How to block hCaptcha scripts everywhere except specific page? =
+= How do I block hCaptcha scripts everywhere except on a specific page? =
 
-For instance, to block hCaptcha scripts everywhere except `contact` page, add the following code.
+An an example, to block hCaptcha scripts everywhere except on the `contact` page:
 
 `
 /**
@@ -247,9 +247,9 @@ function my_hcap_print_hcaptcha_scripts( $status ): bool {
 add_filter( 'hcap_print_hcaptcha_scripts', 'my_hcap_print_hcaptcha_scripts' );
 `
 
-= How to block hCaptcha styles everywhere except specific page? =
+= How do I block hCaptcha scripts everywhere except on a specific page? =
 
-For instance, to block hCaptcha styles everywhere except `contact` page, add the following code.
+An an example, to block hCaptcha scripts everywhere except on the `contact` page:
 
 `
 /**
