@@ -699,6 +699,8 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.14.0 =
+
 = 4.13.0 =
 * Added site content protection.
 * Added "Remove Data on Uninstall" option to improve user privacy.
