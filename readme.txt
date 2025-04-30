@@ -700,6 +700,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.14.0 =
+* Fixed conflict with Contact Form 7 plugin reCaptcha integration.
 
 = 4.13.0 =
 * Added site content protection.
