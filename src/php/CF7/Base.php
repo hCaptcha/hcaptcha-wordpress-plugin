@@ -58,7 +58,7 @@ class Base {
 	}
 
 	/**
-	 * Filter wpcf7 option.
+	 * Filter wpcf7 option and deactivate reCaptcha service.
 	 *
 	 * @param array|mixed  $value  Option value.
 	 * @param string|mixed $option Option name.
