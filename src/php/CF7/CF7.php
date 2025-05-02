@@ -255,6 +255,8 @@ class CF7 extends Base {
 			foreach ( $form_fields as $form_field ) {
 				if ( $type === $form_field->type ) {
 					$has_field = true;
+
+					break;
 				}
 			}
 		}
