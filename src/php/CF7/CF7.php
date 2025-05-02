@@ -194,7 +194,7 @@ class CF7 extends Base {
 	}
 
 	/**
-	 * Verify CF7 recaptcha.
+	 * Verify hCaptcha.
 	 *
 	 * @param WPCF7_Validation|mixed $result Result.
 	 * @param WPCF7_FormTag[]|mixed  $tag    Tag.
