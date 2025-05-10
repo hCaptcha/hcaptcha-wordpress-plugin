@@ -5,6 +5,9 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\NF;
 
 use HCaptcha\NF\Base;
@@ -17,6 +20,8 @@ use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test ninja-forms-hcaptcha.php file.
+ *
+ * @requires PHP >= 7.4
  *
  * @group nf
  */
