@@ -37,8 +37,9 @@
   "require-dev": {
     "ext-fileinfo": "*",
     "roave/security-advisories": "dev-latest",
-    "antecedent/patchwork": "^2.2.1",
     "10up/wp_mock": "0.4.2 - 1.1.0",
+    "antecedent/patchwork": "^2.2.1",
+    "behat/gherkin": "v4.12.0",
     "codeception/codeception": "4.2.2",
     "codeception/module-db": "1.2.0 - 3.2.2",
     "codeception/module-webdriver": "1.4.1 - 4.0.3",
