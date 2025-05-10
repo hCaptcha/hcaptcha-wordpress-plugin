@@ -701,6 +701,7 @@ Instructions for popular native integrations are below:
 
 = 4.14.0 =
 * Fixed conflict with Contact Form 7 plugin reCaptcha integration.
+* Fixed fatal error with the wpDiscuz 7.6.30.
 
 = 4.13.0 =
 * Added site content protection.
