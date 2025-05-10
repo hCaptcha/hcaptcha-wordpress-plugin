@@ -34,12 +34,18 @@ abstract class Base {
 	}
 
 	/**
-	 * Block recaptcha.
+	 * Block reCaptcha.
 	 *
 	 * @return void
 	 */
 	public function block_recaptcha(): void {
-		$wpd_recaptcha = wpDiscuz()->options->recaptcha;
+		$wpd_options = wpDiscuz()->options ?? null;
+
+		if ( ! $wpd_options ) {
+			return;
+		}
+
+		$wpd_recaptcha = (array) ( $wpd_options->recaptcha ?? [] );
 		$wpd_recaptcha = array_merge(
 			$wpd_recaptcha,
 			[
@@ -50,7 +56,7 @@ abstract class Base {
 		);
 
 		// Block output of reCaptcha by wpDiscuz.
-		wpDiscuz()->options->recaptcha = $wpd_recaptcha;
+		$wpd_options->recaptcha = $wpd_recaptcha;
 	}
 
 	/**
