@@ -436,7 +436,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Filter field item/
+	 * Filter field item.
 	 *
 	 * @param array|mixed $item Item.
 	 *
