@@ -335,7 +335,7 @@ class HCaptchaHandler {
 	 * @return void
 	 */
 	public function render_field( array $item, int $item_index, Widget_Base $widget ): void {
-		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . $item['custom_id'] . '">';
+		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . esc_html( $item['custom_id'] ) . '">';
 
 		$this->add_render_attributes( $item, $item_index, $widget );
 
