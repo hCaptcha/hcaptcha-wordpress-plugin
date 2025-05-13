@@ -203,10 +203,10 @@ class ErrorHandlerTest extends HCaptchaTestCase {
 		// Not proper function and message.
 		self::assertTrue( $subject->filter_doing_it_wrong_trigger_error( true, 'some_function', 'some_message', 'some_version' ) );
 
-		// Not proper function.
+		// Not a proper function.
 		self::assertTrue( $subject->filter_doing_it_wrong_trigger_error( true, 'some_function', 'some_message<code>hcaptcha-for-forms-and-more</code>more_text', 'some_version' ) );
 
-		// Not proper message.
+		// Not a proper message.
 		self::assertTrue( $subject->filter_doing_it_wrong_trigger_error( true, '_load_textdomain_just_in_time', 'some_message', 'some_version' ) );
 
 		// Proper function and message.

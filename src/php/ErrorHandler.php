@@ -20,7 +20,7 @@ class ErrorHandler {
 	/**
 	 * Text domain in the just_in_time error message.
 	 */
-	private const TEXT_DOMAIN_IN_JIT_ERROR = '<code>cyr2lat</code>';
+	private const TEXT_DOMAIN_IN_JIT_ERROR = '<code>hcaptcha-for-forms-and-more</code>';
 
 	/**
 	 * Initialize the class.
