@@ -10,6 +10,9 @@
  * @param item.css_classes
  */
 
+/**
+ * Class HCaptchaAdminElementorPro.
+ */
 class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 	/**
 	 * Get hCaptcha form.
