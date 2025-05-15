@@ -52,7 +52,7 @@
     "@babel/core": "^7.27.1",
     "@babel/preset-env": "^7.27.1",
     "@inrupt/jest-jsdom-polyfills": "^3.2.7",
-    "@wordpress/eslint-plugin": "^22.8.0",
+    "@wordpress/eslint-plugin": "^22.9.0",
     "babel-loader": "^10.0.0",
     "coveralls": "^3.1.1",
     "css-loader": "^7.1.2",
