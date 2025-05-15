@@ -285,6 +285,7 @@ class HCaptchaHandler {
 	 */
 	public function enqueue_scripts(): void {
 		$this->main->print_inline_styles();
+
 		wp_enqueue_script( static::get_script_handle() );
 		wp_enqueue_script( self::HCAPTCHA_HANDLE );
 		wp_enqueue_script( self::HANDLE );
