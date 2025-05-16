@@ -88,4 +88,62 @@ class Utils {
 
 		remove_action( $hook_name, $callback, $priority );
 	}
+
+	/**
+	 * Flatten multidimensional array.
+	 *
+	 * @param array  $arr Multidimensional array.
+	 * @param string $sep Keys separator.
+	 *
+	 * @return array
+	 */
+	public static function flatten_array( array $arr, string $sep = '.' ): array {
+		static $level = [];
+
+		$result = [];
+
+		foreach ( $arr as $key => $value ) {
+			$level[] = $key;
+			$new_key = implode( $sep, $level );
+
+			if ( is_array( $value ) ) {
+				$result[] = self::flatten_array( $value, $sep );
+			} else {
+				$result[] = [ $new_key => $value ];
+			}
+
+			array_pop( $level );
+		}
+
+		return array_merge( [], ...$result );
+	}
+
+	/**
+	 * Unflatten array to multidimensional one.
+	 *
+	 * @param array  $arr Flattened array.
+	 * @param string $sep Keys separator.
+	 *
+	 * @return array
+	 */
+	public static function unflatten_array( array $arr, string $sep = '.' ): array {
+		$result = [];
+
+		foreach ( $arr as $key => $value ) {
+			$keys = explode( $sep, $key );
+			$temp = &$result;
+
+			foreach ( $keys as $inner_key ) {
+				if ( ! isset( $temp[ $inner_key ] ) ) {
+					$temp[ $inner_key ] = [];
+				}
+
+				$temp = &$temp[ $inner_key ];
+			}
+
+			$temp = $value;
+		}
+
+		return $result;
+	}
 }

@@ -8,6 +8,7 @@
 namespace HCaptcha\Jetpack;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
 use WP_Error;
 
 /**
@@ -267,7 +268,7 @@ abstract class Base {
 		$atts['name']   = self::NAME;
 		$atts['auto']   = false;
 
-		$atts = HCaptcha::flatten_array( $atts, '--' );
+		$atts = Utils::flatten_array( $atts, '--' );
 
 		array_walk(
 			$atts,

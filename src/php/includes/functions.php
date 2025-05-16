@@ -6,6 +6,7 @@
  */
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
 
 /**
  * Display hCaptcha shortcode.
@@ -20,7 +21,7 @@ function hcap_shortcode( $atts ): string {
 	$hcaptcha_theme = $settings->get_theme();
 	$hcaptcha_size  = $settings->get( 'size' );
 
-	$atts = HCaptcha::unflatten_array( $atts, '--' );
+	$atts = Utils::unflatten_array( $atts, '--' );
 
 	/**
 	 * Do not set the default size here.

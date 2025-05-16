@@ -143,4 +143,56 @@ class UtilsTest extends HCaptchaTestCase {
 
 		$subject->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
 	}
+
+	/**
+	 * Test flatten_array().
+	 *
+	 * @return void
+	 */
+	public function test_flatten_array(): void {
+		$multilevel_array = [
+			'level1'  => [
+				'level2'  => [
+					'level3a' => 'value1',
+					'level3b' => 'value2',
+				],
+				'level2b' => 'value3',
+			],
+			'level1b' => 'value4',
+		];
+		$expected         = [
+			'level1--level2--level3a' => 'value1',
+			'level1--level2--level3b' => 'value2',
+			'level1--level2b'         => 'value3',
+			'level1b'                 => 'value4',
+		];
+
+		self::assertSame( $expected, Utils::flatten_array( $multilevel_array, '--' ) );
+	}
+
+	/**
+	 * Test unflatten_array().
+	 *
+	 * @return void
+	 */
+	public function test_unflatten_array(): void {
+		$flattened_array = [
+			'level1--level2--level3a' => 'value1',
+			'level1--level2--level3b' => 'value2',
+			'level1--level2b'         => 'value3',
+			'level1b'                 => 'value4',
+		];
+		$expected        = [
+			'level1'  => [
+				'level2'  => [
+					'level3a' => 'value1',
+					'level3b' => 'value2',
+				],
+				'level2b' => 'value3',
+			],
+			'level1b' => 'value4',
+		];
+
+		self::assertSame( $expected, Utils::unflatten_array( $flattened_array, '--' ) );
+	}
 }
