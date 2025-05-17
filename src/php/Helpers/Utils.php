@@ -18,7 +18,7 @@ class Utils {
 	 *
 	 * @var Utils|null
 	 */
-	protected static ?Utils $instance = null;
+	protected static $instance;
 
 	/**
 	 * Get Utils Instance.
@@ -26,7 +26,7 @@ class Utils {
 	 * @return self
 	 */
 	public static function instance(): Utils {
-		if ( self::$instance === null ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
 

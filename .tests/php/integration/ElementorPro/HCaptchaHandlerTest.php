@@ -20,7 +20,6 @@ use Elementor\Controls_Stack;
 use Elementor\Plugin;
 use Elementor\Widget_Base;
 use HCaptcha\ElementorPro\HCaptchaHandler;
-use HCaptcha\Main;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
@@ -59,10 +58,12 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string'));
+			has_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string' )
+		);
 		self::assertSame(
 			10,
-			has_filter( 'pre_option_elementor_pro_hcaptcha_secret_key', '__return_empty_string'));
+			has_filter( 'pre_option_elementor_pro_hcaptcha_secret_key', '__return_empty_string' )
+		);
 		self::assertSame(
 			20,
 			has_action( 'elementor/init', [ $subject, 'block_native_integration' ] )
@@ -72,7 +73,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test block_native_integration().
 	 *
-	 * @param bool $is_native_exist Whether native integration existx.
+	 * @param bool $is_native_exist Whether native integration exists.
 	 *
 	 * @return void
 	 * @dataProvider dp_test_block_native_integration
@@ -93,8 +94,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			add_action( $action, [ HCaptcha_Handler::class, $action . '_callback' ] );
 		}
 
-		wp_register_script( 'elementor-hcaptcha-api', '' );
-		wp_register_script( 'hcaptcha', '' );
+		wp_register_script( 'elementor-hcaptcha-api', '', [], HCAPTCHA_VERSION, true );
+		wp_register_script( 'hcaptcha', '', [], HCAPTCHA_VERSION, true );
 
 		if ( $is_native_exist ) {
 			Mockery::mock( HCaptcha_Handler::class );
@@ -300,6 +301,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			has_filter( 'hcap_print_hcaptcha_scripts', '__return_false' )
 		);
 
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		do_action( 'elementor/editor/init' );
 
 		self::assertSame(
@@ -507,7 +509,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$subject = new HCaptchaHandler();
 
-		wp_register_script( 'hcaptcha-elementor-pro', '' );
+		wp_register_script( 'hcaptcha-elementor-pro', '', [], HCAPTCHA_VERSION, true );
 
 		$subject->enqueue_preview_scripts();
 
@@ -1017,7 +1019,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	public function test_print_footer_scripts(): void {
 		$subject = new HCaptchaHandler();
 
-		wp_register_script( HCaptchaHandler::HANDLE, '' );
+		wp_register_script( HCaptchaHandler::HANDLE, '', [], HCAPTCHA_VERSION, true );
 
 		$subject->print_footer_scripts();
 
