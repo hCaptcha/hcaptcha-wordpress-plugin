@@ -55,14 +55,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test constructor.
-	 *
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_constructor(): void {
 		$subject = new HCaptchaHandler();
-
-		self::assertInstanceOf( Main::class, $this->get_protected_property( $subject, 'main' ) );
-		self::assertSame( hcaptcha(), $this->get_protected_property( $subject, 'main' ) );
 
 		self::assertSame(
 			10,
@@ -386,15 +381,9 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro' ) );
 
-		ob_start();
-		hcaptcha()->print_inline_styles();
-		$expected = ob_get_clean();
-
-		ob_start();
 		$subject = new HCaptchaHandler();
 		$subject->init();
 		$subject->enqueue_scripts();
-		self::assertSame( $expected, ob_get_clean() );
 
 		self::assertTrue( wp_script_is( 'elementor-hcaptcha-api' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );

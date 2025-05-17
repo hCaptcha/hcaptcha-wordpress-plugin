@@ -70,17 +70,9 @@ class HCaptchaHandler {
 	private const HCAPTCHA_HANDLE = 'hcaptcha';
 
 	/**
-	 * Main class instance.
-	 *
-	 * @var Main
-	 */
-	protected $main;
-
-	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
-		$this->main = hcaptcha();
 		$this->block_native_integration();
 
 		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'after_enqueue_scripts' ] );
@@ -296,7 +288,7 @@ class HCaptchaHandler {
 	 * Register scripts.
 	 */
 	private function register_scripts(): void {
-		$src = $this->main->get_api_src();
+		$src = hcaptcha()->get_api_src();
 		$min = hcap_min_suffix();
 
 		wp_register_script(
@@ -330,8 +322,6 @@ class HCaptchaHandler {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		$this->main->print_inline_styles();
-
 		wp_enqueue_script( static::get_script_handle() );
 		wp_enqueue_script( self::HCAPTCHA_HANDLE );
 		wp_enqueue_script( self::HANDLE );
