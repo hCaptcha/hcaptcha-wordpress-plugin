@@ -69,9 +69,13 @@ class HCaptchaHandler {
 	 * Class constructor.
 	 */
 	public function __construct() {
-		$this->block_native_integration();
-
+		// Init this integration.
 		add_action( 'elementor/init', [ $this, 'init' ], 20 );
+
+		// Block native integration.
+		add_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string' );
+		add_filter( 'pre_option_elementor_pro_hcaptcha_secret_key', '__return_empty_string' );
+		add_action( 'elementor/init', [ $this, 'block_native_integration' ], 20 );
 	}
 
 	/**
@@ -79,42 +83,30 @@ class HCaptchaHandler {
 	 *
 	 * @return void
 	 */
-	private function block_native_integration(): void {
-		add_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string' );
-		add_filter( 'pre_option_elementor_pro_hcaptcha_secret_key', '__return_empty_string' );
-
-		if ( ! is_admin() ) {
+	public function block_native_integration(): void {
+		// Native integration handler. Created on elementor/init 10.
+		if ( ! class_exists( HCaptcha_Handler::class, false ) ) {
 			return;
 		}
 
-		add_action(
-			'elementor/init',
-			static function () {
-				if ( ! class_exists( HCaptcha_Handler::class, false ) ) {
-					return;
-				}
+		$callback_pattern = '#^' . preg_quote( HCaptcha_Handler::class, '#' ) . '#';
+		$actions          = [
+			'elementor_pro/forms/field_types',
+			'elementor/element/form/section_form_fields/after_section_end',
+			'elementor_pro/forms/render_field/hcaptcha',
+			'elementor_pro/forms/render/item',
+			'wp_head',
+			'wp_print_footer_scripts',
+			'elementor/preview/enqueue_scripts',
+			'elementor/editor/after_enqueue_scripts',
+		];
 
-				$callback_pattern = '#^' . preg_quote( HCaptcha_Handler::class, '#' ) . '#';
-				$actions          = [
-					'elementor_pro/forms/field_types',
-					'elementor/element/form/section_form_fields/after_section_end',
-					'elementor_pro/forms/render_field/hcaptcha',
-					'elementor_pro/forms/render/item',
-					'wp_head',
-					'wp_print_footer_scripts',
-					'elementor/preview/enqueue_scripts',
-					'elementor/editor/after_enqueue_scripts',
-				];
+		foreach ( $actions as $action ) {
+			Utils::instance()->remove_action_regex( $callback_pattern, $action );
+		}
 
-				foreach ( $actions as $action ) {
-					Utils::instance()->remove_action_regex( $callback_pattern, $action );
-				}
-
-				wp_deregister_script( 'elementor-hcaptcha-api' );
-				wp_deregister_script( 'hcaptcha' );
-			},
-			20
-		);
+		wp_deregister_script( 'elementor-hcaptcha-api' );
+		wp_deregister_script( 'hcaptcha' );
 	}
 
 	/**

@@ -14,7 +14,7 @@ namespace HCaptcha\Tests\Integration\ElementorPro;
 
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
-use ElementorPro\Modules\Forms\Module;
+use ElementorPro\Modules\Forms\Classes\HCaptcha_Handler;
 use Elementor\Controls_Manager;
 use Elementor\Controls_Stack;
 use Elementor\Plugin;
@@ -23,7 +23,6 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Main;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
-use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -33,22 +32,17 @@ use tad\FunctionMocker\FunctionMocker;
  * @group elementor-pro-hcaptcha-handler
  */
 class HCaptchaHandlerTest extends HCaptchaWPTestCase {
-
 	/**
 	 * Tear down test.
 	 */
 	public function tearDown(): void {
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
+		unset( $GLOBALS['current_screen'] );
 
 		wp_dequeue_script( 'admin-elementor-pro' );
 		wp_deregister_script( 'admin-elementor-pro' );
 
 		wp_dequeue_script( 'hcaptcha-elementor-pro' );
 		wp_deregister_script( 'hcaptcha-elementor-pro' );
-
-		wp_dequeue_script( 'elementor-hcaptcha-api' );
-		wp_deregister_script( 'elementor-hcaptcha-api' );
 
 		parent::tearDown();
 	}
@@ -60,13 +54,272 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$subject = new HCaptchaHandler();
 
 		self::assertSame(
-			10,
-			has_action( 'elementor/editor/after_enqueue_scripts', [ $subject, 'after_enqueue_scripts' ] )
+			20,
+			has_action( 'elementor/init', [ $subject, 'init' ] )
 		);
 		self::assertSame(
 			10,
-			has_action( 'elementor/init', [ $subject, 'init' ] )
+			has_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string'));
+		self::assertSame(
+			10,
+			has_filter( 'pre_option_elementor_pro_hcaptcha_secret_key', '__return_empty_string'));
+		self::assertSame(
+			20,
+			has_action( 'elementor/init', [ $subject, 'block_native_integration' ] )
 		);
+	}
+
+	/**
+	 * Test block_native_integration().
+	 *
+	 * @param bool $is_native_exist Whether native integration existx.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_block_native_integration
+	 */
+	public function test_block_native_integration( bool $is_native_exist ): void {
+		$actions = [
+			'elementor_pro/forms/field_types',
+			'elementor/element/form/section_form_fields/after_section_end',
+			'elementor_pro/forms/render_field/hcaptcha',
+			'elementor_pro/forms/render/item',
+			'wp_head',
+			'wp_print_footer_scripts',
+			'elementor/preview/enqueue_scripts',
+			'elementor/editor/after_enqueue_scripts',
+		];
+
+		foreach ( $actions as $action ) {
+			add_action( $action, [ HCaptcha_Handler::class, $action . '_callback' ] );
+		}
+
+		wp_register_script( 'elementor-hcaptcha-api', '' );
+		wp_register_script( 'hcaptcha', '' );
+
+		if ( $is_native_exist ) {
+			Mockery::mock( HCaptcha_Handler::class );
+		}
+
+		$subject = Mockery::mock( HCaptchaHandler::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->block_native_integration();
+
+		if ( $is_native_exist ) {
+			foreach ( $actions as $action ) {
+				self::assertFalse( has_action( $action, [ HCaptcha_Handler::class, $action . '_callback' ] ) );
+			}
+
+			self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
+			self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
+		} else {
+			foreach ( $actions as $action ) {
+				self::assertSame( 10, has_action( $action, [ HCaptcha_Handler::class, $action . '_callback' ] ) );
+			}
+
+			self::assertTrue( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
+			self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
+		}
+	}
+
+	/**
+	 * Data provider for test_block_native_integration().
+	 *
+	 * @return array
+	 */
+	public function dp_test_block_native_integration(): array {
+		return [
+			[ false ],
+			[ true ],
+		];
+	}
+
+	/**
+	 * Test init().
+	 *
+	 * @param bool $is_enabled The field is enabled.
+	 * @param bool $is_admin   Admin mode.
+	 *
+	 * @dataProvider dp_test_init
+	 */
+	public function test_init( bool $is_enabled, bool $is_admin ): void {
+		if ( $is_enabled ) {
+			update_option(
+				'hcaptcha_settings',
+				[
+					'site_key'   => 'some site key',
+					'secret_key' => 'some secret key',
+				]
+			);
+		}
+
+		hcaptcha()->init_hooks();
+
+		if ( $is_admin ) {
+			set_current_screen( 'some' );
+		}
+
+		$subject = new HCaptchaHandler();
+
+		$forms_module = Mockery::mock( 'alias:ElementorPro\Modules\Forms\Module' );
+
+		$forms_module->shouldReceive( 'instance' )->once()->with()->andReturn( $forms_module );
+		$forms_module->shouldReceive( 'add_component' )->once()->with( 'hcaptcha', $subject );
+
+		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
+
+		$subject->init();
+
+		// Settings.
+		if ( $is_admin ) {
+			self::assertSame(
+				20,
+				has_filter( 'elementor_pro/editor/localize_settings', [ $subject, 'localize_settings' ] )
+			);
+		} else {
+			self::assertFalse(
+				has_filter( 'elementor_pro/editor/localize_settings', [ $subject, 'localize_settings' ] )
+			);
+		}
+
+		// Render field.
+		if ( $is_enabled || $is_admin ) {
+			self::assertSame(
+				10,
+				has_filter( 'elementor_pro/forms/field_types', [ $subject, 'add_field_type' ] )
+			);
+			self::assertSame(
+				10,
+				has_action(
+					'elementor/element/form/section_form_fields/after_section_end',
+					[ $subject, 'modify_controls' ]
+				)
+			);
+			self::assertSame(
+				10,
+				has_action( 'elementor_pro/forms/render_field/hcaptcha', [ $subject, 'render_field' ] )
+			);
+			self::assertSame(
+				10,
+				has_filter( 'elementor_pro/forms/render/item', [ $subject, 'filter_field_item' ] )
+			);
+		} else {
+			self::assertFalse(
+				has_filter( 'elementor_pro/forms/field_types', [ $subject, 'add_field_type' ] )
+			);
+			self::assertFalse(
+				has_action(
+					'elementor/element/form/section_form_fields/after_section_end',
+					[ $subject, 'modify_controls' ]
+				)
+			);
+			self::assertFalse(
+				has_action( 'elementor_pro/forms/render_field/hcaptcha', [ $subject, 'render_field' ] )
+			);
+			self::assertFalse(
+				has_filter( 'elementor_pro/forms/render/item', [ $subject, 'filter_field_item' ] )
+			);
+		}
+
+		if ( $is_enabled ) {
+			self::assertSame(
+				10,
+				has_filter( 'elementor/frontend/the_content', [ $subject, 'elementor_content' ] )
+			);
+		} else {
+			self::assertFalse(
+				has_filter( 'elementor/frontend/the_content', [ $subject, 'elementor_content' ] )
+			);
+		}
+
+		// General hCaptcha scripts and styles.
+		self::assertTrue( has_action( 'elementor/editor/init' ) );
+
+		// Elementor-related scripts and styles.
+		if ( $is_enabled || $is_admin ) {
+			self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
+
+			$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro'];
+			self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $hcaptcha_elementor_pro_frontend->src );
+			self::assertSame( [ 'jquery', 'hcaptcha' ], $hcaptcha_elementor_pro_frontend->deps );
+			self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro_frontend->ver );
+			self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro_frontend->extra );
+
+			self::assertSame(
+				20,
+				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertSame(
+				9,
+				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			);
+			self::assertSame(
+				10,
+				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_preview_scripts' ] )
+			);
+		} else {
+			self::assertFalse(
+				has_action( 'wp_head', [ $subject, 'print_inline_styles' ] )
+			);
+			self::assertFalse(
+				has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			);
+			self::assertFalse(
+				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_preview_scripts' ] )
+			);
+		}
+
+		if ( $is_admin ) {
+			self::assertSame(
+				10,
+				has_action( 'elementor/editor/after_enqueue_scripts', [ $subject, 'after_enqueue_scripts' ] )
+			);
+		} else {
+			self::assertFalse(
+				has_action( 'elementor/editor/after_enqueue_scripts', [ $subject, 'after_enqueue_scripts' ] )
+			);
+		}
+
+		// Validation.
+		if ( $is_enabled ) {
+			self::assertSame(
+				10,
+				has_action( 'elementor_pro/forms/validation', [ $subject, 'validation' ] )
+			);
+		} else {
+			self::assertFalse(
+				has_action( 'elementor_pro/forms/validation', [ $subject, 'validation' ] )
+			);
+		}
+
+		// Block general hCaptcha scripts and styles on Elementor editor page.
+		self::assertFalse(
+			has_filter( 'hcap_print_hcaptcha_scripts', '__return_false' )
+		);
+
+		do_action( 'elementor/editor/init' );
+
+		self::assertSame(
+			10,
+			has_filter( 'hcap_print_hcaptcha_scripts', '__return_false' )
+		);
+	}
+
+	/**
+	 * Data provider for test_init().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init(): array {
+		return [
+			'not enabled, not admin' => [ false, false ],
+			'not enabled, admin'     => [ false, true ],
+			'enabled, not admin'     => [ true, false ],
+			'enabled, admin'         => [ true, true ],
+		];
 	}
 
 	/**
@@ -85,133 +338,6 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		self::assertSame( [ 'elementor-editor' ], $hcaptcha_elementor_pro->deps );
 		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro->ver );
 		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro->extra );
-	}
-
-	/**
-	 * Test init().
-	 *
-	 * @param bool $enabled The field is enabled.
-	 *
-	 * @dataProvider dp_test_init
-	 */
-	public function test_init( bool $enabled ): void {
-		if ( $enabled ) {
-			update_option(
-				'hcaptcha_settings',
-				[
-					'site_key'   => 'some site key',
-					'secret_key' => 'some secret key',
-				]
-			);
-		}
-
-		hcaptcha()->init_hooks();
-
-		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
-
-		$subject = new HCaptchaHandler();
-		$subject->init();
-
-		self::assertTrue( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
-
-		$elementor_hcaptcha_api = wp_scripts()->registered['elementor-hcaptcha-api'];
-		self::assertSame( 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit', $elementor_hcaptcha_api->src );
-		self::assertSame( [], $elementor_hcaptcha_api->deps );
-		self::assertSame( HCAPTCHA_VERSION, $elementor_hcaptcha_api->ver );
-		self::assertSame( [ 'group' => 1 ], $elementor_hcaptcha_api->extra );
-
-		self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
-
-		$hcaptcha = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $hcaptcha->src );
-		self::assertSame( [], $hcaptcha->deps );
-		self::assertSame( HCAPTCHA_VERSION, $hcaptcha->ver );
-		self::assertSame( [ 'group' => 1 ], $hcaptcha->extra );
-
-		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
-
-		$hcaptcha_elementor_pro_frontend = wp_scripts()->registered['hcaptcha-elementor-pro'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $hcaptcha_elementor_pro_frontend->src );
-		self::assertSame( [ 'jquery', 'hcaptcha' ], $hcaptcha_elementor_pro_frontend->deps );
-		self::assertSame( HCAPTCHA_VERSION, $hcaptcha_elementor_pro_frontend->ver );
-		self::assertSame( [ 'group' => 1 ], $hcaptcha_elementor_pro_frontend->extra );
-
-		self::assertSame(
-			10,
-			has_action( 'elementor_pro/forms/register/action', [ $subject, 'register_action' ] )
-		);
-
-		self::assertSame(
-			10,
-			has_filter( 'elementor_pro/forms/field_types', [ $subject, 'add_field_type' ] )
-		);
-		self::assertSame(
-			10,
-			has_action(
-				'elementor/element/form/section_form_fields/after_section_end',
-				[ $subject, 'modify_controls' ]
-			)
-		);
-		self::assertSame(
-			10,
-			has_action( 'elementor_pro/forms/render_field/hcaptcha', [ $subject, 'render_field' ] )
-		);
-		self::assertSame(
-			10,
-			has_filter( 'elementor_pro/forms/render/item', [ $subject, 'filter_field_item' ] )
-		);
-		self::assertSame(
-			10,
-			has_filter( 'elementor/frontend/the_content', [ $subject, 'elementor_content' ] )
-		);
-		self::assertSame(
-			20,
-			has_filter( 'elementor_pro/editor/localize_settings', [ $subject, 'localize_settings' ] )
-		);
-
-		if ( $enabled ) {
-			self::assertSame(
-				10,
-				has_action( 'elementor_pro/forms/validation', [ $subject, 'validation' ] )
-			);
-			self::assertSame(
-				10,
-				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_preview_scripts' ] )
-			);
-		} else {
-			self::assertFalse(
-				has_action( 'elementor_pro/forms/validation', [ $subject, 'validation' ] )
-			);
-			self::assertFalse(
-				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_preview_scripts' ] )
-			);
-		}
-	}
-
-	/**
-	 * Data provider for test_init().
-	 *
-	 * @return array
-	 */
-	public function dp_test_init(): array {
-		return [
-			'not enabled' => [ false ],
-			'enabled'     => [ true ],
-		];
-	}
-
-	/**
-	 * Test register_action().
-	 */
-	public function test_register_action(): void {
-		$subject = new HCaptchaHandler();
-
-		$module = Mockery::mock( Module::class );
-		$module->shouldReceive( 'add_component' )->with( 'hcaptcha', $subject )->once();
-
-		$subject->register_action( $module );
 	}
 
 	/**
@@ -374,19 +500,17 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test enqueue_scripts().
+	 * Test enqueue_preview_scripts().
 	 */
-	public function test_enqueue_scripts(): void {
-		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api' ) );
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+	public function test_enqueue_preview_scripts(): void {
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro' ) );
 
 		$subject = new HCaptchaHandler();
-		$subject->init();
+
+		wp_register_script( 'hcaptcha-elementor-pro', '' );
+
 		$subject->enqueue_preview_scripts();
 
-		self::assertTrue( wp_script_is( 'elementor-hcaptcha-api' ) );
-		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro' ) );
 	}
 
@@ -594,9 +718,11 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			'text'      => 'text',
 			'recaptcha' => 'reCaptcha',
 		];
-
-		$expected             = $field_types;
-		$expected['hcaptcha'] = 'hCaptcha';
+		$expected    = [
+			'text'      => 'text',
+			'hcaptcha'  => 'hCaptcha',
+			'recaptcha' => 'reCaptcha',
+		];
 
 		$subject = new HCaptchaHandler();
 
@@ -891,14 +1017,11 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	public function test_print_footer_scripts(): void {
 		$subject = new HCaptchaHandler();
 
+		wp_register_script( HCaptchaHandler::HANDLE, '' );
+
 		$subject->print_footer_scripts();
 
 		self::assertTrue( wp_script_is( HCaptchaHandler::HANDLE ) );
-
-		$script = wp_scripts()->registered[ HCaptchaHandler::HANDLE ];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-elementor-pro.min.js', $script->src );
-		self::assertSame( [ 'jquery', Main::HANDLE ], $script->deps );
-		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 	}
 
 	/**
