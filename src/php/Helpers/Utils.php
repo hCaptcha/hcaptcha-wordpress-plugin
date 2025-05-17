@@ -146,4 +146,24 @@ class Utils {
 
 		return $result;
 	}
+
+	/**
+	 * Insert an array into another associative array.
+	 *
+	 * @param array      $arr       Initial array.
+	 * @param string|int $key       Key to place an insertion array before.
+	 * @param array      $insertion New array to insert.
+	 *
+	 * @return array
+	 */
+	public static function array_insert( array $arr, $key, array $insertion ): array {
+		$index = array_search( $key, array_keys( $arr ), true );
+		$index = false === $index ? count( $arr ) : $index;
+
+		return array_merge(
+			array_slice( $arr, 0, $index ),
+			$insertion,
+			array_slice( $arr, $index )
+		);
+	}
 }

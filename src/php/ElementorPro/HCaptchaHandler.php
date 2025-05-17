@@ -18,11 +18,12 @@ use Elementor\Plugin;
 use Elementor\Widget_Base;
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
-use ElementorPro\Modules\Forms\Module;
+use ElementorPro\Modules\Forms\Module as FormsModule;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Utils;
-use HCaptcha\Main;
 use ElementorPro\Modules\Forms\Classes\HCaptcha_Handler;
+use HCaptcha\Main;
 
 /**
  * Class HCaptchaHandler.
@@ -55,9 +56,9 @@ class HCaptchaHandler {
 	private const FIELD_ID = 'hcaptcha';
 
 	/**
-	 * Handle.
+	 * Elementor Pro Handle.
 	 */
-	public const  HANDLE = 'hcaptcha-elementor-pro';
+	public const HANDLE = 'hcaptcha-elementor-pro';
 
 	/**
 	 * Admin handle.
@@ -65,21 +66,12 @@ class HCaptchaHandler {
 	private const ADMIN_HANDLE = 'admin-elementor-pro';
 
 	/**
-	 * The hCaptcha handle.
-	 */
-	private const HCAPTCHA_HANDLE = 'hcaptcha';
-
-	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
 		$this->block_native_integration();
 
-		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'after_enqueue_scripts' ] );
-		add_action( 'elementor/init', [ $this, 'init' ] );
-
-		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
-		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+		add_action( 'elementor/init', [ $this, 'init' ], 20 );
 	}
 
 	/**
@@ -126,7 +118,76 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Enqueue elementor support script.
+	 * Add hooks.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+		// Register or re-register hCaptcha component.
+		FormsModule::instance()->add_component( self::FIELD_ID, $this );
+
+		// Settings.
+		if ( is_admin() ) {
+			add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ], 20 );
+		}
+
+		// Render field.
+		if ( static::is_enabled() || is_admin() ) {
+			add_filter( 'elementor_pro/forms/field_types', [ $this, 'add_field_type' ] );
+			add_action(
+				'elementor/element/form/section_form_fields/after_section_end',
+				[ $this, 'modify_controls' ],
+				10,
+				2
+			);
+			add_action(
+				'elementor_pro/forms/render_field/' . static::get_hcaptcha_name(),
+				[ $this, 'render_field' ],
+				10,
+				3
+			);
+			add_filter( 'elementor_pro/forms/render/item', [ $this, 'filter_field_item' ] );
+		}
+
+		if ( static::is_enabled() ) {
+			add_filter( 'elementor/frontend/the_content', [ $this, 'elementor_content' ] );
+		}
+
+		// General hCaptcha scripts and styles.
+		add_action(
+			'elementor/editor/init',
+			static function () {
+				// Block general hCaptcha scripts and styles on Elementor editor page.
+				add_filter( 'hcap_print_hcaptcha_scripts', '__return_false' );
+			}
+		);
+
+		if ( Pages::is_elementor_preview_page() ) {
+			// Allow general hCaptcha scripts and styles on Elementor preview page (in iframe).
+			add_filter( 'hcap_print_hcaptcha_scripts', '__return_true' );
+		}
+
+		// Elementor-related scripts and styles.
+		if ( static::is_enabled() || is_admin() ) {
+			$this->register_scripts();
+
+			add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+			add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
+			add_action( 'elementor/preview/enqueue_scripts', [ $this, 'enqueue_preview_scripts' ] );
+		}
+
+		if ( is_admin() ) {
+			add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'after_enqueue_scripts' ] );
+		}
+
+		// Validation.
+		if ( static::is_enabled() ) {
+			add_action( 'elementor_pro/forms/validation', [ $this, 'validation' ], 10, 2 );
+		}
+	}
+
+	/**
+	 * Enqueue elementor admin support script.
 	 *
 	 * @return void
 	 */
@@ -140,50 +201,6 @@ class HCaptchaHandler {
 			HCAPTCHA_VERSION,
 			true
 		);
-	}
-
-	/**
-	 * Add hooks.
-	 *
-	 * @return void
-	 */
-	public function init(): void {
-		$this->register_scripts();
-
-		add_action( 'elementor_pro/forms/register/action', [ $this, 'register_action' ] );
-
-		add_filter( 'elementor_pro/forms/field_types', [ $this, 'add_field_type' ] );
-		add_action(
-			'elementor/element/form/section_form_fields/after_section_end',
-			[ $this, 'modify_controls' ],
-			10,
-			2
-		);
-		add_action(
-			'elementor_pro/forms/render_field/' . static::get_hcaptcha_name(),
-			[ $this, 'render_field' ],
-			10,
-			3
-		);
-		add_filter( 'elementor_pro/forms/render/item', [ $this, 'filter_field_item' ] );
-		add_filter( 'elementor/frontend/the_content', [ $this, 'elementor_content' ] );
-		add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ], 20 );
-
-		if ( static::is_enabled() ) {
-			add_action( 'elementor_pro/forms/validation', [ $this, 'validation' ], 10, 2 );
-			add_action( 'elementor/preview/enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		}
-	}
-
-	/**
-	 * Register action.
-	 *
-	 * @param Module $module Module.
-	 *
-	 * @return void
-	 */
-	public function register_action( Module $module ): void {
-		$module->add_component( self::FIELD_ID, $this );
 	}
 
 	/**
@@ -276,54 +293,27 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Get a script handle.
-	 *
-	 * @return string
-	 */
-	protected static function get_script_handle(): string {
-		return 'elementor-' . static::get_hcaptcha_name() . '-api';
-	}
-
-	/**
 	 * Register scripts.
 	 */
 	private function register_scripts(): void {
-		$src = hcaptcha()->get_api_src();
 		$min = hcap_min_suffix();
 
-		wp_register_script(
-			static::get_script_handle(),
-			$src,
-			[],
-			HCAPTCHA_VERSION,
-			true
-		);
-
-		wp_register_script(
-			self::HCAPTCHA_HANDLE,
-			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
-			[],
-			HCAPTCHA_VERSION,
-			true
-		);
-
+		// Elementor Pro support script.
 		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro$min.js",
-			[ 'jquery', self::HCAPTCHA_HANDLE ],
+			[ 'jquery', Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
 	}
 
 	/**
-	 * Enqueue scripts.
+	 * Enqueue preview scripts.
 	 *
 	 * @return void
 	 */
-	public function enqueue_scripts(): void {
-		wp_enqueue_script( static::get_script_handle() );
-		wp_enqueue_script( self::HCAPTCHA_HANDLE );
+	public function enqueue_preview_scripts(): void {
 		wp_enqueue_script( self::HANDLE );
 	}
 
@@ -429,9 +419,11 @@ class HCaptchaHandler {
 	public function add_field_type( $field_types ): array {
 		$field_types = (array) $field_types;
 
-		$field_types[ self::FIELD_ID ] = __( 'hCaptcha', 'hcaptcha-for-forms-and-more' );
-
-		return $field_types;
+		return Utils::array_insert(
+			$field_types,
+			'recaptcha',
+			[ self::FIELD_ID => __( 'hCaptcha', 'hcaptcha-for-forms-and-more' ) ]
+		);
 	}
 
 	/**
@@ -439,8 +431,8 @@ class HCaptchaHandler {
 	 *
 	 * Fires after Elementor section ends in the editor panel.
 	 *
-	 * The dynamic portions of the hook name, `$stack_name` and `$section_id`, refer to the section name and section
-	 * ID, respectively.
+	 * The dynamic portions of the hook name, `$stack_name` and `$section_id`,
+	 * refer to the section name and section ID, respectively.
 	 *
 	 * @param Controls_Stack $controls_stack The controls stack.
 	 * @param array          $args           Section arguments.
@@ -516,15 +508,7 @@ class HCaptchaHandler {
 	 * @return void
 	 */
 	public function print_footer_scripts(): void {
-		$min = hcap_min_suffix();
-
-		wp_enqueue_script(
-			self::HANDLE,
-			HCAPTCHA_URL . "/assets/js/hcaptcha-elementor-pro$min.js",
-			[ 'jquery', Main::HANDLE ],
-			HCAPTCHA_VERSION,
-			true
-		);
+		wp_enqueue_script( self::HANDLE );
 	}
 
 	/**

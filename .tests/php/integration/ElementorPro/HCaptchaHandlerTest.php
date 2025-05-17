@@ -178,14 +178,14 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			);
 			self::assertSame(
 				10,
-				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
+				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_preview_scripts' ] )
 			);
 		} else {
 			self::assertFalse(
 				has_action( 'elementor_pro/forms/validation', [ $subject, 'validation' ] )
 			);
 			self::assertFalse(
-				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
+				has_action( 'elementor/preview/enqueue_scripts', [ $subject, 'enqueue_preview_scripts' ] )
 			);
 		}
 	}
@@ -383,7 +383,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$subject = new HCaptchaHandler();
 		$subject->init();
-		$subject->enqueue_scripts();
+		$subject->enqueue_preview_scripts();
 
 		self::assertTrue( wp_script_is( 'elementor-hcaptcha-api' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
