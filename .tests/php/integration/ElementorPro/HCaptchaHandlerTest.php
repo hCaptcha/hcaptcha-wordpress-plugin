@@ -172,7 +172,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			has_filter( 'elementor/frontend/the_content', [ $subject, 'elementor_content' ] )
 		);
 		self::assertSame(
-			10,
+			20,
 			has_filter( 'elementor_pro/editor/localize_settings', [ $subject, 'localize_settings' ] )
 		);
 

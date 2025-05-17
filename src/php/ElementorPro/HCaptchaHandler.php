@@ -20,7 +20,9 @@ use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
 use ElementorPro\Modules\Forms\Module;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
+use ElementorPro\Modules\Forms\Classes\HCaptcha_Handler;
 
 /**
  * Class HCaptchaHandler.
@@ -79,12 +81,56 @@ class HCaptchaHandler {
 	 */
 	public function __construct() {
 		$this->main = hcaptcha();
+		$this->block_native_integration();
 
 		add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'after_enqueue_scripts' ] );
 		add_action( 'elementor/init', [ $this, 'init' ] );
 
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+	}
+
+	/**
+	 * Block native hCaptcha integration.
+	 *
+	 * @return void
+	 */
+	private function block_native_integration(): void {
+		add_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string' );
+		add_filter( 'pre_option_elementor_pro_hcaptcha_secret_key', '__return_empty_string' );
+
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		add_action(
+			'elementor/init',
+			static function () {
+				if ( ! class_exists( HCaptcha_Handler::class, false ) ) {
+					return;
+				}
+
+				$callback_pattern = '#^' . preg_quote( HCaptcha_Handler::class, '#' ) . '#';
+				$actions          = [
+					'elementor_pro/forms/field_types',
+					'elementor/element/form/section_form_fields/after_section_end',
+					'elementor_pro/forms/render_field/hcaptcha',
+					'elementor_pro/forms/render/item',
+					'wp_head',
+					'wp_print_footer_scripts',
+					'elementor/preview/enqueue_scripts',
+					'elementor/editor/after_enqueue_scripts',
+				];
+
+				foreach ( $actions as $action ) {
+					Utils::instance()->remove_action_regex( $callback_pattern, $action );
+				}
+
+				wp_deregister_script( 'elementor-hcaptcha-api' );
+				wp_deregister_script( 'hcaptcha' );
+			},
+			20
+		);
 	}
 
 	/**
@@ -129,7 +175,7 @@ class HCaptchaHandler {
 		);
 		add_filter( 'elementor_pro/forms/render/item', [ $this, 'filter_field_item' ] );
 		add_filter( 'elementor/frontend/the_content', [ $this, 'elementor_content' ] );
-		add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ] );
+		add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ], 20 );
 
 		if ( static::is_enabled() ) {
 			add_action( 'elementor_pro/forms/validation', [ $this, 'validation' ], 10, 2 );
