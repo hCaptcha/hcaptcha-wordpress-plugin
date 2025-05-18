@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Helpers\Request;
 use HCaptcha\Migrations\Migrations;
 use KAGG\Settings\Abstracts\SettingsBase;
 
@@ -493,7 +494,7 @@ class SystemInfo extends PluginSettingsBase {
 
 		$data .= $this->data( 'PHP Version', constant( 'PHP_VERSION' ) );
 		$data .= $this->data( 'MySQL Version', $wpdb->db_version() );
-		$data .= $this->data( 'Webserver Info', isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '' );
+		$data .= $this->data( 'Webserver Info', Request::filter_input( INPUT_SERVER, 'SERVER_SOFTWARE' ) );
 
 		// PHP configs... now we're getting to the important stuff.
 		$data .= $this->header( '-- PHP Configuration --' );
