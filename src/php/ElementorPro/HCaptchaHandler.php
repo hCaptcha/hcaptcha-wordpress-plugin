@@ -15,6 +15,7 @@ namespace HCaptcha\ElementorPro;
 
 use Elementor\Controls_Stack;
 use Elementor\Plugin;
+use Elementor\Settings;
 use Elementor\Widget_Base;
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
@@ -120,6 +121,13 @@ class HCaptchaHandler {
 
 		// Settings.
 		if ( is_admin() ) {
+			$callback_pattern = '#^' . preg_quote( HCaptcha_Handler::class . '::register_admin_fields', '#' ) . '#';
+
+			Utils::instance()->replace_action_regex(
+				$callback_pattern,
+				[ $this, 'register_admin_fields' ],
+				'elementor/admin/after_create_settings/' . Settings::PAGE_ID
+			);
 			add_filter( 'elementor_pro/editor/localize_settings', [ $this, 'localize_settings' ], 20 );
 		}
 
@@ -176,6 +184,41 @@ class HCaptchaHandler {
 		if ( static::is_enabled() ) {
 			add_action( 'elementor_pro/forms/validation', [ $this, 'validation' ], 10, 2 );
 		}
+	}
+
+	/**
+	 * Register admin fields.
+	 *
+	 * @param Settings $settings Settings.
+	 *
+	 * @return void
+	 */
+	public function register_admin_fields( Settings $settings ): void {
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		$settings->add_section(
+			Settings::TAB_INTEGRATIONS,
+			static::get_hcaptcha_name(),
+			[
+				'callback' => function () use ( $notice ) {
+					echo '<hr><h2>' . esc_html__( 'hCaptcha', 'hcaptcha-for-forms-and-more' ) . '</h2>';
+					echo wp_kses_post(
+						'<p>' .
+						sprintf(
+						/* translators: 1: hCaptcha link. */
+							__( '%1$s is a free service that protects user privacy. It does not retain or sell personal data, whilst providing excellent protection against bots and abuse.', 'hcaptcha-for-forms-and-more' ),
+							sprintf(
+								'<a href="https://www.hcaptcha.com" target="_blank">%1$s</a>',
+								__( 'hCaptcha', 'hcaptcha-for-forms-and-more' )
+							)
+						) .
+						'</p>'
+					);
+					echo '<p><strong>' . wp_kses_post( $notice['label'] ) . '</strong></p>';
+					echo '<p>' . wp_kses_post( $notice['description'] ) . '</p>';
+				},
+			]
+		);
 	}
 
 	/**

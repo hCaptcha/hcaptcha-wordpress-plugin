@@ -36,9 +36,9 @@ class Utils {
 	/**
 	 * Remove action or filter.
 	 *
-	 * @param string $callback_pattern Callback pattern to match. A regex matching to
-	 *                                 SomeNameSpace\SomeClass::some_method.
-	 * @param string $hook_name        Action name.
+	 * @param string $callback_pattern Callback pattern to match.
+	 *                                 A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param string $hook_name        Action name. Default is current_action().
 	 *
 	 * @return void
 	 */
@@ -51,27 +51,55 @@ class Utils {
 
 		foreach ( $callbacks as $priority => $actions ) {
 			foreach ( $actions as $action ) {
-				$this->maybe_remove_action_regex( $callback_pattern, $hook_name, $action, $priority );
+				if ( $this->match_action_regex( $callback_pattern, $action ) ) {
+					remove_action( $hook_name, $action['function'], $priority );
+				}
 			}
 		}
 	}
 
 	/**
-	 * Maybe remove action.
+	 * Replace action or filter.
 	 *
-	 * @param string $callback_pattern Callback pattern to match. A regex matching to
-	 *                                 SomeNameSpace\SomeClass::some_method.
-	 * @param string $hook_name        Hook name.
-	 * @param array  $action           Action data.
-	 * @param int    $priority         Priority.
+	 * @param string   $callback_pattern      Callback pattern to match.
+	 *                                        A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param callable $replace               Replacement callback.
+	 * @param string   $hook_name             Action name. Default is current_action().
 	 *
 	 * @return void
 	 */
-	protected function maybe_remove_action_regex( string $callback_pattern, string $hook_name, array $action, int $priority ): void {
+	public function replace_action_regex( string $callback_pattern, callable $replace, string $hook_name = '' ): void {
+		global $wp_filter;
+
+		$hook_name = $hook_name ?: current_action();
+
+		if ( ! isset( $wp_filter[ $hook_name ] ) && ! isset( $wp_filter[ $hook_name ]->callbacks ) ) {
+			return;
+		}
+
+		foreach ( $wp_filter[ $hook_name ]->callbacks as &$actions ) {
+			foreach ( $actions as &$action ) {
+				if ( $this->match_action_regex( $callback_pattern, $action ) ) {
+					$action['function'] = $replace;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Maybe replace action.
+	 *
+	 * @param string $callback_pattern   Callback pattern to match.
+	 *                                   A regex matching to SomeNameSpace\SomeClass::some_method.
+	 * @param array  $action             Action data.
+	 *
+	 * @return bool
+	 */
+	protected function match_action_regex( string $callback_pattern, array $action ): bool {
 		$callback = $action['function'] ?? '';
 
 		if ( $callback instanceof Closure ) {
-			return;
+			return false;
 		}
 
 		if ( is_array( $callback ) ) {
@@ -83,10 +111,10 @@ class Utils {
 		}
 
 		if ( ! preg_match( $callback_pattern, $callback_name ) ) {
-			return;
+			return false;
 		}
 
-		remove_action( $hook_name, $callback, $priority );
+		return true;
 	}
 
 	/**
