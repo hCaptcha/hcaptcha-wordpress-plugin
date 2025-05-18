@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Admin;
 
+use ElementorPro\Plugin;
+
 /**
  * Class Notifications.
  *
@@ -317,7 +319,7 @@ class Notifications extends NotificationsBase {
 			unset( $notifications['force'] );
 		}
 
-		if ( ! class_exists( '\ElementorPro\Plugin', false ) ) {
+		if ( ! class_exists( Plugin::class, false ) ) {
 			unset( $notifications['admin-elementor'] );
 		}
 
@@ -403,11 +405,12 @@ class Notifications extends NotificationsBase {
 			}
 
 			foreach ( $notifications as $id => $notification ) {
-				$title           = $notification['title'] ?: '';
-				$message         = $notification['message'] ?? '';
-				$button_url      = $notification['button']['url'] ?? '';
-				$button_text     = $notification['button']['text'] ?? '';
-				$button_lightbox = $notification['button']['lightbox'] ?? '';
+				$notification    = $this->validate_notification( (array) $notification );
+				$title           = $notification['title'];
+				$message         = $notification['message'];
+				$button_url      = $notification['button']['url'];
+				$button_text     = $notification['button']['text'];
+				$button_lightbox = $notification['button']['lightbox'];
 				$button          = '';
 
 				if ( $button_url && $button_text ) {
@@ -624,5 +627,22 @@ class Notifications extends NotificationsBase {
 
 		// Merge the key-value pair back into the array at the beginning.
 		return array_merge( [ $key => $value ], $arr );
+	}
+
+	/**
+	 * Validate notification.
+	 *
+	 * @param array $notification Notification.
+	 *
+	 * @return mixed
+	 */
+	private function validate_notification( array $notification ): array {
+		$notification['title']              = $notification['title'] ?: '';
+		$notification['message']            = $notification['message'] ?? '';
+		$notification['button']['url']      = $notification['button']['url'] ?? '';
+		$notification['button']['text']     = $notification['button']['text'] ?? '';
+		$notification['button']['lightbox'] = $notification['button']['lightbox'] ?? '';
+
+		return $notification;
 	}
 }
