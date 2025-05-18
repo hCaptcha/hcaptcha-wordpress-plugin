@@ -647,90 +647,8 @@ Use Only Cookies:                     On
 				return in_array( $constant_name, $defined_constants, true );
 			}
 		);
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) use ( $plugin_version ) {
-				if ( 'HCAPTCHA_VERSION' === $name ) {
-					return $plugin_version;
-				}
-
-				if ( 'ABSPATH' === $name ) {
-					return '/var/www/test/';
-				}
-
-				if ( 'WP_DEBUG' === $name ) {
-					return true;
-				}
-
-				if ( 'WP_MEMORY_LIMIT' === $name ) {
-					return '1G';
-				}
-
-				if ( 'WP_POST_REVISIONS' === $name ) {
-					return 3;
-				}
-
-				if ( 'WP_CONTENT_DIR' === $name ) {
-					return 'var/www/test/wp-content';
-				}
-
-				if ( 'WP_CONTENT_URL' === $name ) {
-					return 'https://test.test/wp-content';
-				}
-
-				if ( 'PHP_VERSION' === $name ) {
-					return '8.2.28';
-				}
-
-				return '';
-			}
-		);
-		FunctionMocker::replace(
-			'ini_get',
-			static function ( $name ) {
-				if ( 'memory_limit' === $name ) {
-					return '2G';
-				}
-
-				if ( 'upload_max_filesize' === $name ) {
-					return '2G';
-				}
-
-				if ( 'post_max_size' === $name ) {
-					return '2G';
-				}
-
-				if ( 'max_execution_time' === $name ) {
-					return '0';
-				}
-
-				if ( 'max_input_vars' === $name ) {
-					return '1000';
-				}
-
-				if ( 'session.name' === $name ) {
-					return 'some session name';
-				}
-
-				if ( 'session.cookie_path' === $name ) {
-					return 'some cookie path';
-				}
-
-				if ( 'session.save_path' === $name ) {
-					return 'some save path';
-				}
-
-				if ( 'session.use_cookies' === $name ) {
-					return true;
-				}
-
-				if ( 'session.use_only_cookies' === $name ) {
-					return true;
-				}
-
-				return '';
-			}
-		);
+		$this->replace_constant( $plugin_version );
+		$this->replace_ini_get();
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
@@ -829,5 +747,101 @@ Use Only Cookies:                     On
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( false );
 
 		self::assertSame( '', $subject->$method() );
+	}
+
+	/**
+	 * Replace constant.
+	 *
+	 * @param string $plugin_version Plugin version.
+	 *
+	 * @return void
+	 */
+	private function replace_constant( string $plugin_version ): void {
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $plugin_version ) {
+				if ( 'HCAPTCHA_VERSION' === $name ) {
+					return $plugin_version;
+				}
+
+				if ( 'ABSPATH' === $name ) {
+					return '/var/www/test/';
+				}
+
+				if ( 'WP_DEBUG' === $name ) {
+					return true;
+				}
+
+				if ( 'WP_MEMORY_LIMIT' === $name ) {
+					return '1G';
+				}
+
+				if ( 'WP_POST_REVISIONS' === $name ) {
+					return 3;
+				}
+
+				if ( 'WP_CONTENT_DIR' === $name ) {
+					return 'var/www/test/wp-content';
+				}
+
+				if ( 'WP_CONTENT_URL' === $name ) {
+					return 'https://test.test/wp-content';
+				}
+
+				if ( 'PHP_VERSION' === $name ) {
+					return '8.2.28';
+				}
+
+				return '';
+			}
+		);
+	}
+
+	/**
+	 * Replace ini_get().
+	 *
+	 * @return void
+	 */
+	protected function replace_ini_get(): void {
+		FunctionMocker::replace(
+			'ini_get',
+			static function ( $name ) {
+				$sizes = [ 'memory_limit', 'upload_max_filesize', 'post_max_size' ];
+
+				if ( in_array( $name, $sizes, true ) ) {
+					return '2G';
+				}
+
+				if ( 'max_execution_time' === $name ) {
+					return '0';
+				}
+
+				if ( 'max_input_vars' === $name ) {
+					return '1000';
+				}
+
+				if ( 'session.name' === $name ) {
+					return 'some session name';
+				}
+
+				if ( 'session.cookie_path' === $name ) {
+					return 'some cookie path';
+				}
+
+				if ( 'session.save_path' === $name ) {
+					return 'some save path';
+				}
+
+				if ( 'session.use_cookies' === $name ) {
+					return true;
+				}
+
+				if ( 'session.use_only_cookies' === $name ) {
+					return true;
+				}
+
+				return '';
+			}
+		);
 	}
 }
