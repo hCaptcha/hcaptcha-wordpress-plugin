@@ -20,9 +20,12 @@ use Elementor\Controls_Stack;
 use Elementor\Plugin;
 use Elementor\Widget_Base;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
+use Elementor\Settings;
 
 /**
  * Class HCaptchaHandlerTest
@@ -143,6 +146,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @param bool $is_admin   Admin mode.
 	 *
 	 * @dataProvider dp_test_init
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init( bool $is_enabled, bool $is_admin ): void {
 		if ( $is_enabled ) {
@@ -163,6 +167,20 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$subject = new HCaptchaHandler();
 
+		Mockery::getConfiguration()->setConstantsMap(
+			[
+				Settings::class => [
+					'PAGE_ID' => 'elementor',
+				],
+			]
+		);
+		Mockery::mock( 'alias:Elementor\Settings' );
+
+		$utils = Mockery::mock( Utils::class )->makePartial();
+
+		$utils->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $utils, 'instance', $utils );
+
 		$forms_module = Mockery::mock( 'alias:ElementorPro\Modules\Forms\Module' );
 
 		$forms_module->shouldReceive( 'instance' )->once()->with()->andReturn( $forms_module );
@@ -171,6 +189,16 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
+
+		// Settings prepare.
+		if ( $is_admin ) {
+			$callback_pattern = '#^' . preg_quote( HCaptcha_Handler::class . '::register_admin_fields', '#' ) . '#';
+			$replace          = [ $subject, 'register_admin_fields' ];
+			$hook_name        = 'elementor/admin/after_create_settings/elementor';
+
+			$utils->shouldReceive( 'replace_action_regex' )
+				->once()->with( $callback_pattern, $replace, $hook_name );
+		}
 
 		$subject->init();
 

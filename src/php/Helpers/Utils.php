@@ -73,7 +73,7 @@ class Utils {
 
 		$hook_name = $hook_name ?: current_action();
 
-		if ( ! isset( $wp_filter[ $hook_name ] ) && ! isset( $wp_filter[ $hook_name ]->callbacks ) ) {
+		if ( ! ( isset( $wp_filter[ $hook_name ]->callbacks ) ) ) {
 			return;
 		}
 
