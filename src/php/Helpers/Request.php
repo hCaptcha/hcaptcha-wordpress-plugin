@@ -1,6 +1,6 @@
 <?php
 /**
- * Request class' file.
+ * Request class file.
  *
  * @package hcaptcha-wp
  */
@@ -58,7 +58,7 @@ class Request {
 	/**
 	 * Checks if the current request is a WP REST API request.
 	 *
-	 * Case #1: After WP_REST_Request initialisation
+	 * Case #1: After WP_REST_Request initialization
 	 * Case #2: Support "plain" permalink settings
 	 * Case #3: It can happen that WP_Rewrite is not yet initialized,
 	 *          so do this (wp-settings.php)
