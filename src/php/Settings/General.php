@@ -9,6 +9,7 @@ namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Main;
 use KAGG\Settings\Abstracts\SettingsBase;
 
@@ -893,11 +894,9 @@ class General extends PluginSettingsBase {
 		$this->run_checks( self::CHECK_CONFIG_ACTION );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$ajax_mode       = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : '';
-		$ajax_site_key   = isset( $_POST['siteKey'] ) ? sanitize_text_field( wp_unslash( $_POST['siteKey'] ) ) : '';
-		$ajax_secret_key = isset( $_POST['secretKey'] ) ? sanitize_text_field( wp_unslash( $_POST['secretKey'] ) ) : '';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$ajax_mode       = Request::filter_input( INPUT_POST, 'mode' );
+		$ajax_site_key   = Request::filter_input( INPUT_POST, 'siteKey' );
+		$ajax_secret_key = Request::filter_input( INPUT_POST, 'secretKey' );
 
 		add_filter(
 			'hcap_mode',
