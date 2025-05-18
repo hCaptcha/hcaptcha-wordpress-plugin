@@ -413,9 +413,9 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$request_uri = $this->get_test_request_uri();
 		$request_uri = wp_parse_url( $request_uri, PHP_URL_PATH );
 		$args        = [
+			'auto'    => true,
 			'action'  => 'hcaptcha_action',
 			'name'    => 'hcaptcha_nonce',
-			'auto'    => true,
 			'ajax'    => false,
 			'force'   => false,
 			'theme'   => '',
