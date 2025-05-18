@@ -35,7 +35,7 @@ describe( 'hCaptcha Elementor', () => {
 
 		hCaptchaElementorInstance.onInit();
 
-		expect( hooks.addFilter ).toHaveBeenCalledTimes( 2 );
+		expect( hooks.addFilter ).toHaveBeenCalledTimes( 1 );
 
 		const renderedField = hCaptchaElementorInstance.renderField( '', item );
 
