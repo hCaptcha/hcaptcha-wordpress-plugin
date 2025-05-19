@@ -1385,6 +1385,11 @@ class Main {
 				'tutor/tutor.php',
 				Tutor\Register::class,
 			],
+			'Ultimate Addons Login'                => [
+				[ 'ultimate_addons_status', 'login' ],
+				'ultimate-elementor/ultimate-elementor.php',
+				UltimateAddons\Login::class,
+			],
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',

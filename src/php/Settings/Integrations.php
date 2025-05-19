@@ -70,6 +70,7 @@ class Integrations extends PluginSettingsBase {
 		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
+		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
 		'woocommerce-wishlists/woocommerce-wishlists.php'                   => 'woocommerce/woocommerce.php',
 		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 	];
@@ -634,6 +635,14 @@ class Integrations extends PluginSettingsBase {
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'ultimate_addons_status'           => [
+				'label'   => 'Ultimate Addons',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'login'    => __( 'Login', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'ultimate_member_status'           => [
