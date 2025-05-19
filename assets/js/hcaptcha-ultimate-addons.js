@@ -2,6 +2,18 @@
 
 import { helper } from './hcaptcha-helper.js';
 
+wp.hooks.addFilter(
+	'hcaptcha.ajaxSubmitButton',
+	'hcaptcha',
+	( isAjaxSubmitButton, submitButtonElement ) => {
+		if ( submitButtonElement.classList.contains( 'uael-login-form-submit' ) ) {
+			return true;
+		}
+
+		return isAjaxSubmitButton;
+	}
+);
+
 ( function( $ ) {
 	// noinspection JSCheckFunctionSignatures
 	$.ajaxPrefilter( function( options ) {
