@@ -1297,6 +1297,16 @@ abstract class HCaptchaTestCase extends TestCase {
 					'register'  => 'Register Form',
 				],
 			],
+			'ultimate_addons_status'           =>
+				[
+					'label'   => 'Ultimate Addons',
+					'logo'    => 'svg',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login' => 'Login Form',
+						],
+				],
 			'ultimate_member_status'           =>
 				[
 					'label'   => 'Ultimate Member',
