@@ -1304,7 +1304,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'login' => 'Login Form',
+							'login'    => 'Login Form',
+							'register' => 'Register Form',
 						],
 				],
 			'ultimate_member_status'           =>

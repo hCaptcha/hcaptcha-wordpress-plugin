@@ -478,6 +478,7 @@ Tutor LMS:
   Register Form:                      Off
 Ultimate Addons:                      
   Login Form:                         Off
+  Register Form:                      Off
 Ultimate Member:                      
   Login Form:                         On
   Lost Password Form:                 On
