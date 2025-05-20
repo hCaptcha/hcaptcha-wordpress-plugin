@@ -393,6 +393,10 @@ Tutor LMS
 `$source: 'tutor/tutor.php'`
 `$form_id: 'checkout', ''login', 'lost_password' or 'register'`
 
+Ultimate Addons
+`$source: 'ultimate-elementor/ultimate-elementor.php'`
+`$form_id: 'login' or 'register'`
+
 Ultimate Member
 `$source: 'ultimate-member/ultimate-member.php'`
 `$form_id: form_id or 'password'`
@@ -668,6 +672,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Support Candy New Ticket Form
 * Theme My Login — Login, Lost Password, and Register Form
 * Tutor LMS — Checkout, Login, Lost Password, and Register Form
+* Ultimate Addons for Elementor Login and Register Forms
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
 * WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
