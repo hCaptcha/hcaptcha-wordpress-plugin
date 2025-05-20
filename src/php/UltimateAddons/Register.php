@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * The Register class file.
  *
  * @package hcaptcha-wp
  */
@@ -14,13 +14,21 @@ namespace HCaptcha\UltimateAddons;
 
 use Elementor\Element_Base;
 use HCaptcha\Helpers\HCaptcha;
-use UltimateElementor\Modules\LoginForm\Widgets\LoginForm as UltimateElementorLogin;
-use WP_Error;
+use UltimateElementor\Modules\RegistrationForm\Widgets\RegistrationForm as UltimateElementorRegistration;
 
 /**
- * Class Login.
+ * Class Register.
  */
-class Login extends Base {
+class Register extends Base {
+	/**
+	 * Nonce action.
+	 */
+	protected const ACTION = 'hcaptcha_ultimate_addons_register';
+
+	/**
+	 * Nonce name.
+	 */
+	protected const NONCE = 'hcaptcha_ultimate_addons_register_nonce';
 
 	/**
 	 * Init hooks.
@@ -30,7 +38,8 @@ class Login extends Base {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_action( 'wp_ajax_uael_register_user', [ $this, 'verify' ], 0 );
+		add_action( 'wp_ajax_nopriv_uael_register_user', [ $this, 'verify' ], 0 );
 	}
 
 	/**
@@ -41,7 +50,7 @@ class Login extends Base {
 	 * @return void
 	 */
 	public function before_render( Element_Base $element ): void {
-		if ( ! is_a( $element, UltimateElementorLogin::class ) ) {
+		if ( ! is_a( $element, UltimateElementorRegistration::class ) ) {
 			return;
 		}
 
@@ -56,21 +65,14 @@ class Login extends Base {
 	 * @return void
 	 */
 	public function add_hcaptcha( Element_Base $element ): void {
-		if ( ! is_a( $element, UltimateElementorLogin::class ) ) {
+		if ( ! is_a( $element, UltimateElementorRegistration::class ) ) {
 			return;
 		}
 
 		$form = (string) ob_get_clean();
 
-		if ( ! $this->is_login_limit_exceeded() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $form;
-
-			return;
-		}
-
 		$hcaptcha    = $this->get_hcap_form();
-		$pattern     = '/(<div class="elementor-field-group.+?<button type="submit")/s';
+		$pattern     = '/(<div class="uael-reg-form-submit)/';
 		$replacement = $hcaptcha . "\n$1";
 		$form        = preg_replace( $pattern, $replacement, $form );
 
@@ -79,31 +81,16 @@ class Login extends Base {
 	}
 
 	/**
-	 * Verify a login form.
-	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
-	 * @param string           $password Password to check against the user.
-	 *
-	 * @return WP_User|WP_Error|void
-	 * @noinspection PhpUnusedParameterInspection
+	 * Verify a register form.
 	 */
-	public function verify( $user, string $password ) {
-		if ( ! doing_action( 'wp_ajax_nopriv_uael_login_form_submit' ) ) {
-			return $user;
-		}
-
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $user;
-		}
-
+	public function verify(): void {
 		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
 		);
 
 		if ( null === $error_message ) {
-			return $user;
+			return;
 		}
 
 		wp_send_json_error( [ 'hCaptchaError' => $error_message ] );
@@ -118,7 +105,8 @@ class Login extends Base {
 	public function print_inline_styles(): void {
 		/* language=CSS */
 		$css = '
-	.uael-login-form .h-captcha {
+	.uael-registration-form .h-captcha {
+		margin-top: 1rem;
 		margin-bottom: 0;
 	}
 ';

@@ -10,6 +10,7 @@
 
 namespace HCaptcha\UltimateAddons;
 
+use Elementor\Element_Base;
 use FLBuilderModule;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
@@ -25,11 +26,40 @@ abstract class Base extends LoginBase {
 	protected const HANDLE = 'hcaptcha-ultimate-addons';
 
 	/**
+	 * Before frontend element render.
+	 *
+	 * @param Element_Base $element The element.
+	 *
+	 * @return void
+	 */
+	abstract public function before_render( Element_Base $element ): void;
+
+	/**
+	 * After frontend element render.
+	 *
+	 * @param Element_Base $element The element.
+	 *
+	 * @return void
+	 */
+	abstract public function add_hcaptcha( Element_Base $element ): void;
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 */
+	abstract public function print_inline_styles(): void;
+
+	/**
 	 * Add hooks.
 	 *
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		add_action( 'elementor/frontend/widget/before_render', [ $this, 'before_render' ] );
+		add_action( 'elementor/frontend/widget/after_render', [ $this, 'add_hcaptcha' ] );
+
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
@@ -50,7 +80,13 @@ abstract class Base extends LoginBase {
 			],
 		];
 
-		return HCaptcha::form( $args );
+		return (
+			'<div class="elementor-field-group elementor-column elementor-col-100 elementor-hcaptcha">' .
+			'<div class="uael-urf-field-wrapper">' .
+			HCaptcha::form( $args ) .
+			'</div>' .
+			'</div>'
+		);
 	}
 
 	/**
@@ -62,6 +98,9 @@ abstract class Base extends LoginBase {
 		if ( ! hcaptcha()->form_shown ) {
 			return;
 		}
+
+		wp_dequeue_script( 'uael-google-recaptcha' );
+		wp_deregister_script( 'uael-google-recaptcha' );
 
 		$min = hcap_min_suffix();
 

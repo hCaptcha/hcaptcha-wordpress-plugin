@@ -6,7 +6,10 @@ wp.hooks.addFilter(
 	'hcaptcha.ajaxSubmitButton',
 	'hcaptcha',
 	( isAjaxSubmitButton, submitButtonElement ) => {
-		if ( submitButtonElement.classList.contains( 'uael-login-form-submit' ) ) {
+		if (
+			submitButtonElement.classList.contains( 'uael-login-form-submit' ) ||
+			submitButtonElement.classList.contains( 'uael-register-submit' )
+		) {
 			return true;
 		}
 
@@ -23,7 +26,27 @@ wp.hooks.addFilter(
 			return;
 		}
 
-		const $node = $( '.uael-login-form' );
+		const params = new URLSearchParams( data );
+		const action = params.get( 'action' );
+
+		if ( ! action ) {
+			return;
+		}
+
+		let $node;
+
+		switch ( action ) {
+			case 'uael_login_form_submit':
+				$node = $( '.uael-login-form' );
+
+				break;
+			case 'uael_register_user':
+				$node = $( '.uael-registration-form' );
+				break;
+
+			default:
+				return;
+		}
 
 		helper.addHCaptchaData(
 			options,
@@ -31,28 +54,48 @@ wp.hooks.addFilter(
 			'hcaptcha_login_nonce',
 			$node,
 		);
+
+		helper.addHCaptchaData(
+			options,
+			'uael_register_user',
+			'hcaptcha_ultimate_addons_register_nonce',
+			$node,
+		);
 	} );
 
 	$( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 		const params = new URLSearchParams( settings.data );
+		const action = params.get( 'action' );
 
-		if ( params.get( 'action' ) !== 'uael_login_form_submit' ) {
+		if ( action !== 'uael_login_form_submit' && action !== 'uael_register_user' ) {
 			return;
 		}
 
-		const response = JSON.parse( xhr.responseText );
-		const errors = [ 'incorrect_password', 'invalid_username', 'invalid_email' ];
-		const data = response?.data ?? '';
+		window.hCaptchaBindEvents();
 
-		if ( ! response?.success && data && ! errors.includes( data ) ) {
-			$( '.elementor-hcaptcha' )
-				.after(
-					'<span class="uael-register-field-message"><span class="uael-loginform-error">' +
-					response.data +
-					'</span></span>'
-				);
+		const response = JSON.parse( xhr.responseText );
+
+		if ( response?.success ) {
+			return;
 		}
 
-		window.hCaptchaBindEvents();
+		const data = response?.data ?? '';
+
+		/**
+		 * @typedef {Object|string} data
+		 * @property {string} hCaptchaError hCaptcha error
+		 */
+		const hCaptchaError = data?.hCaptchaError ?? '';
+
+		if ( ! hCaptchaError ) {
+			return;
+		}
+
+		$( 'h-captcha' )
+			.after(
+				'<span class="uael-register-field-message"><span class="uael-loginform-error">' +
+				hCaptchaError +
+				'</span></span>'
+			);
 	} );
 }( jQuery ) );

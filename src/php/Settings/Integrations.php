@@ -642,7 +642,8 @@ class Integrations extends PluginSettingsBase {
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
-					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'ultimate_member_status'           => [

@@ -1390,6 +1390,11 @@ class Main {
 				'ultimate-elementor/ultimate-elementor.php',
 				UltimateAddons\Login::class,
 			],
+			'Ultimate Addons Register'             => [
+				[ 'ultimate_addons_status', 'register' ],
+				'ultimate-elementor/ultimate-elementor.php',
+				UltimateAddons\Register::class,
+			],
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],
 				'ultimate-member/ultimate-member.php',
