@@ -46,6 +46,11 @@ class General extends PluginSettingsBase {
 	public const TOGGLE_SECTION_ACTION = 'hcaptcha-general-toggle-section';
 
 	/**
+	 * Check IPs ajax action.
+	 */
+	public const CHECK_IPS_ACTION = 'hcaptcha-general-check-ips';
+
+	/**
 	 * Keys section id.
 	 */
 	public const SECTION_KEYS = 'keys';
@@ -175,6 +180,7 @@ class General extends PluginSettingsBase {
 
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
+		add_action( 'wp_ajax_' . self::CHECK_IPS_ACTION, [ $this, 'check_ips' ] );
 		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_send_stats' ], 20, 2 );
@@ -817,6 +823,8 @@ class General extends PluginSettingsBase {
 				'checkConfigNonce'                     => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
 				'toggleSectionAction'                  => self::TOGGLE_SECTION_ACTION,
 				'toggleSectionNonce'                   => wp_create_nonce( self::TOGGLE_SECTION_ACTION ),
+				'checkIPsAction'                       => self::CHECK_IPS_ACTION,
+				'checkIPsNonce'                        => wp_create_nonce( self::CHECK_IPS_ACTION ),
 				'modeLive'                             => self::MODE_LIVE,
 				'modeTestPublisher'                    => self::MODE_TEST_PUBLISHER,
 				'modeTestEnterpriseSafeEndUser'        => self::MODE_TEST_ENTERPRISE_SAFE_END_USER,
@@ -957,6 +965,33 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
+	 * Ajax action to check IPs.
+	 *
+	 * @return void
+	 */
+	public function check_ips(): void {
+		$this->run_checks( self::CHECK_IPS_ACTION );
+
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		$ips     = Request::filter_input( INPUT_POST, 'ips' );
+		$ips_arr = explode( ' ', $ips );
+
+		foreach ( $ips_arr as $key => $ip ) {
+			$ip = trim( $ip );
+
+			if ( ! $this->is_valid_ip_or_range( $ip ) ) {
+				wp_send_json_error(
+					esc_html__( 'Invalid IP or CIDR range: ', 'hcaptcha-for-forms-and-more' ) . esc_html( $ip )
+				);
+			}
+
+			$ips_arr[ $key ] = $ip;
+		}
+
+		wp_send_json_success();
+	}
+
+	/**
 	 * Ajax action to toggle a section.
 	 *
 	 * @return void
@@ -1060,5 +1095,60 @@ class General extends PluginSettingsBase {
 		}
 
 		return array_merge( [], ...$result );
+	}
+
+	/**
+	 * Validate IP or CIDR range.
+	 *
+	 * @param string $input Input to validate.
+	 *
+	 * @return bool
+	 */
+	private function is_valid_ip_or_range( string $input ): bool {
+		$input = trim( $input );
+
+		// Check for single IP (IPv4 or IPv6).
+		if ( filter_var( $input, FILTER_VALIDATE_IP ) ) {
+			return true;
+		}
+
+		// Check CIDR-range.
+		if ( strpos( $input, '/' ) !== false ) {
+			[ $ip, $prefix ] = explode( '/', $input, 2 );
+
+			// Check that prefix is correct.
+			if ( filter_var( $ip, FILTER_VALIDATE_IP ) && filter_var( $prefix, FILTER_VALIDATE_INT ) !== false ) {
+				$prefix = (int) $prefix;
+
+				if (
+					( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) && $prefix >= 0 && $prefix <= 32 ) ||
+					( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) && $prefix >= 0 && $prefix <= 128 )
+				) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		// Check the range of 'IP-IP' type.
+		if ( strpos( $input, '-' ) !== false ) {
+			[ $ip_start, $ip_end ] = explode( '-', $input, 2 );
+
+			$ip_start = trim( $ip_start );
+			$ip_end   = trim( $ip_end );
+
+			if ( filter_var( $ip_start, FILTER_VALIDATE_IP ) && filter_var( $ip_end, FILTER_VALIDATE_IP ) ) {
+				// Make sure that both IPs are of the same type (IPv4/IPv6).
+				if (
+					( filter_var( $ip_start, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) && filter_var( $ip_end, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) ||
+					( filter_var( $ip_start, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) && filter_var( $ip_end, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) )
+				) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

@@ -707,6 +707,7 @@ Instructions for popular native integrations are below:
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
 * Added compatibility with ActivityPub plugin.
+* Added validation of IP addresses on the General page.
 * Fixed conflict with Contact Form 7 plugin reCaptcha integration.
 * Fixed fatal error with the wpDiscuz 7.6.30.
 
