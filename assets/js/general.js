@@ -2,22 +2,23 @@
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
+ * @param HCaptchaGeneralObject.badJSONError
  * @param HCaptchaGeneralObject.checkConfigAction
  * @param HCaptchaGeneralObject.checkConfigNonce
- * @param HCaptchaGeneralObject.toggleSectionAction
- * @param HCaptchaGeneralObject.toggleSectionNonce
- * @param HCaptchaGeneralObject.modeLive
- * @param HCaptchaGeneralObject.modeTestPublisher
- * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUser
- * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetected
- * @param HCaptchaGeneralObject.siteKey
- * @param HCaptchaGeneralObject.modeTestPublisherSiteKey
- * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
- * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
  * @param HCaptchaGeneralObject.checkConfigNotice
  * @param HCaptchaGeneralObject.checkingConfigMsg
- * @param HCaptchaGeneralObject.completeHCaptchaTitle
  * @param HCaptchaGeneralObject.completeHCaptchaContent
+ * @param HCaptchaGeneralObject.completeHCaptchaTitle
+ * @param HCaptchaGeneralObject.modeLive
+ * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetected
+ * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
+ * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUser
+ * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
+ * @param HCaptchaGeneralObject.modeTestPublisher
+ * @param HCaptchaGeneralObject.modeTestPublisherSiteKey
+ * @param HCaptchaGeneralObject.siteKey
+ * @param HCaptchaGeneralObject.toggleSectionAction
+ * @param HCaptchaGeneralObject.toggleSectionNonce
  */
 
 /* eslint-disable no-console */
@@ -290,7 +291,7 @@ const general = function( $ ) {
 		} catch ( ex ) {
 			$configParams.css( 'background-color', '#ffabaf' );
 			$submit.attr( 'disabled', true );
-			showErrorMessage( 'Bad JSON!' );
+			showErrorMessage( HCaptchaGeneralObject.badJSONError );
 
 			return;
 		}

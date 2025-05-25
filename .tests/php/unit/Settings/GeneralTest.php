@@ -456,6 +456,7 @@ class GeneralTest extends HCaptchaTestCase {
 					'modeTestPublisherSiteKey'             => General::MODE_TEST_PUBLISHER_SITE_KEY,
 					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
+					'badJSONError'                         => 'Bad JSON',
 					'checkConfigNotice'                    => $check_config_notice,
 					'checkingConfigMsg'                    => 'Checking site config...',
 					'completeHCaptchaTitle'                => 'Please complete the hCaptcha.',
