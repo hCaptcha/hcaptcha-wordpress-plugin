@@ -434,6 +434,11 @@ class GeneralTest extends HCaptchaTestCase {
 			->once();
 
 		WP_Mock::userFunction( 'wp_create_nonce' )
+			->with( General::CHECK_IPS_ACTION )
+			->andReturn( $nonce )
+			->once();
+
+		WP_Mock::userFunction( 'wp_create_nonce' )
 			->with( General::TOGGLE_SECTION_ACTION )
 			->andReturn( $nonce )
 			->once();
@@ -446,6 +451,8 @@ class GeneralTest extends HCaptchaTestCase {
 					'ajaxUrl'                              => $ajax_url,
 					'checkConfigAction'                    => General::CHECK_CONFIG_ACTION,
 					'checkConfigNonce'                     => $nonce,
+					'checkIPsAction'                       => General::CHECK_IPS_ACTION,
+					'checkIPsNonce'                        => $nonce,
 					'toggleSectionAction'                  => General::TOGGLE_SECTION_ACTION,
 					'toggleSectionNonce'                   => $nonce,
 					'modeLive'                             => General::MODE_LIVE,
