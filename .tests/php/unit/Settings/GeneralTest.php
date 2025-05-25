@@ -7,7 +7,6 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpLanguageLevelInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
@@ -121,6 +120,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test init_notifications().
 	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_init_notifications(): void {
 		$hcaptcha      = Mockery::mock( Main::class )->makePartial();
@@ -666,14 +666,9 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test toggle_section() without a user.
 	 */
 	public function test_toggle_section_without_a_user(): void {
-		$section                = 'some-section';
-		$status                 = '1';
-		$hcaptcha_user_settings = [
-			'sections' => [
-				$section => $status,
-			],
-		];
-		$subject                = Mockery::mock( General::class )->makePartial();
+		$section = 'some-section';
+		$status  = '1';
+		$subject = Mockery::mock( General::class )->makePartial();
 
 		$_POST['section'] = $section;
 		$_POST['status']  = $status;
