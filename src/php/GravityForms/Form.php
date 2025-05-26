@@ -318,7 +318,6 @@ class Form extends Base {
 	 */
 	private function should_verify(): bool {
 		// Nonce is checked in the hcaptcha_verify_post().
-
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['gform_submit'] ) ) {
 			// We are not in the Gravity Form submit process.
@@ -329,6 +328,7 @@ class Form extends Base {
 
 		// Nested form.
 		$parent_form_id = isset( $_POST['gpnf_parent_form_id'] ) ? (int) $_POST['gpnf_parent_form_id'] : 0;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( $parent_form_id ) {
 			$fields = (array) GFFormsModel::get_form_meta( $parent_form_id )['fields'];
@@ -343,31 +343,9 @@ class Form extends Base {
 			}
 		}
 
-		// Multipage form.
-		$target_page_name = "gform_target_page_number_$form_id";
-
-		if ( isset( $_POST[ $target_page_name ] ) ) {
-			$source_page_name = "gform_source_page_number_$form_id";
-
-			$target_page = (int) $_POST[ $target_page_name ];
-			$source_page = isset( $_POST[ $source_page_name ] ) ? (int) $_POST[ $source_page_name ] : 0;
-
-			$form_meta = (array) GFFormsModel::get_form_meta( $form_id );
-
-			if (
-				0 !== $target_page &&
-				$target_page !== $source_page &&
-				isset(
-					$form_meta['pagination']['pages'][ $target_page - 1 ],
-					$form_meta['pagination']['pages'][ $source_page - 1 ]
-				)
-			) {
-
-				// Do not verify hCaptcha and return success when switching between form pages.
-				return false;
-			}
+		if ( ! $this->should_verify_multipage( $form_id ) ) {
+			return false;
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		if ( $this->mode_auto ) {
 			// In auto mode, verify all forms.
@@ -380,6 +358,35 @@ class Form extends Base {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Should verify hCaptcha for multipage form.
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return bool
+	 */
+	private function should_verify_multipage( int $form_id ): bool {
+		$target_page_name = "gform_target_page_number_$form_id";
+		$source_page_name = "gform_source_page_number_$form_id";
+
+		// Nonce is checked in the hcaptcha_verify_post().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+
+		$target_page = isset( $_POST[ $target_page_name ] ) ? (int) $_POST[ $target_page_name ] : 0;
+		$source_page = isset( $_POST[ $source_page_name ] ) ? (int) $_POST[ $source_page_name ] : 0;
+		$form_meta   = (array) GFFormsModel::get_form_meta( $form_id );
+
+		// Return false and do not verify hCaptcha when switching between form pages.
+		return (
+			0 === $target_page ||
+			$target_page === $source_page ||
+			! isset(
+				$form_meta['pagination']['pages'][ $target_page - 1 ],
+				$form_meta['pagination']['pages'][ $source_page - 1 ]
+			)
+		);
 	}
 
 	/**

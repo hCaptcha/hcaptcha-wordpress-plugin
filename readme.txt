@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.13.0
+Stable tag: 4.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -393,6 +393,10 @@ Tutor LMS
 `$source: 'tutor/tutor.php'`
 `$form_id: 'checkout', ''login', 'lost_password' or 'register'`
 
+Ultimate Addons
+`$source: 'ultimate-elementor/ultimate-elementor.php'`
+`$form_id: 'login' or 'register'`
+
 Ultimate Member
 `$source: 'ultimate-member/ultimate-member.php'`
 `$form_id: form_id or 'password'`
@@ -509,6 +513,34 @@ function my_hcap_language( $language ): string {
 }
 
 add_filter( 'hcap_language', 'my_hcap_language' );
+`
+
+= How to denylist certain IPs =
+
+You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
+
+`
+/**
+ * Filter user IP to check if it is denylisted.
+ * For denylisted IPs, any form submission fails.
+ *
+ * @param bool|mixed $denylisted Whether IP is denylisted.
+ * @param string     $ip         IP.
+ *
+ * @return bool
+ */
+function my_hcap_denylist_ip( $denylisted, $ip ): bool {
+  $denylisted = (bool) $denylisted;
+
+  // Denylist some IPs.
+  if ( '8.8.8.8' === $ip ) {
+    return true;
+  }
+
+  return $denylisted;
+}
+
+add_filter( 'hcap_blacklist_ip', 'my_hcap_denylist_ip', 10, 2 );
 `
 
 = How to allowlist certain IPs =
@@ -668,6 +700,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Support Candy New Ticket Form
 * Theme My Login — Login, Lost Password, and Register Form
 * Tutor LMS — Checkout, Login, Lost Password, and Register Form
+* Ultimate Addons for Elementor Login and Register Forms
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
 * WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
@@ -698,6 +731,14 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.14.0 =
+* Added Ultimate Addons for Elementor integration.
+* Added compatibility with ActivityPub plugin.
+* Added denylisted IP addresses on the General page.
+* Added validation of IP addresses on the General page.
+* Fixed conflict with Contact Form 7 plugin reCaptcha integration.
+* Fixed fatal error with the wpDiscuz 7.6.30.
 
 = 4.13.0 =
 * Added site content protection.

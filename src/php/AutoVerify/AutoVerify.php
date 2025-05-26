@@ -336,14 +336,27 @@ class AutoVerify {
 		$registered_forms = $transient ?: [];
 
 		foreach ( $forms_data as $form_data ) {
-			$data   = $form_data;
-			$action = $data['action'] ?? '';
+			$data         = wp_parse_args(
+				$form_data,
+				[
+					'action' => '',
+					'inputs' => [],
+					'args'   => [],
+				]
+			);
+			$data['args'] = wp_parse_args(
+				$data['args'],
+				[
+					'auto' => false,
+				]
+			);
+			$action       = $data['action'];
 
 			unset( $data['action'] );
 
-			$inputs = $data['inputs'] ?? [];
-			$args   = $data['args'] ?? [];
-			$auto   = $args['auto'] ?? false;
+			$inputs = $data['inputs'];
+			$args   = $data['args'];
+			$auto   = $args['auto'];
 
 			$key          = false;
 			$action_forms = $registered_forms[ $action ] ?? [];

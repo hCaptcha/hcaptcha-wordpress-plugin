@@ -140,44 +140,60 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @return string
 	 */
 	protected function get_hcap_form( array $args = [] ): string {
+		$args = $this->prepare_hcap_form_args( $args );
+
 		$nonce_field = '';
 
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			$nonce_field = wp_nonce_field( $args['action'], $args['name'], true, false );
 		}
 
-		$data_sitekey = $args['sitekey'] ?? '';
-		$data_theme   = $args['theme'] ?? '';
-		$data_auto    = $args['auto'] ?? false;
-		$data_auto    = $data_auto ? 'true' : 'false';
-		$data_ajax    = $args['ajax'] ?? false;
-		$data_ajax    = $data_ajax ? 'true' : 'false';
-		$data_force   = $args['force'] ?? false;
-		$data_force   = $data_force ? 'true' : 'false';
-		$data_size    = $args['size'] ?? '';
-		$id           = $args['id'] ?? [];
-
-		$default_id = [
-			'source'  => [],
-			'form_id' => 0,
-		];
-
-		$id = wp_parse_args(
-			$id,
-			$default_id
-		);
-
-		return $this->get_hcap_widget( $id ) . '
+		return $this->get_hcap_widget( $args['id'] ) . '
 				<h-captcha
 			class="h-captcha"
-			data-sitekey="' . $data_sitekey . '"
-			data-theme="' . $data_theme . '"
-			data-size="' . $data_size . '"
-			data-auto="' . $data_auto . '"
-			data-ajax="' . $data_ajax . '"
-			data-force="' . $data_force . '">
+			data-sitekey="' . $args['sitekey'] . '"
+			data-theme="' . $args['theme'] . '"
+			data-size="' . $args['size'] . '"
+			data-auto="' . ( $args['auto'] ? 'true' : 'false' ) . '"
+			data-ajax="' . ( $args['ajax'] ? 'true' : 'false' ) . '"
+			data-force="' . ( $args['force'] ? 'true' : 'false' ) . '">
 		</h-captcha>
 		' . $nonce_field;
+	}
+
+	/**
+	 * Prepare HCaptcha::form_display() arguments.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return array
+	 */
+	private function prepare_hcap_form_args( array $args ): array {
+		$args = array_merge(
+			[
+				'sitekey' => '',
+				'action'  => '',
+				'name'    => '',
+				'auto'    => false,
+				'ajax'    => false,
+				'force'   => false,
+				'theme'   => '',
+				'size'    => '',
+				'id'      => [],
+				'protect' => true,
+			],
+			$args
+		);
+
+		$args['id'] = array_merge(
+			[
+				'source'  => [],
+				'form_id' => 0,
+			],
+			$args['id']
+		);
+
+		return $args;
 	}
 
 	/**

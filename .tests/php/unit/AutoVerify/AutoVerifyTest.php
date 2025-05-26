@@ -606,6 +606,11 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return 'DAY_IN_SECONDS' === $name ? $day_in_seconds : 0;
 			}
 		);
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			static function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
 		WP_Mock::userFunction( 'get_transient' )
 			->with( AutoVerify::TRANSIENT )
 			->once()

@@ -194,7 +194,7 @@ class CF7 extends Base {
 	}
 
 	/**
-	 * Verify CF7 recaptcha.
+	 * Verify hCaptcha.
 	 *
 	 * @param WPCF7_Validation|mixed $result Result.
 	 * @param WPCF7_FormTag[]|mixed  $tag    Tag.
@@ -255,6 +255,8 @@ class CF7 extends Base {
 			foreach ( $form_fields as $form_field ) {
 				if ( $type === $form_field->type ) {
 					$has_field = true;
+
+					break;
 				}
 			}
 		}

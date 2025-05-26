@@ -42,4 +42,11 @@
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
 	</rule>
+
+	<!-- Complexity rules -->
+	<rule ref="Generic.Metrics.CyclomaticComplexity">
+	</rule>
+
+	<rule ref="Generic.Metrics.NestingLevel">
+	</rule>
 </ruleset>

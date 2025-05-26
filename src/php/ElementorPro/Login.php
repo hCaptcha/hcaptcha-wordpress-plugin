@@ -12,6 +12,7 @@
 
 namespace HCaptcha\ElementorPro;
 
+use ElementorPro\Modules\Forms\Widgets\Login as ElementorProLogin;
 use Elementor\Element_Base;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
@@ -43,7 +44,7 @@ class Login extends LoginBase {
 	 * @return void
 	 */
 	public function before_render( Element_Base $element ): void {
-		if ( ! is_a( $element, \ElementorPro\Modules\Forms\Widgets\Login::class ) ) {
+		if ( ! is_a( $element, ElementorProLogin::class ) ) {
 			return;
 		}
 
@@ -58,7 +59,7 @@ class Login extends LoginBase {
 	 * @return void
 	 */
 	public function add_elementor_login_hcaptcha( Element_Base $element ): void {
-		if ( ! is_a( $element, \ElementorPro\Modules\Forms\Widgets\Login::class ) ) {
+		if ( ! is_a( $element, ElementorProLogin::class ) ) {
 			return;
 		}
 

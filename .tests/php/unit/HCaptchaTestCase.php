@@ -666,8 +666,19 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'content',
 				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
 			],
+			'blacklisted_ips'          => [
+				'label'   => 'Denylisted IPs',
+				'type'    => 'textarea',
+				'section' => General::SECTION_OTHER,
+				'helper'  => 'Block form sending from listed IP addresses. Please specify one IP, range, or CIDR per line.',
+			],
+			'whitelisted_ips'          => [
+				'label'   => 'Allowlisted IPs',
+				'type'    => 'textarea',
+				'section' => General::SECTION_OTHER,
+				'helper'  => 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.',
+			],
 			'off_when_logged_in'       => [
-				'label'   => 'Other Settings',
 				'type'    => 'checkbox',
 				'section' => General::SECTION_OTHER,
 				'options' => [
@@ -682,14 +693,6 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Disable reCAPTCHA Compatibility',
 				],
 				'helper'  => 'Use if including both hCaptcha and reCAPTCHA on the same page.',
-			],
-			SettingsBase::NETWORK_WIDE => [
-				'type'    => 'checkbox',
-				'section' => General::SECTION_OTHER,
-				'options' => [
-					'on' => 'Use network-wide settings',
-				],
-				'helper'  => 'On multisite, use same settings for all sites of the network.',
 			],
 			'hide_login_errors'        => [
 				'type'    => 'checkbox',
@@ -708,11 +711,13 @@ abstract class HCaptchaTestCase extends TestCase {
 				'default' => '',
 				'helper'  => 'When enabled, all plugin data will be removed when uninstalling the plugin.',
 			],
-			'whitelisted_ips'          => [
-				'label'   => 'Allowlisted IPs',
-				'type'    => 'textarea',
+			SettingsBase::NETWORK_WIDE => [
+				'type'    => 'checkbox',
 				'section' => General::SECTION_OTHER,
-				'helper'  => 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.',
+				'options' => [
+					'on' => 'Use network-wide settings',
+				],
+				'helper'  => 'On multisite, use same settings for all sites of the network.',
 			],
 			'login_limit'              => [
 				'label'   => 'Login attempts before hCaptcha',
@@ -1297,6 +1302,17 @@ abstract class HCaptchaTestCase extends TestCase {
 					'register'  => 'Register Form',
 				],
 			],
+			'ultimate_addons_status'           =>
+				[
+					'label'   => 'Ultimate Addons',
+					'logo'    => 'svg',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'login'    => 'Login Form',
+							'register' => 'Register Form',
+						],
+				],
 			'ultimate_member_status'           =>
 				[
 					'label'   => 'Ultimate Member',

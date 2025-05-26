@@ -10,6 +10,9 @@
  * @param item.css_classes
  */
 
+/**
+ * Class HCaptchaAdminElementorPro.
+ */
 class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 	/**
 	 * Get hCaptcha form.
@@ -38,6 +41,8 @@ class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 	}
 
 	renderField( inputField, item ) {
+		item.field_label = false;
+
 		inputField +=
 			'<div class="elementor-field" id="form-field-' +
 			item.custom_id +
@@ -53,20 +58,7 @@ class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 		return inputField;
 	}
 
-	filterItem( item ) {
-		if ( 'hcaptcha' === item.field_type ) {
-			item.field_label = false;
-		}
-
-		return item;
-	}
-
 	onInit() {
-		elementor.hooks.addFilter(
-			'elementor_pro/forms/content_template/item',
-			this.filterItem
-		);
-
 		elementor.hooks.addFilter(
 			'elementor_pro/forms/content_template/field/hcaptcha',
 			this.renderField,

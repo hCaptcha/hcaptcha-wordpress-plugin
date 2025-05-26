@@ -97,12 +97,12 @@ jobs:
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo ninja-forms
+        run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo
 
       - name: Install plugins requiring 7.4
         if: ${{ matrix.php-version >= '7.4' }}
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install contact-form-7 woocommerce
+        run: wp plugin install contact-form-7 ninja-forms woocommerce
 
       - name: Run WP tests
         working-directory: ${{ env.wp-plugin-directory }}

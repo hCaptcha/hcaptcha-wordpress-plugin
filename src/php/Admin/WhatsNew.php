@@ -144,26 +144,28 @@ class WhatsNew extends NotificationsBase {
 			}
 		);
 		$versions = array_map(
-			static function ( $method ) use ( $prefix ) {
-				return str_replace( [ $prefix, '_' ], [ '', '.' ], $method );
+			function ( $method ) {
+				return $this->method_to_version( $method );
 			},
 			$methods
 		);
 
 		usort( $versions, 'version_compare' );
 
+		// Sort versions in descending order.
 		$versions = array_reverse( $versions );
 		$method   = '';
 
 		foreach ( $versions as $version ) {
-			if ( version_compare( $current, $version, '>=' ) ) {
-				$method = $prefix . str_replace( '.', '_', $version );
+			// Find the first news version that is less or equal to the current version.
+			if ( version_compare( $version, $current, '<=' ) ) {
+				$method = $this->version_to_method( $version );
 
 				break;
 			}
 		}
 
-		$display = version_compare( $shown, $current, '<' );
+		$display = version_compare( $shown, $this->method_to_version( $method ), '<' );
 
 		$this->render_popup( $method, $display );
 	}
@@ -224,7 +226,7 @@ class WhatsNew extends NotificationsBase {
 		}
 
 		$display_attr = $display ? 'flex' : 'none';
-		$version      = str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
+		$version      = $this->method_to_version( $method );
 
 		?>
 		<div
@@ -410,5 +412,27 @@ class WhatsNew extends NotificationsBase {
 	 */
 	private function is_valid_version( string $version ): bool {
 		return (bool) preg_match( '/^\d+(\.\d+)*([a-zA-Z0-9\-._]*)?$/', $version );
+	}
+
+	/**
+	 * Convert method name to version.
+	 *
+	 * @param string $method Method name.
+	 *
+	 * @return string
+	 */
+	private function method_to_version( string $method ): string {
+		return str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
+	}
+
+	/**
+	 * Convert a version to method name.
+	 *
+	 * @param string $version Version.
+	 *
+	 * @return string
+	 */
+	protected function version_to_method( string $version ): string {
+		return self::PREFIX . str_replace( '.', '_', $version );
 	}
 }

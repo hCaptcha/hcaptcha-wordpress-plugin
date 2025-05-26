@@ -16,6 +16,10 @@ abstract class Base {
 	 * Class constructor.
 	 */
 	public function __construct() {
+		if ( ! function_exists( 'wpDiscuz' ) ) {
+			return;
+		}
+
 		$this->init_hooks();
 	}
 
@@ -23,14 +27,25 @@ abstract class Base {
 	 * Add hooks.
 	 *
 	 * @return void
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	protected function init_hooks(): void {
-		if ( ! function_exists( 'wpDiscuz' ) ) {
+		add_action( 'init', [ $this, 'block_recaptcha' ], 12 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );
+	}
+
+	/**
+	 * Block reCaptcha.
+	 *
+	 * @return void
+	 */
+	public function block_recaptcha(): void {
+		$wpd_options = wpDiscuz()->options ?? null;
+
+		if ( ! $wpd_options ) {
 			return;
 		}
 
-		$wpd_recaptcha = wpDiscuz()->options->recaptcha;
+		$wpd_recaptcha = (array) ( $wpd_options->recaptcha ?? [] );
 		$wpd_recaptcha = array_merge(
 			$wpd_recaptcha,
 			[
@@ -41,9 +56,7 @@ abstract class Base {
 		);
 
 		// Block output of reCaptcha by wpDiscuz.
-		wpDiscuz()->options->recaptcha = $wpd_recaptcha;
-
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 11 );
+		$wpd_options->recaptcha = $wpd_recaptcha;
 	}
 
 	/**

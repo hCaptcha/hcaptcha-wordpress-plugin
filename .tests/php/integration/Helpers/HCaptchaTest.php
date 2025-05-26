@@ -481,32 +481,6 @@ JS;
 	}
 
 	/**
-	 * Test flatten_array().
-	 *
-	 * @return void
-	 */
-	public function test_flatten_array(): void {
-		$multilevel_array = [
-			'level1'  => [
-				'level2'  => [
-					'level3a' => 'value1',
-					'level3b' => 'value2',
-				],
-				'level2b' => 'value3',
-			],
-			'level1b' => 'value4',
-		];
-		$expected         = [
-			'level1--level2--level3a' => 'value1',
-			'level1--level2--level3b' => 'value2',
-			'level1--level2b'         => 'value3',
-			'level1b'                 => 'value4',
-		];
-
-		self::assertSame( $expected, HCaptcha::flatten_array( $multilevel_array, '--' ) );
-	}
-
-	/**
 	 * Test add_type_module().
 	 *
 	 * @return void
@@ -520,31 +494,5 @@ JS;
 			'<script type="module" id="some-id">...</script>',
 			HCaptcha::add_type_module( '<script type="text/javascript" id="some-id">...</script>' )
 		);
-	}
-
-	/**
-	 * Test unflatten_array().
-	 *
-	 * @return void
-	 */
-	public function test_unflatten_array(): void {
-		$flattened_array = [
-			'level1--level2--level3a' => 'value1',
-			'level1--level2--level3b' => 'value2',
-			'level1--level2b'         => 'value3',
-			'level1b'                 => 'value4',
-		];
-		$expected        = [
-			'level1'  => [
-				'level2'  => [
-					'level3a' => 'value1',
-					'level3b' => 'value2',
-				],
-				'level2b' => 'value3',
-			],
-			'level1b' => 'value4',
-		];
-
-		self::assertSame( $expected, HCaptcha::unflatten_array( $flattened_array, '--' ) );
 	}
 }

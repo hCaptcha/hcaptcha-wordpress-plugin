@@ -8,6 +8,7 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Error;
 
 /**
@@ -114,7 +115,7 @@ class Comment {
 	public function verify( $comment_data ): array {
 		$comment_data = (array) $comment_data;
 
-		if ( is_admin() || wp_doing_ajax() ) {
+		if ( ! Request::is_frontend() ) {
 			return $comment_data;
 		}
 

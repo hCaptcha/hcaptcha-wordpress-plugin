@@ -13,7 +13,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 /**
  * Test Field class.
  *
- * Ninja Forms requires PHP 7.2.
+ * @requires PHP >= 7.4
  *
  * @group nf
  */

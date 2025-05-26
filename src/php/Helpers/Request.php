@@ -1,6 +1,6 @@
 <?php
 /**
- * Request class' file.
+ * Request class file.
  *
  * @package hcaptcha-wp
  */
@@ -58,7 +58,7 @@ class Request {
 	/**
 	 * Checks if the current request is a WP REST API request.
 	 *
-	 * Case #1: After WP_REST_Request initialisation
+	 * Case #1: After WP_REST_Request initialization
 	 * Case #2: Support "plain" permalink settings
 	 * Case #3: It can happen that WP_Rewrite is not yet initialized,
 	 *          so do this (wp-settings.php)
@@ -139,5 +139,64 @@ class Request {
 			default:
 				return '';
 		}
+	}
+
+	/**
+	 * Check if an IP is in a given range.
+	 *
+	 * @param string $ip    IP address.
+	 * @param string $range IP range.
+	 *
+	 * @return bool
+	 */
+	public static function is_ip_in_range( string $ip, string $range ): bool {
+		$ip    = trim( $ip );
+		$range = trim( $range );
+
+		if ( strpos( $range, '/' ) !== false ) {
+			// CIDR.
+			[ $subnet, $bits ] = explode( '/', $range );
+
+			$ip     = inet_pton( $ip );
+			$subnet = inet_pton( $subnet );
+
+			if ( strlen( $ip ) !== strlen( $subnet ) ) {
+				return false; // Different IP type (IPv4 vs IPv6).
+			}
+
+			$bin_ip     = unpack( 'A*', $ip )[1];
+			$bin_subnet = unpack( 'A*', $subnet )[1];
+			$mask       = str_repeat( 'f', $bits >> 2 );
+
+			switch ( $bits % 4 ) {
+				case 1:
+					$mask .= '8';
+					break;
+				case 2:
+					$mask .= 'c';
+					break;
+				case 3:
+					$mask .= 'e';
+					break;
+			}
+
+			$mask = str_pad( $mask, strlen( $bin_ip ), '0' );
+
+			return ( $bin_ip & $mask ) === ( $bin_subnet & $mask );
+		}
+
+		if ( strpos( $range, '-' ) !== false ) {
+			// IP-IP range.
+			[ $start, $end ] = explode( '-', $range, 2 );
+
+			$start_dec = inet_pton( trim( $start ) );
+			$end_dec   = inet_pton( trim( $end ) );
+			$ip_dec    = inet_pton( $ip );
+
+			return ( $ip_dec >= $start_dec && $ip_dec <= $end_dec );
+		}
+
+		// Single IP.
+		return ( $ip === $range ) && filter_var( $range, FILTER_VALIDATE_IP );
 	}
 }

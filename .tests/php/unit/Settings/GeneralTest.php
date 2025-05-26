@@ -7,7 +7,6 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpLanguageLevelInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
@@ -121,6 +120,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test init_notifications().
 	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_init_notifications(): void {
 		$hcaptcha      = Mockery::mock( Main::class )->makePartial();
@@ -434,6 +434,11 @@ class GeneralTest extends HCaptchaTestCase {
 			->once();
 
 		WP_Mock::userFunction( 'wp_create_nonce' )
+			->with( General::CHECK_IPS_ACTION )
+			->andReturn( $nonce )
+			->once();
+
+		WP_Mock::userFunction( 'wp_create_nonce' )
 			->with( General::TOGGLE_SECTION_ACTION )
 			->andReturn( $nonce )
 			->once();
@@ -446,6 +451,8 @@ class GeneralTest extends HCaptchaTestCase {
 					'ajaxUrl'                              => $ajax_url,
 					'checkConfigAction'                    => General::CHECK_CONFIG_ACTION,
 					'checkConfigNonce'                     => $nonce,
+					'checkIPsAction'                       => General::CHECK_IPS_ACTION,
+					'checkIPsNonce'                        => $nonce,
 					'toggleSectionAction'                  => General::TOGGLE_SECTION_ACTION,
 					'toggleSectionNonce'                   => $nonce,
 					'modeLive'                             => General::MODE_LIVE,
@@ -456,6 +463,7 @@ class GeneralTest extends HCaptchaTestCase {
 					'modeTestPublisherSiteKey'             => General::MODE_TEST_PUBLISHER_SITE_KEY,
 					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
+					'badJSONError'                         => 'Bad JSON',
 					'checkConfigNotice'                    => $check_config_notice,
 					'checkingConfigMsg'                    => 'Checking site config...',
 					'completeHCaptchaTitle'                => 'Please complete the hCaptcha.',
@@ -665,14 +673,9 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test toggle_section() without a user.
 	 */
 	public function test_toggle_section_without_a_user(): void {
-		$section                = 'some-section';
-		$status                 = '1';
-		$hcaptcha_user_settings = [
-			'sections' => [
-				$section => $status,
-			],
-		];
-		$subject                = Mockery::mock( General::class )->makePartial();
+		$section = 'some-section';
+		$status  = '1';
+		$subject = Mockery::mock( General::class )->makePartial();
 
 		$_POST['section'] = $section;
 		$_POST['status']  = $status;

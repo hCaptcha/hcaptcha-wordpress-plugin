@@ -18,6 +18,11 @@ use QM_Collectors;
 class ErrorHandler {
 
 	/**
+	 * Text domain in the just_in_time error message.
+	 */
+	private const TEXT_DOMAIN_IN_JIT_ERROR = '<code>hcaptcha-for-forms-and-more</code>';
+
+	/**
 	 * Initialize the class.
 	 *
 	 * @return void
@@ -51,7 +56,6 @@ class ErrorHandler {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function action_doing_it_wrong_run( $function_name, $message, $version ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-
 		global $wp_filter;
 
 		$function_name = (string) $function_name;
@@ -94,7 +98,6 @@ class ErrorHandler {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function filter_doing_it_wrong_trigger_error( $trigger, $function_name, $message, $version ): bool {
-
 		$trigger       = (bool) $trigger;
 		$function_name = (string) $function_name;
 		$message       = (string) $message;
@@ -111,6 +114,6 @@ class ErrorHandler {
 	 * @return bool
 	 */
 	protected function is_just_in_time_for_plugin_domain( string $function_name, string $message ): bool {
-		return '_load_textdomain_just_in_time' === $function_name && false !== strpos( $message, '<code>hcaptcha-for-forms-and-more</code>' );
+		return '_load_textdomain_just_in_time' === $function_name && false !== strpos( $message, self::TEXT_DOMAIN_IN_JIT_ERROR );
 	}
 }

@@ -4,6 +4,40 @@
 	box-sizing: border-box;
 }
 
+.hcaptcha-loading::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(255, 255, 255, 0.8);
+	z-index: 9999;
+}
+
+.hcaptcha-loading::after {
+	content: '';
+	position: absolute;
+	top: calc(50% - 18px);
+	left: calc(50% - 18px);
+	width: 28px;
+	height: 28px;
+	border: 4px solid #ccc;
+	border-top: 4px solid #5c6f8a;
+	border-radius: 50%;
+	animation: hcaptcha-spin 1s linear infinite;
+	z-index: 10000;
+}
+
+@keyframes hcaptcha-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 #hcaptcha-options table tbody {
 	background: #fff;
 }
@@ -293,10 +327,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
-		"logged whitelisted"
-		"recaptcha whitelisted"
-		"hide-login-errors whitelisted"
-		"cleanup-on-uninstall network"
+		"blacklisted whitelisted"
+		"logged recaptcha"
+		"hide-login-errors cleanup-on-uninstall"
+		"network ."
 		"login-limit login-interval"
 		"delay .";
 	gap: 0 20px;
@@ -347,6 +381,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: auto;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall th,

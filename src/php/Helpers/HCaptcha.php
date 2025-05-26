@@ -65,11 +65,7 @@ class HCaptcha {
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_force    = $settings->is_on( 'force' );
 		$hcaptcha_theme    = $settings->get_theme();
-		$bg                = $settings->get_custom_theme_background();
-
-		$hcaptcha_size  = $settings->get( 'size' );
-		$allowed_themes = [ 'light', 'dark', 'auto' ];
-		$allowed_sizes  = [ 'normal', 'compact', 'invisible' ];
+		$hcaptcha_size     = $settings->get( 'size' );
 
 		$args = wp_parse_args(
 			$args,
@@ -90,8 +86,7 @@ class HCaptcha {
 				 * ]
 				 */
 				'id'      => [],
-				// Protection status. When true, hCaptcha should be added.
-				'protect' => true,
+				'protect' => true, // Protection status. When true, hCaptcha should be added.
 			]
 		);
 
@@ -102,25 +97,7 @@ class HCaptcha {
 		 */
 		$args = (array) apply_filters( 'hcap_form_args', $args );
 
-		$args['action']  = (string) $args['action'];
-		$args['name']    = (string) $args['name'];
-		$auto            = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
-		$args['ajax']    = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
-		$args['auto']    = $args['ajax'] ? true : $auto; // Auto-verify in ajax.
-		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
-		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true ) ? (string) $args['theme'] : $hcaptcha_theme;
-		$args['theme']   = $bg ? 'custom' : $args['theme'];
-		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true ) ? (string) $args['size'] : $hcaptcha_size;
-		$args['id']      = (array) $args['id'];
-		$id              = $args['id'];
-		$source          = empty( $id['source'] ) ? self::$default_id['source'] : $id['source'];
-		$form_id         = $id['form_id'] ?? self::$default_id['form_id'];
-		$id              = [
-			'source'  => $source,
-			'form_id' => $form_id,
-		];
-		$args['id']      = $id;
-		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
+		$args = self::validate_args( $args );
 
 		/**
 		 * Register hCaptcha form.
@@ -129,7 +106,7 @@ class HCaptcha {
 		 */
 		do_action( 'hcap_register_form', $args );
 
-		self::display_widget( $id );
+		self::display_widget( $args['id'] );
 
 		hcaptcha()->form_shown = true;
 
@@ -142,7 +119,7 @@ class HCaptcha {
 		 */
 		if (
 			! $args['protect'] ||
-			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
+			! apply_filters( 'hcap_protect_form', true, $args['id']['source'], $args['id']['form_id'] )
 		) {
 			return;
 		}
@@ -162,6 +139,45 @@ class HCaptcha {
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
+	}
+
+	/**
+	 * Validate hCaptcha form arguments.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return array
+	 */
+	private static function validate_args( array $args ): array {
+		$settings       = hcaptcha()->settings();
+		$hcaptcha_theme = $settings->get_theme();
+		$hcaptcha_size  = $settings->get( 'size' );
+		$bg             = $settings->get_custom_theme_background();
+
+		$allowed_themes = [ 'light', 'dark', 'auto' ];
+		$allowed_sizes  = [ 'normal', 'compact', 'invisible' ];
+
+		$args['action']  = (string) $args['action'];
+		$args['name']    = (string) $args['name'];
+		$auto            = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['ajax']    = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
+		$args['auto']    = $args['ajax'] ? true : $auto;
+		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
+		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true )
+			? (string) $args['theme']
+			: $hcaptcha_theme;
+		$args['theme']   = $bg ? 'custom' : $args['theme'];
+		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true )
+			? (string) $args['size']
+			: $hcaptcha_size;
+		$args['id']      = (array) $args['id'];
+		$args['id']      = [
+			'source'  => empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'],
+			'form_id' => $args['id']['form_id'] ?? self::$default_id['form_id'],
+		];
+		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
+
+		return $args;
 	}
 
 	/**
@@ -936,63 +952,5 @@ class HCaptcha {
 		];
 
 		return (string) preg_replace( $search, $replace, $tag );
-	}
-
-	/**
-	 * Flatten multidimensional array.
-	 *
-	 * @param array  $arr Multidimensional array.
-	 * @param string $sep Keys separator.
-	 *
-	 * @return array
-	 */
-	public static function flatten_array( array $arr, string $sep = '.' ): array {
-		static $level = [];
-
-		$result = [];
-
-		foreach ( $arr as $key => $value ) {
-			$level[] = $key;
-			$new_key = implode( $sep, $level );
-
-			if ( is_array( $value ) ) {
-				$result[] = self::flatten_array( $value, $sep );
-			} else {
-				$result[] = [ $new_key => $value ];
-			}
-
-			array_pop( $level );
-		}
-
-		return array_merge( [], ...$result );
-	}
-
-	/**
-	 * Unflatten array to multidimensional one.
-	 *
-	 * @param array  $arr Flattened array.
-	 * @param string $sep Keys separator.
-	 *
-	 * @return array
-	 */
-	public static function unflatten_array( array $arr, string $sep = '.' ): array {
-		$result = [];
-
-		foreach ( $arr as $key => $value ) {
-			$keys = explode( $sep, $key );
-			$temp = &$result;
-
-			foreach ( $keys as $inner_key ) {
-				if ( ! isset( $temp[ $inner_key ] ) ) {
-					$temp[ $inner_key ] = [];
-				}
-
-				$temp = &$temp[ $inner_key ];
-			}
-
-			$temp = $value;
-		}
-
-		return $result;
 	}
 }

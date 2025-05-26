@@ -202,6 +202,7 @@ class Main {
 		$this->load( WhatsNew::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
+		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
 
@@ -275,10 +276,10 @@ class Main {
 			/**
 			 * Filters the user IP to check whether it is allowlisted.
 			 *
-			 * @param bool         $allowlisted IP is allowlisted.
-			 * @param string|false $ip          IP string or false for local addresses.
+			 * @param bool   $allowlisted IP is allowlisted.
+			 * @param string $ip          IP string.
 			 */
-			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip() ) ||
+			apply_filters( 'hcap_whitelist_ip', false, hcap_get_user_ip( false ) ) ||
 			( '' === $settings->get_site_key() || '' === $settings->get_secret_key() )
 		);
 
@@ -809,6 +810,30 @@ class Main {
 	}
 
 	/**
+	 * Filter user IP to check if it is denylisted.
+	 * For denylisted IPs, any form submission fails.
+	 *
+	 * @param bool|mixed   $denylisted Whether IP is denylisted.
+	 * @param string|false $client_ip   Client IP.
+	 *
+	 * @return bool|mixed
+	 */
+	public function denylist_ip( $denylisted, $client_ip ) {
+		$ips = explode(
+			"\n",
+			$this->settings()->get( 'blacklisted_ips' )
+		);
+
+		foreach ( $ips as $ip ) {
+			if ( Request::is_ip_in_range( $client_ip, $ip ) ) {
+				return true;
+			}
+		}
+
+		return $denylisted;
+	}
+
+	/**
 	 * Filter user IP to check if it is allowlisted.
 	 * For allowlisted IPs, hCaptcha will not be shown.
 	 *
@@ -823,33 +848,10 @@ class Main {
 			$this->settings()->get( 'whitelisted_ips' )
 		);
 
-		// Remove invalid IPs.
-		$ips = array_filter(
-			array_map(
-				static function ( $ip ) {
-					return filter_var(
-						trim( $ip ),
-						FILTER_VALIDATE_IP
-					);
-				},
-				$ips
-			)
-		);
-
-		// Convert local IPs to false.
-		$ips = array_map(
-			static function ( $ip ) {
-				return filter_var(
-					trim( $ip ),
-					FILTER_VALIDATE_IP,
-					FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-				);
-			},
-			$ips
-		);
-
-		if ( in_array( $client_ip, $ips, true ) ) {
-			return true;
+		foreach ( $ips as $ip ) {
+			if ( Request::is_ip_in_range( $client_ip, $ip ) ) {
+				return true;
+			}
 		}
 
 		return $allowlisted;
@@ -1384,6 +1386,16 @@ class Main {
 				[ 'tutor_status', 'register' ],
 				'tutor/tutor.php',
 				Tutor\Register::class,
+			],
+			'Ultimate Addons Login'                => [
+				[ 'ultimate_addons_status', 'login' ],
+				'ultimate-elementor/ultimate-elementor.php',
+				UltimateAddons\Login::class,
+			],
+			'Ultimate Addons Register'             => [
+				[ 'ultimate_addons_status', 'register' ],
+				'ultimate-elementor/ultimate-elementor.php',
+				UltimateAddons\Register::class,
 			],
 			'Ultimate Member Login'                => [
 				[ 'ultimate_member_status', 'login' ],

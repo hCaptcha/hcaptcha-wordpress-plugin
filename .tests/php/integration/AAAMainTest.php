@@ -1138,7 +1138,7 @@ CSS;
 			'some ips, not matching ip'   => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.2', false ],
 			'some ips, matching ip'       => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.1', true ],
 			'some ips, matching wrong ip' => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '4444444.777.2', false ],
-			'with local, local ip'        => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n127.0.0.1\r\n", false, true ],
+			'with local, local ip'        => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n127.0.0.1\r\n", '127.0.0.1', true ],
 		];
 	}
 

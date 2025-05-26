@@ -16,6 +16,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Comment;
 use Mockery;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -31,7 +32,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		unset( $GLOBALS['current_screen'] );
+		unset( $GLOBALS['current_screen'], $_GET['rest_route'] );
 
 		parent::tearDown();
 	}
@@ -162,6 +163,29 @@ class CommentTest extends HCaptchaWPTestCase {
 		$commentdata = [ 'some comment data' ];
 
 		set_current_screen( 'edit-post' );
+
+		$subject = new Comment();
+
+		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test verify() in REST.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_in_rest(): void {
+		$commentdata = [ 'some comment data' ];
+
+		$_SERVER['REQUEST_URI'] = '/wp-json/activitypub/1.0/inbox';
+
+		add_filter(
+			'rest_url',
+			static function () {
+				return '/wp-json/activitypub/';
+			}
+		);
 
 		$subject = new Comment();
 

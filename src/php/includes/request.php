@@ -5,6 +5,7 @@
  * @package hcaptcha-wp
  */
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -14,9 +15,11 @@ use HCaptcha\Helpers\HCaptcha;
  * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
  * Returns a string with the IP address or false for local IPs.
  *
+ * @param bool $filter_out_local Whether to filter out local addresses.
+ *
  * @return string|false
  */
-function hcap_get_user_ip() {
+function hcap_get_user_ip( bool $filter_out_local = true ) {
 	$ip = false;
 
 	// In order of preference, with the best ones for this purpose first.
@@ -54,7 +57,11 @@ function hcap_get_user_ip() {
 	}
 
 	// Filter out local addresses.
-	return filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
+	return (
+	$filter_out_local
+		? filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE )
+		: filter_var( $ip, FILTER_VALIDATE_IP )
+	);
 }
 
 /**
@@ -180,104 +187,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response ): ?string {
-		static $result;
-		static $error_codes;
-
-		// Do not make remote request more than once.
-		if ( hcaptcha()->has_result ) {
-			/**
-			 * Filters the result of request verification.
-			 *
-			 * @param string|null $result      The result of verification. The null means success.
-			 * @param string[]    $error_codes Error code(s). Empty array on success.
-			 */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		hcaptcha()->has_result = true;
-
-		$errors        = hcap_get_error_messages();
-		$empty_message = $errors['empty'];
-		$fail_message  = $errors['fail'];
-
-		// Protection is not enabled.
-		if ( ! HCaptcha::is_protection_enabled() ) {
-			$result      = null;
-			$error_codes = [];
-
-			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		$hcaptcha_response_sanitized = htmlspecialchars(
-			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
-			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
-		);
-
-		// The hCaptcha response field is empty.
-		if ( '' === $hcaptcha_response_sanitized ) {
-			$result      = $empty_message;
-			$error_codes = [ 'empty' ];
-
-			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		$params = [
-			'secret'   => hcaptcha()->settings()->get_secret_key(),
-			'response' => $hcaptcha_response_sanitized,
-		];
-
-		$ip = hcap_get_user_ip();
-
-		if ( $ip ) {
-			$params['remoteip'] = $ip;
-		}
-
-		// Verify hCaptcha on the API server.
-		$raw_response = wp_remote_post(
-			hcaptcha()->get_verify_url(),
-			[ 'body' => $params ]
-		);
-
-		if ( is_wp_error( $raw_response ) ) {
-			$result      = implode( "\n", $raw_response->get_error_messages() );
-			$error_codes = $raw_response->get_error_codes();
-
-			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		$raw_body = wp_remote_retrieve_body( $raw_response );
-
-		// Verification request failed.
-		if ( empty( $raw_body ) ) {
-			$result      = $fail_message;
-			$error_codes = [ 'fail' ];
-
-			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		$body = json_decode( $raw_body, true );
-
-		// Verification request is not verified.
-		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
-			$error_codes        = $body['error-codes'] ?? [];
-			$hcap_error_message = hcap_get_error_message( $error_codes );
-			$result             = $hcap_error_message ?: $fail_message;
-			$error_codes        = $hcap_error_message ? $error_codes : [ 'fail' ];
-
-			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		// Success.
-		$result      = null;
-		$error_codes = [];
-
-		/** This filter is documented above. */
-		return apply_filters( 'hcap_verify_request', $result, $error_codes );
+		return API::request_verify( $hcaptcha_response );
 	}
 }
 
