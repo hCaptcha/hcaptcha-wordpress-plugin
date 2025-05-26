@@ -527,8 +527,19 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_CONTENT,
 				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'blacklisted_ips'      => [
+				'label'   => __( 'Denylisted IPs', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'textarea',
+				'section' => self::SECTION_OTHER,
+				'helper'  => __( 'Block form sending from listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'whitelisted_ips'      => [
+				'label'   => __( 'Allowlisted IPs', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'textarea',
+				'section' => self::SECTION_OTHER,
+				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'off_when_logged_in'   => [
-				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
@@ -568,12 +579,6 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Use network-wide settings', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'whitelisted_ips'      => [
-				'label'   => __( 'Allowlisted IPs', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'textarea',
-				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP address per line.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'login_limit'          => [
 				'label'   => __( 'Login attempts before hCaptcha', 'hcaptcha-for-forms-and-more' ),

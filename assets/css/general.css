@@ -327,10 +327,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
-		"logged whitelisted"
-		"recaptcha whitelisted"
-		"hide-login-errors whitelisted"
-		"cleanup-on-uninstall network"
+		"blacklisted whitelisted"
+		"logged recaptcha"
+		"hide-login-errors cleanup-on-uninstall"
+		"network ."
 		"login-limit login-interval"
 		"delay .";
 	gap: 0 20px;
@@ -381,6 +381,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: auto;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall th,

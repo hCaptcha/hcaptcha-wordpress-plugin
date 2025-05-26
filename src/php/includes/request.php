@@ -15,9 +15,11 @@ use HCaptcha\Helpers\HCaptcha;
  * Based on the code of the \WP_Community_Events::get_unsafe_client_ip.
  * Returns a string with the IP address or false for local IPs.
  *
+ * @param bool $filter_out_local Whether to filter out local addresses.
+ *
  * @return string|false
  */
-function hcap_get_user_ip() {
+function hcap_get_user_ip( bool $filter_out_local = true ) {
 	$ip = false;
 
 	// In order of preference, with the best ones for this purpose first.
@@ -55,7 +57,11 @@ function hcap_get_user_ip() {
 	}
 
 	// Filter out local addresses.
-	return filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
+	return (
+	$filter_out_local
+		? filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE )
+		: filter_var( $ip, FILTER_VALIDATE_IP )
+	);
 }
 
 /**

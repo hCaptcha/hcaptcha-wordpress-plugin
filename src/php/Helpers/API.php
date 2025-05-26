@@ -41,6 +41,23 @@ class API {
 
 		hcaptcha()->has_result = true;
 
+		/**
+		 * Filters the user IP to check whether it is denylisted.
+		 * For denylisted IPs, any form submission fails.
+		 *
+		 * @param bool   $denylisted IP is denylisted.
+		 * @param string $ip         IP string.
+		 */
+		$denylisted = apply_filters( 'hcap_blacklist_ip', false, hcap_get_user_ip( false ) );
+
+		// The request is denylisted.
+		if ( $denylisted ) {
+			$result      = hcap_get_error_messages()['fail'];
+			$error_codes = [ 'fail' ];
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
 		// Protection is not enabled.
 		if ( ! HCaptcha::is_protection_enabled() ) {
 			return self::filtered_result( null, [] );

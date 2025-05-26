@@ -50,6 +50,7 @@ const general = function( $ ) {
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
 	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
 	const $recaptchaCompatOff = $( '[name="hcaptcha_settings[recaptcha_compat_off][]"]' );
+	const $blacklistedIPs = $( '#blacklisted_ips' );
 	const $whitelistedIPs = $( '#whitelisted_ips' );
 	const $submit = $form.find( '#submit' );
 	const modes = {};
@@ -369,31 +370,37 @@ const general = function( $ ) {
 	}
 
 	// Check IPs.
-	function checkIPs() {
+	function checkIPs( $el ) {
+		const ips = $el.val();
+
+		if ( ips.trim() === '' ) {
+			return;
+		}
+
 		clearMessage();
 		$submit.attr( 'disabled', true );
 
 		const data = {
 			action: HCaptchaGeneralObject.checkIPsAction,
 			nonce: HCaptchaGeneralObject.checkIPsNonce,
-			ips: $whitelistedIPs.val(),
+			ips,
 		};
 
 		// noinspection JSVoidFunctionReturnValueUsed,JSCheckFunctionSignatures
 		return $.post( {
 			url: HCaptchaGeneralObject.ajaxUrl,
 			data,
-			beforeSend: () => $whitelistedIPs.parent().addClass( hcaptchaLoading )
+			beforeSend: () => $el.parent().addClass( hcaptchaLoading ),
 		} )
 			.done( function( response ) {
 				if ( ! response.success ) {
-					$whitelistedIPs.css( 'background-color', dataErrorBgColor );
+					$el.css( 'background-color', dataErrorBgColor );
 					showErrorMessage( response.data );
 
 					return;
 				}
 
-				$whitelistedIPs.css( 'background-color', '' );
+				$el.css( 'background-color', '' );
 				$submit.attr( 'disabled', false );
 			} )
 			.fail(
@@ -405,7 +412,7 @@ const general = function( $ ) {
 				},
 			)
 			.always( function() {
-				$whitelistedIPs.parent().removeClass( hcaptchaLoading );
+				$el.parent().removeClass( hcaptchaLoading );
 			} );
 	}
 
@@ -691,9 +698,9 @@ const general = function( $ ) {
 		applyCustomThemes( params );
 	} );
 
-	// On allowlisted IPs change.
-	$whitelistedIPs.on( 'blur', function() {
-		checkIPs();
+	// On IPs change.
+	$blacklistedIPs.add( $whitelistedIPs ).on( 'blur', function() {
+		checkIPs( $( this ) );
 	} );
 };
 

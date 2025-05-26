@@ -515,6 +515,34 @@ function my_hcap_language( $language ): string {
 add_filter( 'hcap_language', 'my_hcap_language' );
 `
 
+= How to denylist certain IPs =
+
+You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
+
+`
+/**
+ * Filter user IP to check if it is denylisted.
+ * For denylisted IPs, any form submission fails.
+ *
+ * @param bool|mixed $denylisted Whether IP is denylisted.
+ * @param string     $ip         IP.
+ *
+ * @return bool
+ */
+function my_hcap_denylist_ip( $denylisted, $ip ): bool {
+  $denylisted = (bool) $denylisted;
+
+  // Denylist some IPs.
+  if ( '8.8.8.8' === $ip ) {
+    return true;
+  }
+
+  return $denylisted;
+}
+
+add_filter( 'hcap_blacklist_ip', 'my_hcap_denylist_ip', 10, 2 );
+`
+
 = How to allowlist certain IPs =
 
 You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
@@ -707,6 +735,7 @@ Instructions for popular native integrations are below:
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
 * Added compatibility with ActivityPub plugin.
+* Added denylisted IP addresses on the General page.
 * Added validation of IP addresses on the General page.
 * Fixed conflict with Contact Form 7 plugin reCaptcha integration.
 * Fixed fatal error with the wpDiscuz 7.6.30.
