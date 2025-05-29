@@ -986,7 +986,8 @@ class General extends PluginSettingsBase {
 
 			if ( ! $this->is_valid_ip_or_range( $ip ) ) {
 				wp_send_json_error(
-					esc_html__( 'Invalid IP or CIDR range: ', 'hcaptcha-for-forms-and-more' ) . esc_html( $ip )
+					esc_html__( 'Invalid IP or CIDR range:', 'hcaptcha-for-forms-and-more' ) .
+					' ' . esc_html( $ip )
 				);
 			}
 
