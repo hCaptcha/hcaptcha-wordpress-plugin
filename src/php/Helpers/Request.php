@@ -96,7 +96,7 @@ class Request {
 		}
 
 		// Case #4.
-		$current_url = wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
+		$current_url = (string) wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
 		$rest_url    = wp_parse_url( trailingslashit( rest_url() ), PHP_URL_PATH );
 
 		return 0 === strpos( $current_url, $rest_url );

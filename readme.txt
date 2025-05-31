@@ -732,6 +732,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.15.0 =
+* Fixed PHP 8.1 deprecated error.
+
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
 * Added compatibility with ActivityPub plugin.
