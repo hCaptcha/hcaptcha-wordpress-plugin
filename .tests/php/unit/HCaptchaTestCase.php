@@ -47,7 +47,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Get an object protected property.
+	 * Get a protected property of an object.
 	 *
 	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
@@ -66,7 +66,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Set an object protected property.
+	 * Set a protected property of an object.
 	 *
 	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
@@ -82,7 +82,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Set an object protected method accessibility.
+	 * Set the accessibility of a protected method of an object.
 	 *
 	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
@@ -346,7 +346,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Get test form fields of General class.
+	 * Get test form fields of the General class.
 	 *
 	 * @return array
 	 */
@@ -666,6 +666,24 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'content',
 				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
 			],
+			'antispam'                 => [
+				'label'   => 'Enable anti-spam check',
+				'type'    => 'checkbox',
+				'section' => 'antispam',
+				'options' => [
+					'on' => 'Anti-spam check',
+				],
+				'helper'  => 'Enable anti-spam check of submitted forms.',
+			],
+			'antispam_provider'        => [
+				'label'   => 'Anti-spam provider',
+				'type'    => 'select',
+				'section' => 'antispam',
+				'options' => [
+					'akismet' => 'Akismet',
+				],
+				'helper'  => 'Select anti-spam provider.',
+			],
 			'blacklisted_ips'          => [
 				'label'   => 'Denylisted IPs',
 				'type'    => 'textarea',
@@ -789,7 +807,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Get test form fields of Integrations class.
+	 * Get test form fields of the Integrations class.
 	 *
 	 * @return array
 	 */

@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Notifications;
+use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Main;
@@ -76,6 +77,11 @@ class General extends PluginSettingsBase {
 	public const SECTION_CONTENT = 'content';
 
 	/**
+	 * AntiSpam section id.
+	 */
+	public const SECTION_ANTISPAM = 'antispam';
+
+	/**
 	 * Other section id.
 	 */
 	public const SECTION_OTHER = 'other';
@@ -119,6 +125,11 @@ class General extends PluginSettingsBase {
 	 * Test enterprise bot detected mode site key.
 	 */
 	public const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
+
+	/**
+	 * Anti-spam provider Akismet.
+	 */
+	public const ANTISPAM_PROVIDER_AKISMET = 'akismet';
 
 	/**
 	 * User settings meta.
@@ -169,8 +180,8 @@ class General extends PluginSettingsBase {
 			// We need ajax actions in the Notifications class.
 			$this->init_notifications();
 		} else {
-			// Current class loaded early on plugins_loaded.
-			// Init Notifications later, when Settings class is ready.
+			// The current class loaded early on plugins_loaded.
+			// Init Notifications later, when the Settings class is ready.
 			// Also, we need to check if we are on the General screen.
 			add_action( 'current_screen', [ $this, 'init_notifications' ] );
 		}
@@ -527,6 +538,24 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_CONTENT,
 				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'antispam'             => [
+				'label'   => __( 'Enable anti-spam check', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_ANTISPAM,
+				'options' => [
+					'on' => __( 'Anti-spam check', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Enable anti-spam check of submitted forms.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'antispam_provider'    => [
+				'label'   => __( 'Anti-spam provider', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'section' => self::SECTION_ANTISPAM,
+				'options' => [
+					self::ANTISPAM_PROVIDER_AKISMET => 'Akismet',
+				],
+				'helper'  => __( 'Select anti-spam provider.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'blacklisted_ips'      => [
 				'label'   => __( 'Denylisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
@@ -719,6 +748,9 @@ class General extends PluginSettingsBase {
 			case self::SECTION_CONTENT:
 				$this->print_section_header( $arguments['id'], __( 'Content', 'hcaptcha-for-forms-and-more' ) );
 				break;
+			case self::SECTION_ANTISPAM:
+				$this->print_section_header( $arguments['id'], __( 'Anti-spam', 'hcaptcha-for-forms-and-more' ) );
+				break;
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
 				break;
@@ -819,6 +851,11 @@ class General extends PluginSettingsBase {
 			esc_html__( 'Credentials changed.', 'hcaptcha-for-forms-and-more' ) . "\n" .
 			esc_html__( 'Please complete hCaptcha and check the site config.', 'hcaptcha-for-forms-and-more' );
 
+		$providers = array_keys( $this->form_fields['antispam_provider']['options'] );
+
+		/* translators: 1: Provider name. */
+		$provider_error = __( '%1$s anti-spam provider is not configured.', 'hcaptcha-for-forms-and-more' );
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
@@ -844,6 +881,8 @@ class General extends PluginSettingsBase {
 				'completeHCaptchaTitle'                => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 				'completeHCaptchaContent'              => __( 'Before checking the site config, please complete the Active hCaptcha in the current section.', 'hcaptcha-for-forms-and-more' ),
 				'OKBtnText'                            => __( 'OK', 'hcaptcha-for-forms-and-more' ),
+				'configuredAntiSpamProviders'          => AntiSpam::get_configured_providers( $providers ),
+				'configuredAntiSpamProviderError'      => $provider_error,
 			]
 		);
 
@@ -914,7 +953,7 @@ class General extends PluginSettingsBase {
 
 		add_filter(
 			'hcap_mode',
-			static function ( $mode ) use ( $ajax_mode ) {
+			static function () use ( $ajax_mode ) {
 				// @codeCoverageIgnoreStart
 				return $ajax_mode;
 				// @codeCoverageIgnoreEnd
@@ -924,7 +963,7 @@ class General extends PluginSettingsBase {
 		if ( self::MODE_LIVE === $ajax_mode ) {
 			add_filter(
 				'hcap_site_key',
-				static function ( $site_key ) use ( $ajax_site_key ) {
+				static function () use ( $ajax_site_key ) {
 					// @codeCoverageIgnoreStart
 					return $ajax_site_key;
 					// @codeCoverageIgnoreEnd
@@ -932,7 +971,7 @@ class General extends PluginSettingsBase {
 			);
 			add_filter(
 				'hcap_secret_key',
-				static function ( $secret_key ) use ( $ajax_secret_key ) {
+				static function () use ( $ajax_secret_key ) {
 					// @codeCoverageIgnoreStart
 					return $ajax_secret_key;
 					// @codeCoverageIgnoreEnd
@@ -1113,7 +1152,7 @@ class General extends PluginSettingsBase {
 	private function is_valid_ip_or_range( string $input ): bool {
 		$input = trim( $input );
 
-		// Check for single IP (IPv4 or IPv6).
+		// Check for a single IP (IPv4 or IPv6).
 		if ( filter_var( $input, FILTER_VALIDATE_IP ) ) {
 			return true;
 		}
@@ -1122,7 +1161,7 @@ class General extends PluginSettingsBase {
 		if ( strpos( $input, '/' ) !== false ) {
 			[ $ip, $prefix ] = explode( '/', $input, 2 );
 
-			// Check that prefix is correct.
+			// Check that the prefix is correct.
 			if ( filter_var( $ip, FILTER_VALIDATE_IP ) && filter_var( $prefix, FILTER_VALIDATE_INT ) !== false ) {
 				$prefix = (int) $prefix;
 

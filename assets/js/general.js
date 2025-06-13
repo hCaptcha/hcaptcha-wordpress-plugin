@@ -11,6 +11,8 @@
  * @param HCaptchaGeneralObject.checkingConfigMsg
  * @param HCaptchaGeneralObject.completeHCaptchaContent
  * @param HCaptchaGeneralObject.completeHCaptchaTitle
+ * @param HCaptchaGeneralObject.configuredAntiSpamProviderError
+ * @param HCaptchaGeneralObject.configuredAntiSpamProviders
  * @param HCaptchaGeneralObject.modeLive
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetected
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
@@ -50,6 +52,7 @@ const general = function( $ ) {
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
 	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
 	const $recaptchaCompatOff = $( '[name="hcaptcha_settings[recaptcha_compat_off][]"]' );
+	const $antiSpamProvider = $( '[name="hcaptcha_settings[antispam_provider]"]' );
 	const $blacklistedIPs = $( '#blacklisted_ips' );
 	const $whitelistedIPs = $( '#whitelisted_ips' );
 	const $submit = $form.find( '#submit' );
@@ -71,6 +74,7 @@ const general = function( $ ) {
 	let consoleLogs = [];
 
 	interceptConsoleLogs();
+	checkAntiSpamProvider();
 
 	function interceptConsoleLogs() {
 		consoleLogs = [];
@@ -119,7 +123,7 @@ const general = function( $ ) {
 		const logs = [];
 
 		for ( let i = 0; i < consoleLogs.length; i++ ) {
-			// Extract strings only (some JS functions push objects to console).
+			// Extract strings only (some JS functions push objects to the console).
 			const consoleLog = consoleLogs[ i ];
 			const type = consoleLog[ 0 ];
 			const args = consoleLog[ 1 ];
@@ -696,6 +700,26 @@ const general = function( $ ) {
 		}, params );
 
 		applyCustomThemes( params );
+	} );
+
+	function checkAntiSpamProvider() {
+		const provider = $antiSpamProvider.val();
+		const $tr = $antiSpamProvider.closest( 'tr' );
+
+		$tr.find( 'div' ).remove();
+
+		if ( HCaptchaGeneralObject.configuredAntiSpamProviders.indexOf( provider ) === -1 ) {
+			let error = HCaptchaGeneralObject.configuredAntiSpamProviderError;
+			const selectedText = $antiSpamProvider.find( 'option:selected' ).text();
+
+			error = error.replace( '%1$s', selectedText );
+
+			$tr.append( `<div>${ error }</div>` );
+		}
+	}
+
+	$antiSpamProvider.on( 'change', function( e ) {
+		checkAntiSpamProvider( e );
 	} );
 
 	// On IPs change.

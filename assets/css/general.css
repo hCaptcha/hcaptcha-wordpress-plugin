@@ -322,6 +322,47 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: 100%;
 }
 
+/* Section Anti-spam */
+.hcaptcha-section-antispam + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"antispam antispam-provider";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam {
+	grid-area: antispam;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider {
+	grid-area: antispam-provider;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider div {
+	color: #d63638;
+	margin-top: 0.5em;
+}
+
+.hcaptcha-section-antispam + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-antispam + table tbody tr td {
+	width: max-content;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider td {
+	width: auto;
+}
+
+.hcaptcha-section-antispam + table tbody tr td input,
+.hcaptcha-section-antispam + table tbody tr td select {
+	width: 100%;
+}
+
 /* Section Other */
 .hcaptcha-section-other + table tbody {
 	display: grid;
@@ -486,6 +527,17 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	}
 
 	.hcaptcha-section-enterprise + table tbody tr td {
+		width: unset !important;
+	}
+
+	.hcaptcha-section-antispam + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"antispam"
+		"antispam-provider";
+	}
+
+	.hcaptcha-section-antispam + table tbody tr td {
 		width: unset !important;
 	}
 

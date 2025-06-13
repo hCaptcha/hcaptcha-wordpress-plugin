@@ -53,6 +53,12 @@ class AntiSpam {
 	 * @return void
 	 */
 	public function init(): void {
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings->is_on( 'antispam' ) ) {
+			return;
+		}
+
 		$provider = new Akismet();
 
 		if ( ! $provider::is_configured() ) {
@@ -104,5 +110,27 @@ class AntiSpam {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Get configured anti-spam providers.
+	 *
+	 * @param array $providers Provider slugs.
+	 *
+	 * @return array
+	 */
+	public static function get_configured_providers( array $providers ): array {
+		return array_filter(
+			$providers,
+			static function ( $provider ) {
+				$class_name = '\HCaptcha\AntiSpam\\' . ucfirst( $provider );
+
+				return (
+					class_exists( $class_name ) &&
+					method_exists( $class_name, 'is_configured' ) &&
+					$class_name::is_configured()
+				);
+			}
+		);
 	}
 }

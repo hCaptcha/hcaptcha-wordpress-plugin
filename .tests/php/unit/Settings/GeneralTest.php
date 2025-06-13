@@ -34,7 +34,7 @@ use WP_Mock;
 class GeneralTest extends HCaptchaTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -120,7 +120,6 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test init_notifications().
 	 *
 	 * @throws ReflectionException ReflectionException.
-	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_init_notifications(): void {
 		$hcaptcha      = Mockery::mock( Main::class )->makePartial();
@@ -144,7 +143,7 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test init_notifications() not on the options screen.
+	 * Test init_notifications() not on the option screen.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -231,7 +230,7 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_fields() not on the options screen.
+	 * Test setup_fields() not on the option screen.
 	 *
 	 * @return void
 	 */
@@ -368,6 +367,7 @@ class GeneralTest extends HCaptchaTestCase {
 	public function test_admin_enqueue_scripts(): void {
 		$plugin_url          = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version      = '1.0.0';
+		$form_fields         = $this->get_test_general_form_fields();
 		$min_suffix          = '.min';
 		$ajax_url            = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce               = 'some_nonce';
@@ -384,6 +384,7 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
 		$this->set_protected_property( $subject, 'min_suffix', $min_suffix );
 
 		FunctionMocker::replace(
@@ -469,6 +470,8 @@ class GeneralTest extends HCaptchaTestCase {
 					'completeHCaptchaTitle'                => 'Please complete the hCaptcha.',
 					'completeHCaptchaContent'              => 'Before checking the site config, please complete the Active hCaptcha in the current section.',
 					'OKBtnText'                            => 'OK',
+					'configuredAntiSpamProviders'          => [],
+					'configuredAntiSpamProviderError'      => '%1$s anti-spam provider is not configured.',
 				]
 			)
 			->once();
