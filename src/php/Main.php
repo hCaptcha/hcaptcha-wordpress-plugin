@@ -17,6 +17,7 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
+use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
@@ -200,6 +201,7 @@ class Main {
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
+		$this->load( AntiSpam::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
 		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );

@@ -186,7 +186,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @return null|string Null on success, error message on failure.
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	function hcaptcha_request_verify( $hcaptcha_response ): ?string {
+	function hcaptcha_request_verify( $hcaptcha_response = null ): ?string {
 		return API::request_verify( $hcaptcha_response );
 	}
 }
@@ -202,10 +202,6 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 	 */
 	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
 
-		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
 		$hcaptcha_nonce = isset( $_POST[ $nonce_field_name ] ) ?
 			filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
@@ -220,17 +216,17 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 			$result      = $errors['bad-nonce'];
 			$error_codes = [ 'bad-nonce' ];
 
-			/** This filter is documented above. */
+			/** This filter is documented in Helpers\API::filtered_result. */
 			return apply_filters( 'hcap_verify_request', $result, $error_codes );
 		}
 
-		return hcaptcha_request_verify( $hcaptcha_response );
+		return hcaptcha_request_verify();
 	}
 }
 
 if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
-	 * Get 'verify' message.
+	 * Verify POST.
 	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.

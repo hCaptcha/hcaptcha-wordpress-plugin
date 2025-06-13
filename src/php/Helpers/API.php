@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Helpers;
 
+use HCaptcha\AntiSpam\AntiSpam;
+
 /**
  * Class Request.
  */
@@ -26,6 +28,21 @@ class API {
 	private static $error_codes;
 
 	/**
+	 * Verify hCaptcha and AntiSpam response.
+	 *
+	 * @param array $entry Entry.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	public static function verify( array $entry = [] ): ?string {
+		$hcaptcha_response = $entry['h-captcha-response'] ?? null;
+
+		$result = self::request_verify( $hcaptcha_response );
+
+		return $result ?: AntiSpam::verify( $entry );
+	}
+
+	/**
 	 * Verify hCaptcha response.
 	 *
 	 * @param string|null $hcaptcha_response hCaptcha response.
@@ -33,8 +50,16 @@ class API {
 	 * @return null|string Null on success, error message on failure.
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public static function request_verify( $hcaptcha_response ): ?string {
-		// Do not make remote request more than once.
+	public static function request_verify( $hcaptcha_response = null ): ?string {
+		if ( null === $hcaptcha_response ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Missing
+			$hcaptcha_response = isset( $_POST['h-captcha-response'] )
+				? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+				: null;
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
+		}
+
+		// Do not make a remote request more than once.
 		if ( hcaptcha()->has_result ) {
 			return self::filtered_result( self::$result, self::$error_codes );
 		}
@@ -97,7 +122,7 @@ class API {
 	 *
 	 * @return string|null
 	 */
-	public static function process_request( array $params ): ?string {
+	private static function process_request( array $params ): ?string {
 		// Process API request.
 		$raw_response = wp_remote_post(
 			hcaptcha()->get_verify_url(),

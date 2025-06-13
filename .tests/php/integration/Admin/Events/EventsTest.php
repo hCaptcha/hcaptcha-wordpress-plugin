@@ -66,7 +66,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		$subject = new Events();
 
 		self::assertSame(
-			-PHP_INT_MAX,
+			-1000,
 			has_action( 'hcap_verify_request', [ $subject, 'save_event' ] )
 		);
 	}

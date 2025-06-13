@@ -52,7 +52,7 @@ class Events {
 			return;
 		}
 
-		add_filter( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
+		add_filter( 'hcap_verify_request', [ $this, 'save_event' ], -1000, 2 );
 	}
 
 	/**
