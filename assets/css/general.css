@@ -531,6 +531,17 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		width: unset !important;
 	}
 
+	.hcaptcha-section-content + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"content"
+		"protected-urls";
+	}
+
+	.hcaptcha-section-content + table tbody tr td {
+		width: unset !important;
+	}
+
 	.hcaptcha-section-antispam + table tbody {
 		grid-template-columns: repeat(1, 1fr);
 		grid-template-areas:
