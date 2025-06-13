@@ -81,6 +81,7 @@ class AntiSpam {
 	 * @param object            $error_info Error info. Contains error codes or empty array on success.
 	 *
 	 * @return string|null|mixed
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify_request_filter( $result, array $deprecated, object $error_info ) {
 		static $verified, $antispam_result;

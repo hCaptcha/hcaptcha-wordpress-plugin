@@ -69,6 +69,7 @@ class Events {
 	 * @param object            $error_info Error info. Contains error codes or empty array on success.
 	 *
 	 * @return string|null|mixed
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function save_event( $result, array $deprecated, object $error_info ) {
 		global $wpdb;
@@ -270,7 +271,7 @@ class Events {
 	}
 
 	/**
-	 * Create table.
+	 * Create the table.
 	 *
 	 * @return void
 	 */
@@ -334,7 +335,7 @@ class Events {
 	}
 
 	/**
-	 * Get where date GMT with nested request to optimize.
+	 * Get where date GMT with a nested request to optimize.
 	 *
 	 * @param array $args Arguments.
 	 *

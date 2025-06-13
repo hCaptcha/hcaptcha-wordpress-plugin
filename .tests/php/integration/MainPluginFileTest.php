@@ -64,7 +64,7 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test that readme.txt contains proper stable tag.
+	 * Test that readme.txt contains a proper stable tag.
 	 */
 	public function test_stable_tag_in_readme_txt(): void {
 		if ( preg_match( '/-.+$/', HCAPTCHA_VERSION ) ) {

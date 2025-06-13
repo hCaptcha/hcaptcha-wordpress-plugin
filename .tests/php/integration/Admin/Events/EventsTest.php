@@ -81,6 +81,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$result      = 'empty';
 		$error_codes = [ 'empty' ];
+		$error_info  = (object) [ 'codes' => $error_codes ];
 		$info        = [
 			'id' => [
 				'source'  => [],
@@ -107,7 +108,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$this->drop_table();
 		$subject::create_table();
-		$subject->save_event( $result, $error_codes );
+		$subject->save_event( $result, $error_codes, $error_info );
 
 		// Query the database to check if the event was saved.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -137,7 +138,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$this->drop_table();
 
-		$subject->save_event( [ 'not a string' ], [] );
+		$subject->save_event( [ 'not a string' ], [], (object) [] );
 	}
 
 	/**
@@ -162,7 +163,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$this->drop_table();
 
-		$subject->save_event( null, [] );
+		$subject->save_event( null, [], (object) [] );
 	}
 
 	/**
@@ -203,12 +204,12 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$this->drop_table();
 		$subject::create_table();
-		$subject->save_event( 'empty', [ 'empty' ] );
+		$subject->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] );
 
 		// Avoid caching in Events.
 		$subject = new Events();
 
-		$subject->save_event( 'success', [] );
+		$subject->save_event( 'success', [], (object) [] );
 
 		$actual = $subject::get_events();
 
@@ -261,12 +262,12 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$this->drop_table();
 		$subject::create_table();
-		$subject->save_event( 'empty', [ 'empty' ] );
+		$subject->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] );
 
 		// Avoid caching in Events.
 		$subject = new Events();
 
-		$subject->save_event( 'success', [] );
+		$subject->save_event( 'success', [], (object) [] );
 
 		$actual = $subject::get_forms();
 
