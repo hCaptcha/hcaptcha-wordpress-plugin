@@ -434,6 +434,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: max-content;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval td,
@@ -544,14 +545,21 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	.hcaptcha-section-other + table tbody {
 		grid-template-columns: repeat(1, 1fr) !important;
 		grid-template-areas:
+		"blacklisted"
+		"whitelisted"
 		"logged"
 		"recaptcha"
 		"hide-login-errors"
+		"cleanup-on-uninstall"
 		"network"
-		"whitelisted"
 		"login-limit"
 		"login-interval"
 		"delay";
+	}
+
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips,
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
+		padding-top: 10px;
 	}
 
 	.hcaptcha-section-other + table tbody tr td {

@@ -735,6 +735,7 @@ Instructions for popular native integrations are below:
 = 4.15.0 =
 * Added anti-spam check of submitted forms for some integrations.
 * Fixed PHP 8.1 deprecated error.
+* Fixed the layout of the General page on mobile.
 
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
