@@ -53,7 +53,7 @@ class Akismet {
 
 		if ( trim( $status ) !== 'false' ) {
 			// Spam found - do not save/submit data.
-			return __( 'Anti-spam verification failed, please try again later.', 'hcaptcha-for-forms-and-more' );
+			return hcap_get_error_messages()['spam'];
 		}
 
 		return null;

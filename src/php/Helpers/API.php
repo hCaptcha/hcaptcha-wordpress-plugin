@@ -35,11 +35,11 @@ class API {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	public static function verify( array $entry = [] ): ?string {
+		( new AntiSpam( $entry ) )->init();
+
 		$hcaptcha_response = $entry['h-captcha-response'] ?? null;
 
-		$result = self::request_verify( $hcaptcha_response );
-
-		return $result ?: AntiSpam::verify( $entry );
+		return self::request_verify( $hcaptcha_response );
 	}
 
 	/**
@@ -176,10 +176,13 @@ class API {
 		/**
 		 * Filters the result of request verification.
 		 *
-		 * @param string|null $result      The result of verification. The null means success.
-		 * @param string[]    $error_codes Error code(s). Empty array on success.
+		 * @since 4.15.0 The `$error_codes` parameter was deprecated.
+		 *
+		 * @param string|null $result     The result of verification. The null means success.
+		 * @param string[]    $deprecated Not used.
+		 * @param object      $error_info Error info. Contains error codes or empty array on success.
 		 */
-		$result = apply_filters( 'hcap_verify_request', $result, $error_codes );
+		$result = apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
 
 		$result = null === $result ? null : (string) $result;
 

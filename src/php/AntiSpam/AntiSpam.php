@@ -10,44 +10,98 @@
 
 namespace HCaptcha\AntiSpam;
 
+use HCaptcha\Admin\Events\Events;
+
 /**
  * Class AntiSpam.
  */
 class AntiSpam {
 	/**
+	 * Verify request hook priority.
+	 * Must be lower than \HCaptcha\Admin\Events\Events::VERIFY_REQUEST_PRIORITY
+	 */
+	public const VERIFY_REQUEST_PRIORITY = Events::VERIFY_REQUEST_PRIORITY - 1000;
+
+	/**
 	 * AntiSpam provider.
 	 *
-	 * @var object
+	 * @var Akismet
 	 */
-	private static $provider;
+	private $provider;
+
+	/**
+	 * The entry to check for spam.
+	 *
+	 * @var array
+	 */
+	private $entry;
 
 	/**
 	 * Constructor.
 	 *
+	 * @param array $entry Entry to check for spam.
+	 *
 	 * @return void
 	 */
-	public function __construct() {
+	public function __construct( array $entry ) {
+		$this->entry = $entry;
+	}
+
+	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
 		$provider = new Akismet();
 
 		if ( ! $provider::is_configured() ) {
 			return;
 		}
 
-		self::$provider = $provider;
+		$this->provider = $provider;
+
+		$this->init_hooks();
 	}
 
 	/**
-	 * Verify if a form entry is spam.
+	 * Add hooks.
 	 *
-	 * @param array $entry The entry data to verify.
-	 *
-	 * @return string|null Returns null if verification is successful, or string error message otherwise.
+	 * @return void
 	 */
-	public static function verify( array $entry ): ?string {
-		if ( ! self::$provider ) {
-			return null;
+	private function init_hooks(): void {
+		add_filter( 'hcap_verify_request', [ $this, 'verify_request_filter' ], self::VERIFY_REQUEST_PRIORITY, 3 );
+	}
+
+	/**
+	 * Filters the result of request verification.
+	 *
+	 * @param string|null|mixed $result     The result of verification. The null means success.
+	 * @param string[]          $deprecated Error code(s). Empty array on success.
+	 * @param object            $error_info Error info. Contains error codes or empty array on success.
+	 *
+	 * @return string|null|mixed
+	 */
+	public function verify_request_filter( $result, array $deprecated, object $error_info ) {
+		static $verified, $antispam_result;
+
+		if ( null !== $result ) {
+			return $result;
 		}
 
-		return self::$provider->verify( $entry );
+		if ( $verified ) {
+			return $antispam_result;
+		}
+
+		$verified = true;
+
+		$antispam_result = $this->provider->verify( $this->entry );
+
+		if ( null !== $antispam_result ) {
+			$result              = $antispam_result;
+			$error_info->codes[] = 'spam';
+		}
+
+		return $result;
 	}
 }

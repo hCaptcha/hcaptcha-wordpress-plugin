@@ -71,7 +71,7 @@ class Quform {
 	 *
 	 * @return void
 	 */
-	public function init_hooks(): void {
+	private function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'quform_post_validate', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'quform_element_valid', [ $this, 'element_valid' ], 10, 3 );

@@ -95,6 +95,7 @@ function hcap_get_error_messages(): array {
 			'fail'                     => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
 			'bad-nonce'                => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
 			'bad-signature'            => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
+			'spam'                     => __( 'Anti-spam check failed.', 'hcaptcha-for-forms-and-more' ),
 		]
 	);
 }
@@ -217,7 +218,7 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 			$error_codes = [ 'bad-nonce' ];
 
 			/** This filter is documented in Helpers\API::filtered_result. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
+			return apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
 		}
 
 		return hcaptcha_request_verify();
