@@ -23,6 +23,37 @@ class AntiSpam {
 	public const VERIFY_REQUEST_PRIORITY = Events::VERIFY_REQUEST_PRIORITY - 1000;
 
 	/**
+	 * Supported providers in [ 'id' => 'Name' ] format.
+	 *
+	 * @var array
+	 */
+	private const SUPPORTED_PROVIDERS = [
+		'akismet' => 'Akismet',
+	];
+
+	/**
+	 * List of protected forms in [ 'status' => [ 'option_1_key', 'option_2_key' ] ] format.
+	 * Based on the definition in the \HCaptcha\Settings\Integrations::init_form_fields.
+	 */
+	private const PROTECTED_FORMS = [
+		'akismet' => [
+			'wp_status'               => [ 'comment' ],
+			'cf7_status'              => [ 'form', 'embed' ],
+			'elementor_pro_status'    => [ 'form' ],
+			'fluent_status'           => [ 'form' ],
+			'formidable_forms_status' => [ 'form' ],
+			'forminator_status'       => [ 'form' ],
+			'give_wp_status'          => [ 'form' ],
+			'gravity_status'          => [ 'form', 'embed' ],
+			'jetpack_status'          => [ 'contact' ],
+			'ninja_status'            => [ 'form' ],
+			'quform_status'           => [ 'form' ],
+			'woocommerce_status'      => [ 'checkout' ],
+			'wpforms_status'          => [ 'form' ],
+		],
+	];
+
+	/**
 	 * AntiSpam provider.
 	 *
 	 * @var Akismet
@@ -123,14 +154,66 @@ class AntiSpam {
 		return array_filter(
 			$providers,
 			static function ( $provider ) {
-				$class_name = '\HCaptcha\AntiSpam\\' . ucfirst( $provider );
-
-				return (
-					class_exists( $class_name ) &&
-					method_exists( $class_name, 'is_configured' ) &&
-					$class_name::is_configured()
-				);
+				return self::is_provider_configured( $provider );
 			}
 		);
+	}
+
+	/**
+	 * Retrieves the list of supported providers.
+	 *
+	 * @return array
+	 */
+	public static function get_supported_providers(): array {
+		return self::SUPPORTED_PROVIDERS;
+	}
+
+	/**
+	 * Retrieves the protected forms list based on the current provider.
+	 *
+	 * @return array
+	 */
+	public static function get_protected_forms(): array {
+		$antispam = hcaptcha()->settings()->get( 'antispam' );
+
+		if ( ! $antispam ) {
+			return [];
+		}
+
+		$provider = hcaptcha()->settings()->get( 'antispam_provider' );
+
+		if ( ! self::is_provider_configured( $provider ) ) {
+			return [];
+		}
+
+		return self::PROTECTED_FORMS[ $provider ] ?? [];
+	}
+
+	/**
+	 * Is provider configured?
+	 *
+	 * @param string $provider Provider slug.
+	 *
+	 * @return bool
+	 */
+	private static function is_provider_configured( string $provider ): bool {
+		$class_name = self::get_provider_classname( $provider );
+
+		return (
+			class_exists( $class_name ) &&
+			method_exists( $class_name, 'is_configured' ) &&
+			$class_name::is_configured()
+		);
+	}
+
+	/**
+	 * Get a provider class name.
+	 *
+	 * @param string $provider Provider slug.
+	 *
+	 * @return string
+	 */
+	private static function get_provider_classname( string $provider ): string {
+		return __NAMESPACE__ . '\\' . ucfirst( $provider );
 	}
 }

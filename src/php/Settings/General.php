@@ -127,11 +127,6 @@ class General extends PluginSettingsBase {
 	public const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
 	/**
-	 * Anti-spam provider Akismet.
-	 */
-	public const ANTISPAM_PROVIDER_AKISMET = 'akismet';
-
-	/**
 	 * User settings meta.
 	 */
 	public const USER_SETTINGS_META = 'hcaptcha_user_settings';
@@ -551,9 +546,7 @@ class General extends PluginSettingsBase {
 				'label'   => __( 'Anti-spam provider', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_ANTISPAM,
-				'options' => [
-					self::ANTISPAM_PROVIDER_AKISMET => 'Akismet',
-				],
+				'options' => AntiSpam::get_supported_providers(),
 				'helper'  => __( 'Select anti-spam provider.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'blacklisted_ips'      => [

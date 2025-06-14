@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use Closure;
+use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\Helpers\Utils;
 use KAGG\Settings\Abstracts\SettingsBase;
 use Plugin_Upgrader;
@@ -779,6 +780,8 @@ class Integrations extends PluginSettingsBase {
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			$form_field['installed'] = in_array( $status, $installed, true );
 			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
+
+			$form_field = $this->prepare_antispam_data( $status, $form_field );
 		}
 
 		unset( $form_field );
@@ -1693,5 +1696,32 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Prepares antispam data for the given status and form field.
+	 *
+	 * @param string $status     The status identifier.
+	 * @param array  $form_field The form field data.
+	 *
+	 * @return array The updated form field data containing antispam configurations.
+	 */
+	private function prepare_antispam_data( string $status, array $form_field ): array {
+		static $protected_forms;
+
+		if ( ! $protected_forms ) {
+			$protected_forms = AntiSpam::get_protected_forms();
+		}
+
+		if ( ! isset( $protected_forms[ $status ] ) ) {
+			return $form_field;
+		}
+
+		foreach ( $protected_forms[ $status ] as $form ) {
+			$form_field['data'][ $form ]    = [ 'antispam' => 'true' ];
+			$form_field['helpers'][ $form ] = __( 'The form is protected by the antispam service.', 'hcaptcha-for-forms-and-more' );
+		}
+
+		return $form_field;
 	}
 }

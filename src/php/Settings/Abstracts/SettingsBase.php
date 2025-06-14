@@ -1053,11 +1053,23 @@ abstract class SettingsBase {
 
 		foreach ( $arguments['options'] as $key => $label ) {
 			++$iterator;
+
+			$data     = $arguments['data'][ $key ] ?? [];
+			$data_str = '';
+
+			foreach ( $data as $data_key => $data_value ) {
+				$data_str .= "data-$data_key=\"$data_value\" ";
+			}
+
+			$helper     = $arguments['helpers'][ $key ] ?? '';
+			$helper_str = $helper ? $this->get_helper( $helper ) : '';
+
 			$options_markup .= sprintf(
-				'<label for="%2$s_%7$s">' .
+				'<label for="%2$s_%7$s" %9$s>' .
 				'<input id="%2$s_%7$s" name="%1$s[%2$s][]" type="%3$s" value="%4$s" %5$s %8$s />' .
 				'%6$s' .
 				'</label>' .
+				'%10$s' .
 				'<br/>',
 				esc_html( $this->option_name() ),
 				$arguments['field_id'],
@@ -1066,7 +1078,9 @@ abstract class SettingsBase {
 				checked( in_array( $key, $value, true ), true, false ),
 				$label,
 				$iterator,
-				disabled( in_array( $label, $arguments['disabled'], true ), true, false )
+				disabled( in_array( $label, $arguments['disabled'], true ), true, false ),
+				rtrim( $data_str ),
+				$helper_str
 			);
 		}
 
@@ -1079,7 +1093,8 @@ abstract class SettingsBase {
 				$options_markup,
 				[
 					'label' => [
-						'for' => [],
+						'for'    => [],
+						'data-*' => true,
 					],
 					'input' => [
 						'id'       => [],
@@ -1088,6 +1103,9 @@ abstract class SettingsBase {
 						'value'    => [],
 						'checked'  => [],
 						'disabled' => [],
+					],
+					'span'  => [
+						'class' => [],
 					],
 					'br'    => [],
 				]
@@ -1402,6 +1420,8 @@ abstract class SettingsBase {
 				'supplemental' => '',
 				'type'         => '',
 				'text'         => '',
+				'data'         => [],
+				'helpers'      => [],
 			]
 		);
 
@@ -1603,7 +1623,19 @@ abstract class SettingsBase {
 			return;
 		}
 
-		printf(
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $this->get_helper( $helper );
+	}
+
+	/**
+	 * Print help text if it exists.
+	 *
+	 * @param string $helper Helper.
+	 *
+	 * @return string
+	 */
+	protected function get_helper( string $helper ): string {
+		return sprintf(
 			'<span class="helper"><span class="helper-content">%s</span></span>',
 			wp_kses_post( $helper )
 		);
