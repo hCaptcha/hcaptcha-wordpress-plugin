@@ -48,7 +48,7 @@
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: auto 80%;
-	background-image: url( '../images/spinner-white.svg' );
+	background-image: url('../images/spinner-white.svg');
 }
 
 .hcaptcha-integrations table tr.install:after,
@@ -63,15 +63,15 @@
 }
 
 .hcaptcha-integrations table tr.install:after {
-	background-image: url( '../images/spinner-gold.svg' );
+	background-image: url('../images/spinner-gold.svg');
 }
 
 .hcaptcha-integrations table tr.on:after {
-	background-image: url( '../images/spinner-green.svg' );
+	background-image: url('../images/spinner-green.svg');
 }
 
 .hcaptcha-integrations table tr.off:after {
-	background-image: url( '../images/spinner-red.svg' );
+	background-image: url('../images/spinner-red.svg');
 }
 
 .hcaptcha-integrations table tr th {
@@ -154,25 +154,26 @@
 	width: 100%;
 }
 
-#hcaptcha-options label[data-antispam="true"] + .helper {
-	position: relative;
-}
-
-#hcaptcha-options label[data-antispam="true"] + .helper::before {
+#hcaptcha-options label[data-antispam] + .helper::before {
 	content: '';
-	background: url( '../images/antispam.svg' );
+	background: url('../images/antispam-green.svg');
 	background-size: cover;
 	width: 18px;
 	height: 20px;
 	border-radius: unset;
-	transform: translate(-2px, 0px);
+	transform: translate(0px, 5px);
 }
 
-#hcaptcha-options fieldset:disabled label[data-antispam="true"] + .helper::before {
+#hcaptcha-options label[data-antispam="native"] + .helper::before {
+	background: url('../images/antispam-yellow.svg');
+	background-size: cover;
+}
+
+#hcaptcha-options fieldset:disabled label[data-antispam] + .helper::before {
 	opacity: 0.7;
 }
 
-#hcaptcha-options label[data-antispam="true"] + .helper .helper-content {
+#hcaptcha-options label[data-antispam] + .helper .helper-content {
 	transform: translate(0px, 38px);
 }
 
@@ -190,7 +191,7 @@
 
 #hcaptcha-integrations-search-wrap:before {
 	content: '';
-	background: url( '../images/magnifying-glass.svg' );
+	background: url('../images/magnifying-glass.svg');
 	background-size: contain;
 	width: 16px;
 	height: 16px;

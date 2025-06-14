@@ -37,19 +37,24 @@ class AntiSpam {
 	 */
 	private const PROTECTED_FORMS = [
 		'akismet' => [
-			'wp_status'               => [ 'comment' ],
-			'cf7_status'              => [ 'form', 'embed' ],
-			'elementor_pro_status'    => [ 'form' ],
-			'fluent_status'           => [ 'form' ],
-			'formidable_forms_status' => [ 'form' ],
-			'forminator_status'       => [ 'form' ],
-			'give_wp_status'          => [ 'form' ],
-			'gravity_status'          => [ 'form', 'embed' ],
-			'jetpack_status'          => [ 'contact' ],
-			'ninja_status'            => [ 'form' ],
-			'quform_status'           => [ 'form' ],
-			'woocommerce_status'      => [ 'checkout' ],
-			'wpforms_status'          => [ 'form' ],
+			'native'   => [
+				'wp_status'               => [ 'comment' ],
+				'cf7_status'              => [ 'form', 'embed' ],
+				'elementor_pro_status'    => [ 'form' ],
+				'fluent_status'           => [ 'form' ],
+				'formidable_forms_status' => [ 'form' ],
+				'forminator_status'       => [ 'form' ],
+				'give_wp_status'          => [ 'form' ],
+				'gravity_status'          => [ 'form', 'embed' ],
+				'jetpack_status'          => [ 'contact' ],
+				'ninja_status'            => [ 'form' ],
+				'woocommerce_status'      => [ 'checkout' ],
+				'wpforms_status'          => [ 'form' ],
+
+			],
+			'hcaptcha' => [
+				'quform_status' => [ 'form' ],
+			],
 		],
 	];
 

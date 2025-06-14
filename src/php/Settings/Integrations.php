@@ -1706,19 +1706,26 @@ class Integrations extends PluginSettingsBase {
 	 * @return array The updated form field data containing antispam configurations.
 	 */
 	private function prepare_antispam_data( string $status, array $form_field ): array {
-		static $protected_forms;
+		static $all_protected_forms;
 
-		if ( ! $protected_forms ) {
-			$protected_forms = AntiSpam::get_protected_forms();
+		if ( ! $all_protected_forms ) {
+			$all_protected_forms = AntiSpam::get_protected_forms();
 		}
 
-		if ( ! isset( $protected_forms[ $status ] ) ) {
-			return $form_field;
-		}
+		foreach ( $all_protected_forms as $type => $protected_forms ) {
+			if ( ! isset( $protected_forms[ $status ] ) ) {
+				continue;
+			}
 
-		foreach ( $protected_forms[ $status ] as $form ) {
-			$form_field['data'][ $form ]    = [ 'antispam' => 'true' ];
-			$form_field['helpers'][ $form ] = __( 'The form is protected by the antispam service.', 'hcaptcha-for-forms-and-more' );
+			foreach ( $protected_forms[ $status ] as $form ) {
+				$form_field['data'][ $form ]    = [ 'antispam' => $type ];
+				$form_field['helpers'][ $form ] =
+					sprintf(
+							/* translators: 1: type of the antispam service. */
+						__( 'The form is protected by the %1$s antispam service.', 'hcaptcha-for-forms-and-more' ),
+						$type
+					);
+			}
 		}
 
 		return $form_field;
