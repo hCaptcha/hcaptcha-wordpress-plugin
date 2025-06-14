@@ -170,8 +170,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 	/**
 	 * Test init() when not in admin.
-	 *
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_when_not_in_admin(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -798,7 +796,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test add_settings_page() with parent slug.
+	 * Test add_settings_page() with the parent slug.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -1033,7 +1031,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_sections() not on the options screen.
+	 * Test setup_sections() not on the option screen.
 	 */
 	public function test_setup_sections_not_on_options_screen(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1130,7 +1128,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_tabs_section() not the main menu page.
+	 * Test setup_tabs_section() not on the main menu page.
 	 */
 	public function test_setup_tabs_section_not_on_options_screen(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1143,7 +1141,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test tabs_callback().
 	 *
-	 * @param bool $is_network_wide Is network wide.
+	 * @param bool $is_network_wide Is network wide?
 	 *
 	 * @dataProvider dp_test_tabs_callback
 	 * @throws ReflectionException ReflectionException.
@@ -1218,8 +1216,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 	/**
 	 * Test tabs_callback() when no tabs.
-	 *
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_tabs_callback_when_no_tabs(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1462,7 +1458,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test is_tab_active() in wrong mode.
+	 * Test is_tab_active() in the wrong mode.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -1711,7 +1707,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_fields() not on the options screen.
+	 * Test setup_fields() not on the option screen.
 	 */
 	public function test_setup_fields_not_on_options_screen(): void {
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1864,7 +1860,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			$this->dp_password_field_callback(),
 			$this->dp_number_field_callback(),
 			$this->dp_text_area_field_callback(),
-			$this->dp_check_box_field_callback(),
+			$this->dp_checkbox_field_callback(),
 			$this->dp_radio_field_callback(),
 			$this->dp_select_field_callback(),
 			$this->dp_multiple_field_callback(),
@@ -1875,7 +1871,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for wrong field.
+	 * Data provider for the wrong field.
 	 *
 	 * @return array
 	 */
@@ -2030,11 +2026,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for checkbox field.
+	 * Data provider for the checkbox field.
 	 *
 	 * @return array
 	 */
-	private function dp_check_box_field_callback(): array {
+	private function dp_checkbox_field_callback(): array {
 		return [
 			'Checkbox with empty value' => [
 				[
@@ -2048,7 +2044,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'field_id'     => 'some_id',
 					'disabled'     => false,
 				],
-				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
+				'<fieldset ><label for="some_id_1" ><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
 			],
@@ -2064,7 +2060,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'field_id'     => 'some_id',
 					'disabled'     => false,
 				],
-				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
+				'<fieldset ><label for="some_id_1" ><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
 			],
@@ -2080,7 +2076,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'field_id'     => 'some_id',
 					'disabled'     => false,
 				],
-				'<fieldset ><label for="some_id_1"><input id="some_id_1"' .
+				'<fieldset ><label for="some_id_1" ><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
 			],
@@ -2088,7 +2084,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for radio field.
+	 * Data provider for the radio field.
 	 *
 	 * @return array
 	 */
@@ -2329,7 +2325,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for file field.
+	 * Data provider for the file field.
 	 *
 	 * @return array
 	 */
@@ -2387,7 +2383,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for table field.
+	 * Data provider for the table field.
 	 *
 	 * @return array
 	 */
@@ -2753,7 +2749,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @param mixed $expected    Expected result.
 	 *
 	 * @dataProvider dp_test_pre_update_option_filter
-	 * @noinspection RepetitiveMethodCallsInspection
 	 */
 	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ): void {
 		$option_name                   = 'hcaptcha_settings';

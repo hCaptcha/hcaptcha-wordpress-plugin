@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Settings;
 
-use Closure;
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\Helpers\Utils;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -77,7 +76,7 @@ class Integrations extends PluginSettingsBase {
 	];
 
 	/**
-	 * Install plugin or theme.
+	 * Install a plugin or theme.
 	 *
 	 * @var mixed
 	 */
@@ -875,7 +874,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Show search box.
+	 * Show the search box.
 	 *
 	 * @return void
 	 */
@@ -1014,7 +1013,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Ajax action to activate/deactivate plugin/theme.
+	 * Ajax action to activate/deactivate the plugin / theme.
 	 *
 	 * @return void
 	 */
@@ -1269,7 +1268,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Maybe activate plugin.
+	 * Maybe activate the plugin.
 	 *
 	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
 	 *

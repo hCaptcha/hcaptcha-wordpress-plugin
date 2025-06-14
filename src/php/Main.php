@@ -17,7 +17,6 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
-use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
@@ -87,7 +86,7 @@ class Main {
 
 	/**
 	 * We have the verification result of the hCaptcha widget.
-	 * Use this flag to send remote request only once.
+	 * Use this flag to send a remote request only once.
 	 *
 	 * @var boolean
 	 */
@@ -108,7 +107,7 @@ class Main {
 	protected $loaded_classes = [];
 
 	/**
-	 * Migrations class instance.
+	 * Migrations' class instance.
 	 *
 	 * @var Migrations
 	 */
@@ -119,7 +118,7 @@ class Main {
 	 *
 	 * @var Settings
 	 */
-	private $settings;
+	protected $settings;
 
 	/**
 	 * Instance of AutoVerify.
@@ -228,7 +227,7 @@ class Main {
 	}
 
 	/**
-	 * Get plugin class instance.
+	 * Get a plugin class instance.
 	 *
 	 * @param string $class_name Class name.
 	 *
@@ -571,7 +570,7 @@ class Main {
 	}
 
 	/**
-	 * Print styles to fit hcaptcha widget to the login form.
+	 * Print styles to fit the hcaptcha widget to the login form.
 	 *
 	 * @return void
 	 * @noinspection CssUnusedSymbol
@@ -647,7 +646,7 @@ class Main {
 	}
 
 	/**
-	 * Get API source url with params.
+	 * Get the API source url with params.
 	 *
 	 * @return string
 	 */
@@ -811,7 +810,7 @@ class Main {
 	}
 
 	/**
-	 * Filter user IP to check if it is denylisted.
+	 * Filter the user IP to check if it is denylisted.
 	 * For denylisted IPs, any form submission fails.
 	 *
 	 * @param bool|mixed   $denylisted Whether IP is denylisted.
@@ -1511,7 +1510,7 @@ class Main {
 				continue;
 			}
 
-			// If plugin/theme is active, load a class having the option_value specified or null.
+			// If the plugin or theme is active, load a class having the option_value specified or null.
 			if ( $option_value && ! in_array( $option_value, $option, true ) ) {
 				continue;
 			}
@@ -1563,8 +1562,8 @@ class Main {
 	}
 
 	/**
-	 * Is plugin active.
-	 * When network is widely activated, check if the plugin is network active.
+	 * Check if the plugin is active.
+	 * When the network is widely activated, check if the plugin is network active.
 	 *
 	 * @param string $plugin_name Plugin name.
 	 *
