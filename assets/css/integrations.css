@@ -154,6 +154,10 @@
 	width: 100%;
 }
 
+#hcaptcha-options label[data-antispam="true"] + .helper {
+	position: relative;
+}
+
 #hcaptcha-options label[data-antispam="true"] + .helper::before {
 	content: '';
 	background: url( '../images/antispam.svg' );
@@ -161,7 +165,7 @@
 	width: 18px;
 	height: 20px;
 	border-radius: unset;
-	transform: translate(-1px, 5px);
+	transform: translate(-2px, 0px);
 }
 
 #hcaptcha-options fieldset:disabled label[data-antispam="true"] + .helper::before {
