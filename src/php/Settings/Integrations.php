@@ -1717,14 +1717,13 @@ class Integrations extends PluginSettingsBase {
 				continue;
 			}
 
+			$helper = 'hcaptcha' === $type
+				? __( 'The form is protected by the hCaptcha antispam service.', 'hcaptcha-for-forms-and-more' )
+				: __( 'The form is protected by the native antispam service.', 'hcaptcha-for-forms-and-more' );
+
 			foreach ( $protected_forms[ $status ] as $form ) {
 				$form_field['data'][ $form ]    = [ 'antispam' => $type ];
-				$form_field['helpers'][ $form ] =
-					sprintf(
-							/* translators: 1: type of the antispam service. */
-						__( 'The form is protected by the %1$s antispam service.', 'hcaptcha-for-forms-and-more' ),
-						$type
-					);
+				$form_field['helpers'][ $form ] = $helper;
 			}
 		}
 
