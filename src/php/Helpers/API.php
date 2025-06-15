@@ -35,22 +35,36 @@ class API {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	public static function verify( array $entry = [] ): ?string {
+		$entry = wp_parse_args(
+			$entry,
+			[
+				'nonce-name'         => null,
+				'nonce-action'       => null,
+				'h-captcha-response' => null,
+			]
+		);
+
+		$result = self::verify_nonce( $entry['nonce-name'], $entry['nonce-action'] );
+
+		if ( null !== $result ) {
+			return $result;
+		}
+
+		// Init AntiSpam object and add hcap_verify_request hook.
 		( new AntiSpam( $entry ) )->init();
 
-		$hcaptcha_response = $entry['h-captcha-response'] ?? null;
-
-		return self::verify_request( $hcaptcha_response );
+		return self::verify_request( $entry['h-captcha-response'] );
 	}
 	/**
 	 * Verify POST and return an error message as HTML.
 	 *
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
+	 * @param string $name   Nonce field name.
+	 * @param string $action Nonce action name.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	public static function verify_post_html( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
-		$message = self::verify_post( $nonce_field_name, $nonce_action_name );
+	public static function verify_post_html( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION ): ?string {
+		$message = self::verify_post( $name, $action );
 
 		if ( null === $message ) {
 			return null;
@@ -68,30 +82,15 @@ class API {
 	/**
 	 * Verify POST.
 	 *
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
+	 * @param string $name   Nonce field name.
+	 * @param string $action Nonce action name.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	public static function verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
-		$hcaptcha_nonce = isset( $_POST[ $nonce_field_name ] ) ?
-			filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
+	public static function verify_post( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION ): ?string {
+		$result = self::verify_nonce( $name, $action );
 
-		// Verify nonce for logged-in users only.
-		if (
-			is_user_logged_in() &&
-			! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) &&
-			HCaptcha::is_protection_enabled()
-		) {
-			$errors      = hcap_get_error_messages();
-			$result      = $errors['bad-nonce'];
-			$error_codes = [ 'bad-nonce' ];
-
-			return self::filtered_result( $result, $error_codes );
-		}
-
-		return self::verify_request();
+		return $result ?? self::verify_request();
 	}
 
 	/**
@@ -231,6 +230,40 @@ class API {
 
 		// Success.
 		return self::filtered_result( null, [] );
+	}
+
+	/**
+	 * Verify nonce.
+	 *
+	 * @param string|null $name Nonce field name.
+	 * @param string|null $action Nonce action name.
+	 *
+	 * @return string|null
+	 */
+	private static function verify_nonce( ?string $name = HCAPTCHA_NONCE, ?string $action = HCAPTCHA_ACTION ): ?string {
+		if ( null === $name && null === $action ) {
+			// Do not verify nonce if we didn't request it.
+			return null;
+		}
+
+		$nonce = isset( $_POST[ $name ] ) ?
+			filter_var( wp_unslash( $_POST[ $name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
+
+		// Verify nonce for logged-in users only.
+		if (
+			is_user_logged_in() &&
+			HCaptcha::is_protection_enabled() &&
+			! wp_verify_nonce( $nonce, $action )
+		) {
+			$errors      = hcap_get_error_messages();
+			$result      = $errors['bad-nonce'];
+			$error_codes = [ 'bad-nonce' ];
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
+		return null;
 	}
 
 	/**

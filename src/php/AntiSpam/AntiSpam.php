@@ -80,6 +80,16 @@ class AntiSpam {
 	 * @return void
 	 */
 	public function __construct( array $entry ) {
+		$entry = wp_parse_args(
+			$entry,
+			[
+				'data'          => [],
+				'name'          => null,
+				'email'         => null,
+				'form_date_gmt' => null,
+			]
+		);
+
 		$this->entry = $entry;
 	}
 
