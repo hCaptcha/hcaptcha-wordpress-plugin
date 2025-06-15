@@ -154,6 +154,10 @@
 	width: 100%;
 }
 
+#hcaptcha-options label[data-antispam] + .helper {
+	position: relative;
+}
+
 #hcaptcha-options label[data-antispam] + .helper::before {
 	content: '';
 	background: url('../images/antispam-green.svg');
