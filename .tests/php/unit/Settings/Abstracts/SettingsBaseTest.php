@@ -1141,7 +1141,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test tabs_callback().
 	 *
-	 * @param bool $is_network_wide Is network wide?
+	 * @param bool $is_network_wide It is network wide.
 	 *
 	 * @dataProvider dp_test_tabs_callback
 	 * @throws ReflectionException ReflectionException.

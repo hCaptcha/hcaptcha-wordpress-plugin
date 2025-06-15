@@ -733,7 +733,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.15.0 =
-* Added anti-spam check of submitted forms for some integrations.
+* Added anti-spam check of submitted forms for Quform plugin.
 * Fixed PHP 8.1 deprecated error.
 * Fixed the layout of the General page on mobile.
 
