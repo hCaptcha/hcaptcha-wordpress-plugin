@@ -52,7 +52,7 @@ class AntiSpam {
 				'jetpack_status'          => [ 'contact' ],
 				'ninja_status'            => [ 'form' ],
 				'woocommerce_status'      => [ 'checkout' ],
-				'wpforms_status'          => [ 'form' ],
+				'wpforms_status'          => [ 'form', 'embed' ],
 			],
 			'hcaptcha' => [
 				'divi_status'         => [ 'contact' ],
