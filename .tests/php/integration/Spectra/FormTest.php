@@ -173,7 +173,7 @@ HTML;
 		);
 		$_POST['form_data'] = $form_data;
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
@@ -210,7 +210,7 @@ HTML;
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(

@@ -109,7 +109,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$hcaptcha_response = 'some_response';
 		$form_data         = "h-captcha-response=$hcaptcha_response";
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$_POST['formData'] = $form_data;
 
@@ -133,7 +133,7 @@ class FormTest extends HCaptchaWPTestCase {
 			[],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		$subject = new Form();
 

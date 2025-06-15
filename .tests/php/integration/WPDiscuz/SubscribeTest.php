@@ -142,7 +142,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$subject = new Subscribe();
 
@@ -166,7 +166,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 

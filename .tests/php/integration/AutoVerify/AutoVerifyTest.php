@@ -303,7 +303,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$subject = new AutoVerify();
 		$subject->verify();

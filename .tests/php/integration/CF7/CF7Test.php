@@ -359,7 +359,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		hcaptcha()->init_hooks();
 
-		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'] );
+		$this->prepare_verify_request( $data['h-captcha-response'] );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 		$tag    = Mockery::mock( WPCF7_FormTag::class );
@@ -645,7 +645,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		hcaptcha()->init_hooks();
 
-		$this->prepare_hcaptcha_request_verify( $data['h-captcha-response'], false );
+		$this->prepare_verify_request( $data['h-captcha-response'], false );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 		$tag    = Mockery::mock( WPCF7_FormTag::class );

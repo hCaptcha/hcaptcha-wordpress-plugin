@@ -127,7 +127,7 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_process_ajax(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 
@@ -140,7 +140,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test process_ajax() when not success.
 	 *
-	 * @param bool|null $result Result of hcaptcha_request_verify().
+	 * @param bool|null $result Result of \HCaptcha\Helpers\API::verify_request().
 	 *
 	 * @return void
 	 * @dataProvider dp_test_process_ajax_when_not_success
@@ -169,7 +169,7 @@ class FormTest extends HCaptchaWPTestCase {
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, $result );
+		$this->prepare_verify_request( $hcaptcha_response, $result );
 
 		if ( null === $result ) {
 			unset( $_POST['h-captcha-response'] );

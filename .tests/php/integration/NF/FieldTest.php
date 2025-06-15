@@ -43,7 +43,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_validate(): void {
 		$field = [ 'value' => 'some value' ];
-		$this->prepare_hcaptcha_request_verify( $field['value'] );
+		$this->prepare_verify_request( $field['value'] );
 
 		$subject = new Field();
 
@@ -64,7 +64,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_validate_not_validated(): void {
 		$field = [ 'value' => 'some value' ];
-		$this->prepare_hcaptcha_request_verify( $field['value'], false );
+		$this->prepare_verify_request( $field['value'], false );
 
 		$subject = new Field();
 

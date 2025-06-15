@@ -217,7 +217,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$_POST['_acf_post_id']                 = $form_id;
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'encoded-hash';
 
-		$this->prepare_hcaptcha_request_verify( $value, $result );
+		$this->prepare_verify_request( $value, $result );
 
 		$subject = new Form();
 

@@ -197,14 +197,14 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Prepare response from hcaptcha_request_verify().
+	 * Prepare response from \HCaptcha\Helpers\API::verify_request().
 	 *
 	 * @param string    $hcaptcha_response hCaptcha response.
 	 * @param bool|null $result            Desired result.
 	 *
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	protected function prepare_hcaptcha_request_verify( string $hcaptcha_response, $result = true ): void {
+	protected function prepare_verify_request( string $hcaptcha_response, $result = true ): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['h-captcha-response'] ) ) {
 			$_POST[ HCAPTCHA_NONCE ]     = wp_create_nonce( HCAPTCHA_ACTION );
@@ -274,7 +274,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 		$_POST[ $nonce_field_name ]  = wp_create_nonce( $nonce_action_name );
 		$_POST['h-captcha-response'] = $hcaptcha_response;
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, $result );
+		$this->prepare_verify_request( $hcaptcha_response, $result );
 	}
 
 	/**

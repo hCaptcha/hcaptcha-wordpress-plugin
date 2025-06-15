@@ -65,7 +65,7 @@ class APITest extends HCaptchaWPTestCase {
 	public function test_verify_post_default_success(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		self::assertNull( API::verify_post() );
 	}
@@ -142,7 +142,7 @@ class APITest extends HCaptchaWPTestCase {
 	public function test_verify_request(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		self::assertNull( API::verify_request( $hcaptcha_response ) );
 	}
@@ -174,7 +174,7 @@ class APITest extends HCaptchaWPTestCase {
 	public function test_verify_request_not_verified(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		self::assertSame( 'The hCaptcha is invalid.', API::verify_request( $hcaptcha_response ) );
 	}
@@ -185,7 +185,7 @@ class APITest extends HCaptchaWPTestCase {
 	public function test_verify_request_not_verified_empty_body(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, null );
+		$this->prepare_verify_request( $hcaptcha_response, null );
 
 		self::assertSame( 'The hCaptcha is invalid.', API::verify_request( $hcaptcha_response ) );
 	}

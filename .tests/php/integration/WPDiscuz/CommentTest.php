@@ -166,7 +166,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$subject = new Comment();
 
@@ -217,7 +217,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 

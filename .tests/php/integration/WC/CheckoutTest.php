@@ -205,13 +205,13 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		$request->set_param( $widget_id_name, [ 'some widget' ] );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
 
 		// Checkout route, not verified.
 		hcaptcha()->has_result = false;
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		$expected = new WP_Error(
 			'fail',
