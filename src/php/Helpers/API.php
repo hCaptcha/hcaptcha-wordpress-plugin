@@ -51,6 +51,7 @@ class API {
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpUnused
 	 */
 	public static function request_verify( $hcaptcha_response = null ): ?string {
 		_deprecated_function( __FUNCTION__, '4.15.0', 'API::verify_request()' );
