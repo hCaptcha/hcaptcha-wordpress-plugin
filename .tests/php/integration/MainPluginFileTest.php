@@ -53,9 +53,7 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 		self::assertTrue( function_exists( 'hcap_get_user_ip' ) );
 		self::assertTrue( function_exists( 'hcap_get_error_messages' ) );
 		self::assertTrue( function_exists( 'hcap_get_error_message' ) );
-		self::assertTrue( function_exists( 'hcaptcha_request_verify' ) );
 		self::assertTrue( function_exists( 'hcaptcha_verify_post' ) );
-		self::assertTrue( function_exists( 'hcaptcha_get_verify_message' ) );
 		self::assertTrue( function_exists( 'hcaptcha_get_verify_message_html' ) );
 
 		// functions.php was required.

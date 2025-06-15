@@ -72,7 +72,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply' );
 
 		$expected = new WP_Error();
 		$subject  = new Reply();

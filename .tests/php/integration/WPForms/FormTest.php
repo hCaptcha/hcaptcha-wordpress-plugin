@@ -125,7 +125,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Form();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
 		wpforms()->objects();
 		wpforms()->get( 'process' )->errors = [];
@@ -165,7 +165,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Form();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 
 		wpforms()->objects();
 		wpforms()->get( 'process' )->errors = [];
@@ -211,7 +211,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Form();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 
 		wpforms()->objects();
 		wpforms()->get( 'process' )->errors = [];

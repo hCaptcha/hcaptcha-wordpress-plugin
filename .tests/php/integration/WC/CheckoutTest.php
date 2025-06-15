@@ -143,7 +143,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
 
 		WC()->init();
 		wc_clear_notices();
@@ -169,7 +169,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 			],
 		];
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
 
 		WC()->init();
 		wc_clear_notices();

@@ -96,7 +96,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		$data    = [ 'some data' ];
 		$subject = new Reply();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply' );
 
 		self::assertSame( '', WPF()->notice->get_notices() );
 		self::assertSame( $data, $subject->verify( $data ) );
@@ -112,7 +112,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		$expected = '<p class="error">The hCaptcha is invalid.</p>';
 		$subject  = new Reply();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply', false );
 
 		FunctionMocker::replace( 'wpforo_is_ajax', true );
 

@@ -66,7 +66,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		$errors = [ 'some errors' ];
 
-		$this->prepare_hcaptcha_get_verify_message(
+		$this->prepare_hcaptcha_verify_post(
 			'hcaptcha_memberpress_register_nonce',
 			'hcaptcha_memberpress_register'
 		);
@@ -85,7 +85,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$errors        = [ 'some errors' ];
 		$error_message = array_merge( $errors, [ 'The hCaptcha is invalid.' ] );
 
-		$this->prepare_hcaptcha_get_verify_message(
+		$this->prepare_hcaptcha_verify_post(
 			'hcaptcha_memberpress_register_nonce',
 			'hcaptcha_memberpress_register',
 			false

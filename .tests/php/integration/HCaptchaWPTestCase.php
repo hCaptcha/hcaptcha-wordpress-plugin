@@ -53,7 +53,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Get an object protected property.
+	 * Get protected property of an object.
 	 *
 	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
@@ -75,7 +75,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Set an object protected property.
+	 * Set protected property of an object.
 	 *
 	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
@@ -92,7 +92,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Set an object protected method accessibility.
+	 * Set accessibility of protected method.
 	 *
 	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
@@ -277,20 +277,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Prepare response from hcaptcha_get_verify_message().
-	 *
-	 * @param string    $nonce_field_name  Nonce field name.
-	 * @param string    $nonce_action_name Nonce action name.
-	 * @param bool|null $result            Desired result.
-	 *
-	 * @noinspection PhpMissingParamTypeInspection
-	 */
-	protected function prepare_hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name, $result = true ): void {
-		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, $result );
-	}
-
-	/**
-	 * Prepare response from hcaptcha_get_verify_message_html().
+	 * Prepare a response from hcaptcha_get_verify_message_html().
 	 *
 	 * @param string    $nonce_field_name  Nonce field name.
 	 * @param string    $nonce_action_name Nonce action name.
@@ -299,7 +286,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	protected function prepare_hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name, $result = true ): void {
-		$this->prepare_hcaptcha_get_verify_message( $nonce_field_name, $nonce_action_name, $result );
+		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, $result );
 	}
 
 	/**

@@ -73,7 +73,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_bbp_new_topic_nonce', 'hcaptcha_bbp_new_topic' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_bbp_new_topic_nonce', 'hcaptcha_bbp_new_topic' );
 
 		$expected = new WP_Error();
 		$subject  = new NewTopic();

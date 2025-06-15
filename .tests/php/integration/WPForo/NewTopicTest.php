@@ -90,7 +90,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 		$data    = [ 'some data' ];
 		$subject = new NewTopic();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic' );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic' );
 
 		WPF()->session_token = '23';
 
@@ -106,7 +106,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 		$expected = '<p class="error">The hCaptcha is invalid.</p>';
 		$subject  = new NewTopic();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic', false );
+		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic', false );
 
 		FunctionMocker::replace( 'wpforo_is_ajax', true );
 
