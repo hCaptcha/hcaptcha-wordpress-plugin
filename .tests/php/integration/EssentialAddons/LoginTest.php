@@ -105,7 +105,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$settings  = [ 'some Elementor widget settings' ];
 		$bootstrap = Mockery::mock( Bootstrap::class );
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login_data' );
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login_data' );
 
 		$subject = new Login();
 
@@ -159,7 +159,7 @@ class LoginTest extends HCaptchaWPTestCase {
 			$_SERVER['HTTP_REFERER'] = $referer;
 		}
 
-		$this->prepare_hcaptcha_verify_post(
+		$this->prepare_verify_post(
 			'hcaptcha_login_nonce',
 			'hcaptcha_login_data',
 			false

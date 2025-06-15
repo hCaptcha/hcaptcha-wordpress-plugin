@@ -6,7 +6,6 @@
  */
 
 use HCaptcha\Helpers\API;
-use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Determines the user's actual IP address and attempts to partially
@@ -200,25 +199,17 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 	/**
 	 * Get verify message HTML.
 	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_post_html().
+	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name ): ?string {
-		$message = API::verify_post( $nonce_field_name, $nonce_action_name );
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_post_html()' );
 
-		if ( null === $message ) {
-			return null;
-		}
-
-		$header = _n( 'hCaptcha error:', 'hCaptcha errors:', substr_count( $message, ';' ) + 1, 'hcaptcha-for-forms-and-more' );
-
-		if ( false === strpos( $message, $header ) ) {
-			$message = $header . ' ' . $message;
-		}
-
-		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
+		return API::verify_post_html( $nonce_field_name, $nonce_action_name );
 	}
 }
 
@@ -234,6 +225,8 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_post()' );
+
 		return API::verify_post( $nonce_field_name, $nonce_action_name );
 	}
 }

@@ -213,43 +213,4 @@ class RequestTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, hcap_check_site_config() );
 	}
-
-	/**
-	 * Test hcaptcha_get_verify_message_html().
-	 */
-	public function test_hcaptcha_get_verify_message_html(): void {
-		$nonce_field_name  = 'some nonce field';
-		$nonce_action_name = 'some nonce action';
-
-		$this->prepare_hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name );
-
-		self::assertNull( hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) );
-	}
-
-	/**
-	 * Test hcaptcha_get_verify_message_html() not validated.
-	 */
-	public function test_hcaptcha_get_verify_message_html_not_validated(): void {
-		$nonce_field_name  = 'some nonce field';
-		$nonce_action_name = 'some nonce action';
-
-		$this->prepare_hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name, false );
-
-		self::assertSame(
-			'<strong>hCaptcha error:</strong> The hCaptcha is invalid.',
-			hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name )
-		);
-	}
-
-	/**
-	 * Test hcaptcha_get_verify_message_html() not validated with empty POST.
-	 */
-	public function test_hcaptcha_get_verify_message_html_not_validated_empty_POST(): void {
-		$nonce_field_name  = 'some nonce field';
-		$nonce_action_name = 'some nonce action';
-
-		$this->prepare_hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name, null );
-
-		self::assertSame( '<strong>hCaptcha error:</strong> Please complete the hCaptcha.', hcaptcha_get_verify_message_html( $nonce_field_name, $nonce_action_name ) );
-	}
 }

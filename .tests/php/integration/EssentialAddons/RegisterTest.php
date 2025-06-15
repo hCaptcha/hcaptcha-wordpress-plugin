@@ -88,7 +88,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_verify_post(
+		$this->prepare_verify_post(
 			'hcaptcha_essential_addons_register',
 			'hcaptcha_essential_addons_register_nonce'
 		);
@@ -125,7 +125,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 			$_SERVER['HTTP_REFERER'] = $referer;
 		}
 
-		$this->prepare_hcaptcha_verify_post(
+		$this->prepare_verify_post(
 			'hcaptcha_essential_addons_register',
 			'hcaptcha_essential_addons_register_nonce',
 			false

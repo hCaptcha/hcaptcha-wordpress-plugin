@@ -68,7 +68,7 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 	public function test_verify(): void {
 		$valid_captcha = 'some captcha';
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
+		$this->prepare_verify_post( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
 
 		$subject = new CreateList();
 
@@ -95,7 +95,7 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 			],
 		];
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action', false );
+		$this->prepare_verify_post( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action', false );
 
 		$subject = new CreateList();
 

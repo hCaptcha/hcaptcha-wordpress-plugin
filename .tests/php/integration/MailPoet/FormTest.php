@@ -114,7 +114,7 @@ HTML;
 		$_POST['endpoint'] = 'subscribers';
 		$_POST['method']   = 'subscribe';
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
 
 		$subject->verify( $api );
 	}
@@ -143,7 +143,7 @@ HTML;
 		$_POST['endpoint'] = 'subscribers';
 		$_POST['method']   = 'subscribe';
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet', false );
+		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet', false );
 
 		$subject->verify( $api );
 	}

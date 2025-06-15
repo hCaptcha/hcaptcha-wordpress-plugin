@@ -143,7 +143,7 @@ class CommentTest extends HCaptchaWPTestCase {
 			'comment_author_IP' => '7.7.7.7',
 		];
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
 
 		$subject = new Comment();
 
@@ -205,7 +205,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		];
 		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
+		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
 
 		$subject = new Comment();
 

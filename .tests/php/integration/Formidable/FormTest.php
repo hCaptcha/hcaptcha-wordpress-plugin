@@ -208,7 +208,7 @@ HTML;
 		$error_message = 'The hCaptcha is invalid.';
 		$expected      = array_merge( $errors, [ 'field1' => $error_message ] );
 
-		$this->prepare_hcaptcha_verify_post(
+		$this->prepare_verify_post(
 			'hcaptcha_formidable_forms_nonce',
 			'hcaptcha_formidable_forms',
 			false
@@ -229,7 +229,7 @@ HTML;
 		$values        = [ 'some values' ];
 		$validate_args = [ 'some args' ];
 
-		$this->prepare_hcaptcha_verify_post(
+		$this->prepare_verify_post(
 			'hcaptcha_formidable_forms_nonce',
 			'hcaptcha_formidable_forms'
 		);

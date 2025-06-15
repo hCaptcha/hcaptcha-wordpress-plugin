@@ -41,6 +41,29 @@ class API {
 
 		return self::verify_request( $hcaptcha_response );
 	}
+	/**
+	 * Verify POST and return an error message as HTML.
+	 *
+	 * @param string $nonce_field_name  Nonce field name.
+	 * @param string $nonce_action_name Nonce action name.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	public static function verify_post_html( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
+		$message = self::verify_post( $nonce_field_name, $nonce_action_name );
+
+		if ( null === $message ) {
+			return null;
+		}
+
+		$header = _n( 'hCaptcha error:', 'hCaptcha errors:', substr_count( $message, ';' ) + 1, 'hcaptcha-for-forms-and-more' );
+
+		if ( false === strpos( $message, $header ) ) {
+			$message = $header . ' ' . $message;
+		}
+
+		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
+	}
 
 	/**
 	 * Verify POST.

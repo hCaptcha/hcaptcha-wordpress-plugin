@@ -131,7 +131,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$user = new WP_User( 1 );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
 		$subject = Mockery::mock( Login::class )->makePartial();
 
@@ -154,7 +154,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 		$expected      = new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
 		$subject = Mockery::mock( Login::class )->makePartial();
 

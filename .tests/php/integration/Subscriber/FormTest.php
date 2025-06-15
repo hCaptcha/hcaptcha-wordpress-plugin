@@ -42,7 +42,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
+		$this->prepare_verify_post( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
 
 		$subject = new Form();
 
@@ -54,7 +54,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified(): void {
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form', false );
+		$this->prepare_verify_post( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form', false );
 
 		$subject = new Form();
 

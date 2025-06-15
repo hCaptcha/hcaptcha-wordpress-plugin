@@ -77,7 +77,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$validation_error = new WP_Error();
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
 		$subject = new Login();
 
@@ -126,7 +126,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$expected         = new WP_Error();
 		$expected->add( 'hcaptcha_error', 'The hCaptcha is invalid.' );
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
 		$subject = new Login();
 

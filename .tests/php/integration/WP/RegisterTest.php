@@ -135,7 +135,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		$errors = new WP_Error( 'some error' );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
+		$this->prepare_verify_post_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
 
 		$subject = new Register();
 
@@ -152,7 +152,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		$errors->add( 'invalid_captcha', '<strong>Error</strong>: The Captcha is invalid.' );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration', false );
+		$this->prepare_verify_post_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration', false );
 
 		$subject = new Register();
 

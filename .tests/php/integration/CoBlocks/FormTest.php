@@ -213,7 +213,7 @@ HTML;
 				],
 		];
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks' );
+		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks' );
 
 		$subject = new Form();
 
@@ -259,7 +259,7 @@ HTML;
 				],
 		];
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks', false );
+		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks', false );
 
 		$subject = new Form();
 

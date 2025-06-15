@@ -158,7 +158,7 @@ HTML;
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager' );
+		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager' );
 
 		$subject = new DownloadManager();
 
@@ -180,7 +180,7 @@ HTML;
 			],
 		];
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager', false );
+		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager', false );
 
 		$subject = new DownloadManager();
 

@@ -18,9 +18,51 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  */
 class APITest extends HCaptchaWPTestCase {
 	/**
+	 * Test verify_post_html().
+	 */
+	public function test_verify_post_html(): void {
+		$nonce_field_name  = 'some nonce field';
+		$nonce_action_name = 'some nonce action';
+
+		$this->prepare_verify_post_html( $nonce_field_name, $nonce_action_name );
+
+		self::assertNull( API::verify_post_html( $nonce_field_name, $nonce_action_name ) );
+	}
+
+	/**
+	 * Test verify_post_html() not verified.
+	 */
+	public function test_verify_post_html_not_verified(): void {
+		$nonce_field_name  = 'some nonce field';
+		$nonce_action_name = 'some nonce action';
+
+		$this->prepare_verify_post_html( $nonce_field_name, $nonce_action_name, false );
+
+		self::assertSame(
+			'<strong>hCaptcha error:</strong> The hCaptcha is invalid.',
+			API::verify_post_html( $nonce_field_name, $nonce_action_name )
+		);
+	}
+
+	/**
+	 * Test verify_post_html() not verified with empty POST.
+	 */
+	public function test_verify_post_html_not_verified_empty_POST(): void {
+		$nonce_field_name  = 'some nonce field';
+		$nonce_action_name = 'some nonce action';
+
+		$this->prepare_verify_post_html( $nonce_field_name, $nonce_action_name, null );
+
+		self::assertSame(
+			'<strong>hCaptcha error:</strong> Please complete the hCaptcha.',
+			API::verify_post_html( $nonce_field_name, $nonce_action_name )
+		);
+	}
+
+	/**
 	 * Test verify_post() with no argument.
 	 */
-	public function test_hcaptcha_verify_post_default_success(): void {
+	public function test_verify_post_default_success(): void {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
@@ -31,26 +73,26 @@ class APITest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_post() with no argument.
 	 */
-	public function test_hcaptcha_verify_post_default_empty(): void {
+	public function test_verify_post_default_empty(): void {
 		self::assertSame( 'Please complete the hCaptcha.', API::verify_post() );
 	}
 
 	/**
 	 * Test verify_post().
 	 */
-	public function test_hcaptcha_verify_post(): void {
+	public function test_verify_post(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
 		// Not logged in.
-		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
+		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name );
 
 		self::assertNull( API::verify_post( $nonce_field_name, $nonce_action_name ) );
 
 		// Logged in.
 		wp_set_current_user( 1 );
 
-		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
+		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name );
 
 		self::assertNull( API::verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
@@ -58,11 +100,11 @@ class APITest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_post() not verified.
 	 */
-	public function test_hcaptcha_verify_post_not_verified(): void {
+	public function test_verify_post_not_verified(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
-		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, false );
+		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name, false );
 
 		self::assertSame( 'The hCaptcha is invalid.', API::verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
@@ -70,11 +112,11 @@ class APITest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_post() not verified with empty POST.
 	 */
-	public function test_hcaptcha_verify_post_not_verified_empty_POST(): void {
+	public function test_verify_post_not_verified_empty_POST(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 
-		$this->prepare_hcaptcha_verify_post( $nonce_field_name, $nonce_action_name, null );
+		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name, null );
 
 		self::assertSame( 'Please complete the hCaptcha.', API::verify_post( $nonce_field_name, $nonce_action_name ) );
 	}
@@ -82,7 +124,7 @@ class APITest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify_post() not verified with a logged-in user.
 	 */
-	public function test_hcaptcha_verify_post_not_verified_logged_in(): void {
+	public function test_verify_post_not_verified_logged_in(): void {
 		$nonce_field_name  = 'some nonce field';
 		$nonce_action_name = 'some nonce action';
 

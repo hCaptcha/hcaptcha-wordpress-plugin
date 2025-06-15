@@ -1,6 +1,6 @@
 <?php
 /**
- * Comment class file.
+ * The 'Comment' class file.
  *
  * @package hcaptcha-wp
  */
@@ -15,7 +15,7 @@ use HCaptcha\Helpers\HCaptcha;
 class Comment {
 
 	/**
-	 * Comment form shortcode tag.
+	 * The Comment form shortcode tag.
 	 */
 	public const TAG = 'et_pb_comments';
 
@@ -57,7 +57,7 @@ class Comment {
 	 */
 	public function add_captcha( $output, string $module_slug ) {
 		if ( ! is_string( $output ) || false !== strpos( $output, 'h-captcha' ) || et_core_is_fb_enabled() ) {
-			// Do not add captcha in frontend builder, or if it already added by \HCaptcha\WP\Comment class.
+			// Do not add captcha in the frontend builder, or if it already added by \HCaptcha\WP\Comment class.
 			return $output;
 		}
 

@@ -73,7 +73,7 @@ class ProtectTest extends HCaptchaWPTestCase {
 		$errors   = new WP_Error();
 		$expected = $verified ? $errors : new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 
-		$this->prepare_hcaptcha_verify_post( $nonce, $action, $verified );
+		$this->prepare_verify_post( $nonce, $action, $verified );
 
 		$subject = new Protect();
 

@@ -88,7 +88,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$awsm_response = [];
 
-		$this->prepare_hcaptcha_verify_post( Form::NONCE, Form::ACTION );
+		$this->prepare_verify_post( Form::NONCE, Form::ACTION );
 
 		$subject = new Form();
 
@@ -107,7 +107,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$awsm_response = [];
 
-		$this->prepare_hcaptcha_verify_post( Form::NONCE, Form::ACTION, false );
+		$this->prepare_verify_post( Form::NONCE, Form::ACTION, false );
 
 		$subject = new Form();
 

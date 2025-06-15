@@ -144,7 +144,7 @@ HTML;
 		$nonce         = 'hcaptcha_otter_nonce';
 		$hcap_response = 'some response';
 
-		$this->prepare_hcaptcha_verify_post( $nonce, $action, $verified );
+		$this->prepare_verify_post( $nonce, $action, $verified );
 
 		$form_data_request->shouldReceive( 'get_root_data' )->with( 'h-captcha-response' )->andReturn( $hcap_response );
 
