@@ -165,7 +165,7 @@ class Checkout {
 		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
 		$hcaptcha_response        = $request->get_param( $hcaptcha_response_name );
 
-		$error_message = API::request_verify( $hcaptcha_response );
+		$error_message = API::verify_request( $hcaptcha_response );
 
 		if ( null === $error_message ) {
 			return $response;

@@ -105,7 +105,7 @@ class Form extends Base {
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
-		$error = API::request_verify( $hcaptcha_response );
+		$error = API::verify_request( $hcaptcha_response );
 
 		if ( null === $error ) {
 			return;

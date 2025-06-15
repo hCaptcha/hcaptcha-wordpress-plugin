@@ -582,7 +582,7 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'update_option' )->with( 'license', $license )->once();
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\API::request_verify', $result2 );
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_request', $result2 );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );

@@ -91,7 +91,7 @@ class Field extends NF_Abstracts_Field implements Base {
 	public function validate( $field, $data ): ?string {
 		$value = $field['value'] ?? '';
 
-		return API::request_verify( $value );
+		return API::verify_request( $value );
 	}
 
 	/**

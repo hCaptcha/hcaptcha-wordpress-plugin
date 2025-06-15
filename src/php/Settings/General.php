@@ -991,7 +991,7 @@ class General extends PluginSettingsBase {
 			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$result = API::request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null !== $result ) {
 			$this->send_check_config_error( $result, true );

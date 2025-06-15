@@ -43,7 +43,9 @@ class API {
 	}
 
 	/**
-	 * Verify hCaptcha response.
+	 * Verify hCaptcha request.
+	 *
+	 * @deprecated 4.15.0 Use API::verify_request().
 	 *
 	 * @param string|null $hcaptcha_response hCaptcha response.
 	 *
@@ -51,6 +53,20 @@ class API {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public static function request_verify( $hcaptcha_response = null ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', 'API::verify_request()' );
+
+		return self::verify_request( $hcaptcha_response );
+	}
+
+	/**
+	 * Verify hCaptcha request.
+	 *
+	 * @param string|null $hcaptcha_response hCaptcha response.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 * @noinspection PhpMissingParamTypeInspection
+	 */
+	public static function verify_request( $hcaptcha_response = null ): ?string {
 		if ( null === $hcaptcha_response ) {
 			// phpcs:disable WordPress.Security.NonceVerification.Missing
 			$hcaptcha_response = isset( $_POST['h-captcha-response'] )

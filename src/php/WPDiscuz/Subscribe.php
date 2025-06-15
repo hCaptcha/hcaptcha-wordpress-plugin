@@ -60,7 +60,7 @@ class Subscribe extends Base {
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
-		$result = API::request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing

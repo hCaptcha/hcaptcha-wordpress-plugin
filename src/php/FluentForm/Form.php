@@ -187,7 +187,7 @@ class Form extends LoginBase {
 
 		$hcaptcha_response           = $data['h-captcha-response'] ?? '';
 		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
-		$error_message               = API::request_verify( $hcaptcha_response );
+		$error_message               = API::verify_request( $hcaptcha_response );
 
 		if ( null !== $error_message ) {
 			$errors['h-captcha-response'] = [ $error_message ];

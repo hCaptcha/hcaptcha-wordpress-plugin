@@ -182,7 +182,7 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	/**
 	 * Verify hCaptcha response.
 	 *
-	 * @deprecated 4.15.0 Use API::request_verify().
+	 * @deprecated 4.15.0 Use API::verify_request().
 	 *
 	 * @param string|null $hcaptcha_response hCaptcha response.
 	 *
@@ -190,9 +190,9 @@ if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	function hcaptcha_request_verify( $hcaptcha_response = null ): ?string {
-		_deprecated_function( __FUNCTION__, '4.15.0', 'API::request_verify()' );
+		_deprecated_function( __FUNCTION__, '4.15.0', 'API::verify_request()' );
 
-		return API::request_verify( $hcaptcha_response );
+		return API::verify_request( $hcaptcha_response );
 	}
 }
 
@@ -225,7 +225,7 @@ if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
 			return apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
 		}
 
-		return API::request_verify();
+		return API::verify_request();
 	}
 }
 

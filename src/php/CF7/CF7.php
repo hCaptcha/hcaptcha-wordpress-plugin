@@ -227,7 +227,7 @@ class CF7 extends Base {
 
 		$data           = $submission->get_posted_data();
 		$response       = $data['h-captcha-response'] ?? '';
-		$captcha_result = API::request_verify( $response );
+		$captcha_result = API::verify_request( $response );
 
 		if ( null !== $captcha_result ) {
 			return $this->get_invalidated_result( $result, $captcha_result );

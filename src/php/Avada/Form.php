@@ -128,7 +128,7 @@ class Form {
 		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 
-		$result = API::request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null === $result ) {
 			return $demo_mode;

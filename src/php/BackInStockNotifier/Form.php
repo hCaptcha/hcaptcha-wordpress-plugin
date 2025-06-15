@@ -115,7 +115,7 @@ class Form {
 
 		$hcaptcha_response = $post_data['h-captcha-response'] ?? '';
 
-		$result = API::request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null === $result ) {
 			return;

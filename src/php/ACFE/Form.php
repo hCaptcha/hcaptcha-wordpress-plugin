@@ -176,7 +176,7 @@ class Form {
 			return $valid;
 		}
 
-		return null === API::request_verify( $value );
+		return null === API::verify_request( $value );
 	}
 
 	/**

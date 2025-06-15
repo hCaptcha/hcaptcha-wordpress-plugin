@@ -102,7 +102,7 @@ abstract class Base {
 			}
 		}
 
-		$error_message = API::request_verify( $hcaptcha_response );
+		$error_message = API::verify_request( $hcaptcha_response );
 
 		if ( null !== $error_message ) {
 			wp_send_json_error(

@@ -154,7 +154,7 @@ abstract class Base {
 			'';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = API::request_verify( $hcaptcha_response );
+		$error_message = API::verify_request( $hcaptcha_response );
 
 		if ( null === $error_message ) {
 			return;
