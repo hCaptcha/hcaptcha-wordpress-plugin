@@ -40,6 +40,9 @@ class AntiSpam {
 			'native'   => [
 				'wp_status'               => [ 'comment' ],
 				'cf7_status'              => [ 'form', 'embed' ],
+				'divi_status'             => [ 'comment' ],
+				'divi_builder_status'     => [ 'comment' ],
+				'extra_status'            => [ 'comment' ],
 				'elementor_pro_status'    => [ 'form' ],
 				'fluent_status'           => [ 'form' ],
 				'formidable_forms_status' => [ 'form' ],
@@ -50,7 +53,6 @@ class AntiSpam {
 				'ninja_status'            => [ 'form' ],
 				'woocommerce_status'      => [ 'checkout' ],
 				'wpforms_status'          => [ 'form' ],
-
 			],
 			'hcaptcha' => [
 				'divi_status'         => [ 'contact' ],
