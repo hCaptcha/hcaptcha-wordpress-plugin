@@ -65,8 +65,7 @@ class API {
 			$result      = $errors['bad-nonce'];
 			$error_codes = [ 'bad-nonce' ];
 
-			/** This filter is documented in Helpers\API::filtered_result. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
+			return self::filtered_result( $result, $error_codes );
 		}
 
 		return self::verify_request();

@@ -178,40 +178,6 @@ function hcap_check_site_config(): array {
 	return $body;
 }
 
-if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
-	/**
-	 * Verify hCaptcha response.
-	 *
-	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_request().
-	 *
-	 * @param string|null $hcaptcha_response hCaptcha response.
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 * @noinspection PhpMissingParamTypeInspection
-	 */
-	function hcaptcha_request_verify( $hcaptcha_response = null ): ?string {
-		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_request()' );
-
-		return API::verify_request( $hcaptcha_response );
-	}
-}
-
-if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
-	/**
-	 * Verify POST.
-	 *
-	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_post().
-	 *
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 */
-	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
-		return API::verify_post( $nonce_field_name, $nonce_action_name );
-	}
-}
-
 if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
 	 * Verify POST.
@@ -253,5 +219,39 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 		}
 
 		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
+	}
+}
+
+if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
+	/**
+	 * Verify POST.
+	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_post().
+	 *
+	 * @param string $nonce_field_name  Nonce field name.
+	 * @param string $nonce_action_name Nonce action name.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
+		return API::verify_post( $nonce_field_name, $nonce_action_name );
+	}
+}
+
+if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
+	/**
+	 * Verify hCaptcha response.
+	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_request().
+	 *
+	 * @param string|null $hcaptcha_response hCaptcha response.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 * @noinspection PhpMissingParamTypeInspection
+	 */
+	function hcaptcha_request_verify( $hcaptcha_response = null ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_request()' );
+
+		return API::verify_request( $hcaptcha_response );
 	}
 }
