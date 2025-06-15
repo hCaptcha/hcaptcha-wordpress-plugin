@@ -134,10 +134,7 @@ class Checkout {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): void {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );

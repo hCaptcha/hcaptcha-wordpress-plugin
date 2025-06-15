@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -11,6 +11,7 @@
 namespace HCaptcha\CoBlocks;
 
 use CoBlocks_Form;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 use WP_Error;
@@ -91,7 +92,8 @@ class Form {
 
 	/**
 	 * Render block context filter.
-	 * CoBlocks has no filters in form processing. So, we need to do some tricks.
+	 * CoBlocks have no filters in form processing.
+	 * So, we need to do some tricks.
 	 *
 	 * @since WP 5.1.0
 	 *
@@ -169,10 +171,7 @@ class Form {
 
 		remove_filter( 'pre_http_request', [ $this, 'verify' ] );
 
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return [

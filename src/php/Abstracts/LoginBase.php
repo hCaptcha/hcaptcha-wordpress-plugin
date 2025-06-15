@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Abstracts;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
@@ -115,8 +116,7 @@ abstract class LoginBase {
 	/**
 	 * Verify a login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous callback failed authentication.
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error
@@ -144,7 +144,7 @@ abstract class LoginBase {
 	}
 
 	/**
-	 * Hides login error when the relevant setting on.
+	 * Hides the login error when the relevant setting on.
 	 *
 	 * @param null|WP_User|WP_Error $user     WP_User if the user is authenticated.
 	 *                                        WP_Error or null otherwise.
@@ -311,8 +311,7 @@ abstract class LoginBase {
 	/**
 	 * Verify a login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous callback failed authentication.
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error
@@ -323,10 +322,7 @@ abstract class LoginBase {
 			return $user;
 		}
 
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $user;

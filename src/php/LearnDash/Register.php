@@ -1,12 +1,13 @@
 <?php
 /**
- * Register class file.
+ * 'Register' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\LearnDash;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -80,10 +81,7 @@ class Register {
 			return $errors;
 		}
 
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		return HCaptcha::add_error_message( $errors, $error_message );
 	}

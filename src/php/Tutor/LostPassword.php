@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tutor;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -75,10 +76,7 @@ class LostPassword {
 	 * @return WP_Error|null|mixed
 	 */
 	public function verify( $errors ) {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( ! $error_message ) {
 			return $errors;

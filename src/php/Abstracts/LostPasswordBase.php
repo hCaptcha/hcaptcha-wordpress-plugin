@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Abstracts;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -56,7 +57,6 @@ abstract class LostPasswordBase {
 	 * @param WP_Error|mixed $errors Error.
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function verify( $errors ): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -73,10 +73,7 @@ abstract class LostPasswordBase {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = hcaptcha_verify_post(
-			static::NONCE,
-			static::ACTION
-		);
+		$error_message = API::verify_post( static::NONCE, static::ACTION );
 
 		HCaptcha::add_error_message( $errors, $error_message );
 	}

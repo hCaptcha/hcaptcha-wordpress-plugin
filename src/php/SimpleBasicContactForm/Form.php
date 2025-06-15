@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\SimpleBasicContactForm;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -87,7 +88,7 @@ class Form {
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
@@ -108,7 +109,7 @@ class Form {
 			return $output;
 		}
 
-		$this->error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $this->error_message ) {
 			// Cause nonce error in the plugin.

@@ -409,7 +409,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return rtrim( $value, '/\\' );
 			}
 		);
-		WP_Mock::userFunction( 'hcaptcha_verify_post' )->with( $name, $action )->once()->andReturn( null );
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_post' );
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $url;
@@ -465,7 +465,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return rtrim( $value, '/\\' );
 			}
 		);
-		WP_Mock::userFunction( 'hcaptcha_verify_post' )->with( $name, $action )->once()->andReturn( $result );
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_post', $result );
 		WP_Mock::userFunction( 'wp_die' )
 			->with(
 				$result,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Otter;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
@@ -129,10 +130,7 @@ class Form {
 		$_POST['h-captcha-response'] = $form_data->get_root_data( 'h-captcha-response' ) ?: '';
 		$_POST[ self::NONCE ]        = $form_data->get_root_data( self::NONCE ) ?: '';
 
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$form_data->set_error( Form_Data_Response::ERROR_MISSING_CAPTCHA );

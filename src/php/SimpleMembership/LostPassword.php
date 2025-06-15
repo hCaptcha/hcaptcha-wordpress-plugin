@@ -7,6 +7,7 @@
 
 namespace HCaptcha\SimpleMembership;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -47,7 +48,7 @@ class LostPassword {
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
@@ -82,10 +83,7 @@ class LostPassword {
 	 * @return string
 	 */
 	public function verify(): string {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		return (string) $error_message;
 	}

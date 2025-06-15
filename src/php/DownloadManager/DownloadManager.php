@@ -7,6 +7,7 @@
 
 namespace HCaptcha\DownloadManager;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -94,7 +95,7 @@ class DownloadManager {
 	 */
 	public function verify( $package ): void {
 
-		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$result = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {
 			return;

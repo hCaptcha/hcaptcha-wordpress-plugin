@@ -1,12 +1,13 @@
 <?php
 /**
- * Register class file.
+ * The 'Register' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Affiliates;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -55,7 +56,7 @@ class Register {
 	}
 
 	/**
-	 * Before dashboard section.
+	 * Before the dashboard section.
 	 *
 	 * @param string $current_section_key Current section key.
 	 *
@@ -114,10 +115,7 @@ class Register {
 			return $error;
 		}
 
-		$this->error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		return null !== $this->error_message;
 	}

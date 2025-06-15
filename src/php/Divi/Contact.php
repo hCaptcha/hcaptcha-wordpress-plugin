@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Divi;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -157,7 +158,7 @@ class Contact {
 				$_POST[ $current_form_field ] = wp_slash( $fields_data_json );
 			}
 
-			$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+			$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 			if ( null !== $error_message ) {
 				// Simulate captcha error.

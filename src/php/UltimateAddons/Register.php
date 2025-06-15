@@ -13,6 +13,7 @@
 namespace HCaptcha\UltimateAddons;
 
 use Elementor\Element_Base;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use UltimateElementor\Modules\RegistrationForm\Widgets\RegistrationForm as UltimateElementorRegistration;
 
@@ -84,10 +85,7 @@ class Register extends Base {
 	 * Verify a register form.
 	 */
 	public function verify(): void {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return;

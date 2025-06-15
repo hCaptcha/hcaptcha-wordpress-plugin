@@ -7,6 +7,7 @@
 
 namespace HCaptcha\EssentialAddons;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\Pages;
 
 /**
@@ -34,10 +35,7 @@ trait Base {
 	 * @return void
 	 */
 	private function base_verify(): void {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return;

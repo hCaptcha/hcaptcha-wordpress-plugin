@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -12,6 +12,7 @@ namespace HCaptcha\GravityForms;
 
 use GFFormsModel;
 use GP_Field_Nested_Form;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -140,7 +141,7 @@ class Form extends Base {
 	/**
 	 * Filter hCaptcha from args on form.
 	 *
-	 * @param array|mixed $args The form arguments.
+	 * @param array|mixed $args Form arguments.
 	 *
 	 * @return array
 	 */
@@ -181,10 +182,7 @@ class Form extends Base {
 			return $validation_result;
 		}
 
-		$this->error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $this->error_message ) {
 			return $validation_result;
@@ -317,7 +315,7 @@ class Form extends Base {
 	 * @return bool
 	 */
 	private function should_verify(): bool {
-		// Nonce is checked in the hcaptcha_verify_post().
+		// Nonce is checked in the \HCaptcha\Helpers\API::verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['gform_submit'] ) ) {
 			// We are not in the Gravity Form submit process.
@@ -371,7 +369,7 @@ class Form extends Base {
 		$target_page_name = "gform_target_page_number_$form_id";
 		$source_page_name = "gform_source_page_number_$form_id";
 
-		// Nonce is checked in the hcaptcha_verify_post().
+		// Nonce is checked in the \HCaptcha\Helpers\API::verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 
 		$target_page = isset( $_POST[ $target_page_name ] ) ? (int) $_POST[ $target_page_name ] : 0;

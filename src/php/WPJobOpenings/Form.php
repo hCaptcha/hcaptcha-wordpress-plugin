@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\WPJobOpenings;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -89,7 +90,7 @@ class Form {
 	public function verify(): void {
 		global $awsm_response;
 
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$awsm_response['error'][] = esc_html( $error_message );

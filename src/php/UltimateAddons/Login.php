@@ -13,6 +13,7 @@
 namespace HCaptcha\UltimateAddons;
 
 use Elementor\Element_Base;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use UltimateElementor\Modules\LoginForm\Widgets\LoginForm as UltimateElementorLogin;
 use WP_Error;
@@ -81,8 +82,7 @@ class Login extends Base {
 	/**
 	 * Verify a login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous callback failed authentication.
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error|void
@@ -97,10 +97,7 @@ class Login extends Base {
 			return $user;
 		}
 
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $user;

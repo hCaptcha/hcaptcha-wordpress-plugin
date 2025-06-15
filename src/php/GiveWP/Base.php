@@ -114,10 +114,7 @@ abstract class Base {
 			return;
 		}
 
-		$error_message = hcaptcha_verify_post(
-			static::NAME,
-			static::ACTION
-		);
+		$error_message = API::verify_post( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {
 			give_set_error( 'invalid_hcaptcha', $error_message );

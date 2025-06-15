@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Spectra;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Block;
@@ -127,7 +128,7 @@ class Form {
 		$_POST['h-captcha-response'] = $form_data['h-captcha-response'] ?? '';
 		$_POST[ self::NONCE ]        = $form_data[ self::NONCE ] ?? '';
 
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		unset( $_POST['h-captcha-response'], $_POST[ self::NONCE ] );
 

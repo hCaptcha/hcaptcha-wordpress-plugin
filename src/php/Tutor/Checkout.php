@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tutor;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use Tutor\Ecommerce\CheckoutController;
 
@@ -108,10 +109,7 @@ class Checkout {
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$current_user_id = get_current_user_id();

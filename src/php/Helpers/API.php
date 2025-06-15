@@ -43,20 +43,33 @@ class API {
 	}
 
 	/**
-	 * Verify hCaptcha request.
+	 * Verify POST.
 	 *
-	 * @deprecated 4.15.0 Use API::verify_request().
-	 *
-	 * @param string|null $hcaptcha_response hCaptcha response.
+	 * @param string $nonce_field_name  Nonce field name.
+	 * @param string $nonce_action_name Nonce action name.
 	 *
 	 * @return null|string Null on success, error message on failure.
-	 * @noinspection PhpMissingParamTypeInspection
-	 * @noinspection PhpUnused
 	 */
-	public static function request_verify( $hcaptcha_response = null ): ?string {
-		_deprecated_function( __FUNCTION__, '4.15.0', 'API::verify_request()' );
+	public static function verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
+		$hcaptcha_nonce = isset( $_POST[ $nonce_field_name ] ) ?
+			filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			'';
 
-		return self::verify_request( $hcaptcha_response );
+		// Verify nonce for logged-in users only.
+		if (
+			is_user_logged_in() &&
+			! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) &&
+			HCaptcha::is_protection_enabled()
+		) {
+			$errors      = hcap_get_error_messages();
+			$result      = $errors['bad-nonce'];
+			$error_codes = [ 'bad-nonce' ];
+
+			/** This filter is documented in Helpers\API::filtered_result. */
+			return apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
+		}
+
+		return self::verify_request();
 	}
 
 	/**
@@ -130,6 +143,23 @@ class API {
 		}
 
 		return self::process_request( $params );
+	}
+
+	/**
+	 * Verify hCaptcha request.
+	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_request().
+	 *
+	 * @param string|null $hcaptcha_response hCaptcha response.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpUnused
+	 */
+	public static function request_verify( $hcaptcha_response = null ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_request()' );
+
+		return self::verify_request( $hcaptcha_response );
 	}
 
 	/**

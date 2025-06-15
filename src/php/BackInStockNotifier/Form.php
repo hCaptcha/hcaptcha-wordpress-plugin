@@ -1,6 +1,6 @@
 <?php
 /**
- * The 'Form' class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
