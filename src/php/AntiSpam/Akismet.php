@@ -92,9 +92,24 @@ class Akismet {
 			'comment_date_gmt'          => gmdate( 'Y-m-d H:i:s' ),
 			'comment_post_modified_gmt' => $entry['form_date_gmt'],
 			'blog_lang'                 => get_locale(),
-			'blog_charset'              => get_bloginfo( 'charset' ),
+			'blog_charset'              => get_bloginfo( 'blog_charset' ),
 			'user_role'                 => (string) AkismetPlugin::get_user_roles( $user_id ),
 		];
+
+		foreach ( $_SERVER as $key => $value ) {
+			if ( ! is_string( $value ) ) {
+				continue;
+			}
+
+			if ( 0 === strpos( $key, 'HTTP_COOKIE' ) ) {
+				continue;
+			}
+
+			// Send any potentially useful $_SERVER vars but avoid sending junk we don't need.
+			if ( preg_match( '/^(HTTP_|REMOTE_ADDR|REQUEST_URI|DOCUMENT_URI)/', $key ) ) {
+				$args[ (string) $key ] = $value;
+			}
+		}
 
 		return array_filter(
 			$args,

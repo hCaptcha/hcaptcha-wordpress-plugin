@@ -145,7 +145,7 @@ class Quform {
 	private function replace_hcaptcha( string $output, int $form_id ): string {
 		return (string) preg_replace(
 			'#<div class="quform-hcaptcha"(.+?)>(.*?)</div>#',
-			'<div class="quform-hcaptcha"$1>' . $this->get_hcaptcha( $form_id ) . '</div>',
+			'<div class="quform-hcaptcha" $1>' . $this->get_hcaptcha( $form_id ) . '</div>',
 			$output
 		);
 	}

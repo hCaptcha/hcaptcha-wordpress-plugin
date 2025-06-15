@@ -116,7 +116,7 @@ class Contact {
 	}
 
 	/**
-	 * Verify hcaptcha.
+	 * Verify hCaptcha.
 	 * We use a shortcode tag filter to make verification.
 	 *
 	 * @param string|false $value Short-circuit return value. Either false or the value to replace the shortcode with.
