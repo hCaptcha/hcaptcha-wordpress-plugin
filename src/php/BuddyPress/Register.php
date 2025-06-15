@@ -78,7 +78,7 @@ class Register {
 	public function verify(): bool {
 		global $bp;
 
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			self::NAME,
 			self::ACTION
 		);

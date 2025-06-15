@@ -82,7 +82,7 @@ abstract class Base {
 	public function verify( $verified ) {
 		global $asgarosforum;
 
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			static::NAME,
 			static::ACTION
 		);

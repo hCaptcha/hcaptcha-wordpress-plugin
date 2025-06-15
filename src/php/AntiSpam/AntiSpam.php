@@ -118,6 +118,8 @@ class AntiSpam {
 	/**
 	 * Filters the result of request verification.
 	 *
+	 * @since 4.15.0 The `$error_codes` parameter was deprecated.
+	 *
 	 * @param string|null|mixed $result     The result of verification. The null means success.
 	 * @param string[]          $deprecated Error code(s). Empty array on success.
 	 * @param object            $error_info Error info. Contains error codes or empty array on success.

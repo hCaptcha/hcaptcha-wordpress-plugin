@@ -229,12 +229,16 @@ if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
 	 * Verify POST.
 	 *
+	 * @deprecated 4.15.0 Use hcaptcha_verify_post().
+	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', 'hcaptcha_verify_post()' );
+
 		return hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
 	}
 }

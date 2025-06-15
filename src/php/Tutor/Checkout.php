@@ -5,6 +5,11 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tutor;
 
 use HCaptcha\Helpers\HCaptcha;
@@ -103,7 +108,7 @@ class Checkout {
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
 		);

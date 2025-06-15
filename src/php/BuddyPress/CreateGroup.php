@@ -78,7 +78,7 @@ class CreateGroup {
 			return false;
 		}
 
-		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );
+		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			bp_core_add_message( $error_message, 'error' );

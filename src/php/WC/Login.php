@@ -45,7 +45,7 @@ class Login extends LoginBase {
 			return $validation_error;
 		}
 
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
 		);

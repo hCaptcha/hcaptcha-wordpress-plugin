@@ -223,7 +223,7 @@ abstract class Base extends LoginBase {
 			return;
 		}
 
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			$this->hcaptcha_nonce,
 			$this->hcaptcha_action
 		);

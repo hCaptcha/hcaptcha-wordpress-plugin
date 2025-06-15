@@ -103,7 +103,7 @@ abstract class Base {
 	 * @return bool|WP_Error|mixed
 	 */
 	public function verify( $is_spam = false ) {
-		$this->error_message = hcaptcha_get_verify_message(
+		$this->error_message = hcaptcha_verify_post(
 			static::NAME,
 			static::ACTION
 		);

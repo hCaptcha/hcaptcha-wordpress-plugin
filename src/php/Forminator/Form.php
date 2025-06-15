@@ -139,7 +139,7 @@ class Form {
 			}
 		}
 
-		$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
+		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			return [

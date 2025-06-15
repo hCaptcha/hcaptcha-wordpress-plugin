@@ -70,7 +70,7 @@ class Form {
 	 * @noinspection NullCoalescingOperatorCanBeUsedInspection
 	 */
 	public function verify( $check_result ) {
-		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );
+		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			return $error_message;

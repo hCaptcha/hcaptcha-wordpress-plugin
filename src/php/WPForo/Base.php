@@ -71,7 +71,7 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $data ) {
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			static::NAME,
 			static::ACTION
 		);

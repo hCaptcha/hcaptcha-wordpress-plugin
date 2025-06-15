@@ -67,7 +67,7 @@ abstract class Base {
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			static::NAME,
 			static::ACTION
 		);

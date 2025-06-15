@@ -66,7 +66,7 @@ class Register {
 	 * @return array|mixed
 	 */
 	public function verify( $errors ) {
-		$error_message = hcaptcha_get_verify_message(
+		$error_message = hcaptcha_verify_post(
 			self::NONCE,
 			self::ACTION
 		);
