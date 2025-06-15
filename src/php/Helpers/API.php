@@ -39,7 +39,7 @@ class API {
 
 		$hcaptcha_response = $entry['h-captcha-response'] ?? null;
 
-		return self::request_verify( $hcaptcha_response );
+		return self::verify_request( $hcaptcha_response );
 	}
 
 	/**
