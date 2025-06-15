@@ -53,7 +53,10 @@ class AntiSpam {
 
 			],
 			'hcaptcha' => [
-				'quform_status' => [ 'form' ],
+				'divi_status'         => [ 'contact' ],
+				'divi_builder_status' => [ 'contact' ],
+				'extra_status'        => [ 'contact' ],
+				'quform_status'       => [ 'form' ],
 			],
 		],
 	];

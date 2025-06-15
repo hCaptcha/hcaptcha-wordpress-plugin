@@ -733,7 +733,10 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.15.0 =
-* Added anti-spam check of submitted forms for Quform plugin.
+* Added the anti-spam check for the Quform form.
+* Added the anti-spam check for the Divi Contact form.
+* Added the anti-spam check for the Extra Contact form.
+* Added the anti-spam check for the Divi Builder Contact form.
 * Fixed PHP 8.1 deprecated error.
 * Fixed the layout of the General page on mobile.
 

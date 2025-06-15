@@ -357,7 +357,7 @@ class Quform {
 	}
 
 	/**
-	 * Retrieves the entries of the given form.
+	 * Retrieves the entry from the given form.
 	 *
 	 * @param Quform_Form $form The form object from which to retrieve entries.
 	 *
