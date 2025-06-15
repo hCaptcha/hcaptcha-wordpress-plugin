@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * The 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Avada;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -127,7 +128,7 @@ class Form {
 		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 
-		$result = hcaptcha_request_verify( $hcaptcha_response );
+		$result = API::request_verify( $hcaptcha_response );
 
 		if ( null === $result ) {
 			return $demo_mode;

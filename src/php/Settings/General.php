@@ -9,6 +9,7 @@ namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Notifications;
 use HCaptcha\AntiSpam\AntiSpam;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Main;
@@ -990,7 +991,7 @@ class General extends PluginSettingsBase {
 			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$result = hcaptcha_request_verify( $hcaptcha_response );
+		$result = API::request_verify( $hcaptcha_response );
 
 		if ( null !== $result ) {
 			$this->send_check_config_error( $result, true );

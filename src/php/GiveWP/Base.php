@@ -13,6 +13,7 @@
 namespace HCaptcha\GiveWP;
 
 use Give\DonationForms\ValueObjects\DonationFormErrorTypes;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -153,7 +154,7 @@ abstract class Base {
 			'';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = hcaptcha_request_verify( $hcaptcha_response );
+		$error_message = API::request_verify( $hcaptcha_response );
 
 		if ( null === $error_message ) {
 			return;

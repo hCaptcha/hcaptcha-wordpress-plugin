@@ -577,12 +577,12 @@ class GeneralTest extends HCaptchaTestCase {
 
 		if ( $hcaptcha_response ) {
 			$_POST['h-captcha-response'] = $hcaptcha_response;
-		} else {
-			$hcaptcha_response = '';
 		}
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'update_option' )->with( 'license', $license )->once();
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::request_verify', $result2 );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
@@ -590,7 +590,6 @@ class GeneralTest extends HCaptchaTestCase {
 			->andReturn( true );
 		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
 		WP_Mock::userFunction( 'hcap_check_site_config' )->with()->once()->andReturn( $result1 );
-		WP_Mock::userFunction( 'hcaptcha_request_verify' )->with( $hcaptcha_response )->once()->andReturn( $result2 );
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Site configuration error: ' . $error1 )->once();
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( $result2 )->once();
 		WP_Mock::userFunction( 'wp_send_json_success' )->with( 'Site config is valid. Save your changes.' )->once();
