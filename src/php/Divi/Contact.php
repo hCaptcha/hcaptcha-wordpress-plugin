@@ -221,20 +221,35 @@ class Contact {
 	 * @return array
 	 */
 	private function get_entry( array $fields_data_array ): array {
+		global $post;
+
 		$entry = [
-			'data' => [],
+			'nonce_name'    => self::NONCE,
+			'nonce_action'  => self::ACTION,
+			'form_date_gmt' => $post->post_modified ?? null,
+			'data'          => [],
 		];
 
 		foreach ( $fields_data_array as $field ) {
-			$type = $field['field_type'] ?? '';
+			$field = wp_parse_args(
+				$field,
+				[
+					'field_type'  => '',
+					'field_id'    => '',
+					'original_id' => '',
+					'field_label' => '',
+				]
+			);
+
+			$type = $field['field_type'];
 
 			if ( ! in_array( $type, [ 'input', 'email', 'text' ], true ) ) {
 				continue;
 			}
 
-			$id          = $field['field_id'] ?? '';
-			$original_id = $field['original_id'] ?? '';
-			$label       = $field['field_label'] ?? '';
+			$id          = $field['field_id'];
+			$original_id = $field['original_id'];
+			$label       = $field['field_label'];
 			$label       = $label ?: $type;
 			$value       = Request::filter_input( INPUT_POST, $id );
 
@@ -248,9 +263,6 @@ class Contact {
 				$entry['email'] = $value;
 			}
 		}
-
-		$entry['nonce-name']   = self::NONCE;
-		$entry['nonce-action'] = self::ACTION;
 
 		return $entry;
 	}

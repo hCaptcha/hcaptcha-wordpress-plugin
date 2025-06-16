@@ -92,7 +92,7 @@ class Akismet {
 			'comment_date_gmt'          => gmdate( 'Y-m-d H:i:s' ),
 			'comment_post_modified_gmt' => $entry['form_date_gmt'],
 			'blog_lang'                 => get_locale(),
-			'blog_charset'              => get_bloginfo( 'blog_charset' ),
+			'blog_charset'              => get_bloginfo( 'charset' ),
 			'user_role'                 => (string) AkismetPlugin::get_user_roles( $user_id ),
 		];
 

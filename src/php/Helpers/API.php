@@ -38,13 +38,13 @@ class API {
 		$entry = wp_parse_args(
 			$entry,
 			[
-				'nonce-name'         => null,
-				'nonce-action'       => null,
+				'nonce_name'         => null,
+				'nonce_action'       => null,
 				'h-captcha-response' => null,
 			]
 		);
 
-		$result = self::verify_nonce( $entry['nonce-name'], $entry['nonce-action'] );
+		$result = self::verify_nonce( $entry['nonce_name'], $entry['nonce_action'] );
 
 		if ( null !== $result ) {
 			return $result;
