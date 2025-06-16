@@ -226,7 +226,7 @@ class Contact {
 		$entry = [
 			'nonce_name'    => self::NONCE,
 			'nonce_action'  => self::ACTION,
-			'form_date_gmt' => $post->post_modified ?? null,
+			'form_date_gmt' => $post->post_modified_gmt ?? null,
 			'data'          => [],
 		];
 

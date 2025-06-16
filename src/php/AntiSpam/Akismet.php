@@ -47,6 +47,14 @@ class Akismet {
 	public function verify( array $entry ): ?string {
 		$args = $this->get_request_args( $entry );
 
+		/**
+		 * Filter the arguments used to generate the request body for the API call.
+		 *
+		 * @param array  $args     An array of request arguments.
+		 * @param string $endpoint The API endpoint being requested.
+		 */
+		$args = (array) apply_filters( 'akismet_request_args', $args, 'comment-check' );
+
 		// Check data with Akismet.
 		$response = AkismetPlugin::http_post( AkismetPlugin::build_query( $args ), 'comment-check' );
 		$status   = $response[1] ?? '';
