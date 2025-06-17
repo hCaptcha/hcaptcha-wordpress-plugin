@@ -13,6 +13,7 @@ namespace HCaptcha\CoBlocks;
 use CoBlocks_Form;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Block;
 use WP_Error;
 
@@ -171,7 +172,9 @@ class Form {
 
 		remove_filter( 'pre_http_request', [ $this, 'verify' ] );
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// Nonce is checked in API::verify().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$error_message = API::verify( $this->get_entry( $_POST ) );
 
 		if ( null === $error_message ) {
 			return [
@@ -209,5 +212,62 @@ class Form {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		global $post;
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+		$name  = [];
+
+		foreach ( $form_data as $key => $field ) {
+			if ( ! preg_match( '/field-(.+)/', $key, $m ) ) {
+				continue;
+			}
+
+			$type = $m[1];
+
+			if ( ! in_array( $type, [ 'name', 'email', 'message' ], true ) ) {
+				continue;
+			}
+
+			$field = wp_parse_args(
+				$field,
+				[
+					'label' => '',
+					'value' => '',
+				]
+			);
+
+			$label = $field['label'];
+			$value = $field['value'];
+
+			if ( 'name' === $type ) {
+				$name[] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $label ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
 	}
 }

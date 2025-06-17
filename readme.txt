@@ -737,7 +737,9 @@ Instructions for popular native integrations are below:
 * Added the anti-spam check for the Divi Contact form.
 * Added the anti-spam check for the Extra Contact form.
 * Added the anti-spam check for the Divi Builder Contact form.
+* Added the anti-spam check for the CoBlocks form.
 * Added the anti-spam check for the Quform form.
+* Added the anti-spam check for the Spectra form.
 * Fixed PHP 8.1 deprecated error.
 * Fixed the layout of the General page on mobile.
 
