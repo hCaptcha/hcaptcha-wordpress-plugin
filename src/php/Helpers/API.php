@@ -41,6 +41,8 @@ class API {
 				'nonce_name'         => null,
 				'nonce_action'       => null,
 				'h-captcha-response' => null,
+				'form_date_gmt'      => null,
+				'data'               => [],
 			]
 		);
 
