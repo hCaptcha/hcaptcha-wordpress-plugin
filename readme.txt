@@ -739,6 +739,7 @@ Instructions for popular native integrations are below:
 * Added the anti-spam check for the Divi Builder Contact form.
 * Added the anti-spam check for the CoBlocks form.
 * Added the anti-spam check for the Kadence form.
+* Added the anti-spam check for the Kadence Advanced form.
 * Added the anti-spam check for the Quform form.
 * Added the anti-spam check for the Spectra form.
 * Fixed PHP 8.1 deprecated error.

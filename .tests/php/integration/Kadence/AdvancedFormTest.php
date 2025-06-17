@@ -23,12 +23,12 @@ use ReflectionException;
 class AdvancedFormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['current_screen'], $_POST['h-captcha-response'] );
+		unset( $GLOBALS['current_screen'], $_POST );
 
 		parent::tearDown();
 	}
@@ -211,11 +211,6 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 		ob_start();
 		$subject->process_ajax();
 		$json = ob_get_clean();
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		self::assertFalse( isset( $_POST['h-captcha-response'] ) );
-		self::assertFalse( isset( $_POST['g-recaptcha-response'] ) );
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		self::assertSame( wp_json_encode( $expected_json ), $json );
 		self::assertSame( $expected, $die_arr );
