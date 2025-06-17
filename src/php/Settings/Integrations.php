@@ -1712,6 +1712,8 @@ class Integrations extends PluginSettingsBase {
 			$all_protected_forms = AntiSpam::get_protected_forms();
 		}
 
+		$settings = hcaptcha()->settings();
+
 		foreach ( $all_protected_forms as $type => $protected_forms ) {
 			if ( ! isset( $protected_forms[ $status ] ) ) {
 				continue;
@@ -1722,8 +1724,13 @@ class Integrations extends PluginSettingsBase {
 				: __( 'The form is protected by the native antispam service.', 'hcaptcha-for-forms-and-more' );
 
 			foreach ( $protected_forms[ $status ] as $form ) {
-				$form_field['data'][ $form ]    = [ 'antispam' => $type ];
-				$form_field['helpers'][ $form ] = $helper;
+				if (
+					'native' === $type ||
+					( 'hcaptcha' === $type && $settings->is( $status, $form ) )
+				) {
+					$form_field['data'][ $form ]    = [ 'antispam' => $type ];
+					$form_field['helpers'][ $form ] = $helper;
+				}
 			}
 		}
 

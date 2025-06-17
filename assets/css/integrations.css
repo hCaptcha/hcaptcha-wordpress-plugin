@@ -165,7 +165,7 @@
 	width: 18px;
 	height: 20px;
 	border-radius: unset;
-	transform: translate(0px, 5px);
+	transform: translate(0, 0);
 }
 
 #hcaptcha-options label[data-antispam="native"] + .helper::before {
