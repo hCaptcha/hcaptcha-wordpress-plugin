@@ -230,8 +230,7 @@ class Form {
 	 */
 	private function get_entry( array $form_data ): array {
 		$post_id = (int) Request::filter_input( INPUT_POST, 'post_id' );
-
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$entry = [
 			'nonce_name'         => self::NONCE,
@@ -241,7 +240,7 @@ class Form {
 			'data'               => [],
 		];
 
-		$blocks = parse_blocks( $post->post_content );
+		$blocks = parse_blocks( $post->post_content ?? '' );
 		$fields = $this->get_fields( $blocks );
 		$name   = [];
 

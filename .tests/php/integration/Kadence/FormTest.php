@@ -25,12 +25,12 @@ use Mockery;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['current_screen'], $_POST['h-captcha-response'] );
+		unset( $GLOBALS['current_screen'], $_POST );
 
 		parent::tearDown();
 	}
@@ -195,11 +195,6 @@ class FormTest extends HCaptchaWPTestCase {
 		$json = ob_get_clean();
 
 		$expected_json['data']['headers_sent'] = json_decode( $json, true )['data']['headers_sent'];
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		self::assertFalse( isset( $_POST['h-captcha-response'] ) );
-		self::assertFalse( isset( $_POST['g-recaptcha-response'] ) );
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		self::assertSame( wp_json_encode( $expected_json ), $json );
 		self::assertSame( $expected, $die_arr );

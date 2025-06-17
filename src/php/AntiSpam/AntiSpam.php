@@ -60,6 +60,7 @@ class AntiSpam {
 				'divi_builder_status' => [ 'contact' ],
 				'extra_status'        => [ 'contact' ],
 				'quform_status'       => [ 'form' ],
+				'kadence_status'      => [ 'form' ],
 				'spectra_status'      => [ 'form' ],
 			],
 		],
