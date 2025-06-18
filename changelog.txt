@@ -1,4 +1,5 @@
 = 4.15.0 =
+* Added: Optional Akismet integration for content-based spam filtering (runs after hCaptcha).
 * Added the anti-spam check for the Avada form.
 * Added the anti-spam check for the Divi Contact form.
 * Added the anti-spam check for the Extra Contact form.
