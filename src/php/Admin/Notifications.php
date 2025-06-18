@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Admin;
 
 use ElementorPro\Plugin;
@@ -297,6 +300,23 @@ class Notifications extends NotificationsBase {
 					'lightbox' => true,
 				],
 			],
+			// Added in 4.15.0.
+			'antispam'            => [
+				'title'   => __( 'Enhanced Form Protection with Anti-Spam Services', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: settings link. */
+					__( 'Protect your forms with anti-spam services! %1$s to enable Akismet integration (requires Akismet plugin) and filter out spam. More services coming soon!', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$urls['antispam'],
+						__( 'Visit settings', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $urls['antispam'],
+					'text' => __( 'Enable Anti-Spam', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
@@ -329,6 +349,10 @@ class Notifications extends NotificationsBase {
 
 		if ( $settings->is_on( 'protect_content' ) ) {
 			unset( $notifications['protect-content'] );
+		}
+
+		if ( $settings->is_on( 'antispam' ) ) {
+			unset( $notifications['antispam'] );
 		}
 
 		// Added in 4.4.0.
@@ -431,7 +455,7 @@ class Notifications extends NotificationsBase {
 					$button = ob_get_clean();
 				}
 
-				// We need 'inline' class below to prevent moving the 'notice' div after h2 by common.js script in WP Core.
+				// We need the 'inline' class below to prevent moving the 'notice' div after h2 by common.js script in WP Core.
 				?>
 				<div
 						class="hcaptcha-notification notice notice-info is-dismissible inline"
