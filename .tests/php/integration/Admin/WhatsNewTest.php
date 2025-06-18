@@ -802,7 +802,6 @@ HTML;
 	 * Test reset_notifications().
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function est_reset_notifications(): void {
 		$die_arr  = [];
@@ -826,7 +825,7 @@ HTML;
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		// Test the case when bad admin referer.
+		// Test the case when a bad admin referer.
 		ob_start();
 		$subject->reset_notifications();
 		$json = ob_get_clean();
@@ -887,8 +886,8 @@ HTML;
 		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'some-key' ] );
 		remove_all_filters( 'delete_user_metadata' );
 
-		// Test successful case.
-		$this->set_protected_property( $subject, 'shuffle', false );
+		// Test a successful case.
+		add_filter( 'hcap_shuffle_notifications', '__return_false' );
 
 		ob_start();
 		$subject->show();
@@ -931,7 +930,7 @@ HTML;
 
 	/**
 	 * Trim spaces before and after tags.
-	 * Cut pages span as it may contain different number of pages.
+	 * Cut pages span as it may contain different numbers of pages.
 	 *
 	 * @param string $html Html.
 	 *

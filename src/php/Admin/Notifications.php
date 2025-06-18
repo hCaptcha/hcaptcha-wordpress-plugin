@@ -56,7 +56,7 @@ class Notifications extends NotificationsBase {
 	 *
 	 * @var bool
 	 */
-	protected $shuffle = true;
+	private $shuffle = true;
 
 	/**
 	 * Init class.
@@ -305,7 +305,7 @@ class Notifications extends NotificationsBase {
 				'title'   => __( 'Enhanced Form Protection with Anti-Spam Services', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: settings link. */
-					__( 'Protect your forms with anti-spam services! %1$s to enable Akismet integration (requires Akismet plugin) and filter out spam. More services coming soon!', 'hcaptcha-for-forms-and-more' ),
+					__( 'Protect your forms with anti-spam services! %1$s to enable Akismet integration (requires Akismet plugin) and filter out spam. More services are coming soon!', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$urls['antispam'],
@@ -423,7 +423,14 @@ class Notifications extends NotificationsBase {
 			</div>
 			<?php
 
-			if ( $this->shuffle ) {
+			/**
+			 * Filter whether to shuffle notifications.
+			 *
+			 * @param bool $shuffle Whether to shuffle notifications.
+			 */
+			$shuffle = (bool) apply_filters( 'hcap_shuffle_notifications', $this->shuffle );
+
+			if ( $shuffle ) {
 				$notifications = $this->shuffle_assoc( $notifications );
 				$notifications = $this->make_key_first( $notifications, 'register' );
 			}

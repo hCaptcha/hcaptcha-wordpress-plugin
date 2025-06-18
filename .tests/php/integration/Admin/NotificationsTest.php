@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Integration\Admin;
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
-use ReflectionException;
 
 /**
  * Test NotificationsTest class.
@@ -25,7 +24,7 @@ use ReflectionException;
 class NotificationsTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -189,7 +188,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'antispam'            => [
 				'title'   => 'Enhanced Form Protection with Anti-Spam Services',
-				'message' => 'Protect your forms with anti-spam services! <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#antispam_1" target="_blank">Visit settings</a> to enable Akismet integration (requires Akismet plugin) and filter out spam. More services coming soon!',
+				'message' => 'Protect your forms with anti-spam services! <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#antispam_1" target="_blank">Visit settings</a> to enable Akismet integration (requires Akismet plugin) and filter out spam. More services are coming soon!',
 				'button'  => [
 					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#antispam_1',
 					'text' => 'Enable Anti-Spam',
@@ -275,7 +274,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test show().
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function test_show(): void {
@@ -498,7 +496,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test show() without notifications.
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_show_without_notifications(): void {
 		global $current_user;
@@ -781,7 +778,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test reset_notifications().
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_reset_notifications(): void {
 		$die_arr  = [];
@@ -805,7 +801,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		// Test the case when bad admin referer.
+		// Test the case when a bad admin referer.
 		ob_start();
 		$subject->reset_notifications();
 		$json = ob_get_clean();
@@ -866,8 +862,8 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'some-key' ] );
 		remove_all_filters( 'delete_user_metadata' );
 
-		// Test successful case.
-		$this->set_protected_property( $subject, 'shuffle', false );
+		// Test a successful case.
+		add_filter( 'hcap_shuffle_notifications', '__return_false' );
 
 		ob_start();
 		$subject->show();
@@ -910,7 +906,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Trim spaces before and after tags.
-	 * Cut pages span as it may contain different number of pages.
+	 * Cut pages span as it may contain different numbers of pages.
 	 *
 	 * @param string $html Html.
 	 *
