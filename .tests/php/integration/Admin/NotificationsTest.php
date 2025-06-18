@@ -72,11 +72,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @param bool $empty_keys Whether keys are empty.
 	 * @param bool $pro        Whether it is a Pro account.
 	 * @param bool $force      Whether a force option is on.
+	 * @param bool $antispam   Whether an antispam option is on.
 	 *
 	 * @dataProvider dp_test_get_notifications
 	 * @return void
 	 */
-	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force ): void {
+	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force, bool $antispam = false ): void {
 		global $current_user;
 
 		$user_id    = 1;
@@ -237,6 +238,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
 		}
 
+		if ( $antispam ) {
+			unset( $expected['antispam'] );
+
+			update_option( 'hcaptcha_settings', [ 'antispam' => [ 'on' ] ] );
+		}
+
 		unset( $current_user );
 		wp_set_current_user( $user_id );
 		hcaptcha()->init_hooks();
@@ -257,9 +264,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_get_notifications(): array {
 		return [
-			'empty_keys' => [ true, false, false ],
-			'pro'        => [ false, true, false ],
-			'force'      => [ false, false, true ],
+			'empty_keys' => [ true, false, false, false ],
+			'pro'        => [ false, true, false, false ],
+			'force'      => [ false, false, true, false ],
+			'antispam'   => [ false, false, false, true ],
 		];
 	}
 
