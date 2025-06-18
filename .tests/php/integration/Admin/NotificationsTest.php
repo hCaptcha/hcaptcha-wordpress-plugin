@@ -172,7 +172,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Friction-free “No CAPTCHA” & 99.9% passive modes',
 				'message' => '<a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.',
 				'button'  => [
-					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/passive-mode-example.gif',
+					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif',
 					'text'     => 'See an example',
 					'lightbox' => true,
 				],
@@ -181,7 +181,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Protect Site Content',
 				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#protect_content_1" target="_blank">Protect</a> selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.',
 				'button'  => [
-					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/protect-content-example.gif',
+					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif',
 					'text'     => 'See an example',
 					'lightbox' => true,
 				],
