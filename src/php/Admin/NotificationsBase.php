@@ -52,6 +52,7 @@ abstract class NotificationsBase {
 			$urls['protect_content']      = $urls['general'] . '#protect_content_1';
 			$urls['protect_content_demo'] = HCAPTCHA_URL . '/assets/images/demo/protect-content.gif';
 			$urls['antispam']             = $urls['general'] . '#antispam_1';
+			$urls['antispam_demo']        = HCAPTCHA_URL . '/assets/images/demo/antispam.gif';
 		}
 
 		return $urls;
