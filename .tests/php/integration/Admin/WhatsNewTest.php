@@ -450,7 +450,7 @@ HTML;
 						<h2>
 				Antispam			</h2>
 			<div class="hcaptcha-whats-new-message">
-				<p>Advanced Antispam Protection automatically identifies and blocks spam form submissions using trusted providers like Akismet (with support for more in the future).<br>Note: To use this feature, please ensure the Akismet plugin is active and configured with a valid API key.</p>			</div>
+				<p>Advanced Antispam Protection adds a second layer of defense using services like Akismet. After hCaptcha blocks bots, Akismet scans form content to catch human spam.<br>This two-step process improves accuracy and reduces false positives.<br>Requires the Akismet plugin with a valid API key.</p>			</div>
 			<div class="hcaptcha-whats-new-button">
 				<a
 						href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#antispam_1" class="button button-primary"

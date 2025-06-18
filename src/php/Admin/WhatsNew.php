@@ -344,9 +344,10 @@ class WhatsNew extends NotificationsBase {
 			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
 			'title'   => __( 'Antispam', 'hcaptcha-for-forms-and-more' ),
 			'message' => sprintf(
-				'<p>%1$s<br>%2$s</p>',
-				__( 'Advanced Antispam Protection automatically identifies and blocks spam form submissions using trusted providers like Akismet (with support for more in the future).', 'hcaptcha-for-forms-and-more' ),
-				__( 'Note: To use this feature, please ensure the Akismet plugin is active and configured with a valid API key.', 'hcaptcha-for-forms-and-more' )
+				'<p>%1$s<br>%2$s<br>%3$s</p>',
+				__( 'Advanced Antispam Protection adds a second layer of defense using services like Akismet. After hCaptcha blocks bots, Akismet scans form content to catch human spam.', 'hcaptcha-for-forms-and-more' ),
+				__( 'This two-step process improves accuracy and reduces false positives.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Requires the Akismet plugin with a valid API key.', 'hcaptcha-for-forms-and-more' )
 			),
 			'button'  => [
 				'url'  => $urls['antispam'],
