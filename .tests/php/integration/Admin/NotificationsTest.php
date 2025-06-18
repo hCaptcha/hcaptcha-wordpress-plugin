@@ -186,6 +186,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'lightbox' => true,
 				],
 			],
+			'antispam'            => [
+				'title'   => 'Enhanced Form Protection with Anti-Spam Services',
+				'message' => 'Protect your forms with anti-spam services! <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#antispam_1" target="_blank">Visit settings</a> to enable Akismet integration (requires Akismet plugin) and filter out spam. More services coming soon!',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#antispam_1',
+					'text' => 'Enable Anti-Spam',
+				],
+			],
 		];
 
 		if ( ! $empty_keys ) {
