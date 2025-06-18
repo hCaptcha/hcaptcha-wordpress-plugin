@@ -520,6 +520,60 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test show() without shuffle.
+	 *
+	 * @return void
+	 */
+	public function test_show_without_shuffle(): void {
+		global $current_user;
+
+		unset( $current_user );
+
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$site_key   = '';
+		$secret_key = '';
+
+		add_filter(
+			'hcap_site_key',
+			static function () use ( $site_key ) {
+				return $site_key;
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function () use ( $secret_key ) {
+				return $secret_key;
+			}
+		);
+
+		// Set shuffle to false.
+		add_filter( 'hcap_shuffle_notifications', '__return_false' );
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Get notifications in their original order.
+		$notifications = $subject->get_notifications();
+
+		// Expected order is the reverse of the original order.
+		$expected_order = array_reverse( array_keys( $notifications ) );
+
+		ob_start();
+		$subject->show();
+		$output = ob_get_clean();
+
+		// Extract notification IDs from the output in the order they appear.
+		preg_match_all( '/data-id="([^"]+)"/', $output, $matches );
+		$actual_order = $matches[1];
+
+		// Verify that the notifications are displayed in reverse order.
+		self::assertSame( $expected_order, $actual_order );
+	}
+
+	/**
 	 * Test admin_enqueue_scripts().
 	 *
 	 * @return void

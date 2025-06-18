@@ -52,13 +52,6 @@ class Notifications extends NotificationsBase {
 	protected $notifications = [];
 
 	/**
-	 * Shuffle notifications.
-	 *
-	 * @var bool
-	 */
-	private $shuffle = true;
-
-	/**
 	 * Init class.
 	 *
 	 * @return void
@@ -428,11 +421,13 @@ class Notifications extends NotificationsBase {
 			 *
 			 * @param bool $shuffle Whether to shuffle notifications.
 			 */
-			$shuffle = (bool) apply_filters( 'hcap_shuffle_notifications', $this->shuffle );
+			$shuffle = (bool) apply_filters( 'hcap_shuffle_notifications', true );
 
 			if ( $shuffle ) {
 				$notifications = $this->shuffle_assoc( $notifications );
 				$notifications = $this->make_key_first( $notifications, 'register' );
+			} else {
+				$notifications = array_reverse( $notifications );
 			}
 
 			foreach ( $notifications as $id => $notification ) {
