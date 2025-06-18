@@ -265,7 +265,7 @@ class Notifications extends NotificationsBase {
 					)
 				),
 				'button'  => [
-					'url'      => $urls['passive_mode_example'],
+					'url'      => $urls['passive_mode_demo'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],
@@ -288,7 +288,7 @@ class Notifications extends NotificationsBase {
 					)
 				),
 				'button'  => [
-					'url'      => $urls['protect_content_example'],
+					'url'      => $urls['protect_content_demo'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],

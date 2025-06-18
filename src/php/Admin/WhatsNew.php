@@ -291,7 +291,7 @@ class WhatsNew extends NotificationsBase {
 				'text' => __( 'Protect Content', 'hcaptcha-for-forms-and-more' ),
 			],
 			'image'   => [
-				'url'      => $urls['protect_content_example'],
+				'url'      => $urls['protect_content_demo'],
 				'lightbox' => true,
 			],
 		];
@@ -320,7 +320,7 @@ class WhatsNew extends NotificationsBase {
 				'text' => __( 'Upgrade to Pro', 'hcaptcha-for-forms-and-more' ),
 			],
 			'image'   => [
-				'url'      => $urls['passive_mode_example'],
+				'url'      => $urls['passive_mode_demo'],
 				'lightbox' => true,
 			],
 		];
