@@ -744,6 +744,7 @@ Instructions for popular native integrations are below:
 * Added the anti-spam check for the Spectra form.
 * Fixed PHP 8.1 deprecated error.
 * Fixed the layout of the General page on mobile.
+* Fixed the layout of Notifications on the General page.
 
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
