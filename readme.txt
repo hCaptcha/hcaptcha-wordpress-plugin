@@ -37,6 +37,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
 * **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
+* **Layered Antispam Protection:** Combine hCaptcha with services like Akismet for content-based spam filtering after CAPTCHA is passed.
 
 **Customization**
 
@@ -733,6 +734,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.15.0 =
+* Added: Optional Akismet integration for content-based spam filtering (runs after hCaptcha).
 * Added the anti-spam check for the Avada form.
 * Added the anti-spam check for the Divi Contact form.
 * Added the anti-spam check for the Extra Contact form.
