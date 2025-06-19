@@ -135,8 +135,7 @@ class Form {
 			return;
 		}
 
-		// Spectra cannot process error messages from the backend.
-		wp_send_json_error( 400 );
+		wp_send_json_error( $error_message );
 	}
 
 	/**

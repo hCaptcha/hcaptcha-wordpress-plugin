@@ -206,7 +206,7 @@ HTML;
 		);
 		$response          = [
 			'success' => false,
-			'data'    => 400,
+			'data'    => 'Please complete the hCaptcha.',
 		];
 		$expected          = [
 			'',
