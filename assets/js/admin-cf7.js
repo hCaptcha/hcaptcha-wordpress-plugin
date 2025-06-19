@@ -7,7 +7,7 @@
  */
 
 /**
- * The Integrations Admin Page script.
+ * The CF7 Admin Page script.
  *
  * @param {jQuery} $ The jQuery instance.
  */
