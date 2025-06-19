@@ -607,8 +607,8 @@ HTML;
 			<span>
 				<span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">3</span>
 			</span>
-			<a class="prev disabled"></a>
-			<a class="next "></a>
+			<a class="prev button disabled"></a>
+			<a class="next button "></a>
 		</div>
 	</div>
 </div>
@@ -624,7 +624,7 @@ HTML;
 
 		$header  = '<div id="hcaptcha-notifications"> <div id="hcaptcha-notifications-header"> Notifications </div>';
 		$body    = '<div .+</div>';
-		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev disabled"></a> <a class="next "></a> </div> </div> </div>';
+		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev button disabled"></a> <a class="next button "></a> </div> </div> </div>';
 		$pattern = "#($header) ($body) ($footer)#";
 
 		preg_match( $pattern, $expected, $expected_matches );

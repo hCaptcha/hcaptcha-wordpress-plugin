@@ -481,8 +481,8 @@ class Notifications extends NotificationsBase {
 						<?php esc_html_e( 'of', 'hcaptcha-for-forms-and-more' ); ?>
 						<span id="hcaptcha-navigation-pages"><?php echo count( $notifications ); ?></span>
 					</span>
-					<a class="prev disabled"></a>
-					<a class="next <?php echo esc_attr( $next_disabled ); ?>"></a>
+					<a class="prev button disabled"></a>
+					<a class="next button <?php echo esc_attr( $next_disabled ); ?>"></a>
 				</div>
 			</div>
 		</div>

@@ -749,6 +749,7 @@ Instructions for popular native integrations are below:
 * Fixed PHP 8.1 deprecated error.
 * Fixed the layout of the General page on mobile.
 * Fixed the layout of Notifications on the General page.
+* Fixed admin page colors respecting Admin Color Scheme.
 
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
