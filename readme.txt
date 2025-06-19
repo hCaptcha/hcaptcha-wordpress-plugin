@@ -37,7 +37,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page loading impact.
 * **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
-* **Layered Antispam Protection:** Combine hCaptcha with services like Akismet for content-based spam filtering after CAPTCHA is passed.
+* **Layered Antispam Protection:** Combine hCaptcha with services like Akismet for content-based spam filtering after hCaptcha is passed.
 
 **Customization**
 
