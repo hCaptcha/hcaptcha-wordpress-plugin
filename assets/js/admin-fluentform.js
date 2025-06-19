@@ -4,7 +4,13 @@
  * @param HCaptchaFluentFormObject.noticeLabel
  * @param HCaptchaFluentFormObject.noticeDescription
  */
-jQuery( document ).ready( function( $ ) {
+
+/**
+ * The FluentForm Admin Page script.
+ *
+ * @param {jQuery} $ The jQuery instance.
+ */
+const fluentForm = function( $ ) {
 	if ( ! window.location.href.includes( 'page=fluent_forms_settings' ) ) {
 		return;
 	}
@@ -45,4 +51,8 @@ jQuery( document ).ready( function( $ ) {
 
 	updateHCaptchaWrap();
 	observer.observe( settingsApp, config );
-} );
+};
+
+window.hCaptchaFluentForm = fluentForm;
+
+jQuery( document ).ready( fluentForm );
