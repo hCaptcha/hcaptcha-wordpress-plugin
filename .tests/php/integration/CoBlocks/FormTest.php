@@ -294,6 +294,11 @@ HTML;
 		);
 
 		$expected = <<<CSS
+	.wp-block-coblocks-form .h-captcha-error {
+		color: red;
+		margin-bottom: 25px;
+	}
+
 	.wp-block-coblocks-form .h-captcha {
 		margin-bottom: 25px;
 	}

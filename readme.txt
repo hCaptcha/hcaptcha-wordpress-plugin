@@ -744,6 +744,7 @@ Instructions for popular native integrations are below:
 * Added the anti-spam check for the Kadence Advanced form.
 * Added the anti-spam check for the Quform form.
 * Added the anti-spam check for the Spectra form.
+* Added hCaptcha error messages to CoBlocks.
 * Added hCaptcha error messages to Spectra.
 * Fixed PHP 8.1 deprecated error.
 * Fixed the layout of the General page on mobile.

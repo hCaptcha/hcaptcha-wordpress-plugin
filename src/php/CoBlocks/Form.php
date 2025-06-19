@@ -13,7 +13,6 @@ namespace HCaptcha\CoBlocks;
 use CoBlocks_Form;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Request;
 use WP_Block;
 use WP_Error;
 
@@ -36,6 +35,13 @@ class Form {
 	 * Fake hCaptcha token.
 	 */
 	private const HCAPTCHA_DUMMY_TOKEN = 'hcaptcha_token';
+
+	/**
+	 * Error message.
+	 *
+	 * @var string|null
+	 */
+	private $error_message;
 
 	/**
 	 * Form constructor.
@@ -78,8 +84,8 @@ class Form {
 			$form_id = $m[1];
 		}
 
-		$search = '<button type="submit" ';
-		$args   = [
+		$search  = '<button type="submit" ';
+		$args    = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
 			'id'     => [
@@ -87,8 +93,10 @@ class Form {
 				'form_id' => $form_id,
 			],
 		];
+		$message = $this->error_message ? '<div class="h-captcha-error">' . $this->error_message . '</div>' . "\n" : '';
+		$replace = $message . HCaptcha::form( $args ) . "\n";
 
-		return str_replace( $search, HCaptcha::form( $args ) . "\n" . $search, $block_content );
+		return str_replace( $search, $replace . $search, $block_content );
 	}
 
 	/**
@@ -174,9 +182,9 @@ class Form {
 
 		// Nonce is checked in API::verify().
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$error_message = API::verify( $this->get_entry( $_POST ) );
+		$this->error_message = API::verify( $this->get_entry( $_POST ) );
 
-		if ( null === $error_message ) {
+		if ( null === $this->error_message ) {
 			return [
 				'body'     => '{"success":true}',
 				'response' =>
@@ -206,6 +214,11 @@ class Form {
 	public function print_inline_styles(): void {
 		/* language=CSS */
 		$css = '
+	.wp-block-coblocks-form .h-captcha-error {
+		color: red;
+		margin-bottom: 25px;
+	}
+
 	.wp-block-coblocks-form .h-captcha {
 		margin-bottom: 25px;
 	}
