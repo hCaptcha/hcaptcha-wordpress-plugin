@@ -1,9 +1,9 @@
 /* global jQuery, hCaptcha, HCaptchaCF7Object */
 
 /**
+ * @param HCaptchaCF7Object.ajaxUrl
  * @param HCaptchaCF7Object.updateFormAction
  * @param HCaptchaCF7Object.updateFormNonce
- * @param HCaptchaCF7Object.ajaxUrl
  */
 
 /**
