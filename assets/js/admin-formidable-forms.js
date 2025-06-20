@@ -4,7 +4,13 @@
  * @param HCaptchaFluentFormObject.noticeLabel
  * @param HCaptchaFluentFormObject.noticeDescription
  */
-jQuery( document ).ready( function( $ ) {
+
+/**
+ * The FormidableForms Admin Page script.
+ *
+ * @param {jQuery} $ The jQuery instance.
+ */
+const formidableForms = function( $ ) {
 	if ( ! window.location.href.includes( 'page=formidable-settings' ) ) {
 		return;
 	}
@@ -18,4 +24,8 @@ jQuery( document ).ready( function( $ ) {
 		disabled: true,
 		class: 'frm_noallow',
 	} );
-} );
+};
+
+window.hCaptchaFluentForm = formidableForms;
+
+jQuery( document ).ready( formidableForms );
