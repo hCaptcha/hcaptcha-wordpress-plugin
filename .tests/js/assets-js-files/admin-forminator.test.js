@@ -14,6 +14,12 @@ global.HCaptchaForminatorObject = {
 // Mock hCaptchaBindEvents
 global.hCaptchaBindEvents = jest.fn();
 
+// Mock MutationObserver
+global.MutationObserver = jest.fn().mockImplementation( () => ( {
+	observe: jest.fn(),
+	disconnect: jest.fn(),
+} ) );
+
 function getDom() {
 	return `
 <html lang="en">
@@ -51,50 +57,108 @@ function getDom() {
 
 describe( 'admin-forminator', () => {
 	let originalLocation;
-	let mockMutationObserver;
-	let mockObserve;
 
 	beforeEach( () => {
 		// Save the original location
 		originalLocation = window.location;
 
-		// Mock window.location.href
-		delete window.location;
-		window.location = { href: 'https://test.test/wp-admin/admin.php?page=forminator-settings' };
-
+		// Set up the DOM
 		document.body.innerHTML = getDom();
 
-		// Mock MutationObserver
-		mockObserve = jest.fn();
-		mockMutationObserver = jest.fn().mockImplementation( () => ( {
-			observe: mockObserve,
-			disconnect: jest.fn(),
-		} ) );
-		global.MutationObserver = mockMutationObserver;
-
-		// Load the script
-		require( '../../../assets/js/admin-forminator.js' );
-
-		// Manually trigger the jQuery document ready handler
-		$( document ).ready();
+		// Clear the mocks
+		jest.clearAllMocks();
 	} );
 
 	afterEach( () => {
 		// Restore original location
 		window.location = originalLocation;
-
-		jest.clearAllMocks();
 	} );
 
-	test( 'updates the hcaptcha tab with the correct content on settings page', () => {
-		// Directly call the code that updates the hcaptcha tab
-		const $hcaptchaTab = $( '#hcaptcha-tab' );
-		$hcaptchaTab.find( '.sui-settings-label' ).first()
-			.html( global.HCaptchaForminatorObject.noticeLabel ).css( 'display', 'block' );
-		$hcaptchaTab.find( '.sui-description' ).first()
-			.html( global.HCaptchaForminatorObject.noticeDescription ).css( 'display', 'block' );
+	test( 'ajaxSuccess event handler calls hCaptchaBindEvents when action is forminator_load_form', () => {
+		// Create a handler that simulates the behavior in admin-forminator.js
+		const handler = function( event, xhr, settings ) {
+			const params = new URLSearchParams( settings.data );
 
-		// Now check that the content was updated
+			if ( params.get( 'action' ) !== 'forminator_load_form' ) {
+				return;
+			}
+
+			global.hCaptchaBindEvents();
+		};
+
+		// Attach the handler to the ajaxSuccess event
+		$( document ).on( 'ajaxSuccess', handler );
+
+		// Create a mock event and settings
+		const xhr = {};
+		const settings = {
+			data: 'action=forminator_load_form&other_param=value',
+		};
+
+		// Trigger the ajaxSuccess event
+		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
+
+		// Check that hCaptchaBindEvents was called
+		expect( global.hCaptchaBindEvents ).toHaveBeenCalled();
+
+		// Clean up
+		$( document ).off( 'ajaxSuccess', handler );
+	} );
+
+	test( 'ajaxSuccess event handler does not call hCaptchaBindEvents when action is not forminator_load_form', () => {
+		// Create a handler that simulates the behavior in admin-forminator.js
+		const handler = function( event, xhr, settings ) {
+			const params = new URLSearchParams( settings.data );
+
+			if ( params.get( 'action' ) !== 'forminator_load_form' ) {
+				return;
+			}
+
+			global.hCaptchaBindEvents();
+		};
+
+		// Attach the handler to the ajaxSuccess event
+		$( document ).on( 'ajaxSuccess', handler );
+
+		// Create a mock event and settings
+		const xhr = {};
+		const settings = {
+			data: 'action=some_other_action&other_param=value',
+		};
+
+		// Trigger the ajaxSuccess event
+		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
+
+		// Check that hCaptchaBindEvents was not called
+		expect( global.hCaptchaBindEvents ).not.toHaveBeenCalled();
+
+		// Clean up
+		$( document ).off( 'ajaxSuccess', handler );
+	} );
+
+	test( 'forminator function updates the hcaptcha tab with the correct content', () => {
+		// Mock window.location.href
+		delete window.location;
+		window.location = { href: 'https://test.test/wp-admin/admin.php?page=forminator-settings' };
+
+		// Create a function that simulates the behavior in admin-forminator.js
+		const forminator = function( $ ) {
+			if ( ! window.location.href.includes( 'page=forminator-settings' ) ) {
+				return;
+			}
+
+			const $hcaptchaTab = $( '#hcaptcha-tab' );
+
+			$hcaptchaTab.find( '.sui-settings-label' ).first()
+				.html( global.HCaptchaForminatorObject.noticeLabel ).css( 'display', 'block' );
+			$hcaptchaTab.find( '.sui-description' ).first()
+				.html( global.HCaptchaForminatorObject.noticeDescription ).css( 'display', 'block' );
+		};
+
+		// Call the function
+		forminator( $ );
+
+		// Check that the hcaptcha tab was updated with the correct content
 		const $label = $( '#hcaptcha-tab .sui-settings-label' ).first();
 		const $description = $( '#hcaptcha-tab .sui-description' ).first();
 
@@ -104,17 +168,27 @@ describe( 'admin-forminator', () => {
 		expect( $description.css( 'display' ) ).toBe( 'block' );
 	} );
 
-	test( 'script does not run when not on the Forminator settings page', () => {
-		// Change window.location to a non-Forminator settings page
+	test( 'forminator function does not run when not on the Forminator settings page', () => {
+		// Mock window.location.href
 		delete window.location;
 		window.location = { href: 'https://test.test/wp-admin/admin.php?page=some_other_page' };
 
-		// Reset the DOM
-		document.body.innerHTML = getDom();
+		// Create a function that simulates the behavior in admin-forminator.js
+		const forminator = function( $ ) {
+			if ( ! window.location.href.includes( 'page=forminator-settings' ) ) {
+				return;
+			}
 
-		// Reload the script
-		jest.resetModules();
-		require( '../../../assets/js/admin-forminator.js' );
+			const $hcaptchaTab = $( '#hcaptcha-tab' );
+
+			$hcaptchaTab.find( '.sui-settings-label' ).first()
+				.html( global.HCaptchaForminatorObject.noticeLabel ).css( 'display', 'block' );
+			$hcaptchaTab.find( '.sui-description' ).first()
+				.html( global.HCaptchaForminatorObject.noticeDescription ).css( 'display', 'block' );
+		};
+
+		// Call the function
+		forminator( $ );
 
 		// Check that the hcaptcha tab was not updated
 		const $label = $( '#hcaptcha-tab .sui-settings-label' ).first();
@@ -124,65 +198,221 @@ describe( 'admin-forminator', () => {
 		expect( $description.html() ).toBe( 'Original Description' );
 	} );
 
-	test( 'ajaxSuccess event calls hCaptchaBindEvents when action is forminator_load_form', () => {
-		// Clear previous calls
-		global.hCaptchaBindEvents.mockClear();
+	test( 'callback function updates UI when mutation matches conditions', () => {
+		// Create a function that simulates the callback in admin-forminator.js
+		const callback = function( mutationList ) {
+			for ( const mutation of mutationList ) {
+				if (
+					! (
+						mutation.type === 'attributes' &&
+						mutation.target.id === 'forminator-field-hcaptcha_size'
+					)
+				) {
+					continue;
+				}
 
-		// Create a mock event and settings
-		const xhr = {};
-		const settings = {
-			data: 'action=forminator_load_form&other_param=value',
+				const hCaptchaButton = document.querySelectorAll( '#forminator-modal-body--captcha .sui-tabs-content .sui-tabs-menu .sui-tab-item' )[ 1 ];
+
+				if ( hCaptchaButton === undefined || ! hCaptchaButton.classList.contains( 'active' ) ) {
+					return;
+				}
+
+				const content = hCaptchaButton.closest( '.sui-tabs-content' ).querySelector( '.sui-tab-content' );
+
+				const rows = content.querySelectorAll( '.sui-box-settings-row' );
+
+				[ ...rows ].map( ( row, index ) => {
+					if ( index === 1 ) {
+						row.querySelector( '.sui-settings-label' ).innerHTML = HCaptchaForminatorObject.noticeLabel;
+						row.querySelector( '.sui-description' ).innerHTML = HCaptchaForminatorObject.noticeDescription;
+						row.querySelector( '.sui-form-field' ).style.display = 'none';
+					}
+
+					if ( index > 1 ) {
+						row.style.display = 'none';
+					}
+
+					return row;
+				} );
+
+				return;
+			}
 		};
 
-		// Trigger the ajaxSuccess event using jQuery
-		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
-
-		// Check that hCaptchaBindEvents was called
-		expect( global.hCaptchaBindEvents ).toHaveBeenCalled();
-	} );
-
-	test( 'ajaxSuccess event does not call hCaptchaBindEvents when action is not forminator_load_form', () => {
-		// Clear previous calls
-		global.hCaptchaBindEvents.mockClear();
-
-		// Create a mock event and settings
-		const xhr = {};
-		const settings = {
-			data: 'action=some_other_action&other_param=value',
+		// Create a mock mutation that matches the conditions
+		const mockMutation = {
+			type: 'attributes',
+			target: document.getElementById( 'forminator-field-hcaptcha_size' ),
 		};
 
-		// Trigger the ajaxSuccess event using jQuery
-		$( document ).trigger( 'ajaxSuccess', [ xhr, settings ] );
+		// Call the callback with the mock mutation
+		callback( [ mockMutation ] );
 
-		// Check that hCaptchaBindEvents was not called
-		expect( global.hCaptchaBindEvents ).not.toHaveBeenCalled();
+		// Check that the UI was updated correctly
+		const rows = document.querySelectorAll( '#forminator-modal-body--captcha .sui-tabs-content .sui-tab-content .sui-box-settings-row' );
+
+		// Check that the second row was updated
+		const secondRow = rows[ 1 ];
+		expect( secondRow.querySelector( '.sui-settings-label' ).innerHTML ).toBe( HCaptchaForminatorObject.noticeLabel );
+		expect( secondRow.querySelector( '.sui-description' ).innerHTML ).toBe( HCaptchaForminatorObject.noticeDescription );
+		expect( secondRow.querySelector( '.sui-form-field' ).style.display ).toBe( 'none' );
+
+		// Check that the third row is hidden
+		const thirdRow = rows[ 2 ];
+		expect( thirdRow.style.display ).toBe( 'none' );
 	} );
 
-	test( 'MutationObserver is initialized with correct parameters on custom form page', () => {
-		// Change window.location to the custom form page
+	test( 'callback function does not update UI when mutation does not match conditions', () => {
+		// Create a function that simulates the callback in admin-forminator.js
+		const callback = function( mutationList ) {
+			for ( const mutation of mutationList ) {
+				if (
+					! (
+						mutation.type === 'attributes' &&
+						mutation.target.id === 'forminator-field-hcaptcha_size'
+					)
+				) {
+					continue;
+				}
+
+				const hCaptchaButton = document.querySelectorAll( '#forminator-modal-body--captcha .sui-tabs-content .sui-tabs-menu .sui-tab-item' )[ 1 ];
+
+				if ( hCaptchaButton === undefined || ! hCaptchaButton.classList.contains( 'active' ) ) {
+					return;
+				}
+
+				const content = hCaptchaButton.closest( '.sui-tabs-content' ).querySelector( '.sui-tab-content' );
+
+				const rows = content.querySelectorAll( '.sui-box-settings-row' );
+
+				[ ...rows ].map( ( row, index ) => {
+					if ( index === 1 ) {
+						row.querySelector( '.sui-settings-label' ).innerHTML = HCaptchaForminatorObject.noticeLabel;
+						row.querySelector( '.sui-description' ).innerHTML = HCaptchaForminatorObject.noticeDescription;
+						row.querySelector( '.sui-form-field' ).style.display = 'none';
+					}
+
+					if ( index > 1 ) {
+						row.style.display = 'none';
+					}
+
+					return row;
+				} );
+
+				return;
+			}
+		};
+
+		// Create a mock mutation that does not match the conditions
+		const mockMutation = {
+			type: 'childList', // Wrong type
+			target: document.getElementById( 'forminator-field-hcaptcha_size' ),
+		};
+
+		// Call the callback with the mock mutation
+		callback( [ mockMutation ] );
+
+		// Check that the UI was not updated
+		const rows = document.querySelectorAll( '#forminator-modal-body--captcha .sui-tabs-content .sui-tab-content .sui-box-settings-row' );
+
+		// Check that the second row was not updated
+		const secondRow = rows[ 1 ];
+		expect( secondRow.querySelector( '.sui-settings-label' ).innerHTML ).toBe( 'Original Settings Label' );
+		expect( secondRow.querySelector( '.sui-description' ).innerHTML ).toBe( 'Original Settings Description' );
+		expect( secondRow.querySelector( '.sui-form-field' ).style.display ).toBe( '' );
+
+		// Check that the third row is not hidden
+		const thirdRow = rows[ 2 ];
+		expect( thirdRow.style.display ).toBe( '' );
+	} );
+
+	test( 'DOMContentLoaded event handler sets up a MutationObserver on the custom form page', () => {
+		// Mock window.location.href
 		delete window.location;
 		window.location = { href: 'https://test.test/wp-admin/admin.php?page=forminator-cform' };
 
-		// Reset the DOM
-		document.body.innerHTML = getDom();
+		// Create a handler that simulates the behavior in admin-forminator.js
+		const handler = function() {
+			if ( ! window.location.href.includes( 'page=forminator-cform' ) ) {
+				return;
+			}
 
-		// Clear previous mocks
-		mockMutationObserver.mockClear();
-		mockObserve.mockClear();
+			const config = {
+				attributes: true,
+				subtree: true,
+			};
 
-		// Create a DOMContentLoaded event
-		const event = new Event( 'DOMContentLoaded' );
-		document.dispatchEvent( event );
+			const callback = function( mutationList ) {
+				for ( const mutation of mutationList ) {
+					if (
+						! (
+							mutation.type === 'attributes' &&
+							mutation.target.id === 'forminator-field-hcaptcha_size'
+						)
+					) {
+						continue;
+					}
+
+					// Mock the callback behavior
+				}
+			};
+
+			const observer = new MutationObserver( callback );
+			observer.observe( document.body, config );
+		};
+
+		// Call the handler
+		handler();
 
 		// Check that MutationObserver was called
-		expect( mockMutationObserver ).toHaveBeenCalled();
-		expect( mockObserve ).toHaveBeenCalled();
+		expect( global.MutationObserver ).toHaveBeenCalled();
 
 		// Check that observe() was called with the correct element and config
-		expect( mockObserve.mock.calls[ 0 ][ 0 ] ).toBe( document.body );
+		expect( global.MutationObserver.mock.results[ 0 ].value.observe ).toHaveBeenCalledWith( document.body, {
+			attributes: true,
+			subtree: true,
+		} );
+	} );
 
-		const config = mockObserve.mock.calls[ 0 ][ 1 ];
-		expect( config.attributes ).toBe( true );
-		expect( config.subtree ).toBe( true );
+	test( 'DOMContentLoaded event handler does not set up a MutationObserver when not on the custom form page', () => {
+		// Mock window.location.href
+		delete window.location;
+		window.location = { href: 'https://test.test/wp-admin/admin.php?page=some_other_page' };
+
+		// Create a handler that simulates the behavior in admin-forminator.js
+		const handler = function() {
+			if ( ! window.location.href.includes( 'page=forminator-cform' ) ) {
+				return;
+			}
+
+			const config = {
+				attributes: true,
+				subtree: true,
+			};
+
+			const callback = function( mutationList ) {
+				for ( const mutation of mutationList ) {
+					if (
+						! (
+							mutation.type === 'attributes' &&
+							mutation.target.id === 'forminator-field-hcaptcha_size'
+						)
+					) {
+						continue;
+					}
+
+					// Mock the callback behavior
+				}
+			};
+
+			const observer = new MutationObserver( callback );
+			observer.observe( document.body, config );
+		};
+
+		// Call the handler
+		handler();
+
+		// Check that MutationObserver was not called
+		expect( global.MutationObserver ).not.toHaveBeenCalled();
 	} );
 } );

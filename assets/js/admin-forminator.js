@@ -14,7 +14,7 @@ jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 	window.hCaptchaBindEvents();
 } );
 
-jQuery( document ).ready( function( $ ) {
+const forminator = function( $ ) {
 	if ( ! window.location.href.includes( 'page=forminator-settings' ) ) {
 		return;
 	}
@@ -25,7 +25,7 @@ jQuery( document ).ready( function( $ ) {
 		.html( HCaptchaForminatorObject.noticeLabel ).css( 'display', 'block' );
 	$hcaptchaTab.find( '.sui-description' ).first()
 		.html( HCaptchaForminatorObject.noticeDescription ).css( 'display', 'block' );
-} );
+};
 
 document.addEventListener( 'DOMContentLoaded', function() {
 	if ( ! window.location.href.includes( 'page=forminator-cform' ) ) {
@@ -79,3 +79,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	const observer = new MutationObserver( callback );
 	observer.observe( document.body, config );
 } );
+
+window.hCaptchaFluentForm = forminator;
+
+jQuery( document ).ready( forminator );
