@@ -5,7 +5,7 @@ import $ from 'jquery';
 global.jQuery = $;
 global.$ = $;
 
-describe( 'hCaptcha ajaxStop binding', () => {
+describe( 'hCaptcha Divi', () => {
 	let hCaptchaBindEvents;
 
 	beforeEach( () => {
