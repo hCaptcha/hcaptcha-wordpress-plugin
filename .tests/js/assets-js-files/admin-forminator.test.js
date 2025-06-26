@@ -146,8 +146,8 @@ describe( 'admin-forminator', () => {
 
 		// Check that the second row was updated
 		const secondRow = rows[ 1 ];
-		expect( secondRow.querySelector( '.sui-settings-label' ).innerHTML ).toBe( HCaptchaForminatorObject.noticeLabel );
-		expect( secondRow.querySelector( '.sui-description' ).innerHTML ).toBe( HCaptchaForminatorObject.noticeDescription );
+		expect( secondRow.querySelector( '.sui-settings-label' ).innerHTML ).toBe( global.HCaptchaForminatorObject.noticeLabel );
+		expect( secondRow.querySelector( '.sui-description' ).innerHTML ).toBe( global.HCaptchaForminatorObject.noticeDescription );
 		expect( secondRow.querySelector( '.sui-form-field' ).style.display ).toBe( 'none' );
 
 		// Check that the third row is hidden
