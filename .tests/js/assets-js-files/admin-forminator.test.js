@@ -44,7 +44,6 @@ function getDom() {
 }
 
 describe( 'admin-forminator', () => {
-	let dom;
 	let hCaptchaBindEvents;
 
 	beforeEach( () => {
