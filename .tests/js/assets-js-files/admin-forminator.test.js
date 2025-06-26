@@ -1,6 +1,5 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-import { JSDOM } from 'jsdom';
 import $ from 'jquery';
 
 global.jQuery = $;
@@ -15,8 +14,6 @@ global.HCaptchaForminatorObject = {
 function getDom() {
 	// language=HTML
 	return `
-		<html lang="en">
-		<body>
 		<div id="hcaptcha-tab">
 			<div class="sui-settings-label">Original Label</div>
 			<div class="sui-description">Original Description</div>
@@ -43,8 +40,6 @@ function getDom() {
 			</div>
 		</div>
 		<div id="forminator-field-hcaptcha_size"></div>
-		</body>
-		</html>
 	`;
 }
 
@@ -57,14 +52,7 @@ describe( 'admin-forminator', () => {
 		hCaptchaBindEvents = jest.fn();
 		global.hCaptchaBindEvents = hCaptchaBindEvents;
 
-		// Set up the DOM
-		// Create a JSDOM instance with a basic HTML structure
-		dom = new JSDOM( getDom() );
-		global.window = dom.window;
-		global.document = dom.window.document;
-		global.document.body.innerHTML = dom.window.document.body.innerHTML;
-		global.navigator = dom.window.navigator;
-		global.Node = dom.window.Node;
+		document.body.innerHTML = getDom();
 
 		// Reset window.hCaptchaForminator
 		window.hCaptchaForminator = undefined;

@@ -5795,7 +5795,6 @@ __metadata:
     jest-environment-jsdom: "npm:^30.0.2"
     jest-fetch-mock: "npm:^3.0.3"
     jquery: "npm:^3.7.1"
-    jsdom: "npm:^26.1.0"
     mini-css-extract-plugin: "npm:^2.9.2"
     prettier: "npm:^3.5.3"
     terser-webpack-plugin: "npm:^5.3.14"

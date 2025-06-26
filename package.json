@@ -63,7 +63,6 @@
     "jest-environment-jsdom": "^30.0.2",
     "jest-fetch-mock": "^3.0.3",
     "jquery": "^3.7.1",
-    "jsdom": "^26.1.0",
     "mini-css-extract-plugin": "^2.9.2",
     "prettier": "^3.5.3",
     "terser-webpack-plugin": "^5.3.14",
