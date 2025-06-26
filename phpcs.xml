@@ -41,6 +41,8 @@
 		<!-- Rules to follow PSR4 -->
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+		<!-- Deprecated rules -->
+		<exclude name="Generic.Functions.CallTimePassByReference"/>
 	</rule>
 
 	<!-- Complexity rules -->
