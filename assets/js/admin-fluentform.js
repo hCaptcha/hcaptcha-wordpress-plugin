@@ -10,49 +10,68 @@
  *
  * @param {jQuery} $ The jQuery instance.
  */
-const fluentForm = function( $ ) {
-	if ( ! window.location.href.includes( 'page=fluent_forms_settings' ) ) {
-		return;
-	}
+const fluentForm = window.hCaptchaFluentForm || ( function( document, window, $ ) {
+	/**
+	 * Public functions and properties.
+	 *
+	 * @type {Object}
+	 */
+	const app = {
+		// Init app.
+		init() {
+			$( app.ready );
+		},
 
-	const updateHCaptchaWrap = () => {
-		const $hCaptchaWrap = $( '.ff_hcaptcha_wrap' );
+		ready() {
+			if ( ! app.getLocationHref().includes( 'page=fluent_forms_settings' ) ) {
+				return;
+			}
 
-		if ( $hCaptchaWrap.length === 0 ) {
-			return;
-		}
+			const updateHCaptchaWrap = () => {
+				const $hCaptchaWrap = $( '.ff_hcaptcha_wrap' );
 
-		$hCaptchaWrap.find( '.ff_card_head h5' )
-			.html( HCaptchaFluentFormObject.noticeLabel ).css( 'display', 'block' );
-		$hCaptchaWrap.find( '.ff_card_head p' ).first()
-			.html( HCaptchaFluentFormObject.noticeDescription ).css( 'display', 'block' );
-	};
-
-	const observeHCaptchaWrap = ( mutationList ) => {
-		for ( const mutation of mutationList ) {
-			[ ...mutation.addedNodes ].map( ( node ) => {
-				if ( ! ( node.classList !== undefined && node.classList.contains( 'ff_hcaptcha_wrap' ) ) ) {
-					return node;
+				if ( $hCaptchaWrap.length === 0 ) {
+					return;
 				}
 
-				updateHCaptchaWrap();
+				$hCaptchaWrap.find( '.ff_card_head h5' )
+					.html( HCaptchaFluentFormObject.noticeLabel ).css( 'display', 'block' );
+				$hCaptchaWrap.find( '.ff_card_head p' ).first()
+					.html( HCaptchaFluentFormObject.noticeDescription ).css( 'display', 'block' );
+			};
 
-				return node;
-			} );
-		}
+			const observeHCaptchaWrap = ( mutationList ) => {
+				for ( const mutation of mutationList ) {
+					[ ...mutation.addedNodes ].map( ( node ) => {
+						if ( ! ( node.classList !== undefined && node.classList.contains( 'ff_hcaptcha_wrap' ) ) ) {
+							return node;
+						}
+
+						updateHCaptchaWrap();
+
+						return node;
+					} );
+				}
+			};
+
+			const config = {
+				childList: true,
+				subtree: true,
+			};
+			const observer = new MutationObserver( observeHCaptchaWrap );
+
+			updateHCaptchaWrap();
+			observer.observe( document.querySelector( '#ff_global_settings_option_app' ), config );
+		},
+
+		getLocationHref() {
+			return window.location.href;
+		},
 	};
 
-	const settingsApp = document.querySelector( '#ff_global_settings_option_app' );
-	const config = {
-		childList: true,
-		subtree: true,
-	};
-	const observer = new MutationObserver( observeHCaptchaWrap );
-
-	updateHCaptchaWrap();
-	observer.observe( settingsApp, config );
-};
+	return app;
+}( document, window, jQuery ) );
 
 window.hCaptchaFluentForm = fluentForm;
 
-jQuery( document ).ready( fluentForm );
+fluentForm.init();
