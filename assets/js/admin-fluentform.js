@@ -5,11 +5,6 @@
  * @param HCaptchaFluentFormObject.noticeDescription
  */
 
-/**
- * The FluentForm Admin Page script.
- *
- * @param {jQuery} $ The jQuery instance.
- */
 const fluentForm = window.hCaptchaFluentForm || ( function( document, window, $ ) {
 	/**
 	 * Public functions and properties.
