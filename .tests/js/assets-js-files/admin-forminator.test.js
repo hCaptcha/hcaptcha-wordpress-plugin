@@ -51,6 +51,7 @@ describe( 'admin-forminator', () => {
 		hCaptchaBindEvents = jest.fn();
 		global.hCaptchaBindEvents = hCaptchaBindEvents;
 
+		// Set up DOM
 		document.body.innerHTML = getDom();
 
 		// Reset window.hCaptchaForminator
@@ -58,6 +59,8 @@ describe( 'admin-forminator', () => {
 
 		// Force reloading the tested file.
 		jest.resetModules();
+
+		// Load the script
 		require( '../../../assets/js/admin-forminator.js' );
 	} );
 

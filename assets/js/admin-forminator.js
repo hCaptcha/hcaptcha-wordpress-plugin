@@ -16,9 +16,7 @@ const forminator = window.hCaptchaForminator || ( function( document, window, $ 
 		// Init app.
 		init() {
 			document.addEventListener( 'DOMContentLoaded', app.loaded );
-
 			$( app.ready );
-
 			$( document ).on( 'ajaxSuccess', app.ajaxSuccessHandler );
 		},
 
