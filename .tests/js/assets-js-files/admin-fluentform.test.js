@@ -26,6 +26,8 @@ function getDom() {
 }
 
 describe( 'admin-fluentform', () => {
+	const hCaptchaWrapSelector = '.ff_hcaptcha_wrap';
+
 	beforeEach( () => {
 		// Set up DOM
 		document.body.innerHTML = getDom();
@@ -48,7 +50,7 @@ describe( 'admin-fluentform', () => {
 		window.hCaptchaFluentForm.ready();
 
 		// Check that the hCaptcha wrap was updated with the correct content
-		let $hCaptchaWrap = $( '.ff_hcaptcha_wrap' );
+		let $hCaptchaWrap = $( hCaptchaWrapSelector );
 		let $h5 = $hCaptchaWrap.find( '.ff_card_head h5' );
 		let $p = $hCaptchaWrap.find( '.ff_card_head p' ).first();
 
@@ -70,7 +72,7 @@ describe( 'admin-fluentform', () => {
 		await Promise.resolve();
 
 		// Check that the hCaptcha wrap was updated with the correct content
-		$hCaptchaWrap = $( '.ff_hcaptcha_wrap' );
+		$hCaptchaWrap = $( hCaptchaWrapSelector );
 		$h5 = $hCaptchaWrap.find( '.ff_card_head h5' );
 		$p = $hCaptchaWrap.find( '.ff_card_head p' ).first();
 
@@ -88,7 +90,7 @@ describe( 'admin-fluentform', () => {
 		window.hCaptchaFluentForm.ready();
 
 		// Check that the hCaptcha wrap was updated with the correct content
-		const $hCaptchaWrap = $( '.ff_hcaptcha_wrap' );
+		const $hCaptchaWrap = $( hCaptchaWrapSelector );
 		const $h5 = $hCaptchaWrap.find( '.ff_card_head h5' );
 		const $p = $hCaptchaWrap.find( '.ff_card_head p' ).first();
 
