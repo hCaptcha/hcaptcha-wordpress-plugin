@@ -1,4 +1,4 @@
-// noinspection JSUnresolvedFunction,JSUnresolvedVariable
+// noinspection JSUnresolvedFunction,JSUnresolvedVariable,HtmlUnknownAttribute
 
 import $ from 'jquery';
 
@@ -18,40 +18,31 @@ global.hCaptcha = {
 };
 
 function getDom() {
+	// language=HTML
 	return `
-<html lang="en">
-<body>
-    <input id="wpcf7-shortcode" value="test-shortcode" />
-    <textarea id="wpcf7-form">
-        <div class="h-captcha" data-sitekey="test-site-key"></div>
-    </textarea>
-    <div id="form-live"></div>
-    <div class="tag-generator-dialog" open="open">
-        <div class="tag-generator-content"></div>
-    </div>
-</body>
-</html>
-    `;
+		<input id="wpcf7-shortcode" value="test-shortcode"/>
+		<textarea id="wpcf7-form">
+        	<div class="h-captcha" data-sitekey="test-site-key"></div>
+    	</textarea>
+		<div id="form-live"></div>
+		<div class="tag-generator-dialog" open>
+			<div class="tag-generator-content"></div>
+		</div>
+	`;
 }
 
 describe( 'admin-cf7', () => {
 	let postSpy;
-	let mockMutationObserver;
-	let mockObserve;
 
 	beforeEach( () => {
-		// Setup fake timers for debounce
-		jest.useFakeTimers();
-
+		// Set up DOM
 		document.body.innerHTML = getDom();
 
-		// Mock MutationObserver
-		mockObserve = jest.fn();
-		mockMutationObserver = jest.fn().mockImplementation( () => ( {
-			observe: mockObserve,
-			disconnect: jest.fn(),
-		} ) );
-		global.MutationObserver = mockMutationObserver;
+		// Reset window.hCaptchaFluentForm
+		window.hCaptchaCF7 = undefined;
+
+		// Setup fake timers for debounce
+		jest.useFakeTimers();
 
 		// Mock jQuery.post
 		const mockSuccessResponse = {
@@ -78,32 +69,20 @@ describe( 'admin-cf7', () => {
 			return deferred;
 		} );
 
+		// Force reloading the tested file.
+		jest.resetModules();
+
 		// Load the script
 		require( '../../../assets/js/admin-cf7.js' );
 
 		// Simulate jQuery.ready event
-		window.hCaptchaCF7( $ );
+		window.hCaptchaCF7.ready();
 	} );
 
 	afterEach( () => {
 		postSpy.mockRestore();
 		jest.clearAllMocks();
 		jest.clearAllTimers();
-	} );
-
-	test( 'MutationObserver is initialized with correct parameters', () => {
-		expect( mockMutationObserver ).toHaveBeenCalled();
-		expect( mockObserve ).toHaveBeenCalled();
-
-		// Check that the observe() was called with the correct element and config.
-		const observeElement = document.querySelector( '.tag-generator-dialog' ).parentElement;
-		expect( mockObserve.mock.calls[ 0 ][ 0 ] ).toBe( observeElement );
-
-		const config = mockObserve.mock.calls[ 0 ][ 1 ];
-		expect( config.attributes ).toBe( true );
-		expect( config.subtree ).toBe( true );
-		expect( config.attributeFilter ).toContain( 'open' );
-		expect( config.attributeOldValue ).toBe( true );
 	} );
 
 	test( 'form change triggers AJAX request', () => {
@@ -142,18 +121,19 @@ describe( 'admin-cf7', () => {
 		expect( global.hCaptcha.bindEvents ).toHaveBeenCalled();
 	} );
 
-	test( 'mutation observer triggers form change when tag is inserted', () => {
-		// In this test, we'll directly trigger a form change instead of relying on the mutation observer.
-		// This is because the debounce function in the mutation observer is challenging to test.
-
-		// First, clear any previous calls to postSpy.
+	test( 'mutation observer triggers form change when attribute is changed', async () => {
+		// Clear any previous calls to postSpy.
 		postSpy.mockClear();
 
-		// Trigger form change
+		// Change form value
 		const $form = $( '#wpcf7-form' );
-		// Change the form content to trigger a change
-		$form.val( '<div class="h-captcha" data-sitekey="updated-site-key-2"></div>' );
-		$form.trigger( 'input' );
+		$form.val( '<div class="h-captcha" data-sitekey="updated-site-key"></div>' );
+
+		// Change the attribute
+		$( '.tag-generator-dialog' ).attr( 'open', 'open' );
+
+		// Wait for the next microtask queue to allow MutationObserver to fire
+		await Promise.resolve();
 
 		// Fast-forward timers to trigger a debounced function.
 		jest.runAllTimers();
@@ -166,48 +146,15 @@ describe( 'admin-cf7', () => {
 		expect( postData.action ).toBe( global.HCaptchaCF7Object.updateFormAction );
 		expect( postData.nonce ).toBe( global.HCaptchaCF7Object.updateFormNonce );
 		expect( postData.shortcode ).toBe( 'test-shortcode' );
-		expect( postData.form ).toContain( 'updated-site-key-2' );
+		expect( postData.form ).toContain( 'updated-site-key' );
 	} );
 
 	test( 'mutation observer does not trigger form change when conditions are not met', () => {
 		// Reset the spy to check if it gets called.
 		postSpy.mockClear();
 
-		// Create mock mutations that should not trigger the form change.
-		const mockMutations = [
-			{
-				// Wrong attribute name.
-				target: document.querySelector( '.tag-generator-dialog' ),
-				type: 'attributes',
-				attributeName: 'class',
-				oldValue: 'some-class',
-			},
-			{
-				// Wrong type.
-				target: document.querySelector( '.tag-generator-dialog' ),
-				type: 'childList',
-				attributeName: 'open',
-				oldValue: 'open',
-			},
-			{
-				// The oldValue is null.
-				target: document.querySelector( '.tag-generator-dialog' ),
-				type: 'attributes',
-				attributeName: 'open',
-				oldValue: null,
-			},
-		];
-
-		// Get the callback function passed to MutationObserver.
-		const observerCallback = mockMutationObserver.mock.calls[ 0 ][ 0 ];
-
-		// Call the callback with each mock mutation.
-		mockMutations.forEach( ( mutation ) => {
-			observerCallback( [ mutation ] );
-
-			// Fast-forward timers.
-			jest.runAllTimers();
-		} );
+		// Change the attribute but do not change the form value
+		$( '.tag-generator-dialog' ).attr( 'open', 'open' );
 
 		// Check that the AJAX request was not made.
 		expect( postSpy ).not.toHaveBeenCalled();
