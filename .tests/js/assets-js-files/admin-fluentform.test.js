@@ -60,8 +60,8 @@ describe( 'admin-fluentform', () => {
 		expect( $p.css( 'display' ) ).toBe( 'block' );
 
 		// Reset hCaptcha wrap.
-		$h5.html('' ).css( 'display', 'none' );
-		$p.html('' ).css( 'display', 'none' );
+		$h5.html( '' ).css( 'display', 'none' );
+		$p.html( '' ).css( 'display', 'none' );
 
 		// Remove and add hCaptcha wrap to run MutationObserver
 		const outerHTML = $hCaptchaWrap.prop( 'outerHTML' );
