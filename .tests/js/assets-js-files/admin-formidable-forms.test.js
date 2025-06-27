@@ -12,74 +12,54 @@ global.HCaptchaFormidableFormsObject = {
 };
 
 function getDom() {
+	// language=HTML
 	return `
-<html lang="en">
-<body>
-    <div id="hcaptcha_settings">
-        <p class="howto">Original howto text</p>
-        <input type="text" value="test-input" />
-    </div>
-</body>
-</html>
-    `;
+		<div id="hcaptcha_settings">
+			<p class="howto">Original howto text</p>
+			<input type="text" value="test-input"/>
+		</div>
+	`;
 }
 
 describe( 'admin-formidable-forms', () => {
-	let originalLocation;
-
 	beforeEach( () => {
-		// Save the original location
-		originalLocation = window.location;
-
-		// Mock window.location.href
-		delete window.location;
-		window.location = { href: 'https://test.test/wp-admin/admin.php?page=formidable-settings' };
-
+		// Set up DOM
 		document.body.innerHTML = getDom();
+
+		// Reset window.hCaptchaFormidableForms
+		window.hCaptchaFormidableForms = undefined;
+
+		// Force reloading the tested file.
+		jest.resetModules();
 
 		// Load the script
 		require( '../../../assets/js/admin-formidable-forms.js' );
+	} );
+
+	test( 'updates elements on the Formidable Forms settings page', () => {
+		// Mock window.location.href
+		window.hCaptchaFormidableForms.getLocationHref = () => 'https://test.test/wp-admin/admin.php?page=formidable-settings';
 
 		// Simulate jQuery.ready event
-		window.hCaptchaFluentForm( $ );
-	} );
+		window.hCaptchaFormidableForms.ready();
 
-	afterEach( () => {
-		// Restore original location
-		window.location = originalLocation;
-	} );
-
-	test( 'updates the howto element with the correct content', () => {
-		const $howTo = $( '#hcaptcha_settings .howto' ).first();
-		expect( $howTo.html() ).toBe( global.HCaptchaFormidableFormsObject.noticeLabel );
-	} );
-
-	test( 'inserts a new paragraph after the howto element', () => {
 		const $howTos = $( '#hcaptcha_settings .howto' );
+		const $howTo = $howTos.first();
+		const $input = $( '#hcaptcha_settings input' );
+
+		expect( $howTo.html() ).toBe( global.HCaptchaFormidableFormsObject.noticeLabel );
 		expect( $howTos.length ).toBe( 2 );
 		expect( $howTos.eq( 1 ).html() ).toBe( global.HCaptchaFormidableFormsObject.noticeDescription );
-	} );
-
-	test( 'disables inputs within hcaptcha_settings', () => {
-		const $input = $( '#hcaptcha_settings input' );
 		expect( $input.attr( 'disabled' ) ).toBe( 'disabled' );
 		expect( $input.attr( 'class' ) ).toBe( 'frm_noallow' );
 	} );
 
-	test( 'script does not run when not on the Formidable Forms settings page', () => {
-		// Change window.location to a non-Formidable Forms settings page
-		delete window.location;
-		window.location = { href: 'https://test.test/wp-admin/admin.php?page=some_other_page' };
-
-		// Reset the DOM
-		document.body.innerHTML = getDom();
-
-		// Reload the script
-		jest.resetModules();
-		require( '../../../assets/js/admin-formidable-forms.js' );
+	test( 'does not updates elements not on the Formidable Forms settings page', () => {
+		// Mock window.location.href
+		window.hCaptchaFormidableForms.getLocationHref = () => 'https://test.test/wp-admin/admin.php?page=some';
 
 		// Simulate jQuery.ready event
-		window.hCaptchaFluentForm( $ );
+		window.hCaptchaFormidableForms.ready();
 
 		// Check that the howto element was not updated
 		const $howTo = $( '#hcaptcha_settings .howto' );
@@ -91,5 +71,9 @@ describe( 'admin-formidable-forms', () => {
 		// Check that the input was not disabled
 		const $input = $( '#hcaptcha_settings input' );
 		expect( $input.attr( 'disabled' ) ).toBeUndefined();
+	} );
+
+	test( 'getLocationHref returns the correct location', () => {
+		expect( window.hCaptchaFormidableForms.getLocationHref() ).toBe( 'http://domain.tld/' );
 	} );
 } );
