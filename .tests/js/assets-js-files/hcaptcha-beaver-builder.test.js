@@ -60,8 +60,7 @@ describe( 'hCaptcha Beaver Builder', () => {
 	test( 'does not append anything when data is not a string', () => {
 		options.data = {};
 		ajaxPrefilterCallback( options );
-		expect( options.data ).not.toContain( 'h-captcha-response' );
-		expect( options.data ).not.toContain( 'hcaptcha_beaver_builder_nonce' );
-		expect( options.data ).not.toContain( 'hcaptcha_login_nonce' );
+		expect( typeof options.data ).not.toBe( 'string' );
+		expect( options.data ).toEqual( {} );
 	} );
 } );
