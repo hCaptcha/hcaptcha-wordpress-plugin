@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\EasyDigitalDownloads;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 
@@ -88,7 +89,7 @@ class Login {
 	 * @return void
 	 */
 	public function verify(): void {
-		$this->error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $this->error_message ) {
 			// Prevent login.

@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\SimpleDownloadMonitor;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -98,7 +99,7 @@ class Form {
 		$_POST[ self::NONCE ]        = $_GET[ self::NONCE ] ?? '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		unset( $_POST['h-captcha-response'], $_POST[ self::NONCE ] );
 

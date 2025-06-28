@@ -1,12 +1,13 @@
 <?php
 /**
- * Register class file.
+ * 'Register' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\MemberPress;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -66,10 +67,7 @@ class Register {
 	 * @return array|mixed
 	 */
 	public function verify( $errors ) {
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$errors[] = $error_message;

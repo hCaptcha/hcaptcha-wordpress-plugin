@@ -85,7 +85,7 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
 
 		$subject = new Form();
 
@@ -102,7 +102,7 @@ class BaseTest extends HCaptchaWPTestCase {
 		$hash  = 'some hash';
 		$error = new WP_Error( 'invalid_hcaptcha', 'The hCaptcha is invalid.' );
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
+		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
 
 		$subject = new Form();
 

@@ -876,7 +876,7 @@ class HCaptcha {
 	public static function decode_id_info( string $hashed_id_field = '' ): array {
 		$hashed_id_field = $hashed_id_field ?: self::HCAPTCHA_WIDGET_ID;
 
-		// Nonce is checked in hcaptcha_verify_post().
+		// Nonce is checked in \HCaptcha\Helpers\API::verify_post().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$hashed_id = isset( $_POST[ $hashed_id_field ] ) ?
 			filter_var( wp_unslash( $_POST[ $hashed_id_field ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\BBPress;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -52,7 +53,7 @@ class Register {
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
@@ -93,10 +94,7 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ): WP_Error {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		return HCaptcha::add_error_message( $errors, $error_message );
 	}

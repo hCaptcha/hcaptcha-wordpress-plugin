@@ -1,21 +1,45 @@
 /* global jQuery, HCaptchaFormidableFormsObject */
 
 /**
- * @param HCaptchaFluentFormObject.noticeLabel
- * @param HCaptchaFluentFormObject.noticeDescription
+ * @param hCaptchaFormidableForms.noticeLabel
+ * @param hCaptchaFormidableForms.noticeDescription
  */
-jQuery( document ).ready( function( $ ) {
-	if ( ! window.location.href.includes( 'page=formidable-settings' ) ) {
-		return;
-	}
 
-	const $howTo = $( '#hcaptcha_settings .howto' );
+const formidableForms = window.hCaptchaFormidableForms || ( function( document, window, $ ) {
+	/**
+	 * Public functions and properties.
+	 *
+	 * @type {Object}
+	 */
+	const app = {
+		init() {
+			$( app.ready );
+		},
 
-	$howTo.html( HCaptchaFormidableFormsObject.noticeLabel );
-	$( '<p class="howto">' + HCaptchaFormidableFormsObject.noticeDescription + '</p>' ).insertAfter( $howTo );
+		ready() {
+			if ( ! app.getLocationHref().includes( 'page=formidable-settings' ) ) {
+				return;
+			}
 
-	$( '#hcaptcha_settings input' ).attr( {
-		disabled: true,
-		class: 'frm_noallow',
-	} );
-} );
+			const $howTo = $( '#hcaptcha_settings .howto' );
+
+			$howTo.html( HCaptchaFormidableFormsObject.noticeLabel );
+			$( '<p class="howto">' + HCaptchaFormidableFormsObject.noticeDescription + '</p>' ).insertAfter( $howTo );
+
+			$( '#hcaptcha_settings input' ).attr( {
+				disabled: true,
+				class: 'frm_noallow',
+			} );
+		},
+
+		getLocationHref() {
+			return window.location.href;
+		},
+	};
+
+	return app;
+}( document, window, jQuery ) );
+
+window.hCaptchaFormidableForms = formidableForms;
+
+formidableForms.init();

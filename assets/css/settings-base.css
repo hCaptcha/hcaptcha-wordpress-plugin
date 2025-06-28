@@ -116,30 +116,6 @@ body.settings_page_hcaptcha {
 	color: #dadada;
 }
 
-#hcaptcha-options .button-primary {
-	background-color: #026593;
-	color: #ffffff;
-	border-color: #026593;
-}
-
-#hcaptcha-options .button-primary:hover {
-	background-color: #025176;
-}
-
-#hcaptcha-options .button-secondary {
-	background-color: #ffffff;
-	color: #026593;
-	border-color: #026593;
-}
-
-#hcaptcha-options .button-secondary:hover {
-	background-color: #cccccc;
-}
-
-#hcaptcha-options a {
-	color: #0075ab;
-}
-
 #hcaptcha-navigation a {
 	border-color: #0075ab;
 }

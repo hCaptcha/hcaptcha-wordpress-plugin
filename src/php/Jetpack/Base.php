@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Jetpack;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use WP_Error;
@@ -44,7 +45,7 @@ abstract class Base {
 	protected $error_message;
 
 	/**
-	 * Errored form hash.
+	 * Errored hash of the form.
 	 *
 	 * @var string|null
 	 */
@@ -103,10 +104,7 @@ abstract class Base {
 	 * @return bool|WP_Error|mixed
 	 */
 	public function verify( $is_spam = false ) {
-		$this->error_message = hcaptcha_get_verify_message(
-			static::NAME,
-			static::ACTION
-		);
+		$this->error_message = API::verify_post( static::NAME, static::ACTION );
 
 		if ( null === $this->error_message ) {
 			return $is_spam;
@@ -157,7 +155,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Print hCaptcha script when editing a page with Jetpack form.
+	 * Print hCaptcha script when editing a page with a Jetpack form.
 	 *
 	 * @param bool|mixed $status Current print status.
 	 *
@@ -354,7 +352,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Check if currently editing post contains a Jetpack form.
+	 * Check if the currently editing post contains a Jetpack form.
 	 *
 	 * @return bool
 	 */

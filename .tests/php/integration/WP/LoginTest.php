@@ -106,7 +106,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
 		$subject = new Login();
 
@@ -375,7 +375,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$user = new WP_User( 1 );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 
 		$_POST['log'] = 'some login';
 		$_POST['pwd'] = 'some password';
@@ -397,7 +397,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify_NOT_limit_exceeded(): void {
 		$user = new WP_User( 1 );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 		update_option( 'hcaptcha_settings', [ 'login_limit' => 5 ] );
 		hcaptcha()->init_hooks();
 
@@ -422,7 +422,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$user     = new WP_User( 1 );
 		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
 
 		$_POST['log'] = 'some login';
 		$_POST['pwd'] = 'some password';

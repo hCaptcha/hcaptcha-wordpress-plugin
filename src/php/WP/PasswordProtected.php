@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Post;
 
@@ -74,7 +75,7 @@ class PasswordProtected {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify(): void {
-		$result = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$result = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {
 			return;

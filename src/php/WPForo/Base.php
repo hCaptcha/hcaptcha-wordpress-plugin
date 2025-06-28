@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WPForo;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -63,7 +64,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Verify new topic captcha.
+	 * Verify a new topic captcha.
 	 *
 	 * @param mixed $data Data.
 	 *
@@ -71,10 +72,7 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $data ) {
-		$error_message = hcaptcha_get_verify_message(
-			static::NAME,
-			static::ACTION
-		);
+		$error_message = API::verify_post( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {
 			WPF()->notice->add( $error_message, 'error' );
@@ -86,7 +84,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Filter print hCaptcha scripts status and return true if WPForo template filter was used.
+	 * Filter printed hCaptcha scripts status and return true if WPForo template filter was used.
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *

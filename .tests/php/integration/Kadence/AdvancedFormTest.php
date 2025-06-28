@@ -23,12 +23,12 @@ use ReflectionException;
 class AdvancedFormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['current_screen'], $_POST['h-captcha-response'] );
+		unset( $GLOBALS['current_screen'], $_POST );
 
 		parent::tearDown();
 	}
@@ -148,7 +148,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	public function test_process_ajax(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
 
@@ -160,7 +160,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test process_ajax() when not success.
 	 *
-	 * @param bool|null $result Result of hcaptcha_request_verify().
+	 * @param bool|null $result Result of \HCaptcha\Helpers\API::verify_request().
 	 *
 	 * @return void
 	 * @dataProvider dp_test_process_ajax_when_not_success
@@ -188,7 +188,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, $result );
+		$this->prepare_verify_request( $hcaptcha_response, $result );
 
 		if ( null === $result ) {
 			unset( $_POST['h-captcha-response'] );
@@ -211,11 +211,6 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 		ob_start();
 		$subject->process_ajax();
 		$json = ob_get_clean();
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		self::assertFalse( isset( $_POST['h-captcha-response'] ) );
-		self::assertFalse( isset( $_POST['g-recaptcha-response'] ) );
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		self::assertSame( wp_json_encode( $expected_json ), $json );
 		self::assertSame( $expected, $die_arr );

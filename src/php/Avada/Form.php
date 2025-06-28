@@ -1,13 +1,15 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Avada;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Form.
@@ -117,17 +119,15 @@ class Form {
 	public function verify( $demo_mode ) {
 
 		// Nonce is checked by Avada.
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
-		$form_data = isset( $_POST['formData'] ) ?
-			filter_var( wp_unslash( $_POST['formData'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			[];
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$form_data = isset( $_POST['formData'] )
+			? wp_parse_args( html_entity_decode( wp_unslash( $_POST['formData'] ) ) )
+			: [];
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-		$form_data                   = wp_parse_args( str_replace( '&amp;', '&', $form_data ) );
-		$hcaptcha_response           = $form_data['h-captcha-response'] ?? '';
 		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
 
-		$result = hcaptcha_request_verify( $hcaptcha_response );
+		$result = API::verify( $this->get_entry( $form_data ) );
 
 		if ( null === $result ) {
 			return $demo_mode;
@@ -141,5 +141,46 @@ class Form {
 				]
 			)
 		);
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		$form_id = 0;
+
+		foreach ( $form_data as $key => $value ) {
+			if ( 0 === strpos( $key, 'fusion-form-nonce-' ) ) {
+				$form_id = (int) str_replace( 'fusion-form-nonce-', '', $key );
+
+				break;
+			}
+		}
+
+		$form = get_post( $form_id );
+
+		$entry = [
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $form->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+
+		$field_types = json_decode( Request::filter_input( INPUT_POST, 'field_types' ), true );
+
+		foreach ( $form_data as $key => $value ) {
+			$type = $field_types[ $key ] ?? '';
+
+			if ( ! in_array( $type, [ 'text', 'email', 'textarea' ], true ) ) {
+				continue;
+			}
+
+			$entry['data'][ $key ] = $value;
+		}
+
+		return $entry;
 	}
 }

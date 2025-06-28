@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -12,9 +12,8 @@ namespace HCaptcha\Forminator;
 
 use Forminator_CForm_Front;
 use Forminator_Front_Action;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
-use Quform_Element_Page;
-use Quform_Form;
 
 /**
  * Class Form.
@@ -133,13 +132,13 @@ class Form {
 
 		foreach ( $module_object->fields as $key => $field ) {
 			if ( isset( $field->raw['captcha_provider'] ) && 'hcaptcha' === $field->raw['captcha_provider'] ) {
-				// Remove hCaptcha field from the form to prevent it from verifying by Forminator.
+				// Remove the hCaptcha field from the form to prevent it from verifying by Forminator.
 				unset( $module_object->fields[ $key ] );
 				break;
 			}
 		}
 
-		$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			return [
@@ -152,7 +151,7 @@ class Form {
 	}
 
 	/**
-	 * Filter print hCaptcha scripts status and return true on Forminator form wizard page.
+	 * Filter printed hCaptcha scripts status and return true on Forminator form wizard page.
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *

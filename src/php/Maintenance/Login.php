@@ -8,6 +8,7 @@
 namespace HCaptcha\Maintenance;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
@@ -50,7 +51,7 @@ class Login extends LoginBase {
 	}
 
 	/**
-	 * Start output buffer.
+	 * Start the output buffer.
 	 *
 	 * @return void
 	 */
@@ -84,8 +85,7 @@ class Login extends LoginBase {
 	 *
 	 * @since        1.0
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous callback failed authentication.
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error
@@ -102,10 +102,7 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		$this->error_message = hcaptcha_get_verify_message_html(
-			self::NONCE,
-			self::ACTION
-		);
+		$this->error_message = API::verify_post_html( self::NONCE, self::ACTION );
 
 		if ( null === $this->error_message ) {
 			return $user;

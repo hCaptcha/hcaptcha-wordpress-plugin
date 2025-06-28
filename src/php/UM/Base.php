@@ -8,6 +8,7 @@
 namespace HCaptcha\UM;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -195,8 +196,6 @@ abstract class Base extends LoginBase {
 		if ( $fields->is_error( self::KEY ) ) {
 			if ( version_compare( UM_VERSION, '2.7.0', '<' ) ) {
 				// @codeCoverageIgnoreStart
-				// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-				/** @noinspection PhpParamsInspection */
 				$output .= $fields->field_error( $fields->show_error( self::KEY ) );
 				// @codeCoverageIgnoreEnd
 			} else {
@@ -223,10 +222,7 @@ abstract class Base extends LoginBase {
 			return;
 		}
 
-		$error_message = hcaptcha_get_verify_message(
-			$this->hcaptcha_nonce,
-			$this->hcaptcha_action
-		);
+		$error_message = API::verify_post( $this->hcaptcha_nonce, $this->hcaptcha_action );
 
 		if ( null === $error_message ) {
 			return;

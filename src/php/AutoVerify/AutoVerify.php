@@ -7,6 +7,7 @@
 
 namespace HCaptcha\AutoVerify;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Widget_Block;
@@ -161,7 +162,7 @@ class AutoVerify {
 		$action = $args['action'] ?? '';
 		$name   = $args['name'] ?? '';
 		$ajax   = $args['ajax'] ?? '';
-		$result = hcaptcha_verify_post( $name, $action );
+		$result = API::verify_post( $name, $action );
 
 		if ( $ajax ) {
 			add_filter( 'wp_doing_ajax', '__return_true' );
@@ -193,7 +194,7 @@ class AutoVerify {
 			$action = $this->get_form_action( $form );
 
 			if ( ! $action ) {
-				// We cannot register form without action specified or determined from $_SERVER['REQUEST_URI'].
+				// We cannot register a form without action specified or determined from $_SERVER['REQUEST_URI'].
 				continue;
 			}
 
@@ -247,7 +248,7 @@ class AutoVerify {
 	}
 
 	/**
-	 * Get REQUEST_URI without trailing slash.
+	 * Get REQUEST_URI without a trailing slash.
 	 *
 	 * @return string
 	 */
@@ -411,7 +412,7 @@ class AutoVerify {
 			return null;
 		}
 
-		// Nonce is verified later, in hcaptcha_verify_post().
+		// Nonce is verified later, in \HCaptcha\Helpers\API::verify_post().
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$post_keys = array_keys( $_POST );
 

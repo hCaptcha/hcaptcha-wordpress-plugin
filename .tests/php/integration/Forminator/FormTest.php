@@ -142,7 +142,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'error'      => $error_message,
 		];
 
-		$this->prepare_hcaptcha_get_verify_message(
+		$this->prepare_verify_post(
 			'hcaptcha_forminator_nonce',
 			'hcaptcha_forminator',
 			false
@@ -174,7 +174,7 @@ class FormTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		$this->prepare_hcaptcha_get_verify_message(
+		$this->prepare_verify_post(
 			'hcaptcha_forminator_nonce',
 			'hcaptcha_forminator'
 		);

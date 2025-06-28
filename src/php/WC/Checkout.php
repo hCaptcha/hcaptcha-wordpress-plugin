@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WC;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_HTTP_Response;
@@ -133,10 +134,7 @@ class Checkout {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): void {
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );
@@ -144,7 +142,7 @@ class Checkout {
 	}
 
 	/**
-	 * Verify checkout block.
+	 * Verify the checkout block.
 	 *
 	 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
 	 *                                                                   Usually a WP_REST_Response or WP_Error.
@@ -164,7 +162,7 @@ class Checkout {
 		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
 		$hcaptcha_response        = $request->get_param( $hcaptcha_response_name );
 
-		$error_message = hcaptcha_request_verify( $hcaptcha_response );
+		$error_message = API::verify_request( $hcaptcha_response );
 
 		if ( null === $error_message ) {
 			return $response;

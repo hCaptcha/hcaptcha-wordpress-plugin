@@ -7,6 +7,7 @@
 
 namespace HCaptcha\ProfileBuilder;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -69,7 +70,7 @@ class LostPassword {
 	/**
 	 * Add captcha.
 	 *
-	 * @param string|mixed $output Recover password form html.
+	 * @param string|mixed $output Recover password form HTML.
 	 *
 	 * @return string|mixed
 	 */
@@ -93,7 +94,7 @@ class LostPassword {
 	 *
 	 * @param false|mixed  $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
@@ -118,10 +119,7 @@ class LostPassword {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$this->error_message = hcaptcha_verify_post(
-			static::NONCE,
-			static::ACTION
-		);
+		$this->error_message = API::verify_post( static::NONCE, static::ACTION );
 
 		if ( null === $this->error_message ) {
 			return $output;

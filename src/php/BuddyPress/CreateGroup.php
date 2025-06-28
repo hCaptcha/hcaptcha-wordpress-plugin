@@ -1,12 +1,13 @@
 <?php
 /**
- * Create group class file.
+ * 'CreateGroup' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\BuddyPress;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -25,7 +26,7 @@ class CreateGroup {
 	private const NAME = 'hcaptcha_bp_create_group_nonce';
 
 	/**
-	 * Create Group constructor.
+	 * Class constructor.
 	 */
 	public function __construct() {
 		$this->init_hooks();
@@ -78,7 +79,7 @@ class CreateGroup {
 			return false;
 		}
 
-		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );
+		$error_message = API::verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			bp_core_add_message( $error_message, 'error' );

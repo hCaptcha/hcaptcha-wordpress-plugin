@@ -47,7 +47,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Get an object protected property.
+	 * Get a protected property of an object.
 	 *
 	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
@@ -66,7 +66,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Set an object protected property.
+	 * Set a protected property of an object.
 	 *
 	 * @param object $subject       Object.
 	 * @param string $property_name Property name.
@@ -82,7 +82,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Set an object protected method accessibility.
+	 * Set the accessibility of a protected method of an object.
 	 *
 	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
@@ -346,7 +346,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Get test form fields of General class.
+	 * Get test form fields of the General class.
 	 *
 	 * @return array
 	 */
@@ -789,7 +789,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Get test form fields of Integrations class.
+	 * Get test form fields of the Integrations class.
 	 *
 	 * @return array
 	 */

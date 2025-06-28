@@ -10,7 +10,9 @@
 
 namespace HCaptcha\Quform;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use Quform_Element;
 use Quform_Element_Field;
 use Quform_Element_Page;
 use Quform_Form;
@@ -51,6 +53,13 @@ class Quform {
 	private const MAX_ID = '9999_9999';
 
 	/**
+	 * Entry.
+	 *
+	 * @var array
+	 */
+	private $entry = [];
+
+	/**
 	 * Quform constructor.
 	 */
 	public function __construct() {
@@ -62,9 +71,9 @@ class Quform {
 	 *
 	 * @return void
 	 */
-	public function init_hooks(): void {
+	private function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
-		add_filter( 'quform_pre_validate', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'quform_post_validate', [ $this, 'verify' ], 10, 2 );
 		add_filter( 'quform_element_valid', [ $this, 'element_valid' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
@@ -75,7 +84,7 @@ class Quform {
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
@@ -136,7 +145,7 @@ class Quform {
 	private function replace_hcaptcha( string $output, int $form_id ): string {
 		return (string) preg_replace(
 			'#<div class="quform-hcaptcha"(.+?)>(.*?)</div>#',
-			'<div class="quform-hcaptcha"$1>' . $this->get_hcaptcha( $form_id ) . '</div>',
+			'<div class="quform-hcaptcha" $1>' . $this->get_hcaptcha( $form_id ) . '</div>',
 			$output
 		);
 	}
@@ -147,33 +156,35 @@ class Quform {
 	 * @param array|mixed $result Result.
 	 * @param Quform_Form $form   Form.
 	 *
-	 * @return array|mixed
+	 * @return array
 	 */
-	public function verify( $result, Quform_Form $form ) {
-		$page           = $form->getCurrentPage();
-		$page_id        = $page ? $page->getId() : 0;
-		$hcaptcha_name  = $this->get_element_id( $page );
-		$hcaptcha_error = [
-			'type'   => 'error',
-			'error'  =>
-				[
-					'enabled' => false,
-					'title'   => '',
-					'content' => '',
-				],
-			'errors' => [ $hcaptcha_name => '' ],
-			'page'   => $page_id,
-		];
+	public function verify( $result, Quform_Form $form ): array {
+		$result = (array) $result;
 
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
+		$success = empty( $result ) || 'success' === ( $result['type'] ?? '' );
+
+		if ( ! $success ) {
+			return $result;
+		}
+
+		$error_message = API::verify( $this->get_entry( $form ) );
 
 		if ( null !== $error_message ) {
-			$hcaptcha_error['errors'] = [ $hcaptcha_name => $error_message ];
+			$page          = $form->getCurrentPage();
+			$page_id       = $page ? $page->getId() : 0;
+			$hcaptcha_name = $this->get_element_id( $page );
 
-			return $hcaptcha_error;
+			return [
+				'type'   => 'error',
+				'error'  =>
+					[
+						'enabled' => false,
+						'title'   => '',
+						'content' => '',
+					],
+				'errors' => [ $hcaptcha_name => $error_message ],
+				'page'   => $page_id,
+			];
 		}
 
 		return $result;
@@ -184,13 +195,13 @@ class Quform {
 	 * Validate hCaptcha element.
 	 *
 	 * @param bool|mixed           $valid   Element is valid.
-	 * @param string               $value   Value.
+	 * @param string|array         $value   Value.
 	 * @param Quform_Element_Field $element Element instance.
 	 *
 	 * @return bool|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function element_valid( $valid, string $value, Quform_Element_Field $element ) {
+	public function element_valid( $valid, $value, Quform_Element_Field $element ) {
 		$config = $element->config();
 
 		if ( ! $this->is_hcaptcha_element( $config ) ) {
@@ -277,7 +288,7 @@ class Quform {
 	}
 
 	/**
-	 * Get element id in the form.
+	 * Get an element id in the form.
 	 *
 	 * @param Quform_Element_Page|null $page Current page.
 	 *
@@ -343,5 +354,81 @@ class Quform {
 		];
 
 		return HCaptcha::form( $args );
+	}
+
+	/**
+	 * Retrieves the entry from the given form.
+	 *
+	 * @param Quform_Form $form The form object from which to retrieve entries.
+	 *
+	 * @return array Form entry data.
+	 */
+	private function get_entry( Quform_Form $form ): array {
+		global $wpdb;
+
+		$form_id     = $form->getId();
+		$values      = $form->getValues();
+		$this->entry = [
+			'data' => [],
+		];
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated_at = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT updated_at FROM {$wpdb->prefix}quform_forms WHERE id = %d",
+				$form_id
+			)
+		);
+
+		if ( $updated_at ) {
+			$this->entry['form_date_gmt'] = $updated_at;
+		}
+
+		// Add form data.
+		foreach ( $values as $key => $value ) {
+			$element = $form->getElement( $key );
+
+			if ( ! $element ) {
+				continue;
+			}
+
+			$this->get_element_content( $element, $value );
+		}
+
+		return $this->entry;
+	}
+
+	/**
+	 * Retrieves the content of a form element based on its type and value.
+	 *
+	 * @param Quform_Element $element The form element.
+	 * @param string|array   $value   Element value.
+	 *
+	 * @return void
+	 */
+	private function get_element_content( Quform_Element $element, $value ): void {
+		$type = $element->config()['type'] ?? '';
+
+		if ( ! in_array( $type, [ 'text', 'textarea', 'email', 'date', 'time', 'name', 'html' ], true ) ) {
+			return;
+		}
+
+		if ( 'email' === $type ) {
+			$this->entry['email'] = $value;
+		}
+
+		if ( 'name' === $type ) {
+			$value               = implode( ' ', $value );
+			$this->entry['name'] = $value;
+		}
+
+		if ( 'html' === $type ) {
+			$value = wp_strip_all_tags( $value );
+		}
+
+		$label = trim( $element->config()['label'] ?? '' );
+		$label = $label ?: $type;
+
+		$this->entry['data'][ $label ] = $value;
 	}
 }

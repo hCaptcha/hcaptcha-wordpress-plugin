@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Spectra;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Block;
@@ -119,24 +120,22 @@ class Form {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$form_data = isset( $_POST['form_data'] ) ?
-			json_decode( sanitize_text_field( wp_unslash( $_POST['form_data'] ) ), true ) :
-			[];
+		$form_data = isset( $_POST['form_data'] )
+			? json_decode( sanitize_text_field( wp_unslash( $_POST['form_data'] ) ), true )
+			: [];
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$_POST['h-captcha-response'] = $form_data['h-captcha-response'] ?? '';
-		$_POST[ self::NONCE ]        = $form_data[ self::NONCE ] ?? '';
+		$_POST[ self::NONCE ] = $form_data[ self::NONCE ] ?? '';
 
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry( $form_data ) );
 
-		unset( $_POST['h-captcha-response'], $_POST[ self::NONCE ] );
+		unset( $_POST[ self::NONCE ] );
 
 		if ( null === $error_message ) {
 			return;
 		}
 
-		// Spectra cannot process error messages from the backend.
-		wp_send_json_error( 400 );
+		wp_send_json_error( $error_message );
 	}
 
 	/**
@@ -219,5 +218,112 @@ class Form {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		$post_id = (int) Request::filter_input( INPUT_POST, 'post_id' );
+		$post    = get_post( $post_id );
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+
+		$blocks = parse_blocks( $post->post_content ?? '' );
+		$fields = $this->get_fields( $blocks );
+		$name   = [];
+
+		foreach ( $fields as $field ) {
+			$value = $form_data[ $field['label'] ] ?? '';
+
+			if ( 'name' === $field['type'] ) {
+				$name[] = $value;
+			}
+
+			if ( 'email' === $field['type'] ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $field['label'] ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
+	}
+
+	/**
+	 * Get Spectra fields.
+	 *
+	 * @param array $blocks Blocks.
+	 *
+	 * @return array
+	 */
+	private function get_fields( array $blocks ): array {
+		$block_id     = Request::filter_input( INPUT_POST, 'block_id' );
+		$form         = $this->get_form( $blocks, $block_id );
+		$inner_blocks = $form['innerBlocks'] ?? [];
+		$fields       = [];
+
+		foreach ( $inner_blocks as $inner_block ) {
+			if ( ! preg_match( '#uagb/forms-(.+)#', $inner_block['blockName'], $m ) ) {
+				continue;
+			}
+
+			$type = $m[1];
+
+			if ( ! in_array( $type, [ 'name', 'email', 'textarea' ], true ) ) {
+				continue;
+			}
+
+			$label = '';
+
+			if ( preg_match( '#<div class="uagb-forms-' . $type . '-label.*?>(.*?)</div>#', $inner_block['innerHTML'], $m ) ) {
+				$label = $m[1];
+			}
+
+			$fields[] = [
+				'type'  => $type,
+				'label' => $label,
+			];
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Get a Spectra form.
+	 *
+	 * @param array  $blocks   Blocks.
+	 * @param string $block_id Block ID.
+	 *
+	 * @return array
+	 */
+	private function get_form( array $blocks, string $block_id ): array {
+		foreach ( $blocks as $block ) {
+			$current_block_id = $block['attrs']['block_id'] ?? '';
+
+			if ( 'uagb/forms' === $block['blockName'] && $current_block_id === $block_id ) {
+				return $block;
+			}
+
+			$form = $this->get_form( $block['innerBlocks'] ?? [], $block_id );
+
+			if ( $form ) {
+				return $form;
+			}
+		}
+
+		return [];
 	}
 }

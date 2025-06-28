@@ -12,6 +12,7 @@ namespace HCaptcha\EventsManager;
 
 use EM_Booking;
 use EM_Event;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -80,7 +81,7 @@ class Booking {
 	 * @return bool
 	 */
 	public function verify( $validated, EM_Booking $booking ): bool {
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $validated;

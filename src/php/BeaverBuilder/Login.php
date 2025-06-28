@@ -11,6 +11,7 @@
 namespace HCaptcha\BeaverBuilder;
 
 use FLBuilderModule;
+use HCaptcha\Helpers\API;
 use WP_Error;
 use WP_User;
 
@@ -60,8 +61,7 @@ class Login extends Base {
 	/**
 	 * Verify a login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
+	 * @param WP_User|WP_Error $user     WP_User or WP_Error object if a previous callback failed authentication.
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error
@@ -76,10 +76,7 @@ class Login extends Base {
 			return $user;
 		}
 
-		$error_message = hcaptcha_get_verify_message_html(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $user;

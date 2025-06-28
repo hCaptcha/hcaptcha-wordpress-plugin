@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\WPDiscuz;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_User;
 
@@ -102,7 +103,7 @@ class Comment extends Base {
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
-		$result = hcaptcha_request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null === $result ) {
 			return $comment_data;

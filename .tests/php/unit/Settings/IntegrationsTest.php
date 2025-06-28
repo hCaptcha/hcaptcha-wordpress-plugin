@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Unit\Settings;
 use HCaptcha\ACFE\Form;
 use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\Settings;
 use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
@@ -32,7 +33,7 @@ use HCaptcha\Helpers\Utils;
 class IntegrationsTest extends HCaptchaTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -195,6 +196,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$form_fields['woocommerce_status']['disabled'] = false;
 
 		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldAllowMockingProtectedMethods();
 
 		$main->modules = [
 			'WooCommerce Register'  => [
@@ -208,6 +210,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 				'create_class',
 			],
 		];
+
+		$settings = Mockery::mock( Settings::class )->makePartial();
+
+		$this->set_protected_property( $main, 'settings', $settings );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -256,7 +262,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test setup_fields() not on the options screen.
+	 * Test setup_fields() not on the option screen.
 	 *
 	 * @return void
 	 */
@@ -503,7 +509,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test activate() for plugin.
+	 * Test activate() for the plugin.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpConditionAlreadyCheckedInspection
@@ -580,7 +586,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_activate_for_theme(): void {
-		$activate    = false; // Deactivate theme.
+		$activate    = false; // Deactivate the theme.
 		$entity      = 'theme';
 		$new_theme   = 'twentytwentyfour';
 		$status      = 'divi_status';
@@ -787,8 +793,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test process_plugins() with deactivation.
 	 *
-	 * @param bool $is_multisite    Is multisite.
-	 * @param bool $is_network_wide Is network wide.
+	 * @param bool $is_multisite    It is a multisite.
+	 * @param bool $is_network_wide It is network wide.
 	 *
 	 * @return void
 	 * @noinspection PhpConditionAlreadyCheckedInspection
@@ -905,7 +911,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test process_theme() with empty theme.
+	 * Test process_theme() with an empty theme.
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
@@ -956,7 +962,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test process_theme() with empty theme and no default theme.
+	 * Test process_theme() with an empty theme and no default theme.
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
@@ -1281,7 +1287,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test maybe_activate_plugin() when plugin is active.
+	 * Test maybe_activate_plugin() when the plugin is active.
 	 *
 	 * @return void
 	 */
@@ -1914,7 +1920,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test install_entity() with skin error.
+	 * Test install_entity() with a skin error.
 	 *
 	 * @return void
 	 */
@@ -1996,7 +2002,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test install_entity() with filesystem error.
+	 * Test install_entity() with a filesystem error.
 	 *
 	 * @return void
 	 */
@@ -2017,8 +2023,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		global $wp_filesystem;
 
-		$status['errorCode']    = 'unable_to_connect_to_filesystem';
-		$status['errorMessage'] = 'Unable to connect to the filesystem. Please confirm your credentials.';
+		$status['errorCode'] = 'unable_to_connect_to_filesystem';
 
 		// Filesystem error case.
 		$filesystem_error_message = 'Some filesystem error.';

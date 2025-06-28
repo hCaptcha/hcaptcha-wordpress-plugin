@@ -10,6 +10,7 @@
 
 namespace HCaptcha\CF7;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WPCF7_FormTag;
 use WPCF7_Submission;
@@ -60,7 +61,7 @@ class CF7 extends Base {
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string
@@ -226,7 +227,7 @@ class CF7 extends Base {
 
 		$data           = $submission->get_posted_data();
 		$response       = $data['h-captcha-response'] ?? '';
-		$captcha_result = hcaptcha_request_verify( $response );
+		$captcha_result = API::verify_request( $response );
 
 		if ( null !== $captcha_result ) {
 			return $this->get_invalidated_result( $result, $captcha_result );
@@ -236,7 +237,7 @@ class CF7 extends Base {
 	}
 
 	/**
-	 * Whether form has a field of given type.
+	 * Whether form has a field of a given type.
 	 *
 	 * @param WPCF7_Submission $submission Submission.
 	 * @param string           $type       Field type.
@@ -262,7 +263,7 @@ class CF7 extends Base {
 		}
 
 		/**
-		 * Filter whether form has a field of given type.
+		 * Filter whether a form has a field of a given type.
 		 *
 		 * @param bool $has_field Form has field.
 		 */
@@ -270,7 +271,7 @@ class CF7 extends Base {
 	}
 
 	/**
-	 * Get invalidated result.
+	 * Get an invalidated result.
 	 *
 	 * @param WPCF7_Validation|mixed $result         Result.
 	 * @param string|null            $captcha_result hCaptcha result.

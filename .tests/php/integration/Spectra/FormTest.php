@@ -162,18 +162,22 @@ HTML;
 	 * @return void
 	 */
 	public function test_process_ajax(): void {
-		$nonce_field_name   = 'hcaptcha_spectra_form_nonce';
-		$nonce_action_name  = 'hcaptcha_spectra_form';
-		$hcaptcha_response  = 'some response';
-		$form_data          = wp_json_encode(
+		$nonce_field_name  = 'hcaptcha_spectra_form_nonce';
+		$nonce_action_name = 'hcaptcha_spectra_form';
+		$hcaptcha_response = 'some response';
+		$form_data         = wp_json_encode(
 			[
 				'h-captcha-response' => $hcaptcha_response,
 				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
 			]
 		);
+
+		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
+
+		$_POST['post_id']   = $post_id;
 		$_POST['form_data'] = $form_data;
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
@@ -202,7 +206,7 @@ HTML;
 		);
 		$response          = [
 			'success' => false,
-			'data'    => 400,
+			'data'    => 'Please complete the hCaptcha.',
 		];
 		$expected          = [
 			'',
@@ -210,7 +214,11 @@ HTML;
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
+
+		$_POST['post_id'] = $post_id;
+
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\BBPress;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -57,7 +58,7 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): bool {
-		$error_message = hcaptcha_get_verify_message( static::NAME, static::ACTION );
+		$error_message = API::verify_post( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {
 			bbp_add_error( 'hcap_error', $error_message );

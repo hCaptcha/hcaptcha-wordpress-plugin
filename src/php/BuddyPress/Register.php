@@ -1,12 +1,13 @@
 <?php
 /**
- * Register class file.
+ * 'Register' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\BuddyPress;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -78,10 +79,7 @@ class Register {
 	public function verify(): bool {
 		global $bp;
 
-		$error_message = hcaptcha_get_verify_message(
-			self::NAME,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$bp->signup->errors['hcaptcha_response_verify'] = $error_message;

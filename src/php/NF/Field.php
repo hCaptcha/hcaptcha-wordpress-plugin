@@ -12,6 +12,7 @@
 
 namespace HCaptcha\NF;
 
+use HCaptcha\Helpers\API;
 use NF_Abstracts_Field;
 
 /**
@@ -90,7 +91,7 @@ class Field extends NF_Abstracts_Field implements Base {
 	public function validate( $field, $data ): ?string {
 		$value = $field['value'] ?? '';
 
-		return hcaptcha_request_verify( $value );
+		return API::verify_request( $value );
 	}
 
 	/**

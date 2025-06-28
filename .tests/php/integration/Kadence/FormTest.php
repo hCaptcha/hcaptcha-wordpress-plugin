@@ -25,12 +25,12 @@ use Mockery;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['current_screen'], $_POST['h-captcha-response'] );
+		unset( $GLOBALS['current_screen'], $_POST );
 
 		parent::tearDown();
 	}
@@ -127,7 +127,7 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_process_ajax(): void {
 		$hcaptcha_response = 'some response';
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 
@@ -140,7 +140,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test process_ajax() when not success.
 	 *
-	 * @param bool|null $result Result of hcaptcha_request_verify().
+	 * @param bool|null $result Result of \HCaptcha\Helpers\API::verify_request().
 	 *
 	 * @return void
 	 * @dataProvider dp_test_process_ajax_when_not_success
@@ -169,7 +169,7 @@ class FormTest extends HCaptchaWPTestCase {
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, $result );
+		$this->prepare_verify_request( $hcaptcha_response, $result );
 
 		if ( null === $result ) {
 			unset( $_POST['h-captcha-response'] );
@@ -195,11 +195,6 @@ class FormTest extends HCaptchaWPTestCase {
 		$json = ob_get_clean();
 
 		$expected_json['data']['headers_sent'] = json_decode( $json, true )['data']['headers_sent'];
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		self::assertFalse( isset( $_POST['h-captcha-response'] ) );
-		self::assertFalse( isset( $_POST['g-recaptcha-response'] ) );
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		self::assertSame( wp_json_encode( $expected_json ), $json );
 		self::assertSame( $expected, $die_arr );

@@ -5,8 +5,12 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\LearnPress;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use LP_Checkout;
 use WP_Error;
@@ -71,10 +75,7 @@ class Checkout {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, $fields, LP_Checkout $lp_checkout ) {
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $errors;

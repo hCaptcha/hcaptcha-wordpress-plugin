@@ -86,7 +86,7 @@ class Sendinblue {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function verify_request( $result, array $error_codes ): ?string {
-		// Nonce is checked in the hcaptcha_verify_post().
+		// Nonce is checked in the \HCaptcha\Helpers\API::verify_post().
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['sib_form_action'] ) ) {

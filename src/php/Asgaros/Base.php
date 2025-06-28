@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Asgaros;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -37,7 +38,7 @@ abstract class Base {
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
+	 * @param array|string $attr   Shortcode attribute array or empty string.
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
@@ -73,7 +74,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Verify new topic captcha.
+	 * Verify a new topic captcha.
 	 *
 	 * @param bool|mixed $verified Verified.
 	 *
@@ -82,10 +83,7 @@ abstract class Base {
 	public function verify( $verified ) {
 		global $asgarosforum;
 
-		$error_message = hcaptcha_get_verify_message(
-			static::NAME,
-			static::ACTION
-		);
+		$error_message = API::verify_post( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {
 			$asgarosforum->add_notice( $error_message );

@@ -13,6 +13,7 @@
 namespace HCaptcha\GiveWP;
 
 use Give\DonationForms\ValueObjects\DonationFormErrorTypes;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -113,10 +114,7 @@ abstract class Base {
 			return;
 		}
 
-		$error_message = hcaptcha_get_verify_message(
-			static::NAME,
-			static::ACTION
-		);
+		$error_message = API::verify_post( static::NAME, static::ACTION );
 
 		if ( null !== $error_message ) {
 			give_set_error( 'invalid_hcaptcha', $error_message );
@@ -153,7 +151,7 @@ abstract class Base {
 			'';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = hcaptcha_request_verify( $hcaptcha_response );
+		$error_message = API::verify_request( $hcaptcha_response );
 
 		if ( null === $error_message ) {
 			return;

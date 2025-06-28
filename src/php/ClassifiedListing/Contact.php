@@ -7,6 +7,7 @@
 
 namespace HCaptcha\ClassifiedListing;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -103,13 +104,9 @@ class Contact {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function verify( WP_Error $error, array $data ): void {
-		$error_message = hcaptcha_verify_post(
-			static::NONCE,
-			static::ACTION
-		);
+		$error_message = API::verify_post( static::NONCE, static::ACTION );
 
 		HCaptcha::add_error_message( $error, $error_message );
 	}

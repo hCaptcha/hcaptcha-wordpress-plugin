@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -12,9 +12,10 @@
 
 namespace HCaptcha\MailPoet;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
-use MailPoet\API\JSON\API;
+use MailPoet\API\JSON\API as MailPoetAPI;
 use MailPoet\API\JSON\Response;
 
 /**
@@ -101,11 +102,11 @@ class Form {
 	/**
 	 * Verify MailPoet captcha.
 	 *
-	 * @param API $api MailPoet API instance.
+	 * @param MailPoetAPI $api MailPoet API instance.
 	 *
 	 * @return void
 	 */
-	public function verify( API $api ): void {
+	public function verify( MailPoetAPI $api ): void {
 		if (
 			Request::filter_input( INPUT_POST, 'action' ) !== 'mailpoet' ||
 			Request::filter_input( INPUT_POST, 'endpoint' ) !== 'subscribers' ||
@@ -115,7 +116,7 @@ class Form {
 			return;
 		}
 
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return;

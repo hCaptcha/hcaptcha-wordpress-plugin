@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Mailchimp;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use MC4WP_Form;
@@ -128,9 +129,9 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, MC4WP_Form $form ) {
-		// Do not allow modification of nonce field in the shortcode.
+		// Do not allow modification of the nonce field in the shortcode.
 		// During preview, we cannot recalculate the nonce field.
-		$error_message = hcaptcha_verify_post( self::NAME, self::ACTION );
+		$error_message = API::verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'empty';
@@ -142,7 +143,7 @@ class Form {
 	}
 
 	/**
-	 * Enqueue script in admin to preview the form.
+	 * Enqueue a script in admin to preview the form.
 	 *
 	 * @return void
 	 */

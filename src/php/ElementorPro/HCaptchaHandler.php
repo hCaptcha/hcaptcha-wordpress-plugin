@@ -20,6 +20,7 @@ use Elementor\Widget_Base;
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
 use ElementorPro\Modules\Forms\Module as FormsModule;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Utils;
@@ -257,7 +258,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Get secret key.
+	 * Get a secret key.
 	 *
 	 * @return array|string
 	 */
@@ -293,7 +294,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Is field enabled.
+	 * Whether a field is enabled.
 	 *
 	 * @return bool
 	 */
@@ -375,7 +376,7 @@ class HCaptchaHandler {
 			'';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$result = hcaptcha_request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null !== $result ) {
 			$ajax_handler->add_error( $field['id'], $result );
@@ -464,7 +465,7 @@ class HCaptchaHandler {
 	/**
 	 * After section end.
 	 *
-	 * Fires after Elementor section ends in the editor panel.
+	 * Fires after an Elementor section ends in the editor panel.
 	 *
 	 * The dynamic portions of the hook name, `$stack_name` and `$section_id`,
 	 * refer to the section name and section ID, respectively.
@@ -538,7 +539,7 @@ class HCaptchaHandler {
 	}
 
 	/**
-	 * Add the hCaptcha Elementor Pro script to footer.
+	 * Add the hCaptcha Elementor Pro script to the footer.
 	 *
 	 * @return void
 	 */

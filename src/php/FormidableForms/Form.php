@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -12,6 +12,7 @@ namespace HCaptcha\FormidableForms;
 
 use FrmAppHelper;
 use FrmSettings;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use stdClass;
 
@@ -69,7 +70,7 @@ class Form {
 	}
 
 	/**
-	 * Use this plugin settings for hCaptcha in Formidable Forms.
+	 * Use this plugin setting for hCaptcha in Formidable Forms.
 	 *
 	 * @param mixed|FrmSettings $value  Value of option.
 	 * @param string            $option Option name.
@@ -94,7 +95,7 @@ class Form {
 	}
 
 	/**
-	 * Filter field HTML created and add hCaptcha.
+	 * Filter field HTML being created and add hCaptcha.
 	 *
 	 * @param string|mixed $html  HTML code of the field.
 	 * @param array        $field Field.
@@ -172,10 +173,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, array $values, array $validate_args ) {
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $errors;

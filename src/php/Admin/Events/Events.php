@@ -27,6 +27,12 @@ class Events {
 	public const SERVED_LIMIT = 1000;
 
 	/**
+	 * Verify request hook priority.
+	 * Must be higher than \HCaptcha\AntiSpam\AntiSpam::VERIFY_REQUEST_PRIORITY
+	 */
+	public const VERIFY_REQUEST_PRIORITY = -1000;
+
+	/**
 	 * Saved flag.
 	 *
 	 * @var bool
@@ -52,18 +58,22 @@ class Events {
 			return;
 		}
 
-		add_filter( 'hcap_verify_request', [ $this, 'save_event' ], -PHP_INT_MAX, 2 );
+		add_filter( 'hcap_verify_request', [ $this, 'save_event' ], self::VERIFY_REQUEST_PRIORITY, 3 );
 	}
 
 	/**
 	 * Save event.
 	 *
-	 * @param string|null|mixed $result      The hCaptcha verification result.
-	 * @param array             $error_codes Error codes.
+	 * @since 4.15.0 The `$error_codes` parameter was deprecated.
+	 *
+	 * @param string|null|mixed $result     The result of verification. The null means success.
+	 * @param string[]          $deprecated Error code(s). Empty array on success.
+	 * @param object            $error_info Error info. Contains error codes or empty array on success.
 	 *
 	 * @return string|null|mixed
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function save_event( $result, array $error_codes ) {
+	public function save_event( $result, array $deprecated, object $error_info ) {
 		global $wpdb;
 
 		if ( $this->saved ) {
@@ -117,7 +127,7 @@ class Events {
 				'ip'          => $ip,
 				'user_agent'  => $user_agent,
 				'uuid'        => $uuid,
-				'error_codes' => (string) wp_json_encode( $error_codes ),
+				'error_codes' => (string) wp_json_encode( $error_info->codes ?? [] ),
 				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
 			]
 		);
@@ -263,7 +273,7 @@ class Events {
 	}
 
 	/**
-	 * Create table.
+	 * Create the table.
 	 *
 	 * @return void
 	 */
@@ -327,7 +337,7 @@ class Events {
 	}
 
 	/**
-	 * Get where date GMT with nested request to optimize.
+	 * Get where date GMT with a nested request to optimize.
 	 *
 	 * @param array $args Arguments.
 	 *

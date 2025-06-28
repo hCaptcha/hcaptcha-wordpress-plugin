@@ -7,7 +7,9 @@
 
 namespace HCaptcha\Divi;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Contact
@@ -75,7 +77,7 @@ class Contact {
 	 */
 	public function add_captcha( $output, string $module_slug ) {
 		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
-			// Do not add captcha in frontend builder.
+			// Do not add captcha in the frontend builder.
 
 			return $output;
 		}
@@ -115,12 +117,12 @@ class Contact {
 	}
 
 	/**
-	 * Verify hcaptcha.
-	 * We use shortcode tag filter to make verification.
+	 * Verify hCaptcha.
+	 * We use a shortcode tag filter to make verification.
 	 *
 	 * @param string|false $value Short-circuit return value. Either false or the value to replace the shortcode with.
 	 * @param string       $tag   Shortcode name.
-	 * @param array|string $attr  Shortcode attributes array or empty string.
+	 * @param array|string $attr  Shortcode attribute array or empty string.
 	 * @param array        $m     Regular expression match array.
 	 *
 	 * @return string|false
@@ -138,11 +140,12 @@ class Contact {
 		$submit_field = 'et_pb_contactform_submit_' . $this->render_count;
 		$number_field = 'et_pb_contact_et_number_' . $this->render_count;
 
-		// Check that the form was submitted and et_pb_contact_et_number field is empty to protect from spam.
+		// Check that the form was submitted and the et_pb_contact_et_number field is empty to protect from spam.
 		if ( $nonce_result && isset( $_POST[ $submit_field ] ) && empty( $_POST[ $number_field ] ) ) {
 			// Remove hcaptcha from current form fields, because Divi compares current and submitted fields.
 			$current_form_field  = 'et_pb_contact_email_fields_' . $this->render_count;
 			$current_form_fields = filter_input( INPUT_POST, $current_form_field, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$fields_data_array   = [];
 
 			if ( $current_form_fields ) {
 				$fields_data_json             = html_entity_decode( str_replace( '\\', '', $current_form_fields ) );
@@ -157,7 +160,7 @@ class Contact {
 				$_POST[ $current_form_field ] = wp_slash( $fields_data_json );
 			}
 
-			$error_message = hcaptcha_get_verify_message( self::NONCE, self::ACTION );
+			$error_message = API::verify( $this->get_entry( $fields_data_array ) );
 
 			if ( null !== $error_message ) {
 				// Simulate captcha error.
@@ -208,5 +211,59 @@ class Contact {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $fields_data_array An array of submitted data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $fields_data_array ): array {
+		global $post;
+
+		$entry = [
+			'nonce_name'    => self::NONCE,
+			'nonce_action'  => self::ACTION,
+			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'data'          => [],
+		];
+
+		foreach ( $fields_data_array as $field ) {
+			$field = wp_parse_args(
+				$field,
+				[
+					'field_type'  => '',
+					'field_id'    => '',
+					'original_id' => '',
+					'field_label' => '',
+				]
+			);
+
+			$type = $field['field_type'];
+
+			if ( ! in_array( $type, [ 'input', 'email', 'text' ], true ) ) {
+				continue;
+			}
+
+			$id          = $field['field_id'];
+			$original_id = $field['original_id'];
+			$label       = $field['field_label'];
+			$label       = $label ?: $type;
+			$value       = Request::filter_input( INPUT_POST, $id );
+
+			$entry['data'][ $label ] = $value;
+
+			if ( 'name' === $original_id ) {
+				$entry['name'] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['email'] = $value;
+			}
+		}
+
+		return $entry;
 	}
 }

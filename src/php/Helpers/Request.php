@@ -1,6 +1,6 @@
 <?php
 /**
- * Request class file.
+ * The 'Request' class file.
  *
  * @package hcaptcha-wp
  */
@@ -63,7 +63,7 @@ class Request {
 	 * Case #3: It can happen that WP_Rewrite is not yet initialized,
 	 *          so do this (wp-settings.php)
 	 * Case #4: URL Path begins with wp-json/ (your REST prefix)
-	 *          Also supports WP installations in sub folders
+	 *          Also supports WP installations in subfolders
 	 *
 	 * @return bool
 	 * @author matzeeable
@@ -96,7 +96,7 @@ class Request {
 		}
 
 		// Case #4.
-		$current_url = wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
+		$current_url = (string) wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
 		$rest_url    = wp_parse_url( trailingslashit( rest_url() ), PHP_URL_PATH );
 
 		return 0 === strpos( $current_url, $rest_url );
@@ -198,5 +198,28 @@ class Request {
 
 		// Single IP.
 		return ( $ip === $range ) && filter_var( $range, FILTER_VALIDATE_IP );
+	}
+
+	/**
+	 * Get the current URL.
+	 *
+	 * @return string
+	 */
+	public static function current_url(): string {
+		$parsed_home_url = wp_parse_url( home_url() );
+
+		$url = $parsed_home_url['scheme'] . '://' . $parsed_home_url['host'];
+
+		if ( ! empty( $parsed_home_url['port'] ) ) {
+			$url .= ':' . $parsed_home_url['port'];
+		}
+
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
+			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_URL ) :
+			'';
+
+		$url .= $request_uri;
+
+		return sanitize_url( $url );
 	}
 }

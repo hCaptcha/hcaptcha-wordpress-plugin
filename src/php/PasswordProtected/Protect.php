@@ -1,12 +1,13 @@
 <?php
 /**
- * 'Protect' class file.
+ * The 'Protect' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\PasswordProtected;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -71,7 +72,7 @@ class Protect {
 	public function verify( $errors ): ?WP_Error {
 		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();
 
-		$error_message = hcaptcha_verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $errors;

@@ -562,7 +562,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$field  = current( $fields );
 
 		$hcaptcha_response = 'some response';
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response );
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
@@ -636,7 +636,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$field  = current( $fields );
 
 		$hcaptcha_response = 'some response';
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, false );
+		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
@@ -667,7 +667,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$field  = current( $fields );
 
 		$hcaptcha_response = 'some response';
-		$this->prepare_hcaptcha_request_verify( $hcaptcha_response, null );
+		$this->prepare_verify_request( $hcaptcha_response, null );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );

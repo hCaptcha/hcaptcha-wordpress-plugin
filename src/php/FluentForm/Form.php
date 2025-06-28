@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -16,6 +16,7 @@ use FluentForm\App\Models\Form as FluentForm;
 use FluentForm\App\Modules\Form\FormFieldsParser;
 use FluentForm\Framework\Helpers\ArrayHelper;
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
 use stdClass;
@@ -186,7 +187,7 @@ class Form extends LoginBase {
 
 		$hcaptcha_response           = $data['h-captcha-response'] ?? '';
 		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
-		$error_message               = hcaptcha_request_verify( $hcaptcha_response );
+		$error_message               = API::verify_request( $hcaptcha_response );
 
 		if ( null !== $error_message ) {
 			$errors['h-captcha-response'] = [ $error_message ];
@@ -471,7 +472,7 @@ class Form extends LoginBase {
 	}
 
 	/**
-	 * Get hCaptcha wrapped as Fluent Forms field.
+	 * Get hCaptcha wrapped as a Fluent Forms field.
 	 *
 	 * @return string
 	 */

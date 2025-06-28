@@ -1,12 +1,13 @@
 <?php
 /**
- * Comment class file.
+ * The 'Comment' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -122,7 +123,7 @@ class Comment {
 		// Override poor IP detection by WP Core and make sure that IP is the same in the 'comments' table and in the 'hcaptcha_events' table.
 		$comment_data['comment_author_IP'] = hcap_get_user_ip();
 
-		$this->result = hcaptcha_get_verify_message_html( self::NONCE, self::ACTION );
+		$this->result = API::verify_post_html( self::NONCE, self::ACTION );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 

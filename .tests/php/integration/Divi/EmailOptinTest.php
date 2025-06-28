@@ -81,7 +81,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_get_verify_message_html( EmailOptin::NONCE, EmailOptin::ACTION );
+		$this->prepare_verify_post_html( EmailOptin::NONCE, EmailOptin::ACTION );
 
 		$subject = new EmailOptin();
 
@@ -98,7 +98,7 @@ HTML;
 
 		$et_core_die = FunctionMocker::replace( 'et_core_die' );
 
-		$this->prepare_hcaptcha_get_verify_message_html( EmailOptin::NONCE, EmailOptin::ACTION, false );
+		$this->prepare_verify_post_html( EmailOptin::NONCE, EmailOptin::ACTION, false );
 
 		$subject = new EmailOptin();
 

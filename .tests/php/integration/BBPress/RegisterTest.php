@@ -112,7 +112,7 @@ HTML;
 		$errors->add( 'some code', 'some message' );
 		$expected->add( 'some code', 'some message' );
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register' );
+		$this->prepare_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register' );
 
 		$subject = new Register();
 
@@ -136,7 +136,7 @@ HTML;
 
 		$subject = new Register();
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register', false );
+		$this->prepare_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register', false );
 
 		self::assertEquals( $expected, $subject->verify( $errors, $sanitized_user_login, $user_email ) );
 	}

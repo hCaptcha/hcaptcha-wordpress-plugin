@@ -10,7 +10,7 @@
  * Plugin Name:          hCaptcha for WP
  * Plugin URI:           https://www.hcaptcha.com/
  * Description:          hCaptcha keeps out bots and spam while putting privacy first. It is a drop-in replacement for reCAPTCHA.
- * Version:              4.14.0
+ * Version:              4.15.0
  * Requires at least:    5.3
  * Requires PHP:         7.2
  * Author:               hCaptcha
@@ -21,7 +21,7 @@
  * Domain Path:          /languages/
  *
  * WC requires at least: 3.0
- * WC tested up to:      9.8
+ * WC tested up to:      9.9
  */
 
 // phpcs:ignore Generic.Commenting.DocComment.MissingShort
@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-const HCAPTCHA_VERSION = '4.14.0';
+const HCAPTCHA_VERSION = '4.15.0';
 
 /**
  * Path to the plugin dir.

@@ -383,8 +383,8 @@ HTML;
 					Protect Content				</a>
 			</div>
 			<div class="hcaptcha-whats-new-image">
-															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/protect-content-example.gif" class="hcaptcha-lightbox">
-							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/protect-content-example.gif" alt="What's New block image">
+															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif" class="hcaptcha-lightbox">
+							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif" alt="What's New block image">
 						</a>
 												</div>
 		</div>
@@ -402,8 +402,8 @@ HTML;
 					Upgrade to Pro				</a>
 			</div>
 			<div class="hcaptcha-whats-new-image">
-															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/passive-mode-example.gif" class="hcaptcha-lightbox">
-							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/passive-mode-example.gif" alt="What's New block image">
+															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif" class="hcaptcha-lightbox">
+							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif" alt="What's New block image">
 						</a>
 												</div>
 		</div>
@@ -551,8 +551,8 @@ HTML;
 			<span>
 				<span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">3</span>
 			</span>
-			<a class="prev disabled"></a>
-			<a class="next "></a>
+			<a class="prev button disabled"></a>
+			<a class="next button "></a>
 		</div>
 	</div>
 </div>
@@ -568,7 +568,7 @@ HTML;
 
 		$header  = '<div id="hcaptcha-notifications"> <div id="hcaptcha-notifications-header"> Notifications </div>';
 		$body    = '<div .+</div>';
-		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev disabled"></a> <a class="next "></a> </div> </div> </div>';
+		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev button disabled"></a> <a class="next button "></a> </div> </div> </div>';
 		$pattern = "#($header) ($body) ($footer)#";
 
 		preg_match( $pattern, $expected, $expected_matches );
@@ -802,7 +802,6 @@ HTML;
 	 * Test reset_notifications().
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function est_reset_notifications(): void {
 		$die_arr  = [];
@@ -826,7 +825,7 @@ HTML;
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		// Test the case when bad admin referer.
+		// Test the case when a bad admin referer.
 		ob_start();
 		$subject->reset_notifications();
 		$json = ob_get_clean();
@@ -887,8 +886,8 @@ HTML;
 		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'some-key' ] );
 		remove_all_filters( 'delete_user_metadata' );
 
-		// Test successful case.
-		$this->set_protected_property( $subject, 'shuffle', false );
+		// Test a successful case.
+		add_filter( 'hcap_shuffle_notifications', '__return_false' );
 
 		ob_start();
 		$subject->show();
@@ -931,7 +930,7 @@ HTML;
 
 	/**
 	 * Trim spaces before and after tags.
-	 * Cut pages span as it may contain different number of pages.
+	 * Cut pages span as it may contain different numbers of pages.
 	 *
 	 * @param string $html Html.
 	 *

@@ -1,3 +1,7 @@
+#hcaptcha-options p {
+	margin: 0.5em 0;
+}
+
 .hcaptcha-integrations table tbody {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(100px, 1fr));
@@ -44,7 +48,7 @@
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: auto 80%;
-	background-image: url( '../images/spinner-white.svg' );
+	background-image: url('../images/spinner-white.svg');
 }
 
 .hcaptcha-integrations table tr.install:after,
@@ -59,15 +63,15 @@
 }
 
 .hcaptcha-integrations table tr.install:after {
-	background-image: url( '../images/spinner-gold.svg' );
+	background-image: url('../images/spinner-gold.svg');
 }
 
 .hcaptcha-integrations table tr.on:after {
-	background-image: url( '../images/spinner-green.svg' );
+	background-image: url('../images/spinner-green.svg');
 }
 
 .hcaptcha-integrations table tr.off:after {
-	background-image: url( '../images/spinner-red.svg' );
+	background-image: url('../images/spinner-red.svg');
 }
 
 .hcaptcha-integrations table tr th {
@@ -137,8 +141,41 @@
 }
 
 .hcaptcha-integrations table tr td {
+	display: flex;
 	padding: 0;
 	margin: 0;
+}
+
+.hcaptcha-integrations table tr td fieldset {
+	width: 100%;
+}
+
+.hcaptcha-integrations table tr td fieldset label {
+	width: 100%;
+}
+
+#hcaptcha-options label[data-antispam] + .helper::before {
+	content: '';
+	background: url('../images/antispam-green.svg');
+	background-size: cover;
+	width: 18px;
+	height: 20px;
+	top: 0.35em;
+	border-radius: unset;
+	transform: translate(0, 0);
+}
+
+#hcaptcha-options label[data-antispam="native"] + .helper::before {
+	background: url('../images/antispam-yellow.svg');
+	background-size: cover;
+}
+
+#hcaptcha-options fieldset:disabled label[data-antispam] + .helper::before {
+	opacity: 0.7;
+}
+
+#hcaptcha-options label[data-antispam] + .helper .helper-content {
+	transform: translate(0px, 38px);
 }
 
 .hcaptcha-disabled-section {
@@ -155,7 +192,7 @@
 
 #hcaptcha-integrations-search-wrap:before {
 	content: '';
-	background: url( '../images/magnifying-glass.svg' );
+	background: url('../images/magnifying-glass.svg');
 	background-size: contain;
 	width: 16px;
 	height: 16px;

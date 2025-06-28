@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\BackInStockNotifier;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -74,7 +75,7 @@ class Form {
 	}
 
 	/**
-	 * After submit button action.
+	 * 'After submit button' action.
 	 *
 	 * @param int $product_id   Product id.
 	 * @param int $variation_id Variation id.
@@ -106,7 +107,7 @@ class Form {
 	 * Verify request.
 	 *
 	 * @param array $post_data POST data.
-	 * @param bool  $rest_api  Whether we have request via REST API.
+	 * @param bool  $rest_api  Whether we have a request via REST API.
 	 *
 	 * @return void
 	 */
@@ -114,7 +115,7 @@ class Form {
 
 		$hcaptcha_response = $post_data['h-captcha-response'] ?? '';
 
-		$result = hcaptcha_request_verify( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null === $result ) {
 			return;

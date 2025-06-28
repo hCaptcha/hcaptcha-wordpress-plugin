@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Integration\Admin;
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
-use ReflectionException;
 
 /**
  * Test NotificationsTest class.
@@ -25,7 +24,7 @@ use ReflectionException;
 class NotificationsTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -72,11 +71,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @param bool $empty_keys Whether keys are empty.
 	 * @param bool $pro        Whether it is a Pro account.
 	 * @param bool $force      Whether a force option is on.
+	 * @param bool $antispam   Whether an antispam option is on.
 	 *
 	 * @dataProvider dp_test_get_notifications
 	 * @return void
 	 */
-	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force ): void {
+	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force, bool $antispam = false ): void {
 		global $current_user;
 
 		$user_id    = 1;
@@ -172,7 +172,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Friction-free “No CAPTCHA” & 99.9% passive modes',
 				'message' => '<a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.',
 				'button'  => [
-					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/passive-mode-example.gif',
+					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif',
 					'text'     => 'See an example',
 					'lightbox' => true,
 				],
@@ -181,7 +181,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				'title'   => 'Protect Site Content',
 				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#protect_content_1" target="_blank">Protect</a> selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.',
 				'button'  => [
-					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/protect-content-example.gif',
+					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif',
 					'text'     => 'See an example',
 					'lightbox' => true,
 				],
@@ -229,6 +229,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
 		}
 
+		if ( $antispam ) {
+			unset( $expected['antispam'] );
+
+			update_option( 'hcaptcha_settings', [ 'antispam' => [ 'on' ] ] );
+		}
+
 		unset( $current_user );
 		wp_set_current_user( $user_id );
 		hcaptcha()->init_hooks();
@@ -249,9 +255,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_get_notifications(): array {
 		return [
-			'empty_keys' => [ true, false, false ],
-			'pro'        => [ false, true, false ],
-			'force'      => [ false, false, true ],
+			'empty_keys' => [ true, false, false, false ],
+			'pro'        => [ false, true, false, false ],
+			'force'      => [ false, false, true, false ],
+			'antispam'   => [ false, false, false, true ],
 		];
 	}
 
@@ -259,7 +266,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test show().
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function test_show(): void {
@@ -344,8 +350,8 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			<span>
 				<span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">3</span>
 			</span>
-			<a class="prev disabled"></a>
-			<a class="next "></a>
+			<a class="prev button disabled"></a>
+			<a class="next button "></a>
 		</div>
 	</div>
 </div>
@@ -361,7 +367,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$header  = '<div id="hcaptcha-notifications"> <div id="hcaptcha-notifications-header"> Notifications </div>';
 		$body    = '<div .+</div>';
-		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev disabled"></a> <a class="next "></a> </div> </div> </div>';
+		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev button disabled"></a> <a class="next button "></a> </div> </div> </div>';
 		$pattern = "#($header) ($body) ($footer)#";
 
 		preg_match( $pattern, $expected, $expected_matches );
@@ -482,7 +488,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test show() without notifications.
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_show_without_notifications(): void {
 		global $current_user;
@@ -504,6 +509,60 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		ob_start();
 		$subject->show();
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test show() without shuffle.
+	 *
+	 * @return void
+	 */
+	public function test_show_without_shuffle(): void {
+		global $current_user;
+
+		unset( $current_user );
+
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$site_key   = '';
+		$secret_key = '';
+
+		add_filter(
+			'hcap_site_key',
+			static function () use ( $site_key ) {
+				return $site_key;
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function () use ( $secret_key ) {
+				return $secret_key;
+			}
+		);
+
+		// Set shuffle to false.
+		add_filter( 'hcap_shuffle_notifications', '__return_false' );
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Get notifications in their original order.
+		$notifications = $subject->get_notifications();
+
+		// Expected order is the reverse of the original order.
+		$expected_order = array_reverse( array_keys( $notifications ) );
+
+		ob_start();
+		$subject->show();
+		$output = ob_get_clean();
+
+		// Extract notification IDs from the output in the order they appear.
+		preg_match_all( '/data-id="([^"]+)"/', $output, $matches );
+		$actual_order = $matches[1];
+
+		// Verify that the notifications are displayed in reverse order.
+		self::assertSame( $expected_order, $actual_order );
 	}
 
 	/**
@@ -765,7 +824,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test reset_notifications().
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_reset_notifications(): void {
 		$die_arr  = [];
@@ -789,7 +847,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		// Test the case when bad admin referer.
+		// Test the case when a bad admin referer.
 		ob_start();
 		$subject->reset_notifications();
 		$json = ob_get_clean();
@@ -850,8 +908,8 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'some-key' ] );
 		remove_all_filters( 'delete_user_metadata' );
 
-		// Test successful case.
-		$this->set_protected_property( $subject, 'shuffle', false );
+		// Test a successful case.
+		add_filter( 'hcap_shuffle_notifications', '__return_false' );
 
 		ob_start();
 		$subject->show();
@@ -894,7 +952,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Trim spaces before and after tags.
-	 * Cut pages span as it may contain different number of pages.
+	 * Cut pages span as it may contain different numbers of pages.
 	 *
 	 * @param string $html Html.
 	 *

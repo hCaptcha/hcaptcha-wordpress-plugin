@@ -7,7 +7,7 @@
 
 namespace HCaptcha\Settings;
 
-use Closure;
+use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\Helpers\Utils;
 use KAGG\Settings\Abstracts\SettingsBase;
 use Plugin_Upgrader;
@@ -76,7 +76,7 @@ class Integrations extends PluginSettingsBase {
 	];
 
 	/**
-	 * Install plugin or theme.
+	 * Install a plugin or theme.
 	 *
 	 * @var mixed
 	 */
@@ -779,6 +779,8 @@ class Integrations extends PluginSettingsBase {
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			$form_field['installed'] = in_array( $status, $installed, true );
 			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
+
+			$form_field = $this->prepare_antispam_data( $status, $form_field );
 		}
 
 		unset( $form_field );
@@ -872,7 +874,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Show search box.
+	 * Show the search box.
 	 *
 	 * @return void
 	 */
@@ -1011,7 +1013,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Ajax action to activate/deactivate plugin/theme.
+	 * Ajax action to activate/deactivate the plugin / theme.
 	 *
 	 * @return void
 	 */
@@ -1266,7 +1268,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Maybe activate plugin.
+	 * Maybe activate the plugin.
 	 *
 	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
 	 *
@@ -1693,5 +1695,45 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Prepares antispam data for the given status and form field.
+	 *
+	 * @param string $status     The status identifier.
+	 * @param array  $form_field The form field data.
+	 *
+	 * @return array The updated form field data containing antispam configurations.
+	 */
+	private function prepare_antispam_data( string $status, array $form_field ): array {
+		static $all_protected_forms;
+
+		if ( ! $all_protected_forms ) {
+			$all_protected_forms = AntiSpam::get_protected_forms();
+		}
+
+		$settings = hcaptcha()->settings();
+
+		foreach ( $all_protected_forms as $type => $protected_forms ) {
+			if ( ! isset( $protected_forms[ $status ] ) ) {
+				continue;
+			}
+
+			$helper = 'hcaptcha' === $type
+				? __( 'The form is protected by the hCaptcha antispam service.', 'hcaptcha-for-forms-and-more' )
+				: __( 'The form is protected by the native antispam service.', 'hcaptcha-for-forms-and-more' );
+
+			foreach ( $protected_forms[ $status ] as $form ) {
+				if (
+					'native' === $type ||
+					( 'hcaptcha' === $type && $settings->is( $status, $form ) )
+				) {
+					$form_field['data'][ $form ]    = [ 'antispam' => $type ];
+					$form_field['helpers'][ $form ] = $helper;
+				}
+			}
+		}
+
+		return $form_field;
 	}
 }

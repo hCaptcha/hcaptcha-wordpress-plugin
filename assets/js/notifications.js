@@ -30,6 +30,56 @@ const notifications = ( $ ) => {
 	const footerSelector = '#hcaptcha-notifications-footer';
 	let $notifications;
 
+	/**
+	 * Normalize the height of all notification elements to the maximum height.
+	 */
+	const normalizeNotificationHeight = function() {
+		$notifications = $( notificationSelector );
+
+		if ( ! $notifications.length ) {
+			return;
+		}
+
+		// Get the index of the currently visible notification.
+		const visibleIndex = getVisibleNotificationIndex();
+
+		// Reset any previously set height and box-sizing to get accurate measurements.
+		$notifications.css( {
+			height: '',
+			'box-sizing': 'border-box', // Ensure box-sizing is consistent
+		} );
+
+		// Make all notifications visible temporarily to measure their heights.
+		$notifications.css( 'display', 'block' );
+
+		// Find the maximum height.
+		let maxHeight = 0;
+
+		$notifications.each( function() {
+			// Use outerHeight(true) to include padding, border, and margin
+			const height = $( this ).outerHeight( true );
+
+			if ( height > maxHeight ) {
+				maxHeight = height;
+			}
+		} );
+
+		// Set all notifications to the maximum height.
+		// Use box-sizing: border-box to include padding and border in the height calculation
+		$notifications.css( {
+			height: maxHeight + 'px',
+			'box-sizing': 'border-box',
+		} );
+
+		// Reset display property to the original state (hide all except the previously visible one).
+		$notifications.css( 'display', 'none' );
+
+		// Show the notification that was visible before.
+		if ( visibleIndex !== false ) {
+			$( $notifications[ visibleIndex ] ).css( 'display', 'block' );
+		}
+	};
+
 	const getVisibleNotificationIndex = function() {
 		$notifications = $( notificationSelector );
 
@@ -102,6 +152,7 @@ const notifications = ( $ ) => {
 
 		setNavStatus();
 		setButtons();
+		normalizeNotificationHeight();
 
 		if ( $( notificationSelector ).length === 0 ) {
 			$( notificationsSelector ).remove();
@@ -132,6 +183,7 @@ const notifications = ( $ ) => {
 			$( $notifications[ newIndex ] ).show();
 			setNavStatus();
 			setButtons();
+			normalizeNotificationHeight();
 		}
 	} );
 
@@ -154,11 +206,15 @@ const notifications = ( $ ) => {
 			$( response.data ).insertBefore( sectionKeysSelector );
 
 			setButtons();
+			normalizeNotificationHeight();
 			$( document ).trigger( 'wp-updates-notice-added' );
 		} );
 	} );
 
 	setButtons();
+
+	// Initialize notification heights.
+	normalizeNotificationHeight();
 };
 
 jQuery( document ).ready( notifications );

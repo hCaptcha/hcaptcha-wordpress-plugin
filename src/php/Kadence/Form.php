@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Kadence;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Block;
@@ -99,19 +100,12 @@ class Form extends Base {
 		}
 
 		// Nonce is checked by Kadence.
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		$error = hcaptcha_request_verify( $hcaptcha_response );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$error = API::verify( $this->get_entry( $_POST ) );
 
 		if ( null === $error ) {
 			return;
 		}
-
-		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$data = [
 			'html'         => '<div class="kadence-blocks-form-message kadence-blocks-form-warning">' . $error . '</div>',
@@ -171,5 +165,93 @@ class Form extends Base {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		$post_id = isset( $form_data['_kb_form_post_id'] ) ? (int) $form_data['_kb_form_post_id'] : 0;
+		$post    = get_post( $post_id );
+
+		$entry = [
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+
+		$blocks = parse_blocks( $post->post_content ?? '' );
+		$fields = $this->get_fields( $blocks );
+
+		foreach ( $fields as $id => $field ) {
+			$field = wp_parse_args(
+				$field,
+				[
+					'type'  => '',
+					'label' => '',
+				]
+			);
+
+			$type = $field['type'];
+
+			if ( ! in_array( $type, [ 'text', 'email', 'textarea' ], true ) ) {
+				continue;
+			}
+
+			$label = $field['label'];
+			$value = $form_data[ "kb_field_$id" ] ?? '';
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $label ] = $value;
+		}
+
+		return $entry;
+	}
+
+	/**
+	 * Get Kadence fields.
+	 *
+	 * @param array $blocks Blocks.
+	 *
+	 * @return array
+	 */
+	private function get_fields( array $blocks ): array {
+		$form_id = Request::filter_input( INPUT_POST, '_kb_form_id' );
+		$form    = $this->get_form( $blocks, $form_id );
+
+		return $form['attrs']['fields'] ?? [];
+	}
+
+	/**
+	 * Get Kadence form.
+	 *
+	 * @param array  $blocks   Blocks.
+	 * @param string $block_id Block ID.
+	 *
+	 * @return array
+	 */
+	private function get_form( array $blocks, string $block_id ): array {
+		foreach ( $blocks as $block ) {
+			$current_block_id = $block['attrs']['uniqueID'] ?? '';
+
+			if ( 'kadence/form' === $block['blockName'] && $current_block_id === $block_id ) {
+				return $block;
+			}
+
+			$form = $this->get_form( $block['innerBlocks'] ?? [], $block_id );
+
+			if ( $form ) {
+				return $form;
+			}
+		}
+
+		return [];
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -11,6 +11,7 @@
 namespace HCaptcha\CoBlocks;
 
 use CoBlocks_Form;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 use WP_Error;
@@ -34,6 +35,13 @@ class Form {
 	 * Fake hCaptcha token.
 	 */
 	private const HCAPTCHA_DUMMY_TOKEN = 'hcaptcha_token';
+
+	/**
+	 * Error message.
+	 *
+	 * @var string|null
+	 */
+	private $error_message;
 
 	/**
 	 * Form constructor.
@@ -76,8 +84,8 @@ class Form {
 			$form_id = $m[1];
 		}
 
-		$search = '<button type="submit" ';
-		$args   = [
+		$search  = '<button type="submit" ';
+		$args    = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
 			'id'     => [
@@ -85,13 +93,16 @@ class Form {
 				'form_id' => $form_id,
 			],
 		];
+		$message = $this->error_message ? '<div class="h-captcha-error">' . $this->error_message . '</div>' . "\n" : '';
+		$replace = $message . HCaptcha::form( $args ) . "\n";
 
-		return str_replace( $search, HCaptcha::form( $args ) . "\n" . $search, $block_content );
+		return str_replace( $search, $replace . $search, $block_content );
 	}
 
 	/**
 	 * Render block context filter.
-	 * CoBlocks has no filters in form processing. So, we need to do some tricks.
+	 * CoBlocks have no filters in form processing.
+	 * So, we need to do some tricks.
 	 *
 	 * @since WP 5.1.0
 	 *
@@ -169,12 +180,11 @@ class Form {
 
 		remove_filter( 'pre_http_request', [ $this, 'verify' ] );
 
-		$error_message = hcaptcha_verify_post(
-			self::NONCE,
-			self::ACTION
-		);
+		// Nonce is checked in API::verify().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$this->error_message = API::verify( $this->get_entry( $_POST ) );
 
-		if ( null === $error_message ) {
+		if ( null === $this->error_message ) {
 			return [
 				'body'     => '{"success":true}',
 				'response' =>
@@ -204,11 +214,73 @@ class Form {
 	public function print_inline_styles(): void {
 		/* language=CSS */
 		$css = '
+	.wp-block-coblocks-form .h-captcha-error {
+		color: red;
+		margin-bottom: 25px;
+	}
+
 	.wp-block-coblocks-form .h-captcha {
 		margin-bottom: 25px;
 	}
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		global $post;
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+		$name  = [];
+
+		foreach ( $form_data as $key => $field ) {
+			if ( ! preg_match( '/field-(.+)/', $key, $m ) ) {
+				continue;
+			}
+
+			$type = $m[1];
+
+			if ( ! in_array( $type, [ 'name', 'email', 'message' ], true ) ) {
+				continue;
+			}
+
+			$field = wp_parse_args(
+				$field,
+				[
+					'label' => '',
+					'value' => '',
+				]
+			);
+
+			$label = $field['label'];
+			$value = $field['value'];
+
+			if ( 'name' === $type ) {
+				$name[] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $label ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
 	}
 }

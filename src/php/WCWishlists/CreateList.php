@@ -10,6 +10,7 @@
 
 namespace HCaptcha\WCWishlists;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -27,7 +28,7 @@ class CreateList {
 	private const NONCE = 'hcaptcha_wc_create_wishlists_nonce';
 
 	/**
-	 * Create List constructor.
+	 * Create a List constructor.
 	 */
 	public function __construct() {
 		$this->init_hooks();
@@ -97,10 +98,7 @@ class CreateList {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $valid_captcha ) {
-		$error_message = hcaptcha_get_verify_message(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );

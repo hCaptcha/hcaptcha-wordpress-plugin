@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.14.0
+Stable tag: 4.15.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,7 +34,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
 * **Protect Site Content:** Protects selected site URLs from bots with hCaptcha. Works best with Pro 99.9% passive mode.
 * **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
-* **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page load impact.
+* **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page loading impact.
 * **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
 
@@ -43,7 +43,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Language Support:** Supports multiple languages.
 * **Custom Themes:** Customize the appearance of hCaptcha to match your site.
 * **Custom Themes Editor:** Edit custom themes directly in the plugin.
-* **Login Compatibility:** Compatible with all major hide login, custom login and 2FA login plugins.
+* **Login Compatibility:** Compatible with all major hide login, custom login, and 2FA login plugins.
 * **Login Attempts:** Protect your site from brute force attacks.
 
 **Ease of Use**
@@ -57,7 +57,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 
 == How hCaptcha Works ==
 
-The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test, and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
+The purpose of a CAPTCHA is to distinguish between people and machines via a challenge-response test and thus increase the cost of spamming or otherwise abusing websites by keeping out bots.
 
 To use this plugin, install it and enter your sitekey and secret in the Settings → hCaptcha menu after signing up on hCaptcha.com.
 
@@ -88,7 +88,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get your sitekey and secret, then:
 
 1. Install hCaptcha either via the WordPress.org plugin repository (best) or by uploading the files to your server. ([Upload instructions](https://www.wpbeginner.com/beginners-guide/step-by-step-guide-to-install-a-wordpress-plugin-for-beginners/))
-2. Activate the hCaptcha plugin on Plugins admin page
+2. Activate the hCaptcha plugin on the Plugins admin page
 3. Enter your site key and secret on the Settings→hCaptcha→General page
 4. Enable desired Integrations on the Settings→hCaptcha→Integrations page
 
@@ -203,7 +203,7 @@ hCaptcha starts early, so you cannot use standard WP functions to determine the 
 /**
  * Filter hCaptcha activation flag.
  *
- * @param bool|mixed $activate Activate flag.
+ * @param bool|mixed $activate The activate flag.
  *
  * @return bool
  */
@@ -226,7 +226,7 @@ add_filter( 'hcap_activate', 'my_hcap_activate' );
 
 = How do I block hCaptcha scripts everywhere except on a specific page? =
 
-An an example, to block hCaptcha scripts everywhere except on the `contact` page:
+As an example, to block hCaptcha scripts everywhere except on the `contact` page:
 
 `
 /**
@@ -249,7 +249,7 @@ add_filter( 'hcap_print_hcaptcha_scripts', 'my_hcap_print_hcaptcha_scripts' );
 
 = How do I block hCaptcha scripts everywhere except on a specific page? =
 
-An an example, to block hCaptcha scripts everywhere except on the `contact` page:
+As an example, to block hCaptcha scripts everywhere except on the `contact` page:
 
 `
 /**
@@ -277,7 +277,7 @@ The plugin has a filter to skip adding and verifying hCaptcha on a specific form
 
 The source is the plugin's slug (like 'directory/main-plugin-file.php'), the theme name (like 'Avada') or the WordPress core (like 'WordPress').
 
-The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments or a general name of the form when the form does not have an id (like WordPress core login form).
+The form_id is the form_id for plugins like Gravity Forms or WPForms, the post id for comments, or a general name of the form when the form does not have an id (like WordPress core login form).
 
 Filter arguments for some plugins/forms are listed below.
 
@@ -471,7 +471,7 @@ add_filter( 'hcap_protect_form', 'hcap_protect_form_filter', 10, 3 );
 
 = How can I show the hCaptcha widget instantly? =
 
-The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.
+The plugin loads the hCaptcha script with a delay until user interaction: mouseenter, click, scroll, or touch. This significantly improves Google Pagespeed Insights score.
 
 To load the hCaptcha widget instantly, you can use the following filter:
 
@@ -480,7 +480,7 @@ To load the hCaptcha widget instantly, you can use the following filter:
  * Filters delay time for hCaptcha API script.
  *
  * Any negative value will prevent the API script from loading at all,
- * until user interaction: mouseenter, click, scroll or touch.
+ * until user interaction: mouseenter, click, scroll, or touch.
  * This significantly improves Google Pagespeed Insights score.
  *
  * @param int|mixed $delay Number of milliseconds to delay hCaptcha API script.
@@ -521,7 +521,7 @@ You can use the following filter. It should be added to your plugin's (or mu-plu
 
 `
 /**
- * Filter user IP to check if it is denylisted.
+ * Filter the user IP to check if it is denylisted.
  * For denylisted IPs, any form submission fails.
  *
  * @param bool|mixed $denylisted Whether IP is denylisted.
@@ -580,7 +580,7 @@ add_filter( 'hcap_whitelist_ip', 'my_hcap_allowlist_ip', 10, 2 );
 
 Starting from 4.1.0, the admin menu was moved to the top level with subpages.
 
-You can customize this by returning it to the previous location in the admin Settings section, or tweak its appearance.
+You can customize this by returning it to the previous location in the admin Settings section or tweaking its appearance.
 
 To do this, use the following filter to your plugin's (or mu-plugin's) main file. This code won't work being added to a theme's functions.php file.
 
@@ -631,7 +631,7 @@ For more details, please see the hCaptcha privacy policy at:
 
 * [hCaptcha.com](https://hCaptcha.com/privacy)
 
-If you enable the optional plugin-local statistics feature, the following additional data will be recorded to your database:
+If you enable the optional plugin-local statistics feature, the following additional data will be recorded in your database:
 
 * counts of challenge verifications per form
 * **only if you enable this optional feature: **the IP address challenged on each form
@@ -651,7 +651,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Asgaros Forum New Topic and Reply Form
 * Avada standard and multistep Forms
 * Back In Stock Notifier Form
-* bbPress New Topic, Reply, Login, Register and Lost Password Forms
+* bbPress New Topic, Reply, Login, Register, and Lost Password Forms
 * Beaver Builder Contact and Login Forms
 * BuddyPress — Create Group and Registration Forms
 * Classified Listing Contact, Login, Lost Password, and Listing Register Forms
@@ -659,8 +659,8 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
 * Cookies and Content Security Policy
-* Divi Comment, Contact, Email Optin and Login Forms
-* Divi Builder Comment, Contact, Email Optin and Login Forms
+* Divi Comment, Contact, Email Optin, and Login Forms
+* Divi Builder Comment, Contact, Email Optin, and Login Forms
 * Download Manager Form
 * Droit Dark Mode
 * Easy Digital Downloads Checkout, Login, Lost Password, and Register Forms
@@ -668,7 +668,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Essential Addons for Elementor Login and Register Forms
 * Essential Blocks Form
 * Events Manager Booking Form
-* Extra Comment, Contact, Email Optin and Login Forms
+* Extra Comment, Contact, Email Optin, and Login Forms
 * Fluent Forms, including Login Form
 * Forminator Forms
 * Formidable Forms
@@ -732,18 +732,27 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.15.0 =
+* Added hCaptcha error messages to CoBlocks.
+* Added hCaptcha error messages to Spectra.
+* Added compatibility with Contact Form 7 v6.1.
+* Fixed PHP 8.1 deprecated error.
+* Fixed the layout of the General page on mobile.
+* Fixed the layout of Notifications on the General page.
+* Fixed admin page colors respecting Admin Color Scheme.
+
 = 4.14.0 =
 * Added Ultimate Addons for Elementor integration.
-* Added compatibility with ActivityPub plugin.
+* Added compatibility with the ActivityPub plugin.
 * Added denylisted IP addresses on the General page.
 * Added validation of IP addresses on the General page.
-* Fixed conflict with Contact Form 7 plugin reCaptcha integration.
+* Fixed the conflict with Contact Form 7 plugin reCaptcha integration.
 * Fixed fatal error with the wpDiscuz 7.6.30.
 
 = 4.13.0 =
 * Added site content protection.
-* Added "Remove Data on Uninstall" option to improve user privacy.
-* Added "What's New" popup on admin pages.
+* Added the "Remove Data on Uninstall" option to improve user privacy.
+* Added the "What's New" popup on admin pages.
 * Added Events Manager integration.
 * Added Password Protected integration.
 * Added compatibility with Formidable Forms Pro.
@@ -754,7 +763,7 @@ Instructions for popular native integrations are below:
 * Fixed enqueuing script with Fluent Conversational Form.
 * Fixed showing hCaptcha with the latest Fluent Forms version.
 * Fixed Conversational forms support with the latest Fluent Forms version.
-* Fixed race condition when highlighting admin elements.
+* Fixed the race condition when highlighting admin elements.
 * Tested with WordPress 6.7.
 * Tested with WooCommerce 9.8.
 
@@ -765,12 +774,12 @@ Instructions for popular native integrations are below:
 * Added auto-forcing and prevent delaying of hCaptcha on login forms for LastPass compatibility.
 * Added Privacy Policy to WordPress admin Privacy > Policy Guide page.
 * Improved API script delay behavior. Now, scripts are loaded after a delay interval or any user interaction, whichever happens first.
-* Improved scrolling behavior to highlighted elements in admin.
-* Fixed broken submit button with ACF, Gravity Forms and input to button snippet.
-* Fixed printing hCaptcha scripts on Essential Addons preview page.
+* Improved scrolling behavior to highlight elements in admin.
+* Fixed the broken 'submit' button with ACF, Gravity Forms, and input to button snippet.
+* Fixed printing hCaptcha scripts on the Essential Addons preview page.
 * Fixed hCaptcha layout on wpDiscuz forms.
-* Fixed race condition with Pro invisible hCaptcha.
-* Fixed scroll on a page load with a Kadence form.
+* Fixed the race condition with Pro invisible hCaptcha.
+* Fixed the scroll on a page loading with a Kadence form.
 * Fixed scroll on a page load with a Kadence Advanced form.
 * Fixed scrolling and focusing after submitting with CF7 form.
 * Fixed scrolling and focusing after submitting with a Forminator form.
@@ -778,14 +787,14 @@ Instructions for popular native integrations are below:
 * Fixed scrolling and focusing after submitting with an Elementor form.
 * Fixed scrolling and focusing after submitting with Autoverify in Ajax.
 * Fixed scrolling and focusing before checking the Site Config on the General page.
-* Fixed fatal error on claiming action during migration to 4.11.0.
+* Fixed the fatal error on claiming action during migration to 4.11.0.
 * Fixed fatal error when migrating to 4.0.0 via cron.
-* Fixed WordPress database error on migrating to 4.11.0 in a rare case.
+* Fixed the WordPress database error on migrating to 4.11.0 in a rare case.
 
 = 4.11.0 =
 * Added Really Simple CAPTCHA plugin integration.
 * Added compatibility with the UsersWP plugin v1.2.28.
-* Added compatibility with Perfmatters plugin.
+* Added compatibility with the Perfmatters plugin.
 * Added support for the Fluent Login form.
 * Added confirmation messages upon deletion of events on the Forms and Events pages.
 * Added asynchronous migrations for large databases.
@@ -798,11 +807,11 @@ Instructions for popular native integrations are below:
 * Fixed losing options during plugin update in rare cases.
 * Fixed the live hCaptcha tag on the Contact Form 7 edit page after insertion but before saving the form.
 * Fixed shortcode processing in the Contact Form 7 form when Auto-Add was off.
-* Fixed error on theme installation.
+* Fixed the error on theme installation.
 * Tested with WooCommerce 9.7.
 
 = 4.10.0 =
-* Added support for wp_login_form() function and LoginOut block.
+* Added support for the wp_login_form () function and LoginOut block.
 * Added support for hCaptcha in HTML Gravity Forms fields.
 * Added support for custom nonce action and name in the [hcaptcha] shortcode.
 * Added compatibility with Cookies and Content Security Policy plugin.
@@ -811,28 +820,28 @@ Instructions for popular native integrations are below:
 * Added deletion of events on the Events page.
 * Improved error messaging for hCaptcha verification.
 * Fixed IP detection in the WordPress core via filter. Now syncs with hCaptcha event information when an IP collection is activated.
-* Fixed fatal error with the WPForms plugin in rare cases.
-* Fixed error message at the first entry to the login page when Hide Login Errors in on.
+* Fixed a fatal error with the WPForms plugin in rare cases.
+* Fixed the error message at the first entry to the login page when Hide Login Errors in on.
 * Fixed scrolling to the message on the General page.
-* Fixed fatal error during integration installation in some cases.
-* Fixed the Integrations page when active plugin was deleted.
-* Fixed error when hCaptcha is disabled for standard login but enabled for LearnPress login.
-* Fixed error when hCaptcha is disabled for standard login but enabled for Tutor login.
-* Fixed layout for Forms and Events pages on small screens.
+* Fixed a fatal error during integration installation in some cases.
+* Fixed the Integrations page when the active plugin was deleted.
+* Fixed the error when hCaptcha is disabled for standard login but enabled for LearnPress login.
+* Fixed the error when hCaptcha is disabled for standard login but enabled for Tutor login.
+* Fixed the layout for Forms and Events pages on small screens.
 
 = 4.9.0 =
 * Added LearnPress integration.
 * Added Tutor LMS integration.
 * Added compatibility with Ninja Forms v3.8.22.
 * Added the ability to install plugins and themes from the Integrations page.
-* Added ability to hide the login errors.
+* Added the ability to hide the login errors.
 * Added an anonymous collection of IP and User Agent data in locally stored analytics to simplify GDPR compliance.
-* Added extended info about IP address on the Events page on hover.
+* Added extended info about the IP address on the Events page on hover.
 * Added selecting any page on Forms and Events.
 * Optimized Events page performance for large databases with millions of entries.
-* Fixed layout of a modern Jetpack form in outlined and animated styles.
-* Fixed fatal error as a consequence of a bug in the TutorLMS.
-* Fixed help text box layout on the General page.
+* Fixed the layout of a modern Jetpack form in outlined and animated styles.
+* Fixed a fatal error as a consequence of a bug in the TutorLMS.
+* Fixed the help text box layout on the General page.
 * Fixed the dismiss and reset Notifications actions.
 * Fixed duplication of entries in the Events table.
 
@@ -843,17 +852,17 @@ Instructions for popular native integrations are below:
 * Added Extra theme integration.
 * Added Divi Builder plugin integration.
 * Added theme argument to the [hcaptcha] shortcode.
-* Added 'theme' badge to themes on the Integrations page.
+* Added a 'theme' badge to themes on the Integrations page.
 * Updated hCaptcha API error codes.
 * Fixed processing of a Divi form with diacritical marks.
 * Fixed deactivating of all themes by Ctrl+Click on the Integrations page.
-* Fixed theme name display upon activation.
-* Fixed display of the hCaptcha shortcode with individual parameters.
-* Fixed usage of theme in shortcode and form args.
+* Fixed the theme name display upon activation.
+* Fixed the display of the hCaptcha shortcode with individual parameters.
+* Fixed the usage of theme in shortcode and form args.
 * Fixed instant update upon theme selection on the General admin page.
 * Fixed custom themes on the frontend.
 * Fixed custom themes on the General page.
-* Fixed switching from custom themes to standard and back on the General page.
+* Fixed switching from custom themes to a standard and back on the General page.
 * Fixed switching from live to test mode and back on the General page.
 * Tested with PHP 8.4.1.
 
@@ -864,38 +873,38 @@ Instructions for popular native integrations are below:
 = 4.7.0 =
 * Added compatibility with WordPress Recovery Mode.
 * Added compatibility with Contact Form 7 v6.0.
-* Added compatibility with Akismet tag in Contact Form 7.
+* Added compatibility with the Akismet tag in Contact Form 7.
 * Added compatibility with Elementor Element Caching.
-* Added activation and deactivation of plugin network wide if hCaptcha is set network wide.
-* Added ability to use shortcode in the Jetpack Classic form.
-* Added ability to use shortcode in the Mailchimp for WP form.
-* Fixed race condition when loading hCaptcha API.
+* Added activation and deactivation of the plugin network wide if hCaptcha is set network wide.
+* Added the ability to use shortcode in the Jetpack Classic form.
+* Added the ability to use shortcode in the Mailchimp for WP form.
+* Fixed the race condition when loading hCaptcha API.
 * Fixed sending a Ninja form with solved hCaptcha.
 * Fixed non-active hCaptcha when editing a page containing a Forminator form.
-* Fixed launching notifications script on every admin page.
+* Fixed launching a notification script on every admin page.
 * Fixed missing hCaptcha in Formidable forms.
 * Fixed non-blocking of reCaptcha scripts with Kadence Forms.
 * Fixed showing hCaptcha in Elementor admin in some cases.
-* Fixed inability to sort by Source column on Forms and Events admin pages.
-* Fixed inability to deactivate Avada theme right after activation.
-* Fixed inability to deactivate Divi theme right after activation.
-* Fixed error on plugin activation when plugin makes redirect on activation.
-* Fixed open_basedir restriction warning in Query Monitor.
+* Fixed the inability to sort by Source column on Forms and Events admin pages.
+* Fixed the inability to deactivate the Avada theme right after activation.
+* Fixed the inability to deactivate the Divi theme right after activation.
+* Fixed the error on plugin activation when the plugin makes redirect on activation.
+* Fixed the open_basedir restriction warning in Query Monitor.
 * Tested with WordPress 6.7.
 * Tested with WooCommerce 9.3.
 
 = 4.6.0 =
 * Added support for Simple Membership Login, Register and Lost Password forms.
-* Added option to show Live Form in CF7 admin.
-* Added hCaptcha tab on Gravity Forms settings page.
+* Added an option to show Live Form in CF7 admin.
+* Added hCaptcha tab on the Gravity Forms settings page.
 * Added uninstallation code to delete plugin data.
 * Improved compatibility with hCaptcha API.
-* Fixed appearance of hCaptcha in Ninja Form admin editor after form saving only.
-* Fixed not rendering of hCaptcha in Gravity Forms admin editor after adding the hCaptcha field.
-* Fixed not rendering of hCaptcha in Essential Addons admin editor.
-* Fixed switching between Security Settings on Fluent Forms Global Settings page.
-* Fixed layout for settings pages with RTL languages.
-* Fixed layout for Contact Form 7 with RTL languages.
+* Fixed the appearance of hCaptcha in the Ninja Form admin editor after form saving only.
+* Fixed no rendering of hCaptcha in the Gravity Forms admin editor after adding the hCaptcha field.
+* Fixed no rendering of hCaptcha in the Essential Addons admin editor.
+* Fixed switching between Security Settings on the Fluent Forms Global Settings page.
+* Fixed the layout for settings pages with RTL languages.
+* Fixed the layout for Contact Form 7 with RTL languages.
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
@@ -906,33 +915,33 @@ Instructions for popular native integrations are below:
 * Improved UX of the Integrations page.
 * Fixed error messaging when there are several Jetpack forms on the same page.
 * Fixed unconditional forcing hCaptcha in Jetpack forms.
-* Fixed the appearance of Beaver Builder editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of Contact Form 7 editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of Essential Addons editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of Gravity Forms editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of Fluent Forms editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of Forminator editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of Formidable Forms with "Turn Off When Logged In" setting.
-* Fixed the appearance of Ninja Forms editor with "Turn Off When Logged In" setting.
-* Fixed the appearance of WPForms editor with "Turn Off When Logged In" setting.
-* Fixed fatal error on Gravity Forms Entries page.
+* Fixed the appearance of the Beaver Builder editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the Contact Form 7 editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the Essential Addons editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the Gravity Forms editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the Fluent Forms editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the Forminator editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of Formidable Forms with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the Ninja Forms editor with the "Turn Off When Logged In" setting.
+* Fixed the appearance of the WPForms editor with the "Turn Off When Logged In" setting.
+* Fixed a fatal error on the Gravity Forms Entries page.
 * Fixed Elementor preview.
 * Fixed Ninja Forms preview.
 * Fixed hCaptcha nonce error on MailPoet admin pages.
-* Fixed frontend error when recaptcha was activated in wpDiscuz.
+* Fixed the frontend error when recaptcha was activated in wpDiscuz.
 
 = 4.4.0 =
 * Added compatibility with Contact Form 7 Stripe integration.
-* Added compatibility with WPS Hide Login plugin.
-* Added compatibility with LoginPress plugin.
-* Improved compatibility with Wordfence Login Security plugin.
+* Added compatibility with the WPS Hide Login plugin.
+* Added compatibility with the LoginPress plugin.
+* Improved compatibility with the Wordfence Login Security plugin.
 * Updated MailPoet integration.
-* Fixed conflict with Ninja Forms Upload field.
+* Fixed the conflict with the Ninja Forms Upload field.
 * Fixed Ninja Forms Ajax processing.
-* Fixed error in cron with Matomo Analytics.
-* Fixed error with the Elementor Checkout Element.
+* Fixed the error in cron with Matomo Analytics.
+* Fixed the error with the Elementor Checkout Element.
 * Fixed ignorance of Pro params in the Elementor admin editor.
-* Fixed inability to activate the Elementor Pro plugin when Elementor plugin is activated.
+* Fixed the inability to activate the Elementor Pro plugin when Elementor plugin is activated.
 * Fixed sending replies to wpDiscuz comments.
 * Fixed replies in the WP Dashboard with wpDiscuz active.
 * Fixed sending several wpDiscuz comments without a page reload.
@@ -940,8 +949,8 @@ Instructions for popular native integrations are below:
 = 4.3.1 =
 * Added a live form in the Contact Form 7 admin form view.
 * Fixed warnings and deprecation messages in admin when Contact Form 7 is active.
-* Fixed tag generator with the live form for Contact Form 7.
-* Fixed fatal error with Gravity Forms.
+* Fixed the tag generator with the live form for Contact Form 7.
+* Fixed a fatal error with Gravity Forms.
 
 = 4.3.0 =
 * NOTE: the plugin has been renamed from "hCaptcha for WordPress" to "hCaptcha for WP"
@@ -952,21 +961,21 @@ Instructions for popular native integrations are below:
 * Added support for GiveWP block forms created via Form Builder.
 * Added check if a plugin or theme is installed before activation.
 * Added activation of dependent plugins with a theme.
-* Fixed missing sitekey error processing on General page.
-* Fixed naming of the first submenu item.
-* Fixed storing of check config events to the database.
+* Fixed missing sitekey error processing on the General page.
+* Fixed the naming of the first submenu item.
+* Fixed the storing of check config events to the database.
 * Fixed notifications links in menu pages mode.
 * Fixed Firefox issue with not showing hCaptcha when the API script was delayed until user interaction.
-* Fixed error on activation/deactivation of a theme.
+* Fixed the error on activation/deactivation of a theme.
 * Fixed error on activating Brizy plugin.
 * Fixed issue with updated Brizy plugin.
-* Fixed issue with updated Divi EmailOptin module.
+* Fixed the issue with the updated Divi EmailOptin module.
 * Tested with WordPress 6.6.
 * Tested with WooCommerce 9.0.
 
 = 4.2.1 =
-* Fixed message layout on the General and Integrations pages.
-* Fixed processing of WooCommerce Register form.
+* Fixed the message layout on the General and Integrations pages.
+* Fixed processing of the WooCommerce Register form.
 
 = 4.2.0 =
 * The minimum required WordPress version is now 5.3.
@@ -975,12 +984,12 @@ Instructions for popular native integrations are below:
 * Added automatic activation of dependent plugins on the Integrations page.
 * Added scrolling on the Integrations page during the search.
 * Fixed color flickering of hCaptcha placeholder with custom themes.
-* Fixed JS error on the Lost Password page.
-* Fixed missing site key notification on the General page.
-* Fixed fatal error on some sites during migration to 4.0.0.
+* Fixed the JS error on the Lost Password page.
+* Fixed the missing site key notification on the General page.
+* Fixed a fatal error on some sites during migration to 4.0.0.
 
 = 4.1.2 =
-* Added option to have the hCaptcha admin menu under Settings.
+* Added an option to have the hCaptcha admin menu under Settings.
 * Fixed the General admin page on the mobile.
 * Fixed Forms and Events admin pages on the mobile.
 
@@ -991,29 +1000,29 @@ Instructions for popular native integrations are below:
 = 4.1.0 =
 * Added Essential Blocks integration.
 * Added hideable columns to Forms and Events tables.
-* Admin menu moved to the toplevel with subpages.
-* Added a filter to change admin menu appearance.
-* Add modern dialog to the System Info admin page.
-* Add modern dialog to the Gravity Forms edit page.
-* Add modern dialog to the Ninja Forms edit page.
+* Admin menu moved to the top level with subpages.
+* Added a filter to change the admin menu appearance.
+* Add a modern dialog to the System Info admin page.
+* Add a modern dialog to the Gravity Forms edit page.
+* Add a modern dialog to the Ninja Forms edit page.
 * Tested with WooCommerce 8.8.
 
 = 4.0.1 =
 * Added pagination to the Forms and Events pages.
-* Fixed PHP notice on the Forms page.
+* Fixed the PHP notice on the Forms page.
 
 = 4.0.0 =
 * This major release adds a new Statistics feature and many admin improvements.
 * Added hCaptcha events statistics and Forms admin page.
 * Added Events admin page for Pro users.
 * Added Custom Theme Editor for Pro users.
-* Added Force option to show hCaptcha challenge before submit.
+* Added a Force option to show hCaptcha challenge before submit.
 * Added integration with Essential Addons for Elementor — the Login/Register form.
 * Added filter `hcap_form_args` to allow modifying form arguments.
 * Reworked Otter integration to follow Force and all other hCaptcha settings.
-* Fixed issue with Divi Contact Form Helper plugin and File Upload field.
+* Fixed the issue with Divi Contact Form Helper plugin and File Upload field.
 * Fixed showing an internal console message on the General page when reCaptcha compatibility was disabled.
-* Fixed racing condition with hCaptcha script loading.
+* Fixed the racing condition with hCaptcha script loading.
 * Fixed checking nonce in CF7 for not logged-in users.
 * Tested with WooCommerce 8.7.
 

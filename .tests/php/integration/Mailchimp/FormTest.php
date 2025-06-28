@@ -121,6 +121,10 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'Bad hCaptcha signature!',
 			],
+			'spam'                     => [
+				'type' => 'error',
+				'text' => 'Anti-spam check failed.',
+			],
 		];
 
 		$expected = array_merge( $messages, $hcap_errors );
@@ -161,7 +165,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
 
@@ -177,7 +181,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$name   = 'some_nonce';
 		$action = 'some';
 
-		$this->prepare_hcaptcha_verify_post( $name, $action );
+		$this->prepare_verify_post( $name, $action );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
 
@@ -192,7 +196,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified(): void {
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
+		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 
 		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
 

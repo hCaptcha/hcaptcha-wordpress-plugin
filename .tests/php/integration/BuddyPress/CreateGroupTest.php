@@ -80,7 +80,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new CreateGroup();
 
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_bp_create_group_nonce', 'hcaptcha_bp_create_group' );
+		$this->prepare_verify_post( 'hcaptcha_bp_create_group_nonce', 'hcaptcha_bp_create_group' );
 
 		self::assertTrue( $subject->verify( null ) );
 	}

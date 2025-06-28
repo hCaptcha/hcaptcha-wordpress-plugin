@@ -120,7 +120,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_essential_blocks_nonce', 'hcaptcha_essential_blocks' );
+		$this->prepare_verify_post( 'hcaptcha_essential_blocks_nonce', 'hcaptcha_essential_blocks' );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$form_data['h-captcha-response']              = $_POST['h-captcha-response'];
@@ -149,7 +149,7 @@ class FormTest extends HCaptchaWPTestCase {
 			[ 'response' => null ],
 		];
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_essential_blocks_nonce', 'hcaptcha_essential_blocks', false );
+		$this->prepare_verify_post( 'hcaptcha_essential_blocks_nonce', 'hcaptcha_essential_blocks', false );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$form_data['h-captcha-response']              = $_POST['h-captcha-response'];

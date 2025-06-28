@@ -86,7 +86,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$subject = new Contact();
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder' );
+		$this->prepare_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder' );
 
 		$subject->verify( 'a@a.com', 'Subject', 'Message', [], (object) [] );
 	}
@@ -114,7 +114,7 @@ class ContactTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$this->prepare_hcaptcha_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder', false );
+		$this->prepare_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder', false );
 
 		$subject = new Contact();
 

@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\ACFE;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -65,7 +66,7 @@ class Form {
 	}
 
 	/**
-	 * Store form_id on before_fields hook.
+	 * Store form_id on the before_fields hook.
 	 *
 	 * @param array $args Arguments.
 	 *
@@ -76,7 +77,7 @@ class Form {
 	}
 
 	/**
-	 * Start output buffer on processing the reCaptcha field.
+	 * Start the output buffer on processing the reCaptcha field.
 	 *
 	 * @param array $field Field.
 	 *
@@ -161,21 +162,21 @@ class Form {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$this->form_id = isset( $_POST['_acf_post_id'] ) ?
-			(int) sanitize_text_field( wp_unslash( $_POST['_acf_post_id'] ) ) :
-			0;
+		$this->form_id = isset( $_POST['_acf_post_id'] )
+			? (int) sanitize_text_field( wp_unslash( $_POST['_acf_post_id'] ) )
+			: 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$id = HCaptcha::get_widget_id();
 
 		// Avoid duplicate token: do not process during ajax validation.
-		// Process hcaptcha widget check when form protection is skipped.
+		// Process hcaptcha widget checks when form protection is skipped.
 		/** This filter is documented in the HCaptcha\Helpers\HCaptcha class. */
 		if ( wp_doing_ajax() && apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] ) ) {
 			return $valid;
 		}
 
-		return null === hcaptcha_request_verify( $value );
+		return null === API::verify_request( $value );
 	}
 
 	/**

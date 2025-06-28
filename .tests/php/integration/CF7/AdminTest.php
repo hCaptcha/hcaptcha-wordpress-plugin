@@ -279,9 +279,9 @@ HTML;
 <div class="wrap" id="wpcf7-contact-form-editor">
 	<h1 class="wp-heading-inline">Edit Contact Form</h1>
 	<div id="poststuff">
-			<div id="post-body" class="metabox-holder columns-2">
-				<form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">
-		<div id="post-body-content">
+			<div id="post-body" class="metabox-holder columns-2"><form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">
+		
+				<div id="post-body-content">
 					<input type="text" id="wpcf7-shortcode" class="large-text code" value="[contact-form-7 id=&quot;4315f34&quot; title=&quot;Contact form 2&quot;]" />
 				</div><!-- #post-body-content -->
 				<div id="postbox-container-1" class="postbox-container">
@@ -296,10 +296,11 @@ HTML;
 					</div>
 				</div><!-- #postbox-container-2 -->
 			</form></div><!-- #post-body -->
+			
 $live_container
-
-			<br class="clear" />
+<br class="clear" />
 		</div><!-- #poststuff -->
+	
 </div><!-- .wrap -->
 HTML;
 
@@ -428,16 +429,9 @@ HTML;
 
 		<div class="control-box">
 			<fieldset>
-	<legend id="tag-generator-panel-cf7-hcaptcha-type-legend">Field type</legend>
-
-	<select data-tag-part="basetype" aria-labelledby="tag-generator-panel-cf7-hcaptcha-type-legend"><option value="cf7-hcaptcha">hCaptcha field</option></select>
-
-		<br />
-	<label>
-		<input type="checkbox" data-tag-part="type-suffix" value="*" />
-		This is a required field.	</label>
-	</fieldset>
-<fieldset>
+	<legend id="tag-generator-panel-cf7-hcaptcha-type-legend">Field type
+	</legend><select data-tag-part="basetype" aria-labelledby="tag-generator-panel-cf7-hcaptcha-type-legend"><option value="cf7-hcaptcha">hCaptcha field</option></select><br /><label><input type="checkbox" data-tag-part="type-suffix" value="*" /> This is a required field.</label>
+</fieldset><fieldset>
 	<legend id="tag-generator-panel-cf7-hcaptcha-name-legend">Field name</legend>
 	<input type="text" data-tag-part="name" pattern="[A-Za-z][A-Za-z0-9_\-]*" aria-labelledby="tag-generator-panel-cf7-hcaptcha-name-legend" />
 
@@ -449,11 +443,9 @@ HTML;
 		</div>
 
 		<footer class="insert-box">
-			<div class="flex-container">
-	<input type="text" class="code" readonly="readonly" onfocus="this.select();" data-tag-part="tag" aria-label="The form-tag to be inserted into the form template" />	<button type="button" class="button button-primary" data-taggen="insert-tag">Insert Tag</button>
-</div>
-<p class="mail-tag-tip">To use the user input in the email, insert the corresponding mail-tag <strong data-tag-part="mail-tag"></strong> into the email template.</p>
-		</footer>
+			<div class="flex-container"><input type="text" class="code selectable" readonly="readonly" data-tag-part="tag" aria-label="The form-tag to be inserted into the form template" /> <button type="button" class="button button-primary" data-taggen="insert-tag">Insert Tag</button>
+</div><p class="mail-tag-tip">To use the user input in the email, insert the corresponding mail-tag <strong data-tag-part="mail-tag"></strong> into the email template.
+</p>		</footer>
 		';
 
 		$subject = new Admin();

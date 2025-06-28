@@ -1,6 +1,6 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,6 +10,7 @@
 
 namespace HCaptcha\WPForms;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -108,10 +109,7 @@ class Form {
 			$wpforms_error_message = wpforms_setting( 'hcaptcha-fail-msg' );
 		}
 
-		$error_message = hcaptcha_get_verify_message(
-			self::NAME,
-			self::ACTION
-		);
+		$error_message = API::verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $wpforms_error_message ?: $error_message;
@@ -254,7 +252,7 @@ class Form {
 	}
 
 	/**
-	 * Block recaptcha assets on frontend.
+	 * Block recaptcha assets on the frontend.
 	 *
 	 * @return void
 	 */
@@ -410,7 +408,7 @@ class Form {
 
 	/**
 	 * Process hCaptcha in the form.
-	 * Returns true if form has hCaptcha or hCaptcha will be auto-added.
+	 * Returns true if the form has hCaptcha or hCaptcha will be auto-added.
 	 *
 	 * @param array $form_data Form data.
 	 *

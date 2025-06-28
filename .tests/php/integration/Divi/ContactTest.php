@@ -224,7 +224,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$_POST[ $this->current_form_field ] = $current_form_fields;
 		$expected_current_form_fields       = '[{\"field_id\":\"et_pb_contact_name_0\",\"original_id\":\"name\",\"required_mark\":\"required\",\"field_type\":\"input\",\"field_label\":\"Name\"},{\"field_id\":\"et_pb_contact_email_0\",\"original_id\":\"email\",\"required_mark\":\"required\",\"field_type\":\"email\",\"field_label\":\"Email Address\"},{\"field_id\":\"et_pb_contact_message_0\",\"original_id\":\"message\",\"required_mark\":\"required\",\"field_type\":\"text\",\"field_label\":\"Message\"}]';
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -287,7 +287,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$_POST[ $this->current_form_field ] = $current_form_fields;
 		$expected_current_form_fields       = '[{\"field_id\":\"et_pb_contact_name_0\",\"original_id\":\"name\",\"required_mark\":\"required\",\"field_type\":\"input\",\"field_label\":\"Name\"},{\"field_id\":\"et_pb_contact_email_0\",\"original_id\":\"email\",\"required_mark\":\"required\",\"field_type\":\"email\",\"field_label\":\"Email Address\"},{\"field_id\":\"et_pb_contact_message_0\",\"original_id\":\"message\",\"required_mark\":\"required\",\"field_type\":\"text\",\"field_label\":\"Message\"}]';
 
-		$this->prepare_hcaptcha_get_verify_message_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf', false );
+		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf', false );
 
 		FunctionMocker::replace(
 			'filter_input',

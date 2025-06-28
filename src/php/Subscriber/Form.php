@@ -1,12 +1,13 @@
 <?php
 /**
- * Form class file.
+ * 'Form' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\Subscriber;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -70,7 +71,7 @@ class Form {
 	 * @noinspection NullCoalescingOperatorCanBeUsedInspection
 	 */
 	public function verify( $check_result ) {
-		$error_message = hcaptcha_get_verify_message( self::NAME, self::ACTION );
+		$error_message = API::verify_post( self::NAME, self::ACTION );
 
 		if ( null !== $error_message ) {
 			return $error_message;

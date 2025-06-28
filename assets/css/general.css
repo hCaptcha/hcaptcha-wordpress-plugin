@@ -322,6 +322,47 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: 100%;
 }
 
+/* Section Anti-spam */
+.hcaptcha-section-antispam + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"antispam antispam-provider";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam {
+	grid-area: antispam;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider {
+	grid-area: antispam-provider;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider div {
+	color: #d63638;
+	margin-top: 0.5em;
+}
+
+.hcaptcha-section-antispam + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-antispam + table tbody tr td {
+	width: max-content;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider td {
+	width: auto;
+}
+
+.hcaptcha-section-antispam + table tbody tr td input,
+.hcaptcha-section-antispam + table tbody tr td select {
+	width: 100%;
+}
+
 /* Section Other */
 .hcaptcha-section-other + table tbody {
 	display: grid;
@@ -393,6 +434,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: max-content;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval td,
@@ -489,17 +531,46 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		width: unset !important;
 	}
 
+	.hcaptcha-section-content + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"content"
+		"protected-urls";
+	}
+
+	.hcaptcha-section-content + table tbody tr td {
+		width: unset !important;
+	}
+
+	.hcaptcha-section-antispam + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"antispam"
+		"antispam-provider";
+	}
+
+	.hcaptcha-section-antispam + table tbody tr td {
+		width: unset !important;
+	}
+
 	.hcaptcha-section-other + table tbody {
 		grid-template-columns: repeat(1, 1fr) !important;
 		grid-template-areas:
+		"blacklisted"
+		"whitelisted"
 		"logged"
 		"recaptcha"
 		"hide-login-errors"
+		"cleanup-on-uninstall"
 		"network"
-		"whitelisted"
 		"login-limit"
 		"login-interval"
 		"delay";
+	}
+
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips,
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
+		padding-top: 10px;
 	}
 
 	.hcaptcha-section-other + table tbody tr td {

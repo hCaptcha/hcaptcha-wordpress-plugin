@@ -199,7 +199,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
 
-		$this->prepare_hcaptcha_request_verify( $response );
+		$this->prepare_verify_request( $response );
 
 		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
 
@@ -232,7 +232,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
 
-		$this->prepare_hcaptcha_request_verify( $response, false );
+		$this->prepare_verify_request( $response, false );
 
 		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
 

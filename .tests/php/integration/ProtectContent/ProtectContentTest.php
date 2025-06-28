@@ -174,7 +174,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$action = 'hcaptcha_protect_content';
 		$nonce  = 'hcaptcha_protect_content_nonce';
 
-		$this->prepare_hcaptcha_verify_post( $nonce, $action, $verified );
+		$this->prepare_verify_post( $nonce, $action, $verified );
 
 		$subject = Mockery::mock( ProtectContent::class )->makePartial();
 

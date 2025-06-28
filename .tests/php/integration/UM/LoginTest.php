@@ -415,7 +415,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		// Login mode.
 		$mode = $subject::UM_MODE;
 
-		$this->prepare_hcaptcha_get_verify_message( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
+		$this->prepare_verify_post( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
 		$subject->verify( $submitted_data );
 
 		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
@@ -430,7 +430,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$subject = $this->get_subject();
 		$mode    = $subject::UM_MODE;
 
-		$this->prepare_hcaptcha_get_verify_message( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode", false );
+		$this->prepare_verify_post( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode", false );
 
 		$args['mode'] = $subject::UM_MODE;
 

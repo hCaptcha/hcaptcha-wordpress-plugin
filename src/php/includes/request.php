@@ -6,7 +6,6 @@
  */
 
 use HCaptcha\Helpers\API;
-use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Determines the user's actual IP address and attempts to partially
@@ -95,6 +94,7 @@ function hcap_get_error_messages(): array {
 			'fail'                     => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
 			'bad-nonce'                => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
 			'bad-signature'            => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
+			'spam'                     => __( 'Anti-spam check failed.', 'hcaptcha-for-forms-and-more' ),
 		]
 	);
 }
@@ -177,60 +177,11 @@ function hcap_check_site_config(): array {
 	return $body;
 }
 
-if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
-	/**
-	 * Verify hCaptcha response.
-	 *
-	 * @param string|null $hcaptcha_response hCaptcha response.
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 * @noinspection PhpMissingParamTypeInspection
-	 */
-	function hcaptcha_request_verify( $hcaptcha_response ): ?string {
-		return API::request_verify( $hcaptcha_response );
-	}
-}
-
-if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
+if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	/**
 	 * Verify POST.
 	 *
-	 * @param string $nonce_field_name  Nonce field name.
-	 * @param string $nonce_action_name Nonce action name.
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 */
-	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
-
-		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		$hcaptcha_nonce = isset( $_POST[ $nonce_field_name ] ) ?
-			filter_var( wp_unslash( $_POST[ $nonce_field_name ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-
-		// Verify nonce for logged-in users only.
-		if (
-			is_user_logged_in() &&
-			! wp_verify_nonce( $hcaptcha_nonce, $nonce_action_name ) &&
-			HCaptcha::is_protection_enabled()
-		) {
-			$errors      = hcap_get_error_messages();
-			$result      = $errors['bad-nonce'];
-			$error_codes = [ 'bad-nonce' ];
-
-			/** This filter is documented above. */
-			return apply_filters( 'hcap_verify_request', $result, $error_codes );
-		}
-
-		return hcaptcha_request_verify( $hcaptcha_response );
-	}
-}
-
-if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
-	/**
-	 * Get 'verify' message.
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_post().
 	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.
@@ -238,7 +189,9 @@ if ( ! function_exists( 'hcaptcha_get_verify_message' ) ) {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_get_verify_message( string $nonce_field_name, string $nonce_action_name ): ?string {
-		return hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
+		_deprecated_function( __FUNCTION__, '4.15.0', 'API::verify_post()' );
+
+		return API::verify_post( $nonce_field_name, $nonce_action_name );
 	}
 }
 
@@ -246,24 +199,52 @@ if ( ! function_exists( 'hcaptcha_get_verify_message_html' ) ) {
 	/**
 	 * Get verify message HTML.
 	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_post_html().
+	 *
 	 * @param string $nonce_field_name  Nonce field name.
 	 * @param string $nonce_action_name Nonce action name.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
 	function hcaptcha_get_verify_message_html( string $nonce_field_name, string $nonce_action_name ): ?string {
-		$message = hcaptcha_verify_post( $nonce_field_name, $nonce_action_name );
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_post_html()' );
 
-		if ( null === $message ) {
-			return null;
-		}
+		return API::verify_post_html( $nonce_field_name, $nonce_action_name );
+	}
+}
 
-		$header = _n( 'hCaptcha error:', 'hCaptcha errors:', substr_count( $message, ';' ) + 1, 'hcaptcha-for-forms-and-more' );
+if ( ! function_exists( 'hcaptcha_verify_post' ) ) {
+	/**
+	 * Verify POST.
+	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_post().
+	 *
+	 * @param string $nonce_field_name  Nonce field name.
+	 * @param string $nonce_action_name Nonce action name.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	function hcaptcha_verify_post( string $nonce_field_name = HCAPTCHA_NONCE, string $nonce_action_name = HCAPTCHA_ACTION ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_post()' );
 
-		if ( false === strpos( $message, $header ) ) {
-			$message = $header . ' ' . $message;
-		}
+		return API::verify_post( $nonce_field_name, $nonce_action_name );
+	}
+}
 
-		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
+if ( ! function_exists( 'hcaptcha_request_verify' ) ) {
+	/**
+	 * Verify hCaptcha response.
+	 *
+	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_request().
+	 *
+	 * @param string|null $hcaptcha_response hCaptcha response.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 * @noinspection PhpMissingParamTypeInspection
+	 */
+	function hcaptcha_request_verify( $hcaptcha_response = null ): ?string {
+		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_request()' );
+
+		return API::verify_request( $hcaptcha_response );
 	}
 }

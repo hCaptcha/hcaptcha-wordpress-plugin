@@ -1,12 +1,13 @@
 <?php
 /**
- * Register class file.
+ * 'Register' class file.
  *
  * @package hcaptcha-wp
  */
 
 namespace HCaptcha\ThemeMyLogin;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -80,10 +81,7 @@ class Register {
 			return $errors;
 		}
 
-		$error_message = hcaptcha_get_verify_message_html(
-			self::NONCE,
-			self::ACTION
-		);
+		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return $errors;

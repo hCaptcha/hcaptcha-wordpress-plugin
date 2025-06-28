@@ -103,7 +103,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$this->prepare_hcaptcha_get_verify_message( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register' );
+		$this->prepare_verify_post( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register' );
 
 		$subject = new Register();
 

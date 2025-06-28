@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Admin;
 
 use ElementorPro\Plugin;
@@ -47,13 +50,6 @@ class Notifications extends NotificationsBase {
 	 * @var array
 	 */
 	protected $notifications = [];
-
-	/**
-	 * Shuffle notifications.
-	 *
-	 * @var bool
-	 */
-	protected $shuffle = true;
 
 	/**
 	 * Init class.
@@ -269,7 +265,7 @@ class Notifications extends NotificationsBase {
 					)
 				),
 				'button'  => [
-					'url'      => $urls['passive_mode_example'],
+					'url'      => $urls['passive_mode_demo'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],
@@ -292,7 +288,7 @@ class Notifications extends NotificationsBase {
 					)
 				),
 				'button'  => [
-					'url'      => $urls['protect_content_example'],
+					'url'      => $urls['protect_content_demo'],
 					'text'     => __( 'See an example', 'hcaptcha-for-forms-and-more' ),
 					'lightbox' => true,
 				],
@@ -329,6 +325,10 @@ class Notifications extends NotificationsBase {
 
 		if ( $settings->is_on( 'protect_content' ) ) {
 			unset( $notifications['protect-content'] );
+		}
+
+		if ( $settings->is_on( 'antispam' ) ) {
+			unset( $notifications['antispam'] );
 		}
 
 		// Added in 4.4.0.
@@ -399,9 +399,18 @@ class Notifications extends NotificationsBase {
 			</div>
 			<?php
 
-			if ( $this->shuffle ) {
+			/**
+			 * Filter whether to shuffle notifications.
+			 *
+			 * @param bool $shuffle Whether to shuffle notifications.
+			 */
+			$shuffle = (bool) apply_filters( 'hcap_shuffle_notifications', true );
+
+			if ( $shuffle ) {
 				$notifications = $this->shuffle_assoc( $notifications );
 				$notifications = $this->make_key_first( $notifications, 'register' );
+			} else {
+				$notifications = array_reverse( $notifications );
 			}
 
 			foreach ( $notifications as $id => $notification ) {
@@ -431,7 +440,7 @@ class Notifications extends NotificationsBase {
 					$button = ob_get_clean();
 				}
 
-				// We need 'inline' class below to prevent moving the 'notice' div after h2 by common.js script in WP Core.
+				// We need the 'inline' class below to prevent moving the 'notice' div after h2 by common.js script in WP Core.
 				?>
 				<div
 						class="hcaptcha-notification notice notice-info is-dismissible inline"
@@ -455,8 +464,8 @@ class Notifications extends NotificationsBase {
 						<?php esc_html_e( 'of', 'hcaptcha-for-forms-and-more' ); ?>
 						<span id="hcaptcha-navigation-pages"><?php echo count( $notifications ); ?></span>
 					</span>
-					<a class="prev disabled"></a>
-					<a class="next <?php echo esc_attr( $next_disabled ); ?>"></a>
+					<a class="prev button disabled"></a>
+					<a class="next button <?php echo esc_attr( $next_disabled ); ?>"></a>
 				</div>
 			</div>
 		</div>
