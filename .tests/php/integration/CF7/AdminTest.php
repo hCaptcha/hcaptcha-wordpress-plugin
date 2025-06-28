@@ -279,9 +279,9 @@ HTML;
 <div class="wrap" id="wpcf7-contact-form-editor">
 	<h1 class="wp-heading-inline">Edit Contact Form</h1>
 	<div id="poststuff">
-			<div id="post-body" class="metabox-holder columns-2">
-				<form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">
-		<div id="post-body-content">
+			<div id="post-body" class="metabox-holder columns-2"><form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">
+		
+				<div id="post-body-content">
 					<input type="text" id="wpcf7-shortcode" class="large-text code" value="[contact-form-7 id=&quot;4315f34&quot; title=&quot;Contact form 2&quot;]" />
 				</div><!-- #post-body-content -->
 				<div id="postbox-container-1" class="postbox-container">
@@ -296,10 +296,11 @@ HTML;
 					</div>
 				</div><!-- #postbox-container-2 -->
 			</form></div><!-- #post-body -->
+			
 $live_container
-
-			<br class="clear" />
+<br class="clear" />
 		</div><!-- #poststuff -->
+	
 </div><!-- .wrap -->
 HTML;
 
