@@ -35,24 +35,8 @@ class AntiSpam {
 	 * Based on the definition in the \HCaptcha\Settings\Integrations::init_form_fields.
 	 */
 	private const PROTECTED_FORMS = [
-		'akismet' => [
-			'native'   => [
-				'wp_status'               => [ 'comment' ],
-				'cf7_status'              => [ 'form', 'embed' ],
-				'divi_status'             => [ 'comment' ],
-				'divi_builder_status'     => [ 'comment' ],
-				'extra_status'            => [ 'comment' ],
-				'elementor_pro_status'    => [ 'form' ],
-				'fluent_status'           => [ 'form' ],
-				'formidable_forms_status' => [ 'form' ],
-				'forminator_status'       => [ 'form' ],
-				'give_wp_status'          => [ 'form' ],
-				'gravity_status'          => [ 'form', 'embed' ],
-				'jetpack_status'          => [ 'contact' ],
-				'ninja_status'            => [ 'form' ],
-				'woocommerce_status'      => [ 'checkout' ],
-				'wpforms_status'          => [ 'form', 'embed' ],
-			],
+		'antispam_provider' => [
+			'native'   => [],
 			'hcaptcha' => [
 				'avada_status'        => [ 'form' ],
 				'coblocks_status'     => [ 'form' ],

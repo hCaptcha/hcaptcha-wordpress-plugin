@@ -666,24 +666,6 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'content',
 				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
 			],
-			'antispam'                 => [
-				'label'   => 'Enable anti-spam check',
-				'type'    => 'checkbox',
-				'section' => 'antispam',
-				'options' => [
-					'on' => 'Anti-spam check',
-				],
-				'helper'  => 'Enable anti-spam check of submitted forms.',
-			],
-			'antispam_provider'        => [
-				'label'   => 'Anti-spam provider',
-				'type'    => 'select',
-				'section' => 'antispam',
-				'options' => [
-					'akismet' => 'Akismet',
-				],
-				'helper'  => 'Select anti-spam provider.',
-			],
 			'blacklisted_ips'          => [
 				'label'   => 'Denylisted IPs',
 				'type'    => 'textarea',

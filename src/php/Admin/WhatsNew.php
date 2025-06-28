@@ -330,39 +330,6 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
-	 * What's New 4.15.0 content.
-	 *
-	 * @return void
-	 * @noinspection HtmlUnknownTarget
-	 * @noinspection PhpUnused
-	 */
-	protected function whats_new_4_15_0(): void {
-		$urls = $this->prepare_urls();
-
-		$block = [
-			'type'    => 'center',
-			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
-			'title'   => __( 'Antispam', 'hcaptcha-for-forms-and-more' ),
-			'message' => sprintf(
-				'<p>%1$s<br>%2$s<br>%3$s</p>',
-				__( 'Advanced Antispam Protection adds a second layer of defense using services like Akismet. After hCaptcha blocks bots, Akismet scans form content to catch human spam.', 'hcaptcha-for-forms-and-more' ),
-				__( 'This two-step process improves accuracy and reduces false positives.', 'hcaptcha-for-forms-and-more' ),
-				__( 'Requires the Akismet plugin with a valid API key.', 'hcaptcha-for-forms-and-more' )
-			),
-			'button'  => [
-				'url'  => $urls['antispam'],
-				'text' => __( 'Configure Antispam', 'hcaptcha-for-forms-and-more' ),
-			],
-			'image'   => [
-				'url'      => $urls['antispam_demo'],
-				'lightbox' => true,
-			],
-		];
-
-		$this->show_block( $block );
-	}
-
-	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.

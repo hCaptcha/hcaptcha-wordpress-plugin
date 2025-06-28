@@ -437,62 +437,6 @@ HTML;
 	}
 
 	/**
-	 * Test whats_new_4_15_0().
-	 *
-	 * @return void
-	 * @noinspection HtmlUnknownAnchorTarget
-	 */
-	public function test_whats_new_4_15_0(): void {
-		$expected = <<<HTML
-		<div class="hcaptcha-whats-new-block center">
-						<div class="hcaptcha-whats-new-badge">
-				New Feature			</div>
-						<h2>
-				Antispam			</h2>
-			<div class="hcaptcha-whats-new-message">
-				<p>Advanced Antispam Protection adds a second layer of defense using services like Akismet. After hCaptcha blocks bots, Akismet scans form content to catch human spam.<br>This two-step process improves accuracy and reduces false positives.<br>Requires the Akismet plugin with a valid API key.</p>			</div>
-			<div class="hcaptcha-whats-new-button">
-				<a
-						href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#antispam_1" class="button button-primary"
-						target="_blank">
-					Configure Antispam				</a>
-			</div>
-			<div class="hcaptcha-whats-new-image">
-															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/antispam.gif" class="hcaptcha-lightbox">
-							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/antispam.gif" alt="What's New block image">
-						</a>
-												</div>
-		</div>
-		
-HTML;
-
-		add_filter(
-			'hcap_settings_init_args',
-			static function ( $args ) {
-				$args['mode'] = 'tabs';
-
-				return $args;
-			}
-		);
-
-		unset( $current_user );
-		wp_set_current_user( 1 );
-		hcaptcha()->init_hooks();
-		set_current_screen( 'hcaptcha' );
-		do_action( 'admin_menu' );
-
-		$subject = Mockery::mock( WhatsNew::class )->makePartial();
-
-		$subject->shouldAllowMockingProtectedMethods();
-
-		ob_start();
-
-		$subject->whats_new_4_15_0();
-
-		self::assertSame( $expected, ob_get_clean() );
-	}
-
-	/**
 	 * Test update_whats_new().
 	 *
 	 * @return void

@@ -37,7 +37,6 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page loading impact.
 * **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
-* **Layered Antispam Protection:** Combine hCaptcha with services like Akismet for content-based spam filtering after hCaptcha is passed.
 
 **Customization**
 
@@ -72,18 +71,17 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 
 1. Login page with hCaptcha widget.
 2. Login page with hCaptcha challenge.
-3. Antispam protection.
-4. Protected content.
-5. WooCommerce Login/Register page.
-6. Contact Form 7 with hCaptcha.
-7. Contact Form 7 live form in the admin editor.
-8. Elementor Pro Form.
-9. Elementor Pro Form in admin editor.
-10. General settings page.
-11. Integrations' settings page.
-12. Activating a plugin from the Integration settings page.
-13. (Optional) Local Forms statistics.
-14. (Optional) Local Events statistics.
+3. Protected content.
+4. WooCommerce Login/Register page.
+5. Contact Form 7 with hCaptcha.
+6. Contact Form 7 live form in the admin editor.
+7. Elementor Pro Form.
+8. Elementor Pro Form in admin editor.
+9. General settings page.
+10. Integrations' settings page.
+11. Activating plugin from the Integration settings page.
+12. (Optional) Local Forms statistics.
+13. (Optional) Local Events statistics.
 
 == Installation ==
 
@@ -735,16 +733,6 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.15.0 =
-* Added: Optional Akismet integration for content-based spam filtering (runs after hCaptcha).
-* Added the antispam check for the Avada form.
-* Added the antispam check for the Divi Contact form.
-* Added the antispam check for the Extra Contact form.
-* Added the antispam check for the Divi Builder Contact form.
-* Added the antispam check for the CoBlocks form.
-* Added the antispam check for the Kadence form.
-* Added the antispam check for the Kadence Advanced form.
-* Added the antispam check for the Quform form.
-* Added the antispam check for the Spectra form.
 * Added hCaptcha error messages to CoBlocks.
 * Added hCaptcha error messages to Spectra.
 * Added compatibility with Contact Form 7 v6.1.
