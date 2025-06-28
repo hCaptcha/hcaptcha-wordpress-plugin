@@ -1,14 +1,14 @@
 = 4.15.0 =
 * Added: Optional Akismet integration for content-based spam filtering (runs after hCaptcha).
-* Added the anti-spam check for the Avada form.
-* Added the anti-spam check for the Divi Contact form.
-* Added the anti-spam check for the Extra Contact form.
-* Added the anti-spam check for the Divi Builder Contact form.
-* Added the anti-spam check for the CoBlocks form.
-* Added the anti-spam check for the Kadence form.
-* Added the anti-spam check for the Kadence Advanced form.
-* Added the anti-spam check for the Quform form.
-* Added the anti-spam check for the Spectra form.
+* Added the antispam check for the Avada form.
+* Added the antispam check for the Divi Contact form.
+* Added the antispam check for the Extra Contact form.
+* Added the antispam check for the Divi Builder Contact form.
+* Added the antispam check for the CoBlocks form.
+* Added the antispam check for the Kadence form.
+* Added the antispam check for the Kadence Advanced form.
+* Added the antispam check for the Quform form.
+* Added the antispam check for the Spectra form.
 * Added hCaptcha error messages to CoBlocks.
 * Added hCaptcha error messages to Spectra.
 * Added compatibility with Contact Form 7 v6.1.
