@@ -12,6 +12,7 @@
 /.yarn
 /node_modules
 /src/js
+/trunk
 
 # Files
 /.DS_Store
