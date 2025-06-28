@@ -668,6 +668,10 @@ class General extends PluginSettingsBase {
 		if ( ! is_multisite() ) {
 			unset( $this->form_fields[ self::NETWORK_WIDE ] );
 		}
+
+		if ( ! AntiSpam::get_supported_providers() ) {
+			unset( $this->form_fields['antispam'], $this->form_fields['antispam_provider'] );
+		}
 	}
 
 	/**
@@ -845,8 +849,6 @@ class General extends PluginSettingsBase {
 			esc_html__( 'Credentials changed.', 'hcaptcha-for-forms-and-more' ) . "\n" .
 			esc_html__( 'Please complete hCaptcha and check the site config.', 'hcaptcha-for-forms-and-more' );
 
-		$providers = array_keys( $this->form_fields['antispam_provider']['options'] );
-
 		/* translators: 1: Provider name. */
 		$provider_error = __( '%1$s anti-spam provider is not configured.', 'hcaptcha-for-forms-and-more' );
 
@@ -875,7 +877,7 @@ class General extends PluginSettingsBase {
 				'completeHCaptchaTitle'                => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 				'completeHCaptchaContent'              => __( 'Before checking the site config, please complete the Active hCaptcha in the current section.', 'hcaptcha-for-forms-and-more' ),
 				'OKBtnText'                            => __( 'OK', 'hcaptcha-for-forms-and-more' ),
-				'configuredAntiSpamProviders'          => AntiSpam::get_configured_providers( $providers ),
+				'configuredAntiSpamProviders'          => AntiSpam::get_configured_providers(),
 				'configuredAntiSpamProviderError'      => $provider_error,
 			]
 		);

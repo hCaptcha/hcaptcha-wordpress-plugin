@@ -16,13 +16,13 @@ use HCaptcha\Helpers\Request;
 /**
  * Class Akismet.
  */
-class Akismet {
+class Akismet extends ProviderBase {
 	/**
 	 * Is the Akismet plugin activated?
 	 *
 	 * @return bool
 	 */
-	public static function is_activated(): bool {
+	private static function is_activated(): bool {
 		return defined( 'AKISMET_VERSION' );
 	}
 
@@ -30,6 +30,7 @@ class Akismet {
 	 * Has the Akismet plugin been configured with a valid API key?
 	 *
 	 * @return bool
+	 * @noinspection PhpUnused
 	 */
 	public static function is_configured(): bool {
 		// Akismet will only allow an API key to be saved if it is a valid key.

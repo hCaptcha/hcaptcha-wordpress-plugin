@@ -24,12 +24,11 @@ class AntiSpam {
 
 	/**
 	 * Supported providers in [ 'id' => 'Name' ] format.
+	 * Name is for displaying on the General page.
 	 *
 	 * @var array
 	 */
-	private const SUPPORTED_PROVIDERS = [
-		'akismet' => 'Akismet',
-	];
+	private const SUPPORTED_PROVIDERS = [];
 
 	/**
 	 * List of protected forms in [ 'status' => [ 'option_1_key', 'option_2_key' ] ] format.
@@ -70,7 +69,7 @@ class AntiSpam {
 	/**
 	 * AntiSpam provider.
 	 *
-	 * @var Akismet
+	 * @var ProviderBase
 	 */
 	private $provider;
 
@@ -114,13 +113,14 @@ class AntiSpam {
 			return;
 		}
 
-		$provider = new Akismet();
+		$provider_id = $settings->get( 'antispam_provider' );
 
-		if ( ! $provider::is_configured() ) {
+		if ( ! self::is_provider_configured( $provider_id ) ) {
 			return;
 		}
 
-		$this->provider = $provider;
+		$provider_classname = self::get_provider_classname( $provider_id );
+		$this->provider     = new $provider_classname();
 
 		$this->init_hooks();
 	}
@@ -170,19 +170,24 @@ class AntiSpam {
 	}
 
 	/**
-	 * Get configured anti-spam providers.
-	 *
-	 * @param array $providers Provider slugs.
+	 * Retrieves the protected forms list based on the current provider.
 	 *
 	 * @return array
 	 */
-	public static function get_configured_providers( array $providers ): array {
-		return array_filter(
-			$providers,
-			static function ( $provider ) {
-				return self::is_provider_configured( $provider );
-			}
-		);
+	public static function get_protected_forms(): array {
+		$antispam = hcaptcha()->settings()->get( 'antispam' );
+
+		if ( ! $antispam ) {
+			return [];
+		}
+
+		$provider_id = hcaptcha()->settings()->get( 'antispam_provider' );
+
+		if ( ! self::is_provider_configured( $provider_id ) ) {
+			return [];
+		}
+
+		return self::PROTECTED_FORMS[ $provider_id ] ?? [];
 	}
 
 	/**
@@ -195,37 +200,48 @@ class AntiSpam {
 	}
 
 	/**
-	 * Retrieves the protected forms list based on the current provider.
+	 * Get configured anti-spam providers.
 	 *
 	 * @return array
 	 */
-	public static function get_protected_forms(): array {
-		$antispam = hcaptcha()->settings()->get( 'antispam' );
+	public static function get_configured_providers(): array {
+		static $configured_providers;
 
-		if ( ! $antispam ) {
-			return [];
+		if ( null === $configured_providers ) {
+			$configured_providers = array_filter(
+				array_keys( self::get_supported_providers() ),
+				static function ( $provider ) {
+					return self::is_provider_configured( $provider );
+				}
+			);
 		}
 
-		$provider = hcaptcha()->settings()->get( 'antispam_provider' );
-
-		if ( ! self::is_provider_configured( $provider ) ) {
-			return [];
-		}
-
-		return self::PROTECTED_FORMS[ $provider ] ?? [];
+		return $configured_providers;
 	}
 
 	/**
-	 * Is provider configured?
+	 * Is provider supported?
 	 *
-	 * @param string $provider Provider slug.
+	 * @param string $provider_id Provider ID.
 	 *
 	 * @return bool
 	 */
-	private static function is_provider_configured( string $provider ): bool {
-		$class_name = self::get_provider_classname( $provider );
+	private static function is_provider_supported( string $provider_id ): bool {
+		return isset( self::SUPPORTED_PROVIDERS[ $provider_id ] );
+	}
+
+	/**
+	 * Is the provider supported and configured?
+	 *
+	 * @param string $provider_id Provider ID.
+	 *
+	 * @return bool
+	 */
+	private static function is_provider_configured( string $provider_id ): bool {
+		$class_name = self::get_provider_classname( $provider_id );
 
 		return (
+			self::is_provider_supported( $provider_id ) &&
 			class_exists( $class_name ) &&
 			method_exists( $class_name, 'is_configured' ) &&
 			$class_name::is_configured()
@@ -235,11 +251,11 @@ class AntiSpam {
 	/**
 	 * Get a provider class name.
 	 *
-	 * @param string $provider Provider slug.
+	 * @param string $provider_id Provider ID.
 	 *
 	 * @return string
 	 */
-	private static function get_provider_classname( string $provider ): string {
-		return __NAMESPACE__ . '\\' . ucfirst( $provider );
+	private static function get_provider_classname( string $provider_id ): string {
+		return __NAMESPACE__ . '\\' . ucfirst( $provider_id );
 	}
 }
