@@ -149,6 +149,9 @@ describe( 'admin-gravity-forms', () => {
 	} );
 
 	test( 'bindFieldAddedEvent binds the gform_field_added event', () => {
+		// Remove the existing hook.
+		$( document ).off( 'gform_field_added' );
+
 		// Call bindFieldAddedEvent
 		window.hCaptchaGravityForms.bindFieldAddedEvent();
 
