@@ -732,6 +732,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.16.0 =
+* Fixed PHP warning on installing the plugin.
+
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.
 * Added hCaptcha error messages to Spectra.

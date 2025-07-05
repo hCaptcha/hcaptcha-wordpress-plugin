@@ -1505,6 +1505,15 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'plugin_dirs_to_slugs' )
 			->with( [ $wish ] )->andReturn( [ $wish_slug ] );
+		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
+			static function ( $plugin_file ) use ( $plugin_dir, $wish, $wish_req_slug ) {
+				if ( $plugin_file === $plugin_dir . '/' . $wish_req_slug ) {
+					return [ 'RequiresPlugins' => $wish ];
+				}
+
+				return [];
+			}
+		);
 
 		FunctionMocker::replace(
 			'constant',
@@ -1512,17 +1521,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 				return 'WP_PLUGIN_DIR' === $name ? $plugin_dir : '';
 			}
 		);
-
-		WP_Mock::userFunction( 'get_plugin_data' )
-			->andReturnUsing(
-				static function ( $plugin_file ) use ( $plugin_dir, $wish, $wish_req_slug ) {
-					if ( $plugin_file === $plugin_dir . '/' . $wish_req_slug ) {
-						return [ 'RequiresPlugins' => $wish ];
-					}
-
-					return [];
-				}
-			);
 
 		self::assertSame( $plugins_tree, $subject->build_plugins_tree( $wish_req_slug ) );
 	}
@@ -1606,6 +1604,15 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
+			static function ( $plugin_file ) use ( $plugin_dir, $wish_req_name, $wish_req_slug ) {
+				if ( $plugin_file === $plugin_dir . '/' . $wish_req_slug ) {
+					return [ 'Name' => $wish_req_name ];
+				}
+
+				return [];
+			}
+		);
 
 		FunctionMocker::replace(
 			'constant',
@@ -1615,16 +1622,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 		);
 
 		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
-		WP_Mock::userFunction( 'get_plugin_data' )
-			->andReturnUsing(
-				static function ( $plugin_file ) use ( $plugin_dir, $wish_req_name, $wish_req_slug ) {
-					if ( $plugin_file === $plugin_dir . '/' . $wish_req_slug ) {
-						return [ 'Name' => $wish_req_name ];
-					}
-
-					return [];
-				}
-			);
 
 		$subject->init_form_fields();
 

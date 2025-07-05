@@ -1389,7 +1389,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function plugin_dependencies( string $plugin ): array {
-		$plugin_headers   = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin );
+		$plugin_headers   = $this->get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin );
 		$requires_plugins = $plugin_headers['RequiresPlugins'] ?? '';
 		$wp_dependencies  = $this->plugin_dirs_to_slugs(
 			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
@@ -1459,7 +1459,7 @@ class Integrations extends PluginSettingsBase {
 		$plugin_name = $this->form_fields[ $status ]['label'] ?? '';
 
 		if ( ! $plugin_name ) {
-			$plugin_data = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $node['plugin'] );
+			$plugin_data = $this->get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $node['plugin'] );
 			$plugin_name = $plugin_data['Name'] ?? '';
 		}
 
@@ -1695,6 +1695,31 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Wrapper for get_plugin_data.
+	 * Check the plugin file for existence to avoid warnings.
+	 *
+	 * @param string $plugin_file Absolute path to the main plugin file.
+	 * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
+	 * @param bool   $translate   Optional. If the returned data should be translated. Default true.
+	 *
+	 * @return array
+	 */
+	protected function get_plugin_data( string $plugin_file, bool $markup = true, bool $translate = true ): array {
+
+		if ( ! file_exists( $plugin_file ) ) {
+			return [];
+		}
+
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			// @CodeCoverageIgnoreStart
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			// @CodeCoverageIgnoreEnd
+		}
+
+		return get_plugin_data( $plugin_file, $markup, $translate );
 	}
 
 	/**
