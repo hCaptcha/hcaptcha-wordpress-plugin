@@ -43,7 +43,7 @@ const gravityForms = window.hCaptchaGravityForms || ( function( document, window
 			return field;
 		},
 
-		// Add filter to limit hCaptcha field to one per form.
+		// Add a filter to limit hCaptcha field to one per form.
 		addFieldFilter() {
 			if ( typeof gform === 'undefined' ) {
 				return;

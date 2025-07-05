@@ -66,6 +66,11 @@ describe( 'admin-gravity-forms', () => {
 		require( '../../../assets/js/admin-gravity-forms.js' );
 	} );
 
+	afterEach( () => {
+		// Clear hCaptchaBindEvents mock
+		global.hCaptchaBindEvents.mockClear();
+	} );
+
 	test( 'init function initializes the application', () => {
 		// Check that the window.hCaptchaGravityForms object is created
 		expect( window.hCaptchaGravityForms ).toBeDefined();
@@ -89,8 +94,8 @@ describe( 'admin-gravity-forms', () => {
 		const addHCaptchaSettingsSpy = jest.spyOn( window.hCaptchaGravityForms, 'addHCaptchaSettings' );
 		const bindHCaptchaNavClickSpy = jest.spyOn( window.hCaptchaGravityForms, 'bindHCaptchaNavClick' );
 
-		// Trigger jQuery ready event
-		$( window.hCaptchaGravityForms.ready );
+		// Directly call the ready function
+		window.hCaptchaGravityForms.ready();
 
 		// Check that the functions were called
 		expect( bindFieldAddedEventSpy ).toHaveBeenCalledTimes( 1 );
@@ -154,14 +159,14 @@ describe( 'admin-gravity-forms', () => {
 		$( document ).trigger( 'gform_field_added', [ null, field ] );
 
 		// Check that hCaptchaBindEvents was called
-		expect( global.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 
 		// Test with a different field type
 		field.type = 'other';
 		$( document ).trigger( 'gform_field_added', [ null, field ] );
 
 		// hCaptchaBindEvents should not be called again
-		expect( global.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 
 	const hcaptchaNav = 'a.hcaptcha-nav';
