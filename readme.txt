@@ -734,6 +734,7 @@ Instructions for popular native integrations are below:
 
 = 4.16.0 =
 * Fixed PHP warning on installing the integration plugin.
+* Fixed PHP warning when processing Advanced Kadence Form.
 
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.

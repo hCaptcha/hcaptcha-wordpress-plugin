@@ -33,7 +33,7 @@ class AdvancedBlockParser extends WP_Block_Parser {
 	 */
 	public function parse( $document ): array {
 		$output     = parent::parse( $document );
-		$block      = $output[0];
+		$block      = $output[0] ?? [];
 		$block_name = $block['blockName'] ?? '';
 
 		if ( 'kadence/advanced-form' !== $block_name ) {
