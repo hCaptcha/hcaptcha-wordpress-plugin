@@ -733,7 +733,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.16.0 =
-* Fixed PHP warning on installing the plugin.
+* Fixed PHP warning on installing the integration plugin.
 
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.
