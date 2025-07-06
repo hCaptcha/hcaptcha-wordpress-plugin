@@ -733,6 +733,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.16.0 =
+* Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.
 
