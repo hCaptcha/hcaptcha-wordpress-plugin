@@ -1346,7 +1346,7 @@ abstract class HCaptchaTestCase extends TestCase {
 							'register'       => 'Register Form',
 						],
 				],
-			'woocommerce_germanized_status'     =>
+			'woocommerce_germanized_status'    =>
 				[
 					'label'   => 'WooCommerce Germanized',
 					'type'    => 'checkbox',
