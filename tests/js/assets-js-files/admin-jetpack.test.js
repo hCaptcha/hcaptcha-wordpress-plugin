@@ -93,16 +93,16 @@ describe( 'admin-jetpack', () => {
 
 		// Check that hCaptcha was added to each form
 		const forms = document.querySelectorAll( '.wp-block .jetpack-contact-form' );
-		forms.forEach( form => {
+		forms.forEach( ( form ) => {
 			const hCaptcha = form.querySelector( '.h-captcha' );
 			expect( hCaptcha ).not.toBeNull();
 		} );
 
 		// Check that hCaptcha was added before the button
 		const buttons = document.querySelectorAll( '.wp-block .jetpack-contact-form .wp-block-jetpack-button' );
-		buttons.forEach( button => {
+		buttons.forEach( ( button ) => {
 			const previousSibling = button.previousSibling;
-			expect( previousSibling.innerHTML ).toBe( HCaptchaJetpackObject.hCaptcha );
+			expect( previousSibling.innerHTML ).toBe( global.HCaptchaJetpackObject.hCaptcha );
 		} );
 	} );
 

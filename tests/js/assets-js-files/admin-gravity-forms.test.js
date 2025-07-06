@@ -137,12 +137,12 @@ describe( 'admin-gravity-forms', () => {
 		global.GetFieldsByType.mockReturnValueOnce( [ { id: 1 } ] );
 		expect( filterFunction( true, 'hcaptcha' ) ).toBe( false );
 		expect( global.kaggDialog.confirm ).toHaveBeenCalledWith( {
-			title: HCaptchaGravityFormsObject.onlyOne,
+			title: global.HCaptchaGravityFormsObject.onlyOne,
 			content: '',
 			type: 'info',
 			buttons: {
 				ok: {
-					text: HCaptchaGravityFormsObject.OKBtnText,
+					text: global.HCaptchaGravityFormsObject.OKBtnText,
 				},
 			},
 		} );
@@ -201,8 +201,8 @@ describe( 'admin-gravity-forms', () => {
 
 		// Check that the content was updated
 		const content = $( '.gform-settings__content' );
-		expect( content.find( '.gform-settings-panel__title' ).text() ).toBe( HCaptchaGravityFormsObject.noticeLabel );
-		expect( content.find( '.gform-kitchen-sink' ).text() ).toBe( HCaptchaGravityFormsObject.noticeDescription );
+		expect( content.find( '.gform-settings-panel__title' ).text() ).toBe( global.HCaptchaGravityFormsObject.noticeLabel );
+		expect( content.find( '.gform-kitchen-sink' ).text() ).toBe( global.HCaptchaGravityFormsObject.noticeDescription );
 	} );
 
 	test( 'addFieldFilter does nothing when gform is undefined', () => {
