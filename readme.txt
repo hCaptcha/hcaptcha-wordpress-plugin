@@ -405,6 +405,10 @@ UsersWP
 `$source: 'userswp/userswp.php'`
 `$form_id: 'forgot', 'login' or 'register'`
 
+WooCommerce Germanized
+`$source: 'woocommerce-germanized/woocommerce-germanized.php'`
+`$form_id: 'return_request'`
+
 WooCommerce Wishlist
 `$source: 'woocommerce-wishlists/woocommerce-wishlists.php'`
 `$form_id: 'form'`
@@ -704,6 +708,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
 * WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
+* WooCommerce Germanized Return Request Form
 * WooCommerce Wishlist Form
 * Wordfence Security Login Form
 * Wordfence Login Security Login Form
@@ -733,6 +738,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.16.0 =
+* Added integration with Germanized for WooCommerce.
 * Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.

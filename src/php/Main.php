@@ -41,6 +41,7 @@ use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
+use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
 
 /**
@@ -1451,6 +1452,11 @@ class Main {
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',
 				WC\Register::class,
+			],
+			'WooCommerce Germanized'               => [
+				[ 'woocommerce_germanized_status', 'return_request' ],
+				'woocommerce-germanized/woocommerce-germanized.php',
+				ReturnRequest::class,
 			],
 			'WooCommerce Wishlists'                => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],

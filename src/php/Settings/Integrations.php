@@ -71,6 +71,7 @@ class Integrations extends PluginSettingsBase {
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
 		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
+		'woocommerce-germanized/woocommerce-germanized.php'                 => 'woocommerce/woocommerce.php',
 		'woocommerce-wishlists/woocommerce-wishlists.php'                   => 'woocommerce/woocommerce.php',
 		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 	];
@@ -673,6 +674,13 @@ class Integrations extends PluginSettingsBase {
 					'lost_pass'      => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'order_tracking' => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
 					'register'       => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'woocommerce_germanized_status'    => [
+				'label'   => 'WooCommerce Germanized',
+				'type'    => 'checkbox',
+				'options' => [
+					'return_request' => __( 'Return Request Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'woocommerce_wishlists_status'     => [

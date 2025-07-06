@@ -493,6 +493,8 @@ WooCommerce:
   Lost Password Form:                 On
   Order Tracking Form:                On
   Register Form:                      On
+WooCommerce Germanized:               
+  Return Request Form:                Off
 WooCommerce Wishlists:                
   Create List Form:                   On
 Wordfence:                            
