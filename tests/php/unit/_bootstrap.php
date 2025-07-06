@@ -73,7 +73,7 @@ FunctionMocker::init(
 		'whitelist'             => [
 			realpath( PLUGIN_PATH . '/hcaptcha.php' ),
 			realpath( PLUGIN_PATH . '/src/php' ),
-			realpath( PLUGIN_PATH . '/.tests/php/unit/Stubs' ),
+			realpath( PLUGIN_PATH . '/tests/php/unit/Stubs' ),
 		],
 		'redefinable-internals' => [
 			'class_exists',

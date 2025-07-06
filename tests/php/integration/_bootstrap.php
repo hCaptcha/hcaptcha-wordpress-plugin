@@ -22,7 +22,7 @@ FunctionMocker::init(
 		],
 		'whitelist'             => [
 			realpath( HCAPTCHA_PATH . '/src/php' ),
-			realpath( HCAPTCHA_PATH . '/.tests/php/integration/Stubs' ),
+			realpath( HCAPTCHA_PATH . '/tests/php/integration/Stubs' ),
 		],
 		'redefinable-internals' => [
 			'class_exists',

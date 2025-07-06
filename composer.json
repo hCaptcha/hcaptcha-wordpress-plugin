@@ -66,8 +66,8 @@
   "autoload-dev": {
     "psr-4": {
       "HCaptcha\\": "src/php",
-      "HCaptcha\\Tests\\Integration\\": ".tests/php/integration",
-      "HCaptcha\\Tests\\Unit\\": ".tests/php/unit"
+      "HCaptcha\\Tests\\Integration\\": "tests/php/integration",
+      "HCaptcha\\Tests\\Unit\\": "tests/php/unit"
     }
   },
   "scripts": {
