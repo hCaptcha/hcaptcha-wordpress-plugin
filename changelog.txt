@@ -1,5 +1,6 @@
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
+* Added integration with Icegram Express.
 * Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.
