@@ -411,6 +411,8 @@ Gravity Forms:
   Form Embed:                         Off
 HTML Forms:                           
   Form:                               Off
+Icegram Express:                      
+  Form:                               Off
 Jetpack:                              
   Contact Form:                       On
 Kadence:                              

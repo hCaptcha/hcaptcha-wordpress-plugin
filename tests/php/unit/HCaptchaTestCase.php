@@ -1075,6 +1075,15 @@ abstract class HCaptchaTestCase extends TestCase {
 					'form' => 'Form',
 				],
 			],
+			'icegram_express_status'           =>
+				[
+					'label'   => 'Icegram Express',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'form' => 'Form',
+						],
+				],
 			'jetpack_status'                   =>
 				[
 					'label'   => 'Jetpack',

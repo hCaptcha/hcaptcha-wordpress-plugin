@@ -1178,6 +1178,11 @@ class Main {
 				'html-forms/html-forms.php',
 				HTMLForms\Form::class,
 			],
+			'Icegram Express'                      => [
+				[ 'icegram_express_status', 'form' ],
+				'email-subscribers/email-subscribers.php',
+				IcegramExpress\Form::class,
+			],
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
 				'jetpack/jetpack.php',

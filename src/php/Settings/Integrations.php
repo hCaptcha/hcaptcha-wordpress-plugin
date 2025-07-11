@@ -436,6 +436,13 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'icegram_express_status'           => [
+				'label'   => 'Icegram Express',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'jetpack_status'                   => [
 				'label'   => 'Jetpack',
 				'logo'    => 'svg',

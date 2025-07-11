@@ -329,6 +329,10 @@ Events Manager
 `$source: 'events-manager/events-manager.php'`
 `$form_id: event_id`
 
+Icegram Express
+`$source: 'email-subscribers/email-subscribers.php'`
+`$form_id: form_id`
+
 Jetpack
 `$source: 'jetpack/jetpack.php'`
 `$form_id: 'contact_$form_hash'`
@@ -679,6 +683,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * GiveWP Form
 * Gravity Forms
 * Gravity Perks Nested Forms
+* Icegram Express Form
 * Jetpack Forms
 * Kadence Form and Advanced Form
 * LearnDash Login, Lost Password, and Register Forms
@@ -739,6 +744,7 @@ Instructions for popular native integrations are below:
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
+* Added integration with Icegram Express.
 * Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.
