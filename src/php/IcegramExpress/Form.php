@@ -10,8 +10,10 @@
 
 namespace HCaptcha\IcegramExpress;
 
+use ES_Forms_Table;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Main;
 
 /**
  * Class Form.
@@ -29,6 +31,23 @@ class Form {
 	private const NONCE = 'hcaptcha_icegram_express_nonce';
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-icegram-express';
+
+	/**
+	 * Script localization object.
+	 */
+	private const OBJECT = 'HCaptchaIcegramExpressObject';
+
+	/**
+	 * There are forms to show in the popup.
+	 *
+	 * @var array
+	 */
+	private $show_in_popup = [];
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -44,6 +63,7 @@ class Form {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'ig_es_validate_subscription', [ $this, 'verify' ], 10, 2 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
 	}
 
 	/**
@@ -64,18 +84,15 @@ class Form {
 			return $output;
 		}
 
-		$form_id = (int) ( $attr['id'] ?? 0 );
+		$form_id  = (int) ( $attr['id'] ?? 0 );
+		$hcaptcha = HCaptcha::form( $this->get_args( $form_id ) );
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( self::class ),
-				'form_id' => $form_id,
-			],
-		];
+		if ( $this->show_in_popup( $form_id, (array) $attr ) ) {
+			$this->show_in_popup[ $form_id ] = $hcaptcha;
 
-		$hcaptcha = HCaptcha::form( $args );
+			// The hCaptcha must be inserted via JS in the popup.
+			return $output;
+		}
 
 		$search = '<input type="submit"';
 
@@ -132,15 +149,94 @@ class Form {
 	public function print_inline_styles(): void {
 		/* language=CSS */
 		$css = '
-	.emaillist .h-captcha {
+	.emaillist .h-captcha,
+	.es_form_container .h-captcha {
 		margin-bottom: 0.6em;
 	}
 
-	.emaillist form[data-form-id="3"] .h-captcha {
+	.emaillist form[data-form-id="3"] .h-captcha,
+	.es_form_container form[data-form-id="3"] .h-captcha {
 		margin: 0 auto 0.6em;;
 	}
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Print footer scripts.
+	 *
+	 * @return void
+	 */
+	public function print_footer_scripts(): void {
+		if ( ! $this->show_in_popup ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-icegram-express$min.js",
+			[ Main::HANDLE ],
+			HCAPTCHA_VERSION,
+			true
+		);
+
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
+			[
+				'hCaptchaWidgets' => wp_json_encode( $this->show_in_popup ),
+			]
+		);
+	}
+
+	/**
+	 * Whether the form is to be show in popup.
+	 *
+	 * @param int   $form_id Form ID.
+	 * @param array $attr    Shortcode attribute array or empty string.
+	 *
+	 * @return bool
+	 */
+	private function show_in_popup( int $form_id, array $attr ): bool {
+		$form = ES()->forms_db->get_form_by_id( $form_id );
+
+		if ( ! $form ) {
+			return false;
+		}
+
+		$data = ES_Forms_Table::get_form_data_from_body( $form );
+
+		$show_in_popup_attr = isset( $attr['show-in-popup'] ) ? sanitize_text_field( $attr['show-in-popup'] ) : '';
+		$show_in_popup_attr = $show_in_popup_attr ?: 'yes';
+		$es_form_popup      = $data['show_in_popup'] ?? 'no';
+
+		$show_in_popup = false;
+
+		if ( ( 'yes' === $es_form_popup ) && 'yes' === $show_in_popup_attr ) {
+			$show_in_popup = true;
+		}
+
+		return $show_in_popup;
+	}
+
+	/**
+	 * Get hCaptcha arguments.
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return array
+	 */
+	private function get_args( int $form_id = 0 ): array {
+		return [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( static::class ),
+				'form_id' => $form_id,
+			],
+		];
 	}
 }
