@@ -10,6 +10,7 @@
 
 namespace HCaptcha\IcegramExpress;
 
+use ES_Form_Widget;
 use ES_Forms_Table;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
@@ -48,6 +49,13 @@ class Form {
 	private $show_in_popup = [];
 
 	/**
+	 * The Icegram Express widget is processing.
+	 *
+	 * @var bool
+	 */
+	private $in_widget = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -60,7 +68,13 @@ class Form {
 	 * @return void
 	 */
 	private function init_hooks(): void {
+		// In shortcode.
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
+
+		// In dynamic sidebar.
+		add_action( 'dynamic_sidebar', [ $this, 'dynamic_sidebar' ] );
+		add_action( 'dynamic_sidebar_after', [ $this, 'dynamic_sidebar_after' ], 10, 2 );
+
 		add_filter( 'ig_es_validate_subscription', [ $this, 'verify' ], 10, 2 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
@@ -84,19 +98,56 @@ class Form {
 			return $output;
 		}
 
-		$form_id  = (int) ( $attr['id'] ?? 0 );
-		$hcaptcha = HCaptcha::form( $this->get_args( $form_id ) );
+		$attr    = (array) $attr;
+		$form_id = (int) ( $attr['id'] ?? 0 );
 
-		if ( $this->show_in_popup( $form_id, (array) $attr ) ) {
-			$this->show_in_popup[ $form_id ] = $hcaptcha;
+		return $this->add_hcaptcha_to_form( $form_id, $attr, $output );
+	}
 
-			// The hCaptcha must be inserted via JS in the popup.
-			return $output;
+	/**
+	 * Start the output buffer if the current widget is Icegram Express.
+	 *
+	 * @param array $widget Widget.
+	 *
+	 * @return void
+	 */
+	public function dynamic_sidebar( array $widget ): void {
+		$callback_class  = $widget['callback'][0] ?? null;
+		$callback_method = $widget['callback'][1] ?? null;
+
+		if ( ! ( $callback_class instanceof ES_Form_Widget && 'display_callback' === $callback_method ) ) {
+			return;
 		}
 
-		$search = '<input type="submit"';
+		$this->in_widget = true;
 
-		return str_replace( $search, "\n$hcaptcha\n" . $search, $output );
+		ob_start();
+	}
+
+	/**
+	 * Get the output buffer if the current widget is Icegram Express.
+	 * Insert hCaptcha into the widget.
+	 *
+	 * @param int|string $index       Index, name, or ID of the dynamic sidebar.
+	 * @param bool       $has_widgets Whether the sidebar is populated with widgets.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function dynamic_sidebar_after( $index, bool $has_widgets ): void {
+		if ( ! $this->in_widget ) {
+			return;
+		}
+
+		$output  = (string) ob_get_clean();
+		$form_id = preg_match( '/data-form-id="(\d+)"/', $output, $m ) ? (int) $m[1] : 0;
+		$output  = $this->add_hcaptcha_to_form( $form_id, null, $output );
+
+		$this->in_widget = false;
+
+		// Output was escaped in the Icegram Express plugin.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $output;
 	}
 
 	/**
@@ -195,12 +246,17 @@ class Form {
 	/**
 	 * Whether the form is to be show in popup.
 	 *
-	 * @param int   $form_id Form ID.
-	 * @param array $attr    Shortcode attribute array or empty string.
+	 * @param int        $form_id Form ID.
+	 * @param array|null $attr    Shortcode attribute array or null if the form is rendered from the widget.
 	 *
 	 * @return bool
 	 */
-	private function show_in_popup( int $form_id, array $attr ): bool {
+	private function show_in_popup( int $form_id, ?array $attr ): bool {
+		if ( null === $attr && $this->in_widget ) {
+			// In the sidebar widget, the popup form works standardly.
+			return false;
+		}
+
 		$form = ES()->forms_db->get_form_by_id( $form_id );
 
 		if ( ! $form ) {
@@ -238,5 +294,29 @@ class Form {
 				'form_id' => $form_id,
 			],
 		];
+	}
+
+	/**
+	 * Add hCaptcha to the form.
+	 *
+	 * @param int        $form_id Form ID.
+	 * @param array|null $attr    Shortcode attribute array or null if the form is rendered from the widget.
+	 * @param string     $output  Output.
+	 *
+	 * @return string
+	 */
+	private function add_hcaptcha_to_form( int $form_id, ?array $attr, string $output ): string {
+		$hcaptcha = HCaptcha::form( $this->get_args( $form_id ) );
+
+		if ( $this->show_in_popup( $form_id, $attr ) ) {
+			$this->show_in_popup[ $form_id ] = $hcaptcha;
+
+			// The hCaptcha must be inserted via JS in the popup.
+			return $output;
+		}
+
+		$search = '<input type="submit"';
+
+		return str_replace( $search, "\n$hcaptcha\n" . $search, $output );
 	}
 }

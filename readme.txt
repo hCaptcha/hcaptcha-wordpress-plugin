@@ -744,7 +744,7 @@ Instructions for popular native integrations are below:
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
-* Added integration with Icegram Express, including popup forms.
+* Added integration with Icegram Express, including popup and widget forms.
 * Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.
