@@ -213,6 +213,50 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_not_verified(): void {
+		$errors     = [
+			'some_error' => 'Some error description',
+		];
+		$response   = 'some response';
+		$widget_id  = 'some-widget-id';
+		$data       = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+		];
+		$expected   = [
+			'some_error'         => 'Some error description',
+			'h-captcha-response' => [ 'The hCaptcha is invalid.' ],
+		];
+		$fields     = [];
+		$attributes = [
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'form_fields' => json_encode(
+				[
+					'fields'       => [],
+					'submitButton' => [],
+				]
+			),
+		];
+
+		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
+
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
+
+		$this->prepare_verify_request( $response, false );
+
+		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+
+		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
+	}
+
+	/**
+	 * Test verify() when a multistep form is not verified.
+	 *
+	 * @return void
+	 */
+	public function test_verify_multi_step_not_verified(): void {
 		$errors    = [
 			'some_error' => 'Some error description',
 		];
@@ -226,15 +270,55 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error'         => 'Some error description',
 			'h-captcha-response' => [ 'The hCaptcha is invalid.' ],
 		];
-		$fields    = [];
-		$form      = Mockery::mock( FluentForm::class );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$expected_json    = json_encode(
+			[
+				'success' => false,
+				'data'    => $expected,
+			]
+		);
+		$fields           = [];
+		$die_arr          = [];
+		$expected_die_arr = [
+			'',
+			'',
+			[
+				'response' => null,
+			],
+		];
+		$attributes       = [
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'form_fields' => json_encode(
+				[
+					'fields'       => [],
+					'submitButton' => [],
+					'stepsWrapper' => [],
+				]
+			),
+		];
+
+		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
 
 		$this->prepare_verify_request( $response, false );
 
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		ob_start();
 		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+		self::assertSame( $expected_json, ob_get_clean() );
+		self::assertSame( $expected_die_arr, $die_arr );
 
 		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
@@ -461,7 +545,7 @@ HTML;
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 
-		// Not on fluent forms admin page.
+		// Not on the fluent forms admin page.
 		self::assertFalse( wp_script_is( $admin_handle ) );
 
 		$subject->admin_enqueue_scripts();
@@ -612,6 +696,10 @@ HTML;
 		line-height: 0;
 		margin-bottom: 0;
 	}
+	
+	.fluentform-step.active .ff-el-input--hcaptcha {
+		justify-self: end;
+	}
 CSS;
 		$expected = "<style>\n$expected\n</style>\n";
 
@@ -738,7 +826,7 @@ CSS;
 
 		?>
 		<div class="ff-el-group">
-			<div class="ff-el-input--content">
+			<div class="ff-el-input--content ff-el-input--hcaptcha">
 				<div data-fluent_id="1" name="h-captcha-response">
 					<?php
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

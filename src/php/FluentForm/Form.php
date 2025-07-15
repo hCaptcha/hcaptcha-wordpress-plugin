@@ -189,8 +189,18 @@ class Form extends LoginBase {
 		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
 		$error_message               = API::verify_request( $hcaptcha_response );
 
-		if ( null !== $error_message ) {
-			$errors['h-captcha-response'] = [ $error_message ];
+		if ( null === $error_message ) {
+			return $errors;
+		}
+
+		$errors['h-captcha-response'] = [ $error_message ];
+
+		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
+		$form_fields      = json_decode( $form_fields_json, true );
+		$multi_step       = isset( $form_fields['stepsWrapper'] );
+
+		if ( $multi_step ) {
+			wp_send_json_error( $errors );
 		}
 
 		return $errors;
@@ -401,6 +411,10 @@ class Form extends LoginBase {
 		line-height: 0;
 		margin-bottom: 0;
 	}
+	
+	.fluentform-step.active .ff-el-input--hcaptcha {
+		justify-self: end;
+	}
 ';
 
 		HCaptcha::css_display( $css );
@@ -482,7 +496,7 @@ class Form extends LoginBase {
 		/* language=HTML */
 		?>
 		<div class="ff-el-group">
-			<div class="ff-el-input--content">
+			<div class="ff-el-input--content ff-el-input--hcaptcha">
 				<div data-fluent_id="1" name="h-captcha-response">
 					<?php
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
