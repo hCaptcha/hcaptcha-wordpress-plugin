@@ -67,6 +67,7 @@ class Integrations extends PluginSettingsBase {
 		],
 		'acf-extended-pro/acf-extended.php'                                 => 'advanced-custom-fields-pro/acf.php',
 		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
+		'customer-reviews-woocommerce/ivole.php'                            => 'woocommerce/woocommerce.php',
 		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
 		'fluentformpro/fluentformpro.php'                                   => 'fluentform/fluentform.php',
@@ -306,6 +307,15 @@ class Integrations extends PluginSettingsBase {
 					'embed'       => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 					'live'        => __( 'Live Form in Admin', 'hcaptcha-for-forms-and-more' ),
 					'replace_rsc' => __( 'Replace Really Simple CAPTCHA', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'customer_reviews_status'          => [
+				'label'   => 'Customer Reviews',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'question' => __( 'Question Form', 'hcaptcha-for-forms-and-more' ),
+					'review'   => __( 'Review Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [

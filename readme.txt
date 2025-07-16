@@ -746,6 +746,7 @@ Instructions for popular native integrations are below:
 * Added integration with Germanized for WooCommerce.
 * Added integration with Icegram Express, including popup and widget forms.
 * Added integration with Fluent Forms Multi-Step forms.
+* Added integration with Customer Reviews for WooCommerce.
 * Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.

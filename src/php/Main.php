@@ -1033,6 +1033,16 @@ class Main {
 				'cookies-and-content-security-policy/cookies-and-content-security-policy.php',
 				[ Compatibility::class ],
 			],
+			'Customer Reviews for WC Question'     => [
+				[ 'customer_reviews_status', 'question' ],
+				'customer-reviews-woocommerce/ivole.php',
+				[ CustomerReviews\Question::class ],
+			],
+			'Customer Reviews for WC Review'       => [
+				[ 'customer_reviews_status', 'review' ],
+				'customer-reviews-woocommerce/ivole.php',
+				[ CustomerReviews\Review::class ],
+			],
 			'Divi Comment Form'                    => [
 				[ 'divi_status', 'comment' ],
 				'Divi',
