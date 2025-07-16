@@ -14,7 +14,7 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 				'hcaptcha.formSelector',
 				'hcaptcha',
 				( formSelector ) => {
-					return formSelector + ', div#tab-reviews';
+					return formSelector + ', div#tab-reviews, div#tab-cr_qna';
 				},
 			);
 
@@ -30,26 +30,42 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 		},
 
 		ready() {
-			$( document ).on( 'click', '#tab-title-reviews a', function() {
-				hCaptchaBindEvents();
-			} );
+			$( document ).on(
+				'click',
+				'#tab-title-reviews a, #tab-title-cr_qna a, button.cr-review-form-continue.cr-review-form-error',
+				function() {
+					hCaptchaBindEvents();
+				},
+			);
 
 			$.ajaxPrefilter( function( options ) {
-				const $node = $( '#review_form' );
+				const data = options.data ?? '';
+
+				if ( typeof data !== 'string' ) {
+					return;
+				}
+
+				const urlParams = new URLSearchParams( data );
+				const action = urlParams.get( 'action' );
+				let $node;
+
+				switch ( action ) {
+					case 'cr_submit_review':
+						$node = $( '#review_form' );
+						break;
+					case 'cr_new_qna':
+						$node = $( '#cr_qna' );
+						break;
+					default:
+						return;
+				}
 
 				helper.addHCaptchaData(
 					options,
-					'cr_submit_review',
+					action,
 					'hcaptcha_customer_reviews_nonce',
 					$node,
 				);
-
-				// helper.addHCaptchaData(
-				// 	options,
-				// 	'fl_builder_login_form_submit',
-				// 	'hcaptcha_login_nonce',
-				// 	$node,
-				// );
 			} );
 		},
 	};
