@@ -1476,13 +1476,14 @@ class Integrations extends PluginSettingsBase {
 			$plugin_names = array_merge( [], ...$plugin_names );
 		}
 
-		if ( null !== $node['result'] ) {
+		if ( isset( $node['result'] ) ) {
 			return array_unique( array_merge( [], $plugin_names ) );
 		}
 
 		$status = '';
 
 		foreach ( hcaptcha()->modules as $module ) {
+			// Get the plugin name from modules only for a case when a single plugin mentioned there.
 			if ( $module[1] === $node['plugin'] ) {
 				$status = $module[0][0];
 
