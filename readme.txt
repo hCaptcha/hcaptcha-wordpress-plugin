@@ -333,6 +333,10 @@ Icegram Express
 `$source: 'email-subscribers/email-subscribers.php'`
 `$form_id: form_id`
 
+Customer Reviews for WooCommerce
+`$source: 'customer-reviews-woocommerce/ivole.php'`
+`$form_id: review or question`
+
 Jetpack
 `$source: 'jetpack/jetpack.php'`
 `$form_id: 'contact_$form_hash'`
@@ -667,6 +671,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
 * Cookies and Content Security Policy
+* Customer Reviews for WooCommerce Review and Question Forms
 * Divi Comment, Contact, Email Optin, and Login Forms
 * Divi Builder Comment, Contact, Email Optin, and Login Forms
 * Download Manager Form
