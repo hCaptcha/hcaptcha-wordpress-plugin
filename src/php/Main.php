@@ -1150,7 +1150,7 @@ class Main {
 			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
-				'fluentform/fluentform.php',
+				[ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
 				FluentForm\Form::class,
 			],
 			'Formidable Forms'                     => [

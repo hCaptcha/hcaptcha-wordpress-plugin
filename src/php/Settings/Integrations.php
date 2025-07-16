@@ -69,6 +69,7 @@ class Integrations extends PluginSettingsBase {
 		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
 		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
+		'fluentformpro/fluentformpro.php'                                   => 'fluentform/fluentform.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
 		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
 		'woocommerce-germanized/woocommerce-germanized.php'                 => 'woocommerce/woocommerce.php',
@@ -91,11 +92,11 @@ class Integrations extends PluginSettingsBase {
 	protected $entity = '';
 
 	/**
-	 * Plugins tree.
+	 * Plugin trees.
 	 *
 	 * @var array
 	 */
-	protected $plugins_tree;
+	protected $plugin_trees = [];
 
 	/**
 	 * Installed plugins.
@@ -1084,7 +1085,7 @@ class Integrations extends PluginSettingsBase {
 				$error_message = $result->get_error_message();
 			} else {
 				$error_message = '';
-				$plugin_names  = $this->plugin_names_from_tree( $this->plugins_tree );
+				$plugin_names  = $this->plugin_names_from_trees();
 
 				if ( array_filter( $plugin_names ) ) {
 					$message = $this->install
@@ -1168,20 +1169,9 @@ class Integrations extends PluginSettingsBase {
 			return; // For testing purposes.
 		}
 
-		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
-		$plugin_names = [];
+		$plugins = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
 
-		/**
-		 * Activate dependent plugins before activating the theme.
-		 * The activate_plugins() function will activate the first available plugin only.
-		 * That is why we should cycle through the list of dependencies.
-		 */
-		foreach ( $plugins as $plugin ) {
-			$this->activate_plugins( [ $plugin ] );
-			$plugin_names[] = $this->plugin_names_from_tree( $this->plugins_tree );
-		}
-
-		$plugin_names = array_merge( [], ...$plugin_names );
+		$this->activate_plugins( $plugins, false );
 
 		$result = $this->activate_theme( $theme );
 
@@ -1211,6 +1201,8 @@ class Integrations extends PluginSettingsBase {
 			wp_get_theme()->get( 'Name' ) ?? $theme
 		);
 
+		$plugin_names = $this->plugin_names_from_trees();
+
 		if ( $plugin_names ) {
 			$message .=
 				' Also, dependent ' .
@@ -1232,23 +1224,29 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Activate plugins.
 	 *
-	 * We activate the first available plugin in the list only,
-	 * assuming that Pro plugins are placed earlier in the list.
+	 * When we activate the first available plugin in the list only,
+	 * we assume that Pro plugins are placed earlier in the list.
 	 *
-	 * @param array $plugins Plugins to activate.
+	 * @param array $plugins    Plugins to activate.
+	 * @param bool  $first_only Activate the first available plugin only.
 	 *
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
-	protected function activate_plugins( array $plugins ) {
+	protected function activate_plugins( array $plugins, bool $first_only = true ) {
 		$results = new WP_Error();
 
 		foreach ( $plugins as $plugin ) {
-			$this->plugins_tree = $this->build_plugins_tree( $plugin );
-			$result             = $this->activate_plugin_tree( $this->plugins_tree );
+			$this->build_plugins_tree( $plugin );
+
+			$result = $this->activate_plugin_tree( $this->plugin_trees[ $plugin ] );
 
 			if ( ! is_wp_error( $result ) ) {
-				// Activate the first available plugin only.
-				return $result;
+				if ( $first_only ) {
+					// Activate the first available plugin only.
+					return $result;
+				}
+
+				continue;
 			}
 
 			$results->add( $result->get_error_code(), $result->get_error_message() );
@@ -1383,6 +1381,10 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function build_plugins_tree( string $plugin ): array {
+		if ( isset( $this->plugin_trees[ $plugin ] ) ) {
+			return $this->plugin_trees[ $plugin ];
+		}
+
 		$dependencies = $this->plugin_dependencies( $plugin );
 		$tree         = [
 			'plugin'   => $plugin,
@@ -1392,6 +1394,8 @@ class Integrations extends PluginSettingsBase {
 		foreach ( $dependencies as $dependency ) {
 			$tree['children'][] = $this->build_plugins_tree( $dependency );
 		}
+
+		$this->plugin_trees[ $plugin ] = $tree;
 
 		return $tree;
 	}
@@ -1404,7 +1408,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function plugin_dependencies( string $plugin ): array {
-		$plugin_headers   = $this->get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin );
+		$plugin_headers   = $this->get_plugin_data( $plugin );
 		$requires_plugins = $plugin_headers['RequiresPlugins'] ?? '';
 		$wp_dependencies  = $this->plugin_dirs_to_slugs(
 			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
@@ -1442,6 +1446,21 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Get plugin names from the tree.
 	 *
+	 * @return array
+	 */
+	protected function plugin_names_from_trees(): array {
+		$plugin_names = [];
+
+		foreach ( $this->plugin_trees as $node ) {
+			$plugin_names[] = $this->plugin_names_from_tree( $node );
+		}
+
+		return array_unique( array_merge( [], ...$plugin_names ) );
+	}
+
+	/**
+	 * Get plugin names from the tree.
+	 *
 	 * @param array $node Node of the plugin tree.
 	 *
 	 * @return array
@@ -1474,7 +1493,7 @@ class Integrations extends PluginSettingsBase {
 		$plugin_name = $this->form_fields[ $status ]['label'] ?? '';
 
 		if ( ! $plugin_name ) {
-			$plugin_data = $this->get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $node['plugin'] );
+			$plugin_data = $this->get_plugin_data( $node['plugin'] );
 			$plugin_name = $plugin_data['Name'] ?? '';
 		}
 
@@ -1716,15 +1735,15 @@ class Integrations extends PluginSettingsBase {
 	 * Wrapper for get_plugin_data.
 	 * Check the plugin file for existence to avoid warnings.
 	 *
-	 * @param string $plugin_file Absolute path to the main plugin file.
-	 * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
-	 * @param bool   $translate   Optional. If the returned data should be translated. Default true.
+	 * @param string $plugin    Plugin slug.
+	 * @param bool   $markup    Optional. If the returned data should have HTML markup applied.
+	 * @param bool   $translate Optional. If the returned data should be translated. Default true.
 	 *
 	 * @return array
 	 */
-	protected function get_plugin_data( string $plugin_file, bool $markup = true, bool $translate = true ): array {
+	protected function get_plugin_data( string $plugin, bool $markup = true, bool $translate = true ): array {
 
-		if ( ! file_exists( $plugin_file ) ) {
+		if ( ! $this->plugin_or_theme_installed( $plugin ) ) {
 			return [];
 		}
 
@@ -1734,7 +1753,18 @@ class Integrations extends PluginSettingsBase {
 			// @CodeCoverageIgnoreEnd
 		}
 
-		return get_plugin_data( $plugin_file, $markup, $translate );
+		return get_plugin_data( $this->get_plugin_file( $plugin ), $markup, $translate );
+	}
+
+	/**
+	 * Get a plugin file from the plugin slug.
+	 *
+	 * @param string $plugin Plugin slug.
+	 *
+	 * @return string
+	 */
+	protected function get_plugin_file( string $plugin ): string {
+		return constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin;
 	}
 
 	/**
