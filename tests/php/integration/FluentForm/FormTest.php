@@ -503,7 +503,7 @@ HTML;
 			'action' => 'hcaptcha_fluentform',
 			'name'   => 'hcaptcha_fluentform_nonce',
 			'id'     => [
-				'source'  => [ 'fluentform/fluentform.php' ],
+				'source'  => [ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
 				'form_id' => $form_id,
 			],
 		];
@@ -772,7 +772,7 @@ CSS;
 			'action' => 'hcaptcha_fluentform',
 			'name'   => 'hcaptcha_fluentform_nonce',
 			'id'     => [
-				'source'  => [ 'fluentform/fluentform.php' ],
+				'source'  => [ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
 				'form_id' => $form_id,
 			],
 		];
@@ -815,7 +815,7 @@ CSS;
 			'action' => 'hcaptcha_fluentform',
 			'name'   => 'hcaptcha_fluentform_nonce',
 			'id'     => [
-				'source'  => [ 'fluentform/fluentform.php' ],
+				'source'  => [ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
 				'form_id' => $form_id,
 			],
 		];
