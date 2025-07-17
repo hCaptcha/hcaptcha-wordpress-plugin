@@ -756,6 +756,7 @@ Instructions for popular native integrations are below:
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.
 * Fixed activation of Pro and Lite integrations when both are needed.
+* Fixed Fluent Conversational Form with embedded hCaptcha. 
 
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.
