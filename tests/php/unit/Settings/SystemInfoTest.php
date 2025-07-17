@@ -366,6 +366,9 @@ Colorlib Login Customizer:
   Login Form:                         Off
   Lost Password Form:                 Off
   Register Form:                      Off
+Customer Reviews:                     
+  Question Form:                      Off
+  Review Form:                        Off
 Divi:                                 
   Divi Comment Form:                  On
   Divi Contact Form:                  On

@@ -934,6 +934,16 @@ abstract class HCaptchaTestCase extends TestCase {
 							'replace_rsc' => 'Replace Really Simple CAPTCHA',
 						],
 				],
+			'customer_reviews_status'          =>
+				[
+					'label'   => 'Customer Reviews',
+					'logo'    => 'svg',
+					'type'    => 'checkbox',
+					'options' => [
+						'question' => 'Question Form',
+						'review'   => 'Review Form',
+					],
+				],
 			'divi_status'                      =>
 				[
 					'entity'  => 'theme',
