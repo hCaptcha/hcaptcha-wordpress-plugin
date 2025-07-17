@@ -123,15 +123,34 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_render_field_hcaptcha(): void {
-		$form_id = 1;
-		$form    = (object) [
+		$form_id   = 1;
+		$form      = (object) [
 			'id' => $form_id,
 		];
+		$hcap_form = $this->get_hcaptcha( $form_id );
+		$html      = "<div class='ff-el-group'>
+	<div class='ff-el-input--content'>
+		<div data-fluent_id='3' name='h-captcha-response'>
+			<div
+					data-sitekey='10000000-ffff-ffff-ffff-000000000001'
+					id='fluentform-hcaptcha-3-1'
+					class='ff-el-hcaptcha h-captcha'>
+			</div>
+		</div>
+	</div>
+</div>";
+		$expected  = "<div class='ff-el-group'>
+	<div class='ff-el-input--content ff-el-input--hcaptcha'>
+		<div data-fluent_id='3' >
+			$hcap_form
+		</div>
+	</div>
+</div>";
 
 		$subject = new Form();
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
-		self::assertSame( $this->get_get_hcaptcha_wrapped( $form_id ), $subject->render_field_hcaptcha( '', [], $form ) );
+		self::assertSame( $expected, $subject->render_field_hcaptcha( $html, [], $form ) );
 		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
 	}
 
@@ -811,16 +830,7 @@ CSS;
 	 * @return string
 	 */
 	private function get_get_hcaptcha_wrapped( int $form_id ): string {
-		$args = [
-			'action' => 'hcaptcha_fluentform',
-			'name'   => 'hcaptcha_fluentform_nonce',
-			'id'     => [
-				'source'  => [ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
-				'form_id' => $form_id,
-			],
-		];
-
-		$hcap_form = HCaptcha::form( $args );
+		$hcap_form = $this->get_hcaptcha( $form_id );
 
 		ob_start();
 
@@ -838,5 +848,25 @@ CSS;
 		<?php
 
 		return ob_get_clean();
+	}
+
+	/**
+	 * Get hCaptcha form.
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return string
+	 */
+	private function get_hcaptcha( int $form_id ): string {
+		$args = [
+			'action' => 'hcaptcha_fluentform',
+			'name'   => 'hcaptcha_fluentform_nonce',
+			'id'     => [
+				'source'  => [ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
+				'form_id' => $form_id,
+			],
+		];
+
+		return HCaptcha::form( $args );
 	}
 }

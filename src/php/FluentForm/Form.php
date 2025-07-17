@@ -119,11 +119,21 @@ class Form extends LoginBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_field_hcaptcha( $html, array $data, stdClass $form ): string {
+		$html = (string) $html;
+
 		$this->form_id = (int) $form->id;
 
-		return $this->get_hcaptcha_wrapped();
+		$search = 'ff-el-input--content';
+		$html   = str_replace(
+			[ $search, "name='h-captcha-response'" ],
+			[ $search . ' ff-el-input--hcaptcha', '' ],
+			$html
+		);
+
+		return (string) preg_replace( '#<div\s*data-sitekey.*?</div>#s', $this->get_hcaptcha(), $html );
 	}
 
 	/**
@@ -158,6 +168,7 @@ class Form extends LoginBase {
 	 *
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
 		if ( $this->is_login_form( $form ) ) {
