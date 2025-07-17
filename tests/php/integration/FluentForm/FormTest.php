@@ -274,6 +274,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() when a multistep form is not verified.
 	 *
 	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_multi_step_not_verified(): void {
 		$errors    = [
@@ -351,6 +352,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_verify_login_form
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
 		$errors   = [
