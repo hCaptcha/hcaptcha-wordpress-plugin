@@ -682,7 +682,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Essential Blocks Form
 * Events Manager Booking Form
 * Extra Comment, Contact, Email Optin, and Login Forms
-* Fluent Forms, including Login Form
+* Fluent Forms, including Conversational, Multi-Step, and Login Forms
 * Forminator Forms
 * Formidable Forms
 * GiveWP Form
