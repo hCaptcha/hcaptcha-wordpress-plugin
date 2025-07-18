@@ -60,4 +60,16 @@ class Review extends Base {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $template;
 	}
+
+	/**
+	 * Init hooks.
+	 *
+	 * @return void
+	 */
+	protected function init_hooks(): void {
+		parent::init_hooks();
+
+		add_action( 'wp_ajax_cr_submit_review', [ $this, 'verify' ], 0 );
+		add_action( 'wp_ajax_nopriv_cr_submit_review', [ $this, 'verify' ], 0 );
+	}
 }

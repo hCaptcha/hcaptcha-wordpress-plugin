@@ -43,7 +43,7 @@ class Question extends Base {
 			'name'   => self::NONCE,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'review',
+				'form_id' => 'q&a',
 			],
 		];
 
@@ -59,5 +59,17 @@ class Question extends Base {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $template;
+	}
+
+	/**
+	 * Init hooks.
+	 *
+	 * @return void
+	 */
+	protected function init_hooks(): void {
+		parent::init_hooks();
+
+		add_action( 'wp_ajax_cr_new_qna', [ $this, 'verify' ], 0 );
+		add_action( 'wp_ajax_nopriv_cr_new_qna', [ $this, 'verify' ], 0 );
 	}
 }

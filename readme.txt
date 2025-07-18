@@ -335,7 +335,7 @@ Icegram Express
 
 Customer Reviews for WooCommerce
 `$source: 'customer-reviews-woocommerce/ivole.php'`
-`$form_id: review or question`
+`$form_id: review or q&a`
 
 Jetpack
 `$source: 'jetpack/jetpack.php'`
@@ -671,7 +671,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
 * Cookies and Content Security Policy
-* Customer Reviews for WooCommerce Review and Question Forms
+* Customer Reviews for WooCommerce Review and Q&A Forms
 * Divi Comment, Contact, Email Optin, and Login Forms
 * Divi Builder Comment, Contact, Email Optin, and Login Forms
 * Download Manager Form

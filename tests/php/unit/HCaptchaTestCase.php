@@ -940,8 +940,8 @@ abstract class HCaptchaTestCase extends TestCase {
 					'logo'    => 'svg',
 					'type'    => 'checkbox',
 					'options' => [
-						'question' => 'Question Form',
-						'review'   => 'Review Form',
+						'q&a'    => 'Q&A Form',
+						'review' => 'Review Form',
 					],
 				],
 			'divi_status'                      =>

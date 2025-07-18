@@ -50,12 +50,6 @@ abstract class Base {
 
 		add_action( 'woocommerce_before_template_part', [ $this, 'before_template_part' ], 10, 4 );
 		add_action( 'woocommerce_after_template_part', [ $this, 'add_captcha' ], 10, 4 );
-
-		add_action( 'wp_ajax_cr_submit_review', [ $this, 'verify' ], 0 );
-		add_action( 'wp_ajax_nopriv_cr_submit_review', [ $this, 'verify' ], 0 );
-
-		add_action( 'wp_ajax_cr_new_qna', [ $this, 'verify' ], 0 );
-		add_action( 'wp_ajax_nopriv_cr_new_qna', [ $this, 'verify' ], 0 );
 	}
 
 	/**

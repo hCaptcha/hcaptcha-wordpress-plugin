@@ -14,7 +14,7 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 				'hcaptcha.formSelector',
 				'hcaptcha',
 				( formSelector ) => {
-					return formSelector + ', div#tab-reviews, div#tab-cr_qna';
+					return formSelector + ', div#tab-reviews, div#tab-cr_qna, div.cr-qna-list-inl-answ';
 				},
 			);
 
@@ -32,7 +32,8 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 		ready() {
 			$( document ).on(
 				'click',
-				'#tab-title-reviews a, #tab-title-cr_qna a, button.cr-review-form-continue.cr-review-form-error',
+				'#tab-title-reviews a, #tab-title-cr_qna a, ' +
+				'button.cr-review-form-continue.cr-review-form-error',
 				function() {
 					hCaptchaBindEvents();
 				},
@@ -54,7 +55,9 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 						$node = $( '#review_form' );
 						break;
 					case 'cr_new_qna':
-						$node = $( '#cr_qna' );
+						const questionID = urlParams.get( 'questionID' );
+
+						$node = questionID ? $( `[data-question="${ questionID }"]` ) : $( '#cr_qna' );
 						break;
 					default:
 						return;

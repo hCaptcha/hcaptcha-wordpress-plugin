@@ -1034,7 +1034,7 @@ class Main {
 				[ Compatibility::class ],
 			],
 			'Customer Reviews for WC Question'     => [
-				[ 'customer_reviews_status', 'question' ],
+				[ 'customer_reviews_status', 'q&a' ],
 				'customer-reviews-woocommerce/ivole.php',
 				[ CustomerReviews\Question::class ],
 			],

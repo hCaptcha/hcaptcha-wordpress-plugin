@@ -314,8 +314,8 @@ class Integrations extends PluginSettingsBase {
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
 				'options' => [
-					'question' => __( 'Question Form', 'hcaptcha-for-forms-and-more' ),
-					'review'   => __( 'Review Form', 'hcaptcha-for-forms-and-more' ),
+					'q&a'    => __( 'Q&A Form', 'hcaptcha-for-forms-and-more' ),
+					'review' => __( 'Review Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [
