@@ -16,7 +16,7 @@ env:
   WP_ADMIN_EMAIL: admin@test.test
 
 jobs:
-  checkout_and_changelog:
+  update_changelog:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
