@@ -119,7 +119,6 @@ class Form extends LoginBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_field_hcaptcha( $html, array $data, stdClass $form ): string {
 		$html = (string) $html;
