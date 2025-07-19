@@ -20,6 +20,7 @@ concurrency:
 jobs:
   update_changelog:
     runs-on: ubuntu-latest
+    name: Update Changelog
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
