@@ -34,7 +34,7 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
 
       - name: Update changelog
-        if: ${{ matrix.php-version == '8.4' }}
+        if: ${{ matrix.php-version == '7.2' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: .github/scripts/update-changelog.sh
 
