@@ -3,7 +3,19 @@ name: hCaptcha CI
 on: [ push, pull_request ]
 
 jobs:
+  checkout_and_changelog:
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: ${{ env.wp-plugin-directory }}
+
+      - name: Update changelog
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: .github/scripts/update-changelog.sh
+
   cs_and_tests:
+    if: "!startsWith(github.event.head_commit.message, '[skip ci]')"
     strategy:
       matrix:
         os: [ ubuntu-latest ]
@@ -24,20 +36,9 @@ jobs:
       WP_ADMIN_EMAIL: admin@test.test
 
     runs-on: ${{ matrix.os }}
-
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          path: ${{ env.wp-plugin-directory }}
-
-      - name: Update changelog
-        if: ${{ matrix.php-version == '8.4' }}
-        working-directory: ${{ env.wp-plugin-directory }}
-        run: .github/scripts/update-changelog.sh
-
       - name: Setup PHP
         uses: hCaptcha/setup-php@42a9487ddd45db247decea2acf7de871a8178226
         with:
