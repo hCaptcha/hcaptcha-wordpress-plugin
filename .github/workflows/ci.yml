@@ -1,5 +1,4 @@
 name: hCaptcha CI
-
 on: [ push, pull_request ]
 env:
   wp-directory: wordpress
@@ -14,6 +13,9 @@ env:
   WP_ADMIN_USERNAME: admin1
   WP_ADMIN_PASSWORD: admin
   WP_ADMIN_EMAIL: admin@test.test
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   update_changelog:
@@ -29,8 +31,6 @@ jobs:
         run: .github/scripts/update-changelog.sh
 
   cs_and_tests:
-    needs: update_changelog
-    if: "!startsWith(github.event.head_commit.message, '[skip ci]')"
     strategy:
       matrix:
         os: [ ubuntu-latest ]
@@ -38,6 +38,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
+    if: "!startsWith(github.event.head_commit.message, '[skip ci]')"
 
     steps:
       - name: Checkout code
