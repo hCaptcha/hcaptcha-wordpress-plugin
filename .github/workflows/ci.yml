@@ -29,7 +29,7 @@ jobs:
         run: .github/scripts/update-changelog.sh
 
   cs_and_tests:
-    needs: checkout_and_changelog
+    needs: update_changelog
     if: "!startsWith(github.event.head_commit.message, '[skip ci]')"
     strategy:
       matrix:
