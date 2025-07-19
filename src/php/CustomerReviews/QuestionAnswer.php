@@ -1,6 +1,6 @@
 <?php
 /**
- * Customer Reviews for WooCommerce - Question Form class file.
+ * Customer Reviews for WooCommerce - Question and Answer Forms class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,9 +10,9 @@ namespace HCaptcha\CustomerReviews;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
- * Class Question.
+ * Class Question and Answer.
  */
-class Question extends Base {
+class QuestionAnswer extends Base {
 
 	/**
 	 * Template name.
