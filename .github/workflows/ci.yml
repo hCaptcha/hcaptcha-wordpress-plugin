@@ -34,31 +34,28 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
 
       - name: Update changelog
-        if: ${{ matrix.php-version == '7.2' }}
+        if: ${{ matrix.php-version == '8.4' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: .github/scripts/update-changelog.sh
 
       - name: Setup PHP
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         uses: hCaptcha/setup-php@42a9487ddd45db247decea2acf7de871a8178226
         with:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
 
       - name: Install dependencies with caching
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         uses: hCaptcha/composer-install@e52779489de843a9f022c7b8faa648b608b02c70
         with:
           working-directory: ${{ env.wp-plugin-directory }}
 
       - name: Run code sniffer
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer phpcs
 
       - name: Run ESLint
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]') && matrix.php-version == '8.4'"
         working-directory: ${{ env.wp-plugin-directory }}
+        if: ${{ matrix.php-version == '8.4' }}
         run: |
           corepack enable
           yarn set version stable
@@ -67,7 +64,6 @@ jobs:
           yarn lint
 
       - name: Install WP CLI
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         run: |
           curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
           chmod +x wp-cli.phar
@@ -76,7 +72,6 @@ jobs:
           echo "$GITHUB_WORKSPACE/wp-cli" >> $GITHUB_PATH
 
       - name: Start mysql
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         run: |
           echo '[mysqld]' | sudo tee -a /etc/mysql/my.cnf
           echo 'default_authentication_plugin=mysql_native_password' | sudo tee -a /etc/mysql/my.cnf
@@ -89,7 +84,6 @@ jobs:
           mysql -e 'FLUSH PRIVILEGES' -uroot -proot 2>/dev/null
 
       - name: Install WP
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         working-directory: ${{ env.wp-directory }}
         run: |
           wp core download
@@ -98,26 +92,23 @@ jobs:
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
       - name: Run unit tests
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer unit
 
       - name: Install plugins
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install bbpress buddypress ultimate-member wpforms-lite wpforo
 
       - name: Install plugins requiring 7.4
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]') && matrix.php-version >= '7.4'"
+        if: ${{ matrix.php-version >= '7.4' }}
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install contact-form-7 ninja-forms woocommerce
 
       - name: Run WP tests
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]')"
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer integration -- --env github-actions
 
       - name: Run Jest
-        if: "!startsWith(github.event.head_commit.message, '[skip tests]') && matrix.php-version == '8.4'"
+        if: ${{ matrix.php-version == '8.4' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: yarn jest
