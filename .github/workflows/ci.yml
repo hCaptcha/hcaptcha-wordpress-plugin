@@ -13,7 +13,7 @@ jobs:
     DB_PASSWORD: test
     WP_URL: https://test.test
     WP_DOMAIN: test.test
-    WP_ADMIN_USERNAME: admin
+    WP_ADMIN_USERNAME: admin1
     WP_ADMIN_PASSWORD: admin
     WP_ADMIN_EMAIL: admin@test.test
 
