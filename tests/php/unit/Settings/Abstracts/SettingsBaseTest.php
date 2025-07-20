@@ -1752,6 +1752,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			'collect_ip'      => [ 'on' ],
 			'whitelisted_ips' => "some ips\nline1\nline2",
 			'size'            => 'some size',
+			'foo'             => 'bar',
 		];
 
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
@@ -2749,6 +2750,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @param mixed $expected    Expected result.
 	 *
 	 * @dataProvider dp_test_pre_update_option_filter
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ): void {
 		$option_name                   = 'hcaptcha_settings';
@@ -2757,6 +2759,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$merged_value[ $network_wide ] = array_key_exists( $network_wide, $merged_value ) ? $merged_value[ $network_wide ] : [];
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'network_wide', null );
+
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
@@ -2776,23 +2781,23 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function dp_test_pre_update_option_filter(): array {
 		return [
 			[
-				[],
-				[ 'value' ],
-				[ 'value' ],
-				[ 'value' ],
+				'form_fields' => [],
+				'value'       => [ 'value' ],
+				'old_value'   => [ 'value' ],
+				'expected'    => [ 'value' ],
 			],
 			[
-				[],
-				[ 'a' => 'value' ],
-				[ 'b' => 'old_value' ],
-				[
+				'form_fields' => [],
+				'value'       => [ 'a' => 'value' ],
+				'old_value'   => [ 'b' => 'old_value' ],
+				'expected'    => [
 					'b'             => 'old_value',
 					'a'             => 'value',
 					'_network_wide' => [],
 				],
 			],
 			[
-				[
+				'form_fields' => [
 					'no_checkbox' => [
 						'label'        => 'some field',
 						'section'      => 'some_section',
@@ -2803,15 +2808,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'default'      => [ '' ],
 					],
 				],
-				[ 'no_checkbox' => '0' ],
-				[ 'no_checkbox' => '1' ],
-				[
+				'value'     => [ 'no_checkbox' => '0' ],
+				'old_value' => [ 'no_checkbox' => '1' ],
+				'expected'  => [
 					'no_checkbox'   => '0',
 					'_network_wide' => [],
 				],
 			],
 			[
-				[
+				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
 						'section'      => 'some_section',
@@ -2822,15 +2827,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'default'      => [ '' ],
 					],
 				],
-				[ 'some_checkbox' => '0' ],
-				[ 'some_checkbox' => '1' ],
-				[
+				'value'     => [ 'some_checkbox' => '0' ],
+				'old_value' => [ 'some_checkbox' => '1' ],
+				'expected'  => [
 					'some_checkbox' => '0',
 					'_network_wide' => [],
 				],
 			],
 			[
-				[
+				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
 						'section'      => 'some_section',
@@ -2841,15 +2846,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'default'      => [ '' ],
 					],
 				],
-				[ 'some_checkbox' => '1' ],
-				[ 'some_checkbox' => '0' ],
-				[
+				'value'     => [ 'some_checkbox' => '1' ],
+				'old_value' => [ 'some_checkbox' => '0' ],
+				'expected'  => [
 					'some_checkbox' => '1',
 					'_network_wide' => [],
 				],
 			],
 			[
-				[
+				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
 						'section'      => 'some_section',
@@ -2861,16 +2866,16 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'disabled'     => true,
 					],
 				],
-				[ 'another_value' => '1' ],
-				[ 'some_checkbox' => '0' ],
-				[
+				'value'     => [ 'another_value' => '1' ],
+				'old_value' => [ 'some_checkbox' => '0' ],
+				'expected'  => [
 					'some_checkbox' => '0',
 					'another_value' => '1',
 					'_network_wide' => [],
 				],
 			],
 			[
-				[
+				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
 						'section'      => 'some_section',
@@ -2882,16 +2887,16 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'disabled'     => false,
 					],
 				],
-				[ 'another_value' => '1' ],
-				[ 'some_checkbox' => '0' ],
-				[
+				'value'     => [ 'another_value' => '1' ],
+				'old_value' => [ 'some_checkbox' => '0' ],
+				'expected'  => [
 					'some_checkbox' => [],
 					'another_value' => '1',
 					'_network_wide' => [],
 				],
 			],
 			[
-				[
+				'form_fields' => [
 					'some_file' => [
 						'label'        => 'some field',
 						'section'      => 'some_section',
@@ -2903,38 +2908,37 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'disabled'     => false,
 					],
 				],
-				[ 'some_file' => 'a.xml' ],
-				[ 'some_file' => 'b.xml' ],
-				[ '_network_wide' => [] ],
+				'value'     => [ 'some_file' => 'a.xml' ],
+				'old_value' => [ 'some_file' => 'b.xml' ],
+				'expected'  => [ '_network_wide' => [] ],
 			],
 			[
-				[],
-				[
-					'bel' => [ 'Б' => 'B1' ],
-				],
-				[
+				'form_fields' => [],
+				'value'       => [ 'bel' => [ 'Б' => 'B1' ] ],
+				'old_value'   => [
 					'iso9' => [ 'Б' => 'B' ],
 					'bel'  => [ 'Б' => 'B' ],
 				],
-				[
+				'expected'    => [
 					'iso9'          => [ 'Б' => 'B' ],
 					'bel'           => [ 'Б' => 'B1' ],
 					'_network_wide' => [],
 				],
 			],
 			[
-				[],
-				[
+				'form_fields' => [],
+				'value'       => [
 					'bel'           => [ 'Б' => 'B1' ],
 					'_network_wide' => [ 'on' ],
 				],
-				[
+				'old_value'   => [
 					'iso9' => [ 'Б' => 'B' ],
 					'bel'  => [ 'Б' => 'B' ],
 				],
-				[
-					'iso9' => [ 'Б' => 'B' ],
-					'bel'  => [ 'Б' => 'B' ],
+				'expected'    => [
+					'iso9'          => [ 'Б' => 'B' ],
+					'bel'           => [ 'Б' => 'B1' ],
+					'_network_wide' => [],
 				],
 			],
 		];
@@ -3055,13 +3059,17 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * Test get_network_wide().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_get_network_wide(): void {
 		$option_name  = 'hcaptcha_settings';
-		$network_wide = [ 'on' ];
+		$network_wide = [];
+
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( true );
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
-		$method  = 'get_network_wide';
+
+		$this->set_protected_property( $subject, 'network_wide', null );
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
@@ -3071,8 +3079,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			->once()
 			->andReturn( $network_wide );
 
-		self::assertSame( $network_wide, $subject->$method() );
-		self::assertSame( $network_wide, $subject->$method() );
+		self::assertSame( $network_wide, $subject->get_network_wide() );
+		self::assertSame( $network_wide, $subject->get_network_wide() );
 	}
 
 	/**
