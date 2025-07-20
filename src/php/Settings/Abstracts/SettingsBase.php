@@ -142,7 +142,7 @@ abstract class SettingsBase {
 	abstract protected function option_name(): string;
 
 	/**
-	 * Get plugin base name.
+	 * Get a plugin base name.
 	 *
 	 * @return string
 	 */
@@ -368,7 +368,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get class name without a namespace.
+	 * Get a class name without a namespace.
 	 *
 	 * @return string
 	 */
@@ -410,7 +410,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Initialise Settings.
+	 * Initialize Settings.
 	 *
 	 * Store all settings in a single database entry
 	 * and make sure the $settings array is either the default
@@ -508,7 +508,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Add settings' page to the menu.
+	 * Add the settings' page to the menu.
 	 *
 	 * @return void
 	 */
@@ -616,7 +616,7 @@ abstract class SettingsBase {
 
 	/**
 	 * Filter denied access to the settings page.
-	 * It is necessary when switching network_wide option.
+	 * It is necessary when switching the network-wide option.
 	 *
 	 * @return void
 	 */
@@ -822,7 +822,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get page and tab names from referer.
+	 * Get page and tab names from the referer.
 	 *
 	 * @return array
 	 */
@@ -870,7 +870,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get active tab.
+	 * Get an active tab.
 	 *
 	 * @return SettingsBase
 	 */
@@ -957,7 +957,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Print text/password field.
+	 * Print the text / password field.
 	 *
 	 * @param array $arguments Field arguments.
 	 *
@@ -1556,24 +1556,11 @@ abstract class SettingsBase {
 			? $value[ self::NETWORK_WIDE ] ?? []
 			: $this->get_network_wide();
 
-		foreach ( $this->form_fields() as $key => $form_field ) {
-			if ( 'file' === $form_field['type'] ) {
-				unset( $value[ $key ], $old_value[ $key ] );
-				continue;
-			}
-
-			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
-				continue;
-			}
-
-			// Checkbox status is not set in the $value array.
-			if ( ! $form_field['disabled'] || ! isset( $old_value[ $key ] ) ) {
-				$value[ $key ] = [];
-			}
-		}
+		[ $value, $old_value ] = $this->prepare_values( $value, $old_value );
 
 		// We save only one tab, so merge with all existing tabs.
 		$value = array_merge( $old_value, $value );
+
 		$value[ self::NETWORK_WIDE ] = $network_wide;
 
 		if ( is_multisite() ) {
@@ -1759,5 +1746,33 @@ abstract class SettingsBase {
 				return ! in_array( $field['type'] ?? '', $not_savable_form_fields, true );
 			}
 		);
+	}
+
+	/**
+	 * Prepare values for update_option_filter.
+	 *
+	 * @param array $value     New value.
+	 * @param array $old_value Old value.
+	 *
+	 * @return array
+	 */
+	private function prepare_values( array $value, array $old_value ): array {
+		foreach ( $this->form_fields() as $key => $form_field ) {
+			if ( 'file' === $form_field['type'] ) {
+				unset( $value[ $key ], $old_value[ $key ] );
+				continue;
+			}
+
+			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
+				continue;
+			}
+
+			// Checkbox status is not set in the $value array.
+			if ( ! $form_field['disabled'] || ! isset( $old_value[ $key ] ) ) {
+				$value[ $key ] = [];
+			}
+		}
+
+		return [ $value, $old_value ];
 	}
 }

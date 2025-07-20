@@ -2779,6 +2779,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @return array
 	 */
 	public function dp_test_pre_update_option_filter(): array {
+		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 		return [
 			[
 				'form_fields' => [],
@@ -2808,9 +2809,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'default'      => [ '' ],
 					],
 				],
-				'value'     => [ 'no_checkbox' => '0' ],
-				'old_value' => [ 'no_checkbox' => '1' ],
-				'expected'  => [
+				'value'       => [ 'no_checkbox' => '0' ],
+				'old_value'   => [ 'no_checkbox' => '1' ],
+				'expected'    => [
 					'no_checkbox'   => '0',
 					'_network_wide' => [],
 				],
@@ -2827,9 +2828,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'default'      => [ '' ],
 					],
 				],
-				'value'     => [ 'some_checkbox' => '0' ],
-				'old_value' => [ 'some_checkbox' => '1' ],
-				'expected'  => [
+				'value'       => [ 'some_checkbox' => '0' ],
+				'old_value'   => [ 'some_checkbox' => '1' ],
+				'expected'    => [
 					'some_checkbox' => '0',
 					'_network_wide' => [],
 				],
@@ -2846,9 +2847,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'default'      => [ '' ],
 					],
 				],
-				'value'     => [ 'some_checkbox' => '1' ],
-				'old_value' => [ 'some_checkbox' => '0' ],
-				'expected'  => [
+				'value'       => [ 'some_checkbox' => '1' ],
+				'old_value'   => [ 'some_checkbox' => '0' ],
+				'expected'    => [
 					'some_checkbox' => '1',
 					'_network_wide' => [],
 				],
@@ -2866,9 +2867,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'disabled'     => true,
 					],
 				],
-				'value'     => [ 'another_value' => '1' ],
-				'old_value' => [ 'some_checkbox' => '0' ],
-				'expected'  => [
+				'value'       => [ 'another_value' => '1' ],
+				'old_value'   => [ 'some_checkbox' => '0' ],
+				'expected'    => [
 					'some_checkbox' => '0',
 					'another_value' => '1',
 					'_network_wide' => [],
@@ -2887,9 +2888,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'disabled'     => false,
 					],
 				],
-				'value'     => [ 'another_value' => '1' ],
-				'old_value' => [ 'some_checkbox' => '0' ],
-				'expected'  => [
+				'value'       => [ 'another_value' => '1' ],
+				'old_value'   => [ 'some_checkbox' => '0' ],
+				'expected'    => [
 					'some_checkbox' => [],
 					'another_value' => '1',
 					'_network_wide' => [],
@@ -2908,9 +2909,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 						'disabled'     => false,
 					],
 				],
-				'value'     => [ 'some_file' => 'a.xml' ],
-				'old_value' => [ 'some_file' => 'b.xml' ],
-				'expected'  => [ '_network_wide' => [] ],
+				'value'       => [ 'some_file' => 'a.xml' ],
+				'old_value'   => [ 'some_file' => 'b.xml' ],
+				'expected'    => [ '_network_wide' => [] ],
 			],
 			[
 				'form_fields' => [],
@@ -2942,6 +2943,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 			],
 		];
+		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 	}
 
 	/**
