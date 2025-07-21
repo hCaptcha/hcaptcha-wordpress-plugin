@@ -125,7 +125,7 @@ The shortcode adds not only the hCaptcha div to the form but also a nonce field.
 and in the verification:
 
 `
-$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
+$result = \HCaptcha\Helpers\API::verify_post( 'my_hcap_name', 'my_hcap_action' );
 `
 
 For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, `auto="false"`.
@@ -163,7 +163,7 @@ If you create the form programmatically, insert the following statement inside i
 Secondly, verify the result of hCaptcha challenge.
 
 `
-$result = hcaptcha_verify_post();
+$result = \HCaptcha\Helpers\API::verify_request();
 
 if ( null !== $result ) {
     echo esc_html( $result );
