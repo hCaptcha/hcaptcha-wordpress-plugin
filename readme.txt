@@ -758,7 +758,8 @@ Instructions for popular native integrations are below:
 * Fixed activation of Pro and Lite integrations when both are needed.
 * Fixed Fluent Conversational Form with embedded hCaptcha.
 * Fixed edge case bugs with saving settings on a single site, multi-site.
-* Fixed network-wide setting functionality.
+* Fixed network-wide setting functionality with per-site and network plugin activation.
+* Improved redirect when turning off the network-wide setting.
 
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.
