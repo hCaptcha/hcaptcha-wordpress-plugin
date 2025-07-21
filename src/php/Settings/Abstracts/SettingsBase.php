@@ -114,13 +114,6 @@ abstract class SettingsBase {
 	protected $position;
 
 	/**
-	 * Network-wide setting.
-	 *
-	 * @var ?array
-	 */
-	protected $network_wide = [];
-
-	/**
 	 * Get an option group.
 	 *
 	 * @return string
@@ -1677,15 +1670,9 @@ abstract class SettingsBase {
 	 * @return array
 	 */
 	protected function get_network_wide(): array {
-		if ( null !== $this->network_wide ) {
-			return $this->network_wide;
-		}
-
-		$this->network_wide = is_multisite()
+		return is_multisite()
 			? array_filter( (array) get_site_option( $this->option_name() . self::NETWORK_WIDE, [] ) )
 			: [];
-
-		return $this->network_wide;
 	}
 
 	/**

@@ -2760,8 +2760,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
-		$this->set_protected_property( $subject, 'network_wide', null );
-
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
@@ -3071,14 +3069,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
-		$this->set_protected_property( $subject, 'network_wide', null );
-
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 
 		WP_Mock::userFunction( 'get_site_option' )
 			->with( $option_name . SettingsBase::NETWORK_WIDE, [] )
-			->once()
+			->twice()
 			->andReturn( $network_wide );
 
 		self::assertSame( $network_wide, $subject->get_network_wide() );
