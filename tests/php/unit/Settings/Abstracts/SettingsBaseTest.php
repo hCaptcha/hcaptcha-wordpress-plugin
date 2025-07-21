@@ -932,7 +932,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function test_base_admin_page_access_denied(): void {
 		$is_network_wide = false;
-		$option_page     = 'hcaptcha';
+		$option_page     = SettingsBase::PREFIX . '-integrations';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -946,12 +946,16 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		);
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
+
+		// No page in $_GET.
 		$subject->base_admin_page_access_denied();
 
+		// Some page in $_GET. Not network-wide.
 		$_GET['page'] = 'some';
 		$subject->base_admin_page_access_denied();
 
-		$_GET['page'] = SettingsBase::PREFIX;
+		// The hCaptcha option page in $_GET.
+		$_GET['page'] = $option_page;
 		$url          = 'admin.php?page=' . $option_page;
 		$referer      = $url;
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
@@ -965,10 +969,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			);
 		$subject->base_admin_page_access_denied();
 
+		// Network-wide.
 		$is_network_wide = true;
 		WP_Mock::passthruFunction( 'network_admin_url' );
 		$subject->base_admin_page_access_denied();
 
+		// Different referer. Do redirect.
 		$referer = 'some';
 		WP_Mock::userFunction( 'wp_safe_redirect' )->with( $url )->once();
 		$subject->shouldReceive( 'exit' )->once();

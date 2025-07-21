@@ -617,7 +617,7 @@ abstract class SettingsBase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
-		if ( static::PREFIX !== $page ) {
+		if ( ! str_starts_with( $page, static::PREFIX ) ) {
 			return;
 		}
 
