@@ -1540,28 +1540,14 @@ abstract class SettingsBase {
 			return $value;
 		}
 
-		$value       = is_array( $value ) ? $value : [];
-		$old_value   = is_array( $old_value ) ? $old_value : [];
-		$general_tab = isset( $value['site_key'] );
-
-		// When saving not the General tab, use the network-wide site option.
-		$network_wide = $general_tab
-			? $value[ self::NETWORK_WIDE ] ?? []
-			: $this->get_network_wide();
-
-		[ $value, $old_value ] = $this->prepare_values( $value, $old_value );
-
-		// We save only one tab, so merge with all existing tabs.
-		$value = array_merge( $old_value, $value );
-
-		$value[ self::NETWORK_WIDE ] = $network_wide;
+		$value = $this->prepare_value( $value, $old_value );
 
 		if ( is_multisite() ) {
 			// Update the network-wide site option.
-			update_site_option( $this->option_name() . self::NETWORK_WIDE, $network_wide );
+			update_site_option( $this->option_name() . self::NETWORK_WIDE, $value[ self::NETWORK_WIDE ] );
 
 			// Check if the network-wide setting is on.
-			if ( [ 'on' ] === $network_wide ) {
+			if ( [ 'on' ] === $value[ self::NETWORK_WIDE ] ) {
 				// Save the current settings in the site option.
 				update_site_option( $this->option_name(), $value );
 
@@ -1738,12 +1724,24 @@ abstract class SettingsBase {
 	/**
 	 * Prepare values for update_option_filter.
 	 *
-	 * @param array $value     New value.
-	 * @param array $old_value Old value.
+	 * @param mixed $value     New value.
+	 * @param mixed $old_value Old value.
 	 *
 	 * @return array
 	 */
-	private function prepare_values( array $value, array $old_value ): array {
+	private function prepare_value( $value, $old_value ): array {
+		$value       = is_array( $value ) ? $value : [];
+		$general_tab = isset( $value['site_key'] );
+
+		// When saving not the General tab, use the network-wide site option.
+		$network_wide = $general_tab ? $value[ self::NETWORK_WIDE ] ?? [] : $this->get_network_wide();
+
+		if ( $network_wide ) {
+			$old_value = (array) get_site_option( $this->option_name(), [] );
+		} else {
+			$old_value = is_array( $old_value ) ? $old_value : [];
+		}
+
 		foreach ( $this->form_fields() as $key => $form_field ) {
 			if ( 'file' === $form_field['type'] ) {
 				unset( $value[ $key ], $old_value[ $key ] );
@@ -1760,6 +1758,11 @@ abstract class SettingsBase {
 			}
 		}
 
-		return [ $value, $old_value ];
+		// We save only one tab, so merge with all existing tabs.
+		$value = array_merge( $old_value, $value );
+
+		$value[ self::NETWORK_WIDE ] = $network_wide;
+
+		return $value;
 	}
 }
