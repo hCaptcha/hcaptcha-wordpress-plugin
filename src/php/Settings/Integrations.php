@@ -65,6 +65,9 @@ class Integrations extends PluginSettingsBase {
 			'fusion-builder/fusion-builder.php',
 			'fusion-core/fusion-core.php',
 		],
+		'Blocksy'                                                           => [
+			'blocksy-companion/blocksy-companion.php',
+		],
 		'acf-extended-pro/acf-extended.php'                                 => 'advanced-custom-fields-pro/acf.php',
 		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
 		'customer-reviews-woocommerce/ivole.php'                            => 'woocommerce/woocommerce.php',
@@ -253,6 +256,15 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'blocksy_status'                   => [
+				'label'   => 'blocksy',
+				'entity'  => 'theme',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'newsletter_subscribe' => __( 'Newsletter Subscribe (Free)', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'brizy_status'                     => [

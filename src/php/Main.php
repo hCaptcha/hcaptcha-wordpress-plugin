@@ -968,6 +968,11 @@ class Main {
 				'bb-plugin/fl-builder.php',
 				BeaverBuilder\Login::class,
 			],
+			'Blocksy Newsletter Subscribe'         => [
+				[ 'blocksy_status', 'newsletter_subscribe' ],
+				'blocksy',
+				Blocksy\NewsletterSubscribe::class,
+			],
 			'Brizy Form'                           => [
 				[ 'brizy_status', 'form' ],
 				'brizy/brizy.php',
