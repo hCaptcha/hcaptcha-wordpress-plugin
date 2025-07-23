@@ -38,9 +38,7 @@ class NewsletterSubscribe {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
-
-		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
+		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_action(
 			'wp_ajax_blc_newsletter_subscribe_process_ajax_subscribe',
 			[ $this, 'verify' ],
@@ -51,6 +49,8 @@ class NewsletterSubscribe {
 			[ $this, 'verify' ],
 			9
 		);
+
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class NewsletterSubscribe {
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function render_block( $block_content, array $block, WP_Block $instance ): string {
+	public function add_hcaptcha( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
 
 		if ( 'blocksy/newsletter' !== $block['blockName'] ) {
@@ -81,7 +81,7 @@ class NewsletterSubscribe {
 
 		$search = '<button';
 
-		return (string) str_replace(
+		return str_replace(
 			$search,
 			"\n" . HCaptcha::form( $args ) . "\n" . $search,
 			$block_content
@@ -124,6 +124,7 @@ class NewsletterSubscribe {
 
 	.ct-newsletter-subscribe-form h-captcha {
 		grid-row: 2;
+		margin-bottom: 0;
 	}
 
 	.ct-newsletter-subscribe-form button {

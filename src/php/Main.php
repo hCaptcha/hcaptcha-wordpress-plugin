@@ -973,6 +973,11 @@ class Main {
 				'blocksy',
 				Blocksy\NewsletterSubscribe::class,
 			],
+			'Blocksy Wait List'                    => [
+				[ 'blocksy_status', 'waitlist' ],
+				'blocksy',
+				Blocksy\Waitlist::class,
+			],
 			'Brizy Form'                           => [
 				[ 'brizy_status', 'form' ],
 				'brizy/brizy.php',

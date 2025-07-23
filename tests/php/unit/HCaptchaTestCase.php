@@ -883,6 +883,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'options' => [
 					'newsletter_subscribe' => 'Newsletter Subscribe (Free)',
+					'waitlist'             => 'Waitlist Form (Pro)',
 				],
 			],
 			'brizy_status'                     => [

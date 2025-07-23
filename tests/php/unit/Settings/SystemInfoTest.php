@@ -350,6 +350,7 @@ Beaver Builder:
   Login Form:                         On
 blocksy:                              
   Newsletter Subscribe (Free):        Off
+  Waitlist Form (Pro):                Off
 Brevo:                                
   Form:                               On
 Brizy:                                
