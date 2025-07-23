@@ -65,7 +65,8 @@ class Integrations extends PluginSettingsBase {
 			'fusion-builder/fusion-builder.php',
 			'fusion-core/fusion-core.php',
 		],
-		'Blocksy'                                                           => [
+		'blocksy'                                                           => [
+			'blocksy-companion-pro/blocksy-companion.php',
 			'blocksy-companion/blocksy-companion.php',
 		],
 		'acf-extended-pro/acf-extended.php'                                 => 'advanced-custom-fields-pro/acf.php',
@@ -161,6 +162,7 @@ class Integrations extends PluginSettingsBase {
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
+		add_filter( 'hcaptcha_activate_plugins', [ $this, 'filter_activate_plugins' ], 0 );
 	}
 
 	/**
@@ -180,6 +182,47 @@ class Integrations extends PluginSettingsBase {
 		remove_action( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 		remove_action( 'after_switch_theme', 'avada_compat_switch_theme' );
 		Utils::instance()->remove_action_regex( '/^Avada/', 'after_switch_theme' );
+	}
+
+	/**
+	 * Filter list of plugin to activate.
+	 *
+	 * @param array|mixed $plugins    List of plugins.
+	 * @param bool        $first_only Activate the first available plugin only.
+	 *
+	 * @return array
+	 */
+	public function filter_activate_plugins( $plugins, bool $first_only = true ): array {
+		$plugins = (array) $plugins;
+
+		// Companion plugins produce a fatal error when activated together.
+		$companions = [
+			'blocksy-companion-pro/blocksy-companion.php',
+			'blocksy-companion/blocksy-companion.php',
+		];
+
+		// Remove Companion plugins from the list to activate.
+		$updated_plugins = array_diff( $plugins, $companions );
+
+		foreach ( $companions as $companion ) {
+			if ( hcaptcha()->is_plugin_active( $companion ) ) {
+				// Do not activate Companion plugins if at least one of them is already active.
+				return $updated_plugins;
+			}
+		}
+
+		$installed_plugins = array_keys( $this->plugins );
+
+		foreach ( $companions as $companion ) {
+			if ( in_array( $companion, $installed_plugins, true ) ) {
+				// Activate the first Companion plugin available.
+				$updated_plugins[] = $companion;
+
+				return $updated_plugins;
+			}
+		}
+
+		return $plugins;
 	}
 
 	/**
@@ -1191,7 +1234,7 @@ class Integrations extends PluginSettingsBase {
 			return; // For testing purposes.
 		}
 
-		$plugins = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
+		$plugins = (array) ( self::PLUGIN_DEPENDENCIES[ $theme ] ?? [] );
 
 		$this->activate_plugins( $plugins, false );
 
@@ -1255,6 +1298,13 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
 	protected function activate_plugins( array $plugins, bool $first_only = true ) {
+		/**
+		 * Filter list of plugin to activate.
+		 *
+		 * @param array $plugins    List of plugins.
+		 * @param bool  $first_only Activate the first available plugin only.
+		 */
+		$plugins = apply_filters( 'hcaptcha_activate_plugins', $plugins, $first_only );
 		$results = new WP_Error();
 
 		foreach ( $plugins as $plugin ) {
