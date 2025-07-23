@@ -348,6 +348,8 @@ bbPress:
 Beaver Builder:                       
   Contact Form:                       On
   Login Form:                         On
+blocksy:                              
+  Newsletter Subscribe (Free):        Off
 Brevo:                                
   Form:                               On
 Brizy:                                

@@ -876,6 +876,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'   => 'Login Form',
 						],
 				],
+			'blocksy_status'                   => [
+				'label'   => 'blocksy',
+				'entity'  => 'theme',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'newsletter_subscribe' => 'Newsletter Subscribe (Free)',
+				],
+			],
 			'brizy_status'                     => [
 				'label'   => 'Brizy',
 				'logo'    => 'svg',
