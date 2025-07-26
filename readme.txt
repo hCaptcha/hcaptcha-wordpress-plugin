@@ -299,7 +299,7 @@ Beaver Builder
 
 Blocksy
 `$source: 'blocksy'`
-`$form_id: 'newsletter-subscribe' or $layer['__id']`
+`$form_id: 'newsletter-subscribe', '$layer["__id"]', or 'product_id`
 
 Brizy
 `$source: 'brizy/brizy.php'`
@@ -669,7 +669,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Back In Stock Notifier Form
 * bbPress New Topic, Reply, Login, Register, and Lost Password Forms
 * Beaver Builder Contact and Login Forms
-* Blocksy Companion Newsletter Subscribe and Waitlist Forms
+* Blocksy Companion Newsletter Subscribe, Waitlist, and Product Review Forms
 * BuddyPress — Create Group and Registration Forms
 * Classified Listing Contact, Login, Lost Password, and Listing Register Forms
 * CoBlocks Form
@@ -757,7 +757,7 @@ Instructions for popular native integrations are below:
 * Added integration with Icegram Express, including popup and widget forms.
 * Added integration with Fluent Forms Multi-Step forms.
 * Added integration with Customer Reviews for WooCommerce.
-* Added integration with the Blocksy Companion Newsletter Subscribe and Waitlist forms.
+* Added integration with the Blocksy Companion Newsletter Subscribe, Waitlist, and Product Review forms.
 * Fixed showing hCaptcha in Jetpack Form admin.
 * Fixed PHP warning on installing the integration plugin.
 * Fixed PHP warning when processing Advanced Kadence Form.

@@ -191,6 +191,7 @@ class Integrations extends PluginSettingsBase {
 	 * @param bool        $first_only Activate the first available plugin only.
 	 *
 	 * @return array
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function filter_activate_plugins( $plugins, bool $first_only = true ): array {
 		$plugins = (array) $plugins;
@@ -308,6 +309,7 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'options' => [
 					'newsletter_subscribe' => __( 'Newsletter Subscribe (Free)', 'hcaptcha-for-forms-and-more' ),
+					'product_review'       => __( 'Product Review (Pro)', 'hcaptcha-for-forms-and-more' ),
 					'waitlist'             => __( 'Waitlist Form (Pro)', 'hcaptcha-for-forms-and-more' ),
 				],
 			],

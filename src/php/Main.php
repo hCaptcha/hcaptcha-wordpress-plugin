@@ -973,6 +973,11 @@ class Main {
 				'blocksy',
 				Blocksy\NewsletterSubscribe::class,
 			],
+			'Blocksy Product Review'               => [
+				[ 'blocksy_status', 'product_review' ],
+				'blocksy',
+				Blocksy\ProductReview::class,
+			],
 			'Blocksy Wait List'                    => [
 				[ 'blocksy_status', 'waitlist' ],
 				'blocksy',
