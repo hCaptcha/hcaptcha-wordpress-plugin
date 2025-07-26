@@ -37,6 +37,7 @@ abstract class Base {
 	 * Block reCaptcha.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function block_recaptcha(): void {
 		$wpd_options = wpDiscuz()->options ?? null;
