@@ -76,7 +76,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_captcha(): void {
-		$form_id      = '1';
+		$form_id      = 1;
 		$submit_field =
 			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
 			"<input type='hidden' name='comment_post_ID' value='$form_id' id='comment_post_ID' />" .
@@ -88,6 +88,7 @@ class CommentTest extends HCaptchaWPTestCase {
 				[
 					'action' => 'hcaptcha_comment',
 					'name'   => 'hcaptcha_comment_nonce',
+					'sign'   => 'comment',
 					'id'     => [
 						'source'  => [ 'WordPress' ],
 						'form_id' => $form_id,
@@ -109,7 +110,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_captcha_when_NOT_active(): void {
-		$form_id      = '1';
+		$form_id      = 1;
 		$submit_field =
 			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit et_pb_button" value="Submit Comment" />' .
 			"<input type='hidden' name='comment_post_ID' value='$form_id' id='comment_post_ID' />" .
@@ -126,7 +127,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = Mockery::mock( Comment::class )->makePartial();
 
-		// Test when hCaptcha plugin is not active.
+		// Test when the hCaptcha plugin is not active.
 		$this->set_protected_property( $subject, 'active', false );
 
 		self::assertSame( $expected, $subject->add_captcha( $submit_field, [] ) );
@@ -144,6 +145,8 @@ class CommentTest extends HCaptchaWPTestCase {
 		];
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
 		$subject = new Comment();
 
@@ -206,6 +209,8 @@ class CommentTest extends HCaptchaWPTestCase {
 		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
 		$subject = new Comment();
 
