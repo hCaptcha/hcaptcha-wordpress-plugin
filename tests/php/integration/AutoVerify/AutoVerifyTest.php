@@ -416,6 +416,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			'auto'    => true,
 			'action'  => 'hcaptcha_action',
 			'name'    => 'hcaptcha_nonce',
+			'sign'    => '',
 			'ajax'    => false,
 			'force'   => false,
 			'theme'   => '',
