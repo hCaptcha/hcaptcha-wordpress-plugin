@@ -242,7 +242,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_toplevel_page_wpcf7(): void {
-		$form = <<<HTML
+		$form = <<<'HTML'
 <div class="wrap" id="wpcf7-contact-form-editor">
 	<h1 class="wp-heading-inline">Edit Contact Form</h1>
 	<form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">

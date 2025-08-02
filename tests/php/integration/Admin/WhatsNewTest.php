@@ -368,7 +368,7 @@ HTML;
 	 * @noinspection HtmlUnknownAnchorTarget
 	 */
 	public function test_whats_new_4_13_0(): void {
-		$expected = <<<HTML
+		$expected = <<<'HTML'
 		<div class="hcaptcha-whats-new-block center">
 						<div class="hcaptcha-whats-new-badge">
 				New Feature			</div>

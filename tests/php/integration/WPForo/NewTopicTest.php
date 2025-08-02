@@ -174,7 +174,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	#wpforo #wpforo-wrap div .h-captcha {
 		position: relative;
 		display: block;

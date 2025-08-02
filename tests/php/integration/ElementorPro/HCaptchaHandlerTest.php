@@ -1075,7 +1075,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.elementor-field-type-hcaptcha .elementor-field {
 		background: transparent !important;
 	}

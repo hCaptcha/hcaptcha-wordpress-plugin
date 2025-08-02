@@ -159,7 +159,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	#buddypress .h-captcha {
 		margin-top: 15px;
 	}

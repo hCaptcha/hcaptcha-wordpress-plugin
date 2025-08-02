@@ -764,7 +764,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	span[data-name="hcap-cf7"] .h-captcha {
 		margin-bottom: 0;
 	}

@@ -159,7 +159,7 @@ class LoginTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.woocommerce-form-login .h-captcha {
 		margin-top: 2rem;
 	}

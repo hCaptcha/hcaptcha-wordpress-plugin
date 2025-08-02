@@ -114,7 +114,7 @@ class ProtectTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	body.login-password-protected #loginform {
 		min-width: 302px;
 	}

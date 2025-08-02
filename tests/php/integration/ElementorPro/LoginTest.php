@@ -60,7 +60,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function test_render(): void {
 		$element    = new ElementorLogin();
-		$form       = <<<HTML
+		$form       = <<<'HTML'
 <div class="elementor-element elementor-element-fb88da3 elementor-widget elementor-widget-login" data-id="fb88da3" data-element_type="widget" data-widget_type="login.default">
 	<div class="elementor-widget-container">
 		<form class="elementor-login elementor-form" method="post" action="https://test.test/wp-login.php">
@@ -204,7 +204,7 @@ HTML;
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.elementor-widget-login .h-captcha {
 		margin-bottom: 0;
 	}
