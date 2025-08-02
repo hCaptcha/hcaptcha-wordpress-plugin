@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Unit\Helpers;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
+use ReflectionException;
 use WP_Mock;
 
 /**
@@ -34,6 +35,24 @@ class UtilsTest extends HCaptchaTestCase {
 		unset( $GLOBALS['wp_filter'] );
 
 		parent::tearDown();
+	}
+
+	/**
+	 * Test instance().
+	 *
+	 * @return void
+	 * @noinspection UnnecessaryAssertionInspection
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_instance(): void {
+		$subject = Utils::instance();
+
+		self::assertInstanceOf( Utils::class, $subject );
+
+		$this->set_protected_property( $subject, 'instance', null );
+
+		self::assertInstanceOf( Utils::class, $subject );
 	}
 
 	/**
@@ -247,12 +266,12 @@ class UtilsTest extends HCaptchaTestCase {
 
 		self::assertFalse( $subject->match_action_regex( $callback_pattern, $action ) );
 
-		// Callback is array. Class is an object.
+		// Callback is an array. Class is an object.
 		$action['function'] = [ $this, 'some_method' ];
 
 		self::assertFalse( $subject->match_action_regex( $callback_pattern, $action ) );
 
-		// Callback is array. Class is a string.
+		// Callback is an array. Class is a string.
 		$action['function'] = [ 'SomeClass', 'some_method' ];
 
 		self::assertFalse( $subject->match_action_regex( $callback_pattern, $action ) );
@@ -262,7 +281,7 @@ class UtilsTest extends HCaptchaTestCase {
 
 		self::assertFalse( $subject->match_action_regex( $callback_pattern, $action ) );
 
-		// Callback is matched class and method.
+		// Callback is a matched class and method.
 		$action['function'] = [ 'AvadaClass', 'some_method' ];
 
 		self::assertTrue( $subject->match_action_regex( $callback_pattern, $action ) );
@@ -318,5 +337,26 @@ class UtilsTest extends HCaptchaTestCase {
 		];
 
 		self::assertSame( $expected, Utils::unflatten_array( $flattened_array, '--' ) );
+	}
+
+	/**
+	 * Test array_insert().
+	 *
+	 * @return void
+	 */
+	public function test_array_insert(): void {
+		$array    = [
+			'a' => 'b',
+			'c' => 'd',
+			'e' => 'f',
+		];
+		$expected = [
+			'a' => 'b',
+			'x' => 'y',
+			'c' => 'd',
+			'e' => 'f',
+		];
+
+		self::assertSame( $expected, Utils::array_insert( $array, 'c', [ 'x' => 'y' ] ) );
 	}
 }
