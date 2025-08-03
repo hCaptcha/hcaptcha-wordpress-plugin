@@ -84,7 +84,7 @@ abstract class Base {
 		}
 
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'editor_enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -167,11 +167,11 @@ abstract class Base {
 	}
 
 	/**
-	 * Enqueue script in admin.
+	 * Enqueue script in the block editor.
 	 *
 	 * @return void
 	 */
-	public function admin_enqueue_scripts(): void {
+	public function editor_enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

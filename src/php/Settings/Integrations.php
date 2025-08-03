@@ -65,12 +65,19 @@ class Integrations extends PluginSettingsBase {
 			'fusion-builder/fusion-builder.php',
 			'fusion-core/fusion-core.php',
 		],
+		'blocksy'                                                           => [
+			'blocksy-companion-pro/blocksy-companion.php',
+			'blocksy-companion/blocksy-companion.php',
+		],
 		'acf-extended-pro/acf-extended.php'                                 => 'advanced-custom-fields-pro/acf.php',
 		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
+		'customer-reviews-woocommerce/ivole.php'                            => 'woocommerce/woocommerce.php',
 		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
+		'fluentformpro/fluentformpro.php'                                   => 'fluentform/fluentform.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
 		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
+		'woocommerce-germanized/woocommerce-germanized.php'                 => 'woocommerce/woocommerce.php',
 		'woocommerce-wishlists/woocommerce-wishlists.php'                   => 'woocommerce/woocommerce.php',
 		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 	];
@@ -90,11 +97,11 @@ class Integrations extends PluginSettingsBase {
 	protected $entity = '';
 
 	/**
-	 * Plugins tree.
+	 * Plugin trees.
 	 *
 	 * @var array
 	 */
-	protected $plugins_tree;
+	protected $plugin_trees = [];
 
 	/**
 	 * Installed plugins.
@@ -155,6 +162,7 @@ class Integrations extends PluginSettingsBase {
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
+		add_filter( 'hcaptcha_activate_plugins', [ $this, 'filter_activate_plugins' ], 0 );
 	}
 
 	/**
@@ -174,6 +182,48 @@ class Integrations extends PluginSettingsBase {
 		remove_action( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 		remove_action( 'after_switch_theme', 'avada_compat_switch_theme' );
 		Utils::instance()->remove_action_regex( '/^Avada/', 'after_switch_theme' );
+	}
+
+	/**
+	 * Filter list of plugin to activate.
+	 *
+	 * @param array|mixed $plugins    List of plugins.
+	 * @param bool        $first_only Activate the first available plugin only.
+	 *
+	 * @return array
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function filter_activate_plugins( $plugins, bool $first_only = true ): array {
+		$plugins = (array) $plugins;
+
+		// Companion plugins produce a fatal error when activated together.
+		$companions = [
+			'blocksy-companion-pro/blocksy-companion.php',
+			'blocksy-companion/blocksy-companion.php',
+		];
+
+		// Remove Companion plugins from the list to activate.
+		$updated_plugins = array_diff( $plugins, $companions );
+
+		foreach ( $companions as $companion ) {
+			if ( hcaptcha()->is_plugin_active( $companion ) ) {
+				// Do not activate Companion plugins if at least one of them is already active.
+				return $updated_plugins;
+			}
+		}
+
+		$installed_plugins = array_keys( $this->plugins );
+
+		foreach ( $companions as $companion ) {
+			if ( in_array( $companion, $installed_plugins, true ) ) {
+				// Activate the first Companion plugin available.
+				$updated_plugins[] = $companion;
+
+				return $updated_plugins;
+			}
+		}
+
+		return $plugins;
 	}
 
 	/**
@@ -252,6 +302,17 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'blocksy_status'                   => [
+				'label'   => 'blocksy',
+				'entity'  => 'theme',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'newsletter_subscribe' => __( 'Newsletter Subscribe (Free)', 'hcaptcha-for-forms-and-more' ),
+					'product_review'       => __( 'Product Review (Pro)', 'hcaptcha-for-forms-and-more' ),
+					'waitlist'             => __( 'Waitlist Form (Pro)', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'brizy_status'                     => [
 				'label'   => 'Brizy',
 				'logo'    => 'svg',
@@ -304,6 +365,15 @@ class Integrations extends PluginSettingsBase {
 					'embed'       => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 					'live'        => __( 'Live Form in Admin', 'hcaptcha-for-forms-and-more' ),
 					'replace_rsc' => __( 'Replace Really Simple CAPTCHA', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'customer_reviews_status'          => [
+				'label'   => 'Customer Reviews',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'q&a'    => __( 'Q&A Form', 'hcaptcha-for-forms-and-more' ),
+					'review' => __( 'Review Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'divi_status'                      => [
@@ -430,6 +500,13 @@ class Integrations extends PluginSettingsBase {
 			],
 			'html_forms_status'                => [
 				'label'   => 'HTML Forms',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'icegram_express_status'           => [
+				'label'   => 'Icegram Express',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
@@ -673,6 +750,13 @@ class Integrations extends PluginSettingsBase {
 					'lost_pass'      => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'order_tracking' => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
 					'register'       => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			'woocommerce_germanized_status'    => [
+				'label'   => 'WooCommerce Germanized',
+				'type'    => 'checkbox',
+				'options' => [
+					'return_request' => __( 'Return Request Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'woocommerce_wishlists_status'     => [
@@ -1069,7 +1153,7 @@ class Integrations extends PluginSettingsBase {
 				$error_message = $result->get_error_message();
 			} else {
 				$error_message = '';
-				$plugin_names  = $this->plugin_names_from_tree( $this->plugins_tree );
+				$plugin_names  = $this->plugin_names_from_trees();
 
 				if ( array_filter( $plugin_names ) ) {
 					$message = $this->install
@@ -1153,20 +1237,9 @@ class Integrations extends PluginSettingsBase {
 			return; // For testing purposes.
 		}
 
-		$plugins      = self::PLUGIN_DEPENDENCIES[ $theme ] ?? [];
-		$plugin_names = [];
+		$plugins = (array) ( self::PLUGIN_DEPENDENCIES[ $theme ] ?? [] );
 
-		/**
-		 * Activate dependent plugins before activating the theme.
-		 * The activate_plugins() function will activate the first available plugin only.
-		 * That is why we should cycle through the list of dependencies.
-		 */
-		foreach ( $plugins as $plugin ) {
-			$this->activate_plugins( [ $plugin ] );
-			$plugin_names[] = $this->plugin_names_from_tree( $this->plugins_tree );
-		}
-
-		$plugin_names = array_merge( [], ...$plugin_names );
+		$this->activate_plugins( $plugins, false );
 
 		$result = $this->activate_theme( $theme );
 
@@ -1196,6 +1269,8 @@ class Integrations extends PluginSettingsBase {
 			wp_get_theme()->get( 'Name' ) ?? $theme
 		);
 
+		$plugin_names = $this->plugin_names_from_trees();
+
 		if ( $plugin_names ) {
 			$message .=
 				' Also, dependent ' .
@@ -1217,23 +1292,36 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Activate plugins.
 	 *
-	 * We activate the first available plugin in the list only,
-	 * assuming that Pro plugins are placed earlier in the list.
+	 * When we activate the first available plugin in the list only,
+	 * we assume that Pro plugins are placed earlier in the list.
 	 *
-	 * @param array $plugins Plugins to activate.
+	 * @param array $plugins    Plugins to activate.
+	 * @param bool  $first_only Activate the first available plugin only.
 	 *
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
-	protected function activate_plugins( array $plugins ) {
+	protected function activate_plugins( array $plugins, bool $first_only = true ) {
+		/**
+		 * Filter list of plugin to activate.
+		 *
+		 * @param array $plugins    List of plugins.
+		 * @param bool  $first_only Activate the first available plugin only.
+		 */
+		$plugins = apply_filters( 'hcaptcha_activate_plugins', $plugins, $first_only );
 		$results = new WP_Error();
 
 		foreach ( $plugins as $plugin ) {
-			$this->plugins_tree = $this->build_plugins_tree( $plugin );
-			$result             = $this->activate_plugin_tree( $this->plugins_tree );
+			$this->build_plugins_tree( $plugin );
+
+			$result = $this->activate_plugin_tree( $this->plugin_trees[ $plugin ] );
 
 			if ( ! is_wp_error( $result ) ) {
-				// Activate the first available plugin only.
-				return $result;
+				if ( $first_only ) {
+					// Activate the first available plugin only.
+					return $result;
+				}
+
+				continue;
 			}
 
 			$results->add( $result->get_error_code(), $result->get_error_message() );
@@ -1368,6 +1456,10 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function build_plugins_tree( string $plugin ): array {
+		if ( isset( $this->plugin_trees[ $plugin ] ) ) {
+			return $this->plugin_trees[ $plugin ];
+		}
+
 		$dependencies = $this->plugin_dependencies( $plugin );
 		$tree         = [
 			'plugin'   => $plugin,
@@ -1377,6 +1469,8 @@ class Integrations extends PluginSettingsBase {
 		foreach ( $dependencies as $dependency ) {
 			$tree['children'][] = $this->build_plugins_tree( $dependency );
 		}
+
+		$this->plugin_trees[ $plugin ] = $tree;
 
 		return $tree;
 	}
@@ -1389,7 +1483,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function plugin_dependencies( string $plugin ): array {
-		$plugin_headers   = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin );
+		$plugin_headers   = $this->get_plugin_data( $plugin );
 		$requires_plugins = $plugin_headers['RequiresPlugins'] ?? '';
 		$wp_dependencies  = $this->plugin_dirs_to_slugs(
 			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
@@ -1427,6 +1521,21 @@ class Integrations extends PluginSettingsBase {
 	/**
 	 * Get plugin names from the tree.
 	 *
+	 * @return array
+	 */
+	protected function plugin_names_from_trees(): array {
+		$plugin_names = [];
+
+		foreach ( $this->plugin_trees as $node ) {
+			$plugin_names[] = $this->plugin_names_from_tree( $node );
+		}
+
+		return array_unique( array_merge( [], ...$plugin_names ) );
+	}
+
+	/**
+	 * Get plugin names from the tree.
+	 *
 	 * @param array $node Node of the plugin tree.
 	 *
 	 * @return array
@@ -1442,13 +1551,14 @@ class Integrations extends PluginSettingsBase {
 			$plugin_names = array_merge( [], ...$plugin_names );
 		}
 
-		if ( null !== $node['result'] ) {
+		if ( isset( $node['result'] ) ) {
 			return array_unique( array_merge( [], $plugin_names ) );
 		}
 
 		$status = '';
 
 		foreach ( hcaptcha()->modules as $module ) {
+			// Get the plugin name from modules only for a case when a single plugin mentioned there.
 			if ( $module[1] === $node['plugin'] ) {
 				$status = $module[0][0];
 
@@ -1459,7 +1569,7 @@ class Integrations extends PluginSettingsBase {
 		$plugin_name = $this->form_fields[ $status ]['label'] ?? '';
 
 		if ( ! $plugin_name ) {
-			$plugin_data = get_plugin_data( constant( 'WP_PLUGIN_DIR' ) . '/' . $node['plugin'] );
+			$plugin_data = $this->get_plugin_data( $node['plugin'] );
 			$plugin_name = $plugin_data['Name'] ?? '';
 		}
 
@@ -1695,6 +1805,42 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Wrapper for get_plugin_data.
+	 * Check the plugin file for existence to avoid warnings.
+	 *
+	 * @param string $plugin    Plugin slug.
+	 * @param bool   $markup    Optional. If the returned data should have HTML markup applied.
+	 * @param bool   $translate Optional. If the returned data should be translated. Default true.
+	 *
+	 * @return array
+	 */
+	protected function get_plugin_data( string $plugin, bool $markup = true, bool $translate = true ): array {
+
+		if ( ! $this->plugin_or_theme_installed( $plugin ) ) {
+			return [];
+		}
+
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			// @CodeCoverageIgnoreStart
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			// @CodeCoverageIgnoreEnd
+		}
+
+		return get_plugin_data( $this->get_plugin_file( $plugin ), $markup, $translate );
+	}
+
+	/**
+	 * Get a plugin file from the plugin slug.
+	 *
+	 * @param string $plugin Plugin slug.
+	 *
+	 * @return string
+	 */
+	protected function get_plugin_file( string $plugin ): string {
+		return constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin;
 	}
 
 	/**

@@ -38,7 +38,7 @@ class Utils {
 	 *
 	 * @param string $callback_pattern Callback pattern to match.
 	 *                                 A regex matching to SomeNameSpace\SomeClass::some_method.
-	 * @param string $hook_name        Action name. Default is current_action().
+	 * @param string $hook_name        Action name. The default is current_action().
 	 *
 	 * @return void
 	 */
@@ -64,7 +64,7 @@ class Utils {
 	 * @param string   $callback_pattern      Callback pattern to match.
 	 *                                        A regex matching to SomeNameSpace\SomeClass::some_method.
 	 * @param callable $replace               Replacement callback.
-	 * @param string   $hook_name             Action name. Default is current_action().
+	 * @param string   $hook_name             Action name. The default is current_action().
 	 *
 	 * @return void
 	 */

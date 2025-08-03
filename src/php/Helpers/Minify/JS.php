@@ -5,6 +5,11 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Helpers\Minify;
 
 use HCaptcha\Vendors\MatthiasMullie\Minify\JS as MinifyJS;
@@ -22,13 +27,14 @@ class JS extends MinifyJS {
 	 * @return bool
 	 * @noinspection PhpMissingReturnTypeInspection
 	 * @noinspection ReturnTypeCanBeDeclaredInspection
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	protected function canImportFile( $path ) {
 		// It is the fix of the library code.
-		// The realpath() function does not throw warning when file does not exist.
+		// The realpath() function does not throw a warning when a file does not exist.
 		// In the parent method, is_file is silenced, but with the Query Monitor plugin, it becomes visible.
 		if ( ! realpath( $path ) ) {
-			return \false;
+			return false;
 		}
 
 		return parent::canImportFile( $path );

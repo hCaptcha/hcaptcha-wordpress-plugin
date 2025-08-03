@@ -1,3 +1,20 @@
+= 4.16.0 =
+* Added integration with Germanized for WooCommerce.
+* Added integration with Icegram Express, including popup and widget forms.
+* Added integration with Fluent Forms Multi-Step forms.
+* Added integration with Customer Reviews for WooCommerce.
+* Added integration with the Blocksy Companion Newsletter Subscribe, Waitlist, and Product Review forms.
+* Fixed showing hCaptcha in Jetpack Form admin.
+* Fixed PHP warning on installing the integration plugin.
+* Fixed PHP warning when processing Advanced Kadence Form.
+* Fixed activation of Pro and Lite integrations when both are needed.
+* Fixed Fluent Conversational Form with embedded hCaptcha.
+* Fixed edge case bugs with saving settings on a single site, multi-site.
+* Fixed network-wide setting functionality with per-site and network plugin activation.
+* Fixed a fatal error when attempting to activate Blocksy Companion Pro and Free plugins together.
+* Fixed IP CIDR range detection.
+* Improved redirect when turning off the network-wide setting.
+
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.
 * Added hCaptcha error messages to Spectra.

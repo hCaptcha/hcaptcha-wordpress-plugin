@@ -121,9 +121,18 @@ class Form extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function render_field_hcaptcha( $html, array $data, stdClass $form ): string {
+		$html = (string) $html;
+
 		$this->form_id = (int) $form->id;
 
-		return $this->get_hcaptcha_wrapped();
+		$search = 'ff-el-input--content';
+		$html   = str_replace(
+			[ $search, "name='h-captcha-response'" ],
+			[ $search . ' ff-el-input--hcaptcha', '' ],
+			$html
+		);
+
+		return (string) preg_replace( '#<div\s*data-sitekey.*?</div>#s', $this->get_hcaptcha(), $html );
 	}
 
 	/**
@@ -158,6 +167,7 @@ class Form extends LoginBase {
 	 *
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
 		if ( $this->is_login_form( $form ) ) {
@@ -189,8 +199,18 @@ class Form extends LoginBase {
 		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
 		$error_message               = API::verify_request( $hcaptcha_response );
 
-		if ( null !== $error_message ) {
-			$errors['h-captcha-response'] = [ $error_message ];
+		if ( null === $error_message ) {
+			return $errors;
+		}
+
+		$errors['h-captcha-response'] = [ $error_message ];
+
+		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
+		$form_fields      = json_decode( $form_fields_json, true );
+		$multi_step       = isset( $form_fields['stepsWrapper'] );
+
+		if ( $multi_step ) {
+			wp_send_json_error( $errors );
 		}
 
 		return $errors;
@@ -401,6 +421,10 @@ class Form extends LoginBase {
 		line-height: 0;
 		margin-bottom: 0;
 	}
+	
+	.fluentform-step.active .ff-el-input--hcaptcha {
+		justify-self: end;
+	}
 ';
 
 		HCaptcha::css_display( $css );
@@ -482,7 +506,7 @@ class Form extends LoginBase {
 		/* language=HTML */
 		?>
 		<div class="ff-el-group">
-			<div class="ff-el-input--content">
+			<div class="ff-el-input--content ff-el-input--hcaptcha">
 				<div data-fluent_id="1" name="h-captcha-response">
 					<?php
 					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

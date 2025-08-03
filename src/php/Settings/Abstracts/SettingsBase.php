@@ -12,7 +12,7 @@ namespace KAGG\Settings\Abstracts;
  *
  * This is an abstract class to create the settings page in any plugin.
  * It uses WordPress Settings API and general output any type of fields.
- * Similar approach is used in many plugins, including WooCommerce.
+ * A similar approach is used in many plugins, including WooCommerce.
  */
 abstract class SettingsBase {
 
@@ -135,7 +135,7 @@ abstract class SettingsBase {
 	abstract protected function option_name(): string;
 
 	/**
-	 * Get plugin base name.
+	 * Get a plugin base name.
 	 *
 	 * @return string
 	 */
@@ -361,7 +361,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get class name without a namespace.
+	 * Get a class name without a namespace.
 	 *
 	 * @return string
 	 */
@@ -403,7 +403,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Initialise Settings.
+	 * Initialize Settings.
 	 *
 	 * Store all settings in a single database entry
 	 * and make sure the $settings array is either the default
@@ -421,9 +421,9 @@ abstract class SettingsBase {
 		$settings_exist                       = is_array( $this->settings );
 		$this->settings                       = (array) $this->settings;
 		$form_fields                          = $this->form_fields();
-		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, $this->settings ) ?
-			$this->settings[ self::NETWORK_WIDE ] :
-			$this->get_network_wide();
+		$network_wide_setting                 = array_key_exists( self::NETWORK_WIDE, $this->settings )
+			? $this->settings[ self::NETWORK_WIDE ]
+			: $this->get_network_wide();
 		$this->settings[ self::NETWORK_WIDE ] = $network_wide_setting;
 
 		if ( $settings_exist ) {
@@ -501,7 +501,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Add settings' page to the menu.
+	 * Add the settings' page to the menu.
 	 *
 	 * @return void
 	 */
@@ -609,7 +609,7 @@ abstract class SettingsBase {
 
 	/**
 	 * Filter denied access to the settings page.
-	 * It is necessary when switching network_wide option.
+	 * It is necessary when switching the network-wide option.
 	 *
 	 * @return void
 	 */
@@ -617,7 +617,7 @@ abstract class SettingsBase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
-		if ( static::PREFIX !== $page ) {
+		if ( ! str_starts_with( $page, static::PREFIX ) ) {
 			return;
 		}
 
@@ -815,7 +815,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get page and tab names from referer.
+	 * Get page and tab names from the referer.
 	 *
 	 * @return array
 	 */
@@ -863,7 +863,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get active tab.
+	 * Get an active tab.
 	 *
 	 * @return SettingsBase
 	 */
@@ -917,22 +917,26 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Filters an option value following sanitization.
+	 * Sanitize an option value.
 	 *
-	 * @param array|mixed $value The sanitized option value.
+	 * @param array|mixed $settings The option value.
 	 *
 	 * @return array
 	 */
-	public function sanitize_option_callback( $value ): array {
-		// Remove unexpected settings.
-		$settings = array_intersect_key( (array) $value, $this->form_fields() );
-
+	public function sanitize_option_callback( $settings ): array {
 		foreach ( $settings as $key => $setting ) {
-			$type = $this->form_fields[ $key ]['type'];
+			if ( ! isset( $this->form_fields[ $key ] ) ) {
+				// Here we can have the current tab fields only.
+				// Ignore settings which are not related to the current tab fields.
+				// The whole set of fields of all tabs appears here during saving the site option.
+				continue;
+			}
+
+			$type = $this->form_fields[ $key ]['type'] ?? '';
 
 			switch ( $type ) {
 				case 'checkbox':
-					$settings[ $key ] = array_map( 'sanitize_text_field', $setting );
+					$settings[ $key ] = array_map( 'sanitize_text_field', (array) $setting );
 					break;
 				case 'textarea':
 					$settings[ $key ] = wp_kses_post( $setting );
@@ -946,7 +950,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Print text/password field.
+	 * Print the text / password field.
 	 *
 	 * @param array $arguments Field arguments.
 	 *
@@ -1536,37 +1540,23 @@ abstract class SettingsBase {
 			return $value;
 		}
 
-		$value     = is_array( $value ) ? $value : [];
-		$old_value = is_array( $old_value ) ? $old_value : [];
+		$value = $this->prepare_value( $value, $old_value );
 
-		foreach ( $this->form_fields() as $key => $form_field ) {
-			if ( 'file' === $form_field['type'] ) {
-				unset( $value[ $key ], $old_value[ $key ] );
-				continue;
-			}
+		if ( is_multisite() ) {
+			// Update the network-wide site option.
+			update_site_option( $this->option_name() . self::NETWORK_WIDE, $value[ self::NETWORK_WIDE ] );
 
-			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
-				continue;
-			}
+			// Check if the network-wide setting is on.
+			if ( [ 'on' ] === $value[ self::NETWORK_WIDE ] ) {
+				// Save the current settings in the site option.
+				update_site_option( $this->option_name(), $value );
 
-			if ( ! $form_field['disabled'] || ! isset( $old_value[ $key ] ) ) {
-				$value[ $key ] = [];
+				// Do not update the blog option.
+				return $old_value;
 			}
 		}
 
-		// We save only one tab, so merge with all existing tabs.
-		$value                       = array_merge( $old_value, $value );
-		$value[ self::NETWORK_WIDE ] = array_key_exists( self::NETWORK_WIDE, $value ) ? $value[ self::NETWORK_WIDE ] : [];
-
-		update_site_option( $this->option_name() . self::NETWORK_WIDE, $value[ self::NETWORK_WIDE ] );
-
-		if ( empty( $value[ self::NETWORK_WIDE ] ) ) {
-			return $value;
-		}
-
-		update_site_option( $this->option_name(), $value );
-
-		return $old_value;
+		return $value;
 	}
 
 	/**
@@ -1660,27 +1650,25 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get network_wide setting.
+	 * Get the network-wide setting.
+	 * On a single site, always returns [].
 	 *
 	 * @return array
 	 */
 	protected function get_network_wide(): array {
-		static $network_wide = null;
-
-		if ( null === $network_wide ) {
-			$network_wide = (array) get_site_option( $this->option_name() . self::NETWORK_WIDE, [] );
-		}
-
-		return $network_wide;
+		return is_multisite()
+			? array_filter( (array) get_site_option( $this->option_name() . self::NETWORK_WIDE, [] ) )
+			: [];
 	}
 
 	/**
-	 * Whether network_wide setting is on.
+	 * Whether the network_wide setting is on.
+	 * On a single site, it always returns false.
 	 *
 	 * @return bool
 	 */
 	public function is_network_wide(): bool {
-		return ! empty( $this->get_network_wide() );
+		return [ 'on' ] === $this->get_network_wide();
 	}
 
 	/**
@@ -1731,5 +1719,52 @@ abstract class SettingsBase {
 				return ! in_array( $field['type'] ?? '', $not_savable_form_fields, true );
 			}
 		);
+	}
+
+	/**
+	 * Prepare values for update_option_filter.
+	 *
+	 * @param mixed $value     New value.
+	 * @param mixed $old_value Old value.
+	 *
+	 * @return array
+	 */
+	private function prepare_value( $value, $old_value ): array {
+		$value       = is_array( $value ) ? $value : [];
+		$general_tab = isset( $value['site_key'] );
+
+		// When saving not the General tab, use the network-wide site option.
+		$network_wide = $general_tab
+			? $value[ self::NETWORK_WIDE ] ?? []
+			: $this->get_network_wide();
+
+		if ( $network_wide ) {
+			$old_value = (array) get_site_option( $this->option_name(), [] );
+		} else {
+			$old_value = is_array( $old_value ) ? $old_value : [];
+		}
+
+		foreach ( $this->form_fields() as $key => $form_field ) {
+			if ( 'file' === $form_field['type'] ) {
+				unset( $value[ $key ], $old_value[ $key ] );
+				continue;
+			}
+
+			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
+				continue;
+			}
+
+			// Checkbox status is not set in the $value array.
+			if ( ! $form_field['disabled'] || ! isset( $old_value[ $key ] ) ) {
+				$value[ $key ] = [];
+			}
+		}
+
+		// We save only one tab, so merge with all existing tabs.
+		$value = array_merge( $old_value, $value );
+
+		$value[ self::NETWORK_WIDE ] = $network_wide;
+
+		return $value;
 	}
 }

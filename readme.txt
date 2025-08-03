@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.15.0
+Stable tag: 4.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,7 +125,7 @@ The shortcode adds not only the hCaptcha div to the form but also a nonce field.
 and in the verification:
 
 `
-$result = hcaptcha_request_verify( 'my_hcap_action', 'my_hcap_name' );
+$result = \HCaptcha\Helpers\API::verify_post( 'my_hcap_name', 'my_hcap_action' );
 `
 
 For the explanation of the auto="true|false" argument, see the section *"How to automatically verify an arbitrary form"*. By default, `auto="false"`.
@@ -163,7 +163,7 @@ If you create the form programmatically, insert the following statement inside i
 Secondly, verify the result of hCaptcha challenge.
 
 `
-$result = hcaptcha_verify_post();
+$result = \HCaptcha\Helpers\API::verify_request();
 
 if ( null !== $result ) {
     echo esc_html( $result );
@@ -297,6 +297,10 @@ Beaver Builder
 `$source: 'bb-plugin/fl-builder.php'`
 `$form_id: 'contact' or 'login'`
 
+Blocksy
+`$source: 'blocksy'`
+`$form_id: 'newsletter-subscribe', '$layer["__id"]', or 'product_id`
+
 Brizy
 `$source: 'brizy/brizy.php'`
 `$form_id: 'form'`
@@ -328,6 +332,14 @@ Elementor Pro
 Events Manager
 `$source: 'events-manager/events-manager.php'`
 `$form_id: event_id`
+
+Icegram Express
+`$source: 'email-subscribers/email-subscribers.php'`
+`$form_id: form_id`
+
+Customer Reviews for WooCommerce
+`$source: 'customer-reviews-woocommerce/ivole.php'`
+`$form_id: review or q&a`
 
 Jetpack
 `$source: 'jetpack/jetpack.php'`
@@ -404,6 +416,10 @@ Ultimate Member
 UsersWP
 `$source: 'userswp/userswp.php'`
 `$form_id: 'forgot', 'login' or 'register'`
+
+WooCommerce Germanized
+`$source: 'woocommerce-germanized/woocommerce-germanized.php'`
+`$form_id: 'return_request'`
 
 WooCommerce Wishlist
 `$source: 'woocommerce-wishlists/woocommerce-wishlists.php'`
@@ -653,12 +669,14 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Back In Stock Notifier Form
 * bbPress New Topic, Reply, Login, Register, and Lost Password Forms
 * Beaver Builder Contact and Login Forms
+* Blocksy Companion Newsletter Subscribe, Waitlist, and Product Review Forms
 * BuddyPress — Create Group and Registration Forms
 * Classified Listing Contact, Login, Lost Password, and Listing Register Forms
 * CoBlocks Form
 * Colorlib Customizer Login, Lost Password, and Customizer Register Forms
 * Contact Form 7
 * Cookies and Content Security Policy
+* Customer Reviews for WooCommerce Review and Q&A Forms
 * Divi Comment, Contact, Email Optin, and Login Forms
 * Divi Builder Comment, Contact, Email Optin, and Login Forms
 * Download Manager Form
@@ -669,12 +687,13 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Essential Blocks Form
 * Events Manager Booking Form
 * Extra Comment, Contact, Email Optin, and Login Forms
-* Fluent Forms, including Login Form
+* Fluent Forms, including Conversational, Multi-Step, and Login Forms
 * Forminator Forms
 * Formidable Forms
 * GiveWP Form
 * Gravity Forms
 * Gravity Perks Nested Forms
+* Icegram Express Form
 * Jetpack Forms
 * Kadence Form and Advanced Form
 * LearnDash Login, Lost Password, and Register Forms
@@ -704,6 +723,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
 * WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
+* WooCommerce Germanized Return Request Form
 * WooCommerce Wishlist Form
 * Wordfence Security Login Form
 * Wordfence Login Security Login Form
@@ -731,6 +751,23 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.16.0 =
+* Added integration with Germanized for WooCommerce.
+* Added integration with Icegram Express, including popup and widget forms.
+* Added integration with Fluent Forms Multi-Step forms.
+* Added integration with Customer Reviews for WooCommerce.
+* Added integration with the Blocksy Companion Newsletter Subscribe, Waitlist, and Product Review forms.
+* Fixed showing hCaptcha in Jetpack Form admin.
+* Fixed PHP warning on installing the integration plugin.
+* Fixed PHP warning when processing Advanced Kadence Form.
+* Fixed activation of Pro and Lite integrations when both are needed.
+* Fixed Fluent Conversational Form with embedded hCaptcha.
+* Fixed edge case bugs with saving settings on a single site, multi-site.
+* Fixed network-wide setting functionality with per-site and network plugin activation.
+* Fixed a fatal error when attempting to activate Blocksy Companion Pro and Free plugins together.
+* Fixed IP CIDR range detection.
+* Improved redirect when turning off the network-wide setting.
 
 = 4.15.0 =
 * Added hCaptcha error messages to CoBlocks.

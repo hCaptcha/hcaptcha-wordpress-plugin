@@ -7,11 +7,11 @@
 /.github
 /.idea
 /.php-scoper
-/.tests
 /.wordpress-org
 /.yarn
 /node_modules
 /src/js
+/tests
 /trunk
 
 # Files

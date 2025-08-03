@@ -7,25 +7,23 @@
 
 namespace HCaptcha\WP;
 
-use HCaptcha\Helpers\API;
+use HCaptcha\Abstracts\CommentBase;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Request;
-use WP_Error;
 
 /**
  * Class Comment
  */
-class Comment {
+class Comment extends CommentBase {
 
 	/**
 	 * Nonce action.
 	 */
-	private const ACTION = 'hcaptcha_comment';
+	protected const ACTION = 'hcaptcha_comment';
 
 	/**
 	 * Nonce name.
 	 */
-	private const NONCE = 'hcaptcha_comment_nonce';
+	protected const NONCE = 'hcaptcha_comment_nonce';
 
 	/**
 	 * Add captcha to the form.
@@ -33,13 +31,6 @@ class Comment {
 	 * @var bool
 	 */
 	protected $active;
-
-	/**
-	 * Verification result.
-	 *
-	 * @var string|null
-	 */
-	protected $result;
 
 	/**
 	 * Constructor.
@@ -55,10 +46,10 @@ class Comment {
 	 *
 	 * @return void
 	 */
-	private function init_hooks(): void {
+	protected function init_hooks(): void {
 		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
-		add_filter( 'preprocess_comment', [ $this, 'verify' ], - PHP_INT_MAX );
-		add_filter( 'pre_comment_approved', [ $this, 'pre_comment_approved' ], 20, 2 );
+
+		parent::init_hooks();
 	}
 
 	/**
@@ -84,12 +75,15 @@ class Comment {
 			$post_id = $m[1];
 		}
 
+		$this->form_id = (int) $post_id;
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
+			'sign'   => self::SIGNATURE_GROUP,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $post_id,
+				'form_id' => $this->form_id,
 			],
 		];
 
@@ -101,71 +95,10 @@ class Comment {
 			$args['protect'] = false;
 		}
 
+		$this->hcaptcha_shown = true;
+
 		$form = HCaptcha::form( $args );
 
 		return $form . $submit_field;
-	}
-
-	/**
-	 * Verify comment.
-	 *
-	 * @param array|mixed $comment_data Comment data.
-	 *
-	 * @return array
-	 */
-	public function verify( $comment_data ): array {
-		$comment_data = (array) $comment_data;
-
-		if ( ! Request::is_frontend() ) {
-			return $comment_data;
-		}
-
-		// Override poor IP detection by WP Core and make sure that IP is the same in the 'comments' table and in the 'hcaptcha_events' table.
-		$comment_data['comment_author_IP'] = hcap_get_user_ip();
-
-		$this->result = API::verify_post_html( self::NONCE, self::ACTION );
-
-		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
-
-		if ( null !== $this->result ) {
-			// Block Akismet activity to reduce its API calls.
-			remove_action( 'preprocess_comment', [ 'Akismet', 'auto_check_comment' ], 1 );
-		}
-
-		return $comment_data;
-	}
-
-	/**
-	 * Pre-approve comment.
-	 *
-	 * @param int|string|WP_Error $approved    The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
-	 * @param array               $commentdata Comment data.
-	 *
-	 * @return int|string|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function pre_comment_approved( $approved, array $commentdata ) {
-		if ( null === $this->result ) {
-			return $approved;
-		}
-
-		return $this->invalid_captcha_error( $approved, $this->result );
-	}
-
-	/**
-	 * Invalid captcha error.
-	 *
-	 * @param int|string|WP_Error $approved      The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
-	 * @param string              $error_message The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
-	 *
-	 * @return WP_Error
-	 */
-	private function invalid_captcha_error( $approved, string $error_message = '' ) {
-		$error_message = $error_message ?: __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' );
-		$approved      = is_wp_error( $approved ) ? $approved : new WP_Error();
-
-		$approved->add( 'invalid_hcaptcha', $error_message, 400 );
-
-		return $approved;
 	}
 }

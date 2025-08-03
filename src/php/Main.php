@@ -41,6 +41,7 @@ use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
+use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
 
 /**
@@ -967,6 +968,21 @@ class Main {
 				'bb-plugin/fl-builder.php',
 				BeaverBuilder\Login::class,
 			],
+			'Blocksy Newsletter Subscribe'         => [
+				[ 'blocksy_status', 'newsletter_subscribe' ],
+				'blocksy',
+				Blocksy\NewsletterSubscribe::class,
+			],
+			'Blocksy Product Review'               => [
+				[ 'blocksy_status', 'product_review' ],
+				'blocksy',
+				Blocksy\ProductReview::class,
+			],
+			'Blocksy Wait List'                    => [
+				[ 'blocksy_status', 'waitlist' ],
+				'blocksy',
+				Blocksy\Waitlist::class,
+			],
 			'Brizy Form'                           => [
 				[ 'brizy_status', 'form' ],
 				'brizy/brizy.php',
@@ -1031,6 +1047,16 @@ class Main {
 				[ 'cacsp_status', null ],
 				'cookies-and-content-security-policy/cookies-and-content-security-policy.php',
 				[ Compatibility::class ],
+			],
+			'Customer Reviews for WC Question'     => [
+				[ 'customer_reviews_status', 'q&a' ],
+				'customer-reviews-woocommerce/ivole.php',
+				[ CustomerReviews\QuestionAnswer::class ],
+			],
+			'Customer Reviews for WC Review'       => [
+				[ 'customer_reviews_status', 'review' ],
+				'customer-reviews-woocommerce/ivole.php',
+				[ CustomerReviews\Review::class ],
 			],
 			'Divi Comment Form'                    => [
 				[ 'divi_status', 'comment' ],
@@ -1149,7 +1175,7 @@ class Main {
 			],
 			'Fluent Forms'                         => [
 				[ 'fluent_status', 'form' ],
-				'fluentform/fluentform.php',
+				[ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
 				FluentForm\Form::class,
 			],
 			'Formidable Forms'                     => [
@@ -1176,6 +1202,11 @@ class Main {
 				[ 'html_forms_status', 'form' ],
 				'html-forms/html-forms.php',
 				HTMLForms\Form::class,
+			],
+			'Icegram Express'                      => [
+				[ 'icegram_express_status', 'form' ],
+				'email-subscribers/email-subscribers.php',
+				IcegramExpress\Form::class,
 			],
 			'Jetpack'                              => [
 				[ 'jetpack_status', 'contact' ],
@@ -1451,6 +1482,11 @@ class Main {
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',
 				WC\Register::class,
+			],
+			'WooCommerce Germanized'               => [
+				[ 'woocommerce_germanized_status', 'return_request' ],
+				'woocommerce-germanized/woocommerce-germanized.php',
+				ReturnRequest::class,
 			],
 			'WooCommerce Wishlists'                => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],
