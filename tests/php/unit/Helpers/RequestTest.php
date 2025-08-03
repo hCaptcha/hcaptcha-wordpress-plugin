@@ -304,7 +304,7 @@ class RequestTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_is_ip_in_range( $ip, $range, $expected ): void {
+	public function test_is_ip_in_range( string $ip, string $range, bool $expected ): void {
 		$this->assertSame(
 			$expected,
 			Request::is_ip_in_range( $ip, $range ),
