@@ -335,6 +335,26 @@ class GeneralTest extends HCaptchaTestCase {
 		</h3>
 		',
 			],
+			'content'    => [
+				General::SECTION_CONTENT,
+				'		<h3 class="hcaptcha-section-content">
+			<span class="hcaptcha-section-header-title">
+				Content			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
+		',
+			],
+			'antispam'   => [
+				General::SECTION_ANTISPAM,
+				'		<h3 class="hcaptcha-section-antispam">
+			<span class="hcaptcha-section-header-title">
+				Anti-spam			</span>
+			<span class="hcaptcha-section-header-toggle">
+			</span>
+		</h3>
+		',
+			],
 			'other'      => [
 				General::SECTION_OTHER,
 				'		<h3 class="hcaptcha-section-other">
@@ -607,6 +627,38 @@ class GeneralTest extends HCaptchaTestCase {
 			'No response'   => [ null ],
 			'Some response' => [ 'some-response' ],
 		];
+	}
+
+	/**
+	 * Test check_ips().
+	 *
+	 * @return void
+	 */
+	public function test_check_ips(): void {
+		$ips = '192.168.1.1 10.0.0.0/8 2a02:6b8::1 10.0.0.1-10.0.0.100';
+
+		$_POST['ips'] = $ips;
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' )->with( General::CHECK_IPS_ACTION )->twice();
+
+		// Valid IPs.
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'wp_send_json_success' )->with()->once();
+
+		$subject->check_ips();
+
+		// Invalid IP.
+		$ips = '1.2.3.4 999.999.999.999';
+
+		$_POST['ips'] = $ips;
+
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Invalid IP or CIDR range: 999.999.999.999' )->once();
+
+		$subject->check_ips();
 	}
 
 	/**
