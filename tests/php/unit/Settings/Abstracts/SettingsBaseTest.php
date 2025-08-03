@@ -2811,13 +2811,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function dp_test_pre_update_option_filter(): array {
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 		return [
-			'value not changed'                                 => [
+			'value not changed' => [
 				'form_fields' => [],
 				'value'       => [ 'value' ],
 				'old_value'   => [ 'value' ],
 				'expected'    => [ 'value' ],
 			],
-			'value changed'                                     => [
+			'value changed' => [
 				'form_fields' => [],
 				'value'       => [ 'a' => 'value' ],
 				'old_value'   => [ 'b' => 'old_value' ],
@@ -2827,7 +2827,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'text field changed'                                => [
+			'text field changed' => [
 				'form_fields' => [
 					'no_checkbox' => [
 						'label'        => 'some field',
@@ -2846,7 +2846,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'checkbox set off'                                  => [
+			'checkbox set off' => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2865,7 +2865,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'checkbox set on'                                   => [
+			'checkbox set on' => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2884,7 +2884,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'disabled checkbox changed'                         => [
+			'disabled checkbox changed' => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2905,7 +2905,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'another value added'                               => [
+			'another value added' => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2926,7 +2926,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'file field changed'                                => [
+			'file field changed' => [
 				'form_fields' => [
 					'some_file' => [
 						'label'        => 'some field',
@@ -2943,7 +2943,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'old_value'   => [ 'some_file' => 'b.xml' ],
 				'expected'    => [ '_network_wide' => [] ],
 			],
-			'table changed'                                     => [
+			'table changed' => [
 				'form_fields' => [],
 				'value'       => [
 					'bel' => [ 'Б' => 'B1' ],
@@ -2974,7 +2974,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'table and network wide changed on general tab'     => [
+			'table and network wide changed on general tab' => [
 				'form_fields' => [],
 				'value'       => [
 					'bel'           => [ 'Б' => 'B1' ],
