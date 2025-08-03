@@ -157,9 +157,12 @@ class Request {
 			// CIDR range.
 			[ $subnet, $bits ] = explode( '/', $range );
 
-			$bits       = (int) $bits;
-			$ip_bin     = inet_pton( $ip );
-			$subnet_bin = inet_pton( $subnet );
+			$bits = (int) $bits;
+
+			// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
+			$ip_bin     = @inet_pton( $ip );
+			$subnet_bin = @inet_pton( $subnet );
+			// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged
 
 			if ( false === $ip_bin || false === $subnet_bin || strlen( $ip_bin ) !== strlen( $subnet_bin ) ) {
 				return false;
