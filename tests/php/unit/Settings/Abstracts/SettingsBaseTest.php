@@ -939,11 +939,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'option_page' )->andReturn( $option_page );
 		$subject->shouldReceive( 'is_network_wide' )
 			->with()
-		->andReturnUsing(
-			static function () use ( &$is_network_wide ) {
-				return $is_network_wide;
-			}
-		);
+			->andReturnUsing(
+				static function () use ( &$is_network_wide ) {
+					return $is_network_wide;
+				}
+			);
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
 
@@ -2039,7 +2039,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	private function dp_checkbox_field_callback(): array {
 		return [
-			'Checkbox with empty value' => [
+			'Checkbox with empty value'  => [
 				[
 					'label'        => 'checkbox with empty value',
 					'section'      => 'some_section',
@@ -2055,7 +2055,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
 			],
-			'Checkbox not checked'      => [
+			'Checkbox not checked'       => [
 				[
 					'label'        => 'checkbox not checked',
 					'section'      => 'some_section',
@@ -2071,7 +2071,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
 			],
-			'Checkbox checked'          => [
+			'Checkbox checked'           => [
 				[
 					'label'        => 'checkbox checked',
 					'section'      => 'some_section',
@@ -2084,6 +2084,25 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'disabled'     => false,
 				],
 				'<fieldset ><label for="some_id_1" ><input id="some_id_1"' .
+				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
+				'</label><br/></fieldset>',
+			],
+			'Checkbox checked with data' => [
+				[
+					'label'        => 'checkbox checked',
+					'section'      => 'some_section',
+					'type'         => 'checkbox',
+					'placeholder'  => '',
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => 'yes',
+					'field_id'     => 'some_id',
+					'disabled'     => false,
+					'data'         => [
+						'on' => [ 'antispam' => 'hcaptcha' ],
+					],
+				],
+				'<fieldset ><label for="some_id_1" data-antispam="hcaptcha"><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
 			],
@@ -2756,13 +2775,12 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @param mixed $expected    Expected result.
 	 *
 	 * @dataProvider dp_test_pre_update_option_filter
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ): void {
 		$option_name                   = 'hcaptcha_settings';
-		$network_wide                  = '_network_wide';
+		$netwide_name                  = '_network_wide';
 		$merged_value                  = array_merge( $old_value, $value );
-		$merged_value[ $network_wide ] = array_key_exists( $network_wide, $merged_value ) ? $merged_value[ $network_wide ] : [];
+		$merged_value[ $netwide_name ] = array_key_exists( $netwide_name, $merged_value ) ? $merged_value[ $netwide_name ] : [];
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
@@ -2770,9 +2788,17 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 
-		WP_Mock::userFunction( 'update_site_option' )
-			->with( $option_name . $network_wide, $merged_value[ $network_wide ] );
-		WP_Mock::userFunction( 'update_site_option' )->with( $option_name, $merged_value );
+		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( false );
+
+		$general_tab     = isset( $value['site_key'] );
+		$network_wide    = $general_tab
+			? $value['_network_wide']
+			: [];
+		$get_site_option = $network_wide ? $old_value : [];
+
+		WP_Mock::userFunction( 'get_site_option' )
+			->with( $option_name, [] )
+			->andReturn( $get_site_option );
 
 		self::assertSame( $expected, $subject->pre_update_option_filter( $value, $old_value ) );
 	}
@@ -2785,13 +2811,13 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function dp_test_pre_update_option_filter(): array {
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 		return [
-			[
+			'value not changed'                                 => [
 				'form_fields' => [],
 				'value'       => [ 'value' ],
 				'old_value'   => [ 'value' ],
 				'expected'    => [ 'value' ],
 			],
-			[
+			'value changed'                                     => [
 				'form_fields' => [],
 				'value'       => [ 'a' => 'value' ],
 				'old_value'   => [ 'b' => 'old_value' ],
@@ -2801,7 +2827,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'text field changed'                                => [
 				'form_fields' => [
 					'no_checkbox' => [
 						'label'        => 'some field',
@@ -2820,7 +2846,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'checkbox set off'                                  => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2839,7 +2865,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'checkbox set on'                                   => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2858,7 +2884,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'disabled checkbox changed'                         => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2879,7 +2905,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'another value added'                               => [
 				'form_fields' => [
 					'some_checkbox' => [
 						'label'        => 'some field',
@@ -2900,7 +2926,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'file field changed'                                => [
 				'form_fields' => [
 					'some_file' => [
 						'label'        => 'some field',
@@ -2917,9 +2943,11 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'old_value'   => [ 'some_file' => 'b.xml' ],
 				'expected'    => [ '_network_wide' => [] ],
 			],
-			[
+			'table changed'                                     => [
 				'form_fields' => [],
-				'value'       => [ 'bel' => [ 'Б' => 'B1' ] ],
+				'value'       => [
+					'bel' => [ 'Б' => 'B1' ],
+				],
 				'old_value'   => [
 					'iso9' => [ 'Б' => 'B' ],
 					'bel'  => [ 'Б' => 'B' ],
@@ -2930,7 +2958,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			[
+			'table and network wide changed not on general tab' => [
 				'form_fields' => [],
 				'value'       => [
 					'bel'           => [ 'Б' => 'B1' ],
@@ -2946,8 +2974,74 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
+			'table and network wide changed on general tab'     => [
+				'form_fields' => [],
+				'value'       => [
+					'bel'           => [ 'Б' => 'B1' ],
+					'_network_wide' => [ 'on' ],
+					'site_key'      => 'some_site_key',
+				],
+				'old_value'   => [
+					'iso9' => [ 'Б' => 'B' ],
+					'bel'  => [ 'Б' => 'B' ],
+				],
+				'expected'    => [
+					'iso9'          => [ 'Б' => 'B' ],
+					'bel'           => [ 'Б' => 'B1' ],
+					'_network_wide' => [ 'on' ],
+					'site_key'      => 'some_site_key',
+				],
+			],
 		];
 		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+	}
+
+	/**
+	 * Test pre_update_option_filter() on multisite.
+	 *
+	 * @param array $form_fields Form fields.
+	 * @param mixed $value       New option value.
+	 * @param mixed $old_value   Old option value.
+	 * @param mixed $expected    Expected result.
+	 *
+	 * @dataProvider dp_test_pre_update_option_filter
+	 */
+	public function test_pre_update_option_filter_on_multisite( array $form_fields, $value, $old_value, $expected ): void {
+		$option_name  = 'hcaptcha_settings';
+		$netwide_name = '_network_wide';
+
+		$get_network_wide = [];
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
+		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
+		$subject->shouldReceive( 'get_network_wide' )->andReturn( $get_network_wide );
+
+		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
+
+		$general_tab  = isset( $value['site_key'] );
+		$network_wide = $general_tab
+			? $value[ $netwide_name ] ?? []
+			: $get_network_wide;
+
+		if ( $network_wide ) {
+			$old_value = [];
+		}
+
+		$merged_value                  = array_merge( $old_value, $value );
+		$merged_value[ $netwide_name ] = $network_wide;
+
+		WP_Mock::userFunction( 'update_site_option' )
+			->with( $option_name . $netwide_name, $merged_value[ $netwide_name ] );
+		WP_Mock::userFunction( 'update_site_option' )->with( $option_name, $merged_value );
+
+		if ( $network_wide ) {
+			self::assertSame( $old_value, $subject->pre_update_option_filter( $value, $old_value ) );
+		} else {
+			self::assertSame( $expected, $subject->pre_update_option_filter( $value, $old_value ) );
+		}
 	}
 
 	/**
@@ -3065,7 +3159,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * Test get_network_wide().
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_get_network_wide(): void {
 		$option_name  = 'hcaptcha_settings';
@@ -3122,7 +3215,6 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$menu_position = [ 'on' ];
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
-		$method  = 'get_menu_position';
 
 		$subject->shouldAllowMockingProtectedMethods();
 
@@ -3133,10 +3225,86 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				}
 			);
 
-		self::assertSame( SettingsBase::MODE_TABS, $subject->$method() );
+		self::assertSame( SettingsBase::MODE_TABS, $subject->get_menu_position() );
 
 		$menu_position = [];
 
-		self::assertSame( SettingsBase::MODE_PAGES, $subject->$method() );
+		self::assertSame( SettingsBase::MODE_PAGES, $subject->get_menu_position() );
+	}
+
+	/**
+	 * Tests print_header().
+	 *
+	 * @return void
+	 */
+	public function test_print_header(): void {
+		$page_title = 'General';
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'page_title' )->andReturn( $page_title );
+
+		WP_Mock::expectAction( 'kagg_settings_header' );
+
+		$expected = <<<HTML
+		<div class="kagg-header-bar">
+			<div class="kagg-header">
+				<h2>
+					$page_title				</h2>
+			</div>
+					</div>
+		
+HTML;
+
+		ob_start();
+
+		$subject->print_header();
+
+		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test get_savable_form_fields().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_savable_form_fields(): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$method  = 'get_savable_form_fields';
+
+		$fields = [
+			[
+				'id'   => 'field_1',
+				'type' => 'text',
+			],
+			[
+				'id'   => 'field_2',
+				'type' => 'password',
+			],
+			[
+				'id'   => 'field_3',
+				'type' => 'file',
+			],
+			[
+				'id'   => 'field_4',
+				'type' => 'button',
+			],
+		];
+
+		$expected = [
+			[
+				'id'   => 'field_1',
+				'type' => 'text',
+			],
+			[
+				'id'   => 'field_2',
+				'type' => 'password',
+			],
+		];
+
+		$this->set_protected_property( $subject, 'form_fields', $fields );
+
+		self::assertSame( $expected, $subject->$method() );
 	}
 }
