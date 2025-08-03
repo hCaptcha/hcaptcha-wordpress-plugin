@@ -154,35 +154,43 @@ class Request {
 		$range = trim( $range );
 
 		if ( strpos( $range, '/' ) !== false ) {
-			// CIDR.
+			// CIDR range.
 			[ $subnet, $bits ] = explode( '/', $range );
 
-			$ip     = inet_pton( $ip );
-			$subnet = inet_pton( $subnet );
+			$bits       = (int) $bits;
+			$ip_bin     = inet_pton( $ip );
+			$subnet_bin = inet_pton( $subnet );
 
-			if ( strlen( $ip ) !== strlen( $subnet ) ) {
-				return false; // Different IP type (IPv4 vs IPv6).
+			if ( false === $ip_bin || false === $subnet_bin || strlen( $ip_bin ) !== strlen( $subnet_bin ) ) {
+				return false;
 			}
 
-			$bin_ip     = unpack( 'A*', $ip )[1];
-			$bin_subnet = unpack( 'A*', $subnet )[1];
-			$mask       = str_repeat( 'f', $bits >> 2 );
+			$max_bits = strlen( $ip_bin ) * 8;
 
-			switch ( $bits % 4 ) {
-				case 1:
-					$mask .= '8';
-					break;
-				case 2:
-					$mask .= 'c';
-					break;
-				case 3:
-					$mask .= 'e';
-					break;
+			if ( $bits < 0 || $bits > $max_bits ) {
+				return false;
 			}
 
-			$mask = str_pad( $mask, strlen( $bin_ip ), '0' );
+			// Build mask.
+			$mask = str_repeat( "\xff", intdiv( $bits, 8 ) );
 
-			return ( $bin_ip & $mask ) === ( $bin_subnet & $mask );
+			if ( $bits % 8 ) {
+				$mask .= chr( ( 0xff << ( 8 - $bits % 8 ) ) & 0xff );
+			}
+
+			$ip_bin_len = strlen( $ip_bin );
+			$mask       = str_pad( $mask, $ip_bin_len, "\0" );
+
+			// Apply mask and check equality.
+			for ( $i = 0; $i < $ip_bin_len; $i++ ) {
+				$mask_ord = ord( $mask[ $i ] );
+
+				if ( ( ord( $ip_bin[ $i ] ) & $mask_ord ) !== ( ord( $subnet_bin[ $i ] ) & $mask_ord ) ) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		if ( strpos( $range, '-' ) !== false ) {
@@ -214,11 +222,7 @@ class Request {
 			$url .= ':' . $parsed_home_url['port'];
 		}
 
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ?
-			filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_URL ) :
-			'';
-
-		$url .= $request_uri;
+		$url .= self::filter_input( INPUT_SERVER, 'REQUEST_URI' );
 
 		return sanitize_url( $url );
 	}

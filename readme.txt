@@ -766,6 +766,7 @@ Instructions for popular native integrations are below:
 * Fixed edge case bugs with saving settings on a single site, multi-site.
 * Fixed network-wide setting functionality with per-site and network plugin activation.
 * Fixed a fatal error when attempting to activate Blocksy Companion Pro and Free plugins together.
+* Fixed IP CIDR range detection.
 * Improved redirect when turning off the network-wide setting.
 
 = 4.15.0 =
