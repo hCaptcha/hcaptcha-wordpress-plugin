@@ -200,9 +200,11 @@ class Request {
 			// IP-IP range.
 			[ $start, $end ] = explode( '-', $range, 2 );
 
-			$start_dec = inet_pton( trim( $start ) );
-			$end_dec   = inet_pton( trim( $end ) );
-			$ip_dec    = inet_pton( $ip );
+			// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
+			$start_dec = @inet_pton( trim( $start ) );
+			$end_dec   = @inet_pton( trim( $end ) );
+			$ip_dec    = @inet_pton( $ip );
+			// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged
 
 			return ( $ip_dec >= $start_dec && $ip_dec <= $end_dec );
 		}
