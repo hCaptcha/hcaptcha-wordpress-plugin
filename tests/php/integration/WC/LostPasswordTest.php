@@ -75,7 +75,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.woocommerce-ResetPassword .h-captcha {
 		margin-top: 0.5rem;
 	}

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.15.0
+Stable tag: 4.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -766,6 +766,7 @@ Instructions for popular native integrations are below:
 * Fixed edge case bugs with saving settings on a single site, multi-site.
 * Fixed network-wide setting functionality with per-site and network plugin activation.
 * Fixed a fatal error when attempting to activate Blocksy Companion Pro and Free plugins together.
+* Fixed IP CIDR range detection.
 * Improved redirect when turning off the network-wide setting.
 
 = 4.15.0 =

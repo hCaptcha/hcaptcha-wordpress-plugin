@@ -239,7 +239,7 @@ class BaseTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	form.contact-form .grunion-field-hcaptcha-wrap.grunion-field-wrap {
 		flex-direction: row !important;
 	}

@@ -712,7 +712,7 @@ HTML;
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.frm-fluent-form .h-captcha {
 		line-height: 0;
 		margin-bottom: 0;

@@ -405,7 +405,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_js_display(): void {
-		$js       = <<<JS
+		$js       = <<<'JS'
 	var a = 1;
 	console.log( a );
 JS;

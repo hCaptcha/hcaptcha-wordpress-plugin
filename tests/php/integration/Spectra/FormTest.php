@@ -293,7 +293,7 @@ HTML;
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.uagb-forms-main-form .h-captcha {
 		margin-bottom: 20px;
 	}

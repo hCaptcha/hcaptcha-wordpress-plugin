@@ -293,7 +293,7 @@ HTML;
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.wp-block-coblocks-form .h-captcha-error {
 		color: red;
 		margin-bottom: 25px;

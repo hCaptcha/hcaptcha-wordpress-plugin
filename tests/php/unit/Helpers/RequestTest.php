@@ -27,7 +27,7 @@ use WP_Mock;
 class RequestTest extends HCaptchaTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		unset( $_GET, $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'] );
@@ -277,11 +277,126 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
 		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
 
+		// Test with COOKIE.
+		unset( $_COOKIE );
+		$type                 = INPUT_COOKIE;
+		$_COOKIE[ $var_name ] = $value;
+
+		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
+		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
+
 		// Test with a wrong input type.
 		unset( $_SERVER[ $var_name ] );
 		$type = 999;
 
 		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
 		self::assertSame( '', Request::filter_input( $type, $var_name ) );
+	}
+
+	/**
+	 * Test is_ip_in_range().
+	 *
+	 * @dataProvider dp_test_is_ip_in_range
+	 *
+	 * @param string $ip       IP address.
+	 * @param string $range    IP range.
+	 * @param bool   $expected Expected result.
+	 *
+	 * @return void
+	 */
+	public function test_is_ip_in_range( string $ip, string $range, bool $expected ): void {
+		$this->assertSame(
+			$expected,
+			Request::is_ip_in_range( $ip, $range ),
+			"Failed asserting that IP '$ip' matches range '$range'"
+		);
+	}
+
+	/**
+	 * Data provider for test_is_ip_in_range().
+	 *
+	 * @return array[]
+	 */
+	public function dp_test_is_ip_in_range(): array {
+		return [
+			// Single IP.
+			[ '192.168.1.1', '192.168.1.1', true ],
+			[ '192.168.1.2', '192.168.1.1', false ],
+			[ '::1', '::1', true ],
+			[ '::2', '::1', false ],
+
+			// CIDR (IPv4).
+			[ '10.0.0.1', '10.0.0.0/24', true ],
+			[ '10.0.1.1', '10.0.0.0/24', false ],
+			[ '192.168.0.128', '192.168.0.0/25', false ],
+			[ '192.168.0.128', '192.168.0.128/25', true ],
+
+			// CIDR (IPv6).
+			[ '2001:db8::1', '2001:db8::/64', true ],
+			[ '2001:db8:1::1', '2001:db8::/64', false ],
+
+			// Range (IPv4).
+			[ '192.168.1.10', '192.168.1.10-192.168.1.20', true ],
+			[ '192.168.1.21', '192.168.1.10-192.168.1.20', false ],
+
+			// Range (IPv6).
+			[ '2001:db8::5', '2001:db8::1-2001:db8::f', true ],
+			[ '2001:db8::10', '2001:db8::1-2001:db8::f', false ],
+
+			// Mixed types.
+			[ '192.168.1.1', '2001:db8::/64', false ], // IPv4 vs IPv6.
+			[ '2001:db8::1', '192.168.1.0/24', false ], // IPv6 vs IPv4.
+
+			// Invalid IP/range.
+			[ 'not-an-ip', '192.168.1.0/24', false ],
+			[ '192.168.1.1', 'not-a-range', false ],
+
+			// Edge cases.
+			[ '192.168.1.1', '192.168.1.1-192.168.1.1', true ],
+			[ '192.168.1.1', '192.168.1.1/33', false ],
+			[ '192.168.1.1', '192.168.1.1/-24', false ],
+		];
+	}
+
+	/**
+	 * Test current_url().
+	 *
+	 * @param string $home_url    Home URL.
+	 * @param string $request_uri Request URI.
+	 * @param string $expected    Expected result.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_current_url_returns_expected_url
+	 */
+	public function test_current_url( string $home_url, string $request_uri, string $expected ): void {
+		WP_Mock::userFunction( 'home_url' )->with()->andReturn( $home_url );
+		WP_Mock::userFunction( 'wp_parse_url' )->with( $home_url )->andReturnUsing(
+			function ( $url, $component = -1 ) use ( $home_url ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $home_url, $component );
+			}
+		);
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::passthruFunction( 'sanitize_url' );
+
+		$_SERVER['REQUEST_URI'] = $request_uri;
+
+		$this->assertEquals( $expected, Request::current_url() );
+	}
+
+	/**
+	 * Data provider for test_current_url().
+	 *
+	 * @return array
+	 */
+	public function dp_test_current_url_returns_expected_url(): array {
+		return [
+			[ 'https://example.com', '', 'https://example.com' ],
+			[ 'https://example.com', '/', 'https://example.com/' ],
+			[ 'https://example.com', '/test/path', 'https://example.com/test/path' ],
+			[ 'https://example.com:8080', '', 'https://example.com:8080' ],
+			[ 'https://example.com:8080', '/test/path', 'https://example.com:8080/test/path' ],
+		];
 	}
 }

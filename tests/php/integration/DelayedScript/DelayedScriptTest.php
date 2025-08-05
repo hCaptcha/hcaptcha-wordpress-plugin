@@ -42,7 +42,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 		$js = "\t\t\tconst some = 1;";
 
-		$expected = <<<JS
+		$expected = <<<'JS'
 	( () => {
 		'use strict';
 
@@ -123,7 +123,7 @@ JS;
 			}
 		);
 
-		$expected = <<<JS
+		$expected = <<<'JS'
 	( () => {
 		'use strict';
 

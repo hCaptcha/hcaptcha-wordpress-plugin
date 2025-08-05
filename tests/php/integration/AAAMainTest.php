@@ -665,7 +665,7 @@ CSS;
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	@media (max-width: 349px) {
 		.h-captcha {
 			display: flex;

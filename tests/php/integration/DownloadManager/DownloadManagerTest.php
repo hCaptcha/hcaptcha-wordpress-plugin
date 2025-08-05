@@ -220,7 +220,7 @@ HTML;
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.wpdm-button-area + .h-captcha {
 		margin-bottom: 1rem;
 	}

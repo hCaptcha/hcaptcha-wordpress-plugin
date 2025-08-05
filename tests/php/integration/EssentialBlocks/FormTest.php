@@ -201,7 +201,7 @@ class FormTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.wp-block-essential-blocks-form .h-captcha {
 		margin: 15px 0 0 0;
 	}

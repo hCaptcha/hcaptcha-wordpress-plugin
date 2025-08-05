@@ -492,7 +492,7 @@ class FormTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	.gform_previous_button + .h-captcha {
 		margin-top: 2rem;
 	}

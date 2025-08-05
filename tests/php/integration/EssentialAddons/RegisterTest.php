@@ -204,7 +204,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	#eael-register-form .h-captcha {
 		margin-top: 1rem;
 		margin-bottom: 0;

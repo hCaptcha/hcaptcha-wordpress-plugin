@@ -153,7 +153,7 @@ class GeneralTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	#loginform[style="position: relative;"] > .h-captcha {
 	    visibility: hidden !important;
 	}

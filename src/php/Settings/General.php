@@ -1024,6 +1024,9 @@ class General extends PluginSettingsBase {
 					esc_html__( 'Invalid IP or CIDR range:', 'hcaptcha-for-forms-and-more' ) .
 					' ' . esc_html( $ip )
 				);
+
+				// For testing purposes.
+				return;
 			}
 
 			$ips_arr[ $key ] = $ip;

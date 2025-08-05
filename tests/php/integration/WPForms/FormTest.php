@@ -242,7 +242,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$expected = <<<CSS
+		$expected = <<<'CSS'
 	div.wpforms-container-full .wpforms-form .h-captcha {
 		position: relative;
 		display: block;

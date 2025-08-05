@@ -1734,7 +1734,9 @@ abstract class SettingsBase {
 		$general_tab = isset( $value['site_key'] );
 
 		// When saving not the General tab, use the network-wide site option.
-		$network_wide = $general_tab ? $value[ self::NETWORK_WIDE ] ?? [] : $this->get_network_wide();
+		$network_wide = $general_tab
+			? $value[ self::NETWORK_WIDE ] ?? []
+			: $this->get_network_wide();
 
 		if ( $network_wide ) {
 			$old_value = (array) get_site_option( $this->option_name(), [] );
