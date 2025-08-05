@@ -8,7 +8,8 @@ Stable tag: 4.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Enables hCaptcha integration with WordPress and popular plugins.
+The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
+Integrates with 50+ popular plugins.
 
 == Description ==
 
