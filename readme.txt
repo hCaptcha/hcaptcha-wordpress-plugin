@@ -12,6 +12,8 @@ Enables hCaptcha integration with WordPress and popular plugins.
 
 == Description ==
 
+The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
+
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
