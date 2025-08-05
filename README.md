@@ -4,20 +4,22 @@
 
 Contributors: kaggdesign, hCaptcha team, phpwebdev11, faysalhaque, plexusllc-admin, thinhbuzz, publicarray, intercrypt, and many others
 
-Maintainers: hCaptcha team  
+Maintainers: hCaptcha team
 
-License: GPLv2 or later, at your option  
-License URI: http://www.gnu.org/licenses/gpl-2.0.html  
- 
+License: GPLv2 or later, at your option
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
 Enables hCaptcha integration with WordPress.
 
 ## Description
 
+The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
+
 **NOTE: This is a community-developed plugin. All integrations were submitted by developers like you. If you see an integration that doesn't work, or one that's missing, please open a pull request!**
 
-Note that PRs should meet [WordPress Coding Standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/). This is automatically enforced by CI. 
+Note that PRs should meet [WordPress Coding Standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/). This is automatically enforced by CI.
 
-hCaptcha is a drop-in replacement for reCAPTCHA that puts user privacy first.
+[hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse.
 
@@ -33,10 +35,10 @@ yarn dev
 ```
 
 1. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
-2. Activate the plugin through the 'Plugins' menu in WordPress  
-3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress  
-4. Enable desired Integrations  
- 
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress
+4. Enable desired Integrations
+
 ## Run code sniffer to respect WordPress coding standards
 
 ```
@@ -57,9 +59,9 @@ composer unit
 
 ## Frequently Asked Questions
 
-Q: Where can I get more information about hCaptcha?  
+Q: Where can I get more information about hCaptcha?
 A: Please see our website at: https://www.hcaptcha.com/
- 
+
 ## Screenshots
 
 See the [official plugin page on wordpress.org](https://wordpress.org/plugins/hcaptcha-for-forms-and-more/).
