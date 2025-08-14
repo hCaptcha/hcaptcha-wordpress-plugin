@@ -755,6 +755,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.17.0 =
+* Fixed running migrations on a fresh installation.
+
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
 * Added integration with Icegram Express, including popup and widget forms.
