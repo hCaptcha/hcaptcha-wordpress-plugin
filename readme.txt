@@ -757,6 +757,7 @@ Instructions for popular native integrations are below:
 
 = 4.17.0 =
 * Fixed running migrations on a fresh installation.
+* Fixed updating migration option on each admin request.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.

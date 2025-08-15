@@ -147,11 +147,15 @@ class Migrations {
 			$this->log_migration_message( $result, $upgrade_version );
 		}
 
+		// Set the current version update time if it does not exist.
+		$current_version_migrated = $migrated[ self::PLUGIN_VERSION ] ?? time();
+
 		// Remove any keys that are not in the migration list.
 		$migrated = array_intersect_key( $migrated, array_flip( $upgrade_versions ) );
 
-		// Store the current version.
-		$migrated[ self::PLUGIN_VERSION ] = $migrated[ self::PLUGIN_VERSION ] ?? time();
+		// Restore the current version update time.
+		// Prevents updating the option on each request.
+		$migrated[ self::PLUGIN_VERSION ] = $current_version_migrated;
 
 		// Sort the array by version.
 		uksort( $migrated, 'version_compare' );
