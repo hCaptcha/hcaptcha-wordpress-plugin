@@ -80,7 +80,6 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 *
 	 * @dataProvider dp_test_remove_recaptcha_render
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_remove_recaptcha_render( array $field, $expected ): void {
 		$recaptcha = Mockery::mock( 'acfe_field_recaptcha' );
@@ -174,7 +173,6 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test remove_recaptcha_verify().
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_remove_recaptcha_verify(): void {
 		$value = 'some value';

@@ -24,7 +24,7 @@ use Mockery;
 class AutoVerifyTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );
@@ -92,7 +92,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test content_filter() with action containing host.
+	 * Test content_filter() with an action containing host.
 	 */
 	public function test_content_filter_with_action(): void {
 		$request_uri = $this->get_test_request_uri();
@@ -253,9 +253,12 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $request_uri;
 
-		$_POST['test_input'] = 'some input';
-		$die_arr             = [];
-		$expected            = [
+		$_POST['test_input']   = 'some input';
+		$_POST['hcap_hp_test'] = '';
+		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
+
+		$die_arr  = [];
+		$expected = [
 			'Please complete the hCaptcha.',
 			'hCaptcha',
 			[
@@ -292,6 +295,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$hcaptcha_response = 'some response';
 		$expected          = [
 			'test_input'         => 'some input',
+			'hcap_hp_test'       => '',
+			'hcap_hp_sig'        => wp_create_nonce( 'hcap_hp_test' ),
 			'hcaptcha_nonce'     => $this->get_test_nonce(),
 			'h-captcha-response' => $hcaptcha_response,
 		];
@@ -299,7 +304,9 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $request_uri;
 
-		$_POST['test_input'] = 'some input';
+		$_POST['test_input']   = 'some input';
+		$_POST['hcap_hp_test'] = '';
+		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
 
 		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
 
@@ -340,7 +347,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify_form() in rest, case 3 and 4.
+	 * Test verify_form() in the REST, case 3 and 4.
 	 */
 	public function test_verify_form_in_rest_case_3_and_4(): void {
 		$old_wp_rewrite = $GLOBALS['wp_rewrite'];
@@ -381,9 +388,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * @return string
 	 */
 	private function get_test_content(): string {
-		$request_uri = $this->get_test_request_uri();
-		$nonce       = $this->get_test_nonce();
-
 		return '
 <form method="post">
 	<input type="text" name="test_input" id="test_input">
@@ -432,7 +436,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			untrailingslashit( $request_uri ) =>
 				[
 					[
-						'inputs' => [ 'test_input' ],
+						'inputs' => [
+							'test_input',
+							'hcap_hp_test',
+						],
 						'args'   => $args,
 					],
 				],

@@ -31,7 +31,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'bbpress/bbpress.php';
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
@@ -91,6 +91,8 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	public function test_verify_not_verified(): void {
 		$expected = new WP_Error( 'hcap_error', 'Please complete the hCaptcha.' );
 		$subject  = new NewTopic();
+
+		$this->prepare_verify_post( 'hcaptcha_bbp_new_topic_nonce', 'hcaptcha_bbp_new_topic', null );
 
 		self::assertFalse( $subject->verify() );
 

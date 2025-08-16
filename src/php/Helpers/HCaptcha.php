@@ -146,7 +146,7 @@ class HCaptcha {
 		}
 
 		// Add a per-render honeypot with a unique field name and signature to detect fake sessions.
-		$hp_name = 'hcap_hp_' . wp_generate_password( 12, false );
+		$hp_name = self::get_hp_name();
 		$hp_sig  = wp_create_nonce( $hp_name );
 
 		?>
@@ -197,6 +197,16 @@ class HCaptcha {
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
 		return $args;
+	}
+
+	/**
+	 * Get honeypot name.
+	 * Made as a separate function to be able to mock it in tests.
+	 *
+	 * @return string
+	 */
+	protected static function get_hp_name(): string {
+		return 'hcap_hp_' . wp_generate_password( 12, false );
 	}
 
 	/**

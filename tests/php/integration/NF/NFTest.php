@@ -19,7 +19,7 @@ use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
- * Test ninja-forms-hcaptcha.php file.
+ * Test the ninja-forms-hcaptcha.php file.
  *
  * @requires PHP >= 7.4
  *
@@ -338,6 +338,18 @@ JSON;
 			}
 		);
 
+		$hp_name  = 'hcap_hp_test';
+		$hp_sig   = wp_create_nonce( $hp_name );
+		$hp_field = <<<HTML
+		<label for="$hp_name"></label>
+		<input
+				type="text" id="$hp_name" name="$hp_name" value=""
+				autocomplete="off" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
+		
+HTML;
+
 		$expected                         = $field;
 		$hcap_widget                      = $this->get_hcap_widget(
 			[
@@ -355,7 +367,7 @@ JSON;
 			data-ajax="false"
 			data-force="false">
 		</h-captcha>
-		';
+		' . $hp_field;
 
 		$subject = new NF();
 		$subject->set_form_id( $form_id );
