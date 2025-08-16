@@ -1,3 +1,5 @@
+/* global jQuery */
+
 export class helper {
 	static addHCaptchaData( options, action, nonceName, $node ) {
 		const data = options.data ?? '';
@@ -6,22 +8,32 @@ export class helper {
 			return;
 		}
 
-		const hCaptchaData = helper.getHCaptchaData( $node, nonceName );
-
-		options.data +=
-			'&h-captcha-response=' + hCaptchaData.response +
-			'&hcaptcha-widget-id=' + hCaptchaData.id +
-			'&' + nonceName + '=' + hCaptchaData.nonce;
+		options.data += helper.getHCaptchaData( $node, nonceName );
 	}
 
+	/**
+	 * Get hCaptcha data from a node.
+	 *
+	 * @param {jQuery} $node     Node.
+	 * @param {string} nonceName Nonce name.
+	 * @return {string} Data.
+	 */
 	static getHCaptchaData( $node, nonceName ) {
-		let response = $node.find( '[name="h-captcha-response"]' ).val();
-		response = response ? response : '';
-		let id = $node.find( '[name="hcaptcha-widget-id"]' ).val();
-		id = id ? id : '';
-		let nonce = $node.find( '[name="' + nonceName + '"]' ).val();
-		nonce = nonce ? nonce : '';
+		const hpName = $node.find( '[name^="hcap_hp_"]' ).first().attr( 'name' ) ?? '';
+		const names = [ 'h-captcha-response', 'hcaptcha-widget-id', nonceName, hpName, 'hcap_hp_sig' ];
 
-		return { response, id, nonce };
+		let data = '';
+
+		for ( const name of names ) {
+			if ( ! name ) {
+				continue;
+			}
+
+			const val = $node.find( `[name="${ name }"]` ).first().val() ?? '';
+
+			data += `&${ name }=${ val }`;
+		}
+
+		return data;
 	}
 }

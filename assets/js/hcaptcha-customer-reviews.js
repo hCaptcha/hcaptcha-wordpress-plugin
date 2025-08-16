@@ -14,7 +14,7 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 				'hcaptcha.formSelector',
 				'hcaptcha',
 				( formSelector ) => {
-					return formSelector + ', div#tab-reviews, div#tab-cr_qna, div.cr-qna-list-inl-answ';
+					return formSelector + ', div#tab-reviews, div#tab-cr_qna, div.cr-qna-list-inl-answ, div.cr-qna-new-q-form';
 				},
 			);
 
@@ -33,7 +33,8 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 			$( document ).on(
 				'click',
 				'#tab-title-reviews a, #tab-title-cr_qna a, ' +
-				'button.cr-review-form-continue.cr-review-form-error',
+				'button.cr-review-form-continue.cr-review-form-error, ' +
+				'button.cr-qna-ask-button',
 				function() {
 					hCaptchaBindEvents();
 				},

@@ -507,20 +507,14 @@ class HCaptcha {
 	 * @param {HTMLElement} formElement Form element.
 	 */
 	moveHP( formElement ) {
-		const hpInputs = formElement.querySelectorAll( 'input[name^="hcap_hp_"]' );
+		const hpInput = formElement.querySelector( 'input[name^="hcap_hp_"]' );
 
-		if ( ! hpInputs.length ) {
+		if ( ! hpInput.length ) {
 			return;
 		}
 
-		const inputs = Array.prototype.filter.call(
-			formElement.querySelectorAll( 'input,select,textarea,button' ),
-			function( el ) {
-				const type = ( el.getAttribute( 'type' ) || '' ).toLowerCase();
-
-				return type !== 'hidden';
-			}
-		);
+		const inputs = [ ...formElement.querySelectorAll( 'input,select,textarea,button' ) ]
+			.filter( ( el ) => el.type !== 'hidden' );
 
 		if ( ! inputs.length ) {
 			return;
@@ -529,7 +523,6 @@ class HCaptcha {
 		// Choose a random reference position.
 		const idx = Math.floor( Math.random() * inputs.length );
 		const ref = inputs[ idx ];
-		const hpInput = hpInputs[ 0 ];
 
 		if ( ref && ref.parentNode ) {
 			ref.parentNode.insertBefore( hpInput, ref );
