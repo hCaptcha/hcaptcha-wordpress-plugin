@@ -41,35 +41,35 @@
     }
   },
   "engines": {
-    "node": ">=22.15.0",
-    "npm": ">=11.3.0"
+    "node": ">=22.18.0",
+    "npm": ">=11.5.2"
   },
   "packageManager": "yarn@4.9.2",
   "dependencies": {
     "@wordpress/hooks": "^4.22.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.1",
-    "@babel/preset-env": "^7.27.1",
-    "@inrupt/jest-jsdom-polyfills": "^3.2.7",
-    "@wordpress/eslint-plugin": "^22.9.0",
+    "@babel/core": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@inrupt/jest-jsdom-polyfills": "^4.0.5",
+    "@wordpress/eslint-plugin": "^22.14.0",
     "babel-loader": "^10.0.0",
     "coveralls": "^3.1.1",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.2",
     "eslint": "^8.57.1",
-    "glob": "^11.0.2",
-    "jest": "^30.0.2",
-    "jest-environment-jsdom": "^30.0.2",
+    "glob": "^11.0.3",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "jest-fetch-mock": "^3.0.3",
     "jquery": "^3.7.1",
-    "mini-css-extract-plugin": "^2.9.2",
-    "prettier": "^3.5.3",
+    "mini-css-extract-plugin": "^2.9.4",
+    "prettier": "^3.6.2",
     "terser-webpack-plugin": "^5.3.14",
-    "typescript": "^5.8.3",
-    "webpack": "^5.99.7",
+    "typescript": "^5.9.2",
+    "webpack": "^5.101.2",
     "webpack-cli": "^6.0.1",
-    "webpack-remove-empty-scripts": "^1.0.4"
+    "webpack-remove-empty-scripts": "^1.1.1"
   },
   "overrides": {
     "cross-spawn": "^7.0.6",
