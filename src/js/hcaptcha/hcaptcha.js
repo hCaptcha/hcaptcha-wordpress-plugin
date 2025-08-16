@@ -509,7 +509,7 @@ class HCaptcha {
 	moveHP( formElement ) {
 		const hpInput = formElement.querySelector( 'input[name^="hcap_hp_"]' );
 
-		if ( ! hpInput.length ) {
+		if ( ! hpInput ) {
 			return;
 		}
 
