@@ -635,4 +635,130 @@ describe( 'HCaptcha', () => {
 		expect( hCaptcha.darkElement ).toBeNull();
 		expect( hCaptcha.darkClass ).toBeNull();
 	} );
+
+	// observeDarkMode tests
+	test( 'observeDarkMode does nothing if already observing', () => {
+		// Arrange
+		hCaptcha.observingDarkMode = true;
+
+		const getParamsSpy = jest.spyOn( hCaptcha, 'getParams' );
+		const setDarkDataSpy = jest.spyOn( hCaptcha, 'setDarkData' );
+		const bindSpy = jest.spyOn( hCaptcha, 'bindEvents' );
+		const MOBackup = global.MutationObserver;
+
+		global.MutationObserver = jest.fn( function() {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+		} );
+
+		// Act
+		hCaptcha.observeDarkMode();
+
+		// Assert
+		expect( getParamsSpy ).not.toHaveBeenCalled();
+		expect( setDarkDataSpy ).not.toHaveBeenCalled();
+		expect( bindSpy ).not.toHaveBeenCalled();
+		expect( global.MutationObserver ).not.toHaveBeenCalled();
+
+		// Cleanup
+		global.MutationObserver = MOBackup;
+	} );
+
+	test( 'observeDarkMode returns early when theme is not auto', () => {
+		// Arrange
+		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: 'light' } );
+
+		const bindSpy = jest.spyOn( hCaptcha, 'bindEvents' );
+		const MOBackup = global.MutationObserver;
+
+		global.MutationObserver = jest.fn( function() {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+		} );
+
+		// Precondition
+		expect( hCaptcha.observingDarkMode ).toBe( false );
+
+		// Act
+		hCaptcha.observeDarkMode();
+
+		// Assert
+		expect( hCaptcha.observingDarkMode ).toBe( true );
+		expect( global.MutationObserver ).not.toHaveBeenCalled();
+		expect( bindSpy ).not.toHaveBeenCalled();
+
+		// Cleanup
+		global.MutationObserver = MOBackup;
+	} );
+
+	test( 'observeDarkMode sets observer and triggers bindEvents on dark class change', () => {
+		// Arrange
+		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: 'auto' } );
+
+		const darkHost = document.createElement( 'div' );
+
+		darkHost.className = '';
+
+		const setDarkDataSpy = jest.spyOn( hCaptcha, 'setDarkData' ).mockImplementation( () => {
+			hCaptcha.darkElement = darkHost;
+			hCaptcha.darkClass = 'dark-on';
+		} );
+		const bindSpy = jest.spyOn( hCaptcha, 'bindEvents' );
+		const MOBackup = global.MutationObserver;
+		let instance;
+
+		global.MutationObserver = jest.fn( function( cb ) {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+			this.__cb = cb;
+			instance = this;
+		} );
+
+		// Act: start observing
+		hCaptcha.observeDarkMode();
+
+		// Assert: observer set on our element
+		expect( setDarkDataSpy ).toHaveBeenCalled();
+		expect( global.MutationObserver ).toHaveBeenCalledTimes( 1 );
+		expect( instance.observe ).toHaveBeenCalledWith( darkHost, expect.objectContaining( { attributes: true, attributeOldValue: true } ) );
+		expect( bindSpy ).not.toHaveBeenCalled();
+
+		// Simulate class change that includes darkClass
+		const oldVal = darkHost.getAttribute( 'class' );
+
+		darkHost.className = 'x dark-on';
+		instance.__cb( [ { oldValue: oldVal } ] );
+
+		expect( bindSpy ).toHaveBeenCalled();
+
+		// Cleanup
+		global.MutationObserver = MOBackup;
+	} );
+
+	test( 'observeDarkMode does not set observer when no dark provider found', () => {
+		// Arrange
+		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: 'auto' } );
+		jest.spyOn( hCaptcha, 'setDarkData' ).mockImplementation( () => {
+			hCaptcha.darkElement = null;
+			hCaptcha.darkClass = null;
+		} );
+
+		const bindSpy = jest.spyOn( hCaptcha, 'bindEvents' );
+		const MOBackup = global.MutationObserver;
+
+		global.MutationObserver = jest.fn( function() {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+		} );
+
+		// Act
+		hCaptcha.observeDarkMode();
+
+		// Assert
+		expect( global.MutationObserver ).not.toHaveBeenCalled();
+		expect( bindSpy ).not.toHaveBeenCalled();
+
+		// Cleanup
+		global.MutationObserver = MOBackup;
+	} );
 } );
