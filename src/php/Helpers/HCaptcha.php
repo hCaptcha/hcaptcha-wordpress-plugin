@@ -145,18 +145,7 @@ class HCaptcha {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
 
-		// Add a per-render honeypot with a unique field name and signature to detect fake sessions.
-		$hp_name = self::get_hp_name();
-		$hp_sig  = wp_create_nonce( $hp_name );
-
-		?>
-		<label for="<?php echo esc_attr( $hp_name ); ?>"></label>
-		<input
-				type="text" id="<?php echo esc_attr( $hp_name ); ?>" name="<?php echo esc_attr( $hp_name ); ?>" value=""
-				autocomplete="off" tabindex="-1" aria-hidden="true"
-				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
-		<input type="hidden" name="hcap_hp_sig" value="<?php echo esc_attr( $hp_sig ); ?>"/>
-		<?php
+		self::honeypot_display();
 	}
 
 	/**
@@ -197,6 +186,31 @@ class HCaptcha {
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
 		return $args;
+	}
+
+	/**
+	 * Display a honeypot for form submissions.
+	 *
+	 * This method injects a honeypot field with a dynamic name and a signature.
+	 *
+	 * @return void
+	 */
+	private static function honeypot_display(): void {
+		if ( ! hcaptcha()->settings()->is_on( 'honeypot' ) ) {
+			return;
+		}
+
+		$hp_name = self::get_hp_name();
+		$hp_sig  = wp_create_nonce( $hp_name );
+
+		?>
+		<label for="<?php echo esc_attr( $hp_name ); ?>"></label>
+		<input
+				type="text" id="<?php echo esc_attr( $hp_name ); ?>" name="<?php echo esc_attr( $hp_name ); ?>" value=""
+				autocomplete="off" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="<?php echo esc_attr( $hp_sig ); ?>"/>
+		<?php
 	}
 
 	/**

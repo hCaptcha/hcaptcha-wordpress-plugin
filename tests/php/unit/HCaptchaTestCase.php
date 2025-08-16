@@ -666,6 +666,16 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'content',
 				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
 			],
+			'honeypot'                 => [
+				'label'   => 'Honeypot field',
+				'type'    => 'checkbox',
+				'section' => 'antispam',
+				'default' => 'on',
+				'options' => [
+					'on' => 'Enable honeypot field',
+				],
+				'helper'  => 'Add a honeypot field to submitted forms for early bot prevention.',
+			],
 			'blacklisted_ips'          => [
 				'label'   => 'Denylisted IPs',
 				'type'    => 'textarea',

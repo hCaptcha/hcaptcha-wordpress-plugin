@@ -534,6 +534,16 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_CONTENT,
 				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'honeypot'             => [
+				'label'   => __( 'Honeypot field', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'checkbox',
+				'section' => self::SECTION_ANTISPAM,
+				'default' => 'on',
+				'options' => [
+					'on' => __( 'Enable honeypot field', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Add a honeypot field to submitted forms for early bot prevention.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'antispam'             => [
 				'label'   => __( 'Enable anti-spam check', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',

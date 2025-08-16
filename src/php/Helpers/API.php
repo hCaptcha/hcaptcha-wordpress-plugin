@@ -310,6 +310,10 @@ class API {
 	 * @return bool True if the honeypot field is valid and empty, false otherwise.
 	 */
 	private static function check_honeypot_field(): bool {
+		if ( ! hcaptcha()->settings()->is_on( 'honeypot' ) ) {
+			return true;
+		}
+
 		// Honeypot check: require valid signature and ensure the honeypot field is empty.
 		$hp_field_name = '';
 		$hp_value      = '';
