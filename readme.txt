@@ -9,7 +9,7 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
-Integrates with 50+ popular plugins.
+Integrates with 60+ popular plugins and themes.
 
 == Description ==
 
