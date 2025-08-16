@@ -141,6 +141,12 @@ class API {
 			return self::filtered_result( null, [] );
 		}
 
+		if ( ! self::check_honeypot_field() ) {
+			$result      = hcap_get_error_messages()['spam'];
+			$error_codes = [ 'spam' ];
+			return self::filtered_result( $result, $error_codes );
+		}
+
 		$hcaptcha_response_sanitized = htmlspecialchars(
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
 			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
@@ -294,5 +300,34 @@ class API {
 		self::$error_codes = $error_codes;
 
 		return $result;
+	}
+
+	/**
+	 * Validates the honeypot field for spam prevention.
+	 *
+	 * @return bool True if the honeypot field is valid and empty, false otherwise.
+	 */
+	private static function check_honeypot_field(): bool {
+		// Honeypot check: require valid signature and ensure the honeypot field is empty.
+		$hp_field_name = '';
+		$hp_value      = '';
+		$hp_sig        = isset( $_POST['hcap_hp_sig'] )
+			? filter_var( wp_unslash( $_POST['hcap_hp_sig'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: '';
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		foreach ( array_keys( $_POST ) as $key ) {
+			if ( 0 !== strpos( $key, 'hcap_hp_' ) ) {
+				continue;
+			}
+
+			$hp_field_name = $key;
+			$hp_value      = Request::filter_input( INPUT_POST, $hp_field_name );
+
+			break;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		return $hp_field_name && wp_verify_nonce( $hp_sig, $hp_field_name ) && '' === trim( $hp_value );
 	}
 }

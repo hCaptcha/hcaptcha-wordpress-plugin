@@ -91,7 +91,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Check if child is same or a descendant of parent.
+	 * Check if child is same or a descendant of the parent.
 	 *
 	 * @param {HTMLDivElement} parent Parent element.
 	 * @param {HTMLDivElement} child  Child element.
@@ -111,7 +111,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Set current form.
+	 * Set the current form.
 	 *
 	 * @param {CustomEvent} event Event.
 	 * @return {Object|undefined} Currently processing form.
@@ -227,7 +227,7 @@ class HCaptcha {
 	setDarkData() {
 		let darkData = {
 			'twenty-twenty-one': {
-				// Twenty Twenty-One theme.
+				// The Twenty Twenty-One theme.
 				darkStyleId: 'twenty-twenty-one-style-css',
 				darkElement: document.body,
 				darkClass: 'is-dark-theme',
@@ -259,7 +259,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Observe dark mode changes and apply auto theme.
+	 * Observe dark mode changes and apply the auto theme.
 	 */
 	observeDarkMode() {
 		if ( this.observingDarkMode ) {
@@ -294,7 +294,7 @@ class HCaptcha {
 
 		this.setDarkData();
 
-		// Add observer if there is a known dark mode provider.
+		// Add an observer if there is a known dark mode provider.
 		if ( this.darkElement && this.darkClass ) {
 			const config = {
 				attributes: true,
@@ -463,7 +463,7 @@ class HCaptcha {
 
 		let globalParams = this.getParams();
 
-		// Do not overwrite custom theme.
+		// Do not overwrite a custom theme.
 		if ( typeof globalParams.theme === 'object' ) {
 			// noinspection JSUnresolvedReference
 			const bg = globalParams?.theme?.component?.checkbox?.main?.fill ?? '';
@@ -482,7 +482,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Add event listener that syncs with DOMContentLoaded event.
+	 * Add an event listener that syncs with the DOMContentLoaded event.
 	 *
 	 * @param {Function} callback
 	 */

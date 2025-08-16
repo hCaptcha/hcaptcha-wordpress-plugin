@@ -144,6 +144,55 @@ class HCaptcha {
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
+
+		// Add a per-render honeypot with a unique field name and signature to detect fake sessions.
+		$hp_name = 'hcap_hp_' . wp_generate_password( 12, false );
+		$hp_sig  = wp_create_nonce( $hp_name );
+
+		?>
+		<label for="<?php echo esc_attr( $hp_name ); ?>"></label>
+		<input
+				type="text" id="<?php echo esc_attr( $hp_name ); ?>" name="<?php echo esc_attr( $hp_name ); ?>" value=""
+				autocomplete="off" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="<?php echo esc_attr( $hp_sig ); ?>"/>
+		<script>
+			( function () {
+				const currentScript = document.currentScript;
+				let form = ( currentScript && currentScript.closest ) ? currentScript.closest( 'form' ) : null;
+
+				if ( ! form ) {
+					return;
+				}
+
+				const hpInput = form.querySelector( 'input[name="<?php echo esc_js( $hp_name ); ?>"]' );
+
+				if ( ! hpInput ) {
+					return;
+				}
+
+				const inputs = Array.prototype.filter.call(
+					form.querySelectorAll( 'input,select,textarea,button' ),
+					function ( el ) {
+						const type = ( el.getAttribute( 'type' ) || '' ).toLowerCase();
+
+						return type !== 'hidden';
+					}
+				);
+
+				if ( inputs.length < 2 ) {
+					return;
+				}
+
+				const idx = Math.floor( Math.random() * inputs.length );
+				const ref = inputs[ idx ];
+
+				if ( ref && ref.parentNode ) {
+					ref.parentNode.insertBefore( hpInput, ref );
+				}
+			} )();
+		</script>
+		<?php
 	}
 
 	/**
@@ -361,7 +410,7 @@ class HCaptcha {
 	/**
 	 * Whether form protection is enabled/disabled via hCaptcha widget id.
 	 *
-	 * Return false(protection disabled) in only one case:
+	 * Return false (protection disabled) in only one case:
 	 * when $_POST['hcaptcha-widget-id'] contains encoded id with proper hash,
 	 * and hcap_protect_form filter confirms that the form referenced in widget id is not protected.
 	 *
@@ -1007,6 +1056,7 @@ class HCaptcha {
 	 * @param string $tag Script tag.
 	 *
 	 * @return string
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public static function add_type_module( string $tag ): string {
 		$search  = [
