@@ -319,7 +319,7 @@ class API {
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		foreach ( array_keys( $_POST ) as $key ) {
-			if ( 0 !== strpos( $key, 'hcap_hp_' ) ) {
+			if ( 'hcap_hp_sig' === $key || 0 !== strpos( $key, 'hcap_hp_' ) ) {
 				continue;
 			}
 
