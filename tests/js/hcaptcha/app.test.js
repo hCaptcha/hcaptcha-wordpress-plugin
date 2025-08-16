@@ -53,13 +53,15 @@ describe( 'app.js', () => {
 	test( 'hCaptchaOnLoad callback should dispatch events and bind', () => {
 		// Initialize and capture the callback passed to addSyncedEventListener
 		window.hCaptchaOnLoad();
-		const cb = hCaptcha.addSyncedEventListener.mock.calls[ 0 ][ 0 ];
 
+		const cb = hCaptcha.addSyncedEventListener.mock.calls[ 0 ][ 0 ];
 		let beforeCalled = false;
 		let loadedCalled = false;
+
 		document.addEventListener( 'hCaptchaBeforeBindEvents', () => {
 			beforeCalled = true;
 		} );
+
 		document.addEventListener( 'hCaptchaLoaded', () => {
 			loadedCalled = true;
 		} );
