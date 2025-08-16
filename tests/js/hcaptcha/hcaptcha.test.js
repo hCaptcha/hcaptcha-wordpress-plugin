@@ -761,4 +761,201 @@ describe( 'HCaptcha', () => {
 		// Cleanup
 		global.MutationObserver = MOBackup;
 	} );
+
+	// observePasswordManagers tests
+	test( 'observePasswordManagers does nothing if already observing', () => {
+		// Arrange
+		hCaptcha.observingPasswordManagers = true;
+		const MOBackup = global.MutationObserver;
+		global.MutationObserver = jest.fn( function() {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+		} );
+
+		// Act
+		hCaptcha.observePasswordManagers();
+
+		// Assert
+		expect( global.MutationObserver ).not.toHaveBeenCalled();
+
+		// Cleanup
+		global.MutationObserver = MOBackup;
+	} );
+
+	test( 'observePasswordManagers sets observer on document.body and reacts to 1Password', () => {
+		// Arrange
+		const MOBackup = global.MutationObserver;
+		const rafBackup = global.requestAnimationFrame;
+		global.requestAnimationFrame = ( cb ) => cb();
+		let instance;
+		global.MutationObserver = jest.fn( function( cb ) {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+			this.__cb = cb;
+			instance = this;
+		} );
+
+		// Build DOM form with visible widget and submit button
+		const form = document.createElement( 'form' );
+		const widget = document.createElement( 'div' );
+		widget.className = 'h-captcha';
+		widget.dataset.size = 'normal';
+		const submit = document.createElement( 'button' );
+		submit.setAttribute( 'type', 'submit' );
+		form.appendChild( widget );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		const hCaptchaId = 'pm-1';
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, submitButtonElement: submit, widgetId: 'w1' } );
+
+		const aelSpy = jest.spyOn( submit, 'addEventListener' );
+
+		// Act: start observing
+		hCaptcha.observePasswordManagers();
+
+		// Assert observer was set
+		expect( global.MutationObserver ).toHaveBeenCalledTimes( 1 );
+		expect( instance.observe ).toHaveBeenCalledWith( document.body, expect.objectContaining( { childList: true, subtree: true } ) );
+
+		// Add 1Password element and trigger mutation
+		const onePass = document.createElement( 'com-1password-button' );
+		document.body.appendChild( onePass );
+		instance.__cb( [ { type: 'childList' } ] );
+
+		// After rAF, it should disconnect, set force, and add click listener
+		expect( instance.disconnect ).toHaveBeenCalled();
+		expect( widget.dataset.force ).toBe( 'true' );
+		expect( aelSpy ).toHaveBeenCalledWith( 'click', hCaptcha.validate, true );
+
+		// Cleanup
+		document.body.removeChild( onePass );
+		document.body.removeChild( form );
+		global.MutationObserver = MOBackup;
+		global.requestAnimationFrame = rafBackup;
+	} );
+
+	test( 'observePasswordManagers does nothing when no password manager element present', () => {
+		// Arrange
+		const MOBackup = global.MutationObserver;
+		const rafBackup = global.requestAnimationFrame;
+		global.requestAnimationFrame = ( cb ) => cb();
+		let instance;
+		global.MutationObserver = jest.fn( function( cb ) {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+			this.__cb = cb;
+			instance = this;
+		} );
+
+		// Build DOM with form and widget
+		const form = document.createElement( 'form' );
+		const widget = document.createElement( 'div' );
+		widget.className = 'h-captcha';
+		widget.dataset.size = 'normal';
+		const submit = document.createElement( 'button' );
+		submit.setAttribute( 'type', 'submit' );
+		form.appendChild( widget );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		const hCaptchaId = 'pm-2';
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, submitButtonElement: submit, widgetId: 'w2' } );
+
+		const aelSpy = jest.spyOn( submit, 'addEventListener' );
+
+		// Act
+		hCaptcha.observePasswordManagers();
+		instance.__cb( [ { type: 'childList' } ] ); // no PM elements in DOM
+
+		// Assert: no disconnect and no changes
+		expect( instance.disconnect ).not.toHaveBeenCalled();
+		expect( widget.dataset.force ).toBeUndefined();
+		expect( aelSpy ).not.toHaveBeenCalled();
+
+		// Cleanup
+		document.body.removeChild( form );
+		global.MutationObserver = MOBackup;
+		global.requestAnimationFrame = rafBackup;
+	} );
+
+	test( 'observePasswordManagers skips invisible/forced widgets and forms without submit button', () => {
+		// Arrange
+		const MOBackup = global.MutationObserver;
+		const rafBackup = global.requestAnimationFrame;
+		global.requestAnimationFrame = ( cb ) => cb();
+		let instance;
+		global.MutationObserver = jest.fn( function( cb ) {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+			this.__cb = cb;
+			instance = this;
+		} );
+
+		// Form A: invisible widget -> skip
+		const formA = document.createElement( 'form' );
+		const widgetA = document.createElement( 'div' );
+		widgetA.className = 'h-captcha';
+		widgetA.dataset.size = 'invisible';
+		const submitA = document.createElement( 'button' );
+		submitA.setAttribute( 'type', 'submit' );
+		formA.appendChild( widgetA );
+		formA.appendChild( submitA );
+		document.body.appendChild( formA );
+		const idA = 'pm-a';
+		formA.dataset.hCaptchaId = idA;
+		hCaptcha.foundForms.push( { hCaptchaId: idA, submitButtonElement: submitA, widgetId: 'wa' } );
+		const aelASpy = jest.spyOn( submitA, 'addEventListener' );
+
+		// Form B: already forced -> skip
+		const formB = document.createElement( 'form' );
+		const widgetB = document.createElement( 'div' );
+		widgetB.className = 'h-captcha';
+		widgetB.dataset.size = 'normal';
+		widgetB.dataset.force = 'true';
+		const submitB = document.createElement( 'button' );
+		submitB.setAttribute( 'type', 'submit' );
+		formB.appendChild( widgetB );
+		formB.appendChild( submitB );
+		document.body.appendChild( formB );
+		const idB = 'pm-b';
+		formB.dataset.hCaptchaId = idB;
+		hCaptcha.foundForms.push( { hCaptchaId: idB, submitButtonElement: submitB, widgetId: 'wb' } );
+		const aelBSpy = jest.spyOn( submitB, 'addEventListener' );
+
+		// Form C: no submit button -> skip
+		const formC = document.createElement( 'form' );
+		const widgetC = document.createElement( 'div' );
+		widgetC.className = 'h-captcha';
+		widgetC.dataset.size = 'normal';
+		formC.appendChild( widgetC );
+		document.body.appendChild( formC );
+		const idC = 'pm-c';
+		formC.dataset.hCaptchaId = idC;
+		hCaptcha.foundForms.push( { hCaptchaId: idC, submitButtonElement: null, widgetId: 'wc' } );
+
+		// Start observing and then add LastPass element
+		hCaptcha.observePasswordManagers();
+		const lastPass = document.createElement( 'div' );
+		lastPass.setAttribute( 'data-lastpass-icon-root', '' );
+		document.body.appendChild( lastPass );
+		instance.__cb( [ { type: 'childList' } ] );
+
+		// Assert all skipped
+		expect( widgetA.dataset.force ).toBeUndefined();
+		expect( aelASpy ).not.toHaveBeenCalled();
+		expect( widgetB.dataset.force ).toBe( 'true' ); // remained true, no new listener
+		expect( aelBSpy ).not.toHaveBeenCalled();
+		// form C has no submit button; nothing to assert beyond no throw
+
+		// Cleanup
+		document.body.removeChild( lastPass );
+		document.body.removeChild( formA );
+		document.body.removeChild( formB );
+		document.body.removeChild( formC );
+		global.MutationObserver = MOBackup;
+		global.requestAnimationFrame = rafBackup;
+	} );
 } );
