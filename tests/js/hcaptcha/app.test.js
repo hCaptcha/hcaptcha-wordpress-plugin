@@ -45,8 +45,30 @@ describe( 'app.js', () => {
 		expect( hCaptcha.submit ).toHaveBeenCalled();
 	} );
 
-	test( 'hCaptchaOnLoad should call bindEvents', () => {
+	test( 'hCaptchaOnLoad should register synced event listener', () => {
 		window.hCaptchaOnLoad();
-		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalled();
+		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalledWith( expect.any( Function ) );
+	} );
+
+	test( 'hCaptchaOnLoad callback should dispatch events and bind', () => {
+		// Initialize and capture the callback passed to addSyncedEventListener
+		window.hCaptchaOnLoad();
+		const cb = hCaptcha.addSyncedEventListener.mock.calls[ 0 ][ 0 ];
+
+		let beforeCalled = false;
+		let loadedCalled = false;
+		document.addEventListener( 'hCaptchaBeforeBindEvents', () => {
+			beforeCalled = true;
+		} );
+		document.addEventListener( 'hCaptchaLoaded', () => {
+			loadedCalled = true;
+		} );
+
+		// Execute the stored callback (simulates synced onload)
+		cb();
+
+		expect( beforeCalled ).toBe( true );
+		expect( hCaptcha.bindEvents ).toHaveBeenCalled();
+		expect( loadedCalled ).toBe( true );
 	} );
 } );
