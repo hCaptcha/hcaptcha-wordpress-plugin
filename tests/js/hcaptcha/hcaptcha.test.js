@@ -139,4 +139,500 @@ describe( 'HCaptcha', () => {
 		document.body.removeChild( form2 );
 		document.body.removeChild( form3 );
 	} );
+
+	test( 'getWidgetId returns widget id for element inside form with matching data attribute', () => {
+		const form = document.createElement( 'form' );
+		const child = document.createElement( 'div' );
+
+		form.appendChild( child );
+		document.body.appendChild( form );
+
+		// Ensure the selector is set for closest()
+		hCaptcha.formSelector = 'form';
+
+		const hCaptchaId = 'abc-123';
+		const widgetId = 'wid-123';
+		form.dataset.hCaptchaId = hCaptchaId;
+
+		// Found forms should contain an entry mapping id -> widgetId
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: null } );
+
+		expect( hCaptcha.getWidgetId( child ) ).toBe( widgetId );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'getWidgetId returns empty string when element is undefined', () => {
+		expect( hCaptcha.getWidgetId( undefined ) ).toBe( '' );
+	} );
+
+	test( 'getWidgetId returns empty string when form has no data-h-captcha-id', () => {
+		const form = document.createElement( 'form' );
+		const child = document.createElement( 'div' );
+
+		form.appendChild( child );
+		document.body.appendChild( form );
+
+		hCaptcha.formSelector = 'form';
+
+		expect( hCaptcha.getWidgetId( child ) ).toBe( '' );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'getWidgetId returns empty string when no matching found form exists', () => {
+		const form = document.createElement( 'form' );
+		const child = document.createElement( 'div' );
+
+		form.appendChild( child );
+		document.body.appendChild( form );
+
+		hCaptcha.formSelector = 'form';
+		form.dataset.hCaptchaId = 'non-existent-id';
+
+		expect( hCaptcha.getWidgetId( child ) ).toBe( '' );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'reset does nothing when no widgetId can be resolved', () => {
+		// Ensure hcaptcha API mock exists
+		global.hcaptcha = {
+			reset: jest.fn(),
+		};
+
+		// Case: undefined element
+		hCaptcha.reset( undefined );
+
+		// Should not call the API when widgetId is empty
+		expect( global.hcaptcha.reset ).not.toHaveBeenCalled();
+	} );
+
+	test( 'reset calls hcaptcha.reset with resolved widgetId', () => {
+		// Prepare DOM with a form and a child element
+		const form = document.createElement( 'form' );
+		const child = document.createElement( 'div' );
+
+		form.appendChild( child );
+		document.body.appendChild( form );
+
+		// Ensure the selector is set for closest()
+		hCaptcha.formSelector = 'form';
+
+		// Map form hCaptchaId -> widgetId in foundForms
+		const hCaptchaId = 'id-1234';
+		const widgetId = 'widget-5678';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: null } );
+
+		// Mock hcaptcha API
+		global.hcaptcha = {
+			reset: jest.fn(),
+		};
+
+		// Invoke reset
+		hCaptcha.reset( child );
+
+		// Expect API called with the correct widget id
+		expect( global.hcaptcha.reset ).toHaveBeenCalledWith( widgetId );
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'getCurrentForm returns form context and prevents default when clicking submit button', () => {
+		// Build DOM: form with submit button
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		// Ensure selector is set for closest()
+		hCaptcha.formSelector = 'form';
+
+		// Map form hCaptchaId -> widgetId in foundForms
+		const hCaptchaId = 'form-1';
+		const widgetId = 'widget-1';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: submit } );
+
+		// Mock event as it would be on the submit button (listener attached to button)
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = {
+			currentTarget: submit,
+			target: submit,
+			preventDefault,
+			stopPropagation,
+		};
+
+		const result = hCaptcha.getCurrentForm( event );
+
+		expect( result ).toBeDefined();
+		expect( result.formElement ).toBe( form );
+		expect( result.submitButtonElement ).toBe( submit );
+		expect( result.widgetId ).toBe( widgetId );
+		expect( preventDefault ).toHaveBeenCalled();
+		expect( stopPropagation ).toHaveBeenCalled();
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'getCurrentForm returns undefined when event target is not submit button or its descendant', () => {
+		// Build DOM
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+		const other = document.createElement( 'div' );
+
+		submit.setAttribute( 'type', 'submit' );
+
+		form.appendChild( submit );
+
+		document.body.appendChild( form );
+		document.body.appendChild( other );
+
+		// Setup
+		hCaptcha.formSelector = 'form';
+
+		const hCaptchaId = 'form-2';
+		const widgetId = 'widget-2';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: submit } );
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = {
+			currentTarget: submit,
+			target: other, // Not a descendant of the 'submit' button
+			preventDefault,
+			stopPropagation,
+		};
+
+		const result = hCaptcha.getCurrentForm( event );
+
+		expect( result ).toBeUndefined();
+		expect( preventDefault ).not.toHaveBeenCalled();
+		expect( stopPropagation ).not.toHaveBeenCalled();
+
+		// Cleanup
+		document.body.removeChild( form );
+		document.body.removeChild( other );
+	} );
+
+	test( 'getCurrentForm returns undefined when widgetId is missing', () => {
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		hCaptcha.formSelector = 'form';
+		const hCaptchaId = 'form-3';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+
+		// Push found form without widgetId
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId: '', submitButtonElement: submit } );
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = {
+			currentTarget: submit,
+			target: submit,
+			preventDefault,
+			stopPropagation,
+		};
+
+		const result = hCaptcha.getCurrentForm( event );
+
+		expect( result ).toBeUndefined();
+		expect( preventDefault ).not.toHaveBeenCalled();
+		expect( stopPropagation ).not.toHaveBeenCalled();
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'validate executes hcaptcha when token is empty', () => {
+		// Build DOM: form with submit button, h-captcha widget and empty response
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+
+		const widget = document.createElement( 'div' );
+
+		widget.className = 'h-captcha';
+
+		const response = document.createElement( 'textarea' );
+
+		response.setAttribute( 'name', 'h-captcha-response' );
+		response.value = ''; // empty token
+
+		form.appendChild( widget );
+		form.appendChild( response );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		// Setup selectors and found form mapping
+		hCaptcha.formSelector = 'form';
+		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
+
+		const hCaptchaId = 'validate-1';
+		const widgetId = 'wid-1';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: submit } );
+
+		// Mock hcaptcha API
+		global.hcaptcha = { execute: jest.fn() };
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = { currentTarget: submit, target: submit, preventDefault, stopPropagation };
+
+		// Call validate
+		hCaptcha.validate( event );
+
+		// Should execute invisible widget
+		expect( global.hcaptcha.execute ).toHaveBeenCalledWith( widgetId, { async: false } );
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'validate calls callback with token and does not execute when token is present', () => {
+		// Build DOM
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+
+		const widget = document.createElement( 'div' );
+
+		widget.className = 'h-captcha';
+
+		const response = document.createElement( 'textarea' );
+
+		response.setAttribute( 'name', 'h-captcha-response' );
+		response.value = 'tok-123'; // token present
+
+		form.appendChild( widget );
+		form.appendChild( response );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		hCaptcha.formSelector = 'form';
+		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
+
+		const hCaptchaId = 'validate-2';
+		const widgetId = 'wid-2';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: submit } );
+
+		// Mocks
+		global.hcaptcha = { execute: jest.fn() };
+
+		const callbackSpy = jest.spyOn( hCaptcha, 'callback' );
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = { currentTarget: submit, target: submit, preventDefault, stopPropagation };
+
+		hCaptcha.validate( event );
+
+		expect( callbackSpy ).toHaveBeenCalledWith( 'tok-123' );
+		expect( global.hcaptcha.execute ).not.toHaveBeenCalled();
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'validate does nothing when getCurrentForm returns undefined', () => {
+		// Build DOM with a form but no matching foundForms entry
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+
+		const response = document.createElement( 'textarea' );
+
+		response.setAttribute( 'name', 'h-captcha-response' );
+		response.value = ''; // empty
+
+		form.appendChild( response );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		hCaptcha.formSelector = 'form';
+		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
+		form.dataset.hCaptchaId = 'no-found-form';
+
+		global.hcaptcha = { execute: jest.fn() };
+
+		const callbackSpy = jest.spyOn( hCaptcha, 'callback' );
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = { currentTarget: submit, target: submit, preventDefault, stopPropagation };
+
+		// With no foundForms mapping, getCurrentForm returns undefined and validate early-returns
+		hCaptcha.validate( event );
+
+		expect( global.hcaptcha.execute ).not.toHaveBeenCalled();
+		expect( callbackSpy ).not.toHaveBeenCalled();
+		expect( preventDefault ).not.toHaveBeenCalled();
+		expect( stopPropagation ).not.toHaveBeenCalled();
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	// Tests for isValidated()
+	test( 'isValidated returns false initially', () => {
+		expect( hCaptcha.isValidated() ).toBe( false );
+	} );
+
+	test( 'isValidated returns true after validate sets currentForm', () => {
+		// Build DOM: form with submit button and h-captcha widget
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+
+		const widget = document.createElement( 'div' );
+
+		widget.className = 'h-captcha';
+
+		const response = document.createElement( 'textarea' );
+
+		response.setAttribute( 'name', 'h-captcha-response' );
+		response.value = ''; // empty token to follow execute path
+
+		form.appendChild( widget );
+		form.appendChild( response );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		// Setup selectors and found form mapping
+		hCaptcha.formSelector = 'form';
+		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
+
+		const hCaptchaId = 'isvalidated-1';
+		const widgetId = 'wid-x';
+
+		form.dataset.hCaptchaId = hCaptchaId;
+		hCaptcha.foundForms.push( { hCaptchaId, widgetId, submitButtonElement: submit } );
+
+		// Mock hcaptcha API so execute exists
+		global.hcaptcha = { execute: jest.fn() };
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = { currentTarget: submit, target: submit, preventDefault, stopPropagation };
+
+		// Perform validate to set currentForm
+		hCaptcha.validate( event );
+
+		expect( hCaptcha.isValidated() ).toBe( true );
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'isValidated remains false when getCurrentForm returns undefined', () => {
+		const form = document.createElement( 'form' );
+		const submit = document.createElement( 'button' );
+
+		submit.setAttribute( 'type', 'submit' );
+		form.appendChild( submit );
+		document.body.appendChild( form );
+
+		hCaptcha.formSelector = 'form';
+		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
+		form.dataset.hCaptchaId = 'no-map-isvalidated';
+
+		// No foundForms mapping – getCurrentForm will return undefined
+		global.hcaptcha = { execute: jest.fn() };
+
+		const preventDefault = jest.fn();
+		const stopPropagation = jest.fn();
+		const event = { currentTarget: submit, target: submit, preventDefault, stopPropagation };
+
+		hCaptcha.validate( event );
+
+		expect( hCaptcha.isValidated() ).toBe( false );
+
+		// Cleanup
+		document.body.removeChild( form );
+	} );
+
+	test( 'setDarkData sets darkElement and darkClass when known style is present', () => {
+		// Ensure applyFilters returns the provided map as-is
+		wp.hooks.applyFilters.mockImplementationOnce( ( hook, content ) => content );
+
+		// Add a style element that matches Twenty Twenty-One
+		const style = document.createElement( 'style' );
+
+		style.id = 'twenty-twenty-one-style-css';
+		document.body.appendChild( style );
+
+		// Preconditions
+		expect( hCaptcha.darkElement ).toBeNull();
+		expect( hCaptcha.darkClass ).toBeNull();
+
+		hCaptcha.setDarkData();
+
+		expect( hCaptcha.darkElement ).toBe( document.body );
+		expect( hCaptcha.darkClass ).toBe( 'is-dark-theme' );
+
+		// Cleanup
+		document.body.removeChild( style );
+	} );
+
+	test( 'setDarkData uses filtered darkData including custom provider', () => {
+		// Create a custom style that our filter will reference
+		const customStyle = document.createElement( 'style' );
+
+		customStyle.id = 'custom-style';
+		document.body.appendChild( customStyle );
+
+		// Filter adds a custom provider entry
+		wp.hooks.applyFilters.mockImplementationOnce( ( hook, content ) => {
+			return {
+				...content,
+				custom: {
+					darkStyleId: 'custom-style',
+					darkElement: document.documentElement,
+					darkClass: 'my-dark',
+				},
+			};
+		} );
+
+		hCaptcha.setDarkData();
+
+		expect( hCaptcha.darkElement ).toBe( document.documentElement );
+		expect( hCaptcha.darkClass ).toBe( 'my-dark' );
+
+		// Cleanup
+		document.body.removeChild( customStyle );
+	} );
+
+	test( 'setDarkData leaves darkElement/darkClass unset when no styles found', () => {
+		// Ensure no matching style elements are present; applyFilters passthrough
+		wp.hooks.applyFilters.mockImplementationOnce( ( hook, content ) => content );
+
+		hCaptcha.setDarkData();
+
+		expect( hCaptcha.darkElement ).toBeNull();
+		expect( hCaptcha.darkClass ).toBeNull();
+	} );
 } );
