@@ -156,42 +156,6 @@ class HCaptcha {
 				autocomplete="off" tabindex="-1" aria-hidden="true"
 				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
 		<input type="hidden" name="hcap_hp_sig" value="<?php echo esc_attr( $hp_sig ); ?>"/>
-		<script>
-			( function () {
-				const currentScript = document.currentScript;
-				let form = ( currentScript && currentScript.closest ) ? currentScript.closest( 'form' ) : null;
-
-				if ( ! form ) {
-					return;
-				}
-
-				const hpInput = form.querySelector( 'input[name="<?php echo esc_js( $hp_name ); ?>"]' );
-
-				if ( ! hpInput ) {
-					return;
-				}
-
-				const inputs = Array.prototype.filter.call(
-					form.querySelectorAll( 'input,select,textarea,button' ),
-					function ( el ) {
-						const type = ( el.getAttribute( 'type' ) || '' ).toLowerCase();
-
-						return type !== 'hidden';
-					}
-				);
-
-				if ( inputs.length < 2 ) {
-					return;
-				}
-
-				const idx = Math.floor( Math.random() * inputs.length );
-				const ref = inputs[ idx ];
-
-				if ( ref && ref.parentNode ) {
-					ref.parentNode.insertBefore( hpInput, ref );
-				}
-			} )();
-		</script>
 		<?php
 	}
 

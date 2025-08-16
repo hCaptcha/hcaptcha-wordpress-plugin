@@ -141,9 +141,11 @@ class API {
 			return self::filtered_result( null, [] );
 		}
 
+		// Check the honeypot field.
 		if ( ! self::check_honeypot_field() ) {
 			$result      = hcap_get_error_messages()['spam'];
 			$error_codes = [ 'spam' ];
+
 			return self::filtered_result( $result, $error_codes );
 		}
 

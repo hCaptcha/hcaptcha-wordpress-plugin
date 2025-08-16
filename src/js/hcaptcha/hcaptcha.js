@@ -502,6 +502,41 @@ class HCaptcha {
 	}
 
 	/**
+	 * Move honeypot input to a random position among visible inputs in the form.
+	 *
+	 * @param {HTMLElement} formElement Form element.
+	 */
+	moveHP( formElement ) {
+		const hpInputs = formElement.querySelectorAll( 'input[name^="hcap_hp_"]' );
+
+		if ( ! hpInputs.length ) {
+			return;
+		}
+
+		const inputs = Array.prototype.filter.call(
+			formElement.querySelectorAll( 'input,select,textarea,button' ),
+			function( el ) {
+				const type = ( el.getAttribute( 'type' ) || '' ).toLowerCase();
+
+				return type !== 'hidden';
+			}
+		);
+
+		if ( ! inputs.length ) {
+			return;
+		}
+
+		// Choose a random reference position.
+		const idx = Math.floor( Math.random() * inputs.length );
+		const ref = inputs[ idx ];
+		const hpInput = hpInputs[ 0 ];
+
+		if ( ref && ref.parentNode ) {
+			ref.parentNode.insertBefore( hpInput, ref );
+		}
+	}
+
+	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
@@ -536,6 +571,8 @@ class HCaptcha {
 			if ( hcaptchaElement.classList.contains( 'hcaptcha-widget-id' ) ) {
 				return formElement;
 			}
+
+			this.moveHP( formElement );
 
 			// Render or re-render.
 			hcaptchaElement.innerHTML = '';
