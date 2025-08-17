@@ -1637,6 +1637,142 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test plugin_names_from_trees() basically flatten and de-duplication.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_plugin_names_from_trees_basic(): void {
+		$plugin_a = 'plugin-a/plugin-a.php';
+		$plugin_b = 'woocommerce/woocommerce.php';
+		$plugin_c = 'plugin-c/plugin-c.php';
+
+		$node_a = [
+			'plugin'   => $plugin_a,
+			'children' => [
+				[
+					'plugin'   => $plugin_b,
+					'children' => [],
+					'result'   => null,
+				],
+			],
+			'result'   => null,
+		];
+
+		$node_c = [
+			'plugin'   => $plugin_c,
+			'children' => [
+				[
+					'plugin'   => $plugin_b,
+					'children' => [],
+					'result'   => null,
+				],
+			],
+			'result'   => null,
+		];
+
+		$main          = Mockery::mock( Main::class )->makePartial();
+		$main->modules = [
+			'WooCommerce' => [
+				[ 'woocommerce_status', 'register' ],
+				$plugin_b,
+				'wc_register_class',
+			],
+		];
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->init_form_fields();
+
+		// Provide names for A and C via plugin headers.
+		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
+			static function ( $plugin ) use ( $plugin_a, $plugin_c ) {
+				if ( $plugin === $plugin_a ) {
+					return [ 'Name' => 'Plugin A' ];
+				}
+
+				if ( $plugin === $plugin_c ) {
+					return [ 'Name' => 'Plugin C' ];
+				}
+
+				return [];
+			}
+		);
+
+		$this->set_protected_property( $subject, 'plugin_trees', [ $node_a, $node_c ] );
+
+		$expected = [ 'Plugin A', 'WooCommerce', 'Plugin C' ];
+		$method   = 'plugin_names_from_trees';
+
+		self::assertSame( $expected, $subject->$method() );
+	}
+
+	/**
+	 * Test plugin_names_from_trees() when one root has a result (error), so its own name is omitted.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_plugin_names_from_trees_with_result_on_root(): void {
+		$plugin_a = 'plugin-a/plugin-a.php';
+		$plugin_b = 'woocommerce/woocommerce.php';
+		$plugin_c = 'plugin-c/plugin-c.php';
+
+		$error = Mockery::mock( 'overload:WP_Error' );
+
+		$node_a = [
+			'plugin'   => $plugin_a,
+			'children' => [
+				[
+					'plugin'   => $plugin_b,
+					'children' => [],
+					'result'   => null,
+				],
+			],
+			'result'   => $error, // Root result means omit its own name.
+		];
+
+		$node_c = [
+			'plugin'   => $plugin_c,
+			'children' => [],
+			'result'   => null,
+		];
+
+		$main          = Mockery::mock( Main::class )->makePartial();
+		$main->modules = [
+			'WooCommerce' => [
+				[ 'woocommerce_status', 'register' ],
+				$plugin_b,
+				'wc_register_class',
+			],
+		];
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->init_form_fields();
+
+		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
+			static function ( $plugin ) use ( $plugin_a, $plugin_c ) {
+				if ( $plugin === $plugin_a ) {
+					return [ 'Name' => 'Plugin A' ];
+				}
+				if ( $plugin === $plugin_c ) {
+					return [ 'Name' => 'Plugin C' ];
+				}
+
+				return [];
+			}
+		);
+
+		$this->set_protected_property( $subject, 'plugin_trees', [ $node_a, $node_c ] );
+
+		$expected = [ 'WooCommerce', 'Plugin C' ];
+		$method   = 'plugin_names_from_trees';
+
+		self::assertSame( $expected, $subject->$method() );
+	}
+
+	/**
 	 * Test plugin_names_from_tree().
 	 *
 	 * @return void
@@ -1889,7 +2025,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function est_install_theme_when_api_error(): void {
+	public function test_install_theme_when_api_error(): void {
 		$theme = 'example-theme';
 
 		$wp_error = Mockery::mock( 'overload:WP_Error' );
