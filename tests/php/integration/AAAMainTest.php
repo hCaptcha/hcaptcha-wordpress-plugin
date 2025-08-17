@@ -1109,6 +1109,42 @@ CSS;
 	}
 
 	/**
+	 * Test denylist_ip().
+	 *
+	 * @param mixed        $denylisted_ips Settings.
+	 * @param string|false $client_ip      Client IP.
+	 * @param bool         $expected       Expected result.
+	 *
+	 * @dataProvider dp_test_denylist_ip
+	 * @return void
+	 */
+	public function test_denylist_ip( $denylisted_ips, $client_ip, bool $expected ): void {
+		update_option( 'hcaptcha_settings', [ 'blacklisted_ips' => $denylisted_ips ] );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->denylist_ip( false, $client_ip ) );
+	}
+
+	/**
+	 * Data provider for test_denylist_ip().
+	 *
+	 * @return array
+	 */
+	public function dp_test_denylist_ip(): array {
+		return [
+			'no settings, local ip'       => [ '', false, false ],
+			'some ips, local ip'          => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", false, false ],
+			'some ips, not matching ip'   => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.2', false ],
+			'some ips, matching ip'       => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.1', true ],
+			'some ips, matching wrong ip' => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '4444444.777.2', false ],
+			'with local, local ip'        => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n127.0.0.1\r\n", '127.0.0.1', true ],
+		];
+	}
+
+	/**
 	 * Test allowlist_ip().
 	 *
 	 * @param mixed        $allowlisted_ips Settings.
