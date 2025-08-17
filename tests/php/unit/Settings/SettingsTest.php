@@ -34,7 +34,6 @@ use WP_Mock;
  * @group settings-main
  */
 class SettingsTest extends HCaptchaTestCase {
-
 	/**
 	 * Test constructor.
 	 *
@@ -157,6 +156,15 @@ class SettingsTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'tabs', $tabs );
 
 		self::assertSame( $general_tab_name, $subject->get_active_tab_name() );
+	}
+
+	/**
+	 * Test get_plugin_name().
+	 */
+	public function test_get_plugin_name(): void {
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		self::assertSame( 'hCaptcha for WP', $subject->get_plugin_name() );
 	}
 
 	/**

@@ -15,7 +15,7 @@ use KAGG\Settings\Abstracts\SettingsInterface;
 /**
  * Class Settings
  *
- * The central point to get settings from.
+ * The central point is to get settings from.
  */
 class Settings implements SettingsInterface {
 
@@ -114,7 +114,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get active tab name.
+	 * Get an active tab name.
 	 *
 	 * @return string
 	 */
@@ -125,7 +125,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get plugin name.
+	 * Get the plugin name.
 	 *
 	 * @return string
 	 */
@@ -234,7 +234,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Check whether option value equals to the compared one.
+	 * Check whether the option value equals to the compared one.
 	 *
 	 * @param string $key     Setting name.
 	 * @param string $compare Compared value.
@@ -252,7 +252,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Check whether option value is 'on' or just non-empty.
+	 * Check whether the option value is 'on' or just non-empty.
 	 *
 	 * @param string $key Setting name.
 	 *
@@ -317,7 +317,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get secret key.
+	 * Get a secret key.
 	 *
 	 * @return string
 	 */
@@ -332,7 +332,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get theme.
+	 * Get a theme.
 	 *
 	 * @return string
 	 */
