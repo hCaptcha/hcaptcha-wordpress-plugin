@@ -139,7 +139,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify(): void {
-		$commentdata = [
+		$comment_data = [
 			'some comment data',
 			'comment_author_IP' => '7.7.7.7',
 		];
@@ -150,7 +150,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );
@@ -163,13 +163,13 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_in_admin(): void {
-		$commentdata = [ 'some comment data' ];
+		$comment_data = [ 'some comment data' ];
 
 		set_current_screen( 'edit-post' );
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
 	}
 
@@ -179,7 +179,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_in_rest(): void {
-		$commentdata = [ 'some comment data' ];
+		$comment_data = [ 'some comment data' ];
 
 		$_SERVER['REQUEST_URI'] = '/wp-json/activitypub/1.0/inbox';
 
@@ -192,7 +192,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
 	}
 
@@ -202,11 +202,11 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_not_verified(): void {
-		$commentdata = [
+		$comment_data = [
 			'some comment data',
 			'comment_author_IP' => '7.7.7.7',
 		];
-		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
+		$expected     = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
 
@@ -214,7 +214,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertSame( $expected, $this->get_protected_property( $subject, 'result' ) );
 	}
 
@@ -224,12 +224,12 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_pre_comment_approved(): void {
-		$approved    = 1;
-		$commentdata = [ 'some comment data' ];
+		$approved     = 1;
+		$comment_data = [ 'some comment data' ];
 
 		$subject = new Comment();
 
-		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $commentdata ) );
+		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $comment_data ) );
 	}
 
 	/**
@@ -240,7 +240,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_pre_comment_approved_when_not_verified(): void {
 		$approved      = 1;
-		$commentdata   = [ 'some comment data' ];
+		$comment_data  = [ 'some comment data' ];
 		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 		$expected      = new WP_Error();
 
@@ -250,6 +250,37 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$this->set_protected_property( $subject, 'result', $error_message );
 
-		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $commentdata ) );
+		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $comment_data ) );
+	}
+
+	/**
+	 * Test get_signature().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_get_signature(): void {
+		$subject         = new Comment();
+		$form_id         = 123;
+		$hcaptcha_shown  = true;
+		$expected_output = 'some-signature-output';
+
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+		$this->set_protected_property( $subject, 'hcaptcha_shown', $hcaptcha_shown );
+
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\HCaptcha::get_signature',
+			static function ( string $class_name, $fid, bool $shown ) use ( $form_id, $hcaptcha_shown, $expected_output ) {
+				// Ensure CommentBase delegates correctly.
+				self::assertSame( Comment::class, $class_name );
+				self::assertSame( $form_id, $fid );
+				self::assertSame( $hcaptcha_shown, $shown );
+
+				return $expected_output;
+			}
+		);
+
+		self::assertSame( $expected_output, $subject->get_signature() );
 	}
 }
