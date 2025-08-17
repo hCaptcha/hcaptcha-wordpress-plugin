@@ -2263,4 +2263,65 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
 	}
+
+	/**
+	 * Test get_plugin_data() when the plugin is not installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_plugin_data_when_not_installed_returns_empty_array(): void {
+		$slug = 'my-plugin/my-plugin.php';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// No installed plugins.
+		$this->set_protected_property( $subject, 'plugins', [] );
+		$this->set_protected_property( $subject, 'themes', [] );
+
+		// Ensure global get_plugin_data() is not called.
+		WP_Mock::userFunction( 'get_plugin_data' )->never();
+
+		$method = 'get_plugin_data';
+
+		self::assertSame( [], $subject->$method( $slug ) );
+	}
+
+	/**
+	 * Test get_plugin_data() when the plugin is installed: delegates to WP get_plugin_data with a correct path and flags.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_get_plugin_data_when_installed_calls_wp_and_uses_path_and_flags(): void {
+		$slug        = 'my-plugin/my-plugin.php';
+		$plugins_dir = 'C:/laragon/www/test/wp-content/plugins';
+		$expected    = [
+			'Name'    => 'My Plugin',
+			'Version' => '1.2.3',
+		];
+		$markup      = false;
+		$translate   = false;
+		$plugin_file = $plugins_dir . '/' . $slug;
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [ $slug => [] ] );
+		$this->set_protected_property( $subject, 'themes', [] );
+
+		// Mock get_plugin_file() to avoid touching constants.
+		$subject->shouldReceive( 'get_plugin_file' )
+			->with( $slug )
+			->andReturn( $plugin_file )
+			->once();
+
+		WP_Mock::userFunction( 'get_plugin_data' )
+			->with( $plugin_file, $markup, $translate )
+			->andReturn( $expected )
+			->once();
+
+		$method = 'get_plugin_data';
+
+		self::assertSame( $expected, $subject->$method( $slug, $markup, $translate ) );
+	}
 }
