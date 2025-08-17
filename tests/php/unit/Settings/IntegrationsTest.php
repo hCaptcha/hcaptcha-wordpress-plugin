@@ -163,6 +163,79 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test filter_activate_plugins() when a Companion plugin is already active.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_when_companion_already_active(): void {
+		$companion_pro  = 'blocksy-companion-pro/blocksy-companion.php';
+		$companion_free = 'blocksy-companion/blocksy-companion.php';
+		$input          = [ $companion_pro, 'some/other.php', $companion_free ];
+		$expected       = [ 1 => 'some/other.php' ];
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_pro )->andReturn( true );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
+	 * Test filter_activate_plugins() when none is active but one Companion plugin is installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_when_companion_installed_but_not_active(): void {
+		$companion_pro  = 'blocksy-companion-pro/blocksy-companion.php';
+		$companion_free = 'blocksy-companion/blocksy-companion.php';
+		$input          = [ 'some/other.php', 'another.php', $companion_pro ];
+		$expected       = [ 'some/other.php', 'another.php', $companion_free ];
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_pro )->andReturn( false );
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_free )->andReturn( false );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Only a free companion is installed.
+		$this->set_protected_property( $subject, 'plugins', [ $companion_free => [] ] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
+	 * Test filter_activate_plugins() when no Companion plugin is active or installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_when_no_companion_installed_or_active(): void {
+		$companion_pro  = 'blocksy-companion-pro/blocksy-companion.php';
+		$companion_free = 'blocksy-companion/blocksy-companion.php';
+		$input          = [ 'x.php', $companion_pro, $companion_free ];
+		$expected       = $input; // Should return an original list.
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_pro )->andReturn( false );
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_free )->andReturn( false );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
 	 * Test init_form_fields().
 	 *
 	 * @throws ReflectionException ReflectionException.
