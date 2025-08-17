@@ -118,13 +118,13 @@ abstract class CommentBase {
 	/**
 	 * Pre-approve comment.
 	 *
-	 * @param int|string|WP_Error $approved    The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
-	 * @param array               $commentdata Comment data.
+	 * @param int|string|WP_Error $approved     The approval status. Accepts 1, 0, 'spam', 'trash', or WP_Error.
+	 * @param array               $comment_data Comment data.
 	 *
 	 * @return int|string|WP_Error
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function pre_comment_approved( $approved, array $commentdata ) {
+	public function pre_comment_approved( $approved, array $comment_data ) {
 		if ( null === $this->result || true === $this->result ) {
 			return $approved;
 		}
