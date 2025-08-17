@@ -2324,4 +2324,89 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		self::assertSame( $expected, $subject->$method( $slug, $markup, $translate ) );
 	}
+
+	/**
+	 * Test prepare_antispam_data() with native and hcaptcha entries where hcaptcha is enabled.
+	 */
+	public function test_prepare_antispam_data_with_native_and_hcaptcha_enabled(): void {
+		$status     = 'kadence_status';
+		$form_field = [];
+
+		// Mock AntiSpam::get_protected_forms to a custom map containing both native and hcaptcha entries for our status.
+		$protected_forms = [
+			'native'   => [ $status => [ 'form' ] ],
+			'hcaptcha' => [ $status => [ 'advanced_form' ] ],
+		];
+
+		FunctionMocker::replace( '\HCaptcha\AntiSpam\AntiSpam::get_protected_forms', $protected_forms );
+
+		// Mock hcaptcha()->settings()->is to return true for the hcaptcha form.
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'is' )->with( $status, 'advanced_form' )->andReturn( true );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$result = $subject->prepare_antispam_data( $status, $form_field );
+
+		self::assertArrayHasKey( 'data', $result );
+		self::assertArrayHasKey( 'helpers', $result );
+		self::assertSame( 'native', $result['data']['form']['antispam'] );
+		self::assertStringContainsString( 'native antispam service', $result['helpers']['form'] );
+		self::assertSame( 'hcaptcha', $result['data']['advanced_form']['antispam'] );
+		self::assertStringContainsString( 'hCaptcha antispam service', $result['helpers']['advanced_form'] );
+	}
+
+	/**
+	 * Test prepare_antispam_data() when hcaptcha entry exists, but settings->is() is false.
+	 */
+	public function test_prepare_antispam_data_hcaptcha_disabled(): void {
+		$status     = 'kadence_status';
+		$form_field = [];
+
+		// Reuse the cached protected forms from the first test to avoid static cache conflicts.
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'is' )->with( $status, 'advanced_form' )->andReturn( false );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$result = $subject->prepare_antispam_data( $status, $form_field );
+
+		self::assertArrayHasKey( 'data', $result );
+		self::assertArrayHasKey( 'helpers', $result );
+		// Native present.
+		self::assertSame( 'native', $result['data']['form']['antispam'] );
+		// Hcaptcha should not be set when settings->is() is false.
+		self::assertArrayNotHasKey( 'advanced_form', $result['data'] );
+	}
+
+	/**
+	 * Test prepare_antispam_data() when AntiSpam::get_protected_forms() returns no entries for the status.
+	 */
+	public function test_prepare_antispam_data_with_no_entries(): void {
+		$status     = 'unknown_status';
+		$form_field = [ 'some' => 'value' ];
+
+		// Use default behavior (likely cached) and ensure no entries; no need to mock alias to avoid cache conflicts.
+		$main     = Mockery::mock( Main::class )->makePartial();
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$result = $subject->prepare_antispam_data( $status, $form_field );
+
+		self::assertSame( $form_field, $result );
+	}
 }

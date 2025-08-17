@@ -1851,7 +1851,7 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array The updated form field data containing antispam configurations.
 	 */
-	private function prepare_antispam_data( string $status, array $form_field ): array {
+	protected function prepare_antispam_data( string $status, array $form_field ): array {
 		static $all_protected_forms;
 
 		if ( ! $all_protected_forms ) {
