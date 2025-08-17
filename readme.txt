@@ -757,6 +757,7 @@ Instructions for popular native integrations are below:
 
 = 4.17.0 =
 * Added a hidden honeypot field for bot detection before processing hCaptcha.
+* Added a notification message on the placeholder when hCaptcha failed to load.
 * Fixed running migrations on a fresh installation.
 * Fixed updating the migration option on each admin request.
 

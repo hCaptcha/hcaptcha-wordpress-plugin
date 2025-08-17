@@ -476,6 +476,7 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
+		$load_fail_msg      = __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' );
 
 		/* language=CSS */
 		$css = '
@@ -501,8 +502,12 @@ class Main {
 		display: none;
 	}
 
+	.h-captcha iframe {
+		z-index: 1;
+	}
+
 	.h-captcha::before {
-		content: \'\';
+		content: "";
 		display: block;
 		position: absolute;
 		top: 0;
@@ -510,6 +515,33 @@ class Main {
 		background: url( ' . $div_logo_url . ' ) no-repeat;
 		border: 1px solid transparent;
 		border-radius: 4px;
+		box-sizing: border-box;
+	}
+
+	.h-captcha::after {
+		content: "' . $load_fail_msg . '";
+	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+        color: #ff0000;
+		opacity: 0;
+	}
+
+	.h-captcha:not(:has(iframe))::after {
+		animation: hcap-msg-fade-in .3s ease forwards;
+		animation-delay: 2s;
+	}
+	
+	.h-captcha:has(iframe)::after {
+		animation: none;
+		opacity: 0;
+	}
+	
+	@keyframes hcap-msg-fade-in {
+		to { opacity: 1; }
 	}
 
 	.h-captcha[data-size="normal"]::before {
@@ -518,10 +550,18 @@ class Main {
 		background-position: 94% 28%;
 	}
 
+	.h-captcha[data-size="normal"]::after {
+		padding: 19px 75px 16px 10px;
+	}
+
 	.h-captcha[data-size="compact"]::before {
 		width: 156px;
 		height: 136px;
 		background-position: 50% 79%;
+	}
+
+	.h-captcha[data-size="compact"]::after {
+		padding: 10px 10px 16px 10px;
 	}
 
 	.h-captcha[data-theme="light"]::before,
@@ -554,7 +594,8 @@ class Main {
 		background-color: ' . $bg . ';
 	}
 
-	.h-captcha[data-size="invisible"]::before {
+	.h-captcha[data-size="invisible"]::before,
+	.h-captcha[data-size="invisible"]::after {
 		display: none;
 	}
 
