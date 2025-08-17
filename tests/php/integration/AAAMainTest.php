@@ -42,7 +42,6 @@ use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\PasswordProtected;
 use HCaptcha\WP\Register;
 use HCaptcha\WPDiscuz\Subscribe;
-use Mockery;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
@@ -68,7 +67,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	private static $included_components = [];
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -241,7 +240,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init() and init_hooks() on Elementor Pro edit page.
+	 * Test init() and init_hooks() on the Elementor Pro edit page.
 	 *
 	 * @param string  $elementor_pro_status Option 'elementor_pro_status' is set.
 	 * @param array   $server               $_SERVER variable.
@@ -371,7 +370,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init_hooks() on cron request.
+	 * Test init_hooks() on a cron request.
 	 *
 	 * @return void
 	 *
@@ -741,6 +740,7 @@ CSS;
 	 * Data provider for test_get_api_url().
 	 *
 	 * @return array
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function dp_test_get_api_url(): array {
 		return [
@@ -810,6 +810,7 @@ CSS;
 	 * Data provider for test_get_verify_url().
 	 *
 	 * @return array
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function dp_test_get_verify_url(): array {
 		return [
@@ -849,6 +850,7 @@ CSS;
 	 * Data provider for test_get_check_site_config_url().
 	 *
 	 * @return array
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function dp_test_get_check_site_config_url(): array {
 		return [
@@ -1257,7 +1259,7 @@ CSS;
 
 		$this->check_component_loaded( $component );
 
-		// Test with supported plugin not active.
+		// Test with a supported plugin not active.
 		$subject->load_modules();
 
 		if ( ! $module[1] ) {
@@ -1287,7 +1289,7 @@ CSS;
 			);
 		}
 
-		// Test with supported plugin active.
+		// Test with a supported plugin active.
 		$subject->load_modules();
 
 		self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
@@ -1836,7 +1838,7 @@ CSS;
 	}
 
 	/**
-	 * Check that component is loaded.
+	 * Check that a component is loaded.
 	 *
 	 * @param array $component Component.
 	 */
