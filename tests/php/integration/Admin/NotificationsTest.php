@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\Admin;
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test NotificationsTest class.
@@ -290,6 +291,64 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		}
 
 		return $settings;
+	}
+
+	/**
+	 * Test cf7_admin_notification() when CF7 is present and a form exists.
+	 */
+	public function test_cf7_admin_notification_with_form(): void {
+		// Mock that CF7 class exists.
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $name ) {
+				return 'WPCF7_ContactForm' === $name;
+			}
+		);
+
+		$form_id = wp_insert_post(
+			[
+				'post_type'   => 'wpcf7_contact_form',
+				'post_status' => 'publish',
+			]
+		);
+
+		$expected_url = "http://test.test/wp-admin/?page=wpcf7&post=$form_id&action=edit#postbox-container-live";
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$notifications = $subject->get_notifications();
+
+		self::assertArrayHasKey( 'admin-cf7', $notifications );
+		self::assertSame(
+			[
+				'title'   => 'Live form in Contact Form 7 admin',
+				'message' => 'With the hCaptcha plugin, you can see a live form on the form edit admin page.',
+				'button'  => [
+					'url'  => $expected_url,
+					'text' => 'Use live form',
+				],
+			],
+			$notifications['admin-cf7']
+		);
+	}
+
+	/**
+	 * Test cf7_admin_notification() when CF7 is present, but no forms exist.
+	 */
+	public function test_cf7_admin_notification_without_forms(): void {
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $name ) {
+				return 'WPCF7_ContactForm' === $name;
+			}
+		);
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$notifications = $subject->get_notifications();
+
+		self::assertArrayNotHasKey( 'admin-cf7', $notifications );
 	}
 
 	/**
