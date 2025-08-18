@@ -334,6 +334,9 @@ class API {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		return $hp_field_name && wp_verify_nonce( $hp_sig, $hp_field_name ) && '' === trim( $hp_value );
+		// Verify nonce for logged-in users only.
+		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_sig, $hp_field_name );
+
+		return $hp_field_name && $nonce_verified && '' === trim( $hp_value );
 	}
 }
