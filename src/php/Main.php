@@ -27,6 +27,7 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\EventsManager\Booking;
+use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
@@ -157,6 +158,9 @@ class Main {
 		$this->migrations = new Migrations();
 
 		( new Fix() )->init();
+
+		// Needs to be loaded early, as it uses short init ajax.
+		$this->load( FormSubmitTime::class );
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
 	}

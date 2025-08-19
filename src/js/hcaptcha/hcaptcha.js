@@ -529,6 +529,30 @@ class HCaptcha {
 		}
 	}
 
+	addFSTToken( formElement ) {
+		if ( ! formElement ) {
+			return;
+		}
+
+		const name = 'hcap_fst_token';
+
+		// Find or create input.
+		let input = formElement.querySelector( `input[type="hidden"][name="${ name }"]` );
+
+		if ( ! input ) {
+			input = document.createElement( 'input' );
+			input.type = 'hidden';
+			input.name = name;
+		}
+
+		// Insert input.
+		if ( formElement.firstChild ) {
+			formElement.insertBefore( input, formElement.firstChild );
+		} else {
+			formElement.appendChild( input );
+		}
+	}
+
 	/**
 	 * Bind events on forms containing hCaptcha.
 	 */
@@ -566,6 +590,7 @@ class HCaptcha {
 			}
 
 			this.moveHP( formElement );
+			this.addFSTToken( formElement );
 
 			// Render or re-render.
 			hcaptchaElement.innerHTML = '';

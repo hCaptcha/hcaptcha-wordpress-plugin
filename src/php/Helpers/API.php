@@ -142,7 +142,7 @@ class API {
 		}
 
 		// Check the honeypot field.
-		if ( ! self::check_honeypot_field() ) {
+		if ( ! self::check_honeypot_field() || ! self::check_fst_token() ) {
 			$result      = hcap_get_error_messages()['spam'];
 			$error_codes = [ 'spam' ];
 
@@ -338,5 +338,29 @@ class API {
 		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_sig, $hp_field_name );
 
 		return $hp_field_name && $nonce_verified && '' === trim( $hp_value );
+	}
+
+	/**
+	 * Check Form Submit Time token.
+	 *
+	 * @return bool
+	 */
+	private static function check_fst_token(): bool {
+//		if ( ! hcaptcha()->settings()->is_on( 'fst' ) ) {
+//			return true;
+//		}
+
+		/**
+		 * The Form Submit Time object.
+		 *
+		 * @var FormSubmitTime $fst_obj
+		 */
+		$fst_obj = hcaptcha()->get( FormSubmitTime::class );
+
+		if ( ! $fst_obj ) {
+			return false;
+		}
+
+		return ! is_wp_error( $fst_obj->verify_token( 5 ) );
 	}
 }

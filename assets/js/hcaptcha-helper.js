@@ -20,7 +20,7 @@ export class helper {
 	 */
 	static getHCaptchaData( $node, nonceName ) {
 		const hpName = $node.find( '[name^="hcap_hp_"]' ).first().attr( 'name' ) ?? '';
-		const names = [ 'h-captcha-response', 'hcaptcha-widget-id', nonceName, hpName, 'hcap_hp_sig' ];
+		const names = [ 'h-captcha-response', 'hcaptcha-widget-id', nonceName, hpName, 'hcap_hp_sig', 'hcap_fst_token' ];
 
 		let data = '';
 
