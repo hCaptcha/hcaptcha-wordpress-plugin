@@ -8,6 +8,7 @@
 namespace HCaptcha\Helpers;
 
 use HCaptcha\AntiSpam\AntiSpam;
+use WP_Error;
 
 /**
  * Class Request.
@@ -142,9 +143,19 @@ class API {
 		}
 
 		// Check the honeypot field.
-		if ( ! self::check_honeypot_field() || ! self::check_fst_token() ) {
+		if ( ! self::check_honeypot_field() ) {
 			$result      = hcap_get_error_messages()['spam'];
 			$error_codes = [ 'spam' ];
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
+		// Check the form submit time token.
+		$check = self::check_fst_token();
+
+		if ( is_wp_error( $check ) ) {
+			$result      = $check->get_error_message();
+			$error_codes = $check->get_error_codes();
 
 			return self::filtered_result( $result, $error_codes );
 		}
@@ -343,9 +354,9 @@ class API {
 	/**
 	 * Check Form Submit Time token.
 	 *
-	 * @return bool
+	 * @return true|WP_Error
 	 */
-	private static function check_fst_token(): bool {
+	private static function check_fst_token() {
 //		if ( ! hcaptcha()->settings()->is_on( 'fst' ) ) {
 //			return true;
 //		}
@@ -358,9 +369,9 @@ class API {
 		$fst_obj = hcaptcha()->get( FormSubmitTime::class );
 
 		if ( ! $fst_obj ) {
-			return false;
+			return new WP_Error( 'fst_no_object', __( 'FST object does not exist.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		return ! is_wp_error( $fst_obj->verify_token( 5 ) );
+		return $fst_obj->verify_token( 5 );
 	}
 }
