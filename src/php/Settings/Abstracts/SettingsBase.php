@@ -924,6 +924,8 @@ abstract class SettingsBase {
 	 * @return array
 	 */
 	public function sanitize_option_callback( $settings ): array {
+		$settings = (array) $settings;
+
 		foreach ( $settings as $key => $setting ) {
 			if ( ! isset( $this->form_fields[ $key ] ) ) {
 				// Here we can have the current tab fields only.

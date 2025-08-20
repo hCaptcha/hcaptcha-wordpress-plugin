@@ -760,6 +760,7 @@ Instructions for popular native integrations are below:
 * Added a notification message on the placeholder when hCaptcha failed to load.
 * Fixed running migrations on a fresh installation.
 * Fixed updating the migration option on each admin request.
+* Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
