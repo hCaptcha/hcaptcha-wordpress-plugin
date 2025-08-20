@@ -9,7 +9,6 @@ namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\Login;
-use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
