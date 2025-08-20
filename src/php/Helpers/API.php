@@ -357,10 +357,6 @@ class API {
 	 * @return true|WP_Error
 	 */
 	private static function check_fst_token() {
-//		if ( ! hcaptcha()->settings()->is_on( 'fst' ) ) {
-//			return true;
-//		}
-
 		/**
 		 * The Form Submit Time object.
 		 *
