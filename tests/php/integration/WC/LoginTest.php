@@ -22,17 +22,6 @@ use WP_Error;
 class LoginTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down the test.
-	 *
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function tearDown(): void {
-		$this->set_protected_property( hcaptcha(), 'loaded_classes', [] );
-
-		parent::tearDown();
-	}
-
-	/**
 	 * Test constructor and init_hooks().
 	 */
 	public function test_constructor_and_init_hooks(): void {

@@ -299,6 +299,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			'hcap_hp_sig'        => wp_create_nonce( 'hcap_hp_test' ),
 			'hcaptcha_nonce'     => $this->get_test_nonce(),
 			'h-captcha-response' => $hcaptcha_response,
+			'hcap_fst_token'     => 'test_token'
 		];
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';

@@ -36,7 +36,11 @@ class HCaptchaWPTestCase extends WPTestCase {
 
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
 
+		// Do not randomize honeypot name for tests.
 		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::get_hp_name', 'hcap_hp_test' );
+
+		// Do not check the Form Submit Time token for tests.
+		add_filter( 'hcap_verify_fst_token', '__return_true' );
 	}
 
 	/**
@@ -227,6 +231,16 @@ HTML;
 
 		$_POST['hcap_hp_test'] = '';
 		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
+
+		$test_token              = 'test_token';
+		$_POST['hcap_fst_token'] = $test_token;
+
+		add_filter(
+			'hcap_fst_token',
+			static function () use ( $test_token ) {
+				return $test_token;
+			}
+		);
 
 		$raw_response = wp_json_encode( [ 'success' => $result ] );
 

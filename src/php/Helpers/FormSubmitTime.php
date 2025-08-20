@@ -14,6 +14,13 @@ use WP_Error;
  */
 class FormSubmitTime {
 	/**
+	 * Instance.
+	 *
+	 * @var FormSubmitTime|null
+	 */
+	protected static $instance;
+
+	/**
 	 * Script handle.
 	 */
 	private const HANDLE = 'hcaptcha-fst';
@@ -102,9 +109,15 @@ class FormSubmitTime {
 	public function issue_token(): void {
 		$post_id   = Request::filter_input( INPUT_POST, 'postId' );
 		$issued_at = time();
-		$ttl       = (int) apply_filters( 'hcap_fst_token_ttl', 600 ); // 10 minutes.
-		$nonce     = wp_generate_uuid4();
-		$value     = 1;
+
+		/**
+		 * Filters the time-to-live (TTL) for the Form Submit Time token.
+		 *
+		 * @param int $ttl The time-to-live in seconds. Default is 600 seconds (10 minutes).
+		 */
+		$ttl   = absint( apply_filters( 'hcap_fst_token_ttl', 600 ) );
+		$nonce = wp_generate_uuid4();
+		$value = 1;
 
 		$payload = [
 			'value'     => $value,
@@ -124,7 +137,14 @@ class FormSubmitTime {
 			header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
 		}
 
-		wp_send_json_success( [ 'token' => $this->sign( $payload ) ] );
+		/**
+		 * Filters the generated token for the Form Submit Time.
+		 *
+		 * @param string $token The generated token.
+		 */
+		$token = (string) apply_filters( 'hcap_fst_token', $this->sign( $payload ) );
+
+		wp_send_json_success( [ 'token' => $token ] );
 	}
 
 	/**
@@ -197,7 +217,7 @@ class FormSubmitTime {
 	 *                        (e.g., malformed token, signature mismatch, decode error, or invalid payload).
 	 */
 	private function verify_sig( string $token ) {
-		[ $data, $sig ] = explode( '-', $token, 2 );
+		[ $data, $sig ] = explode( '-', $token . '-', 2 );
 
 		$calc = wp_hash( $data );
 
