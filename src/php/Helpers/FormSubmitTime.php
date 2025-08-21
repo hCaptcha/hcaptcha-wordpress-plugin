@@ -219,6 +219,7 @@ class FormSubmitTime {
 	private function verify_sig( string $token ) {
 		[ $data, $sig ] = explode( '-', $token . '-', 2 );
 
+		$sig  = rtrim( $sig, '-' );
 		$calc = wp_hash( $data );
 
 		if ( ! hash_equals( $calc, $sig ) ) {
