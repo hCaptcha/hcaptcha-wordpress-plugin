@@ -534,27 +534,44 @@ class General extends PluginSettingsBase {
 				'section' => self::SECTION_CONTENT,
 				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'honeypot'             => [
-				'label'   => __( 'Honeypot field', 'hcaptcha-for-forms-and-more' ),
+			'set_min_submit_time'  => [
+				'label'   => __( 'Token and Honeypot', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
 				'default' => 'on',
 				'options' => [
-					'on' => __( 'Enable honeypot field', 'hcaptcha-for-forms-and-more' ),
+					'on' => __( 'Set Minimum Time', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'min_submit_time'      => [
+				'label'   => __( 'Minimum Time to Submit the Form, sec', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'number',
+				'section' => self::SECTION_ANTISPAM,
+				'default' => 2,
+				'min'     => 1,
+				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'honeypot'             => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_ANTISPAM,
+				'default' => 'on',
+				'options' => [
+					'on' => __( 'Enable Honeypot Field', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Add a honeypot field to submitted forms for early bot prevention.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'antispam'             => [
-				'label'   => __( 'Enable anti-spam check', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Anti-Spam check', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
 				'options' => [
-					'on' => __( 'Anti-spam check', 'hcaptcha-for-forms-and-more' ),
+					'on' => __( 'Enable Anti-Spam check', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Enable anti-spam check of submitted forms.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'antispam_provider'    => [
-				'label'   => __( 'Anti-spam provider', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Anti-Spam Provider', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_ANTISPAM,
 				'options' => AntiSpam::get_supported_providers(),
@@ -614,7 +631,7 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'login_limit'          => [
-				'label'   => __( 'Login attempts before hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Login Attempts Before hCaptcha', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_OTHER,
 				'default' => 0,
@@ -622,7 +639,7 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'Maximum number of failed login attempts before showing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'login_interval'       => [
-				'label'   => __( 'Failed login attempts interval, min', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Failed Login Attempts Interval, min', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_OTHER,
 				'default' => 15,
@@ -630,7 +647,7 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'Time interval in minutes when failed login attempts are counted.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'delay'                => [
-				'label'   => __( 'Delay showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Delay Showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_OTHER,
 				'default' => -100,

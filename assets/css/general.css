@@ -327,17 +327,33 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
+		"set-min-submit-time min-submit-time"
+		"honeypot min-submit-time"
 		"antispam antispam-provider";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
 
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-set-min-submit-time {
+	grid-area: set-min-submit-time;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-min-submit-time {
+	grid-area: min-submit-time;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-honeypot {
+	grid-area: honeypot;
+}
+
 .hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam {
 	grid-area: antispam;
+	padding-top: 15px;
 }
 
 .hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider {
 	grid-area: antispam-provider;
+	padding-top: 15px;
 }
 
 .hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider div {
@@ -354,12 +370,21 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: max-content;
 }
 
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-min-submit-time td,
 .hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider td {
 	width: auto;
 }
 
 .hcaptcha-section-antispam + table tbody tr td input,
 .hcaptcha-section-antispam + table tbody tr td select {
+	width: 100%;
+}
+
+.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-honeypot th {
+	padding: 0;
+}
+
+.hcaptcha-section-antispam + table tbody tr td input {
 	width: 100%;
 }
 

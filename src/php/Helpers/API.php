@@ -357,6 +357,10 @@ class API {
 	 * @return true|WP_Error
 	 */
 	private static function check_fst_token() {
+		if ( ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
+			return true;
+		}
+
 		/**
 		 * The Form Submit Time object.
 		 *
@@ -368,12 +372,14 @@ class API {
 			return new WP_Error( 'fst_no_object', __( 'FST object does not exist.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
+		$min_submit_time = hcaptcha()->settings()->get( 'min_submit_time' );
+
 		/**
 		 * Filters the result of the Form Submit Time token verification
 		 *
 		 * This variable may store any kind of object depending on the implementation or usage in the codebase.
 		 * Ensure that the operations performed on this variable comply with the expected structure or type of the stored object.
 		 */
-		return apply_filters( 'hcap_verify_fst_token', $fst_obj->verify_token( 5 ) );
+		return apply_filters( 'hcap_verify_fst_token', $fst_obj->verify_token( $min_submit_time ) );
 	}
 }

@@ -154,12 +154,12 @@ class FormSubmitTime {
 	 * detects replay attempts, and ensures the form has not been submitted too quickly. Optionally, it may
 	 * delete the nonce after verification. Returns an error if the verification fails or true on success.
 	 *
-	 * @param int  $min_seconds  The minimum time, in seconds, that must elapse since the token was issued.
-	 * @param bool $delete_nonce Optional. Whether to delete the nonce after successful verification. Default is true.
+	 * @param int  $min_submit_time The minimum time, in seconds, that must elapse since the token was issued.
+	 * @param bool $delete_nonce    Optional. Whether to delete the nonce after successful verification. Default is true.
 	 *
 	 * @return true|WP_Error Returns true if the token is successfully verified, otherwise returns a WP_Error object.
 	 */
-	public function verify_token( int $min_seconds, bool $delete_nonce = true ) {
+	public function verify_token( int $min_submit_time, bool $delete_nonce = true ) {
 		$token = Request::filter_input( INPUT_POST, 'hcap_fst_token' );
 
 		$payload = $this->verify_sig( $token );
@@ -177,7 +177,7 @@ class FormSubmitTime {
 			return new WP_Error( 'fst_replay_or_expired', __( 'Token replayed or expired.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		if ( $now - $issued_at < $min_seconds ) {
+		if ( $now - $issued_at < $min_submit_time ) {
 			return new WP_Error( 'fst_too_fast', __( 'Form submitted too quickly.', 'hcaptcha-for-forms-and-more' ) );
 		}
 

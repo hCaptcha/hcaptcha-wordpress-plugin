@@ -82,7 +82,7 @@ abstract class HCaptchaTestCase extends TestCase {
 	}
 
 	/**
-	 * Set the accessibility of a protected method of an object.
+	 * Set the object protected method accessibility.
 	 *
 	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
@@ -666,13 +666,30 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'content',
 				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
 			],
-			'honeypot'                 => [
-				'label'   => 'Honeypot field',
+			'set_min_submit_time'      => [
+				'label'   => 'Token and Honeypot',
 				'type'    => 'checkbox',
 				'section' => 'antispam',
 				'default' => 'on',
 				'options' => [
-					'on' => 'Enable honeypot field',
+					'on' => 'Set Minimum Time',
+				],
+				'helper'  => 'Set a minimum amount of time a user must spend on a form before submitting.',
+			],
+			'min_submit_time'          => [
+				'label'   => 'Minimum Time to Submit the Form, sec',
+				'type'    => 'number',
+				'section' => 'antispam',
+				'default' => 2,
+				'min'     => 1,
+				'helper'  => 'Set a minimum amount of time a user must spend on a form before submitting.',
+			],
+			'honeypot'                 => [
+				'type'    => 'checkbox',
+				'section' => 'antispam',
+				'default' => 'on',
+				'options' => [
+					'on' => 'Enable Honeypot Field',
 				],
 				'helper'  => 'Add a honeypot field to submitted forms for early bot prevention.',
 			],
@@ -730,7 +747,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'helper'  => 'On multisite, use same settings for all sites of the network.',
 			],
 			'login_limit'              => [
-				'label'   => 'Login attempts before hCaptcha',
+				'label'   => 'Login Attempts Before hCaptcha',
 				'type'    => 'number',
 				'section' => General::SECTION_OTHER,
 				'default' => 0,
@@ -738,7 +755,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'helper'  => 'Maximum number of failed login attempts before showing hCaptcha.',
 			],
 			'login_interval'           => [
-				'label'   => 'Failed login attempts interval, min',
+				'label'   => 'Failed Login Attempts Interval, min',
 				'type'    => 'number',
 				'section' => General::SECTION_OTHER,
 				'default' => 15,
@@ -746,7 +763,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'helper'  => 'Time interval in minutes when failed login attempts are counted.',
 			],
 			'delay'                    => [
-				'label'   => 'Delay showing hCaptcha, ms',
+				'label'   => 'Delay Showing hCaptcha, ms',
 				'type'    => 'number',
 				'section' => General::SECTION_OTHER,
 				'default' => -100,
