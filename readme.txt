@@ -761,6 +761,7 @@ Instructions for popular native integrations are below:
 * Fixed running migrations on a fresh installation.
 * Fixed updating the migration option on each admin request.
 * Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
+* Fixed an issue with several Divi optin email forms on the page.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
