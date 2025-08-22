@@ -1020,6 +1020,9 @@ class General extends PluginSettingsBase {
 			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
+		add_filter( 'hcap_check_honeypot_field', '__return_true' );
+		add_filter( 'hcap_verify_fst_token', '__return_true' );
+
 		$result = API::verify_request( $hcaptcha_response );
 
 		if ( null !== $result ) {

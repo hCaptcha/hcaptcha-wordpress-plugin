@@ -348,7 +348,14 @@ class API {
 		// Verify nonce for logged-in users only.
 		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_sig, $hp_field_name );
 
-		return $hp_field_name && $nonce_verified && '' === trim( $hp_value );
+		$check = $hp_field_name && $nonce_verified && '' === trim( $hp_value );
+
+		/**
+		 * Filters the result of the honeypot field check.
+		 *
+		 * @param bool $check True if the honeypot field is valid and empty, false otherwise.
+		 */
+		return (bool) apply_filters( 'hcap_check_honeypot_field', $check );
 	}
 
 	/**
@@ -375,10 +382,9 @@ class API {
 		$min_submit_time = hcaptcha()->settings()->get( 'min_submit_time' );
 
 		/**
-		 * Filters the result of the Form Submit Time token verification
+		 * Filters the result of the Form Submit Time token verification.
 		 *
-		 * This variable may store any kind of object depending on the implementation or usage in the codebase.
-		 * Ensure that the operations performed on this variable comply with the expected structure or type of the stored object.
+		 * @param true|WP_Error $check True, if the Form Submit Time token is valid. WP_Error object otherwise.
 		 */
 		return apply_filters( 'hcap_verify_fst_token', $fst_obj->verify_token( $min_submit_time ) );
 	}
