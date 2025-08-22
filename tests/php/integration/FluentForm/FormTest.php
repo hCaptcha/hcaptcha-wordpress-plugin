@@ -441,6 +441,12 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_print_hcaptcha_scripts(): void {
+		wp_dequeue_script( 'hcaptcha-fst' );
+		wp_deregister_script( 'hcaptcha-fst' );
+
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
+
 		wp_register_script( 'hcaptcha', 'https://example.com/hcaptcha.js', [], '1.0.0', true );
 		wp_enqueue_script( 'hcaptcha' );
 

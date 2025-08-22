@@ -25,7 +25,7 @@ use tad\FunctionMocker\FunctionMocker;
 class EmailOptinTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		wp_dequeue_script( EmailOptin::HANDLE );
@@ -81,7 +81,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$this->prepare_verify_post_html( EmailOptin::NONCE, EmailOptin::ACTION );
+		$this->prepare_verify_post( EmailOptin::NONCE, EmailOptin::ACTION );
 
 		$subject = new EmailOptin();
 
@@ -94,17 +94,33 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify_not_verified(): void {
-		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
 
-		$et_core_die = FunctionMocker::replace( 'et_core_die' );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
 
-		$this->prepare_verify_post_html( EmailOptin::NONCE, EmailOptin::ACTION, false );
+		$this->prepare_verify_post( EmailOptin::NONCE, EmailOptin::ACTION, false );
 
 		$subject = new EmailOptin();
 
+		ob_start();
 		$subject->verify();
+		$json = ob_get_clean();
 
-		$et_core_die->wasCalledWithOnce( [ esc_html( $error_message ) ] );
+		self::assertSame( '{"error":"The hCaptcha is invalid."}', $json );
+		self::assertSame( $expected, $die_arr );
 	}
 
 	/**
@@ -125,7 +141,7 @@ HTML;
 	}
 
 	/**
-	 * Test enqueue_scripts() when form was not shown.
+	 * Test enqueue_scripts() when the form was not shown.
 	 *
 	 * @return void
 	 */

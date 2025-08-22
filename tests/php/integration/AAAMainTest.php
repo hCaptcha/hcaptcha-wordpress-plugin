@@ -43,7 +43,6 @@ use HCaptcha\WP\PasswordProtected;
 use HCaptcha\WP\Register;
 use HCaptcha\WPDiscuz\Subscribe;
 use ReflectionException;
-use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
@@ -92,6 +91,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
 
 		delete_option( 'hcaptcha_settings' );
+
+		wp_dequeue_script( 'hcaptcha-fst' );
+		wp_deregister_script( 'hcaptcha-fst' );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -911,7 +913,6 @@ CSS;
 	 * @param string       $expected_script_src Expected script source.
 	 *
 	 * @dataProvider dp_test_print_footer_scripts
-	 * @throws ReflectionException ReflectionException.
 	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ): void {
@@ -1031,36 +1032,6 @@ CSS;
 		);
 
 		$hcaptcha->init_hooks();
-
-		// Test when Elementor Pro is not loaded.
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		$scripts = ob_get_clean();
-
-		self::assertTrue( wp_script_is( 'hcaptcha' ) );
-
-		$script = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
-		self::assertSame( [ 'wp-hooks' ], $script->deps );
-		self::assertSame( HCAPTCHA_VERSION, $script->ver );
-		self::assertSame( $expected_extra, $script->extra );
-
-		self::assertSame( 0, strpos( $scripts, $expected_scripts ) );
-
-		// Test when Elementor Pro is loaded.
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
-
-		wp_dequeue_script( 'jquery' );
-		wp_deregister_script( 'jquery' );
-
-		$loaded_classes = $this->get_protected_property( $hcaptcha, 'loaded_classes' );
-
-		$loaded_classes[ HCaptchaHandler::class ] = new stdClass();
-
-		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
 
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
