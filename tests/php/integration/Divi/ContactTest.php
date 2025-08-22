@@ -41,7 +41,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	private $current_form_field = 'et_pb_contact_email_fields_0';
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -50,6 +50,9 @@ class ContactTest extends HCaptchaWPTestCase {
 			$_POST[ $this->submit_field ]
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		wp_dequeue_script( 'et-core-api-spam-recaptcha' );
+		wp_dequeue_script( 'hcaptcha-divi' );
 
 		parent::tearDown();
 	}
@@ -74,7 +77,7 @@ class ContactTest extends HCaptchaWPTestCase {
 			has_filter( 'et_pb_module_shortcode_attributes', [ $subject, 'shortcode_attributes' ] )
 		);
 		self::assertSame(
-			10,
+			20,
 			has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 	}
@@ -100,7 +103,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				
 				
 				<label for="et_pb_contact_name_0" class="et_pb_contact_form_label">Name</label>
-				<input type="text" id="et_pb_contact_name_0" class="input" value="Igor Gergel" name="et_pb_contact_name_0" data-required_mark="required" data-field_type="input" data-original_id="name" placeholder="Name">
+				<input type="text" id="et_pb_contact_name_0" class="input" value="KAGG Design" name="et_pb_contact_name_0" data-required_mark="required" data-field_type="input" data-original_id="name" placeholder="Name">
 			</p><p class="et_pb_contact_field et_pb_contact_field_1 et_pb_contact_field_half et_pb_contact_field_last" data-id="email" data-type="email">
 				
 				
@@ -153,7 +156,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				
 				
 				<label for="et_pb_contact_name_0" class="et_pb_contact_form_label">Name</label>
-				<input type="text" id="et_pb_contact_name_0" class="input" value="Igor Gergel" name="et_pb_contact_name_0" data-required_mark="required" data-field_type="input" data-original_id="name" placeholder="Name">
+				<input type="text" id="et_pb_contact_name_0" class="input" value="KAGG Design" name="et_pb_contact_name_0" data-required_mark="required" data-field_type="input" data-original_id="name" placeholder="Name">
 			</p><p class="et_pb_contact_field et_pb_contact_field_1 et_pb_contact_field_half et_pb_contact_field_last" data-id="email" data-type="email">
 				
 				
@@ -189,7 +192,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha() in frontend builder.
+	 * Test add_captcha() in the frontend builder.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -333,7 +336,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() with wrong tag.
+	 * Test verify() with the wrong tag.
 	 */
 	public function test_verify_wrong_tag(): void {
 		$return = 'some html';
@@ -394,7 +397,7 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test shortcode_attributes() with wrong slug.
+	 * Test shortcode_attributes() with the wrong slug.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -421,12 +424,47 @@ class ContactTest extends HCaptchaWPTestCase {
 	 * Test enqueue_scripts().
 	 */
 	public function test_enqueue_scripts(): void {
+		hcaptcha()->form_shown = true;
+
+		wp_enqueue_script(
+			'et-core-api-spam-recaptcha',
+			'https://example.com/recaptcha.js',
+			[],
+			'1.0.0',
+			true
+		);
+
 		$subject = new Contact();
 
+		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
 
 		$subject->enqueue_scripts();
 
+		self::assertFalse( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-divi' ) );
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 */
+	public function test_enqueue_scripts_when_hcaptcha_was_not_shown(): void {
+		wp_enqueue_script(
+			'et-core-api-spam-recaptcha',
+			'https://example.com/recaptcha.js',
+			[],
+			'1.0.0',
+			true
+		);
+
+		$subject = new Contact();
+
+		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
+
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
 	}
 }

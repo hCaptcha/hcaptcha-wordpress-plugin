@@ -62,7 +62,7 @@ class Contact {
 		add_filter( 'pre_do_shortcode_tag', [ $this, 'verify' ], 10, 4 );
 
 		add_filter( 'et_pb_module_shortcode_attributes', [ $this, 'shortcode_attributes' ], 10, 5 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 20 );
 	}
 
 	/**
@@ -202,6 +202,12 @@ class Contact {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		wp_dequeue_script( 'et-core-api-spam-recaptcha' );
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
