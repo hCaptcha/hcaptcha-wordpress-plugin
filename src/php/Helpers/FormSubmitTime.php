@@ -73,7 +73,7 @@ class FormSubmitTime {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-fst$min.js",
-			[],
+			[ 'hcaptcha' ],
 			HCAPTCHA_VERSION,
 			true
 		);

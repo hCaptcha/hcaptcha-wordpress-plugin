@@ -758,6 +758,8 @@ Instructions for popular native integrations are below:
 = 4.17.0 =
 * Added a hidden honeypot field for bot detection before processing hCaptcha.
 * Added a notification message on the placeholder when hCaptcha failed to load.
+* Added hCaptcha error messages to the Divi optin email form.
+* Fix conflict with reCaptcha in Divi Contact form.
 * Fixed running migrations on a fresh installation.
 * Fixed updating the migration option on each admin request.
 * Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
