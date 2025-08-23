@@ -78,18 +78,11 @@ class FormSubmitTime {
 			true
 		);
 
-		$abs_path  = wp_normalize_path( ABSPATH );
-		$ajax_path = wp_normalize_path( // Avoid symlinks.
-			WP_PLUGIN_DIR . '/' . basename( HCAPTCHA_PATH ) . '/src/php/includes/ajax.php'
-		);
-
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'          => plugin_dir_url( HCAPTCHA_FILE ) . 'src/php/includes/ajax.php',
-				'absPath'          => $abs_path,
-				'ajaxPath'         => $ajax_path,
+				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'issueTokenAction' => self::ISSUE_TOKEN_ACTION,
 				'issueTokenNonce'  => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
 			]

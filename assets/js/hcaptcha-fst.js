@@ -1,8 +1,6 @@
-/* global jQuery, HCaptchaFSTObject */
+/* global HCaptchaFSTObject */
 
 /**
- * @param HCaptchaFSTObject.absPath
- * @param HCaptchaFSTObject.ajaxPath
  * @param HCaptchaFSTObject.ajaxUrl
  * @param HCaptchaFSTObject.fstToken
  * @param HCaptchaFSTObject.issueTokenAction
@@ -46,8 +44,6 @@ const fst = window.hCaptchaFST || ( function( document ) {
 				const formBody = new URLSearchParams();
 
 				formBody.set( 'action', HCaptchaFSTObject.issueTokenAction );
-				formBody.set( 'absPath', HCaptchaFSTObject.absPath );
-				formBody.set( 'ajaxPath', HCaptchaFSTObject.ajaxPath );
 				formBody.set( 'postId', postId );
 
 				const res = await fetch( HCaptchaFSTObject.ajaxUrl, {
@@ -70,7 +66,7 @@ const fst = window.hCaptchaFST || ( function( document ) {
 	};
 
 	return app;
-}( document, window, jQuery ) );
+}( document ) );
 
 window.hCaptchaFST = fst;
 
