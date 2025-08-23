@@ -155,7 +155,8 @@ class FormSubmitTime {
 	 * delete the nonce after verification. Returns an error if the verification fails or true on success.
 	 *
 	 * @param int  $min_submit_time The minimum time, in seconds, that must elapse since the token was issued.
-	 * @param bool $delete_nonce    Optional. Whether to delete the nonce after successful verification. Default is true.
+	 * @param bool $delete_nonce    Optional. Whether to delete the nonce after successful verification.
+	 *                              Default is true.
 	 *
 	 * @return true|WP_Error Returns true if the token is successfully verified, otherwise returns a WP_Error object.
 	 */
@@ -201,7 +202,7 @@ class FormSubmitTime {
 	 */
 	private function sign( array $payload ): string {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$data = base64_encode( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES ) );
+		$data = base64_encode( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 		$sig  = wp_hash( $data );
 
 		return $data . '-' . $sig;
@@ -210,7 +211,7 @@ class FormSubmitTime {
 	/**
 	 * Verifies a signed token for integrity and authenticity.
 	 *
-	 * @param string $token The token to verify, consisting of a base64-encoded payload and a signature separated by a dot.
+	 * @param string $token The token to verify, consisting of a base64-encoded payload and a signature.
 	 *
 	 * @return array|WP_Error Returns the decoded payload as an associative array if the token is valid,
 	 *                        or a WP_Error object if verification fails
