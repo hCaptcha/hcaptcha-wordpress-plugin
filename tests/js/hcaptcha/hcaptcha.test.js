@@ -1384,7 +1384,7 @@ describe( 'moveHP', () => {
 		const vis1 = document.createElement( 'input' ); vis1.name = 'vis1';
 		const vis2 = document.createElement( 'textarea' ); vis2.name = 'vis2';
 		const btn = document.createElement( 'button' ); btn.type = 'submit';
-		const hp = document.createElement( 'input' ); hp.name = 'hcap_hp_extra';
+		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_test';
 
 		// Initial order: hidden, vis1, vis2, btn, hp
 		form.appendChild( hidden );

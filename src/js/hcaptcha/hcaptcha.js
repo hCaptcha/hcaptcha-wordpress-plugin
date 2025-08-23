@@ -507,10 +507,13 @@ class HCaptcha {
 	 * @param {HTMLElement} formElement Form element.
 	 */
 	moveHP( formElement ) {
-		// Move only once in the form lifecycle.
-		if ( formElement?.dataset?.hpMoved === '1' ) {
+		// Guard: valid element and move only once per form lifecycle (prevent reentrancy).
+		if ( ! formElement || formElement?.dataset?.hpMoved === '1' ) {
 			return;
 		}
+
+		// Mark as moved early to avoid recursive re-entry via DOM observers.
+		formElement.dataset.hpMoved = '1';
 
 		const hpInput = formElement.querySelector( 'input[id^="hcap_hp_"]' );
 
@@ -535,7 +538,7 @@ class HCaptcha {
 		}
 
 		const inputId = hpInput.getAttribute( 'id' ) ?? '';
-		const label = formElement.querySelector( `label[for="${ inputId }"]` );
+		const label = inputId ? formElement.querySelector( `label[for="${ inputId }"]` ) : null;
 		const frag = document.createDocumentFragment();
 
 		if ( label && label.isConnected ) {
@@ -544,7 +547,6 @@ class HCaptcha {
 
 		frag.appendChild( hpInput );
 		ref.parentNode.insertBefore( frag, ref );
-		formElement.dataset.hpMoved = '1';
 	}
 
 	addFSTToken( formElement ) {
