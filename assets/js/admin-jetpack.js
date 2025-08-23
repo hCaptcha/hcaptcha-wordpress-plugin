@@ -2,7 +2,6 @@
 
 /**
  * @param HCaptchaJetpackObject.hCaptcha
- * @param window.hCaptchaJetpack
  */
 
 const jetpack = window.hCaptchaJetpack || ( function( document, window, wp ) {
