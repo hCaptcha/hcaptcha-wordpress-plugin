@@ -8,6 +8,7 @@
 * Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
 * Fixed an issue with several Divi optin email forms on the page.
 * Fixed activation of Blocksy plugins with any theme.
+* Fixed refreshing hCaptcha upon failed submission in Jetpack.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
