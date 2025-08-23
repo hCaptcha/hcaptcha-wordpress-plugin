@@ -186,6 +186,8 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Filter list of plugin to activate.
+	 * Proceed with the special case for blocksy companion plugins.
+	 * Companion plugins produce a fatal error when activated together.
 	 *
 	 * @param array|mixed $plugins    List of plugins.
 	 * @param bool        $first_only Activate the first available plugin only.
@@ -196,11 +198,14 @@ class Integrations extends PluginSettingsBase {
 	public function filter_activate_plugins( $plugins, bool $first_only = true ): array {
 		$plugins = (array) $plugins;
 
-		// Companion plugins produce a fatal error when activated together.
 		$companions = [
 			'blocksy-companion-pro/blocksy-companion.php',
 			'blocksy-companion/blocksy-companion.php',
 		];
+
+		if ( ! array_intersect( $plugins, $companions ) ) {
+			return $plugins;
+		}
 
 		// Remove Companion plugins from the list to activate.
 		$updated_plugins = array_diff( $plugins, $companions );

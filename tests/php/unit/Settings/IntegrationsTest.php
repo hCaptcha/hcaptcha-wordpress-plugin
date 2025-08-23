@@ -163,6 +163,27 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test filter_activate_plugins() when no Companion plugins are in dependency.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_no_dependant_companions(): void {
+		$input    = [ 'some/other.php' ];
+		$expected = $input;
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->never();
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
 	 * Test filter_activate_plugins() when a Companion plugin is already active.
 	 *
 	 * @throws ReflectionException ReflectionException.
