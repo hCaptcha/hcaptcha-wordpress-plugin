@@ -465,6 +465,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @dataProvider dp_test_print_inline_styles
 	 * @noinspection CssUnusedSymbol
+	 * @noinspection CssInvalidPropertyValue
 	 */
 	public function test_print_inline_styles( $custom_themes ): void {
 		$license       = 'pro';
@@ -594,6 +595,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 	.h-captcha iframe {
 		position: relative;
+		float: inline-start;
 	}
 
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {

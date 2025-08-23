@@ -560,6 +560,7 @@ class Main {
 
 	.h-captcha iframe {
 		position: relative;
+		float: inline-start;
 	}
 
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
