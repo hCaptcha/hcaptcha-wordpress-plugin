@@ -764,6 +764,7 @@ Instructions for popular native integrations are below:
 * Fixed updating the migration option on each admin request.
 * Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
 * Fixed an issue with several Divi optin email forms on the page.
+* Fixed activation of blocksy plugins with any theme.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
