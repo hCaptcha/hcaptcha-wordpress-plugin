@@ -507,13 +507,19 @@ class HCaptcha {
 	 * @param {HTMLElement} formElement Form element.
 	 */
 	moveHP( formElement ) {
-		const hpInput = formElement.querySelector( 'input[name^="hcap_hp_"]:not([name="hcap_hp_sig"])' );
+		// Move only once in the form lifecycle.
+		if ( formElement?.dataset?.hpMoved === '1' ) {
+			return;
+		}
+
+		const hpInput = formElement.querySelector( 'input[id^="hcap_hp_"]' );
 
 		if ( ! hpInput ) {
 			return;
 		}
 
 		const inputs = [ ...formElement.querySelectorAll( 'input,select,textarea,button' ) ]
+			// Do not insert inside .h-captcha element - it may be re-rendered later.
 			.filter( ( el ) => el !== hpInput && el.type !== 'hidden' && ! el.closest( '.h-captcha' ) );
 
 		if ( ! inputs.length ) {
@@ -524,9 +530,21 @@ class HCaptcha {
 		const idx = Math.floor( Math.random() * inputs.length );
 		const ref = inputs[ idx ];
 
-		if ( ref && ref.parentNode ) {
-			ref.parentNode.insertBefore( hpInput, ref );
+		if ( ! ( ref && ref.parentNode ) ) {
+			return;
 		}
+
+		const inputId = hpInput.getAttribute( 'id' ) ?? '';
+		const label = formElement.querySelector( `label[for="${ inputId }"]` );
+		const frag = document.createDocumentFragment();
+
+		if ( label && label.isConnected ) {
+			frag.appendChild( label );
+		}
+
+		frag.appendChild( hpInput );
+		ref.parentNode.insertBefore( frag, ref );
+		formElement.dataset.hpMoved = '1';
 	}
 
 	addFSTToken( formElement ) {
