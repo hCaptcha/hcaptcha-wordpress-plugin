@@ -507,14 +507,14 @@ class HCaptcha {
 	 * @param {HTMLElement} formElement Form element.
 	 */
 	moveHP( formElement ) {
-		const hpInput = formElement.querySelector( 'input[name^="hcap_hp_"]' );
+		const hpInput = formElement.querySelector( 'input[name^="hcap_hp_"]:not([name="hcap_hp_sig"])' );
 
 		if ( ! hpInput ) {
 			return;
 		}
 
 		const inputs = [ ...formElement.querySelectorAll( 'input,select,textarea,button' ) ]
-			.filter( ( el ) => el.type !== 'hidden' );
+			.filter( ( el ) => el !== hpInput && el.type !== 'hidden' && ! el.closest( '.h-captcha' ) );
 
 		if ( ! inputs.length ) {
 			return;
