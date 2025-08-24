@@ -670,7 +670,7 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Token and Honeypot',
 				'type'    => 'checkbox',
 				'section' => 'antispam',
-				'default' => 'on',
+				'default' => '',
 				'options' => [
 					'on' => 'Set Minimum Time',
 				],
@@ -687,7 +687,7 @@ abstract class HCaptchaTestCase extends TestCase {
 			'honeypot'                 => [
 				'type'    => 'checkbox',
 				'section' => 'antispam',
-				'default' => 'on',
+				'default' => '',
 				'options' => [
 					'on' => 'Enable Honeypot Field',
 				],

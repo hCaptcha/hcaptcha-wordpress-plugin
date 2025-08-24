@@ -538,7 +538,7 @@ class General extends PluginSettingsBase {
 				'label'   => __( 'Token and Honeypot', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
-				'default' => 'on',
+				'default' => '',
 				'options' => [
 					'on' => __( 'Set Minimum Time', 'hcaptcha-for-forms-and-more' ),
 				],
@@ -555,7 +555,7 @@ class General extends PluginSettingsBase {
 			'honeypot'             => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
-				'default' => 'on',
+				'default' => '',
 				'options' => [
 					'on' => __( 'Enable Honeypot Field', 'hcaptcha-for-forms-and-more' ),
 				],
