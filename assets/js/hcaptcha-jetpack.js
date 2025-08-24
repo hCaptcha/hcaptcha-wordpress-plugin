@@ -8,8 +8,8 @@ const jetpack = window.hCaptchaJetpack || ( function( window ) {
 		},
 
 		fetchComplete( event ) {
-			const init = event?.detail?.args?.[ 1 ] || {};
-			const body = init.body;
+			const config = event?.detail?.args?.[ 1 ] ?? {};
+			const body = config.body;
 
 			if ( ! ( body instanceof FormData ) ) {
 				return;
