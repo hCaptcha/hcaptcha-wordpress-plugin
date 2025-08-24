@@ -60,13 +60,6 @@ const fst = window.hCaptchaFST || ( function( document ) {
 				document.querySelectorAll( '[name="hcap_fst_token"]' ).forEach( ( element ) => {
 					element.value = token;
 				} );
-
-				setTimeout(
-					function() {
-						console.log( 'OK.' );
-					},
-					5000,
-				);
 			}() );
 		},
 	};
