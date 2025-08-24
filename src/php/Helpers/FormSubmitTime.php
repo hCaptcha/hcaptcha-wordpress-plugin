@@ -108,19 +108,19 @@ class FormSubmitTime {
 		 *
 		 * @param int $ttl The time-to-live in seconds. Default is 600 seconds (10 minutes).
 		 */
-		$ttl   = absint( apply_filters( 'hcap_fst_token_ttl', 600 ) );
-		$nonce = wp_generate_uuid4();
-		$value = 1;
+		$ttl = absint( apply_filters( 'hcap_fst_token_ttl', 600 ) );
+		$ttl = max( $ttl, 60 ); // Minimum TTL is 60 seconds (1 minute).
 
-		$payload = [
-			'value'     => $value,
+		$payload   = [
 			'post_id'   => $post_id,
 			'issued_at' => $issued_at,
 			'ttl'       => $ttl,
-			'nonce'     => $nonce,
 		];
+		$token     = $this->token_from_payload( $payload );
+		$signature = $this->parse_token( $token )[1];
+		$transient = self::TRANSIENT_PREFIX . $signature;
 
-		set_transient( self::TRANSIENT_PREFIX . $nonce, $value, $ttl );
+		set_transient( $transient, $payload, $ttl );
 
 		if ( function_exists( 'nocache_headers' ) ) {
 			nocache_headers();
@@ -135,7 +135,7 @@ class FormSubmitTime {
 		 *
 		 * @param string $token The generated token.
 		 */
-		$token = (string) apply_filters( 'hcap_fst_token', $this->sign( $payload ) );
+		$token = (string) apply_filters( 'hcap_fst_token', $token );
 
 		wp_send_json_success( [ 'token' => $token ] );
 	}
@@ -156,7 +156,8 @@ class FormSubmitTime {
 	public function verify_token( int $min_submit_time, bool $delete_nonce = true ) {
 		$token = Request::filter_input( INPUT_POST, 'hcap_fst_token' );
 
-		$payload = $this->verify_sig( $token );
+		$payload   = $this->payload_from_token( $token );
+		$signature = $this->parse_token( $token )[1];
 
 		if ( is_wp_error( $payload ) ) {
 			return $payload;
@@ -165,9 +166,9 @@ class FormSubmitTime {
 		$now       = time();
 		$issued_at = (int) ( $payload['issued_at'] ?? 0 );
 		$ttl       = (int) ( $payload['ttl'] ?? 0 );
-		$nonce_key = self::TRANSIENT_PREFIX . $payload['nonce'] ?? '';
+		$transient = self::TRANSIENT_PREFIX . $signature;
 
-		if ( get_transient( $nonce_key ) === false ) {
+		if ( get_transient( $transient ) !== $payload ) {
 			return new WP_Error( 'fst_replay_or_expired', __( 'Token replayed or expired.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
@@ -180,43 +181,42 @@ class FormSubmitTime {
 		}
 
 		if ( $delete_nonce ) {
-			delete_transient( $nonce_key );
+			delete_transient( $transient );
 		}
 
 		return true;
 	}
 
 	/**
-	 * Signs the given payload by encoding it and appending a signature.
+	 * Get token form a payload.
+	 * Signs the given payload and appends a signature.
 	 *
 	 * @param array $payload The data array to be signed.
 	 *
 	 * @return string The signed data in the format 'encoded_payload-signature'.
 	 */
-	private function sign( array $payload ): string {
+	private function token_from_payload( array $payload ): string {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$data = base64_encode( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
-		$sig  = wp_hash( $data );
+		$data      = base64_encode( wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
+		$signature = wp_hash( $data );
 
-		return $data . '-' . $sig;
+		return $data . '-' . $signature;
 	}
 
 	/**
-	 * Verifies a signed token for integrity and authenticity.
+	 * Get payload from a signed token.
+	 * Verifies token for integrity and authenticity.
 	 *
 	 * @param string $token The token to verify, consisting of a base64-encoded payload and a signature.
 	 *
-	 * @return array|WP_Error Returns the decoded payload as an associative array if the token is valid,
-	 *                        or a WP_Error object if verification fails
+	 * @return array|WP_Error Returns the decoded payload as an array and the signature as a string
+	 *                        if the token is valid, or a WP_Error object if verification fails
 	 *                        (e.g., malformed token, signature mismatch, decode error, or invalid payload).
 	 */
-	private function verify_sig( string $token ) {
-		[ $data, $sig ] = explode( '-', $token . '-', 2 );
+	private function payload_from_token( string $token ) {
+		[ $data, $signature ] = $this->parse_token( $token );
 
-		$sig  = rtrim( $sig, '-' );
-		$calc = wp_hash( $data );
-
-		if ( ! hash_equals( $calc, $sig ) ) {
+		if ( ! hash_equals( wp_hash( $data ), $signature ) ) {
 			return new WP_Error( 'fst_bad_sig', __( 'Signature mismatch.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
@@ -234,5 +234,20 @@ class FormSubmitTime {
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Parses a token into data and signature.
+	 *
+	 * @param string $token The token string to be parsed, containing a data and signature separated by a dash.
+	 *
+	 * @return array An array containing the parsed data and the signature.
+	 */
+	private function parse_token( string $token ): array {
+		$token_arr = explode( '-', $token, 2 );
+		$data      = $token_arr[0];
+		$signature = $token_arr[1] ?? '';
+
+		return [ $data, $signature ];
 	}
 }

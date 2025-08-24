@@ -2,7 +2,6 @@
 
 /**
  * @param HCaptchaFSTObject.ajaxUrl
- * @param HCaptchaFSTObject.fstToken
  * @param HCaptchaFSTObject.issueTokenAction
  */
 
