@@ -701,7 +701,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$this->set_method_accessibility( $subject, $method );
 		$this->set_protected_property( $subject, 'form_fields', $form_fields );
 
-		if ( empty( $form_fields ) ) {
+		if ( null === $form_fields ) {
 			$subject->shouldReceive( 'init_form_fields' )->andReturnUsing(
 				function () use ( $subject ) {
 					$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
@@ -726,7 +726,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function dp_test_form_fields(): array {
 		return [
 			[ null, $this->get_test_form_fields() ],
-			[ [], $this->get_test_form_fields() ],
+			[ [], [] ],
 			[ $this->get_test_form_fields(), $this->get_test_form_fields() ],
 		];
 	}

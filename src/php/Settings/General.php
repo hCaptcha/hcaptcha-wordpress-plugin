@@ -538,7 +538,6 @@ class General extends PluginSettingsBase {
 				'label'   => __( 'Token and Honeypot', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
-				'default' => '',
 				'options' => [
 					'on' => __( 'Set Minimum Time', 'hcaptcha-for-forms-and-more' ),
 				],
@@ -555,7 +554,6 @@ class General extends PluginSettingsBase {
 			'honeypot'             => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
-				'default' => '',
 				'options' => [
 					'on' => __( 'Enable Honeypot Field', 'hcaptcha-for-forms-and-more' ),
 				],
@@ -619,7 +617,6 @@ class General extends PluginSettingsBase {
 				'options' => [
 					'on' => __( 'Remove Data on Uninstall', 'hcaptcha-for-forms-and-more' ),
 				],
-				'default' => '',
 				'helper'  => __( 'When enabled, all plugin data will be removed when uninstalling the plugin.', 'hcaptcha-for-forms-and-more' ),
 			],
 			self::NETWORK_WIDE     => [

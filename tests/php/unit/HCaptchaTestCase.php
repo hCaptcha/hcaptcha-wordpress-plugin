@@ -670,7 +670,6 @@ abstract class HCaptchaTestCase extends TestCase {
 				'label'   => 'Token and Honeypot',
 				'type'    => 'checkbox',
 				'section' => 'antispam',
-				'default' => '',
 				'options' => [
 					'on' => 'Set Minimum Time',
 				],
@@ -687,7 +686,6 @@ abstract class HCaptchaTestCase extends TestCase {
 			'honeypot'                 => [
 				'type'    => 'checkbox',
 				'section' => 'antispam',
-				'default' => '',
 				'options' => [
 					'on' => 'Enable Honeypot Field',
 				],
@@ -735,7 +733,6 @@ abstract class HCaptchaTestCase extends TestCase {
 				'options' => [
 					'on' => 'Remove Data on Uninstall',
 				],
-				'default' => '',
 				'helper'  => 'When enabled, all plugin data will be removed when uninstalling the plugin.',
 			],
 			SettingsBase::NETWORK_WIDE => [
