@@ -169,15 +169,15 @@ class FormSubmitTime {
 		$transient = self::TRANSIENT_PREFIX . $signature;
 
 		if ( get_transient( $transient ) !== $payload ) {
-			return new WP_Error( 'fst_replay_or_expired', __( 'Token replayed or expired.', 'hcaptcha-for-forms-and-more' ) );
+			return hcap_get_wp_error( 'fst-replayed-or-expired' );
 		}
 
 		if ( $now - $issued_at < $min_submit_time ) {
-			return new WP_Error( 'fst_too_fast', __( 'Form submitted too quickly.', 'hcaptcha-for-forms-and-more' ) );
+			return hcap_get_wp_error( 'fst-too-fast' );
 		}
 
 		if ( $now - $issued_at > $ttl ) {
-			return new WP_Error( 'fst_expired', __( 'Token expired.', 'hcaptcha-for-forms-and-more' ) );
+			return hcap_get_wp_error( 'fst-expired' );
 		}
 
 		if ( $delete_nonce ) {

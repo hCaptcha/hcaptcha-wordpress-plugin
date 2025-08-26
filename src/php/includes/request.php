@@ -95,6 +95,10 @@ function hcap_get_error_messages(): array {
 			'bad-nonce'                => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
 			'bad-signature'            => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
 			'spam'                     => __( 'Anti-spam check failed.', 'hcaptcha-for-forms-and-more' ),
+			'fst-no-object'            => __( 'FST object does not exist.', 'hcaptcha-for-forms-and-more' ),
+			'fst-too-fast'             => __( 'Form submitted too quickly.', 'hcaptcha-for-forms-and-more' ),
+			'fst-replayed-or-expired'  => __( 'Token replayed or expired.', 'hcaptcha-for-forms-and-more' ),
+			'fst-expired'              => __( 'Token expired.', 'hcaptcha-for-forms-and-more' ),
 		]
 	);
 }
@@ -124,6 +128,27 @@ function hcap_get_error_message( $error_codes ): string {
 	$header = _n( 'hCaptcha error:', 'hCaptcha errors:', count( $message_arr ), 'hcaptcha-for-forms-and-more' );
 
 	return $header . ' ' . implode( '; ', $message_arr );
+}
+
+/**
+ * Get WP_Error from hCaptcha error code.
+ *
+ * @param string|string[] $error_codes Error codes.
+ *
+ * @return WP_Error
+ */
+function hcap_get_wp_error( $error_codes ): WP_Error {
+	$error_codes = (array) $error_codes;
+	$errors      = hcap_get_error_messages();
+	$wp_error    = new WP_Error();
+
+	foreach ( $error_codes as $error_code ) {
+		if ( array_key_exists( $error_code, $errors ) ) {
+			$wp_error->add( $error_code, $errors[ $error_code ] );
+		}
+	}
+
+	return $wp_error;
 }
 
 /**

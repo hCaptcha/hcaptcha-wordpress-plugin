@@ -376,7 +376,7 @@ class API {
 		$fst_obj = hcaptcha()->get( FormSubmitTime::class );
 
 		if ( ! $fst_obj ) {
-			return new WP_Error( 'fst_no_object', __( 'FST object does not exist.', 'hcaptcha-for-forms-and-more' ) );
+			return hcap_get_wp_error( 'fst-no-object' );
 		}
 
 		$min_submit_time = hcaptcha()->settings()->get( 'min_submit_time' );
