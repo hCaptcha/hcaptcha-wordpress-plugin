@@ -1,6 +1,6 @@
 import { helper } from './hcaptcha-helper.js';
 
-const wcBlockCheckout = window.hCaptchaJetpack || ( function( window ) {
+const wcBlockCheckout = window.hCaptchaWCBlockCheckout || ( function( window ) {
 	const app = {
 		init() {
 			const checkoutButtonClass = 'wc-block-components-checkout-place-order-button';
@@ -101,6 +101,6 @@ const wcBlockCheckout = window.hCaptchaJetpack || ( function( window ) {
 	return app;
 }( window ) );
 
-window.hCaptchaWcBlockCheckout = wcBlockCheckout;
+window.hCaptchaWCBlockCheckout = wcBlockCheckout;
 
 wcBlockCheckout.init();
