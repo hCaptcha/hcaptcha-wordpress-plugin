@@ -17,6 +17,11 @@ use HCaptcha\Helpers\Request;
 class Form {
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-avada';
+
+	/**
 	 * Form id.
 	 *
 	 * @var int
@@ -40,6 +45,7 @@ class Form {
 		add_filter( 'fusion_builder_form_submission_data', [ $this, 'submission_data' ] );
 		add_action( 'fusion_element_form_content', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'fusion_form_demo_mode', [ $this, 'verify' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -126,6 +132,10 @@ class Form {
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
+		$_POST['hcap_fst_token']     = $form_data['hcap_fst_token'] ?? '';
+		$hp_name                     = API::get_hp_name( $form_data );
+		$_POST[ $hp_name ]           = $form_data[ $hp_name ] ?? '';
+		$_POST['hcap_hp_sig']        = $form_data['hcap_hp_sig'] ?? '';
 
 		$result = API::verify( $this->get_entry( $form_data ) );
 
@@ -140,6 +150,27 @@ class Form {
 					'info'   => [ 'hcaptcha' => $result ],
 				]
 			)
+		);
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-avada$min.js",
+			[ 'jquery', 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
 		);
 	}
 

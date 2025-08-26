@@ -188,6 +188,23 @@ class API {
 	}
 
 	/**
+	 * Get a honeypot field name.
+	 *
+	 * @param array $arr Array of form fields.
+	 *
+	 * @return string
+	 */
+	public static function get_hp_name( array $arr = [] ): string {
+		foreach ( array_keys( $arr ) as $key ) {
+			if ( 'hcap_hp_sig' !== $key && 0 === strpos( $key, 'hcap_hp_' ) ) {
+				return $key;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Verify hCaptcha request.
 	 *
 	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_request().
@@ -326,29 +343,15 @@ class API {
 		}
 
 		// Honeypot check: require valid signature and ensure the honeypot field is empty.
-		$hp_field_name = '';
-		$hp_value      = '';
-		$hp_sig        = isset( $_POST['hcap_hp_sig'] )
-			? filter_var( wp_unslash( $_POST['hcap_hp_sig'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
-			: '';
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		foreach ( array_keys( $_POST ) as $key ) {
-			if ( 'hcap_hp_sig' === $key || 0 !== strpos( $key, 'hcap_hp_' ) ) {
-				continue;
-			}
-
-			$hp_field_name = $key;
-			$hp_value      = Request::filter_input( INPUT_POST, $hp_field_name );
-
-			break;
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
+		$hp_name      = self::get_hp_name( $_POST );
+		$hp_value     = Request::filter_input( INPUT_POST, $hp_name );
+		$hp_signature = Request::filter_input( INPUT_POST, 'hcap_hp_sig' );
 
 		// Verify nonce for logged-in users only.
-		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_sig, $hp_field_name );
+		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_signature, $hp_name );
 
-		$check = $hp_field_name && $nonce_verified && '' === trim( $hp_value );
+		$check = $hp_name && $nonce_verified && '' === trim( $hp_value );
 
 		/**
 		 * Filters the result of the honeypot field check.

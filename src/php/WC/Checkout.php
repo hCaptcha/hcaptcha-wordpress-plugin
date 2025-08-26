@@ -163,14 +163,7 @@ class Checkout {
 		$response_name  = 'h-captcha-response';
 		$hp_sig_name    = 'hcap_hp_sig';
 		$token_name     = 'hcap_fst_token';
-		$hp_name        = '';
-
-		foreach ( $params as $key => $value ) {
-			if ( 'hcap_hp_sig' !== $key && 0 === strpos( $key, 'hcap_hp_' ) ) {
-				$hp_name = $key;
-				break;
-			}
-		}
+		$hp_name        = API::get_hp_name( $params );
 
 		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
 		$_POST[ $response_name ]  = $request->get_param( $response_name );
