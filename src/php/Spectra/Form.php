@@ -63,6 +63,7 @@ class Form {
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -125,11 +126,26 @@ class Form {
 			: [];
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$_POST[ self::NONCE ] = $form_data[ self::NONCE ] ?? '';
+		$widget_id_name = 'hcaptcha-widget-id';
+		$hp_sig_name    = 'hcap_hp_sig';
+		$token_name     = 'hcap_fst_token';
+		$hp_name        = API::get_hp_name( $form_data );
+
+		$_POST[ self::NONCE ]     = $form_data[ self::NONCE ] ?? '';
+		$_POST[ $widget_id_name ] = $form_data[ $widget_id_name ] ?? '';
+		$_POST[ $hp_sig_name ]    = $form_data[ $hp_sig_name ] ?? '';
+		$_POST[ $hp_name ]        = $form_data[ $hp_name ] ?? '';
+		$_POST[ $token_name ]     = $form_data[ $token_name ] ?? '';
 
 		$error_message = API::verify( $this->get_entry( $form_data ) );
 
-		unset( $_POST[ self::NONCE ] );
+		unset(
+			$_POST[ self::NONCE ],
+			$_POST[ $widget_id_name ],
+			$_POST[ $hp_sig_name ],
+			$_POST[ $hp_name ],
+			$_POST[ $token_name ]
+		);
 
 		if ( null === $error_message ) {
 			return;
@@ -190,6 +206,26 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**
