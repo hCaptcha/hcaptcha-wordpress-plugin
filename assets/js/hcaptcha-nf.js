@@ -53,7 +53,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 					'.h-captcha[data-fieldId="' + fieldId + '"] textarea[name="h-captcha-response"]'
 				);
 
-				model.set( 'value', hcapResponse.value );
+				model.set( 'value', hcapResponse?.value );
 			}
 		},
 	} );

@@ -92,7 +92,7 @@ class NF implements Base {
 		$template = file_get_contents( $this->templates_dir . 'fields-hcaptcha.html' );
 
 		// Fix bug in Ninja forms.
-		// For template script id, they expect field->_name in admin, but field->_type on frontend.
+		// For template script id, they expect field->_name in admin, but field->_type on the frontend.
 		// It works for NF fields as all fields have _name === _type.
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -129,7 +129,7 @@ class NF implements Base {
 				$field['hcaptcha'] = str_replace(
 					$search,
 					$search . ' style="z-index: 2;"',
-					$this->get_hcaptcha( (int) $field['id'] )
+					$this->get_hcaptcha( $field['id'] )
 				);
 
 				break;
@@ -236,7 +236,7 @@ class NF implements Base {
 	public function localize_field( $field ): array {
 		$field = (array) $field;
 
-		$field['settings']['hcaptcha'] = $field['settings']['hcaptcha'] ?? $this->get_hcaptcha( (int) $field['id'] );
+		$field['settings']['hcaptcha'] = $field['settings']['hcaptcha'] ?? $this->get_hcaptcha( $field['id'] );
 
 		// Mark hCaptcha as shown in any case. Needed on the preview page.
 		hcaptcha()->form_shown = true;
@@ -247,11 +247,11 @@ class NF implements Base {
 	/**
 	 * Get hCaptcha.
 	 *
-	 * @param int $field_id Field id.
+	 * @param int|string $field_id Field id.
 	 *
 	 * @return string
 	 */
-	private function get_hcaptcha( int $field_id ): string {
+	private function get_hcaptcha( $field_id ): string {
 		$hcaptcha_id = uniqid( 'hcaptcha-nf-', true );
 
 		// Nonce is checked by Ninja forms.

@@ -766,6 +766,7 @@ Instructions for popular native integrations are below:
 * Fixed an issue with several Divi optin email forms on the page.
 * Fixed activation of Blocksy plugins with any theme.
 * Fixed refreshing hCaptcha upon failed submission in Jetpack.
+* Fixed Ninja Forms uncaught type error in JS appeared with some field types.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
