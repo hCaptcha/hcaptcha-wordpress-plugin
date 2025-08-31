@@ -1044,7 +1044,6 @@ class HCaptcha {
 	 * @param string $tag Script tag.
 	 *
 	 * @return string
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public static function add_type_module( string $tag ): string {
 		$search  = [
