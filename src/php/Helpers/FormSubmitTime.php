@@ -64,7 +64,7 @@ class FormSubmitTime {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		if ( ! hcaptcha()->form_shown ) {
+		if ( ! hcaptcha()->form_shown || ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
 			return;
 		}
 

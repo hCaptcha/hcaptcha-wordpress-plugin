@@ -223,6 +223,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+		add_action( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -840,6 +841,48 @@ class Main {
 			self::OBJECT,
 			[ 'params' => wp_json_encode( $params ) ]
 		);
+	}
+
+	/**
+	 * Allow honeypot and FST on the supported forms only.
+	 * At this moment, only some forms can use honeypot and fst anti-spam token protection.
+	 * The supported list will be extended in the future.
+	 *
+	 * @param bool|mixed $value   The protection status of a form.
+	 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
+		$value = (bool) $value;
+
+		$supported_forms = [
+			[ General::class ], // General settings page.
+			[ 'WordPress' ], // WordPress Core.
+			[ 'Avada' ], // Avada theme.
+			[ 'contact-form-7/wp-contact-form-7.php' ], // Contact Form 7.
+			[ 'Divi' ], // Divi theme.
+			[ 'divi-builder/divi-builder.php' ], // Divi Builder.
+			[ 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ], // Essential Addons for Elementor.
+			[ 'Extra' ], // Extra theme.
+			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
+			[ 'jetpack/jetpack.php' ], // JetPack.
+			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
+			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
+			[ 'woocommerce/woocommerce.php' ], // WooCommerce.
+			[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ], // WPForms.
+			[ 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' ], // Spectra.
+			[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
+		];
+
+		if ( ! in_array( $source, $supported_forms, true ) ) {
+			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
+			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
+		}
+
+		return $value;
 	}
 
 	/**

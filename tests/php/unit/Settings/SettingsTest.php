@@ -465,7 +465,12 @@ class SettingsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 		$subject->shouldReceive( 'get' )->with( $key )->andReturn( $value );
 
-		$expected = ! empty( $value );
+		if ( is_array( $value ) ) {
+			$expected = [ 'on' ] === $value;
+		} else {
+			$expected = ! empty( $value );
+		}
+
 		self::assertSame( $expected, $subject->is_on( $key ) );
 	}
 

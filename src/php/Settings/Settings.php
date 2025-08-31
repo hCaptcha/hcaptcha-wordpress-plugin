@@ -259,7 +259,13 @@ class Settings implements SettingsInterface {
 	 * @return bool
 	 */
 	public function is_on( string $key ): bool {
-		return ! empty( $this->get( $key ) );
+		$value = $this->get( $key );
+
+		if ( is_array( $value ) ) {
+			return [ 'on' ] === $value;
+		}
+
+		return ! empty( $value );
 	}
 
 	/**
