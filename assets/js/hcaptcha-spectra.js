@@ -75,7 +75,7 @@ const hCaptchaSpectra = window.hCaptchaSpectra || ( function( window ) {
 			formData[ widgetName ] = widgetId?.value;
 			formData[ responseInputName ] = hCaptchaResponse?.value;
 			formData[ nonceName ] = nonce?.value;
-			formData[ hcapHp.id ] = hcapHp?.value;
+			formData[ hcapHp?.id ] = hcapHp?.value;
 			formData[ sigInputName ] = hcapSig?.value;
 			formData[ tokenName ] = token?.value;
 
