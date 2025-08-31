@@ -756,7 +756,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.17.0 =
-* Added a hidden honeypot field for bot detection before processing hCaptcha.
+* Added a hidden honeypot field and minimum submit time for bot detection before processing hCaptcha. Currently supported for WordPress Core, Avada theme, Contact Form 7, Divi theme, Divi Builder, Essential Addons for Elementor, Extra theme, Elementor, Jetpack, Mailchimp, Ninja Forms, Spectra, WooCommerce, WPForms, Protect Content feature.
 * Added a notification message on the placeholder when hCaptcha failed to load.
 * Added hCaptcha error messages to the Divi optin email form.
 * Added hCaptcha error messages to the JetPack form.
