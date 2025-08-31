@@ -1,87 +1,114 @@
-/**
- * Ninja Forms controller file.
- */
+/* global Marionette, nfRadio, jQuery */
 
-/* global Marionette, nfRadio */
+const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
+	const app = {
+		init() {
+			// Register Ajax submit button.
+			wp.hooks.addFilter(
+				'hcaptcha.ajaxSubmitButton',
+				'hcaptcha',
+				app.isAjaxSubmitButton
+			);
 
-wp.hooks.addFilter(
-	'hcaptcha.ajaxSubmitButton',
-	'hcaptcha',
-	( isAjaxSubmitButton, submitButtonElement ) => {
-		if ( submitButtonElement.classList.contains( 'nf-element' ) ) {
-			return true;
-		}
+			// Register Ajax prefilter for NF submissions.
+			$.ajaxPrefilter( function( options ) {
+				const data = options.data ?? '';
 
-		return isAjaxSubmitButton;
-	}
-);
+				if ( ! ( typeof data === 'string' || data instanceof String ) ) {
+					return;
+				}
 
-document.addEventListener( 'DOMContentLoaded', function() {
-	const HCaptchaFieldController = Marionette.Object.extend( {
-		initialize() {
-			// On the Form Submission's field validation.
-			const submitChannel = nfRadio.channel( 'submit' );
-			this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
-			this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
+				if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
+					return;
+				}
 
-			// On the Field's model value change.
-			const fieldsChannel = nfRadio.channel( 'fields' );
-			this.listenTo( fieldsChannel, 'change:modelValue', this.updateHcaptcha );
+				const urlParams = new URLSearchParams( data );
+				const formId = JSON.parse( urlParams.get( 'formData' ) ).id;
+				const $form = $( `#nf-form-${ formId }-cont` );
+				let id = $form.find( '[name="hcaptcha-widget-id"]' ).val();
+				id = id ? id : '';
+				options.data += `&hcaptcha-widget-id=${ id }`;
+			} );
+
+			// Register Ajax global success to rebind hCaptcha events.
+			$( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
+				const data = settings.data ?? '';
+
+				if ( typeof data !== 'string' ) {
+					return;
+				}
+
+				const action = new URLSearchParams( data ).get( 'action' );
+
+				if ( 'nf_ajax_submit' !== action ) {
+					return;
+				}
+
+				window.hCaptchaBindEvents();
+			} );
+
+			// Initialize Ninja Forms field controller listeners when DOM is ready.
+			document.addEventListener( 'DOMContentLoaded', app.onDomReady );
 		},
 
-		updateHcaptcha( model ) {
-			// Only validate a specific fields type.
-			if ( 'hcaptcha-for-ninja-forms' !== model.get( 'type' ) ) {
-				return;
+		isAjaxSubmitButton( isAjaxSubmitButton, submitButtonElement ) {
+			if ( submitButtonElement.classList.contains( 'nf-element' ) ) {
+				return true;
 			}
 
-			// Check if the Model has a value.
-			if ( model.get( 'value' ) ) {
-				// Remove Error from Model.
-				nfRadio.channel( 'fields' ).request(
-					'remove:error',
-					model.get( 'id' ),
-					'required-error'
-				);
-			} else {
-				const fieldId = model.get( 'id' );
-
-				/**
-				 * @type {HTMLTextAreaElement}
-				 */
-				const hcapResponse = document.querySelector(
-					`div[data-field-id="${ fieldId }"] textarea[name="h-captcha-response"]`
-				);
-
-				model.set( 'value', hcapResponse?.value );
-			}
+			return isAjaxSubmitButton;
 		},
-	} );
 
-	// Instantiate our custom field's controller, defined above.
-	window.hCaptchaFieldController = new HCaptchaFieldController();
-} );
+		onDomReady() {
+			// Create a Marionette controller mirroring the original behavior but scoped here.
+			const HCaptchaFieldController = Marionette.Object.extend( {
+				initialize() {
+					// On the Form Submission's field validation.
+					const submitChannel = nfRadio.channel( 'submit' );
+					this.listenTo( submitChannel, 'validate:field', this.updateHcaptcha );
 
-/* global jQuery */
+					// On the Field's model value change.
+					const fieldsChannel = nfRadio.channel( 'fields' );
+					this.listenTo( fieldsChannel, 'change:modelValue', this.updateHcaptcha );
+				},
 
-( function( $ ) {
-	// noinspection JSCheckFunctionSignatures
-	$.ajaxPrefilter( function( options ) {
-		const data = options.data ?? '';
+				updateHcaptcha( model ) {
+					// Only validate a specific fields type.
+					if ( 'hcaptcha-for-ninja-forms' !== model.get( 'type' ) ) {
+						return;
+					}
 
-		if ( ! ( typeof data === 'string' || data instanceof String ) ) {
-			return;
-		}
+					// Check if the Model has a value.
+					if ( model.get( 'value' ) ) {
+						// Remove Error from Model.
+						nfRadio.channel( 'fields' ).request(
+							'remove:error',
+							model.get( 'id' ),
+							'required-error'
+						);
+					} else {
+						const fieldId = model.get( 'id' );
 
-		if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
-			return;
-		}
+						/**
+						 * @type {HTMLTextAreaElement}
+						 */
+						const hcapResponse = document.querySelector(
+							`div[data-field-id="${ fieldId }"] textarea[name="h-captcha-response"]`
+						);
 
-		const urlParams = new URLSearchParams( data );
-		const formId = JSON.parse( urlParams.get( 'formData' ) ).id;
-		const $form = $( '#nf-form-' + formId + '-cont' );
-		let id = $form.find( '[name="hcaptcha-widget-id"]' ).val();
-		id = id ? id : '';
-		options.data += '&hcaptcha-widget-id=' + id;
-	} );
-}( jQuery ) );
+						model.set( 'value', hcapResponse?.value );
+					}
+				},
+			} );
+
+			// Instantiate our custom field's controller, defined above.
+			window.hCaptchaFieldController = new HCaptchaFieldController();
+		},
+	};
+
+	return app;
+}( window, jQuery ) );
+
+window.hCaptchaNF = hCaptchaNF;
+
+hCaptchaNF.init();

@@ -75,6 +75,7 @@ class NF implements Base {
 		add_filter( "ninja_forms_localize_field_$name", [ $this, 'localize_field' ] );
 		add_filter( "ninja_forms_localize_field_{$name}_preview", [ $this, 'localize_field' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -286,5 +287,25 @@ class NF implements Base {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }
