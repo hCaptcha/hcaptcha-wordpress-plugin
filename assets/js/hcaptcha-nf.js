@@ -10,45 +10,9 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 				app.isAjaxSubmitButton
 			);
 
-			// Register Ajax prefilter for NF submissions.
-			$.ajaxPrefilter( function( options ) {
-				const data = options.data ?? '';
-
-				if ( ! ( typeof data === 'string' || data instanceof String ) ) {
-					return;
-				}
-
-				if ( ! data.startsWith( 'action=nf_ajax_submit' ) ) {
-					return;
-				}
-
-				const urlParams = new URLSearchParams( data );
-				const formId = JSON.parse( urlParams.get( 'formData' ) ).id;
-				const $form = $( `#nf-form-${ formId }-cont` );
-				let id = $form.find( '[name="hcaptcha-widget-id"]' ).val();
-				id = id ? id : '';
-				options.data += `&hcaptcha-widget-id=${ id }`;
-			} );
-
-			// Register Ajax global success to rebind hCaptcha events.
-			$( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
-				const data = settings.data ?? '';
-
-				if ( typeof data !== 'string' ) {
-					return;
-				}
-
-				const action = new URLSearchParams( data ).get( 'action' );
-
-				if ( 'nf_ajax_submit' !== action ) {
-					return;
-				}
-
-				window.hCaptchaBindEvents();
-			} );
-
-			// Initialize Ninja Forms field controller listeners when DOM is ready.
 			document.addEventListener( 'DOMContentLoaded', app.onDomReady );
+			$.ajaxPrefilter( this.ajaxPrefilter() );
+			$( document ).on( 'ajaxSuccess', app.ajaxSuccessHandler );
 		},
 
 		isAjaxSubmitButton( isAjaxSubmitButton, submitButtonElement ) {
@@ -59,6 +23,7 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 			return isAjaxSubmitButton;
 		},
 
+		// Initialize Ninja Forms field controller listeners when DOM is ready.
 		onDomReady() {
 			// Create a Marionette controller mirroring the original behavior but scoped here.
 			const HCaptchaFieldController = Marionette.Object.extend( {
@@ -103,6 +68,59 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 
 			// Instantiate our custom field's controller, defined above.
 			window.hCaptchaFieldController = new HCaptchaFieldController();
+		},
+
+		// Register Ajax prefilter for NF submissions.
+		ajaxPrefilter() {
+			return function( options ) {
+				const data = options.data ?? '';
+
+				if ( typeof data !== 'string' ) {
+					return;
+				}
+
+				const urlParams = new URLSearchParams( data );
+				const action = urlParams.get( 'action' );
+
+				if ( 'nf_ajax_submit' !== action ) {
+					return;
+				}
+
+				const widgetName = 'hcaptcha-widget-id';
+				const tokenName = 'hcap_fst_token';
+				const sigName = 'hcap_hp_sig';
+
+				const formId = JSON.parse( urlParams.get( 'formData' ) ).id;
+				const $form = $( `#nf-form-${ formId }-cont` );
+				const widget = $form.find( `[name="${ widgetName }"]` ).val() ?? '';
+				const token = $form.find( `[name="${ tokenName }"]` ).val() ?? '';
+				const sig = $form.find( `[name="${ sigName }"]` ).val() ?? '';
+				const hcapHp = $form.find( `[id^="hcap_hp_"]` );
+
+				urlParams.set( widgetName, widget );
+				urlParams.set( tokenName, token );
+				urlParams.set( sigName, sig );
+				urlParams.set( hcapHp.attr( 'id' ) ?? '', hcapHp.val() ?? '' );
+
+				options.data = urlParams.toString();
+			};
+		},
+
+		// jQuery ajaxSuccess handler.
+		ajaxSuccessHandler( event, xhr, settings ) {
+			const data = settings.data ?? '';
+
+			if ( typeof data !== 'string' ) {
+				return;
+			}
+
+			const action = new URLSearchParams( data ).get( 'action' );
+
+			if ( 'nf_ajax_submit' !== action ) {
+				return;
+			}
+
+			window.hCaptchaBindEvents();
 		},
 	};
 
