@@ -767,6 +767,7 @@ Instructions for popular native integrations are below:
 * Fixed activation of Blocksy plugins with any theme.
 * Fixed refreshing hCaptcha upon failed submission in Jetpack.
 * Fixed Ninja Forms uncaught type error in JS appeared with some field types.
+* Fix Ninja Forms integration when form duplicates are on the same page.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.

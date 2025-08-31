@@ -50,7 +50,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 				 * @type {HTMLTextAreaElement}
 				 */
 				const hcapResponse = document.querySelector(
-					'.h-captcha[data-fieldId="' + fieldId + '"] textarea[name="h-captcha-response"]'
+					`div[data-field-id="${ fieldId }"] textarea[name="h-captcha-response"]`
 				);
 
 				model.set( 'value', hcapResponse?.value );
