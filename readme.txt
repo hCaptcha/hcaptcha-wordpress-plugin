@@ -759,6 +759,7 @@ Instructions for popular native integrations are below:
 * Added a hidden honeypot field for bot detection before processing hCaptcha.
 * Added a notification message on the placeholder when hCaptcha failed to load.
 * Added hCaptcha error messages to the Divi optin email form.
+* Added hCaptcha error messages to the JetPack form.
 * Fix conflict with reCaptcha in Divi Contact form.
 * Fixed running migrations on a fresh installation.
 * Fixed updating the migration option on each admin request.
@@ -767,7 +768,7 @@ Instructions for popular native integrations are below:
 * Fixed activation of Blocksy plugins with any theme.
 * Fixed refreshing hCaptcha upon failed submission in Jetpack.
 * Fixed Ninja Forms uncaught type error in JS appeared with some field types.
-* Fix Ninja Forms integration when form duplicates are on the same page.
+* Fixed Ninja Forms integration when form duplicates are on the same page.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
