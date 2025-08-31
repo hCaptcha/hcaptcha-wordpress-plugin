@@ -207,7 +207,7 @@ class HCaptcha {
 		<label for="<?php echo esc_attr( $hp_name ); ?>"></label>
 		<input
 				type="text" id="<?php echo esc_attr( $hp_name ); ?>" name="<?php echo esc_attr( $hp_name ); ?>" value=""
-				autocomplete="off" tabindex="-1" aria-hidden="true"
+				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
 				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
 		<input type="hidden" name="hcap_hp_sig" value="<?php echo esc_attr( $hp_sig ); ?>"/>
 		<?php
