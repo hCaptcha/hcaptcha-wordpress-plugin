@@ -180,7 +180,7 @@ class HCaptcha {
 			: $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
 		$args['id']      = [
-			'source'  => empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'],
+			'source'  => (array) ( empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'] ),
 			'form_id' => $args['id']['form_id'] ?? self::$default_id['form_id'],
 		];
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
