@@ -194,4 +194,24 @@ class Utils {
 			array_slice( $arr, $index )
 		);
 	}
+
+	/**
+	 * Get a comma-separated list string from an array.
+	 *
+	 * @param array $arr Array containing a list.
+	 * @param bool  $sep Separator of the last element.
+	 *
+	 * @return string
+	 */
+	public static function list_array( array $arr, bool $sep = true ): string {
+		$separator = $sep ?
+			__( 'and', 'wpforms-lite' ) :
+			__( 'or', 'wpforms-lite' );
+
+		$last  = array_slice( $arr, - 1 );
+		$first = implode( ', ', array_slice( $arr, 0, - 1 ) );
+		$both  = array_filter( array_merge( [ $first ], $last ) );
+
+		return implode( ' ' . $separator . ' ', $both );
+	}
 }
