@@ -8,6 +8,7 @@
 namespace HCaptcha\Helpers;
 
 use HCaptcha\AntiSpam\AntiSpam;
+use WP_Error;
 
 /**
  * Class Request.
@@ -141,6 +142,24 @@ class API {
 			return self::filtered_result( null, [] );
 		}
 
+		// Check the honeypot field.
+		if ( ! self::check_honeypot_field() ) {
+			$result      = hcap_get_error_messages()['spam'];
+			$error_codes = [ 'spam' ];
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
+		// Check the form submit time token.
+		$check = self::check_fst_token();
+
+		if ( is_wp_error( $check ) ) {
+			$result      = $check->get_error_message();
+			$error_codes = $check->get_error_codes();
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
 		$hcaptcha_response_sanitized = htmlspecialchars(
 			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
 			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
@@ -166,6 +185,23 @@ class API {
 		}
 
 		return self::process_request( $params );
+	}
+
+	/**
+	 * Get a honeypot field name.
+	 *
+	 * @param array $arr Array of form fields.
+	 *
+	 * @return string
+	 */
+	public static function get_hp_name( array $arr = [] ): string {
+		foreach ( array_keys( $arr ) as $key ) {
+			if ( 'hcap_hp_sig' !== $key && 0 === strpos( $key, 'hcap_hp_' ) ) {
+				return $key;
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -294,5 +330,65 @@ class API {
 		self::$error_codes = $error_codes;
 
 		return $result;
+	}
+
+	/**
+	 * Validates the honeypot field for spam prevention.
+	 *
+	 * @return bool True if the honeypot field is valid and empty, false otherwise.
+	 */
+	private static function check_honeypot_field(): bool {
+		if ( ! hcaptcha()->settings()->is_on( 'honeypot' ) ) {
+			return true;
+		}
+
+		// Honeypot check: require valid signature and ensure the honeypot field is empty.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Missing
+		$hp_name      = self::get_hp_name( $_POST );
+		$hp_value     = Request::filter_input( INPUT_POST, $hp_name );
+		$hp_signature = Request::filter_input( INPUT_POST, 'hcap_hp_sig' );
+
+		// Verify nonce for logged-in users only.
+		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_signature, $hp_name );
+
+		$check = $hp_name && $nonce_verified && '' === trim( $hp_value );
+
+		/**
+		 * Filters the result of the honeypot field check.
+		 *
+		 * @param bool $check True if the honeypot field is valid and empty, false otherwise.
+		 */
+		return (bool) apply_filters( 'hcap_check_honeypot_field', $check );
+	}
+
+	/**
+	 * Check Form Submit Time token.
+	 *
+	 * @return true|WP_Error
+	 */
+	private static function check_fst_token() {
+		if ( ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
+			return true;
+		}
+
+		/**
+		 * The Form Submit Time object.
+		 *
+		 * @var FormSubmitTime $fst_obj
+		 */
+		$fst_obj = hcaptcha()->get( FormSubmitTime::class );
+
+		if ( ! $fst_obj ) {
+			return hcap_get_wp_error( 'fst-no-object' );
+		}
+
+		$min_submit_time = hcaptcha()->settings()->get( 'min_submit_time' );
+
+		/**
+		 * Filters the result of the Form Submit Time token verification.
+		 *
+		 * @param true|WP_Error $check True, if the Form Submit Time token is valid. WP_Error object otherwise.
+		 */
+		return apply_filters( 'hcap_verify_fst_token', $fst_obj->verify_token( $min_submit_time ) );
 	}
 }

@@ -126,6 +126,8 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		];
 		$subject    = new Register();
 
+		$this->prepare_verify_post( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register', null );
+
 		self::assertFalse( $subject->verify() );
 
 		self::assertEquals( $expected, $bp->signup );

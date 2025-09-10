@@ -169,6 +169,10 @@ HTML;
 			[
 				'h-captcha-response' => $hcaptcha_response,
 				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
+				'hcaptcha-widget-id' => [ 'some widget' ],
+				'test_input'         => 'some input',
+				'hcap_hp_test'       => '',
+				'hcap_hp_sig'        => wp_create_nonce( 'hcap_hp_test' ),
 			]
 		);
 

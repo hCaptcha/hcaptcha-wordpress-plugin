@@ -62,7 +62,7 @@ class Contact {
 		add_filter( 'pre_do_shortcode_tag', [ $this, 'verify' ], 10, 4 );
 
 		add_filter( 'et_pb_module_shortcode_attributes', [ $this, 'shortcode_attributes' ], 10, 5 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ], 20 );
 	}
 
 	/**
@@ -142,7 +142,7 @@ class Contact {
 
 		// Check that the form was submitted and the et_pb_contact_et_number field is empty to protect from spam.
 		if ( $nonce_result && isset( $_POST[ $submit_field ] ) && empty( $_POST[ $number_field ] ) ) {
-			// Remove hcaptcha from current form fields, because Divi compares current and submitted fields.
+			// Remove hCaptcha fields from current form fields, because Divi compares current and submitted fields.
 			$current_form_field  = 'et_pb_contact_email_fields_' . $this->render_count;
 			$current_form_fields = filter_input( INPUT_POST, $current_form_field, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 			$fields_data_array   = [];
@@ -153,7 +153,7 @@ class Contact {
 				$fields_data_array            = array_filter(
 					$fields_data_array,
 					static function ( $item ) {
-						return false === strpos( $item['field_id'], 'captcha' );
+						return ! preg_match( '/captcha|hcap_hp_|hcap_fst_token/', $item['field_id'] );
 					}
 				);
 				$fields_data_json             = wp_json_encode( $fields_data_array, JSON_UNESCAPED_UNICODE );
@@ -202,6 +202,12 @@ class Contact {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		wp_dequeue_script( 'et-core-api-spam-recaptcha' );
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

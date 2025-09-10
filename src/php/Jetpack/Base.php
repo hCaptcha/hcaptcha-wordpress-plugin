@@ -28,6 +28,11 @@ abstract class Base {
 	protected const NAME = 'hcaptcha_jetpack_nonce';
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-jetpack';
+
+	/**
 	 * Admin script handle.
 	 */
 	private const ADMIN_HANDLE = 'admin-jetpack';
@@ -78,6 +83,9 @@ abstract class Base {
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
 		add_filter( 'the_content', [ $this, 'the_content_filter' ] );
+
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 
 		if ( ! $this->is_editing_jetpack_form_post() ) {
 			return;
@@ -164,6 +172,47 @@ abstract class Base {
 	 */
 	public function print_hcaptcha_scripts( $status ): bool {
 		return true;
+	}
+
+	/**
+	 * Enqueue script on the frontend.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/hcaptcha-jetpack$min.js",
+			[ 'hcaptcha' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
+		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**

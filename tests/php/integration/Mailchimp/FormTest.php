@@ -25,7 +25,7 @@ use Mockery;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -125,6 +125,22 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'Anti-spam check failed.',
 			],
+			'fst-no-object'            => [
+				'type' => 'error',
+				'text' => 'FST object does not exist.',
+			],
+			'fst-too-fast'             => [
+				'type' => 'error',
+				'text' => 'Form submitted too quickly.',
+			],
+			'fst-replayed-or-expired'  => [
+				'type' => 'error',
+				'text' => 'Token replayed or expired.',
+			],
+			'fst-expired'              => [
+				'type' => 'error',
+				'text' => 'Token expired.',
+			],
 		];
 
 		$expected = array_merge( $messages, $hcap_errors );
@@ -175,7 +191,7 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() with shortcode.
+	 * Test verify() with a shortcode.
 	 */
 	public function test_verify_with_shortcode(): void {
 		$name   = 'some_nonce';

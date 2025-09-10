@@ -83,14 +83,13 @@ class EmailOptin {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
 			return;
 		}
 
-		// It is a bug in a Divi script, which doesn't handle the error message.
-		et_core_die( esc_html( $error_message ) );
+		wp_send_json( [ 'error' => $error_message ] );
 	}
 
 	/**

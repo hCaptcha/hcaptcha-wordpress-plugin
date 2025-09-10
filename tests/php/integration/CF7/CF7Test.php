@@ -129,6 +129,18 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
+		$hp_name  = 'hcap_hp_test';
+		$hp_sig   = wp_create_nonce( $hp_name );
+		$hp_field = <<<HTML
+		<label for="$hp_name"></label>
+		<input
+				type="text" id="$hp_name" name="$hp_name" value=""
+				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
+		
+HTML;
+
 		$expected_form =
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
@@ -141,7 +153,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			data-ajax="false"
 			data-force="false">' . '
 		</span>
-		' . $nonce .
+		' . $nonce . $hp_field .
 			'</span><input type="submit" value="Send">' .
 			'</form>';
 
@@ -485,6 +497,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$tag = Mockery::mock( WPCF7_FormTag::class );
 
+		$this->prepare_verify_request( '', false );
+
 		$subject = new CF7();
 
 		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
@@ -526,6 +540,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		);
 
 		hcaptcha()->init_hooks();
+
+		$this->prepare_verify_request( '', false );
 
 		$subject = new CF7();
 
@@ -592,6 +608,8 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 				'Please complete the hCaptcha.'
 			)
 			->once();
+
+		$this->prepare_verify_request( '', false );
 
 		$subject = new CF7();
 

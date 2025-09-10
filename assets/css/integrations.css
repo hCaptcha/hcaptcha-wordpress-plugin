@@ -154,6 +154,12 @@
 	width: 100%;
 }
 
+#hcaptcha-options label + .helper {
+	position: absolute;
+	right: 0;
+	width: 100%;
+}
+
 #hcaptcha-options label[data-antispam] + .helper::before {
 	content: '';
 	background: url('../images/antispam-green.svg');
@@ -165,8 +171,13 @@
 	transform: translate(0, 0);
 }
 
-#hcaptcha-options label[data-antispam="native"] + .helper::before {
+#hcaptcha-options label:is([data-antispam-native],[data-antispam-native]) + .helper::before {
 	background: url('../images/antispam-yellow.svg');
+	background-size: cover;
+}
+
+#hcaptcha-options label:is([data-antispam-honeypot],[data-antispam-honeypot]) + .helper::before {
+	background: url('../images/antispam-honeypot.svg');
 	background-size: cover;
 }
 

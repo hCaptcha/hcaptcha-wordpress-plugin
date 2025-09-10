@@ -35,7 +35,7 @@ use Elementor\Settings;
  */
 class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		unset( $GLOBALS['current_screen'] );
@@ -613,6 +613,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$ajax_handler = Mockery::mock( Ajax_Handler::class );
 		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'Please complete the hCaptcha.' )->once();
+
+		$this->prepare_verify_request( '', false );
 
 		$subject = new HCaptchaHandler();
 		$subject->validation( $record, $ajax_handler );

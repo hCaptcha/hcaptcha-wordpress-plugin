@@ -48,14 +48,19 @@ class Review extends Base {
 		];
 
 		// Find the $search string and insert hCaptcha before it.
-		$search  = '<div class="cr-review-form-buttons">';
-		$replace =
-			"\n" . '<div class="cr-review-form-item">' .
-			HCaptcha::form( $args ) .
-			"\n" . '</div>' .
-			$search;
-
-		$template = str_replace( $search, $replace, $template );
+		$search   = '#<div class="cr-review-form-buttons">#';
+		$template = preg_replace_callback(
+			$search,
+			static function ( array $m ) use ( $args ) {
+				return (
+					"\n" . '<div class="cr-review-form-item">' .
+					HCaptcha::form( $args ) .
+					"\n" . '</div>' .
+					$m[0]
+				);
+			},
+			$template
+		);
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $template;

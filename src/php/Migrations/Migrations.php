@@ -1,6 +1,6 @@
 <?php
 /**
- * Migrations class file.
+ * Migration class file.
  *
  * @package hcaptcha-wp
  */
@@ -77,6 +77,7 @@ class Migrations {
 			return;
 		}
 
+		$this->maybe_prepare_migration_option();
 		$this->init_hooks();
 	}
 
@@ -111,15 +112,9 @@ class Migrations {
 
 		$this->check_plugin_update( $migrated );
 
-		$migrations       = array_filter(
-			get_class_methods( $this ),
-			static function ( $migration ) {
-				return 0 === strpos( $migration, 'migrate_' );
-			}
-		);
 		$upgrade_versions = [];
 
-		foreach ( $migrations as $migration ) {
+		foreach ( $this->get_migrations() as $migration ) {
 			$upgrade_version    = $this->get_upgrade_version( $migration );
 			$upgrade_versions[] = $upgrade_version;
 
@@ -152,11 +147,15 @@ class Migrations {
 			$this->log_migration_message( $result, $upgrade_version );
 		}
 
-		// Remove any keys that are not in the migrations list.
+		// Set the current version update time if it does not exist.
+		$current_version_migrated = $migrated[ self::PLUGIN_VERSION ] ?? time();
+
+		// Remove any keys that are not in the migration list.
 		$migrated = array_intersect_key( $migrated, array_flip( $upgrade_versions ) );
 
-		// Store the current version.
-		$migrated[ self::PLUGIN_VERSION ] = $migrated[ self::PLUGIN_VERSION ] ?? time();
+		// Restore the current version update time.
+		// Prevents updating the option on each request.
+		$migrated[ self::PLUGIN_VERSION ] = $current_version_migrated;
 
 		// Sort the array by version.
 		uksort( $migrated, 'version_compare' );
@@ -178,6 +177,31 @@ class Migrations {
 			wp_doing_cron() ||
 			( defined( 'WP_CLI' ) && constant( 'WP_CLI' ) )
 		);
+	}
+
+	/**
+	 * Maybe prepare the migration option.
+	 */
+	private function maybe_prepare_migration_option(): void {
+		$migrated = get_option( self::MIGRATED_VERSIONS_OPTION_NAME );
+
+		// If the option is an array, it means that it is already prepared.
+		if ( is_array( $migrated ) ) {
+			return;
+		}
+
+		$migrated = [];
+
+		foreach ( $this->get_migrations() as $migration ) {
+			$upgrade_version = $this->get_upgrade_version( $migration );
+
+			$migrated[ $upgrade_version ] = 0;
+		}
+
+		// Sort the array by version.
+		uksort( $migrated, 'version_compare' );
+
+		update_option( self::MIGRATED_VERSIONS_OPTION_NAME, $migrated );
 	}
 
 	/**
@@ -216,7 +240,7 @@ class Migrations {
 	 * @return string
 	 */
 	private function get_upgrade_version( string $method ): string {
-		// Find only the digits and underscores to get version number.
+		// Find only the digits and underscores to get the version number.
 		if ( ! preg_match( '/(\d_?)+/', $method, $matches ) ) {
 			// @codeCoverageIgnoreStart
 			return '';
@@ -238,7 +262,7 @@ class Migrations {
 	}
 
 	/**
-	 * Output message into the log file.
+	 * Output the message into the log file.
 	 *
 	 * @param string $message Message to log.
 	 *
@@ -343,7 +367,7 @@ class Migrations {
 			}
 		}
 
-		// This two lines is a precaution for a case if options in a new format already exist.
+		// These two lines is a precaution for a case if options in a new format already exist.
 		$options = get_option( PluginSettingsBase::OPTION_NAME, [] );
 		$options = array_merge( $new_options, $options );
 
@@ -571,7 +595,7 @@ class Migrations {
 	}
 
 	/**
-	 * Add index to a table.
+	 * Add an index to a table.
 	 *
 	 * @param string $table_name Table.
 	 * @param string $index_name Index name.
@@ -603,5 +627,19 @@ class Migrations {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( "CREATE INDEX $index_name ON $table_name ( $key_part )" );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
+	 * Get migrations.
+	 *
+	 * @return string[]
+	 */
+	private function get_migrations(): array {
+		return array_filter(
+			get_class_methods( $this ),
+			static function ( $migration ) {
+				return 0 === strpos( $migration, 'migrate_' );
+			}
+		);
 	}
 }

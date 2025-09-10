@@ -20,7 +20,9 @@ window.hCaptchaReset = ( el ) => {
 };
 
 window.hCaptchaBindEvents = () => {
+	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
 	hCaptcha.bindEvents();
+	document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
 };
 
 window.hCaptchaSubmit = () => {
@@ -29,9 +31,8 @@ window.hCaptchaSubmit = () => {
 
 window.hCaptchaOnLoad = () => {
 	function hCaptchaOnLoad() {
-		document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
 		window.hCaptchaBindEvents();
-		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
+		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
 	}
 
 	hCaptcha.addSyncedEventListener( hCaptchaOnLoad );

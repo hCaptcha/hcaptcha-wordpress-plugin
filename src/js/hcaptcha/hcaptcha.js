@@ -91,7 +91,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Check if child is same or a descendant of parent.
+	 * Check if child is same or a descendant of the parent.
 	 *
 	 * @param {HTMLDivElement} parent Parent element.
 	 * @param {HTMLDivElement} child  Child element.
@@ -111,7 +111,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Set current form.
+	 * Set the current form.
 	 *
 	 * @param {CustomEvent} event Event.
 	 * @return {Object|undefined} Currently processing form.
@@ -227,7 +227,7 @@ class HCaptcha {
 	setDarkData() {
 		let darkData = {
 			'twenty-twenty-one': {
-				// Twenty Twenty-One theme.
+				// The Twenty Twenty-One theme.
 				darkStyleId: 'twenty-twenty-one-style-css',
 				darkElement: document.body,
 				darkClass: 'is-dark-theme',
@@ -259,7 +259,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Observe dark mode changes and apply auto theme.
+	 * Observe dark mode changes and apply the auto theme.
 	 */
 	observeDarkMode() {
 		if ( this.observingDarkMode ) {
@@ -294,7 +294,7 @@ class HCaptcha {
 
 		this.setDarkData();
 
-		// Add observer if there is a known dark mode provider.
+		// Add an observer if there is a known dark mode provider.
 		if ( this.darkElement && this.darkClass ) {
 			const config = {
 				attributes: true,
@@ -463,7 +463,7 @@ class HCaptcha {
 
 		let globalParams = this.getParams();
 
-		// Do not overwrite custom theme.
+		// Do not overwrite a custom theme.
 		if ( typeof globalParams.theme === 'object' ) {
 			// noinspection JSUnresolvedReference
 			const bg = globalParams?.theme?.component?.checkbox?.main?.fill ?? '';
@@ -482,7 +482,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Add event listener that syncs with DOMContentLoaded event.
+	 * Add an event listener that syncs with the DOMContentLoaded event.
 	 *
 	 * @param {Function} callback
 	 */
@@ -498,6 +498,78 @@ class HCaptcha {
 			window.addEventListener( 'DOMContentLoaded', callback );
 		} else {
 			callback();
+		}
+	}
+
+	/**
+	 * Move honeypot input to a random position among visible inputs in the form.
+	 *
+	 * @param {HTMLElement} formElement Form element.
+	 */
+	moveHP( formElement ) {
+		// Guard: valid element and move only once per form lifecycle (prevent reentrancy).
+		if ( ! formElement || formElement?.dataset?.hpMoved === '1' ) {
+			return;
+		}
+
+		// Mark as moved early to avoid recursive re-entry via DOM observers.
+		formElement.dataset.hpMoved = '1';
+
+		const hpInput = formElement.querySelector( 'input[id^="hcap_hp_"]' );
+
+		if ( ! hpInput ) {
+			return;
+		}
+
+		const inputs = [ ...formElement.querySelectorAll( 'input,select,textarea,button' ) ]
+			// Do not insert inside .h-captcha element - it may be re-rendered later.
+			.filter( ( el ) => el !== hpInput && el.type !== 'hidden' && ! el.closest( '.h-captcha' ) );
+
+		if ( ! inputs.length ) {
+			return;
+		}
+
+		// Choose a random reference position.
+		const idx = Math.floor( Math.random() * inputs.length );
+		const ref = inputs[ idx ];
+
+		if ( ! ( ref && ref.parentNode ) ) {
+			return;
+		}
+
+		const inputId = hpInput.getAttribute( 'id' ) ?? '';
+		const label = inputId ? formElement.querySelector( `label[for="${ inputId }"]` ) : null;
+		const frag = document.createDocumentFragment();
+
+		if ( label && label.isConnected ) {
+			frag.appendChild( label );
+		}
+
+		frag.appendChild( hpInput );
+		ref.parentNode.insertBefore( frag, ref );
+	}
+
+	addFSTToken( formElement ) {
+		if ( ! formElement ) {
+			return;
+		}
+
+		const name = 'hcap_fst_token';
+
+		// Find or create input.
+		let input = formElement.querySelector( `input[type="hidden"][name="${ name }"]` );
+
+		if ( ! input ) {
+			input = document.createElement( 'input' );
+			input.type = 'hidden';
+			input.name = name;
+		}
+
+		// Insert input.
+		if ( formElement.firstChild ) {
+			formElement.insertBefore( input, formElement.firstChild );
+		} else {
+			formElement.appendChild( input );
 		}
 	}
 
@@ -536,6 +608,9 @@ class HCaptcha {
 			if ( hcaptchaElement.classList.contains( 'hcaptcha-widget-id' ) ) {
 				return formElement;
 			}
+
+			this.moveHP( formElement );
+			this.addFSTToken( formElement );
 
 			// Render or re-render.
 			hcaptchaElement.innerHTML = '';

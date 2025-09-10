@@ -59,9 +59,9 @@ abstract class SettingsBase {
 	/**
 	 * Form fields.
 	 *
-	 * @var array
+	 * @var array|null
 	 */
-	protected $form_fields = [];
+	protected $form_fields;
 
 	/**
 	 * Plugin options.
@@ -469,10 +469,20 @@ abstract class SettingsBase {
 	 * @return array of options
 	 */
 	protected function form_fields(): array {
-		if ( empty( $this->form_fields ) ) {
-			$this->init_form_fields();
-			array_walk( $this->form_fields, [ $this, 'set_defaults' ] );
+		if ( null !== $this->form_fields ) {
+			return $this->form_fields;
 		}
+
+		$this->init_form_fields();
+		array_walk( $this->form_fields, [ $this, 'set_defaults' ] );
+
+		/**
+		 * Filter the form fields.
+		 *
+		 * @param array $form_fields Form fields.
+		 * @param array $this        Settings class instance.
+		 */
+		$this->form_fields = (array) apply_filters( 'hcap_form_fields', $this->form_fields, $this );
 
 		return $this->form_fields;
 	}
@@ -924,6 +934,8 @@ abstract class SettingsBase {
 	 * @return array
 	 */
 	public function sanitize_option_callback( $settings ): array {
+		$settings = (array) $settings;
+
 		foreach ( $settings as $key => $setting ) {
 			if ( ! isset( $this->form_fields[ $key ] ) ) {
 				// Here we can have the current tab fields only.

@@ -144,6 +144,8 @@ class HCaptcha {
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
+
+		self::honeypot_display();
 	}
 
 	/**
@@ -178,12 +180,47 @@ class HCaptcha {
 			: $hcaptcha_size;
 		$args['id']      = (array) $args['id'];
 		$args['id']      = [
-			'source'  => empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'],
+			'source'  => (array) ( empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'] ),
 			'form_id' => $args['id']['form_id'] ?? self::$default_id['form_id'],
 		];
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
 		return $args;
+	}
+
+	/**
+	 * Display a honeypot for form submissions.
+	 *
+	 * This method injects a honeypot field with a dynamic name and a signature.
+	 *
+	 * @return void
+	 */
+	private static function honeypot_display(): void {
+		if ( ! hcaptcha()->settings()->is_on( 'honeypot' ) ) {
+			return;
+		}
+
+		$hp_name = self::get_hp_name();
+		$hp_sig  = wp_create_nonce( $hp_name );
+
+		?>
+		<label for="<?php echo esc_attr( $hp_name ); ?>"></label>
+		<input
+				type="text" id="<?php echo esc_attr( $hp_name ); ?>" name="<?php echo esc_attr( $hp_name ); ?>" value=""
+				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="<?php echo esc_attr( $hp_sig ); ?>"/>
+		<?php
+	}
+
+	/**
+	 * Get honeypot name.
+	 * Made as a separate function to be able to mock it in tests.
+	 *
+	 * @return string
+	 */
+	protected static function get_hp_name(): string {
+		return 'hcap_hp_' . wp_generate_password( 12, false );
 	}
 
 	/**
@@ -361,7 +398,7 @@ class HCaptcha {
 	/**
 	 * Whether form protection is enabled/disabled via hCaptcha widget id.
 	 *
-	 * Return false(protection disabled) in only one case:
+	 * Return false (protection disabled) in only one case:
 	 * when $_POST['hcaptcha-widget-id'] contains encoded id with proper hash,
 	 * and hcap_protect_form filter confirms that the form referenced in widget id is not protected.
 	 *

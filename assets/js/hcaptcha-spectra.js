@@ -1,109 +1,178 @@
-const { fetch: originalFetch } = window;
+import { helper } from './hcaptcha-helper.js';
 
-// Intercept Spectra form fetch to add hCaptcha data.
-window.fetch = async ( ...args ) => {
-	const [ resource, config ] = args;
+const hCaptchaSpectra = window.hCaptchaSpectra || ( function( window ) {
+	let style;
 
-	// @param {FormData} body
-	const body = config.body;
-	const blockId = body.get( 'block_id' );
-	const inputName = 'h-captcha-response';
-	const widgetName = 'hcaptcha-widget-id';
-	const errorClassName = 'hcaptcha-error-message';
-	const nonceName = 'hcaptcha_spectra_form_nonce';
-	const formData = JSON.parse( body.get( 'form_data' ) );
+	const app = {
+		init() {
+			helper.installFetchEvents();
+			window.addEventListener( 'hCaptchaFetch:before', app.fetchBefore );
+			window.addEventListener( 'hCaptchaFetch:success', app.fetchSuccess );
+			window.addEventListener( 'hCaptchaFetch:complete', app.fetchComplete );
+		},
 
-	const selector = `[name="uagb-form-${ blockId }"]`;
-	const style = document.createElement( 'style' );
+		fetchBefore( event ) {
+			const config = event?.detail?.args?.[ 1 ] ?? {};
+			const body = config.body;
 
-	style.id = `hcaptcha-style-${ blockId }`;
-	style.textContent = `
+			if ( ! ( body instanceof URLSearchParams ) ) {
+				return;
+			}
+
+			// @param {FormData} body
+			const blockId = body.get( 'block_id' );
+			const block = document.querySelector( `.uagb-block-${ blockId }` );
+
+			// Remove hCaptcha error message.
+			const errorMessage = block.querySelector( '.hcaptcha-error-message' );
+
+			if ( errorMessage ) {
+				errorMessage.remove();
+			}
+
+			const responseInputName = 'h-captcha-response';
+			const formData = JSON.parse( body.get( 'form_data' ) );
+
+			if ( 'uagb_process_forms' !== body.get( 'action' ) || formData.hasOwnProperty( responseInputName ) ) {
+				return;
+			}
+
+			const widgetName = 'hcaptcha-widget-id';
+			const sigInputName = 'hcap_hp_sig';
+			const tokenName = 'hcap_fst_token';
+			const nonceName = 'hcaptcha_spectra_form_nonce';
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const widgetId = block.querySelector( `[name="${ widgetName }"]` );
+
+			/**
+			 * @type {HTMLTextAreaElement}
+			 */
+			const hCaptchaResponse = block.querySelector( `[name="${ responseInputName }"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const nonce = block.querySelector( `[name="${ nonceName }"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const hcapHp = block.querySelector( `[id^="hcap_hp_"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const hcapSig = block.querySelector( `[name="${ sigInputName }"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const token = block.querySelector( `[name="${ tokenName }"]` );
+
+			formData[ widgetName ] = widgetId?.value;
+			formData[ responseInputName ] = hCaptchaResponse?.value;
+			formData[ nonceName ] = nonce?.value;
+			formData[ hcapHp?.id ] = hcapHp?.value;
+			formData[ sigInputName ] = hcapSig?.value;
+			formData[ tokenName ] = token?.value;
+
+			body.set( 'form_data', JSON.stringify( formData ) );
+
+			config.body = body;
+			event.detail.args.config = config;
+		},
+
+		async fetchSuccess( event ) {
+			const config = event?.detail?.args?.[ 1 ];
+			const response = event?.detail?.response;
+
+			if ( ! config || ! response ) {
+				return;
+			}
+
+			const body = config.body;
+
+			if ( ! ( body instanceof FormData || body instanceof URLSearchParams ) ) {
+				return;
+			}
+
+			const responseData = await response.clone().json().catch( () => null );
+
+			if ( 'uagb_process_forms' !== body.get( 'action' ) || typeof responseData?.data !== 'string' ) {
+				return;
+			}
+
+			const blockId = body.get( 'block_id' );
+			const selector = `[name="uagb-form-${ blockId }"]`;
+
+			style = document.createElement( 'style' );
+			style.id = `hcaptcha-style-${ blockId }`;
+			style.textContent = `
 		${ selector } {
 			display: block !important;
 		}
 `;
 
-	// Remove hCaptcha error message.
-	const errorMessage = document.querySelector( '.uagb-block-' + blockId + ' .' + errorClassName );
+			// We have hCaptcha error in responseData.
+			const styleToAdd = document.getElementById( style.id );
 
-	if ( errorMessage ) {
-		errorMessage.remove();
-	}
+			if ( ! styleToAdd ) {
+				// Add a style preventing hiding the form.
+				document.head.appendChild( style );
+			}
 
-	if ( 'uagb_process_forms' === body.get( 'action' ) && ! formData.hasOwnProperty( inputName ) ) {
-		/**
-		 * @type {HTMLTextAreaElement}
-		 */
-		const hCaptchaResponse = document.querySelector( '.uagb-block-' + blockId + ' [name="' + inputName + '"]' );
+			// Remove previous error message (if exists) in the current block.
+			const prevError = document.querySelector( '.uagb-block-' + blockId + ' .hcaptcha-error-message' );
 
-		/**
-		 * @type {HTMLInputElement}
-		 */
-		const id = document.querySelector( '.uagb-block-' + blockId + ' [name="' + widgetName + '"]' );
+			if ( prevError ) {
+				prevError.remove();
+			}
 
-		/**
-		 * @type {HTMLInputElement}
-		 */
-		const nonce = document.querySelector( '.uagb-block-' + blockId + ' [name="' + nonceName + '"]' );
+			// Show an error message.
+			const errorContainer = document.createElement( 'div' );
 
-		if ( hCaptchaResponse ) {
-			formData[ inputName ] = hCaptchaResponse.value;
-		}
+			errorContainer.className = 'hcaptcha-error-message';
+			errorContainer.textContent = responseData.data;
+			errorContainer.style.color = 'red';
+			errorContainer.style.padding = '10px 0';
 
-		if ( id ) {
-			formData[ widgetName ] = id.value;
-		}
+			// Find the form container and append the error message
+			const hcaptchaContainer = document.querySelector( '.uagb-block-' + blockId + ' h-captcha' );
 
-		formData[ nonceName ] = nonce.value;
+			if ( hcaptchaContainer ) {
+				hcaptchaContainer.parentNode.insertBefore( errorContainer, hcaptchaContainer );
+			}
+		},
 
-		body.set( 'form_data', JSON.stringify( formData ) );
-		config.body = body;
-	}
+		fetchComplete( event ) {
+			const config = event?.detail?.args?.[ 1 ] ?? {};
+			const body = config.body;
 
-	const response = await originalFetch( resource, config );
+			if ( ! ( body instanceof URLSearchParams ) ) {
+				return;
+			}
 
-	// Check if the response contains errors we're interested in.
-	const responseClone = response.clone();
-	const responseData = await responseClone.json().catch( () => null );
+			if ( 'uagb_process_forms' !== body.get( 'action' ) ) {
+				return;
+			}
 
-	if ( 'uagb_process_forms' === body.get( 'action' ) && typeof responseData?.data === 'string' ) {
-		// We have hCaptcha error in responseData.
+			// Remove a style preventing hiding the form.
+			const styleToRemove = document.getElementById( style?.id );
 
-		const styleToAdd = document.getElementById( style.id );
+			if ( styleToRemove ) {
+				styleToRemove.remove();
+			}
 
-		if ( ! styleToAdd ) {
-			// Add a style preventing hiding the form.
-			document.head.appendChild( style );
-		}
+			window.hCaptchaBindEvents();
+		},
+	};
 
-		// Show an error message.
-		const errorContainer = document.createElement( 'div' );
-		errorContainer.className = errorClassName;
-		errorContainer.textContent = responseData.data;
-		errorContainer.style.color = 'red';
-		errorContainer.style.padding = '10px 0';
+	return app;
+}( window ) );
 
-		// Find the form container and append the error message
-		const hcaptchaContainer = document.querySelector( '.uagb-block-' + blockId + ' h-captcha' );
+window.hCaptchaSpectra = hCaptchaSpectra;
 
-		if ( hcaptchaContainer ) {
-			hcaptchaContainer.parentNode.insertBefore( errorContainer, hcaptchaContainer );
-		}
-
-		// Set the data to 400 for Spectra.
-		responseData.data = 400;
-
-		// Return the original response despite the error.
-		return response;
-	}
-
-	// Remove a style preventing hiding the form.
-	const styleToRemove = document.getElementById( style.id );
-
-	if ( styleToRemove ) {
-		styleToRemove.remove();
-	}
-
-	// If no errors or not the errors we're interested in, return the original response.
-	return response;
-};
+hCaptchaSpectra.init();

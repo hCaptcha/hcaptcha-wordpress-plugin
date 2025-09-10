@@ -42,9 +42,7 @@ use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\PasswordProtected;
 use HCaptcha\WP\Register;
 use HCaptcha\WPDiscuz\Subscribe;
-use Mockery;
 use ReflectionException;
-use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
@@ -68,7 +66,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	private static $included_components = [];
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -93,6 +91,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
 
 		delete_option( 'hcaptcha_settings' );
+
+		wp_dequeue_script( 'hcaptcha-fst' );
+		wp_deregister_script( 'hcaptcha-fst' );
 
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
@@ -241,7 +242,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init() and init_hooks() on Elementor Pro edit page.
+	 * Test init() and init_hooks() on the Elementor Pro edit page.
 	 *
 	 * @param string  $elementor_pro_status Option 'elementor_pro_status' is set.
 	 * @param array   $server               $_SERVER variable.
@@ -371,7 +372,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init_hooks() on cron request.
+	 * Test init_hooks() on a cron request.
 	 *
 	 * @return void
 	 *
@@ -535,8 +536,12 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		display: none;
 	}
 
+	.h-captcha iframe {
+		z-index: 1;
+	}
+
 	.h-captcha::before {
-		content: '';
+		content: "";
 		display: block;
 		position: absolute;
 		top: 0;
@@ -544,6 +549,33 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		background: url( $div_logo_url ) no-repeat;
 		border: 1px solid transparent;
 		border-radius: 4px;
+		box-sizing: border-box;
+	}
+
+	.h-captcha::after {
+		content: "If you see this message, hCaptcha failed to load due to site errors.";
+	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+        color: #ff0000;
+		opacity: 0;
+	}
+
+	.h-captcha:not(:has(iframe))::after {
+		animation: hcap-msg-fade-in .3s ease forwards;
+		animation-delay: 2s;
+	}
+	
+	.h-captcha:has(iframe)::after {
+		animation: none;
+		opacity: 0;
+	}
+	
+	@keyframes hcap-msg-fade-in {
+		to { opacity: 1; }
 	}
 
 	.h-captcha[data-size="normal"]::before {
@@ -552,10 +584,18 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		background-position: 94% 28%;
 	}
 
+	.h-captcha[data-size="normal"]::after {
+		padding: 19px 75px 16px 10px;
+	}
+
 	.h-captcha[data-size="compact"]::before {
 		width: 156px;
 		height: 136px;
 		background-position: 50% 79%;
+	}
+
+	.h-captcha[data-size="compact"]::after {
+		padding: 10px 10px 16px 10px;
 	}
 
 	.h-captcha[data-theme="light"]::before,
@@ -588,7 +628,8 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		background-color: $bg;
 	}
 
-	.h-captcha[data-size="invisible"]::before {
+	.h-captcha[data-size="invisible"]::before,
+	.h-captcha[data-size="invisible"]::after {
 		display: none;
 	}
 
@@ -741,6 +782,7 @@ CSS;
 	 * Data provider for test_get_api_url().
 	 *
 	 * @return array
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function dp_test_get_api_url(): array {
 		return [
@@ -810,6 +852,7 @@ CSS;
 	 * Data provider for test_get_verify_url().
 	 *
 	 * @return array
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function dp_test_get_verify_url(): array {
 		return [
@@ -849,6 +892,7 @@ CSS;
 	 * Data provider for test_get_check_site_config_url().
 	 *
 	 * @return array
+	 * @noinspection HttpUrlsUsage
 	 */
 	public function dp_test_get_check_site_config_url(): array {
 		return [
@@ -869,7 +913,6 @@ CSS;
 	 * @param string       $expected_script_src Expected script source.
 	 *
 	 * @dataProvider dp_test_print_footer_scripts
-	 * @throws ReflectionException ReflectionException.
 	 * @noinspection BadExpressionStatementJS
 	 */
 	public function test_print_footer_scripts( $compat, $language, $custom_themes, string $expected_script_src ): void {
@@ -990,36 +1033,6 @@ CSS;
 
 		$hcaptcha->init_hooks();
 
-		// Test when Elementor Pro is not loaded.
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		$scripts = ob_get_clean();
-
-		self::assertTrue( wp_script_is( 'hcaptcha' ) );
-
-		$script = wp_scripts()->registered['hcaptcha'];
-		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
-		self::assertSame( [ 'wp-hooks' ], $script->deps );
-		self::assertSame( HCAPTCHA_VERSION, $script->ver );
-		self::assertSame( $expected_extra, $script->extra );
-
-		self::assertSame( 0, strpos( $scripts, $expected_scripts ) );
-
-		// Test when Elementor Pro is loaded.
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
-
-		wp_dequeue_script( 'jquery' );
-		wp_deregister_script( 'jquery' );
-
-		$loaded_classes = $this->get_protected_property( $hcaptcha, 'loaded_classes' );
-
-		$loaded_classes[ HCaptchaHandler::class ] = new stdClass();
-
-		$this->set_protected_property( $hcaptcha, 'loaded_classes', $loaded_classes );
-
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 
 		ob_start();
@@ -1103,6 +1116,42 @@ CSS;
 				'on',
 				'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit&recaptchacompat=off&custom=true',
 			],
+		];
+	}
+
+	/**
+	 * Test denylist_ip().
+	 *
+	 * @param mixed        $denylisted_ips Settings.
+	 * @param string|false $client_ip      Client IP.
+	 * @param bool         $expected       Expected result.
+	 *
+	 * @dataProvider dp_test_denylist_ip
+	 * @return void
+	 */
+	public function test_denylist_ip( $denylisted_ips, $client_ip, bool $expected ): void {
+		update_option( 'hcaptcha_settings', [ 'blacklisted_ips' => $denylisted_ips ] );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertSame( $expected, $subject->denylist_ip( false, $client_ip ) );
+	}
+
+	/**
+	 * Data provider for test_denylist_ip().
+	 *
+	 * @return array
+	 */
+	public function dp_test_denylist_ip(): array {
+		return [
+			'no settings, local ip'       => [ '', false, false ],
+			'some ips, local ip'          => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", false, false ],
+			'some ips, not matching ip'   => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.2', false ],
+			'some ips, matching ip'       => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.1', true ],
+			'some ips, matching wrong ip' => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '4444444.777.2', false ],
+			'with local, local ip'        => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n127.0.0.1\r\n", '127.0.0.1', true ],
 		];
 	}
 
@@ -1257,7 +1306,7 @@ CSS;
 
 		$this->check_component_loaded( $component );
 
-		// Test with supported plugin not active.
+		// Test with a supported plugin not active.
 		$subject->load_modules();
 
 		if ( ! $module[1] ) {
@@ -1287,7 +1336,7 @@ CSS;
 			);
 		}
 
-		// Test with supported plugin active.
+		// Test with a supported plugin active.
 		$subject->load_modules();
 
 		self::$included_components = array_unique( array_merge( self::$included_components, $component ) );
@@ -1836,7 +1885,7 @@ CSS;
 	}
 
 	/**
-	 * Check that component is loaded.
+	 * Check that a component is loaded.
 	 *
 	 * @param array $component Component.
 	 */

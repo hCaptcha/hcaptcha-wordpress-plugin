@@ -28,7 +28,7 @@ use WP_Error;
 class CommentTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -68,6 +68,71 @@ class CommentTest extends HCaptchaWPTestCase {
 			[ true ],
 			[ false ],
 		];
+	}
+
+	/**
+	 * Test get_signature().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_get_signature(): void {
+		$subject         = new Comment();
+		$form_id         = 123;
+		$hcaptcha_shown  = true;
+		$expected_output = 'some-signature-output';
+
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+		$this->set_protected_property( $subject, 'hcaptcha_shown', $hcaptcha_shown );
+
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\HCaptcha::get_signature',
+			static function ( string $class_name, $fid, bool $shown ) use ( $form_id, $hcaptcha_shown, $expected_output ) {
+				// Ensure CommentBase delegates correctly.
+				self::assertSame( Comment::class, $class_name );
+				self::assertSame( $form_id, $fid );
+				self::assertSame( $hcaptcha_shown, $shown );
+
+				return $expected_output;
+			}
+		);
+
+		self::assertSame( $expected_output, $subject->get_signature() );
+	}
+
+	/**
+	 * Test display_signature().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_display_signature(): void {
+		$subject        = new Comment();
+		$form_id        = 456;
+		$hcaptcha_shown = false;
+		$echo_output    = 'display-signature-output';
+
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+		$this->set_protected_property( $subject, 'hcaptcha_shown', $hcaptcha_shown );
+
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\HCaptcha::display_signature',
+			static function ( string $class_name, $fid, bool $shown ) use ( $form_id, $hcaptcha_shown, $echo_output ) {
+				// Ensure CommentBase delegates correctly and echo a known string.
+				self::assertSame( Comment::class, $class_name );
+				self::assertSame( $form_id, $fid );
+				self::assertSame( $hcaptcha_shown, $shown );
+
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $echo_output;
+			}
+		);
+
+		ob_start();
+		$subject->display_signature();
+		self::assertSame( $echo_output, ob_get_clean() );
 	}
 
 	/**
@@ -139,7 +204,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify(): void {
-		$commentdata = [
+		$comment_data = [
 			'some comment data',
 			'comment_author_IP' => '7.7.7.7',
 		];
@@ -150,7 +215,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );
@@ -163,13 +228,13 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_in_admin(): void {
-		$commentdata = [ 'some comment data' ];
+		$comment_data = [ 'some comment data' ];
 
 		set_current_screen( 'edit-post' );
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
 	}
 
@@ -179,7 +244,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_in_rest(): void {
-		$commentdata = [ 'some comment data' ];
+		$comment_data = [ 'some comment data' ];
 
 		$_SERVER['REQUEST_URI'] = '/wp-json/activitypub/1.0/inbox';
 
@@ -192,7 +257,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
 	}
 
@@ -202,11 +267,11 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_not_verified(): void {
-		$commentdata = [
+		$comment_data = [
 			'some comment data',
 			'comment_author_IP' => '7.7.7.7',
 		];
-		$expected    = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
+		$expected     = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
 
@@ -214,8 +279,71 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject = new Comment();
 
-		self::assertSame( $commentdata, $subject->verify( $commentdata ) );
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertSame( $expected, $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test verify() when the signature is valid (HCaptcha::check_signature returns true).
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_signature_valid_returns_early(): void {
+		$comment_data = [
+			'some comment data',
+			'comment_author_IP' => '7.7.7.7',
+		];
+
+		// Prepare POST so that captcha fields exist; they should remain after early return.
+		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\HCaptcha::check_signature',
+			static function () {
+				return true;
+			}
+		);
+
+		$subject = new Comment();
+
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
+
+		// Since we returned early, POST captcha fields must still be present.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertTrue( isset( $_POST['h-captcha-response'] ) || isset( $_POST['g-recaptcha-response'] ) );
+		self::assertTrue( $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test verify() when the signature is invalid (HCaptcha::check_signature returns false).
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_signature_invalid_sets_bad_signature(): void {
+		$comment_data = [
+			'some comment data',
+			'comment_author_IP' => '7.7.7.7',
+		];
+		$expected     = hcap_get_error_messages()['bad-signature'];
+
+		// Prepare POST so that captcha fields exist; they should remain after early return.
+		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\HCaptcha::check_signature',
+			static function () {
+				return false;
+			}
+		);
+
+		$subject = new Comment();
+
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
+		self::assertSame( $expected, $this->get_protected_property( $subject, 'result' ) );
+
+		// Since we returned early, POST captcha fields must still be present.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertTrue( isset( $_POST['h-captcha-response'] ) || isset( $_POST['g-recaptcha-response'] ) );
 	}
 
 	/**
@@ -224,12 +352,12 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_pre_comment_approved(): void {
-		$approved    = 1;
-		$commentdata = [ 'some comment data' ];
+		$approved     = 1;
+		$comment_data = [ 'some comment data' ];
 
 		$subject = new Comment();
 
-		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $commentdata ) );
+		self::assertSame( $approved, $subject->pre_comment_approved( $approved, $comment_data ) );
 	}
 
 	/**
@@ -240,7 +368,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_pre_comment_approved_when_not_verified(): void {
 		$approved      = 1;
-		$commentdata   = [ 'some comment data' ];
+		$comment_data  = [ 'some comment data' ];
 		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
 		$expected      = new WP_Error();
 
@@ -250,6 +378,6 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$this->set_protected_property( $subject, 'result', $error_message );
 
-		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $commentdata ) );
+		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $comment_data ) );
 	}
 }

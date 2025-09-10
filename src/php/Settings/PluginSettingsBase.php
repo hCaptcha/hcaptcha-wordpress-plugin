@@ -106,7 +106,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
-	 * Get plugin base name.
+	 * Get a plugin base name.
 	 *
 	 * @return string
 	 */
@@ -175,7 +175,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
-	 * Show settings page.
+	 * Show the settings page.
 	 *
 	 * @return void
 	 */
@@ -205,7 +205,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
-	 * Show submit button in any place of the form.
+	 * Show the submit button in any place of the form.
 	 *
 	 * @return void
 	 */

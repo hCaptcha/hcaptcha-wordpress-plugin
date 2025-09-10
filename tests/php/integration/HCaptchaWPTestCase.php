@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use Codeception\TestCase\WPTestCase;
+use HCaptcha\Settings\General;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
@@ -35,6 +36,27 @@ class HCaptchaWPTestCase extends WPTestCase {
 		hcaptcha()->form_shown = false;
 
 		$_SERVER['REQUEST_URI'] = 'http://test.test/';
+
+		// Do not randomize honeypot name for tests.
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::get_hp_name', 'hcap_hp_test' );
+
+		// Do not check the Form Submit Time token for tests.
+		add_filter( 'hcap_verify_fst_token', '__return_true' );
+
+		// Set min submit time and honeypot for tests.
+		add_filter(
+			'hcap_form_fields',
+			static function ( $form_fields, $instance ) {
+				if ( $instance instanceof General ) {
+					$form_fields['set_min_submit_time']['default'] = 'on';
+					$form_fields['honeypot']['default']            = 'on';
+				}
+
+				return $form_fields;
+			},
+			10,
+			2
+		);
 	}
 
 	/**
@@ -148,6 +170,18 @@ class HCaptchaWPTestCase extends WPTestCase {
 			$nonce_field = wp_nonce_field( $args['action'], $args['name'], true, false );
 		}
 
+		$hp_name  = 'hcap_hp_test';
+		$hp_sig   = wp_create_nonce( $hp_name );
+		$hp_field = <<<HTML
+		<label for="$hp_name"></label>
+		<input
+				type="text" id="$hp_name" name="$hp_name" value=""
+				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
+		
+HTML;
+
 		return $this->get_hcap_widget( $args['id'] ) . '
 				<h-captcha
 			class="h-captcha"
@@ -158,7 +192,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 			data-ajax="' . ( $args['ajax'] ? 'true' : 'false' ) . '"
 			data-force="' . ( $args['force'] ? 'true' : 'false' ) . '">
 		</h-captcha>
-		' . $nonce_field;
+		' . $nonce_field . $hp_field;
 	}
 
 	/**
@@ -210,6 +244,19 @@ class HCaptchaWPTestCase extends WPTestCase {
 			$_POST[ HCAPTCHA_NONCE ]     = wp_create_nonce( HCAPTCHA_ACTION );
 			$_POST['h-captcha-response'] = $hcaptcha_response;
 		}
+
+		$_POST['hcap_hp_test'] = '';
+		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
+
+		$test_token              = 'test_token';
+		$_POST['hcap_fst_token'] = $test_token;
+
+		add_filter(
+			'hcap_fst_token',
+			static function () use ( $test_token ) {
+				return $test_token;
+			}
+		);
 
 		$raw_response = wp_json_encode( [ 'success' => $result ] );
 
@@ -265,6 +312,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	protected function prepare_verify_post( string $nonce_field_name, string $nonce_action_name, $result = true ): void {
+		$_POST['hcap_hp_test'] = '';
+		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
+
 		if ( null === $result ) {
 			return;
 		}

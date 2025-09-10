@@ -15,7 +15,7 @@ use wpdb;
 class DB {
 
 	/**
-	 * Changes array of items into string of items, separated by comma and sql-escaped
+	 * Changes an array of items into a string of items, separated by comma and sql-escaped
 	 *
 	 * @see https://coderwall.com/p/zepnaw
 	 * @global wpdb       $wpdb

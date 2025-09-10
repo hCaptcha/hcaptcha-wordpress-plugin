@@ -29,6 +29,11 @@ class Form {
 	public const NAME = 'hcaptcha_wpforms_nonce';
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-wpforms';
+
+	/**
 	 * Whether hCaptcha should be auto-added to any form.
 	 *
 	 * @var bool
@@ -81,6 +86,8 @@ class Form {
 		add_action( 'wpforms_frontend_output', [ $this, 'wpforms_frontend_output' ], 19, 5 );
 		add_filter( 'wpforms_process_bypass_captcha', '__return_true' );
 		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
+
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -311,6 +318,27 @@ class Form {
 		if ( $this->mode_auto ) {
 			$this->show_hcaptcha( $form_data );
 		}
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-wpforms$min.js",
+			[ 'jquery', 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

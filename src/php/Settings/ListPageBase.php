@@ -347,7 +347,8 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * Includes:
 	 * 1. A list of date filter options for the datepicker module.
-	 * 2. Currently selected filter or date range values. Last "X" days, or i.e. Feb 8, 2023 - Mar 9, 2023.
+	 * 2. Currently selected filter or date range values.
+	 *    Last "X" days, or i.e., Feb 8, 2023 - Mar 9, 2023.
 	 * 3. Assigned timespan dates.
 	 *
 	 * @param array|null $timespan Given timespan (dates) preferably in WP timezone.
@@ -401,7 +402,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected function process_timespan(): array {
 		$dates = (string) filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
-		// Return default timespan if dates are empty.
+		// Return the default timespan if dates are empty.
 		if ( empty( $dates ) ) {
 			return $this->get_timespan_dates( self::DEFAULT_TIMESPAN_DAYS );
 		}
@@ -410,7 +411,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		[ $start_date, $end_date ] = explode( self::TIMESPAN_DELIMITER, $dates );
 
-		// Return default timespan if the start date is more recent than the end date.
+		// Return the default timespan if the start date is more recent than the end date.
 		if ( strtotime( $start_date ) > strtotime( $end_date ) ) {
 			return $this->get_timespan_dates( self::DEFAULT_TIMESPAN_DAYS );
 		}
@@ -426,14 +427,14 @@ abstract class ListPageBase extends PluginSettingsBase {
 			// @codeCoverageIgnoreEnd
 		}
 
-		// Set time to 0:0:0 for start date and 23:59:59 for end date.
+		// Set time to 0:0:0 for the start date and 23:59:59 for the end date.
 		$start_date = $start_date->setTime( 0, 0 );
 		$end_date   = $end_date->setTime( 23, 59, 59 );
 
 		$days_diff    = '';
 		$current_date = date_create_immutable( 'now', $timezone )->setTime( 23, 59, 59 );
 
-		// Calculate day difference only if the end date is equal to the current date.
+		// Calculate the day difference only if the end date is equal to the current date.
 		if ( ! $current_date->diff( $end_date )->format( '%a' ) ) {
 			$days_diff = $end_date->diff( $start_date )->format( '%a' );
 		}
@@ -475,7 +476,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected function get_timespan_dates( string $days ): array {
 		[ $timespan_key, $timespan_label ] = $this->get_date_filter_choices( $days );
 
-		// Bail early, if the given number of days is NOT a number nor a numeric string.
+		// Bail early if the given number of days is NOT a number nor a numeric string.
 		if ( ! is_numeric( $days ) ) {
 			return [ '', '', $timespan_key, $timespan_label ];
 		}
@@ -500,7 +501,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			$start_date,     // WP timezone.
 			$end_date,       // WP timezone.
 			$timespan_key,   // i.e. 30.
-			$timespan_label, // i.e. Last 30 days.
+			$timespan_label, // i.e., Last 30 days.
 		];
 	}
 
@@ -524,7 +525,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 			'custom' => esc_html__( 'Custom', 'hcaptcha-for-forms-and-more' ),
 		];
 
-		// Bail early, and return the full list of options.
+		// Bail early and return the full list of options.
 		if ( is_null( $key ) ) {
 			return $choices;
 		}
@@ -546,7 +547,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * @return string
 	 */
 	private function concat_dates( $start_date, $end_date, $fallback = '' ) {
-		// Bail early, if the given dates are not valid.
+		// Bail early if the given dates are not valid.
 		if ( ! ( $start_date instanceof DateTimeImmutable ) || ! ( $end_date instanceof DateTimeImmutable ) ) {
 			return $fallback;
 		}
@@ -561,7 +562,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	}
 
 	/**
-	 * Get the ISO 639-2 Language Code from user/site locale.
+	 * Get the ISO 639-2 Language Code from the user / site locale.
 	 *
 	 * @see   http://www.loc.gov/standards/iso639-2/php/code_list.php
 	 *

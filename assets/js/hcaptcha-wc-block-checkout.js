@@ -1,55 +1,106 @@
-const { fetch: originalFetch } = window;
-const checkoutButtonClass = 'wc-block-components-checkout-place-order-button';
+import { helper } from './hcaptcha-helper.js';
 
-wp.hooks.addFilter(
-	'hcaptcha.submitButtonSelector',
-	'hcaptcha',
-	( submitButtonSelector ) => {
-		return submitButtonSelector + `, .${ checkoutButtonClass }`;
-	}
-);
+const wcBlockCheckout = window.hCaptchaWCBlockCheckout || ( function( window ) {
+	const app = {
+		init() {
+			const checkoutButtonClass = 'wc-block-components-checkout-place-order-button';
 
-wp.hooks.addFilter(
-	'hcaptcha.ajaxSubmitButton',
-	'hcaptcha',
-	( isAjaxSubmitButton, submitButtonElement ) => {
-		if ( submitButtonElement.classList.contains( `${ checkoutButtonClass }` ) ) {
-			return true;
-		}
+			wp.hooks.addFilter(
+				'hcaptcha.submitButtonSelector',
+				'hcaptcha',
+				( submitButtonSelector ) => {
+					return submitButtonSelector + `, .${ checkoutButtonClass }`;
+				}
+			);
 
-		return isAjaxSubmitButton;
-	}
-);
+			wp.hooks.addFilter(
+				'hcaptcha.ajaxSubmitButton',
+				'hcaptcha',
+				( isAjaxSubmitButton, submitButtonElement ) => {
+					if ( submitButtonElement.classList.contains( `${ checkoutButtonClass }` ) ) {
+						return true;
+					}
 
-// Intercept WC Checkout form fetch to add hCaptcha data.
-window.fetch = async ( ...args ) => {
-	const [ resource, config ] = args;
+					return isAjaxSubmitButton;
+				}
+			);
 
-	if ( resource.includes( '/wc/store/v1/checkout' ) ) {
-		const body = config.body;
-		const widgetName = 'hcaptcha-widget-id';
-		const inputName = 'h-captcha-response';
-		const formData = JSON.parse( body );
-		const wcCheckoutBlock = document.querySelector( 'div[data-block-name="woocommerce/checkout"]' );
+			helper.installFetchEvents();
+			window.addEventListener( 'hCaptchaFetch:before', app.fetchBefore );
+			window.addEventListener( 'hCaptchaFetch:complete', app.fetchComplete );
+		},
 
-		/**
-		 * @type {HTMLInputElement}
-		 */
-		const widgetId = wcCheckoutBlock.querySelector( `[name="${ widgetName }"]` );
+		fetchBefore( event ) {
+			const [ resource, config ] = event?.detail?.args;
 
-		/**
-		 * @type {HTMLTextAreaElement}
-		 */
-		const hCaptchaResponse = wcCheckoutBlock.querySelector( `[name="${ inputName }"]` );
+			if ( ! resource.includes( '/wc/store/v1/checkout' ) ) {
+				return;
+			}
 
-		if ( widgetId && hCaptchaResponse ) {
-			formData[ widgetName ] = widgetId.value;
-			formData[ inputName ] = hCaptchaResponse.value;
-		}
+			let formData;
 
-		config.body = JSON.stringify( formData );
-	}
+			try {
+				formData = JSON.parse( config.body );
+			} catch ( e ) {
+				formData = {};
+			}
 
-	// noinspection JSCheckFunctionSignatures
-	return await originalFetch( resource, config );
-};
+			const widgetName = 'hcaptcha-widget-id';
+			const responseInputName = 'h-captcha-response';
+			const sigInputName = 'hcap_hp_sig';
+			const tokenName = 'hcap_fst_token';
+			const wcCheckoutBlock = document.querySelector( 'div[data-block-name="woocommerce/checkout"]' );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const widgetId = wcCheckoutBlock.querySelector( `[name="${ widgetName }"]` );
+
+			/**
+			 * @type {HTMLTextAreaElement}
+			 */
+			const hCaptchaResponse = wcCheckoutBlock.querySelector( `[name="${ responseInputName }"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const hcapHp = wcCheckoutBlock.querySelector( `[id^="hcap_hp_"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const hcapSig = wcCheckoutBlock.querySelector( `[name="${ sigInputName }"]` );
+
+			/**
+			 * @type {HTMLInputElement}
+			 */
+			const token = wcCheckoutBlock.querySelector( `[name="${ tokenName }"]` );
+
+			formData[ widgetName ] = widgetId?.value;
+			formData[ responseInputName ] = hCaptchaResponse?.value;
+			formData[ hcapHp.id ] = hcapHp?.value;
+			formData[ sigInputName ] = hcapSig?.value;
+			formData[ tokenName ] = token?.value;
+
+			config.body = JSON.stringify( formData );
+
+			event.detail.args.config = config;
+		},
+
+		fetchComplete( event ) {
+			const resource = event?.detail?.args?.[ 0 ] ?? '';
+
+			if ( ! resource.includes( '/wc/store/v1/checkout' ) ) {
+				return;
+			}
+
+			window.hCaptchaBindEvents();
+		},
+	};
+
+	return app;
+}( window ) );
+
+window.hCaptchaWCBlockCheckout = wcBlockCheckout;
+
+wcBlockCheckout.init();

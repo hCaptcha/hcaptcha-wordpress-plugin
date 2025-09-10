@@ -163,6 +163,100 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test filter_activate_plugins() when no Companion plugins are in dependency.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_no_dependant_companions(): void {
+		$input    = [ 'some/other.php' ];
+		$expected = $input;
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->never();
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
+	 * Test filter_activate_plugins() when a Companion plugin is already active.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_when_companion_already_active(): void {
+		$companion_pro  = 'blocksy-companion-pro/blocksy-companion.php';
+		$companion_free = 'blocksy-companion/blocksy-companion.php';
+		$input          = [ $companion_pro, 'some/other.php', $companion_free ];
+		$expected       = [ 1 => 'some/other.php' ];
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_pro )->andReturn( true );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
+	 * Test filter_activate_plugins() when none is active but one Companion plugin is installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_when_companion_installed_but_not_active(): void {
+		$companion_pro  = 'blocksy-companion-pro/blocksy-companion.php';
+		$companion_free = 'blocksy-companion/blocksy-companion.php';
+		$input          = [ 'some/other.php', 'another.php', $companion_pro ];
+		$expected       = [ 'some/other.php', 'another.php', $companion_free ];
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_pro )->andReturn( false );
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_free )->andReturn( false );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Only a free companion is installed.
+		$this->set_protected_property( $subject, 'plugins', [ $companion_free => [] ] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
+	 * Test filter_activate_plugins() when no Companion plugin is active or installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_activate_plugins_when_no_companion_installed_or_active(): void {
+		$companion_pro  = 'blocksy-companion-pro/blocksy-companion.php';
+		$companion_free = 'blocksy-companion/blocksy-companion.php';
+		$input          = [ 'x.php', $companion_pro, $companion_free ];
+		$expected       = $input; // Should return an original list.
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_pro )->andReturn( false );
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $companion_free )->andReturn( false );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [] );
+
+		self::assertSame( $expected, $subject->filter_activate_plugins( $input ) );
+	}
+
+	/**
 	 * Test init_form_fields().
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -1564,6 +1658,142 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test plugin_names_from_trees() basically flatten and de-duplication.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_plugin_names_from_trees_basic(): void {
+		$plugin_a = 'plugin-a/plugin-a.php';
+		$plugin_b = 'woocommerce/woocommerce.php';
+		$plugin_c = 'plugin-c/plugin-c.php';
+
+		$node_a = [
+			'plugin'   => $plugin_a,
+			'children' => [
+				[
+					'plugin'   => $plugin_b,
+					'children' => [],
+					'result'   => null,
+				],
+			],
+			'result'   => null,
+		];
+
+		$node_c = [
+			'plugin'   => $plugin_c,
+			'children' => [
+				[
+					'plugin'   => $plugin_b,
+					'children' => [],
+					'result'   => null,
+				],
+			],
+			'result'   => null,
+		];
+
+		$main          = Mockery::mock( Main::class )->makePartial();
+		$main->modules = [
+			'WooCommerce' => [
+				[ 'woocommerce_status', 'register' ],
+				$plugin_b,
+				'wc_register_class',
+			],
+		];
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->init_form_fields();
+
+		// Provide names for A and C via plugin headers.
+		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
+			static function ( $plugin ) use ( $plugin_a, $plugin_c ) {
+				if ( $plugin === $plugin_a ) {
+					return [ 'Name' => 'Plugin A' ];
+				}
+
+				if ( $plugin === $plugin_c ) {
+					return [ 'Name' => 'Plugin C' ];
+				}
+
+				return [];
+			}
+		);
+
+		$this->set_protected_property( $subject, 'plugin_trees', [ $node_a, $node_c ] );
+
+		$expected = [ 'Plugin A', 'WooCommerce', 'Plugin C' ];
+		$method   = 'plugin_names_from_trees';
+
+		self::assertSame( $expected, $subject->$method() );
+	}
+
+	/**
+	 * Test plugin_names_from_trees() when one root has a result (error), so its own name is omitted.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_plugin_names_from_trees_with_result_on_root(): void {
+		$plugin_a = 'plugin-a/plugin-a.php';
+		$plugin_b = 'woocommerce/woocommerce.php';
+		$plugin_c = 'plugin-c/plugin-c.php';
+
+		$error = Mockery::mock( 'overload:WP_Error' );
+
+		$node_a = [
+			'plugin'   => $plugin_a,
+			'children' => [
+				[
+					'plugin'   => $plugin_b,
+					'children' => [],
+					'result'   => null,
+				],
+			],
+			'result'   => $error, // Root result means omit its own name.
+		];
+
+		$node_c = [
+			'plugin'   => $plugin_c,
+			'children' => [],
+			'result'   => null,
+		];
+
+		$main          = Mockery::mock( Main::class )->makePartial();
+		$main->modules = [
+			'WooCommerce' => [
+				[ 'woocommerce_status', 'register' ],
+				$plugin_b,
+				'wc_register_class',
+			],
+		];
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->init_form_fields();
+
+		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
+			static function ( $plugin ) use ( $plugin_a, $plugin_c ) {
+				if ( $plugin === $plugin_a ) {
+					return [ 'Name' => 'Plugin A' ];
+				}
+				if ( $plugin === $plugin_c ) {
+					return [ 'Name' => 'Plugin C' ];
+				}
+
+				return [];
+			}
+		);
+
+		$this->set_protected_property( $subject, 'plugin_trees', [ $node_a, $node_c ] );
+
+		$expected = [ 'WooCommerce', 'Plugin C' ];
+		$method   = 'plugin_names_from_trees';
+
+		self::assertSame( $expected, $subject->$method() );
+	}
+
+	/**
 	 * Test plugin_names_from_tree().
 	 *
 	 * @return void
@@ -1816,7 +2046,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	public function est_install_theme_when_api_error(): void {
+	public function test_install_theme_when_api_error(): void {
 		$theme = 'example-theme';
 
 		$wp_error = Mockery::mock( 'overload:WP_Error' );
@@ -2053,5 +2283,151 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with( $status['errorCode'], $filesystem_error_message );
 
 		self::assertInstanceOf( 'WP_Error', $subject->install_entity( $upgrader, $skin, $download_link ) );
+	}
+
+	/**
+	 * Test get_plugin_data() when the plugin is not installed.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_plugin_data_when_not_installed_returns_empty_array(): void {
+		$slug = 'my-plugin/my-plugin.php';
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// No installed plugins.
+		$this->set_protected_property( $subject, 'plugins', [] );
+		$this->set_protected_property( $subject, 'themes', [] );
+
+		// Ensure global get_plugin_data() is not called.
+		WP_Mock::userFunction( 'get_plugin_data' )->never();
+
+		$method = 'get_plugin_data';
+
+		self::assertSame( [], $subject->$method( $slug ) );
+	}
+
+	/**
+	 * Test get_plugin_data() when the plugin is installed: delegates to WP get_plugin_data with a correct path and flags.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_get_plugin_data_when_installed_calls_wp_and_uses_path_and_flags(): void {
+		$slug        = 'my-plugin/my-plugin.php';
+		$plugins_dir = 'C:/laragon/www/test/wp-content/plugins';
+		$expected    = [
+			'Name'    => 'My Plugin',
+			'Version' => '1.2.3',
+		];
+		$markup      = false;
+		$translate   = false;
+		$plugin_file = $plugins_dir . '/' . $slug;
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'plugins', [ $slug => [] ] );
+		$this->set_protected_property( $subject, 'themes', [] );
+
+		// Mock get_plugin_file() to avoid touching constants.
+		$subject->shouldReceive( 'get_plugin_file' )
+			->with( $slug )
+			->andReturn( $plugin_file )
+			->once();
+
+		WP_Mock::userFunction( 'get_plugin_data' )
+			->with( $plugin_file, $markup, $translate )
+			->andReturn( $expected )
+			->once();
+
+		$method = 'get_plugin_data';
+
+		self::assertSame( $expected, $subject->$method( $slug, $markup, $translate ) );
+	}
+
+	/**
+	 * Test prepare_antispam_data() with native and hcaptcha entries where hcaptcha is enabled.
+	 */
+	public function test_prepare_antispam_data_with_native_and_hcaptcha_enabled(): void {
+		$status     = 'kadence_status';
+		$form_field = [];
+
+		// Mock AntiSpam::get_protected_forms to a custom map containing both native and hcaptcha entries for our status.
+		$protected_forms = [
+			'native'   => [ $status => [ 'form' ] ],
+			'hcaptcha' => [ $status => [ 'advanced_form' ] ],
+		];
+
+		FunctionMocker::replace( '\HCaptcha\AntiSpam\AntiSpam::get_protected_forms', $protected_forms );
+
+		// Mock hcaptcha()->settings()->is to return true for the hcaptcha form.
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'is' )->with( $status, 'advanced_form' )->andReturn( true );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$result = $subject->prepare_antispam_data( $status, $form_field );
+
+		self::assertArrayHasKey( 'data', $result );
+		self::assertArrayHasKey( 'helpers', $result );
+		self::assertSame( '', $result['data']['form']['antispam-native'] );
+		self::assertStringContainsString( 'native antispam service', $result['helpers']['form'] );
+		self::assertSame( '', $result['data']['advanced_form']['antispam-hcaptcha'] );
+		self::assertStringContainsString( 'hCaptcha antispam service', $result['helpers']['advanced_form'] );
+	}
+
+	/**
+	 * Test prepare_antispam_data() when hcaptcha entry exists, but settings->is() is false.
+	 */
+	public function test_prepare_antispam_data_hcaptcha_disabled(): void {
+		$status     = 'kadence_status';
+		$form_field = [];
+
+		// Reuse the cached protected forms from the first test to avoid static cache conflicts.
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'is' )->with( $status, 'advanced_form' )->andReturn( false );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$result = $subject->prepare_antispam_data( $status, $form_field );
+
+		self::assertArrayHasKey( 'data', $result );
+		self::assertArrayHasKey( 'helpers', $result );
+		// Native present.
+		self::assertSame( '', $result['data']['form']['antispam-native'] );
+		// Hcaptcha should not be set when settings->is() is false.
+		self::assertArrayNotHasKey( 'advanced_form', $result['data'] );
+	}
+
+	/**
+	 * Test prepare_antispam_data() when AntiSpam::get_protected_forms() returns no entries for the status.
+	 */
+	public function test_prepare_antispam_data_with_no_entries(): void {
+		$status     = 'unknown_status';
+		$form_field = [ 'some' => 'value' ];
+
+		// Use default behavior (likely cached) and ensure no entries; no need to mock alias to avoid cache conflicts.
+		$main     = Mockery::mock( Main::class )->makePartial();
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$result = $subject->prepare_antispam_data( $status, $form_field );
+
+		self::assertSame( $form_field, $result );
 	}
 }

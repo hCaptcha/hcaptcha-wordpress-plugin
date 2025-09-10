@@ -1,3 +1,18 @@
+= 4.17.0 =
+* Added a hidden honeypot field and minimum submit time for bot detection before processing hCaptcha. Currently supported for WordPress Core, Avada theme, Contact Form 7, Divi theme, Divi Builder, Essential Addons for Elementor, Extra theme, Elementor, Jetpack, Mailchimp, Ninja Forms, Spectra, WooCommerce, WPForms, Protect Content feature.
+* Added a notification message on the placeholder when hCaptcha failed to load.
+* Added hCaptcha error messages to the Divi optin email form.
+* Added hCaptcha error messages to the JetPack form.
+* Fix conflict with reCaptcha in Divi Contact form.
+* Fixed running migrations on a fresh installation.
+* Fixed updating the migration option on each admin request.
+* Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
+* Fixed an issue with several Divi optin email forms on the page.
+* Fixed activation of Blocksy plugins with any theme.
+* Fixed refreshing hCaptcha upon failed submission in Jetpack.
+* Fixed Ninja Forms uncaught type error in JS appeared with some field types.
+* Fixed Ninja Forms integration when form duplicates are on the same page.
+
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.
 * Added integration with Icegram Express, including popup and widget forms.

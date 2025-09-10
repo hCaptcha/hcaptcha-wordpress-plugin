@@ -27,6 +27,7 @@ use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\EventsManager\Booking;
+use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Request;
@@ -158,6 +159,9 @@ class Main {
 
 		( new Fix() )->init();
 
+		// Needs to be loaded early, as it uses short init ajax.
+		$this->load( FormSubmitTime::class );
+
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
 	}
 
@@ -219,6 +223,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
+		add_action( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -476,6 +481,7 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
+		$load_fail_msg      = __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' );
 
 		/* language=CSS */
 		$css = '
@@ -501,8 +507,12 @@ class Main {
 		display: none;
 	}
 
+	.h-captcha iframe {
+		z-index: 1;
+	}
+
 	.h-captcha::before {
-		content: \'\';
+		content: "";
 		display: block;
 		position: absolute;
 		top: 0;
@@ -510,6 +520,33 @@ class Main {
 		background: url( ' . $div_logo_url . ' ) no-repeat;
 		border: 1px solid transparent;
 		border-radius: 4px;
+		box-sizing: border-box;
+	}
+
+	.h-captcha::after {
+		content: "' . $load_fail_msg . '";
+	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+		display: block;
+		position: absolute;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+        color: #ff0000;
+		opacity: 0;
+	}
+
+	.h-captcha:not(:has(iframe))::after {
+		animation: hcap-msg-fade-in .3s ease forwards;
+		animation-delay: 2s;
+	}
+	
+	.h-captcha:has(iframe)::after {
+		animation: none;
+		opacity: 0;
+	}
+	
+	@keyframes hcap-msg-fade-in {
+		to { opacity: 1; }
 	}
 
 	.h-captcha[data-size="normal"]::before {
@@ -518,10 +555,18 @@ class Main {
 		background-position: 94% 28%;
 	}
 
+	.h-captcha[data-size="normal"]::after {
+		padding: 19px 75px 16px 10px;
+	}
+
 	.h-captcha[data-size="compact"]::before {
 		width: 156px;
 		height: 136px;
 		background-position: 50% 79%;
+	}
+
+	.h-captcha[data-size="compact"]::after {
+		padding: 10px 10px 16px 10px;
 	}
 
 	.h-captcha[data-theme="light"]::before,
@@ -554,7 +599,8 @@ class Main {
 		background-color: ' . $bg . ';
 	}
 
-	.h-captcha[data-size="invisible"]::before {
+	.h-captcha[data-size="invisible"]::before,
+	.h-captcha[data-size="invisible"]::after {
 		display: none;
 	}
 
@@ -795,6 +841,48 @@ class Main {
 			self::OBJECT,
 			[ 'params' => wp_json_encode( $params ) ]
 		);
+	}
+
+	/**
+	 * Allow honeypot and FST on the supported forms only.
+	 * At this moment, only some forms can use honeypot and fst anti-spam token protection.
+	 * The supported list will be extended in the future.
+	 *
+	 * @param bool|mixed $value   The protection status of a form.
+	 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return bool
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
+		$value = (bool) $value;
+
+		$supported_forms = [
+			[ General::class ], // General settings page.
+			[ 'WordPress' ], // WordPress Core.
+			[ 'Avada' ], // Avada theme.
+			[ 'contact-form-7/wp-contact-form-7.php' ], // Contact Form 7.
+			[ 'Divi' ], // Divi theme.
+			[ 'divi-builder/divi-builder.php' ], // Divi Builder.
+			[ 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ], // Essential Addons for Elementor.
+			[ 'Extra' ], // Extra theme.
+			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
+			[ 'jetpack/jetpack.php' ], // JetPack.
+			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
+			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
+			[ 'woocommerce/woocommerce.php' ], // WooCommerce.
+			[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ], // WPForms.
+			[ 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' ], // Spectra.
+			[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
+		];
+
+		if ( ! in_array( $source, $supported_forms, true ) ) {
+			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
+			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
+		}
+
+		return $value;
 	}
 
 	/**

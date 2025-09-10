@@ -74,6 +74,8 @@ class APITest extends HCaptchaWPTestCase {
 	 * Test verify_post() with no argument.
 	 */
 	public function test_verify_post_default_empty(): void {
+		$this->prepare_verify_request( '', false );
+
 		self::assertSame( 'Please complete the hCaptcha.', API::verify_post() );
 	}
 
@@ -162,6 +164,8 @@ class APITest extends HCaptchaWPTestCase {
 	 * Test verify_request() with empty string as argument.
 	 */
 	public function test_verify_request_empty(): void {
+		$this->prepare_verify_request( '', false );
+
 		self::assertSame(
 			'Please complete the hCaptcha.',
 			API::verify_request( '' )

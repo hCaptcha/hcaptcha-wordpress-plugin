@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\Admin;
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test NotificationsTest class.
@@ -68,15 +69,12 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	/**
 	 * Test get_notifications().
 	 *
-	 * @param bool $empty_keys Whether keys are empty.
-	 * @param bool $pro        Whether it is a Pro account.
-	 * @param bool $force      Whether a force option is on.
-	 * @param bool $antispam   Whether an antispam option is on.
+	 * @param string $setting A setting which is set.
 	 *
 	 * @dataProvider dp_test_get_notifications
 	 * @return void
 	 */
-	public function test_get_notifications( bool $empty_keys, bool $pro, bool $force, bool $antispam = false ): void {
+	public function test_get_notifications( string $setting ): void {
 		global $current_user;
 
 		$user_id    = 1;
@@ -188,11 +186,53 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		if ( ! $empty_keys ) {
-			$site_key   = 'some_key';
-			$secret_key = 'secret_key';
+		switch ( $setting ) {
+			case 'not_empty_keys':
+				$site_key   = 'some_key';
+				$secret_key = 'secret_key';
 
-			unset( $expected['register'] );
+				unset( $expected['register'] );
+				break;
+			case 'pro':
+				unset( $expected['pro-free-trial'] );
+				update_option( 'hcaptcha_settings', [ 'license' => 'pro' ] );
+				break;
+			case 'statistics':
+				unset( $expected['statistics'] );
+				update_option( 'hcaptcha_settings', [ 'statistics' => 'on' ] );
+				break;
+			case 'statistics and pro':
+				unset( $expected['statistics'], $expected['events_page'], $expected['pro-free-trial'] );
+				update_option(
+					'hcaptcha_settings',
+					[
+						'statistics' => 'on',
+						'license'    => 'pro',
+					]
+				);
+				break;
+			case 'force':
+				unset( $expected['force'] );
+				update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
+				break;
+			case 'pro and invisible':
+				unset( $expected['passive-mode'], $expected['pro-free-trial'] );
+				update_option(
+					'hcaptcha_settings',
+					[
+						'license' => 'pro',
+						'size'    => 'invisible',
+					]
+				);
+				break;
+			case 'protect_content':
+				unset( $expected['protect-content'] );
+				update_option( 'hcaptcha_settings', [ 'protect_content' => [ 'on' ] ] );
+				break;
+			case 'antispam':
+				unset( $expected['antispam'] );
+				update_option( 'hcaptcha_settings', [ 'antispam' => [ 'on' ] ] );
+				break;
 		}
 
 		add_filter(
@@ -203,7 +243,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				return $args;
 			}
 		);
-
 		add_filter(
 			'hcap_site_key',
 			static function () use ( $site_key ) {
@@ -216,24 +255,6 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				return $secret_key;
 			}
 		);
-
-		if ( $pro ) {
-			unset( $expected['pro-free-trial'] );
-
-			update_option( 'hcaptcha_settings', [ 'license' => 'pro' ] );
-		}
-
-		if ( $force ) {
-			unset( $expected['force'] );
-
-			update_option( 'hcaptcha_settings', [ 'force' => [ 'on' ] ] );
-		}
-
-		if ( $antispam ) {
-			unset( $expected['antispam'] );
-
-			update_option( 'hcaptcha_settings', [ 'antispam' => [ 'on' ] ] );
-		}
 
 		unset( $current_user );
 		wp_set_current_user( $user_id );
@@ -254,12 +275,80 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * @return array
 	 */
 	public function dp_test_get_notifications(): array {
-		return [
-			'empty_keys' => [ true, false, false, false ],
-			'pro'        => [ false, true, false, false ],
-			'force'      => [ false, false, true, false ],
-			'antispam'   => [ false, false, false, true ],
+		$keys = [
+			'not_empty_keys',
+			'pro',
+			'statistics',
+			'statistics and pro',
+			'force',
+			'pro and invisible',
+			'protect_content',
+			'antispam',
 		];
+
+		foreach ( $keys as $key ) {
+			$settings[ $key ] = [ $key ];
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Test cf7_admin_notification() when CF7 is present and a form exists.
+	 */
+	public function test_cf7_admin_notification_with_form(): void {
+		// Mock that CF7 class exists.
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $name ) {
+				return 'WPCF7_ContactForm' === $name;
+			}
+		);
+
+		$form_id = wp_insert_post(
+			[
+				'post_type'   => 'wpcf7_contact_form',
+				'post_status' => 'publish',
+			]
+		);
+
+		$expected_url = "http://test.test/wp-admin/?page=wpcf7&post=$form_id&action=edit#postbox-container-live";
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$notifications = $subject->get_notifications();
+
+		self::assertArrayHasKey( 'admin-cf7', $notifications );
+		self::assertSame(
+			[
+				'title'   => 'Live form in Contact Form 7 admin',
+				'message' => 'With the hCaptcha plugin, you can see a live form on the form edit admin page.',
+				'button'  => [
+					'url'  => $expected_url,
+					'text' => 'Use live form',
+				],
+			],
+			$notifications['admin-cf7']
+		);
+	}
+
+	/**
+	 * Test cf7_admin_notification() when CF7 is present, but no forms exist.
+	 */
+	public function test_cf7_admin_notification_without_forms(): void {
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $name ) {
+				return 'WPCF7_ContactForm' === $name;
+			}
+		);
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$notifications = $subject->get_notifications();
+
+		self::assertArrayNotHasKey( 'admin-cf7', $notifications );
 	}
 
 	/**

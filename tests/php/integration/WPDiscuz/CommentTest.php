@@ -56,7 +56,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -95,6 +95,59 @@ class CommentTest extends HCaptchaWPTestCase {
 		$subject = new Comment();
 
 		self::assertFalse( has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] ) );
+	}
+
+	/**
+	 * Test block_recaptcha().
+	 *
+	 * @return void
+	 */
+	public function test_block_recaptcha(): void {
+		// Ensure initial values come from setUp().
+		self::assertSame( 'some site key', $this->wp_discuz->options->recaptcha['siteKey'] );
+		self::assertSame( 1, $this->wp_discuz->options->recaptcha['showForGuests'] );
+		self::assertSame( 1, $this->wp_discuz->options->recaptcha['showForUsers'] );
+
+		$subject = new Comment();
+
+		// Call method under test.
+		$subject->block_recaptcha();
+
+		$wpd_recaptcha = (array) $this->wp_discuz->options->recaptcha;
+
+		self::assertSame( '', $wpd_recaptcha['siteKey'] );
+		self::assertSame( 0, $wpd_recaptcha['showForGuests'] );
+		self::assertSame( 0, $wpd_recaptcha['showForUsers'] );
+	}
+
+	/**
+	 * Test block_recaptcha() when wpDiscuz options are not set (null).
+	 * This covers the early return branch in Base::block_recaptcha.
+	 */
+	public function test_block_recaptcha_without_options(): void {
+		$core = Mockery::mock( 'WpdiscuzCore' );
+
+		$core->options = null; // Simulate missing options.
+
+		// Ensure the plugin thinks wpDiscuz exists and returns our core with null options.
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'wpDiscuz' === $function_name;
+			}
+		);
+		FunctionMocker::replace( 'wpDiscuz', $core );
+
+		$subject = new Comment();
+
+		// Check before call.
+		self::assertNull( $core->options );
+
+		// Call method; it should return early and not throw/notices.
+		$subject->block_recaptcha();
+
+		// Still null, nothing modified.
+		self::assertNull( $core->options );
 	}
 
 	/**

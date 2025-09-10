@@ -122,6 +122,9 @@ class ProtectContent {
 	 * @return string
 	 */
 	protected function verify(): string {
+		// It is always too fast with Pro.
+		hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
+
 		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
@@ -436,7 +439,7 @@ class ProtectContent {
 					'theme'  => 'auto',
 					'size'   => 'normal',
 					'id'     => [
-						'source'  => hcaptcha()->settings()->get_plugin_name(),
+						'source'  => [ hcaptcha()->settings()->get_plugin_name() ],
 						'form_id' => 'protect',
 					],
 				];

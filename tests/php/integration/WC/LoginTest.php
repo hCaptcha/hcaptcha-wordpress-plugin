@@ -9,7 +9,6 @@ namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\Login;
-use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
@@ -20,17 +19,6 @@ use WP_Error;
  * @group wc
  */
 class LoginTest extends HCaptchaWPTestCase {
-
-	/**
-	 * Tear down the test.
-	 *
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function tearDown(): void {
-		$this->set_protected_property( hcaptcha(), 'loaded_classes', [] );
-
-		parent::tearDown();
-	}
 
 	/**
 	 * Test constructor and init_hooks().

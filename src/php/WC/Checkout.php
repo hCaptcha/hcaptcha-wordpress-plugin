@@ -72,6 +72,7 @@ class Checkout {
 		add_action( 'woocommerce_checkout_process', [ $this, 'verify' ] );
 		add_filter( 'rest_request_before_callbacks', [ $this, 'verify_block' ], 10, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -157,12 +158,20 @@ class Checkout {
 			return $response;
 		}
 
-		$widget_id_name           = 'hcaptcha-widget-id';
-		$hcaptcha_response_name   = 'h-captcha-response';
-		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
-		$hcaptcha_response        = $request->get_param( $hcaptcha_response_name );
+		$params         = $request->get_params();
+		$widget_id_name = 'hcaptcha-widget-id';
+		$response_name  = 'h-captcha-response';
+		$hp_sig_name    = 'hcap_hp_sig';
+		$token_name     = 'hcap_fst_token';
+		$hp_name        = API::get_hp_name( $params );
 
-		$error_message = API::verify_request( $hcaptcha_response );
+		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
+		$_POST[ $response_name ]  = $request->get_param( $response_name );
+		$_POST[ $hp_sig_name ]    = $request->get_param( $hp_sig_name );
+		$_POST[ $hp_name ]        = $request->get_param( $hp_name );
+		$_POST[ $token_name ]     = $request->get_param( $token_name );
+
+		$error_message = API::verify_request();
 
 		if ( null === $error_message ) {
 			return $response;
@@ -200,5 +209,25 @@ class Checkout {
 				true
 			);
 		}
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::BLOCK_HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }

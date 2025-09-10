@@ -4,12 +4,12 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.16.0
+Stable tag: 4.17.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
-Integrates with 50+ popular plugins.
+Integrates with 60+ popular plugins and themes.
 
 == Description ==
 
@@ -754,6 +754,21 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.17.0 =
+* Added a hidden honeypot field and minimum submit time for bot detection before processing hCaptcha. Currently supported for WordPress Core, Avada theme, Contact Form 7, Divi theme, Divi Builder, Essential Addons for Elementor, Extra theme, Elementor, Jetpack, Mailchimp, Ninja Forms, Spectra, WooCommerce, WPForms, Protect Content feature.
+* Added a notification message on the placeholder when hCaptcha failed to load.
+* Added hCaptcha error messages to the Divi optin email form.
+* Added hCaptcha error messages to the JetPack form.
+* Fix conflict with reCaptcha in Divi Contact form.
+* Fixed running migrations on a fresh installation.
+* Fixed updating the migration option on each admin request.
+* Fixed a fatal error on saving the Integration settings with active plugins having all switches off.
+* Fixed an issue with several Divi optin email forms on the page.
+* Fixed activation of Blocksy plugins with any theme.
+* Fixed refreshing hCaptcha upon failed submission in Jetpack.
+* Fixed Ninja Forms uncaught type error in JS appeared with some field types.
+* Fixed Ninja Forms integration when form duplicates are on the same page.
 
 = 4.16.0 =
 * Added integration with Germanized for WooCommerce.

@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\AntiSpam\AntiSpam;
+use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\Helpers\Utils;
 use KAGG\Settings\Abstracts\SettingsBase;
 use Plugin_Upgrader;
@@ -186,6 +187,8 @@ class Integrations extends PluginSettingsBase {
 
 	/**
 	 * Filter list of plugin to activate.
+	 * Proceed with the special case for blocksy companion plugins.
+	 * Companion plugins produce a fatal error when activated together.
 	 *
 	 * @param array|mixed $plugins    List of plugins.
 	 * @param bool        $first_only Activate the first available plugin only.
@@ -196,11 +199,14 @@ class Integrations extends PluginSettingsBase {
 	public function filter_activate_plugins( $plugins, bool $first_only = true ): array {
 		$plugins = (array) $plugins;
 
-		// Companion plugins produce a fatal error when activated together.
 		$companions = [
 			'blocksy-companion-pro/blocksy-companion.php',
 			'blocksy-companion/blocksy-companion.php',
 		];
+
+		if ( ! array_intersect( $plugins, $companions ) ) {
+			return $plugins;
+		}
 
 		// Remove Companion plugins from the list to activate.
 		$updated_plugins = array_diff( $plugins, $companions );
@@ -1851,11 +1857,11 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @return array The updated form field data containing antispam configurations.
 	 */
-	private function prepare_antispam_data( string $status, array $form_field ): array {
+	protected function prepare_antispam_data( string $status, array $form_field ): array {
 		static $all_protected_forms;
 
 		if ( ! $all_protected_forms ) {
-			$all_protected_forms = AntiSpam::get_protected_forms();
+			$all_protected_forms = array_merge( Honeypot::get_protected_forms(), AntiSpam::get_protected_forms() );
 		}
 
 		$settings = hcaptcha()->settings();
@@ -1865,19 +1871,70 @@ class Integrations extends PluginSettingsBase {
 				continue;
 			}
 
-			$helper = 'hcaptcha' === $type
-				? __( 'The form is protected by the hCaptcha antispam service.', 'hcaptcha-for-forms-and-more' )
-				: __( 'The form is protected by the native antispam service.', 'hcaptcha-for-forms-and-more' );
-
 			foreach ( $protected_forms[ $status ] as $form ) {
 				if (
 					'native' === $type ||
-					( 'hcaptcha' === $type && $settings->is( $status, $form ) )
+					( 'hcaptcha' === $type && $settings->is( $status, $form ) ) ||
+					( 'honeypot' === $type && $settings->is( $status, $form ) )
 				) {
-					$form_field['data'][ $form ]    = [ 'antispam' => $type ];
-					$form_field['helpers'][ $form ] = $helper;
+					$form_field = $this->prepare_form_field_antispam_data( $form_field, $form, $type );
 				}
 			}
+		}
+
+		return $this->format_form_antispam_helpers( $form_field );
+	}
+
+	/**
+	 * Prepare form field antispam data.
+	 *
+	 * @param array  $form_field Form field.
+	 * @param string $form       Form name.
+	 * @param string $type       Antispam type.
+	 *
+	 * @return array
+	 */
+	private function prepare_form_field_antispam_data( array $form_field, string $form, string $type ): array {
+		$form_field['data'][ $form ]['antispam']         = '';
+		$form_field['data'][ $form ][ "antispam-$type" ] = '';
+		$form_field['helpers'][ $form ][]                = $type;
+
+		return $form_field;
+	}
+
+	/**
+	 * Format antispam helpers.
+	 *
+	 * @param array $form_field Form field.
+	 *
+	 * @return array
+	 */
+	private function format_form_antispam_helpers( array $form_field ): array {
+		if ( ! isset( $form_field['helpers'] ) ) {
+			return $form_field;
+		}
+
+		$helpers = [
+			'honeypot' => __( 'hCaptcha honeypot', 'hcaptcha-for-forms-and-more' ),
+			'native'   => __( 'native antispam service', 'hcaptcha-for-forms-and-more' ),
+			'hcaptcha' => __( 'hCaptcha antispam service', 'hcaptcha-for-forms-and-more' ),
+		];
+
+		foreach ( $form_field['helpers'] as $form => $helper_arr ) {
+			$helper_arr = array_map(
+				static function ( $type ) use ( $helpers ) {
+					return $helpers[ $type ];
+				},
+				$helper_arr
+			);
+
+			$helper = sprintf(
+			/* translators: 1: form protection methods. */
+				__( 'The form is protected by the %1$s.', 'hcaptcha-for-forms-and-more' ),
+				Utils::list_array( $helper_arr )
+			);
+
+			$form_field['helpers'][ $form ] = $helper;
 		}
 
 		return $form_field;
