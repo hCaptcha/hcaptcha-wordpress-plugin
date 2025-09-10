@@ -2376,9 +2376,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		self::assertArrayHasKey( 'data', $result );
 		self::assertArrayHasKey( 'helpers', $result );
-		self::assertSame( 'native', $result['data']['form']['antispam'] );
+		self::assertSame( '', $result['data']['form']['antispam-native'] );
 		self::assertStringContainsString( 'native antispam service', $result['helpers']['form'] );
-		self::assertSame( 'hcaptcha', $result['data']['advanced_form']['antispam'] );
+		self::assertSame( '', $result['data']['advanced_form']['antispam-hcaptcha'] );
 		self::assertStringContainsString( 'hCaptcha antispam service', $result['helpers']['advanced_form'] );
 	}
 
@@ -2405,7 +2405,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		self::assertArrayHasKey( 'data', $result );
 		self::assertArrayHasKey( 'helpers', $result );
 		// Native present.
-		self::assertSame( 'native', $result['data']['form']['antispam'] );
+		self::assertSame( '', $result['data']['form']['antispam-native'] );
 		// Hcaptcha should not be set when settings->is() is false.
 		self::assertArrayNotHasKey( 'advanced_form', $result['data'] );
 	}
