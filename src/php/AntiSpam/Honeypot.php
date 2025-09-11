@@ -26,6 +26,7 @@ class Honeypot {
 			'ninja_status'            => [ 'form' ],
 			'spectra_status'          => [ 'form' ],
 			'woocommerce_status'      => [ 'checkout', 'login', 'lost_pass', 'order_tracking', 'register' ],
+			'wordfence_status'        => [ 'login' ],
 			'wpforms_status'          => [ 'form', 'embed' ],
 		],
 	];
