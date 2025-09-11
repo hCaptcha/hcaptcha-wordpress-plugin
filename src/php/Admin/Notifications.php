@@ -297,7 +297,7 @@ class Notifications extends NotificationsBase {
 			'antispam-token'      => [
 				'title'   => __( 'Anti-Spam Token', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
-				/* translators: 1: the honeypot switch link, 2: the submit time switch link. */
+				/* translators: 1: the submit time switch link. */
 					__( 'Add minimum form %1$s for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
@@ -314,7 +314,7 @@ class Notifications extends NotificationsBase {
 			'antispam-honeypot'   => [
 				'title'   => __( 'Anti-Spam Honeypot', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
-				/* translators: 1: the honeypot switch link, 2: the submit time switch link. */
+				/* translators: 1: the honeypot switch link. */
 					__( 'Add a hidden %1$s field for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
