@@ -1416,6 +1416,11 @@ class Integrations extends PluginSettingsBase {
 		if ( ! class_exists( 'Plugin_Upgrader', false ) ) {
 			// @codeCoverageIgnoreStart
 			require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+			// @codeCoverageIgnoreEnd
+		}
+
+		if ( ! function_exists( 'plugins_api' ) ) {
+			// @codeCoverageIgnoreStart
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			// @codeCoverageIgnoreEnd
 		}
