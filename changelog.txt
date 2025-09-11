@@ -1,4 +1,5 @@
 = 4.18.0 =
+* Added honeypot and minimum submit time support for Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 
 = 4.17.0 =
