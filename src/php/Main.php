@@ -868,6 +868,7 @@ class Main {
 			[ 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ], // Essential Addons for Elementor.
 			[ 'Extra' ], // Extra theme.
 			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
+			[ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ], // Fluent Forms.
 			[ 'jetpack/jetpack.php' ], // JetPack.
 			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
 			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
@@ -877,7 +878,7 @@ class Main {
 			[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
 		];
 
-		if ( ! in_array( $source, $supported_forms, true ) ) {
+		if ( $source && ! in_array( $source, $supported_forms, true ) ) {
 			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
 			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
 		}

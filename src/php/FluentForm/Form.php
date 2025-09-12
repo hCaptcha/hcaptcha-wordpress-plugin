@@ -18,6 +18,7 @@ use FluentForm\Framework\Helpers\ArrayHelper;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Main;
 use stdClass;
 
@@ -79,6 +80,7 @@ class Form extends LoginBase {
 		add_filter( 'fluentform/has_hcaptcha', [ $this, 'fluentform_has_hcaptcha' ] );
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
@@ -168,6 +170,8 @@ class Form extends LoginBase {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedMethodInspection
+	 * @noinspection PhpCastIsUnnecessaryInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
 		if ( $this->is_login_form( $form ) ) {
@@ -195,9 +199,12 @@ class Form extends LoginBase {
 
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
 
-		$hcaptcha_response           = $data['h-captcha-response'] ?? '';
-		$_POST['hcaptcha-widget-id'] = $data['hcaptcha-widget-id'] ?? '';
-		$error_message               = API::verify_request( $hcaptcha_response );
+		$post_data_str = Request::filter_input( INPUT_POST, 'data' );
+
+		wp_parse_str( $post_data_str, $post_data );
+
+		$post_data     = (array) $post_data; // The $post_data is filtered in the wp_parse_str() and can be anything.
+		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -245,17 +252,12 @@ class Form extends LoginBase {
 	public function print_footer_scripts(): void {
 		global $wp_scripts;
 
-		// Proceed with conversational form only.
-		if ( ! wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
-			return;
-		}
-
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-fluentform$min.js",
-			[ Main::HANDLE ],
+			[ 'jquery', Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
@@ -321,6 +323,26 @@ class Form extends LoginBase {
 			[],
 			constant( 'HCAPTCHA_VERSION' )
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**
