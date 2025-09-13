@@ -1,6 +1,63 @@
 /* global jQuery */
 
+/**
+ * Normalize a possibly jQuery-wrapped node to a plain DOM Element.
+ *
+ * @private
+ *
+ * @param {*} nodeOrJQ
+ *
+ * @return {HTMLElement} Returns a DOM Element (or document) representing the root for queries.
+ */
+function asElement( nodeOrJQ ) {
+	if ( ! nodeOrJQ ) {
+		return document;
+	}
+
+	// jQuery wrapper detection
+	if ( nodeOrJQ.jquery || Array.isArray( nodeOrJQ ) ) {
+		return nodeOrJQ[ 0 ] || document;
+	}
+
+	return nodeOrJQ;
+}
+
+/**
+ * Safe value extractor for typical form controls.
+ *
+ * @private
+ *
+ * @param {Element|null} el
+ *
+ * @return {string} Returns the string value of the element (empty string if absent).
+ */
+function getElementValue( el ) {
+	if ( ! el ) {
+		return '';
+	}
+
+	// Prefer value property when available (input, select, textarea)
+	const anyEl = /** @type {any} */ ( el );
+
+	if ( 'value' in anyEl ) {
+		return String( anyEl.value ?? '' );
+	}
+
+	return String( el.getAttribute( 'value' ) ?? '' );
+}
+
 export class helper {
+	/**
+	 * Adds hCaptcha data to AJAX options if the action matches.
+	 *
+	 * @param {Object}             options      The AJAX options object.
+	 * @param {string}             options.data Query string of AJAX data.
+	 * @param {string}             action       The AJAX action to match against.
+	 * @param {string}             nonceName    The name of the nonce field to retrieve.
+	 * @param {HTMLElement|jQuery} $node        DOM node or jQuery-wrapped node to search for hCaptcha fields.
+	 *
+	 * @return {void}
+	 */
 	static addHCaptchaData( options, action, nonceName, $node ) {
 		const data = options.data ?? '';
 
@@ -15,10 +72,11 @@ export class helper {
 		try {
 			params = new URLSearchParams( qs );
 		} catch ( e ) {
-			params = {};
+			params = new URLSearchParams();
 		}
 
-		if ( params?.action !== action ) {
+		// Proceed only for the expected ajax call signature.
+		if ( params.get( 'action' ) !== action ) {
 			return;
 		}
 
@@ -40,14 +98,16 @@ export class helper {
 	/**
 	 * Get hCaptcha data from a node.
 	 *
-	 * @param {jQuery} $node     Node.
-	 * @param {string} nonceName Nonce name.
-	 * @return {Object} Data object.
+	 * @param {HTMLElement|jQuery} $node     Node or jQuery-wrapped node.
+	 * @param {string}             nonceName Nonce field name to read.
+	 *
+	 * @return {Object} Returns a flat map of field names to values (plain object).
 	 */
 	static getHCaptchaData( $node, nonceName ) {
-		const hpName = $node.find( '[name^="hcap_hp_"]' ).first().attr( 'name' ) ?? '';
+		const root = asElement( $node );
+		const hpInput = root?.querySelector ? root.querySelector( '[name^="hcap_hp_"]' ) : null;
+		const hpName = hpInput?.getAttribute( 'name' ) ?? '';
 		const names = [ 'h-captcha-response', 'hcaptcha-widget-id', nonceName, hpName, 'hcap_hp_sig', 'hcap_fst_token' ];
-
 		const hCaptchaData = {};
 
 		for ( const name of names ) {
@@ -55,7 +115,9 @@ export class helper {
 				continue;
 			}
 
-			hCaptchaData[ name ] = $node.find( `[name="${ name }"]` ).first().val() ?? '';
+			const el = root?.querySelector ? root.querySelector( `[name="${ name }"]` ) : null;
+
+			hCaptchaData[ name ] = getElementValue( el );
 		}
 
 		return hCaptchaData;
