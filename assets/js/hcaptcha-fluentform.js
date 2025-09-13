@@ -201,7 +201,7 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 			window.hCaptchaBindEvents();
 		},
 
-		// jQuery ajaxSuccess handler.
+		// jQuery ajaxComplete handler.
 		ajaxCompleteHandler( event, xhr, settings ) {
 			const params = new URLSearchParams( settings.data );
 
