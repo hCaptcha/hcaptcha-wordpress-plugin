@@ -31,6 +31,7 @@ class Honeypot {
 			'mailchimp_status'        => [ 'form' ],
 			'mailpoet_status'         => [ 'form' ],
 			'ninja_status'            => [ 'form' ],
+			'otter_status'            => [ 'form' ],
 			'spectra_status'          => [ 'form' ],
 			'woocommerce_status'      => [ 'checkout', 'login', 'lost_pass', 'order_tracking', 'register' ],
 			'wordfence_status'        => [ 'login' ],

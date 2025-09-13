@@ -877,6 +877,7 @@ class Main {
 			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
 			[ 'mailpoet/mailpoet.php' ], // MailPoet.
 			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
+			[ 'otter-blocks/otter-blocks.php' ], // Otter Blocks.
 			[ 'woocommerce/woocommerce.php' ], // WooCommerce.
 			[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ], // WPForms.
 			[ 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' ], // Spectra.

@@ -138,24 +138,27 @@ HTML;
 
 		$form_data_request->shouldReceive( 'has_error' )->andReturn( false );
 
-		$action        = 'hcaptcha_otter';
-		$nonce         = 'hcaptcha_otter_nonce';
-		$hcap_response = 'some response';
-		$widget_id     = 'some widget id';
+		$action = 'hcaptcha_otter';
+		$nonce  = 'hcaptcha_otter_nonce';
 
 		$this->prepare_verify_post( $nonce, $action, $verified );
 
-		$form_data_request->shouldReceive( 'get_root_data' )->with( 'h-captcha-response' )->andReturn( $hcap_response );
+		$form_data_arr = [
+			'form_data' => [
+				'h-captcha-response'   => 'some response',
+				'hcaptcha-widget-id'   => 'some widget id',
+				'hcaptcha_otter_nonce' => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_fst_token'       => 'some token',
+				'hcap_hp_test'         => '',
+				'hcap_hp_sig'          => 'some signature',
+			],
+		];
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$form_data_request->shouldReceive( 'get_root_data' )->with( $nonce )->andReturn( $_POST[ $nonce ] );
-		$form_data_request->shouldReceive( 'get_root_data' )->with( 'hcaptcha-widget-id' )->andReturn( 'some widget id' );
+		$form_data_request->shouldReceive( 'dump_data' )->with()->andReturn( $form_data_arr );
 
 		if ( $verified ) {
 			$form_data_request->shouldReceive( 'set_error' )->never();
 		} else {
-			$form_data_response = Mockery::namedMock( Form_Data_Response::class, FormDataResponseStub::class );
-
 			$form_data_request->shouldReceive( 'set_error' )->once()->with( 'fail', 'The hCaptcha is invalid.' );
 		}
 
@@ -184,7 +187,7 @@ HTML;
 	public function test_enqueue_scripts(): void {
 		$subject = new Form();
 
-		// Form not shown.
+		// Form isn't shown.
 		self::assertFalse( wp_script_is( 'hcaptcha-otter' ) );
 
 		$subject->enqueue_scripts();

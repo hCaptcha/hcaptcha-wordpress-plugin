@@ -73,6 +73,7 @@ class Form {
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'otter_form_anti_spam_validation', array( $this, 'verify' ) );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -144,11 +145,9 @@ class Form {
 			return $form_data;
 		}
 
-		$_POST['h-captcha-response'] = $form_data->get_root_data( 'h-captcha-response' ) ?: '';
-		$_POST[ self::NONCE ]        = $form_data->get_root_data( self::NONCE ) ?: '';
-		$_POST['hcaptcha-widget-id'] = $form_data->get_root_data( 'hcaptcha-widget-id' ) ?: '';
+		$post_data = $this->prepare_post_data( $form_data );
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
 
 		if ( null !== $this->error_message ) {
 			$this->error_code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
@@ -207,5 +206,47 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
+	}
+
+
+	/**
+	 * Prepare post_data.
+	 *
+	 * @param Form_Data_Request $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function prepare_post_data( Form_Data_Request $form_data ): array {
+		$form_data_arr = $form_data->dump_data()['form_data'];
+
+		$post_data['h-captcha-response'] = $form_data_arr['h-captcha-response'] ?? '';
+		$post_data[ self::NONCE ]        = $form_data_arr[ self::NONCE ] ?? '';
+		$post_data['hcaptcha-widget-id'] = $form_data_arr['hcaptcha-widget-id'] ?? '';
+		$post_data['hcap_fst_token']     = $form_data_arr['hcap_fst_token'] ?? '';
+		$hp_name                         = API::get_hp_name( $form_data_arr );
+		$post_data[ $hp_name ]           = $form_data_arr[ $hp_name ] ?? '';
+		$post_data['hcap_hp_sig']        = $form_data_arr['hcap_hp_sig'] ?? '';
+
+		return $post_data;
 	}
 }
