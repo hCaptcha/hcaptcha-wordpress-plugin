@@ -868,6 +868,7 @@ class Main {
 			[ 'Extra' ], // Extra theme.
 			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
 			[ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ], // Fluent Forms.
+			[ 'forminator/forminator.php' ], // Forminator.
 			[ 'jetpack/jetpack.php' ], // JetPack.
 			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
 			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
