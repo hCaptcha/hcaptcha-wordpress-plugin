@@ -756,7 +756,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.18.0 =
-* Added honeypot and minimum submit time support for Wordfence, Fluent Forms, and Forminator.
+* Added honeypot and minimum submit time support for Gravity Forms, Fluent Forms, Forminator, and Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 * Fixed Fluent Forms Login behavior when the login limit was exceeded.
 

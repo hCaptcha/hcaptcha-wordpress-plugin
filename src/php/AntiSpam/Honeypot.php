@@ -23,6 +23,7 @@ class Honeypot {
 			'elementor_pro_status'    => [ 'form', 'login' ],
 			'fluent_status'           => [ 'form' ],
 			'forminator_status'       => [ 'form' ],
+			'gravity_status'          => [ 'form', 'embed' ],
 			'jetpack_status'          => [ 'contact' ],
 			'mailchimp_status'        => [ 'form' ],
 			'ninja_status'            => [ 'form' ],
