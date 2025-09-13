@@ -869,6 +869,7 @@ class Main {
 			[ 'Extra' ], // Extra theme.
 			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
 			[ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ], // Fluent Forms.
+			[ 'formidable/formidable.php' ], // Formidable Forms.
 			[ 'forminator/forminator.php' ], // Forminator.
 			[ 'gravityforms/gravityforms.php' ], // Gravity Forms.
 			[ 'jetpack/jetpack.php' ], // JetPack.

@@ -23,6 +23,7 @@ class Honeypot {
 			'extra_status'            => [ 'comment', 'contact', 'email_optin', 'login' ],
 			'elementor_pro_status'    => [ 'form', 'login' ],
 			'fluent_status'           => [ 'form' ],
+			'formidable_forms_status' => [ 'form' ],
 			'forminator_status'       => [ 'form' ],
 			'gravity_status'          => [ 'form', 'embed' ],
 			'jetpack_status'          => [ 'contact' ],
