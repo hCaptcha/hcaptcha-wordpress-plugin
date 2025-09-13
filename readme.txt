@@ -759,6 +759,7 @@ Instructions for popular native integrations are below:
 * Added honeypot and minimum submit time support for CoBlocks, Gravity Forms, Fluent Forms, Formidable Forms, Forminator, Kadence, MailPoet, and Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 * Fixed Fluent Forms Login behavior when the login limit was exceeded.
+* Fix integration with Advanced Kadence Form upon Kadence Blocks plugin update.
 
 = 4.17.0 =
 * Added a hidden honeypot field and minimum submit time for bot detection before processing hCaptcha. Currently supported for WordPress Core, Avada theme, Contact Form 7, Divi theme, Divi Builder, Essential Addons for Elementor, Extra theme, Elementor, Jetpack, Mailchimp, Ninja Forms, Spectra, WooCommerce, WPForms, Protect Content feature.
