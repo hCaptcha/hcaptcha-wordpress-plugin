@@ -15,7 +15,6 @@ namespace HCaptcha\Otter;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
-use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
 use WP_Block;
 use WP_Error;
 use WP_HTTP_Response;
@@ -155,7 +154,7 @@ class Form {
 			$this->error_code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 			// Error processing in Otter is not very helpful.
-			$form_data->set_error( Form_Data_Response::ERROR_MISSING_CAPTCHA, $this->error_message );
+			$form_data->set_error( $this->error_code, $this->error_message );
 
 			add_filter( 'rest_request_after_callbacks', [ $this, 'filter_response' ], 10, 3 );
 		}

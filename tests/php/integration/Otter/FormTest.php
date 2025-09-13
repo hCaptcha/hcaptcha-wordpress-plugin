@@ -14,10 +14,8 @@ namespace HCaptcha\Tests\Integration\Otter;
 
 use HCaptcha\Otter\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use HCaptcha\Tests\Integration\Stubs\ThemeIsle\GutenbergBlocks\Integration\FormDataResponseStub;
 use Mockery;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
-use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
 use WP_Block;
 
 /**
@@ -143,6 +141,7 @@ HTML;
 		$action        = 'hcaptcha_otter';
 		$nonce         = 'hcaptcha_otter_nonce';
 		$hcap_response = 'some response';
+		$widget_id     = 'some widget id';
 
 		$this->prepare_verify_post( $nonce, $action, $verified );
 
@@ -150,14 +149,14 @@ HTML;
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$form_data_request->shouldReceive( 'get_root_data' )->with( $nonce )->andReturn( $_POST[ $nonce ] );
+		$form_data_request->shouldReceive( 'get_root_data' )->with( 'hcaptcha-widget-id' )->andReturn( 'some widget id' );
 
 		if ( $verified ) {
 			$form_data_request->shouldReceive( 'set_error' )->never();
 		} else {
 			$form_data_response = Mockery::namedMock( Form_Data_Response::class, FormDataResponseStub::class );
 
-			$form_data_response->shouldReceive( 'ERROR_MISSING_CAPTCHA' )->andReturn( FormDataResponseStub::ERROR_MISSING_CAPTCHA );
-			$form_data_request->shouldReceive( 'set_error' )->once()->with( FormDataResponseStub::ERROR_MISSING_CAPTCHA );
+			$form_data_request->shouldReceive( 'set_error' )->once()->with( 'fail', 'The hCaptcha is invalid.' );
 		}
 
 		$result = $subject->verify( $form_data_request );
