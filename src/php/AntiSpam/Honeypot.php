@@ -27,6 +27,7 @@ class Honeypot {
 			'forminator_status'       => [ 'form' ],
 			'gravity_status'          => [ 'form', 'embed' ],
 			'jetpack_status'          => [ 'contact' ],
+			'kadence_status'          => [ 'form', 'advanced_form' ],
 			'mailchimp_status'        => [ 'form' ],
 			'mailpoet_status'         => [ 'form' ],
 			'ninja_status'            => [ 'form' ],

@@ -756,7 +756,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.18.0 =
-* Added honeypot and minimum submit time support for CoBlocks, Gravity Forms, Fluent Forms, Formidable Forms, Forminator, MailPoet, and Wordfence.
+* Added honeypot and minimum submit time support for CoBlocks, Gravity Forms, Fluent Forms, Formidable Forms, Forminator, Kadence, MailPoet, and Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 * Fixed Fluent Forms Login behavior when the login limit was exceeded.
 

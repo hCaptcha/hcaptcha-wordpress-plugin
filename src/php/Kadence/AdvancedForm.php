@@ -28,6 +28,11 @@ class AdvancedForm extends Base {
 	private const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-kadence-advanced';
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -44,15 +49,18 @@ class AdvancedForm extends Base {
 
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
 
-		if ( Request::is_frontend() ) {
+		if ( Request::is_frontend() || Request::is_post() ) {
 			add_filter(
 				'block_parser_class',
 				static function () {
 					return AdvancedBlockParser::class;
 				}
 			);
+		}
 
+		if ( Request::is_frontend() ) {
 			add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+			add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 
 			return;
 		}
@@ -144,12 +152,32 @@ class AdvancedForm extends Base {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'hcaptcha-kadence-advanced',
+			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-kadence-advanced$min.js",
 			[ 'hcaptcha', 'kadence-blocks-advanced-form' ],
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**

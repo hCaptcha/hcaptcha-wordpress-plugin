@@ -873,6 +873,7 @@ class Main {
 			[ 'forminator/forminator.php' ], // Forminator.
 			[ 'gravityforms/gravityforms.php' ], // Gravity Forms.
 			[ 'jetpack/jetpack.php' ], // JetPack.
+			[ 'kadence-blocks/kadence-blocks.php' ], // Kadence.
 			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
 			[ 'mailpoet/mailpoet.php' ], // MailPoet.
 			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
