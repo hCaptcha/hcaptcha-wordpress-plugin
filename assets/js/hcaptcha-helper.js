@@ -76,7 +76,7 @@ export class helper {
 		}
 
 		// Proceed only for the expected ajax call signature.
-		if ( params.get( 'action' ) !== action ) {
+		if ( action && params.get( 'action' ) !== action ) {
 			return;
 		}
 
@@ -105,7 +105,7 @@ export class helper {
 	 */
 	static getHCaptchaData( $node, nonceName ) {
 		const root = asElement( $node );
-		const hpInput = root?.querySelector ? root.querySelector( '[name^="hcap_hp_"]' ) : null;
+		const hpInput = root?.querySelector ? root.querySelector( 'input[id^="hcap_hp_"]' ) : null;
 		const hpName = hpInput?.getAttribute( 'name' ) ?? '';
 		const names = [ 'h-captcha-response', 'hcaptcha-widget-id', nonceName, hpName, 'hcap_hp_sig', 'hcap_fst_token' ];
 		const hCaptchaData = {};

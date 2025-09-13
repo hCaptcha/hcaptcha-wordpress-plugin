@@ -64,7 +64,14 @@ class FormSubmitTime {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		if ( ! hcaptcha()->form_shown || ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		$status = (bool) apply_filters( 'hcap_print_hcaptcha_scripts', hcaptcha()->form_shown );
+
+		if ( ! $status || ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
 			return;
 		}
 

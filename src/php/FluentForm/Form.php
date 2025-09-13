@@ -232,9 +232,7 @@ class Form extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function print_hcaptcha_scripts( $status ): bool {
-		// Remove an API script by Fluent Forms, having the 'hcaptcha' handle.
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
+		$this->remove_ff_hcaptcha();
 
 		// Always run hCaptcha main script with conversational forms.
 		if ( wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
@@ -540,5 +538,30 @@ class Form extends LoginBase {
 		<?php
 
 		return ob_get_clean();
+	}
+
+	/**
+	 * Removes the hCaptcha API script enqueued by Fluent Forms.
+	 *
+	 * @return void
+	 */
+	private function remove_ff_hcaptcha(): void {
+		// Remove an API script by Fluent Forms, having the 'hcaptcha' handle.
+		$handle     = 'hcaptcha';
+		$wp_scripts = wp_scripts();
+		$script     = $wp_scripts->query( $handle );
+
+		if ( ! $script ) {
+			return;
+		}
+
+		$src = $script->src;
+
+		if ( false === strpos( $src, 'fluentform' ) ) {
+			return;
+		}
+
+		wp_dequeue_script( $handle );
+		wp_deregister_script( $handle );
 	}
 }

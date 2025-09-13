@@ -159,7 +159,6 @@ class Main {
 
 		( new Fix() )->init();
 
-		// Needs to be loaded early, as it uses short init ajax.
 		$this->load( FormSubmitTime::class );
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );

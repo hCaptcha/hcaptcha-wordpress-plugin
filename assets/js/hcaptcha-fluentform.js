@@ -179,7 +179,7 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 				// Use shared helper to append hCaptcha params only when missing.
 				const options = { data };
 
-				helper.addHCaptchaData( options, action, nonceName, $node );
+				helper.addHCaptchaData( options, '', nonceName, $node );
 				body.set( 'data', options.data );
 				config.body = body;
 				event.detail.args[ 1 ] = config;
