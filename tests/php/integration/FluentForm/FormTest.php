@@ -382,20 +382,22 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
-		$errors   = [
+		$errors    = [
 			'some_error' => 'Some error description',
 		];
-		$user     = get_user_by( 'id', 1 );
-		$email    = $user->user_email;
-		$password = 'some password';
-		$data     = [
+		$response  = 'some response';
+		$widget_id = 'some-widget-id';
+		$user      = get_user_by( 'id', 1 );
+		$email     = $user->user_email;
+		$password  = 'some password';
+		$data      = [
 			'email'    => $email,
 			'password' => $password,
 		];
-		$form     = Mockery::mock( FluentForm::class );
-		$fields   = [];
-		$die_arr  = [];
-		$expected = [
+		$form      = Mockery::mock( FluentForm::class );
+		$fields    = [];
+		$die_arr   = [];
+		$expected  = [
 			'',
 			'',
 			[
@@ -440,14 +442,21 @@ class FormTest extends HCaptchaWPTestCase {
 			$mock->shouldReceive( 'login_failed' )->with( $email )->once();
 		}
 
-		ob_start();
-		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
-		$json = ob_get_clean();
+		$this->prepare_verify_request( $response );
 
-		if ( $is_login_limit_exceeded ) {
-			self::assertSame( $expected, $die_arr );
-			self::assertSame( '"Login failed. Please reload the page."', $json );
-		}
+		//phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$post_data = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
+			'hcap_fst_token'     => $_POST['hcap_fst_token'],
+			'hcap_hp_test'       => $_POST['hcap_hp_test'],
+		];
+		//phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+		$_POST['data'] = http_build_query( $post_data );
+
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 
 	/**

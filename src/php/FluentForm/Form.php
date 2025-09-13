@@ -188,13 +188,6 @@ class Form extends LoginBase {
 			if ( ! $this->is_login_limit_exceeded() ) {
 				return $errors;
 			}
-
-			wp_send_json(
-				__( 'Login failed. Please reload the page.', 'hcaptcha-for-forms-and-more' ),
-				423
-			);
-
-			return $errors; // For testing purposes.
 		}
 
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
