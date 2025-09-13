@@ -861,6 +861,7 @@ class Main {
 			[ General::class ], // General settings page.
 			[ 'WordPress' ], // WordPress Core.
 			[ 'Avada' ], // Avada theme.
+			[ 'coblocks/class-coblocks.php' ], // CoBlocks.
 			[ 'contact-form-7/wp-contact-form-7.php' ], // Contact Form 7.
 			[ 'Divi' ], // Divi theme.
 			[ 'divi-builder/divi-builder.php' ], // Divi Builder.

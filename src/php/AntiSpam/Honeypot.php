@@ -16,6 +16,7 @@ class Honeypot {
 			'wp_status'               => [ 'comment', 'login', 'lost_pass', 'password_protected', 'register' ],
 			'avada_status'            => [ 'form' ],
 			'cf7_status'              => [ 'form', 'embed' ],
+			'coblocks_status'         => [ 'form' ],
 			'divi_status'             => [ 'comment', 'contact', 'email_optin', 'login' ],
 			'divi_builder_status'     => [ 'comment', 'contact', 'email_optin', 'login' ],
 			'essential_addons_status' => [ 'login', 'register' ],
