@@ -5,11 +5,15 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Kadence;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use KB_Ajax_Advanced_Form;
 use WP_Block;
 
 /**
@@ -124,6 +128,7 @@ class AdvancedForm extends Base {
 	 * Process ajax.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function process_ajax(): void {
 		// Nonce is checked by Kadence.
@@ -134,13 +139,10 @@ class AdvancedForm extends Base {
 			return;
 		}
 
-		$data = [
-			'html'     => '<div class="kb-adv-form-message kb-adv-form-warning">' . $error . '</div>',
-			'console'  => __( 'hCaptcha Failed', 'hcaptcha-for-forms-and-more' ),
-			'required' => null,
-		];
-
-		wp_send_json_error( $data );
+		KB_Ajax_Advanced_Form::get_instance()->process_bail(
+			$error,
+			__( 'hCaptcha Failed', 'hcaptcha-for-forms-and-more' )
+		);
 	}
 
 	/**
