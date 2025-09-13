@@ -21,6 +21,7 @@ class Honeypot {
 			'essential_addons_status' => [ 'login', 'register' ],
 			'extra_status'            => [ 'comment', 'contact', 'email_optin', 'login' ],
 			'elementor_pro_status'    => [ 'form', 'login' ],
+			'fluent_status'           => [ 'form' ],
 			'jetpack_status'          => [ 'contact' ],
 			'mailchimp_status'        => [ 'form' ],
 			'ninja_status'            => [ 'form' ],
