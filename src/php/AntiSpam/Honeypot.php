@@ -26,6 +26,7 @@ class Honeypot {
 			'gravity_status'          => [ 'form', 'embed' ],
 			'jetpack_status'          => [ 'contact' ],
 			'mailchimp_status'        => [ 'form' ],
+			'mailpoet_status'         => [ 'form' ],
 			'ninja_status'            => [ 'form' ],
 			'spectra_status'          => [ 'form' ],
 			'woocommerce_status'      => [ 'checkout', 'login', 'lost_pass', 'order_tracking', 'register' ],

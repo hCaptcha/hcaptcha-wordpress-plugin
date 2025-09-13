@@ -872,6 +872,7 @@ class Main {
 			[ 'gravityforms/gravityforms.php' ], // Gravity Forms.
 			[ 'jetpack/jetpack.php' ], // JetPack.
 			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
+			[ 'mailpoet/mailpoet.php' ], // MailPoet.
 			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
 			[ 'woocommerce/woocommerce.php' ], // WooCommerce.
 			[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ], // WPForms.
