@@ -3,6 +3,8 @@
 import { helper } from './hcaptcha-helper.js';
 
 const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) {
+	const action = 'fluentform_submit';
+
 	const app = {
 		init() {
 			// Install global fetch event wrapper (idempotent).
@@ -164,24 +166,21 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 				return;
 			}
 
-			if ( body.get( 'action' ) !== 'fluentform_submit' ) {
+			if ( body.get( 'action' ) !== action ) {
 				return;
 			}
 
-			let data = body.get( 'data' ) ?? '';
-
-			if ( typeof data !== 'string' || data.includes( 'h-captcha-response' ) ) {
-				return;
-			}
-
-			const formId = body.get( 'form_id' );
-			const containerSelector = `.ff_conv_app_${ formId }`;
-			const $node = window.jQuery ? window.jQuery( containerSelector ) : null;
+			const data = body.get( 'data' ) ?? '';
+			const formId = body.get( 'form_id' ) ?? '';
+			const $node = $( `.ff_conv_app_${ formId }` );
 			const nonceName = 'hcaptcha_fluentform_nonce';
 
-			if ( $node && $node.length ) {
-				data += helper.getHCaptchaData( $node, nonceName );
-				body.set( 'data', data );
+			if ( $node?.length ) {
+				// Use shared helper to append hCaptcha params only when missing.
+				const options = { data };
+
+				helper.addHCaptchaData( options, action, nonceName, $node );
+				body.set( 'data', options.data );
 				config.body = body;
 				event.detail.args[ 1 ] = config;
 			}
@@ -195,7 +194,7 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 				return;
 			}
 
-			if ( body.get( 'action' ) !== 'fluentform_submit' ) {
+			if ( body.get( 'action' ) !== action ) {
 				return;
 			}
 
@@ -206,7 +205,7 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 		ajaxCompleteHandler( event, xhr, settings ) {
 			const params = new URLSearchParams( settings.data );
 
-			if ( params.get( 'action' ) !== 'fluentform_submit' ) {
+			if ( params.get( 'action' ) !== action ) {
 				return;
 			}
 

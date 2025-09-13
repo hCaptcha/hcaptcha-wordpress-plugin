@@ -4,11 +4,37 @@ export class helper {
 	static addHCaptchaData( options, action, nonceName, $node ) {
 		const data = options.data ?? '';
 
-		if ( ! ( typeof data === 'string' && data.startsWith( `action=${ action }` ) ) ) {
+		if ( typeof data !== 'string' ) {
 			return;
 		}
 
-		options.data += helper.getHCaptchaData( $node, nonceName );
+		// Parse existing query string to know which params are already present.
+		const qs = data.startsWith( '?' ) ? data.slice( 1 ) : data;
+		let params;
+
+		try {
+			params = new URLSearchParams( qs );
+		} catch ( e ) {
+			params = {};
+		}
+
+		if ( params?.action !== action ) {
+			return;
+		}
+
+		const hCaptchaData = helper.getHCaptchaData( $node, nonceName );
+		let append = '';
+
+		// Append only missing keys.
+		for ( const [ name, val ] of Object.entries( hCaptchaData ) ) {
+			if ( params.has( name ) ) {
+				continue;
+			}
+
+			append += `&${ name }=${ val }`;
+		}
+
+		options.data += append;
 	}
 
 	/**
@@ -16,25 +42,23 @@ export class helper {
 	 *
 	 * @param {jQuery} $node     Node.
 	 * @param {string} nonceName Nonce name.
-	 * @return {string} Data.
+	 * @return {Object} Data object.
 	 */
 	static getHCaptchaData( $node, nonceName ) {
 		const hpName = $node.find( '[name^="hcap_hp_"]' ).first().attr( 'name' ) ?? '';
 		const names = [ 'h-captcha-response', 'hcaptcha-widget-id', nonceName, hpName, 'hcap_hp_sig', 'hcap_fst_token' ];
 
-		let data = '';
+		const hCaptchaData = {};
 
 		for ( const name of names ) {
 			if ( ! name ) {
 				continue;
 			}
 
-			const val = $node.find( `[name="${ name }"]` ).first().val() ?? '';
-
-			data += `&${ name }=${ val }`;
+			hCaptchaData[ name ] = $node.find( `[name="${ name }"]` ).first().val() ?? '';
 		}
 
-		return data;
+		return hCaptchaData;
 	}
 
 	/**
