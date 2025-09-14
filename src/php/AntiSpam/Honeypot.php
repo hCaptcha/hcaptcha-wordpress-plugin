@@ -45,7 +45,7 @@ class Honeypot {
 	 * @return array
 	 */
 	public static function get_protected_forms(): array {
-		$honeypot = hcaptcha()->settings()->get( 'honeypot' );
+		$honeypot = hcaptcha()->settings()->is_on( 'honeypot' );
 
 		return $honeypot ? self::PROTECTED_FORMS : [];
 	}
