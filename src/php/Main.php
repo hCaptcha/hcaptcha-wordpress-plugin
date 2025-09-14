@@ -17,6 +17,7 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
+use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
@@ -857,22 +858,48 @@ class Main {
 	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
 		$value = (bool) $value;
 
+		/**
+		 * Supported forms.
+		 *
+		 * @var ?array $supported_forms
+		 */
 		static $supported_forms = null;
 
 		if ( null === $supported_forms ) {
-			$supported_forms = [
-				[ General::class ], // General settings page.
-				[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
-			];
+			$supported_forms = [];
 
-			foreach ( $this->modules as $module ) {
-				$source = (array) $module[1];
-				$source = [ '' ] === $source ? [ 'WordPress' ] : $source;
+			// Use honeypot protection info only, as FST is always added for honeypot forms.
+			$honeypot_protected_forms = Honeypot::get_protected_forms()['honeypot'];
+			$honeypot_statuses        = [];
 
-				$supported_forms[] = $source;
+			foreach ( $honeypot_protected_forms as $status => $forms ) {
+				foreach ( $forms as $form ) {
+					$honeypot_statuses[] = [ $status, $form ];
+				}
+
+				$honeypot_statuses[] = [ $status, null ];
 			}
 
-			$supported_forms = array_unique( $supported_forms );
+			foreach ( $this->modules as $module ) {
+				[ $module_status, $module_source ] = $module;
+
+				if ( ! in_array( $module_status, $honeypot_statuses, true ) ) {
+					continue;
+				}
+
+				$module_source = (array) $module_source;
+				$module_source = [ '' ] === $module_source ? [ 'WordPress' ] : $module_source;
+
+				$supported_forms[] = $module_source;
+			}
+
+			$supported_forms = array_merge(
+				array_unique( $supported_forms, SORT_REGULAR ),
+				[
+					[ General::class ], // General settings page.
+					[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
+				]
+			);
 		}
 
 		if ( $source && ! in_array( $source, $supported_forms, true ) ) {
