@@ -1,5 +1,5 @@
 = 4.18.0 =
-* Added honeypot and minimum submit time support for CoBlocks, Gravity Forms, Fluent Forms, Formidable Forms, Forminator, Kadence, MailPoet, Otter, and Wordfence.
+* Added honeypot and minimum submit time support for CoBlocks, Gravity Forms, Fluent Forms, Formidable Forms, Forminator, Kadence, MailPoet, Otter, Password Protected, and Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 * Fixed Fluent Forms Login behavior when the login limit was exceeded.
 * Fixed integration with Advanced Kadence Form upon Kadence Blocks plugin update.
