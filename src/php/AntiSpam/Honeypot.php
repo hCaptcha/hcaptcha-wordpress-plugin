@@ -34,6 +34,7 @@ class Honeypot {
 			'otter_status'              => [ 'form' ],
 			'password_protected_status' => [ 'protect' ],
 			'spectra_status'            => [ 'form' ],
+			'ultimate_member_status'    => [ 'login', 'lost_pass', 'register' ],
 			'woocommerce_status'        => [ 'checkout', 'login', 'lost_pass', 'order_tracking', 'register' ],
 			'wordfence_status'          => [ 'login' ],
 			'wpforms_status'            => [ 'form', 'embed' ],
