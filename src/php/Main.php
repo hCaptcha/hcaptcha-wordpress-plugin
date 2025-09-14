@@ -857,32 +857,23 @@ class Main {
 	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
 		$value = (bool) $value;
 
-		$supported_forms = [
-			[ General::class ], // General settings page.
-			[ 'WordPress' ], // WordPress Core.
-			[ 'Avada' ], // Avada theme.
-			[ 'coblocks/class-coblocks.php' ], // CoBlocks.
-			[ 'contact-form-7/wp-contact-form-7.php' ], // Contact Form 7.
-			[ 'Divi' ], // Divi theme.
-			[ 'divi-builder/divi-builder.php' ], // Divi Builder.
-			[ 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ], // Essential Addons for Elementor.
-			[ 'Extra' ], // Extra theme.
-			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
-			[ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ], // Fluent Forms.
-			[ 'formidable/formidable.php' ], // Formidable Forms.
-			[ 'forminator/forminator.php' ], // Forminator.
-			[ 'gravityforms/gravityforms.php' ], // Gravity Forms.
-			[ 'jetpack/jetpack.php' ], // JetPack.
-			[ 'kadence-blocks/kadence-blocks.php' ], // Kadence.
-			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
-			[ 'mailpoet/mailpoet.php' ], // MailPoet.
-			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
-			[ 'otter-blocks/otter-blocks.php' ], // Otter Blocks.
-			[ 'woocommerce/woocommerce.php' ], // WooCommerce.
-			[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ], // WPForms.
-			[ 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' ], // Spectra.
-			[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
-		];
+		static $supported_forms = null;
+
+		if ( null === $supported_forms ) {
+			$supported_forms = [
+				[ General::class ], // General settings page.
+				[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
+			];
+
+			foreach ( $this->modules as $module ) {
+				$source = (array) $module[1];
+				$source = [ '' ] === $source ? [ 'WordPress' ] : $source;
+
+				$supported_forms[] = $source;
+			}
+
+			$supported_forms = array_unique( $supported_forms );
+		}
 
 		if ( $source && ! in_array( $source, $supported_forms, true ) ) {
 			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
