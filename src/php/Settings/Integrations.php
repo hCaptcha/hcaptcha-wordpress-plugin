@@ -46,6 +46,11 @@ class Integrations extends PluginSettingsBase {
 	public const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
+	 * Header section id.
+	 */
+	public const SECTION_HEADER = 'header';
+
+	/**
 	 * Enabled section id.
 	 */
 	public const SECTION_ENABLED = 'enabled';
@@ -239,6 +244,13 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function init_form_fields(): void {
 		$this->form_fields = [
+			'show_antispam_coverage'           => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_HEADER,
+				'options' => [
+					'on' => __( 'Show Antispam Coverage', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'wp_status'                        => [
 				'entity'  => 'core',
 				'label'   => 'WP Core',
@@ -867,6 +879,10 @@ class Integrations extends PluginSettingsBase {
 		$installed = array_unique( $installed );
 
 		foreach ( $this->form_fields as $status => &$form_field ) {
+			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
 			$form_field['installed'] = in_array( $status, $installed, true );
 			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
 
@@ -880,6 +896,10 @@ class Integrations extends PluginSettingsBase {
 		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
 
 		foreach ( $this->form_fields as $status => &$form_field ) {
+			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
 			$form_field['installed'] = in_array( $status, $installed, true );
 			$form_field['section']   = $form_field['disabled'] ? self::SECTION_DISABLED : self::SECTION_ENABLED;
 
@@ -988,52 +1008,60 @@ class Integrations extends PluginSettingsBase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ): void {
-		if ( self::SECTION_DISABLED === $arguments['id'] ) {
-			$this->submit_button();
+		switch ( $arguments['id'] ) {
+			case self::SECTION_HEADER:
+				$this->print_header();
 
-			?>
-			<hr class="hcaptcha-disabled-section">
-			<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
-			<?php
+				?>
+				<div id="hcaptcha-message"></div>
+				<p>
+					<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
+				</p>
+				<p>
+					<?php esc_html_e( 'You can activate and deactivate a plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
+				</p>
+				<p>
+					<?php
+					$shortcode_url   = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F';
+					$integration_url = 'https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues';
 
-			return;
+					echo wp_kses_post(
+						sprintf(
+						/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
+							__( 'Don\'t see your plugin or theme here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
+							sprintf(
+								'<a href="%1$s" target="_blank">%2$s</a>',
+								$shortcode_url,
+								__( 'shortcode', 'hcaptcha-for-forms-and-more' )
+							),
+							sprintf(
+								'<a href="%1$s" target="_blank">%2$s</a>',
+								$integration_url,
+								__( 'request an integration', 'hcaptcha-for-forms-and-more' )
+							)
+						)
+					);
+					?>
+				</p>
+				<?php
+
+				break;
+			case self::SECTION_ENABLED:
+				?>
+				<hr class="hcaptcha-enabled-section">
+				<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
+				<?php
+
+				break;
+			case self::SECTION_DISABLED:
+				$this->submit_button();
+
+				?>
+				<hr class="hcaptcha-disabled-section">
+				<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
+				<?php
+				break;
 		}
-
-		$this->print_header();
-
-		?>
-		<div id="hcaptcha-message"></div>
-		<p>
-			<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
-		</p>
-		<p>
-			<?php esc_html_e( 'You can activate and deactivate a plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
-		</p>
-		<p>
-			<?php
-			$shortcode_url   = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F';
-			$integration_url = 'https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues';
-
-			echo wp_kses_post(
-				sprintf(
-				/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
-					__( 'Don\'t see your plugin or theme here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
-					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$shortcode_url,
-						__( 'shortcode', 'hcaptcha-for-forms-and-more' )
-					),
-					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$integration_url,
-						__( 'request an integration', 'hcaptcha-for-forms-and-more' )
-					)
-				)
-			);
-			?>
-		</p>
-		<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
-		<?php
 	}
 
 	/**
@@ -1877,13 +1905,7 @@ class Integrations extends PluginSettingsBase {
 			}
 
 			foreach ( $protected_forms[ $status ] as $form ) {
-				if (
-					'native' === $type ||
-					( 'hcaptcha' === $type && $settings->is( $status, $form ) ) ||
-					( 'honeypot' === $type && $settings->is( $status, $form ) )
-				) {
-					$form_field = $this->prepare_form_field_antispam_data( $form_field, $form, $type );
-				}
+				$form_field = $this->prepare_form_field_antispam_data( $form_field, $form, $type );
 			}
 		}
 
@@ -1921,6 +1943,7 @@ class Integrations extends PluginSettingsBase {
 
 		$helpers = [
 			'honeypot' => __( 'hCaptcha honeypot', 'hcaptcha-for-forms-and-more' ),
+			'fst'      => __( 'form submit time token', 'hcaptcha-for-forms-and-more' ),
 			'native'   => __( 'native antispam service', 'hcaptcha-for-forms-and-more' ),
 			'hcaptcha' => __( 'hCaptcha antispam service', 'hcaptcha-for-forms-and-more' ),
 		];
