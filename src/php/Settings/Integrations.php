@@ -1902,13 +1902,17 @@ class Integrations extends PluginSettingsBase {
 			$this->all_protected_forms = array_merge( Honeypot::get_protected_forms(), AntiSpam::get_protected_forms() );
 		}
 
+		$settings = hcaptcha()->settings();
+
 		foreach ( $this->all_protected_forms as $type => $protected_forms ) {
 			if ( ! isset( $protected_forms[ $status ] ) ) {
 				continue;
 			}
 
 			foreach ( $protected_forms[ $status ] as $form ) {
-				$form_field = $this->prepare_form_field_antispam_data( $form_field, $form, $type );
+				if ( 'native' === $type || $settings->is( $status, $form ) ) {
+					$form_field = $this->prepare_form_field_antispam_data( $form_field, $form, $type );
+				}
 			}
 		}
 
