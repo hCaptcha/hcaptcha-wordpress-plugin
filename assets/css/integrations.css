@@ -169,7 +169,7 @@
 	flex-direction: row-reverse;
 	right: 0;
 	margin-top: 6px;
-	width: 100%;
+	width: calc(100% - 40px);
 	height: 1.25rem;
 	box-sizing: border-box;
 }
@@ -221,7 +221,7 @@
 
 #hcaptcha-options fieldset .helper .helper-content {
 	transform: translate(0px, 37px);
-	width: 100%;
+	width: calc(100% + 40px);
 }
 
 .hcaptcha-disabled-section {
