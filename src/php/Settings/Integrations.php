@@ -875,51 +875,10 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
-		$installed = [];
+		$installed = $this->get_installed_entities();
 
-		foreach ( hcaptcha()->modules as $module ) {
-			if ( $this->plugin_or_theme_installed( $module[1] ) ) {
-				$installed[] = $module[0][0];
-			}
-		}
-
-		$installed = array_unique( $installed );
-
-		foreach ( $this->form_fields as $status => &$form_field ) {
-			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
-				continue;
-			}
-
-			$form_field['installed'] = in_array( $status, $installed, true );
-			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
-
-			$form_field = $this->prepare_antispam_data( $status, $form_field );
-		}
-
-		unset( $form_field );
-
-		$this->form_fields = $this->sort_fields( $this->form_fields );
-
-		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
-
-		foreach ( $this->form_fields as $status => &$form_field ) {
-			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
-				continue;
-			}
-
-			$form_field['installed'] = in_array( $status, $installed, true );
-			$form_field['section']   = $form_field['disabled'] ? self::SECTION_DISABLED : self::SECTION_ENABLED;
-
-			if ( isset( $form_field['label'] ) ) {
-				$form_field['label'] = $this->logo( $form_field );
-			}
-
-			$entity              = $form_field['entity'] ?? '';
-			$theme               = 'theme' === $entity ? ' ' . $prefix . 'theme' : '';
-			$form_field['class'] = str_replace( '_', '-', $prefix . $status . $theme );
-		}
-
-		unset( $form_field );
+		$this->setup_antispam_data( $installed );
+		$this->setup_field_data( $installed );
 
 		parent::setup_fields();
 	}
@@ -1973,5 +1932,76 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return $form_field;
+	}
+
+	/**
+	 * Get installed plugins and themes.
+	 *
+	 * @return array
+	 */
+	protected function get_installed_entities(): array {
+		$installed = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $this->plugin_or_theme_installed( $module[1] ) ) {
+				$installed[] = $module[0][0];
+			}
+		}
+
+		return array_unique( $installed );
+	}
+
+	/**
+	 * Setup antispam data.
+	 *
+	 * @param array $installed Installed entities.
+	 *
+	 * @return void
+	 */
+	private function setup_antispam_data( array $installed ): void {
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
+
+			$form_field = $this->prepare_antispam_data( $status, $form_field );
+		}
+
+		unset( $form_field );
+	}
+
+	/**
+	 * Setup field data.
+	 *
+	 * @param array $installed Installed entities.
+	 *
+	 * @return void
+	 */
+	protected function setup_field_data( array $installed ): void {
+		$this->form_fields = $this->sort_fields( $this->form_fields );
+
+		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
+
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['section']   = $form_field['disabled'] ? self::SECTION_DISABLED : self::SECTION_ENABLED;
+
+			if ( isset( $form_field['label'] ) ) {
+				$form_field['label'] = $this->logo( $form_field );
+			}
+
+			$entity              = $form_field['entity'] ?? '';
+			$theme               = 'theme' === $entity ? ' ' . $prefix . 'theme' : '';
+			$form_field['class'] = str_replace( '_', '-', $prefix . $status . $theme );
+		}
+
+		unset( $form_field );
 	}
 }
