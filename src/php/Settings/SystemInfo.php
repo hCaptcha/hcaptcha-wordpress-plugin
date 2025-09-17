@@ -228,7 +228,7 @@ class SystemInfo extends PluginSettingsBase {
 				$data .= $this->header( '--- Inactive plugins and themes ---' );
 			}
 
-			$data .= $this->data( $field['label'] );
+			$data .= $this->data( $field['label'] ?? '' );
 
 			foreach ( $field['options'] as $option_key => $option ) {
 				$setting = isset( $integration_settings[ $field_key ] ) ? (array) $integration_settings[ $field_key ] : [];
@@ -554,7 +554,7 @@ class SystemInfo extends PluginSettingsBase {
 
 		$length += 2;
 
-		return $this->mb_str_pad( $key . ': ', $length ) . $value . "\n";
+		return $key ? $this->mb_str_pad( $key . ': ', $length ) . $value . "\n" : '';
 	}
 
 	/**

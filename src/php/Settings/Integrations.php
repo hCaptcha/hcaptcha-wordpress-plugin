@@ -124,6 +124,13 @@ class Integrations extends PluginSettingsBase {
 	protected $themes;
 
 	/**
+	 * All protected forms.
+	 *
+	 * @var array
+	 */
+	protected $all_protected_forms = [];
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -1891,15 +1898,11 @@ class Integrations extends PluginSettingsBase {
 	 * @return array The updated form field data containing antispam configurations.
 	 */
 	protected function prepare_antispam_data( string $status, array $form_field ): array {
-		static $all_protected_forms;
-
-		if ( ! $all_protected_forms ) {
-			$all_protected_forms = array_merge( Honeypot::get_protected_forms(), AntiSpam::get_protected_forms() );
+		if ( ! $this->all_protected_forms ) {
+			$this->all_protected_forms = array_merge( Honeypot::get_protected_forms(), AntiSpam::get_protected_forms() );
 		}
 
-		$settings = hcaptcha()->settings();
-
-		foreach ( $all_protected_forms as $type => $protected_forms ) {
+		foreach ( $this->all_protected_forms as $type => $protected_forms ) {
 			if ( ! isset( $protected_forms[ $status ] ) ) {
 				continue;
 			}

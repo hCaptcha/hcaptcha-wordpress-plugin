@@ -328,6 +328,7 @@ WP Core:
 
 --- Inactive plugins and themes ---
 
+  Show Antispam Coverage:             Off
 ACF Extended:                         
   ACF Extended Form:                  On
 Affiliates:                           
