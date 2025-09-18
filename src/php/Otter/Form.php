@@ -145,7 +145,7 @@ class Form {
 			return $form_data;
 		}
 
-		$post_data = $this->prepare_post_data( $form_data );
+		$post_data = $form_data->dump_data()['form_data'];
 
 		$this->error_message = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
 
@@ -226,27 +226,5 @@ class Form {
 		}
 
 		return HCaptcha::add_type_module( $tag );
-	}
-
-
-	/**
-	 * Prepare post_data.
-	 *
-	 * @param Form_Data_Request $form_data Form data.
-	 *
-	 * @return array
-	 */
-	private function prepare_post_data( Form_Data_Request $form_data ): array {
-		$form_data_arr = $form_data->dump_data()['form_data'];
-
-		$post_data['h-captcha-response'] = $form_data_arr['h-captcha-response'] ?? '';
-		$post_data[ self::NONCE ]        = $form_data_arr[ self::NONCE ] ?? '';
-		$post_data['hcaptcha-widget-id'] = $form_data_arr['hcaptcha-widget-id'] ?? '';
-		$post_data['hcap_fst_token']     = $form_data_arr['hcap_fst_token'] ?? '';
-		$hp_name                         = API::get_hp_name( $form_data_arr );
-		$post_data[ $hp_name ]           = $form_data_arr[ $hp_name ] ?? '';
-		$post_data['hcap_hp_sig']        = $form_data_arr['hcap_hp_sig'] ?? '';
-
-		return $post_data;
 	}
 }
