@@ -3,6 +3,18 @@ import { helper } from './hcaptcha-helper.js';
 const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 	const app = {
 		init() {
+			wp.hooks.addFilter(
+				'hcaptcha.ajaxSubmitButton',
+				'hcaptcha',
+				( isAjaxSubmitButton, submitButtonElement ) => {
+					if ( submitButtonElement.classList.contains( 'wp-block-button__link' ) ) {
+						return true;
+					}
+
+					return isAjaxSubmitButton;
+				}
+			);
+
 			// Install global fetch event wrapper (idempotent).
 			helper.installFetchEvents();
 			window.addEventListener( 'hCaptchaFetch:before', app.fetchBefore );
