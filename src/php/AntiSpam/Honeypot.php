@@ -28,6 +28,7 @@ class Honeypot {
 		'fluent_status'             => [ 'form' ],
 		'formidable_forms_status'   => [ 'form' ],
 		'forminator_status'         => [ 'form' ],
+		'give_wp_status'            => [ 'form' ],
 		'gravity_status'            => [ 'form', 'embed' ],
 		'jetpack_status'            => [ 'contact' ],
 		'kadence_status'            => [ 'form', 'advanced_form' ],
