@@ -222,6 +222,17 @@
 #hcaptcha-options fieldset .helper .helper-content {
 	transform: translate(0px, 37px);
 	width: calc(100% + 40px);
+	/* Transition */
+	display: block;
+	visibility: hidden;
+	opacity: 0;
+}
+
+#hcaptcha-options fieldset .helper:hover .helper-content {
+	/* Transition */
+	visibility: visible;
+	opacity: 1;
+	transition: opacity .2s ease .3s, visibility 0s linear .3s;
 }
 
 .hcaptcha-disabled-section {
