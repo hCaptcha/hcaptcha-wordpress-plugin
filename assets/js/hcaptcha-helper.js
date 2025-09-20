@@ -47,6 +47,38 @@ function getElementValue( el ) {
 }
 
 export class helper {
+	constructor() {
+		this.params = null;
+	}
+
+	/**
+	 * Check if the action matches.
+	 *
+	 * @param {Object} options     The AJAX options object.
+	 * @param {string} actionName  The name of the action to match against.
+	 * @param {string} actionValue The value of the action to match against.
+	 *
+	 * @return {boolean} Returns true if the action matches, false otherwise.
+	 */
+	static checkAction( options, actionName, actionValue ) {
+		const data = options.data ?? '';
+
+		if ( typeof data !== 'string' ) {
+			return false;
+		}
+
+		// Parse existing query string to know which params are already present.
+		const queryString = data.startsWith( '?' ) ? data.slice( 1 ) : data;
+
+		try {
+			this.params = new URLSearchParams( queryString );
+		} catch ( e ) {
+			this.params = new URLSearchParams();
+		}
+
+		return this.params.get( actionName ) === actionValue;
+	}
+
 	/**
 	 * Adds hCaptcha data to AJAX options if the action matches.
 	 *
@@ -59,24 +91,7 @@ export class helper {
 	 * @return {void}
 	 */
 	static addHCaptchaData( options, action, nonceName, $node ) {
-		const data = options.data ?? '';
-
-		if ( typeof data !== 'string' ) {
-			return;
-		}
-
-		// Parse existing query string to know which params are already present.
-		const qs = data.startsWith( '?' ) ? data.slice( 1 ) : data;
-		let params;
-
-		try {
-			params = new URLSearchParams( qs );
-		} catch ( e ) {
-			params = new URLSearchParams();
-		}
-
-		// Proceed only for the expected ajax call signature.
-		if ( action && params.get( 'action' ) !== action ) {
+		if ( ! helper.checkAction( options, 'action', action ) ) {
 			return;
 		}
 
@@ -85,7 +100,7 @@ export class helper {
 
 		// Append only missing keys.
 		for ( const [ name, val ] of Object.entries( hCaptchaData ) ) {
-			if ( params.has( name ) ) {
+			if ( this.params.has( name ) ) {
 				continue;
 			}
 
