@@ -34,6 +34,7 @@ class Honeypot {
 		'kadence_status'              => [ 'form', 'advanced_form' ],
 		'mailchimp_status'            => [ 'form' ],
 		'mailpoet_status'             => [ 'form' ],
+		'maintenance_status'          => [ 'login' ],
 		'ninja_status'                => [ 'form' ],
 		'otter_status'                => [ 'form' ],
 		'paid_memberships_pro_status' => [ 'checkout', 'login' ],
