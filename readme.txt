@@ -756,7 +756,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.18.0 =
-* Added honeypot and minimum submit time support for Brevo, CoBlocks, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, and Wordfence.
+* Added honeypot and minimum submit time support for Brevo, CoBlocks, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 * Fixed Fluent Forms Login behavior when the login limit was exceeded.
 * Fixed integration with Advanced Kadence Form upon Kadence Blocks plugin update.
