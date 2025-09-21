@@ -35,6 +35,91 @@
       "options": {
         "activate": true
       }
+    },
+    {
+      "step": "setOptions",
+      "options": {
+        "hcaptcha_settings": {
+          "wp_status": [
+            "comment",
+            "login",
+            "lost_pass",
+            "password_protected",
+            "register"
+          ],
+          "cf7_status": [
+            "form",
+            "embed",
+            "live",
+            "replace_rsc"
+          ],
+          "_network_wide": [],
+          "off_when_logged_in": [],
+          "recaptcha_compat_off": [],
+          "woocommerce_wishlist_status": [
+            "create_list"
+          ],
+          "api_key": "some api key",
+          "secret_key": "some secret key",
+          "theme": "auto",
+          "size": "normal",
+          "language": "",
+          "config_params": "{\r\n  \"theme\": {\r\n    \"mode\": \"light\",\r\n    \"palette\": {\r\n      \"grey\": {\r\n        \"100\": \"#fafafa\",\r\n        \"200\": \"#f5f5f5\",\r\n        \"300\": \"#e0e0e0\",\r\n        \"400\": \"#d7d7d7\",\r\n        \"500\": \"#bfbfbf\",\r\n        \"600\": \"#919191\",\r\n        \"700\": \"#555555\",\r\n        \"800\": \"#333333\",\r\n        \"900\": \"#222222\",\r\n        \"1000\": \"#14191f\"\r\n      },\r\n      \"primary\": {\r\n        \"main\": \"#00838f\"\r\n      },\r\n      \"warn\": {\r\n        \"main\": \"#ec5b5b\"\r\n      },\r\n      \"text\": {\r\n        \"heading\": \"#555555\",\r\n        \"body\": \"#ffffff\"\r\n      }\r\n    },\r\n    \"component\": {\r\n      \"checkbox\": {\r\n        \"main\": {\r\n          \"fill\": \"#61ce70\",\r\n          \"border\": \"#6ec1e4\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#f5f5f5\"\r\n        }\r\n      },\r\n      \"challenge\": {\r\n        \"main\": {\r\n          \"fill\": \"#fafafa\",\r\n          \"border\": \"#e0e0e0\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#fafafa\"\r\n        }\r\n      },\r\n      \"modal\": {\r\n        \"main\": {\r\n          \"fill\": \"#ffffff\",\r\n          \"border\": \"#e0e0e0\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#f5f5f5\"\r\n        },\r\n        \"focus\": {\r\n          \"border\": \"#0074bf\"\r\n        }\r\n      },\r\n      \"breadcrumb\": {\r\n        \"main\": {\r\n          \"fill\": \"#f5f5f5\"\r\n        },\r\n        \"active\": {\r\n          \"fill\": \"#00838f\"\r\n        }\r\n      },\r\n      \"button\": {\r\n        \"main\": {\r\n          \"fill\": \"#ffffff\",\r\n          \"icon\": \"#555555\",\r\n          \"text\": \"#000000\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#f5f5f5\"\r\n        },\r\n        \"focus\": {\r\n          \"icon\": \"#00838f\",\r\n          \"text\": \"#00838f\"\r\n        },\r\n        \"active\": {\r\n          \"fill\": \"#f5f5f5\",\r\n          \"icon\": \"#555555\",\r\n          \"text\": \"#555555\"\r\n        }\r\n      },\r\n      \"list\": {\r\n        \"main\": {\r\n          \"fill\": \"#ffffff\",\r\n          \"border\": \"#d7d7d7\"\r\n        }\r\n      },\r\n      \"listItem\": {\r\n        \"main\": {\r\n          \"fill\": \"#ffffff\",\r\n          \"line\": \"#f5f5f5\",\r\n          \"text\": \"#555555\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#f5f5f5\"\r\n        },\r\n        \"selected\": {\r\n          \"fill\": \"#e0e0e0\"\r\n        }\r\n      },\r\n      \"input\": {\r\n        \"main\": {\r\n          \"fill\": \"#fafafa\",\r\n          \"border\": \"#919191\"\r\n        },\r\n        \"focus\": {\r\n          \"fill\": \"#f5f5f5\",\r\n          \"border\": \"#333333\"\r\n        }\r\n      },\r\n      \"radio\": {\r\n        \"main\": {\r\n          \"file\": \"#f5f5f5\",\r\n          \"border\": \"#919191\",\r\n          \"check\": \"#f5f5f5\"\r\n        },\r\n        \"selected\": {\r\n          \"check\": \"#00838f\"\r\n        }\r\n      },\r\n      \"task\": {\r\n        \"main\": {\r\n          \"fill\": \"#f5f5f5\"\r\n        },\r\n        \"selected\": {\r\n          \"border\": \"#00838f\"\r\n        },\r\n        \"report\": {\r\n          \"border\": \"#eb5757\"\r\n        }\r\n      },\r\n      \"prompt\": {\r\n        \"main\": {\r\n          \"fill\": \"#00838f\",\r\n          \"border\": \"#00838f\",\r\n          \"text\": \"#ffffff\"\r\n        },\r\n        \"report\": {\r\n          \"fill\": \"#eb5757\",\r\n          \"border\": \"#eb5757\",\r\n          \"text\": \"#ffffff\"\r\n        }\r\n      },\r\n      \"skipButton\": {\r\n        \"main\": {\r\n          \"fill\": \"#919191\",\r\n          \"border\": \"#919191\",\r\n          \"text\": \"#ffffff\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#555555\",\r\n          \"border\": \"#919191\",\r\n          \"text\": \"#ffffff\"\r\n        }\r\n      },\r\n      \"verifyButton\": {\r\n        \"main\": {\r\n          \"fill\": \"#00838f\",\r\n          \"border\": \"#00838f\",\r\n          \"text\": \"#ffffff\"\r\n        },\r\n        \"hover\": {\r\n          \"fill\": \"#00838f\",\r\n          \"border\": \"#00838f\",\r\n          \"text\": \"#ffffff\"\r\n        }\r\n      },\r\n      \"expandButton\": {\r\n        \"main\": {\r\n          \"fill\": \"#00838f\"\r\n        }\r\n      },\r\n      \"slider\": {\r\n        \"main\": {\r\n          \"bar\": \"#c4c4c4\",\r\n          \"handle\": \"#0f8390\"\r\n        },\r\n        \"focus\": {\r\n          \"handle\": \"#0f8390\"\r\n        }\r\n      }\r\n    },\r\n    \"- Select Property -\": \"light\"\r\n  }\r\n}",
+          "whitelisted_ips": "100.200.0.2\r\n220.45.45.1\r\n",
+          "mode": "live",
+          "site_key": "30404e3e-ed1c-4658-87d4-bcce53564846",
+          "delay": "0",
+          "login_limit": "0",
+          "login_interval": "1",
+          "force": [],
+          "statistics": [
+            "on"
+          ],
+          "collect_ip": [
+            "on"
+          ],
+          "collect_ua": [
+            "on"
+          ],
+          "custom_themes": [],
+          "api_host": "js.hcaptcha.com",
+          "asset_host": "",
+          "endpoint": "",
+          "host": "",
+          "image_host": "",
+          "report_api": "",
+          "sentry": "",
+          "backend": "api.hcaptcha.com",
+          "license": "pro",
+          "menu_position": [],
+          "sample_hcaptcha": "",
+          "check_config": "",
+          "reset_notifications": "",
+          "custom_prop": "",
+          "custom_value": "",
+          "hide_login_errors": [],
+          "anonymous": [],
+          "protect_content": [],
+          "protected_urls": "\/protected-content\r\n\/dynya",
+          "cleanup_on_uninstall": [],
+          "whats_new_last_shown_version": "4.18.0",
+          "blacklisted_ips": "",
+          "antispam": [
+            "on"
+          ],
+          "antispam_provider": "akismet",
+          "honeypot": [
+            "on"
+          ],
+          "set_min_submit_time": [
+            "on"
+          ],
+          "min_submit_time": "5",
+          "show_antispam_coverage": [
+            "on"
+          ]
+        }
+      }
     }
   ]
 }
