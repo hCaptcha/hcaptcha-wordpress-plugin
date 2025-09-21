@@ -363,7 +363,7 @@ class WhatsNew extends NotificationsBase {
 						__( 'submit time', 'hcaptcha-for-forms-and-more' )
 					)
 				),
-				__( 'Currently supported for WordPress Core, Avada theme, Contact Form 7, Divi theme, Divi Builder, Essential Addons for Elementor, Extra theme, Elementor, Jetpack, Mailchimp, Ninja Forms, Spectra, WooCommerce, Wordfence, WPForms, Protect Content feature.', 'hcaptcha-for-forms-and-more' )
+				__( 'Currently supported for WordPress Core, Protect Content feature, Avada theme, Blocksy, Brevo, CoBlocks, Contact Form 7, Divi Builder, Divi theme, Download Manager, Elementor, Essential Addons for Elementor, Essential Blocks, Extra theme, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Jetpack, Kadence, MailPoet, Mailchimp, Ninja Forms, Otter, Password Protected, Protect Content feature, Spectra, Ultimate Addons for Elementor, WPForms, WooCommerce, and Wordfence', 'hcaptcha-for-forms-and-more' )
 			),
 			'button'  => [
 				'url'  => $urls['honeypot'],
