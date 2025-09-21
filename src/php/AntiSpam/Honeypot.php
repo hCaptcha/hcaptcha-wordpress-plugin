@@ -13,6 +13,7 @@ namespace HCaptcha\AntiSpam;
 class Honeypot {
 	private const PROTECTED_FORMS = [
 		'wp_status'                   => [ 'comment', 'login', 'lost_pass', 'password_protected', 'register' ],
+		'acfe_status'                 => [ 'form' ],
 		'avada_status'                => [ 'form' ],
 		'bbp_status'                  => [ 'login', 'lost_pass', 'new_topic', 'register', 'reply' ],
 		'blocksy_status'              => [ 'newsletter_subscribe', 'product_review', 'waitlist' ],

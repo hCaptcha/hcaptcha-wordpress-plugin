@@ -759,9 +759,10 @@ Instructions for popular native integrations are below:
 * Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
 * Fixed Fluent Forms Login behavior when the login limit was exceeded.
-* Fixed integration with Advanced Kadence Form upon Kadence Blocks plugin update.
-* Fixed integration with Otter Blocks upon Otter Blocks plugin update.
-* Fixed integration with Paid Membership Pro Login upon Paid Membership Pro plugin update.
+* Fixed integration upon Kadence Blocks plugin update.
+* Fixed integration upon Otter Blocks plugin update.
+* Fixed integration Paid Membership Pro plugin update.
+* Fixed integration upon ACF Extended plugin update.
 * Fixed duplicated hCaptcha renders with Dark mode enabled.
 * Fixed the Sendinblue error on multiple submitting.
 
