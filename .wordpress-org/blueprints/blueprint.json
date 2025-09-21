@@ -12,6 +12,11 @@
   },
   "steps": [
     {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
       "step": "installPlugin",
       "pluginZipFile": {
         "resource": "wordpress.org/plugins",
@@ -25,16 +30,11 @@
       "step": "installPlugin",
       "pluginZipFile": {
         "resource": "wordpress.org/plugins",
-        "url": "contact-form-7"
+        "slug": "contact-form-7"
       },
       "options": {
         "activate": true
       }
-    },
-    {
-      "step": "login",
-      "username": "admin",
-      "password": "password"
     }
   ]
 }
