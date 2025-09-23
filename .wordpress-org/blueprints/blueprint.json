@@ -18,7 +18,7 @@
     },
     {
       "step": "installPlugin",
-      "pluginZipFile": {
+      "pluginData": {
         "resource": "wordpress.org/plugins",
         "slug": "hcaptcha-for-forms-and-more"
       },
@@ -28,7 +28,7 @@
     },
     {
       "step": "installPlugin",
-      "pluginZipFile": {
+      "pluginData": {
         "resource": "wordpress.org/plugins",
         "slug": "contact-form-7"
       },
@@ -37,7 +37,7 @@
       }
     },
     {
-      "step": "setOptions",
+      "step": "setSiteOptions",
       "options": {
         "hcaptcha_settings": {
           "wp_status": [
