@@ -65,15 +65,9 @@
           "site_key": "fecdc6ac-c82e-463e-a383-2daea56ced5d",
           "delay": "0",
           "login_limit": "0",
-          "login_interval": "1",
+          "login_interval": "5",
           "force": [],
           "statistics": [
-            "on"
-          ],
-          "collect_ip": [
-            "on"
-          ],
-          "collect_ua": [
             "on"
           ],
           "custom_themes": [],
@@ -95,7 +89,7 @@
           "hide_login_errors": [],
           "anonymous": [],
           "protect_content": [],
-          "protected_urls": "\/protected-content\n\/dynya",
+          "protected_urls": "\/protected-content",
           "cleanup_on_uninstall": [],
           "whats_new_last_shown_version": "4.18.0",
           "blacklisted_ips": "",
