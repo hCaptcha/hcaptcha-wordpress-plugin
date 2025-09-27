@@ -68,7 +68,7 @@ class ProtectContent {
 			return;
 		}
 
-		$this->request_uri = Request::filter_input( INPUT_SERVER, 'REQUEST_URI' );
+		$this->request_uri = $this->normalize_uri( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
 
 		$protected_urls = explode( "\n", $settings->get( 'protected_urls' ) );
 		$protected_urls = array_filter( array_map( 'trim', $protected_urls ) );
@@ -79,6 +79,7 @@ class ProtectContent {
 		foreach ( $protected_urls as $url ) {
 			if ( preg_match( '!' . preg_quote( $url, '!' ) . '!i', $this->request_uri ) ) {
 				$found = true;
+
 				break;
 			}
 		}
@@ -545,5 +546,38 @@ class ProtectContent {
 		// @codeCoverageIgnoreStart
 		exit();
 		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Normalize URI.
+	 *
+	 * @param string $uri URI.
+	 *
+	 * @return string
+	 */
+	private function normalize_uri( string $uri ): string {
+		$scheme = is_ssl() ? 'https://' : 'http://';
+		$host   = wp_parse_url( home_url(), PHP_URL_HOST );
+
+		$parts = wp_parse_url( $uri );
+		$parts = wp_parse_args(
+			$parts,
+			[
+				'scheme'   => $scheme,
+				'host'     => $host,
+				'path'     => '',
+				'query'    => '',
+				'fragment' => '',
+			]
+		);
+
+		// Rebuild the URL.
+		$url  = $parts['scheme'];
+		$url .= $parts['host'];
+		$url .= $parts['path'] ?: '';
+		$url .= $parts['query'] ? '?' . $parts['query'] : '';
+		$url .= $parts['fragment'] ? '#' . $parts['fragment'] : '';
+
+		return $url;
 	}
 }
