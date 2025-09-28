@@ -68,7 +68,7 @@ class ProtectContent {
 			return;
 		}
 
-		$this->request_uri = $this->normalize_uri( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
+		$this->request_uri = $this->normalize_url( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
 
 		$protected_urls = explode( "\n", $settings->get( 'protected_urls' ) );
 		$protected_urls = array_filter( array_map( 'trim', $protected_urls ) );
@@ -549,17 +549,17 @@ class ProtectContent {
 	}
 
 	/**
-	 * Normalize URI.
+	 * Normalize URL.
 	 *
-	 * @param string $uri URI.
+	 * @param string $url URL.
 	 *
 	 * @return string
 	 */
-	private function normalize_uri( string $uri ): string {
-		$scheme = is_ssl() ? 'https://' : 'http://';
+	private function normalize_url( string $url ): string {
+		$scheme = is_ssl() ? 'https' : 'http';
 		$host   = wp_parse_url( home_url(), PHP_URL_HOST );
 
-		$parts = wp_parse_url( $uri );
+		$parts = wp_parse_url( $url );
 		$parts = wp_parse_args(
 			$parts,
 			[
@@ -572,7 +572,8 @@ class ProtectContent {
 		);
 
 		// Rebuild the URL.
-		$url  = $parts['scheme'];
+		$url = $parts['scheme'] ? $parts['scheme'] . '://' : '';
+
 		$url .= $parts['host'];
 		$url .= $parts['path'] ?: '';
 		$url .= $parts['query'] ? '?' . $parts['query'] : '';
