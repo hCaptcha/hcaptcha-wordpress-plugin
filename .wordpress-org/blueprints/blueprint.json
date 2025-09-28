@@ -112,7 +112,7 @@
     },
     {
       "step": "runPHP",
-      "code": "<?php  require_once 'wordpress/wp-load.php';  // Fetch first CF7 form. $forms = get_posts(  [   'post_type'      => 'wpcf7_contact_form',   'post_status'    => 'publish',   'posts_per_page' => 1,  ] );  $form = reset( $forms );  $shortcode = '[contact-form-7 id=\"' . (int) $form->ID . '\"]';  // Create a new page with the shortcode. $page_id = wp_insert_post( [  'post_type'    => 'page',  'post_title'   => 'Contact Form 7 Test Page',  'post_status'  => 'publish',  'post_content' => $shortcode,  'post_name'    => 'contact-form-7-test', ] );  // Set this page as the landing page after Blueprint opens. update_option( 'page_on_front', $page_id ); update_option( 'show_on_front', 'page' ); "
+      "code": "<?php require_once 'wordpress/wp-load.php'; activate_plugin( 'contact-form-7/wp-contact-form-7.php' ); // Fetch first CF7 form. $forms = get_posts(  [   'post_type'      => 'wpcf7_contact_form',   'post_status'    => 'publish',   'posts_per_page' => 1,  ] );  $form = reset( $forms );  $shortcode = '[contact-form-7 id=\"' . (int) $form->ID . '\"]';  //  Create a new page with the shortcode. $page_id = wp_insert_post( [  'post_type'    => 'page',  'post_title'   => 'Contact Form 7 Test Page',  'post_status'  => 'publish',  'post_content' => $shortcode,  'post_name'    => 'contact-form-7-test', ] );  // Set this page as the landing page after Blueprint opens. update_option( 'page_on_front', $page_id ); update_option( 'show_on_front', 'page' );"
     }
   ]
 }
