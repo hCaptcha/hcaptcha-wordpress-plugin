@@ -112,7 +112,7 @@
     },
     {
       "step": "runPHP",
-      "code": "<?php\n\nrequire_once 'C:\\laragon\\www\\test\\wp-load.php';\n\n// Fetch first CF7 form.\n$forms = get_posts(\n\t[\n\t\t'post_type'      => 'wpcf7_contact_form',\n\t\t'post_status'    => 'publish',\n\t\t'posts_per_page' => 1,\n\t]\n);\n\n$form = reset( $forms );\n\n$shortcode = '[contact-form-7 id=\"' . (int) $form->ID . '\"]';\n\n// Create a new page with the shortcode.\n$page_id = wp_insert_post( [\n\t'post_type'    => 'page',\n\t'post_title'   => 'Contact Form 7 Test Page',\n\t'post_status'  => 'publish',\n\t'post_content' => $shortcode,\n\t'post_name'    => 'contact-form-7-test',\n] );\n\n// Set this page as the landing page after Blueprint opens.\nupdate_option( 'page_on_front', $page_id );\nupdate_option( 'show_on_front', 'page' );\n"
+      "code": "<?php\n\nrequire_once 'wordpress/wp-load.php';\n\n// Fetch first CF7 form.\n$forms = get_posts(\n\t[\n\t\t'post_type'      => 'wpcf7_contact_form',\n\t\t'post_status'    => 'publish',\n\t\t'posts_per_page' => 1,\n\t]\n);\n\n$form = reset( $forms );\n\n$shortcode = '[contact-form-7 id=\"' . (int) $form->ID . '\"]';\n\n// Create a new page with the shortcode.\n$page_id = wp_insert_post( [\n\t'post_type'    => 'page',\n\t'post_title'   => 'Contact Form 7 Test Page',\n\t'post_status'  => 'publish',\n\t'post_content' => $shortcode,\n\t'post_name'    => 'contact-form-7-test',\n] );\n\n// Set this page as the landing page after Blueprint opens.\nupdate_option( 'page_on_front', $page_id );\nupdate_option( 'show_on_front', 'page' );\n"
     }
   ]
 }
