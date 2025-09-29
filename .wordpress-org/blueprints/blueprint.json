@@ -66,7 +66,9 @@
           "delay": "0",
           "login_limit": "0",
           "login_interval": "5",
-          "force": [],
+          "force": [
+            "on"
+          ],
           "statistics": [
             "on"
           ],
