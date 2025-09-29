@@ -1823,7 +1823,6 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function get_plugin_data( string $plugin, bool $markup = true, bool $translate = true ): array {
-
 		if ( ! $this->plugin_or_theme_installed( $plugin ) ) {
 			return [];
 		}
