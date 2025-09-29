@@ -47,6 +47,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		wp_deregister_script( 'hcaptcha-script' );
 		wp_dequeue_script( 'hcaptcha-script' );
 
+		wp_deregister_script( 'hcaptcha-cf7' );
+		wp_dequeue_script( 'hcaptcha-cf7' );
+
 		parent::tearDown();
 	}
 

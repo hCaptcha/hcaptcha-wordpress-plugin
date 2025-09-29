@@ -22,6 +22,11 @@ use WPCF7_TagGeneratorGenerator;
  */
 class Admin extends Base {
 	/**
+	 * Script handle.
+	 */
+	public const HANDLE = 'hcaptcha-cf7';
+
+	/**
 	 * Admin script handle.
 	 */
 	public const ADMIN_HANDLE = 'admin-cf7';
@@ -270,7 +275,7 @@ class Admin extends Base {
 			[ 'in_footer' => true ]
 		);
 
-		// The hCaptcha plugin styles.
+		// The hCaptcha admin script and style.
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -296,6 +301,15 @@ class Admin extends Base {
 			HCAPTCHA_URL . "/assets/css/admin-cf7$min.css",
 			[],
 			HCAPTCHA_VERSION
+		);
+
+		// The hCaptcha frontend script.
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
 		);
 	}
 

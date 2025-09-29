@@ -756,7 +756,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.18.0 =
-* Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
+* Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Contact Form 7 Live Form, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
 * Added the ability to specify Protected URLs on the General page with schema and domain, allowing to protect specific pages on multisite.
 * Added plugin Live Preview on playground.wordpress.net.
 * Fixed a fatal error during the installation of an integration plugin in some cases.
