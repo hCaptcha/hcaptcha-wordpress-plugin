@@ -26,14 +26,9 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
 
-		self::assertSame(
-			10,
-			has_action( 'woocommerce_login_form', [ $subject, 'add_captcha' ] )
-		);
-		self::assertSame(
-			10,
-			has_action( 'woocommerce_process_login_errors', [ $subject, 'verify' ] )
-		);
+		self::assertSame( 10, has_action( 'woocommerce_login_form', [ $subject, 'add_captcha' ] ) );
+		self::assertSame( 10, has_action( 'woocommerce_process_login_errors', [ $subject, 'verify' ] ) );
+		self::assertSame( 20, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
 	}
 
 	/**
