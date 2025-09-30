@@ -26,7 +26,7 @@ use function PHPUnit\Framework\assertSame;
 class LoginTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -59,10 +59,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 0, has_action( 'hcap_delay_api', [ $subject, 'delay_api' ] ) );
 
-		self::assertSame(
-			10,
-			has_action( 'login_form', [ $subject, 'add_captcha' ] )
-		);
+		self::assertSame( 10, has_action( 'login_form', [ $subject, 'add_captcha' ] ) );
 	}
 
 	/**
