@@ -266,4 +266,25 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-block-checkout' ) );
 	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module(): void {
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag      = '<script src="https://test.test/a.js">some</script>';
+		$expected = '<script type="module" src="https://test.test/a.js">some</script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+		$subject = new Checkout();
+
+		// Wrong tag.
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'some-handle', '' ) );
+
+		// Proper tag.
+		self::assertSame( $expected, $subject->add_type_module( $tag, 'hcaptcha-wc-block-checkout', '' ) );
+	}
 }
