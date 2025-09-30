@@ -626,6 +626,10 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 `parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
 `position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
 
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54)
+
 = Where can I get more information about hCaptcha? =
 
 Please see our [website](https://hcaptcha.com/).
