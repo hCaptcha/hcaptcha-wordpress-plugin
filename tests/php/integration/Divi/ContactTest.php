@@ -323,12 +323,10 @@ class ContactTest extends HCaptchaWPTestCase {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		self::assertEquals( $expected_current_form_fields, $_POST[ $this->current_form_field ] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 

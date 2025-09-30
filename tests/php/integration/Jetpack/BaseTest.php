@@ -178,11 +178,57 @@ class BaseTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test admin_enqueue_scripts().
+	 * Test enqueue_scripts().
 	 *
 	 * @return void
 	 */
-	public function test_admin_enqueue_scripts(): void {
+	public function test_enqueue_scripts(): void {
+		$handle = 'hcaptcha-jetpack';
+
+		$subject = new Form();
+
+		self::assertFalse( wp_script_is( $handle ) );
+
+		// Test when hCaptcha was not shown.
+		$subject->enqueue_scripts();
+
+		self::assertFalse( wp_script_is( $handle ) );
+
+		// Test when hCaptcha was shown.
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( $handle ) );
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module(): void {
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag      = '<script src="https://test.test/a.js">some</script>';
+		$expected = '<script type="module" src="https://test.test/a.js">some</script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+		$subject = new Form();
+
+		// Wrong tag.
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'some-handle', '' ) );
+
+		// Proper tag.
+		self::assertSame( $expected, $subject->add_type_module( $tag, 'hcaptcha-jetpack', '' ) );
+	}
+
+	/**
+	 * Test editor_enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_editor_enqueue_scripts(): void {
 		$admin_handle   = 'admin-jetpack';
 		$args           = [
 			'action' => 'hcaptcha_jetpack',
