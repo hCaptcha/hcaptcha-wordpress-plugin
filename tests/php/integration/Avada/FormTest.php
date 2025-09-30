@@ -28,7 +28,13 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['formData'], $_POST['hcaptcha-widget-id'] );
+		unset( $_POST['field_types'], $_POST['formData'], $_POST['hcaptcha-widget-id'] );
+
+		wp_dequeue_script( 'hcaptcha-avada' );
+		wp_deregister_script( 'hcaptcha-avada' );
+
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
 
 		parent::tearDown();
 	}
