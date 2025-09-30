@@ -56,6 +56,11 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_render(): void {
 		$footer_scripts = '<!-- footer-scripts -->';
 
+		// Junk all late styles and scripts not related to the test.
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		ob_get_clean();
+
 		$subject = new Login();
 
 		// Force protection enabled so get_hcaptcha() returns markup.
