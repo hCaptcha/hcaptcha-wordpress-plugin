@@ -628,7 +628,7 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 
 = How can I report security bugs? =
 
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54)
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/wordpress/plugin/hcaptcha-for-forms-and-more/vdp)
 
 = Where can I get more information about hCaptcha? =
 
