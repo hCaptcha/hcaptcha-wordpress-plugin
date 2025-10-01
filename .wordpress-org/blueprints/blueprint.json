@@ -61,7 +61,7 @@
           "size": "normal",
           "language": "",
           "whitelisted_ips": "100.200.0.2\n220.45.45.1\n",
-          "mode": "'test:publisher",
+          "mode": "test:publisher",
           "site_key": "",
           "delay": "0",
           "login_limit": "0",
