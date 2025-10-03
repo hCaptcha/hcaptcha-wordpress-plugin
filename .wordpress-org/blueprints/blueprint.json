@@ -1,5 +1,5 @@
 {
-  "landingPage": "/contact-form-7-test",
+  "landingPage": "/wp-admin/options-general.php?page=hcaptcha&tab=general",
   "preferredVersions": {
     "php": "8.0",
     "wp": "latest"
@@ -57,7 +57,7 @@
           "off_when_logged_in": [],
           "recaptcha_compat_off": [],
           "secret_key": "",
-          "theme": "auto",
+          "theme": "light",
           "size": "normal",
           "language": "",
           "whitelisted_ips": "100.200.0.2\n220.45.45.1\n",
