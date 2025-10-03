@@ -97,6 +97,44 @@ class API {
 	}
 
 	/**
+	 * Verify POST data.
+	 *
+	 * @param string $name      Nonce field name.
+	 * @param string $action    Nonce action name.
+	 * @param array  $post_data Post data.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	public static function verify_post_data( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION, array $post_data = [] ): ?string {
+		$response_name  = 'h-captcha-response';
+		$widget_id_name = 'hcaptcha-widget-id';
+		$hp_sig_name    = 'hcap_hp_sig';
+		$token_name     = 'hcap_fst_token';
+		$hp_name        = self::get_hp_name( $post_data );
+
+		$_POST[ $response_name ]  = $post_data[ $response_name ] ?? '';
+		$_POST[ $name ]           = $post_data[ $name ] ?? '';
+		$_POST[ $widget_id_name ] = $post_data[ $widget_id_name ] ?? '';
+		$_POST[ $hp_sig_name ]    = $post_data[ $hp_sig_name ] ?? '';
+		$_POST[ $hp_name ]        = $post_data[ $hp_name ] ?? '';
+		$_POST[ $token_name ]     = $post_data[ $token_name ] ?? '';
+
+		$result = self::verify_nonce( $name, $action );
+		$result = $result ?? self::verify_request();
+
+		unset(
+			$_POST[ $response_name ],
+			$_POST[ $name ],
+			$_POST[ $widget_id_name ],
+			$_POST[ $hp_sig_name ],
+			$_POST[ $hp_name ],
+			$_POST[ $token_name ]
+		);
+
+		return $result;
+	}
+
+	/**
 	 * Verify hCaptcha request.
 	 *
 	 * @param string|null $hcaptcha_response hCaptcha response.

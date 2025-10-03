@@ -1,19 +1,34 @@
-/* global hCaptchaBindEvents */
-window.fetch = new Proxy( window.fetch, {
-	apply( actualFetch, that, args ) {
-		// Forward function call to the original fetch
-		const result = Reflect.apply( actualFetch, that, args );
+import { helper } from './hcaptcha-helper.js';
 
-		// noinspection JSUnusedLocalSymbols
-		result.finally( () => {
-			// @param {FormData} body
-			const body = args[ 1 ].body;
+const hCaptchaKadenceAdvanced = window.hCaptchaKadenceAdvanced || ( function( window ) {
+	const action = 'kb_process_advanced_form_submit';
 
-			if ( 'kb_process_advanced_form_submit' === body.get( 'action' ) ) {
-				hCaptchaBindEvents();
+	const app = {
+		init() {
+			// Install global fetch event wrapper (idempotent).
+			helper.installFetchEvents();
+			window.addEventListener( 'hCaptchaFetch:complete', app.fetchComplete );
+		},
+
+		fetchComplete( event ) {
+			const config = event?.detail?.args?.[ 1 ] ?? {};
+			const body = config.body;
+
+			if ( ! ( body instanceof FormData || body instanceof URLSearchParams ) ) {
+				return;
 			}
-		} );
 
-		return result;
-	},
-} );
+			if ( body.get( 'action' ) !== action ) {
+				return;
+			}
+
+			window.hCaptchaBindEvents();
+		},
+	};
+
+	return app;
+}( window ) );
+
+window.hCaptchaKadenceAdvanced = hCaptchaKadenceAdvanced;
+
+hCaptchaKadenceAdvanced.init();

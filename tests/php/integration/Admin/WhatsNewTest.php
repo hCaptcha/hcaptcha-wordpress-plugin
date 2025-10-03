@@ -392,7 +392,7 @@ HTML;
 						<div class="hcaptcha-whats-new-badge">
 				New Feature			</div>
 						<h2>
-				Friction-free “No CAPTCHA” &amp; 99.9% passive modes			</h2>
+				Friction-Free “No CAPTCHA” &amp; 99.9% Passive Modes			</h2>
 			<div class="hcaptcha-whats-new-message">
 				<a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.			</div>
 			<div class="hcaptcha-whats-new-button">

@@ -5,12 +5,16 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\Kadence;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Kadence\AdvancedBlockParser;
 use HCaptcha\Kadence\AdvancedForm;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use KB_Ajax_Advanced_Form;
 use Mockery;
 use ReflectionException;
 
@@ -173,21 +177,6 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 			$error_message = 'Please complete the hCaptcha.';
 		}
 
-		$die_arr       = [];
-		$expected_json = [
-			'success' => false,
-			'data'    => [
-				'html'     => "<div class=\"kb-adv-form-message kb-adv-form-warning\">$error_message</div>",
-				'console'  => 'hCaptcha Failed',
-				'required' => null,
-			],
-		];
-		$expected      = [
-			'',
-			'',
-			[ 'response' => null ],
-		];
-
 		$this->prepare_verify_request( $hcaptcha_response, $result );
 
 		if ( null === $result ) {
@@ -204,16 +193,15 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
+		$kb_ajax_advanced_form = Mockery::mock( 'alias:KB_Ajax_Advanced_Form' );
+		$kb_ajax_advanced_form->shouldReceive( 'get_instance' )->once()->andReturn( $kb_ajax_advanced_form );
+		$kb_ajax_advanced_form->shouldReceive( 'process_bail' )
+			->once()->with( $error_message, 'hCaptcha Failed' );
 
+		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
-		ob_start();
 		$subject->process_ajax();
-		$json = ob_get_clean();
-
-		self::assertSame( wp_json_encode( $expected_json ), $json );
-		self::assertSame( $expected, $die_arr );
 	}
 
 	/**

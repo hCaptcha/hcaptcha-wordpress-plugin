@@ -1,46 +1,59 @@
-const acfe = function() {
-	function hCaptchaACFECallback( response, callback ) {
-		[
-			...document.querySelectorAll(
-				'.acfe-field-recaptcha input[type="hidden"]'
-			),
-		].map( ( el ) => {
-			el.value = response;
-			return el;
-		} );
+/* global jQuery */
 
-		if ( callback !== undefined ) {
-			callback( response );
-		}
-	}
+const hCaptchaACFE = window.hCaptchaACFE || ( function( window, $ ) {
+	const app = {
+		savedOnLoad: null,
 
-	function hCaptchaACFEOnLoad() {
-		window.hCaptchaOnLoad = hCaptchaACFEOnLoadSaved;
-		window.hCaptchaOnLoad();
-	}
+		init() {
+			// Install custom callbacks to sync token into ACFE hidden field.
+			app.installCallbacks();
 
-	const params = window.hCaptcha.getParams();
-	const savedCallback = params.callback;
-	const savedErrorCallback = params[ 'error-callback' ];
-	const savedExpiredCallback = params[ 'expired-callback' ];
+			// Bind ajaxComplete event to re-bind hCaptcha after AJAX requests.
+			$( document ).on( 'ajaxComplete', app.ajaxCompleteHandler );
+		},
 
-	params.callback = ( response ) => {
-		hCaptchaACFECallback( response, savedCallback );
+		installCallbacks() {
+			const params = window.hCaptcha.getParams();
+			const savedCallback = params.callback;
+			const savedErrorCallback = params[ 'error-callback' ];
+			const savedExpiredCallback = params[ 'expired-callback' ];
+
+			params.callback = ( response ) => app.updateHidden( response, savedCallback );
+			params[ 'error-callback' ] = () => app.updateHidden( '', savedErrorCallback );
+			params[ 'expired-callback' ] = () => app.updateHidden( '', savedExpiredCallback );
+
+			window.hCaptcha.setParams( params );
+
+			app.savedOnLoad = window.hCaptchaOnLoad;
+			window.hCaptchaOnLoad = app.onLoadWrapper;
+		},
+
+		updateHidden( response, callback ) {
+			[ ...document.querySelectorAll( '.acfe-field-recaptcha input[id^="acf-field_"]' ) ].forEach( ( el ) => {
+				el.value = response;
+			} );
+
+			if ( callback ) {
+				callback( response );
+			}
+		},
+
+		onLoadWrapper() {
+			window.hCaptchaOnLoad = app.savedOnLoad;
+			window.hCaptchaOnLoad();
+		},
+
+		ajaxCompleteHandler() {
+			// ACFE may perform AJAX validation; simply re-bind safely after requests.
+			if ( typeof window.hCaptchaBindEvents === 'function' ) {
+				window.hCaptchaBindEvents();
+			}
+		},
 	};
-	params[ 'error-callback' ] = () => {
-		hCaptchaACFECallback( '', savedErrorCallback );
-	};
-	params[ 'expired-callback' ] = () => {
-		hCaptchaACFECallback( '', savedExpiredCallback );
-	};
 
-	window.hCaptcha.setParams( params );
+	return app;
+}( window, jQuery ) );
 
-	const hCaptchaACFEOnLoadSaved = window.hCaptchaOnLoad;
+window.hCaptchaACFE = hCaptchaACFE;
 
-	window.hCaptchaOnLoad = hCaptchaACFEOnLoad;
-};
-
-window.hCaptchaACFE = acfe;
-
-acfe();
+hCaptchaACFE.init();

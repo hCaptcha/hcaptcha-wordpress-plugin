@@ -12,8 +12,13 @@
   },
   "steps": [
     {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
       "step": "installPlugin",
-      "pluginZipFile": {
+      "pluginData": {
         "resource": "wordpress.org/plugins",
         "slug": "hcaptcha-for-forms-and-more"
       },
@@ -23,18 +28,98 @@
     },
     {
       "step": "installPlugin",
-      "pluginZipFile": {
+      "pluginData": {
         "resource": "wordpress.org/plugins",
-        "url": "contact-form-7"
+        "slug": "contact-form-7"
       },
       "options": {
         "activate": true
       }
     },
     {
-      "step": "login",
-      "username": "admin",
-      "password": "password"
+      "step": "setSiteOptions",
+      "options": {
+        "hcaptcha_settings": {
+          "wp_status": [
+            "comment",
+            "login",
+            "lost_pass",
+            "password_protected",
+            "register"
+          ],
+          "cf7_status": [
+            "form",
+            "embed",
+            "live",
+            "replace_rsc"
+          ],
+          "_network_wide": [],
+          "off_when_logged_in": [],
+          "recaptcha_compat_off": [],
+          "secret_key": "",
+          "theme": "light",
+          "size": "normal",
+          "language": "",
+          "whitelisted_ips": "100.200.0.2\n220.45.45.1\n",
+          "mode": "test:publisher",
+          "site_key": "",
+          "delay": "0",
+          "login_limit": "0",
+          "login_interval": "5",
+          "force": [
+            "on"
+          ],
+          "statistics": [
+            "on"
+          ],
+          "custom_themes": [],
+          "api_host": "js.hcaptcha.com",
+          "asset_host": "",
+          "endpoint": "",
+          "host": "",
+          "image_host": "",
+          "report_api": "",
+          "sentry": "",
+          "backend": "api.hcaptcha.com",
+          "license": "pro",
+          "menu_position": [],
+          "sample_hcaptcha": "",
+          "check_config": "",
+          "reset_notifications": "",
+          "custom_prop": "",
+          "custom_value": "",
+          "hide_login_errors": [],
+          "anonymous": [],
+          "protect_content": [],
+          "protected_urls": "\/protected-content",
+          "cleanup_on_uninstall": [],
+          "whats_new_last_shown_version": "4.18.0",
+          "blacklisted_ips": "",
+          "antispam": [
+            "on"
+          ],
+          "antispam_provider": "akismet",
+          "honeypot": [
+            "on"
+          ],
+          "set_min_submit_time": [
+            "on"
+          ],
+          "min_submit_time": "2",
+          "show_antispam_coverage": [
+            "on"
+          ]
+        }
+      }
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; \\HCaptcha\\Admin\\Events\\Events::create_table(); $forms = get_posts( [ 'post_type' => 'wpcf7_contact_form', 'post_status' => 'publish', 'posts_per_page' => 1 ] ); $form = reset( $forms ); $shortcode = '[contact-form-7 id=\"' . (int) $form->ID . '\"]'; $page_id = wp_insert_post( [ 'post_type' => 'page', 'post_title' => 'Contact Form 7 Test Page', 'post_status' => 'publish', 'post_content' => $shortcode, 'post_name' => 'contact-form-7-test' ] ); update_option( 'page_on_front', $page_id ); update_option( 'show_on_front', 'page' );"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/mu-plugins/hcaptcha.php",
+      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); ?>"
     }
   ]
 }

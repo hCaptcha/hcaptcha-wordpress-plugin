@@ -334,7 +334,7 @@ abstract class SettingsBase {
 			$hash           = hexdec( sha1( self::PREFIX ) );
 			$pow            = floor( log10( $hash ) );
 			$position       = is_multisite() && $this->is_network_wide() ? self::NETWORK_WIDE_POSITION : self::POSITION;
-			$this->position = round( $position + $hash / 10 ** ( $pow + 4 ), 6 );
+			$this->position = round( $position + $hash / 10 ** ( $pow + 4 ), 6, PHP_ROUND_HALF_UP );
 		} else {
 			$this->position = (float) $args['position'];
 		}

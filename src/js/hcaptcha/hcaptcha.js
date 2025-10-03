@@ -262,6 +262,8 @@ class HCaptcha {
 	 * Observe dark mode changes and apply the auto theme.
 	 */
 	observeDarkMode() {
+		let scheduledRebind = false;
+
 		if ( this.observingDarkMode ) {
 			return;
 		}
@@ -275,6 +277,8 @@ class HCaptcha {
 		}
 
 		const observerCallback = ( mutationList ) => {
+			let darkClassToggled = false;
+
 			for ( const mutation of mutationList ) {
 				let oldClasses = mutation.oldValue;
 				let newClasses = this.darkElement.getAttribute( 'class' );
@@ -287,8 +291,18 @@ class HCaptcha {
 					.concat( oldClasses.filter( ( item ) => ! newClasses.includes( item ) ) );
 
 				if ( diff.includes( this.darkClass ) ) {
-					this.bindEvents();
+					darkClassToggled = true;
 				}
+			}
+
+			if ( darkClassToggled && ! scheduledRebind ) {
+				scheduledRebind = true;
+
+				requestAnimationFrame( () => {
+					this.bindEvents();
+
+					scheduledRebind = false;
+				} );
 			}
 		};
 

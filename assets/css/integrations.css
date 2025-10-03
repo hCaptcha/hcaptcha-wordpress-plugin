@@ -1,3 +1,12 @@
+.form-table:first-of-type tr {
+	background: none;
+	padding: 10px 0;
+}
+
+.form-table:first-of-type tr th {
+	display: none;
+}
+
 #hcaptcha-options p {
 	margin: 0.5em 0;
 }
@@ -156,37 +165,74 @@
 
 #hcaptcha-options label + .helper {
 	position: absolute;
+	display: none;
+	flex-direction: row-reverse;
 	right: 0;
-	width: 100%;
+	margin-top: 6px;
+	width: calc(100% - 40px);
+	height: 1.25rem;
+	box-sizing: border-box;
 }
 
-#hcaptcha-options label[data-antispam] + .helper::before {
-	content: '';
-	background: url('../images/antispam-green.svg');
-	background-size: cover;
+#hcaptcha-options label + .helper:hover {
+	cursor: initial;
+}
+
+#hcaptcha-options label + .helper i {
+	cursor: help;
+}
+
+#hcaptcha-options label + .helper:before {
+	display: none;
+}
+
+/* Display antispam icons inserted by JS as <i> elements. */
+#hcaptcha-options label + .helper i[class^="antispam"] {
+	display: inline-block;
 	width: 18px;
 	height: 20px;
-	top: 0.35em;
-	border-radius: unset;
-	transform: translate(0, 0);
-}
-
-#hcaptcha-options label:is([data-antispam-native],[data-antispam-native]) + .helper::before {
-	background: url('../images/antispam-yellow.svg');
 	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
 }
 
-#hcaptcha-options label:is([data-antispam-honeypot],[data-antispam-honeypot]) + .helper::before {
-	background: url('../images/antispam-honeypot.svg');
-	background-size: cover;
-}
-
-#hcaptcha-options fieldset:disabled label[data-antispam] + .helper::before {
+#hcaptcha-options fieldset:disabled label + .helper i[class^="antispam"] {
 	opacity: 0.7;
 }
 
-#hcaptcha-options label[data-antispam] + .helper .helper-content {
-	transform: translate(0px, 38px);
+#hcaptcha-options label + .helper i.antispam-hcaptcha {
+	background-image: url('../images/antispam-green.svg');
+}
+
+#hcaptcha-options label + .helper i.antispam-native {
+	background-image: url('../images/antispam-yellow.svg');
+}
+
+#hcaptcha-options label + .helper i.antispam-honeypot {
+	background-image: url('../images/antispam-honeypot.svg');
+}
+
+#hcaptcha-options label + .helper i.antispam-fst {
+	background-image: url('../images/antispam-fst.svg');
+	width: 24px;
+	transform: translateY(1px);
+}
+
+#hcaptcha-options fieldset .helper .helper-content {
+	transform: translate(0px, 37px);
+	width: calc(100% + 40px);
+	/* Transition */
+	display: block;
+	visibility: hidden;
+	opacity: 0;
+}
+
+#hcaptcha-options fieldset .helper:hover .helper-content {
+	/* Transition */
+	visibility: visible;
+	opacity: 1;
+	transition: opacity .2s ease .3s, visibility 0s linear .3s;
 }
 
 .hcaptcha-disabled-section {

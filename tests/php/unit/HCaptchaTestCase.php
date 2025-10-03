@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Unit;
 
+use HCaptcha\Settings\Integrations;
 use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
 use Mockery;
@@ -819,6 +820,13 @@ abstract class HCaptchaTestCase extends TestCase {
 	 */
 	protected function get_test_integrations_form_fields(): array {
 		return [
+			'show_antispam_coverage'           => [
+				'type'    => 'checkbox',
+				'section' => Integrations::SECTION_HEADER,
+				'options' => [
+					'on' => 'Show Antispam Coverage',
+				],
+			],
 			'wp_status'                        =>
 				[
 					'entity'  => 'core',

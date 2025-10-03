@@ -17,6 +17,7 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use UltimateElementor\Modules\LoginForm\Widgets\LoginForm as UltimateElementorLogin;
 use WP_Error;
+use WP_User;
 
 /**
  * Class Login.

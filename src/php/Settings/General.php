@@ -560,11 +560,11 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'Add a honeypot field to submitted forms for early bot prevention.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'antispam'             => [
-				'label'   => __( 'Anti-Spam check', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Anti-Spam Check', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_ANTISPAM,
 				'options' => [
-					'on' => __( 'Enable Anti-Spam check', 'hcaptcha-for-forms-and-more' ),
+					'on' => __( 'Enable Anti-Spam Check', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Enable anti-spam check of submitted forms.', 'hcaptcha-for-forms-and-more' ),
 			],

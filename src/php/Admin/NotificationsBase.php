@@ -53,6 +53,9 @@ abstract class NotificationsBase {
 			$urls['protect_content_demo'] = HCAPTCHA_URL . '/assets/images/demo/protect-content.gif';
 			$urls['antispam']             = $urls['general'] . '#antispam_1';
 			$urls['antispam_demo']        = HCAPTCHA_URL . '/assets/images/demo/antispam.gif';
+			$urls['token']                = $urls['general'] . '#set_min_submit_time_1';
+			$urls['honeypot']             = $urls['general'] . '#honeypot_1';
+			$urls['honeypot_demo']        = HCAPTCHA_URL . '/assets/images/demo/honeypot.png';
 		}
 
 		return $urls;

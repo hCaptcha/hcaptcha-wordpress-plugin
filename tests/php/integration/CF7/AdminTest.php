@@ -242,14 +242,19 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_toplevel_page_wpcf7(): void {
-		$form = <<<'HTML'
+		$shortcode_input = '<input type="text" id="wpcf7-shortcode" class="large-text code" value="[contact-form-7 id=&quot;4315f34&quot; title=&quot;Contact form 2&quot;]" />';
+		$form_start      = '<form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">';
+		$post_stuff_div  = '<div id="poststuff">';
+		$post_body_div   = '<div id="post-body" class="metabox-holder columns-2">';
+
+		$form = <<<HTML
 <div class="wrap" id="wpcf7-contact-form-editor">
 	<h1 class="wp-heading-inline">Edit Contact Form</h1>
-	<form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">
-		<div id="poststuff">
-			<div id="post-body" class="metabox-holder columns-2">
+	$form_start
+		$post_stuff_div
+			$post_body_div
 				<div id="post-body-content">
-					<input type="text" id="wpcf7-shortcode" class="large-text code" value="[contact-form-7 id=&quot;4315f34&quot; title=&quot;Contact form 2&quot;]" />
+					$shortcode_input
 				</div><!-- #post-body-content -->
 				<div id="postbox-container-1" class="postbox-container">
 				</div><!-- #postbox-container-1 -->
@@ -278,11 +283,11 @@ HTML;
 		$expected = <<<HTML
 <div class="wrap" id="wpcf7-contact-form-editor">
 	<h1 class="wp-heading-inline">Edit Contact Form</h1>
-	<div id="poststuff">
-			<div id="post-body" class="metabox-holder columns-2"><form method="post" action="https://test.test/wp-admin/admin.php?page=wpcf7&post=2642" id="wpcf7-admin-form-element">
+	$post_stuff_div
+			$post_body_div$form_start
 		
 				<div id="post-body-content">
-					<input type="text" id="wpcf7-shortcode" class="large-text code" value="[contact-form-7 id=&quot;4315f34&quot; title=&quot;Contact form 2&quot;]" />
+					$shortcode_input
 				</div><!-- #post-body-content -->
 				<div id="postbox-container-1" class="postbox-container">
 				</div><!-- #postbox-container-1 -->
@@ -306,33 +311,43 @@ HTML;
 
 		$subject = new Admin();
 
+		// No shortcode.
+		ob_start();
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		/** @noinspection HtmlUnknownAttribute */
+		$no_shortcode = 'some html';
+		$subject->before_toplevel_page_wpcf7();
+		echo $no_shortcode; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$subject->after_toplevel_page_wpcf7();
+		self::assertSame( $no_shortcode, ob_get_clean() );
+
 		// No form start.
 		ob_start();
-		$no_form_start = 'some html';
+		$no_form_start = $shortcode_input;
 		$subject->before_toplevel_page_wpcf7();
 		echo $no_form_start; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		$subject->after_toplevel_page_wpcf7();
 		self::assertSame( $no_form_start, ob_get_clean() );
 
+		// No post-body div.
+		ob_start();
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		/** @noinspection HtmlUnknownAttribute */
+		$no_post_body_div = $form_start . $post_stuff_div . $shortcode_input . 'some HTML</form>';
+		$subject->before_toplevel_page_wpcf7();
+		echo $no_post_body_div; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$subject->after_toplevel_page_wpcf7();
+		self::assertSame( $no_post_body_div, ob_get_clean() );
+
 		// No form end.
 		ob_start();
 		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
 		/** @noinspection HtmlUnknownAttribute */
-		$no_form_end = '<form some-html <div id="poststuff">';
+		$no_form_end = $form_start . $post_stuff_div . $post_body_div . $shortcode_input . 'some HTML</form>';
 		$subject->before_toplevel_page_wpcf7();
 		echo $no_form_end; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		$subject->after_toplevel_page_wpcf7();
 		self::assertSame( $no_form_end, ob_get_clean() );
-
-		// No shortcode.
-		ob_start();
-		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-		/** @noinspection HtmlUnknownAttribute */
-		$no_shortcode = '<form some-html <div id="poststuff"> </div><!-- #poststuff --> </form>';
-		$subject->before_toplevel_page_wpcf7();
-		echo $no_shortcode; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		$subject->after_toplevel_page_wpcf7();
-		self::assertSame( $no_shortcode, ob_get_clean() );
 
 		// Real case.
 		ob_start();

@@ -1120,6 +1120,34 @@ CSS;
 	}
 
 	/**
+	 * Test allow_honeypot_and_fst().
+	 *
+	 * @return void
+	 */
+	public function test_allow_honeypot_and_fst(): void {
+		$source  = [ 'contact-form-7/wp-contact-form-7.php' ];
+		$form_id = 177;
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+		$subject->load_modules();
+
+		self::assertSame( 'on', hcaptcha()->settings()->get( 'honeypot' ) );
+		self::assertSame( 'on', hcaptcha()->settings()->get( 'set_min_submit_time' ) );
+
+		self::assertTrue( $subject->allow_honeypot_and_fst( true, $source, $form_id ) );
+
+		self::assertSame( 'on', hcaptcha()->settings()->get( 'honeypot' ) );
+		self::assertSame( 'on', hcaptcha()->settings()->get( 'set_min_submit_time' ) );
+
+		self::assertTrue( $subject->allow_honeypot_and_fst( true, [ 'unsupported source' ], $form_id ) );
+
+		self::assertSame( [ '' ], hcaptcha()->settings()->get( 'honeypot' ) );
+		self::assertSame( [ '' ], hcaptcha()->settings()->get( 'set_min_submit_time' ) );
+	}
+
+	/**
 	 * Test denylist_ip().
 	 *
 	 * @param mixed        $denylisted_ips Settings.

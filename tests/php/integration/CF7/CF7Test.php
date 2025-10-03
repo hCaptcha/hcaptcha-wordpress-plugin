@@ -47,19 +47,82 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		wp_deregister_script( 'hcaptcha-script' );
 		wp_dequeue_script( 'hcaptcha-script' );
 
+		wp_deregister_script( 'hcaptcha-cf7' );
+		wp_dequeue_script( 'hcaptcha-cf7' );
+
 		parent::tearDown();
 	}
 
 	/**
 	 * Test init_hooks().
+	 *
+	 * @param bool $mode_auto  Mode auto.
+	 * @param bool $mode_embed Mode embed.
+	 *
+	 * @dataProvider dp_test_init_hooks
 	 */
-	public function test_init_hooks(): void {
+	public function test_init_hooks( bool $mode_auto, bool $mode_embed ): void {
+		if ( $mode_auto ) {
+			update_option( 'hcaptcha_settings', [ 'cf7_status' => [ 'form' ] ] );
+		}
+
+		if ( $mode_embed ) {
+			update_option( 'hcaptcha_settings', [ 'cf7_status' => [ 'embed' ] ] );
+		}
+
+		hcaptcha()->init_hooks();
+
 		$subject = new CF7();
 
 		self::assertSame( 20, has_filter( 'do_shortcode_tag', [ $subject, 'wpcf7_shortcode' ] ) );
 		self::assertTrue( shortcode_exists( 'cf7-hcaptcha' ) );
 		self::assertSame( 20, has_filter( 'wpcf7_validate', [ $subject, 'verify_hcaptcha' ] ) );
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
+
+		if ( $mode_auto || $mode_embed ) {
+			self::assertSame( 10, has_action( 'option_wpcf7', [ $subject, 'option_wpcf7' ] ) );
+		} else {
+			self::assertFalse( has_action( 'option_wpcf7', [ $subject, 'option_wpcf7' ] ) );
+		}
+	}
+
+	/**
+	 * Data provide for test_init_hooks().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_hooks(): array {
+		return [
+			'none'  => [ false, false ],
+			'auto'  => [ true, false ],
+			'embed' => [ false, true ],
+			'all'   => [ true, true ],
+		];
+	}
+
+	/**
+	 * Test option_cf7().
+	 *
+	 * @return void
+	 */
+	public function test_option_cf7(): void {
+		$subject = new CF7();
+
+		$value = 'some value';
+
+		self::assertSame( $value, $subject->option_wpcf7( $value, 'some_option' ) );
+
+		self::assertSame( $value, $subject->option_wpcf7( $value, 'wpcf7' ) );
+
+		$value    = [
+			'foo'       => 'bar',
+			'recaptcha' => 'some value',
+		];
+		$expected = $value;
+
+		unset( $expected['recaptcha'] );
+
+		self::assertSame( $expected, $subject->option_wpcf7( $value, 'wpcf7' ) );
 	}
 
 	/**

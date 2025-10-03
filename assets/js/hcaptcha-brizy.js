@@ -20,12 +20,12 @@ import { helper } from './hcaptcha-helper.js';
 		// The hcaptcha-widget-id is already in the data object.
 		data.push( {
 			name: 'h-captcha-response',
-			value: hCaptchaData.response,
+			value: hCaptchaData[ 'h-captcha-response' ],
 			required: false,
 		} );
 		data.push( {
 			name: nonceName,
-			value: hCaptchaData.nonce,
+			value: hCaptchaData[ nonceName ],
 			required: false,
 		} );
 

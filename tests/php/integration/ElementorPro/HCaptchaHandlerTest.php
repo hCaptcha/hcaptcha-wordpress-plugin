@@ -20,6 +20,7 @@ use Elementor\Controls_Stack;
 use Elementor\Plugin;
 use Elementor\Widget_Base;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -35,10 +36,28 @@ use Elementor\Settings;
  */
 class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
+	 * Setup class.
+	 *
+	 * @return void
+	 */
+	public static function setUpBeforeClass(): void {
+		Mockery::getConfiguration()->setConstantsMap(
+			[
+				Settings::class => [
+					'PAGE_ID'          => 'elementor',
+					'TAB_INTEGRATIONS' => 'integrations',
+				],
+			]
+		);
+
+		parent::setUpBeforeClass();
+	}
+
+	/**
 	 * Teardown test.
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['current_screen'] );
+		unset( $_GET['elementor-preview'], $GLOBALS['current_screen'] );
 
 		wp_dequeue_script( 'admin-elementor-pro' );
 		wp_deregister_script( 'admin-elementor-pro' );
@@ -144,36 +163,16 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 *
 	 * @param bool $is_enabled The field is enabled.
 	 * @param bool $is_admin   Admin mode.
+	 * @param bool $is_preview Elementor preview page.
 	 *
 	 * @dataProvider dp_test_init
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init( bool $is_enabled, bool $is_admin ): void {
-		if ( $is_enabled ) {
-			update_option(
-				'hcaptcha_settings',
-				[
-					'site_key'   => 'some site key',
-					'secret_key' => 'some secret key',
-				]
-			);
-		}
-
-		hcaptcha()->init_hooks();
-
-		if ( $is_admin ) {
-			set_current_screen( 'some' );
-		}
+	public function test_init( bool $is_enabled, bool $is_admin, bool $is_preview ): void {
+		$this->prepare_test_init( $is_enabled, $is_admin, $is_preview );
 
 		$subject = new HCaptchaHandler();
 
-		Mockery::getConfiguration()->setConstantsMap(
-			[
-				Settings::class => [
-					'PAGE_ID' => 'elementor',
-				],
-			]
-		);
 		Mockery::mock( 'alias:Elementor\Settings' );
 
 		$utils = Mockery::mock( Utils::class )->makePartial();
@@ -267,6 +266,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		// General hCaptcha scripts and styles.
 		self::assertTrue( has_action( 'elementor/editor/init' ) );
 
+		// Elementor preview page.
+		if ( $is_preview ) {
+			self::assertSame( 10, has_filter( 'hcap_print_hcaptcha_scripts', '__return_true' ) );
+		} else {
+			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', '__return_true' ) );
+		}
+
 		// Elementor-related scripts and styles.
 		if ( $is_enabled || $is_admin ) {
 			self::assertTrue( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
@@ -345,11 +351,62 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_init(): array {
 		return [
-			'not enabled, not admin' => [ false, false ],
-			'not enabled, admin'     => [ false, true ],
-			'enabled, not admin'     => [ true, false ],
-			'enabled, admin'         => [ true, true ],
+			'not enabled, not admin, not preview' => [ false, false, false ],
+			'not enabled, admin, not preview'     => [ false, true, false ],
+			'enabled, not admin, not preview'     => [ true, false, false ],
+			'enabled, admin, not preview'         => [ true, true, false ],
+			'not enabled, not admin, preview'     => [ false, false, true ],
+			'not enabled, admin, preview'         => [ false, true, true ],
+			'enabled, not admin, preview'         => [ true, false, true ],
+			'enabled, admin, preview'             => [ true, true, true ],
 		];
+	}
+
+	/**
+	 * Test register_admin_fields().
+	 *
+	 * @return void
+	 */
+	public function test_register_admin_fields(): void {
+		$settings = Mockery::mock( 'alias:Elementor\Settings' );
+		$captured = null;
+
+		$settings->shouldReceive( 'add_section' )
+			->once()
+			->with(
+				Settings::TAB_INTEGRATIONS,
+				'hcaptcha',
+				Mockery::on(
+					static function ( $arg ) use ( &$captured ) {
+						if ( is_array( $arg ) && isset( $arg['callback'] ) && is_callable( $arg['callback'] ) ) {
+							$captured = $arg['callback'];
+
+							return true;
+						}
+
+						return false;
+					}
+				)
+			);
+
+		$subject = new HCaptchaHandler();
+
+		$subject->register_admin_fields( $settings );
+
+		self::assertIsCallable( $captured );
+
+		ob_start();
+		$captured();
+		$output = ob_get_clean();
+
+		self::assertIsString( $output );
+		self::assertStringContainsString( '<hr><h2>hCaptcha</h2>', $output );
+		self::assertStringContainsString( '<a href="https://www.hcaptcha.com" target="_blank">hCaptcha</a>', $output );
+
+		$notice = HCaptcha::get_hcaptcha_plugin_notice();
+
+		self::assertStringContainsString( '<p><strong>' . $notice['label'] . '</strong></p>', $output );
+		self::assertStringContainsString( '<p>' . $notice['description'] . '</p>', $output );
 	}
 
 	/**
@@ -615,6 +672,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'Please complete the hCaptcha.' )->once();
 
 		$this->prepare_verify_request( '', false );
+
+		unset( $_POST['h-captcha-response'] );
 
 		$subject = new HCaptchaHandler();
 		$subject->validation( $record, $ajax_handler );
@@ -1095,5 +1154,36 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Prepare test_init().
+	 *
+	 * @param bool $is_enabled The field is enabled.
+	 * @param bool $is_admin Admin mode.
+	 * @param bool $is_preview Elementor preview page.
+	 *
+	 * @return void
+	 */
+	protected function prepare_test_init( bool $is_enabled, bool $is_admin, bool $is_preview ): void {
+		if ( $is_enabled ) {
+			update_option(
+				'hcaptcha_settings',
+				[
+					'site_key'   => 'some site key',
+					'secret_key' => 'some secret key',
+				]
+			);
+		}
+
+		hcaptcha()->init_hooks();
+
+		if ( $is_admin ) {
+			set_current_screen( 'some' );
+		}
+
+		if ( $is_preview ) {
+			$_GET['elementor-preview'] = 123;
+		}
 	}
 }

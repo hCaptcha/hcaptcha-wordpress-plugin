@@ -9,6 +9,7 @@ namespace HCaptcha\ACFE;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Form.
@@ -29,6 +30,11 @@ class Form {
 	 * Validation hook.
 	 */
 	public const VALIDATION_HOOK = 'acf/validate_value/type=acfe_recaptcha';
+
+	/**
+	 * Transient name.
+	 */
+	private const TRANSIENT = 'hcaptcha_acfe';
 
 	/**
 	 * Form id.
@@ -73,7 +79,7 @@ class Form {
 	 * @return void
 	 */
 	public function before_fields( array $args ): void {
-		$this->form_id = $args['ID'];
+		$this->form_id = (int) $args['ID'];
 	}
 
 	/**
@@ -153,7 +159,7 @@ class Form {
 	 * @param array      $field Field.
 	 * @param string     $input Input name.
 	 *
-	 * @return bool|mixed
+	 * @return bool|string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $valid, string $value, array $field, string $input ) {
@@ -161,22 +167,22 @@ class Form {
 			return $valid;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$this->form_id = isset( $_POST['_acf_post_id'] )
-			? (int) sanitize_text_field( wp_unslash( $_POST['_acf_post_id'] ) )
-			: 0;
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$this->form_id = (int) Request::filter_input( INPUT_POST, '_acf_post_id' );
 
-		$id = HCaptcha::get_widget_id();
+		// Avoid duplicate token: process during ajax validation only.
+		if ( wp_doing_ajax() ) {
+			$result = API::verify_request( $value ) ?: true;
 
-		// Avoid duplicate token: do not process during ajax validation.
-		// Process hcaptcha widget checks when form protection is skipped.
-		/** This filter is documented in the HCaptcha\Helpers\HCaptcha class. */
-		if ( wp_doing_ajax() && apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] ) ) {
-			return $valid;
+			set_transient( self::TRANSIENT, [ $this->form_id, $result ], 300 );
+
+			return $result;
 		}
 
-		return null === API::verify_request( $value );
+		$transient = get_transient( self::TRANSIENT );
+		$form_id   = $transient[0] ?? false;
+		$result    = $transient[1] ?? false;
+
+		return $form_id === $this->form_id ? $result : false;
 	}
 
 	/**

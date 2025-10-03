@@ -13,6 +13,20 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Sendinblue.
  */
 class Sendinblue {
+	/**
+	 * Nonce action.
+	 */
+	private const ACTION = 'hcaptcha_sendinblue';
+
+	/**
+	 * Nonce name.
+	 */
+	private const NONCE = 'hcaptcha_sendinblue_nonce';
+
+	/**
+	 * Script handle.
+	 */
+	public const HANDLE = 'hcaptcha-sendinblue';
 
 	/**
 	 * Sendinblue constructor.
@@ -29,6 +43,8 @@ class Sendinblue {
 	public function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_hcaptcha' ], 10, 4 );
 		add_filter( 'hcap_verify_request', [ $this, 'verify_request' ], 10, 2 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -41,6 +57,7 @@ class Sendinblue {
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
 		if ( 'sibwp_form' !== $tag ) {
@@ -48,8 +65,8 @@ class Sendinblue {
 		}
 
 		$args = [
-			'action' => HCAPTCHA_ACTION,
-			'name'   => HCAPTCHA_NONCE,
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
 			'auto'   => true,
 			'id'     => [
 				'source'  => HCaptcha::get_class_source( static::class ),
@@ -106,5 +123,46 @@ class Sendinblue {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return $result;
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-sendinblue$min.js",
+			[ 'jquery', 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( static::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }

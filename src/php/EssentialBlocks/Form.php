@@ -58,6 +58,7 @@ class Form {
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -104,11 +105,7 @@ class Form {
 		$form_data_str = isset( $_POST['form_data'] ) ? sanitize_text_field( wp_unslash( $_POST['form_data'] ) ) : '';
 		$form_data     = (array) json_decode( $form_data_str, true );
 
-		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
-		$_POST['h-captcha-response'] = $form_data['h-captcha-response'] ?? '';
-		$_POST[ self::NONCE ]        = $form_data[ self::NONCE ] ?? '';
-
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $form_data );
 
 		unset( $_POST['hcaptcha-widget-id'], $_POST['h-captcha-response'], $_POST[ self::NONCE ] );
 
@@ -149,5 +146,25 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }

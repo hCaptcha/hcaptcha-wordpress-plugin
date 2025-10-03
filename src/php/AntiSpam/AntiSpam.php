@@ -159,7 +159,7 @@ class AntiSpam {
 	 * @return array
 	 */
 	public static function get_protected_forms(): array {
-		$antispam = hcaptcha()->settings()->get( 'antispam' );
+		$antispam = hcaptcha()->settings()->is_on( 'antispam' );
 
 		if ( ! $antispam ) {
 			return [];

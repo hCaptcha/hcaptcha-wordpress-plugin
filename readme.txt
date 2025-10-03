@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.17.0
+Stable tag: 4.18.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -626,6 +626,10 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 `parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
 `position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
 
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/wordpress/plugin/hcaptcha-for-forms-and-more/vdp)
+
 = Where can I get more information about hCaptcha? =
 
 Please see our [website](https://hcaptcha.com/).
@@ -754,6 +758,19 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.18.0 =
+* Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Contact Form 7 Live Form, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
+* Added the ability to specify Protected URLs on the General page with schema and domain, allowing to protect specific pages on multisite.
+* Added plugin Live Preview on playground.wordpress.net.
+* Fixed a fatal error during the installation of an integration plugin in some cases.
+* Fixed Fluent Forms Login behavior when the login limit was exceeded.
+* Fixed integration upon Kadence Blocks plugin update.
+* Fixed integration upon Otter Blocks plugin update.
+* Fixed integration Paid Membership Pro plugin update.
+* Fixed integration upon ACF Extended plugin update.
+* Fixed duplicated hCaptcha renders with Dark mode enabled.
+* Fixed the Sendinblue error on multiple submitting.
 
 = 4.17.0 =
 * Added a hidden honeypot field and minimum submit time for bot detection before processing hCaptcha. Currently supported for WordPress Core, Avada theme, Contact Form 7, Divi theme, Divi Builder, Essential Addons for Elementor, Extra theme, Elementor, Jetpack, Mailchimp, Ninja Forms, Spectra, WooCommerce, WPForms, Protect Content feature.

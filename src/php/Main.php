@@ -17,6 +17,7 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
+use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
@@ -159,7 +160,6 @@ class Main {
 
 		( new Fix() )->init();
 
-		// Needs to be loaded early, as it uses short init ajax.
 		$this->load( FormSubmitTime::class );
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
@@ -858,26 +858,51 @@ class Main {
 	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
 		$value = (bool) $value;
 
-		$supported_forms = [
-			[ General::class ], // General settings page.
-			[ 'WordPress' ], // WordPress Core.
-			[ 'Avada' ], // Avada theme.
-			[ 'contact-form-7/wp-contact-form-7.php' ], // Contact Form 7.
-			[ 'Divi' ], // Divi theme.
-			[ 'divi-builder/divi-builder.php' ], // Divi Builder.
-			[ 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ], // Essential Addons for Elementor.
-			[ 'Extra' ], // Extra theme.
-			[ 'elementor-pro/elementor-pro.php' ], // Elementor.
-			[ 'jetpack/jetpack.php' ], // JetPack.
-			[ 'mailchimp-for-wp/mailchimp-for-wp.php' ], // MailChimp.
-			[ 'ninja-forms/ninja-forms.php' ], // Ninja Forms.
-			[ 'woocommerce/woocommerce.php' ], // WooCommerce.
-			[ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ], // WPForms.
-			[ 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' ], // Spectra.
-			[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
-		];
+		/**
+		 * Supported forms.
+		 *
+		 * @var ?array $supported_forms
+		 */
+		static $supported_forms = null;
 
-		if ( ! in_array( $source, $supported_forms, true ) ) {
+		if ( null === $supported_forms ) {
+			$supported_forms = [];
+
+			// Use honeypot protection info only, as FST is always added for honeypot forms.
+			$honeypot_protected_forms = Honeypot::get_protected_forms()['honeypot'];
+			$honeypot_statuses        = [];
+
+			foreach ( $honeypot_protected_forms as $status => $forms ) {
+				foreach ( $forms as $form ) {
+					$honeypot_statuses[] = [ $status, $form ];
+				}
+
+				$honeypot_statuses[] = [ $status, null ];
+			}
+
+			foreach ( $this->modules as $module ) {
+				[ $module_status, $module_source ] = $module;
+
+				if ( ! in_array( $module_status, $honeypot_statuses, true ) ) {
+					continue;
+				}
+
+				$module_source = (array) $module_source;
+				$module_source = [ '' ] === $module_source ? [ 'WordPress' ] : $module_source;
+
+				$supported_forms[] = $module_source;
+			}
+
+			$supported_forms = array_merge(
+				array_unique( $supported_forms, SORT_REGULAR ),
+				[
+					[ General::class ], // General settings page.
+					[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
+				]
+			);
+		}
+
+		if ( $source && ! in_array( $source, $supported_forms, true ) ) {
 			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
 			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
 		}

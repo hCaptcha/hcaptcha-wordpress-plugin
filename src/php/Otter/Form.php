@@ -15,8 +15,11 @@ namespace HCaptcha\Otter;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
-use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Response;
 use WP_Block;
+use WP_Error;
+use WP_HTTP_Response;
+use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * Class Form.
@@ -39,6 +42,20 @@ class Form {
 	private const NONCE = 'hcaptcha_otter_nonce';
 
 	/**
+	 * Error code.
+	 *
+	 * @var int
+	 */
+	private $error_code;
+
+	/**
+	 * Error message.
+	 *
+	 * @var string
+	 */
+	private $error_message;
+
+	/**
 	 * Otter Form constructor.
 	 */
 	public function __construct() {
@@ -56,6 +73,7 @@ class Form {
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'otter_form_anti_spam_validation', array( $this, 'verify' ) );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -127,16 +145,46 @@ class Form {
 			return $form_data;
 		}
 
-		$_POST['h-captcha-response'] = $form_data->get_root_data( 'h-captcha-response' ) ?: '';
-		$_POST[ self::NONCE ]        = $form_data->get_root_data( self::NONCE ) ?: '';
+		$post_data = $form_data->dump_data()['form_data'];
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
 
-		if ( null !== $error_message ) {
-			$form_data->set_error( Form_Data_Response::ERROR_MISSING_CAPTCHA );
+		if ( null !== $this->error_message ) {
+			$this->error_code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
+
+			// Error processing in Otter is not very helpful.
+			$form_data->set_error( $this->error_code, $this->error_message );
+
+			add_filter( 'rest_request_after_callbacks', [ $this, 'filter_response' ], 10, 3 );
 		}
 
 		return $form_data;
+	}
+
+	/**
+	 * Filters the response immediately after executing any REST API
+	 * callbacks.
+	 *
+	 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
+	 *                                                                   Usually a WP_REST_Response or WP_Error.
+	 * @param array                                            $handler  Route handler used for the request.
+	 * @param WP_REST_Request                                  $request  Request used to generate the response.
+	 *
+	 * @return WP_REST_Response|WP_HTTP_Response|WP_Error|mixed
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function filter_response( $response, array $handler, WP_REST_Request $request ) {
+		if ( '/otter/v1/form/frontend' !== $request->get_route() ) {
+			return $response;
+		}
+
+		$data                 = $response->get_data();
+		$data['code']         = $this->error_code;
+		$data['displayError'] = $this->error_message;
+
+		$response->set_data( $data );
+
+		return $response;
 	}
 
 	/**
@@ -158,5 +206,25 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }

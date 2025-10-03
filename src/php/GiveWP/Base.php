@@ -24,9 +24,9 @@ use WP_Error;
 abstract class Base {
 
 	/**
-	 * Block script handle.
+	 * Script handle.
 	 */
-	private const BLOCK_HANDLE = 'hcaptcha-wc-block-checkout';
+	private const HANDLE = 'hcaptcha-give-wp';
 
 	/**
 	 * Script localization object.
@@ -75,6 +75,7 @@ abstract class Base {
 
 		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true', 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -174,7 +175,7 @@ abstract class Base {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			self::BLOCK_HANDLE,
+			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-givewp$min.js",
 			[ 'wp-blocks', 'hcaptcha' ],
 			HCAPTCHA_VERSION,
@@ -189,11 +190,31 @@ abstract class Base {
 		];
 
 		wp_localize_script(
-			self::BLOCK_HANDLE,
+			self::HANDLE,
 			self::OBJECT,
 			[
 				'hcaptchaForm' => wp_json_encode( HCaptcha::form( $args ) ),
 			]
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }

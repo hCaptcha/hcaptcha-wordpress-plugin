@@ -3,7 +3,6 @@
 const hCaptchaAvada = window.hCaptchaAvada || ( function( window, $ ) {
 	const app = {
 		init() {
-			$( app.ready );
 			$( document ).on( 'ajaxSuccess', app.ajaxSuccessHandler );
 		},
 

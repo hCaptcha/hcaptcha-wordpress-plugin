@@ -274,7 +274,7 @@ class Notifications extends NotificationsBase {
 			'protect-content'     => [
 				'title'   => __( 'Protect Site Content', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
-				/* translators: 1: Pro link. */
+				/* translators: 1: the protect switch link, 2: Pro link. */
 					__( '%1$s selected site URLs from bots with hCaptcha. Works best with %2$s 99.9%% passive mode.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
@@ -293,43 +293,43 @@ class Notifications extends NotificationsBase {
 					'lightbox' => true,
 				],
 			],
+			// Added in 4.18.0.
+			'antispam-token'      => [
+				'title'   => __( 'Anti-Spam Token', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: the submit time switch link. */
+					__( 'Add minimum form %1$s for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$urls['token'],
+						__( 'submit time', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $urls['token'],
+					'text' => __( 'Turn on minimum submit time', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 4.18.0.
+			'antispam-honeypot'   => [
+				'title'   => __( 'Anti-Spam Honeypot', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: the honeypot switch link. */
+					__( 'Add a hidden %1$s field for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$urls['honeypot'],
+						__( 'honeypot', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $urls['honeypot'],
+					'text' => __( 'Turn on honeypot', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
-		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
-			unset( $notifications['register'] );
-		}
-
-		if ( $settings->is_pro() ) {
-			unset( $notifications['pro-free-trial'] );
-		}
-
-		if ( $settings->is_on( 'statistics' ) ) {
-			unset( $notifications['statistics'] );
-		}
-
-		if ( $settings->is_on( 'statistics' ) && $settings->is_pro() ) {
-			unset( $notifications['events_page'] );
-		}
-
-		if ( $settings->is_on( 'force' ) ) {
-			unset( $notifications['force'] );
-		}
-
-		if ( ! class_exists( Plugin::class, false ) ) {
-			unset( $notifications['admin-elementor'] );
-		}
-
-		if ( $settings->is_pro() && $settings->is( 'size', 'invisible' ) ) {
-			unset( $notifications['passive-mode'] );
-		}
-
-		if ( $settings->is_on( 'protect_content' ) ) {
-			unset( $notifications['protect-content'] );
-		}
-
-		if ( $settings->is_on( 'antispam' ) ) {
-			unset( $notifications['antispam'] );
-		}
+		$notifications = $this->select_active_notifications( $notifications );
 
 		// Added in 4.4.0.
 		return array_merge( $notifications, $this->cf7_admin_notification() );
@@ -653,5 +653,54 @@ class Notifications extends NotificationsBase {
 		$notification['button']['lightbox'] = $notification['button']['lightbox'] ?? '';
 
 		return $notification;
+	}
+
+	/**
+	 * Select active notifications.
+	 *
+	 * @param array $notifications Notifications.
+	 *
+	 * @return array
+	 */
+	private function select_active_notifications( array $notifications ): array {
+		$settings = hcaptcha()->settings();
+
+		// Key: option name, value: notification id.
+		$settings_map = [
+			'statistics'          => 'statistics',
+			'force'               => 'force',
+			'protect_content'     => 'protect-content',
+			'antispam'            => 'antispam',
+			'set_min_submit_time' => 'antispam-token',
+			'honeypot'            => 'antispam-honeypot',
+		];
+
+		foreach ( $settings_map as $option => $notification_id ) {
+			if ( $settings->is_on( $option ) ) {
+				unset( $notifications[ $notification_id ] );
+			}
+		}
+
+		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
+			unset( $notifications['register'] );
+		}
+
+		if ( $settings->is_pro() ) {
+			unset( $notifications['pro-free-trial'] );
+		}
+
+		if ( $settings->is_pro() && $settings->is_on( 'statistics' ) ) {
+			unset( $notifications['events_page'] );
+		}
+
+		if ( ! class_exists( Plugin::class, false ) ) {
+			unset( $notifications['admin-elementor'] );
+		}
+
+		if ( $settings->is_pro() && $settings->is( 'size', 'invisible' ) ) {
+			unset( $notifications['passive-mode'] );
+		}
+
+		return $notifications;
 	}
 }
