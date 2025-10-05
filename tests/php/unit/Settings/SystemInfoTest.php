@@ -312,6 +312,10 @@ Migrations:
   3.6.0:                              22.12.2023 15:05
   3.10.1:                             01.04.2024 15:39
 
+--- Integrations header info ---
+
+  Show Antispam Coverage:             Off
+
 --- Active plugins and themes ---
 
 Contact Form 7:                       
@@ -614,6 +618,12 @@ Use Only Cookies:                     On
 		$integrations_enabled = [ 'wp_status', 'cf7_status' ];
 
 		foreach ( $integration_fields as $key => & $field ) {
+			if ( 'header' === ( $field['section'] ?? '' ) ) {
+				$field['disabled'] = false;
+
+				continue;
+			}
+
 			$field['disabled'] = ! in_array( $key, $integrations_enabled, true );
 		}
 

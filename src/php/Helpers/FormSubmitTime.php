@@ -54,6 +54,7 @@ class FormSubmitTime {
 	 */
 	private function init_hooks(): void {
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_ajax_nopriv_' . self::ISSUE_TOKEN_ACTION, [ $this, 'issue_token' ] );
 		add_action( 'wp_ajax_' . self::ISSUE_TOKEN_ACTION, [ $this, 'issue_token' ] );
 	}
@@ -64,7 +65,14 @@ class FormSubmitTime {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		if ( ! hcaptcha()->form_shown || ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
+		/**
+		 * Filters whether to print hCaptcha scripts.
+		 *
+		 * @param bool $status Current print status.
+		 */
+		$status = (bool) apply_filters( 'hcap_print_hcaptcha_scripts', hcaptcha()->form_shown );
+
+		if ( ! $status || ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
 			return;
 		}
 

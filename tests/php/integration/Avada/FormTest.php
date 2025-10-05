@@ -23,12 +23,18 @@ use HCaptcha\Avada\Form;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['formData'], $_POST['hcaptcha-widget-id'] );
+		unset( $_POST['field_types'], $_POST['formData'], $_POST['hcaptcha-widget-id'] );
+
+		wp_dequeue_script( 'hcaptcha-avada' );
+		wp_deregister_script( 'hcaptcha-avada' );
+
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
 
 		parent::tearDown();
 	}
@@ -107,11 +113,19 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$demo_mode         = true;
 		$hcaptcha_response = 'some_response';
+		$field_types       = [
+			'input_1' => 'text',
+		];
 		$form_data         = "h-captcha-response=$hcaptcha_response";
+
+		$form_data .= '&fusion-form-nonce-123=some_fusion_form_nonce';
+		$form_data .= '&input_1=some_text';
 
 		$this->prepare_verify_request( $hcaptcha_response );
 
-		$_POST['formData'] = $form_data;
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$_POST['field_types'] = json_encode( $field_types );
+		$_POST['formData']    = $form_data;
 
 		$subject = new Form();
 
@@ -149,5 +163,24 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject->verify( true );
 
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_scripts(): void {
+		$subject = new Form();
+
+		// By default, form_shown is false -> the script should NOT be enqueued.
+		$subject->enqueue_scripts();
+		self::assertFalse( wp_script_is( 'hcaptcha-avada' ) );
+
+		// When form_shown is true -> the script should be enqueued.
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+		self::assertTrue( wp_script_is( 'hcaptcha-avada' ) );
 	}
 }

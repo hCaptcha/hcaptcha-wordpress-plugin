@@ -1,43 +1,126 @@
-const { fetch: originalFetch } = window;
+import { helper } from './hcaptcha-helper.js';
 
-wp.hooks.addFilter(
-	'hcaptcha.ajaxSubmitButton',
-	'hcaptcha',
-	( isAjaxSubmitButton, submitButtonElement ) => {
-		if ( submitButtonElement.classList.contains( 'eb-form-submit-button' ) ) {
-			return true;
-		}
+const hCaptchaEssentialBlocks = window.hCaptchaEssentialBlocks || ( function( window ) {
+	const action = 'eb_form_submit';
 
-		return isAjaxSubmitButton;
-	}
-);
+	const app = {
+		init() {
+			wp.hooks.addFilter(
+				'hcaptcha.ajaxSubmitButton',
+				'hcaptcha',
+				( isAjaxSubmitButton, submitButtonElement ) => {
+					if ( submitButtonElement.classList.contains( 'eb-form-submit-button' ) ) {
+						return true;
+					}
 
-// Intercept Essential Blocks form fetch to add hCaptcha data.
-window.fetch = async ( ...args ) => {
-	const [ resource, config ] = args;
+					return isAjaxSubmitButton;
+				}
+			);
 
-	// @param {FormData} body
-	const body = config.body;
-	const inputName = 'h-captcha-response';
-	const formData = JSON.parse( body.get( 'form_data' ) );
+			// Install global fetch event wrapper (idempotent).
+			helper.installFetchEvents();
+			window.addEventListener( 'hCaptchaFetch:before', app.fetchBefore );
+			window.addEventListener( 'hCaptchaFetch:complete', app.fetchComplete );
+		},
 
-	if ( 'eb_form_submit' === body.get( 'action' ) ) {
-		const widgetId = formData[ 'hcaptcha-widget-id' ];
-		const widget = document.querySelector( 'input[value="' + widgetId + '"]' );
+		fetchBefore( event ) {
+			const args = event?.detail?.args ?? [];
+			const config = args[ 1 ] ?? {};
+			const body = config.body;
 
-		/**
-		 * @type {HTMLTextAreaElement}
-		 */
-		const hCaptchaResponse = widget.closest( 'form' ).querySelector( '[name="' + inputName + '"]' );
+			if ( ! ( body instanceof FormData || body instanceof URLSearchParams ) ) {
+				return;
+			}
 
-		if ( hCaptchaResponse ) {
-			formData[ inputName ] = hCaptchaResponse.value;
-		}
+			if ( body.get( 'action' ) !== action ) {
+				return;
+			}
 
-		body.set( 'form_data', JSON.stringify( formData ) );
-		config.body = body;
-	}
+			const formDataRaw = body.get( 'form_data' );
+			if ( ! formDataRaw ) {
+				return;
+			}
 
-	// noinspection JSCheckFunctionSignatures
-	return await originalFetch( resource, config );
-};
+			let formData;
+			try {
+				formData = JSON.parse( formDataRaw );
+			} catch ( e ) {
+				return;
+			}
+
+			// The EB payload contains hcaptcha-widget-id which we can use to find the form.
+			const widgetId = formData?.[ 'hcaptcha-widget-id' ] ?? '';
+			const widgetInput = widgetId ? document.querySelector( `input[name="hcaptcha-widget-id"][value="${ widgetId }"]` ) : null;
+			const form = widgetInput?.closest?.( 'form' ) || null;
+			if ( ! form ) {
+				return;
+			}
+
+			// Field names.
+			const responseName = 'h-captcha-response';
+			const widgetName = 'hcaptcha-widget-id';
+			const nonceName = 'hcaptcha_essential_blocks_nonce';
+			const tokenName = 'hcap_fst_token';
+			const sigName = 'hcap_hp_sig';
+
+			const response = form.querySelector( `[name="${ responseName }"]` )?.value ?? '';
+			const widget = form.querySelector( `[name="${ widgetName }"]` )?.value ?? '';
+			const nonce = form.querySelector( `[name="${ nonceName }"]` )?.value ?? '';
+			const token = form.querySelector( `[name="${ tokenName }"]` )?.value ?? '';
+			const sig = form.querySelector( `[name="${ sigName }"]` )?.value ?? '';
+			const hcapHp = form.querySelector( `[id^="hcap_hp_"]` );
+
+			if ( ! Object.prototype.hasOwnProperty.call( formData, responseName ) ) {
+				formData[ responseName ] = response;
+			}
+
+			if ( ! Object.prototype.hasOwnProperty.call( formData, widgetName ) ) {
+				formData[ widgetName ] = widget;
+			}
+
+			if ( ! Object.prototype.hasOwnProperty.call( formData, nonceName ) ) {
+				formData[ nonceName ] = nonce;
+			}
+
+			if ( token ) {
+				formData[ tokenName ] = token;
+			}
+
+			if ( sig ) {
+				formData[ sigName ] = sig;
+			}
+
+			if ( hcapHp ) {
+				formData[ hcapHp.id ] = hcapHp.value ?? '';
+			}
+
+			body.set( 'form_data', JSON.stringify( formData ) );
+			config.body = body;
+			args[ 1 ] = config;
+			event.detail.args = args;
+		},
+
+		fetchComplete( event ) {
+			const config = event?.detail?.args?.[ 1 ] ?? {};
+			const body = config.body;
+
+			if ( ! ( body instanceof FormData || body instanceof URLSearchParams ) ) {
+				return;
+			}
+
+			if ( body.get( 'action' ) !== action ) {
+				return;
+			}
+
+			if ( typeof window.hCaptchaBindEvents === 'function' ) {
+				window.hCaptchaBindEvents();
+			}
+		},
+	};
+
+	return app;
+}( window ) );
+
+window.hCaptchaEssentialBlocks = hCaptchaEssentialBlocks;
+
+hCaptchaEssentialBlocks.init();

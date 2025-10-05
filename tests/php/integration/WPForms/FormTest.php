@@ -674,6 +674,29 @@ CSS;
 	}
 
 	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_scripts(): void {
+		$subject = new Form();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-wpforms' ) );
+
+		// Test when hCaptcha was not shown.
+		$subject->enqueue_scripts();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-wpforms' ) );
+
+		// Test when hCaptcha was shown.
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( 'hcaptcha-wpforms' ) );
+	}
+
+	/**
 	 * Test process_hcaptcha().
 	 *
 	 * @param bool $mode_auto    Mode auto.

@@ -198,14 +198,14 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify.
 	 *
-	 * @param bool $result   Request result.
-	 * @param bool $expected Expected.
+	 * @param bool        $result   Request result.
+	 * @param bool|string $expected Expected.
 	 *
 	 * @return void
 	 * @dataProvider dp_test_verify
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify( bool $result, bool $expected ): void {
+	public function test_verify( bool $result, $expected ): void {
 		$valid   = ! $expected;
 		$value   = 'some hcaptcha response';
 		$input   = 'some_input_name';
@@ -219,6 +219,13 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		self::assertSame( $expected, $subject->verify( $valid, $value, $field, $input ) );
+		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
+
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+
 		self::assertSame( $expected, $subject->verify( $valid, $value, $field, $input ) );
 		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
 	}
@@ -231,7 +238,7 @@ class FormTest extends HCaptchaWPTestCase {
 	public function dp_test_verify(): array {
 		return [
 			'request verified'     => [ true, true ],
-			'request not verified' => [ false, false ],
+			'request not verified' => [ false, 'The hCaptcha is invalid.' ],
 		];
 	}
 
@@ -262,14 +269,14 @@ class FormTest extends HCaptchaWPTestCase {
 		$input = 'some_input_name';
 		$field = [ 'required' => true ];
 
-		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'encoded-hash';
+		$this->prepare_verify_request( $value, false );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
 		$subject = new Form();
 
-		self::assertTrue( $subject->verify( true, $value, $field, $input ) );
-		self::assertFalse( $subject->verify( false, $value, $field, $input ) );
+		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( true, $value, $field, $input ) );
+		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( false, $value, $field, $input ) );
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
 	}

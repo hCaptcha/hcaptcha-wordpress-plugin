@@ -359,4 +359,34 @@ class UtilsTest extends HCaptchaTestCase {
 
 		self::assertSame( $expected, Utils::array_insert( $array, 'c', [ 'x' => 'y' ] ) );
 	}
+	/**
+	 * Test list_array() with the default separator (and).
+	 *
+	 * @return void
+	 */
+	public function test_list_array_with_and_separator(): void {
+		self::assertSame( 'Alice and Bob', Utils::list_array( [ 'Alice', 'Bob' ] ) );
+		self::assertSame( 'Alice, Bob and Charlie', Utils::list_array( [ 'Alice', 'Bob', 'Charlie' ] ) );
+		self::assertSame( 'Solo', Utils::list_array( [ 'Solo' ] ) );
+		self::assertSame( '', Utils::list_array( [] ) );
+	}
+
+	/**
+	 * Test list_array() with "or" as the last separator.
+	 *
+	 * @return void
+	 */
+	public function test_list_array_with_or_separator(): void {
+		self::assertSame( 'Red or Blue', Utils::list_array( [ 'Red', 'Blue' ], false ) );
+		self::assertSame( 'Red, Blue or Green', Utils::list_array( [ 'Red', 'Blue', 'Green' ], false ) );
+	}
+
+	/**
+	 * Test list_array() casts non-string values to strings as PHP implode does.
+	 *
+	 * @return void
+	 */
+	public function test_list_array_with_mixed_value_types(): void {
+		self::assertSame( '1, B and 1', Utils::list_array( [ 1, 'B', true ] ) );
+	}
 }

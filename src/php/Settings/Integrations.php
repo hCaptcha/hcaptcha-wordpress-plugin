@@ -46,6 +46,11 @@ class Integrations extends PluginSettingsBase {
 	public const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
+	 * Header section id.
+	 */
+	public const SECTION_HEADER = 'header';
+
+	/**
 	 * Enabled section id.
 	 */
 	public const SECTION_ENABLED = 'enabled';
@@ -117,6 +122,13 @@ class Integrations extends PluginSettingsBase {
 	 * @var WP_Theme[]
 	 */
 	protected $themes;
+
+	/**
+	 * All protected forms.
+	 *
+	 * @var array
+	 */
+	protected $all_protected_forms = [];
 
 	/**
 	 * Get page title.
@@ -239,6 +251,13 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function init_form_fields(): void {
 		$this->form_fields = [
+			'show_antispam_coverage'           => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_HEADER,
+				'options' => [
+					'on' => __( 'Show Antispam Coverage', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'wp_status'                        => [
 				'entity'  => 'core',
 				'label'   => 'WP Core',
@@ -856,43 +875,10 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
-		$installed = [];
+		$installed = $this->get_installed_entities();
 
-		foreach ( hcaptcha()->modules as $module ) {
-			if ( $this->plugin_or_theme_installed( $module[1] ) ) {
-				$installed[] = $module[0][0];
-			}
-		}
-
-		$installed = array_unique( $installed );
-
-		foreach ( $this->form_fields as $status => &$form_field ) {
-			$form_field['installed'] = in_array( $status, $installed, true );
-			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
-
-			$form_field = $this->prepare_antispam_data( $status, $form_field );
-		}
-
-		unset( $form_field );
-
-		$this->form_fields = $this->sort_fields( $this->form_fields );
-
-		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
-
-		foreach ( $this->form_fields as $status => &$form_field ) {
-			$form_field['installed'] = in_array( $status, $installed, true );
-			$form_field['section']   = $form_field['disabled'] ? self::SECTION_DISABLED : self::SECTION_ENABLED;
-
-			if ( isset( $form_field['label'] ) ) {
-				$form_field['label'] = $this->logo( $form_field );
-			}
-
-			$entity              = $form_field['entity'] ?? '';
-			$theme               = 'theme' === $entity ? ' ' . $prefix . 'theme' : '';
-			$form_field['class'] = str_replace( '_', '-', $prefix . $status . $theme );
-		}
-
-		unset( $form_field );
+		$this->setup_antispam_data( $installed );
+		$this->setup_field_data( $installed );
 
 		parent::setup_fields();
 	}
@@ -988,52 +974,60 @@ class Integrations extends PluginSettingsBase {
 	 * @noinspection HtmlUnknownTarget
 	 */
 	public function section_callback( array $arguments ): void {
-		if ( self::SECTION_DISABLED === $arguments['id'] ) {
-			$this->submit_button();
+		switch ( $arguments['id'] ) {
+			case self::SECTION_HEADER:
+				$this->print_header();
 
-			?>
-			<hr class="hcaptcha-disabled-section">
-			<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
-			<?php
+				?>
+				<div id="hcaptcha-message"></div>
+				<p>
+					<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
+				</p>
+				<p>
+					<?php esc_html_e( 'You can activate and deactivate a plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
+				</p>
+				<p>
+					<?php
+					$shortcode_url   = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F';
+					$integration_url = 'https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues';
 
-			return;
+					echo wp_kses_post(
+						sprintf(
+						/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
+							__( 'Don\'t see your plugin or theme here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
+							sprintf(
+								'<a href="%1$s" target="_blank">%2$s</a>',
+								$shortcode_url,
+								__( 'shortcode', 'hcaptcha-for-forms-and-more' )
+							),
+							sprintf(
+								'<a href="%1$s" target="_blank">%2$s</a>',
+								$integration_url,
+								__( 'request an integration', 'hcaptcha-for-forms-and-more' )
+							)
+						)
+					);
+					?>
+				</p>
+				<?php
+
+				break;
+			case self::SECTION_ENABLED:
+				?>
+				<hr class="hcaptcha-enabled-section">
+				<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
+				<?php
+
+				break;
+			case self::SECTION_DISABLED:
+				$this->submit_button();
+
+				?>
+				<hr class="hcaptcha-disabled-section">
+				<h3><?php esc_html_e( 'Inactive plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
+				<?php
+				break;
 		}
-
-		$this->print_header();
-
-		?>
-		<div id="hcaptcha-message"></div>
-		<p>
-			<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
-		</p>
-		<p>
-			<?php esc_html_e( 'You can activate and deactivate a plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ); ?>
-		</p>
-		<p>
-			<?php
-			$shortcode_url   = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F';
-			$integration_url = 'https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues';
-
-			echo wp_kses_post(
-				sprintf(
-				/* translators: 1: hCaptcha shortcode doc link, 2: integration doc link. */
-					__( 'Don\'t see your plugin or theme here? Use the `[hcaptcha]` %1$s or %2$s.', 'hcaptcha-for-forms-and-more' ),
-					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$shortcode_url,
-						__( 'shortcode', 'hcaptcha-for-forms-and-more' )
-					),
-					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$integration_url,
-						__( 'request an integration', 'hcaptcha-for-forms-and-more' )
-					)
-				)
-			);
-			?>
-		</p>
-		<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
-		<?php
 	}
 
 	/**
@@ -1416,6 +1410,11 @@ class Integrations extends PluginSettingsBase {
 		if ( ! class_exists( 'Plugin_Upgrader', false ) ) {
 			// @codeCoverageIgnoreStart
 			require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+			// @codeCoverageIgnoreEnd
+		}
+
+		if ( ! function_exists( 'plugins_api' ) ) {
+			// @codeCoverageIgnoreStart
 			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 			// @codeCoverageIgnoreEnd
 		}
@@ -1824,7 +1823,6 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function get_plugin_data( string $plugin, bool $markup = true, bool $translate = true ): array {
-
 		if ( ! $this->plugin_or_theme_installed( $plugin ) ) {
 			return [];
 		}
@@ -1858,25 +1856,19 @@ class Integrations extends PluginSettingsBase {
 	 * @return array The updated form field data containing antispam configurations.
 	 */
 	protected function prepare_antispam_data( string $status, array $form_field ): array {
-		static $all_protected_forms;
-
-		if ( ! $all_protected_forms ) {
-			$all_protected_forms = array_merge( Honeypot::get_protected_forms(), AntiSpam::get_protected_forms() );
+		if ( ! $this->all_protected_forms ) {
+			$this->all_protected_forms = array_merge( Honeypot::get_protected_forms(), AntiSpam::get_protected_forms() );
 		}
 
 		$settings = hcaptcha()->settings();
 
-		foreach ( $all_protected_forms as $type => $protected_forms ) {
+		foreach ( $this->all_protected_forms as $type => $protected_forms ) {
 			if ( ! isset( $protected_forms[ $status ] ) ) {
 				continue;
 			}
 
 			foreach ( $protected_forms[ $status ] as $form ) {
-				if (
-					'native' === $type ||
-					( 'hcaptcha' === $type && $settings->is( $status, $form ) ) ||
-					( 'honeypot' === $type && $settings->is( $status, $form ) )
-				) {
+				if ( 'native' === $type || $settings->is( $status, $form ) ) {
 					$form_field = $this->prepare_form_field_antispam_data( $form_field, $form, $type );
 				}
 			}
@@ -1916,6 +1908,7 @@ class Integrations extends PluginSettingsBase {
 
 		$helpers = [
 			'honeypot' => __( 'hCaptcha honeypot', 'hcaptcha-for-forms-and-more' ),
+			'fst'      => __( 'form submit time token', 'hcaptcha-for-forms-and-more' ),
 			'native'   => __( 'native antispam service', 'hcaptcha-for-forms-and-more' ),
 			'hcaptcha' => __( 'hCaptcha antispam service', 'hcaptcha-for-forms-and-more' ),
 		];
@@ -1938,5 +1931,76 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return $form_field;
+	}
+
+	/**
+	 * Get installed plugins and themes.
+	 *
+	 * @return array
+	 */
+	protected function get_installed_entities(): array {
+		$installed = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $this->plugin_or_theme_installed( $module[1] ) ) {
+				$installed[] = $module[0][0];
+			}
+		}
+
+		return array_unique( $installed );
+	}
+
+	/**
+	 * Setup antispam data.
+	 *
+	 * @param array $installed Installed entities.
+	 *
+	 * @return void
+	 */
+	private function setup_antispam_data( array $installed ): void {
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['disabled']  = ( ! $form_field['installed'] ) || $form_field['disabled'];
+
+			$form_field = $this->prepare_antispam_data( $status, $form_field );
+		}
+
+		unset( $form_field );
+	}
+
+	/**
+	 * Setup field data.
+	 *
+	 * @param array $installed Installed entities.
+	 *
+	 * @return void
+	 */
+	protected function setup_field_data( array $installed ): void {
+		$this->form_fields = $this->sort_fields( $this->form_fields );
+
+		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
+
+		foreach ( $this->form_fields as $status => &$form_field ) {
+			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
+			$form_field['installed'] = in_array( $status, $installed, true );
+			$form_field['section']   = $form_field['disabled'] ? self::SECTION_DISABLED : self::SECTION_ENABLED;
+
+			if ( isset( $form_field['label'] ) ) {
+				$form_field['label'] = $this->logo( $form_field );
+			}
+
+			$entity              = $form_field['entity'] ?? '';
+			$theme               = 'theme' === $entity ? ' ' . $prefix . 'theme' : '';
+			$form_field['class'] = str_replace( '_', '-', $prefix . $status . $theme );
+		}
+
+		unset( $form_field );
 	}
 }

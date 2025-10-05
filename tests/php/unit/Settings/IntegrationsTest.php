@@ -346,6 +346,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 		self::assertSame( 'woocommerce_status', $first_key );
 
 		foreach ( $form_fields as $form_field ) {
+			if ( Integrations::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
+				continue;
+			}
+
 			$section = ( ! $form_field['installed'] ) || $form_field['disabled']
 				? Integrations::SECTION_DISABLED
 				: Integrations::SECTION_ENABLED;
@@ -445,29 +449,38 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_section_callback(): array {
 		return [
-			'disabled' => [
-				Integrations::SECTION_DISABLED,
-				'			<hr class="hcaptcha-disabled-section">
-			<h3>Inactive plugins and themes</h3>
-			',
-			],
-			'default'  => [
-				'',
+			'header'   => [
+				Integrations::SECTION_HEADER,
 				'		<div class="hcaptcha-header-bar">
 			<div class="hcaptcha-header">
 				<h2>
 					Integrations				</h2>
 			</div>
 					</div>
-				<div id="hcaptcha-message"></div>
-		<p>
-			Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.		</p>
-		<p>
-			You can activate and deactivate a plugin or theme by clicking on its logo.		</p>
-		<p>
-			Don\'t see your plugin or theme here? Use the `[hcaptcha]` <a href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F" target="_blank">shortcode</a> or <a href="https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues" target="_blank">request an integration</a>.		</p>
-		<h3>Active plugins and themes</h3>
-		',
+						<div id="hcaptcha-message"></div>
+				<p>
+					Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.				</p>
+				<p>
+					You can activate and deactivate a plugin or theme by clicking on its logo.				</p>
+				<p>
+					Don\'t see your plugin or theme here? Use the `[hcaptcha]` <a href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#does%20the%20%5Bhcaptcha%5D%20shortcode%20have%20arguments%3F" target="_blank">shortcode</a> or <a href="https://github.com/hCaptcha/hcaptcha-wordpress-plugin/issues" target="_blank">request an integration</a>.				</p>
+				',
+			],
+			'enabled'  => [
+				Integrations::SECTION_ENABLED,
+				'				<hr class="hcaptcha-enabled-section">
+				<h3>Active plugins and themes</h3>
+				',
+			],
+			'disabled' => [
+				Integrations::SECTION_DISABLED,
+				'				<hr class="hcaptcha-disabled-section">
+				<h3>Inactive plugins and themes</h3>
+				',
+			],
+			'default'  => [
+				'',
+				'',
 			],
 		];
 	}
@@ -1610,7 +1623,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'plugin_dirs_to_slugs' )
-			->with( [ $wish ] )->andReturn( [ $wish_slug ] );
+			->with( [ $wish ] )->once()->andReturn( [ $wish_slug ] );
 		$subject->shouldReceive( 'get_plugin_data' )->andReturnUsing(
 			static function ( $plugin ) use ( $wish, $wish_req_slug ) {
 				if ( $plugin === $wish_req_slug ) {
@@ -1628,6 +1641,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 			}
 		);
 
+		self::assertSame( $plugin_trees, $subject->build_plugins_tree( $wish_req_slug ) );
+
+		// Test caching of $this->plugin_trees. The plugin_dirs_to_slugs() should not be called here.
 		self::assertSame( $plugin_trees, $subject->build_plugins_tree( $wish_req_slug ) );
 	}
 
@@ -2388,6 +2404,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_prepare_antispam_data_hcaptcha_disabled(): void {
 		$status     = 'kadence_status';
 		$form_field = [];
+
+		// Mock AntiSpam::get_protected_forms to a custom map containing both native and hcaptcha entries for our status.
+		$protected_forms = [
+			'native'   => [ $status => [ 'form' ] ],
+			'hcaptcha' => [ $status => [ 'advanced_form' ] ],
+		];
+
+		FunctionMocker::replace( '\HCaptcha\AntiSpam\AntiSpam::get_protected_forms', $protected_forms );
 
 		// Reuse the cached protected forms from the first test to avoid static cache conflicts.
 		$settings = Mockery::mock( Settings::class )->makePartial();

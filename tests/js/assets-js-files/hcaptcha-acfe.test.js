@@ -24,6 +24,14 @@ describe( 'hCaptcha ACFE', () => {
 
 	// Mock window.hCaptchaOnLoad
 	window.hCaptchaOnLoad = jest.fn();
+	const originalOnLoad = window.hCaptchaOnLoad;
+
+	// Provide a minimal jQuery stub for the asset under test
+	const jqOn = jest.fn();
+	const jqFn = jest.fn( () => ( { on: jqOn } ) );
+
+	global.jQuery = jqFn;
+	window.jQuery = jqFn;
 
 	require( '../../../assets/js/hcaptcha-acfe.js' );
 
@@ -42,6 +50,6 @@ describe( 'hCaptcha ACFE', () => {
 
 		expect( window.hCaptcha.getParams ).toHaveBeenCalled();
 		expect( window.hCaptcha.setParams ).toHaveBeenCalled();
-		expect( window.hCaptchaOnLoad ).toHaveBeenCalled();
+		expect( originalOnLoad ).toHaveBeenCalled();
 	} );
 } );

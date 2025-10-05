@@ -299,7 +299,7 @@ class WhatsNew extends NotificationsBase {
 		$block2 = [
 			'type'    => 'center',
 			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
-			'title'   => __( 'Friction-free “No CAPTCHA” & 99.9% passive modes', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Friction-Free “No CAPTCHA” & 99.9% Passive Modes', 'hcaptcha-for-forms-and-more' ),
 			'message' =>
 				sprintf(
 				/* translators: 1: Pro link, 2: size select link. */
@@ -327,6 +327,55 @@ class WhatsNew extends NotificationsBase {
 
 		$this->show_block( $block1 );
 		$this->show_block( $block2 );
+	}
+
+	/**
+	 * What's New 4.18.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_4_18_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block = [
+			'type'    => 'center',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Honeypot and Minimum Submit Time', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				sprintf(
+				/* translators: 1: Pro link. */
+					__( 'Add a hidden %1$s field for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$urls['honeypot'],
+						__( 'honeypot', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				sprintf(
+				/* translators: 1: Pro link. */
+					__( 'Add minimum form %1$s for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$urls['token'],
+						__( 'submit time', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				__( 'Currently supported for WordPress Core, Protect Content feature, and all integrations having more than 100,000 installs: Avada theme, Blocksy, Brevo, CoBlocks, Contact Form 7, Divi Builder, Divi theme, Download Manager, Elementor, Essential Addons for Elementor, Essential Blocks, Extra theme, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Jetpack, Kadence, MailPoet, Mailchimp, Ninja Forms, Otter, Password Protected, Protect Content feature, Spectra, Ultimate Addons for Elementor, WPForms, WooCommerce, and Wordfence.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['honeypot'],
+				'text' => __( 'Turn on honeypot', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['honeypot_demo'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block );
 	}
 
 	/**
@@ -383,7 +432,7 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
-	 * Update shown What's New version.
+	 * Update shown `What's New` version.
 	 *
 	 * @param string $version Version.
 	 */
@@ -426,7 +475,7 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
-	 * Convert a version to method name.
+	 * Convert a version to a method name.
 	 *
 	 * @param string $version Version.
 	 *

@@ -705,6 +705,8 @@ describe( 'HCaptcha', () => {
 		} );
 		const bindSpy = jest.spyOn( hCaptcha, 'bindEvents' );
 		const MOBackup = global.MutationObserver;
+		const rafBackup = global.requestAnimationFrame;
+		global.requestAnimationFrame = ( cb ) => cb();
 		let instance;
 
 		global.MutationObserver = jest.fn( function( cb ) {
@@ -733,6 +735,7 @@ describe( 'HCaptcha', () => {
 
 		// Cleanup
 		global.MutationObserver = MOBackup;
+		global.requestAnimationFrame = rafBackup;
 	} );
 
 	test( 'observeDarkMode does not set observer when no dark provider found', () => {

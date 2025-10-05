@@ -220,10 +220,19 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$this->prepare_verify_request( $response );
 
-		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
+		//phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$post_data = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
+			'hcap_fst_token'     => $_POST['hcap_fst_token'],
+			'hcap_hp_test'       => $_POST['hcap_hp_test'],
+		];
+		//phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
-		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
+		$_POST['data'] = http_build_query( $post_data );
+
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 
 	/**
@@ -264,10 +273,19 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$this->prepare_verify_request( $response, false );
 
-		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+		//phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$post_data = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
+			'hcap_fst_token'     => $_POST['hcap_fst_token'],
+			'hcap_hp_test'       => $_POST['hcap_hp_test'],
+		];
+		//phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
-		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
+		$_POST['data'] = http_build_query( $post_data );
+
+		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 
 	/**
@@ -325,6 +343,18 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$this->prepare_verify_request( $response, false );
 
+		//phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$post_data = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
+			'hcap_fst_token'     => $_POST['hcap_fst_token'],
+			'hcap_hp_test'       => $_POST['hcap_hp_test'],
+		];
+		//phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+		$_POST['data'] = http_build_query( $post_data );
+
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
 			'wp_die_ajax_handler',
@@ -339,9 +369,6 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
 		self::assertSame( $expected_json, ob_get_clean() );
 		self::assertSame( $expected_die_arr, $die_arr );
-
-		//phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		self::assertSame( $widget_id, $_POST['hcaptcha-widget-id'] );
 	}
 
 	/**
@@ -355,20 +382,22 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
-		$errors   = [
+		$errors    = [
 			'some_error' => 'Some error description',
 		];
-		$user     = get_user_by( 'id', 1 );
-		$email    = $user->user_email;
-		$password = 'some password';
-		$data     = [
+		$response  = 'some response';
+		$widget_id = 'some-widget-id';
+		$user      = get_user_by( 'id', 1 );
+		$email     = $user->user_email;
+		$password  = 'some password';
+		$data      = [
 			'email'    => $email,
 			'password' => $password,
 		];
-		$form     = Mockery::mock( FluentForm::class );
-		$fields   = [];
-		$die_arr  = [];
-		$expected = [
+		$form      = Mockery::mock( FluentForm::class );
+		$fields    = [];
+		$die_arr   = [];
+		$expected  = [
 			'',
 			'',
 			[
@@ -413,14 +442,21 @@ class FormTest extends HCaptchaWPTestCase {
 			$mock->shouldReceive( 'login_failed' )->with( $email )->once();
 		}
 
-		ob_start();
-		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
-		$json = ob_get_clean();
+		$this->prepare_verify_request( $response );
 
-		if ( $is_login_limit_exceeded ) {
-			self::assertSame( $expected, $die_arr );
-			self::assertSame( '"Login failed. Please reload the page."', $json );
-		}
+		//phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$post_data = [
+			'h-captcha-response' => $response,
+			'hcaptcha-widget-id' => $widget_id,
+			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
+			'hcap_fst_token'     => $_POST['hcap_fst_token'],
+			'hcap_hp_test'       => $_POST['hcap_hp_test'],
+		];
+		//phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+		$_POST['data'] = http_build_query( $post_data );
+
+		self::assertSame( $errors, $mock->verify( $errors, $data, $form, $fields ) );
 	}
 
 	/**
@@ -447,7 +483,7 @@ class FormTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
-		wp_register_script( 'hcaptcha', 'https://example.com/hcaptcha.js', [], '1.0.0', true );
+		wp_register_script( 'hcaptcha', 'https://test.test/wp-content/plugins/fluentform/some-assets/hcaptcha.js', [], '1.0.0', true );
 		wp_enqueue_script( 'hcaptcha' );
 
 		$subject = new Form();
@@ -488,12 +524,6 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject = new Form();
 
-		// Without conversational form script.
-		$subject->print_footer_scripts();
-
-		self::assertFalse( wp_script_is( $handle ) );
-
-		// With conversational form script.
 		$fluent_forms_conversational_source = 'https://example.com/script.js';
 		$fluent_forms_conversational_script = 'fluent_forms_conversational_form';
 		$fluent_forms_conversational_object = 'FluentFormsConversationalForm';

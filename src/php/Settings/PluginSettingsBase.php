@@ -205,7 +205,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
-	 * Show the submit button in any place of the form.
+	 * Show the 'submit' button in any place of the form.
 	 *
 	 * @return void
 	 */

@@ -5,11 +5,15 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Kadence;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use KB_Ajax_Advanced_Form;
 use WP_Block;
 
 /**
@@ -28,6 +32,11 @@ class AdvancedForm extends Base {
 	private const OBJECT = 'HCaptchaKadenceAdvancedFormObject';
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-kadence-advanced';
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -44,15 +53,18 @@ class AdvancedForm extends Base {
 
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
 
-		if ( Request::is_frontend() ) {
+		if ( Request::is_frontend() || Request::is_post() ) {
 			add_filter(
 				'block_parser_class',
 				static function () {
 					return AdvancedBlockParser::class;
 				}
 			);
+		}
 
+		if ( Request::is_frontend() ) {
 			add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+			add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 
 			return;
 		}
@@ -116,6 +128,7 @@ class AdvancedForm extends Base {
 	 * Process ajax.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function process_ajax(): void {
 		// Nonce is checked by Kadence.
@@ -126,13 +139,10 @@ class AdvancedForm extends Base {
 			return;
 		}
 
-		$data = [
-			'html'     => '<div class="kb-adv-form-message kb-adv-form-warning">' . $error . '</div>',
-			'console'  => __( 'hCaptcha Failed', 'hcaptcha-for-forms-and-more' ),
-			'required' => null,
-		];
-
-		wp_send_json_error( $data );
+		KB_Ajax_Advanced_Form::get_instance()->process_bail(
+			$error,
+			__( 'hCaptcha Failed', 'hcaptcha-for-forms-and-more' )
+		);
 	}
 
 	/**
@@ -144,12 +154,32 @@ class AdvancedForm extends Base {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
-			'hcaptcha-kadence-advanced',
+			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-kadence-advanced$min.js",
 			[ 'hcaptcha', 'kadence-blocks-advanced-form' ],
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**
