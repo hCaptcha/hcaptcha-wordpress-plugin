@@ -626,9 +626,9 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 `parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
 `position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
 
-= How can I report security bugs? =
+= Where do I report security bugs found in this plugin? =
 
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/wordpress/plugin/hcaptcha-for-forms-and-more/vdp)
+Please report security bugs found in the source code of the undefined plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 = Where can I get more information about hCaptcha? =
 
