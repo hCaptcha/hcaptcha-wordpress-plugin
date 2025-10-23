@@ -347,7 +347,7 @@ loaded=!0;clearTimeout(timerId);window.removeEventListener('touchstart',load);do
 function scrollHandler(){if(!scrolled){scrolled=!0;return}
 load()}
 document.addEventListener('hCaptchaBeforeAPI',function(){const delay=-100;if(delay>=0){timerId=setTimeout(load,delay)}
-window.addEventListener('touchstart',load);document.body.addEventListener('mouseenter',load);document.body.addEventListener('click',load);window.addEventListener('keydown',load);window.addEventListener('scroll',scrollHandler)})})()
+const options={passive:!0};window.addEventListener('touchstart',load,options);document.body.addEventListener('mouseenter',load);document.body.addEventListener('click',load);window.addEventListener('keydown',load);window.addEventListener('scroll',scrollHandler,options)})})()
 </script>
 <script type="text/javascript" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=4d63a3d491d11ffd8ac6" id="wp-hooks-js"></script>
 <script type="text/javascript" id="hcaptcha-js-extra">

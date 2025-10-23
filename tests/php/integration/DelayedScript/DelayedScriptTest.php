@@ -69,7 +69,7 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 
 		function scrollHandler() {
 			if ( ! scrolled ) {
-				// Ignore first scroll event, which can be on page load.
+				// Ignore the first scroll event, which can be on page load.
 				scrolled = true;
 				return;
 			}
@@ -85,11 +85,13 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 				timerId = setTimeout( load, delay );
 			}
 
-			window.addEventListener( 'touchstart', load );
+			const options = { passive: true };
+
+			window.addEventListener( 'touchstart', load, options );
 			document.body.addEventListener( 'mouseenter', load );
 			document.body.addEventListener( 'click', load );
 			window.addEventListener( 'keydown', load );
-			window.addEventListener( 'scroll', scrollHandler );
+			window.addEventListener( 'scroll', scrollHandler, options );
 		} );
 	} )();
 JS;
@@ -156,7 +158,7 @@ JS;
 
 		function scrollHandler() {
 			if ( ! scrolled ) {
-				// Ignore first scroll event, which can be on page load.
+				// Ignore the first scroll event, which can be on page load.
 				scrolled = true;
 				return;
 			}
@@ -172,11 +174,13 @@ JS;
 				timerId = setTimeout( load, delay );
 			}
 
-			window.addEventListener( 'touchstart', load );
+			const options = { passive: true };
+
+			window.addEventListener( 'touchstart', load, options );
 			document.body.addEventListener( 'mouseenter', load );
 			document.body.addEventListener( 'click', load );
 			window.addEventListener( 'keydown', load );
-			window.addEventListener( 'scroll', scrollHandler );
+			window.addEventListener( 'scroll', scrollHandler, options );
 		} );
 	} )();
 JS;

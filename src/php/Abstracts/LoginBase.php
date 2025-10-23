@@ -54,6 +54,13 @@ abstract class LoginBase {
 	protected $hcaptcha_shown = false;
 
 	/**
+	 * Login form shown.
+	 *
+	 * @var bool
+	 */
+	private $login_form_shown = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -91,6 +98,8 @@ abstract class LoginBase {
 	 * @return void
 	 */
 	public function display_signature(): void {
+		$this->login_form_shown = true;
+
 		HCaptcha::display_signature( static::class, 'login', $this->hcaptcha_shown );
 	}
 
@@ -344,6 +353,6 @@ abstract class LoginBase {
 	 */
 	public function delay_api( $delay ): int {
 		// Do not delay API request on login forms for compatibility with password managers.
-		return 0;
+		return $this->login_form_shown ? 0 : (int) $delay;
 	}
 }
