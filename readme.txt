@@ -760,6 +760,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.19.0 =
+* Improved page speed load via passive event listeners.
 * Fixed the delay showing hCaptcha when a WP Login form is protected.
 * Fixed the delay showing hCaptcha when a Colorlib Customizer Login form is protected.
 * Fixed the delay showing hCaptcha when an Easy Digital Download Login form is protected.
