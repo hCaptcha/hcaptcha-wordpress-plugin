@@ -397,6 +397,10 @@ class SystemInfo extends PluginSettingsBase {
 			foreach ( $mu_plugins as $plugin_data ) {
 				$data .= $this->data( $plugin_data['Name'], $plugin_data['Version'], $key_length );
 			}
+
+			if ( class_exists( 'Safe_Mode' ) && get_option( 'elementor_safe_mode' ) ) {
+				$data .= $this->data( 'Elementor Safe Mode', 'Enabled', $key_length );
+			}
 		}
 
 		return $data;
@@ -524,7 +528,7 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->header( '-- Session Configuration --' );
 		$data .= $this->data( 'Session', isset( $_SESSION ) ? 'Enabled' : 'Disabled' );
 
-		// The rest of this is only relevant if session is enabled.
+		// The rest of this is only relevant if the session is enabled.
 		if ( isset( $_SESSION ) ) {
 			$data .= $this->data( 'Session Name', esc_html( ini_get( 'session.name' ) ) );
 			$data .= $this->data( 'Cookie Path', esc_html( ini_get( 'session.cookie_path' ) ) );
@@ -614,7 +618,7 @@ class SystemInfo extends PluginSettingsBase {
 	}
 
 	/**
-	 * Return whether option value is 'on' or just non-empty.
+	 * Return whether the option value is 'on' or just non-empty.
 	 *
 	 * @param string $key Setting name.
 	 *

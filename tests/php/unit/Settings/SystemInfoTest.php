@@ -227,6 +227,11 @@ class SystemInfoTest extends HCaptchaTestCase {
 			'baseurl' => 'https://test.test/wp-content/uploads',
 		];
 		$mu_plugins             = [
+			'elementor-safe-mode.php'              =>
+				[
+					'Name'    => 'Elementor Safe Mode',
+					'Version' => '1.0.0',
+				],
 			'kagg-compatibility-error-handler.php' =>
 				[
 					'Name'    => 'kagg-compatibility-error-handler.php',
@@ -559,8 +564,10 @@ wp_uploads_dir() baseurl:             {$uploads_dir['baseurl']}
 
 -- Must-Use Plugins --
 
+Elementor Safe Mode:                  1.0.0
 kagg-compatibility-error-handler.php: 
 kagg-shortcuts.php:                   
+Elementor Safe Mode:                  Enabled
 
 -- WordPress Active Plugins --
 
@@ -684,7 +691,7 @@ Use Only Cookies:                     On
 		FunctionMocker::replace(
 			'class_exists',
 			static function ( $class_name ) {
-				$defined_classes = [ 'SoapClient' ];
+				$defined_classes = [ 'SoapClient', 'Safe_Mode' ];
 
 				return in_array( $class_name, $defined_classes, true );
 			}
@@ -705,6 +712,7 @@ Use Only Cookies:                     On
 			->andReturn( $migrations );
 		WP_Mock::userFunction( 'get_option' )->with( 'date_format' )->andReturn( $date_format );
 		WP_Mock::userFunction( 'get_option' )->with( 'time_format' )->andReturn( $time_format );
+		WP_Mock::userFunction( 'get_option' )->with( 'elementor_safe_mode' )->andReturn( 'global' );
 		WP_Mock::userFunction( 'site_url' )->with()->andReturn( $site_url );
 		WP_Mock::userFunction( 'home_url' )->with()->andReturn( $home_url );
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
