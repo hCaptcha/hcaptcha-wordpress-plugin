@@ -481,7 +481,11 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
-		$load_fail_msg      = __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' );
+		$delay              = (int) $settings->get( 'delay' );
+		$animation_delay    = $delay >= 0 ? $delay / 100 + 2 : 2;
+		$load_msg           = $delay >= 0
+			? __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' )
+			: __( 'The hCaptcha loading is delayed until user interaction.', 'hcaptcha-for-forms-and-more' );
 
 		/* language=CSS */
 		$css = '
@@ -524,7 +528,7 @@ class Main {
 	}
 
 	.h-captcha::after {
-		content: "' . $load_fail_msg . '";
+		content: "' . $load_msg . '";
 	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 		display: block;
 		position: absolute;
@@ -537,7 +541,7 @@ class Main {
 
 	.h-captcha:not(:has(iframe))::after {
 		animation: hcap-msg-fade-in .3s ease forwards;
-		animation-delay: 2s;
+		animation-delay: ' . $animation_delay . 's;
 	}
 	
 	.h-captcha:has(iframe)::after {

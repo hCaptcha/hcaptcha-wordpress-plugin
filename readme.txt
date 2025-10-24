@@ -763,6 +763,7 @@ Instructions for popular native integrations are below:
 * Added Elementor Safe Mode information to the System Info admin page.
 * Added Patchstack security program support.
 * Improved a page speed load via passive event listeners.
+* Improved the notification message on the placeholder when hCaptcha is not loaded.
 * Fixed the delay showing hCaptcha when a WP Login form is protected.
 * Fixed the delay showing hCaptcha when a Colorlib Customizer Login form is protected.
 * Fixed the delay showing hCaptcha when an Easy Digital Download Login form is protected.

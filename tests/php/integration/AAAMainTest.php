@@ -463,11 +463,12 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @param string|false $custom_themes Custom themes option value.
+	 * @param int          $delay         Delay showing hCaptcha.
 	 *
 	 * @dataProvider dp_test_print_inline_styles
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles( $custom_themes ): void {
+	public function test_print_inline_styles( $custom_themes, int $delay ): void {
 		$license       = 'pro';
 		$bg            = 'on' === $custom_themes
 			? '#f0f0f0'
@@ -485,6 +486,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				],
 			]
 			: [];
+		$load_msg      = $delay >= 0
+			? 'If you see this message, hCaptcha failed to load due to site errors.'
+			: 'The hCaptcha loading is delayed until user interaction.';
 
 		update_option(
 			'hcaptcha_settings',
@@ -493,6 +497,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 				'config_params' => json_encode( $config_params ),
 				'license'       => $license,
+				'delay'         => $delay,
 			]
 		);
 
@@ -553,7 +558,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	.h-captcha::after {
-		content: "If you see this message, hCaptcha failed to load due to site errors.";
+		content: "$load_msg";
 	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 		display: block;
 		position: absolute;
@@ -662,8 +667,8 @@ CSS;
 	 */
 	public function dp_test_print_inline_styles(): array {
 		return [
-			[ false ],
-			[ 'on' ],
+			[ false, -100 ],
+			[ 'on', 0 ],
 		];
 	}
 
