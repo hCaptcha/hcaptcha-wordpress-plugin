@@ -1,41 +1,13 @@
 {
-  "landingPage": "/wp-admin/options-general.php?page=hcaptcha&tab=general",
-  "preferredVersions": {
-    "php": "8.0",
-    "wp": "latest"
-  },
-  "phpExtensionBundles": [
-    "kitchen-sink"
+  "landingPage": "wp-admin/admin.php?page=hcaptcha",
+  "plugins": [
+    "contact-form-7",
+    "hcaptcha-for-forms-and-more"
   ],
   "features": {
     "networking": true
   },
   "steps": [
-    {
-      "step": "login",
-      "username": "admin",
-      "password": "password"
-    },
-    {
-      "step": "installPlugin",
-      "pluginData": {
-        "resource": "wordpress.org/plugins",
-        "slug": "hcaptcha-for-forms-and-more"
-      },
-      "options": {
-        "activate": true
-      }
-    },
-    {
-      "step": "installPlugin",
-      "pluginData": {
-        "resource": "wordpress.org/plugins",
-        "slug": "contact-form-7"
-      },
-      "options": {
-        "activate": true
-      }
-    },
     {
       "step": "setSiteOptions",
       "options": {
