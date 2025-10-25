@@ -174,6 +174,7 @@ class Integrations extends PluginSettingsBase {
 
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
+		add_action( 'wp_ajax_nopriv_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
 		add_filter( 'hcaptcha_activate_plugins', [ $this, 'filter_activate_plugins' ], 0 );
 	}
