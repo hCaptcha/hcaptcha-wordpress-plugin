@@ -283,8 +283,9 @@ const integrations = function( $ ) {
 			$tr.addClass( actionClass );
 
 			// noinspection JSVoidFunctionReturnValueUsed
-			$.post( {
+			$.ajax( {
 				url: HCaptchaIntegrationsObject.ajaxUrl,
+				method: 'POST',
 				data,
 			} )
 				/**
