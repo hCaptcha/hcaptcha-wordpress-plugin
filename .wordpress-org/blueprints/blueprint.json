@@ -91,7 +91,7 @@
     {
       "step": "writeFile",
       "path": "/wordpress/wp-content/mu-plugins/hcaptcha.php",
-      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); ?>"
+      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); add_action( 'admin_init', static function () { var_dump( $_REQUEST ); } ); ?>"
     }
   ]
 }
