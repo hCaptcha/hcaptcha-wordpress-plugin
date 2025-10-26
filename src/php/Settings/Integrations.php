@@ -256,7 +256,7 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'section' => self::SECTION_HEADER,
 				'options' => [
-					'on' => __( 'Show Antispam Coverage 1', 'hcaptcha-for-forms-and-more' ),
+					'on' => __( 'Show Antispam Coverage', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'wp_status'                        => [
