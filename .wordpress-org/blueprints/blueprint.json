@@ -2,7 +2,7 @@
   "landingPage": "wp-admin/admin.php?page=hcaptcha",
   "plugins": [
     "contact-form-7",
-    "hcaptcha-for-forms-and-more"
+    "https://github.com/hCaptcha/hcaptcha-wordpress-plugin/releases/download/untagged-4ace62c4adc389e945e3/hcaptcha-for-forms-and-more.4.19.0-RC1.zip"
   ],
   "features": {
     "networking": true
