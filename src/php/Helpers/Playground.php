@@ -30,9 +30,9 @@ class Playground {
 	 * Constructor.
 	 */
 	public function __construct() {
-		if ( ! $this->is_wp_playground() ) {
+//		if ( ! $this->is_wp_playground() ) {
 //			return;
-		}
+//		}
 
 		$this->init();
 	}
@@ -83,23 +83,39 @@ class Playground {
 			]
 		);
 
-		$form      = reset( $forms );
-		$shortcode = '[contact-form-7 id="' . (int) $form->ID . '"]';
+		$form = reset( $forms );
 
 		// Create a new page with the Contact Form 7 shortcode.
-		$cf7_page_id = wp_insert_post(
-			[
-				'post_type'    => 'page',
-				'post_title'   => 'Contact Form 7 Test Page',
-				'post_status'  => 'publish',
-				'post_content' => $shortcode,
-				'post_name'    => 'contact-form-7-test',
-			]
-		);
+		if ( ! get_page_by_path( 'contact-form-7-test' ) ) {
+			$shortcode = '[contact-form-7 id="' . (int) $form->ID . '"]';
 
-		$this->data = [
-			'cf7_page_id' => $cf7_page_id,
-		];
+			wp_insert_post(
+				[
+					'post_type'    => 'page',
+					'post_title'   => 'Contact Form 7 Test Page',
+					'post_status'  => 'publish',
+					'post_content' => $shortcode,
+					'post_name'    => 'contact-form-7-test',
+				]
+			);
+		}
+
+		// Create a new page with the Contact Form 7 shortcode.
+		if ( ! get_page_by_path( 'wc-order-tracking-test' ) ) {
+			$shortcode = '[woocommerce_order_tracking]';
+
+			wp_insert_post(
+				[
+					'post_type'    => 'page',
+					'post_title'   => 'WooCommerce Order Tracking Test Page',
+					'post_status'  => 'publish',
+					'post_content' => $shortcode,
+					'post_name'    => 'wc-order-tracking-test',
+				]
+			);
+		}
+
+		$this->data = [ true ];
 
 		set_transient( self::PLAYGROUND_DATA, $this->data );
 	}
@@ -194,7 +210,37 @@ class Playground {
 				'id'     => 'hcaptcha-menu-cf7',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '?p=' . $this->data['cf7_page_id'] ),
+				'href'   => home_url( 'contact-form-7-test' ),
+			]
+		);
+
+		// Subitem - WC Checkout page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-wc-checkout',
+				'parent' => 'hcaptcha-menu',
+				'title'  => __( 'WooCommerce Checkout', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/checkout/' ),
+			]
+		);
+
+		// Subitem - WC Login/Register page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-wc-login-register',
+				'parent' => 'hcaptcha-menu',
+				'title'  => __( 'WooCommerce Login / Register', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/my-account/' ),
+			]
+		);
+
+		// Subitem - WC Order Tracking page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-wc-login-register',
+				'parent' => 'hcaptcha-menu',
+				'title'  => __( 'WooCommerce Order Tracking', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/wc-order-tracking/' ),
 			]
 		);
 	}
