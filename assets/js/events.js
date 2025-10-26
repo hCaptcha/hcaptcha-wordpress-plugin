@@ -124,7 +124,7 @@ const events = function( $ ) {
 
 	initChart();
 	hCaptchaSettingsBase.showSuccessMessage( HCaptchaEventsObject.bulkMessage );
-	document.getElementById( 'doaction' ).addEventListener( 'click', handleBulkAction );
+	document.getElementById( 'doaction' )?.addEventListener( 'click', handleBulkAction );
 };
 
 window.hCaptchaForms = events;
