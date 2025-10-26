@@ -91,7 +91,12 @@
     {
       "step": "writeFile",
       "path": "/wordpress/wp-content/mu-plugins/hcaptcha.php",
-      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); add_action( 'admin_init', static function () { var_dump( $_REQUEST ); } ); ?>"
+      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); ?>"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/mu-plugins/test-hcaptcha.php",
+      "data": "<?php \t\tadd_action(\n\t\t\t'admin_init',\n\t\t\tstatic function () {\n\t\t\t\terror_log( $_REQUEST );\n\t\t\t\terror_log( has_action( \"wp_ajax_{$action}\" );\n\t\t\t\terror_log( has_action( has_action( \"wp_ajax_nopriv_{$action}\" );\n\t\t\t}\n\t\t);\n ?>"
     }
   ]
 }
