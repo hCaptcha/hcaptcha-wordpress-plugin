@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Helpers;
 
+use HCaptcha\Admin\Events\Events;
 use WP_Admin_Bar;
 
 /**
@@ -14,9 +15,36 @@ use WP_Admin_Bar;
  */
 class Playground {
 	/**
+	 * Transient key for storing Playground data.
+	 */
+	private const PLAYGROUND_DATA = 'playground_data';
+
+	/**
+	 * Playground data.
+	 *
+	 * @var array
+	 */
+	private $data;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
+		if ( ! $this->is_wp_playground() ) {
+//			return;
+		}
+
+		$this->init();
+	}
+
+	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	private function init(): void {
+		$this->data = get_transient( self::PLAYGROUND_DATA ) ?: [];
+
 		$this->init_hooks();
 	}
 
@@ -25,21 +53,63 @@ class Playground {
 	 *
 	 * @return void
 	 */
-	public function init_hooks(): void {
-		if ( ! $this->is_wp_playground() ) {
-			return;
-		}
-
-		add_action( 'admin_head', [ $this, 'admin_head' ] );
+	private function init_hooks(): void {
+		add_action( 'admin_init', [ $this, 'setup_playground' ] );
+		add_action( 'wp_head', [ $this, 'head_styles' ] );
+		add_action( 'admin_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 100 );
 	}
 
 	/**
-	 * Add styles to the admin head.
+	 * Set up the WP Playground.
 	 *
 	 * @return void
 	 */
-	public function admin_head(): void {
+	public function setup_playground(): void {
+		if ( $this->data ) {
+			return;
+		}
+
+		Events::create_table();
+
+		// Find the preinstalled Contact Form 7 form.
+		$forms = get_posts(
+			[
+				'post_type'      => 'wpcf7_contact_form',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'orderby'        => 'date',
+				'order'          => 'ASC',
+			]
+		);
+
+		$form      = reset( $forms );
+		$shortcode = '[contact-form-7 id="' . (int) $form->ID . '"]';
+
+		// Create a new page with the Contact Form 7 shortcode.
+		$cf7_page_id = wp_insert_post(
+			[
+				'post_type'    => 'page',
+				'post_title'   => 'Contact Form 7 Test Page',
+				'post_status'  => 'publish',
+				'post_content' => $shortcode,
+				'post_name'    => 'contact-form-7-test',
+			]
+		);
+
+		$this->data = [
+			'cf7_page_id' => $cf7_page_id,
+		];
+
+		set_transient( self::PLAYGROUND_DATA, $this->data );
+	}
+
+	/**
+	 * Add styles to the head.
+	 *
+	 * @return void
+	 */
+	public function head_styles(): void {
 		?>
 		<style>
 			#wpadminbar #wp-admin-bar-hcaptcha-menu {
@@ -88,13 +158,23 @@ class Playground {
 			]
 		);
 
+		// Subitem - hCaptcha settings.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-hcaptcha-general',
+				'parent' => 'hcaptcha-menu',
+				'title'  => __( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/wp-admin/admin.php?page=hcaptcha' ),
+			]
+		);
+
 		// Subitem - WP Login page.
 		$bar->add_node(
 			[
 				'id'     => 'hcaptcha-menu-wp-login',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'WP Login', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '/wp-login.php' ),
+				'href'   => home_url( '/wp-login.php?action=logout' ),
 			]
 		);
 
@@ -105,6 +185,16 @@ class Playground {
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'WP Comments', 'hcaptcha-for-forms-and-more' ),
 				'href'   => home_url( '?p=1' ),
+			]
+		);
+
+		// Subitem - CF7 test page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-wp-comments',
+				'parent' => 'hcaptcha-menu',
+				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '?p=' . $this->data['cf7_page_id'] ),
 			]
 		);
 	}
