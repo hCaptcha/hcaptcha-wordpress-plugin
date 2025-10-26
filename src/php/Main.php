@@ -31,6 +31,7 @@ use HCaptcha\EventsManager\Booking;
 use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
+use HCaptcha\Helpers\Playground;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
@@ -205,6 +206,7 @@ class Main {
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
+		$this->load( Playground::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
 		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
