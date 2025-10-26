@@ -25,6 +25,13 @@
             "live",
             "replace_rsc"
           ],
+          "woocommerce_status": [
+            "checkout",
+            "login",
+            "lost_pass",
+            "order_tracking",
+            "register"
+          ],
           "_network_wide": [],
           "off_when_logged_in": [],
           "recaptcha_compat_off": [],
