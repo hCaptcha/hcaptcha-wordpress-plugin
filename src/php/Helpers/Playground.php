@@ -191,7 +191,7 @@ class Playground {
 		// Subitem - CF7 test page.
 		$bar->add_node(
 			[
-				'id'     => 'hcaptcha-menu-wp-comments',
+				'id'     => 'hcaptcha-menu-cf7',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
 				'href'   => home_url( '?p=' . $this->data['cf7_page_id'] ),
