@@ -791,13 +791,6 @@ abstract class SettingsBase {
 	 * @return bool
 	 */
 	protected function is_tab_active( SettingsBase $tab ): bool {
-		static $admin_mode;
-
-		if ( null === $admin_mode ) {
-			$admin_mode = $this->admin_mode;
-			var_dump( 'Mode: ' . $admin_mode );
-		}
-
 		switch ( $this->admin_mode ) {
 			case self::MODE_PAGES:
 				$current_page_name = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -806,8 +799,6 @@ abstract class SettingsBase {
 					$names             = $this->get_names_from_referer();
 					$current_page_name = $names['page'];
 				}
-
-				var_dump( 'Option page: ' . $tab->option_page() . ' Current page name: ' . $current_page_name );
 
 				return $tab->option_page() === $current_page_name;
 			case self::MODE_TABS:
@@ -826,8 +817,6 @@ abstract class SettingsBase {
 				) {
 					return true;
 				}
-
-				var_dump( 'Tab name: ' . strtolower( $tab->tab_name() ) . ' Current tab name: ' . $current_tab_name );
 
 				return strtolower( $tab->tab_name() ) === $current_tab_name;
 			default:
