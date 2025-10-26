@@ -30,9 +30,9 @@ class Playground {
 	 * Constructor.
 	 */
 	public function __construct() {
-//		if ( ! $this->is_wp_playground() ) {
-//			return;
-//		}
+		if ( ! $this->is_wp_playground() ) {
+			return;
+		}
 
 		$this->init();
 	}
@@ -260,6 +260,10 @@ class Playground {
 	 * @return bool
 	 */
 	private function is_wp_playground(): bool {
+		if ( defined( 'HCAPTCHA_PLAYGROUND_MODE' ) && constant( 'HCAPTCHA_PLAYGROUND_MODE' ) ) {
+			return true;
+		}
+
 		$host = wp_parse_url( home_url(), PHP_URL_HOST );
 
 		return strpos( $host, 'playground.wordpress.net' ) !== false;
