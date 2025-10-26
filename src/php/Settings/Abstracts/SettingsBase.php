@@ -7,6 +7,8 @@
 
 namespace KAGG\Settings\Abstracts;
 
+use HCaptcha\Helpers\HCaptcha;
+
 /**
  * Class SettingsBase
  *
@@ -272,6 +274,7 @@ abstract class SettingsBase {
 	protected function init_hooks(): void {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
 		add_action( 'admin_page_access_denied', [ $this, 'base_admin_page_access_denied' ] );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
@@ -615,6 +618,26 @@ abstract class SettingsBase {
 		);
 
 		$this->get_active_tab()->admin_enqueue_scripts();
+	}
+
+	/**
+	 * Add type="module" attribute to script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( ( static::PREFIX . '-' . self::HANDLE ) !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**

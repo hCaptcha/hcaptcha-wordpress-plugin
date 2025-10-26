@@ -92,11 +92,6 @@
       "step": "writeFile",
       "path": "/wordpress/wp-content/mu-plugins/hcaptcha.php",
       "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' );"
-    },
-    {
-      "step": "writeFile",
-      "path": "/wordpress/wp-content/mu-plugins/test-hcaptcha.php",
-      "data": "<?php add_action( 'admin_init', static function () {$action = $_REQUEST['action'] ?? '';var_dump( $action );var_dump( has_action( 'kagg_settings_header' ) );var_dump( has_action( \"wp_ajax_{$action}\" ) );var_dump( has_action( \"wp_ajax_nopriv_{$action}\" ) );} );"
     }
   ]
 }

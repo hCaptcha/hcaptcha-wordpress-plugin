@@ -1,5 +1,7 @@
 /* global jQuery */
 
+import { helper } from './hcaptcha-helper.js';
+
 /**
  * Base settings page logic.
  *
@@ -27,14 +29,14 @@ const settingsBase = ( function( $ ) {
 	let $message = $( msgSelector );
 
 	/**
-	 * Set header bar top position.
+	 * Set the header bar top position.
 	 */
 	function setHeaderBarTop() {
 		const isAbsolute = adminBar ? window.getComputedStyle( adminBar ).position === 'absolute' : true;
 		const adminBarHeight = ( adminBar && ! isAbsolute ) ? adminBar.offsetHeight : 0;
 		const tabsHeight = tabs ? tabs.offsetHeight : 0;
 
-		// The -1 to put header bar a bit under tabs. It is a precaution when heights are in fractional pixels.
+		// The -1 to put the header bar a bit under tabs. It is a precaution when heights are in fractional pixels.
 		const totalHeight = adminBarHeight + tabsHeight - 1;
 
 		if ( tabs ) {
@@ -187,6 +189,57 @@ const settingsBase = ( function( $ ) {
 			app.showMessage( message, 'notice-error' );
 		},
 	};
+
+	/**
+	 * Make a referer to the current page.
+	 *
+	 * @return {string} Relative URL.
+	 */
+	const makeReferer = () => {
+		// Form a "pure" url without one-time params.
+		const url = new URL( window.location.href );
+
+		url.searchParams.delete( '_wp_http_referer' );
+
+		return url.toString();
+	};
+
+	$.ajaxPrefilter( function( options, original ) {
+		// Filter admin-ajax.php only.
+		if ( ! /admin-ajax\.php/.test( options.url ?? '' ) ) {
+			return;
+		}
+
+		const action = helper.getAction( options, 'action' );
+
+		// Filter only hCaptcha actions.
+		if ( ! /^hcaptcha/.test( action ) ) {
+			return;
+		}
+
+		const key = '_wp_http_referer';
+		const val = makeReferer();
+
+		// FormData.
+		if ( options.data instanceof FormData ) {
+			if ( ! options.data.has( key ) ) {
+				options.data.append( key, val );
+			}
+
+			return;
+		}
+
+		// Object|string - merge accurate.
+		if ( typeof options.data === 'string' ) {
+			// String - just add our parameter.
+			options.data = options.data + '&' + $.param( { [ key ]: val } );
+		} else if ( options.data && typeof options.data === 'object' ) {
+			// Object - add field.
+			options.data = { ...original.data, [ key ]: val };
+		} else {
+			options.data = $.param( { [ key ]: val } );
+		}
+	} );
 
 	// Move WP notices to the message area.
 	$( h2Selector ).siblings().appendTo( msgSelector );
