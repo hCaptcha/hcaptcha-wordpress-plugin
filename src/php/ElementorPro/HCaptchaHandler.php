@@ -117,6 +117,10 @@ class HCaptchaHandler {
 	 * @return void
 	 */
 	public function init(): void {
+		if ( ! class_exists( FormsModule::class, false ) ) {
+			return;
+		}
+
 		// Register or re-register hCaptcha component.
 		FormsModule::instance()->add_component( self::FIELD_ID, $this );
 
