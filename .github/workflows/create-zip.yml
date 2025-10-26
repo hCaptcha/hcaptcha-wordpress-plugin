@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-zip:
     name: New zip file
@@ -37,7 +40,6 @@ jobs:
         run: |
           VERSION=$(grep -oP "const HCAPTCHA_VERSION = '\K[^']+" hcaptcha.php)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create zip file
         id: make_zip
@@ -59,5 +61,17 @@ jobs:
           files: ${{ github.workspace }}/${{ env.SLUG }}.${{ env.VERSION }}.zip
           draft: false
           prerelease: true
+          allowUpdates: true
+          tag_name: v${{ env.VERSION }}
+          name: "v${{ env.VERSION }} (build ${{ github.run_number }})"
+          body: |
+            Automated pre-release for testing.
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print release URL
+        run: |
+          echo "Use URL in blueprint:"
+          echo "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.SLUG }}.${{ env.VERSION }}.zip"
