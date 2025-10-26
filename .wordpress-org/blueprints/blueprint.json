@@ -2,7 +2,7 @@
   "landingPage": "wp-admin/admin.php?page=hcaptcha",
   "plugins": [
     "contact-form-7",
-    "https://kagg.eu/wp-content/uploads/hcaptcha/hcaptcha-wordpress-plugin-4.19.0.zip"
+    "https://drive.google.com/uc?export=download&id=12B22PGPtJWksoTqMA5ZEW9NHDXoWSTCl"
   ],
   "features": {
     "networking": true
