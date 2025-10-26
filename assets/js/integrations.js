@@ -285,7 +285,6 @@ const integrations = function( $ ) {
 			// noinspection JSVoidFunctionReturnValueUsed
 			$.post( {
 				url: HCaptchaIntegrationsObject.ajaxUrl,
-				contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
 				data,
 			} )
 				/**
