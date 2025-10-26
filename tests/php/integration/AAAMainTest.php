@@ -26,6 +26,7 @@ use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
+use HCaptcha\Helpers\Playground;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
@@ -1286,6 +1287,7 @@ CSS;
 			Events::class,
 			Privacy::class,
 			WhatsNew::class,
+			Playground::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
