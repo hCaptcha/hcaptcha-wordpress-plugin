@@ -7,6 +7,7 @@
 * Fixed the delay showing hCaptcha when a Colorlib Customizer Login form is protected.
 * Fixed the delay showing hCaptcha when an Easy Digital Download Login form is protected.
 * Fixed Ajax requests on admin pages with WP Playground.
+* Fixed the JS error on Forms and Events admin pages with empty data.
 
 = 4.18.0 =
 * Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Contact Form 7 Live Form, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
