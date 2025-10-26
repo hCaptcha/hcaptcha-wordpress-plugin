@@ -61,7 +61,6 @@ jobs:
           files: ${{ github.workspace }}/${{ env.SLUG }}.${{ env.VERSION }}.zip
           draft: false
           prerelease: true
-          allowUpdates: true
           tag_name: v${{ env.VERSION }}
           name: "v${{ env.VERSION }} (build ${{ github.run_number }})"
           body: |
