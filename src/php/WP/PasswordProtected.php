@@ -84,9 +84,11 @@ class PasswordProtected {
 		$redirect_to = $_POST['redirect_to'] ?? wp_get_referer();
 
 		if ( ! isset( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
+			// @codeCoverageIgnoreStart
 			wp_safe_redirect( $redirect_to );
 
 			exit;
+			// @codeCoverageIgnoreEnd
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 

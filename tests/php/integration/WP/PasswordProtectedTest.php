@@ -20,11 +20,11 @@ use WP_Post;
 class PasswordProtectedTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_SERVER['REQUEST_URI'], $_GET['action'] );
+		unset( $_SERVER['REQUEST_URI'], $_GET['action'], $_POST['post_password'] );
 
 		parent::tearDown();
 	}
@@ -81,6 +81,8 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
+		$_POST['post_password'] = '123';
+
 		$this->prepare_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected' );
 
 		$subject = new PasswordProtected();
@@ -91,10 +93,11 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 *
-	 * @noinspection PhpUnusedParameterInspection*/
+	 * @noinspection PhpUnusedParameterInspection
+	 */
 	public function test_verify_not_verified(): void {
-		$die_arr  = [];
-		$expected = [
+		$die_arr                = [];
+		$expected               = [
 			'The hCaptcha is invalid.',
 			'hCaptcha',
 			[
@@ -102,6 +105,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 				'response'  => 303,
 			],
 		];
+		$_POST['post_password'] = '123';
 
 		$this->prepare_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected', false );
 
