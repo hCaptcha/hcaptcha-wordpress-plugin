@@ -303,15 +303,17 @@ class Playground {
 			]
 		);
 
-		// Avada test page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-avada',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'Avada', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'avada_status', home_url( 'avada-test' ) ),
-			]
-		);
+		if ( wp_get_theme( 'Avada' )->exists() ) {
+			// Avada test page.
+			$bar->add_node(
+				[
+					'id'     => 'hcaptcha-menu-avada',
+					'parent' => self::HCAPTCHA_MENU_ID,
+					'title'  => __( 'Avada', 'hcaptcha-for-forms-and-more' ),
+					'href'   => $this->get_href( 'avada_status', home_url( 'avada-test' ) ),
+				]
+			);
+		}
 
 		// CF7 test page.
 		$bar->add_node(
