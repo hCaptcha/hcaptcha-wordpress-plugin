@@ -1,8 +1,7 @@
 {
   "landingPage": "wp-admin/admin.php?page=hcaptcha",
   "plugins": [
-    "https://github.com/hCaptcha/hcaptcha-wordpress-plugin/releases/download/v4.19.0-RC1/hcaptcha-for-forms-and-more.4.19.0-RC1.zip",
-    "contact-form-7"
+    "https://github.com/hCaptcha/hcaptcha-wordpress-plugin/releases/download/v4.19.0-RC1/hcaptcha-for-forms-and-more.4.19.0-RC1.zip"
   ],
   "features": {
     "networking": true
