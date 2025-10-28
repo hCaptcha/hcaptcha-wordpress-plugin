@@ -1458,7 +1458,19 @@ class Integrations extends PluginSettingsBase {
 		$network_wide = is_multisite() && $this->is_network_wide();
 
 		// Activate plugins silently to avoid redirects.
-		return activate_plugin( $plugin, '', $network_wide, true );
+		$result = activate_plugin( $plugin, '', $network_wide, true );
+
+		if ( null === $result ) {
+			/**
+			 * Fires after a plugin has been activated.
+			 *
+			 * @param string $plugin       Path to the plugin file relative to the plugins' directory.
+			 * @param bool   $network_wide Whether to enable the plugin network-wide.
+			 */
+			do_action( 'hcaptcha_activated_plugin', $plugin, $network_wide );
+		}
+
+		return $result;
 	}
 
 	/**
