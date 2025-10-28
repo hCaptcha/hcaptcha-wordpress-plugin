@@ -8,6 +8,7 @@
 namespace HCaptcha\Helpers;
 
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
 
 /**
@@ -210,7 +211,7 @@ class Playground {
 				'id'     => 'hcaptcha-menu-cf7',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( 'contact-form-7-test' ),
+				'href'   => $this->get_href( 'cf7_status', home_url( 'contact-form-7-test' ) ),
 			]
 		);
 
@@ -220,7 +221,7 @@ class Playground {
 				'id'     => 'hcaptcha-menu-wc-checkout',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'WooCommerce Checkout', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '/checkout/' ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( '/checkout/' ) ),
 			]
 		);
 
@@ -230,17 +231,17 @@ class Playground {
 				'id'     => 'hcaptcha-menu-wc-login-register',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'WooCommerce Login / Register', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '/my-account/' ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( '/my-account/' ) ),
 			]
 		);
 
 		// Subitem - WC Order Tracking page.
 		$bar->add_node(
 			[
-				'id'     => 'hcaptcha-menu-wc-login-register',
+				'id'     => 'hcaptcha-menu-wc-order-tracking',
 				'parent' => 'hcaptcha-menu',
 				'title'  => __( 'WooCommerce Order Tracking', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '/wc-order-tracking/' ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( '/wc-order-tracking/' ) ),
 			]
 		);
 	}
@@ -252,6 +253,38 @@ class Playground {
 	 */
 	private function icon_url(): string {
 		return constant( 'HCAPTCHA_URL' ) . '/assets/images/playground-icon.svg';
+	}
+
+	/**
+	 * Get href.
+	 *
+	 * @param string $status Module status name.
+	 * @param string $url    URL.
+	 *
+	 * @return string
+	 */
+	private function get_href( string $status, string $url ): string {
+		$entity_names = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			$module_status = $module[0][0] ?? '';
+
+			if ( $status === $module_status ) {
+				$entity_names[] = $module[1];
+			}
+		}
+
+		if ( hcaptcha()->plugin_or_theme_active( array_unique( $entity_names ) ) ) {
+			return $url;
+		}
+
+		return add_query_arg(
+			[
+				'suggest_activate' => $status,
+				'nonce'            => wp_create_nonce( Integrations::ACTIVATE_ACTION ),
+			],
+			'/wp-admin/admin.php?page=hcaptcha-integrations'
+		);
 	}
 
 	/**

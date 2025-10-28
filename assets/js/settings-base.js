@@ -76,42 +76,7 @@ const settingsBase = ( function( $ ) {
 			return;
 		}
 
-		let target = element;
-
-		if ( element?.type === 'checkbox' ) {
-			target = element.closest( 'fieldset' );
-		}
-
-		const table = target.closest( 'table' );
-		let sectionHeader = null;
-
-		let prev = table?.previousElementSibling;
-
-		while ( prev ) {
-			if ( prev.tagName.toLowerCase() === 'h3' ) {
-				sectionHeader = prev;
-
-				break;
-			}
-
-			prev = prev.previousElementSibling;
-		}
-
-		if ( sectionHeader && sectionHeader.classList.contains( 'closed' ) ) {
-			setTimeout( function() {
-				sectionHeader.click();
-			}, 100 );
-		}
-
-		setTimeout( function() {
-			target.classList.add( 'blink' );
-			target.scrollIntoView(
-				{
-					behavior: 'smooth',
-					block: 'center',
-				},
-			);
-		}, 200 );
+		app.highlightElement( element );
 	}
 
 	/**
@@ -187,6 +152,50 @@ const settingsBase = ( function( $ ) {
 
 		showErrorMessage( message = '' ) {
 			app.showMessage( message, 'notice-error' );
+		},
+
+		/**
+		 * Highlight element.
+		 *
+		 * @param {HTMLElement} element
+		 */
+		highlightElement( element ) {
+			let target = element;
+
+			if ( element?.type === 'checkbox' ) {
+				target = element.closest( 'fieldset' );
+			}
+
+			const table = target.closest( 'table' );
+			let sectionHeader = null;
+
+			let prev = table?.previousElementSibling;
+
+			while ( prev ) {
+				if ( prev.tagName.toLowerCase() === 'h3' ) {
+					sectionHeader = prev;
+
+					break;
+				}
+
+				prev = prev.previousElementSibling;
+			}
+
+			if ( sectionHeader && sectionHeader.classList.contains( 'closed' ) ) {
+				setTimeout( function() {
+					sectionHeader.click();
+				}, 100 );
+			}
+
+			setTimeout( function() {
+				target.classList.add( 'blink' );
+				target.scrollIntoView(
+					{
+						behavior: 'smooth',
+						block: 'center',
+					},
+				);
+			}, 200 );
 		},
 	};
 
