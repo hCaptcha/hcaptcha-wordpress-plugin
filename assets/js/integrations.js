@@ -206,7 +206,7 @@ const integrations = function( $ ) {
 	 * Suggest an entity for activation.
 	 */
 	function suggestActivate() {
-		if ( ! HCaptchaIntegrationsObject.suggestActivate) {
+		if ( ! HCaptchaIntegrationsObject.suggestActivate ) {
 			return;
 		}
 
