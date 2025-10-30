@@ -501,7 +501,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$theme         = Mockery::mock( 'WP_Theme' );
 		$default_theme = Mockery::mock( 'WP_Theme' );
 
-		$_GET['nonce'] = $nonce;
+		$_GET['nonce']            = $nonce;
 		$_GET['suggest_activate'] = $cf7_status;
 
 		FunctionMocker::replace(
