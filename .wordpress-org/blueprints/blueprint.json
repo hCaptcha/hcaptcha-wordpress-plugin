@@ -18,11 +18,26 @@
             "password_protected",
             "register"
           ],
+          "avada_status": [
+            "form"
+          ],
           "cf7_status": [
             "form",
             "embed",
             "live",
             "replace_rsc"
+          ],
+          "divi_status": [
+            "comment",
+            "contact",
+            "email_optin",
+            "login"
+          ],
+          "extra_status": [
+            "comment",
+            "contact",
+            "email_optin",
+            "login"
           ],
           "woocommerce_status": [
             "checkout",

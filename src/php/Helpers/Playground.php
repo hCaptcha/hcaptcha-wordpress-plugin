@@ -10,6 +10,7 @@ namespace HCaptcha\Helpers;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
+use WP_Error;
 use WP_Theme;
 
 /**
@@ -116,36 +117,16 @@ class Playground {
 				$form = reset( $forms );
 
 				// Create a new page with the Contact Form 7 shortcode.
-				if ( ! get_page_by_path( 'contact-form-7-test' ) ) {
-					$shortcode = '[contact-form-7 id="' . (int) $form->ID . '"]';
+				$content = '[contact-form-7 id="' . (int) $form->ID . '"]';
 
-					wp_insert_post(
-						[
-							'post_type'    => 'page',
-							'post_title'   => 'Contact Form 7 Test Page',
-							'post_status'  => 'publish',
-							'post_content' => $shortcode,
-							'post_name'    => 'contact-form-7-test',
-						]
-					);
-				}
+				$this->insert_post( 'Contact Form 7 Test Page', 'contact-form-7-test', $content );
 
 				break;
 			case 'woocommerce/woocommerce.php':
 				// Create a new page with the WooCommerce Order Tracking shortcode.
-				if ( ! get_page_by_path( 'wc-order-tracking-test' ) ) {
-					$shortcode = '[woocommerce_order_tracking]';
+				$content = '[woocommerce_order_tracking]';
 
-					wp_insert_post(
-						[
-							'post_type'    => 'page',
-							'post_title'   => 'WooCommerce Order Tracking Test Page',
-							'post_status'  => 'publish',
-							'post_content' => $shortcode,
-							'post_name'    => 'wc-order-tracking-test',
-						]
-					);
-				}
+				$this->insert_post( 'WooCommerce Order Tracking Test Page', 'wc-order-tracking-test', $content );
 
 				break;
 			default:
@@ -168,47 +149,28 @@ class Playground {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function setup_theme( string $new_name, WP_Theme $new_theme, WP_Theme $old_theme ): void {
-		if ( $this->data['themes'] ?? false ) {
+		if ( $this->data['themes'][ $new_name ] ?? false ) {
 			return;
 		}
 
 		switch ( $new_name ) {
 			case 'Avada':
 				// Create a new Avada form.
-				$avada_form    = get_page_by_path( 'avada-test-form', OBJECT, 'fusion_form' );
-				$avada_form_id = $avada_form->ID ?? 0;
-
-				if ( ! $avada_form_id ) {
-					$shortcode = '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form_text label="Text" name="text" required="yes" /][fusion_form_email label="EMail" name="email" /][fusion_form_textarea label="Message" name="textarea" /][fusion_form_submit]Submit[/fusion_form_submit][fusion_form_notice success="VGhhbmsgeW91IGZvciB5b3VyIG1lc3NhZ2UuIEl0IGhhcyBiZWVuIHNlbnQu" error="VGhlcmUgd2FzIGFuIGVycm9yIHRyeWluZyB0byBzZW5kIHlvdXIgbWVzc2FnZS4gUGxlYXNlIHRyeSBhZ2FpbiBsYXRlci4=" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]';
-
-					$avada_form_id = wp_insert_post(
-						[
-							'post_type'    => 'fusion_form',
-							'post_title'   => 'Avada Test Form',
-							'post_status'  => 'publish',
-							'post_content' => $shortcode,
-							'post_name'    => 'avada-test-form',
-						]
-					);
-				}
+				$content       = '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form_text label="Text" name="text" required="yes" /][fusion_form_email label="EMail" name="email" /][fusion_form_textarea label="Message" name="textarea" /][fusion_form_submit]Submit[/fusion_form_submit][fusion_form_notice success="VGhhbmsgeW91IGZvciB5b3VyIG1lc3NhZ2UuIEl0IGhhcyBiZWVuIHNlbnQu" error="VGhlcmUgd2FzIGFuIGVycm9yIHRyeWluZyB0byBzZW5kIHlvdXIgbWVzc2FnZS4gUGxlYXNlIHRyeSBhZ2FpbiBsYXRlci4=" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]';
+				$avada_form_id = $this->insert_post( 'Avada Test Form', 'avada-test-form', $content, 'fusion_form' );
 
 				// Create a new page with the Avada Form shortcode.
-				if ( ! get_page_by_path( 'avada-test' ) ) {
-					$shortcode = '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form form_post_id="' . $avada_form_id . '" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]';
+				$content = '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form form_post_id="' . $avada_form_id . '" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]';
 
-					wp_insert_post(
-						[
-							'post_type'    => 'page',
-							'post_title'   => 'Avada Test Page',
-							'post_status'  => 'publish',
-							'post_content' => $shortcode,
-							'post_name'    => 'avada-test',
-						]
-					);
-				}
+				$this->insert_post( 'Avada Test Page', 'avada-test', $content );
 
 				break;
 			case 'Divi':
+				// Create a new page with the Dive Form shortcode.
+				$content = '[et_pb_section fb_built="1"][et_pb_row][et_pb_column type="4_4"][et_pb_contact_form captcha="off" email="" _module_preset="default"][et_pb_contact_field field_id="Name" field_title="Name"][/et_pb_contact_field][et_pb_contact_field field_id="Email" field_title="Email Address" field_type="email"][/et_pb_contact_field][et_pb_contact_field field_id="Message" field_title="Message" field_type="text" fullwidth_field="on"][/et_pb_contact_field][/et_pb_contact_form][/et_pb_column][/et_pb_row][/et_pb_section]';
+
+				$this->insert_post( 'Divi Test Page', 'divi-test', $content );
+
 				break;
 			default:
 				return;
@@ -303,17 +265,15 @@ class Playground {
 			]
 		);
 
-		if ( wp_get_theme( 'Avada' )->exists() ) {
-			// Avada test page.
-			$bar->add_node(
-				[
-					'id'     => 'hcaptcha-menu-avada',
-					'parent' => self::HCAPTCHA_MENU_ID,
-					'title'  => __( 'Avada', 'hcaptcha-for-forms-and-more' ),
-					'href'   => $this->get_href( 'avada_status', home_url( 'avada-test' ) ),
-				]
-			);
-		}
+		// Avada test page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-avada',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Avada', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'avada_status', home_url( 'avada-test' ) ),
+			]
+		);
 
 		// CF7 test page.
 		$bar->add_node(
@@ -322,6 +282,26 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'cf7_status', home_url( 'contact-form-7-test' ) ),
+			]
+		);
+
+		// Divi test page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-divi',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'divi_status', home_url( 'divi-test' ) ),
+			]
+		);
+
+		// Extra test page.
+		$bar->add_node(
+			[
+				'id'     => 'hcaptcha-menu-extra',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'extra_status', home_url( 'extra-test' ) ),
 			]
 		);
 
@@ -410,5 +390,34 @@ class Playground {
 		$host = wp_parse_url( home_url(), PHP_URL_HOST );
 
 		return strpos( $host, 'playground.wordpress.net' ) !== false;
+	}
+
+	/**
+	 * Insert a post with content.
+	 *
+	 * @param string $title     Post title.
+	 * @param string $name      Post name.
+	 * @param string $content   Post content.
+	 * @param string $post_type Post type.
+	 *
+	 * @return int|WP_Error
+	 */
+	private function insert_post( string $title, string $name, string $content, string $post_type = 'page' ) {
+		$post    = get_page_by_path( $name, OBJECT, 'fusion_form' );
+		$post_id = $post->ID ?? 0;
+
+		if ( $post_id ) {
+			return $post_id;
+		}
+
+		return wp_insert_post(
+			[
+				'post_type'    => $post_type,
+				'post_title'   => $title,
+				'post_status'  => 'publish',
+				'post_content' => $content,
+				'post_name'    => $name,
+			]
+		);
 	}
 }
