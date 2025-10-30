@@ -46,6 +46,7 @@ use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
+use HCaptcha\WP\Signup;
 
 /**
  * Class Main.
@@ -1648,6 +1649,14 @@ class Main {
 				WPForo\Reply::class,
 			],
 		];
+
+		if ( is_multisite() ) {
+			$this->modules['Signup Form'] = [
+				[ 'wp_status', 'signup' ],
+				'',
+				WP\Signup::class,
+			];
+		}
 
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			// @codeCoverageIgnoreStart
