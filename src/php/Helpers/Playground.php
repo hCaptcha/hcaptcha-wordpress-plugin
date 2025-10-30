@@ -301,7 +301,7 @@ class Playground {
 				'id'     => 'hcaptcha-menu-extra',
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Extra', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'extra_status', home_url( 'extra-test' ) ),
+				'href'   => $this->get_href( 'extra_status', home_url( 'divi-test' ) ),
 			]
 		);
 
