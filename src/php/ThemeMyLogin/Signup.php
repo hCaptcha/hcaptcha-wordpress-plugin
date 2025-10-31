@@ -1,0 +1,113 @@
+<?php
+/**
+ * 'Signup' class file.
+ *
+ * @package hcaptcha-wp
+ */
+
+namespace HCaptcha\ThemeMyLogin;
+
+use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\HCaptcha;
+use WP_Error;
+
+/**
+ * Class Signup
+ */
+class Signup {
+	/**
+	 * Nonce action.
+	 */
+	private const ACTION = 'hcaptcha_theme_my_login_signup';
+
+	/**
+	 * Nonce name.
+	 */
+	private const NONCE = 'hcaptcha_theme_my_login_signup_nonce';
+
+	/**
+	 * Error message.
+	 *
+	 * @var string|null
+	 */
+	private $error_message;
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		$this->init_hooks();
+	}
+
+	/**
+	 * Init hooks.
+	 *
+	 * @return void
+	 */
+	private function init_hooks(): void {
+		add_filter( 'tml_before_form_field', [ $this, 'add_captcha' ], 10, 4 );
+		add_filter( 'wpmu_validate_user_signup', [ $this, 'verify' ] );
+		add_filter( 'wpmu_validate_blog_signup', [ $this, 'verify' ] );
+	}
+
+	/**
+	 * Add captcha.
+	 *
+	 * @return void
+	 */
+	public function add_captcha( $output, $form_name, $field_name, $field ): string {
+		if (
+			! did_action( 'tml_render_form' ) ||
+			'user_signup' !== $form_name ||
+			'submit' !== $field_name
+		) {
+			return $output;
+		}
+
+		$args = [
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => [
+				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'form_id' => 'register',
+			],
+		];
+
+		return $this->get_error_html() . HCaptcha::form( $args ) . $output;
+	}
+
+	/**
+	 * Verify signup hCaptcha.
+	 *
+	 * @param array|mixed $result Signup validation result.
+	 *
+	 * @return array
+	 */
+	public function verify( $result ): array {
+		$result           = (array) $result;
+		$result['errors'] = is_wp_error( $result['errors'] ) ? $result['errors'] : new WP_Error();
+
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+
+		if ( null === $this->error_message ) {
+			return $result;
+		}
+
+		$result['errors'] = HCaptcha::add_error_message( $result['errors'], $this->error_message );
+
+		return $result;
+	}
+
+	/**
+	 * Get error HTML.
+	 *
+	 * @return string
+	 */
+	public function get_error_html(): string {
+		if ( null === $this->error_message ) {
+			return '';
+		}
+
+		return '<span class="tml-error" id="wp-signup-hcaptcha-error">' . $this->error_message . '</span>';
+	}
+}
