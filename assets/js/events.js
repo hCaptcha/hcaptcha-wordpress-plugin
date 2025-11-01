@@ -128,6 +128,6 @@ const events = function( $ ) {
 	document.getElementById( 'doaction' )?.addEventListener( 'click', handleBulkAction );
 };
 
-window.hCaptchaForms = events;
+window.hCaptchaEvents = events;
 
 jQuery( document ).ready( events );
