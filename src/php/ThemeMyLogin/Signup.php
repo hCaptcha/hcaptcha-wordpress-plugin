@@ -12,7 +12,6 @@ namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
-use Theme_My_Login_Form_Field;
 use WP_Error;
 
 /**
@@ -49,7 +48,7 @@ class Signup {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_filter( 'tml_before_form_field', [ $this, 'add_captcha' ], 10, 4 );
+		add_filter( 'tml_before_form_field', [ $this, 'add_captcha' ], 10, 3 );
 		add_filter( 'wpmu_validate_user_signup', [ $this, 'verify' ], 0 );
 		add_filter( 'wpmu_validate_blog_signup', [ $this, 'verify' ], 0 );
 	}
@@ -60,13 +59,12 @@ class Signup {
 	 * @param string|mixed              $output     The output.
 	 * @param string                    $form_name  The form name.
 	 * @param string                    $field_name The field name.
-	 * @param Theme_My_Login_Form_Field $field      The form object.
 	 *
 	 * @return string
 	 * @noinspection PhpMissingParamTypeInspection
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $output, string $form_name, string $field_name, $field ): string {
+	public function add_captcha( $output, string $form_name, string $field_name ): string {
 		$output = (string) $output;
 
 		if (
