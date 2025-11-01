@@ -223,7 +223,8 @@ const integrations = function( $ ) {
 	}
 
 	// Test hook: expose selected internals for isolated unit tests
-	if ( typeof window !== 'undefined' ) {
+	// noinspection JSUnresolvedReference
+	if ( typeof jest !== 'undefined' ) {
 		window.__integrationsTest = {
 			swapThemes,
 		};
