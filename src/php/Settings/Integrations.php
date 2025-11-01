@@ -726,7 +726,6 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'tutor_status'                     => [
@@ -834,7 +833,10 @@ class Integrations extends PluginSettingsBase {
 		];
 
 		if ( is_multisite() ) {
-			$this->form_fields['wp_status']['options']['signup'] = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
+			$this->form_fields['wp_status']['options']['signup']             = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
+			$this->form_fields['theme_my_login_status']['options']['signup'] = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
+		} else {
+			$this->form_fields['theme_my_login_status']['options']['register'] = __( 'Register Form', 'hcaptcha-for-forms-and-more' );
 		}
 	}
 

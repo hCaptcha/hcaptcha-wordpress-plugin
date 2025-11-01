@@ -1513,11 +1513,6 @@ class Main {
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\LostPassword::class,
 			],
-			'Theme My Login Register'              => [
-				[ 'theme_my_login_status', 'register' ],
-				'theme-my-login/theme-my-login.php',
-				ThemeMyLogin\Register::class,
-			],
 			'Tutor Checkout'                       => [
 				[ 'tutor_status', 'checkout' ],
 				'tutor/tutor.php',
@@ -1651,10 +1646,21 @@ class Main {
 		];
 
 		if ( is_multisite() ) {
-			$this->modules['Signup Form'] = [
+			$this->modules['Signup Form']           = [
 				[ 'wp_status', 'signup' ],
 				'',
 				WP\Signup::class,
+			];
+			$this->modules['Theme My Login Signup'] = [
+				[ 'theme_my_login_status', 'signup' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Signup::class,
+			];
+		} else {
+			$this->modules['Theme My Login Register'] = [
+				[ 'theme_my_login_status', 'register' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Register::class,
 			];
 		}
 
