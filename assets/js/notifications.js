@@ -187,8 +187,6 @@ const notifications = ( $ ) => {
 		}
 	}
 
-	$( optionsSelector ).on( 'click', navSelectors, handleNavClick );
-
 	// Test hook for Jest
 	// noinspection JSUnresolvedReference
 	if ( typeof jest !== 'undefined' ) {
@@ -197,6 +195,8 @@ const notifications = ( $ ) => {
 			setNavStatus,
 		};
 	}
+
+	$( optionsSelector ).on( 'click', navSelectors, handleNavClick );
 
 	$( resetBtnSelector ).on( 'click', function() {
 		const data = {
