@@ -85,30 +85,35 @@ const general = function( $ ) {
 		const systemError = console.error;
 		const systemClear = console.clear;
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.log = function( message ) {
 			consoleLogs.push( [ 'Console log:', arguments ] );
 			systemLog.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.warn = function( message ) {
 			consoleLogs.push( [ 'Console warn:', arguments ] );
 			systemWarn.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.info = function( message ) {
 			consoleLogs.push( [ 'Console info:', arguments ] );
 			systemInfo.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.error = function( message ) {
 			consoleLogs.push( [ 'Console error:', arguments ] );
 			systemError.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		console.clear = function() {
 			consoleLogs = [];
 			systemClear();
