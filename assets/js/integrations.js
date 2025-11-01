@@ -222,6 +222,13 @@ const integrations = function( $ ) {
 		showSuccessMessage( HCaptchaIntegrationsObject.suggestActivateMsg );
 	}
 
+	// Test hook: expose selected internals for isolated unit tests
+	if ( typeof window !== 'undefined' ) {
+		window.__integrationsTest = {
+			swapThemes,
+		};
+	}
+
 	// Handle Show Antispam Coverage checkbox change: insert/clear helper spans after honeypot labels
 	$showAntispamCoverage.on( 'change', function() {
 		setupHelpers();

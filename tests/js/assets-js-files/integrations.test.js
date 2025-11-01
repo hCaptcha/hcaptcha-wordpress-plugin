@@ -299,7 +299,7 @@ describe( 'integrations', () => {
 		postSpy.mockRestore();
 		jest.spyOn( $, 'post' ).mockImplementation( () => {
 			const d = $.Deferred();
-			// Resolve with object without success field
+			// Resolve with an object without success field
 			d.resolve( { data: {}, something: true } );
 			return d;
 		} );
@@ -426,7 +426,8 @@ describe( 'additional integrations coverage', () => {
 
 		const $img = $( '.hcaptcha-integrations-acfe-status img' );
 		const $tr = $img.closest( 'tr' );
-		const initiallyInActiveTable = $tr.closest( '.form-table' ).is( $( '.form-table' ).eq( 1 ) );
+		const $formTable = $( '.form-table' );
+		const initiallyInActiveTable = $tr.closest( '.form-table' ).is( $formTable.eq( 1 ) );
 
 		// Trigger click and resolve with stati flipping acfe_status to the opposite
 		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
@@ -442,7 +443,7 @@ describe( 'additional integrations coverage', () => {
 		expect( $tr.find( '.hcaptcha-integrations-logo' ).attr( 'data-installed' ) ).toBe( 'true' );
 		const shouldBeActive = ! initiallyInActiveTable;
 		const tableIdx = shouldBeActive ? 1 : 2;
-		expect( $tr.closest( '.form-table' ).is( $( '.form-table' ).eq( tableIdx ) ) ).toBe( true );
+		expect( $tr.closest( '.form-table' ).is( $formTable.eq( tableIdx ) ) ).toBe( true );
 	} );
 
 	test( 'deactivate theme passes selected newTheme to AJAX data', () => {
@@ -480,5 +481,83 @@ describe( 'additional integrations coverage', () => {
 		// The newTheme value should be passed from the dialog select
 		expect( calls.length ).toBeGreaterThan( 0 );
 		expect( calls[ 0 ].data.newTheme ).toBe( 'Divi' );
+	} );
+} );
+
+describe( 'swapThemes isolated', () => {
+	function resetDomLocal() {
+		document.body.innerHTML = getDom();
+		window.hCaptchaIntegrations( $ );
+	}
+
+	test( 'does nothing when entity is not theme', () => {
+		resetDomLocal();
+		const $tables = $( '.form-table' );
+		const countBeforeActive = $tables.eq( 1 ).find( 'tbody > tr' ).length;
+		const countBeforeInactive = $tables.eq( 2 ).find( 'tbody > tr' ).length;
+
+		// Direct call should not change anything for non-theme entity
+		window.__integrationsTest.swapThemes( true, 'plugin' );
+
+		const countAfterActive = $tables.eq( 1 ).find( 'tbody > tr' ).length;
+		const countAfterInactive = $tables.eq( 2 ).find( 'tbody > tr' ).length;
+
+		expect( countAfterActive ).toBe( countBeforeActive );
+		expect( countAfterInactive ).toBe( countBeforeInactive );
+	} );
+
+	test( 'activate: moves current active theme to inactive table', () => {
+		resetDomLocal();
+		const $tables = $( '.form-table' );
+		const $activeTable = $tables.eq( 1 );
+		const $inactiveTable = $tables.eq( 2 );
+
+		// Precondition: one active theme present, none inactive
+		expect( $activeTable.find( 'img[data-entity="theme"]' ).length ).toBe( 1 );
+		expect( $inactiveTable.find( 'img[data-entity="theme"]' ).length ).toBe( 0 );
+
+		// Direct call to move current active theme out
+		window.__integrationsTest.swapThemes( true, 'theme' );
+
+		expect( $activeTable.find( 'img[data-entity="theme"]' ).length ).toBe( 0 );
+		expect( $inactiveTable.find( 'img[data-entity="theme"]' ).length ).toBe( 1 );
+	} );
+
+	test( 'deactivate: moves selected inactive theme into active table', () => {
+		resetDomLocal();
+		const $tables = $( '.form-table' );
+		const $activeTable = $tables.eq( 1 );
+		const $inactiveTable = $tables.eq( 2 );
+
+		// First, move current active to inactive so inactive table has a theme row
+		window.__integrationsTest.swapThemes( true, 'theme' );
+
+		// Add another inactive theme row to test selecting by data-label
+		const $tbodyInactive = $inactiveTable.find( 'tbody' );
+		const tr = document.createElement( 'tr' );
+		tr.className = 'hcaptcha-integrations-some-theme';
+		const th = document.createElement( 'th' );
+		const logo = document.createElement( 'div' );
+		logo.className = 'hcaptcha-integrations-logo';
+		logo.setAttribute( 'data-installed', 'true' );
+		const img = document.createElement( 'img' );
+		img.setAttribute( 'alt', 'Some Theme Logo' );
+		img.setAttribute( 'data-entity', 'theme' );
+		img.setAttribute( 'data-label', 'Some Theme' );
+		logo.appendChild( img );
+		th.appendChild( logo );
+		const td = document.createElement( 'td' );
+		const fs = document.createElement( 'fieldset' );
+		td.appendChild( fs );
+		tr.appendChild( th );
+		tr.appendChild( td );
+		$tbodyInactive.get( 0 ).appendChild( tr );
+
+		// Now call deactivate with explicit label to move that row to active
+		window.__integrationsTest.swapThemes( false, 'theme', 'Some Theme' );
+
+		expect( $activeTable.find( 'img[data-entity="theme"][data-label="Some Theme"]' ).length ).toBe( 1 );
+		// Ensure it was removed from inactive
+		expect( $inactiveTable.find( 'img[data-entity="theme"][data-label="Some Theme"]' ).length ).toBe( 0 );
 	} );
 } );
