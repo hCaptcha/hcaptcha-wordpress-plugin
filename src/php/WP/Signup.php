@@ -101,7 +101,13 @@ class Signup {
 	 * @return array
 	 */
 	public function verify( $result ): array {
-		$result           = (array) $result;
+		$result = (array) $result;
+
+		if ( ! did_action( 'before_signup_form' ) ) {
+			// Do not work with other signup forms, like Theme My Login signup.
+			return $result;
+		}
+
 		$result['errors'] = is_wp_error( $result['errors'] ) ? $result['errors'] : new WP_Error();
 
 		$this->error_message = API::verify_post( self::NONCE, self::ACTION );

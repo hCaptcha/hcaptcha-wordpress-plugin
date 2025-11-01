@@ -105,12 +105,7 @@ class Signup {
 	public function verify( $result ): array {
 		$result = (array) $result;
 
-		$wp_signup = hcaptcha()->get( \HCaptcha\WP\Signup::class );
-
-		remove_filter( 'wpmu_validate_user_signup', [ $wp_signup, 'verify' ] );
-		remove_filter( 'wpmu_validate_blog_signup', [ $wp_signup, 'verify' ] );
-
-		if ( ! hcaptcha()->settings()->is( 'theme_my_login_status', 'signup' ) ) {
+		if ( ! did_action( 'tml_action_signup' ) && ! did_action( 'tml_action_ajax_signup' ) ) {
 			return $result;
 		}
 
