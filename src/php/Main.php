@@ -1652,7 +1652,7 @@ class Main {
 				WP\Signup::class,
 			];
 			$this->modules['Theme My Login Signup'] = [
-				[ 'theme_my_login_status', 'signup' ],
+				[ 'theme_my_login_status', null ],
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\Signup::class,
 			];

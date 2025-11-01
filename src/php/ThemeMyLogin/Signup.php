@@ -50,8 +50,8 @@ class Signup {
 	 */
 	private function init_hooks(): void {
 		add_filter( 'tml_before_form_field', [ $this, 'add_captcha' ], 10, 4 );
-		add_filter( 'wpmu_validate_user_signup', [ $this, 'verify' ] );
-		add_filter( 'wpmu_validate_blog_signup', [ $this, 'verify' ] );
+		add_filter( 'wpmu_validate_user_signup', [ $this, 'verify' ], 0 );
+		add_filter( 'wpmu_validate_blog_signup', [ $this, 'verify' ], 0 );
 	}
 
 	/**
@@ -77,16 +77,22 @@ class Signup {
 			return $output;
 		}
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
-		];
+		$form = '';
 
-		return $this->get_error_html() . HCaptcha::form( $args ) . $output;
+		if ( hcaptcha()->settings()->is( 'theme_my_login_status', 'signup' ) ) {
+			$args = [
+				'action' => self::ACTION,
+				'name'   => self::NONCE,
+				'id'     => [
+					'source'  => HCaptcha::get_class_source( __CLASS__ ),
+					'form_id' => 'register',
+				],
+			];
+
+			$form = HCaptcha::form( $args );
+		}
+
+		return $this->get_error_html() . $form . $output;
 	}
 
 	/**
@@ -97,7 +103,17 @@ class Signup {
 	 * @return array
 	 */
 	public function verify( $result ): array {
-		$result           = (array) $result;
+		$result = (array) $result;
+
+		$wp_signup = hcaptcha()->get( \HCaptcha\WP\Signup::class );
+
+		remove_filter( 'wpmu_validate_user_signup', [ $wp_signup, 'verify' ] );
+		remove_filter( 'wpmu_validate_blog_signup', [ $wp_signup, 'verify' ] );
+
+		if ( ! hcaptcha()->settings()->is( 'theme_my_login_status', 'signup' ) ) {
+			return $result;
+		}
+
 		$result['errors'] = is_wp_error( $result['errors'] ) ? $result['errors'] : new WP_Error();
 
 		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
