@@ -1,5 +1,5 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
-
+/* eslint-disable no-console */
 import $ from 'jquery';
 
 global.jQuery = $;
@@ -140,7 +140,7 @@ describe( 'general.js basics', () => {
 
 	beforeEach( () => {
 		jest.clearAllMocks();
-		// Default $.post mock: call beforeSend then resolve success
+		// Default $.post mock: call the beforeSend method then resolve success
 		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
 			const d = $.Deferred();
 			if ( opts && typeof opts.beforeSend === 'function' ) {
@@ -162,7 +162,7 @@ describe( 'general.js basics', () => {
 
 	test( 'showMessage plumbing via checkConfig beforeSend: sets success class and animates', async () => {
 		bootGeneral();
-		// provide a solved hcaptcha so it does not open dialog
+		// provide a solved hcaptcha so it does not open the dialog
 		$( 'textarea[name="h-captcha-response"]' ).val( 'token' );
 		const animSpy = jest.spyOn( $.fn, 'animate' ).mockImplementation( () => $.fn );
 
@@ -227,7 +227,9 @@ describe( 'general.js basics', () => {
 	test( 'checkIPs: early return on empty, otherwise toggles loading and handles error', async () => {
 		bootGeneral();
 		// Early return
-		$( '#blacklisted_ips' ).val( '   ' ).trigger( 'blur' );
+		const $area = $( '#blacklisted_ips' );
+
+		$area.val( '   ' ).trigger( 'blur' );
 		expect( postSpy ).toHaveBeenCalledTimes( 0 );
 
 		// Now with value — simulate error success:false
@@ -238,7 +240,6 @@ describe( 'general.js basics', () => {
 			return d;
 		} );
 
-		const $area = $( '#blacklisted_ips' );
 		$area.val( '1.1.1.1' ).trigger( 'blur' );
 		await Promise.resolve();
 		jest.runAllTimers();
@@ -270,15 +271,15 @@ describe( 'general.js basics', () => {
 		bootGeneral( { configuredAntiSpamProviders: [] } );
 		const sel = $( "select[name='hcaptcha_settings[antispam_provider]']" );
 		sel.val( 'akismet' ).trigger( 'change' );
-		// The code appends a <div> with error to the same row
+		// The code appends a <div> with an error to the same row
 		expect( document.querySelectorAll( "[name='hcaptcha_settings[antispam_provider]']" ).length ).toBe( 1 );
-		// Search for appended div under the same row
+		// Search for the appended div under the same row
 		const tr = sel.closest( 'tr' )[ 0 ];
 		expect( tr ).toBeTruthy();
 		expect( tr.querySelectorAll( 'div' ).length ).toBeGreaterThan( 0 );
 	} );
 
-	test( 'credentials change disables submit and checkConfig success reenables', async () => {
+	test( 'credentials change disables submit and checkConfig success re-enables', async () => {
 		// Post resolves success
 		postSpy.mockImplementation( ( opts ) => {
 			const d = $.Deferred();
@@ -297,5 +298,56 @@ describe( 'general.js basics', () => {
 		await Promise.resolve();
 		jest.runAllTimers();
 		expect( submit.getAttribute( 'disabled' ) ).toBe( null );
+	} );
+} );
+
+
+// Isolated tests merged from general-console.test.js
+describe( 'getCleanConsoleLogs (isolated)', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		// Boot full general to ensure hooks and test exposure are present
+		bootGeneral();
+		// Re-initialize the console intercept explicitly to ensure a clean buffer
+		window.__generalTest.interceptConsoleLogs();
+	} );
+
+	test( 'collects only string args, prefixes with type, filters ignored phrases, and clears buffer after read', () => {
+		// Emit mixed console messages
+		console.log( 'hello', { foo: 1 }, 'recaptchacompat disabled', 123 );
+		console.warn( 'warn-msg', [ 1, 2, 3 ] );
+		console.info( 'info-msg' );
+		console.error( 'err-1', 'Missing sitekey - https://docs.hcaptcha.com/configuration#javascript-api', 'err-2' );
+		// A call with no string arguments should yield an empty line in the aggregated logs
+		console.log( { only: 'object' } );
+
+		const out1 = window.__generalTest.getCleanConsoleLogs();
+
+		// Should include only the non-ignored string arguments with proper prefixes
+		expect( out1 ).toContain( 'Console log: hello' );
+		expect( out1 ).toContain( 'Console warn: warn-msg' );
+		expect( out1 ).toContain( 'Console info: info-msg' );
+		// From error: includes first string, skips the Missing sitekey line, includes trailing string
+		expect( out1 ).toContain( 'Console error: err-1' );
+		expect( out1 ).toContain( 'Console error: err-2' );
+		expect( out1 ).not.toContain( 'Missing sitekey - https://docs.hcaptcha.com/configuration#javascript-api' );
+		expect( out1 ).not.toContain( 'recaptchacompat disabled' );
+
+		// There should be at least one empty line for the non-string-only console call
+		// Split by \n and ensure an empty string exists
+		const lines = out1.split( '\n' );
+		expect( lines ).toEqual( expect.arrayContaining( [ '' ] ) );
+
+		// Subsequent call must return empty because buffer is cleared
+		const out2 = window.__generalTest.getCleanConsoleLogs();
+		expect( out2 ).toBe( '' );
+	} );
+
+	test( 'console.clear empties the internal buffer used by getCleanConsoleLogs', () => {
+		console.log( 'to-be-cleared' );
+		// clear should reset internal array and call through
+		console.clear();
+		const out = window.__generalTest.getCleanConsoleLogs();
+		expect( out ).toBe( '' );
 	} );
 } );

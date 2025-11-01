@@ -449,6 +449,16 @@ const general = function( $ ) {
 		}
 	}
 
+	// Test hook: expose internals for isolated unit tests
+	// noinspection JSUnresolvedReference
+	if ( typeof jest !== 'undefined' ) {
+		// Expose only read-only references; no state is mutated here beyond normal function effects
+		window.__generalTest = {
+			getCleanConsoleLogs,
+			interceptConsoleLogs,
+		};
+	}
+
 	document.addEventListener( 'hCaptchaLoaded', function() {
 		showErrorMessage();
 	} );
