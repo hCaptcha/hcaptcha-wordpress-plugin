@@ -301,7 +301,6 @@ describe( 'general.js basics', () => {
 	} );
 } );
 
-
 // Isolated tests merged from general-console.test.js
 describe( 'getCleanConsoleLogs (isolated)', () => {
 	beforeEach( () => {
@@ -327,7 +326,7 @@ describe( 'getCleanConsoleLogs (isolated)', () => {
 		expect( out1 ).toContain( 'Console log: hello' );
 		expect( out1 ).toContain( 'Console warn: warn-msg' );
 		expect( out1 ).toContain( 'Console info: info-msg' );
-		// From error: includes first string, skips the Missing sitekey line, includes trailing string
+		// From error: includes the first string, skips the Missing sitekey line, includes trailing string
 		expect( out1 ).toContain( 'Console error: err-1' );
 		expect( out1 ).toContain( 'Console error: err-2' );
 		expect( out1 ).not.toContain( 'Missing sitekey - https://docs.hcaptcha.com/configuration#javascript-api' );
@@ -338,14 +337,14 @@ describe( 'getCleanConsoleLogs (isolated)', () => {
 		const lines = out1.split( '\n' );
 		expect( lines ).toEqual( expect.arrayContaining( [ '' ] ) );
 
-		// Subsequent call must return empty because buffer is cleared
+		// Later call must return empty because the buffer is cleared
 		const out2 = window.__generalTest.getCleanConsoleLogs();
 		expect( out2 ).toBe( '' );
 	} );
 
 	test( 'console.clear empties the internal buffer used by getCleanConsoleLogs', () => {
 		console.log( 'to-be-cleared' );
-		// clear should reset internal array and call through
+		// clear should reset the internal array and call through
 		console.clear();
 		const out = window.__generalTest.getCleanConsoleLogs();
 		expect( out ).toBe( '' );
