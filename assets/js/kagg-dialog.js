@@ -60,8 +60,8 @@ const kaggDialog = window.kaggDialog || ( function( document ) {
 		},
 
 		/**
-		 * Get confirm dialog.
-		 * Create its HTMl if it does not exist.
+		 * Get the confirmation dialog.
+		 * Create its HTML if it does not exist.
 		 */
 		getConfirmDialog() {
 			let buttonsHTML = '';
