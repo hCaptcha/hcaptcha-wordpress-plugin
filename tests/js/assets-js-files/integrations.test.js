@@ -24,8 +24,8 @@ global.HCaptchaIntegrationsObject = {
 	selectThemeMsg: 'Select a theme',
 	onlyOneThemeMsg: 'Only one theme available',
 	unexpectedErrorMsg: 'Unexpected error',
-	themes: { twentynineteen: 'Twenty Nineteen', twentytwenty: 'Twenty Twenty' },
-	defaultTheme: 'twentytwenty',
+	themes: { Divi: 'Divi' },
+	defaultTheme: 'twentytwentyfive',
 	suggestActivate: '',
 	suggestActivateMsg: 'Consider activating this item',
 };
@@ -110,15 +110,15 @@ function getDom() {
 				</fieldset>
 			</td>
 		</tr>
-		<tr class="hcaptcha-integrations-twentytwenty-theme">
+		<tr class="hcaptcha-integrations-twentytwentyone-theme">
 			<th scope="row">
 				<div class="hcaptcha-integrations-logo" data-installed="true">
-					<img alt="Twenty Twenty Logo" data-entity="theme" data-label="Twenty Twenty">
+					<img alt="Twenty Twenty-One Logo" data-entity="theme" data-label="Twenty Twenty-One">
 				</div>
 			</th>
 			<td>
 				<fieldset>
-					<label>Twenty Twenty Active</label>
+					<label>Twenty Twenty-One Active</label>
 				</fieldset>
 			</td>
 		</tr>
@@ -257,14 +257,14 @@ describe( 'integrations', () => {
 		global.HCaptchaIntegrationsObject.themes = {};
 		window.kaggDialog = { confirm: jest.fn() };
 
-		const $themeImg = $( '.hcaptcha-integrations-twentytwenty-theme img' );
+		const $themeImg = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
 		$themeImg.trigger( 'click' );
 
 		expect( window.kaggDialog.confirm ).toHaveBeenCalled();
 		expect( postSpy ).not.toHaveBeenCalled();
 
 		// Restore themes for other tests
-		global.HCaptchaIntegrationsObject.themes = { twentynineteen: 'Twenty Nineteen', twentytwenty: 'Twenty Twenty' };
+		global.HCaptchaIntegrationsObject.themes = { Divi: 'Divi', twentytwentyone: 'Twenty Twenty-One' };
 	} );
 
 	test( 'install flow for not-installed plugin shows confirm and posts with install flag', () => {
@@ -287,7 +287,7 @@ describe( 'integrations', () => {
 
 	test( 'theme deactivation opens dialog with theme select', () => {
 		window.kaggDialog = { confirm: jest.fn() };
-		const $themeImg = $( '.hcaptcha-integrations-twentytwenty-theme img' );
+		const $themeImg = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
 		$themeImg.trigger( 'click' );
 		expect( window.kaggDialog.confirm ).toHaveBeenCalled();
 		const arg = window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ];
@@ -455,9 +455,9 @@ describe( 'additional integrations coverage', () => {
 				dlg.className = 'kagg-dialog';
 				const select = document.createElement( 'select' );
 				const opt = document.createElement( 'option' );
-				opt.value = 'twentynineteen';
+				opt.value = 'Divi';
 				opt.selected = true;
-				opt.textContent = 'Twenty Nineteen';
+				opt.textContent = 'Divi';
 				select.appendChild( opt );
 				dlg.appendChild( select );
 				document.body.appendChild( dlg );
@@ -474,11 +474,11 @@ describe( 'additional integrations coverage', () => {
 			return d2;
 		} );
 
-		const $themeImg = $( '.hcaptcha-integrations-twentytwenty-theme img' );
+		const $themeImg = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
 		$themeImg.trigger( 'click' );
 
 		// The newTheme value should be passed from the dialog select
 		expect( calls.length ).toBeGreaterThan( 0 );
-		expect( calls[ 0 ].data.newTheme ).toBe( 'twentynineteen' );
+		expect( calls[ 0 ].data.newTheme ).toBe( 'Divi' );
 	} );
 } );
