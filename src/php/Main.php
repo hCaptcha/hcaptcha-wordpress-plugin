@@ -1646,15 +1646,15 @@ class Main {
 		];
 
 		if ( is_multisite() ) {
+			$this->modules['Signup Form']           = [
+				[ 'wp_status', 'signup' ],
+				'',
+				WP\Signup::class,
+			];
 			$this->modules['Theme My Login Signup'] = [
 				[ 'theme_my_login_status', 'signup' ],
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\Signup::class,
-			];
-			$this->modules['Signup Form'] = [
-				[ 'wp_status', 'signup' ],
-				'',
-				WP\Signup::class,
 			];
 		} else {
 			$this->modules['Theme My Login Register'] = [

@@ -833,8 +833,8 @@ class Integrations extends PluginSettingsBase {
 		];
 
 		if ( is_multisite() ) {
+			$this->form_fields['wp_status']['options']['signup']             = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
 			$this->form_fields['theme_my_login_status']['options']['signup'] = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
-			$this->form_fields['wp_status']['options']['signup'] = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
 		} else {
 			$this->form_fields['theme_my_login_status']['options']['register'] = __( 'Register Form', 'hcaptcha-for-forms-and-more' );
 		}

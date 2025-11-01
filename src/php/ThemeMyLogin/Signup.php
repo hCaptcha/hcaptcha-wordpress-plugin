@@ -5,10 +5,14 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use Theme_My_Login_Form_Field;
 use WP_Error;
 
 /**
@@ -51,15 +55,24 @@ class Signup {
 	}
 
 	/**
-	 * Add captcha.
+	 * Add hCaptcha.
 	 *
-	 * @return void
+	 * @param string|mixed              $output     The output.
+	 * @param string                    $form_name  The form name.
+	 * @param string                    $field_name The field name.
+	 * @param Theme_My_Login_Form_Field $field      The form object.
+	 *
+	 * @return string
+	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_captcha( $output, $form_name, $field_name, $field ): string {
+	public function add_captcha( $output, string $form_name, string $field_name, $field ): string {
+		$output = (string) $output;
+
 		if (
-			! did_action( 'tml_render_form' ) ||
 			'user_signup' !== $form_name ||
-			'submit' !== $field_name
+			'submit' !== $field_name ||
+			! did_action( 'tml_render_form' )
 		) {
 			return $output;
 		}
