@@ -135,8 +135,6 @@ class Playground {
 
 				break;
 			case 'elementor-pro/elementor-pro.php':
-				$this->create_elementor_kit();
-
 				// Create a new page with the Elementor form.
 				$this->insert_post(
 					[
@@ -585,32 +583,5 @@ class Playground {
 		$contact_form->save();
 
 		return $contact_form;
-	}
-
-	/**
-	 * Create a new Elementor kit.
-	 *
-	 * @return void
-	 * @noinspection PhpUndefinedFieldInspection
-	 */
-	private function create_elementor_kit(): void {
-		// Create an Elementor Kit.
-		$kits = Plugin::$instance->kits_manager;
-
-		// Try to get active kit.
-		$active_kit = $kits->get_active_kit();
-
-		if ( $active_kit->get_id() ) {
-			return;
-		}
-
-		// Create a new kit and set it active.
-		$default_kit = $kits->create_default();
-
-		if ( ! $default_kit ) {
-			return;
-		}
-
-		update_option( 'elementor_active_kit', $default_kit );
 	}
 }
