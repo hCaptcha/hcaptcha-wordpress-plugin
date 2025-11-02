@@ -94,7 +94,7 @@ describe( 'notifications.js', () => {
 		const firstDismiss = document.querySelector( '.hcaptcha-notification[data-id="n1"] .notice-dismiss' );
 		firstDismiss.click( );
 
-		// After removal: only second notification remains and is visible
+		// After removal: only the second notification remains and is visible
 		const rem1 = document.querySelector( '.hcaptcha-notification[data-id="n1"]' );
 		expect( rem1 ).toBeNull( );
 		const second = document.querySelector( '.hcaptcha-notification[data-id="n2"]' );
@@ -111,11 +111,11 @@ describe( 'notifications.js', () => {
 		expect( cloned.classList.contains( 'hidden' ) ).toBe( false );
 		expect( footer.querySelector( 'button.btn-two' ) ).toBeTruthy( );
 
-		// One $.post call happened with correct URL and data (cannot read arguments from default spy, so override)
+		// One $.post call happened with the correct URL and data (cannot read arguments from default spy, so override)
 		postSpy.mockRestore( );
 		const calls = [];
 		jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => { calls.push( opts ); return { success( ) { return this; } }; } );
-		// Trigger dismiss of the second now
+		// Trigger dismisses of the second now
 		document.querySelector( '.hcaptcha-notification[data-id="n2"] .notice-dismiss' ).click( );
 		expect( calls.length ).toBe( 1 );
 		expect( calls[ 0 ].url ).toBe( defaultNotifications.ajaxUrl );
@@ -132,7 +132,7 @@ describe( 'notifications.js', () => {
 	} );
 
 	test( 'navigation next/prev toggles visibility and disabled classes; nav counters update', async () => {
-		// Start with default two notifications, then append a third programmatically
+		// Start with the default two notifications, then append a third programmatically
 		bootNotifications( { withTwo: true } );
 		const container = document.getElementById( 'hcaptcha-notifications' );
 		const n3 = document.createElement( 'div' );
@@ -141,13 +141,13 @@ describe( 'notifications.js', () => {
 		n3.setAttribute( 'style', 'display:none' );
 		n3.innerHTML = '<p>Third notification</p><button type="button" class="notice-dismiss">x</button><div class="hcaptcha-notification-buttons hidden"><button class="btn-three">Three</button></div>';
 		container.appendChild( n3 );
-		// Recompute nav/pages based on new count
+		// Recompute nav/pages based on the new count
 		window.hCaptchaNotifications( $ );
 
 		const prevBtn = document.querySelector( '#hcaptcha-navigation .prev' );
 		const nextBtn = document.querySelector( '#hcaptcha-navigation .next' );
 
-		// Initially on first item → page 1 / 3
+		// Initially on the first item → page 1 / 3
 		expect( document.getElementById( 'hcaptcha-navigation-page' ).textContent ).toBe( '1' );
 		expect( document.getElementById( 'hcaptcha-navigation-pages' ).textContent ).toBe( '3' );
 
@@ -195,7 +195,7 @@ describe( 'notifications.js', () => {
 		await new Promise( (r) => setTimeout( r, 0 ) );
 		await new Promise( (r) => setTimeout( r, 0 ) );
 
-		// Old container removed and new inserted before the section header
+		// Old container removed and a new one inserted before the section header
 		const keysHeader = document.querySelector( 'h3.hcaptcha-section-keys' );
 		const prev = keysHeader.previousElementSibling;
 		expect( prev && prev.id ).toBe( 'hcaptcha-notifications' );
