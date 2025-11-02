@@ -33,6 +33,10 @@
             "email_optin",
             "login"
           ],
+          "elementor_pro_status": [
+            "form",
+            "login"
+          ],
           "extra_status": [
             "comment",
             "contact",
