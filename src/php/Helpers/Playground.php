@@ -5,6 +5,9 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Helpers;
 
 use HCaptcha\Admin\Events\Events;
@@ -12,6 +15,7 @@ use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
 use WP_Error;
 use WP_Theme;
+use WPCF7_ContactForm;
 
 /**
  * Class Playground.
@@ -118,17 +122,66 @@ class Playground {
 					[
 						'title'     => 'Contact Form 7 Test Form',
 						'name'      => 'contact-form-7-test-form',
-						'content'   => "<label> Your name\n    [text* your-name autocomplete:name] </label>\n\n<label> Your email\n    [email* your-email autocomplete:email] </label>\n\n[submit \"Submit\"]\n1\n[_site_title] \"[your-subject]\"\n[_site_title] <wordpress@test.test>\n[_site_admin_email]\nFrom: [your-name] [your-email]\nSubject: [your-subject]\n\nMessage Body:\n[your-message]\n\n--\nThis is a notification that a contact form was submitted on your website ([_site_title] [_site_url]).\nReply-To: [your-email]\n\n1\n1\n\n[_site_title] \"[your-subject]\"\n[_site_title] <wordpress@test.test>\n[your-email]\nMessage Body:\n[your-message]\n\n--\nThis email is a receipt for your contact form submission on our website ([_site_title] [_site_url]) in which your email address was used. If that was not you, please ignore this message.\nReply-To: [_site_admin_email]\n\n1\n1\nThank you for your message. It has been sent.\nThere was an error trying to send your message. Please try again later.\nOne or more fields have an error. Please check and try again.\nThere was an error trying to send your message. Please try again later.\nYou must accept the terms and conditions before sending your message.\nPlease fill out this field.\nThis field has a too long input.\nThis field has a too short input.\nThere was an unknown error uploading the file.\nYou are not allowed to upload files of this type.\nThe uploaded file is too large.\nThere was an error uploading the file.\nPlease enter a date in YYYY-MM-DD format.\nThis field has a too early date.\nThis field has a too late date.\nPlease enter a number.\nThis field has a too small number.\nThis field has a too large number.\nThe answer to the quiz is incorrect.\nPlease enter an email address.\nPlease enter a URL.\nPlease enter a telephone number.\n",
 						'post_type' => 'wpcf7_contact_form',
 					]
 				);
+
+				// Get WPCF7_ContactForm instance for this form.
+				$contact_form = WPCF7_ContactForm::get_instance( $form_id );
+
+				if ( ! $contact_form ) {
+					return;
+				}
+
+				// Build form template (what you normally put on the "Form" tab).
+				$form_template = implode(
+					"\n",
+					[
+						'<label> Your name',
+						'[text* your-name autocomplete:name] </label>',
+						'',
+						'<label> Your email',
+						'[email* your-email autocomplete:email] </label>',
+						'',
+						'[submit "Submit"]',
+					]
+				);
+
+				// Prepare mail settings (what you normally set on the "Mail" tab).
+				$mail              = $contact_form->prop( 'mail' );
+				$mail['recipient'] = get_option( 'admin_email' );
+				$mail['sender']    = 'WordPress <' . get_option( 'admin_email' ) . '>';
+				$mail['subject']   = 'New message from [your-name]';
+				$mail['body']      = implode(
+					"\n",
+					[
+						'From: [your-name] <[your-email]>',
+						'Message:',
+						'[your-message]',
+					]
+				);
+				$mail['use_html']  = false;
+
+				// Apply all properties and save.
+				$contact_form->set_properties(
+					[
+						'form' => $form_template,
+						'mail' => $mail,
+					]
+				);
+
+				// Persist to DB.
+				$contact_form->save();
+
+				// Output the shortcode to logs/admin_notice (optional).
+				$shortcode = $contact_form->shortcode();
 
 				// Create a new page with the Contact Form 7 shortcode.
 				$this->insert_post(
 					[
 						'title'   => 'Contact Form 7 Test Page',
 						'name'    => 'contact-form-7-test',
-						'content' => '[contact-form-7 id="' . $form_id . '"]',
+						'content' => $shortcode,
 					]
 				);
 
