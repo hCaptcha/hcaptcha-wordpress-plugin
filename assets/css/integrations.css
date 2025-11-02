@@ -215,8 +215,9 @@
 
 #hcaptcha-options label + .helper i.antispam-fst {
 	background-image: url('../images/antispam-fst.svg');
-	width: 24px;
+	width: 20px;
 	transform: translateY(1px);
+	margin-inline-start: 2px;
 }
 
 #hcaptcha-options fieldset .helper .helper-content {
