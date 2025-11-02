@@ -28,6 +28,11 @@ class Playground {
 	private const HCAPTCHA_MENU_ID = 'hcaptcha-menu';
 
 	/**
+	 * Woocommerce group ID for the admin bar menu.
+	 */
+	private const HCAPTCHA_MENU_WOOCOMMERCE_ID = 'hcaptcha-menu-woocommerce';
+
+	/**
 	 * Playground data.
 	 *
 	 * @var array
@@ -305,11 +310,20 @@ class Playground {
 			]
 		);
 
+		// WooCommerce group.
+		$bar->add_node(
+			[
+				'id'     => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'WooCommerce', 'hcaptcha-for-forms-and-more' ),
+			]
+		);
+
 		// WC Checkout page.
 		$bar->add_node(
 			[
 				'id'     => 'hcaptcha-menu-wc-checkout',
-				'parent' => self::HCAPTCHA_MENU_ID,
+				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
 				'title'  => __( 'WooCommerce Checkout', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'woocommerce_status', home_url( '/checkout/' ) ),
 			]
@@ -319,7 +333,7 @@ class Playground {
 		$bar->add_node(
 			[
 				'id'     => 'hcaptcha-menu-wc-login-register',
-				'parent' => self::HCAPTCHA_MENU_ID,
+				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
 				'title'  => __( 'WooCommerce Login / Register', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'woocommerce_status', home_url( '/my-account/' ) ),
 			]
@@ -329,7 +343,7 @@ class Playground {
 		$bar->add_node(
 			[
 				'id'     => 'hcaptcha-menu-wc-order-tracking',
-				'parent' => self::HCAPTCHA_MENU_ID,
+				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
 				'title'  => __( 'WooCommerce Order Tracking', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'woocommerce_status', home_url( '/wc-order-tracking/' ) ),
 			]
