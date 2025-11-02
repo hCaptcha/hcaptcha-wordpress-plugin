@@ -148,6 +148,18 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: reset-notifications;
 }
 
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-site-key .helper,
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-secret-key .helper {
+	display: none;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-site-key td input[readonly][aria-disabled="true"],
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-secret-key td input[readonly][aria-disabled="true"] {
+	cursor: not-allowed;
+	opacity: .6;
+	background: #ffffff;
+}
+
 .hcaptcha-section-keys + table tbody tr th {
 	padding: 0 0 10px 0;
 }

@@ -220,11 +220,13 @@ class General extends PluginSettingsBase {
 				'autocomplete' => 'nickname',
 				'lp_ignore'    => 'true',
 				'section'      => self::SECTION_KEYS,
+				'helper'       => __( 'To fill out the site key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'secret_key'           => [
 				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'password',
 				'section' => self::SECTION_KEYS,
+				'helper'  => __( 'To fill out the secret key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'sample_hcaptcha'      => [
 				'label'   => __( 'Active hCaptcha to Check Site Config', 'hcaptcha-for-forms-and-more' ),
@@ -399,7 +401,7 @@ class General extends PluginSettingsBase {
 					self::MODE_TEST_ENTERPRISE_BOT_DETECTED  => __( 'Test: Enterprise Account (Bot Detected)', 'hcaptcha-for-forms-and-more' ),
 				],
 				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
-				'default' => self::MODE_LIVE,
+				'default' => self::MODE_TEST_PUBLISHER,
 				'helper'  => __(
 					'Select live or test mode. In test mode, predefined keys are used.',
 					'hcaptcha-for-forms-and-more'
@@ -707,14 +709,6 @@ class General extends PluginSettingsBase {
 		}
 
 		$settings = hcaptcha()->settings();
-
-		// In Settings, a filter applied for mode.
-		$mode = $settings->get_mode();
-
-		if ( self::MODE_LIVE !== $mode ) {
-			$this->form_fields['site_key']['disabled']   = true;
-			$this->form_fields['secret_key']['disabled'] = true;
-		}
 
 		$config_params = $settings->get_config_params();
 		$custom_theme  = $config_params['theme'] ?? [];

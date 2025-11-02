@@ -166,6 +166,8 @@ const settingsBase = ( function( $ ) {
 				target = element.closest( 'fieldset' );
 			}
 
+			target.classList.remove( 'blink' );
+
 			const table = target.closest( 'table' );
 			let sectionHeader = null;
 
