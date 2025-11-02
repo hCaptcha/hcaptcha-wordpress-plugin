@@ -43,13 +43,16 @@ class HCaptchaWPTestCase extends WPTestCase {
 		// Do not check the Form Submit Time token for tests.
 		add_filter( 'hcap_verify_fst_token', '__return_true' );
 
-		// Set min submit time and honeypot for tests.
 		add_filter(
 			'hcap_form_fields',
 			static function ( $form_fields, $instance ) {
 				if ( $instance instanceof General ) {
+					// Set min submit time and honeypot for tests.
 					$form_fields['set_min_submit_time']['default'] = 'on';
 					$form_fields['honeypot']['default']            = 'on';
+
+					// Set live mode, as many tests require it.
+					$form_fields['mode']['default'] = 'live';
 				}
 
 				return $form_fields;
