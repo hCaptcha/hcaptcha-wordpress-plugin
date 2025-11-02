@@ -138,13 +138,15 @@ class Playground {
 				break;
 			case 'elementor-pro/elementor-pro.php':
 				// Create a new page with the Elementor form.
-				$data = '[{"id":"a21d3c3","elType":"section","settings":[],"elements":[{"id":"5097cb3","elType":"column","settings":{"_column_size":100},"elements":[{"id":"f9221e1","elType":"widget","settings":{"title":"Elementor Pro Form"},"elements":[],"widgetType":"heading"}],"isInner":false}],"isInner":false},{"id":"1ed4d3b","elType":"section","settings":[],"elements":[{"id":"85c33a9","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"687b087","elType":"widget","settings":{"form_name":"New Form","form_fields":[{"custom_id":"name","field_label":"Name","placeholder":"Name","dynamic":{"active":true},"_id":"986c004"},{"custom_id":"email","field_type":"email","required":"true","field_label":"Email","placeholder":"Email","_id":"3453398"},{"custom_id":"message","field_type":"textarea","field_label":"Message","placeholder":"Message","_id":"134e6d7"},{"_id":"c9d1c91","field_type":"hcaptcha","custom_id":"field_c9d1c91"}],"step_next_label":"Next","step_previous_label":"Previous","button_text":"Send","email_to":"info@kagg.eu","email_subject":"New message from &quot;test&quot;","email_content":"[all-fields]","email_from":"email@https:\/\/test.test","email_from_name":"test","email_to_2":"info@kagg.eu","email_subject_2":"New message from &quot;test&quot;","email_content_2":"[all-fields]","email_from_2":"email@https:\/\/test.test","email_from_name_2":"test","email_reply_to_2":"info@kagg.eu","mailchimp_fields_map":[],"drip_fields_map":[],"activecampaign_fields_map":[],"getresponse_fields_map":[],"convertkit_fields_map":[],"mailerlite_fields_map":[],"success_message":"The form was sent successfully.","error_message":"An error occurred.","required_field_message":"This field is required.","invalid_message":"There&#039;s something wrong. The form is invalid.","form_id":"test_form","server_message":"Your submission failed because of a server error."},"elements":[],"widgetType":"form"}],"isInner":false}],"isInner":false}]';
-
 				$this->insert_post(
 					[
-						'title'   => 'Elementor Pro Test Page',
-						'name'    => 'elementor-pro-test',
-						'content' => '<h2>Elementor Pro Form</h2>',
+						'title'      => 'Elementor Pro Test Page',
+						'name'       => 'elementor-pro-test',
+						'content'    => '',
+						'meta_input' => [
+							'_elementor_data'      => '[{"id":"a21d3c3","elType":"section","settings":[],"elements":[{"id":"5097cb3","elType":"column","settings":{"_column_size":100},"elements":[{"id":"f9221e1","elType":"widget","settings":{"title":"Elementor Pro Form"},"elements":[],"widgetType":"heading"}],"isInner":false}],"isInner":false},{"id":"1ed4d3b","elType":"section","settings":[],"elements":[{"id":"85c33a9","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"687b087","elType":"widget","settings":{"form_name":"New Form","form_fields":[{"custom_id":"name","field_label":"Name","placeholder":"Name","dynamic":{"active":true},"_id":"986c004"},{"custom_id":"email","field_type":"email","required":"true","field_label":"Email","placeholder":"Email","_id":"3453398"},{"custom_id":"message","field_type":"textarea","field_label":"Message","placeholder":"Message","_id":"134e6d7"},{"_id":"c9d1c91","field_type":"hcaptcha","custom_id":"field_c9d1c91"}],"step_next_label":"Next","step_previous_label":"Previous","button_text":"Send","email_to":"info@kagg.eu","email_subject":"New message from &quot;test&quot;","email_content":"[all-fields]","email_from":"email@https:\/\/test.test","email_from_name":"test","email_to_2":"info@kagg.eu","email_subject_2":"New message from &quot;test&quot;","email_content_2":"[all-fields]","email_from_2":"email@https:\/\/test.test","email_from_name_2":"test","email_reply_to_2":"info@kagg.eu","mailchimp_fields_map":[],"drip_fields_map":[],"activecampaign_fields_map":[],"getresponse_fields_map":[],"convertkit_fields_map":[],"mailerlite_fields_map":[],"success_message":"The form was sent successfully.","error_message":"An error occurred.","required_field_message":"This field is required.","invalid_message":"There&#039;s something wrong. The form is invalid.","form_id":"test_form","server_message":"Your submission failed because of a server error."},"elements":[],"widgetType":"form"}],"isInner":false}],"isInner":false}]',
+							'_elementor_edit_mode' => 'builder',
+						],
 					]
 				);
 
@@ -481,10 +483,11 @@ class Playground {
 	 */
 	private function insert_post( array $args ) {
 		$defaults = [
-			'title'     => '',
-			'name'      => '',
-			'content'   => '',
-			'post_type' => 'page',
+			'title'      => '',
+			'name'       => '',
+			'content'    => '',
+			'post_type'  => 'page',
+			'meta_input' => [],
 		];
 
 		$args = wp_parse_args( $args, $defaults );
@@ -500,14 +503,18 @@ class Playground {
 			return $post_id;
 		}
 
-		return wp_insert_post(
-			[
-				'post_type'    => $post_type,
-				'post_title'   => (string) $args['title'],
-				'post_status'  => 'publish',
-				'post_content' => (string) $args['content'],
-				'post_name'    => $name,
-			]
-		);
+		$postarr = [
+			'post_type'    => $post_type,
+			'post_title'   => (string) $args['title'],
+			'post_status'  => 'publish',
+			'post_content' => (string) $args['content'],
+			'post_name'    => $name,
+		];
+
+		if ( ! empty( $args['meta_input'] ) ) {
+			$postarr['meta_input'] = $args['meta_input'];
+		}
+
+		return wp_insert_post( $postarr );
 	}
 }
