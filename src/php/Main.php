@@ -328,7 +328,7 @@ class Main {
 
 				if (
 					! method_exists( Pages::class, $method ) ||
-					! $settings->is_on( $component . '_status' )
+					empty( $settings->get( $component . '_status' ) )
 				) {
 					return $carry;
 				}
