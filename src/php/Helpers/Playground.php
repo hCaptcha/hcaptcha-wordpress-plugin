@@ -236,6 +236,10 @@ class Playground {
 	public function head_styles(): void {
 		?>
 		<style>
+			body.is-embedded #wpadminbar {
+				margin-top: 4px;
+			}
+
 			#wpadminbar #wp-admin-bar-hcaptcha-menu {
 				background: #00bbbf;
 			}
