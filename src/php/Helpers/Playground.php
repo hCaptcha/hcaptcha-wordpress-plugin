@@ -127,24 +127,37 @@ class Playground {
 				$form = reset( $forms );
 
 				// Create a new page with the Contact Form 7 shortcode.
-				$content = '[contact-form-7 id="' . (int) $form->ID . '"]';
-
-				$this->insert_post( 'Contact Form 7 Test Page', 'contact-form-7-test', $content );
+				$this->insert_post(
+					[
+						'title'   => 'Contact Form 7 Test Page',
+						'name'    => 'contact-form-7-test',
+						'content' => '[contact-form-7 id="' . (int) $form->ID . '"]',
+					]
+				);
 
 				break;
 			case 'elementor-pro/elementor-pro.php':
 				// Create a new page with the Elementor form.
-				$content = '<h2>Elementor Pro Form</h2>';
-				$data    = '[{"id":"a21d3c3","elType":"section","settings":[],"elements":[{"id":"5097cb3","elType":"column","settings":{"_column_size":100},"elements":[{"id":"f9221e1","elType":"widget","settings":{"title":"Elementor Pro Form"},"elements":[],"widgetType":"heading"}],"isInner":false}],"isInner":false},{"id":"1ed4d3b","elType":"section","settings":[],"elements":[{"id":"85c33a9","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"687b087","elType":"widget","settings":{"form_name":"New Form","form_fields":[{"custom_id":"name","field_label":"Name","placeholder":"Name","dynamic":{"active":true},"_id":"986c004"},{"custom_id":"email","field_type":"email","required":"true","field_label":"Email","placeholder":"Email","_id":"3453398"},{"custom_id":"message","field_type":"textarea","field_label":"Message","placeholder":"Message","_id":"134e6d7"},{"_id":"c9d1c91","field_type":"hcaptcha","custom_id":"field_c9d1c91"}],"step_next_label":"Next","step_previous_label":"Previous","button_text":"Send","email_to":"info@kagg.eu","email_subject":"New message from &quot;test&quot;","email_content":"[all-fields]","email_from":"email@https:\/\/test.test","email_from_name":"test","email_to_2":"info@kagg.eu","email_subject_2":"New message from &quot;test&quot;","email_content_2":"[all-fields]","email_from_2":"email@https:\/\/test.test","email_from_name_2":"test","email_reply_to_2":"info@kagg.eu","mailchimp_fields_map":[],"drip_fields_map":[],"activecampaign_fields_map":[],"getresponse_fields_map":[],"convertkit_fields_map":[],"mailerlite_fields_map":[],"success_message":"The form was sent successfully.","error_message":"An error occurred.","required_field_message":"This field is required.","invalid_message":"There&#039;s something wrong. The form is invalid.","form_id":"test_form","server_message":"Your submission failed because of a server error."},"elements":[],"widgetType":"form"}],"isInner":false}],"isInner":false}]';
+				$data = '[{"id":"a21d3c3","elType":"section","settings":[],"elements":[{"id":"5097cb3","elType":"column","settings":{"_column_size":100},"elements":[{"id":"f9221e1","elType":"widget","settings":{"title":"Elementor Pro Form"},"elements":[],"widgetType":"heading"}],"isInner":false}],"isInner":false},{"id":"1ed4d3b","elType":"section","settings":[],"elements":[{"id":"85c33a9","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"687b087","elType":"widget","settings":{"form_name":"New Form","form_fields":[{"custom_id":"name","field_label":"Name","placeholder":"Name","dynamic":{"active":true},"_id":"986c004"},{"custom_id":"email","field_type":"email","required":"true","field_label":"Email","placeholder":"Email","_id":"3453398"},{"custom_id":"message","field_type":"textarea","field_label":"Message","placeholder":"Message","_id":"134e6d7"},{"_id":"c9d1c91","field_type":"hcaptcha","custom_id":"field_c9d1c91"}],"step_next_label":"Next","step_previous_label":"Previous","button_text":"Send","email_to":"info@kagg.eu","email_subject":"New message from &quot;test&quot;","email_content":"[all-fields]","email_from":"email@https:\/\/test.test","email_from_name":"test","email_to_2":"info@kagg.eu","email_subject_2":"New message from &quot;test&quot;","email_content_2":"[all-fields]","email_from_2":"email@https:\/\/test.test","email_from_name_2":"test","email_reply_to_2":"info@kagg.eu","mailchimp_fields_map":[],"drip_fields_map":[],"activecampaign_fields_map":[],"getresponse_fields_map":[],"convertkit_fields_map":[],"mailerlite_fields_map":[],"success_message":"The form was sent successfully.","error_message":"An error occurred.","required_field_message":"This field is required.","invalid_message":"There&#039;s something wrong. The form is invalid.","form_id":"test_form","server_message":"Your submission failed because of a server error."},"elements":[],"widgetType":"form"}],"isInner":false}],"isInner":false}]';
 
-				$this->insert_post( 'Elementor Pro Test Page', 'elementor-pro-test', $content );
+				$this->insert_post(
+					[
+						'title'   => 'Elementor Pro Test Page',
+						'name'    => 'elementor-pro-test',
+						'content' => '<h2>Elementor Pro Form</h2>',
+					]
+				);
 
 				break;
 			case 'woocommerce/woocommerce.php':
 				// Create a new page with the WooCommerce Order Tracking shortcode.
-				$content = '[woocommerce_order_tracking]';
-
-				$this->insert_post( 'WooCommerce Order Tracking Test Page', 'wc-order-tracking-test', $content );
+				$this->insert_post(
+					[
+						'title'   => 'WooCommerce Order Tracking Test Page',
+						'name'    => 'wc-order-tracking-test',
+						'content' => '[woocommerce_order_tracking]',
+					]
+				);
 
 				break;
 			default:
@@ -174,20 +187,34 @@ class Playground {
 		switch ( $new_name ) {
 			case 'Avada':
 				// Create a new Avada form.
-				$content       = '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form_text label="Text" name="text" required="yes" /][fusion_form_email label="EMail" name="email" /][fusion_form_textarea label="Message" name="textarea" /][fusion_form_submit]Submit[/fusion_form_submit][fusion_form_notice success="VGhhbmsgeW91IGZvciB5b3VyIG1lc3NhZ2UuIEl0IGhhcyBiZWVuIHNlbnQu" error="VGhlcmUgd2FzIGFuIGVycm9yIHRyeWluZyB0byBzZW5kIHlvdXIgbWVzc2FnZS4gUGxlYXNlIHRyeSBhZ2FpbiBsYXRlci4=" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]';
-				$avada_form_id = $this->insert_post( 'Avada Test Form', 'avada-test-form', $content, 'fusion_form' );
+				$avada_form_id = $this->insert_post(
+					[
+						'title'     => 'Avada Test Form',
+						'name'      => 'avada-test-form',
+						'content'   => '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form_text label="Text" name="text" required="yes" /][fusion_form_email label="EMail" name="email" /][fusion_form_textarea label="Message" name="textarea" /][fusion_form_submit]Submit[/fusion_form_submit][fusion_form_notice success="VGhhbmsgeW91IGZvciB5b3VyIG1lc3NhZ2UuIEl0IGhhcyBiZWVuIHNlbnQu" error="VGhlcmUgd2FzIGFuIGVycm9yIHRyeWluZyB0byBzZW5kIHlvdXIgbWVzc2FnZS4gUGxlYXNlIHRyeSBhZ2FpbiBsYXRlci4=" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]',
+						'post_type' => 'fusion_form',
+					]
+				);
 
 				// Create a new page with the Avada Form shortcode.
-				$content = '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form form_post_id="' . $avada_form_id . '" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]';
-
-				$this->insert_post( 'Avada Test Page', 'avada-test', $content );
+				$this->insert_post(
+					[
+						'title'   => 'Avada Test Page',
+						'name'    => 'avada-test',
+						'content' => '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form form_post_id="' . $avada_form_id . '" /][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]',
+					]
+				);
 
 				break;
 			case 'Divi':
 				// Create a new page with the Dive Form shortcode.
-				$content = '[et_pb_section fb_built="1"][et_pb_row][et_pb_column type="4_4"][et_pb_contact_form captcha="off" email="" _module_preset="default"][et_pb_contact_field field_id="Name" field_title="Name"][/et_pb_contact_field][et_pb_contact_field field_id="Email" field_title="Email Address" field_type="email"][/et_pb_contact_field][et_pb_contact_field field_id="Message" field_title="Message" field_type="text" fullwidth_field="on"][/et_pb_contact_field][/et_pb_contact_form][/et_pb_column][/et_pb_row][/et_pb_section]';
-
-				$this->insert_post( 'Divi Test Page', 'divi-test', $content );
+				$this->insert_post(
+					[
+						'title'   => 'Divi Test Page',
+						'name'    => 'divi-test',
+						'content' => '[et_pb_section fb_built="1"][et_pb_row][et_pb_column type="4_4"][et_pb_contact_form captcha="off" email="" _module_preset="default"][et_pb_contact_field field_id="Name" field_title="Name"][/et_pb_contact_field][et_pb_contact_field field_id="Email" field_title="Email Address" field_type="email"][/et_pb_contact_field][et_pb_contact_field field_id="Message" field_title="Message" field_type="text" fullwidth_field="on"][/et_pb_contact_field][/et_pb_contact_form][/et_pb_column][/et_pb_row][/et_pb_section]',
+					]
+				);
 
 				break;
 			default:
@@ -441,15 +468,32 @@ class Playground {
 	/**
 	 * Insert a post with content.
 	 *
-	 * @param string $title     Post title.
-	 * @param string $name      Post name.
-	 * @param string $content   Post content.
-	 * @param string $post_type Post type.
+	 * @param array $args      {
+	 *                         Arguments for the post to insert.
 	 *
-	 * @return int|WP_Error
+	 * @type string $title     Post title.
+	 * @type string $name      Post name (slug).
+	 * @type string $content   Post content.
+	 * @type string $post_type Post type. Default 'page'.
+	 *                         }
+	 *
+	 * @return int|WP_Error Post ID on success, WP_Error on failure.
 	 */
-	private function insert_post( string $title, string $name, string $content, string $post_type = 'page' ) {
-		$post    = get_page_by_path( $name, OBJECT, 'fusion_form' );
+	private function insert_post( array $args ) {
+		$defaults = [
+			'title'     => '',
+			'name'      => '',
+			'content'   => '',
+			'post_type' => 'page',
+		];
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$name      = (string) $args['name'];
+		$post_type = (string) $args['post_type'];
+
+		// Check if the post already exists by path within the specified post type.
+		$post    = get_page_by_path( $name, OBJECT, $post_type );
 		$post_id = $post->ID ?? 0;
 
 		if ( $post_id ) {
@@ -459,9 +503,9 @@ class Playground {
 		return wp_insert_post(
 			[
 				'post_type'    => $post_type,
-				'post_title'   => $title,
+				'post_title'   => (string) $args['title'],
 				'post_status'  => 'publish',
-				'post_content' => $content,
+				'post_content' => (string) $args['content'],
 				'post_name'    => $name,
 			]
 		);
