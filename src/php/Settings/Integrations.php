@@ -1463,8 +1463,10 @@ class Integrations extends PluginSettingsBase {
 	protected function activate_plugin( string $plugin ): ?WP_Error {
 		$network_wide = is_multisite() && $this->is_network_wide();
 
-		// Activate plugins silently to avoid redirects.
-		$result = activate_plugin( $plugin, '', $network_wide, true );
+		// Block redirects upon plugin activation.
+		add_filter( 'wp_redirect', '__return_false' );
+
+		$result = activate_plugin( $plugin, '', $network_wide );
 
 		if ( null === $result ) {
 			/**
