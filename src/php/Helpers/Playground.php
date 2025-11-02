@@ -113,25 +113,21 @@ class Playground {
 
 		switch ( $plugin ) {
 			case 'contact-form-7/wp-contact-form-7.php':
-				// Find the preinstalled Contact Form 7 form.
-				$forms = get_posts(
+				// Create a new Contact Form 7 form.
+				$form_id = $this->insert_post(
 					[
-						'post_type'      => 'wpcf7_contact_form',
-						'post_status'    => 'publish',
-						'posts_per_page' => 1,
-						'orderby'        => 'date',
-						'order'          => 'ASC',
+						'title'   => 'Contact Form 7 Test Form',
+						'name'    => 'contact-form-7-test-form',
+						'content' => "<label> Your name\n    [text* your-name autocomplete:name] </label>\n\n<label> Your email\n    [email* your-email autocomplete:email] </label>\n\n[submit \"Submit\"]\n1\n[_site_title] \"[your-subject]\"\n[_site_title] <wordpress@test.test>\n[_site_admin_email]\nFrom: [your-name] [your-email]\nSubject: [your-subject]\n\nMessage Body:\n[your-message]\n\n--\nThis is a notification that a contact form was submitted on your website ([_site_title] [_site_url]).\nReply-To: [your-email]\n\n1\n1\n\n[_site_title] \"[your-subject]\"\n[_site_title] <wordpress@test.test>\n[your-email]\nMessage Body:\n[your-message]\n\n--\nThis email is a receipt for your contact form submission on our website ([_site_title] [_site_url]) in which your email address was used. If that was not you, please ignore this message.\nReply-To: [_site_admin_email]\n\n1\n1\nThank you for your message. It has been sent.\nThere was an error trying to send your message. Please try again later.\nOne or more fields have an error. Please check and try again.\nThere was an error trying to send your message. Please try again later.\nYou must accept the terms and conditions before sending your message.\nPlease fill out this field.\nThis field has a too long input.\nThis field has a too short input.\nThere was an unknown error uploading the file.\nYou are not allowed to upload files of this type.\nThe uploaded file is too large.\nThere was an error uploading the file.\nPlease enter a date in YYYY-MM-DD format.\nThis field has a too early date.\nThis field has a too late date.\nPlease enter a number.\nThis field has a too small number.\nThis field has a too large number.\nThe answer to the quiz is incorrect.\nPlease enter an email address.\nPlease enter a URL.\nPlease enter a telephone number.\n",
 					]
 				);
-
-				$form = reset( $forms );
 
 				// Create a new page with the Contact Form 7 shortcode.
 				$this->insert_post(
 					[
 						'title'   => 'Contact Form 7 Test Page',
 						'name'    => 'contact-form-7-test',
-						'content' => '[contact-form-7 id="' . (int) $form->ID . '"]',
+						'content' => '[contact-form-7 id="' . $form_id . '"]',
 					]
 				);
 
