@@ -191,13 +191,13 @@ describe( 'general.js basics', () => {
 		const $secret = $( "[name='hcaptcha_settings[secret_key]']" );
 
 		$mode.val( 'test_pub' ).trigger( 'change' );
-		expect( $site.attr( 'disabled' ) ).toBe( 'disabled' );
-		expect( $secret.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $site.attr( 'readonly' ) ).toBe( 'readonly' );
+		expect( $secret.attr( 'readonly' ) ).toBe( 'readonly' );
 		expect( hCaptcha.setParams ).toHaveBeenCalled();
 
 		$mode.val( 'live' ).trigger( 'change' );
-		expect( $site.attr( 'disabled' ) ).toBeUndefined();
-		expect( $secret.attr( 'disabled' ) ).toBeUndefined();
+		expect( $site.attr( 'readonly' ) ).toBeUndefined();
+		expect( $secret.attr( 'readonly' ) ).toBeUndefined();
 	} );
 
 	test( 'applyCustomThemes: bad JSON disables submit and shows error', () => {
