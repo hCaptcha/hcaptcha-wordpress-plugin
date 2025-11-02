@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Helpers;
 
+use Elementor\Plugin;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
@@ -118,63 +119,10 @@ class Playground {
 		switch ( $plugin ) {
 			case 'contact-form-7/wp-contact-form-7.php':
 				// Create a new Contact Form 7 form.
-				$form_id = $this->insert_post(
-					[
-						'title'     => 'Contact Form 7 Test Form',
-						'name'      => 'contact-form-7-test-form',
-						'post_type' => 'wpcf7_contact_form',
-					]
-				);
-
-				// Get WPCF7_ContactForm instance for this form.
-				$contact_form = WPCF7_ContactForm::get_instance( $form_id );
-
-				if ( ! $contact_form ) {
-					return;
-				}
-
-				// Build form template (what you normally put on the "Form" tab).
-				$form_template = implode(
-					"\n",
-					[
-						'<label> Your name',
-						'[text* your-name autocomplete:name] </label>',
-						'',
-						'<label> Your email',
-						'[email* your-email autocomplete:email] </label>',
-						'',
-						'[submit "Submit"]',
-					]
-				);
-
-				// Prepare mail settings (what you normally set on the "Mail" tab).
-				$mail              = $contact_form->prop( 'mail' );
-				$mail['recipient'] = get_option( 'admin_email' );
-				$mail['sender']    = 'WordPress <' . get_option( 'admin_email' ) . '>';
-				$mail['subject']   = 'New message from [your-name]';
-				$mail['body']      = implode(
-					"\n",
-					[
-						'From: [your-name] <[your-email]>',
-						'Message:',
-						'[your-message]',
-					]
-				);
-				$mail['use_html']  = false;
-
-				// Apply all properties and save.
-				$contact_form->set_properties(
-					[
-						'form' => $form_template,
-						'mail' => $mail,
-					]
-				);
-
-				// Persist to DB.
-				$contact_form->save();
+				$contact_form = $this->create_cf7_form();
 
 				// Output the shortcode to logs/admin_notice (optional).
-				$shortcode = $contact_form->shortcode();
+				$shortcode = $contact_form ? $contact_form->shortcode() : '';
 
 				// Create a new page with the Contact Form 7 shortcode.
 				$this->insert_post(
@@ -187,6 +135,8 @@ class Playground {
 
 				break;
 			case 'elementor-pro/elementor-pro.php':
+				$this->create_elementor_kit();
+
 				// Create a new page with the Elementor form.
 				$this->insert_post(
 					[
@@ -570,5 +520,97 @@ class Playground {
 		}
 
 		return wp_insert_post( $postarr );
+	}
+
+	/**
+	 * Create a new CF7 form.
+	 *
+	 * @return WPCF7_ContactForm|null
+	 */
+	private function create_cf7_form(): ?WPCF7_ContactForm {
+		// Create a new Contact Form 7 form.
+		$form_id = $this->insert_post(
+			[
+				'title'     => 'Contact Form 7 Test Form',
+				'name'      => 'contact-form-7-test-form',
+				'post_type' => 'wpcf7_contact_form',
+			]
+		);
+
+		// Get WPCF7_ContactForm instance for this form.
+		$contact_form = WPCF7_ContactForm::get_instance( $form_id );
+
+		if ( ! $contact_form ) {
+			return null;
+		}
+
+		// Build form template (what you normally put on the "Form" tab).
+		$form_template = implode(
+			"\n",
+			[
+				'<label> Your name',
+				'[text* your-name autocomplete:name] </label>',
+				'',
+				'<label> Your email',
+				'[email* your-email autocomplete:email] </label>',
+				'',
+				'[submit "Submit"]',
+			]
+		);
+
+		// Prepare mail settings (what you normally set on the "Mail" tab).
+		$mail              = $contact_form->prop( 'mail' );
+		$mail['recipient'] = get_option( 'admin_email' );
+		$mail['sender']    = 'WordPress <' . get_option( 'admin_email' ) . '>';
+		$mail['subject']   = 'New message from [your-name]';
+		$mail['body']      = implode(
+			"\n",
+			[
+				'From: [your-name] <[your-email]>',
+				'Message:',
+				'[your-message]',
+			]
+		);
+		$mail['use_html']  = false;
+
+		// Apply all properties and save.
+		$contact_form->set_properties(
+			[
+				'form' => $form_template,
+				'mail' => $mail,
+			]
+		);
+
+		// Persist to DB.
+		$contact_form->save();
+
+		return $contact_form;
+	}
+
+	/**
+	 * Create a new Elementor kit.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFieldInspection
+	 */
+	private function create_elementor_kit(): void {
+		// Create an Elementor Kit.
+		$kits = Plugin::$instance->kits_manager;
+
+		// Try to get active kit.
+		$active_kit = $kits->get_active_kit();
+
+		if ( $active_kit->get_id() ) {
+			return;
+		}
+
+		// Create a new kit and set it active.
+		$default_kit = $kits->create_default();
+
+		if ( ! $default_kit ) {
+			return;
+		}
+
+		update_option( 'elementor_active_kit', $default_kit );
 	}
 }
