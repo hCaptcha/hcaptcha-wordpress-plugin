@@ -38,11 +38,6 @@ class Playground {
 	private const HCAPTCHA_MENU_WOOCOMMERCE_ID = 'hcaptcha-menu-woocommerce';
 
 	/**
-	 * Script handle.
-	 */
-	private const HANDLE = 'hcaptcha-playground';
-
-	/**
 	 * Playground data.
 	 *
 	 * @var array
@@ -82,8 +77,6 @@ class Playground {
 		add_action( 'switch_theme', [ $this, 'setup_theme' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 100 );
 	}
 
@@ -239,6 +232,10 @@ class Playground {
 	public function head_styles(): void {
 		?>
 		<style>
+			body.is-embedded #wpadminbar {
+				margin-top: 4px;
+			}
+
 			#wpadminbar #wp-admin-bar-hcaptcha-menu {
 				background: #00bbbf;
 			}
@@ -263,23 +260,6 @@ class Playground {
 			}
 		</style>
 		<?php
-	}
-
-	/**
-	 * Enqueue scripts.
-	 *
-	 * @return void
-	 */
-	public function enqueue_scripts(): void {
-		$min = hcap_min_suffix();
-
-		wp_enqueue_script(
-			self::HANDLE,
-			HCAPTCHA_URL . "/assets/js/playground$min.js",
-			[],
-			HCAPTCHA_VERSION,
-			true
-		);
 	}
 
 	/**
