@@ -28,6 +28,11 @@ class Playground {
 	private const HCAPTCHA_MENU_ID = 'hcaptcha-menu';
 
 	/**
+	 * WordPress group ID for the admin bar menu.
+	 */
+	private const HCAPTCHA_MENU_WORDPRESS_ID = 'hcaptcha-menu-wordpress';
+
+	/**
 	 * Woocommerce group ID for the admin bar menu.
 	 */
 	private const HCAPTCHA_MENU_WOOCOMMERCE_ID = 'hcaptcha-menu-woocommerce';
@@ -250,22 +255,31 @@ class Playground {
 			]
 		);
 
-		// WP Login page.
+		// WordPress group.
+		$bar->add_node(
+			[
+				'id'     => self::HCAPTCHA_MENU_WORDPRESS_ID,
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'WordPress Core', 'hcaptcha-for-forms-and-more' ),
+			]
+		);
+
+		// WordPress Login page.
 		$bar->add_node(
 			[
 				'id'     => 'hcaptcha-menu-wp-login',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'WP Login', 'hcaptcha-for-forms-and-more' ),
+				'parent' => self::HCAPTCHA_MENU_WORDPRESS_ID,
+				'title'  => __( 'Login', 'hcaptcha-for-forms-and-more' ),
 				'href'   => home_url( '/wp-login.php?action=logout' ),
 			]
 		);
 
-		// WP Comments.
+		// WordPress Comments.
 		$bar->add_node(
 			[
 				'id'     => 'hcaptcha-menu-wp-comments',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'WP Comments', 'hcaptcha-for-forms-and-more' ),
+				'parent' => self::HCAPTCHA_MENU_WORDPRESS_ID,
+				'title'  => __( 'Comments', 'hcaptcha-for-forms-and-more' ),
 				'href'   => home_url( '?p=1' ),
 			]
 		);
@@ -324,7 +338,7 @@ class Playground {
 			[
 				'id'     => 'hcaptcha-menu-wc-checkout',
 				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'title'  => __( 'WooCommerce Checkout', 'hcaptcha-for-forms-and-more' ),
+				'title'  => __( 'Checkout', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'woocommerce_status', home_url( '/checkout/' ) ),
 			]
 		);
@@ -334,7 +348,7 @@ class Playground {
 			[
 				'id'     => 'hcaptcha-menu-wc-login-register',
 				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'title'  => __( 'WooCommerce Login / Register', 'hcaptcha-for-forms-and-more' ),
+				'title'  => __( 'Login/Register', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'woocommerce_status', home_url( '/my-account/' ) ),
 			]
 		);
@@ -344,7 +358,7 @@ class Playground {
 			[
 				'id'     => 'hcaptcha-menu-wc-order-tracking',
 				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'title'  => __( 'WooCommerce Order Tracking', 'hcaptcha-for-forms-and-more' ),
+				'title'  => __( 'Order Tracking', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'woocommerce_status', home_url( '/wc-order-tracking/' ) ),
 			]
 		);
