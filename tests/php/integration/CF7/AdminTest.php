@@ -152,7 +152,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test init_hooks() when not on CF7 admin page.
+	 * Test init_hooks() when not on the CF7 admin page.
 	 *
 	 * @return void
 	 */
@@ -675,7 +675,7 @@ HTML;
 	}
 
 	/**
-	 * Test update_form() with bad ajax referer.
+	 * Test update_form() with a bad ajax referer.
 	 *
 	 * @return void
 	 */

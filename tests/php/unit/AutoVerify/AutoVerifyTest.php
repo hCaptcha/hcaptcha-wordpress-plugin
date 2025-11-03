@@ -30,7 +30,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	private const WIDGET_ID_VALUE = 'some_widget_id_value';
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -61,7 +61,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test content_filter() on frontend.
+	 * Test content_filter() on the frontend.
 	 */
 	public function test_content_filter_on_frontend(): void {
 		FunctionMocker::replace(
@@ -81,7 +81,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test content_filter() not on frontend.
+	 * Test content_filter() not on the frontend.
 	 */
 	public function test_content_filter_not_on_frontend(): void {
 		FunctionMocker::replace(
@@ -97,7 +97,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test widget_block_content_filter() on frontend.
+	 * Test widget_block_content_filter() on the frontend.
 	 */
 	public function test_widget_block_content_filter_on_frontend(): void {
 		FunctionMocker::replace(
@@ -183,7 +183,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_enqueue_scripts( $registry, $times ): void {
+	public function test_enqueue_scripts( array $registry, int $times ): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min            = '.min';
@@ -331,7 +331,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test verify() when form is not registered.
+	 * Test verify() when the form is not registered.
 	 */
 	public function test_verify_when_form_is_not_registered(): void {
 		$url = 'https://test.test/auto-verify?test=1';
@@ -389,9 +389,6 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			],
 		];
 
-		$action = $registered_form['args']['action'] ?? '';
-		$name   = $registered_form['args']['name'] ?? '';
-
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
 			true
@@ -444,9 +441,6 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				'ajax'   => true,
 			],
 		];
-
-		$action = $registered_form['args']['action'] ?? '';
-		$name   = $registered_form['args']['name'] ?? '';
 
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::is_frontend',
@@ -945,7 +939,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				value="' . self::WIDGET_ID_VALUE . '">
 	<div
 			class="h-captcha"
-			data-sitekey="95d60c5a-68cf-4db1-a583-6a22bdd558f2"
+			data-sitekey="some key"
 			data-theme="light"
 			data-size="normal"
 			data-auto="true">
