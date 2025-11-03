@@ -33,7 +33,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 	 * Test do_shortcode_tag().
 	 */
 	public function test_do_shortcode_tag(): void {
-		$site_key  = 'some site key';
+		$site_key  = '10000000-ffff-ffff-ffff-000000000001';
 		$theme     = 'some theme';
 		$size      = 'some size';
 		$args      = [

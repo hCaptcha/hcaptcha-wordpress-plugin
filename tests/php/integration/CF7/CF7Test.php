@@ -160,7 +160,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		];
 		$uniqid            = 'hcap_cf7-6004092a854114.24546665';
 		$nonce             = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
-		$hcaptcha_site_key = 'some site key';
+		$hcaptcha_site_key = '10000000-ffff-ffff-ffff-000000000001';
 		$hcaptcha_theme    = 'some theme';
 		$hcaptcha_size     = 'normal';
 		$id                = [
@@ -192,18 +192,6 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$hp_name  = 'hcap_hp_test';
-		$hp_sig   = wp_create_nonce( $hp_name );
-		$hp_field = <<<HTML
-		<label for="$hp_name"></label>
-		<input
-				type="text" id="$hp_name" name="$hp_name" value=""
-				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
-				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
-		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
-		
-HTML;
-
 		$expected_form =
 			'<form>' .
 			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
@@ -216,7 +204,7 @@ HTML;
 			data-ajax="false"
 			data-force="false">' . '
 		</span>
-		' . $nonce . $hp_field .
+		' . $nonce . $this->get_hp_field( $id ) .
 			'</span><input type="submit" value="Send">' .
 			'</form>';
 

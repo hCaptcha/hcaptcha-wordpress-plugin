@@ -171,7 +171,7 @@ class Settings implements SettingsInterface {
 		if (
 			$this->is_on( 'custom_themes' ) &&
 			$this->is_pro_or_general() &&
-			$this->is( 'mode', 'live' )
+			General::MODE_LIVE === $this->get_mode()
 		) {
 			$bg = $this->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? $bg;
 		}

@@ -519,6 +519,13 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			}
 		);
 
+		add_filter(
+			'hcap_mode',
+			static function ( $mode ) {
+				return 'live';
+			}
+		);
+
 		$expected = <<<CSS
 	.h-captcha {
 		position: relative;

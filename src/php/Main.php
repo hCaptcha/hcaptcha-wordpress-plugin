@@ -147,6 +147,13 @@ class Main {
 	private $active;
 
 	/**
+	 * Supported forms.
+	 *
+	 * @var ?array $supported_forms
+	 */
+	private $supported_forms;
+
+	/**
 	 * Init class.
 	 *
 	 * @return void
@@ -226,7 +233,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
-		add_action( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
+		add_filter( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -865,15 +872,8 @@ class Main {
 	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
 		$value = (bool) $value;
 
-		/**
-		 * Supported forms.
-		 *
-		 * @var ?array $supported_forms
-		 */
-		static $supported_forms = null;
-
-		if ( null === $supported_forms ) {
-			$supported_forms = [];
+		if ( null === $this->supported_forms ) {
+			$this->supported_forms = [];
 
 			// Use honeypot protection info only, as FST is always added for honeypot forms.
 			$honeypot_protected_forms = Honeypot::get_protected_forms()['honeypot'];
@@ -897,11 +897,11 @@ class Main {
 				$module_source = (array) $module_source;
 				$module_source = [ '' ] === $module_source ? [ 'WordPress' ] : $module_source;
 
-				$supported_forms[] = $module_source;
+				$this->supported_forms[] = $module_source;
 			}
 
-			$supported_forms = array_merge(
-				array_unique( $supported_forms, SORT_REGULAR ),
+			$this->supported_forms = array_merge(
+				array_unique( $this->supported_forms, SORT_REGULAR ),
 				[
 					[ General::class ], // General settings page.
 					[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
@@ -909,7 +909,7 @@ class Main {
 			);
 		}
 
-		if ( $source && ! in_array( $source, $supported_forms, true ) ) {
+		if ( $source && ! in_array( $source, $this->supported_forms, true ) ) {
 			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
 			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
 		}

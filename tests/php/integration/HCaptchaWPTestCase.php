@@ -50,9 +50,6 @@ class HCaptchaWPTestCase extends WPTestCase {
 					// Set min submit time and honeypot for tests.
 					$form_fields['set_min_submit_time']['default'] = 'on';
 					$form_fields['honeypot']['default']            = 'on';
-
-					// Set live mode, as many tests require it.
-					$form_fields['mode']['default'] = 'live';
 				}
 
 				return $form_fields;
@@ -158,6 +155,35 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
+	 * Get a honeypot field.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return string
+	 */
+	protected function get_hp_field( array $id ): string {
+		$hp_name  = 'hcap_hp_test';
+		$hp_sig   = wp_create_nonce( $hp_name );
+		$hp_field = <<<HTML
+		<label for="$hp_name"></label>
+		<input
+				type="text" id="$hp_name" name="$hp_name" value=""
+				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
+				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
+		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
+		
+HTML;
+
+		$source  = (array) ( $id['source'] ?? [] );
+		$form_id = $id['form_id'] ?? 0;
+
+		// This method allows/disallows honeypot and fst.
+		hcaptcha()->allow_honeypot_and_fst( true, $source, $form_id );
+
+		return hcaptcha()->settings()->is_on( 'honeypot' ) ? $hp_field : '';
+	}
+
+	/**
 	 * Return HCaptcha::form_display() content.
 	 *
 	 * @param array $args Arguments.
@@ -173,18 +199,6 @@ class HCaptchaWPTestCase extends WPTestCase {
 			$nonce_field = wp_nonce_field( $args['action'], $args['name'], true, false );
 		}
 
-		$hp_name  = 'hcap_hp_test';
-		$hp_sig   = wp_create_nonce( $hp_name );
-		$hp_field = <<<HTML
-		<label for="$hp_name"></label>
-		<input
-				type="text" id="$hp_name" name="$hp_name" value=""
-				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
-				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
-		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
-		
-HTML;
-
 		return $this->get_hcap_widget( $args['id'] ) . '
 				<h-captcha
 			class="h-captcha"
@@ -195,7 +209,7 @@ HTML;
 			data-ajax="' . ( $args['ajax'] ? 'true' : 'false' ) . '"
 			data-force="' . ( $args['force'] ? 'true' : 'false' ) . '">
 		</h-captcha>
-		' . $nonce_field . $hp_field;
+		' . $nonce_field . $this->get_hp_field( $args['id'] );
 	}
 
 	/**
@@ -208,7 +222,7 @@ HTML;
 	private function prepare_hcap_form_args( array $args ): array {
 		$args = array_merge(
 			[
-				'sitekey' => '',
+				'sitekey' => General::MODE_TEST_PUBLISHER_SITE_KEY,
 				'action'  => '',
 				'name'    => '',
 				'auto'    => false,
@@ -267,7 +281,8 @@ HTML;
 			$raw_response = '';
 		}
 
-		$hcaptcha_secret_key = 'some secret key';
+		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+		$hcaptcha_secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 
 		$hcaptcha_settings = (array) get_option( 'hcaptcha_settings', [] );
 		$hcaptcha_settings = array_merge(

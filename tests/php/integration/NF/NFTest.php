@@ -311,7 +311,7 @@ JSON;
 			'settings' => [],
 		];
 
-		$hcaptcha_site_key = 'some key';
+		$hcaptcha_site_key = '10000000-ffff-ffff-ffff-000000000001';
 		$hcaptcha_theme    = 'some theme';
 		$hcaptcha_size     = 'some size';
 		$uniqid            = 'hcaptcha-nf-625d3b9b318fc0.86180601';
@@ -338,36 +338,24 @@ JSON;
 			}
 		);
 
-		$hp_name  = 'hcap_hp_test';
-		$hp_sig   = wp_create_nonce( $hp_name );
-		$hp_field = <<<HTML
-		<label for="$hp_name"></label>
-		<input
-				type="text" id="$hp_name" name="$hp_name" value=""
-				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
-				style="position:absolute; left:-9999px; top:auto; height:0; width:0; opacity:0;"/>
-		<input type="hidden" name="hcap_hp_sig" value="$hp_sig"/>
-		
-HTML;
+		$expected    = $field;
+		$id          = [
+			'source'  => [ 'ninja-forms/ninja-forms.php' ],
+			'form_id' => $form_id,
+		];
+		$hcap_widget = $this->get_hcap_widget( $id );
 
-		$expected                         = $field;
-		$hcap_widget                      = $this->get_hcap_widget(
-			[
-				'source'  => [ 'ninja-forms/ninja-forms.php' ],
-				'form_id' => $form_id,
-			]
-		);
 		$expected['settings']['hcaptcha'] =
 			$hcap_widget . "\n" . '				<h-captcha id="' . $uniqid . '" data-fieldId="' . $field_id . '"
 			class="h-captcha"
-			data-sitekey="some key"
+			data-sitekey="10000000-ffff-ffff-ffff-000000000001"
 			data-theme="some theme"
 			data-size="some size"
 			data-auto="false"
 			data-ajax="false"
 			data-force="false">
 		</h-captcha>
-		' . $hp_field;
+		' . $this->get_hp_field( $id );
 
 		$subject = new NF();
 		$subject->set_form_id( $form_id );

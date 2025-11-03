@@ -87,8 +87,10 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_pre_option(): void {
 		$pre_option    = 'some_pre_option_value';
 		$default_value = 'some_default_value';
-		$site_key      = 'some_site_key';
-		$secret_key    = 'some_secret_key';
+		$site_key      = '10000000-ffff-ffff-ffff-000000000001';
+
+		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+		$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
 
 		update_option(
 			'hcaptcha_settings',
@@ -396,14 +398,6 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 		$form      = Mockery::mock( FluentForm::class );
 		$fields    = [];
-		$die_arr   = [];
-		$expected  = [
-			'',
-			'',
-			[
-				'response' => null,
-			],
-		];
 
 		$array_helper = Mockery::mock( 'alias:' . ArrayHelper::class );
 

@@ -745,7 +745,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test render_field.
 	 */
 	public function test_render_field(): void {
-		$site_key = 'some site key';
+		$site_key = '10000000-ffff-ffff-ffff-000000000001';
 		$theme    = 'some theme';
 		$size     = 'some size';
 
