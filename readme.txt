@@ -776,6 +776,7 @@ Instructions for popular native integrations are below:
 * Fixed 'Bad hCaptcha nonce' error with a direct `/wp-login.php?action=postpass` request.
 * Fixed plugin activation on the Integrations page, executing activation hooks.
 * Fixed detection of the editor pages when hCaptcha is disabled for logged-in users.
+* Fixed Elementor Pro Form with default hCaptcha settings.
 
 = 4.18.0 =
 * Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Contact Form 7 Live Form, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.
