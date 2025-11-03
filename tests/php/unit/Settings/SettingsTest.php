@@ -529,22 +529,22 @@ class SettingsTest extends HCaptchaTestCase {
 			[
 				General::MODE_TEST_PUBLISHER,
 				[
-					'site_key'   => '10000000-ffff-ffff-ffff-000000000001',
-					'secret_key' => '0' . 'x' . '0000000000000000000000000000000000000000',
+					'site_key'   => General::MODE_TEST_PUBLISHER_SITE_KEY,
+					'secret_key' => General::MODE_TEST_SECRET_KEY,
 				],
 			],
 			[
 				General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
 				[
-					'site_key'   => '20000000-ffff-ffff-ffff-000000000002',
-					'secret_key' => '0' . 'x' . '0000000000000000000000000000000000000000',
+					'site_key'   => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
+					'secret_key' => General::MODE_TEST_SECRET_KEY,
 				],
 			],
 			[
 				General::MODE_TEST_ENTERPRISE_BOT_DETECTED,
 				[
-					'site_key'   => '30000000-ffff-ffff-ffff-000000000003',
-					'secret_key' => '0' . 'x' . '0000000000000000000000000000000000000000',
+					'site_key'   => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
+					'secret_key' => General::MODE_TEST_SECRET_KEY,
 				],
 			],
 			[

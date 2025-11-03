@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Tests\Integration\WPForms;
 
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WPForms\Form;
 use Mockery;
@@ -617,7 +618,7 @@ CSS;
 				'recaptcha' => '1',
 			],
 		];
-		$site_key    = '10000000-ffff-ffff-ffff-000000000001';
+		$site_key    = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$deprecated  = null;
 		$title       = 'some title';
 		$description = 'some description';

@@ -282,7 +282,7 @@ HTML;
 		}
 
 		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
-		$hcaptcha_secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+		$hcaptcha_secret_key = General::MODE_TEST_SECRET_KEY;
 
 		$hcaptcha_settings = (array) get_option( 'hcaptcha_settings', [] );
 		$hcaptcha_settings = array_merge(

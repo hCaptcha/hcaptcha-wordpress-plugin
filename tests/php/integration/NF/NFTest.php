@@ -13,6 +13,7 @@ namespace HCaptcha\Tests\Integration\NF;
 use HCaptcha\NF\Base;
 use HCaptcha\NF\Field;
 use HCaptcha\NF\NF;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Ninja_Forms;
 use ReflectionException;
@@ -311,7 +312,7 @@ JSON;
 			'settings' => [],
 		];
 
-		$hcaptcha_site_key = '10000000-ffff-ffff-ffff-000000000001';
+		$hcaptcha_site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$hcaptcha_theme    = 'some theme';
 		$hcaptcha_size     = 'some size';
 		$uniqid            = 'hcaptcha-nf-625d3b9b318fc0.86180601';

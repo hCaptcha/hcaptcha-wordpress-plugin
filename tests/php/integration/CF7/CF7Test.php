@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\CF7;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
@@ -160,7 +161,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		];
 		$uniqid            = 'hcap_cf7-6004092a854114.24546665';
 		$nonce             = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
-		$hcaptcha_site_key = '10000000-ffff-ffff-ffff-000000000001';
+		$hcaptcha_site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$hcaptcha_theme    = 'some theme';
 		$hcaptcha_size     = 'normal';
 		$id                = [

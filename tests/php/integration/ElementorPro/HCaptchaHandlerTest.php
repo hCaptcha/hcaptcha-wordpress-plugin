@@ -22,6 +22,7 @@ use Elementor\Widget_Base;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -431,7 +432,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test get_site_key().
 	 */
 	public function test_get_site_key(): void {
-		$site_key = '10000000-ffff-ffff-ffff-000000000001';
+		$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $site_key ] );
 		hcaptcha()->init_hooks();
@@ -444,7 +445,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_get_secret_key(): void {
 		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
-		$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+		$secret_key = General::MODE_TEST_SECRET_KEY;
 
 		update_option( 'hcaptcha_settings', [ 'secret_key' => $secret_key ] );
 		hcaptcha()->init_hooks();
@@ -547,7 +548,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		$site_key   = '10000000-ffff-ffff-ffff-000000000001';
+		$site_key   = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$secret_key = 'some secret key';
 		$theme      = 'some theme';
 		$size       = 'some size';
@@ -745,7 +746,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test render_field.
 	 */
 	public function test_render_field(): void {
-		$site_key = '10000000-ffff-ffff-ffff-000000000001';
+		$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$theme    = 'some theme';
 		$size     = 'some size';
 
@@ -1167,10 +1168,10 @@ CSS;
 	 */
 	protected function prepare_test_init( bool $is_enabled, bool $is_admin, bool $is_preview ): void {
 		if ( $is_enabled ) {
-			$site_key = '10000000-ffff-ffff-ffff-000000000001';
+			$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 
 			// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
-			$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+			$secret_key = General::MODE_TEST_SECRET_KEY;
 		} else {
 			$site_key   = '';
 			$secret_key = '';

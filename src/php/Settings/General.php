@@ -128,6 +128,11 @@ class General extends PluginSettingsBase {
 	public const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
 	/**
+	 * Test secret key.
+	 */
+	public const MODE_TEST_SECRET_KEY = '0' . 'x' . '0000000000000000000000000000000000000000'; // phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+
+	/**
 	 * User settings meta.
 	 */
 	public const USER_SETTINGS_META = 'hcaptcha_user_settings';

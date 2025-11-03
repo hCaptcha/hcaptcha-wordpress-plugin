@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\WC;
 
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\OrderTracking;
 
@@ -33,7 +34,7 @@ class OrderTrackingTest extends HCaptchaWPTestCase {
 	 * Test do_shortcode_tag().
 	 */
 	public function test_do_shortcode_tag(): void {
-		$site_key  = '10000000-ffff-ffff-ffff-000000000001';
+		$site_key  = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$theme     = 'some theme';
 		$size      = 'some size';
 		$args      = [
