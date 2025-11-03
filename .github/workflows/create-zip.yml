@@ -1,10 +1,19 @@
 name: Create zip file
-on: workflow_dispatch
-jobs:
-  tag:
-    name: New zip file
 
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-zip:
+    name: New zip file
     runs-on: ubuntu-latest
+
+    if: >
+      (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[zip]'))
 
     env:
       SLUG: "hcaptcha-for-forms-and-more"
@@ -18,7 +27,7 @@ jobs:
         with:
           composer-options: "--no-dev --optimize-autoloader --classmap-authoritative"
 
-      - name: Install packages
+      - name: Install JS packages
         run: |
           corepack enable
           yarn set version stable
@@ -27,10 +36,14 @@ jobs:
 
       - name: Get version from PHP file
         id: get_version
+        shell: bash
         run: |
           VERSION=$(grep -oP "const HCAPTCHA_VERSION = '\K[^']+" hcaptcha.php)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Create zip file
+        id: make_zip
+        shell: bash
         run: |
           echo "➤ Creating target directory..."
           mkdir -p trunk/${SLUG}
@@ -38,14 +51,26 @@ jobs:
           rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" trunk/${SLUG}/ --delete --delete-excluded
           echo "➤ Generating zip file..."
           cd trunk
-          zip -r "${{github.workspace}}/${{ env.SLUG }}.${{ env.VERSION }}.zip" .
+          zip -r "${{ github.workspace }}/${{ env.SLUG }}.${{ env.VERSION }}.zip" .
           echo "zip-path=${GITHUB_WORKSPACE}/${SLUG}.${VERSION}.zip" >> "${GITHUB_OUTPUT}"
           echo "✓ Zip file generated!"
 
-      - name: Upload release asset
+      - name: Create pre-release (published) and upload asset
         uses: hCaptcha/action-gh-release@ab50eebb6488051c6788d97fa95232267c6a4e23
         with:
-          files: ${{github.workspace}}/${{ env.SLUG }}.${{ env.VERSION }}.zip
-          draft: true
+          files: ${{ github.workspace }}/${{ env.SLUG }}.${{ env.VERSION }}.zip
+          draft: false
+          prerelease: true
+          tag_name: v${{ env.VERSION }}
+          name: "v${{ env.VERSION }} (build ${{ github.run_number }})"
+          body: |
+            Automated pre-release for testing.
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print release URL
+        run: |
+          echo "Use URL in blueprint:"
+          echo "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.SLUG }}.${{ env.VERSION }}.zip"

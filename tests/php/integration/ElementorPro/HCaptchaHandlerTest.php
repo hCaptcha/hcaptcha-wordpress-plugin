@@ -22,6 +22,7 @@ use Elementor\Widget_Base;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -431,7 +432,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test get_site_key().
 	 */
 	public function test_get_site_key(): void {
-		$site_key = 'some site key';
+		$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $site_key ] );
 		hcaptcha()->init_hooks();
@@ -443,7 +444,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test get_secret_key().
 	 */
 	public function test_get_secret_key(): void {
-		$secret_key = 'some secret key';
+		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+		$secret_key = General::MODE_TEST_SECRET_KEY;
 
 		update_option( 'hcaptcha_settings', [ 'secret_key' => $secret_key ] );
 		hcaptcha()->init_hooks();
@@ -496,19 +498,18 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function test_is_enabled( $site_key, $secret_key, bool $expected ): void {
-		$settings = [];
-
-		if ( $site_key ) {
-			$settings['site_key'] = $site_key;
-		}
-
-		if ( $secret_key ) {
-			$settings['secret_key'] = $secret_key;
-		}
-
-		if ( $settings ) {
-			update_option( 'hcaptcha_settings', $settings );
-		}
+		add_filter(
+			'hcap_site_key',
+			static function () use ( $site_key ) {
+				return $site_key;
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function () use ( $secret_key ) {
+				return $secret_key;
+			}
+		);
 
 		hcaptcha()->init_hooks();
 
@@ -547,7 +548,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			],
 		];
 
-		$site_key   = 'some site key';
+		$site_key   = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$secret_key = 'some secret key';
 		$theme      = 'some theme';
 		$size       = 'some size';
@@ -745,7 +746,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test render_field.
 	 */
 	public function test_render_field(): void {
-		$site_key = 'some site key';
+		$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$theme    = 'some theme';
 		$size     = 'some size';
 
@@ -1160,21 +1161,34 @@ CSS;
 	 * Prepare test_init().
 	 *
 	 * @param bool $is_enabled The field is enabled.
-	 * @param bool $is_admin Admin mode.
+	 * @param bool $is_admin   Admin mode.
 	 * @param bool $is_preview Elementor preview page.
 	 *
 	 * @return void
 	 */
 	protected function prepare_test_init( bool $is_enabled, bool $is_admin, bool $is_preview ): void {
 		if ( $is_enabled ) {
-			update_option(
-				'hcaptcha_settings',
-				[
-					'site_key'   => 'some site key',
-					'secret_key' => 'some secret key',
-				]
-			);
+			$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
+
+			// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+			$secret_key = General::MODE_TEST_SECRET_KEY;
+		} else {
+			$site_key   = '';
+			$secret_key = '';
 		}
+
+		add_filter(
+			'hcap_site_key',
+			static function () use ( $site_key ) {
+				return $site_key;
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function () use ( $secret_key ) {
+				return $secret_key;
+			}
+		);
 
 		hcaptcha()->init_hooks();
 

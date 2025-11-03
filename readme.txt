@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 4.18.0
+Stable tag: 4.19.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -626,9 +626,9 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 `parent`: a string — the parent menu item. Default '' for 'pages' mode and 'options-general.php' for 'tabs' mode;
 `position`: a number — the position of the menu item. Default 58.990225 for 'pages' mode. It Has no effect on 'tabs' mode;
 
-= How can I report security bugs? =
+= Where do I report security bugs found in this plugin? =
 
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/wordpress/plugin/hcaptcha-for-forms-and-more/vdp)
+Please report security bugs found in the source code of the undefined plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 = Where can I get more information about hCaptcha? =
 
@@ -758,6 +758,26 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.19.0 =
+* Added Elementor Safe Mode information to the System Info admin page.
+* Added Patchstack security program support.
+* Added support for WP Multisite Signup form.
+* Added support for a Theme My Login Multisite Signup form.
+* Added test mode by default on the first installation.
+* Improved a page speed load via passive event listeners.
+* Improved the notification message on the placeholder when hCaptcha is not loaded.
+* Fixed the delay showing hCaptcha when a WP Login form is protected.
+* Fixed the delay showing hCaptcha when a Colorlib Customizer Login form is protected.
+* Fixed the delay showing hCaptcha when an Easy Digital Download Login form is protected.
+* Fixed Ajax requests on admin pages with WP Playground.
+* Fixed the JS error on Forms and Events admin pages with empty data.
+* Fixed a fatal error when only Elementor is installed without Pro.
+* Fixed 'Bad hCaptcha nonce' error with a direct `/wp-login.php?action=postpass` request.
+* Fixed plugin activation on the Integrations page, executing activation hooks.
+* Fixed detection of the editor pages when hCaptcha is disabled for logged-in users.
+* Fixed Elementor Pro Form with default hCaptcha settings.
+* Fixed the zero size of the placeholder with default settings.
 
 = 4.18.0 =
 * Added honeypot and minimum submit time support for Blocksy, Brevo, CoBlocks, Contact Form 7 Live Form, Download Manager, Essential Blocks, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Kadence, MailPoet, Otter, Password Protected, Ultimate Addons for Elementor, and Wordfence.

@@ -130,8 +130,9 @@ const forms = function( $ ) {
 	}
 
 	initChart();
+
 	hCaptchaSettingsBase.showSuccessMessage( HCaptchaFormsObject.bulkMessage );
-	document.getElementById( 'doaction' ).addEventListener( 'click', handleBulkAction );
+	document.getElementById( 'doaction' )?.addEventListener( 'click', handleBulkAction );
 };
 
 window.hCaptchaForms = forms;

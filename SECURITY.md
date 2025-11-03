@@ -4,9 +4,9 @@ We in hCaptcha take the security of our software products and services seriously
 
 If you believe you have found a security vulnerability in any hCaptcha-owned repository, please report it to us as described below.
 
-## How can I report security bugs?
+## Where do I report security bugs found in this plugin?
 
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/wordpress/plugin/hcaptcha-for-forms-and-more/vdp)
+Please report security bugs found in the source code of the undefined plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 

@@ -1,41 +1,12 @@
 {
-  "landingPage": "/wp-admin/options-general.php?page=hcaptcha&tab=general",
-  "preferredVersions": {
-    "php": "8.0",
-    "wp": "latest"
-  },
-  "phpExtensionBundles": [
-    "kitchen-sink"
+  "landingPage": "wp-admin/admin.php?page=hcaptcha",
+  "plugins": [
+    "hcaptcha-for-forms-and-more"
   ],
   "features": {
     "networking": true
   },
   "steps": [
-    {
-      "step": "login",
-      "username": "admin",
-      "password": "password"
-    },
-    {
-      "step": "installPlugin",
-      "pluginData": {
-        "resource": "wordpress.org/plugins",
-        "slug": "hcaptcha-for-forms-and-more"
-      },
-      "options": {
-        "activate": true
-      }
-    },
-    {
-      "step": "installPlugin",
-      "pluginData": {
-        "resource": "wordpress.org/plugins",
-        "slug": "contact-form-7"
-      },
-      "options": {
-        "activate": true
-      }
-    },
     {
       "step": "setSiteOptions",
       "options": {
@@ -47,11 +18,37 @@
             "password_protected",
             "register"
           ],
+          "avada_status": [
+            "form"
+          ],
           "cf7_status": [
             "form",
             "embed",
             "live",
             "replace_rsc"
+          ],
+          "divi_status": [
+            "comment",
+            "contact",
+            "email_optin",
+            "login"
+          ],
+          "elementor_pro_status": [
+            "form",
+            "login"
+          ],
+          "extra_status": [
+            "comment",
+            "contact",
+            "email_optin",
+            "login"
+          ],
+          "woocommerce_status": [
+            "checkout",
+            "login",
+            "lost_pass",
+            "order_tracking",
+            "register"
           ],
           "_network_wide": [],
           "off_when_logged_in": [],
@@ -113,13 +110,9 @@
       }
     },
     {
-      "step": "runPHP",
-      "code": "<?php require_once '/wordpress/wp-load.php'; \\HCaptcha\\Admin\\Events\\Events::create_table(); $forms = get_posts( [ 'post_type' => 'wpcf7_contact_form', 'post_status' => 'publish', 'posts_per_page' => 1 ] ); $form = reset( $forms ); $shortcode = '[contact-form-7 id=\"' . (int) $form->ID . '\"]'; $page_id = wp_insert_post( [ 'post_type' => 'page', 'post_title' => 'Contact Form 7 Test Page', 'post_status' => 'publish', 'post_content' => $shortcode, 'post_name' => 'contact-form-7-test' ] ); update_option( 'page_on_front', $page_id ); update_option( 'show_on_front', 'page' );"
-    },
-    {
       "step": "writeFile",
       "path": "/wordpress/wp-content/mu-plugins/hcaptcha.php",
-      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); ?>"
+      "data": "<?php add_filter( 'wpcf7_skip_mail', '__return_true' ); add_filter( 'pre_wp_mail', '__return_true' );"
     }
   ]
 }

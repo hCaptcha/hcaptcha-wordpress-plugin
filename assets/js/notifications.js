@@ -87,10 +87,11 @@ const notifications = ( $ ) => {
 			return false;
 		}
 
-		let index = 0;
+		let index = -1;
 
 		$notifications.each( function( i ) {
-			if ( $( this ).is( ':visible' ) ) {
+			// In jsdom, jQuery(':visible') can be unreliable due to zero dimensions; rely on CSS display instead
+			if ( $( this ).css( 'display' ) !== 'none' ) {
 				index = i;
 				return false;
 			}
@@ -167,7 +168,7 @@ const notifications = ( $ ) => {
 		return false;
 	} );
 
-	$( optionsSelector ).on( 'click', navSelectors, function( event ) {
+	function handleNavClick( event ) {
 		let direction = 1;
 
 		if ( $( event.target ).hasClass( 'prev' ) ) {
@@ -175,7 +176,6 @@ const notifications = ( $ ) => {
 		}
 
 		const index = getVisibleNotificationIndex();
-
 		const newIndex = index + direction;
 
 		if ( index >= 0 && newIndex !== index && newIndex >= 0 && newIndex < $notifications.length ) {
@@ -185,7 +185,18 @@ const notifications = ( $ ) => {
 			setButtons();
 			normalizeNotificationHeight();
 		}
-	} );
+	}
+
+	// Test hook for Jest
+	// noinspection JSUnresolvedReference
+	if ( typeof jest !== 'undefined' ) {
+		window.__notificationsTest = {
+			handleNavClick,
+			setNavStatus,
+		};
+	}
+
+	$( optionsSelector ).on( 'click', navSelectors, handleNavClick );
 
 	$( resetBtnSelector ).on( 'click', function() {
 		const data = {
@@ -215,6 +226,11 @@ const notifications = ( $ ) => {
 
 	// Initialize notification heights.
 	normalizeNotificationHeight();
+	// Initialize navigation status on a load
+	setNavStatus();
 };
+
+// Expose initializer for tests and potential manual bootstrapping
+window.hCaptchaNotifications = notifications;
 
 jQuery( document ).ready( notifications );

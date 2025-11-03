@@ -34,6 +34,13 @@ class Login {
 	private $error_message;
 
 	/**
+	 * Login form shown.
+	 *
+	 * @var bool
+	 */
+	private $login_form_shown = false;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -66,6 +73,8 @@ class Login {
 		if ( 'edd/login' !== $block['blockName'] || ! did_action( 'edd_login_fields_after' ) ) {
 			return $block_content;
 		}
+
+		$this->login_form_shown = true;
 
 		$args = [
 			'action' => self::ACTION,
@@ -138,6 +147,6 @@ class Login {
 	 */
 	public function delay_api( $delay ): int {
 		// Do not delay API request on login forms for compatibility with password managers.
-		return 0;
+		return $this->login_form_shown ? 0 : (int) $delay;
 	}
 }

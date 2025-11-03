@@ -359,11 +359,13 @@ abstract class HCaptchaTestCase extends TestCase {
 				'autocomplete' => 'nickname',
 				'lp_ignore'    => 'true',
 				'section'      => General::SECTION_KEYS,
+				'helper'       => 'To fill out the site key, set Mode to Live.',
 			],
 			'secret_key'               => [
 				'label'   => 'Secret Key',
 				'type'    => 'password',
 				'section' => General::SECTION_KEYS,
+				'helper'  => 'To fill out the secret key, set Mode to Live.',
 			],
 			'sample_hcaptcha'          => [
 				'label'   => 'Active hCaptcha to Check Site Config',
@@ -535,7 +537,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					General::MODE_TEST_ENTERPRISE_BOT_DETECTED  => 'Test: Enterprise Account (Bot Detected)',
 				],
 				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
-				'default' => General::MODE_LIVE,
+				'default' => General::MODE_TEST_PUBLISHER,
 				'helper'  => 'Select live or test mode. In test mode, predefined keys are used.',
 			],
 			'force'                    => [

@@ -52,7 +52,7 @@ $js
 
 		function scrollHandler() {
 			if ( ! scrolled ) {
-				// Ignore first scroll event, which can be on page load.
+				// Ignore the first scroll event, which can be on page load.
 				scrolled = true;
 				return;
 			}
@@ -68,11 +68,13 @@ $js
 				timerId = setTimeout( load, delay );
 			}
 
-			window.addEventListener( 'touchstart', load );
+			const options = { passive: true };
+
+			window.addEventListener( 'touchstart', load, options );
 			document.body.addEventListener( 'mouseenter', load );
 			document.body.addEventListener( 'click', load );
 			window.addEventListener( 'keydown', load );
-			window.addEventListener( 'scroll', scrollHandler );
+			window.addEventListener( 'scroll', scrollHandler, options );
 		} );
 	} )();
 ";
@@ -81,10 +83,12 @@ $js
 	}
 
 	/**
-	 * Launch script specified by source url.
+	 * Launch script specified by a source url.
 	 *
 	 * @param array $args  Arguments.
 	 * @param int   $delay Delay in ms. Negative means no delay, wait for user interaction.
+	 *
+	 * @noinspection JSUnusedLocalSymbols
 	 */
 	public static function launch( array $args, int $delay = -1 ): void {
 		unset( $args['id'], $args['async'] );

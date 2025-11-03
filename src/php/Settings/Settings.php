@@ -171,7 +171,7 @@ class Settings implements SettingsInterface {
 		if (
 			$this->is_on( 'custom_themes' ) &&
 			$this->is_pro_or_general() &&
-			$this->is( 'mode', 'live' )
+			General::MODE_LIVE === $this->get_mode()
 		) {
 			$bg = $this->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? $bg;
 		}
@@ -284,15 +284,15 @@ class Settings implements SettingsInterface {
 				break;
 			case General::MODE_TEST_PUBLISHER:
 				$site_key   = General::MODE_TEST_PUBLISHER_SITE_KEY;
-				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+				$secret_key = General::MODE_TEST_SECRET_KEY;
 				break;
 			case General::MODE_TEST_ENTERPRISE_SAFE_END_USER:
 				$site_key   = General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY;
-				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+				$secret_key = General::MODE_TEST_SECRET_KEY;
 				break;
 			case General::MODE_TEST_ENTERPRISE_BOT_DETECTED:
 				$site_key   = General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY;
-				$secret_key = '0' . 'x' . '0000000000000000000000000000000000000000';
+				$secret_key = General::MODE_TEST_SECRET_KEY;
 				break;
 			default:
 				$site_key   = '';

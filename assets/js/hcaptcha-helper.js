@@ -61,10 +61,22 @@ export class helper {
 	 * @return {boolean} Returns true if the action matches, false otherwise.
 	 */
 	static checkAction( options, actionName, actionValue ) {
+		return this.getAction( options, actionName ) === actionValue;
+	}
+
+	/**
+	 * Get action value from AJAX options.
+	 *
+	 * @param {Object} options    The AJAX options object.
+	 * @param {string} actionName The name of the action to match against.
+	 *
+	 * @return {string} Returns action value.
+	 */
+	static getAction( options, actionName ) {
 		const data = options.data ?? '';
 
 		if ( typeof data !== 'string' ) {
-			return false;
+			return '';
 		}
 
 		// Parse existing query string to know which params are already present.
@@ -76,7 +88,7 @@ export class helper {
 			this.params = new URLSearchParams();
 		}
 
-		return this.params.get( actionName ) === actionValue;
+		return this.params.get( actionName );
 	}
 
 	/**

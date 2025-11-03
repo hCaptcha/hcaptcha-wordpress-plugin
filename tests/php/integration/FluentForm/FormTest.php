@@ -17,6 +17,7 @@ use FluentForm\App\Modules\Form\FormFieldsParser;
 use FluentForm\Framework\Helpers\ArrayHelper;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -87,8 +88,10 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_pre_option(): void {
 		$pre_option    = 'some_pre_option_value';
 		$default_value = 'some_default_value';
-		$site_key      = 'some_site_key';
-		$secret_key    = 'some_secret_key';
+		$site_key      = General::MODE_TEST_PUBLISHER_SITE_KEY;
+
+		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+		$secret_key = General::MODE_TEST_SECRET_KEY;
 
 		update_option(
 			'hcaptcha_settings',
@@ -127,12 +130,13 @@ class FormTest extends HCaptchaWPTestCase {
 		$form      = (object) [
 			'id' => $form_id,
 		];
+		$site_key  = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$hcap_form = $this->get_hcaptcha( $form_id );
 		$html      = "<div class='ff-el-group'>
 	<div class='ff-el-input--content'>
 		<div data-fluent_id='3' name='h-captcha-response'>
 			<div
-					data-sitekey='10000000-ffff-ffff-ffff-000000000001'
+					data-sitekey='$site_key'
 					id='fluentform-hcaptcha-3-1'
 					class='ff-el-hcaptcha h-captcha'>
 			</div>
@@ -396,14 +400,6 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 		$form      = Mockery::mock( FluentForm::class );
 		$fields    = [];
-		$die_arr   = [];
-		$expected  = [
-			'',
-			'',
-			[
-				'response' => null,
-			],
-		];
 
 		$array_helper = Mockery::mock( 'alias:' . ArrayHelper::class );
 

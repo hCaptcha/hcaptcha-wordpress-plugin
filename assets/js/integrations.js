@@ -15,6 +15,8 @@
  * @param HCaptchaIntegrationsObject.nonce
  * @param HCaptchaIntegrationsObject.onlyOneThemeMsg
  * @param HCaptchaIntegrationsObject.selectThemeMsg
+ * @param HCaptchaIntegrationsObject.suggestActivate
+ * @param HCaptchaIntegrationsObject.suggestActivateMsg
  * @param HCaptchaIntegrationsObject.themes
  * @param HCaptchaIntegrationsObject.unexpectedErrorMsg
  */
@@ -198,6 +200,34 @@ const integrations = function( $ ) {
 				$helper.hide();
 			}
 		} );
+	}
+
+	/**
+	 * Suggest an entity for activation.
+	 */
+	function suggestActivate() {
+		if ( ! HCaptchaIntegrationsObject.suggestActivate ) {
+			return;
+		}
+
+		const element = document.querySelector(
+			`tr.hcaptcha-integrations-${ HCaptchaIntegrationsObject.suggestActivate } .hcaptcha-integrations-logo`
+				.replace( /_/g, '-' ) );
+
+		if ( ! element ) {
+			return;
+		}
+
+		hCaptchaSettingsBase.highlightElement( element );
+		showSuccessMessage( HCaptchaIntegrationsObject.suggestActivateMsg );
+	}
+
+	// Test hook: expose selected internals for isolated unit tests
+	// noinspection JSUnresolvedReference
+	if ( typeof jest !== 'undefined' ) {
+		window.__integrationsTest = {
+			swapThemes,
+		};
 	}
 
 	// Handle Show Antispam Coverage checkbox change: insert/clear helper spans after honeypot labels
@@ -531,6 +561,7 @@ const integrations = function( $ ) {
 	);
 
 	setupHelpers();
+	suggestActivate();
 };
 
 window.hCaptchaIntegrations = integrations;

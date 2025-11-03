@@ -12,7 +12,7 @@ namespace HCaptcha\AntiSpam;
  */
 class Honeypot {
 	private const PROTECTED_FORMS = [
-		'wp_status'                   => [ 'comment', 'login', 'lost_pass', 'password_protected', 'register' ],
+		'wp_status'                   => [ 'comment', 'login', 'lost_pass', 'password_protected', 'register', 'signup' ],
 		'acfe_status'                 => [ 'form' ],
 		'avada_status'                => [ 'form' ],
 		'bbp_status'                  => [ 'login', 'lost_pass', 'new_topic', 'register', 'reply' ],
@@ -43,6 +43,7 @@ class Honeypot {
 		'password_protected_status'   => [ 'protect' ],
 		'sendinblue_status'           => [ 'form' ],
 		'spectra_status'              => [ 'form' ],
+		'theme_my_login_status'       => [ 'login', 'lost_pass', 'register', 'signup' ],
 		'ultimate_addons_status'      => [ 'login', 'register' ],
 		'ultimate_member_status'      => [ 'login', 'lost_pass', 'register' ],
 		'woocommerce_status'          => [ 'checkout', 'login', 'lost_pass', 'order_tracking', 'register' ],

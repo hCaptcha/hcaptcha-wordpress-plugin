@@ -152,7 +152,7 @@ class AdminTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test init_hooks() when not on CF7 admin page.
+	 * Test init_hooks() when not on the CF7 admin page.
 	 *
 	 * @return void
 	 */
@@ -570,7 +570,7 @@ HTML;
 				name="hcaptcha-widget-id"
 				value="eyJzb3VyY2UiOlsiY29udGFjdC1mb3JtLTdcL3dwLWNvbnRhY3QtZm9ybS03LnBocCJdLCJmb3JtX2lkIjo2fQ==-8b2d80c7e4713f806a63502e2b23318b">
 				<span id="hcap_cf7-674a0dcce00595.05117819" class="wpcf7-form-control h-captcha "
-				data-sitekey="30404e3e-ed1c-4658-87d4-bcce53564846"
+				data-sitekey="some site key"
 				data-theme="dark"
 				data-size="normal"
 				data-auto="false"
@@ -675,7 +675,7 @@ HTML;
 	}
 
 	/**
-	 * Test update_form() with bad ajax referer.
+	 * Test update_form() with a bad ajax referer.
 	 *
 	 * @return void
 	 */

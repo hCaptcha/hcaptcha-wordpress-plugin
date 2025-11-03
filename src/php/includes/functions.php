@@ -18,8 +18,8 @@ use HCaptcha\Helpers\Utils;
 function hcap_shortcode( $atts ): string {
 	$settings       = hcaptcha()->settings();
 	$hcaptcha_force = $settings->is_on( 'force' );
-	$hcaptcha_theme = $settings->get_theme();
-	$hcaptcha_size  = $settings->get( 'size' );
+	$hcaptcha_theme = $settings->get_theme() ?: 'light';
+	$hcaptcha_size  = $settings->get( 'size' ) ?: 'normal';
 
 	$atts = Utils::unflatten_array( $atts, '--' );
 

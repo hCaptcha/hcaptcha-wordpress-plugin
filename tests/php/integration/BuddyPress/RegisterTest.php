@@ -48,7 +48,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 			'action' => 'hcaptcha_bp_register',
 			'name'   => 'hcaptcha_bp_register_nonce',
 			'id'     => [
-				'source'  => 'buddypress/bp-loader.php',
+				'source'  => [ 'buddypress/bp-loader.php' ],
 				'form_id' => 'register',
 			],
 		];
@@ -73,7 +73,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 			'action' => 'hcaptcha_bp_register',
 			'name'   => 'hcaptcha_bp_register_nonce',
 			'id'     => [
-				'source'  => 'buddypress/bp-loader.php',
+				'source'  => [ 'buddypress/bp-loader.php' ],
 				'form_id' => 'register',
 			],
 		];

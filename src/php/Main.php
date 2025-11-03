@@ -31,6 +31,7 @@ use HCaptcha\EventsManager\Booking;
 use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
+use HCaptcha\Helpers\Playground;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\NF\NF;
@@ -45,6 +46,7 @@ use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
+use HCaptcha\WP\Signup;
 
 /**
  * Class Main.
@@ -78,7 +80,7 @@ class Main {
 	/**
 	 * Priority of the plugins_loaded action to load Main.
 	 */
-	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 1;
+	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 10;
 
 	/**
 	 * Form shown somewhere, use this flag to run the script.
@@ -145,6 +147,13 @@ class Main {
 	private $active;
 
 	/**
+	 * Supported forms.
+	 *
+	 * @var ?array $supported_forms
+	 */
+	private $supported_forms;
+
+	/**
 	 * Init class.
 	 *
 	 * @return void
@@ -156,7 +165,8 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
-		$this->migrations = new Migrations();
+		$this->load( Migrations::class );
+		$this->load( Playground::class );
 
 		( new Fix() )->init();
 
@@ -206,7 +216,7 @@ class Main {
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
 
-		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
+		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 10 );
 		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );
@@ -223,7 +233,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'print_inline_styles' ] );
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
-		add_action( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
+		add_filter( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -325,7 +335,7 @@ class Main {
 
 				if (
 					! method_exists( Pages::class, $method ) ||
-					! $settings->is_on( $component . '_status' )
+					empty( $settings->get( $component . '_status' ) )
 				) {
 					return $carry;
 				}
@@ -481,7 +491,11 @@ class Main {
 		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
 		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
-		$load_fail_msg      = __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' );
+		$delay              = (int) $settings->get( 'delay' );
+		$animation_delay    = $delay >= 0 ? $delay / 100 + 2 : 2;
+		$load_msg           = $delay >= 0
+			? __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' )
+			: __( 'The hCaptcha loading is delayed until user interaction.', 'hcaptcha-for-forms-and-more' );
 
 		/* language=CSS */
 		$css = '
@@ -524,7 +538,7 @@ class Main {
 	}
 
 	.h-captcha::after {
-		content: "' . $load_fail_msg . '";
+		content: "' . $load_msg . '";
 	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 		display: block;
 		position: absolute;
@@ -537,7 +551,7 @@ class Main {
 
 	.h-captcha:not(:has(iframe))::after {
 		animation: hcap-msg-fade-in .3s ease forwards;
-		animation-delay: 2s;
+		animation-delay: ' . $animation_delay . 's;
 	}
 	
 	.h-captcha:has(iframe)::after {
@@ -858,15 +872,8 @@ class Main {
 	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
 		$value = (bool) $value;
 
-		/**
-		 * Supported forms.
-		 *
-		 * @var ?array $supported_forms
-		 */
-		static $supported_forms = null;
-
-		if ( null === $supported_forms ) {
-			$supported_forms = [];
+		if ( null === $this->supported_forms ) {
+			$this->supported_forms = [];
 
 			// Use honeypot protection info only, as FST is always added for honeypot forms.
 			$honeypot_protected_forms = Honeypot::get_protected_forms()['honeypot'];
@@ -890,11 +897,11 @@ class Main {
 				$module_source = (array) $module_source;
 				$module_source = [ '' ] === $module_source ? [ 'WordPress' ] : $module_source;
 
-				$supported_forms[] = $module_source;
+				$this->supported_forms[] = $module_source;
 			}
 
-			$supported_forms = array_merge(
-				array_unique( $supported_forms, SORT_REGULAR ),
+			$this->supported_forms = array_merge(
+				array_unique( $this->supported_forms, SORT_REGULAR ),
 				[
 					[ General::class ], // General settings page.
 					[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
@@ -902,7 +909,7 @@ class Main {
 			);
 		}
 
-		if ( $source && ! in_array( $source, $supported_forms, true ) ) {
+		if ( $source && ! in_array( $source, $this->supported_forms, true ) ) {
 			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
 			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
 		}
@@ -1506,11 +1513,6 @@ class Main {
 				'theme-my-login/theme-my-login.php',
 				ThemeMyLogin\LostPassword::class,
 			],
-			'Theme My Login Register'              => [
-				[ 'theme_my_login_status', 'register' ],
-				'theme-my-login/theme-my-login.php',
-				ThemeMyLogin\Register::class,
-			],
 			'Tutor Checkout'                       => [
 				[ 'tutor_status', 'checkout' ],
 				'tutor/tutor.php',
@@ -1642,6 +1644,25 @@ class Main {
 				WPForo\Reply::class,
 			],
 		];
+
+		if ( is_multisite() ) {
+			$this->modules['Signup Form']           = [
+				[ 'wp_status', 'signup' ],
+				'',
+				WP\Signup::class,
+			];
+			$this->modules['Theme My Login Signup'] = [
+				[ 'theme_my_login_status', 'signup' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Signup::class,
+			];
+		} else {
+			$this->modules['Theme My Login Register'] = [
+				[ 'theme_my_login_status', 'register' ],
+				'theme-my-login/theme-my-login.php',
+				ThemeMyLogin\Register::class,
+			];
+		}
 
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			// @codeCoverageIgnoreStart

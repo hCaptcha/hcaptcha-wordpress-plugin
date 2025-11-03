@@ -75,6 +75,24 @@ class PasswordProtected {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify(): void {
+		/**
+		 * Mimic the behavior of the WordPress login form.
+		 * These lines are copied from the wp-login.php file.
+		 * This is needed to process a direct `/wp-login.php?action=postpass` request with the same logic.
+		 */
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$redirect_to = $_POST['redirect_to'] ?? wp_get_referer();
+
+		if ( ! isset( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
+			// @codeCoverageIgnoreStart
+			wp_safe_redirect( $redirect_to );
+
+			exit;
+			// @codeCoverageIgnoreEnd
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+		// Standard hCaptcha logic for verifying the post password request.
 		$result = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $result ) {

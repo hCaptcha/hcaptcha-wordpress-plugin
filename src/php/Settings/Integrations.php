@@ -9,6 +9,7 @@ namespace HCaptcha\Settings;
 
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\Honeypot;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use KAGG\Settings\Abstracts\SettingsBase;
 use Plugin_Upgrader;
@@ -725,7 +726,6 @@ class Integrations extends PluginSettingsBase {
 				'options' => [
 					'login'     => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'tutor_status'                     => [
@@ -831,6 +831,13 @@ class Integrations extends PluginSettingsBase {
 				],
 			],
 		];
+
+		if ( is_multisite() ) {
+			$this->form_fields['wp_status']['options']['signup']             = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
+			$this->form_fields['theme_my_login_status']['options']['signup'] = __( 'Signup Form', 'hcaptcha-for-forms-and-more' );
+		} else {
+			$this->form_fields['theme_my_login_status']['options']['register'] = __( 'Register Form', 'hcaptcha-for-forms-and-more' );
+		}
 	}
 
 	/**
@@ -1059,6 +1066,11 @@ class Integrations extends PluginSettingsBase {
 			true
 		);
 
+		$nonce            = Request::filter_input( INPUT_GET, 'nonce' );
+		$suggest_activate = wp_verify_nonce( $nonce, self::ACTIVATE_ACTION )
+			? Request::filter_input( INPUT_GET, 'suggest_activate' )
+			: '';
+
 		wp_localize_script(
 			self::HANDLE,
 			self::OBJECT,
@@ -1080,6 +1092,8 @@ class Integrations extends PluginSettingsBase {
 				'deactivateThemeMsg'  => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				'selectThemeMsg'      => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
 				'onlyOneThemeMsg'     => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
+				'suggestActivate'     => $suggest_activate,
+				'suggestActivateMsg'  => __( 'Activate plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ),
 				'unexpectedErrorMsg'  => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
 				'OKBtnText'           => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 				'CancelBtnText'       => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
@@ -1449,8 +1463,22 @@ class Integrations extends PluginSettingsBase {
 	protected function activate_plugin( string $plugin ): ?WP_Error {
 		$network_wide = is_multisite() && $this->is_network_wide();
 
-		// Activate plugins silently to avoid redirects.
-		return activate_plugin( $plugin, '', $network_wide, true );
+		// Block redirects upon plugin activation.
+		add_filter( 'wp_redirect', '__return_false' );
+
+		$result = activate_plugin( $plugin, '', $network_wide );
+
+		if ( null === $result ) {
+			/**
+			 * Fires after a plugin has been activated.
+			 *
+			 * @param string $plugin       Path to the plugin file relative to the plugins' directory.
+			 * @param bool   $network_wide Whether to enable the plugin network-wide.
+			 */
+			do_action( 'hcaptcha_activated_plugin', $plugin, $network_wide );
+		}
+
+		return $result;
 	}
 
 	/**

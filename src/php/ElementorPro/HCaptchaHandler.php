@@ -33,16 +33,6 @@ use HCaptcha\Main;
 class HCaptchaHandler {
 
 	/**
-	 * Site Key option name.
-	 */
-	private const OPTION_NAME_SITE_KEY = 'site_key';
-
-	/**
-	 * Secret Key option name.
-	 */
-	private const OPTION_NAME_SECRET_KEY = 'secret_key';
-
-	/**
 	 * Theme option name.
 	 */
 	private const OPTION_NAME_THEME = 'theme';
@@ -117,6 +107,10 @@ class HCaptchaHandler {
 	 * @return void
 	 */
 	public function init(): void {
+		if ( ! class_exists( FormsModule::class, false ) ) {
+			return;
+		}
+
 		// Register or re-register hCaptcha component.
 		FormsModule::instance()->add_component( self::FIELD_ID, $this );
 
@@ -251,19 +245,19 @@ class HCaptchaHandler {
 	/**
 	 * Get a site key.
 	 *
-	 * @return array|string
+	 * @return string
 	 */
-	public static function get_site_key() {
-		return hcaptcha()->settings()->get( self::OPTION_NAME_SITE_KEY );
+	public static function get_site_key(): string {
+		return hcaptcha()->settings()->get_site_key();
 	}
 
 	/**
 	 * Get a secret key.
 	 *
-	 * @return array|string
+	 * @return string
 	 */
-	public static function get_secret_key() {
-		return hcaptcha()->settings()->get( self::OPTION_NAME_SECRET_KEY );
+	public static function get_secret_key(): string {
+		return hcaptcha()->settings()->get_secret_key();
 	}
 
 	/**

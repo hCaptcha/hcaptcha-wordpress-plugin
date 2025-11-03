@@ -496,9 +496,13 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$min_suffix     = '.min';
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
+		$cf7_status     = 'cf7_status';
 
 		$theme         = Mockery::mock( 'WP_Theme' );
 		$default_theme = Mockery::mock( 'WP_Theme' );
+
+		$_GET['nonce']            = $nonce;
+		$_GET['suggest_activate'] = $cf7_status;
 
 		FunctionMocker::replace(
 			'\WP_Theme::get_core_default_theme',
@@ -579,6 +583,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->andReturn( $nonce )
 			->once();
 
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+
+		WP_Mock::userFunction( 'wp_verify_nonce' )
+			->with( $nonce, Integrations::ACTIVATE_ACTION )
+			->andReturn( true )
+			->once();
+
 		WP_Mock::userFunction( 'wp_localize_script' )
 			->with(
 				Integrations::HANDLE,
@@ -595,6 +607,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'deactivateThemeMsg'  => 'Deactivate %s theme?',
 					'selectThemeMsg'      => 'Select theme to activate:',
 					'onlyOneThemeMsg'     => 'Cannot deactivate the only theme on the site.',
+					'suggestActivate'     => $cf7_status,
+					'suggestActivateMsg'  => 'Activate plugin or theme by clicking on its logo.',
 					'unexpectedErrorMsg'  => 'Unexpected error.',
 					'OKBtnText'           => 'OK',
 					'CancelBtnText'       => 'Cancel',

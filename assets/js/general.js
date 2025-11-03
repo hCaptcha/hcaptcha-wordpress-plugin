@@ -75,6 +75,7 @@ const general = function( $ ) {
 
 	interceptConsoleLogs();
 	checkAntiSpamProvider();
+	initDisabledKeyInputs();
 
 	function interceptConsoleLogs() {
 		consoleLogs = [];
@@ -85,30 +86,35 @@ const general = function( $ ) {
 		const systemError = console.error;
 		const systemClear = console.clear;
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.log = function( message ) {
 			consoleLogs.push( [ 'Console log:', arguments ] );
 			systemLog.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.warn = function( message ) {
 			consoleLogs.push( [ 'Console warn:', arguments ] );
 			systemWarn.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.info = function( message ) {
 			consoleLogs.push( [ 'Console info:', arguments ] );
 			systemInfo.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		// eslint-disable-next-line no-unused-vars
 		console.error = function( message ) {
 			consoleLogs.push( [ 'Console error:', arguments ] );
 			systemError.apply( console, arguments );
 		};
 
+		/* istanbul ignore next */
 		console.clear = function() {
 			consoleLogs = [];
 			systemClear();
@@ -444,6 +450,100 @@ const general = function( $ ) {
 		}
 	}
 
+	/**
+	 * Set readonly and blocked state for key inputs.
+	 *
+	 * @param {jQuery}  $el Element to set readonly and blocked state for.
+	 * @param {boolean} on  Whether to set readonly and blocked state.
+	 */
+	function setReadonlyBlocked( $el, on ) {
+		if ( on ) {
+			$el.prop( 'disabled', false )
+				.attr( 'readonly', true )
+				.attr( 'aria-disabled', 'true' )
+				.on( 'keydown.hcaptchaHelper paste.hcaptchaHelper drop.hcaptchaHelper', ( e ) => e.preventDefault() );
+		} else {
+			$el.removeAttr( 'readonly' )
+				.removeAttr( 'aria-disabled' )
+				.off( 'keydown.hcaptchaHelper paste.hcaptchaHelper drop.hcaptchaHelper' );
+		}
+	}
+
+	/**
+	 * Show helper for disabled key inputs on click and hide it on blur.
+	 */
+	function initDisabledKeyInputs() {
+		syncKeysWithMode();
+
+		const $keys = $( '#site_key, #secret_key' );
+
+		$keys
+			.on( 'click.hcaptchaHelper', function() {
+				const $input = $( this );
+
+				// Show helper only when the input is readonly.
+				if ( ! $input.is( '[readonly]' ) && $input.attr( 'aria-disabled' ) !== 'true' ) {
+					return;
+				}
+
+				// Find a related helper within the same container.
+				const $container = $input.parent();
+				const $helper = $container.find( 'span.helper' ).first();
+				const $helperContent = $container.find( 'span.helper-content' ).first();
+
+				$helper.css( 'display', 'block' );
+				$helperContent.css( 'display', 'block' );
+
+				hCaptchaSettingsBase.highlightElement( $mode[ 0 ] );
+
+				const onDoc = () => {
+					$helper.css( 'display', 'none' );
+					$helperContent.css( 'display', 'none' );
+					$( document ).off( 'mousedown.hcaptchaHelper', onDoc );
+				};
+
+				$( document ).on( 'mousedown.hcaptchaHelper', onDoc );
+			} )
+			.on( 'keydown.hcaptchaHelper paste.hcaptchaHelper drop.hcaptchaHelper', ( e ) => {
+				// Block paste, drop, and keydown events.
+				const $input = $( e.currentTarget );
+
+				if ( $input.is( '[readonly]' ) || $input.attr( 'aria-disabled' ) === 'true' ) {
+					e.preventDefault();
+				}
+			} );
+	}
+
+	function syncKeysWithMode() {
+		const mode = $mode.val();
+
+		if ( ! modes.hasOwnProperty( mode ) ) {
+			return;
+		}
+
+		if ( mode === HCaptchaGeneralObject.modeLive ) {
+			setReadonlyBlocked( $siteKey, false );
+			setReadonlyBlocked( $secretKey, false );
+		} else {
+			setReadonlyBlocked( $siteKey, true );
+			setReadonlyBlocked( $secretKey, true );
+		}
+
+		const sitekey = modes[ mode ];
+
+		hCaptchaUpdate( { sitekey } );
+	}
+
+	// Test hook: expose internals for isolated unit tests
+	// noinspection JSUnresolvedReference
+	if ( typeof jest !== 'undefined' ) {
+		// Expose only read-only references; no state is mutated here beyond normal function effects
+		window.__generalTest = {
+			getCleanConsoleLogs,
+			interceptConsoleLogs,
+		};
+	}
+
 	document.addEventListener( 'hCaptchaLoaded', function() {
 		showErrorMessage();
 	} );
@@ -505,24 +605,7 @@ const general = function( $ ) {
 		hCaptchaUpdate( { hl } );
 	} );
 
-	$mode.on( 'change', function( e ) {
-		const mode = $( e.target ).val();
-
-		if ( ! modes.hasOwnProperty( mode ) ) {
-			return;
-		}
-
-		if ( mode === HCaptchaGeneralObject.modeLive ) {
-			$siteKey.attr( 'disabled', false );
-			$secretKey.attr( 'disabled', false );
-		} else {
-			$siteKey.attr( 'disabled', true );
-			$secretKey.attr( 'disabled', true );
-		}
-
-		const sitekey = modes[ mode ];
-		hCaptchaUpdate( { sitekey } );
-	} );
+	$mode.on( 'change', syncKeysWithMode );
 
 	$customThemes.on( 'change', function() {
 		applyCustomThemes();

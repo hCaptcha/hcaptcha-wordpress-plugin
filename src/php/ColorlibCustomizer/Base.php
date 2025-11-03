@@ -15,6 +15,13 @@ use HCaptcha\Helpers\HCaptcha;
 abstract class Base {
 
 	/**
+	 * Login form shown.
+	 *
+	 * @var bool
+	 */
+	private $login_form_shown = false;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -32,11 +39,13 @@ abstract class Base {
 	}
 
 	/**
-	 * Print styles to fit hcaptcha widget to the login form.
+	 * Print styles to fit the hcaptcha widget to the login form.
 	 *
 	 * @return void
 	 */
 	public function login_head(): void {
+		$this->login_form_shown = true;
+
 		$hcaptcha_size = hcaptcha()->settings()->get( 'size' );
 
 		if ( 'invisible' === $hcaptcha_size ) {
@@ -83,10 +92,9 @@ abstract class Base {
 	 *                         Any negative value means delay until user interaction.
 	 *
 	 * @return int
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function delay_api( $delay ): int {
 		// Do not delay API request on login forms for compatibility with password managers.
-		return 0;
+		return $this->login_form_shown ? 0 : (int) $delay;
 	}
 }

@@ -49,7 +49,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 			'action' => 'hcaptcha_bp_create_group',
 			'name'   => 'hcaptcha_bp_create_group_nonce',
 			'id'     => [
-				'source'  => 'buddypress/bp-loader.php',
+				'source'  => [ 'buddypress/bp-loader.php' ],
 				'form_id' => 'create_group',
 			],
 		];

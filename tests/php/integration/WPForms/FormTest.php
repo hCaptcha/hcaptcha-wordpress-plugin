@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Tests\Integration\WPForms;
 
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WPForms\Form;
 use Mockery;
@@ -617,6 +618,7 @@ CSS;
 				'recaptcha' => '1',
 			],
 		];
+		$site_key    = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$deprecated  = null;
 		$title       = 'some title';
 		$description = 'some description';
@@ -632,6 +634,14 @@ CSS;
 		];
 		$hcap_form   = $this->get_hcap_form( $args );
 		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';
+
+		add_filter(
+			'hcap_site_key',
+			static function () use ( $site_key ) {
+				return $site_key;
+			},
+			20
+		);
 
 		$classes   = [];
 		$classes[] = [

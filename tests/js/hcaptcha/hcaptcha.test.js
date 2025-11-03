@@ -1340,6 +1340,11 @@ describe( 'moveHP', () => {
 		inst = new HCaptcha();
 	} );
 
+	test( 'returns early when formElement is null/undefined', () => {
+		expect( () => inst.moveHP( null ) ).not.toThrow();
+		expect( () => inst.moveHP( undefined ) ).not.toThrow();
+	} );
+
 	test( 'does nothing when honeypot is missing', () => {
 		const form = document.createElement( 'form' );
 		const a = document.createElement( 'input' ); a.name = 'a';
@@ -1363,7 +1368,7 @@ describe( 'moveHP', () => {
 	test( 'does nothing when only hidden inputs are present', () => {
 		const form = document.createElement( 'form' );
 		const hp = document.createElement( 'input' );
-		hp.name = 'hcap_hp_main';
+		hp.id = 'hcap_hp_main';
 		hp.type = 'hidden';
 		const hidden = document.createElement( 'input' );
 		hidden.type = 'hidden';
@@ -1378,6 +1383,128 @@ describe( 'moveHP', () => {
 		expect( hp.previousSibling ).toBe( beforeSibling );
 		expect( hp.parentElement ).toBe( form );
 
+		document.body.removeChild( form );
+	} );
+
+	test( 'excludes candidates inside .h-captcha (no move if only such candidates exist)', () => {
+		const form = document.createElement( 'form' );
+		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_only';
+		const wrapper = document.createElement( 'div' ); wrapper.className = 'h-captcha';
+		const inside = document.createElement( 'input' ); inside.name = 'inside';
+		wrapper.appendChild( inside );
+		form.appendChild( wrapper );
+		form.appendChild( hp );
+		document.body.appendChild( form );
+
+		const beforeSibling = hp.previousSibling;
+		inst.moveHP( form );
+
+		// No visible candidates outside `.h-captcha`, hp stays put
+		expect( hp.previousSibling ).toBe( beforeSibling );
+		expect( hp.parentElement ).toBe( form );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'moves honeypot and its connected label before the chosen visible input', () => {
+		const form = document.createElement( 'form' );
+		const hidden = document.createElement( 'input' ); hidden.type = 'hidden';
+		const vis1 = document.createElement( 'input' ); vis1.name = 'vis1';
+		const vis2 = document.createElement( 'input' ); vis2.name = 'vis2';
+		const btn = document.createElement( 'button' ); btn.type = 'submit';
+		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_label';
+		const lbl = document.createElement( 'label' ); lbl.setAttribute( 'for', 'hcap_hp_label' ); lbl.textContent = 'HP';
+
+		// Initial order: hidden, vis1, vis2, btn, lbl, hp
+		form.appendChild( hidden );
+		form.appendChild( vis1 );
+		form.appendChild( vis2 );
+		form.appendChild( btn );
+		form.appendChild( lbl );
+		form.appendChild( hp );
+		document.body.appendChild( form );
+
+		const originalRandom = Math.random;
+		// Filtered candidates: vis1, vis2, btn => choose index 1 => vis2
+		Math.random = jest.fn( () => 1 / 3 );
+
+		inst.moveHP( form );
+
+		// Expected: hidden, vis1, lbl, hp, vis2, btn
+		expect( Array.from( form.children ) ).toEqual( [ hidden, vis1, lbl, hp, vis2, btn ] );
+		expect( lbl.isConnected ).toBe( true );
+
+		Math.random = originalRandom;
+		document.body.removeChild( form );
+	} );
+
+	test( 'does not append a disconnected label (label exists but not in DOM)', () => {
+		const form = document.createElement( 'form' );
+		const vis = document.createElement( 'input' ); vis.name = 'vis';
+		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_orphan';
+		const lbl = document.createElement( 'label' ); lbl.setAttribute( 'for', 'hcap_hp_orphan' );
+
+		form.appendChild( vis );
+		form.appendChild( hp );
+		document.body.appendChild( form );
+
+		const originalRandom = Math.random;
+		Math.random = jest.fn( () => 0 ); // choose vis
+
+		inst.moveHP( form );
+
+		// Label wasn't connected, so only hp moved; label remains disconnected
+		expect( lbl.isConnected ).toBe( false );
+		expect( form.children[ 0 ] ).toBe( hp );
+		expect( form.children[ 1 ] ).toBe( vis );
+
+		Math.random = originalRandom;
+		document.body.removeChild( form );
+	} );
+
+	test( 'idempotent: second call is ignored via hpMoved guard', () => {
+		const form = document.createElement( 'form' );
+		const vis1 = document.createElement( 'input' ); vis1.name = 'vis1';
+		const vis2 = document.createElement( 'input' ); vis2.name = 'vis2';
+		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_idem';
+
+		form.appendChild( vis1 );
+		form.appendChild( vis2 );
+		form.appendChild( hp );
+		document.body.appendChild( form );
+
+		const orig = Math.random;
+		Math.random = jest.fn( () => 1 ); // choose vis2 on first call
+		inst.moveHP( form );
+		const afterFirst = Array.from( form.children );
+
+		// Try to force a different move on second call
+		Math.random = jest.fn( () => 0 );
+		inst.moveHP( form );
+		const afterSecond = Array.from( form.children );
+
+		expect( form.dataset.hpMoved ).toBe( '1' );
+		expect( afterSecond ).toEqual( afterFirst );
+
+		Math.random = orig;
+		document.body.removeChild( form );
+	} );
+
+	test( 'skips moving when form already marked hpMoved before first call', () => {
+		const form = document.createElement( 'form' );
+		const vis = document.createElement( 'input' ); vis.name = 'vis';
+		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_marked';
+
+		form.appendChild( vis );
+		form.appendChild( hp );
+		document.body.appendChild( form );
+
+		const before = Array.from( form.children );
+		form.dataset.hpMoved = '1';
+		inst.moveHP( form );
+		const after = Array.from( form.children );
+
+		expect( after ).toEqual( before );
 		document.body.removeChild( form );
 	} );
 
@@ -1625,6 +1752,110 @@ describe( 'submit', () => {
 		expect( clickSpy ).not.toHaveBeenCalled();
 
 		// Cleanup
+		document.body.removeChild( form );
+	} );
+} );
+
+// addFSTToken tests
+describe( 'addFSTToken', () => {
+	let inst;
+
+	beforeEach( () => {
+		inst = new HCaptcha();
+	} );
+
+	test( 'returns early when formElement is null/undefined', () => {
+		expect( () => inst.addFSTToken( null ) ).not.toThrow();
+		expect( () => inst.addFSTToken( undefined ) ).not.toThrow();
+	} );
+
+	test( 'creates hidden token and inserts it as the first child when form has children', () => {
+		const form = document.createElement( 'form' );
+		const a = document.createElement( 'input' ); a.name = 'a';
+		const b = document.createElement( 'input' ); b.name = 'b';
+		form.appendChild( a );
+		form.appendChild( b );
+		document.body.appendChild( form );
+
+		inst.addFSTToken( form );
+
+		const token = form.querySelector( 'input[type="hidden"][name="hcap_fst_token"]' );
+		expect( token ).toBeTruthy();
+		expect( form.firstChild ).toBe( token );
+		expect( token.type ).toBe( 'hidden' );
+		expect( token.name ).toBe( 'hcap_fst_token' );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'creates and appends token when form is empty', () => {
+		const form = document.createElement( 'form' );
+		document.body.appendChild( form );
+
+		inst.addFSTToken( form );
+
+		const token = form.querySelector( 'input[type="hidden"][name="hcap_fst_token"]' );
+		expect( token ).toBeTruthy();
+		expect( form.firstChild ).toBe( token );
+		expect( form.children.length ).toBe( 1 );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'reuses existing token and moves it to the first position if not already first', () => {
+		const form = document.createElement( 'form' );
+		const x = document.createElement( 'input' ); x.name = 'x';
+		const token = document.createElement( 'input' ); token.type = 'hidden'; token.name = 'hcap_fst_token';
+		const y = document.createElement( 'input' ); y.name = 'y';
+		form.appendChild( x );
+		form.appendChild( y );
+		form.appendChild( token );
+		document.body.appendChild( form );
+
+		inst.addFSTToken( form );
+
+		const tokens = form.querySelectorAll( 'input[name="hcap_fst_token"]' );
+		expect( tokens.length ).toBe( 1 );
+		expect( form.firstChild ).toBe( token );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'idempotent when token already first: no duplication and position unchanged', () => {
+		const form = document.createElement( 'form' );
+		const token = document.createElement( 'input' ); token.type = 'hidden'; token.name = 'hcap_fst_token';
+		const other = document.createElement( 'input' ); other.name = 'other';
+		form.appendChild( token );
+		form.appendChild( other );
+		document.body.appendChild( form );
+
+		inst.addFSTToken( form );
+
+		const tokens = form.querySelectorAll( 'input[name="hcap_fst_token"]' );
+		expect( tokens.length ).toBe( 1 );
+		expect( form.firstChild ).toBe( token );
+		expect( form.children[ 1 ] ).toBe( other );
+
+		document.body.removeChild( form );
+	} );
+
+	test( 'inserts before a non-element firstChild (e.g., text node) using insertBefore', () => {
+		const form = document.createElement( 'form' );
+		const textNode = document.createTextNode( ' some text ' );
+		const after = document.createElement( 'input' ); after.name = 'after';
+		form.appendChild( textNode );
+		form.appendChild( after );
+		document.body.appendChild( form );
+
+		inst.addFSTToken( form );
+
+		const token = form.querySelector( 'input[type="hidden"][name="hcap_fst_token"]' );
+		expect( token ).toBeTruthy();
+		// Token should become the firstChild, before the text node
+		expect( form.firstChild ).toBe( token );
+		expect( form.childNodes[ 1 ] ).toBe( textNode );
+		expect( form.childNodes[ 2 ] ).toBe( after );
+
 		document.body.removeChild( form );
 	} );
 } );

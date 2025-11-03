@@ -14,6 +14,7 @@ namespace HCaptcha\Helpers;
 
 use HCaptcha\Helpers\Minify\CSS;
 use HCaptcha\Helpers\Minify\JS;
+use HCaptcha\Settings\General;
 use WP_Error;
 
 /**
@@ -64,8 +65,8 @@ class HCaptcha {
 		$settings          = hcaptcha()->settings();
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_force    = $settings->is_on( 'force' );
-		$hcaptcha_theme    = $settings->get_theme();
-		$hcaptcha_size     = $settings->get( 'size' );
+		$hcaptcha_theme    = $settings->get_theme() ?: 'light';
+		$hcaptcha_size     = $settings->get( 'size' ) ?: 'normal';
 
 		$args = wp_parse_args(
 			$args,

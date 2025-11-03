@@ -26,6 +26,7 @@ use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
+use HCaptcha\Helpers\Playground;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
@@ -173,7 +174,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		self::assertSame( Main::LOAD_PRIORITY + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
+		self::assertSame( Main::LOAD_PRIORITY + 10, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
 		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
@@ -193,7 +194,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			Main::LOAD_PRIORITY + 1,
+			Main::LOAD_PRIORITY + 10,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
@@ -289,7 +290,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			Main::LOAD_PRIORITY + 1,
+			Main::LOAD_PRIORITY + 10,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
@@ -463,11 +464,12 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @param string|false $custom_themes Custom themes option value.
+	 * @param int          $delay         Delay showing hCaptcha.
 	 *
 	 * @dataProvider dp_test_print_inline_styles
 	 * @noinspection CssUnusedSymbol
 	 */
-	public function test_print_inline_styles( $custom_themes ): void {
+	public function test_print_inline_styles( $custom_themes, int $delay ): void {
 		$license       = 'pro';
 		$bg            = 'on' === $custom_themes
 			? '#f0f0f0'
@@ -485,6 +487,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				],
 			]
 			: [];
+		$load_msg      = $delay >= 0
+			? 'If you see this message, hCaptcha failed to load due to site errors.'
+			: 'The hCaptcha loading is delayed until user interaction.';
 
 		update_option(
 			'hcaptcha_settings',
@@ -493,6 +498,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 				'config_params' => json_encode( $config_params ),
 				'license'       => $license,
+				'delay'         => $delay,
 			]
 		);
 
@@ -510,6 +516,13 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			'constant',
 			static function ( $name ) {
 				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		add_filter(
+			'hcap_mode',
+			static function ( $mode ) {
+				return 'live';
 			}
 		);
 
@@ -553,7 +566,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	.h-captcha::after {
-		content: "If you see this message, hCaptcha failed to load due to site errors.";
+		content: "$load_msg";
 	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 		display: block;
 		position: absolute;
@@ -662,8 +675,8 @@ CSS;
 	 */
 	public function dp_test_print_inline_styles(): array {
 		return [
-			[ false ],
-			[ 'on' ],
+			[ false, -100 ],
+			[ 'on', 0 ],
 		];
 	}
 
@@ -967,7 +980,7 @@ CSS;
 
 		function scrollHandler() {
 			if ( ! scrolled ) {
-				// Ignore first scroll event, which can be on page load.
+				// Ignore the first scroll event, which can be on page load.
 				scrolled = true;
 				return;
 			}
@@ -983,11 +996,13 @@ CSS;
 				timerId = setTimeout( load, delay );
 			}
 
-			window.addEventListener( 'touchstart', load );
+			const options = { passive: true };
+
+			window.addEventListener( 'touchstart', load, options );
 			document.body.addEventListener( 'mouseenter', load );
 			document.body.addEventListener( 'click', load );
 			window.addEventListener( 'keydown', load );
-			window.addEventListener( 'scroll', scrollHandler );
+			window.addEventListener( 'scroll', scrollHandler, options );
 		} );
 	} )();
 ";
