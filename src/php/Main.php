@@ -80,7 +80,7 @@ class Main {
 	/**
 	 * Priority of the plugins_loaded action to load Main.
 	 */
-	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 1;
+	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 10;
 
 	/**
 	 * Form shown somewhere, use this flag to run the script.
@@ -165,7 +165,8 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
-		$this->migrations = new Migrations();
+		$this->load( Migrations::class );
+		$this->load( Playground::class );
 
 		( new Fix() )->init();
 
@@ -214,9 +215,8 @@ class Main {
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
-		$this->load( Playground::class );
 
-		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 1 );
+		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 10 );
 		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
 		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_wc_compatibility' ] );

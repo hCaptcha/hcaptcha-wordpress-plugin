@@ -10,8 +10,8 @@
 
 namespace HCaptcha\Helpers;
 
-use Elementor\Plugin;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
 use WP_Error;
@@ -23,9 +23,14 @@ use WPCF7_ContactForm;
  */
 class Playground {
 	/**
+	 * Priority of the plugins_loaded action to load Playground.
+	 */
+	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 5;
+
+	/**
 	 * Transient key for storing Playground data.
 	 */
-	private const PLAYGROUND_DATA = 'playground_data';
+	private const PLAYGROUND_DATA = 'hcaptcha_playground_data';
 
 	/**
 	 * Menu ID for the admin bar menu.
@@ -53,10 +58,6 @@ class Playground {
 	 * Constructor.
 	 */
 	public function __construct() {
-		if ( ! $this->is_wp_playground() ) {
-			return;
-		}
-
 		$this->init();
 	}
 
@@ -66,6 +67,10 @@ class Playground {
 	 * @return void
 	 */
 	private function init(): void {
+		if ( ! $this->is_wp_playground() ) {
+			return;
+		}
+
 		$this->data = get_transient( self::PLAYGROUND_DATA ) ?: [];
 
 		$this->init_hooks();
@@ -77,7 +82,7 @@ class Playground {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'admin_init', [ $this, 'setup_playground' ] );
+		add_action( 'plugins_loaded', [ $this, 'setup_playground' ], self::LOAD_PRIORITY );
 		add_action( 'hcaptcha_activated_plugin', [ $this, 'setup_plugin' ], 10, 2 );
 		add_action( 'switch_theme', [ $this, 'setup_theme' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'head_styles' ] );

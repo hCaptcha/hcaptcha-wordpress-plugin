@@ -174,7 +174,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
 
-		self::assertSame( Main::LOAD_PRIORITY + 1, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
+		self::assertSame( Main::LOAD_PRIORITY + 10, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
 		self::assertSame( 10, has_filter( 'wp_headers', [ $hcaptcha, 'csp_headers' ] ) );
@@ -194,7 +194,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			Main::LOAD_PRIORITY + 1,
+			Main::LOAD_PRIORITY + 10,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
@@ -290,7 +290,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame(
-			Main::LOAD_PRIORITY + 1,
+			Main::LOAD_PRIORITY + 10,
 			has_action( 'plugins_loaded', [ $subject, 'load_modules' ] )
 		);
 		self::assertSame(
@@ -1294,7 +1294,6 @@ CSS;
 			Events::class,
 			Privacy::class,
 			WhatsNew::class,
-			Playground::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 
