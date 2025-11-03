@@ -424,8 +424,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			'sign'    => '',
 			'ajax'    => false,
 			'force'   => false,
-			'theme'   => '',
-			'size'    => '',
+			'theme'   => 'light',
+			'size'    => 'normal',
 			'id'      => [
 				'source'  => [],
 				'form_id' => 0,

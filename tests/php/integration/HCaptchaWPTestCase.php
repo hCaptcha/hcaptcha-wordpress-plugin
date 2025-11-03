@@ -203,8 +203,8 @@ HTML;
 				<h-captcha
 			class="h-captcha"
 			data-sitekey="' . $args['sitekey'] . '"
-			data-theme="' . $args['theme'] . '"
-			data-size="' . $args['size'] . '"
+			data-theme="' . ( $args['theme'] ?: 'light' ) . '"
+			data-size="' . ( $args['size'] ?: 'normal' ) . '"
 			data-auto="' . ( $args['auto'] ? 'true' : 'false' ) . '"
 			data-ajax="' . ( $args['ajax'] ? 'true' : 'false' ) . '"
 			data-force="' . ( $args['force'] ? 'true' : 'false' ) . '">
