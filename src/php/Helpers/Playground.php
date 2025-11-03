@@ -83,7 +83,7 @@ class Playground {
 	 */
 	private function init_hooks(): void {
 		add_action( 'plugins_loaded', [ $this, 'setup_playground' ], self::LOAD_PRIORITY );
-		add_action( 'hcaptcha_activated_plugin', [ $this, 'setup_plugin' ], 10, 2 );
+		add_action( 'activated_plugin', [ $this, 'setup_plugin' ], 10, 2 );
 		add_action( 'switch_theme', [ $this, 'setup_theme' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
