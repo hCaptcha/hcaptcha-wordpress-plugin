@@ -284,9 +284,9 @@ class SettingsTest extends HCaptchaTestCase {
 				return $is_pro_or_general;
 			}
 		);
-		$subject->shouldReceive( 'is' )->with( 'mode', 'live' )->andReturnUsing(
-			static function ( $key, $compare ) use ( &$mode, &$live ) {
-				return $live;
+		$subject->shouldReceive( 'get_mode' )->with()->andReturnUsing(
+			static function () use ( &$live ) {
+				return $live ? General::MODE_LIVE : General::MODE_TEST_PUBLISHER;
 			}
 		);
 		$subject->shouldReceive( 'get_config_params' )->with()->andReturnUsing(
