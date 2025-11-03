@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Helpers;
 
+use Elementor\Plugin;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\Integrations;
@@ -115,6 +116,7 @@ class Playground {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function setup_plugin( string $plugin, bool $network_wide ): void {
 		if ( $this->data['plugins'][ $plugin ] ?? false ) {
@@ -151,6 +153,13 @@ class Playground {
 							'_elementor_edit_mode' => 'builder',
 						],
 					]
+				);
+
+				add_action(
+					'elementor/init',
+					static function () {
+						Plugin::$instance->files_manager->clear_cache();
+					}
 				);
 
 				break;
