@@ -4,7 +4,7 @@ We in hCaptcha take the security of our software products and services seriously
 
 If you believe you have found a security vulnerability in any hCaptcha-owned repository, please report it to us as described below.
 
-= Where do I report security bugs found in this plugin? =
+## Where do I report security bugs found in this plugin?
 
 Please report security bugs found in the source code of the undefined plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
