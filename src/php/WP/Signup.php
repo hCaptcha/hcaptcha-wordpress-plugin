@@ -138,6 +138,6 @@ class Signup {
 			return '';
 		}
 
-		return '<p class="error" id="wp-signup-hcaptcha-error"><strong>Error:</strong>' . $this->error_message . '</p>';
+		return '<p class="error" id="wp-signup-hcaptcha-error">' . $this->error_message . '</p>';
 	}
 }
