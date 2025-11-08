@@ -125,18 +125,25 @@ class Playground {
 
 		switch ( $plugin ) {
 			case 'contact-form-7/wp-contact-form-7.php':
-				// Create a new Contact Form 7 form.
-				$contact_form = $this->create_cf7_form();
+				// Find the preinstalled Contact Form 7 form.
+				$forms = get_posts(
+					[
+						'post_type'      => 'wpcf7_contact_form',
+						'post_status'    => 'publish',
+						'posts_per_page' => 1,
+						'orderby'        => 'date',
+						'order'          => 'ASC',
+					]
+				);
 
-				// Output the shortcode to logs/admin_notice (optional).
-				$shortcode = $contact_form ? $contact_form->shortcode() : '';
+				$form = reset( $forms );
 
 				// Create a new page with the Contact Form 7 shortcode.
 				$this->insert_post(
 					[
 						'title'   => 'Contact Form 7 Test Page',
 						'name'    => 'contact-form-7-test',
-						'content' => $shortcode,
+						'content' => '[contact-form-7 id="' . (int) $form->ID . '"]',
 					]
 				);
 
@@ -532,70 +539,5 @@ class Playground {
 		}
 
 		return wp_insert_post( $postarr );
-	}
-
-	/**
-	 * Create a new CF7 form.
-	 *
-	 * @return WPCF7_ContactForm|null
-	 */
-	private function create_cf7_form(): ?WPCF7_ContactForm {
-		// Create a new Contact Form 7 form.
-		$form_id = $this->insert_post(
-			[
-				'title'     => 'Contact Form 7 Test Form',
-				'name'      => 'contact-form-7-test-form',
-				'post_type' => 'wpcf7_contact_form',
-			]
-		);
-
-		// Get WPCF7_ContactForm instance for this form.
-		$contact_form = WPCF7_ContactForm::get_instance( $form_id );
-
-		if ( ! $contact_form ) {
-			return null;
-		}
-
-		// Build form template (what you normally put on the "Form" tab).
-		$form_template = implode(
-			"\n",
-			[
-				'<label> Your name',
-				'[text* your-name autocomplete:name] </label>',
-				'',
-				'<label> Your email',
-				'[email* your-email autocomplete:email] </label>',
-				'',
-				'[submit "Submit"]',
-			]
-		);
-
-		// Prepare mail settings (what you normally set on the "Mail" tab).
-		$mail              = $contact_form->prop( 'mail' );
-		$mail['recipient'] = get_option( 'admin_email' );
-		$mail['sender']    = 'WordPress <' . get_option( 'admin_email' ) . '>';
-		$mail['subject']   = 'New message from [your-name]';
-		$mail['body']      = implode(
-			"\n",
-			[
-				'From: [your-name] <[your-email]>',
-				'Message:',
-				'[your-message]',
-			]
-		);
-		$mail['use_html']  = false;
-
-		// Apply all properties and save.
-		$contact_form->set_properties(
-			[
-				'form' => $form_template,
-				'mail' => $mail,
-			]
-		);
-
-		// Persist to DB.
-		$contact_form->save();
-
-		return $contact_form;
 	}
 }
