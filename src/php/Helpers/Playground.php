@@ -561,7 +561,7 @@ class Playground {
 	 * @return void
 	 */
 	private function setup_settings(): void {
-		$settings = get_option( 'hcaptcha_settings' );
+		$settings = get_option( 'hcaptcha_settings', [] );
 
 		$settings['wp_status']                    = [
 			'comment',
