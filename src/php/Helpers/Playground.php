@@ -89,6 +89,8 @@ class Playground {
 		add_action( 'wp_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 100 );
+		add_filter( 'wpcf7_skip_mail', '__return_true' );
+		add_filter( 'pre_wp_mail', '__return_true' );
 	}
 
 	/**
@@ -97,13 +99,15 @@ class Playground {
 	 * @return void
 	 */
 	public function setup_playground(): void {
-		if ( $this->data['table'] ?? false ) {
+		if ( $this->data ) {
 			return;
 		}
 
+		$this->setup_permalinks();
+		$this->setup_settings();
 		Events::create_table();
 
-		$this->data['table'] = true;
+		$this->data['setup'] = true;
 
 		set_transient( self::PLAYGROUND_DATA, $this->data );
 	}
@@ -539,5 +543,90 @@ class Playground {
 		}
 
 		return wp_insert_post( $postarr );
+	}
+
+	/**
+	 * Set up the permalinks.
+	 *
+	 * @return void
+	 */
+	private function setup_permalinks(): void {
+		update_option( 'permalink_structure', '/%postname%/' );
+		flush_rewrite_rules();
+	}
+
+	/**
+	 * Set up the settings.
+	 *
+	 * @return void
+	 */
+	private function setup_settings(): void {
+		$settings = get_option( 'hcaptcha_settings' );
+
+		$settings['wp_status']                    = [
+			'comment',
+			'login',
+			'lost_pass',
+			'password_protected',
+			'register',
+		];
+		$settings['avada_status']                 = [ 'form' ];
+		$settings['cf7_status']                   = [ 'form', 'embed', 'live', 'replace_rsc' ];
+		$settings['divi_status']                  = [ 'comment', 'contact', 'email_optin', 'login' ];
+		$settings['elementor_pro_status']         = [ 'form', 'login' ];
+		$settings['extra_status']                 = [ 'comment', 'contact', 'email_optin', 'login' ];
+		$settings['woocommerce_status']           = [
+			'checkout',
+			'login',
+			'lost_pass',
+			'order_tracking',
+			'register',
+		];
+		$settings['_network_wide']                = [];
+		$settings['off_when_logged_in']           = [];
+		$settings['recaptcha_compat_off']         = [];
+		$settings['secret_key']                   = '';
+		$settings['theme']                        = 'light';
+		$settings['size']                         = 'normal';
+		$settings['language']                     = '';
+		$settings['whitelisted_ips']              = "100.200.0.2\n220.45.45.1\n";
+		$settings['mode']                         = 'test:publisher';
+		$settings['site_key']                     = '';
+		$settings['delay']                        = '0';
+		$settings['login_limit']                  = '0';
+		$settings['login_interval']               = '5';
+		$settings['force']                        = [ 'on' ];
+		$settings['statistics']                   = [ 'on' ];
+		$settings['custom_themes']                = [];
+		$settings['api_host']                     = 'js.hcaptcha.com';
+		$settings['asset_host']                   = '';
+		$settings['endpoint']                     = '';
+		$settings['host']                         = '';
+		$settings['image_host']                   = '';
+		$settings['report_api']                   = '';
+		$settings['sentry']                       = '';
+		$settings['backend']                      = 'api.hcaptcha.com';
+		$settings['license']                      = 'pro';
+		$settings['menu_position']                = [];
+		$settings['sample_hcaptcha']              = '';
+		$settings['check_config']                 = '';
+		$settings['reset_notifications']          = '';
+		$settings['custom_prop']                  = '';
+		$settings['custom_value']                 = '';
+		$settings['hide_login_errors']            = [];
+		$settings['anonymous']                    = [];
+		$settings['protect_content']              = [];
+		$settings['protected_urls']               = '/protected-content';
+		$settings['cleanup_on_uninstall']         = [];
+		$settings['whats_new_last_shown_version'] = '4.18.0';
+		$settings['blacklisted_ips']              = '';
+		$settings['antispam']                     = [ 'on' ];
+		$settings['antispam_provider']            = 'akismet';
+		$settings['honeypot']                     = [ 'on' ];
+		$settings['set_min_submit_time']          = [ 'on' ];
+		$settings['min_submit_time']              = '2';
+		$settings['show_antispam_coverage']       = [ 'on' ];
+
+		update_option( 'hcaptcha_settings', $settings );
 	}
 }
