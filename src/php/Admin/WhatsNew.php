@@ -347,7 +347,7 @@ class WhatsNew extends NotificationsBase {
 				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
 				sprintf(
 				/* translators: 1: Pro link. */
-					__( 'Add a hidden %1$s field for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+					__( 'Added a hidden %1$s field for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$urls['honeypot'],
@@ -356,7 +356,7 @@ class WhatsNew extends NotificationsBase {
 				),
 				sprintf(
 				/* translators: 1: Pro link. */
-					__( 'Add minimum form %1$s for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+					__( 'Added minimum form %1$s for bot detection before processing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$urls['token'],
