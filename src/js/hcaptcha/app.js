@@ -20,9 +20,27 @@ window.hCaptchaReset = ( el ) => {
 };
 
 window.hCaptchaBindEvents = () => {
-	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
-	hCaptcha.bindEvents();
-	document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
+	const addSyncedEventListener = () => {
+		if ( window.__hCaptchaSyncedEventListenerAdded ) {
+			return;
+		}
+
+		window.__hCaptchaSyncedEventListenerAdded = true;
+
+		hCaptcha.addSyncedEventListener( () => {
+			document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
+			hCaptcha.bindEvents();
+			document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
+		} );
+	};
+
+	if ( window.__hCaptchaOnLoad ) {
+		addSyncedEventListener();
+	} else {
+		document.addEventListener( 'hCaptchaBeforeOnLoad', () => {
+			addSyncedEventListener();
+		} );
+	}
 };
 
 window.hCaptchaSubmit = () => {
@@ -30,12 +48,14 @@ window.hCaptchaSubmit = () => {
 };
 
 window.hCaptchaOnLoad = () => {
-	function hCaptchaOnLoad() {
-		window.hCaptchaBindEvents();
-		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
-	}
+	window.__hCaptchaOnLoad = true;
+	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeOnLoad', { cancelable: true } ) );
 
-	hCaptcha.addSyncedEventListener( hCaptchaOnLoad );
+	window.hCaptchaBindEvents();
+
+	document.addEventListener( 'hCaptchaAfterBindEvents', () => {
+		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
+	} );
 };
 
 window.customElements.define( 'h-captcha', HCaptchaCustomElement );

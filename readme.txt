@@ -761,6 +761,7 @@ Instructions for popular native integrations are below:
 
 = 4.20.0 =
 * Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
+* Fixed the race condition on loading JavaScripts on Playground.
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
