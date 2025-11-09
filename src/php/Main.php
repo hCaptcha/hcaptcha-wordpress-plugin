@@ -539,13 +539,16 @@ class Main {
 
 	.h-captcha::after {
 		content: "' . $load_msg . '";
-	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-		display: block;
+	    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+	    font-size: 10px;
+	    font-weight: 500;
 		position: absolute;
 		top: 0;
+		bottom: 0;
 		left: 0;
+		right: 0;
 		box-sizing: border-box;
-        color: #ff0000;
+        color: #bf1722;
 		opacity: 0;
 	}
 
@@ -570,7 +573,7 @@ class Main {
 	}
 
 	.h-captcha[data-size="normal"]::after {
-		padding: 19px 75px 16px 10px;
+		padding: 24px 75px 10px 10px;
 	}
 
 	.h-captcha[data-size="compact"]::before {
@@ -580,7 +583,8 @@ class Main {
 	}
 
 	.h-captcha[data-size="compact"]::after {
-		padding: 10px 10px 16px 10px;
+		text-align: center;
+		padding: 24px 10px 10px 10px;
 	}
 
 	.h-captcha[data-theme="light"]::before,
