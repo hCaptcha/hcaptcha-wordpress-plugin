@@ -48,14 +48,14 @@ window.hCaptchaSubmit = () => {
 };
 
 window.hCaptchaOnLoad = () => {
+	document.addEventListener( 'hCaptchaAfterBindEvents', () => {
+		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
+	} );
+
 	window.__hCaptchaOnLoad = true;
 	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeOnLoad', { cancelable: true } ) );
 
 	window.hCaptchaBindEvents();
-
-	document.addEventListener( 'hCaptchaAfterBindEvents', () => {
-		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
-	} );
 };
 
 window.customElements.define( 'h-captcha', HCaptchaCustomElement );
