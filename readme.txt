@@ -759,6 +759,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.20.0 =
+* Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
+
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
 * Added Patchstack security program support.
