@@ -24,6 +24,21 @@ use WPCF7_ContactForm;
  */
 class Playground {
 	/**
+	 * Admin script handle.
+	 */
+	private const HANDLE = 'hcaptcha-playground';
+
+	/**
+	 * Script localization object.
+	 */
+	private const OBJECT = 'HCaptchaPlaygroundObject';
+
+	/**
+	 * Update menu action.
+	 */
+	private const UPDATE_MENU_ACTION = 'hcaptcha-playground-update-menu';
+
+	/**
 	 * Priority of the plugins_loaded action to load Playground.
 	 */
 	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 5;
@@ -89,6 +104,8 @@ class Playground {
 		add_action( 'wp_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 100 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+		add_action( 'wp_ajax_' . self::UPDATE_MENU_ACTION, [ $this, 'update_menu' ] );
 
 		// Prevent mail sending errors.
 		add_filter( 'wpcf7_skip_mail', '__return_true' );
@@ -311,145 +328,71 @@ class Playground {
 	 * @return void
 	 */
 	public function admin_bar_menu( WP_Admin_Bar $bar ): void {
-		// Parent item without href — just opens subitems. For it, no href.
-		$bar->add_node(
-			[
-				'id'    => self::HCAPTCHA_MENU_ID,
-				'title' =>
-					'<span class="ab-icon hcaptcha-icon"></span><span class="ab-label">' .
-					__( 'hCaptcha Samples', 'hcaptcha-for-forms-and-more' ) .
-					'</span>',
-				'meta'  => [ 'class' => self::HCAPTCHA_MENU_ID ],
-			]
+		$nodes = $this->get_admin_bar_menu_nodes();
+
+		foreach ( $nodes as $node ) {
+			$bar->add_node( $node );
+		}
+	}
+
+	/**
+	 * Enqueue scripts and styles.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts(): void {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/playground$min.js",
+			[ 'jquery' ],
+			constant( 'HCAPTCHA_VERSION' ),
+			true
 		);
 
-		// hCaptcha settings.
-		$bar->add_node(
+		wp_localize_script(
+			self::HANDLE,
+			self::OBJECT,
 			[
-				'id'     => 'hcaptcha-menu-hcaptcha-general',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '/wp-admin/admin.php?page=hcaptcha' ),
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'action'  => self::UPDATE_MENU_ACTION,
+				'nonce'   => wp_create_nonce( self::UPDATE_MENU_ACTION ),
 			]
 		);
+	}
 
-		// WordPress group.
-		$bar->add_node(
-			[
-				'id'     => self::HCAPTCHA_MENU_WORDPRESS_ID,
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'WordPress Core', 'hcaptcha-for-forms-and-more' ),
-			]
-		);
+	/**
+	 * Filter the integrations' object.
+	 *
+	 * @return void
+	 */
+	public function update_menu(): void {
+		// Run a security check.
+		if ( ! check_ajax_referer( self::UPDATE_MENU_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
 
-		// WordPress Login page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-wp-login',
-				'parent' => self::HCAPTCHA_MENU_WORDPRESS_ID,
-				'title'  => __( 'Login', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '/wp-login.php?action=logout' ),
-			]
-		);
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
 
-		// WordPress Comments.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-wp-comments',
-				'parent' => self::HCAPTCHA_MENU_WORDPRESS_ID,
-				'title'  => __( 'Comments', 'hcaptcha-for-forms-and-more' ),
-				'href'   => home_url( '?p=1' ),
-			]
-		);
+		$nodes         = $this->get_admin_bar_menu_nodes();
+		$dynamic_nodes = [];
 
-		// Avada test page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-avada',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'Avada', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'avada_status', home_url( 'avada-test' ) ),
-			]
-		);
+		foreach ( $nodes as $node ) {
+			$id   = $node['id'] ?? '';
+			$href = $node['href'] ?? '';
 
-		// CF7 test page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-cf7',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'cf7_status', home_url( 'contact-form-7-test' ) ),
-			]
-		);
+			if ( ! $id || ! $href ) {
+				continue;
+			}
 
-		// Divi test page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-divi',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'divi_status', home_url( 'divi-test' ) ),
-			]
-		);
+			$dynamic_nodes[] = compact( 'id', 'href' );
+		}
 
-		// Elementor Pro test page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-elementor',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'Elementor Pro', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'elementor_pro_status', home_url( 'elementor-pro-test' ) ),
-			]
-		);
-
-		// Extra test page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-extra',
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'Extra', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'extra_status', home_url( 'divi-test' ) ),
-			]
-		);
-
-		// WooCommerce group.
-		$bar->add_node(
-			[
-				'id'     => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'parent' => self::HCAPTCHA_MENU_ID,
-				'title'  => __( 'WooCommerce', 'hcaptcha-for-forms-and-more' ),
-			]
-		);
-
-		// WC Checkout page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-wc-checkout',
-				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'title'  => __( 'Checkout', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'woocommerce_status', home_url( '/checkout/' ) ),
-			]
-		);
-
-		// WC Login/Register page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-wc-login-register',
-				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'title'  => __( 'Login/Register', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'woocommerce_status', home_url( '/my-account/' ) ),
-			]
-		);
-
-		// WC Order Tracking page.
-		$bar->add_node(
-			[
-				'id'     => 'hcaptcha-menu-wc-order-tracking',
-				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
-				'title'  => __( 'Order Tracking', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'woocommerce_status', home_url( '/wc-order-tracking/' ) ),
-			]
-		);
+		wp_send_json_success( $dynamic_nodes );
 	}
 
 	/**
@@ -642,5 +585,126 @@ class Playground {
 		$settings['show_antispam_coverage']       = [ 'on' ];
 
 		update_option( 'hcaptcha_settings', $settings );
+	}
+
+	/**
+	 * Get the admin bar menu nodes.
+	 *
+	 * @return array[]
+	 */
+	private function get_admin_bar_menu_nodes(): array {
+		return [
+			// Parent item without href — just opens subitems. For it, no href.
+			[
+				'id'    => self::HCAPTCHA_MENU_ID,
+				'title' =>
+					'<span class="ab-icon hcaptcha-icon"></span><span class="ab-label">' .
+					__( 'hCaptcha Samples', 'hcaptcha-for-forms-and-more' ) .
+					'</span>',
+				'meta'  => [ 'class' => self::HCAPTCHA_MENU_ID ],
+			],
+
+			// hCaptcha settings.
+			[
+				'id'     => 'hcaptcha-menu-hcaptcha-general',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/wp-admin/admin.php?page=hcaptcha' ),
+			],
+
+			// WordPress group.
+			[
+				'id'     => self::HCAPTCHA_MENU_WORDPRESS_ID,
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'WordPress Core', 'hcaptcha-for-forms-and-more' ),
+			],
+
+			// WordPress Login page.
+			[
+				'id'     => 'hcaptcha-menu-wp-login',
+				'parent' => self::HCAPTCHA_MENU_WORDPRESS_ID,
+				'title'  => __( 'Login', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/wp-login.php?action=logout' ),
+			],
+
+			// WordPress Comments.
+			[
+				'id'     => 'hcaptcha-menu-wp-comments',
+				'parent' => self::HCAPTCHA_MENU_WORDPRESS_ID,
+				'title'  => __( 'Comments', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '?p=1' ),
+			],
+
+			// Avada test page.
+			[
+				'id'     => 'hcaptcha-menu-avada',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Avada', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'avada_status', home_url( 'avada-test' ) ),
+			],
+
+			// CF7 test page.
+			[
+				'id'     => 'hcaptcha-menu-cf7',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Contact Form 7', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'cf7_status', home_url( 'contact-form-7-test' ) ),
+			],
+
+			// Divi test page.
+			[
+				'id'     => 'hcaptcha-menu-divi',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'divi_status', home_url( 'divi-test' ) ),
+			],
+
+			// Elementor Pro test page.
+			[
+				'id'     => 'hcaptcha-menu-elementor',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Elementor Pro', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'elementor_pro_status', home_url( 'elementor-pro-test' ) ),
+			],
+
+			// Extra test page.
+			[
+				'id'     => 'hcaptcha-menu-extra',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Extra', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'extra_status', home_url( 'divi-test' ) ),
+			],
+
+			// WooCommerce group.
+			[
+				'id'     => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'WooCommerce', 'hcaptcha-for-forms-and-more' ),
+			],
+
+			// WC Checkout page.
+			[
+				'id'     => 'hcaptcha-menu-wc-checkout',
+				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
+				'title'  => __( 'Checkout', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( '/checkout/' ) ),
+			],
+
+			// WC Login/Register page.
+			[
+				'id'     => 'hcaptcha-menu-wc-login-register',
+				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
+				'title'  => __( 'Login/Register', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( '/my-account/' ) ),
+			],
+
+			// WC Order Tracking page.
+			[
+				'id'     => 'hcaptcha-menu-wc-order-tracking',
+				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
+				'title'  => __( 'Order Tracking', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( '/wc-order-tracking/' ) ),
+			],
+		];
 	}
 }
