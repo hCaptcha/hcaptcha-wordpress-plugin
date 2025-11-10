@@ -89,8 +89,22 @@ class Playground {
 		add_action( 'wp_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 100 );
+
+		// Prevent mail sending errors.
 		add_filter( 'wpcf7_skip_mail', '__return_true' );
 		add_filter( 'pre_wp_mail', '__return_true' );
+
+		// Do not use WooCommerce session-based nonce. Otherwise, WC login does not work on the Playground.
+		add_action(
+			'init',
+			static function () {
+				if ( function_exists( 'WC' ) && WC()->session ) {
+					// WooCommerce adds nonce_user_logged_out for not logged-in users.
+					remove_filter( 'nonce_user_logged_out', [ WC()->session, 'maybe_update_nonce_user_logged_out' ] );
+				}
+			},
+			20
+		);
 	}
 
 	/**
