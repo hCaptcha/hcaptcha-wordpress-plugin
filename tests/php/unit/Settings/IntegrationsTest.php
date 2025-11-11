@@ -39,7 +39,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['wp_filter'], $GLOBALS['wp_filesystem'] );
+		unset( $GLOBALS['wp_filter'], $GLOBALS['wp_filesystem'], $_POST['action'] );
 
 		parent::tearDown();
 	}
@@ -129,6 +129,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_after_switch_theme_action(): void {
+		$_POST['action'] = Integrations::ACTIVATE_ACTION;
+
 		$utils = Mockery::mock( Utils::class )->makePartial();
 
 		$utils->shouldAllowMockingProtectedMethods();
@@ -142,6 +144,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'run_checks' )->once()->with( $subject::ACTIVATE_ACTION );
 
 		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( true );
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
 		WP_Mock::userFunction( 'remove_action' )->once()
 			->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'avada_compat_switch_theme' );
