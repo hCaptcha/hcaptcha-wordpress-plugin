@@ -190,7 +190,12 @@ class Integrations extends PluginSettingsBase {
 			return;
 		}
 
-		$this->run_checks( self::ACTIVATE_ACTION );
+		$action = Request::filter_input( INPUT_POST, 'action' );
+
+		// Do not run checks when the Playground action is triggered.
+		if ( self::ACTIVATE_ACTION === $action ) {
+			$this->run_checks( self::ACTIVATE_ACTION );
+		}
 
 		// Do not allow redirect during Divi theme activation.
 		remove_action( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
