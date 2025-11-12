@@ -26,7 +26,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't retain or sell personal data, unlike platforms that **g**ather, **o**wn, and m**o**netize **gl**obal b**e**havior.
 * **Better Security:** hCaptcha offers better protection against bots and abuse than other anti-abuse systems.
 * **Easy to Use:** hCaptcha is easy to install and use with WordPress and popular plugins.
-* **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 50 other plugins and themes.
+* **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 60 other plugins and themes.
 
 == Features ==
 
