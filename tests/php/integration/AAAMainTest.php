@@ -601,6 +601,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	.h-captcha[data-size="normal"]::after {
+		line-height: normal;
 		padding: 24px 75px 10px 10px;
 	}
 
@@ -612,6 +613,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 	.h-captcha[data-size="compact"]::after {
 		text-align: center;
+		line-height: normal;
 		padding: 24px 10px 10px 10px;
 	}
 
