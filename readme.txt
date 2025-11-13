@@ -763,6 +763,7 @@ Instructions for popular native integrations are below:
 * Added a dynamic Playground menu update after activating and deactivating of plugins and themes.
 * Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
 * Fixed the race condition on loading JavaScripts on Playground.
+* Fixed console errors with Divi Contact Form.
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.

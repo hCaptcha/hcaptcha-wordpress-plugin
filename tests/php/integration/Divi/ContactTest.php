@@ -77,8 +77,8 @@ class ContactTest extends HCaptchaWPTestCase {
 			has_filter( 'et_pb_module_shortcode_attributes', [ $subject, 'shortcode_attributes' ] )
 		);
 		self::assertSame(
-			20,
-			has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
+			9,
+			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 	}
 
@@ -424,6 +424,21 @@ class ContactTest extends HCaptchaWPTestCase {
 	public function test_enqueue_scripts(): void {
 		hcaptcha()->form_shown = true;
 
+		wp_register_script(
+			'et-recaptcha-v3',
+			'https://www.google.com/recaptcha/api.js?render=some-site-key',
+			[],
+			'1.0.0',
+			true
+		);
+		wp_register_script(
+			'es6-promise',
+			'https://example.com/admin/js/es6-promise.auto.min.js',
+			[],
+			'1.0.0',
+			true
+		);
+
 		wp_enqueue_script(
 			'et-core-api-spam-recaptcha',
 			'https://example.com/recaptcha.js',
@@ -434,11 +449,15 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$subject = new Contact();
 
+		self::assertTrue( wp_script_is( 'et-recaptcha-v3', 'registered' ) );
+		self::assertTrue( wp_script_is( 'es6-promise', 'registered' ) );
 		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
 
 		$subject->enqueue_scripts();
 
+		self::assertFalse( wp_script_is( 'et-recaptcha-v3', 'registered' ) );
+		self::assertFalse( wp_script_is( 'es6-promise', 'registered' ) );
 		self::assertFalse( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-divi' ) );
 	}
