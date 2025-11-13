@@ -21,12 +21,6 @@ window.hCaptchaReset = ( el ) => {
 
 window.hCaptchaBindEvents = () => {
 	const addSyncedEventListener = () => {
-		if ( window.__hCaptchaSyncedEventListenerAdded ) {
-			return;
-		}
-
-		window.__hCaptchaSyncedEventListenerAdded = true;
-
 		hCaptcha.addSyncedEventListener( () => {
 			document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
 			hCaptcha.bindEvents();
