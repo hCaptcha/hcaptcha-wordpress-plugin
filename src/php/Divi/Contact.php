@@ -139,8 +139,6 @@ class Contact {
 			return $block_content;
 		}
 
-		$output = $block_content;
-
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -161,7 +159,7 @@ class Contact {
 			$search;
 
 		// Insert hcaptcha.
-		return str_replace( $search, $replace, $output );
+		return str_replace( $search, $replace, $block_content );
 	}
 
 	/**
