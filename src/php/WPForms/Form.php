@@ -141,13 +141,13 @@ class Form {
 	}
 
 	div.wpforms-container-full .wpforms-form .h-captcha[data-size="normal"] {
-		width: 303px;
-		height: 78px;
+		width: 302px;
+		height: 76px;
 	}
 	
 	div.wpforms-container-full .wpforms-form .h-captcha[data-size="compact"] {
-		width: 164px;
-		height: 144px;
+		width: 158px;
+		height: 138px;
 	}
 	
 	div.wpforms-container-full .wpforms-form .h-captcha[data-size="invisible"] {
