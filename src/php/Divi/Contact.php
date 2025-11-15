@@ -62,7 +62,7 @@ class Contact {
 	private function init_hooks(): void {
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
-		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
+		add_filter( self::TAG . '_shortcode_output', [ $this, 'add_hcaptcha' ], 10, 2 );
 		add_filter( 'render_block', [ $this, 'add_hcaptcha_to_block' ], 10, 3 );
 		add_filter( 'pre_do_shortcode_tag', [ $this, 'verify_4' ], 10, 4 );
 		add_filter( 'divi_module_library_register_module_attrs', [ $this, 'verify_5' ], 10, 2 );
@@ -81,7 +81,7 @@ class Contact {
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function add_captcha( $output, string $module_slug ) {
+	public function add_hcaptcha( $output, string $module_slug ) {
 		if ( ! is_string( $output ) || et_core_is_fb_enabled() ) {
 			// Do not add captcha in the frontend builder.
 
@@ -123,7 +123,7 @@ class Contact {
 	}
 
 	/**
-	 * Add hcaptcha to an Essential Blocks form.
+	 * Add hcaptcha to a Divi Contact From block.
 	 *
 	 * @param string|mixed $block_content The block content.
 	 * @param array        $block         The full block, including name and attributes.

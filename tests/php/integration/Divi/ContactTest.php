@@ -65,7 +65,7 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_filter( 'et_pb_contact_form_shortcode_output', [ $subject, 'add_captcha' ] )
+			has_filter( 'et_pb_contact_form_shortcode_output', [ $subject, 'add_hcaptcha' ] )
 		);
 		self::assertSame(
 			10,
@@ -187,7 +187,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
-		self::assertSame( $expected, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $output, $module_slug ) );
 		self::assertSame( 1, $this->get_protected_property( $subject, 'render_count' ) );
 	}
 
@@ -205,7 +205,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
-		self::assertSame( $output, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( $output, $subject->add_hcaptcha( $output, $module_slug ) );
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
 	}
 
