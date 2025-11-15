@@ -25,7 +25,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
 
-		self::assertSame( 10, has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_divi_captcha' ] ) );
+		self::assertSame( 10, has_filter( Login::TAG . '_shortcode_output', [ $subject, 'add_hcaptcha_to_shortcode' ] ) );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertSame( $expected, $subject->add_divi_captcha( $output, $module_slug ) );
+		self::assertSame( $expected, $subject->add_hcaptcha_to_shortcode( $output, $module_slug ) );
 	}
 
 	/**
@@ -134,7 +134,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertSame( $output, $subject->add_divi_captcha( $output, $module_slug ) );
+		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, $module_slug ) );
 	}
 
 	/**
@@ -148,7 +148,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		self::assertSame( $output, $subject->add_divi_captcha( $output, $module_slug ) );
+		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, $module_slug ) );
 	}
 
 	/**

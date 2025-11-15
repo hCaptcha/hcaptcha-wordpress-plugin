@@ -760,7 +760,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.20.0 =
-* Added Divi 5 Contact Form support.
+* Added Divi 5 support.
 * Added a dynamic Playground menu update after activating and deactivating of plugins and themes.
 * Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
 * Fixed the race condition on loading JavaScripts on Playground.
