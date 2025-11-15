@@ -169,7 +169,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				<textarea name="et_pb_contact_message_0" id="et_pb_contact_message_0" class="et_pb_contact_message input" data-required_mark="required" data-field_type="text" data-original_id="message" placeholder="Message">я</textarea>
 			</p>
 						<input type="hidden" value="et_contact_proccess" name="et_pb_contactform_submit_0"/>
-						<div style="float:right;">' . $hcap_form . '</div>
+						<div class="hcaptcha-divi-wrapper">' . $hcap_form . '</div>
 <div style="clear: both;"></div>
 <div class="et_contact_bottom_container">
 							
