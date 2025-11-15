@@ -123,7 +123,7 @@ class Contact {
 	}
 
 	/**
-	 * Add hcaptcha to a Divi Contact From block.
+	 * Add hcaptcha to a Divi Contact Form block.
 	 *
 	 * @param string|mixed $block_content The block content.
 	 * @param array        $block         The full block, including name and attributes.
