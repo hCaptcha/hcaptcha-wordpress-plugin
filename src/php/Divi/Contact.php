@@ -8,7 +8,6 @@
 namespace HCaptcha\Divi;
 
 use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
-use ET\Builder\Packages\ModuleLibrary\ContactForm\ContactFormHandler;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
