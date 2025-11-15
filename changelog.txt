@@ -3,6 +3,7 @@
 * Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
 * Fixed the race condition on loading JavaScripts on Playground.
 * Fixed console errors with Divi Contact Form.
+* Fixed the placeholder layout following hCaptcha layout changes.
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
