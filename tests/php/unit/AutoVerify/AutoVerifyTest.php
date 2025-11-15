@@ -34,7 +34,9 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_POST );
+		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'] );
+
+		$_POST = [];
 
 		parent::tearDown();
 	}

@@ -30,7 +30,9 @@ class RequestTest extends HCaptchaTestCase {
 	 * Teardown test.
 	 */
 	public function tearDown(): void {
-		unset( $_GET, $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'] );
+		unset( $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'] );
+
+		$_GET = [];
 
 		parent::tearDown();
 	}
@@ -262,7 +264,7 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
 
 		// Test with POST.
-		unset( $_GET );
+		$_GET               = [];
 		$type               = INPUT_POST;
 		$_POST[ $var_name ] = $value;
 
@@ -270,7 +272,7 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
 
 		// Test with SERVER.
-		unset( $_POST );
+		$_POST                = [];
 		$type                 = INPUT_SERVER;
 		$_SERVER[ $var_name ] = $value;
 
@@ -278,7 +280,7 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertSame( $value, Request::filter_input( $type, $var_name ) );
 
 		// Test with COOKIE.
-		unset( $_COOKIE );
+		$_COOKIE              = [];
 		$type                 = INPUT_COOKIE;
 		$_COOKIE[ $var_name ] = $value;
 

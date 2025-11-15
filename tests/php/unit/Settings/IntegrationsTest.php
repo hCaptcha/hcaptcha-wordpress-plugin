@@ -270,6 +270,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$mock = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
+
 		$mock->init_form_fields();
 
 		self::assertSame( $expected, $this->get_protected_property( $mock, 'form_fields' ) );

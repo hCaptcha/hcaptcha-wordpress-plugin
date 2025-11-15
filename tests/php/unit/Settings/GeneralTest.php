@@ -39,7 +39,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST );
+		$_POST = [];
 
 		parent::tearDown();
 	}

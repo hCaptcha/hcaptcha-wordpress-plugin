@@ -26,12 +26,12 @@ use WP_Mock;
 class ListPageBaseTest extends HCaptchaTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST );
+		$_POST = [];
 
 		parent::tearDown();
 	}
