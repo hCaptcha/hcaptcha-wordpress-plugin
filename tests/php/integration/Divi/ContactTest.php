@@ -69,7 +69,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			10,
-			has_filter( 'pre_do_shortcode_tag', [ $subject, 'verify' ] )
+			has_filter( 'pre_do_shortcode_tag', [ $subject, 'verify_4' ] )
 		);
 
 		self::assertSame(
@@ -255,7 +255,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
-		self::assertEquals( $return, $subject->verify( $return, $tag, [], [] ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -318,7 +318,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
-		self::assertEquals( $return, $subject->verify( $return, $tag, [], [] ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -342,7 +342,7 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$subject = new Contact();
 
-		self::assertEquals( $return, $subject->verify( $return, $tag, [], [] ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
 	}
 
 	/**
