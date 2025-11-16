@@ -1,12 +1,65 @@
 /* global jQuery, HCaptchaOnboardingObject */
-( function( $ ) {
+
+/**
+ * @param HCaptchaOnboardingObject.ajaxUrl
+ * @param HCaptchaOnboardingObject.currentStep
+ * @param HCaptchaOnboardingObject.generalUrl
+ * @param HCaptchaOnboardingObject.i18n
+ * @param HCaptchaOnboardingObject.i18n.close
+ * @param HCaptchaOnboardingObject.i18n.letsGo
+ * @param HCaptchaOnboardingObject.i18n.steps
+ * @param HCaptchaOnboardingObject.i18n.videoBody
+ * @param HCaptchaOnboardingObject.i18n.videoCta
+ * @param HCaptchaOnboardingObject.i18n.videoTitle
+ * @param HCaptchaOnboardingObject.i18n.welcomeBody
+ * @param HCaptchaOnboardingObject.i18n.welcomeTitle
+ * @param HCaptchaOnboardingObject.iconAnimatedUrl
+ * @param HCaptchaOnboardingObject.integrationsUrl
+ * @param HCaptchaOnboardingObject.page
+ * @param HCaptchaOnboardingObject.selectors
+ * @param HCaptchaOnboardingObject.selectors.general.antispam
+ * @param HCaptchaOnboardingObject.selectors.general.check_config
+ * @param HCaptchaOnboardingObject.selectors.general.force
+ * @param HCaptchaOnboardingObject.selectors.general.mode
+ * @param HCaptchaOnboardingObject.selectors.general.save
+ * @param HCaptchaOnboardingObject.selectors.general.site_key
+ * @param HCaptchaOnboardingObject.selectors.integrations.integrations_list
+ * @param HCaptchaOnboardingObject.selectors.integrations.save
+ * @param HCaptchaOnboardingObject.stepParam
+ * @param HCaptchaOnboardingObject.steps
+ * @param HCaptchaOnboardingObject.updateAction
+ * @param HCaptchaOnboardingObject.updateNonce
+ * @param HCaptchaOnboardingObject.videoUrl
+ */
+
+/**
+ * General settings page logic.
+ *
+ * @param {Object} $ jQuery instance.
+ */
+const onboarding = function( $ ) {
 	'use strict';
 
-	if ( typeof HCaptchaOnboardingObject === 'undefined' ) {
-		return;
-	}
-
 	const cfg = HCaptchaOnboardingObject;
+
+	// Steps by page
+	const stepsByPage = {
+		general: [ 1, 2, 3, 4, 5, 6 ],
+		integrations: [ 7, 8 ],
+	};
+
+	// Targets map per step
+	const targets = {
+		1: { page: 'general', selector: cfg.selectors.general.site_key },
+		2: { page: 'general', selector: cfg.selectors.general.mode },
+		3: { page: 'general', selector: cfg.selectors.general.check_config },
+		4: { page: 'general', selector: cfg.selectors.general.force },
+		5: { page: 'general', selector: cfg.selectors.general.antispam },
+		6: { page: 'general', selector: cfg.selectors.general.save },
+		7: { page: 'integrations', selector: cfg.selectors.integrations.integrations_list },
+		8: { page: 'integrations', selector: cfg.selectors.integrations.save },
+	};
+	let $tooltip;
 
 	// Utilities
 	function postUpdate( value ) {
@@ -31,24 +84,6 @@
 	function inArray( needle, arr ) {
 		return arr.indexOf( needle ) !== -1;
 	}
-
-	// Steps by page
-	const stepsByPage = {
-		general: [ 1, 2, 3, 4, 5, 6 ],
-		integrations: [ 7, 8 ],
-	};
-
-	// Targets map per step
-	const targets = {
-		1: { page: 'general', selector: cfg.selectors.general.site_key },
-		2: { page: 'general', selector: cfg.selectors.general.mode },
-		3: { page: 'general', selector: cfg.selectors.general.check_config },
-		4: { page: 'general', selector: cfg.selectors.general.force },
-		5: { page: 'general', selector: cfg.selectors.general.antispam },
-		6: { page: 'general', selector: cfg.selectors.general.save },
-		7: { page: 'integrations', selector: cfg.selectors.integrations.integrations_list },
-		8: { page: 'integrations', selector: cfg.selectors.integrations.save },
-	};
 
 	// Build floating panel (bottom-right)
 	function buildPanel( current ) {
@@ -243,8 +278,6 @@
 		showStep( 1 );
 	}
 
-	let $tooltip;
-
 	function removeTooltip() {
 		if ( $tooltip ) {
 			$tooltip.remove();
@@ -368,92 +401,96 @@
 		}, 180 );
 	}
 
-	$( function() {
-		const current = cfg.currentStep || 'step 1';
+	// Initialization (executed on DOM ready via jQuery(document).ready(onboarding))
+	const current = cfg.currentStep || 'step 1';
 
-		// Navigation helper must be available regardless of early returns below
-		function goToStep( n ) {
-			const isGeneral = inArray( n, stepsByPage.general );
-			const base = isGeneral ? cfg.generalUrl : cfg.integrationsUrl;
-			const sep = base.indexOf( '?' ) === -1 ? '?' : '&';
-			const param = cfg.stepParam;
-			window.location.href = base + sep + encodeURIComponent( param ) + '=' + encodeURIComponent( n );
+	// Navigation helper must be available regardless of early returns below
+	function goToStep( n ) {
+		const isGeneral = inArray( n, stepsByPage.general );
+		const base = isGeneral ? cfg.generalUrl : cfg.integrationsUrl;
+		const sep = base.indexOf( '?' ) === -1 ? '?' : '&';
+		const param = cfg.stepParam;
+		window.location.href = base + sep + encodeURIComponent( param ) + '=' + encodeURIComponent( n );
+	}
+
+	// Bind delegated handlers before any early returns, so clicks work after the Welcome popup
+	$( document ).off( '.hcapOnbNav' );
+	$( document ).on( 'click.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+		e.preventDefault();
+		const n = parseInt( $( this ).attr( 'data-step' ), 10 );
+		if ( n ) {
+			goToStep( n );
 		}
-
-		// Bind delegated handlers before any early returns, so clicks work after the Welcome popup
-		$( document ).off( '.hcapOnbNav' );
-		$( document ).on( 'click.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+	} );
+	$( document ).on( 'keydown.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+		if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
 			e.preventDefault();
 			const n = parseInt( $( this ).attr( 'data-step' ), 10 );
 			if ( n ) {
 				goToStep( n );
 			}
-		} );
-		$( document ).on( 'keydown.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
-			if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
-				e.preventDefault();
-				const n = parseInt( $( this ).attr( 'data-step' ), 10 );
-				if ( n ) {
-					goToStep( n );
-				}
-			}
-		} );
-
-		// Focus management: Esc closes tooltip (not panel)
-		$( document ).on( 'keydown.hcapOnb', function( e ) {
-			if ( e.key === 'Escape' ) {
-				removeTooltip();
-			}
-		} );
-
-		// If we just saved on the last General step, redirect to Integrations
-		try {
-			if ( cfg.page === 'general' && stepNumber( cfg.currentStep || '' ) === 7 ) {
-				if ( window.sessionStorage && sessionStorage.getItem( 'hcapOnbGoIntegrations' ) === '1' ) {
-					sessionStorage.removeItem( 'hcapOnbGoIntegrations' );
-					window.location.href = cfg.integrationsUrl;
-				}
-			}
-		} catch ( e ) {
 		}
-
-		// Determine current numeric step
-		const num = stepNumber( current );
-
-		// If we are on General and at step 1, show the Welcome modal first
-		if ( cfg.page === 'general' && num === 1 ) {
-			buildWelcomeModal();
-			return;
-		}
-
-		// Do not render the main panel if the current step belongs to another page
-		if ( stepsByPage[ cfg.page ] && ! inArray( num, stepsByPage[ cfg.page ] ) ) {
-			return;
-		}
-
-		// Otherwise, build panel and show the tooltip
-		buildPanel( current );
-		showStep( num );
-
-		// Also advance on real Save for steps 6 (General) and 8 (Integrations) — do not block submitting
-		$( document ).on( 'submit', '#hcaptcha-options', function() {
-			const n = stepNumber( cfg.currentStep || 'step 1' );
-			if ( n === 6 && cfg.page === 'general' ) {
-				const next = 'step 7';
-				cfg.currentStep = next;
-				postUpdate( next );
-				try {
-					if ( window.sessionStorage ) {
-						sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
-					}
-				} catch ( e ) {
-					// no-op
-				}
-			} else if ( n === 8 && cfg.page === 'integrations' ) {
-				cfg.currentStep = 'completed';
-				postUpdate( 'completed' );
-			}
-			// no preventDefault: allow normal form submit
-		} );
 	} );
-}( jQuery ) );
+
+	// Focus management: Esc closes tooltip (not panel)
+	$( document ).on( 'keydown.hcapOnb', function( e ) {
+		if ( e.key === 'Escape' ) {
+			removeTooltip();
+		}
+	} );
+
+	// If we just saved on the last General step, redirect to Integrations
+	try {
+		if ( cfg.page === 'general' && stepNumber( cfg.currentStep || '' ) === 7 ) {
+			if ( window.sessionStorage && sessionStorage.getItem( 'hcapOnbGoIntegrations' ) === '1' ) {
+				sessionStorage.removeItem( 'hcapOnbGoIntegrations' );
+				window.location.href = cfg.integrationsUrl;
+			}
+		}
+	} catch ( e ) {
+	}
+
+	// Determine current numeric step
+	const num = stepNumber( current );
+
+	// If we are on General and at step 1, show the Welcome modal first
+	if ( cfg.page === 'general' && num === 1 ) {
+		buildWelcomeModal();
+
+		return;
+	}
+
+	// Do not render the main panel if the current step belongs to another page
+	if ( stepsByPage[ cfg.page ] && ! inArray( num, stepsByPage[ cfg.page ] ) ) {
+		return;
+	}
+
+	// Otherwise, build panel and show the tooltip
+	buildPanel( current );
+	showStep( num );
+
+	// Also advance on real Save for steps 6 (General) and 8 (Integrations) — do not block submitting
+	$( document ).on( 'submit', '#hcaptcha-options', function() {
+		const n = stepNumber( cfg.currentStep || 'step 1' );
+		if ( n === 6 && cfg.page === 'general' ) {
+			const next = 'step 7';
+			cfg.currentStep = next;
+			postUpdate( next );
+			try {
+				if ( window.sessionStorage ) {
+					sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
+				}
+			} catch ( e ) {
+				// no-op
+			}
+		} else if ( n === 8 && cfg.page === 'integrations' ) {
+			cfg.currentStep = 'completed';
+			postUpdate( 'completed' );
+		}
+		// no preventDefault: allow normal form submit
+	} );
+};
+
+window.hCaptchaOnboarding = onboarding;
+
+jQuery( document ).ready( onboarding );
