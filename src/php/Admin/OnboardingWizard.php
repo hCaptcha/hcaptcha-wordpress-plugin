@@ -74,24 +74,45 @@ class OnboardingWizard {
 	private $integrations_tab;
 
 	/**
-	 * Init class hooks.
+	 * OnboardingWizard constructor.
 	 *
 	 * @param PluginSettingsBase $tab Current admin tab.
+	 */
+	public function __construct( PluginSettingsBase $tab ) {
+		$this->tab = $tab;
+
+		$this->init_hooks();
+	}
+
+	/**
+	 * Init class hooks.
 	 *
 	 * @return void
 	 */
-	public function init( PluginSettingsBase $tab ): void {
-		$this->tab              = $tab;
+	public function init(): void {
 		$this->settings         = hcaptcha()->settings();
 		$this->general_tab      = $this->settings->get_tab( General::class );
 		$this->integrations_tab = $this->settings->get_tab( Integrations::class );
 
 		$this->init_wizard_state();
+	}
 
-		// Handle direct step forcing via GET parameter early in the admin lifecycle.
-		add_action( 'current_screen', [ $this, 'maybe_handle_direct_step' ], 20 );
+	/**
+	 * Init class hooks.
+	 *
+	 * @return void
+	 */
+	private function init_hooks(): void {
+		add_action( 'plugins_loaded', [ $this, 'init' ] );
+
+		if ( wp_doing_ajax() ) {
+			add_action( 'wp_ajax_' . self::UPDATE_ACTION, [ $this, 'ajax_update' ] );
+
+			return;
+		}
+
+		add_action( 'current_screen', [ $this, 'maybe_handle_direct_step' ], 30 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
-		add_action( 'wp_ajax_' . self::UPDATE_ACTION, [ $this, 'ajax_update' ] );
 	}
 
 	/**

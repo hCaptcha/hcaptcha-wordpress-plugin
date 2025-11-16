@@ -151,13 +151,6 @@ class General extends PluginSettingsBase {
 	protected $notifications;
 
 	/**
-	 * Onboarding wizard class instance.
-	 *
-	 * @var OnboardingWizard
-	 */
-	protected $onboarding;
-
-	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -176,6 +169,17 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+		new OnboardingWizard( $this );
+
+		parent::init();
+	}
+
+	/**
 	 * Init class hooks.
 	 *
 	 * @return void
@@ -188,13 +192,11 @@ class General extends PluginSettingsBase {
 		if ( wp_doing_ajax() ) {
 			// We need ajax actions in the Notifications and Onboarding class.
 			$this->init_notifications();
-			$this->init_onboarding();
 		} else {
 			// The current class loaded early on plugins_loaded.
 			// Init Notifications and Onboarding later, when the Settings class is ready.
 			// Also, we need to check if we are on the General screen.
 			add_action( 'current_screen', [ $this, 'init_notifications' ] );
-			add_action( 'current_screen', [ $this, 'init_onboarding' ] );
 		}
 
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
@@ -220,20 +222,6 @@ class General extends PluginSettingsBase {
 
 		$this->notifications = new Notifications();
 		$this->notifications->init();
-	}
-
-	/**
-	 * Init onboarding wizard.
-	 *
-	 * @return void
-	 */
-	public function init_onboarding(): void {
-		if ( ! ( wp_doing_ajax() || $this->is_options_screen() ) ) {
-			return;
-		}
-
-		$this->onboarding = new OnboardingWizard();
-		$this->onboarding->init( $this );
 	}
 
 	/**
