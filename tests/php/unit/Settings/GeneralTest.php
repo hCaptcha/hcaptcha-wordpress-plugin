@@ -86,8 +86,10 @@ class GeneralTest extends HCaptchaTestCase {
 
 		if ( $doing_ajax ) {
 			$subject->shouldReceive( 'init_notifications' )->with()->once();
+			$subject->shouldReceive( 'init_onboarding' )->with()->once();
 		} else {
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'init_notifications' ] );
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'init_onboarding' ] );
 		}
 
 		WP_Mock::expectActionAdded( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
