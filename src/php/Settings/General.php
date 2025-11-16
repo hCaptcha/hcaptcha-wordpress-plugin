@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Notifications;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
@@ -150,6 +151,13 @@ class General extends PluginSettingsBase {
 	protected $notifications;
 
 	/**
+	 * Onboarding wizard class instance.
+	 *
+	 * @var OnboardingWizard
+	 */
+	protected $onboarding;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -177,14 +185,19 @@ class General extends PluginSettingsBase {
 
 		$hcaptcha = hcaptcha();
 
+		// Allow forcing the wizard step via GET parameter early in the admin lifecycle.
+		add_action( 'admin_init', [ $this, 'handle_onboarding_wizard_param' ] );
+
 		if ( wp_doing_ajax() ) {
-			// We need ajax actions in the Notifications class.
+			// We need ajax actions in the Notifications and Onboarding class.
 			$this->init_notifications();
+			$this->init_onboarding();
 		} else {
 			// The current class loaded early on plugins_loaded.
-			// Init Notifications later, when the Settings class is ready.
+			// Init Notifications and Onboarding later, when the Settings class is ready.
 			// Also, we need to check if we are on the General screen.
 			add_action( 'current_screen', [ $this, 'init_notifications' ] );
+			add_action( 'current_screen', [ $this, 'init_onboarding' ] );
 		}
 
 		add_action( 'admin_head', [ $hcaptcha, 'print_inline_styles' ] );
@@ -199,6 +212,16 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
+	 * Handle onboarding wizard GET parameter forwarding (wizard=x).
+	 *
+	 * @return void
+	 */
+	public function handle_onboarding_wizard_param(): void {
+		// Instantiate wizard and delegate GET handling.
+		( new OnboardingWizard() )->maybe_handle_direct_step();
+	}
+
+	/**
 	 * Init notifications.
 	 *
 	 * @return void
@@ -210,6 +233,20 @@ class General extends PluginSettingsBase {
 
 		$this->notifications = new Notifications();
 		$this->notifications->init();
+	}
+
+	/**
+	 * Init onboarding wizard.
+	 *
+	 * @return void
+	 */
+	public function init_onboarding(): void {
+		if ( ! ( wp_doing_ajax() || $this->is_options_screen() ) ) {
+			return;
+		}
+
+		$this->onboarding = new OnboardingWizard();
+		$this->onboarding->init();
 	}
 
 	/**

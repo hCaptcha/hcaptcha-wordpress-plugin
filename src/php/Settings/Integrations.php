@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Admin\OnboardingWizard;
+
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\Helpers\Request;
@@ -132,6 +134,13 @@ class Integrations extends PluginSettingsBase {
 	protected $all_protected_forms = [];
 
 	/**
+	 * Onboarding wizard class instance.
+	 *
+	 * @var OnboardingWizard
+	 */
+	protected $onboarding;
+
+	/**
 	 * Get page title.
 	 *
 	 * @return string
@@ -177,6 +186,12 @@ class Integrations extends PluginSettingsBase {
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
 		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
 		add_filter( 'hcaptcha_activate_plugins', [ $this, 'filter_activate_plugins' ], 0 );
+
+		if ( wp_doing_ajax() ) {
+			$this->init_onboarding();
+		} else {
+			add_action( 'current_screen', [ $this, 'init_onboarding' ] );
+		}
 	}
 
 	/**
@@ -248,6 +263,20 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return $plugins;
+	}
+
+	/**
+	 * Init onboarding wizard.
+	 *
+	 * @return void
+	 */
+	public function init_onboarding(): void {
+		if ( ! ( wp_doing_ajax() || $this->is_options_screen() ) ) {
+			return;
+		}
+
+		$this->onboarding = new OnboardingWizard();
+		$this->onboarding->init();
 	}
 
 	/**

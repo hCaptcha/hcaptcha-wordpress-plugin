@@ -1,0 +1,354 @@
+/* global jQuery, HCaptchaOnboardingObject */
+( function( $ ) {
+	'use strict';
+
+	if ( typeof HCaptchaOnboardingObject === 'undefined' ) {
+		return;
+	}
+
+	const cfg = HCaptchaOnboardingObject;
+
+	// Utilities
+	function postUpdate( value ) {
+		return $.post( cfg.ajaxUrl, {
+			action: cfg.updateAction,
+			nonce: cfg.updateNonce,
+			value,
+		} );
+	}
+
+	function stepNumber( stepStr ) {
+		// 'step 3' -> 3
+		const m = /step\s(\d+)/.exec( stepStr || '' );
+		return m ? parseInt( m[ 1 ], 10 ) : 1;
+	}
+
+	function nextStep( current ) {
+		const n = stepNumber( current );
+		return 'step ' + ( n + 1 );
+	}
+
+	function inArray( needle, arr ) {
+		return arr.indexOf( needle ) !== -1;
+	}
+
+	// Steps by page
+	const stepsByPage = {
+		general: [ 1, 2, 3, 4, 5, 6 ],
+		integrations: [ 7, 8 ],
+	};
+
+	// Targets map per step
+	const targets = {
+		1: { page: 'general', selector: cfg.selectors.general.site_key },
+		2: { page: 'general', selector: cfg.selectors.general.mode },
+		3: { page: 'general', selector: cfg.selectors.general.check_config },
+		4: { page: 'general', selector: cfg.selectors.general.force },
+		5: { page: 'general', selector: cfg.selectors.general.antispam },
+		6: { page: 'general', selector: cfg.selectors.general.save },
+		7: { page: 'integrations', selector: cfg.selectors.integrations.integrations_list },
+		8: { page: 'integrations', selector: cfg.selectors.integrations.save },
+	};
+
+	// Build floating panel (bottom-right)
+	function buildPanel( current ) {
+		/* language=HTML */
+		const $panel = $( '<div class="hcap-onb-panel" aria-live="polite"></div>' );
+		/* language=HTML */
+		const $header = $( '<div class="hcap-onb-header"></div>' );
+		const $close = $( '<button type="button" class="hcap-onb-close" aria-label="' + cfg.i18n.close + '"></button>' );
+		$close.on( 'click', function() {
+			postUpdate( 'completed' ).always( function() {
+				$panel.remove();
+				removeTooltip();
+			} );
+		} );
+
+		/* language=HTML */
+		const $titleWrap = $( '<div class="hcap-onb-title"></div>' );
+
+		if ( cfg.iconAnimatedUrl ) {
+			/* language=HTML */
+			const $img = $( `<img class="hcap-onb-icon" alt="" aria-hidden="true" src="${ cfg.iconAnimatedUrl }" />` );
+			$titleWrap.append( $img );
+		}
+
+		/* language=HTML */
+		$titleWrap.append( $( '<span class="hcap-onb-title-text"></span>' ).text( cfg.i18n.steps ) );
+		$header.append( $titleWrap ).append( $close );
+
+		/* language=HTML */
+		const $list = $( '<ol class="hcap-onb-list"></ol>' );
+
+		for ( let i = 1; i <= 8; i++ ) {
+			/* language=HTML */
+			const $li = $( '<li />' )
+				.text( cfg.steps[ i ] || ( 'Step ' + i ) )
+				.attr( 'data-step', i )
+				.attr( 'role', 'button' )
+				.attr( 'tabindex', '0' )
+				.addClass( 'hcap-onb-step' );
+			if ( 'step ' + i === current ) {
+				$li.addClass( 'current' );
+			}
+			// Gray out steps not on this page for clarity
+			if ( ! inArray( i, stepsByPage[ cfg.page ] ) ) {
+				$li.addClass( 'other-page' );
+			}
+			$list.append( $li );
+		}
+
+		$panel.append( $header ).append( $list );
+		$( 'body' ).append( $panel );
+		return $panel;
+	}
+
+	// Welcome popup (step 1 on General)
+	function buildWelcomeModal() {
+		/* language=HTML */
+		const $overlay = $( '<div class="hcap-onb-modal-overlay" />' );
+
+		/* language=HTML */
+		const $modal = $( '<div class="hcap-onb-modal" role="dialog" aria-modal="true" />' );
+
+		/* language=HTML */
+		const $head = $( '<div class="hcap-onb-modal-head"></div>' );
+
+		if ( cfg.iconAnimatedUrl ) {
+			/* language=HTML */
+			$head.append( $( `<img class="hcap-onb-icon" alt="" aria-hidden="true" src="${ cfg.iconAnimatedUrl }" />` ) );
+		}
+
+		/* language=HTML */
+		$head.append( $( '<h2 class="hcap-onb-modal-title"></h2>' ).text( cfg.i18n.welcomeTitle || 'Welcome to hCaptcha' ) );
+
+		/* language=HTML */
+		const $body = $( '<div class="hcap-onb-modal-body"></div>' )
+			.append( $( '<p></p>' ).text( cfg.i18n.welcomeBody || '' ) );
+
+		/* language=HTML */
+		const $actions = $( '<div class="hcap-onb-modal-actions"></div>' );
+
+		/* language=HTML */
+		const $go = $( '<button type="button" class="button button-primary hcap-onb-go"></button>' )
+			.text( cfg.i18n.letsGo || "Let's Go!" );
+		$actions.append( $go );
+
+		$modal.append( $head, $body, $actions );
+		$( 'body' ).append( $overlay, $modal );
+
+		function dismiss() {
+			$overlay.remove();
+			$modal.remove();
+		}
+
+		$overlay.on( 'click', function() {
+			// Click outside closes and proceeds
+			dismiss();
+			proceedFromWelcome();
+		} );
+		$go.on( 'click', function() {
+			dismiss();
+			proceedFromWelcome();
+		} );
+
+		// Focus primary action
+		setTimeout( function() {
+			try {
+				$go.trigger( 'focus' );
+			} catch ( e ) {
+			}
+		}, 0 );
+	}
+
+	function proceedFromWelcome() {
+		// After welcome, render the panel and show step 1 tooltip
+		const current = cfg.currentStep || 'step 1';
+		buildPanel( current );
+		showStep( 1 );
+	}
+
+	let $tooltip;
+
+	function removeTooltip() {
+		if ( $tooltip ) {
+			$tooltip.remove();
+			$tooltip = null;
+		}
+		$( '.hcap-onb-highlight' ).removeClass( 'hcap-onb-highlight' );
+	}
+
+	// Show a tooltip near a target element
+	function showStep( step ) {
+		removeTooltip();
+
+		const t = targets[ step ];
+		if ( ! t || t.page !== cfg.page ) {
+			// This step is for another page – show panel only.
+			return;
+		}
+
+		const $target = $( t.selector ).first();
+		if ( $target.length === 0 ) {
+			return; // No target found on this page
+		}
+
+		// Scroll into view smoothly if needed
+		try {
+			const el = $target.get( 0 );
+			if ( el && typeof el.scrollIntoView === 'function' ) {
+				el.scrollIntoView( { behavior: 'smooth', block: 'center', inline: 'nearest' } );
+			}
+		} catch ( e ) {
+		}
+
+		/* language=HTML */
+		const $done = $( '<button type="button" class="button button-primary hcap-onb-done"></button>' ).text( cfg.i18n.done );
+		$done.on( 'click', function() {
+			const next = nextStep( 'step ' + step );
+			if ( step === 6 && cfg.page === 'general' ) {
+				// Last General step → go Integrations
+				cfg.currentStep = next; // 'step 7'
+				postUpdate( next ).always( function() {
+					window.location.href = cfg.integrationsUrl;
+				} );
+				return;
+			}
+			if ( step >= 8 ) {
+				postUpdate( 'completed' );
+				removeTooltip();
+				$( '.hcap-onb-panel' ).remove();
+				return;
+			}
+
+			postUpdate( next ).always( function() {
+				cfg.currentStep = next;
+				// Update panel highlighting: mark a new current
+				$( '.hcap-onb-panel .hcap-onb-list li' ).removeClass( 'current' ).eq( step )
+					.addClass( 'current' );
+				removeTooltip();
+				showStep( step + 1 );
+			} );
+		} );
+
+		/* language=HTML */
+		$tooltip = $( '<div class="hcap-onb-tip" role="dialog"></div>' )
+			.append( $( '<div class="hcap-onb-tip-text"></div>' ).text( cfg.steps[ step ] || ( 'Step ' + step ) ) )
+			.append( $done );
+
+		$( 'body' ).append( $tooltip );
+
+		// Position near target (basic positioning with side and arrow)
+		setTimeout( function() {
+			const off = $target.offset();
+			const tW = $tooltip.outerWidth();
+			const tH = $tooltip.outerHeight();
+			const winW = $( window ).width();
+			let left = off.left + $target.outerWidth() + 10; // right by default
+			let top = off.top - ( tH / 2 ) + ( $target.outerHeight() / 2 );
+			let sideClass = 'side-right';
+
+			if ( left + tW > winW ) {
+				left = off.left - tW - 10; // flip to left
+				sideClass = 'side-left';
+			}
+			if ( top < 10 ) {
+				top = 10;
+			}
+
+			$tooltip.addClass( sideClass ).css( { top: Math.round( top ) + 'px', left: Math.round( left ) + 'px' } );
+
+			// Gentle highlight of target element
+			$target.addClass( 'hcap-onb-highlight' );
+		}, 180 );
+	}
+
+	$( function() {
+		const current = cfg.currentStep || 'step 1';
+
+		// Navigation helper must be available regardless of early returns below
+		function goToStep( n ) {
+			const isGeneral = inArray( n, stepsByPage.general );
+			const base = isGeneral ? cfg.generalUrl : cfg.integrationsUrl;
+			const sep = base.indexOf( '?' ) === -1 ? '?' : '&';
+			const param = cfg.stepParam;
+			window.location.href = base + sep + encodeURIComponent( param ) + '=' + encodeURIComponent( n );
+		}
+
+		// Bind delegated handlers before any early returns, so clicks work after the Welcome popup
+		$( document ).off( '.hcapOnbNav' );
+		$( document ).on( 'click.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+			e.preventDefault();
+			const n = parseInt( $( this ).attr( 'data-step' ), 10 );
+			if ( n ) {
+				goToStep( n );
+			}
+		} );
+		$( document ).on( 'keydown.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+			if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
+				e.preventDefault();
+				const n = parseInt( $( this ).attr( 'data-step' ), 10 );
+				if ( n ) {
+					goToStep( n );
+				}
+			}
+		} );
+
+		// Focus management: Esc closes tooltip (not panel)
+		$( document ).on( 'keydown.hcapOnb', function( e ) {
+			if ( e.key === 'Escape' ) {
+				removeTooltip();
+			}
+		} );
+
+		// If we just saved on the last General step, redirect to Integrations
+		try {
+			if ( cfg.page === 'general' && stepNumber( cfg.currentStep || '' ) === 7 ) {
+				if ( window.sessionStorage && sessionStorage.getItem( 'hcapOnbGoIntegrations' ) === '1' ) {
+					sessionStorage.removeItem( 'hcapOnbGoIntegrations' );
+					window.location.href = cfg.integrationsUrl;
+				}
+			}
+		} catch ( e ) {
+		}
+
+		// Determine current numeric step
+		const num = stepNumber( current );
+
+		// If we are on General and at step 1, show the Welcome modal first
+		if ( cfg.page === 'general' && num === 1 ) {
+			buildWelcomeModal();
+			return;
+		}
+
+		// Do not render the main panel if the current step belongs to another page
+		if ( stepsByPage[ cfg.page ] && ! inArray( num, stepsByPage[ cfg.page ] ) ) {
+			return;
+		}
+
+		// Otherwise, build panel and show the tooltip
+		buildPanel( current );
+		showStep( num );
+
+		// Also advance on real Save for steps 6 (General) and 8 (Integrations) — do not block submitting
+		$( document ).on( 'submit', '#hcaptcha-options', function() {
+			const n = stepNumber( cfg.currentStep || 'step 1' );
+			if ( n === 6 && cfg.page === 'general' ) {
+				const next = 'step 7';
+				cfg.currentStep = next;
+				postUpdate( next );
+				try {
+					if ( window.sessionStorage ) {
+						sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
+					}
+				} catch ( e ) {
+					// no-op
+				}
+			} else if ( n === 8 && cfg.page === 'integrations' ) {
+				cfg.currentStep = 'completed';
+				postUpdate( 'completed' );
+			}
+			// no preventDefault: allow normal form submit
+		} );
+	} );
+}( jQuery ) );
