@@ -230,7 +230,7 @@ class OnboardingWizard {
 				'integrationsUrl' => admin_url( 'admin.php?page=' . PluginSettingsBase::PREFIX . '-integrations' ),
 				'stepParam'       => self::STEP_PARAM,
 				'iconAnimatedUrl' => constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon-animated.svg',
-				'videoUrl'        => 'https://youtu.be/xEo-HDwFXQw',
+				'videoUrl'        => 'https://youtu.be/khKYehgr8t0',
 				'i18n'            => [
 					'done'         => __( 'Done', 'hcaptcha-for-forms-and-more' ),
 					'close'        => __( 'Close', 'hcaptcha-for-forms-and-more' ),
