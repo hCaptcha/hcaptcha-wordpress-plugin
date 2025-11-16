@@ -17,7 +17,7 @@
 	justify-content: space-between;
 	padding: 10px 12px;
 	border-bottom: 1px solid #e2e4e7;
-	font-weight: 600
+	font-weight: 600;
 }
 
 /* Header title with icon */
@@ -45,16 +45,17 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	color: #646970; /* wp-admin gray */
+	color: #646970;
 }
 
-/* Ensure it sits nicely inside flex header (override core absolute pos) */
+/* Ensure it sits nicely inside flex header */
 .hcap-onb-close.notice-dismiss {
 	position: static;
 }
 
 .hcap-onb-close:before {
 	content: "\f153"; /* dashicons-dismiss */
+	/*noinspection CssNoGenericFontName*/
 	font-family: dashicons, 'Dashicons';
 	font-size: 20px;
 	line-height: 1;
@@ -67,7 +68,7 @@
 }
 
 .hcap-onb-close:focus {
-	outline: 2px solid #2271b1; /* WP primary */
+	outline: 2px solid #2271b1;
 	outline-offset: 2px;
 }
 
@@ -76,7 +77,7 @@
 	padding: 8px 16px 12px 28px;
 	max-height: 220px;
 	overflow: auto;
-	background: #f0f2f5
+	background: #f0f2f5;
 }
 
 .hcap-onb-list li {
@@ -85,11 +86,11 @@
 }
 
 .hcap-onb-list li.current {
-	font-weight: 700
+	font-weight: 700;
 }
 
 .hcap-onb-list li.other-page {
-	opacity: .6
+	opacity: .6;
 }
 
 .hcap-onb-tip {
@@ -125,11 +126,11 @@
 }
 
 .hcap-onb-tip .hcap-onb-tip-text {
-	margin-bottom: 8px
+	margin-bottom: 8px;
 }
 
 .hcap-onb-tip .hcap-onb-done {
-	margin-top: 4px
+	margin-top: 4px;
 }
 
 /* Highlight of targeted element */
@@ -145,7 +146,7 @@ table.hcap-onb-highlight::before {
 
 @media (max-width: 600px) {
 	.hcap-onb-tip {
-		max-width: 280px
+		max-width: 280px;
 	}
 }
 
