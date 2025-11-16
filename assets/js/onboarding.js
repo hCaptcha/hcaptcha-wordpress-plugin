@@ -161,6 +161,81 @@
 		}, 0 );
 	}
 
+	// Build video popup (uses the same modal styling as Welcome)
+	function buildVideoModal() {
+		/* language=HTML */
+		const $overlay = $( '<div class="hcap-onb-modal-overlay" />' );
+
+		/* language=HTML */
+		const $modal = $( '<div class="hcap-onb-modal video" role="dialog" aria-modal="true" />' );
+
+		/* language=HTML */
+		const $head = $( '<div class="hcap-onb-modal-head"></div>' );
+
+		/* language=HTML */
+		$head.append( $( '<h2 class="hcap-onb-modal-title"></h2>' ).text( cfg.i18n.videoTitle || 'Quick Setup Video' ) );
+
+		// Convert the provided URL to embed URL (supports YouTube and youtube.com/watch?v=)
+		function toEmbedUrl( url ) {
+			try {
+				const u = String( url || '' );
+				let id = '';
+
+				if ( u.indexOf( 'youtu.be/' ) !== -1 ) {
+					id = u.split( 'youtu.be/' )[ 1 ].split( /[?&#]/ )[ 0 ];
+				} else if ( u.indexOf( 'watch?v=' ) !== -1 ) {
+					id = u.split( 'watch?v=' )[ 1 ].split( /[?&#]/ )[ 0 ];
+				}
+
+				if ( ! id ) {
+					return u;
+				}
+
+				return 'https://www.youtube.com/embed/' + encodeURIComponent( id ) + '?autoplay=1&rel=0';
+			} catch ( e ) {
+				return String( url || '' );
+			}
+		}
+
+		const src = toEmbedUrl( cfg.videoUrl );
+
+		/* language=HTML */
+		const $body = $( '<div class="hcap-onb-modal-body"></div>' );
+		/* language=HTML */
+		const $wrap = $( '<div class="hcap-onb-video-wrap"></div>' );
+		/* language=HTML */
+		const $iframe = $( `<iframe src="${ src }" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>` );
+		$wrap.append( $iframe );
+		$body.append( $wrap );
+
+		/* language=HTML */
+		const $actions = $( '<div class="hcap-onb-modal-actions"></div>' );
+
+		/* language=HTML */
+		const $close = $( '<button type="button" class="button button-primary hcap-onb-video-close"></button>' ).text( cfg.i18n.close );
+
+		$actions.append( $close );
+		$modal.append( $head, $body, $actions );
+		$( 'body' ).append( $overlay, $modal );
+
+		function dismiss() {
+			// Remove iframe to stop playback
+			$overlay.remove();
+			$modal.remove();
+		}
+
+		$overlay.on( 'click', dismiss );
+		$close.on( 'click', dismiss );
+
+		setTimeout( function() {
+			try {
+				$close.trigger( 'focus' );
+			} catch ( e ) {
+				// no-op
+			}
+		}, 0 );
+	}
+
 	function proceedFromWelcome() {
 		// After welcome, render the panel and show step 1 tooltip
 		const current = cfg.currentStep || 'step 1';
@@ -232,9 +307,38 @@
 		} );
 
 		/* language=HTML */
-		$tooltip = $( '<div class="hcap-onb-tip" role="dialog"></div>' )
-			.append( $( '<div class="hcap-onb-tip-text"></div>' ).text( cfg.steps[ step ] || ( 'Step ' + step ) ) )
-			.append( $done );
+		$tooltip = $( '<div class="hcap-onb-tip" role="dialog"></div>' );
+
+		const tipText = cfg.steps[ step ] || ( 'Step ' + step );
+
+		/* language=HTML */
+		$tooltip.append( $( '<div class="hcap-onb-tip-text"></div>' ).text( tipText ) );
+
+		// For step 1 add a second line with a video link
+		if ( step === 1 ) {
+			/* language=HTML */
+			const $sub = $( '<div></div>' ).addClass( 'hcap-onb-tip-text' );
+
+			/* language=HTML */
+			const $a = $( '<a></a>' ).attr( 'href', '#' ).addClass( 'hcap-onb-video-link' ).text( cfg.i18n.videoCta || 'Watch a quick setup video' );
+
+			$sub.append( $a );
+			$tooltip.append( $sub );
+
+			$a.on( 'click', function( e ) {
+				e.preventDefault();
+				buildVideoModal();
+			} );
+
+			$a.on( 'keydown', function( e ) {
+				if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
+					e.preventDefault();
+					buildVideoModal();
+				}
+			} );
+		}
+
+		$tooltip.append( $done );
 
 		$( 'body' ).append( $tooltip );
 
@@ -252,6 +356,7 @@
 				left = off.left - tW - 10; // flip to left
 				sideClass = 'side-left';
 			}
+
 			if ( top < 10 ) {
 				top = 10;
 			}

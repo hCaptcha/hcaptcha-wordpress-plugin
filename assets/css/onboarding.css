@@ -221,3 +221,43 @@ table.hcap-onb-highlight::before {
 	cursor: pointer;
 	line-height: 1;
 }
+
+/* Video modal variant (16:9 area) */
+.hcap-onb-modal.video {
+    max-width: 960px;
+    width: calc(100vw - 48px);
+    padding: 50px 40px;
+}
+
+.hcap-onb-modal.video .hcap-onb-modal-body {
+    margin: 10px 0;
+}
+
+.hcap-onb-video-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+.hcap-onb-video-wrap::before {
+    content: "";
+    display: block;
+    padding-bottom: 56.25%; /* 16:9 */
+}
+
+.hcap-onb-video-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.hcap-onb-video-link {
+	color: #ffffff;
+}
+
+.hcap-onb-video-link:hover {
+	color: #f0f2f5;
+}

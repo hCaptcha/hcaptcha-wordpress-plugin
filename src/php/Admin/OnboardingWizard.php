@@ -230,6 +230,7 @@ class OnboardingWizard {
 				'integrationsUrl' => admin_url( 'admin.php?page=' . PluginSettingsBase::PREFIX . '-integrations' ),
 				'stepParam'       => self::STEP_PARAM,
 				'iconAnimatedUrl' => constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon-animated.svg',
+				'videoUrl'        => 'https://youtu.be/xEo-HDwFXQw',
 				'i18n'            => [
 					'done'         => __( 'Done', 'hcaptcha-for-forms-and-more' ),
 					'close'        => __( 'Close', 'hcaptcha-for-forms-and-more' ),
@@ -238,6 +239,8 @@ class OnboardingWizard {
 					'welcomeTitle' => __( 'Welcome to hCaptcha for WordPress', 'hcaptcha-for-forms-and-more' ),
 					'welcomeBody'  => __( 'The hCaptcha plugin supports 60+ WordPress plugins and themes. This short tour will highlight the key settings so you can get up and running quickly.', 'hcaptcha-for-forms-and-more' ),
 					'letsGo'       => __( "Let's Go!", 'hcaptcha-for-forms-and-more' ),
+					'videoCta'     => __( 'Watch a quick setup video', 'hcaptcha-for-forms-and-more' ),
+					'videoTitle'   => __( 'Quick Setup Video', 'hcaptcha-for-forms-and-more' ),
 				],
 			]
 		);
