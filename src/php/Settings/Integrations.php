@@ -276,7 +276,7 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		$this->onboarding = new OnboardingWizard();
-		$this->onboarding->init();
+		$this->onboarding->init( $this );
 	}
 
 	/**

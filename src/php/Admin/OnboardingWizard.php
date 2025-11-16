@@ -8,7 +8,10 @@
 namespace HCaptcha\Admin;
 
 use HCaptcha\Helpers\Request;
+use HCaptcha\Settings\General;
+use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\Settings;
 
 /**
  * Class OnboardingWizard.
@@ -38,55 +41,109 @@ class OnboardingWizard {
 	private const STEP_PARAM = 'onb';
 
 	/**
-	 * Init class hooks.
+	 * Option name for the onboarding wizard state.
 	 */
-	public function init(): void {
-		// Handle direct step forcing via GET parameter early in the admin lifecycle.
-		add_action( 'admin_init', [ $this, 'maybe_handle_direct_step' ] );
+	private const ONBOARDING_WIZARD_OPTION = 'onboarding_wizard';
 
+	/**
+	 * Current admin tab.
+	 *
+	 * @var PluginSettingsBase
+	 */
+	private $tab;
+
+	/**
+	 * Plugin settings instance.
+	 *
+	 * @var Settings
+	 */
+	private $settings;
+
+	/**
+	 * General tab instance.
+	 *
+	 * @var PluginSettingsBase
+	 */
+	private $general_tab;
+
+	/**
+	 * Integrations tab instance.
+	 *
+	 * @var PluginSettingsBase
+	 */
+	private $integrations_tab;
+
+	/**
+	 * Init class hooks.
+	 *
+	 * @param PluginSettingsBase $tab Current admin tab.
+	 *
+	 * @return void
+	 */
+	public function init( PluginSettingsBase $tab ): void {
+		$this->tab              = $tab;
+		$this->settings         = hcaptcha()->settings();
+		$this->general_tab      = $this->settings->get_tab( General::class );
+		$this->integrations_tab = $this->settings->get_tab( Integrations::class );
+
+		$this->init_wizard_state();
+
+		// Handle direct step forcing via GET parameter early in the admin lifecycle.
+		add_action( 'current_screen', [ $this, 'maybe_handle_direct_step' ], 20 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::UPDATE_ACTION, [ $this, 'ajax_update' ] );
 	}
 
 	/**
-	 * Determine if we should load the wizard scripts on the current screen.
+	 * If GET parameter wizard=x is provided, set the wizard step and redirect to the proper page.
+	 * This allows manual restart/positioning of the onboarding for testing or support.
+	 *
+	 * @return void
 	 */
-	private function is_applicable_screen(): bool {
-		// Only on our plugin settings pages (General, Integrations tabs/pages).
-		if ( ! function_exists( 'get_current_screen' ) ) {
-			return false;
+	public function maybe_handle_direct_step(): void {
+		// Helper to restart the wizard from any step.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET[ self::STEP_PARAM ] ) ) {
+			return;
 		}
 
-		$screen = get_current_screen();
+		// Accept a numeric step only: onb=1..8.
+		$num = (int) Request::filter_input( INPUT_GET, self::STEP_PARAM );
 
-		if ( ! $screen ) {
-			return false;
+		if ( $num < 1 || $num > 8 ) {
+			$num = 1;
 		}
 
-		// Our settings pages share the base option page slug prefix.
-		// Also rely on body classes set by settings_page(): form has class hcaptcha-general / hcaptcha-integrations.
-		return false !== strpos( $screen->base, PluginSettingsBase::PREFIX );
+		// Persist step in the main settings option.
+		$this->set_wizard_state( 'step ' . $num );
+
+		// Determine the target page by step.
+		$url = ( $num <= 6 )
+			? $this->tab->tab_url( $this->general_tab )
+			: $this->tab->tab_url( $this->integrations_tab );
+
+		// Perform safe redirect and stop.
+		wp_safe_redirect( $url );
+
+		exit;
 	}
 
 	/**
 	 * Enqueue assets and localize config.
 	 */
 	public function admin_enqueue_scripts(): void {
-		if ( ! $this->is_applicable_screen() ) {
+		if ( ! $this->tab->is_options_screen() ) {
 			return;
 		}
 
-		$options = (array) get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$wizard  = $options['onboarding_wizard'] ?? '';
+		$wizard = $this->get_wizard_state();
 
 		// Start the wizard if the key is absent or its value is not 'completed'.
-		$should_start = ( 'completed' !== $wizard );
-
-		if ( ! $should_start ) {
+		if ( 'completed' === $wizard ) {
 			return;
 		}
 
-		$min = function_exists( 'hcap_min_suffix' ) ? hcap_min_suffix() : '';
+		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
 			self::HANDLE,
@@ -103,7 +160,7 @@ class OnboardingWizard {
 			constant( 'HCAPTCHA_VERSION' )
 		);
 
-		$current_step = is_string( $wizard ) && preg_match( '/^step\s\d+$/', $wizard ) ? $wizard : 'step 1';
+		$current_step = preg_match( '/^step\s\d+$/', $wizard ) ? $wizard : 'step 1';
 
 		// Selector map.
 		$selectors = [
@@ -135,8 +192,7 @@ class OnboardingWizard {
 		];
 
 		// Detect which settings page we are on by looking at body class via section title echoing into form class.
-		$page = Request::filter_input( INPUT_GET, 'page' );
-		$page = strpos( $page, 'integrations' ) ? 'integrations' : 'general';
+		$page = $this->tab === $this->integrations_tab ? 'integrations' : 'general';
 
 		wp_localize_script(
 			self::HANDLE,
@@ -158,62 +214,12 @@ class OnboardingWizard {
 					'close'        => __( 'Close', 'hcaptcha-for-forms-and-more' ),
 					'steps'        => __( 'Onboarding Steps', 'hcaptcha-for-forms-and-more' ),
 					'next'         => __( 'Next', 'hcaptcha-for-forms-and-more' ),
-					// Welcome popup texts.
 					'welcomeTitle' => __( 'Welcome to hCaptcha for WordPress', 'hcaptcha-for-forms-and-more' ),
 					'welcomeBody'  => __( 'The hCaptcha plugin supports 60+ WordPress plugins and themes. This short tour will highlight the key settings so you can get up and running quickly.', 'hcaptcha-for-forms-and-more' ),
 					'letsGo'       => __( "Let's Go!", 'hcaptcha-for-forms-and-more' ),
 				],
 			]
 		);
-	}
-
-	/**
-	 * If GET parameter wizard=x is provided, set the wizard step and redirect to the proper page.
-	 * This allows manual restart/positioning of the onboarding for testing or support.
-	 *
-	 * @return void
-	 */
-	public function maybe_handle_direct_step(): void {
-		if ( ! is_admin() ) {
-			return;
-		}
-
-		// Only admins (options managers) can manipulate the onboarding state.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		// Helper to restart the wizard from any step.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET[ self::STEP_PARAM ] ) ) {
-			return;
-		}
-
-		// Accept a numeric step only: wizard=1..8.
-		$num = (int) Request::filter_input( INPUT_GET, self::STEP_PARAM );
-
-		if ( $num < 1 || $num > 8 ) {
-			$num = 1;
-		}
-
-		// Persist step in the main settings option.
-		$options                      = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$options['onboarding_wizard'] = 'step ' . $num;
-
-		update_option( PluginSettingsBase::OPTION_NAME, $options );
-
-		// Determine the target page by step.
-		$page_slug = ( $num <= 6 )
-			? PluginSettingsBase::PREFIX // General.
-			: PluginSettingsBase::PREFIX . '-integrations'; // Integrations.
-
-		// Build clean URL without the wizard param to avoid loops.
-		$target = admin_url( 'admin.php?page=' . $page_slug );
-
-		// Perform safe redirect and stop.
-		wp_safe_redirect( $target );
-
-		exit;
 	}
 
 	/**
@@ -236,14 +242,49 @@ class OnboardingWizard {
 			wp_send_json_error( esc_html__( 'Bad value', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$options                      = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$options['onboarding_wizard'] = $value;
-		$updated                      = update_option( PluginSettingsBase::OPTION_NAME, $options );
-
-		if ( ! $updated ) {
-			wp_send_json_error( esc_html__( 'Could not update option', 'hcaptcha-for-forms-and-more' ) );
-		}
+		$this->set_wizard_state( $value );
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Init the onboarding wizard state to 'completed' if keys are set.
+	 *
+	 * @return void
+	 */
+	private function init_wizard_state(): void {
+		$wizard = $this->get_wizard_state();
+
+		if ( $wizard ) {
+			return;
+		}
+
+		$site_key   = $this->settings->get_site_key();
+		$secret_key = $this->settings->get_secret_key();
+
+		if ( $site_key && $secret_key ) {
+			// Do not run wizard if user has already made initial settings.
+			$this->set_wizard_state( 'completed' );
+		}
+	}
+
+	/**
+	 * Get the current wizard state from the database.
+	 *
+	 * @return string
+	 */
+	private function get_wizard_state(): string {
+		return $this->settings->get( self::ONBOARDING_WIZARD_OPTION );
+	}
+
+	/**
+	 * Set the wizard state in the database.
+	 *
+	 * @param string $state Wizard state.
+	 *
+	 * @return void
+	 */
+	private function set_wizard_state( string $state ): void {
+		$this->tab->update_option( self::ONBOARDING_WIZARD_OPTION, $state );
 	}
 }

@@ -185,9 +185,6 @@ class General extends PluginSettingsBase {
 
 		$hcaptcha = hcaptcha();
 
-		// Allow forcing the wizard step via GET parameter early in the admin lifecycle.
-		add_action( 'admin_init', [ $this, 'handle_onboarding_wizard_param' ] );
-
 		if ( wp_doing_ajax() ) {
 			// We need ajax actions in the Notifications and Onboarding class.
 			$this->init_notifications();
@@ -209,16 +206,6 @@ class General extends PluginSettingsBase {
 		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_send_stats' ], 20, 2 );
-	}
-
-	/**
-	 * Handle onboarding wizard GET parameter forwarding (wizard=x).
-	 *
-	 * @return void
-	 */
-	public function handle_onboarding_wizard_param(): void {
-		// Instantiate wizard and delegate GET handling.
-		( new OnboardingWizard() )->maybe_handle_direct_step();
 	}
 
 	/**
@@ -246,7 +233,7 @@ class General extends PluginSettingsBase {
 		}
 
 		$this->onboarding = new OnboardingWizard();
-		$this->onboarding->init();
+		$this->onboarding->init( $this );
 	}
 
 	/**

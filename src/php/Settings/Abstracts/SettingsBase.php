@@ -1614,7 +1614,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_options_screen( $ids = 'options' ): bool {
+	public function is_options_screen( $ids = 'options' ): bool {
 		$ids = (array) $ids;
 
 		if ( ! function_exists( 'get_current_screen' ) ) {
