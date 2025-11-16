@@ -23,7 +23,18 @@ use tad\FunctionMocker\FunctionMocker;
 class MigrationsTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Setup test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		delete_option( 'hcaptcha_settings' );
+	}
+
+	/**
+	 * Teardown test.
 	 */
 	public function tearDown(): void {
 		unset( $_GET['service-worker'], $GLOBALS['current_screen'] );
@@ -232,6 +243,9 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt)
 		) $charset_collate;";
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
 
 		add_filter(
 			'dbdelta_queries',

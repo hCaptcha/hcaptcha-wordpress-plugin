@@ -424,7 +424,7 @@ class Migrations {
 	 */
 	protected function migrate_4_6_0(): ?bool {
 		$option         = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$cf7_status_old = $option['cf7_status'] ?? [];
+		$cf7_status_old = (array) ( $option['cf7_status'] ?? [] );
 		$cf7_status_new = array_unique( array_merge( $cf7_status_old, [ 'live' ] ) );
 
 		if ( $cf7_status_new !== $cf7_status_old ) {
