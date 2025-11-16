@@ -263,14 +263,44 @@ class Playground {
 
 				break;
 			case 'Divi':
-				// Create a new page with the Dive Form shortcode.
-				$this->insert_post(
-					[
-						'title'   => 'Divi Test Page',
-						'name'    => 'divi-test',
-						'content' => '[et_pb_section fb_built="1"][et_pb_row][et_pb_column type="4_4"][et_pb_contact_form captcha="off" email="" _module_preset="default"][et_pb_contact_field field_id="Name" field_title="Name"][/et_pb_contact_field][et_pb_contact_field field_id="Email" field_title="Email Address" field_type="email"][/et_pb_contact_field][et_pb_contact_field field_id="Message" field_title="Message" field_type="text" fullwidth_field="on"][/et_pb_contact_field][/et_pb_contact_form][/et_pb_column][/et_pb_row][/et_pb_section]',
-					]
-				);
+				// Detect a Divi theme version and create a suitable test page.
+				$divi_version_raw = (string) $new_theme->get( 'Version' );
+
+				// Extract numeric part to avoid suffixes like `-beta`.
+				$divi_version = preg_replace( '/[^0-9.].*$/', '', $divi_version_raw );
+
+				if ( $divi_version && version_compare( $divi_version, '5.0', '>=' ) ) {
+					// Divi 5: create a block-based page with Divi 5 contact form blocks.
+					$divi5_content = <<<'HTML'
+<!-- wp:divi/placeholder --><!-- wp:divi/section {"builderVersion":"5.0.0-public-beta.2"} -->
+<!-- wp:divi/row {"module":{"advanced":{"flexColumnStructure":{"desktop":{"value":"equal-columns_1"}}},"decoration":{"layout":{"desktop":{"value":{"flexWrap":"nowrap"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
+<!-- wp:divi/column {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"24_24"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
+<!-- wp:divi/contact-form {"module":{"advanced":{"uniqueId":{"desktop":{"value":"a5de6c48-f800-45b5-bf2b-8ebb58b73d59"}},"spamProtection":{"desktop":{"value":{"useBasicCaptcha":"off"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
+<!-- wp:divi/contact-field {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"12_24"}}}}},"fieldItem":{"advanced":{"fullwidth":{"desktop":{"value":"on"}},"id":{"desktop":{"value":"Name"}},"type":{"desktop":{"value":"input"}}},"innerContent":{"desktop":{"value":"Name"}}},"builderVersion":"5.0.0-public-beta.2"} /-->
+
+<!-- wp:divi/contact-field {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"12_24"}}}}},"fieldItem":{"advanced":{"fullwidth":{"desktop":{"value":"on"}},"id":{"desktop":{"value":"Email"}},"type":{"desktop":{"value":"email"}}},"innerContent":{"desktop":{"value":"Email Address"}}},"builderVersion":"5.0.0-public-beta.2"} /-->
+
+<!-- wp:divi/contact-field {"fieldItem":{"advanced":{"fullwidth":{"desktop":{"value":"on"}},"id":{"desktop":{"value":"Message"}},"type":{"desktop":{"value":"text"}}},"innerContent":{"desktop":{"value":"Message"}}},"builderVersion":"5.0.0-public-beta.2"} /-->
+<!-- /wp:divi/contact-form -->
+<!-- /wp:divi/column -->
+<!-- /wp:divi/row -->
+<!-- /wp:divi/section --><!-- /wp:divi/placeholder -->
+HTML;
+
+					$this->insert_post(
+						[
+							'title'   => 'Divi 5 Test Page',
+							'name'    => 'divi5-test',
+							'content' => $divi5_content,
+						]
+					);
+				} else {
+					$this->create_divi_test_page();
+				}
+
+				break;
+			case 'Extra':
+				$this->create_divi_test_page();
 
 				break;
 			default:
@@ -452,6 +482,51 @@ class Playground {
 	}
 
 	/**
+	 * Get Divi test page slug depending on a Divi version.
+	 *
+	 * - If the active theme is Divi: detect a version from the active theme.
+	 * - Else if Divi theme is installed: detect a version from installed theme data.
+	 * - Else fallback by checking if a page with slug 'divi5-test' exists.
+	 * - Default to 'divi-test'.
+	 *
+	 * @return string
+	 */
+	private function get_divi_test_slug(): string {
+		// Check the active theme first.
+		$active_theme = wp_get_theme();
+
+		if ( $active_theme && strtolower( (string) $active_theme->get( 'Name' ) ) === 'divi' ) {
+			$divi_version_raw = (string) $active_theme->get( 'Version' );
+			$divi_version     = preg_replace( '/[^0-9.].*$/', '', $divi_version_raw );
+
+			if ( $divi_version && version_compare( $divi_version, '5.0', '>=' ) ) {
+				return 'divi5-test';
+			}
+
+			return 'divi-test';
+		}
+
+		// If Divi is installed (but not active), try to get its version from installed themes.
+		$themes = wp_get_themes();
+
+		if ( isset( $themes['Divi'] ) ) {
+			$divi_version_raw = (string) $themes['Divi']->get( 'Version' );
+			$divi_version     = preg_replace( '/[^0-9.].*$/', '', $divi_version_raw );
+
+			if ( $divi_version && version_compare( $divi_version, '5.0', '>=' ) ) {
+				return 'divi5-test';
+			}
+		}
+
+		// Fallback by existing page presence (helps when the theme was switched earlier in the session).
+		if ( get_page_by_path( 'divi5-test' ) ) {
+			return 'divi5-test';
+		}
+
+		return 'divi-test';
+	}
+
+	/**
 	 * Insert a post with content.
 	 *
 	 * @param array $args      {
@@ -588,6 +663,22 @@ class Playground {
 	}
 
 	/**
+	 * Create a Divi/Extra test page.
+	 *
+	 * @return void
+	 */
+	private function create_divi_test_page(): void {
+		// Divi 4 (Classic): create a page with the Divi contact form shortcode.
+		$this->insert_post(
+			[
+				'title'   => 'Divi Test Page',
+				'name'    => 'divi-test',
+				'content' => '[et_pb_section fb_built="1"][et_pb_row][et_pb_column type="4_4"][et_pb_contact_form captcha="off" email="" _module_preset="default"][et_pb_contact_field field_id="Name" field_title="Name"][/et_pb_contact_field][et_pb_contact_field field_id="Email" field_title="Email Address" field_type="email"][/et_pb_contact_field][et_pb_contact_field field_id="Message" field_title="Message" field_type="text" fullwidth_field="on"][/et_pb_contact_field][/et_pb_contact_form][/et_pb_column][/et_pb_row][/et_pb_section]',
+			]
+		);
+	}
+
+	/**
 	 * Get the admin bar menu nodes.
 	 *
 	 * @return array[]
@@ -656,7 +747,7 @@ class Playground {
 				'id'     => 'hcaptcha-menu-divi',
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Divi', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'divi_status', home_url( 'divi-test' ) ),
+				'href'   => $this->get_href( 'divi_status', home_url( $this->get_divi_test_slug() ) ),
 			],
 
 			// Elementor Pro test page.
