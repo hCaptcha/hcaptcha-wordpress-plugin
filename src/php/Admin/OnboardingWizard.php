@@ -283,8 +283,9 @@ class OnboardingWizard {
 			return;
 		}
 
-		$site_key   = $this->settings->get_site_key();
-		$secret_key = $this->settings->get_secret_key();
+		// Get the site and secret key here directly from options.
+		$site_key   = $this->settings->get( 'site_key' );
+		$secret_key = $this->settings->get( 'secret_key' );
 
 		if ( $site_key && $secret_key ) {
 			// Do not run wizard if user has already made initial settings.
