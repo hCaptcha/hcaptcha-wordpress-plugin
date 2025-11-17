@@ -231,6 +231,7 @@ class OnboardingWizard {
 				'stepParam'       => self::STEP_PARAM,
 				'iconAnimatedUrl' => constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon-animated.svg',
 				'videoUrl'        => 'https://youtu.be/khKYehgr8t0',
+				'ratingUrl'       => 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post',
 				'i18n'            => [
 					'done'         => __( 'Done', 'hcaptcha-for-forms-and-more' ),
 					'close'        => __( 'Close', 'hcaptcha-for-forms-and-more' ),
@@ -241,6 +242,9 @@ class OnboardingWizard {
 					'letsGo'       => __( "Let's Go!", 'hcaptcha-for-forms-and-more' ),
 					'videoCta'     => __( 'Watch a quick setup video', 'hcaptcha-for-forms-and-more' ),
 					'videoTitle'   => __( 'Quick Setup Video', 'hcaptcha-for-forms-and-more' ),
+					'ratingTitle'  => __( 'Congrats — setup complete!', 'hcaptcha-for-forms-and-more' ),
+					'ratingBody'   => __( 'You’ve completed the onboarding wizard. If hCaptcha helps you, please consider leaving a 5‑star review on WordPress.org — your support motivates us to build even more great features. Thank you!', 'hcaptcha-for-forms-and-more' ),
+					'ratingCta'    => __( 'Rate hCaptcha on WordPress.org', 'hcaptcha-for-forms-and-more' ),
 				],
 			]
 		);

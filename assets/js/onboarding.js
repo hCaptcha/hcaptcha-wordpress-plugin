@@ -7,6 +7,10 @@
  * @param HCaptchaOnboardingObject.i18n
  * @param HCaptchaOnboardingObject.i18n.close
  * @param HCaptchaOnboardingObject.i18n.letsGo
+ * @param HCaptchaOnboardingObject.i18n.ratingBody
+ * @param HCaptchaOnboardingObject.i18n.ratingCta
+ * @param HCaptchaOnboardingObject.i18n.ratingTitle
+ * @param HCaptchaOnboardingObject.i18n.ratingUrl
  * @param HCaptchaOnboardingObject.i18n.steps
  * @param HCaptchaOnboardingObject.i18n.videoBody
  * @param HCaptchaOnboardingObject.i18n.videoCta
@@ -73,11 +77,13 @@ const onboarding = function( $ ) {
 	function stepNumber( stepStr ) {
 		// 'step 3' -> 3
 		const m = /step\s(\d+)/.exec( stepStr || '' );
+
 		return m ? parseInt( m[ 1 ], 10 ) : 1;
 	}
 
 	function nextStep( current ) {
 		const n = stepNumber( current );
+
 		return 'step ' + ( n + 1 );
 	}
 
@@ -89,9 +95,11 @@ const onboarding = function( $ ) {
 	function buildPanel( current ) {
 		/* language=HTML */
 		const $panel = $( '<div class="hcap-onb-panel" aria-live="polite"></div>' );
+
 		/* language=HTML */
 		const $header = $( '<div class="hcap-onb-header"></div>' );
 		const $close = $( '<button type="button" class="hcap-onb-close" aria-label="' + cfg.i18n.close + '"></button>' );
+
 		$close.on( 'click', function() {
 			postUpdate( 'completed' ).always( function() {
 				$panel.remove();
@@ -105,6 +113,7 @@ const onboarding = function( $ ) {
 		if ( cfg.iconAnimatedUrl ) {
 			/* language=HTML */
 			const $img = $( `<img class="hcap-onb-icon" alt="" aria-hidden="true" src="${ cfg.iconAnimatedUrl }" />` );
+
 			$titleWrap.append( $img );
 		}
 
@@ -118,23 +127,27 @@ const onboarding = function( $ ) {
 		for ( let i = 1; i <= 8; i++ ) {
 			/* language=HTML */
 			const $li = $( '<li />' )
-				.text( cfg.steps[ i ] || ( 'Step ' + i ) )
+				.text( cfg.steps[ i ] )
 				.attr( 'data-step', i )
 				.attr( 'role', 'button' )
 				.attr( 'tabindex', '0' )
 				.addClass( 'hcap-onb-step' );
+
 			if ( 'step ' + i === current ) {
 				$li.addClass( 'current' );
 			}
+
 			// Gray out steps not on this page for clarity
 			if ( ! inArray( i, stepsByPage[ cfg.page ] ) ) {
 				$li.addClass( 'other-page' );
 			}
+
 			$list.append( $li );
 		}
 
 		$panel.append( $header ).append( $list );
 		$( 'body' ).append( $panel );
+
 		return $panel;
 	}
 
@@ -155,18 +168,18 @@ const onboarding = function( $ ) {
 		}
 
 		/* language=HTML */
-		$head.append( $( '<h2 class="hcap-onb-modal-title"></h2>' ).text( cfg.i18n.welcomeTitle || 'Welcome to hCaptcha' ) );
+		$head.append( $( '<h2 class="hcap-onb-modal-title"></h2>' ).text( cfg.i18n.welcomeTitle ) );
 
 		/* language=HTML */
 		const $body = $( '<div class="hcap-onb-modal-body"></div>' )
-			.append( $( '<p></p>' ).text( cfg.i18n.welcomeBody || '' ) );
+			.append( $( '<p></p>' ).text( cfg.i18n.welcomeBody ) );
 
 		/* language=HTML */
 		const $actions = $( '<div class="hcap-onb-modal-actions"></div>' );
 
 		/* language=HTML */
 		const $go = $( '<button type="button" class="button button-primary hcap-onb-go"></button>' )
-			.text( cfg.i18n.letsGo || "Let's Go!" );
+			.text( cfg.i18n.letsGo );
 		$actions.append( $go );
 
 		$modal.append( $head, $body, $actions );
@@ -182,6 +195,7 @@ const onboarding = function( $ ) {
 			dismiss();
 			proceedFromWelcome();
 		} );
+
 		$go.on( 'click', function() {
 			dismiss();
 			proceedFromWelcome();
@@ -208,7 +222,7 @@ const onboarding = function( $ ) {
 		const $head = $( '<div class="hcap-onb-modal-head"></div>' );
 
 		/* language=HTML */
-		$head.append( $( '<h2 class="hcap-onb-modal-title"></h2>' ).text( cfg.i18n.videoTitle || 'Quick Setup Video' ) );
+		$head.append( $( '<h2 class="hcap-onb-modal-title"></h2>' ).text( cfg.i18n.videoTitle ) );
 
 		// Convert the provided URL to embed URL (supports YouTube and youtube.com/watch?v=)
 		function toEmbedUrl( url ) {
@@ -236,10 +250,13 @@ const onboarding = function( $ ) {
 
 		/* language=HTML */
 		const $body = $( '<div class="hcap-onb-modal-body"></div>' );
+
 		/* language=HTML */
 		const $wrap = $( '<div class="hcap-onb-video-wrap"></div>' );
+
 		/* language=HTML */
 		const $iframe = $( `<iframe src="${ src }" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>` );
+
 		$wrap.append( $iframe );
 		$body.append( $wrap );
 
@@ -271,9 +288,70 @@ const onboarding = function( $ ) {
 		}, 0 );
 	}
 
+	// Build congrats/rating popup shown after completion (step 8)
+	function buildCongratsModal( onDismiss ) {
+		/* language=HTML */
+		const $overlay = $( '<div class="hcap-onb-modal-overlay" />' );
+
+		/* language=HTML */
+		const $modal = $( '<div class="hcap-onb-modal" role="dialog" aria-modal="true" />' );
+
+		/* language=HTML */
+		const headEl = document.createElement( 'div' );
+
+		headEl.className = 'hcap-onb-modal-head';
+
+		const h2El = document.createElement( 'h2' );
+
+		h2El.className = 'hcap-onb-modal-title';
+		h2El.appendChild( document.createTextNode( cfg.i18n.ratingTitle ) );
+		headEl.appendChild( h2El );
+
+		const $head = $( headEl );
+
+		/* language=HTML */
+		const $body = $( '<div class="hcap-onb-modal-body"></div>' )
+			.append( $( '<p></p>' ).text( cfg.i18n.ratingBody ) );
+
+		/* language=HTML */
+		const $actions = $( '<div class="hcap-onb-modal-actions"></div>' );
+
+		/* language=HTML */
+		const $rate = $( '<a class="button button-primary" target="_blank" rel="noopener noreferrer"></a>' )
+			.text( cfg.i18n.ratingCta )
+			.attr( 'href', cfg.ratingUrl );
+
+		$actions.append( $rate );
+		$modal.append( $head, $body, $actions );
+		$( 'body' ).append( $overlay, $modal );
+
+		function dismiss() {
+			$overlay.remove();
+			$modal.remove();
+			if ( typeof onDismiss === 'function' ) {
+				onDismiss();
+			}
+		}
+
+		$overlay.on( 'click', dismiss );
+		$rate.on( 'click', function() {
+			// Let the link open in a new tab, also close modal immediately
+			setTimeout( dismiss, 0 );
+		} );
+
+		setTimeout( function() {
+			try {
+				$rate.trigger( 'focus' );
+			} catch ( e ) {
+				// no-op
+			}
+		}, 0 );
+	}
+
 	function proceedFromWelcome() {
 		// After welcome, render the panel and show step 1 tooltip
 		const current = cfg.currentStep || 'step 1';
+
 		buildPanel( current );
 		showStep( 1 );
 	}
@@ -283,6 +361,7 @@ const onboarding = function( $ ) {
 			$tooltip.remove();
 			$tooltip = null;
 		}
+
 		$( '.hcap-onb-highlight' ).removeClass( 'hcap-onb-highlight' );
 	}
 
@@ -291,12 +370,14 @@ const onboarding = function( $ ) {
 		removeTooltip();
 
 		const t = targets[ step ];
+
 		if ( ! t || t.page !== cfg.page ) {
 			// This step is for another page – show panel only.
 			return;
 		}
 
 		const $target = $( t.selector ).first();
+
 		if ( $target.length === 0 ) {
 			return; // No target found on this page
 		}
@@ -312,25 +393,35 @@ const onboarding = function( $ ) {
 
 		/* language=HTML */
 		const $done = $( '<button type="button" class="button button-primary hcap-onb-done"></button>' ).text( cfg.i18n.done );
+
 		$done.on( 'click', function() {
 			const next = nextStep( 'step ' + step );
+
 			if ( step === 6 && cfg.page === 'general' ) {
 				// Last General step → go Integrations
 				cfg.currentStep = next; // 'step 7'
 				postUpdate( next ).always( function() {
 					window.location.href = cfg.integrationsUrl;
 				} );
+
 				return;
 			}
+
 			if ( step >= 8 ) {
-				postUpdate( 'completed' );
-				removeTooltip();
-				$( '.hcap-onb-panel' ).remove();
+				// Completed via the Done button — show congrats popup
+				postUpdate( 'completed' ).always( function() {
+					buildCongratsModal( function() {
+						removeTooltip();
+						$( '.hcap-onb-panel' ).remove();
+					} );
+				} );
+
 				return;
 			}
 
 			postUpdate( next ).always( function() {
 				cfg.currentStep = next;
+
 				// Update panel highlighting: mark a new current
 				$( '.hcap-onb-panel .hcap-onb-list li' ).removeClass( 'current' ).eq( step )
 					.addClass( 'current' );
@@ -342,7 +433,7 @@ const onboarding = function( $ ) {
 		/* language=HTML */
 		$tooltip = $( '<div class="hcap-onb-tip" role="dialog"></div>' );
 
-		const tipText = cfg.steps[ step ] || ( 'Step ' + step );
+		const tipText = cfg.steps[ step ];
 
 		/* language=HTML */
 		$tooltip.append( $( '<div class="hcap-onb-tip-text"></div>' ).text( tipText ) );
@@ -353,7 +444,7 @@ const onboarding = function( $ ) {
 			const $sub = $( '<div></div>' ).addClass( 'hcap-onb-tip-text' );
 
 			/* language=HTML */
-			const $a = $( '<a></a>' ).attr( 'href', '#' ).addClass( 'hcap-onb-video-link' ).text( cfg.i18n.videoCta || 'Watch a quick setup video' );
+			const $a = $( '<a></a>' ).attr( 'href', '#' ).addClass( 'hcap-onb-video-link' ).text( cfg.i18n.videoCta );
 
 			$sub.append( $a );
 			$tooltip.append( $sub );
@@ -410,22 +501,29 @@ const onboarding = function( $ ) {
 		const base = isGeneral ? cfg.generalUrl : cfg.integrationsUrl;
 		const sep = base.indexOf( '?' ) === -1 ? '?' : '&';
 		const param = cfg.stepParam;
+
 		window.location.href = base + sep + encodeURIComponent( param ) + '=' + encodeURIComponent( n );
 	}
 
 	// Bind delegated handlers before any early returns, so clicks work after the Welcome popup
 	$( document ).off( '.hcapOnbNav' );
+
 	$( document ).on( 'click.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
 		e.preventDefault();
+
 		const n = parseInt( $( this ).attr( 'data-step' ), 10 );
+
 		if ( n ) {
 			goToStep( n );
 		}
 	} );
+
 	$( document ).on( 'keydown.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
 		if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
 			e.preventDefault();
+
 			const n = parseInt( $( this ).attr( 'data-step' ), 10 );
+
 			if ( n ) {
 				goToStep( n );
 			}
@@ -469,25 +567,50 @@ const onboarding = function( $ ) {
 	buildPanel( current );
 	showStep( num );
 
-	// Also advance on real Save for steps 6 (General) and 8 (Integrations) — do not block submitting
-	$( document ).on( 'submit', '#hcaptcha-options', function() {
+	// Also advance on real Save for steps 6 (General) and 8 (Integrations)
+	// For step 8 we first show the congrats popup, then proceed with submit.
+	let hcapOnbSubmitting = false;
+
+	$( document ).on( 'submit', '#hcaptcha-options', function( e ) {
 		const n = stepNumber( cfg.currentStep || 'step 1' );
+
 		if ( n === 6 && cfg.page === 'general' ) {
 			const next = 'step 7';
+
 			cfg.currentStep = next;
 			postUpdate( next );
+
 			try {
 				if ( window.sessionStorage ) {
 					sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
 				}
-			} catch ( e ) {
+			} catch ( err2 ) {
 				// no-op
 			}
 		} else if ( n === 8 && cfg.page === 'integrations' ) {
+			if ( hcapOnbSubmitting ) {
+				return; // allow natural submit a second time
+			}
+
+			// Prevent immediate submit; show congrats, then proceed
+			e.preventDefault();
 			cfg.currentStep = 'completed';
-			postUpdate( 'completed' );
+
+			postUpdate( 'completed' ).always( function() {
+				buildCongratsModal( function() {
+					// After closing the modal, submit the form at once
+					hcapOnbSubmitting = true;
+
+					try {
+						$( '#hcaptcha-options' ).get( 0 ).submit();
+					} catch ( err ) {
+						// fallback: trigger a click on the `submit` button
+						$( '#hcaptcha-options [type="submit"]' ).first().trigger( 'click' );
+					}
+				} );
+			} );
 		}
-		// no preventDefault: allow normal form submit
+		// allow normal form submit for other cases
 	} );
 };
 
