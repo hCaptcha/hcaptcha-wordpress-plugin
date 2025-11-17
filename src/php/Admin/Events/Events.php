@@ -177,6 +177,7 @@ class Events {
 		$query_results = [];
 
 		foreach ( $queries as $query ) {
+			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$result          = $wpdb->query( $query );
 			$query_results[] = $wpdb->last_result;
 

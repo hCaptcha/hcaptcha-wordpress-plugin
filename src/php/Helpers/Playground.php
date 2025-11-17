@@ -271,7 +271,7 @@ class Playground {
 
 				if ( $divi_version && version_compare( $divi_version, '5.0', '>=' ) ) {
 					// Divi 5: create a block-based page with Divi 5 contact form blocks.
-					$divi5_content = <<<'HTML'
+					$divi5_content = '
 <!-- wp:divi/placeholder --><!-- wp:divi/section {"builderVersion":"5.0.0-public-beta.2"} -->
 <!-- wp:divi/row {"module":{"advanced":{"flexColumnStructure":{"desktop":{"value":"equal-columns_1"}}},"decoration":{"layout":{"desktop":{"value":{"flexWrap":"nowrap"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
 <!-- wp:divi/column {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"24_24"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
@@ -285,7 +285,7 @@ class Playground {
 <!-- /wp:divi/column -->
 <!-- /wp:divi/row -->
 <!-- /wp:divi/section --><!-- /wp:divi/placeholder -->
-HTML;
+';
 
 					$this->insert_post(
 						[

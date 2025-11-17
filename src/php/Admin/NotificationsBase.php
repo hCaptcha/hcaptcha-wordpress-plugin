@@ -41,7 +41,7 @@ abstract class NotificationsBase {
 			$urls['pro']                  = 'https://www.hcaptcha.com/pro' . $utm_not;
 			$urls['dashboard']            = 'https://dashboard.hcaptcha.com' . $utm_not;
 			$urls['post_leadership']      = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
-			$urls['rate']                 = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/?filter=5#new-post';
+			$urls['rate']                 = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post';
 			$urls['search_integrations']  = $urls['integrations'] . '#hcaptcha-integrations-search';
 			$urls['enterprise_features']  = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
 			$urls['statistics']           = $urls['general'] . '#statistics_1';
