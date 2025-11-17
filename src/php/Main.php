@@ -1769,6 +1769,8 @@ class Main {
 	 */
 	public function load_textdomain(): void {
 		load_default_textdomain();
+
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',
 			false,

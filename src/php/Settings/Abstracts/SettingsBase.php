@@ -1600,6 +1600,7 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function load_plugin_textdomain(): void {
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
 		load_plugin_textdomain(
 			$this->text_domain(),
 			false,
