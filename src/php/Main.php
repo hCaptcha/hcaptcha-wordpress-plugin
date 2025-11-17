@@ -46,7 +46,6 @@ use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
-use HCaptcha\WP\Signup;
 
 /**
  * Class Main.
