@@ -382,13 +382,15 @@ const onboarding = function( $ ) {
 			return; // No target found on this page
 		}
 
-		// Scroll into view smoothly if needed
+		// Прокрутка к элементу: возвращаю исходное поведение — всегда центруем
+		// таргет плавно, а позиционирование тултипа делаем чуть позже.
 		try {
 			const el = $target.get( 0 );
 			if ( el && typeof el.scrollIntoView === 'function' ) {
 				el.scrollIntoView( { behavior: 'smooth', block: 'center', inline: 'nearest' } );
 			}
 		} catch ( e ) {
+			// no-op
 		}
 
 		/* language=HTML */
@@ -466,26 +468,30 @@ const onboarding = function( $ ) {
 
 		$( 'body' ).append( $tooltip );
 
-		// Position near target (basic positioning with side and arrow)
+		// Position near target with viewport overflow handling (left/right + vertical clamping)
 		setTimeout( function() {
 			const off = $target.offset();
 			const tW = $tooltip.outerWidth();
-			const tH = $tooltip.outerHeight();
-			const winW = $( window ).width();
-			let left = off.left + $target.outerWidth() + 10; // right by default
-			let top = off.top - ( tH / 2 ) + ( $target.outerHeight() / 2 );
-			let sideClass = 'side-right';
+			const $win = $( window );
+			const winW = $win.width();
+			const margin = 10;
+			const targetW = $target.outerWidth();
 
-			if ( left + tW > winW ) {
-				left = off.left - tW - 10; // flip to left
-				sideClass = 'side-left';
+			// Always place the tooltip to the right of the element
+			let left = off.left + targetW + margin;
+			const sideClass = 'side-right';
+
+			// If the tooltip goes beyond the right edge, shift it so that its right edge is 10 px from the screen border
+			const maxLeft = winW - tW - margin;
+
+			if ( left > maxLeft ) {
+				left = maxLeft;
 			}
 
-			if ( top < 10 ) {
-				top = 10;
-			}
-
-			$tooltip.addClass( sideClass ).css( { top: Math.round( top ) + 'px', left: Math.round( left ) + 'px' } );
+			$tooltip.addClass( sideClass ).css( {
+				top: Math.round( top ) + 'px',
+				left: Math.round( left ) + 'px',
+			} );
 
 			// Gentle highlight of target element
 			$target.addClass( 'hcap-onb-highlight' );
