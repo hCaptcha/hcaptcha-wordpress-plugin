@@ -169,7 +169,7 @@ class OnboardingWizard {
 		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/onboarding$min.js",
-			[ 'jquery' ],
+			[ 'jquery', $this->tab::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);
