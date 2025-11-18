@@ -382,6 +382,23 @@ const onboarding = function( $ ) {
 			return; // No target found on this page
 		}
 
+		// If the target is inside a settings section table, make sure the section is expanded.
+		// Find the nearest table and h3 before it.
+		// If h3 has a "closed" class - click on it to open the section before positioning the tooltip.
+		try {
+			const $table = $target.closest( 'table' );
+
+			if ( $table.length ) {
+				const $heading = $table.prevAll( 'h3' ).first();
+
+				if ( $heading.length && $heading.hasClass( 'closed' ) ) {
+					$heading.trigger( 'click' );
+				}
+			}
+		} catch ( e ) {
+			// no-op
+		}
+
 		// Scroll to an element: always center the target smoothly and position the tooltip a bit later.
 		try {
 			const el = $target.get( 0 );
@@ -471,13 +488,16 @@ const onboarding = function( $ ) {
 		setTimeout( function() {
 			const off = $target.offset();
 			const tW = $tooltip.outerWidth();
+			const tH = $tooltip.outerHeight();
 			const $win = $( window );
 			const winW = $win.width();
 			const margin = 10;
 			const targetW = $target.outerWidth();
+			const targetH = $target.outerHeight();
 
 			// Always place the tooltip to the right of the element
 			let left = off.left + targetW + margin;
+			let top = off.top - ( tH / 2 ) + ( targetH / 2 );
 			const sideClass = 'side-right';
 
 			// If the tooltip goes beyond the right edge, shift it so that its right edge is 10 px from the screen border
@@ -485,6 +505,10 @@ const onboarding = function( $ ) {
 
 			if ( left > maxLeft ) {
 				left = maxLeft;
+			}
+
+			if ( top < 10 ) {
+				top = 10;
 			}
 
 			$tooltip.addClass( sideClass ).css( {
