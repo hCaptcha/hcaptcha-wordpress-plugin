@@ -521,6 +521,23 @@ const onboarding = function( $ ) {
 		}, 180 );
 	}
 
+	// Re-position tooltip on window resize so it stays near the target element.
+	$( window ).on( 'resize.hcapOnb', function() {
+		if ( ! $tooltip ) {
+			return;
+		}
+
+		const n = stepNumber( cfg.currentStep || 'step 1' );
+		const t = targets[ n ];
+
+		// Only reposition if current step belongs to this page and has a target here.
+		if ( ! t || t.page !== cfg.page ) {
+			return;
+		}
+
+		showStep( n );
+	} );
+
 	// Initialization (executed on DOM ready via jQuery(document).ready(onboarding))
 	const current = cfg.currentStep || 'step 1';
 
