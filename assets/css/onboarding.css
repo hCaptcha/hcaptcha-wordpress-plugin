@@ -97,11 +97,11 @@
 	position: absolute;
 	z-index: 100001;
 	max-width: 340px;
-	background: #3c434a;
+	background: #5c6f8a;
 	color: #fff;
 	border-radius: 6px;
 	padding: 12px 12px;
-	box-shadow: 0 10px 30px rgba(60, 67, 74, .25);
+	box-shadow: 0 10px 30px rgba(92, 111, 138, .25);
 }
 
 /* Arrow */
@@ -117,7 +117,7 @@
 
 .hcap-onb-tip.side-right:after {
 	left: -16px;
-	border-right-color: #3c434a;
+	border-right-color: #5c6f8a;
 }
 
 .hcap-onb-tip.side-left:after {
@@ -131,6 +131,8 @@
 
 .hcap-onb-tip .hcap-onb-done {
 	margin-top: 4px;
+	background: #4de1d2;
+	border-color: #4de1d2;
 }
 
 /* Highlight of targeted element */
