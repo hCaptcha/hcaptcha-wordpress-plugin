@@ -382,8 +382,7 @@ const onboarding = function( $ ) {
 			return; // No target found on this page
 		}
 
-		// Прокрутка к элементу: возвращаю исходное поведение — всегда центруем
-		// таргет плавно, а позиционирование тултипа делаем чуть позже.
+		// Scroll to an element: always center the target smoothly and position the tooltip a bit later.
 		try {
 			const el = $target.get( 0 );
 			if ( el && typeof el.scrollIntoView === 'function' ) {
