@@ -216,6 +216,35 @@ class Playground {
 				);
 
 				break;
+			case 'wpforms/wpforms.php':
+			case 'wpforms-lite/wpforms.php':
+				// Create a new WPForms form.
+				$wpforms_form_id = $this->insert_post(
+					[
+						'title'     => 'WPForms Test Form',
+						'name'      => 'wpforms-test-form',
+						'post_type' => 'wpforms',
+					]
+				);
+
+				// We need to insert form ID into the content.
+				wp_update_post(
+					[
+						'ID'           => $wpforms_form_id,
+						'post_content' => '{"fields": {"1": {"id": "1", "type": "name", "label": "Name", "format": "first-last", "description": "", "required": "1", "size": "medium", "simple_placeholder": "", "simple_default": "", "first_placeholder": "", "first_default": "", "middle_placeholder": "", "middle_default": "", "last_placeholder": "", "last_default": "", "css": ""}, "2": {"id": "2", "type": "email", "label": "Email", "description": "", "required": "1", "size": "medium", "placeholder": "", "confirmation_placeholder": "", "default_value": false, "filter_type": "", "allowlist": "", "denylist": "", "css": ""}, "3": {"id": "3", "type": "textarea", "label": "Comment or Message", "description": "", "size": "medium", "placeholder": "", "limit_count": "1", "limit_mode": "characters", "default_value": "", "css": ""}}, "id": ' . $wpforms_form_id . ', "field_id": 4, "settings": {"form_title": "Simple Contact Form", "form_desc": "", "submit_text": "Submit", "submit_text_processing": "Sending...", "form_class": "", "submit_class": "", "ajax_submit": "1", "notification_enable": "1", "notifications": {"1": {"enable": "1", "notification_name": "Default Notification", "email": "{admin_email}", "subject": "New Entry: Simple Contact Form (ID #5717)", "sender_name": "test", "sender_address": "{admin_email}", "replyto": "", "message": "{all_fields}"}}, "confirmations": {"1": {"name": "Default Confirmation", "type": "message", "message": "<p>Thanks for contacting us! We will be in touch with you shortly.<\\/p>", "message_scroll": "1", "page": "4992", "redirect": "", "message_entry_preview_style": "basic"}}, "antispam_v3": "1", "store_spam_entries": "1", "anti_spam": {"time_limit": {"enable": "1", "duration": "2"}, "filtering_store_spam": "1", "country_filter": {"action": "allow", "country_codes": [], "message": "Sorry, this form does not accept submissions from your country."}, "keyword_filter": {"message": "Sorry, your message cannot be submitted because it contains prohibited words."}}, "form_tags": []}, "search_terms": "", "providers": {"constant-contact-v3": []}}',
+					]
+				);
+
+				// Create a new page with the WPForms form.
+				$this->insert_post(
+					[
+						'title'   => 'WPForms Test Page',
+						'name'    => 'wpforms-test',
+						'content' => '[wpforms id="' . $wpforms_form_id . '"]',
+					]
+				);
+
+				break;
 			default:
 				return;
 		}
@@ -449,11 +478,11 @@ class Playground {
 			$module_status = $module[0][0] ?? '';
 
 			if ( $status === $module_status ) {
-				$entity_names[] = $module[1];
+				$entity_names[] = (array) $module[1];
 			}
 		}
 
-		if ( hcaptcha()->plugin_or_theme_active( array_unique( $entity_names ) ) ) {
+		if ( hcaptcha()->plugin_or_theme_active( array_unique( array_merge( ...$entity_names ) ) ) ) {
 			return $url;
 		}
 
@@ -594,6 +623,11 @@ class Playground {
 	 */
 	private function setup_settings(): void {
 		$settings = get_option( 'hcaptcha_settings', [] );
+
+		// Do not overwrite options if they already exist.
+		if ( $settings ) {
+			return;
+		}
 
 		$settings['wp_status']                    = [
 			'comment',
@@ -773,28 +807,36 @@ class Playground {
 				'title'  => __( 'WooCommerce', 'hcaptcha-for-forms-and-more' ),
 			],
 
-			// WC Checkout page.
+			// WooCommerce Checkout page.
 			[
 				'id'     => 'hcaptcha-menu-wc-checkout',
 				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
 				'title'  => __( 'Checkout', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'woocommerce_status', home_url( '/checkout/' ) ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( 'checkout' ) ),
 			],
 
-			// WC Login/Register page.
+			// WooCommerce Login/Register page.
 			[
 				'id'     => 'hcaptcha-menu-wc-login-register',
 				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
 				'title'  => __( 'Login/Register', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'woocommerce_status', home_url( '/my-account/' ) ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( 'my-account' ) ),
 			],
 
-			// WC Order Tracking page.
+			// WooCommerce Order Tracking page.
 			[
 				'id'     => 'hcaptcha-menu-wc-order-tracking',
 				'parent' => self::HCAPTCHA_MENU_WOOCOMMERCE_ID,
 				'title'  => __( 'Order Tracking', 'hcaptcha-for-forms-and-more' ),
-				'href'   => $this->get_href( 'woocommerce_status', home_url( '/wc-order-tracking/' ) ),
+				'href'   => $this->get_href( 'woocommerce_status', home_url( 'wc-order-tracking' ) ),
+			],
+
+			// WPForms test page.
+			[
+				'id'     => 'hcaptcha-menu-wpforms',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'WPForms', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'wpforms_status', home_url( 'wpforms-test' ) ),
 			],
 		];
 	}
