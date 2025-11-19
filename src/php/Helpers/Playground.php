@@ -641,6 +641,7 @@ class Playground {
 		$settings['divi_status']                  = [ 'comment', 'contact', 'email_optin', 'login' ];
 		$settings['elementor_pro_status']         = [ 'form', 'login' ];
 		$settings['extra_status']                 = [ 'comment', 'contact', 'email_optin', 'login' ];
+		$settings['wpforms_status']               = [ 'form', 'embed' ];
 		$settings['woocommerce_status']           = [
 			'checkout',
 			'login',
