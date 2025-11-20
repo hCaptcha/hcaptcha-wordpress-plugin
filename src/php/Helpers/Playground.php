@@ -205,6 +205,30 @@ class Playground {
 				);
 
 				break;
+			case 'essential-addons-for-elementor-lite/essential_adons_elementor.php':
+				// Create a new page with the Essential Addons Login form.
+				$this->insert_post(
+					[
+						'title'      => 'Essential Addons Test Page',
+						'name'       => 'essential-addons-test',
+						'content'    => '',
+						'meta_input' => [
+							'_elementor_data'           => '[{"id":"e802f53","elType":"section","settings":[],"elements":[{"id":"356f766","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"4f7a3ec","elType":"widget","settings":{"log_out_link_text":"You are already logged in as [username]. ([logout_link])","lost_password_text":"Forgot Password?","remember_text":"Remember Me","registration_link_text":" Register Now","login_link_text":" Sign In","login_link_text_lostpassword":" Sign In","login_user_label":"Username or Email Address","login_password_label":"Password","login_user_placeholder":"Username or Email Address","login_password_placeholder":"Password","login_button_text":"Log In","register_fields":[{"field_type":"user_name","field_label":"Username","placeholder":"Username","_id":"ead9597"},{"field_type":"email","field_label":"Email","placeholder":"Email","required":"yes","_id":"1170d96"},{"field_type":"password","field_label":"Password","placeholder":"Password","required":"yes","_id":"17224dd"}],"reg_button_text":"Register","reg_email_subject":"Thank you for registering on `test`!","reg_admin_email_subject":"[`test`] New User Registration","lostpassword_user_label":"Username or Email Address","lostpassword_user_placeholder":"Username or Email Address","lostpassword_button_text":"Reset Password","lostpassword_email_subject":"Password Reset Confirmation","lostpassword_email_message_reset_link_text":"Click here to reset your password","resetpassword_password_label":"New Password","resetpassword_confirm_password_label":"Confirm New Password","resetpassword_password_placeholder":"New Password","resetpassword_confirm_password_placeholder":"Confirm New Password","resetpassword_button_text":"Save Password","acceptance_label":"I Accept the Terms and Conditions.","err_email":"You have used an invalid email","err_email_missing":"Email is missing or Invalid","err_email_used":"The provided email is already registered with other account. Please login or reset password or use another email.","err_username":"You have used an invalid username","err_username_used":"Invalid username provided or the username already registered.","err_pass":"Your password is invalid.","err_conf_pass":"Your confirmed password did not match","err_loggedin":"You are already logged in","err_recaptcha":"You did not pass reCAPTCHA challenge.","err_reset_password_key_expired":"Your password reset link appears to be invalid. Please request a new link.","err_tc":"You did not accept the Terms and Conditions. Please accept it and try again.","err_unknown":"Something went wrong!","err_phone_number_missing":"Phone number is missing","err_phone_number_invalid":"Invalid phone number provided","success_login":"You have logged in successfully","success_register":"Registration completed successfully, Check your inbox for password if you did not provided while registering.","success_lostpassword":"Check your email for the confirmation link.","success_resetpassword":"Your password has been reset.","rmark_sign":"*"},"elements":[],"widgetType":"eael-login-register"}],"isInner":false}],"isInner":false}]',
+							'_elementor_edit_mode'      => 'builder',
+							'_elementor_controls_usage' => 'a:3:{s:19:"eael-login-register";a:3:{s:5:"count";i:1;s:15:"control_percent";i:0;s:8:"controls";a:1:{s:7:"content";a:1:{s:31:"section_content_register_fields";a:1:{s:15:"register_fields";i:1;}}}}s:6:"column";a:3:{s:5:"count";i:1;s:15:"control_percent";i:0;s:8:"controls";a:1:{s:6:"layout";a:1:{s:6:"layout";a:1:{s:12:"_inline_size";i:1;}}}}s:7:"section";a:3:{s:5:"count";i:1;s:15:"control_percent";i:0;s:8:"controls";a:0:{}}}',
+							'_eael_widget_elements'     => 'a:1:{s:14:"login-register";s:14:"login-register";}',
+						],
+					]
+				);
+
+				add_action(
+					'elementor/init',
+					static function () {
+						Plugin::$instance->files_manager->clear_cache();
+					}
+				);
+
+				break;
 			case 'jetpack/jetpack.php':
 				// Create a new page with a Jetpack form.
 				$this->insert_post(
@@ -811,6 +835,14 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Elementor Pro', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'elementor_pro_status', home_url( 'elementor-pro-test' ) ),
+			],
+
+			// Essential Addons test page.
+			[
+				'id'     => 'hcaptcha-menu-essential-addons',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Essential Addons', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'essential_addons_status', home_url( 'essential-addons-test' ) ),
 			],
 
 			// Extra test page.
