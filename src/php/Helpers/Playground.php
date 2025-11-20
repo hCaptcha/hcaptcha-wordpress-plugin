@@ -205,6 +205,26 @@ class Playground {
 				);
 
 				break;
+			case 'jetpack/jetpack.php':
+				// Create a new page with a Jetpack form.
+				$this->insert_post(
+					[
+						'title'   => 'Jetpack Test Page',
+						'name'    => 'jetpack-test',
+						'content' => '
+<!-- wp:jetpack/contact-form {"className":"is-style-default"} -->
+<div class="wp-block-jetpack-contact-form is-style-default">
+<!-- wp:jetpack/field-name {"required":true} /-->
+<!-- wp:jetpack/field-email {"required":true,"width":50} /-->
+<!-- wp:jetpack/field-textarea {"label":""} /-->
+<!-- wp:jetpack/button {"element":"button","text":"Contact Us","lock":{"move":false,"remove":true}} /-->
+</div>
+<!-- /wp:jetpack/contact-form -->
+',
+					]
+				);
+
+				break;
 			case 'woocommerce/woocommerce.php':
 				// Create a new page with the WooCommerce Order Tracking shortcode.
 				$this->insert_post(
@@ -301,19 +321,19 @@ class Playground {
 				if ( $divi_version && version_compare( $divi_version, '5.0', '>=' ) ) {
 					// Divi 5: create a block-based page with Divi 5 contact form blocks.
 					$divi5_content = '
-<!-- wp:divi/placeholder --><!-- wp:divi/section {"builderVersion":"5.0.0-public-beta.2"} -->
+<!-- wp:divi/placeholder -->
+<!-- wp:divi/section {"builderVersion":"5.0.0-public-beta.2"} -->
 <!-- wp:divi/row {"module":{"advanced":{"flexColumnStructure":{"desktop":{"value":"equal-columns_1"}}},"decoration":{"layout":{"desktop":{"value":{"flexWrap":"nowrap"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
 <!-- wp:divi/column {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"24_24"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
 <!-- wp:divi/contact-form {"module":{"advanced":{"uniqueId":{"desktop":{"value":"a5de6c48-f800-45b5-bf2b-8ebb58b73d59"}},"spamProtection":{"desktop":{"value":{"useBasicCaptcha":"off"}}}}},"builderVersion":"5.0.0-public-beta.2"} -->
 <!-- wp:divi/contact-field {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"12_24"}}}}},"fieldItem":{"advanced":{"fullwidth":{"desktop":{"value":"on"}},"id":{"desktop":{"value":"Name"}},"type":{"desktop":{"value":"input"}}},"innerContent":{"desktop":{"value":"Name"}}},"builderVersion":"5.0.0-public-beta.2"} /-->
-
 <!-- wp:divi/contact-field {"module":{"decoration":{"sizing":{"desktop":{"value":{"flexType":"12_24"}}}}},"fieldItem":{"advanced":{"fullwidth":{"desktop":{"value":"on"}},"id":{"desktop":{"value":"Email"}},"type":{"desktop":{"value":"email"}}},"innerContent":{"desktop":{"value":"Email Address"}}},"builderVersion":"5.0.0-public-beta.2"} /-->
-
 <!-- wp:divi/contact-field {"fieldItem":{"advanced":{"fullwidth":{"desktop":{"value":"on"}},"id":{"desktop":{"value":"Message"}},"type":{"desktop":{"value":"text"}}},"innerContent":{"desktop":{"value":"Message"}}},"builderVersion":"5.0.0-public-beta.2"} /-->
 <!-- /wp:divi/contact-form -->
 <!-- /wp:divi/column -->
 <!-- /wp:divi/row -->
-<!-- /wp:divi/section --><!-- /wp:divi/placeholder -->
+<!-- /wp:divi/section -->
+<!-- /wp:divi/placeholder -->
 ';
 
 					$this->insert_post(
@@ -799,6 +819,14 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Extra', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'extra_status', home_url( 'divi-test' ) ),
+			],
+
+			// Jetpack test page.
+			[
+				'id'     => 'hcaptcha-menu-jetpack',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Jetpack', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'jetpack_status', home_url( 'jetpack-test' ) ),
 			],
 
 			// WooCommerce group.
