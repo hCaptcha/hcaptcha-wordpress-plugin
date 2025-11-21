@@ -67,7 +67,10 @@ class RegisterTest extends HCaptchaWPTestCase {
 			'action' => 'hcaptcha_essential_addons_register',
 			'name'   => 'hcaptcha_essential_addons_register_nonce',
 			'id'     => [
-				'source'  => 'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				'source'  => [
+					'essential-addons-elementor/essential_adons_elementor.php',
+					'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				],
 				'form_id' => 'register',
 			],
 		];
