@@ -1267,12 +1267,18 @@ class Main {
 			],
 			'Essential Addons Login'               => [
 				[ 'essential_addons_status', 'login' ],
-				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				[
+					'essential-addons-elementor/essential_adons_elementor.php',
+					'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				],
 				EssentialAddons\Login::class,
 			],
 			'Essential Addons Register'            => [
 				[ 'essential_addons_status', 'register' ],
-				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				[
+					'essential-addons-elementor/essential_adons_elementor.php',
+					'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				],
 				EssentialAddons\Register::class,
 			],
 			'Essential Blocks Form'                => [

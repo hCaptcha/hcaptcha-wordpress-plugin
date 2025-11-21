@@ -11,6 +11,7 @@
 namespace HCaptcha\Helpers;
 
 use Elementor\Plugin;
+use Essential_Addons_Elementor\Classes\Bootstrap;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\Integrations;
@@ -71,6 +72,13 @@ class Playground {
 	private $data;
 
 	/**
+	 * Whether to renew forms and pages upon plugin/theme activation.
+	 *
+	 * @var bool
+	 */
+	private $renew;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -86,6 +94,9 @@ class Playground {
 		if ( ! $this->is_wp_playground() ) {
 			return;
 		}
+
+		// Renew forms and pages only locally.
+		$this->renew = ! $this->is_playground_host();
 
 		$this->data = get_transient( self::PLAYGROUND_DATA ) ?: [];
 
@@ -154,7 +165,7 @@ class Playground {
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function setup_plugin( string $plugin, bool $network_wide ): void {
-		if ( $this->data['plugins'][ $plugin ] ?? false ) {
+		if ( ! $this->renew && $this->data['plugins'][ $plugin ] ?? false ) {
 			return;
 		}
 
@@ -213,10 +224,9 @@ class Playground {
 						'name'       => 'essential-addons-test',
 						'content'    => '',
 						'meta_input' => [
-							'_elementor_data'           => '[{"id":"e802f53","elType":"section","settings":[],"elements":[{"id":"356f766","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"4f7a3ec","elType":"widget","settings":{"log_out_link_text":"You are already logged in as [username]. ([logout_link])","lost_password_text":"Forgot Password?","remember_text":"Remember Me","registration_link_text":" Register Now","login_link_text":" Sign In","login_link_text_lostpassword":" Sign In","login_user_label":"Username or Email Address","login_password_label":"Password","login_user_placeholder":"Username or Email Address","login_password_placeholder":"Password","login_button_text":"Log In","register_fields":[{"field_type":"user_name","field_label":"Username","placeholder":"Username","_id":"ead9597"},{"field_type":"email","field_label":"Email","placeholder":"Email","required":"yes","_id":"1170d96"},{"field_type":"password","field_label":"Password","placeholder":"Password","required":"yes","_id":"17224dd"}],"reg_button_text":"Register","reg_email_subject":"Thank you for registering on `test`!","reg_admin_email_subject":"[`test`] New User Registration","lostpassword_user_label":"Username or Email Address","lostpassword_user_placeholder":"Username or Email Address","lostpassword_button_text":"Reset Password","lostpassword_email_subject":"Password Reset Confirmation","lostpassword_email_message_reset_link_text":"Click here to reset your password","resetpassword_password_label":"New Password","resetpassword_confirm_password_label":"Confirm New Password","resetpassword_password_placeholder":"New Password","resetpassword_confirm_password_placeholder":"Confirm New Password","resetpassword_button_text":"Save Password","acceptance_label":"I Accept the Terms and Conditions.","err_email":"You have used an invalid email","err_email_missing":"Email is missing or Invalid","err_email_used":"The provided email is already registered with other account. Please login or reset password or use another email.","err_username":"You have used an invalid username","err_username_used":"Invalid username provided or the username already registered.","err_pass":"Your password is invalid.","err_conf_pass":"Your confirmed password did not match","err_loggedin":"You are already logged in","err_recaptcha":"You did not pass reCAPTCHA challenge.","err_reset_password_key_expired":"Your password reset link appears to be invalid. Please request a new link.","err_tc":"You did not accept the Terms and Conditions. Please accept it and try again.","err_unknown":"Something went wrong!","err_phone_number_missing":"Phone number is missing","err_phone_number_invalid":"Invalid phone number provided","success_login":"You have logged in successfully","success_register":"Registration completed successfully, Check your inbox for password if you did not provided while registering.","success_lostpassword":"Check your email for the confirmation link.","success_resetpassword":"Your password has been reset.","rmark_sign":"*"},"elements":[],"widgetType":"eael-login-register"}],"isInner":false}],"isInner":false}]',
-							'_elementor_edit_mode'      => 'builder',
-							'_elementor_controls_usage' => 'a:3:{s:19:"eael-login-register";a:3:{s:5:"count";i:1;s:15:"control_percent";i:0;s:8:"controls";a:1:{s:7:"content";a:1:{s:31:"section_content_register_fields";a:1:{s:15:"register_fields";i:1;}}}}s:6:"column";a:3:{s:5:"count";i:1;s:15:"control_percent";i:0;s:8:"controls";a:1:{s:6:"layout";a:1:{s:6:"layout";a:1:{s:12:"_inline_size";i:1;}}}}s:7:"section";a:3:{s:5:"count";i:1;s:15:"control_percent";i:0;s:8:"controls";a:0:{}}}',
-							'_eael_widget_elements'     => 'a:1:{s:14:"login-register";s:14:"login-register";}',
+							'_elementor_data'       => '[{"id":"f15315f","elType":"section","settings":{"eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[{"id":"f174b30","elType":"column","settings":{"_column_size":100,"_inline_size":null,"eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[{"id":"9303ea8","elType":"widget","settings":{"log_out_link_text":"You are already logged in as [username]. ([logout_link])","lost_password_text":"Forgot Password?","remember_text":"Remember Me","registration_link_text":" \nRegister Now","login_link_text":" \nSign In","login_link_text_lostpassword":" \nSign In","login_user_label":"Username or Email Address","login_password_label":"Password","login_user_placeholder":"Username or Email Address","login_password_placeholder":"Password","login_button_text":"Log In","register_fields":[{"field_type":"user_name","field_label":"Username","placeholder":"Username","_id":"1ed16d5"},{"field_type":"email","field_label":"Email","placeholder":"Email","required":"yes","_id":"57b9cfb"},{"field_type":"password","field_label":"Password","placeholder":"Password","required":"yes","_id":"113ef0b"}],"reg_button_text":"Register","reg_email_subject":"Thank you for registering on \"test\"!","reg_admin_email_subject":"[\"test\"] New User Registration","lostpassword_user_label":"Username or Email Address","lostpassword_user_placeholder":"Username or Email Address","lostpassword_button_text":"Reset Password","lostpassword_email_subject":"Password Reset Confirmation","lostpassword_email_message_reset_link_text":"Click here to reset your password","resetpassword_password_label":"New Password","resetpassword_confirm_password_label":"Confirm New Password","resetpassword_password_placeholder":"New Password","resetpassword_confirm_password_placeholder":"Confirm New Password","resetpassword_button_text":"Save Password","acceptance_label":"I Accept\n the Terms and Conditions.","err_email":"You have used an invalid email","err_email_missing":"Email is missing or Invalid","err_email_used":"The provided email is already registered with other account. Please login or reset password or use another email.","err_username":"You have used an invalid username","err_username_used":"Invalid username provided or the username already registered.","err_pass":"Your password is invalid.","err_conf_pass":"Your confirmed password did not match","err_loggedin":"You are already logged in","err_recaptcha":"You did not pass reCAPTCHA challenge.","err_cloudflare_turnstile":"You did not pass Cloudflare Turnstile challenge.","err_reset_password_key_expired":"Your password reset link appears to be invalid. Please request a new link.","err_tc":"You did not accept the Terms and Conditions. Please accept it and try again.","err_unknown":"Something went wrong!","err_phone_number_missing":"Phone number is missing","err_phone_number_invalid":"Invalid phone number provided","success_login":"You have logged in successfully","success_register":"Registration completed successfully, Check your inbox for password if you did not provided while registering.","success_lostpassword":"Check your email for the confirmation link.","success_resetpassword":"Your password has been reset.","rmark_sign":"*","eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[],"widgetType":"eael-login-register"}],"isInner":false}],"isInner":false}]',
+							'_elementor_edit_mode'  => 'builder',
+							'_eael_widget_elements' => maybe_unserialize( 'a:1:{s:14:"login-register";s:14:"login-register";}' ),
 						],
 					]
 				);
@@ -224,6 +234,12 @@ class Playground {
 				add_action(
 					'elementor/init',
 					static function () {
+						$bootstrap = Bootstrap::instance();
+
+						if ( $bootstrap ) {
+							$bootstrap->empty_dir( EAEL_ASSET_PATH );
+						}
+
 						Plugin::$instance->files_manager->clear_cache();
 					}
 				);
@@ -309,7 +325,7 @@ class Playground {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function setup_theme( string $new_name, WP_Theme $new_theme, WP_Theme $old_theme ): void {
-		if ( $this->data['themes'][ $new_name ] ?? false ) {
+		if ( ! $this->renew && $this->data['themes'][ $new_name ] ?? false ) {
 			return;
 		}
 
@@ -549,6 +565,16 @@ class Playground {
 			return true;
 		}
 
+		return $this->is_playground_host();
+	}
+
+	/**
+	 * Detect if the current site is a WP Playground host.
+	 *
+	 * @return bool
+	 */
+	private function is_playground_host(): bool {
+
 		$host = wp_parse_url( home_url(), PHP_URL_HOST );
 
 		return strpos( $host, 'playground.wordpress.net' ) !== false;
@@ -632,7 +658,11 @@ class Playground {
 		$post_id = $post->ID ?? 0;
 
 		if ( $post_id ) {
-			return $post_id;
+			if ( $this->renew ) {
+				wp_delete_post( $post_id, true );
+			} else {
+				return $post_id;
+			}
 		}
 
 		$postarr = [
@@ -647,7 +677,7 @@ class Playground {
 			$postarr['meta_input'] = $args['meta_input'];
 		}
 
-		return wp_insert_post( $postarr );
+		return wp_insert_post( wp_slash( $postarr ) );
 	}
 
 	/**
