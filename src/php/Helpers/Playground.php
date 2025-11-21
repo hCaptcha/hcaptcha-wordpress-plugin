@@ -169,89 +169,137 @@ class Playground {
 			return;
 		}
 
-		switch ( $plugin ) {
-			case 'contact-form-7/wp-contact-form-7.php':
-				// Find the preinstalled Contact Form 7 form.
-				$forms = get_posts(
-					[
-						'post_type'      => 'wpcf7_contact_form',
-						'post_status'    => 'publish',
-						'posts_per_page' => 1,
-						'orderby'        => 'date',
-						'order'          => 'ASC',
-					]
-				);
+		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+		$map = [
+			'contact-form-7/wp-contact-form-7.php'                              => [ $this, 'setup_contact_form_7' ],
+			'elementor-pro/elementor-pro.php'                                   => [ $this, 'setup_elementor_pro' ],
+			'essential-addons-elementor/essential_adons_elementor.php'          => [ $this, 'setup_essential_addons' ],
+			'essential-addons-for-elementor-lite/essential_adons_elementor.php' => [ $this, 'setup_essential_addons' ],
+			'jetpack/jetpack.php'                                               => [ $this, 'setup_jetpack' ],
+			'woocommerce/woocommerce.php'                                       => [ $this, 'setup_woocommerce' ],
+			'wpforms/wpforms.php'                                               => [ $this, 'setup_wpforms' ],
+			'wpforms-lite/wpforms.php'                                          => [ $this, 'setup_wpforms' ],
+		];
+		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
+		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 
-				$form = reset( $forms );
+		foreach ( $map as $key => $method ) {
+			if ( $plugin === $key ) {
+				$method();
+			}
+		}
 
-				// Create a new page with the Contact Form 7 shortcode.
-				$this->insert_post(
-					[
-						'title'   => 'Contact Form 7 Test Page',
-						'name'    => 'contact-form-7-test',
-						'content' => '[contact-form-7 id="' . (int) $form->ID . '"]',
-					]
-				);
+		$this->data['plugins'][ $plugin ] = true;
 
-				break;
-			case 'elementor-pro/elementor-pro.php':
-				// Create a new page with the Elementor form.
-				$this->insert_post(
-					[
-						'title'      => 'Elementor Pro Test Page',
-						'name'       => 'elementor-pro-test',
-						'content'    => '',
-						'meta_input' => [
-							'_elementor_data'      => '[{"id":"a21d3c3","elType":"section","settings":[],"elements":[{"id":"5097cb3","elType":"column","settings":{"_column_size":100},"elements":[{"id":"f9221e1","elType":"widget","settings":{"title":"Elementor Pro Form"},"elements":[],"widgetType":"heading"}],"isInner":false}],"isInner":false},{"id":"1ed4d3b","elType":"section","settings":[],"elements":[{"id":"85c33a9","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"687b087","elType":"widget","settings":{"form_name":"New Form","form_fields":[{"custom_id":"name","field_label":"Name","placeholder":"Name","dynamic":{"active":true},"_id":"986c004"},{"custom_id":"email","field_type":"email","required":"true","field_label":"Email","placeholder":"Email","_id":"3453398"},{"custom_id":"message","field_type":"textarea","field_label":"Message","placeholder":"Message","_id":"134e6d7"},{"_id":"c9d1c91","field_type":"hcaptcha","custom_id":"field_c9d1c91"}],"step_next_label":"Next","step_previous_label":"Previous","button_text":"Send","email_to":"info@kagg.eu","email_subject":"New message from &quot;test&quot;","email_content":"[all-fields]","email_from":"email@https:\/\/test.test","email_from_name":"test","email_to_2":"info@kagg.eu","email_subject_2":"New message from &quot;test&quot;","email_content_2":"[all-fields]","email_from_2":"email@https:\/\/test.test","email_from_name_2":"test","email_reply_to_2":"info@kagg.eu","mailchimp_fields_map":[],"drip_fields_map":[],"activecampaign_fields_map":[],"getresponse_fields_map":[],"convertkit_fields_map":[],"mailerlite_fields_map":[],"success_message":"The form was sent successfully.","error_message":"An error occurred.","required_field_message":"This field is required.","invalid_message":"There&#039;s something wrong. The form is invalid.","form_id":"test_form","server_message":"Your submission failed because of a server error."},"elements":[],"widgetType":"form"}],"isInner":false}],"isInner":false}]',
-							'_elementor_edit_mode' => 'builder',
-						],
-					]
-				);
+		set_transient( self::PLAYGROUND_DATA, $this->data );
+	}
 
-				add_action(
-					'elementor/init',
-					static function () {
-						Plugin::$instance->files_manager->clear_cache();
-					}
-				);
+	/**
+	 * Setup Contact Form 7.
+	 *
+	 * @return void
+	 */
+	private function setup_contact_form_7(): void {
+		// Find the preinstalled Contact Form 7 form.
+		$forms = get_posts(
+			[
+				'post_type'      => 'wpcf7_contact_form',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'orderby'        => 'date',
+				'order'          => 'ASC',
+			]
+		);
 
-				break;
-			case 'essential-addons-for-elementor-lite/essential_adons_elementor.php':
-				// Create a new page with the Essential Addons Login form.
-				$this->insert_post(
-					[
-						'title'      => 'Essential Addons Test Page',
-						'name'       => 'essential-addons-test',
-						'content'    => '',
-						'meta_input' => [
-							'_elementor_data'       => '[{"id":"f15315f","elType":"section","settings":{"eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[{"id":"f174b30","elType":"column","settings":{"_column_size":100,"_inline_size":null,"eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[{"id":"9303ea8","elType":"widget","settings":{"log_out_link_text":"You are already logged in as [username]. ([logout_link])","lost_password_text":"Forgot Password?","remember_text":"Remember Me","registration_link_text":" \nRegister Now","login_link_text":" \nSign In","login_link_text_lostpassword":" \nSign In","login_user_label":"Username or Email Address","login_password_label":"Password","login_user_placeholder":"Username or Email Address","login_password_placeholder":"Password","login_button_text":"Log In","register_fields":[{"field_type":"user_name","field_label":"Username","placeholder":"Username","_id":"1ed16d5"},{"field_type":"email","field_label":"Email","placeholder":"Email","required":"yes","_id":"57b9cfb"},{"field_type":"password","field_label":"Password","placeholder":"Password","required":"yes","_id":"113ef0b"}],"reg_button_text":"Register","reg_email_subject":"Thank you for registering on \"test\"!","reg_admin_email_subject":"[\"test\"] New User Registration","lostpassword_user_label":"Username or Email Address","lostpassword_user_placeholder":"Username or Email Address","lostpassword_button_text":"Reset Password","lostpassword_email_subject":"Password Reset Confirmation","lostpassword_email_message_reset_link_text":"Click here to reset your password","resetpassword_password_label":"New Password","resetpassword_confirm_password_label":"Confirm New Password","resetpassword_password_placeholder":"New Password","resetpassword_confirm_password_placeholder":"Confirm New Password","resetpassword_button_text":"Save Password","acceptance_label":"I Accept\n the Terms and Conditions.","err_email":"You have used an invalid email","err_email_missing":"Email is missing or Invalid","err_email_used":"The provided email is already registered with other account. Please login or reset password or use another email.","err_username":"You have used an invalid username","err_username_used":"Invalid username provided or the username already registered.","err_pass":"Your password is invalid.","err_conf_pass":"Your confirmed password did not match","err_loggedin":"You are already logged in","err_recaptcha":"You did not pass reCAPTCHA challenge.","err_cloudflare_turnstile":"You did not pass Cloudflare Turnstile challenge.","err_reset_password_key_expired":"Your password reset link appears to be invalid. Please request a new link.","err_tc":"You did not accept the Terms and Conditions. Please accept it and try again.","err_unknown":"Something went wrong!","err_phone_number_missing":"Phone number is missing","err_phone_number_invalid":"Invalid phone number provided","success_login":"You have logged in successfully","success_register":"Registration completed successfully, Check your inbox for password if you did not provided while registering.","success_lostpassword":"Check your email for the confirmation link.","success_resetpassword":"Your password has been reset.","rmark_sign":"*","eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[],"widgetType":"eael-login-register"}],"isInner":false}],"isInner":false}]',
-							'_elementor_edit_mode'  => 'builder',
-							'_eael_widget_elements' => maybe_unserialize( 'a:1:{s:14:"login-register";s:14:"login-register";}' ),
-						],
-					]
-				);
+		$form = reset( $forms );
 
-				add_action(
-					'elementor/init',
-					static function () {
-						$bootstrap = Bootstrap::instance();
+		// Create a new page with the Contact Form 7 shortcode.
+		$this->insert_post(
+			[
+				'title'   => 'Contact Form 7 Test Page',
+				'name'    => 'contact-form-7-test',
+				'content' => '[contact-form-7 id="' . (int) $form->ID . '"]',
+			]
+		);
+	}
 
-						if ( $bootstrap ) {
-							$bootstrap->empty_dir( EAEL_ASSET_PATH );
-						}
 
-						Plugin::$instance->files_manager->clear_cache();
-					}
-				);
+	/**
+	 * Setup Elementor Pro.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFieldInspection
+	 */
+	private function setup_elementor_pro(): void {
+		// Create a new page with the Elementor form.
+		$this->insert_post(
+			[
+				'title'      => 'Elementor Pro Test Page',
+				'name'       => 'elementor-pro-test',
+				'content'    => '',
+				'meta_input' => [
+					'_elementor_data'      => '[{"id":"a21d3c3","elType":"section","settings":[],"elements":[{"id":"5097cb3","elType":"column","settings":{"_column_size":100},"elements":[{"id":"f9221e1","elType":"widget","settings":{"title":"Elementor Pro Form"},"elements":[],"widgetType":"heading"}],"isInner":false}],"isInner":false},{"id":"1ed4d3b","elType":"section","settings":[],"elements":[{"id":"85c33a9","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"687b087","elType":"widget","settings":{"form_name":"New Form","form_fields":[{"custom_id":"name","field_label":"Name","placeholder":"Name","dynamic":{"active":true},"_id":"986c004"},{"custom_id":"email","field_type":"email","required":"true","field_label":"Email","placeholder":"Email","_id":"3453398"},{"custom_id":"message","field_type":"textarea","field_label":"Message","placeholder":"Message","_id":"134e6d7"},{"_id":"c9d1c91","field_type":"hcaptcha","custom_id":"field_c9d1c91"}],"step_next_label":"Next","step_previous_label":"Previous","button_text":"Send","email_to":"info@kagg.eu","email_subject":"New message from &quot;test&quot;","email_content":"[all-fields]","email_from":"email@https:\/\/test.test","email_from_name":"test","email_to_2":"info@kagg.eu","email_subject_2":"New message from &quot;test&quot;","email_content_2":"[all-fields]","email_from_2":"email@https:\/\/test.test","email_from_name_2":"test","email_reply_to_2":"info@kagg.eu","mailchimp_fields_map":[],"drip_fields_map":[],"activecampaign_fields_map":[],"getresponse_fields_map":[],"convertkit_fields_map":[],"mailerlite_fields_map":[],"success_message":"The form was sent successfully.","error_message":"An error occurred.","required_field_message":"This field is required.","invalid_message":"There&#039;s something wrong. The form is invalid.","form_id":"test_form","server_message":"Your submission failed because of a server error."},"elements":[],"widgetType":"form"}],"isInner":false}],"isInner":false}]',
+					'_elementor_edit_mode' => 'builder',
+				],
+			]
+		);
 
-				break;
-			case 'jetpack/jetpack.php':
-				// Create a new page with a Jetpack form.
-				$this->insert_post(
-					[
-						'title'   => 'Jetpack Test Page',
-						'name'    => 'jetpack-test',
-						'content' => '
+		add_action(
+			'elementor/init',
+			static function () {
+				Plugin::$instance->files_manager->clear_cache();
+			}
+		);
+	}
+
+	/**
+	 * Setup Essential Addons.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFieldInspection
+	 */
+	private function setup_essential_addons(): void {
+		// Create a new page with the Essential Addons Login form.
+		$this->insert_post(
+			[
+				'title'      => 'Essential Addons Test Page',
+				'name'       => 'essential-addons-test',
+				'content'    => '',
+				'meta_input' => [
+					'_elementor_data'       => '[{"id":"f15315f","elType":"section","settings":{"eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[{"id":"f174b30","elType":"column","settings":{"_column_size":100,"_inline_size":null,"eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[{"id":"9303ea8","elType":"widget","settings":{"log_out_link_text":"You are already logged in as [username]. ([logout_link])","lost_password_text":"Forgot Password?","remember_text":"Remember Me","registration_link_text":" \nRegister Now","login_link_text":" \nSign In","login_link_text_lostpassword":" \nSign In","login_user_label":"Username or Email Address","login_password_label":"Password","login_user_placeholder":"Username or Email Address","login_password_placeholder":"Password","login_button_text":"Log In","register_fields":[{"field_type":"user_name","field_label":"Username","placeholder":"Username","_id":"1ed16d5"},{"field_type":"email","field_label":"Email","placeholder":"Email","required":"yes","_id":"57b9cfb"},{"field_type":"password","field_label":"Password","placeholder":"Password","required":"yes","_id":"113ef0b"}],"reg_button_text":"Register","reg_email_subject":"Thank you for registering on \"test\"!","reg_admin_email_subject":"[\"test\"] New User Registration","lostpassword_user_label":"Username or Email Address","lostpassword_user_placeholder":"Username or Email Address","lostpassword_button_text":"Reset Password","lostpassword_email_subject":"Password Reset Confirmation","lostpassword_email_message_reset_link_text":"Click here to reset your password","resetpassword_password_label":"New Password","resetpassword_confirm_password_label":"Confirm New Password","resetpassword_password_placeholder":"New Password","resetpassword_confirm_password_placeholder":"Confirm New Password","resetpassword_button_text":"Save Password","acceptance_label":"I Accept\n the Terms and Conditions.","err_email":"You have used an invalid email","err_email_missing":"Email is missing or Invalid","err_email_used":"The provided email is already registered with other account. Please login or reset password or use another email.","err_username":"You have used an invalid username","err_username_used":"Invalid username provided or the username already registered.","err_pass":"Your password is invalid.","err_conf_pass":"Your confirmed password did not match","err_loggedin":"You are already logged in","err_recaptcha":"You did not pass reCAPTCHA challenge.","err_cloudflare_turnstile":"You did not pass Cloudflare Turnstile challenge.","err_reset_password_key_expired":"Your password reset link appears to be invalid. Please request a new link.","err_tc":"You did not accept the Terms and Conditions. Please accept it and try again.","err_unknown":"Something went wrong!","err_phone_number_missing":"Phone number is missing","err_phone_number_invalid":"Invalid phone number provided","success_login":"You have logged in successfully","success_register":"Registration completed successfully, Check your inbox for password if you did not provided while registering.","success_lostpassword":"Check your email for the confirmation link.","success_resetpassword":"Your password has been reset.","rmark_sign":"*","eael_image_masking_custom_clip_path":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);","eael_image_masking_custom_clip_path_hover":"clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);"},"elements":[],"widgetType":"eael-login-register"}],"isInner":false}],"isInner":false}]',
+					'_elementor_edit_mode'  => 'builder',
+					'_eael_widget_elements' => maybe_unserialize( 'a:1:{s:14:"login-register";s:14:"login-register";}' ),
+				],
+			]
+		);
+
+		add_action(
+			'elementor/init',
+			static function () {
+				$bootstrap = Bootstrap::instance();
+
+				if ( $bootstrap ) {
+					$bootstrap->empty_dir( EAEL_ASSET_PATH );
+				}
+
+				Plugin::$instance->files_manager->clear_cache();
+			}
+		);
+	}
+
+	/**
+	 * Setup Jetpack.
+	 *
+	 * @return void
+	 */
+	private function setup_jetpack(): void {
+		// Create a new page with a Jetpack form.
+		$this->insert_post(
+			[
+				'title'   => 'Jetpack Test Page',
+				'name'    => 'jetpack-test',
+				'content' => '
 <!-- wp:jetpack/contact-form {"className":"is-style-default"} -->
 <div class="wp-block-jetpack-contact-form is-style-default">
 <!-- wp:jetpack/field-name {"required":true} /-->
@@ -261,57 +309,57 @@ class Playground {
 </div>
 <!-- /wp:jetpack/contact-form -->
 ',
-					]
-				);
+			]
+		);
+	}
 
-				break;
-			case 'woocommerce/woocommerce.php':
-				// Create a new page with the WooCommerce Order Tracking shortcode.
-				$this->insert_post(
-					[
-						'title'   => 'WooCommerce Order Tracking Test Page',
-						'name'    => 'wc-order-tracking-test',
-						'content' => '[woocommerce_order_tracking]',
-					]
-				);
+	/**
+	 * Setup WooCommerce.
+	 *
+	 * @return void
+	 */
+	private function setup_woocommerce(): void {
+		// Create a new page with the WooCommerce Order Tracking shortcode.
+		$this->insert_post(
+			[
+				'title'   => 'WooCommerce Order Tracking Test Page',
+				'name'    => 'wc-order-tracking-test',
+				'content' => '[woocommerce_order_tracking]',
+			]
+		);
+	}
 
-				break;
-			case 'wpforms/wpforms.php':
-			case 'wpforms-lite/wpforms.php':
-				// Create a new WPForms form.
-				$wpforms_form_id = $this->insert_post(
-					[
-						'title'     => 'WPForms Test Form',
-						'name'      => 'wpforms-test-form',
-						'post_type' => 'wpforms',
-					]
-				);
+	/**
+	 * Setup WPForms.
+	 *
+	 * @return void
+	 */
+	private function setup_wpforms(): void {
+		// Create a new WPForms form.
+		$wpforms_form_id = $this->insert_post(
+			[
+				'title'     => 'WPForms Test Form',
+				'name'      => 'wpforms-test-form',
+				'post_type' => 'wpforms',
+			]
+		);
 
-				// We need to insert form ID into the content.
-				wp_update_post(
-					[
-						'ID'           => $wpforms_form_id,
-						'post_content' => '{"fields": {"1": {"id": "1", "type": "name", "label": "Name", "format": "first-last", "description": "", "required": "1", "size": "medium", "simple_placeholder": "", "simple_default": "", "first_placeholder": "", "first_default": "", "middle_placeholder": "", "middle_default": "", "last_placeholder": "", "last_default": "", "css": ""}, "2": {"id": "2", "type": "email", "label": "Email", "description": "", "required": "1", "size": "medium", "placeholder": "", "confirmation_placeholder": "", "default_value": false, "filter_type": "", "allowlist": "", "denylist": "", "css": ""}, "3": {"id": "3", "type": "textarea", "label": "Comment or Message", "description": "", "size": "medium", "placeholder": "", "limit_count": "1", "limit_mode": "characters", "default_value": "", "css": ""}}, "id": ' . $wpforms_form_id . ', "field_id": 4, "settings": {"form_title": "Simple Contact Form", "form_desc": "", "submit_text": "Submit", "submit_text_processing": "Sending...", "form_class": "", "submit_class": "", "ajax_submit": "1", "notification_enable": "1", "notifications": {"1": {"enable": "1", "notification_name": "Default Notification", "email": "{admin_email}", "subject": "New Entry: Simple Contact Form (ID #5717)", "sender_name": "test", "sender_address": "{admin_email}", "replyto": "", "message": "{all_fields}"}}, "confirmations": {"1": {"name": "Default Confirmation", "type": "message", "message": "<p>Thanks for contacting us! We will be in touch with you shortly.<\\/p>", "message_scroll": "1", "page": "4992", "redirect": "", "message_entry_preview_style": "basic"}}, "antispam_v3": "1", "store_spam_entries": "1", "anti_spam": {"time_limit": {"enable": "1", "duration": "2"}, "filtering_store_spam": "1", "country_filter": {"action": "allow", "country_codes": [], "message": "Sorry, this form does not accept submissions from your country."}, "keyword_filter": {"message": "Sorry, your message cannot be submitted because it contains prohibited words."}}, "form_tags": []}, "search_terms": "", "providers": {"constant-contact-v3": []}}',
-					]
-				);
+		// We need to insert form ID into the content.
+		wp_update_post(
+			[
+				'ID'           => $wpforms_form_id,
+				'post_content' => '{"fields": {"1": {"id": "1", "type": "name", "label": "Name", "format": "first-last", "description": "", "required": "1", "size": "medium", "simple_placeholder": "", "simple_default": "", "first_placeholder": "", "first_default": "", "middle_placeholder": "", "middle_default": "", "last_placeholder": "", "last_default": "", "css": ""}, "2": {"id": "2", "type": "email", "label": "Email", "description": "", "required": "1", "size": "medium", "placeholder": "", "confirmation_placeholder": "", "default_value": false, "filter_type": "", "allowlist": "", "denylist": "", "css": ""}, "3": {"id": "3", "type": "textarea", "label": "Comment or Message", "description": "", "size": "medium", "placeholder": "", "limit_count": "1", "limit_mode": "characters", "default_value": "", "css": ""}}, "id": ' . $wpforms_form_id . ', "field_id": 4, "settings": {"form_title": "Simple Contact Form", "form_desc": "", "submit_text": "Submit", "submit_text_processing": "Sending...", "form_class": "", "submit_class": "", "ajax_submit": "1", "notification_enable": "1", "notifications": {"1": {"enable": "1", "notification_name": "Default Notification", "email": "{admin_email}", "subject": "New Entry: Simple Contact Form (ID #5717)", "sender_name": "test", "sender_address": "{admin_email}", "replyto": "", "message": "{all_fields}"}}, "confirmations": {"1": {"name": "Default Confirmation", "type": "message", "message": "<p>Thanks for contacting us! We will be in touch with you shortly.<\\/p>", "message_scroll": "1", "page": "4992", "redirect": "", "message_entry_preview_style": "basic"}}, "antispam_v3": "1", "store_spam_entries": "1", "anti_spam": {"time_limit": {"enable": "1", "duration": "2"}, "filtering_store_spam": "1", "country_filter": {"action": "allow", "country_codes": [], "message": "Sorry, this form does not accept submissions from your country."}, "keyword_filter": {"message": "Sorry, your message cannot be submitted because it contains prohibited words."}}, "form_tags": []}, "search_terms": "", "providers": {"constant-contact-v3": []}}',
+			]
+		);
 
-				// Create a new page with the WPForms form.
-				$this->insert_post(
-					[
-						'title'   => 'WPForms Test Page',
-						'name'    => 'wpforms-test',
-						'content' => '[wpforms id="' . $wpforms_form_id . '"]',
-					]
-				);
-
-				break;
-			default:
-				return;
-		}
-
-		$this->data['plugins'][ $plugin ] = true;
-
-		set_transient( self::PLAYGROUND_DATA, $this->data );
+		// Create a new page with the WPForms form.
+		$this->insert_post(
+			[
+				'title'   => 'WPForms Test Page',
+				'name'    => 'wpforms-test',
+				'content' => '[wpforms id="' . $wpforms_form_id . '"]',
+			]
+		);
 	}
 
 	/**
