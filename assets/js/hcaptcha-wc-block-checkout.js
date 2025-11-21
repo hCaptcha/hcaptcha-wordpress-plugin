@@ -76,11 +76,11 @@ const wcBlockCheckout = window.hCaptchaWCBlockCheckout || ( function( window ) {
 			 */
 			const token = wcCheckoutBlock.querySelector( `[name="${ tokenName }"]` );
 
-			formData[ widgetName ] = widgetId?.value;
-			formData[ responseInputName ] = hCaptchaResponse?.value;
-			formData[ hcapHp.id ] = hcapHp?.value;
-			formData[ sigInputName ] = hcapSig?.value;
-			formData[ tokenName ] = token?.value;
+			formData[ widgetName ] = widgetId?.value ?? '';
+			formData[ responseInputName ] = hCaptchaResponse?.value ?? '';
+			formData[ hcapHp?.id ?? '' ] = hcapHp?.value ?? '';
+			formData[ sigInputName ] = hcapSig?.value ?? '';
+			formData[ tokenName ] = token?.value ?? '';
 
 			config.body = JSON.stringify( formData );
 
