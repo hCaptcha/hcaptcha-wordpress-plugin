@@ -112,9 +112,50 @@ class Playground {
 		add_action( 'switch_theme', [ $this, 'setup_theme' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
-		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 100 );
+		add_action( 'login_head', [ $this, 'head_styles' ] );
+		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 10000 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::UPDATE_MENU_ACTION, [ $this, 'update_menu' ] );
+
+		// Always show the admin bar.
+		add_filter( 'show_admin_bar', '__return_true' );
+
+		// Include styles/script of the bar in the <head> of the login page.
+		add_action(
+			'login_head',
+			static function () {
+				wp_enqueue_style( 'admin-bar' );
+				wp_enqueue_script( 'admin-bar' );
+			}
+		);
+
+		// Render the admin bar on the login page.
+		add_action(
+			'login_footer',
+			static function () {
+				if ( ! function_exists( 'wp_admin_bar_render' ) ) {
+					require_once ABSPATH . WPINC . '/admin-bar.php';
+				}
+
+				global $wp_admin_bar;
+
+				if ( ! is_object( $wp_admin_bar ) ) {
+					require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+
+					// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+					$wp_admin_bar = new WP_Admin_Bar();
+
+					$wp_admin_bar->initialize();
+					$wp_admin_bar->add_menus();
+				}
+
+				// your custom nodes if needed.
+				do_action( 'admin_bar_menu', $wp_admin_bar );
+
+				// Output markup.
+				$wp_admin_bar->render();
+			}
+		);
 
 		// Prevent mail sending errors.
 		add_filter( 'wpcf7_skip_mail', '__return_true' );
@@ -518,6 +559,10 @@ class Playground {
 	 * @return void
 	 */
 	public function admin_bar_menu( WP_Admin_Bar $bar ): void {
+		if ( did_action( 'login_init' ) ) {
+			$bar->remove_node( 'search' );
+		}
+
 		$nodes = $this->get_admin_bar_menu_nodes();
 
 		foreach ( $nodes as $node ) {
@@ -770,7 +815,7 @@ class Playground {
 		$settings = get_option( 'hcaptcha_settings', [] );
 
 		// Do not overwrite options if they already exist.
-		if ( $settings ) {
+		if ( isset( $settings['wp_status'] ) ) {
 			return;
 		}
 
