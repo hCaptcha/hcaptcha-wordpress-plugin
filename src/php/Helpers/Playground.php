@@ -174,6 +174,7 @@ class Playground {
 			'essential-addons-elementor/essential_adons_elementor.php'          => [ $this, 'setup_essential_addons' ],
 			'essential-addons-for-elementor-lite/essential_adons_elementor.php' => [ $this, 'setup_essential_addons' ],
 			'jetpack/jetpack.php'                                               => [ $this, 'setup_jetpack' ],
+			'mailchimp-for-wp/mailchimp-for-wp.php'                             => [ $this, 'setup_mailchimp' ],
 			'woocommerce/woocommerce.php'                                       => [ $this, 'setup_woocommerce' ],
 			'wpforms/wpforms.php'                                               => [ $this, 'setup_wpforms' ],
 			'wpforms-lite/wpforms.php'                                          => [ $this, 'setup_wpforms' ],
@@ -284,6 +285,53 @@ class Playground {
 </div>
 <!-- /wp:jetpack/contact-form -->
 ',
+			]
+		);
+	}
+
+	/**
+	 * Setup Mailchimp.
+	 *
+	 * @return void
+	 */
+	private function setup_mailchimp(): void {
+		// Create a new page with a Mailchimp form.
+		$form_id = $this->insert_post(
+			[
+				'title'      => 'Mailchimp Test Form',
+				'name'       => 'mailchimp-test-form',
+				'content'    => '
+<p>
+	<label>Email address: 
+		<input type="email" name="EMAIL" placeholder="Your email address" required />
+	</label>
+</p>
+<p>
+	<input type="submit" value="Sign up" />
+</p>
+',
+				'post_type'  => 'mc4wp-form',
+				'meta_input' => [
+					'_mc4wp_settings'             => maybe_unserialize( 'a:9:{s:5:"lists";a:1:{i:0;s:10:"bd06792328";}s:15:"required_fields";s:5:"EMAIL";s:12:"double_optin";s:1:"1";s:15:"update_existing";s:1:"0";s:17:"replace_interests";s:1:"1";s:15:"subscriber_tags";s:0:"";s:18:"hide_after_success";s:1:"0";s:8:"redirect";s:0:"";s:3:"css";s:1:"0";}' ),
+					'text_subscribed'             => 'Thank you, your sign-up request was successful! Please check your email inbox to confirm.',
+					'text_invalid_email'          => 'Please provide a valid email address.',
+					'text_required_field_missing' => 'Please fill in the required fields.',
+					'text_already_subscribed'     => 'Given email address is already subscribed, thank you!',
+					'text_error'                  => 'Oops. Something went wrong. Please try again later.',
+					'text_unsubscribed'           => 'You were successfully unsubscribed.',
+					'text_not_subscribed'         => 'Given email address is not subscribed.',
+					'text_no_lists_selected'      => 'Please select at least one list.',
+					'text_updated'                => 'Thank you, your records have been updated!',
+				],
+			]
+		);
+
+		// Create a new page with a Mailchimp form.
+		$this->insert_post(
+			[
+				'title'   => 'Mailchimp Test Page',
+				'name'    => 'mailchimp-test',
+				'content' => '[mc4wp_form id="' . $form_id . '"]',
 			]
 		);
 	}
@@ -737,7 +785,10 @@ class Playground {
 		$settings['cf7_status']                   = [ 'form', 'embed', 'live', 'replace_rsc' ];
 		$settings['divi_status']                  = [ 'comment', 'contact', 'email_optin', 'login' ];
 		$settings['elementor_pro_status']         = [ 'form', 'login' ];
+		$settings['essential_addons_status']      = [ 'login', 'register' ];
 		$settings['extra_status']                 = [ 'comment', 'contact', 'email_optin', 'login' ];
+		$settings['jetpack_status']               = [ 'contact' ];
+		$settings['mailchimp_status']             = [ 'form' ];
 		$settings['wpforms_status']               = [ 'form', 'embed' ];
 		$settings['woocommerce_status']           = [
 			'checkout',
@@ -912,6 +963,14 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Jetpack', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'jetpack_status', home_url( 'jetpack-test' ) ),
+			],
+
+			// Mailchimp test page.
+			[
+				'id'     => 'hcaptcha-menu-mailchimp',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Mailchimp', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'mailchimp_status', home_url( 'mailchimp-test' ) ),
 			],
 
 			// WooCommerce group.
