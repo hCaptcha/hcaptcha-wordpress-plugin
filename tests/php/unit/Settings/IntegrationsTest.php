@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\ACFE\Form;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
@@ -82,6 +83,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'plugins', $plugins );
 		$this->set_protected_property( $subject, 'themes', $themes );
 
+		// OnboardingWizard should be instantiated with the current tab ($this).
+		$wizard = Mockery::mock( 'overload:' . OnboardingWizard::class );
+		$wizard->shouldReceive( '__construct' )->once()->with( $subject );
+
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
@@ -93,8 +98,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_get_themes' )->andReturn( $themes );
 		WP_Mock::userFunction( 'is_admin' )->andReturn( true );
 
-		$method = 'init';
-		$subject->$method();
+		$subject->init();
 
 		self::assertSame( $plugins, $this->get_protected_property( $subject, 'plugins' ) );
 		self::assertSame( $themes, $this->get_protected_property( $subject, 'themes' ) );
@@ -263,18 +267,40 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test init_form_fields().
 	 *
+	 * @param bool $is_multisite Whether it is multisite installation.
+	 *
+	 * @dataProvider dp_test_init_form_fields
+	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_form_fields(): void {
+	public function test_init_form_fields( bool $is_multisite ): void {
 		$expected = $this->get_test_integrations_form_fields();
+
+		if ( $is_multisite ) {
+			$expected['wp_status']['options']['signup']             = 'Signup Form';
+			$expected['theme_my_login_status']['options']['signup'] = 'Signup Form';
+			unset( $expected['theme_my_login_status']['options']['register'] );
+		}
 
 		$mock = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
-		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
+		WP_Mock::userFunction( 'is_multisite' )->once()->andReturn( $is_multisite );
 
 		$mock->init_form_fields();
 
 		self::assertSame( $expected, $this->get_protected_property( $mock, 'form_fields' ) );
+	}
+
+	/**
+	 * Data provider for test_init_form_fields().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_form_fields(): array {
+		return [
+			'not multisite' => [ false ],
+			'multisite'     => [ true ],
+		];
 	}
 
 	/**
