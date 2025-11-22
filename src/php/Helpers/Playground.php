@@ -814,11 +814,6 @@ class Playground {
 	private function setup_settings(): void {
 		$settings = get_option( 'hcaptcha_settings', [] );
 
-		// Do not overwrite options if they already exist.
-		if ( isset( $settings['wp_status'] ) ) {
-			return;
-		}
-
 		$settings['wp_status']                    = [
 			'comment',
 			'login',
