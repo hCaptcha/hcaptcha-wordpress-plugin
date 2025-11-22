@@ -219,6 +219,7 @@ class Playground {
 			'essential-addons-for-elementor-lite/essential_adons_elementor.php' => [ $this, 'setup_essential_addons' ],
 			'jetpack/jetpack.php'                                               => [ $this, 'setup_jetpack' ],
 			'mailchimp-for-wp/mailchimp-for-wp.php'                             => [ $this, 'setup_mailchimp' ],
+			'ultimate-elementor/ultimate-elementor.php'                         => [ $this, 'setup_ultimate_addons' ],
 			'woocommerce/woocommerce.php'                                       => [ $this, 'setup_woocommerce' ],
 			'wpforms/wpforms.php'                                               => [ $this, 'setup_wpforms' ],
 			'wpforms-lite/wpforms.php'                                          => [ $this, 'setup_wpforms' ],
@@ -376,6 +377,26 @@ class Playground {
 				'title'   => 'Mailchimp Test Page',
 				'name'    => 'mailchimp-test',
 				'content' => '[mc4wp_form id="' . $form_id . '"]',
+			]
+		);
+	}
+
+	/**
+	 * Setup Ultimate Addons.
+	 *
+	 * @return void
+	 */
+	private function setup_ultimate_addons(): void {
+		// Create a new page with the `Ultimate Addons` Login form.
+		$this->insert_post(
+			[
+				'title'      => 'Ultimate Addons Test Page',
+				'name'       => 'ultimate-addons-test',
+				'content'    => '',
+				'meta_input' => [
+					'_elementor_data'      => '[{"id":"f64215e","elType":"section","settings":[],"elements":[{"id":"53fddb6","elType":"column","settings":{"_column_size":100,"_inline_size":null},"elements":[{"id":"29808ca","elType":"widget","settings":{"user_label":"Username or Email Address","password_label":"Password","user_placeholder":"Username or Email Address","password_placeholder":"Password","separator_line_text":"Or","button_text":"Log In","show_register_text":"Register","show_lost_password_text":"Lost your password?","footer_divider":"|"},"elements":[],"widgetType":"uael-login-form"}],"isInner":false}],"isInner":false}]',
+					'_elementor_edit_mode' => 'builder',
+				],
 			]
 		);
 	}
@@ -832,6 +853,7 @@ class Playground {
 		$settings['extra_status']                 = [ 'comment', 'contact', 'email_optin', 'login' ];
 		$settings['jetpack_status']               = [ 'contact' ];
 		$settings['mailchimp_status']             = [ 'form' ];
+		$settings['ultimate_addons_status']       = [ 'login', 'register' ];
 		$settings['wpforms_status']               = [ 'form', 'embed' ];
 		$settings['woocommerce_status']           = [
 			'checkout',
@@ -1014,6 +1036,14 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Mailchimp', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'mailchimp_status', home_url( 'mailchimp-test' ) ),
+			],
+
+			// Ultimate Addons test page.
+			[
+				'id'     => 'hcaptcha-menu-ultimate-addons',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Ultimate Addons', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'ultimate_addons_status', home_url( 'ultimate-addons-test' ) ),
 			],
 
 			// WooCommerce group.
