@@ -224,6 +224,7 @@ class Playground {
 			'essential-addons-for-elementor-lite/essential_adons_elementor.php' => [ $this, 'setup_essential_addons' ],
 			'jetpack/jetpack.php'                                               => [ $this, 'setup_jetpack' ],
 			'mailchimp-for-wp/mailchimp-for-wp.php'                             => [ $this, 'setup_mailchimp' ],
+			'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php'   => [ $this, 'setup_spectra' ],
 			'ultimate-elementor/ultimate-elementor.php'                         => [ $this, 'setup_ultimate_addons' ],
 			'woocommerce/woocommerce.php'                                       => [ $this, 'setup_woocommerce' ],
 			'wpforms/wpforms.php'                                               => [ $this, 'setup_wpforms' ],
@@ -382,6 +383,79 @@ class Playground {
 				'title'   => 'Mailchimp Test Page',
 				'name'    => 'mailchimp-test',
 				'content' => '[mc4wp_form id="' . $form_id . '"]',
+			]
+		);
+	}
+
+	/**
+	 * Setup Spectra.
+	 *
+	 * @return void
+	 */
+	private function setup_spectra(): void {
+		// Create a new page with a Spectra form.
+		$this->insert_post(
+			[
+				'title'   => 'Spectra Test Page',
+				'name'    => 'spectra-test',
+				'content' => '
+<!-- wp:uagb/forms {"block_id":"f89cebda","labelAlignment":"left","fieldBorderTopWidth":1,"fieldBorderLeftWidth":1,"fieldBorderRightWidth":1,"fieldBorderBottomWidth":1,"fieldBorderTopLeftRadius":3,"fieldBorderTopRightRadius":3,"fieldBorderBottomLeftRadius":3,"fieldBorderBottomRightRadius":3,"fieldBorderStyle":"solid","fieldBorderColor":"#BDBDBD","checkBoxToggleBorderTopWidth":1,"checkBoxToggleBorderLeftWidth":1,"checkBoxToggleBorderRightWidth":1,"checkBoxToggleBorderBottomWidth":1,"checkBoxToggleBorderTopLeftRadius":3,"checkBoxToggleBorderTopRightRadius":3,"checkBoxToggleBorderBottomLeftRadius":3,"checkBoxToggleBorderBottomRightRadius":3,"checkBoxToggleBorderStyle":"solid","checkBoxToggleBorderColor":"#BDBDBD","btnBorderTopLeftRadius":3,"btnBorderTopRightRadius":3,"btnBorderBottomLeftRadius":3,"btnBorderBottomRightRadius":3,"variationSelected":true} -->
+<div class="wp-block-uagb-forms uagb-forms__outer-wrap uagb-block-f89cebda uagb-forms__medium-btn">
+	<form class="uagb-forms-main-form" method="post" autocomplete="on" name="uagb-form-f89cebda">
+
+	<!-- wp:uagb/forms-name {"block_id":"046ed4b7","nameRequired":true,"name":"First Name","placeholder":"John","autocomplete":"given-name"} -->
+	<div class="wp-block-uagb-forms-name uagb-forms-name-wrap uagb-forms-field-set uagb-block-046ed4b7">
+		<div class="uagb-forms-name-label required uagb-forms-input-label" id="046ed4b7">First Name</div>
+		<input type="text" placeholder="John" required class="uagb-forms-name-input uagb-forms-input" name="046ed4b7" autocomplete="given-name"/>
+	</div>
+	<!-- /wp:uagb/forms-name -->
+
+	<!-- wp:uagb/forms-name {"block_id":"75b30804","nameRequired":true,"name":"Last Name","placeholder":"Doe","autocomplete":"family-name"} -->
+	<div class="wp-block-uagb-forms-name uagb-forms-name-wrap uagb-forms-field-set uagb-block-75b30804">
+		<div class="uagb-forms-name-label required uagb-forms-input-label" id="75b30804">Last Name</div>
+		<input type="text" placeholder="Doe" required class="uagb-forms-name-input uagb-forms-input" name="75b30804" autocomplete="family-name"/>
+	</div>
+	<!-- /wp:uagb/forms-name -->
+
+	<!-- wp:uagb/forms-email {"block_id":"9f2177c9"} -->
+	<div class="wp-block-uagb-forms-email uagb-forms-email-wrap uagb-forms-field-set uagb-block-9f2177c9">
+		<div class="uagb-forms-email-label  uagb-forms-input-label" id="9f2177c9">Email</div>
+		<input type="email" class="uagb-forms-email-input uagb-forms-input" placeholder="example@mail.com" name="9f2177c9" autocomplete="email"/>
+	</div>
+	<!-- /wp:uagb/forms-email -->
+
+	<!-- wp:uagb/forms-textarea {"block_id":"147f2552","textareaRequired":true} -->
+	<div class="wp-block-uagb-forms-textarea uagb-forms-textarea-wrap uagb-forms-field-set uagb-block-147f2552">
+		<div class="uagb-forms-textarea-label required uagb-forms-input-label" id="147f2552">Message</div>
+		<textarea required class="uagb-forms-textarea-input uagb-forms-input" rows="4" placeholder="Enter your message" name="147f2552" autocomplete="off"></textarea>
+	</div>
+	<!-- /wp:uagb/forms-textarea -->
+
+	<div class="uagb-forms-form-hidden-data">
+		<input type="hidden" class="uagb_forms_form_label" value="Spectra Form"/>
+		<input type="hidden" class="uagb_forms_form_id" value="uagb-form-f89cebda"/>
+	</div>
+
+	<div class="uagb-form-reacaptcha-error-f89cebda"></div>
+
+	<div class="uagb-forms-main-submit-button-wrap wp-block-button">
+		<button class="uagb-forms-main-submit-button wp-block-button__link">
+			<div class="uagb-forms-main-submit-button-text">Submit</div>
+		</button>
+	</div>
+
+	</form>
+
+	<div class="uagb-forms-success-message-f89cebda uagb-forms-submit-message-hide">
+		<span>The form has been submitted successfully!</span>
+	</div>
+
+	<div class="uagb-forms-failed-message-f89cebda uagb-forms-submit-message-hide">
+		<span>There has been some error while submitting the form. Please verify all form fields again.</span>
+	</div>
+</div>
+<!-- /wp:uagb/forms -->
+',
 			]
 		);
 	}
@@ -859,6 +933,7 @@ class Playground {
 		$settings['jetpack_status']               = [ 'contact' ];
 		$settings['mailchimp_status']             = [ 'form' ];
 		$settings['maintenance_status']           = [ 'login' ];
+		$settings['spectra_status']               = [ 'form' ];
 		$settings['ultimate_addons_status']       = [ 'login', 'register' ];
 		$settings['wpforms_status']               = [ 'form', 'embed' ];
 		$settings['woocommerce_status']           = [
@@ -1066,6 +1141,14 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Maintenance', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'maintenance_status', home_url( '/wp-login.php?action=logout' ) ),
+			],
+
+			// Spectra test page.
+			[
+				'id'     => 'hcaptcha-menu-spectra',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Spectra', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'spectra_status', home_url( 'spectra-test' ) ),
 			],
 
 			// Ultimate Addons test page.
