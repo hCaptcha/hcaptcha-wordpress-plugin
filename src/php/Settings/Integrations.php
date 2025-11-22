@@ -82,6 +82,7 @@ class Integrations extends PluginSettingsBase {
 		'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php'     => 'woocommerce/woocommerce.php',
 		'customer-reviews-woocommerce/ivole.php'                            => 'woocommerce/woocommerce.php',
 		'elementor-pro/elementor-pro.php'                                   => 'elementor/elementor.php',
+		'essential-addons-elementor/essential_adons_elementor.php'          => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
 		'fluentformpro/fluentformpro.php'                                   => 'fluentform/fluentform.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
