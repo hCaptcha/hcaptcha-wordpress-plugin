@@ -53,6 +53,11 @@ class Playground {
 	private const HCAPTCHA_MENU_ID = 'hcaptcha-menu';
 
 	/**
+	 * The hCaptcha settings menu.
+	 */
+	private const HCAPTCHA_MENU_HCAPTCHA_SETTINGS = 'hcaptcha-menu-hcaptcha-settings';
+
+	/**
 	 * WordPress group ID for the admin bar menu.
 	 */
 	private const HCAPTCHA_MENU_WORDPRESS_ID = 'hcaptcha-menu-wordpress';
@@ -853,6 +858,7 @@ class Playground {
 		$settings['extra_status']                 = [ 'comment', 'contact', 'email_optin', 'login' ];
 		$settings['jetpack_status']               = [ 'contact' ];
 		$settings['mailchimp_status']             = [ 'form' ];
+		$settings['maintenance_status']           = [ 'login' ];
 		$settings['ultimate_addons_status']       = [ 'login', 'register' ];
 		$settings['wpforms_status']               = [ 'form', 'embed' ];
 		$settings['woocommerce_status']           = [
@@ -945,10 +951,26 @@ class Playground {
 
 			// hCaptcha settings.
 			[
-				'id'     => 'hcaptcha-menu-hcaptcha-general',
+				'id'     => self::HCAPTCHA_MENU_HCAPTCHA_SETTINGS,
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'hCaptcha Settings', 'hcaptcha-for-forms-and-more' ),
 				'href'   => home_url( '/wp-admin/admin.php?page=hcaptcha' ),
+			],
+
+			// hCaptcha settings general.
+			[
+				'id'     => 'hcaptcha-menu-hcaptcha-general',
+				'parent' => self::HCAPTCHA_MENU_HCAPTCHA_SETTINGS,
+				'title'  => __( 'General', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/wp-admin/admin.php?page=hcaptcha' ),
+			],
+
+			// hCaptcha settings general.
+			[
+				'id'     => 'hcaptcha-menu-hcaptcha-integrations',
+				'parent' => self::HCAPTCHA_MENU_HCAPTCHA_SETTINGS,
+				'title'  => __( 'Integrations', 'hcaptcha-for-forms-and-more' ),
+				'href'   => home_url( '/wp-admin/admin.php?page=hcaptcha-integrations' ),
 			],
 
 			// WordPress group.
@@ -1036,6 +1058,14 @@ class Playground {
 				'parent' => self::HCAPTCHA_MENU_ID,
 				'title'  => __( 'Mailchimp', 'hcaptcha-for-forms-and-more' ),
 				'href'   => $this->get_href( 'mailchimp_status', home_url( 'mailchimp-test' ) ),
+			],
+
+			// Maintenance test page.
+			[
+				'id'     => 'hcaptcha-menu-maintenance',
+				'parent' => self::HCAPTCHA_MENU_ID,
+				'title'  => __( 'Maintenance', 'hcaptcha-for-forms-and-more' ),
+				'href'   => $this->get_href( 'maintenance_status', home_url( '/wp-login.php?action=logout' ) ),
 			],
 
 			// Ultimate Addons test page.
