@@ -180,7 +180,7 @@ class Playground {
 	 * @return void
 	 */
 	public function setup_playground(): void {
-		if ( $this->data ) {
+		if ( $this->data['setup'] ?? false ) {
 			return;
 		}
 
@@ -203,7 +203,7 @@ class Playground {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function setup_plugin( string $plugin, bool $network_wide ): void {
-		if ( ! $this->renew && $this->data['plugins'][ $plugin ] ?? false ) {
+		if ( ! $this->renew && ( $this->data['plugins'][ $plugin ] ?? false ) ) {
 			return;
 		}
 
@@ -437,7 +437,7 @@ class Playground {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function setup_theme( string $new_name, WP_Theme $new_theme, WP_Theme $old_theme ): void {
-		if ( ! $this->renew && $this->data['themes'][ $new_name ] ?? false ) {
+		if ( ! $this->renew && ( $this->data['themes'][ $new_name ] ?? false ) ) {
 			return;
 		}
 
@@ -813,8 +813,6 @@ class Playground {
 	 */
 	private function setup_settings(): void {
 		$settings = get_option( 'hcaptcha_settings', [] );
-
-		error_log( print_r($settings, true) );
 
 		$settings['wp_status']                    = [
 			'comment',
