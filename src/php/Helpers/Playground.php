@@ -10,8 +10,6 @@
 
 namespace HCaptcha\Helpers;
 
-use Elementor\Plugin;
-use Essential_Addons_Elementor\Classes\Bootstrap;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\Integrations;
@@ -162,7 +160,6 @@ class Playground {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function setup_plugin( string $plugin, bool $network_wide ): void {
 		if ( ! $this->renew && $this->data['plugins'][ $plugin ] ?? false ) {
@@ -229,7 +226,6 @@ class Playground {
 	 * Setup Elementor Pro.
 	 *
 	 * @return void
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	private function setup_elementor_pro(): void {
 		// Create a new page with the Elementor form.
@@ -244,20 +240,12 @@ class Playground {
 				],
 			]
 		);
-
-		add_action(
-			'elementor/init',
-			static function () {
-				Plugin::$instance->files_manager->clear_cache();
-			}
-		);
 	}
 
 	/**
 	 * Setup Essential Addons.
 	 *
 	 * @return void
-	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	private function setup_essential_addons(): void {
 		// Create a new page with the Essential Addons Login form.
@@ -272,19 +260,6 @@ class Playground {
 					'_eael_widget_elements' => maybe_unserialize( 'a:1:{s:14:"login-register";s:14:"login-register";}' ),
 				],
 			]
-		);
-
-		add_action(
-			'elementor/init',
-			static function () {
-				$bootstrap = Bootstrap::instance();
-
-				if ( $bootstrap ) {
-					$bootstrap->empty_dir( EAEL_ASSET_PATH );
-				}
-
-				Plugin::$instance->files_manager->clear_cache();
-			}
 		);
 	}
 
