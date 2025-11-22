@@ -73,6 +73,17 @@ class PluginStats {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function send_plugin_stats(): void {
+		/**
+		 * Allow sending plugin statistics.
+		 *
+		 * @param bool $allow Allow sending plugin statistics.
+		 */
+		$allow = (bool) apply_filters( 'hcap_allow_send_plugin_stats', true );
+
+		if ( ! $allow ) {
+			return;
+		}
+
 		$stats = $this->get_plugin_stats();
 
 		$url     = self::EVENT_API;

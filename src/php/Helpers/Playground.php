@@ -117,6 +117,9 @@ class Playground {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::UPDATE_MENU_ACTION, [ $this, 'update_menu' ] );
 
+		// Do not send hCaptcha statistics from Playground.
+		add_filter( 'hcap_allow_send_plugin_stats', '__return_false' );
+
 		// Always show the admin bar.
 		add_filter( 'show_admin_bar', '__return_true' );
 
