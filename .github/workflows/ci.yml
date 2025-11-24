@@ -45,6 +45,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
+          ini-values: register_argc_argv=On
 
       - name: Install dependencies with caching
         uses: hCaptcha/composer-install@e52779489de843a9f022c7b8faa648b608b02c70
