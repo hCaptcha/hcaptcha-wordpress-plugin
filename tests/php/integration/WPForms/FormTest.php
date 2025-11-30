@@ -71,14 +71,18 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject = new Form();
 
 		if ( ! $mode_auto && ! $mode_embed ) {
-			self::assertFalse( has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [
-				$subject,
-				'wpforms_admin_settings_captcha_enqueues_disable',
-			] ) );
-			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', [
-				$subject,
-				'hcap_print_hcaptcha_scripts',
-			] ) );
+			self::assertFalse(
+				has_filter(
+					'wpforms_admin_settings_captcha_enqueues_disable',
+					[ $subject, 'wpforms_admin_settings_captcha_enqueues_disable' ]
+				)
+			);
+			self::assertFalse(
+				has_filter(
+					'hcap_print_hcaptcha_scripts',
+					[ $subject, 'hcap_print_hcaptcha_scripts' ]
+				)
+			);
 			self::assertFalse( has_filter( 'wpforms_settings_fields', [ $subject, 'wpforms_settings_fields' ] ) );
 
 			self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
@@ -92,14 +96,20 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		}
 
 		if ( $mode_embed ) {
-			self::assertSame( 10, has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [
-				$subject,
-				'wpforms_admin_settings_captcha_enqueues_disable',
-			] ) );
-			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [
-				$subject,
-				'hcap_print_hcaptcha_scripts',
-			] ) );
+			self::assertSame(
+				10,
+				has_filter(
+					'wpforms_admin_settings_captcha_enqueues_disable',
+					[ $subject, 'wpforms_admin_settings_captcha_enqueues_disable' ]
+				)
+			);
+			self::assertSame(
+				0,
+				has_filter(
+					'hcap_print_hcaptcha_scripts',
+					[ $subject, 'hcap_print_hcaptcha_scripts' ]
+				)
+			);
 			self::assertSame( 10, has_filter( 'wpforms_settings_fields', [ $subject, 'wpforms_settings_fields' ] ) );
 		}
 
@@ -262,9 +272,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified_with_wpforms_settings(): void {
-		$id        = 5;
-		$fields    = [ 'some field' ];
-		$entry     = [
+		$id                    = 5;
+		$fields                = [ 'some field' ];
+		$entry                 = [
 			'fields' =>
 				[
 					[
@@ -277,7 +287,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'id'     => (string) $id,
 			'nonce'  => 'some nonce',
 		];
-		$form_data = [
+		$form_data             = [
 			'id'     => $id,
 			'fields' => [
 				[
@@ -594,7 +604,7 @@ CSS;
 	}
 
 	/**
-	 * Test wpforms_frontend_output() when mode is embed.
+	 * Test wpforms_frontend_output() when the mode is embed.
 	 *
 	 * @return void
 	 */
@@ -665,7 +675,7 @@ CSS;
 	}
 
 	/**
-	 * Test wpforms_frontend_output() when mode is auto.
+	 * Test wpforms_frontend_output() when the mode is auto.
 	 *
 	 * @return void
 	 */
@@ -826,7 +836,6 @@ CSS;
 	 * @return void
 	 * @dataProvider dp_test_process_hcaptcha
 	 * @throws ReflectionException ReflectionException.
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_process_hcaptcha( bool $mode_auto, bool $mode_embed, bool $has_hcaptcha, bool $expected ): void {
 		$form_data        = [ 'id' => 5 ];
