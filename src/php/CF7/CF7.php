@@ -431,7 +431,7 @@ class CF7 extends Base {
 			$value = $data[ $name ] ?? '';
 
 			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
+				$entry['email'] = $value;
 			}
 
 			$entry['data'][ $name ] = $value;
