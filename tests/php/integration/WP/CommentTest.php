@@ -205,6 +205,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify(): void {
 		$comment_data = [
+			'comment_post_ID'      => 5,
 			'comment_author'       => 'Some author',
 			'comment_author_email' => 'author@some.com',
 			'comment_author_url'   => 'https://some.com/author',
@@ -272,6 +273,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_not_verified(): void {
 		$comment_data = [
+			'comment_post_ID'      => 5,
 			'comment_author'       => 'Some author',
 			'comment_author_email' => 'author@some.com',
 			'comment_author_url'   => 'https://some.com/author',
@@ -298,6 +300,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_signature_valid_returns_early(): void {
 		$comment_data = [
+			'comment_post_ID'      => 5,
 			'comment_author'       => 'Some author',
 			'comment_author_email' => 'author@some.com',
 			'comment_author_url'   => 'https://some.com/author',
@@ -333,6 +336,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_signature_invalid_sets_bad_signature(): void {
 		$comment_data = [
+			'comment_post_ID'      => 5,
 			'comment_author'       => 'Some author',
 			'comment_author_email' => 'author@some.com',
 			'comment_author_url'   => 'https://some.com/author',

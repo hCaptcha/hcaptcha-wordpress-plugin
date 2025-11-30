@@ -157,8 +157,11 @@ abstract class CommentBase {
 	 * @return array
 	 */
 	private function get_entry( array $comment_data ): array {
+		$post_id = $comment_data['comment_post_ID'];
+		$post    = get_post( $post_id );
+
 		return [
-			'form_date_gmt' => gmdate( 'Y-m-d H:i:s' ),
+			'form_date_gmt' => $post->post_modified_gmt ?? null,
 			'data'          => [
 				'name'    => $comment_data['comment_author'],
 				'email'   => $comment_data['comment_author_email'],
