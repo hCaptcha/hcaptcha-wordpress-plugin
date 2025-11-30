@@ -395,6 +395,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$form_fields       = [ $field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -515,12 +516,14 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify_hcaptcha_without_posted_data(): void {
 		$data              = [];
+		$wpcf7_id          = 23;
 		$hcaptcha_site_key = 'some site key';
 		$field             = Mockery::mock( WPCF7_FormTag::class );
 		$field->type       = 'some';
 		$form_fields       = [ $field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -561,11 +564,13 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify_hcaptcha_without_site_key(): void {
 		$data        = [];
+		$wpcf7_id    = 23;
 		$field       = Mockery::mock( WPCF7_FormTag::class );
 		$field->type = 'some';
 		$form_fields = [ $field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -619,6 +624,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$form_fields       = [ $field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );
@@ -687,6 +693,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$form_fields       = [ $field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );
 		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
 
 		$submission = Mockery::mock( WPCF7_Submission::class );

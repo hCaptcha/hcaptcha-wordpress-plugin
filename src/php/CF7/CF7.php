@@ -170,8 +170,8 @@ class CF7 extends Base {
 	/**
 	 * Check rest nonce and remove it for not logged-in users.
 	 *
-	 * @param WP_Error|mixed $result Error from another authentication handler,
-	 *                               null if we should handle it, or another value if not.
+	 * @param WP_Error|mixed $result Error from another authentication handler.
+	 *                               It is null if we should handle it, or another value if not.
 	 *
 	 * @return WP_Error|mixed
 	 */
@@ -226,8 +226,7 @@ class CF7 extends Base {
 		}
 
 		$data           = $submission->get_posted_data();
-		$response       = $data['h-captcha-response'] ?? '';
-		$captcha_result = API::verify_request( $response );
+		$captcha_result = API::verify( $this->get_entry( $data ) );
 
 		if ( null !== $captcha_result ) {
 			return $this->get_invalidated_result( $result, $captcha_result );
@@ -400,5 +399,44 @@ class CF7 extends Base {
 		$updated_cf_hcap_sc = self::SHORTCODE . ' ' . implode( ' ', $atts );
 
 		return str_replace( $cf7_hcap_shortcode, "[$updated_cf_hcap_sc]", $output );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $data Entry data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $data ): array {
+		$entry = [
+			'data' => [],
+		];
+
+		$submission = WPCF7_Submission::get_instance();
+
+		if ( ! $submission ) {
+			return $entry;
+		}
+
+		$contact_form           = $submission->get_contact_form();
+		$form_id                = $contact_form->id();
+		$post                   = get_post( $form_id );
+		$entry['form_date_gmt'] = $post->post_modified_gmt ?? null;
+		$form_tags              = $contact_form->scan_form_tags();
+
+		foreach ( $form_tags as $form_tag ) {
+			$type  = $form_tag->type;
+			$name  = $form_tag->name;
+			$value = $data[ $name ] ?? '';
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $name ] = $value;
+		}
+
+		return $entry;
 	}
 }
