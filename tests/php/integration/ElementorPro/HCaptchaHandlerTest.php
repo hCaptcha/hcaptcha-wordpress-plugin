@@ -367,6 +367,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test register_admin_fields().
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_register_admin_fields(): void {
 		$settings = Mockery::mock( 'alias:Elementor\Settings' );
@@ -606,7 +607,37 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test validation.
 	 */
 	public function test_validation(): void {
-		$fields = [
+		$form_settings = [
+			'form_id' => '23',
+		];
+		$fields        = [
+			'name'          =>
+				[
+					'id'        => 'name',
+					'type'      => 'text',
+					'title'     => 'Name',
+					'value'     => 'John Doe',
+					'raw_value' => 'John Doe',
+					'required'  => false,
+				],
+			'email'         =>
+				[
+					'id'        => 'email',
+					'type'      => 'email',
+					'title'     => 'Email',
+					'value'     => 'foo@bar.com',
+					'raw_value' => 'foo@bar.com',
+					'required'  => false,
+				],
+			'message'       =>
+				[
+					'id'        => 'message',
+					'type'      => 'textarea',
+					'title'     => 'Message',
+					'value'     => 'Some message',
+					'raw_value' => 'Some message',
+					'required'  => false,
+				],
 			'field_014ea7c' =>
 				[
 					'id'        => 'field_014ea7c',
@@ -617,12 +648,20 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 					'required'  => false,
 				],
 		];
-		$field  = current( $fields );
+		$field         = current( $fields );
+		$sent_data     = [
+			'name'    => 'John Doe',
+			'email'   => 'foo@bar.com',
+			'message' => 'Some message',
+		];
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->once()->andReturn( $sent_data );
+		$record->shouldReceive( 'get' )->with( 'fields' )->once()->andReturn( $fields );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
 		$record->shouldReceive( 'remove_field' )->with( $field['id'] )->once();
 
@@ -652,7 +691,37 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test validation with no hCaptcha response.
 	 */
 	public function test_validation_with_no_captcha(): void {
-		$fields = [
+		$form_settings = [
+			'form_id' => '23',
+		];
+		$fields        = [
+			'name'          =>
+				[
+					'id'        => 'name',
+					'type'      => 'text',
+					'title'     => 'Name',
+					'value'     => 'John Doe',
+					'raw_value' => 'John Doe',
+					'required'  => false,
+				],
+			'email'         =>
+				[
+					'id'        => 'email',
+					'type'      => 'email',
+					'title'     => 'Email',
+					'value'     => 'foo@bar.com',
+					'raw_value' => 'foo@bar.com',
+					'required'  => false,
+				],
+			'message'       =>
+				[
+					'id'        => 'message',
+					'type'      => 'textarea',
+					'title'     => 'Message',
+					'value'     => 'Some message',
+					'raw_value' => 'Some message',
+					'required'  => false,
+				],
 			'field_014ea7c' =>
 				[
 					'id'        => 'field_014ea7c',
@@ -663,9 +732,17 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 					'required'  => false,
 				],
 		];
-		$field  = current( $fields );
+		$field         = current( $fields );
+		$sent_data     = [
+			'name'    => 'John Doe',
+			'email'   => 'foo@bar.com',
+			'message' => 'Some message',
+		];
 
 		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->once()->andReturn( $sent_data );
+		$record->shouldReceive( 'get' )->with( 'fields' )->once()->andReturn( $fields );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
 		$record->shouldReceive( 'remove_field' )->never();
 
@@ -684,7 +761,37 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test validation with failed hCaptcha.
 	 */
 	public function test_validation_with_failed_captcha(): void {
-		$fields = [
+		$form_settings = [
+			'form_id' => '23',
+		];
+		$fields        = [
+			'name'          =>
+				[
+					'id'        => 'name',
+					'type'      => 'text',
+					'title'     => 'Name',
+					'value'     => 'John Doe',
+					'raw_value' => 'John Doe',
+					'required'  => false,
+				],
+			'email'         =>
+				[
+					'id'        => 'email',
+					'type'      => 'email',
+					'title'     => 'Email',
+					'value'     => 'foo@bar.com',
+					'raw_value' => 'foo@bar.com',
+					'required'  => false,
+				],
+			'message'       =>
+				[
+					'id'        => 'message',
+					'type'      => 'textarea',
+					'title'     => 'Message',
+					'value'     => 'Some message',
+					'raw_value' => 'Some message',
+					'required'  => false,
+				],
 			'field_014ea7c' =>
 				[
 					'id'        => 'field_014ea7c',
@@ -695,12 +802,20 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 					'required'  => false,
 				],
 		];
-		$field  = current( $fields );
+		$field         = current( $fields );
+		$sent_data     = [
+			'name'    => 'John Doe',
+			'email'   => 'foo@bar.com',
+			'message' => 'Some message',
+		];
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->once()->andReturn( $sent_data );
+		$record->shouldReceive( 'get' )->with( 'fields' )->once()->andReturn( $fields );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
 		$record->shouldReceive( 'remove_field' )->never();
 
@@ -715,7 +830,37 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test validation with empty hCaptcha.
 	 */
 	public function test_validation_with_empty_captcha(): void {
-		$fields = [
+		$form_settings = [
+			'form_id' => '23',
+		];
+		$fields        = [
+			'name'          =>
+				[
+					'id'        => 'name',
+					'type'      => 'text',
+					'title'     => 'Name',
+					'value'     => 'John Doe',
+					'raw_value' => 'John Doe',
+					'required'  => false,
+				],
+			'email'         =>
+				[
+					'id'        => 'email',
+					'type'      => 'email',
+					'title'     => 'Email',
+					'value'     => 'foo@bar.com',
+					'raw_value' => 'foo@bar.com',
+					'required'  => false,
+				],
+			'message'       =>
+				[
+					'id'        => 'message',
+					'type'      => 'textarea',
+					'title'     => 'Message',
+					'value'     => 'Some message',
+					'raw_value' => 'Some message',
+					'required'  => false,
+				],
 			'field_014ea7c' =>
 				[
 					'id'        => 'field_014ea7c',
@@ -726,12 +871,20 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 					'required'  => false,
 				],
 		];
-		$field  = current( $fields );
+		$field         = current( $fields );
+		$sent_data     = [
+			'name'    => 'John Doe',
+			'email'   => 'foo@bar.com',
+			'message' => 'Some message',
+		];
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response, null );
 
 		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->once()->andReturn( $sent_data );
+		$record->shouldReceive( 'get' )->with( 'fields' )->once()->andReturn( $fields );
 		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
 		$record->shouldReceive( 'remove_field' )->never();
 
