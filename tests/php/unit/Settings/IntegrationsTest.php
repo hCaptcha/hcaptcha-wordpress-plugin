@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\ACFE\Form;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
@@ -39,7 +40,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['wp_filter'], $GLOBALS['wp_filesystem'] );
+		unset( $GLOBALS['wp_filter'], $GLOBALS['wp_filesystem'], $_POST['action'] );
 
 		parent::tearDown();
 	}
@@ -82,6 +83,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'plugins', $plugins );
 		$this->set_protected_property( $subject, 'themes', $themes );
 
+		// OnboardingWizard should be instantiated with the current tab ($this).
+		$wizard = Mockery::mock( 'overload:' . OnboardingWizard::class );
+		$wizard->shouldReceive( '__construct' )->once()->with( $subject );
+
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
@@ -93,8 +98,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_get_themes' )->andReturn( $themes );
 		WP_Mock::userFunction( 'is_admin' )->andReturn( true );
 
-		$method = 'init';
-		$subject->$method();
+		$subject->init();
 
 		self::assertSame( $plugins, $this->get_protected_property( $subject, 'plugins' ) );
 		self::assertSame( $themes, $this->get_protected_property( $subject, 'themes' ) );
@@ -129,6 +133,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_after_switch_theme_action(): void {
+		$_POST['action'] = Integrations::ACTIVATE_ACTION;
+
 		$utils = Mockery::mock( Utils::class )->makePartial();
 
 		$utils->shouldAllowMockingProtectedMethods();
@@ -142,6 +148,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'run_checks' )->once()->with( $subject::ACTIVATE_ACTION );
 
 		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( true );
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
 		WP_Mock::userFunction( 'remove_action' )->once()
 			->with( 'after_switch_theme', 'et_onboarding_trigger_redirect' );
 		WP_Mock::userFunction( 'remove_action' )->once()->with( 'after_switch_theme', 'avada_compat_switch_theme' );
@@ -259,16 +267,40 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test init_form_fields().
 	 *
+	 * @param bool $is_multisite Whether it is multisite installation.
+	 *
+	 * @dataProvider dp_test_init_form_fields
+	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_init_form_fields(): void {
+	public function test_init_form_fields( bool $is_multisite ): void {
 		$expected = $this->get_test_integrations_form_fields();
 
+		if ( $is_multisite ) {
+			$expected['wp_status']['options']['signup']             = 'Signup Form';
+			$expected['theme_my_login_status']['options']['signup'] = 'Signup Form';
+			unset( $expected['theme_my_login_status']['options']['register'] );
+		}
+
 		$mock = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'is_multisite' )->once()->andReturn( $is_multisite );
 
 		$mock->init_form_fields();
 
 		self::assertSame( $expected, $this->get_protected_property( $mock, 'form_fields' ) );
+	}
+
+	/**
+	 * Data provider for test_init_form_fields().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_form_fields(): array {
+		return [
+			'not multisite' => [ false ],
+			'multisite'     => [ true ],
+		];
 	}
 
 	/**

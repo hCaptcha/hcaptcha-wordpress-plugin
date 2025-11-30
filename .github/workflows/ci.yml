@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        php-version: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php-version: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
 
     env:
       wp-directory: wordpress
@@ -45,6 +45,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
+          ini-values: register_argc_argv=On
 
       - name: Install dependencies with caching
         uses: hCaptcha/composer-install@e52779489de843a9f022c7b8faa648b608b02c70

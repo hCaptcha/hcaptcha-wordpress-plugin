@@ -501,17 +501,22 @@ class HCaptcha {
 	 * @param {Function} callback
 	 */
 	addSyncedEventListener( callback ) {
-		// Sync with DOMContentLoaded event.
-		if ( document.readyState === 'loading' ) {
-			if ( this.addedDCLCallbacks.has( callback ) ) {
+		const invoke = ( cb ) => {
+			if ( ! this.addedDCLCallbacks.has( cb ) ) {
 				return;
 			}
 
-			this.addedDCLCallbacks.add( callback );
+			cb();
+			this.addedDCLCallbacks.delete( cb );
+		};
 
-			window.addEventListener( 'DOMContentLoaded', callback );
+		this.addedDCLCallbacks.add( callback );
+
+		// Sync with DOMContentLoaded event.
+		if ( document.readyState === 'loading' ) {
+			window.addEventListener( 'DOMContentLoaded', invoke.bind( null, callback ) );
 		} else {
-			callback();
+			invoke( callback );
 		}
 	}
 

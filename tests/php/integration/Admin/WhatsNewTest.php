@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\Admin;
 
 use HCaptcha\Admin\Notifications;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -23,17 +24,47 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test init() and init_hooks().
+	 *
+	 * @param bool $wizard_completed Whether the wizard has been completed.
+	 *
+	 * @dataProvider dp_test_init_and_init_hooks
 	 */
-	public function test_init_and_init_hooks(): void {
+	public function test_init_and_init_hooks( bool $wizard_completed ): void {
+		if ( $wizard_completed ) {
+			update_option( 'hcaptcha_settings', [ OnboardingWizard::OPTION_NAME => 'completed' ] );
+		}
+
+		hcaptcha()->init_hooks();
+
 		$subject = new WhatsNew();
 
 		$subject->init();
 
-		self::assertSame( 10, has_action( 'kagg_settings_tab', [ $subject, 'action_settings_tab' ] ) );
-		self::assertSame( 10, has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
-		self::assertSame( 10, has_action( 'admin_footer', [ $subject, 'maybe_show_popup' ] ) );
-		self::assertSame( 10, has_action( 'wp_ajax_hcaptcha-mark-shown', [ $subject, 'mark_shown' ] ) );
-		self::assertSame( 1010, has_filter( 'update_footer', [ $subject, 'update_footer' ] ) );
+		if ( $wizard_completed ) {
+			self::assertSame( 10, has_action( 'kagg_settings_tab', [ $subject, 'action_settings_tab' ] ) );
+			self::assertSame( 10, has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
+			self::assertSame( 10, has_action( 'admin_footer', [ $subject, 'maybe_show_popup' ] ) );
+			self::assertSame( 10, has_action( 'wp_ajax_hcaptcha-mark-shown', [ $subject, 'mark_shown' ] ) );
+			self::assertSame( 1010, has_filter( 'update_footer', [ $subject, 'update_footer' ] ) );
+		} else {
+			self::assertFalse( has_action( 'kagg_settings_tab', [ $subject, 'action_settings_tab' ] ) );
+			self::assertFalse( has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
+			self::assertFalse( has_action( 'admin_footer', [ $subject, 'maybe_show_popup' ] ) );
+			self::assertFalse( has_action( 'wp_ajax_hcaptcha-mark-shown', [ $subject, 'mark_shown' ] ) );
+			self::assertFalse( has_filter( 'update_footer', [ $subject, 'update_footer' ] ) );
+		}
+	}
+
+	/**
+	 * Data provider for test_init_and_init_hooks().
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_and_init_hooks(): array {
+		return [
+			'wizard not completed' => [ false ],
+			'wizard completed'     => [ true ],
+		];
 	}
 
 	/**
@@ -63,6 +94,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 			'ajaxUrl'         => 'http://test.test/wp-admin/admin-ajax.php',
 			'markShownAction' => $action,
 			'markShownNonce'  => wp_create_nonce( $action ),
+			'whatsNewParam'   => 'whats_new',
 		];
 		$expected_extra = [
 			'group' => 1,

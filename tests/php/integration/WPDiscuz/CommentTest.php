@@ -299,7 +299,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_print_inline_styles(): void {
-		$expected = '.wpd-form-col-hcaptcha{min-width:303px}.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
+		$expected = '.wpd-form-col-hcaptcha{min-width:302px}.wpd-field-hcaptcha .h-captcha{margin-left:auto}';
 		$expected = "<style>\n$expected\n</style>\n";
 
 		$subject = new Comment();

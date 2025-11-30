@@ -126,7 +126,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 			delete args[ 0 ];
 		} else {
-			// Add the hCaptcha form before submit button.
+			// Add the hCaptcha form before the `submit` button.
 			args = {};
 
 			const match = fields.innerHTML.match( /<p>\s*?<input .*?type="submit".*?>\s*<\/p>/s );
@@ -186,7 +186,13 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			return;
 		}
 
-		const hCaptchaButton = document.createElement( 'button' );
+		let hCaptchaButton = secondDiv.querySelector( 'button[value="hcaptcha"]' );
+
+		if ( hCaptchaButton ) {
+			return;
+		}
+
+		hCaptchaButton = document.createElement( 'button' );
 
 		hCaptchaButton.className = 'button not-in-form';
 		hCaptchaButton.type = 'button';
@@ -238,7 +244,6 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
 	document.addEventListener( 'hCaptchaLoaded', function() {
 		hCaptchaLoadedFired = true;
-		addHCaptcha();
 	} );
 
 	setHCaptchaTimeout();

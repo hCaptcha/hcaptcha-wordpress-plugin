@@ -22,9 +22,8 @@ describe( 'HCaptchaCustomElement', () => {
 		// Act
 		el.connectedCallback();
 
-		// Assert
-		expect( window.hCaptcha.addSyncedEventListener ).toHaveBeenCalledTimes( 1 );
-		expect( window.hCaptcha.addSyncedEventListener ).toHaveBeenCalledWith( window.hCaptchaBindEvents );
+		// Assert: the custom element should call the binding function directly
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 
 	test( 'connectedCallback works when element is attached to DOM', () => {
@@ -34,10 +33,11 @@ describe( 'HCaptchaCustomElement', () => {
 		const el = document.createElement( 'h-captcha' );
 		document.body.appendChild( el );
 
-		// Manually call connectedCallback to simulate lifecycle hook in JSDOM
+		// Manually call connectedCallback to simulate a lifecycle hook in JSDOM
 		el.connectedCallback();
 
-		expect( window.hCaptcha.addSyncedEventListener ).toHaveBeenCalledWith( window.hCaptchaBindEvents );
+		// Ensure a binding function called at least once (maybe invoked automatically upon DOM attachment)
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalled();
 
 		// Cleanup
 		document.body.removeChild( el );

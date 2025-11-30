@@ -205,8 +205,8 @@ class Utils {
 	 */
 	public static function list_array( array $arr, bool $sep = true ): string {
 		$separator = $sep ?
-			__( 'and', 'wpforms-lite' ) :
-			__( 'or', 'wpforms-lite' );
+			__( 'and', 'hcaptcha-for-forms-and-more' ) :
+			__( 'or', 'hcaptcha-for-forms-and-more' );
 
 		$last  = array_slice( $arr, - 1 );
 		$first = implode( ', ', array_slice( $arr, 0, - 1 ) );

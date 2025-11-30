@@ -9,6 +9,7 @@ namespace HCaptcha\Jetpack;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use WP_Error;
 
@@ -112,7 +113,7 @@ abstract class Base {
 	 * @return bool|WP_Error|mixed
 	 */
 	public function verify( $is_spam = false ) {
-		$this->error_message = API::verify_post( static::NAME, static::ACTION );
+		$this->error_message = API::verify( $this->get_entry() );
 
 		if ( null === $this->error_message ) {
 			return $is_spam;
@@ -425,5 +426,45 @@ abstract class Base {
 		$content = $post->post_content ?? '';
 
 		return false !== strpos( html_entity_decode( $content ), '<!-- wp:jetpack/contact-form' );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		$contact_form_id = Request::filter_input( INPUT_POST, 'contact-form-id' );
+		$form_id         = 'g' . $contact_form_id;
+		$post_id         = (int) $contact_form_id;
+		$post            = get_post( $post_id );
+		$entry           = [
+			'nonce_name'    => self::NAME,
+			'nonce_action'  => self::ACTION,
+			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'data'          => [],
+		];
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		foreach ( $_POST as $key => $value ) {
+			if ( strpos( $key, $form_id ) !== 0 ) {
+				continue;
+			}
+
+			$value    = Request::filter_input( INPUT_POST, $key );
+			$data_key = ltrim( str_replace( $form_id, '', $key ), '-' );
+
+			if ( 'name' === $data_key ) {
+				$entry['name'] = $value;
+			}
+
+			if ( 'email' === $data_key ) {
+				$entry['email'] = $value;
+			}
+
+			$entry['data'][ $data_key ] = $value;
+		}
+
+		return $entry;
 	}
 }

@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.19.0
+Stable tag: 4.20.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,7 +26,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't retain or sell personal data, unlike platforms that **g**ather, **o**wn, and m**o**netize **gl**obal b**e**havior.
 * **Better Security:** hCaptcha offers better protection against bots and abuse than other anti-abuse systems.
 * **Easy to Use:** hCaptcha is easy to install and use with WordPress and popular plugins.
-* **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 50 other plugins and themes.
+* **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 60 other plugins and themes.
 
 == Features ==
 
@@ -758,6 +758,21 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.20.0 =
+* Added Divi 5 support.
+* Added onboarding wizard.
+* Added a dynamic Playground menu update after activating and deactivating of plugins and themes.
+* Added support of the Essential Addons for Elementor Pro plugin.
+* Added the ability to show What's New info for any version with the 'whats_new' GET parameter.
+* Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
+* Fixed the race condition on loading JavaScripts on Playground.
+* Fixed console errors with Divi Contact Form.
+* Fixed the placeholder layout following hCaptcha layout changes.
+* Fixed the empty hCaptcha error on the WooCommerce Checkout page when honeypot is off.
+* Fixed multiple hCaptcha widgets on the Mailchimp form preview.
+* Fixed hCaptcha What's New layout.
+* Fixed error messaging in Jetpack forms.
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.

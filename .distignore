@@ -9,6 +9,8 @@
 /.php-scoper
 /.wordpress-org
 /.yarn
+/build
+/coverage
 /node_modules
 /src/js
 /tests
@@ -28,6 +30,7 @@
 /MAINTAINERS.md
 /README.md
 /SECURITY.md
+/RULES.md
 /Thumbs.db
 /auth.json
 /babel.config.json

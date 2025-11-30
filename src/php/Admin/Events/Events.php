@@ -177,6 +177,7 @@ class Events {
 		$query_results = [];
 
 		foreach ( $queries as $query ) {
+			// phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$result          = $wpdb->query( $query );
 			$query_results[] = $wpdb->last_result;
 
@@ -221,7 +222,7 @@ class Events {
 		$limit      = $args['limit'];
 
 		// We need to collect id also to distinguish rows on the Forms page.
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -254,7 +255,7 @@ class Events {
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			"SELECT date_gmt
 					FROM $table_name FORCE INDEX (date_gmt)
 					WHERE $where

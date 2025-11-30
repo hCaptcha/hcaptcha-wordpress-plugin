@@ -722,7 +722,10 @@ describe( 'HCaptcha', () => {
 		// Assert: observer set on our element
 		expect( setDarkDataSpy ).toHaveBeenCalled();
 		expect( global.MutationObserver ).toHaveBeenCalledTimes( 1 );
-		expect( instance.observe ).toHaveBeenCalledWith( darkHost, expect.objectContaining( { attributes: true, attributeOldValue: true } ) );
+		expect( instance.observe ).toHaveBeenCalledWith( darkHost, expect.objectContaining( {
+			attributes: true,
+			attributeOldValue: true,
+		} ) );
 		expect( bindSpy ).not.toHaveBeenCalled();
 
 		// Simulate class change that includes darkClass
@@ -820,7 +823,10 @@ describe( 'HCaptcha', () => {
 
 		// Assert observer was set
 		expect( global.MutationObserver ).toHaveBeenCalledTimes( 1 );
-		expect( instance.observe ).toHaveBeenCalledWith( document.body, expect.objectContaining( { childList: true, subtree: true } ) );
+		expect( instance.observe ).toHaveBeenCalledWith( document.body, expect.objectContaining( {
+			childList: true,
+			subtree: true,
+		} ) );
 
 		// Add 1Password element and trigger mutation
 		const onePass = document.createElement( 'com-1password-button' );
@@ -1017,7 +1023,8 @@ describe( 'HCaptcha', () => {
 		const token = 'tok-invisible';
 
 		// Spy on submit and mock getParams
-		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {} );
+		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {
+		} );
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { size: 'invisible' } );
 
 		// Listen to the dispatched event
@@ -1056,7 +1063,8 @@ describe( 'HCaptcha', () => {
 		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { size: 'normal' } );
 		jest.spyOn( hCaptcha, 'isValidated' ).mockReturnValue( true );
-		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {} );
+		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {
+		} );
 
 		// Event listener check
 		let eventReceived = false;
@@ -1094,7 +1102,8 @@ describe( 'HCaptcha', () => {
 		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { size: 'normal' } );
 		jest.spyOn( hCaptcha, 'isValidated' ).mockReturnValue( false );
-		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {} );
+		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {
+		} );
 
 		// Act
 		hCaptcha.callback( token );
@@ -1124,7 +1133,8 @@ describe( 'HCaptcha', () => {
 		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { size: 'normal' } );
 		jest.spyOn( hCaptcha, 'isValidated' ).mockReturnValue( true );
-		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {} );
+		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {
+		} );
 
 		// Act
 		hCaptcha.callback( token );
@@ -1140,24 +1150,37 @@ describe( 'HCaptcha', () => {
 	test( 'applyAutoTheme returns original params when theme is not auto', () => {
 		const params = { theme: 'light' };
 		const result = hCaptcha.applyAutoTheme( params );
+
 		expect( result ).toBe( params );
 		expect( result.theme ).toBe( 'light' );
 	} );
 
 	test( 'applyAutoTheme uses matchMedia when no darkElement and prefers dark', () => {
 		const mmBackup = window.matchMedia;
-		window.matchMedia = jest.fn( ( q ) => ( { matches: true, media: q, addListener: jest.fn(), removeListener: jest.fn() } ) );
+		window.matchMedia = jest.fn( ( q ) => ( {
+			matches: true,
+			media: q,
+			addListener: jest.fn(),
+			removeListener: jest.fn(),
+		} ) );
 		const params = { theme: 'auto' };
 		const result = hCaptcha.applyAutoTheme( params );
+
 		expect( result.theme ).toBe( 'dark' );
 		window.matchMedia = mmBackup;
 	} );
 
 	test( 'applyAutoTheme uses matchMedia when no darkElement and prefers light', () => {
 		const mmBackup = window.matchMedia;
-		window.matchMedia = jest.fn( ( q ) => ( { matches: false, media: q, addListener: jest.fn(), removeListener: jest.fn() } ) );
+		window.matchMedia = jest.fn( ( q ) => ( {
+			matches: false,
+			media: q,
+			addListener: jest.fn(),
+			removeListener: jest.fn(),
+		} ) );
 		const params = { theme: 'auto' };
 		const result = hCaptcha.applyAutoTheme( params );
+
 		expect( result.theme ).toBe( 'light' );
 		window.matchMedia = mmBackup;
 	} );
@@ -1193,8 +1216,10 @@ describe( 'HCaptcha', () => {
 		document.body.appendChild( el );
 
 		// Spies/mocks
-		const obsDarkSpy = jest.spyOn( hCaptcha, 'observeDarkMode' ).mockImplementation( () => {} );
-		const obsPMSpy = jest.spyOn( hCaptcha, 'observePasswordManagers' ).mockImplementation( () => {} );
+		const obsDarkSpy = jest.spyOn( hCaptcha, 'observeDarkMode' ).mockImplementation( () => {
+		} );
+		const obsPMSpy = jest.spyOn( hCaptcha, 'observePasswordManagers' ).mockImplementation( () => {
+		} );
 
 		const customTheme = { component: { checkbox: { main: { fill: '#fff' } } } };
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: customTheme } );
@@ -1219,7 +1244,10 @@ describe( 'HCaptcha', () => {
 		expect( applySpy ).toHaveBeenCalledWith( expect.objectContaining( { theme: customTheme, size: 'normal' } ) );
 
 		// hcaptcha.render should receive the same
-		expect( global.hcaptcha.render ).toHaveBeenCalledWith( el, expect.objectContaining( { theme: customTheme, size: 'normal' } ) );
+		expect( global.hcaptcha.render ).toHaveBeenCalledWith( el, expect.objectContaining( {
+			theme: customTheme,
+			size: 'normal',
+		} ) );
 
 		// return value propagated
 		expect( wid ).toBe( 'wid-custom' );
@@ -1236,8 +1264,10 @@ describe( 'HCaptcha', () => {
 		el.dataset.size = 'invisible';
 		document.body.appendChild( el );
 
-		const obsDarkSpy = jest.spyOn( hCaptcha, 'observeDarkMode' ).mockImplementation( () => {} );
-		const obsPMSpy = jest.spyOn( hCaptcha, 'observePasswordManagers' ).mockImplementation( () => {} );
+		const obsDarkSpy = jest.spyOn( hCaptcha, 'observeDarkMode' ).mockImplementation( () => {
+		} );
+		const obsPMSpy = jest.spyOn( hCaptcha, 'observePasswordManagers' ).mockImplementation( () => {
+		} );
 
 		// getParams returns a plain theme that will be overwritten by dataset.theme
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: 'auto' } );
@@ -1259,7 +1289,10 @@ describe( 'HCaptcha', () => {
 		expect( applySpy ).toHaveBeenCalledWith( expect.objectContaining( { theme: 'dark', size: 'invisible' } ) );
 
 		// hcaptcha.render called with expected params
-		expect( global.hcaptcha.render ).toHaveBeenCalledWith( el, expect.objectContaining( { theme: 'dark', size: 'invisible' } ) );
+		expect( global.hcaptcha.render ).toHaveBeenCalledWith( el, expect.objectContaining( {
+			theme: 'dark',
+			size: 'invisible',
+		} ) );
 
 		expect( wid ).toBe( 'wid-dataset' );
 
@@ -1310,16 +1343,23 @@ describe( 'addSyncedEventListener', () => {
 		// First registration should add a listener
 		inst.addSyncedEventListener( cb );
 
-		// The second registration with the same callback should be ignored
+		// The second registration with the same callback should not cause the callback to fire twice later
 		inst.addSyncedEventListener( cb );
 
-		expect( aelSpy ).toHaveBeenCalledTimes( 1 );
-		expect( aelSpy ).toHaveBeenCalledWith( 'DOMContentLoaded', cb );
+		// Consider only DOMContentLoaded registrations (handler may be wrapped by implementation)
+		const dclCalls = aelSpy.mock.calls.filter( ( [ type ] ) => type === 'DOMContentLoaded' );
+		expect( dclCalls.length ).toBeGreaterThanOrEqual( 1 );
 
-		// Simulate DOMContentLoaded firing
-		const listener = aelSpy.mock.calls[ 0 ][ 1 ];
-		listener();
+		// Simulate DOMContentLoaded firing for all registered listeners
+		for ( const call of dclCalls ) {
+			const listener = call[ 1 ];
 
+			if ( typeof listener === 'function' ) {
+				listener();
+			}
+		}
+
+		// Callback should only be invoked once overall (deduped at invocation stage)
 		expect( cb ).toHaveBeenCalledTimes( 1 );
 
 		// Cleanup
@@ -1347,9 +1387,18 @@ describe( 'moveHP', () => {
 
 	test( 'does nothing when honeypot is missing', () => {
 		const form = document.createElement( 'form' );
-		const a = document.createElement( 'input' ); a.name = 'a';
-		const b = document.createElement( 'input' ); b.name = 'b';
-		const c = document.createElement( 'input' ); c.name = 'c';
+		const a = document.createElement( 'input' );
+
+		a.name = 'a';
+
+		const b = document.createElement( 'input' );
+
+		b.name = 'b';
+
+		const c = document.createElement( 'input' );
+
+		c.name = 'c';
+
 		form.appendChild( a );
 		form.appendChild( b );
 		form.appendChild( c );
@@ -1388,9 +1437,18 @@ describe( 'moveHP', () => {
 
 	test( 'excludes candidates inside .h-captcha (no move if only such candidates exist)', () => {
 		const form = document.createElement( 'form' );
-		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_only';
-		const wrapper = document.createElement( 'div' ); wrapper.className = 'h-captcha';
-		const inside = document.createElement( 'input' ); inside.name = 'inside';
+		const hp = document.createElement( 'input' );
+
+		hp.id = 'hcap_hp_only';
+
+		const wrapper = document.createElement( 'div' );
+
+		wrapper.className = 'h-captcha';
+
+		const inside = document.createElement( 'input' );
+
+		inside.name = 'inside';
+
 		wrapper.appendChild( inside );
 		form.appendChild( wrapper );
 		form.appendChild( hp );
@@ -1408,12 +1466,31 @@ describe( 'moveHP', () => {
 
 	test( 'moves honeypot and its connected label before the chosen visible input', () => {
 		const form = document.createElement( 'form' );
-		const hidden = document.createElement( 'input' ); hidden.type = 'hidden';
-		const vis1 = document.createElement( 'input' ); vis1.name = 'vis1';
-		const vis2 = document.createElement( 'input' ); vis2.name = 'vis2';
-		const btn = document.createElement( 'button' ); btn.type = 'submit';
-		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_label';
-		const lbl = document.createElement( 'label' ); lbl.setAttribute( 'for', 'hcap_hp_label' ); lbl.textContent = 'HP';
+		const hidden = document.createElement( 'input' );
+
+		hidden.type = 'hidden';
+
+		const vis1 = document.createElement( 'input' );
+
+		vis1.name = 'vis1';
+
+		const vis2 = document.createElement( 'input' );
+
+		vis2.name = 'vis2';
+
+		const btn = document.createElement( 'button' );
+
+		btn.type = 'submit';
+
+		const hp = document.createElement( 'input' );
+
+		hp.id = 'hcap_hp_label';
+
+		const lbl = document.createElement( 'label' );
+
+		lbl.setAttribute( 'for', 'hcap_hp_label' );
+
+		lbl.textContent = 'HP';
 
 		// Initial order: hidden, vis1, vis2, btn, lbl, hp
 		form.appendChild( hidden );
@@ -1440,9 +1517,17 @@ describe( 'moveHP', () => {
 
 	test( 'does not append a disconnected label (label exists but not in DOM)', () => {
 		const form = document.createElement( 'form' );
-		const vis = document.createElement( 'input' ); vis.name = 'vis';
-		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_orphan';
-		const lbl = document.createElement( 'label' ); lbl.setAttribute( 'for', 'hcap_hp_orphan' );
+		const vis = document.createElement( 'input' );
+
+		vis.name = 'vis';
+
+		const hp = document.createElement( 'input' );
+
+		hp.id = 'hcap_hp_orphan';
+
+		const lbl = document.createElement( 'label' );
+
+		lbl.setAttribute( 'for', 'hcap_hp_orphan' );
 
 		form.appendChild( vis );
 		form.appendChild( hp );
@@ -1464,9 +1549,17 @@ describe( 'moveHP', () => {
 
 	test( 'idempotent: second call is ignored via hpMoved guard', () => {
 		const form = document.createElement( 'form' );
-		const vis1 = document.createElement( 'input' ); vis1.name = 'vis1';
-		const vis2 = document.createElement( 'input' ); vis2.name = 'vis2';
-		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_idem';
+		const vis1 = document.createElement( 'input' );
+
+		vis1.name = 'vis1';
+
+		const vis2 = document.createElement( 'input' );
+
+		vis2.name = 'vis2';
+
+		const hp = document.createElement( 'input' );
+
+		hp.id = 'hcap_hp_idem';
 
 		form.appendChild( vis1 );
 		form.appendChild( vis2 );
@@ -1474,11 +1567,11 @@ describe( 'moveHP', () => {
 		document.body.appendChild( form );
 
 		const orig = Math.random;
-		Math.random = jest.fn( () => 1 ); // choose vis2 on first call
+		Math.random = jest.fn( () => 1 ); // choose vis2 on the first call
 		inst.moveHP( form );
 		const afterFirst = Array.from( form.children );
 
-		// Try to force a different move on second call
+		// Try to force a different move on the second call
 		Math.random = jest.fn( () => 0 );
 		inst.moveHP( form );
 		const afterSecond = Array.from( form.children );
@@ -1492,8 +1585,13 @@ describe( 'moveHP', () => {
 
 	test( 'skips moving when form already marked hpMoved before first call', () => {
 		const form = document.createElement( 'form' );
-		const vis = document.createElement( 'input' ); vis.name = 'vis';
-		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_marked';
+		const vis = document.createElement( 'input' );
+
+		vis.name = 'vis';
+
+		const hp = document.createElement( 'input' );
+
+		hp.id = 'hcap_hp_marked';
 
 		form.appendChild( vis );
 		form.appendChild( hp );
@@ -1510,11 +1608,25 @@ describe( 'moveHP', () => {
 
 	test( 'moves honeypot before a visible input (deterministic with mocked Math.random)', () => {
 		const form = document.createElement( 'form' );
-		const hidden = document.createElement( 'input' ); hidden.type = 'hidden';
-		const vis1 = document.createElement( 'input' ); vis1.name = 'vis1';
-		const vis2 = document.createElement( 'textarea' ); vis2.name = 'vis2';
-		const btn = document.createElement( 'button' ); btn.type = 'submit';
-		const hp = document.createElement( 'input' ); hp.id = 'hcap_hp_test';
+		const hidden = document.createElement( 'input' );
+
+		hidden.type = 'hidden';
+
+		const vis1 = document.createElement( 'input' );
+
+		vis1.name = 'vis1';
+
+		const vis2 = document.createElement( 'textarea' );
+
+		vis2.name = 'vis2';
+
+		const btn = document.createElement( 'button' );
+
+		btn.type = 'submit';
+
+		const hp = document.createElement( 'input' );
+
+		hp.id = 'hcap_hp_test';
 
 		// Initial order: hidden, vis1, vis2, btn, hp
 		form.appendChild( hidden );
@@ -1683,7 +1795,8 @@ describe( 'submit', () => {
 		document.body.appendChild( container );
 
 		const remSpy = jest.spyOn( btn, 'removeEventListener' );
-		const clickSpy = jest.spyOn( btn, 'click' ).mockImplementation( () => {} );
+		const clickSpy = jest.spyOn( btn, 'click' ).mockImplementation( () => {
+		} );
 
 		inst.currentForm = { formElement: container, submitButtonElement: btn };
 
@@ -1736,7 +1849,8 @@ describe( 'submit', () => {
 
 		// Ensure no requestSubmit: shadow prototype with undefined
 		Object.defineProperty( form, 'requestSubmit', { value: undefined } );
-		const formSubmitSpy = jest.spyOn( form, 'submit' ).mockImplementation( () => {} );
+		const formSubmitSpy = jest.spyOn( form, 'submit' ).mockImplementation( () => {
+		} );
 		const remSpy = jest.spyOn( btn, 'removeEventListener' ); // should not be used
 		const clickSpy = jest.spyOn( btn, 'click' ); // should not be used
 
@@ -1771,8 +1885,14 @@ describe( 'addFSTToken', () => {
 
 	test( 'creates hidden token and inserts it as the first child when form has children', () => {
 		const form = document.createElement( 'form' );
-		const a = document.createElement( 'input' ); a.name = 'a';
-		const b = document.createElement( 'input' ); b.name = 'b';
+		const a = document.createElement( 'input' );
+
+		a.name = 'a';
+
+		const b = document.createElement( 'input' );
+
+		b.name = 'b';
+
 		form.appendChild( a );
 		form.appendChild( b );
 		document.body.appendChild( form );
@@ -1804,9 +1924,19 @@ describe( 'addFSTToken', () => {
 
 	test( 'reuses existing token and moves it to the first position if not already first', () => {
 		const form = document.createElement( 'form' );
-		const x = document.createElement( 'input' ); x.name = 'x';
-		const token = document.createElement( 'input' ); token.type = 'hidden'; token.name = 'hcap_fst_token';
-		const y = document.createElement( 'input' ); y.name = 'y';
+		const x = document.createElement( 'input' );
+
+		x.name = 'x';
+
+		const token = document.createElement( 'input' );
+
+		token.type = 'hidden';
+		token.name = 'hcap_fst_token';
+
+		const y = document.createElement( 'input' );
+
+		y.name = 'y';
+
 		form.appendChild( x );
 		form.appendChild( y );
 		form.appendChild( token );
@@ -1823,8 +1953,15 @@ describe( 'addFSTToken', () => {
 
 	test( 'idempotent when token already first: no duplication and position unchanged', () => {
 		const form = document.createElement( 'form' );
-		const token = document.createElement( 'input' ); token.type = 'hidden'; token.name = 'hcap_fst_token';
-		const other = document.createElement( 'input' ); other.name = 'other';
+		const token = document.createElement( 'input' );
+
+		token.type = 'hidden';
+		token.name = 'hcap_fst_token';
+
+		const other = document.createElement( 'input' );
+
+		other.name = 'other';
+
 		form.appendChild( token );
 		form.appendChild( other );
 		document.body.appendChild( form );
@@ -1842,7 +1979,10 @@ describe( 'addFSTToken', () => {
 	test( 'inserts before a non-element firstChild (e.g., text node) using insertBefore', () => {
 		const form = document.createElement( 'form' );
 		const textNode = document.createTextNode( ' some text ' );
-		const after = document.createElement( 'input' ); after.name = 'after';
+		const after = document.createElement( 'input' );
+
+		after.name = 'after';
+
 		form.appendChild( textNode );
 		form.appendChild( after );
 		document.body.appendChild( form );

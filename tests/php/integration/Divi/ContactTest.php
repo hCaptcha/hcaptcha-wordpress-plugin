@@ -65,11 +65,11 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		self::assertSame(
 			10,
-			has_filter( 'et_pb_contact_form_shortcode_output', [ $subject, 'add_captcha' ] )
+			has_filter( 'et_pb_contact_form_shortcode_output', [ $subject, 'add_hcaptcha' ] )
 		);
 		self::assertSame(
 			10,
-			has_filter( 'pre_do_shortcode_tag', [ $subject, 'verify' ] )
+			has_filter( 'pre_do_shortcode_tag', [ $subject, 'verify_4' ] )
 		);
 
 		self::assertSame(
@@ -77,8 +77,8 @@ class ContactTest extends HCaptchaWPTestCase {
 			has_filter( 'et_pb_module_shortcode_attributes', [ $subject, 'shortcode_attributes' ] )
 		);
 		self::assertSame(
-			20,
-			has_action( 'wp_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
+			9,
+			has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 	}
 
@@ -169,7 +169,7 @@ class ContactTest extends HCaptchaWPTestCase {
 				<textarea name="et_pb_contact_message_0" id="et_pb_contact_message_0" class="et_pb_contact_message input" data-required_mark="required" data-field_type="text" data-original_id="message" placeholder="Message">я</textarea>
 			</p>
 						<input type="hidden" value="et_contact_proccess" name="et_pb_contactform_submit_0"/>
-						<div style="float:right;">' . $hcap_form . '</div>
+						<div class="hcaptcha-divi-wrapper">' . $hcap_form . '</div>
 <div style="clear: both;"></div>
 <div class="et_contact_bottom_container">
 							
@@ -187,7 +187,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
-		self::assertSame( $expected, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $output, $module_slug ) );
 		self::assertSame( 1, $this->get_protected_property( $subject, 'render_count' ) );
 	}
 
@@ -205,7 +205,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
-		self::assertSame( $output, $subject->add_captcha( $output, $module_slug ) );
+		self::assertSame( $output, $subject->add_hcaptcha( $output, $module_slug ) );
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
 	}
 
@@ -255,7 +255,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
-		self::assertEquals( $return, $subject->verify( $return, $tag, [], [] ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -318,7 +318,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
-		self::assertEquals( $return, $subject->verify( $return, $tag, [], [] ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -342,7 +342,7 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$subject = new Contact();
 
-		self::assertEquals( $return, $subject->verify( $return, $tag, [], [] ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
 	}
 
 	/**
@@ -424,6 +424,21 @@ class ContactTest extends HCaptchaWPTestCase {
 	public function test_enqueue_scripts(): void {
 		hcaptcha()->form_shown = true;
 
+		wp_register_script(
+			'et-recaptcha-v3',
+			'https://www.google.com/recaptcha/api.js?render=some-site-key',
+			[],
+			'1.0.0',
+			true
+		);
+		wp_register_script(
+			'es6-promise',
+			'https://example.com/admin/js/es6-promise.auto.min.js',
+			[],
+			'1.0.0',
+			true
+		);
+
 		wp_enqueue_script(
 			'et-core-api-spam-recaptcha',
 			'https://example.com/recaptcha.js',
@@ -434,11 +449,15 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$subject = new Contact();
 
+		self::assertTrue( wp_script_is( 'et-recaptcha-v3', 'registered' ) );
+		self::assertTrue( wp_script_is( 'es6-promise', 'registered' ) );
 		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
 
 		$subject->enqueue_scripts();
 
+		self::assertFalse( wp_script_is( 'et-recaptcha-v3', 'registered' ) );
+		self::assertFalse( wp_script_is( 'es6-promise', 'registered' ) );
 		self::assertFalse( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-divi' ) );
 	}

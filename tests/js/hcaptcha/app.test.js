@@ -35,8 +35,18 @@ describe( 'app.js', () => {
 		expect( hCaptcha.reset ).toHaveBeenCalledWith( mockEl );
 	} );
 
-	test( 'hCaptchaBindEvents should call bindEvents', () => {
+	test( 'hCaptchaBindEvents should register synced listener and eventually bind', () => {
+		// Simulate an onload path so that hCaptchaBindEvents adds a synced listener immediately
+		window.__hCaptchaOnLoad = true;
 		window.hCaptchaBindEvents();
+
+		// Should register a synced event listener
+		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalledWith( expect.any( Function ) );
+
+		// Execute the registered callback to ensure it calls bindEvents
+		const cb = hCaptcha.addSyncedEventListener.mock.calls[ 0 ][ 0 ];
+
+		cb();
 		expect( hCaptcha.bindEvents ).toHaveBeenCalled();
 	} );
 

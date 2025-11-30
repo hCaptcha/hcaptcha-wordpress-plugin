@@ -14,6 +14,7 @@
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\Admin\Notifications;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -39,7 +40,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST );
+		$_POST = [];
 
 		parent::tearDown();
 	}
@@ -62,6 +63,30 @@ class GeneralTest extends HCaptchaTestCase {
 		$method  = 'section_title';
 
 		self::assertSame( 'general', $subject->$method() );
+	}
+
+	/**
+	 * Test init().
+	 */
+	public function test_init(): void {
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		// Expect SettingsBase::init() logic to be executed via General::init().
+		$subject->shouldReceive( 'form_fields' )->once();
+		$subject->shouldReceive( 'init_settings' )->once();
+		$subject->shouldReceive( 'is_main_menu_page' )->once()->andReturn( false );
+		$subject->shouldReceive( 'is_tab_active' )->once()->with( $subject )->andReturn( false );
+		$subject->shouldReceive( 'init_hooks' )->never();
+
+		// is_admin() is checked inside SettingsBase::init().
+		WP_Mock::userFunction( 'is_admin' )->once()->andReturn( true );
+
+		// OnboardingWizard should be instantiated with the current tab ($this).
+		$wizard = Mockery::mock( 'overload:' . OnboardingWizard::class );
+		$wizard->shouldReceive( '__construct' )->once()->with( $subject );
+
+		$subject->init();
 	}
 
 	/**

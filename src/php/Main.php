@@ -46,7 +46,6 @@ use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
-use HCaptcha\WP\Signup;
 
 /**
  * Class Main.
@@ -508,13 +507,13 @@ class Main {
 	}
 
 	.h-captcha[data-size="normal"] {
-		width: 303px;
-		height: 78px;
+		width: 302px;
+		height: 76px;
 	}
 
 	.h-captcha[data-size="compact"] {
-		width: 164px;
-		height: 144px;
+		width: 158px;
+		height: 138px;
 	}
 
 	.h-captcha[data-size="invisible"] {
@@ -539,13 +538,16 @@ class Main {
 
 	.h-captcha::after {
 		content: "' . $load_msg . '";
-	    font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-		display: block;
+	    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+	    font-size: 10px;
+	    font-weight: 500;
 		position: absolute;
 		top: 0;
+		bottom: 0;
 		left: 0;
+		right: 0;
 		box-sizing: border-box;
-        color: #ff0000;
+        color: #bf1722;
 		opacity: 0;
 	}
 
@@ -564,23 +566,33 @@ class Main {
 	}
 
 	.h-captcha[data-size="normal"]::before {
-		width: 300px;
-		height: 74px;
-		background-position: 94% 28%;
+		width: 302px;
+		height: 76px;
+		background-position: 93.8% 28%;
 	}
 
 	.h-captcha[data-size="normal"]::after {
-		padding: 19px 75px 16px 10px;
+		width: 302px;
+	    height: 76px;
+	    display: flex;
+	    flex-wrap: wrap;
+	    align-content: center;
+        line-height: normal;
+	    padding: 0 75px 0 10px;
 	}
 
 	.h-captcha[data-size="compact"]::before {
-		width: 156px;
-		height: 136px;
-		background-position: 50% 79%;
+		width: 158px;
+		height: 138px;
+		background-position: 49.9% 78.8%;
 	}
 
 	.h-captcha[data-size="compact"]::after {
-		padding: 10px 10px 16px 10px;
+		width: 158px;
+		height: 138px;
+		text-align: center;
+		line-height: normal;
+		padding: 24px 10px 10px 10px;
 	}
 
 	.h-captcha[data-theme="light"]::before,
@@ -654,7 +666,7 @@ class Main {
 			justify-content: center;
 		}
 		.h-captcha[data-size="normal"] {
-			scale: calc(270 / 303);
+			scale: calc(270 / 302);
 		    transform: translate(-20px, 0);
 		}
 	}
@@ -1255,12 +1267,18 @@ class Main {
 			],
 			'Essential Addons Login'               => [
 				[ 'essential_addons_status', 'login' ],
-				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				[
+					'essential-addons-elementor/essential_adons_elementor.php',
+					'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				],
 				EssentialAddons\Login::class,
 			],
 			'Essential Addons Register'            => [
 				[ 'essential_addons_status', 'register' ],
-				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				[
+					'essential-addons-elementor/essential_adons_elementor.php',
+					'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				],
 				EssentialAddons\Register::class,
 			],
 			'Essential Blocks Form'                => [
@@ -1756,6 +1774,8 @@ class Main {
 	 */
 	public function load_textdomain(): void {
 		load_default_textdomain();
+
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
 		load_plugin_textdomain(
 			'hcaptcha-for-forms-and-more',
 			false,

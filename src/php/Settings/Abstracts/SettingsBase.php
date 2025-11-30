@@ -1600,6 +1600,7 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function load_plugin_textdomain(): void {
+		// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
 		load_plugin_textdomain(
 			$this->text_domain(),
 			false,
@@ -1614,7 +1615,7 @@ abstract class SettingsBase {
 	 *
 	 * @return bool
 	 */
-	protected function is_options_screen( $ids = 'options' ): bool {
+	public function is_options_screen( $ids = 'options' ): bool {
 		$ids = (array) $ids;
 
 		if ( ! function_exists( 'get_current_screen' ) ) {

@@ -93,6 +93,7 @@ class Form {
 		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$awsm_response['error'][] = esc_html( $error_message );
 		}
 	}

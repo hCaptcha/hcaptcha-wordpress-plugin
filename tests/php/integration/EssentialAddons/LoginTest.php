@@ -80,7 +80,10 @@ class LoginTest extends HCaptchaWPTestCase {
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
 			'id'     => [
-				'source'  => 'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				'source'  => [
+					'essential-addons-elementor/essential_adons_elementor.php',
+					'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+				],
 				'form_id' => 'login',
 			],
 		];

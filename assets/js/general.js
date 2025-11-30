@@ -514,7 +514,12 @@ const general = function( $ ) {
 			} );
 	}
 
-	function syncKeysWithMode() {
+	/**
+	 * Sync keys with mode.
+	 *
+	 * @param {jQuery.Event|undefined} e Event object.
+	 */
+	function syncKeysWithMode( e ) {
 		const mode = $mode.val();
 
 		if ( ! modes.hasOwnProperty( mode ) ) {
@@ -527,6 +532,11 @@ const general = function( $ ) {
 		} else {
 			setReadonlyBlocked( $siteKey, true );
 			setReadonlyBlocked( $secretKey, true );
+		}
+
+		// If the event is not triggered by the mode selector, skip the rest of the function.
+		if ( e === undefined ) {
+			return;
 		}
 
 		const sitekey = modes[ mode ];

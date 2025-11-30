@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\Notifications;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
@@ -168,6 +169,17 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
+	 * Init class.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+		new OnboardingWizard( $this );
+
+		parent::init();
+	}
+
+	/**
 	 * Init class hooks.
 	 *
 	 * @return void
@@ -178,11 +190,11 @@ class General extends PluginSettingsBase {
 		$hcaptcha = hcaptcha();
 
 		if ( wp_doing_ajax() ) {
-			// We need ajax actions in the Notifications class.
+			// We need ajax actions in the Notifications and Onboarding class.
 			$this->init_notifications();
 		} else {
 			// The current class loaded early on plugins_loaded.
-			// Init Notifications later, when the Settings class is ready.
+			// Init Notifications and Onboarding later, when the Settings class is ready.
 			// Also, we need to check if we are on the General screen.
 			add_action( 'current_screen', [ $this, 'init_notifications' ] );
 		}

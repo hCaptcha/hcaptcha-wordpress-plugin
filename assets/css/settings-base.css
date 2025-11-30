@@ -206,13 +206,19 @@ body.settings_page_hcaptcha {
 }
 
 @keyframes blink {
-	0% {opacity: 1;}
-	16.7% {opacity: 0;}
-	33.3% {opacity: 1;}
-	50% {opacity: 0;}
-	66.7% {opacity: 1;}
-	83.3% {opacity: 0;}
-	100% {opacity: 1;}
+	0%,
+	33.3%,
+	66.7%,
+	100% {
+		outline: none;
+		box-shadow: none;
+	}
+	16.7%,
+	50%,
+	83.3% {
+		outline: 3px solid rgba(114, 174, 230, .8);
+		box-shadow: 0 0 0 4px rgba(114, 174, 230, .5);
+	}
 }
 
 .blink {
@@ -263,7 +269,7 @@ body.settings_page_hcaptcha {
 	left: 0;
 	width: 100vw;
 	height: 100vh;
-	z-index: 110000;
+	z-index: 10000000;
 	background: rgba(0, 0, 0, 0.8);
 	justify-content: center;
 	align-items: center;

@@ -424,7 +424,7 @@ class Migrations {
 	 */
 	protected function migrate_4_6_0(): ?bool {
 		$option         = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$cf7_status_old = $option['cf7_status'] ?? [];
+		$cf7_status_old = (array) ( $option['cf7_status'] ?? [] );
 		$cf7_status_new = array_unique( array_merge( $cf7_status_old, [ 'live' ] ) );
 
 		if ( $cf7_status_new !== $cf7_status_old ) {
@@ -608,7 +608,7 @@ class Migrations {
 		global $wpdb;
 
 		// Check id index already exists.
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$result = $wpdb->get_var(
 			"SELECT COUNT(1) IndexIsThere
 					FROM INFORMATION_SCHEMA.STATISTICS
@@ -624,9 +624,9 @@ class Migrations {
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		// Change the column length for the wp_wpforms_entry_meta.type column to 255 and add an index.
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query( "CREATE INDEX $index_name ON $table_name ( $key_part )" );
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 	}
 
 	/**
