@@ -63,6 +63,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 			'ajaxUrl'         => 'http://test.test/wp-admin/admin-ajax.php',
 			'markShownAction' => $action,
 			'markShownNonce'  => wp_create_nonce( $action ),
+			'whatsNewParam'   => 'whats_new',
 		];
 		$expected_extra = [
 			'group' => 1,

@@ -764,6 +764,7 @@ Instructions for popular native integrations are below:
 * Added onboarding wizard.
 * Added a dynamic Playground menu update after activating and deactivating of plugins and themes.
 * Added support of the Essential Addons for Elementor Pro plugin.
+* Added the ability to show What's New info for any version with the 'whats_new' GET parameter.
 * Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
 * Fixed the race condition on loading JavaScripts on Playground.
 * Fixed console errors with Divi Contact Form.

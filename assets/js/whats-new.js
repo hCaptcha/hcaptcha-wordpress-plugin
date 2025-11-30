@@ -5,6 +5,7 @@
  * @property {string} ajaxUrl         The URL to send AJAX requests to.
  * @property {string} markShownAction The action to mark the popup as shown.
  * @property {string} markShownNonce  The nonce for the mark the popup as shown action.
+ * @property {string} whatsNewParam   The GET parameter for forcing What's New popup.
  */
 
 /**
@@ -42,13 +43,26 @@ const whatsNew = ( $ ) => {
 	}
 
 	function markShown() {
+		// If the page was opened with the GET parameter `whats_new`, skip marking as shown.
+		// Return a resolved promise so callers can still chain `.always()` safely.
+		try {
+			const params = new URLSearchParams( window.location.search );
+
+			if ( params.has( HCaptchaWhatsNewObject.whatsNewParam ) ) {
+				return jQuery.Deferred().resolve().promise();
+			}
+		} catch ( e ) {
+			// In environments without URLSearchParams, silently ignore and proceed.
+		}
+
 		const data = {
 			action: HCaptchaWhatsNewObject.markShownAction,
 			nonce: HCaptchaWhatsNewObject.markShownNonce,
 			version: $( '#hcaptcha-whats-new-version' ).text(),
 		};
 
-		$.post( {
+		// Return the jqXHR so callers may chain callbacks if needed.
+		return $.post( {
 			url: HCaptchaWhatsNewObject.ajaxUrl,
 			data,
 		} );
@@ -71,18 +85,11 @@ const whatsNew = ( $ ) => {
 
 		const $btn = $( this );
 		const href = $btn.attr( 'href' );
-		const data = {
-			action: HCaptchaWhatsNewObject.markShownAction,
-			nonce: HCaptchaWhatsNewObject.markShownNonce,
-			version: $( '#hcaptcha-whats-new-version' ).text(),
-		};
 
-		$.post( {
-			url: HCaptchaWhatsNewObject.ajaxUrl,
-			data,
-			success() {
-				window.open( href, '_blank' );
-			},
+		// Reuse markShown to record the state, then open the link.
+		// Use always() to proceed regardless of network result, matching UX expectations.
+		markShown().always( function() {
+			window.open( href, '_blank' );
 		} );
 	} );
 
