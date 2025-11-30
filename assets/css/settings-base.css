@@ -269,7 +269,7 @@ body.settings_page_hcaptcha {
 	left: 0;
 	width: 100vw;
 	height: 100vh;
-	z-index: 110000;
+	z-index: 10000000;
 	background: rgba(0, 0, 0, 0.8);
 	justify-content: center;
 	align-items: center;
