@@ -772,6 +772,7 @@ Instructions for popular native integrations are below:
 * Fixed the empty hCaptcha error on the WooCommerce Checkout page when honeypot is off.
 * Fixed multiple hCaptcha widgets on the Mailchimp form preview.
 * Fixed hCaptcha What's New layout.
+* Fixed error messaging in Jetpack forms.
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
