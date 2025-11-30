@@ -54,7 +54,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		$subject = new Comment();
 
 		self::assertSame( 10, has_filter( 'comment_form_submit_field', [ $subject, 'add_captcha' ] ) );
-		self::assertSame( - PHP_INT_MAX, has_filter( 'preprocess_comment', [ $subject, 'verify' ] ) );
+		self::assertSame( -PHP_INT_MAX, has_filter( 'preprocess_comment', [ $subject, 'verify' ] ) );
 		self::assertSame( 20, has_filter( 'pre_comment_approved', [ $subject, 'pre_comment_approved' ] ) );
 	}
 
@@ -205,8 +205,12 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify(): void {
 		$comment_data = [
-			'some comment data',
-			'comment_author_IP' => '7.7.7.7',
+			'comment_author'       => 'Some author',
+			'comment_author_email' => 'author@some.com',
+			'comment_author_url'   => 'https://some.com/author',
+			'comment_content'      => 'https://some.com/author',
+			'comment_author_IP'    => '7.7.7.7',
+			'comment_agent'        => 'some agent',
 		];
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
@@ -268,10 +272,14 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_not_verified(): void {
 		$comment_data = [
-			'some comment data',
-			'comment_author_IP' => '7.7.7.7',
+			'comment_author'       => 'Some author',
+			'comment_author_email' => 'author@some.com',
+			'comment_author_url'   => 'https://some.com/author',
+			'comment_content'      => 'https://some.com/author',
+			'comment_author_IP'    => '7.7.7.7',
+			'comment_agent'        => 'some agent',
 		];
-		$expected     = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
+		$expected     = 'The hCaptcha is invalid.';
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
 
@@ -290,8 +298,12 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_signature_valid_returns_early(): void {
 		$comment_data = [
-			'some comment data',
-			'comment_author_IP' => '7.7.7.7',
+			'comment_author'       => 'Some author',
+			'comment_author_email' => 'author@some.com',
+			'comment_author_url'   => 'https://some.com/author',
+			'comment_content'      => 'https://some.com/author',
+			'comment_author_IP'    => '7.7.7.7',
+			'comment_agent'        => 'some agent',
 		];
 
 		// Prepare POST so that captcha fields exist; they should remain after early return.
@@ -321,8 +333,12 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_signature_invalid_sets_bad_signature(): void {
 		$comment_data = [
-			'some comment data',
-			'comment_author_IP' => '7.7.7.7',
+			'comment_author'       => 'Some author',
+			'comment_author_email' => 'author@some.com',
+			'comment_author_url'   => 'https://some.com/author',
+			'comment_content'      => 'https://some.com/author',
+			'comment_author_IP'    => '7.7.7.7',
+			'comment_agent'        => 'some agent',
 		];
 		$expected     = hcap_get_error_messages()['bad-signature'];
 

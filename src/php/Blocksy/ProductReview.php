@@ -53,6 +53,7 @@ class ProductReview extends CommentBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_hcaptcha( $submit_field, array $comment_args ): string {
 		$submit_field = (string) $submit_field;

@@ -103,7 +103,7 @@ abstract class CommentBase {
 		// Override poor IP detection by WP Core and make sure that IP is the same in the 'comments' table and in the 'hcaptcha_events' table.
 		$comment_data['comment_author_IP'] = hcap_get_user_ip();
 
-		$this->result = API::verify_post_html( static::NONCE, static::ACTION );
+		$this->result = API::verify( $this->get_entry( $comment_data ) );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 
@@ -129,7 +129,7 @@ abstract class CommentBase {
 			return $approved;
 		}
 
-		return $this->invalid_captcha_error( $approved, $this->result );
+		return $this->invalid_captcha_error( $approved, (string) $this->result );
 	}
 
 	/**
@@ -147,5 +147,26 @@ abstract class CommentBase {
 		$approved->add( 'invalid_hcaptcha', $error_message, 400 );
 
 		return $approved;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $comment_data Comment data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $comment_data ): array {
+		return [
+			'form_date_gmt' => gmdate( 'Y-m-d H:i:s' ),
+			'data'          => [
+				'name'    => $comment_data['comment_author'],
+				'email'   => $comment_data['comment_author_email'],
+				'url'     => $comment_data['comment_author_url'],
+				'content' => $comment_data['comment_content'],
+				'ip'      => $comment_data['comment_author_IP'],
+				'agent'   => $comment_data['comment_agent'],
+			],
+		];
 	}
 }

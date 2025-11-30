@@ -39,11 +39,11 @@ class API {
 		$entry = wp_parse_args(
 			$entry,
 			[
-				'nonce_name'         => null,
-				'nonce_action'       => null,
-				'h-captcha-response' => null,
-				'form_date_gmt'      => null,
-				'data'               => [],
+				'nonce_name'         => null, // If nonce name and action are null, nonce won't be checked.
+				'nonce_action'       => null, // If nonce name and action are null, nonce won't be checked.
+				'h-captcha-response' => null, // If null, will be taken from $_POST.
+				'form_date_gmt'      => null, // Form date in GMT.
+				'data'               => [], // Form data for antispam checks.
 			]
 		);
 
