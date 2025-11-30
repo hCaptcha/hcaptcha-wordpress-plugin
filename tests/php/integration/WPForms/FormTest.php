@@ -71,8 +71,14 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject = new Form();
 
 		if ( ! $mode_auto && ! $mode_embed ) {
-			self::assertFalse( has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $subject, 'wpforms_admin_settings_captcha_enqueues_disable' ] ) );
-			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'hcap_print_hcaptcha_scripts' ] ) );
+			self::assertFalse( has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [
+				$subject,
+				'wpforms_admin_settings_captcha_enqueues_disable',
+			] ) );
+			self::assertFalse( has_filter( 'hcap_print_hcaptcha_scripts', [
+				$subject,
+				'hcap_print_hcaptcha_scripts',
+			] ) );
 			self::assertFalse( has_filter( 'wpforms_settings_fields', [ $subject, 'wpforms_settings_fields' ] ) );
 
 			self::assertFalse( has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
@@ -86,8 +92,14 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		}
 
 		if ( $mode_embed ) {
-			self::assertSame( 10, has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $subject, 'wpforms_admin_settings_captcha_enqueues_disable' ] ) );
-			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'hcap_print_hcaptcha_scripts' ] ) );
+			self::assertSame( 10, has_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [
+				$subject,
+				'wpforms_admin_settings_captcha_enqueues_disable',
+			] ) );
+			self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [
+				$subject,
+				'hcap_print_hcaptcha_scripts',
+			] ) );
 			self::assertSame( 10, has_filter( 'wpforms_settings_fields', [ $subject, 'wpforms_settings_fields' ] ) );
 		}
 
@@ -119,8 +131,42 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
+		$id        = 5;
 		$fields    = [ 'some field' ];
-		$form_data = [ 'id' => 5 ];
+		$entry     = [
+			'fields' =>
+				[
+					[
+						'first' => 'John',
+						'last'  => 'Doe',
+					],
+					'foo@bar.com',
+					'Some message',
+				],
+			'id'     => (string) $id,
+			'nonce'  => 'some nonce',
+		];
+		$form_data = [
+			'id'     => $id,
+			'fields' => [
+				[
+					'id'     => '0',
+					'type'   => 'name',
+					'label'  => 'Name',
+					'format' => 'first-last',
+				],
+				[
+					'id'    => '1',
+					'type'  => 'email',
+					'label' => 'Email',
+				],
+				[
+					'id'    => '2',
+					'type'  => 'textarea',
+					'label' => 'Comment or Message',
+				],
+			],
+		];
 
 		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
 
@@ -129,11 +175,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
 
 		wpforms()->objects();
-		wpforms()->get( 'process' )->errors = [];
+		wpforms()->obj( 'process' )->errors = [];
 
-		$subject->verify( $fields, [], $form_data );
+		$subject->verify( $fields, $entry, $form_data );
 
-		self::assertSame( [], wpforms()->get( 'process' )->errors );
+		self::assertSame( [], wpforms()->obj( 'process' )->errors );
 	}
 
 	/**
@@ -149,7 +195,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$subject->verify( $fields, [], $form_data );
 
-		self::assertSame( [], wpforms()->get( 'process' )->errors );
+		self::assertSame( [], wpforms()->obj( 'process' )->errors );
 	}
 
 	/**
@@ -158,8 +204,42 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified(): void {
+		$id        = 5;
 		$fields    = [ 'some field' ];
-		$form_data = [ 'id' => 5 ];
+		$entry     = [
+			'fields' =>
+				[
+					[
+						'first' => 'John',
+						'last'  => 'Doe',
+					],
+					'foo@bar.com',
+					'Some message',
+				],
+			'id'     => (string) $id,
+			'nonce'  => 'some nonce',
+		];
+		$form_data = [
+			'id'     => $id,
+			'fields' => [
+				[
+					'id'     => '0',
+					'type'   => 'name',
+					'label'  => 'Name',
+					'format' => 'first-last',
+				],
+				[
+					'id'    => '1',
+					'type'  => 'email',
+					'label' => 'Email',
+				],
+				[
+					'id'    => '2',
+					'type'  => 'textarea',
+					'label' => 'Comment or Message',
+				],
+			],
+		];
 		$expected  = 'The hCaptcha is invalid.';
 
 		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
@@ -169,11 +249,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 
 		wpforms()->objects();
-		wpforms()->get( 'process' )->errors = [];
+		wpforms()->obj( 'process' )->errors = [];
 
-		$subject->verify( $fields, [], $form_data );
+		$subject->verify( $fields, $entry, $form_data );
 
-		self::assertSame( $expected, wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] );
+		self::assertSame( $expected, wpforms()->obj( 'process' )->errors[ $form_data['id'] ]['footer'] );
 	}
 
 	/**
@@ -182,14 +262,43 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified_with_wpforms_settings(): void {
-		$fields                = [ 'some field' ];
-		$form_data             = [
-			'id'       => 5,
-			'settings' => [
-				'recaptcha' => '1',
+		$id        = 5;
+		$fields    = [ 'some field' ];
+		$entry     = [
+			'fields' =>
+				[
+					[
+						'first' => 'John',
+						'last'  => 'Doe',
+					],
+					'foo@bar.com',
+					'Some message',
+				],
+			'id'     => (string) $id,
+			'nonce'  => 'some nonce',
+		];
+		$form_data = [
+			'id'     => $id,
+			'fields' => [
+				[
+					'id'     => '0',
+					'type'   => 'name',
+					'label'  => 'Name',
+					'format' => 'first-last',
+				],
+				[
+					'id'    => '1',
+					'type'  => 'email',
+					'label' => 'Email',
+				],
+				[
+					'id'    => '2',
+					'type'  => 'textarea',
+					'label' => 'Comment or Message',
+				],
 			],
 		];
-		$wpforms_error_message = 'Some WPForms hCaptcha error message.';
+		$wpforms_error_message = 'The hCaptcha is invalid.';
 
 		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
 
@@ -215,11 +324,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
 
 		wpforms()->objects();
-		wpforms()->get( 'process' )->errors = [];
+		wpforms()->obj( 'process' )->errors = [];
 
-		$subject->verify( $fields, [], $form_data );
+		$subject->verify( $fields, $entry, $form_data );
 
-		self::assertSame( $wpforms_error_message, wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] );
+		self::assertSame( $wpforms_error_message, wpforms()->obj( 'process' )->errors[ $form_data['id'] ]['footer'] );
 	}
 
 	/**
@@ -432,7 +541,7 @@ CSS;
 
 		do_action( 'wpforms_loaded' );
 
-		$captcha = wpforms()->get( 'captcha' );
+		$captcha = wpforms()->obj( 'captcha' );
 
 		add_action( 'wpforms_wp_footer', [ $captcha, 'assets_recaptcha' ] );
 
@@ -524,7 +633,7 @@ CSS;
 
 		wpforms()->register_bulk( $classes );
 
-		$captcha = wpforms()->get( 'captcha' );
+		$captcha = wpforms()->obj( 'captcha' );
 
 		do_action( 'wpforms_loaded' );
 		add_action( 'wpforms_frontend_output', [ $captcha, 'recaptcha' ], 20 );

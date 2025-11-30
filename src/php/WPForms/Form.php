@@ -75,7 +75,10 @@ class Form {
 		}
 
 		if ( $this->mode_embed ) {
-			add_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [ $this, 'wpforms_admin_settings_captcha_enqueues_disable' ] );
+			add_filter( 'wpforms_admin_settings_captcha_enqueues_disable', [
+				$this,
+				'wpforms_admin_settings_captcha_enqueues_disable',
+			] );
 			add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'hcap_print_hcaptcha_scripts' ], 0 );
 			add_filter( 'wpforms_settings_fields', [ $this, 'wpforms_settings_fields' ], 10, 2 );
 		}
@@ -116,10 +119,10 @@ class Form {
 			$wpforms_error_message = wpforms_setting( 'hcaptcha-fail-msg' );
 		}
 
-		$error_message = API::verify_post( self::NAME, self::ACTION );
+		$error_message = API::verify( $this->get_entry( $entry, $form_data ) );
 
 		if ( null !== $error_message ) {
-			wpforms()->get( 'process' )->errors[ $form_data['id'] ]['footer'] = $wpforms_error_message ?: $error_message;
+			wpforms()->obj( 'process' )->errors[ $form_data['id'] ]['footer'] = $wpforms_error_message ?: $error_message;
 		}
 	}
 
@@ -268,7 +271,7 @@ class Form {
 			return;
 		}
 
-		$captcha = wpforms()->get( 'captcha' );
+		$captcha = wpforms()->obj( 'captcha' );
 
 		if ( ! $captcha ) {
 			// @codeCoverageIgnoreStart
@@ -299,7 +302,7 @@ class Form {
 		}
 
 		if ( $this->mode_embed ) {
-			$captcha = wpforms()->get( 'captcha' );
+			$captcha = wpforms()->obj( 'captcha' );
 
 			if ( ! $captcha ) {
 				// @codeCoverageIgnoreStart
@@ -350,7 +353,7 @@ class Form {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	private function show_hcaptcha( array $form_data ): void {
-		$frontend_obj = wpforms()->get( 'frontend' );
+		$frontend_obj = wpforms()->obj( 'frontend' );
 
 		if ( ! $frontend_obj ) {
 			// @codeCoverageIgnoreStart
@@ -479,5 +482,40 @@ class Form {
 				return 'light';
 			}
 		);
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $wpforms_entry WPForms entry.
+	 * @param array $form_data     Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $wpforms_entry, array $form_data ): array {
+		$post  = get_post( $wpforms_entry['id'] );
+		$entry = [
+			'nonce_name'    => self::NAME,
+			'nonce_action'  => self::ACTION,
+			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'data'          => [],
+		];
+
+		foreach ( $form_data['fields'] as $id => $field ) {
+			$type  = $field['type'] ?? '';
+			$value = $wpforms_entry['fields'][ $id ] ?? '';
+
+			if ( 'name' === $type ) {
+				$entry['name'] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['email'] = $value;
+			}
+
+			$entry['data'][ $type ] = $value;
+		}
+
+		return $entry;
 	}
 }
