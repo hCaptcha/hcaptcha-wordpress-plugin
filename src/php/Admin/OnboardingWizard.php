@@ -38,7 +38,7 @@ class OnboardingWizard {
 	/**
 	 * GET parameter to force a specific wizard step.
 	 */
-	private const STEP_PARAM = 'onb';
+	private const STEP_PARAM = 'onboarding';
 
 	/**
 	 * Option name for the onboarding wizard state.
