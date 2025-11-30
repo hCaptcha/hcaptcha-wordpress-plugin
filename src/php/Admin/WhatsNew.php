@@ -395,6 +395,38 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 4.20.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_4_20_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block = [
+			'type'    => 'center',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Onboarding Wizard', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p>',
+				__( 'Added an onboarding wizard for new users.', 'hcaptcha-for-forms-and-more' ),
+				__( 'You can restart it anytime by adding the <code>&onboarding</code> parameter to the browser URL.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['onboarding'],
+				'text' => __( 'Restart wizard', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['onboarding_demo'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.

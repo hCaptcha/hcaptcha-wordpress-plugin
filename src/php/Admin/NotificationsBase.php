@@ -56,6 +56,8 @@ abstract class NotificationsBase {
 			$urls['token']                = $urls['general'] . '#set_min_submit_time_1';
 			$urls['honeypot']             = $urls['general'] . '#honeypot_1';
 			$urls['honeypot_demo']        = HCAPTCHA_URL . '/assets/images/demo/honeypot.png';
+			$urls['onboarding']           = $urls['general'] . '&onboarding';
+			$urls['onboarding_demo']      = HCAPTCHA_URL . '/assets/images/demo/onboarding.gif';
 		}
 
 		return $urls;
