@@ -43,7 +43,7 @@ class OnboardingWizard {
 	/**
 	 * Option name for the onboarding wizard state.
 	 */
-	private const ONBOARDING_WIZARD_OPTION = 'onboarding_wizard';
+	public const OPTION_NAME = 'onboarding_wizard';
 
 	/**
 	 * Current admin tab.
@@ -303,7 +303,7 @@ class OnboardingWizard {
 	 * @return string
 	 */
 	private function get_wizard_state(): string {
-		return $this->settings->get( self::ONBOARDING_WIZARD_OPTION );
+		return $this->settings->get( self::OPTION_NAME );
 	}
 
 	/**
@@ -314,6 +314,6 @@ class OnboardingWizard {
 	 * @return void
 	 */
 	private function set_wizard_state( string $state ): void {
-		$this->tab->update_option( self::ONBOARDING_WIZARD_OPTION, $state );
+		$this->tab->update_option( self::OPTION_NAME, $state );
 	}
 }

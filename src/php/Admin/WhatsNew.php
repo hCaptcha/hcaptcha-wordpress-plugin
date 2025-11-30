@@ -69,6 +69,13 @@ class WhatsNew extends NotificationsBase {
 	 * @return void
 	 */
 	public function init(): void {
+		$settings = hcaptcha()->settings();
+
+		if ( 'completed' !== $settings->get( OnboardingWizard::OPTION_NAME ) ) {
+			// Do not show the What's New popup if the onboarding wizard is not completed.
+			return;
+		}
+
 		$this->init_hooks();
 	}
 
