@@ -5,9 +5,6 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-/** @noinspection PhpUndefinedClassInspection */
-
 namespace HCaptcha\Helpers;
 
 use HCaptcha\Admin\Events\Events;
@@ -16,7 +13,6 @@ use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
 use WP_Error;
 use WP_Theme;
-use WPCF7_ContactForm;
 
 /**
  * Class Playground.
@@ -110,6 +106,7 @@ class Playground {
 	 * Init class hooks.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function init_hooks(): void {
 		add_action( 'plugins_loaded', [ $this, 'setup_playground' ], self::LOAD_PRIORITY );
