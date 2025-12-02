@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - trunk
+permissions:
+  actions: read
+  contents: read
 jobs:
   trunk:
     name: Push to trunk

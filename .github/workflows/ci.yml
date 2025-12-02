@@ -1,5 +1,8 @@
 name: hCaptcha CI
 on: [ push, pull_request ]
+permissions:
+  actions: read
+  contents: write
 concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
