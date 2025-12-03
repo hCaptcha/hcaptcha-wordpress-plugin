@@ -759,6 +759,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.21.0 =
+* Fixed (test line)
+
 = 4.20.0 =
 * Added Divi 5 support.
 * Added onboarding wizard.

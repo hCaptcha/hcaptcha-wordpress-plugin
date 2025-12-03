@@ -670,7 +670,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaNotificationsObject = ' . json_encode( $params ) . ';',
+			'data'  => 'var HCaptchaNotificationsObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
 		];
 
 		$subject = new Notifications();

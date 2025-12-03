@@ -99,7 +99,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaWhatsNewObject = ' . json_encode( $params ) . ';',
+			'data'  => 'var HCaptchaWhatsNewObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
 		];
 
 		$subject = new WhatsNew();
