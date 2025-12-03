@@ -71,8 +71,12 @@ jobs:
           yarn lint
 
       - name: Install WP CLI
+        # Security: 1. Ensure wp-cli integrity via checksum.
         run: |
-          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          WPCLI_VERSION=2.12.0
+          curl -fsSL -o wp-cli.phar "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar"
+          curl -fsSL -o wp-cli.phar.sha256 "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar.sha256"
+          echo "$(cat wp-cli.phar.sha256)  wp-cli.phar" | sha256sum -c -
           chmod +x wp-cli.phar
           mkdir -p wp-cli
           sudo mv wp-cli.phar wp-cli/wp
