@@ -273,7 +273,7 @@ HTML;
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaFormidableFormsObject = ' . json_encode( $params ) . ';',
+			'data'  => 'var HCaptchaFormidableFormsObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
 		];
 
 		$subject = Mockery::mock( Form::class )->makePartial();

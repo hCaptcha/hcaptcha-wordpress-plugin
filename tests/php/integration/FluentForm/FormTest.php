@@ -531,6 +531,7 @@ class FormTest extends HCaptchaWPTestCase {
 <script type="text/javascript" id="$fluent_forms_conversational_script-js-extra">
 /* <![CDATA[ */
 var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
+//# sourceURL=fluent_forms_conversational_form-js-extra
 /* ]]> */
 </script>
 HTML;
@@ -550,7 +551,7 @@ HTML;
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaFluentFormObject = ' . json_encode( $params ) . ';',
+			'data'  => 'var HCaptchaFluentFormObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
 		];
 		$args           = [
 			'action' => 'hcaptcha_fluentform',
@@ -593,7 +594,7 @@ HTML;
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaFluentFormObject = ' . json_encode( $params ) . ';',
+			'data'  => 'var HCaptchaFluentFormObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
 		];
 
 		$subject = Mockery::mock( Form::class )->makePartial();
