@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -30,6 +30,10 @@ jobs:
       WP_ADMIN_USERNAME: admin
       WP_ADMIN_PASSWORD: admin
       WP_ADMIN_EMAIL: admin@test.test
+
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ${{ matrix.os }}
 
