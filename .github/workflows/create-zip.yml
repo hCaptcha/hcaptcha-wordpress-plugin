@@ -1,19 +1,22 @@
-name: Create zip file
+name: Create zip
 
 on:
   push:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  actions: read
+  contents: read
 
 jobs:
   build-zip:
     name: New zip file
     runs-on: ubuntu-latest
 
-    if: >
-      (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[zip]'))
+    # Security: 1. Check for [zip] tag. 2. Check if user is authorized.
+    if: |
+      (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[zip]')) &&
+      contains(fromJson('["kagg-design", "e271828-"]'), github.actor)
 
     env:
       SLUG: "hcaptcha-for-forms-and-more"
