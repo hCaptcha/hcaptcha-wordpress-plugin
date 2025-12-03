@@ -657,12 +657,12 @@ For more details, please see the hCaptcha privacy policy at:
 If you enable the optional plugin-local statistics feature, the following additional data will be recorded in your database:
 
 * counts of challenge verifications per form
-* **only if you enable this optional feature: **the IP address challenged on each form
-* **only if you enable this optional feature: **the USer Agent challenged on each form
-
-You can collect data anonymously but still distinguish sources. The hashed IP address and User Agent will be saved.
+* **only if you enable this optional feature:** the IP address challenged on each form
+* **only if you enable this optional feature:** the User Agent challenged on each form
 
 We recommend leaving IP and User Agent recording off, which will make these statistics fully anonymous.
+
+You can collect data anonymously but still distinguish sources. The hashed IP address and User Agent will be saved.
 
 If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
 
@@ -763,10 +763,10 @@ Instructions for popular native integrations are below:
 * Added Divi 5 support.
 * Added onboarding wizard.
 * Added a dynamic Playground menu update after activating and deactivating of plugins and themes.
-* Added support of the Essential Addons for Elementor Pro plugin.
+* Added support for the Essential Addons for Elementor Pro plugin.
 * Added the ability to show What's New info for any version with the 'whats_new' GET parameter.
 * Fixed "[hCaptcha] should not render before js api is fully loaded" warning on the General page.
-* Fixed the race condition on loading JavaScripts on Playground.
+* Fixed race condition when loading JavaScript on Playground.
 * Fixed console errors with Divi Contact Form.
 * Fixed the placeholder layout following hCaptcha layout changes.
 * Fixed the empty hCaptcha error on the WooCommerce Checkout page when honeypot is off.
