@@ -2,11 +2,17 @@ name: Deploy to WordPress.org
 on:
   release:
     types: [published]
+permissions:
+  actions: read
+  contents: write
 jobs:
   tag:
     name: New release
 
     runs-on: ubuntu-latest
+
+    # Security: 1. Check if user is authorized.
+    if: contains(fromJson('["kagg-design", "e271828-"]'), github.actor)
 
     env:
       SLUG: "hcaptcha-for-forms-and-more"

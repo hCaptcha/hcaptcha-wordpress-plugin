@@ -1,7 +1,13 @@
 name: hCaptcha CI
 on: [ push, pull_request ]
+
+# 1. SECURITY: Default to read-only permissions for the workflow
+permissions:
+  actions: read
+  contents: read
+
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -25,6 +31,10 @@ jobs:
       WP_ADMIN_PASSWORD: admin
       WP_ADMIN_EMAIL: admin@test.test
 
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
+
     runs-on: ${{ matrix.os }}
 
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
@@ -35,10 +45,8 @@ jobs:
         with:
           path: ${{ env.wp-plugin-directory }}
 
-      - name: Update changelog
-        if: ${{ matrix.php-version == '8.4' }}
-        working-directory: ${{ env.wp-plugin-directory }}
-        run: .github/scripts/update-changelog.sh
+      # MOVED: The "Update changelog" step has been moved to the specific job below
+      # to prevent giving 'contents: write' permissions to this testing job.
 
       - name: Setup PHP
         uses: hCaptcha/setup-php@42a9487ddd45db247decea2acf7de871a8178226
@@ -67,8 +75,12 @@ jobs:
           yarn lint
 
       - name: Install WP CLI
+        # Security: 1. Ensure wp-cli integrity via checksum.
         run: |
-          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          WPCLI_VERSION=2.12.0
+          curl -fsSL -o wp-cli.phar "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar"
+          curl -fsSL -o wp-cli.phar.sha256 "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar.sha256"
+          echo "$(cat wp-cli.phar.sha256)  wp-cli.phar" | sha256sum -c -
           chmod +x wp-cli.phar
           mkdir -p wp-cli
           sudo mv wp-cli.phar wp-cli/wp
@@ -115,3 +127,30 @@ jobs:
         if: ${{ matrix.php-version == '8.4' }}
         working-directory: ${{ env.wp-plugin-directory }}
         run: yarn jest
+
+  update_changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+
+    # 2. SECURITY: Only run on PUSH, never on Pull Requests
+    if: github.event_name == 'push'
+    needs: cs_and_tests
+
+    # 3. SECURITY: Grant write permission ONLY to this job
+    permissions:
+      contents: write
+
+    env:
+      wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: ${{ env.wp-plugin-directory }}
+          # Check out the branch ref to ensure we can push back to it
+          ref: ${{ github.ref }}
+
+      - name: Update changelog
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: .github/scripts/update-changelog.sh
