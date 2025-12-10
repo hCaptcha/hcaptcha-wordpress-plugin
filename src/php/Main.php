@@ -284,7 +284,7 @@ class Main {
 		 * Do not load hCaptcha functionality:
 		 * - if a user is logged in and the option 'off_when_logged_in' is set;
 		 * - for allowlisted IPs;
-		 * - when the site key or the secret key is empty (after first plugin activation).
+		 * - when the site key or the secret key is empty (after the first plugin activation).
 		 */
 		$deactivate = (
 			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
@@ -823,7 +823,7 @@ class Main {
 		 * Filters delay time for the hCaptcha API script.
 		 *
 		 * Any negative value will prevent the API script from loading
-		 * until user interaction: mouseenter, click, scroll or touch.
+		 * until user interaction: mouseenter, click, scroll, or touch.
 		 * This significantly improves Google Pagespeed Insights score.
 		 *
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.

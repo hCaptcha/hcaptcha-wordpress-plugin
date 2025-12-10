@@ -760,6 +760,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.21.0 =
+* Fixed FluentForms integrations after the latest FluentForms update.
 
 = 4.20.0 =
 * Added Divi 5 support.

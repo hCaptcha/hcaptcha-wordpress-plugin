@@ -479,7 +479,7 @@ class FormTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
-		wp_register_script( 'hcaptcha', 'https://test.test/wp-content/plugins/fluentform/some-assets/hcaptcha.js', [], '1.0.0', true );
+		wp_register_script( 'hcaptcha', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit', [], '1.0.0', true );
 		wp_enqueue_script( 'hcaptcha' );
 
 		$subject = new Form();

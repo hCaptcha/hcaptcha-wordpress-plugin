@@ -550,7 +550,7 @@ class Form extends LoginBase {
 
 		$src = $script->src;
 
-		if ( false === strpos( $src, 'fluentform' ) ) {
+		if ( false === strpos( $src, 'api.js' ) ) {
 			return;
 		}
 
