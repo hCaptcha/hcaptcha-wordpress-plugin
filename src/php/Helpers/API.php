@@ -44,8 +44,13 @@ class API {
 				'h-captcha-response' => null, // If null, will be taken from $_POST.
 				'form_date_gmt'      => null, // Form date in GMT.
 				'data'               => [], // Form data for antispam checks.
+				'post_data'          => [], // Contains data to set in global POST for verifying hCaptcha response.
 			]
 		);
+
+		if ( $entry['post_data'] ) {
+			self::set_global_post_data( $entry );
+		}
 
 		$result = self::verify_nonce( $entry['nonce_name'], $entry['nonce_action'] );
 
@@ -56,7 +61,13 @@ class API {
 		// Init AntiSpam object and add hcap_verify_request hook.
 		( new AntiSpam( $entry ) )->init();
 
-		return self::verify_request( $entry['h-captcha-response'] );
+		$result = self::verify_request( $entry['h-captcha-response'] );
+
+		if ( $entry['post_data'] ) {
+			self::unset_global_post_data( $entry );
+		}
+
+		return $result;
 	}
 	/**
 	 * Verify POST and return an error message as HTML.
@@ -106,32 +117,76 @@ class API {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	public static function verify_post_data( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION, array $post_data = [] ): ?string {
-		$response_name  = 'h-captcha-response';
-		$widget_id_name = 'hcaptcha-widget-id';
-		$hp_sig_name    = 'hcap_hp_sig';
-		$token_name     = 'hcap_fst_token';
-		$hp_name        = self::get_hp_name( $post_data );
+		$entry = [
+			'nonce_name' => $name,
+			'post_data'  => $post_data,
+		];
 
-		$_POST[ $response_name ]  = $post_data[ $response_name ] ?? '';
-		$_POST[ $name ]           = $post_data[ $name ] ?? '';
-		$_POST[ $widget_id_name ] = $post_data[ $widget_id_name ] ?? '';
-		$_POST[ $hp_sig_name ]    = $post_data[ $hp_sig_name ] ?? '';
-		$_POST[ $hp_name ]        = $post_data[ $hp_name ] ?? '';
-		$_POST[ $token_name ]     = $post_data[ $token_name ] ?? '';
+		self::set_global_post_data( $entry );
 
 		$result = self::verify_nonce( $name, $action );
 		$result = $result ?? self::verify_request();
 
-		unset(
-			$_POST[ $response_name ],
-			$_POST[ $name ],
-			$_POST[ $widget_id_name ],
-			$_POST[ $hp_sig_name ],
-			$_POST[ $hp_name ],
-			$_POST[ $token_name ]
-		);
+		self::unset_global_post_data( $entry );
 
 		return $result;
+	}
+
+	/**
+	 * Get POST keys for verifying hCaptcha response.
+	 *
+	 * @param array $entry Entry.
+	 *
+	 * @return array POST keys.
+	 */
+	private static function get_hcaptcha_post_keys( array $entry ): array {
+		$response_name  = 'h-captcha-response';
+		$widget_id_name = 'hcaptcha-widget-id';
+		$hp_sig_name    = 'hcap_hp_sig';
+		$token_name     = 'hcap_fst_token';
+		$hp_name        = self::get_hp_name( $entry['post_data'] );
+
+		return [
+			$entry['nonce_name'],
+			$response_name,
+			$widget_id_name,
+			$hp_sig_name,
+			$token_name,
+			$hp_name,
+		];
+	}
+
+	/**
+	 * Set hCaptcha POST data for verifying hCaptcha response.
+	 *
+	 * @param array $entry Entry.
+	 *
+	 * @return void
+	 */
+	private static function set_global_post_data( array $entry ): void {
+		$post_data = $entry['post_data'];
+		$keys      = self::get_hcaptcha_post_keys( $entry );
+
+		foreach ( $keys as $key ) {
+			if ( isset( $post_data[ $key ] ) ) {
+				$_POST[ $key ] = $post_data[ $key ];
+			}
+		}
+	}
+
+	/**
+	 * Unset hCaptcha POST data after verifying hCaptcha response.
+	 *
+	 * @param array $entry Entry.
+	 *
+	 * @return void
+	 */
+	private static function unset_global_post_data( array $entry ): void {
+		$keys = self::get_hcaptcha_post_keys( $entry );
+
+		foreach ( $keys as $key ) {
+			unset( $_POST[ $key ] );
+		}
 	}
 
 	/**
