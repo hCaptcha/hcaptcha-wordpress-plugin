@@ -761,6 +761,7 @@ Instructions for popular native integrations are below:
 
 = 4.21.0 =
 * Fixed FluentForms integrations after the latest FluentForms update.
+* Fixed the inability to send FluentForms Conversational Form.
 
 = 4.20.0 =
 * Added Divi 5 support.
