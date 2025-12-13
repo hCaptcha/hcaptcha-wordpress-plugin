@@ -190,7 +190,7 @@ class Form extends LoginBase {
 
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
 
-		$error_message = API::verify( $this->get_entry() );
+		$error_message = API::verify( $this->get_entry( $form ) );
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -554,22 +554,23 @@ class Form extends LoginBase {
 	/**
 	 * Get entry.
 	 *
+	 * @param FluentForm $form Form data and settings.
+	 *
 	 * @return array
 	 * @noinspection PhpCastIsUnnecessaryInspection
 	 * @noinspection UnnecessaryCastingInspection
-	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUndefinedMethodInspection
 	 */
-	private function get_entry(): array {
+	private function get_entry( FluentForm $form ): array {
 		$post_data_str = Request::filter_input( INPUT_POST, 'data' );
 
 		wp_parse_str( $post_data_str, $post_data );
 
 		$post_data = (array) $post_data; // The $post_data is filtered in the wp_parse_str() and can be anything.
 
-		$form_id     = (int) Request::filter_input( INPUT_POST, 'form_id' );
-		$form        = wpFluent()->table( 'fluentform_forms' )->find( $form_id );
-		$form_fields = json_decode( $form->form_fields, true );
-		$fields      = $form_fields['fields'] ?? [];
+		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
+		$form_fields      = json_decode( $form_fields_json, true );
+		$fields           = $form_fields['fields'] ?? [];
 
 		// Build map.
 		$fields_map = $this->collect_frontend_fields_map( $fields );

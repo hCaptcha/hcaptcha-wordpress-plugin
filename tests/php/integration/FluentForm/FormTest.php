@@ -207,17 +207,28 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$errors    = [
+		$errors     = [
 			'some_error' => 'Some error description',
 		];
-		$response  = 'some response';
-		$widget_id = 'some-widget-id';
-		$data      = [
+		$response   = 'some response';
+		$widget_id  = 'some-widget-id';
+		$data       = [
 			'h-captcha-response' => $response,
 			'hcaptcha-widget-id' => $widget_id,
 		];
-		$fields    = [];
-		$form      = Mockery::mock( FluentForm::class );
+		$fields     = [];
+		$attributes = [
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'form_fields' => json_encode(
+				[
+					'fields'       => [],
+					'submitButton' => [],
+				]
+			),
+		];
+
+		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
@@ -386,20 +397,31 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
-		$errors    = [
+		$errors     = [
 			'some_error' => 'Some error description',
 		];
-		$response  = 'some response';
-		$widget_id = 'some-widget-id';
-		$user      = get_user_by( 'id', 1 );
-		$email     = $user->user_email;
-		$password  = 'some password';
-		$data      = [
+		$response   = 'some response';
+		$widget_id  = 'some-widget-id';
+		$user       = get_user_by( 'id', 1 );
+		$email      = $user->user_email;
+		$password   = 'some password';
+		$data       = [
 			'email'    => $email,
 			'password' => $password,
 		];
-		$form      = Mockery::mock( FluentForm::class );
-		$fields    = [];
+		$fields     = [];
+		$attributes = [
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'form_fields' => json_encode(
+				[
+					'fields'       => [],
+					'submitButton' => [],
+				]
+			),
+		];
+
+		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$array_helper = Mockery::mock( 'alias:' . ArrayHelper::class );
 
