@@ -116,7 +116,9 @@ class Playground {
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
 		add_action( 'login_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 10000 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'login_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::UPDATE_MENU_ACTION, [ $this, 'update_menu' ] );
 
 		// Do not send hCaptcha statistics from Playground.
@@ -672,7 +674,7 @@ class Playground {
 	 *
 	 * @return void
 	 */
-	public function admin_enqueue_scripts(): void {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
