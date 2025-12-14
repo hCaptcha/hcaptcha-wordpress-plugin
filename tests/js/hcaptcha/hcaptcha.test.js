@@ -381,7 +381,7 @@ describe( 'HCaptcha', () => {
 		form.appendChild( submit );
 		document.body.appendChild( form );
 
-		// Setup selectors and found form mapping
+		// Set up selectors and found form mapping
 		hCaptcha.formSelector = 'form';
 		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
 
@@ -522,7 +522,7 @@ describe( 'HCaptcha', () => {
 		form.appendChild( submit );
 		document.body.appendChild( form );
 
-		// Setup selectors and found form mapping
+		// Set up selectors and found form mapping
 		hCaptcha.formSelector = 'form';
 		hCaptcha.responseSelector = 'textarea[name="h-captcha-response"]';
 
@@ -539,7 +539,7 @@ describe( 'HCaptcha', () => {
 		const stopPropagation = jest.fn();
 		const event = { currentTarget: submit, target: submit, preventDefault, stopPropagation };
 
-		// Perform validate to set currentForm
+		// Perform validating to set currentForm
 		hCaptcha.validate( event );
 
 		expect( hCaptcha.isValidated() ).toBe( true );
@@ -1714,7 +1714,7 @@ describe( 'submit', () => {
 
 		// Spies that would be called if there was a form
 		const clickSpy = jest.fn();
-		// Calling submit should not throw and should not call anything
+		// Calling `submit` should not throw and should not call anything
 		inst.submit();
 		expect( clickSpy ).not.toHaveBeenCalled();
 	} );
