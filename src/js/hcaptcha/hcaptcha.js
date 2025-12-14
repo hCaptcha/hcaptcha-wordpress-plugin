@@ -607,8 +607,6 @@ class HCaptcha {
 			this.moveHP( formElement );
 			this.addFSTToken( formElement );
 
-			console.log( 'render hcaptcha' );
-
 			// Render or re-render.
 			hcaptchaElement.innerHTML = '';
 
