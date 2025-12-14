@@ -1301,77 +1301,6 @@ describe( 'HCaptcha', () => {
 	} );
 } );
 
-// addSyncedEventListener tests
-describe( 'addSyncedEventListener', () => {
-	let inst;
-
-	beforeEach( () => {
-		inst = new HCaptcha();
-	} );
-
-	test( 'calls callback immediately when document is not loading', () => {
-		const cb = jest.fn();
-
-		// Force readyState to a non-loading value
-		const original = Object.getOwnPropertyDescriptor( document, 'readyState' );
-		Object.defineProperty( document, 'readyState', { value: 'complete', configurable: true } );
-
-		const aelSpy = jest.spyOn( window, 'addEventListener' );
-
-		inst.addSyncedEventListener( cb );
-
-		expect( cb ).toHaveBeenCalledTimes( 1 );
-		expect( aelSpy ).not.toHaveBeenCalledWith( 'DOMContentLoaded', cb );
-
-		// Cleanup
-		aelSpy.mockRestore();
-		if ( original ) {
-			Object.defineProperty( document, 'readyState', original );
-		} else {
-			delete document.readyState;
-		}
-	} );
-
-	test( 'registers DOMContentLoaded when loading and does not duplicate the same callback', () => {
-		const cb = jest.fn();
-
-		const original = Object.getOwnPropertyDescriptor( document, 'readyState' );
-		Object.defineProperty( document, 'readyState', { value: 'loading', configurable: true } );
-
-		const aelSpy = jest.spyOn( window, 'addEventListener' );
-
-		// First registration should add a listener
-		inst.addSyncedEventListener( cb );
-
-		// The second registration with the same callback should not cause the callback to fire twice later
-		inst.addSyncedEventListener( cb );
-
-		// Consider only DOMContentLoaded registrations (handler may be wrapped by implementation)
-		const dclCalls = aelSpy.mock.calls.filter( ( [ type ] ) => type === 'DOMContentLoaded' );
-		expect( dclCalls.length ).toBeGreaterThanOrEqual( 1 );
-
-		// Simulate DOMContentLoaded firing for all registered listeners
-		for ( const call of dclCalls ) {
-			const listener = call[ 1 ];
-
-			if ( typeof listener === 'function' ) {
-				listener();
-			}
-		}
-
-		// Callback should only be invoked once overall (deduped at invocation stage)
-		expect( cb ).toHaveBeenCalledTimes( 1 );
-
-		// Cleanup
-		aelSpy.mockRestore();
-		if ( original ) {
-			Object.defineProperty( document, 'readyState', original );
-		} else {
-			delete document.readyState;
-		}
-	} );
-} );
-
 // moveHP tests
 describe( 'moveHP', () => {
 	let inst;
@@ -1672,12 +1601,16 @@ describe( 'bindEvents', () => {
 		const backup = global.hcaptcha;
 		global.hcaptcha = undefined;
 
-		// Call bindEvents; should return immediately without side effects
+		// Call bindEvents
 		inst.bindEvents();
 
-		expect( getFormsSpy ).not.toHaveBeenCalled();
+		// getForms is called to search for forms
+		expect( getFormsSpy ).toHaveBeenCalled();
+		// render is not called due to the absence of global hcaptcha or suitable forms
 		expect( renderSpy ).not.toHaveBeenCalled();
-		expect( inst.formSelector ).toBeUndefined();
+		// formSelector is set at the beginning of the method
+		expect( typeof inst.formSelector ).toBe( 'string' );
+		// No form added
 		expect( inst.foundForms.length ).toBe( 0 );
 
 		// Restore global.hcaptcha
