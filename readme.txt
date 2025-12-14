@@ -762,6 +762,7 @@ Instructions for popular native integrations are below:
 = 4.21.0 =
 * Fixed FluentForms integrations after the latest FluentForms update.
 * Fixed the inability to send FluentForms Conversational Form.
+* Fix the racing condition which sometimes led to double rendering of the hCaptcha widget on any forms.
 * Fixed double rendering of the hCaptcha widget on the Elementor Form.
 
 = 4.20.0 =

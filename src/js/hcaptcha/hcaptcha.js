@@ -500,7 +500,7 @@ class HCaptcha {
 	 *
 	 * @param {Function} callback
 	 */
-	addSyncedEventListener( callback ) {
+	addSyncedEventListener( callback = window.hCaptchaSyncedEventListenerCallback ) {
 		const invoke = ( cb ) => {
 			if ( ! this.addedDCLCallbacks.has( cb ) ) {
 				return;
@@ -514,7 +514,7 @@ class HCaptcha {
 
 		// Sync with DOMContentLoaded event.
 		if ( document.readyState === 'loading' ) {
-			window.addEventListener( 'DOMContentLoaded', invoke.bind( null, callback ) );
+			window.addEventListener( 'DOMContentLoaded', () => invoke( callback ), { once: true } );
 		} else {
 			invoke( callback );
 		}
@@ -630,6 +630,8 @@ class HCaptcha {
 
 			this.moveHP( formElement );
 			this.addFSTToken( formElement );
+
+			console.log( 'render hcaptcha' );
 
 			// Render or re-render.
 			hcaptchaElement.innerHTML = '';

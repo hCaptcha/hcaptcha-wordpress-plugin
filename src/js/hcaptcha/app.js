@@ -19,22 +19,14 @@ window.hCaptchaReset = ( el ) => {
 	hCaptcha.reset( el );
 };
 
-window.hCaptchaBindEvents = () => {
-	const addSyncedEventListener = () => {
-		hCaptcha.addSyncedEventListener( () => {
-			document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
-			hCaptcha.bindEvents();
-			document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
-		} );
-	};
+window.hCaptchaSyncedEventListenerCallback = () => {
+	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
+	hCaptcha.bindEvents();
+	document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
+};
 
-	if ( window.__hCaptchaOnLoad ) {
-		addSyncedEventListener();
-	} else {
-		document.addEventListener( 'hCaptchaBeforeOnLoad', () => {
-			addSyncedEventListener();
-		} );
-	}
+window.hCaptchaBindEvents = () => {
+	hCaptcha.addSyncedEventListener();
 };
 
 window.hCaptchaSubmit = () => {
@@ -45,9 +37,6 @@ window.hCaptchaOnLoad = () => {
 	document.addEventListener( 'hCaptchaAfterBindEvents', () => {
 		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
 	} );
-
-	window.__hCaptchaOnLoad = true;
-	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeOnLoad', { cancelable: true } ) );
 
 	window.hCaptchaBindEvents();
 };
