@@ -6,8 +6,10 @@
 
 import HCaptcha from './hcaptcha';
 import HCaptchaCustomElement from './hcaptcha-custom-element';
+import ReadyGate from './ready-gate';
 
 const hCaptcha = new HCaptcha();
+const readyGate = new ReadyGate();
 
 window.hCaptcha = hCaptcha;
 
@@ -19,14 +21,12 @@ window.hCaptchaReset = ( el ) => {
 	hCaptcha.reset( el );
 };
 
-window.hCaptchaSyncedEventListenerCallback = () => {
-	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
-	hCaptcha.bindEvents();
-	document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
-};
-
 window.hCaptchaBindEvents = () => {
-	hCaptcha.addSyncedEventListener();
+	readyGate.runWhenReady( () => {
+		document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
+		hCaptcha.bindEvents();
+		document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
+	} );
 };
 
 window.hCaptchaSubmit = () => {
@@ -34,11 +34,10 @@ window.hCaptchaSubmit = () => {
 };
 
 window.hCaptchaOnLoad = () => {
+	document.dispatchEvent( new CustomEvent( 'hCaptchaOnLoad' ) );
 	document.addEventListener( 'hCaptchaAfterBindEvents', () => {
 		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
 	} );
-
-	window.hCaptchaBindEvents();
 };
 
 window.customElements.define( 'h-captcha', HCaptchaCustomElement );

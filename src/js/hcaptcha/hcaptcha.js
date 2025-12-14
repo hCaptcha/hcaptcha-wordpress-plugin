@@ -21,7 +21,6 @@ class HCaptcha {
 		this.darkClass = null;
 		this.callback = this.callback.bind( this );
 		this.validate = this.validate.bind( this );
-		this.addedDCLCallbacks = new Set();
 	}
 
 	/**
@@ -496,31 +495,6 @@ class HCaptcha {
 	}
 
 	/**
-	 * Add an event listener that syncs with the DOMContentLoaded event.
-	 *
-	 * @param {Function} callback
-	 */
-	addSyncedEventListener( callback = window.hCaptchaSyncedEventListenerCallback ) {
-		const invoke = ( cb ) => {
-			if ( ! this.addedDCLCallbacks.has( cb ) ) {
-				return;
-			}
-
-			cb();
-			this.addedDCLCallbacks.delete( cb );
-		};
-
-		this.addedDCLCallbacks.add( callback );
-
-		// Sync with DOMContentLoaded event.
-		if ( document.readyState === 'loading' ) {
-			window.addEventListener( 'DOMContentLoaded', () => invoke( callback ), { once: true } );
-		} else {
-			invoke( callback );
-		}
-	}
-
-	/**
 	 * Move honeypot input to a random position among visible inputs in the form.
 	 *
 	 * @param {HTMLElement} formElement Form element.
@@ -596,10 +570,6 @@ class HCaptcha {
 	 * Bind events on forms containing hCaptcha.
 	 */
 	bindEvents() {
-		if ( 'undefined' === typeof hcaptcha ) {
-			return;
-		}
-
 		this.formSelector = wp.hooks.applyFilters(
 			'hcaptcha.formSelector',
 			'form' +
