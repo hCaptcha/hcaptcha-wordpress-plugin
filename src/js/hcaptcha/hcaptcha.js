@@ -568,8 +568,10 @@ class HCaptcha {
 
 	/**
 	 * Bind events on forms containing hCaptcha.
+	 *
+	 * @param {HTMLElement|null} el Element.
 	 */
-	bindEvents() {
+	bindEvents( el = null ) {
 		this.formSelector = wp.hooks.applyFilters(
 			'hcaptcha.formSelector',
 			'form' +
@@ -587,6 +589,10 @@ class HCaptcha {
 
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
+
+			if ( el && ( el !== hcaptchaElement ) ) {
+				return formElement;
+			}
 
 			// Ignore forms not having hcaptcha.
 			if ( null === hcaptchaElement ) {

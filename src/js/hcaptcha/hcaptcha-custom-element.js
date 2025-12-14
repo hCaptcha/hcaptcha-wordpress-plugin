@@ -8,7 +8,7 @@
 class HCaptchaCustomElement extends HTMLElement {
 	// noinspection JSUnusedGlobalSymbols
 	connectedCallback() {
-		window.hCaptchaBindEvents();
+		window.hCaptchaBindEvents( this );
 	}
 }
 

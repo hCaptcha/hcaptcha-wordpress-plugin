@@ -21,10 +21,10 @@ window.hCaptchaReset = ( el ) => {
 	hCaptcha.reset( el );
 };
 
-window.hCaptchaBindEvents = () => {
+window.hCaptchaBindEvents = ( el ) => {
 	readyGate.runWhenReady( () => {
 		document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
-		hCaptcha.bindEvents();
+		hCaptcha.bindEvents( el );
 		document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
 	} );
 };
