@@ -1,7 +1,13 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-// Import the app.js file to ensure global functions are defined
-import '../../../src/js/hcaptcha/app.js';
+// Mock ReadyGate so that runWhenReady executes the callback immediately
+jest.mock( '../../../src/js/hcaptcha/ready-gate', () => {
+	// noinspection JSUnusedGlobalSymbols
+	return jest.fn().mockImplementation( () => ( {
+		runWhenReady: ( cb ) => cb(),
+	} ) );
+} );
+
 import HCaptcha from '../../../src/js/hcaptcha/hcaptcha.js';
 
 jest.mock( '../../../src/js/hcaptcha/hcaptcha.js', () => {
@@ -14,6 +20,9 @@ jest.mock( '../../../src/js/hcaptcha/hcaptcha.js', () => {
 	};
 	return jest.fn( () => mockHCaptcha );
 } );
+
+// Import app.js after mocks so that the mocked ReadyGate is used
+import '../../../src/js/hcaptcha/app.js';
 
 describe( 'app.js', () => {
 	let hCaptcha;
@@ -37,12 +46,23 @@ describe( 'app.js', () => {
 		expect( hCaptcha.reset ).toHaveBeenCalledWith( mockEl );
 	} );
 
-	test( 'hCaptchaBindEvents should register synced listener', () => {
+	test( 'hCaptchaBindEvents should call bindEvents and dispatch Before/After events', () => {
+		let beforeCalled = false;
+		let afterCalled = false;
+
+		document.addEventListener( 'hCaptchaBeforeBindEvents', () => {
+			beforeCalled = true;
+		} );
+
+		document.addEventListener( 'hCaptchaAfterBindEvents', () => {
+			afterCalled = true;
+		} );
+
 		window.hCaptchaBindEvents();
-		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalled();
-		// addSyncedEventListener is called without a callback.
-		// It uses the global window.hCaptchaSyncedEventListenerCallback.
-		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalledWith();
+
+		expect( beforeCalled ).toBe( true );
+		expect( hCaptcha.bindEvents ).toHaveBeenCalled();
+		expect( afterCalled ).toBe( true );
 	} );
 
 	test( 'hCaptchaSubmit should call submit', () => {
@@ -50,14 +70,22 @@ describe( 'app.js', () => {
 		expect( hCaptcha.submit ).toHaveBeenCalled();
 	} );
 
-	test( 'hCaptchaOnLoad should register synced event listener via hCaptchaBindEvents', () => {
+	test( 'hCaptchaOnLoad should subscribe and trigger hCaptchaLoaded after hCaptchaAfterBindEvents', () => {
+		let loadedCalled = false;
+
+		document.addEventListener( 'hCaptchaLoaded', () => {
+			loadedCalled = true;
+		} );
+
 		window.hCaptchaOnLoad();
-		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalled();
-		expect( hCaptcha.addSyncedEventListener ).toHaveBeenCalledWith();
+
+		// Simulate bindEvents completion
+		document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
+
+		expect( loadedCalled ).toBe( true );
 	} );
 
-	test( 'hCaptchaSyncedEventListenerCallback should dispatch events, bind and trigger Loaded via onLoad handler', () => {
-		// Set up onLoad, which will subscribe to hCaptchaAfterBindEvents and call hCaptchaLoaded
+	test( 'Integration: onLoad + bindEvents dispatch Before, call bindEvents and trigger Loaded', () => {
 		window.hCaptchaOnLoad();
 
 		let beforeCalled = false;
@@ -71,8 +99,8 @@ describe( 'app.js', () => {
 			loadedCalled = true;
 		} );
 
-		// Simulate "synchronous loading" — the library called the global callback
-		window.hCaptchaSyncedEventListenerCallback();
+		// Start the binding flow (runWhenReady will immediately invoke the callback due to the mock)
+		window.hCaptchaBindEvents();
 
 		expect( beforeCalled ).toBe( true );
 		expect( hCaptcha.bindEvents ).toHaveBeenCalled();
