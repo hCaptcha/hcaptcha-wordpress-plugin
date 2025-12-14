@@ -1,9 +1,33 @@
 /* global jQuery, HCaptchaPlaygroundObject */
 
-const hCaptchaPlayground = window.hCaptchaPlayground || ( function( window, $ ) {
+const hCaptchaPlayground = window.hCaptchaPlayground || ( function( window, document, $ ) {
 	const app = {
 		init() {
+			app.fixMenu();
 			$( document ).on( 'ajaxSuccess', app.ajaxSuccessHandler );
+		},
+
+		// Fix admin menu.
+		fixMenu() {
+			const host = window.location.hostname ?? '';
+
+			let inIframe = false;
+
+			try {
+				inIframe = window.self !== window.top;
+			} catch ( e ) {
+				// If cross-origin blocks access to window.top, we are in an iframe.
+				inIframe = true;
+			}
+
+			// Apply only on playground.wordpress.net.
+			if ( inIframe && host === 'playground.wordpress.net' ) {
+				const adminBar = document.getElementById( 'wpadminbar' );
+
+				if ( adminBar ) {
+					adminBar.style.marginTop = '4px';
+				}
+			}
 		},
 
 		// jQuery ajaxSuccess handler.
@@ -40,7 +64,7 @@ const hCaptchaPlayground = window.hCaptchaPlayground || ( function( window, $ ) 
 	};
 
 	return app;
-}( window, jQuery ) );
+}( window, document, jQuery ) );
 
 window.hCaptchaPlayground = hCaptchaPlayground;
 

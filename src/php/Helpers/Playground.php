@@ -621,10 +621,6 @@ class Playground {
 	public function head_styles(): void {
 		?>
 		<style>
-			body.is-embedded #wpadminbar {
-				margin-top: 4px;
-			}
-
 			#wpadminbar #wp-admin-bar-hcaptcha-menu {
 				background: #00bbbf;
 			}
@@ -640,12 +636,13 @@ class Playground {
 
 			#wpadminbar > #wp-toolbar > #wp-admin-bar-root-default .ab-icon.hcaptcha-icon,
 			#wpadminbar .ab-icon.hcaptcha-icon {
-				width: 24px;
-				height: 24px;
+				width: 20px;
+				height: 20px;
 				background-image: url('<?php echo esc_url( $this->icon_url() ); ?>') !important;
 				background-repeat: no-repeat;
 				background-position: center;
-				background-size: 24px 24px;
+				background-size: 20px 20px;
+				top: 2px;
 			}
 		</style>
 		<?php
