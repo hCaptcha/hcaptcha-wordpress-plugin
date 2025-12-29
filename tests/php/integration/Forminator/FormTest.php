@@ -27,7 +27,7 @@ use ReflectionException;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Teardown test.
 	 *
 	 * @return void
 	 */
@@ -91,6 +91,8 @@ class FormTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_hcaptcha().
+	 *
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_hcaptcha(): void {
 		$form_id   = 5;
@@ -120,7 +122,7 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() with bad response.
+	 * Test verify() with a bad response.
 	 *
 	 * @return void
 	 */
@@ -168,11 +170,38 @@ class FormTest extends HCaptchaWPTestCase {
 			'fields' => [
 				(object) [
 					'raw' => [
+						'element_id'  => 'name-1',
+						'type'        => 'name',
+						'field_label' => 'First Name',
+					],
+				],
+				(object) [
+					'raw' => [
+						'element_id'  => 'email-1',
+						'type'        => 'email',
+						'field_label' => 'Email Address',
+					],
+				],
+				(object) [
+					'raw' => [
+						'element_id'  => 'textarea-1',
+						'type'        => 'textarea',
+						'field_label' => 'Message',
+					],
+				],
+				(object) [
+					'raw' => [
+						'element_id'       => 'captcha-1',
+						'type'             => 'captcha',
 						'captcha_provider' => 'hcaptcha',
 					],
 				],
 			],
 		];
+
+		$expected_fields = $module_object->fields;
+
+		array_pop( $expected_fields );
 
 		$this->prepare_verify_post(
 			'hcaptcha_forminator_nonce',
@@ -184,7 +213,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertTrue( $subject->verify( true, $id, $form_settings ) );
-		self::assertEquals( (object) [ 'fields' => [] ], $module_object );
+		self::assertEquals( (object) [ 'fields' => $expected_fields ], $module_object );
 	}
 
 	/**
@@ -292,7 +321,7 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test admin_enqueue_scripts() when not on Forminator page.
+	 * Test admin_enqueue_scripts() when not on the Forminator page.
 	 *
 	 * @return void
 	 */
