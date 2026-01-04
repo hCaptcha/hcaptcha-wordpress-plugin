@@ -58,6 +58,9 @@ abstract class NotificationsBase {
 			$urls['honeypot_demo']        = HCAPTCHA_URL . '/assets/images/demo/honeypot.png';
 			$urls['onboarding']           = $urls['general'] . '&onboarding';
 			$urls['onboarding_demo']      = HCAPTCHA_URL . '/assets/images/demo/onboarding.gif';
+			$urls['ai_abilities']         = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F';
+			$urls['ai_abilities_img']     = HCAPTCHA_URL . '/assets/images/ai-abilities.png';
+			$urls['recaptcha_paid']       = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#description';
 		}
 
 		return $urls;

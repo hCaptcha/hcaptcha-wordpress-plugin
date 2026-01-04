@@ -37,7 +37,7 @@ use WP_Theme;
 class SystemInfoTest extends HCaptchaTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */

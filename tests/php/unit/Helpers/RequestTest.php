@@ -27,7 +27,7 @@ use WP_Mock;
 class RequestTest extends HCaptchaTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		unset( $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'] );

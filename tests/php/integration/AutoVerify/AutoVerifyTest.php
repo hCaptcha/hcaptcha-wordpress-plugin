@@ -24,7 +24,7 @@ use Mockery;
 class AutoVerifyTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );

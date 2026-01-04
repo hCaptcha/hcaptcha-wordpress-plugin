@@ -31,7 +31,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'bbpress/bbpress.php';
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */

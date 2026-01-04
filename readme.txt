@@ -4,26 +4,31 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 5.3
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 4.20.0
+Stable tag: 4.21.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
-Integrates with 60+ popular plugins and themes.
+Looking for a reCAPTCHA alternative after Google imposed usage-based pricing?
+The strongest CAPTCHA. Integrates with 60+ popular plugins and themes.
 
 == Description ==
 
-The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
+Looking for a reCAPTCHA alternative after Google imposed usage-based pricing?
+The first WordPress security plugin to support the new Abilities API for automated and AI-assisted security workflows.
+The strongest CAPTCHA. Integrates with 60+ popular plugins and themes.
 
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
+
+Unlike reCAPTCHA, hCaptcha does not introduce automatic upgrades or traffic-based billing, making it a predictable choice for growing sites.
 
 hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp) with broad integration support, detailed analytics, and strong protection. Start protecting logins, forms, and more in minutes.
 
 == Benefits ==
 
 * **Privacy First:** hCaptcha is designed to protect user privacy. It doesn't retain or sell personal data, unlike platforms that **g**ather, **o**wn, and m**o**netize **gl**obal b**e**havior.
+* **Predictable Pricing:** hCaptcha does not rely on usage-based pricing tiers or surprise upgrades as traffic increases.
 * **Better Security:** hCaptcha offers better protection against bots and abuse than other anti-abuse systems.
 * **Easy to Use:** hCaptcha is easy to install and use with WordPress and popular plugins.
 * **Broad Integration:** hCaptcha works with WordPress Core, WooCommerce, Contact Form 7, Elementor, and over 60 other plugins and themes.
@@ -33,6 +38,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 **Highlights**
 
 * **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
+* **AI-Ready Security:** Selected security actions are exposed via the WordPress Abilities API for automation and AI-driven workflows.
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
 * **Protect Site Content:** Protects selected site URLs from bots with hCaptcha. Works best with Pro 99.9% passive mode.
@@ -106,6 +112,98 @@ For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the p
 For example, we support Contact Forms 7 automatically. However, sometimes a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
 
 To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> tag.
+
+= How do I use the new AI / Abilities features? =
+
+hCaptcha exposes selected security actions via the WordPress Abilities API for use with automation tools, WP-CLI, and AI agents, making it suitable for agencies managing multiple WordPress sites. Requires WordPress 6.9 or newer.
+
+The typical workflow consists of two steps: inspect threats and block offenders.
+
+** 1. Inspect recent threat activity **
+
+You can request an aggregated threat snapshot for a given time window.
+
+Using WP-CLI:
+
+`
+wp ability run hcaptcha/get-threat-snapshot --input='{"window":"55d"}' --user=admin
+`
+
+Using REST API (authenticated):
+
+`
+curl --globoff -u "USER:APP_PASSWORD" \
+"https://example.com/wp-json/wp-abilities/v1/abilities/hcaptcha/get-threat-snapshot/run?input[window]=55d"
+`
+
+The response includes:
+* overall metrics (total requests, failure rate)
+* dominant attack signals
+* breakdown by error type and form source
+* a list of top offenders (if present)
+
+Example (simplified):
+`
+{
+  "metrics": { "total": 353, "failed": 215 },
+  "signals": { "attack_likelihood": "high" },
+  "breakdown": {
+    "errors": { "empty": 160, "spam": 16 },
+    "offenders": [
+      {
+        "offender_id": "a1376a016c4156933c4d49b0bc56fa01",
+        "type": "ip",
+        "count": 2
+      }
+    ]
+  }
+}
+`
+
+** 2. Block abusive offenders **
+
+If an offender appears suspicious, you can block it using its offender_id.
+
+Using WP-CLI:
+
+`
+wp ability run hcaptcha/block-offenders \
+--input='{"offender_ids":["a1376a016c4156933c4d49b0bc56fa01"]}' \
+--user=admin
+`
+
+Using REST API:
+`
+curl --globoff -u "USER:APP_PASSWORD" \
+"https://example.com/wp-json/wp-abilities/v1/abilities/hcaptcha/block-offenders/run?input[offender_ids][]=a1376a016c4156933c4d49b0bc56fa01"
+`
+
+Example response:
+
+`
+{
+  "blocked": ["a1376a016c4156933c4d49b0bc56fa01"],
+  "effective_until": "2026-01-01T22:22:09Z"
+}
+`
+
+** What is offender_id? **
+
+`offender_id` is a stable hash of the IP address.
+Raw IP addresses are never exposed to automation clients or AI agents.
+
+This allows privacy-safe analysis and blocking, while still enabling deterministic enforcement.
+
+** Can AI agents use this automatically? **
+
+Yes.
+You can point an AI agent to a WordPress site with Abilities enabled and instruct it to:
+* discover available abilities
+* collect threat statistics
+* decide whether activity looks abusive
+* block the most active offenders
+
+Internally, the agent performs the same commands shown above (`wp ability list`, `get-threat-snapshot`, `block-offenders`).
 
 = You don't support plugin X. How can I get support for it added? =
 
@@ -760,10 +858,17 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 4.21.0 =
+* Added AI-ready security actions via the WordPress Abilities API, enabling automated threat inspection and response.
+* Added compatibility with the latest version of the Ninja Forms plugin.
 * Fixed FluentForms integrations after the latest FluentForms update.
 * Fixed the inability to send FluentForms Conversational Form.
 * Fix the racing condition which sometimes led to double rendering of the hCaptcha widget on any forms.
 * Fixed double rendering of the hCaptcha widget on the Elementor Form.
+* Fixed an error activating a free plugin when its premium version is not available.
+* Fixed highlighting of the suggested plugin when it is already activated.
+* Fixed an attempt for installation of an already installed plugin.
+* Fixed installing plugins declared as WordPress dependencies.
+* Fixed Jetpack test form appearance on the Playground.
 
 = 4.20.0 =
 * Added Divi 5 support.

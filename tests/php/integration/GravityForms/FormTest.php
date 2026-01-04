@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\GravityForms;
 
+use GF_Field;
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -27,11 +28,17 @@ use tad\FunctionMocker\FunctionMocker;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		unset( $GLOBALS['current_screen'] );
+		unset(
+			$GLOBALS['current_screen'],
+			$_POST['input_3_3'],
+			$_POST['input_3_6'],
+			$_POST['input_4'],
+			$_POST['gform_submit']
+		);
 
 		parent::tearDown();
 	}
@@ -234,20 +241,51 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify( string $mode ): void {
 		$form_id           = 23;
-		$hcaptcha_field    = (object) [
-			'type' => 'hcaptcha',
-		];
 		$form              = [
 			'id'     => $form_id,
-			'fields' => [ $hcaptcha_field ],
+			'fields' => [
+				$this->get_gf_field(
+					[
+						'id'     => 3,
+						'type'   => 'name',
+						'label'  => 'Name',
+						'inputs' => [
+							[ 'id' => '3.2' ],
+							[ 'id' => '3.3' ],
+							[ 'id' => '3.4' ],
+							[ 'id' => '3.6' ],
+							[ 'id' => '3.8' ],
+						],
+					]
+				),
+				$this->get_gf_field(
+					[
+						'id'     => 4,
+						'type'   => 'email',
+						'label'  => 'Email',
+						'inputs' => null,
+					]
+				),
+				$this->get_gf_field(
+					[
+						'id'     => 2,
+						'type'   => 'hcaptcha',
+						'label'  => 'hCaptcha',
+						'inputs' => null,
+					]
+				),
+			],
 		];
 		$validation_result = [
 			'is_valid'               => true,
-			'form'                   => [],
+			'form'                   => $form,
 			'failed_validation_page' => 0,
 		];
 		$context           = 'form-submit';
 
+		$_POST['input_3_3']    = 'John';
+		$_POST['input_3_6']    = 'Doe';
+		$_POST['input_4']      = 'foo@bar.com';
 		$_POST['gform_submit'] = $form_id;
 
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
@@ -273,27 +311,56 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_not_verified( string $mode ): void {
 		$form_id           = 23;
-		$hcaptcha_field    = (object) [
-			'type' => 'hcaptcha',
-		];
 		$form              = [
 			'id'     => $form_id,
-			'fields' => [ $hcaptcha_field ],
+			'fields' => [
+				$this->get_gf_field(
+					[
+						'id'     => 3,
+						'type'   => 'name',
+						'label'  => 'Name',
+						'inputs' => [
+							[ 'id' => '3.2' ],
+							[ 'id' => '3.3' ],
+							[ 'id' => '3.4' ],
+							[ 'id' => '3.6' ],
+							[ 'id' => '3.8' ],
+						],
+					]
+				),
+				$this->get_gf_field(
+					[
+						'id'     => 4,
+						'type'   => 'email',
+						'label'  => 'Email',
+						'inputs' => null,
+					]
+				),
+				$this->get_gf_field(
+					[
+						'id'     => 2,
+						'type'   => 'hcaptcha',
+						'label'  => 'hCaptcha',
+						'inputs' => null,
+					]
+				),
+			],
 		];
 		$validation_result = [
 			'is_valid'               => true,
-			'form'                   => [],
+			'form'                   => $form,
 			'failed_validation_page' => 0,
 		];
 		$expected          = [
 			'is_valid'               => false,
-			'form'                   => [
-				'validationSummary' => '1',
-			],
+			'form'                   => array_merge( $form, [ 'validationSummary' => '1' ] ),
 			'failed_validation_page' => 0,
 		];
 		$context           = 'form-submit';
 
+		$_POST['input_3_3']    = 'John';
+		$_POST['input_3_6']    = 'Doe';
+		$_POST['input_4']      = 'foo@bar.com';
 		$_POST['gform_submit'] = $form_id;
 
 		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
@@ -556,5 +623,22 @@ CSS;
 		$subject->enqueue_scripts();
 
 		self::assertTrue( wp_script_is( Form::HANDLE ) );
+	}
+
+	/**
+	 * Get GF_Field object.
+	 *
+	 * @param array $data Field data.
+	 *
+	 * @return GF_Field
+	 */
+	private function get_gf_field( array $data ): GF_Field {
+		$field = new GF_Field();
+
+		foreach ( $data as $key => $value ) {
+			$field->$key = $value;
+		}
+
+		return $field;
 	}
 }

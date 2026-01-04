@@ -327,6 +327,24 @@ class Notifications extends NotificationsBase {
 					'text' => __( 'Turn on honeypot', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.21.0.
+			'recaptcha-paid'      => [
+				'title'   => __( 'Migrating from reCAPTCHA?', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Google reCAPTCHA now uses usage-based pricing. hCaptcha is a drop-in alternative without traffic-based billing surprises.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $urls['recaptcha_paid'],
+					'text' => __( 'Read more', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 4.21.0.
+			'ai-abilities'        => [
+				'title'   => __( 'AI-ready security actions', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Selected hCaptcha features are now available via the WordPress Abilities API for automation and AI-driven threat response. WordPress 6.9 is required.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $urls['ai_abilities'],
+					'text' => __( 'Read documentation', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$notifications = $this->select_active_notifications( $notifications );
@@ -420,25 +438,30 @@ class Notifications extends NotificationsBase {
 				$button_url      = $notification['button']['url'];
 				$button_text     = $notification['button']['text'];
 				$button_lightbox = $notification['button']['lightbox'];
-				$button          = '';
 
-				if ( $button_url && $button_text ) {
-					$lightbox_class = $button_lightbox ? ' hcaptcha-lightbox' : '';
-					ob_start();
+				$lightbox_class = $button_lightbox ? ' hcaptcha-lightbox' : '';
+				ob_start();
 
-					?>
-					<div class="hcaptcha-notification-buttons hidden">
+				?>
+				<div class="hcaptcha-notification-buttons hidden">
+					<?php
+
+					if ( $button_url && $button_text ) {
+						?>
 						<a
 								href="<?php echo esc_url( $button_url ); ?>"
 								class="button button-primary <?php echo esc_attr( $lightbox_class ); ?>"
 								target="_blank">
 							<?php echo esc_html( $button_text ); ?>
 						</a>
-					</div>
-					<?php
+						<?php
+					}
 
-					$button = ob_get_clean();
-				}
+					?>
+				</div>
+				<?php
+
+				$button = ob_get_clean();
 
 				// We need the 'inline' class below to prevent moving the 'notice' div after h2 by common.js script in WP Core.
 				?>
@@ -663,6 +686,8 @@ class Notifications extends NotificationsBase {
 	 * @return array
 	 */
 	private function select_active_notifications( array $notifications ): array {
+		global $wp_version;
+
 		$settings = hcaptcha()->settings();
 
 		// Key: option name, value: notification id.

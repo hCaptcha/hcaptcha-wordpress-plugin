@@ -23,12 +23,21 @@ use WP_Error;
 class BaseTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['contact-form-hash'], $GLOBALS['pagenow'], $_GET );
+		unset(
+			$_POST['contact-form-hash'],
+			$_POST['contact-form-id'],
+			$_POST['g13-name'],
+			$_POST['g13-email'],
+			$_POST['g13'],
+			$GLOBALS['pagenow'],
+			$_GET['post'],
+			$_GET['action']
+		);
 
 		parent::tearDown();
 	}
@@ -86,6 +95,11 @@ class BaseTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+
+		$_POST['contact-form-id'] = '13';
+		$_POST['g13-name']        = 'Some name';
+		$_POST['g13-email']       = 'foo@bar.com';
+		$_POST['g13']             = 'Some message';
 
 		$subject = new Form();
 

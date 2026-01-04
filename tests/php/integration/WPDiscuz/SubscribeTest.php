@@ -57,7 +57,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */

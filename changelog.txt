@@ -1,8 +1,15 @@
 = 4.21.0 =
+* Added AI-ready security actions via the WordPress Abilities API, enabling automated threat inspection and response.
+* Added compatibility with the latest version of the Ninja Forms plugin.
 * Fixed FluentForms integrations after the latest FluentForms update.
 * Fixed the inability to send FluentForms Conversational Form.
 * Fix the racing condition which sometimes led to double rendering of the hCaptcha widget on any forms.
 * Fixed double rendering of the hCaptcha widget on the Elementor Form.
+* Fixed an error activating a free plugin when its premium version is not available.
+* Fixed highlighting of the suggested plugin when it is already activated.
+* Fixed an attempt for installation of an already installed plugin.
+* Fixed installing plugins declared as WordPress dependencies.
+* Fixed Jetpack test form appearance on the Playground.
 
 = 4.20.0 =
 * Added Divi 5 support.

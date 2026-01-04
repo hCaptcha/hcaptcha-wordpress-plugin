@@ -13,6 +13,7 @@
 
 namespace HCaptcha\Tests\Integration;
 
+use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AutoVerify\AutoVerify;
@@ -26,7 +27,6 @@ use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\FluentForm\Form;
-use HCaptcha\Helpers\Playground;
 use HCaptcha\Main;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
@@ -67,7 +67,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	private static $included_components = [];
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -521,7 +521,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		add_filter(
 			'hcap_mode',
-			static function ( $mode ) {
+			static function () {
 				return 'live';
 			}
 		);
@@ -1280,6 +1280,8 @@ CSS;
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_load_modules( array $module ): void {
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		/** @noinspection SuspiciousAssignmentsInspection */
 		[ $option_name, $option_value ] = $module[0];
 
 		update_option(
@@ -1307,6 +1309,7 @@ CSS;
 			Events::class,
 			Privacy::class,
 			WhatsNew::class,
+			Abilities::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
 

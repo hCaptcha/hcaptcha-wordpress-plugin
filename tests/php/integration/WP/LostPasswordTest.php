@@ -28,7 +28,7 @@ use WP_Error;
 class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended

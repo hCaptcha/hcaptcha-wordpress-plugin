@@ -27,7 +27,7 @@ use tad\FunctionMocker\FunctionMocker;
 class RegisterTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended

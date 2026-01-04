@@ -55,7 +55,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		unset( $_GET['elementor-preview'], $GLOBALS['current_screen'] );

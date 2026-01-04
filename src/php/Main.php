@@ -13,6 +13,7 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
@@ -214,6 +215,7 @@ class Main {
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
+		$this->load( Abilities::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 10 );
 		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
@@ -900,6 +902,8 @@ class Main {
 			}
 
 			foreach ( $this->modules as $module ) {
+				// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+				/** @noinspection SuspiciousAssignmentsInspection */
 				[ $module_status, $module_source ] = $module;
 
 				if ( ! in_array( $module_status, $honeypot_statuses, true ) ) {
@@ -949,9 +953,11 @@ class Main {
 	 * @param bool|mixed   $denylisted Whether IP is denylisted.
 	 * @param string|false $client_ip   Client IP.
 	 *
-	 * @return bool|mixed
+	 * @return bool
 	 */
-	public function denylist_ip( $denylisted, $client_ip ) {
+	public function denylist_ip( $denylisted, $client_ip ): bool {
+		$denylisted = (bool) $denylisted;
+
 		$ips = explode(
 			"\n",
 			$this->settings()->get( 'blacklisted_ips' )
@@ -1689,6 +1695,8 @@ class Main {
 		}
 
 		foreach ( $this->modules as $module ) {
+			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+			/** @noinspection SuspiciousAssignmentsInspection */
 			[ $option_name, $option_value ] = $module[0];
 
 			$option = (array) $this->settings()->get( $option_name );
@@ -1724,7 +1732,7 @@ class Main {
 	 */
 	public function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
-			if ( '' === $plugin_or_theme_name ) {
+			if ( '' === $plugin_or_theme_name || 'WordPress' === $plugin_or_theme_name ) {
 				// WP Core is always active.
 				return true;
 			}

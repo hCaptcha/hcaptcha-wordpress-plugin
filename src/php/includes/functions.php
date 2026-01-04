@@ -8,6 +8,12 @@
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
+	exit;
+	// @codeCoverageIgnoreEnd
+}
+
 /**
  * Display hCaptcha shortcode.
  *

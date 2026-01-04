@@ -116,7 +116,7 @@ class Form {
 			return;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null === $error_message ) {
 			return;
@@ -147,5 +147,62 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		global $wpdb;
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$data = isset( $_POST['data'] )
+			? array_map( 'sanitize_text_field', wp_unslash( $_POST['data'] ) )
+			: [];
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$form_id = (int) $data['form_id'];
+		$fields  = [];
+
+		foreach ( $data as $key => $value ) {
+			if ( strpos( $key, 'form_field_' ) !== 0 ) {
+				continue;
+			}
+
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			$hash_name       = (string) base64_decode( str_replace( 'form_field_', '', $key ) );
+			$hash_name_arr   = explode( '_', $hash_name );
+			$name            = (string) end( $hash_name_arr );
+			$fields[ $name ] = $value;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated_at = $wpdb->get_var(
+			$wpdb->prepare( "SELECT updated_at FROM {$wpdb->prefix}mailpoet_forms WHERE id = %d", $form_id )
+		);
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ) ?? '',
+			'form_date_gmt'      => $updated_at,
+			'data'               => [],
+		];
+
+		$name = [];
+
+		foreach ( $fields as $type => $value ) {
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $type ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
 	}
 }

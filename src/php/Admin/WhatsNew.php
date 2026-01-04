@@ -33,7 +33,7 @@ class WhatsNew extends NotificationsBase {
 	private const MARK_SHOWN_ACTION = 'hcaptcha-mark-shown';
 
 	/**
-	 * Settings key for last shown What's New version.
+	 * Settings key for a last shown What's New version.
 	 */
 	private const WHATS_NEW_KEY = 'whats_new_last_shown_version';
 
@@ -427,6 +427,57 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 4.21.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_4_21_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block1 = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'AI-Ready Security Actions', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p><ul><li>%4$s</li><li>%5$s</li></ul>',
+				__( 'hCaptcha for WordPress now exposes selected security capabilities via the WordPress Abilities API — a machine-readable interface designed for automation tools and AI agents.', 'hcaptcha-for-forms-and-more' ),
+				__( 'This enables programmatic threat monitoring and response workflows without relying on custom REST endpoints or UI automation.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Two initial abilities are included:', 'hcaptcha-for-forms-and-more' ),
+				__( 'Threat snapshot (aggregated metrics and top offenders)', 'hcaptcha-for-forms-and-more' ),
+				__( 'Privacy-safe blocking based on hashed offender identifiers', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['ai_abilities'],
+				'text' => __( 'Read documentation', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['ai_abilities_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$block2 = [
+			'type'    => 'center',
+			'title'   => __( 'reCAPTCHA pricing changes', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'Google has introduced usage-based pricing for reCAPTCHA, which may affect sites as traffic grows.', 'hcaptcha-for-forms-and-more' ),
+				__( 'hCaptcha for WordPress continues to provide predictable bot protection without automatic upgrades or surprise billing.', 'hcaptcha-for-forms-and-more' ),
+				__( 'If you are evaluating alternatives to reCAPTCHA, hCaptcha works as a drop-in replacement for most WordPress forms and integrations.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['recaptcha_paid'],
+				'text' => __( 'Read more', 'hcaptcha-for-forms-and-more' ),
+			],
+		];
+
+		$this->show_block( $block1 );
+		$this->show_block( $block2 );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.
@@ -450,19 +501,21 @@ class WhatsNew extends NotificationsBase {
 
 		?>
 		<div class="hcaptcha-whats-new-block <?php echo esc_attr( $block['type'] ); ?>">
-			<?php echo wp_kses_post( $badge ); ?>
-			<h2>
-				<?php echo esc_html( $block['title'] ); ?>
-			</h2>
-			<div class="hcaptcha-whats-new-message">
-				<?php echo wp_kses_post( $block['message'] ); ?>
-			</div>
-			<div class="hcaptcha-whats-new-button">
-				<a
-						href="<?php echo esc_url( $block['button']['url'] ); ?>" class="button button-primary"
-						target="_blank">
-					<?php echo esc_html( $block['button']['text'] ); ?>
-				</a>
+			<div class="hcaptcha-whats-new-text">
+				<?php echo wp_kses_post( $badge ); ?>
+				<h2>
+					<?php echo esc_html( $block['title'] ); ?>
+				</h2>
+				<div class="hcaptcha-whats-new-message">
+					<?php echo wp_kses_post( $block['message'] ); ?>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="<?php echo esc_url( $block['button']['url'] ); ?>" class="button button-primary"
+							target="_blank">
+						<?php echo esc_html( $block['button']['text'] ); ?>
+					</a>
+				</div>
 			</div>
 			<div class="hcaptcha-whats-new-image">
 				<?php if ( ! empty( $block['image']['url'] ) ) : ?>

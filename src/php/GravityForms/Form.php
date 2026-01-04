@@ -10,10 +10,12 @@
 
 namespace HCaptcha\GravityForms;
 
+use GF_Field;
 use GFFormsModel;
 use GP_Field_Nested_Form;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Form
@@ -83,7 +85,7 @@ class Form extends Base {
 	}
 
 	/**
-	 * Filter the submit button element HTML.
+	 * Filter the `submit` button element HTML.
 	 *
 	 * @param string|mixed $button_input Button HTML.
 	 * @param array        $form         Form data and settings.
@@ -164,15 +166,17 @@ class Form extends Base {
 	/**
 	 * Verify hCaptcha.
 	 *
-	 * @param array|mixed $validation_result {
-	 *    An array containing the validation properties.
+	 * @param array|mixed $validation_result      {
+	 *                                            An array containing the validation properties.
 	 *
-	 *    @type bool  $is_valid               The validation result.
-	 *    @type array $form                   The form currently being validated.
-	 *    @type int   $failed_validation_page The number of the page that failed validation or the current page if the form is valid.
-	 * }
+	 * @type bool         $is_valid               The validation result.
+	 * @type array        $form                   The form currently being validated.
+	 * @type int          $failed_validation_page The number of the page that failed validation or the current page if
+	 *       the form is valid.
+	 *                                            }
 	 *
-	 * @param string      $context           The context for the current submission. Possible values: form-submit, api-submit, api-validate.
+	 * @param string      $context                The context for the current submission. Possible values: form-submit,
+	 *                                            api-submit, api-validate.
 	 *
 	 * @return array|mixed
 	 * @noinspection PhpUnusedParameterInspection
@@ -182,7 +186,7 @@ class Form extends Base {
 			return $validation_result;
 		}
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify( $this->get_entry( $validation_result['form']['fields'] ) );
 
 		if ( null === $this->error_message ) {
 			return $validation_result;
@@ -416,5 +420,75 @@ class Form extends Base {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $fields Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $fields ): array {
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ) ?? '',
+			'form_date_gmt'      => null, // GF does not support form updated date.
+			'data'               => [],
+		];
+
+		$name = [];
+
+		foreach ( $fields as $field ) {
+			$type  = $field->type;
+			$label = $field->label;
+
+			if ( 'hcaptcha' === $type ) {
+				continue;
+			}
+
+			$value = $this->get_value( $field );
+
+			if ( 'name' === $type ) {
+				$name[] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $label ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
+	}
+
+	/**
+	 * Get field value.
+	 *
+	 * @param GF_Field $field Field.
+	 *
+	 * @return string
+	 */
+	protected function get_value( GF_Field $field ): string {
+		$id = $field->id;
+
+		if ( $field->inputs ) {
+			$values = [];
+
+			foreach ( $field->inputs as $input ) {
+				$input_id = 'input_' . str_replace( '.', '_', $input['id'] );
+				$values[] = Request::filter_input( INPUT_POST, $input_id ) ?? '';
+			}
+
+			$value = implode( ' ', array_filter( $values ) );
+		} else {
+			$value = Request::filter_input( INPUT_POST, 'input_' . $id ) ?? '';
+		}
+
+		return $value;
 	}
 }

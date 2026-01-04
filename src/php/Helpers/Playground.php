@@ -156,7 +156,7 @@ class Playground {
 					$wp_admin_bar->add_menus();
 				}
 
-				// your custom nodes if needed.
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 				do_action( 'admin_bar_menu', $wp_admin_bar );
 
 				// Output markup.
@@ -337,6 +337,11 @@ class Playground {
 ',
 			]
 		);
+
+		$active_modules = get_option( 'jetpack_active_modules', [] );
+		$active_modules = array_merge( $active_modules, [ 'blocks', 'contact-form' ] );
+
+		update_option( 'jetpack_active_modules', array_unique( $active_modules ) );
 	}
 
 	/**
@@ -1014,7 +1019,8 @@ class Playground {
 			[
 				'id'    => self::HCAPTCHA_MENU_ID,
 				'title' =>
-					'<span class="ab-icon hcaptcha-icon"></span><span class="ab-label">' .
+					'<span class="ab-icon hcaptcha-icon"></span>' .
+					'<span class="ab-label">' .
 					__( 'hCaptcha Samples', 'hcaptcha-for-forms-and-more' ) .
 					'</span>',
 				'meta'  => [ 'class' => self::HCAPTCHA_MENU_ID ],

@@ -23,7 +23,7 @@ use HCaptcha\Avada\Form;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */

@@ -109,7 +109,23 @@
 }
 
 .hcaptcha-whats-new-block {
-	padding: 75px 13%;
+	display: flex;
+	padding: 25px 10%;
+	gap: 25px;
+	align-items: center;
+}
+
+.hcaptcha-whats-new-block.left {
+	flex-direction: row;
+}
+
+.hcaptcha-whats-new-block.right {
+	flex-direction: row-reverse;
+}
+
+.hcaptcha-whats-new-block.center {
+	flex-direction: column;
+	text-align: center;
 }
 
 .hcaptcha-whats-new-block:first-of-type {
@@ -120,8 +136,22 @@
 	background: #f0f2f5;
 }
 
-.hcaptcha-whats-new-block.center {
-	text-align: center;
+.hcaptcha-whats-new-text {
+	/*flex: 0 0 calc(70% - 20px); !* 20px — half of the gap *!*/
+	flex: 7;
+}
+
+.hcaptcha-whats-new-block.center .hcaptcha-whats-new-text {
+	flex: 0 0 100%;
+}
+
+.hcaptcha-whats-new-image {
+	/*flex: 0 0 calc(70% - 20px); !* 20px — half of the gap *!*/
+	flex: 3;
+}
+
+.hcaptcha-whats-new-block.center .hcaptcha-whats-new-image {
+	flex: 0 0 100%;
 }
 
 .hcaptcha-whats-new-badge {
@@ -156,12 +186,18 @@
 	margin: 15px 0;
 }
 
-.hcaptcha-whats-new-button {
-	margin-bottom: 50px;
+.hcaptcha-whats-new-message ul {
+	margin-top: -10px;
+}
+
+.hcaptcha-whats-new-message ul li {
+	list-style: inside;
 }
 
 .hcaptcha-whats-new-image img {
 	max-width: 100%;
+	height: auto;
+	display: block;
 }
 
 @media (max-width: 600px) {

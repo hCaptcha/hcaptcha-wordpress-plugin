@@ -25,7 +25,7 @@ use tad\FunctionMocker\FunctionMocker;
 class EmailOptinTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		wp_dequeue_script( EmailOptin::HANDLE );
