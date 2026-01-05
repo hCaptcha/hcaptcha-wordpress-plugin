@@ -14,6 +14,7 @@ use Forminator_CForm_Front;
 use Forminator_Front_Action;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Form.
@@ -138,7 +139,7 @@ class Form {
 			}
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry( $module_object->fields ) );
 
 		if ( null !== $error_message ) {
 			return [
@@ -319,5 +320,48 @@ class Form {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $fields Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $fields ): array {
+		$form_id = (int) Request::filter_input( INPUT_POST, 'form_id' );
+		$form    = get_post( $form_id );
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ) ?? '',
+			'form_date_gmt'      => $form->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+
+		$name = [];
+
+		foreach ( $fields as $field ) {
+			$id    = $field->raw['element_id'];
+			$type  = $field->raw['type'];
+			$label = $field->raw['field_label'];
+			$value = Request::filter_input( INPUT_POST, $id ) ?? '';
+
+			if ( 'name' === $type ) {
+				$name[] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $label ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
 	}
 }

@@ -113,6 +113,11 @@ HTML;
 		$_POST['action']   = 'mailpoet';
 		$_POST['endpoint'] = 'subscribers';
 		$_POST['method']   = 'subscribe';
+		$_POST['data']     = [
+			'form_id'                             => '1',
+			'email'                               => '',
+			'form_field_YjVlNWFkMmRiYTlhX2VtYWls' => 'foo@bar.com',
+		];
 
 		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
 
@@ -142,6 +147,11 @@ HTML;
 		$_POST['action']   = 'mailpoet';
 		$_POST['endpoint'] = 'subscribers';
 		$_POST['method']   = 'subscribe';
+		$_POST['data']     = [
+			'form_id'                             => '1',
+			'email'                               => '',
+			'form_field_YjVlNWFkMmRiYTlhX2VtYWls' => 'foo@bar.com',
+		];
 
 		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet', false );
 

@@ -7,10 +7,13 @@
 
 namespace HCaptcha\Tests\Integration\Divi;
 
+use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
+use stdClass;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Block;
 
 /**
  * Class ContactTest.
@@ -41,11 +44,12 @@ class ContactTest extends HCaptchaWPTestCase {
 	private $current_form_field = 'et_pb_contact_email_fields_0';
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		unset(
+			$_SERVER['REQUEST_METHOD'],
 			$_POST[ $this->cf_nonce_field ],
 			$_POST[ $this->submit_field ]
 		);
@@ -192,6 +196,58 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_hcaptcha_to_block().
+	 */
+	public function test_add_hcaptcha_to_block(): void {
+		hcaptcha()->init_hooks();
+
+		$hcap_form = $this->get_hcap_form(
+			[
+				'action' => 'hcaptcha_divi_cf',
+				'name'   => 'hcaptcha_divi_cf_nonce',
+				'id'     => [
+					'source'  => [ 'Divi' ],
+					'form_id' => 'contact',
+				],
+			]
+		);
+
+		$search        = '<div class="et_contact_bottom_container">';
+		$block_content = '<div class="some-wrapper">' . "\n" . $search . "\n" . '</div>';
+		$expected      =
+			'<div class="some-wrapper">' .
+			"\n" .
+			'<div class="hcaptcha-divi-5-wrapper">' . $hcap_form . '</div>' .
+			"\n" .
+			'<div style="clear: both;"></div>' .
+			"\n" .
+			$search .
+			"\n" .
+			'</div>';
+
+		$subject        = new Contact();
+		$dummy_wp_block = [
+			'blockName'    => 'core/paragraph',
+			'attrs'        => [],
+			'innerBlocks'  => [],
+			'innerHTML'    => '',
+			'innerContent' => [],
+		];
+
+		// Wrong block.
+		self::assertSame(
+			$block_content,
+			$subject->add_hcaptcha_to_block( $block_content, [ 'blockName' => 'core/paragraph' ], new WP_Block( $dummy_wp_block ) )
+		);
+
+		// Contact Form block.
+		self::assertSame(
+			$expected,
+			$subject->add_hcaptcha_to_block( $block_content, [ 'blockName' => 'divi/contact-form' ], new WP_Block( $dummy_wp_block ) )
+		);
+	}
+
+	/**
 	 * Test add_captcha() in the frontend builder.
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -210,11 +266,11 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify().
+	 * Test verify_4().
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify(): void {
+	public function test_verify_4(): void {
 		$return = 'some html';
 		$tag    = 'et_pb_contact_form';
 
@@ -260,12 +316,10 @@ class ContactTest extends HCaptchaWPTestCase {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		self::assertEquals( $expected_current_form_fields, $_POST[ $this->current_form_field ] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
@@ -273,11 +327,11 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() not verified.
+	 * Test verify_4() not verified.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_verify_not_verified(): void {
+	public function test_verify_4_not_verified(): void {
 		$return = 'some html';
 		$tag    = 'et_pb_contact_form';
 
@@ -334,15 +388,79 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() with the wrong tag.
+	 * Test verify_4() with the wrong tag.
 	 */
-	public function test_verify_wrong_tag(): void {
+	public function test_verify_4_wrong_tag(): void {
 		$return = 'some html';
 		$tag    = 'wrong tag';
 
 		$subject = new Contact();
 
 		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
+	}
+
+	/**
+	 * Test verify_5().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_5(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+
+		$nonce                          = wp_create_nonce( 'et-pb-contact-form-submit' );
+		$_POST[ $this->cf_nonce_field ] = $nonce;
+		$_POST[ $this->submit_field ]   = 'submit';
+
+		$current_form_fields                = '[{&#34;field_id&#34;:&#34;et_pb_contact_name_0&#34;,&#34;original_id&#34;:&#34;name&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;input&#34;,&#34;field_label&#34;:&#34;Name&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_email_0&#34;,&#34;original_id&#34;:&#34;email&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;email&#34;,&#34;field_label&#34;:&#34;Email Address&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_message_0&#34;,&#34;original_id&#34;:&#34;message&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;Message&#34;},{&#34;field_id&#34;:&#34;h-captcha-response-0lwsv53iy61b&#34;,&#34;original_id&#34;:&#34;&#34;,&#34;required_mark&#34;:&#34;not_required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;&#34;}]';
+		$_POST[ $this->current_form_field ] = $current_form_fields;
+
+		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf', false );
+
+		FunctionMocker::replace(
+			'filter_input',
+			function ( $type, $var_name, $filter ) use ( $nonce, $current_form_fields ) {
+				if (
+					INPUT_POST === $type &&
+					$this->cf_nonce_field === $var_name &&
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
+				) {
+					return $nonce;
+				}
+
+				if (
+					INPUT_POST === $type &&
+					$this->current_form_field === $var_name &&
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
+				) {
+					return $current_form_fields;
+				}
+
+				return null;
+			}
+		);
+
+		$module                  = new stdClass();
+		$module->attrs           = [];
+		$module->attrs['module'] = [];
+
+		$module->attrs['module']['advanced']['spamProtection']['desktop']['value']['enabled'] = 'off';
+
+		// Put a module in the store so Contact::verify_5 can mutate it.
+		BlockParserStore::$module = $module;
+
+		$filter_args = [
+			'name'          => 'divi/contact-form',
+			'id'            => 'module-1',
+			'storeInstance' => 'store-1',
+		];
+
+		$subject = new Contact();
+
+		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
+		self::assertSame( [], $subject->verify_5( [], $filter_args ) );
+		self::assertSame( 'on', $this->get_protected_property( $subject, 'captcha' ) );
+		self::assertSame( 'on', $module->attrs['module']['advanced']['spamProtection']['desktop']['value']['enabled'] );
 	}
 
 	/**
@@ -416,6 +534,22 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, $subject->shortcode_attributes( $props, $attrs, $slug, $_address, $content ) );
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 */
+	public function test_print_inline_styles(): void {
+		$subject = new Contact();
+
+		ob_start();
+		$subject->print_inline_styles();
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString( '<style>', $output );
+		self::assertStringContainsString( '.hcaptcha-divi-wrapper', $output );
+		self::assertStringContainsString( '.hcaptcha-divi-5-wrapper', $output );
+		self::assertStringContainsString( '</style>', $output );
 	}
 
 	/**

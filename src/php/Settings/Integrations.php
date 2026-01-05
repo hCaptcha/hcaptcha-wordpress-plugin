@@ -11,6 +11,7 @@ use HCaptcha\Admin\OnboardingWizard;
 
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\Honeypot;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -851,6 +852,15 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Get form fields.
+	 *
+	 * @return array
+	 */
+	public function get_form_fields(): array {
+		return $this->form_fields;
+	}
+
+	/**
 	 * Get logo image.
 	 *
 	 * @param array $form_field Label.
@@ -1080,6 +1090,14 @@ class Integrations extends PluginSettingsBase {
 		$suggest_activate = wp_verify_nonce( $nonce, self::ACTIVATE_ACTION )
 			? Request::filter_input( INPUT_GET, 'suggest_activate' )
 			: '';
+
+		if ( $suggest_activate ) {
+			$source = HCaptcha::get_status_source( $suggest_activate );
+
+			if ( hcaptcha()->plugin_or_theme_active( $source ) ) {
+				$suggest_activate = '';
+			}
+		}
 
 		wp_localize_script(
 			self::HANDLE,
@@ -1387,20 +1405,13 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
 	protected function maybe_activate_plugin( string $plugin ) {
-		if ( hcaptcha()->is_plugin_active( $plugin ) ) {
-			return true;
-		}
+		// Always try to install a plugin, as some dependent plugins may require it.
+		ob_start();
+		$result = $this->install_plugin( $plugin );
+		ob_end_clean();
 
-		if ( $this->install ) {
-			ob_start();
-
-			$result = $this->install_plugin( $plugin );
-
-			ob_end_clean();
-
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
 
 		ob_start();
@@ -1418,6 +1429,11 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|WP_Error Null on success, WP_Error on failure.
 	 */
 	protected function install_plugin( string $plugin ): ?WP_Error {
+		// Check if the plugin is already installed.
+		if ( file_exists( constant( 'WP_PLUGIN_DIR' ) . '/' . $plugin ) ) {
+			return null;
+		}
+
 		$plugin = trim( explode( '/', $plugin )[0] );
 
 		if ( empty( $plugin ) ) {
@@ -1468,9 +1484,13 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
 	 *
-	 * @return null|WP_Error Null on success, WP_Error on failure.
+	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
-	protected function activate_plugin( string $plugin ): ?WP_Error {
+	protected function activate_plugin( string $plugin ) {
+		if ( hcaptcha()->is_plugin_active( $plugin ) ) {
+			return true;
+		}
+
 		$network_wide = is_multisite() && $this->is_network_wide();
 
 		// Block redirects upon plugin activation.
@@ -1533,7 +1553,7 @@ class Integrations extends PluginSettingsBase {
 		);
 		$dependencies     = (array) ( self::PLUGIN_DEPENDENCIES[ $plugin ] ?? [] );
 
-		return array_merge( $wp_dependencies, $dependencies );
+		return array_unique( array_merge( $wp_dependencies, $dependencies ) );
 	}
 
 	/**
@@ -1545,20 +1565,21 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function plugin_dirs_to_slugs( array $dirs ): array {
 		if ( ! $dirs ) {
-			return $dirs;
+			return [];
 		}
 
-		$slugs = array_keys( $this->plugins );
+		$slugs          = array_keys( $this->plugins );
+		$converted_dirs = [];
 
-		foreach ( $dirs as &$dir ) {
+		foreach ( $dirs as $dir ) {
 			$slug = preg_grep( "#^$dir/#", $slugs );
 
 			if ( $slug ) {
-				$dir = reset( $slug );
+				$converted_dirs[] = reset( $slug );
 			}
 		}
 
-		return $dirs;
+		return $converted_dirs;
 	}
 
 	/**
@@ -1594,7 +1615,7 @@ class Integrations extends PluginSettingsBase {
 			$plugin_names = array_merge( [], ...$plugin_names );
 		}
 
-		if ( isset( $node['result'] ) ) {
+		if ( isset( $node['result'] ) && is_wp_error( $node['result'] ) ) {
 			return array_unique( array_merge( [], $plugin_names ) );
 		}
 
@@ -1861,17 +1882,19 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	protected function get_plugin_data( string $plugin, bool $markup = true, bool $translate = true ): array {
-		if ( ! $this->plugin_or_theme_installed( $plugin ) ) {
-			return [];
-		}
-
 		if ( ! function_exists( 'get_plugin_data' ) ) {
 			// @CodeCoverageIgnoreStart
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			// @CodeCoverageIgnoreEnd
 		}
 
-		return get_plugin_data( $this->get_plugin_file( $plugin ), $markup, $translate );
+		$plugin_file = $this->get_plugin_file( $plugin );
+
+		if ( ! file_exists( $plugin_file ) ) {
+			return [];
+		}
+
+		return get_plugin_data( $plugin_file, $markup, $translate );
 	}
 
 	/**

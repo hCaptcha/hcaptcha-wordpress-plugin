@@ -116,7 +116,9 @@ class Playground {
 		add_action( 'admin_head', [ $this, 'head_styles' ] );
 		add_action( 'login_head', [ $this, 'head_styles' ] );
 		add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 10000 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'login_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_ajax_' . self::UPDATE_MENU_ACTION, [ $this, 'update_menu' ] );
 
 		// Do not send hCaptcha statistics from Playground.
@@ -154,7 +156,7 @@ class Playground {
 					$wp_admin_bar->add_menus();
 				}
 
-				// your custom nodes if needed.
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 				do_action( 'admin_bar_menu', $wp_admin_bar );
 
 				// Output markup.
@@ -335,6 +337,11 @@ class Playground {
 ',
 			]
 		);
+
+		$active_modules = get_option( 'jetpack_active_modules', [] );
+		$active_modules = array_merge( $active_modules, [ 'blocks', 'contact-form' ] );
+
+		update_option( 'jetpack_active_modules', array_unique( $active_modules ) );
 	}
 
 	/**
@@ -621,10 +628,6 @@ class Playground {
 	public function head_styles(): void {
 		?>
 		<style>
-			body.is-embedded #wpadminbar {
-				margin-top: 4px;
-			}
-
 			#wpadminbar #wp-admin-bar-hcaptcha-menu {
 				background: #00bbbf;
 			}
@@ -640,12 +643,13 @@ class Playground {
 
 			#wpadminbar > #wp-toolbar > #wp-admin-bar-root-default .ab-icon.hcaptcha-icon,
 			#wpadminbar .ab-icon.hcaptcha-icon {
-				width: 24px;
-				height: 24px;
+				width: 20px;
+				height: 20px;
 				background-image: url('<?php echo esc_url( $this->icon_url() ); ?>') !important;
 				background-repeat: no-repeat;
 				background-position: center;
-				background-size: 24px 24px;
+				background-size: 20px 20px;
+				top: 2px;
 			}
 		</style>
 		<?php
@@ -675,7 +679,7 @@ class Playground {
 	 *
 	 * @return void
 	 */
-	public function admin_enqueue_scripts(): void {
+	public function enqueue_scripts(): void {
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
@@ -1015,7 +1019,8 @@ class Playground {
 			[
 				'id'    => self::HCAPTCHA_MENU_ID,
 				'title' =>
-					'<span class="ab-icon hcaptcha-icon"></span><span class="ab-label">' .
+					'<span class="ab-icon hcaptcha-icon"></span>' .
+					'<span class="ab-label">' .
 					__( 'hCaptcha Samples', 'hcaptcha-for-forms-and-more' ) .
 					'</span>',
 				'meta'  => [ 'class' => self::HCAPTCHA_MENU_ID ],

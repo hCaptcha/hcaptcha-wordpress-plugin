@@ -46,7 +46,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */

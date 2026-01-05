@@ -170,8 +170,6 @@ class Form extends LoginBase {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedMethodInspection
-	 * @noinspection PhpCastIsUnnecessaryInspection
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
 		if ( $this->is_login_form( $form ) ) {
@@ -192,12 +190,7 @@ class Form extends LoginBase {
 
 		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
 
-		$post_data_str = Request::filter_input( INPUT_POST, 'data' );
-
-		wp_parse_str( $post_data_str, $post_data );
-
-		$post_data     = (array) $post_data; // The $post_data is filtered in the wp_parse_str() and can be anything.
-		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
+		$error_message = API::verify( $this->get_entry( $form ) );
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -550,11 +543,154 @@ class Form extends LoginBase {
 
 		$src = $script->src;
 
-		if ( false === strpos( $src, 'fluentform' ) ) {
+		if ( false === strpos( $src, 'api.js' ) ) {
 			return;
 		}
 
 		wp_dequeue_script( $handle );
 		wp_deregister_script( $handle );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param FluentForm $form Form data and settings.
+	 *
+	 * @return array
+	 * @noinspection PhpCastIsUnnecessaryInspection
+	 * @noinspection UnnecessaryCastingInspection
+	 * @noinspection PhpUndefinedMethodInspection
+	 */
+	private function get_entry( FluentForm $form ): array {
+		$post_data_str = Request::filter_input( INPUT_POST, 'data' );
+
+		wp_parse_str( $post_data_str, $post_data );
+
+		$post_data = (array) $post_data; // The $post_data is filtered in the wp_parse_str() and can be anything.
+
+		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
+		$form_fields      = json_decode( $form_fields_json, true );
+		$fields           = $form_fields['fields'] ?? [];
+
+		// Build map.
+		$fields_map = $this->collect_frontend_fields_map( $fields );
+
+		// Keep only real form inputs (drop tokens, nonce, etc.).
+		$data = $this->filter_post_data_by_fields_map( $post_data, $fields_map );
+
+		return [
+			'nonce_name'    => self::NONCE,
+			'nonce_action'  => self::ACTION,
+			'form_date_gmt' => $form->updated_at ?? null,
+			'data'          => $data,
+			'post_data'     => $post_data,
+		];
+	}
+
+	/**
+	 * Build a map of frontend post_data keys to field metadata.
+	 *
+	 * Example output:
+	 * [
+	 *   'namesfirst_name' => ['type' => 'text', 'source_name' => 'first_name'],
+	 *   'email'           => ['type' => 'email', 'source_name' => 'email'],
+	 * ]
+	 *
+	 * @param array $fields Tree of FluentForm fields (objects/arrays).
+	 *
+	 * @return array
+	 */
+	private function collect_frontend_fields_map( array $fields ): array {
+		$result = [];
+		$this->walk_form_fields( $fields, '', $result );
+
+		return $result;
+	}
+
+	/**
+	 * Recursive walker over FluentForm fields structure.
+	 *
+	 * @param array  $nodes  Array of field nodes (each node may contain nested "fields").
+	 * @param string $prefix Frontend key prefix (used for composite fields like Name).
+	 * @param array  $out    Output map passed by reference.
+	 *
+	 * @return void
+	 */
+	private function walk_form_fields( array $nodes, string $prefix, array &$out ): void {
+		foreach ( $nodes as $node ) {
+			$element = (string) ( $node['element'] ?? '' );
+
+			if ( 'hcaptcha' === $element ) {
+				continue;
+			}
+
+			$attrs = (array) ( $node['attributes'] ?? [] );
+
+			// Current node "name" (as configured in builder).
+			$raw_name = (string) ( $attrs['name'] ?? '' );
+
+			$children = $node['fields'] ?? [];
+
+			// Composite field (like input_name): it has nested fields inside $node['fields'].
+			if ( $children ) {
+				// For composite fields, the frontend key is parentName + childName.
+				$this->walk_form_fields( $children, $prefix . $raw_name, $out );
+
+				continue;
+			}
+
+			// Leaf field: build a frontend key and store metadata.
+			if ( '' === $raw_name ) {
+				continue;
+			}
+
+			$out[ $prefix . $raw_name ] = [
+				'type'        => $this->resolve_field_type( $node ),
+				'source_name' => $raw_name,
+			];
+		}
+	}
+
+	/**
+	 * Resolve a field "type": prefer an HTML input type, otherwise element.
+	 *
+	 * @param array $node Node.
+	 *
+	 * @return string
+	 */
+	private function resolve_field_type( array $node ): string {
+		$element = (string) ( $node['element'] ?? '' );
+		$attrs   = (array) ( $node['attributes'] ?? [] );
+		$type    = (string) ( $attrs['type'] ?? '' );
+
+		if ( $type ) {
+			return $type;
+		}
+
+		// Fallback by element.
+		return $element ?: 'text';
+	}
+
+	/**
+	 * Filter raw post_data and keep only keys that exist in the fields map.
+	 * Returns values enriched with type/element.
+	 *
+	 * @param array $post_data  Raw parsed post data.
+	 * @param array $fields_map Output of collect_frontend_fields_map().
+	 *
+	 * @return array
+	 */
+	private function filter_post_data_by_fields_map( array $post_data, array $fields_map ): array {
+		$filtered = [];
+
+		foreach ( $post_data as $key => $value ) {
+			if ( ! isset( $fields_map[ $key ] ) ) {
+				continue;
+			}
+
+			$filtered[ $fields_map[ $key ]['source_name'] ] = $value;
+		}
+
+		return $filtered;
 	}
 }

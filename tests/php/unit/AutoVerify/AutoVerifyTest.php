@@ -30,7 +30,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	private const WIDGET_ID_VALUE = 'some_widget_id_value';
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended

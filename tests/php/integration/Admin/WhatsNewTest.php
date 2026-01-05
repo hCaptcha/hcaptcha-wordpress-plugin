@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Tests\Integration\Admin;
 
-use HCaptcha\Admin\Notifications;
 use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -21,7 +20,6 @@ use ReflectionException;
  * @group whats-new
  */
 class WhatsNewTest extends HCaptchaWPTestCase {
-
 	/**
 	 * Test init() and init_hooks().
 	 *
@@ -402,44 +400,51 @@ HTML;
 	public function test_whats_new_4_13_0(): void {
 		$expected = <<<'HTML'
 		<div class="hcaptcha-whats-new-block center">
-						<div class="hcaptcha-whats-new-badge">
-				New Feature			</div>
-						<h2>
-				Site Content Protection			</h2>
-			<div class="hcaptcha-whats-new-message">
-				<p>Protect selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.</p><p>Set up protected URLs to prevent these pages from being accessed by bots.</p>			</div>
-			<div class="hcaptcha-whats-new-button">
-				<a
-						href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#protect_content_1" class="button button-primary"
-						target="_blank">
-					Protect Content				</a>
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Site Content Protection </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>Protect selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.</p><p>Set up protected URLs to prevent these pages from being accessed by bots.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#protect_content_1" class="button button-primary"
+							target="_blank">
+						Protect Content
+					</a>
+				</div>
 			</div>
 			<div class="hcaptcha-whats-new-image">
-															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif" class="hcaptcha-lightbox">
-							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif" alt="What's New block image">
-						</a>
-												</div>
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif" alt="What's New block image">
+				</a>
+			</div>
 		</div>
-				<div class="hcaptcha-whats-new-block center">
-						<div class="hcaptcha-whats-new-badge">
-				New Feature			</div>
-						<h2>
-				Friction-Free “No CAPTCHA” &amp; 99.9% Passive Modes			</h2>
-			<div class="hcaptcha-whats-new-message">
-				<a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.			</div>
-			<div class="hcaptcha-whats-new-button">
-				<a
-						href="https://dashboard.hcaptcha.com/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary"
-						target="_blank">
-					Upgrade to Pro				</a>
+		<div class="hcaptcha-whats-new-block center">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Friction-Free “No CAPTCHA” &amp; 99.9% Passive Modes </h2>
+				<div class="hcaptcha-whats-new-message">
+					<a href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not" target="_blank">Upgrade to Pro</a> and use <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general#size" target="_blank">Invisible Size</a>. The hCaptcha widget will not appear, and the Challenge popup will be shown only to bots.
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="https://dashboard.hcaptcha.com/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not" class="button button-primary"
+							target="_blank">
+						Upgrade to Pro
+					</a>
+				</div>
 			</div>
 			<div class="hcaptcha-whats-new-image">
-															<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif" class="hcaptcha-lightbox">
-							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif" alt="What's New block image">
-						</a>
-												</div>
-		</div>
-		
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/passive-mode.gif" alt="What's New block image">
+				</a>
+			</div>
+		</div>	
 HTML;
 
 		add_filter(
@@ -465,7 +470,184 @@ HTML;
 
 		$subject->whats_new_4_13_0();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
+	}
+
+	/**
+	 * Test whats_new_4_18_0().
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function test_whats_new_4_18_0(): void {
+		$expected = <<<'HTML'
+		<div class="hcaptcha-whats-new-block center">
+			<div class="hcaptcha-whats-new-text">
+						<div class="hcaptcha-whats-new-badge">
+			New Feature			</div>
+						<h2>
+				Honeypot and Minimum Submit Time				</h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>Added a hidden <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general#honeypot_1" target="_blank">honeypot</a> field for bot detection before processing hCaptcha.</p><p>Added minimum form <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general#set_min_submit_time_1" target="_blank">submit time</a> for bot detection before processing hCaptcha.</p><p>Currently supported for WordPress Core, Protect Content feature, and all integrations having more than 100,000 installs: Avada theme, Blocksy, Brevo, CoBlocks, Contact Form 7, Divi Builder, Divi theme, Download Manager, Elementor, Essential Addons for Elementor, Essential Blocks, Extra theme, Fluent Forms, Formidable Forms, Forminator, GiveWP Form, Gravity Forms, Jetpack, Kadence, MailPoet, Mailchimp, Ninja Forms, Otter, Password Protected, Protect Content feature, Spectra, Ultimate Addons for Elementor, WPForms, WooCommerce, and Wordfence.</p>				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#honeypot_1" class="button button-primary"
+							target="_blank">
+						Turn on honeypot					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+											<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/honeypot.png" class="hcaptcha-lightbox">
+							<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/honeypot.png" alt="What's New block image">
+						</a>
+										</div>
+		</div>
+		
+HTML;
+
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_4_18_0();
+
+		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
+	}
+
+	/**
+	 * Test whats_new_4_20_0().
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function test_whats_new_4_20_0(): void {
+		$expected = <<<'HTML'
+		<div class="hcaptcha-whats-new-block center">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Onboarding Wizard </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>Added an onboarding wizard for new users.</p><p>You can restart it anytime by adding the <code>&amp;onboarding</code> parameter to the browser URL.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general&#038;onboarding" class="button button-primary"
+							target="_blank">
+						Restart wizard
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/onboarding.gif" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/onboarding.gif" alt="What's New block image">
+				</a>
+			</div>
+		</div>
+		
+HTML;
+
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_4_20_0();
+
+		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
+	}
+
+	/**
+	 * Test whats_new_4_21_0().
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function test_whats_new_4_21_0(): void {
+		$expected = <<<'HTML'
+		<div class="hcaptcha-whats-new-block left">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> AI-Ready Security Actions </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>hCaptcha for WordPress now exposes selected security capabilities via the WordPress Abilities API — a machine-readable interface designed for automation tools and AI agents.</p><p>This enables programmatic threat monitoring and response workflows without relying on custom REST endpoints or UI automation.</p><p>Two initial abilities are included:</p><ul><li>Threat snapshot (aggregated metrics and top offenders)</li><li>Privacy-safe blocking based on hashed offender identifiers</li></ul>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F" class="button button-primary"
+							target="_blank">
+						Read documentation
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/ai-abilities.png" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/ai-abilities.png" alt="What's New block image">
+				</a>
+			</div>
+		</div>	
+HTML;
+
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_4_21_0();
+
+		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
 	}
 
 	/**
@@ -494,485 +676,14 @@ HTML;
 		self::assertSame( $version, $settings->get( $key ) );
 	}
 
-
 	/**
-	 * Test show().
+	 * Normalize HTML output for stable comparisons.
 	 *
-	 * @return void
-	 * @noinspection HtmlUnknownAttribute
-	 */
-	public function est_show(): void {
-		global $current_user;
-
-		unset( $current_user );
-
-		$user_id = 1;
-
-		wp_set_current_user( $user_id );
-
-		$site_key   = '';
-		$secret_key = '';
-
-		add_filter(
-			'hcap_site_key',
-			static function () use ( $site_key ) {
-				return $site_key;
-			}
-		);
-		add_filter(
-			'hcap_secret_key',
-			static function () use ( $secret_key ) {
-				return $secret_key;
-			}
-		);
-
-		$expected = '
-<div id="hcaptcha-notifications">
-	<div id="hcaptcha-notifications-header">
-		Notifications
-	</div>
-	<div
-			class="hcaptcha-notification notice notice-info is-dismissible inline"
-			data-id="register">
-		<div class="hcaptcha-notification-title">
-			Get your hCaptcha site keys
-		</div>
-		<p>To use <a
-				href="https://www.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk"
-				target="_blank">hCaptcha</a>, please register <a
-				href="https://www.hcaptcha.com/signup-interstitial/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk"
-				target="_blank">here</a> to get your site and secret keys.</p>
-		<div class="hcaptcha-notification-buttons hidden">
-			<a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=sk"
-			   class="button button-primary " target="_blank">
-				Get site keys </a>
-		</div>
-	</div>
-	<div
-			class="hcaptcha-notification notice notice-info is-dismissible inline"
-			data-id="pro-free-trial">
-		<div class="hcaptcha-notification-title">
-			Try Pro for free
-		</div>
-		<p>Want low friction and custom themes? <a
-				href="https://www.hcaptcha.com/pro/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
-				target="_blank">hCaptcha Pro</a> is for you. <a
-				href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
-				target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
-		<div class="hcaptcha-notification-buttons hidden">
-			<a href="https://www.hcaptcha.com/pro/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
-			   class="button button-primary " target="_blank">
-				Try Pro </a>
-		</div>
-	</div>
-	<div
-			class="hcaptcha-notification notice notice-info is-dismissible inline"
-			data-id="post-leadership">
-		<div class="hcaptcha-notification-title">
-			hCaptcha&#039;s Leadership
-		</div>
-		<p>hCaptcha Named a Technology Leader in Bot Management: 2023 SPARK Matrix™</p>
-		<div class="hcaptcha-notification-buttons hidden">
-			<a href="https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
-			   class="button button-primary " target="_blank">
-				Read post </a>
-		</div>
-	</div>
-	<div id="hcaptcha-notifications-footer">
-		<div id="hcaptcha-navigation">
-			<span>
-				<span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">3</span>
-			</span>
-			<a class="prev button disabled"></a>
-			<a class="next button "></a>
-		</div>
-	</div>
-</div>
-';
-
-		$expected = $this->trim_tags( $expected );
-
-		$subject = new Notifications();
-
-		ob_start();
-		$subject->show();
-		$actual = $this->trim_tags( ob_get_clean() );
-
-		$header  = '<div id="hcaptcha-notifications"> <div id="hcaptcha-notifications-header"> Notifications </div>';
-		$body    = '<div .+</div>';
-		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev button disabled"></a> <a class="next button "></a> </div> </div> </div>';
-		$pattern = "#($header) ($body) ($footer)#";
-
-		preg_match( $pattern, $expected, $expected_matches );
-		preg_match( $pattern, $actual, $actual_matches );
-
-		self::assertSame( $expected_matches[1], $actual_matches[1] );
-		self::assertSame( $expected_matches[3], $actual_matches[3] );
-
-		$expected_body = $expected_matches[2];
-		$actual_body   = $actual_matches[2];
-
-		$notification_pattern = '#<div class="hcaptcha-notification notice.+?> <div .+?>.+?</div> <p>.+?</p> <div .+?>.+?</div> </div>#s';
-
-		preg_match_all(
-			$notification_pattern,
-			$expected_body,
-			$expected_notifications
-		);
-		preg_match_all(
-			$notification_pattern,
-			$actual_body,
-			$actual_notifications
-		);
-
-		$expected_notifications = $expected_notifications[0];
-		$actual_notifications   = $actual_notifications[0];
-
-		$sorted_actual_notifications = [];
-
-		foreach ( $actual_notifications as $actual_notification ) {
-			preg_match( '/data-id="(.+?)"/', $actual_notification, $m );
-			$data_id = $m[1];
-
-			foreach ( $expected_notifications as $key => $expected_notification ) {
-				if ( false !== strpos( $expected_notification, $data_id ) ) {
-					$sorted_actual_notifications[ $key ] = $actual_notification;
-				}
-			}
-		}
-
-		ksort( $sorted_actual_notifications );
-
-		self::assertSame( $expected_notifications, $sorted_actual_notifications );
-
-		// Dismiss Pro notification.
-		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'pro-free-trial' ] );
-
-		$dismissed_notification = '
-<div
-		class="hcaptcha-notification notice notice-info is-dismissible inline"
-		data-id="pro-free-trial">
-	<div class="hcaptcha-notification-title">
-		Try Pro for free
-	</div>
-	<p>Want low friction and custom themes? <a
-			href="https://www.hcaptcha.com/pro/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
-			target="_blank">hCaptcha Pro</a> is for you. <a
-			href="https://dashboard.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=not"
-			target="_blank">Start a free trial in your dashboard</a>, no credit card required.</p>
-	<div class="hcaptcha-notification-buttons hidden">
-		<a href="https://www.hcaptcha.com/pro/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=not"
-		   class="button button-primary " target="_blank">
-			Try Pro </a>
-	</div>
-</div>
-';
-
-		$expected = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
-		$expected = $this->trim_tags( $expected );
-
-		ob_start();
-		$subject->show();
-
-		$actual = $this->trim_tags( ob_get_clean() );
-
-		preg_match( $pattern, $expected, $expected_matches );
-		preg_match( $pattern, $actual, $actual_matches );
-
-		self::assertSame( $expected_matches[1], $actual_matches[1] );
-		self::assertSame( $expected_matches[3], $actual_matches[3] );
-
-		$expected_body = $expected_matches[2];
-		$actual_body   = $actual_matches[2];
-
-		preg_match_all(
-			$notification_pattern,
-			$expected_body,
-			$expected_notifications
-		);
-		preg_match_all(
-			$notification_pattern,
-			$actual_body,
-			$actual_notifications
-		);
-
-		$expected_notifications = $expected_notifications[0];
-		$actual_notifications   = $actual_notifications[0];
-
-		$sorted_actual_notifications = [];
-
-		foreach ( $actual_notifications as $actual_notification ) {
-			preg_match( '/data-id="(.+?)"/', $actual_notification, $m );
-			$data_id = $m[1];
-
-			foreach ( $expected_notifications as $key => $expected_notification ) {
-				if ( false !== strpos( $expected_notification, $data_id ) ) {
-					$sorted_actual_notifications[ $key ] = $actual_notification;
-				}
-			}
-		}
-
-		ksort( $sorted_actual_notifications );
-
-		self::assertSame( $expected_notifications, $sorted_actual_notifications );
-	}
-
-	/**
-	 * Test show() without notifications.
-	 *
-	 * @return void
-	 */
-	public function est_show_without_notifications(): void {
-		global $current_user;
-
-		$user_id  = 1;
-		$expected = '';
-
-		$subject = Mockery::mock( Notifications::class )->makePartial();
-
-		$subject->shouldAllowMockingProtectedMethods();
-
-		$notifications = $subject->get_notifications();
-		$dismissed     = array_keys( $notifications );
-
-		unset( $current_user );
-		wp_set_current_user( $user_id );
-		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, $dismissed );
-
-		ob_start();
-		$subject->show();
-		self::assertSame( $expected, ob_get_clean() );
-	}
-
-	/**
-	 * Test dismiss_notification() when there is an update error.
-	 *
-	 * @return void
-	 */
-	public function est_dismiss_notification_when_update_error(): void {
-		$user_id = 1;
-
-		wp_set_current_user( $user_id );
-
-		$action = Notifications::DISMISS_NOTIFICATION_ACTION;
-		$nonce  = wp_create_nonce( $action );
-
-		$_REQUEST['action'] = $action;
-		$_REQUEST['nonce']  = $nonce;
-
-		$die_arr  = [];
-		$expected = [
-			'',
-			'',
-			[ 'response' => null ],
-		];
-
-		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter(
-			'wp_die_ajax_handler',
-			static function () use ( &$die_arr ) {
-				return static function ( $message, $title, $args ) use ( &$die_arr ) {
-					$die_arr = [ $message, $title, $args ];
-				};
-			}
-		);
-
-		$subject = new Notifications();
-
-		// Test the case when no notification id was sent.
-		ob_start();
-		$subject->dismiss_notification();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame(
-			0,
-			strpos(
-				$json,
-				'{"success":false,"data":"Error dismissing notification."}'
-			)
-		);
-
-		$key         = 'some-notification';
-		$_POST['id'] = $key;
-
-		// Test the case when the notification was already dismissed.
-		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ $key ] );
-
-		ob_start();
-		$subject->dismiss_notification();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame(
-			0,
-			strpos(
-				$json,
-				'{"success":false,"data":"Error dismissing notification."}'
-			)
-		);
-
-		// Test the case when it is unable to write to user_meta.
-		delete_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY );
-		add_filter( 'update_user_metadata', '__return_false' );
-
-		ob_start();
-		$subject->dismiss_notification();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame(
-			0,
-			strpos(
-				$json,
-				'{"success":false,"data":"Error dismissing notification."}'
-			)
-		);
-	}
-
-	/**
-	 * Test reset_notifications().
-	 *
-	 * @return void
-	 */
-	public function est_reset_notifications(): void {
-		$die_arr  = [];
-		$expected = [
-			'',
-			'',
-			[ 'response' => null ],
-		];
-
-		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_filter(
-			'wp_die_ajax_handler',
-			static function () use ( &$die_arr ) {
-				return static function ( $message, $title, $args ) use ( &$die_arr ) {
-					$die_arr = [ $message, $title, $args ];
-				};
-			}
-		);
-
-		$subject = Mockery::mock( Notifications::class )->makePartial();
-
-		$subject->shouldAllowMockingProtectedMethods();
-
-		// Test the case when a bad admin referer.
-		ob_start();
-		$subject->reset_notifications();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame(
-			0,
-			strpos(
-				$json,
-				'{"success":false,"data":"Your session has expired. Please reload the page."}'
-			)
-		);
-
-		$action = Notifications::RESET_NOTIFICATIONS_ACTION;
-		$nonce  = wp_create_nonce( $action );
-
-		$_REQUEST['action'] = $action;
-		$_REQUEST['nonce']  = $nonce;
-
-		// Test the case when a user has no caps.
-		ob_start();
-		$subject->reset_notifications();
-		$json = ob_get_clean();
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame(
-			0,
-			strpos(
-				$json,
-				'{"success":false,"data":"You are not allowed to perform this action."}'
-			)
-		);
-
-		$user_id = 1;
-
-		wp_set_current_user( $user_id );
-
-		$nonce = wp_create_nonce( $action );
-
-		$_REQUEST['nonce'] = $nonce;
-
-		// Test the case when we cannot delete user meta.
-		ob_start();
-		$subject->reset_notifications();
-		$json = ob_get_clean();
-
-		add_filter( 'delete_user_metadata', '__return_false' );
-
-		self::assertSame( $expected, $die_arr );
-		self::assertSame(
-			0,
-			strpos(
-				$json,
-				'{"success":false,"data":"Error removing dismissed notifications."}'
-			)
-		);
-
-		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'some-key' ] );
-		remove_all_filters( 'delete_user_metadata' );
-
-		// Test a successful case.
-		add_filter( 'hcap_shuffle_notifications', '__return_false' );
-
-		ob_start();
-		$subject->show();
-		$notifications = wp_json_encode( wp_kses_post( ob_get_clean() ) );
-
-		ob_start();
-		$subject->reset_notifications();
-		$json = ob_get_clean();
-
-		$dismissed = get_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, true );
-
-		self::assertSame( '', $dismissed );
-		self::assertSame( $expected, $die_arr );
-		self::assertSame( '{"success":true,"data":' . $notifications . '}', $json );
-	}
-
-	/**
-	 * Test make_key_first().
-	 *
-	 * @return void
-	 */
-	public function est_make_key_first(): void {
-		$subject = Mockery::mock( Notifications::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods();
-
-		$notifications = [
-			'first'  => 'first',
-			'second' => 'second',
-			'third'  => 'third',
-		];
-		$expected      = [
-			'third'  => 'third',
-			'first'  => 'first',
-			'second' => 'second',
-		];
-
-		self::assertSame( $notifications, $subject->make_key_first( $notifications, 'some' ) );
-		self::assertSame( $expected, $subject->make_key_first( $notifications, 'third' ) );
-	}
-
-	/**
-	 * Trim spaces before and after tags.
-	 * Cut pages span as it may contain different numbers of pages.
-	 *
-	 * @param string $html Html.
+	 * @param string $html HTML.
 	 *
 	 * @return string
 	 */
-	private function trim_tags( string $html ): string {
-		return preg_replace(
-			[ '/\s+/', '#(<span id="hcaptcha-navigation-pages">)\d+?(</span>)#' ],
-			[ ' ', '$1x$2' ],
-			trim( $html )
-		);
+	private static function normalize_html( string $html ): string {
+		return preg_replace( '/\s+/', ' ', trim( $html ) );
 	}
 }

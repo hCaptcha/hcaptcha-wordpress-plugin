@@ -157,10 +157,15 @@
 
 .hcaptcha-integrations table tr td fieldset {
 	width: 100%;
+	overflow: hidden;
+	min-inline-size: unset;
 }
 
 .hcaptcha-integrations table tr td fieldset label {
 	width: 100%;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 #hcaptcha-options label + .helper {
@@ -211,10 +216,12 @@
 
 #hcaptcha-options label + .helper i.antispam-honeypot {
 	background-image: url('../images/antispam-honeypot.svg');
+	background-color: #fff;
 }
 
 #hcaptcha-options label + .helper i.antispam-fst {
 	background-image: url('../images/antispam-fst.svg');
+	background-color: #fff;
 	width: 20px;
 	transform: translateY(1px);
 	margin-inline-start: 2px;

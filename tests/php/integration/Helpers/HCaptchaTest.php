@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\Helpers;
 
 use HCaptcha\CF7\CF7;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Settings\Integrations;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -27,7 +28,7 @@ use WP_Error;
 class HCaptchaTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ], $_POST['hcaptcha-widget-id'], $GLOBALS['wp_filters'] );
@@ -216,7 +217,7 @@ HTML;
 	/**
 	 * Test is_protection_enabled().
 	 *
-	 * @param bool $hash_ok  Hash not corrupted.
+	 * @param bool $hash_ok  Hash is not corrupted.
 	 * @param bool $filter   Value return by hcap_protect_form filter.
 	 * @param bool $expected Expected value.
 	 *
@@ -326,6 +327,87 @@ HTML;
 	}
 
 	/**
+	 * Test get_status_source().
+	 *
+	 * @return void
+	 */
+	public function test_get_status_source(): void {
+		$main             = hcaptcha();
+		$original_modules = $main->modules;
+
+		$main->modules = [
+			'WP Core feature' => [
+				[ 'wp_status', 'anything' ],
+				'',
+				[],
+			],
+			'Some plugin'     => [
+				[ 'plugin_status', null ],
+				'some-plugin/some-plugin.php',
+				[],
+			],
+			'Multi plugin'    => [
+				[ 'multi_status', null ],
+				[ 'first/first.php', 'second/second.php' ],
+				[],
+			],
+		];
+
+		self::assertSame( [ 'WordPress' ], HCaptcha::get_status_source( 'wp_status' ) );
+		self::assertSame( [ 'some-plugin/some-plugin.php' ], HCaptcha::get_status_source( 'plugin_status' ) );
+		self::assertSame( [ 'first/first.php', 'second/second.php' ], HCaptcha::get_status_source( 'multi_status' ) );
+		self::assertSame( [], HCaptcha::get_status_source( 'unknown_status' ) );
+
+		$main->modules = $original_modules;
+	}
+
+	/**
+	 * Test get_source_name().
+	 *
+	 * @return void
+	 */
+	public function test_get_source_name(): void {
+		$main             = hcaptcha();
+		$original_modules = $main->modules;
+
+		$main->init_hooks();
+
+		$integrations = $main->settings()->get_tab( Integrations::class );
+		self::assertInstanceOf( Integrations::class, $integrations );
+		$integrations->init_form_fields();
+
+		$main->modules = [
+			'WP Core feature' => [
+				[ 'wp_status', 'anything' ],
+				'',
+				[],
+			],
+			'bbPress'         => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				[],
+			],
+			'ACF Extended'    => [
+				[ 'acfe_status', 'form' ],
+				[ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
+				[],
+			],
+		];
+
+		self::assertSame( '', HCaptcha::get_source_name( '' ) );
+		self::assertSame( '', HCaptcha::get_source_name( 'not-a-json' ) );
+		self::assertSame( 'WP Core', HCaptcha::get_source_name( wp_json_encode( [ 'WordPress' ] ) ) );
+		self::assertSame( 'bbPress', HCaptcha::get_source_name( wp_json_encode( [ 'bbpress/bbpress.php' ] ) ) );
+		self::assertSame( 'ACF Extended', HCaptcha::get_source_name( wp_json_encode( [ 'acf-extended/acf-extended.php' ] ) ) );
+		self::assertSame(
+			'unknown/unknown.php,another.php',
+			HCaptcha::get_source_name( wp_json_encode( [ 'unknown/unknown.php', 'another.php' ] ) )
+		);
+
+		$main->modules = $original_modules;
+	}
+
+	/**
 	 * Test add_error_message().
 	 *
 	 * @return void
@@ -406,10 +488,10 @@ HTML;
 	 */
 	public function test_js_display(): void {
 		$js       = <<<'JS'
-	var a = 1;
+	const a = 1;
 	console.log( a );
 JS;
-		$expected = "var a=1;console.log(a)\n";
+		$expected = "const a=1;console.log(a)\n";
 
 		// Not wrapped.
 		ob_start();

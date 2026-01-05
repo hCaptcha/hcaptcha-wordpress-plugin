@@ -66,6 +66,9 @@ class HCaptchaWPTestCase extends WPTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		unset( $_POST, $_SERVER['HTTP_CLIENT_IP'] );
 
+		// Ensure WordPress core shutdown tasks (e.g. cron) always have a REQUEST_URI in CLI tests.
+		$_SERVER['REQUEST_URI'] = 'http://test.test/';
+
 		delete_option( 'hcaptcha_settings' );
 		hcaptcha()->init_hooks();
 

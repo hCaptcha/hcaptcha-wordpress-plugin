@@ -16,7 +16,6 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\LostPassword;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
-use WP_Mock;
 use WPS\WPS_Hide_Login\Plugin;
 use WP_Error;
 
@@ -29,7 +28,7 @@ use WP_Error;
 class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -182,7 +181,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test get_login_url() with Perfmatters plugin.
+	 * Test get_login_url() with the Perfmatters plugin.
 	 *
 	 * @return void
 	 */
@@ -206,7 +205,7 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test get_login_url() with WPS Hide Login plugin.
+	 * Test get_login_url() with the WPS Hide Login plugin.
 	 *
 	 * @return void
 	 */

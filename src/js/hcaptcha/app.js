@@ -6,8 +6,10 @@
 
 import HCaptcha from './hcaptcha';
 import HCaptchaCustomElement from './hcaptcha-custom-element';
+import ReadyGate from './ready-gate';
 
 const hCaptcha = new HCaptcha();
+const readyGate = new ReadyGate();
 
 window.hCaptcha = hCaptcha;
 
@@ -19,22 +21,12 @@ window.hCaptchaReset = ( el ) => {
 	hCaptcha.reset( el );
 };
 
-window.hCaptchaBindEvents = () => {
-	const addSyncedEventListener = () => {
-		hCaptcha.addSyncedEventListener( () => {
-			document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
-			hCaptcha.bindEvents();
-			document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
-		} );
-	};
-
-	if ( window.__hCaptchaOnLoad ) {
-		addSyncedEventListener();
-	} else {
-		document.addEventListener( 'hCaptchaBeforeOnLoad', () => {
-			addSyncedEventListener();
-		} );
-	}
+window.hCaptchaBindEvents = ( el ) => {
+	readyGate.runWhenReady( () => {
+		document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeBindEvents' ) );
+		hCaptcha.bindEvents( el );
+		document.dispatchEvent( new CustomEvent( 'hCaptchaAfterBindEvents' ) );
+	} );
 };
 
 window.hCaptchaSubmit = () => {
@@ -42,14 +34,10 @@ window.hCaptchaSubmit = () => {
 };
 
 window.hCaptchaOnLoad = () => {
+	document.dispatchEvent( new CustomEvent( 'hCaptchaOnLoad' ) );
 	document.addEventListener( 'hCaptchaAfterBindEvents', () => {
 		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded', { cancelable: true } ) );
 	} );
-
-	window.__hCaptchaOnLoad = true;
-	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeOnLoad', { cancelable: true } ) );
-
-	window.hCaptchaBindEvents();
 };
 
 window.customElements.define( 'h-captcha', HCaptchaCustomElement );

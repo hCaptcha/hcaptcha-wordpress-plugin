@@ -13,6 +13,7 @@
 namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
@@ -214,6 +215,7 @@ class Main {
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
+		$this->load( Abilities::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 10 );
 		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
@@ -284,7 +286,7 @@ class Main {
 		 * Do not load hCaptcha functionality:
 		 * - if a user is logged in and the option 'off_when_logged_in' is set;
 		 * - for allowlisted IPs;
-		 * - when the site key or the secret key is empty (after first plugin activation).
+		 * - when the site key or the secret key is empty (after the first plugin activation).
 		 */
 		$deactivate = (
 			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
@@ -823,7 +825,7 @@ class Main {
 		 * Filters delay time for the hCaptcha API script.
 		 *
 		 * Any negative value will prevent the API script from loading
-		 * until user interaction: mouseenter, click, scroll or touch.
+		 * until user interaction: mouseenter, click, scroll, or touch.
 		 * This significantly improves Google Pagespeed Insights score.
 		 *
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
@@ -949,9 +951,11 @@ class Main {
 	 * @param bool|mixed   $denylisted Whether IP is denylisted.
 	 * @param string|false $client_ip   Client IP.
 	 *
-	 * @return bool|mixed
+	 * @return bool
 	 */
-	public function denylist_ip( $denylisted, $client_ip ) {
+	public function denylist_ip( $denylisted, $client_ip ): bool {
+		$denylisted = (bool) $denylisted;
+
 		$ips = explode(
 			"\n",
 			$this->settings()->get( 'blacklisted_ips' )
@@ -1724,7 +1728,7 @@ class Main {
 	 */
 	public function plugin_or_theme_active( $plugin_or_theme_names ): bool {
 		foreach ( (array) $plugin_or_theme_names as $plugin_or_theme_name ) {
-			if ( '' === $plugin_or_theme_name ) {
+			if ( '' === $plugin_or_theme_name || 'WordPress' === $plugin_or_theme_name ) {
 				// WP Core is always active.
 				return true;
 			}

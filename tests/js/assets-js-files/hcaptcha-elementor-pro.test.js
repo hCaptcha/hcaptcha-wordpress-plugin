@@ -1,9 +1,8 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
 import jquery from 'jquery';
-import { hooks as elementorFrontendHooks } from '../__mocks__/elementorFrontend';
 
-// Set up global variables
+// Set up global jQuery for the script under test
 global.jQuery = jquery;
 global.$ = jquery;
 
@@ -19,11 +18,15 @@ describe( 'Elementor Frontend hCaptcha', () => {
 			},
 		};
 
-		elementorFrontendHooks.addAction.mockClear();
+		// Ensure elementorFrontend is defined so hCaptchaElementorPro does not early-return
+		global.elementorFrontend = {};
+
+		// Reset possible global callback
+		window.hCaptchaBindEvents = jest.fn();
 	} );
 
-	test( 'filter and action are called with correct arguments', () => {
-		// Simulate jQuery.ready
+	test( 'registers wp filter with correct arguments when elementorFrontend is present', () => {
+		// Call entry function (normally invoked on jQuery ready)
 		window.hCaptchaElementorPro();
 
 		expect( wp.hooks.addFilter ).toHaveBeenCalledTimes( 1 );
@@ -32,11 +35,14 @@ describe( 'Elementor Frontend hCaptcha', () => {
 			'hcaptcha',
 			expect.any( Function )
 		);
+	} );
 
-		expect( elementorFrontendHooks.addAction ).toHaveBeenCalledTimes( 1 );
-		expect( elementorFrontendHooks.addAction ).toHaveBeenCalledWith(
-			'frontend/element_ready/widget',
-			expect.any( Function )
-		);
+	test( 'triggers hCaptchaBindEvents on ajaxSuccess for Elementor Pro form submission', () => {
+		// Fire jQuery ajaxSuccess with matching action
+		const fakeXhr = {};
+		const settings = { data: 'action=elementor_pro_forms_send_form&foo=bar' };
+		jquery( document ).trigger( 'ajaxSuccess', [ fakeXhr, settings ] );
+
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 } );

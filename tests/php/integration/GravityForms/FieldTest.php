@@ -25,7 +25,7 @@ use tad\FunctionMocker\FunctionMocker;
 class FieldTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */

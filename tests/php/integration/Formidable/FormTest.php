@@ -29,7 +29,7 @@ use tad\FunctionMocker\FunctionMocker;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */

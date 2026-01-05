@@ -14,6 +14,9 @@ namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\ACFE\Form;
 use HCaptcha\Admin\OnboardingWizard;
+use HCaptcha\CF7\Admin;
+use HCaptcha\CF7\CF7;
+use HCaptcha\CF7\ReallySimpleCaptcha;
 use HCaptcha\Main;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
@@ -35,7 +38,7 @@ use HCaptcha\Helpers\Utils;
 class IntegrationsTest extends HCaptchaTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */
@@ -267,7 +270,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test init_form_fields().
 	 *
-	 * @param bool $is_multisite Whether it is multisite installation.
+	 * @param bool $is_multisite Whether it is a multisite installation.
 	 *
 	 * @dataProvider dp_test_init_form_fields
 	 *
@@ -301,6 +304,22 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'not multisite' => [ false ],
 			'multisite'     => [ true ],
 		];
+	}
+
+	/**
+	 * Test get_form_fields().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_form_fields(): void {
+		$form_fields = $this->get_test_integrations_form_fields();
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
+
+		self::assertSame( $form_fields, $subject->get_form_fields() );
 	}
 
 	/**
@@ -520,21 +539,38 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_enqueue_scripts().
 	 *
+	 * @param bool $activated Plugin activated status.
+	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @dataProvider dp_test_admin_enqueue_scripts
 	 */
-	public function test_admin_enqueue_scripts(): void {
+	public function test_admin_enqueue_scripts( bool $activated ): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
 		$min_suffix     = '.min';
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
 		$cf7_status     = 'cf7_status';
+		$cf7            = 'contact-form-7/wp-contact-form-7.php';
 
 		$theme         = Mockery::mock( 'WP_Theme' );
 		$default_theme = Mockery::mock( 'WP_Theme' );
 
 		$_GET['nonce']            = $nonce;
 		$_GET['suggest_activate'] = $cf7_status;
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'is_plugin_active' )->once()->with( $cf7 )->andReturn( $activated );
+
+		$main->modules = [
+			'Contact Form 7' => [
+				[ $cf7_status, null ],
+				$cf7,
+				[ CF7::class, Admin::class, ReallySimpleCaptcha::class ],
+			],
+		];
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
 		FunctionMocker::replace(
 			'\WP_Theme::get_core_default_theme',
@@ -639,7 +675,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'deactivateThemeMsg'  => 'Deactivate %s theme?',
 					'selectThemeMsg'      => 'Select theme to activate:',
 					'onlyOneThemeMsg'     => 'Cannot deactivate the only theme on the site.',
-					'suggestActivate'     => $cf7_status,
+					'suggestActivate'     => $activated ? '' : $cf7_status,
 					'suggestActivateMsg'  => 'Activate plugin or theme by clicking on its logo.',
 					'unexpectedErrorMsg'  => 'Unexpected error.',
 					'OKBtnText'           => 'OK',
@@ -660,6 +696,18 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->once();
 
 		$subject->admin_enqueue_scripts();
+	}
+
+	/**
+	 * Data provider for test_admin_enqueue_scripts().
+	 *
+	 * @return array
+	 */
+	public function dp_test_admin_enqueue_scripts(): array {
+		return [
+			[ true ],
+			[ false ],
+		];
 	}
 
 	/**
@@ -1215,7 +1263,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( $default_theme );
 		$subject->shouldReceive( 'activate_plugins' )
-			->with( [ 'fusion-builder/fusion-builder.php', 'fusion-core/fusion-core.php' ], false )->once()->andReturn( true );
+			->with( [ 'fusion-builder/fusion-builder.php', 'fusion-core/fusion-core.php' ], false )->once()
+			->andReturn( true );
 		$subject->shouldReceive( 'plugin_names_from_tree' )
 			->with( $plugin_tree )->andReturn( $plugin_names );
 		$subject->shouldReceive( 'activate_theme' )->with( $theme )->once()->andReturn( $wp_error );
@@ -1402,6 +1451,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with( $wish_slug )->once()->andReturn( $plugin_trees );
 		$subject->shouldReceive( 'activate_plugin' )->with( $wish_slug )->andReturn( $wish_result );
 		$subject->shouldReceive( 'activate_plugin' )->with( $woo_slug )->andReturn( $woo_result );
+		$subject->shouldReceive( 'install_plugin' )->with( $wish_slug )->andReturn( null );
+		$subject->shouldReceive( 'install_plugin' )->with( $woo_slug )->andReturn( null );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
@@ -1437,60 +1488,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 	public function test_maybe_activate_plugin(): void {
 		$plugin = 'some-plugin/some-plugin.php';
 
-		$main = Mockery::mock( Main::class )->makePartial();
-
-		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
-
-		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
-
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'activate_plugin' )->with( $plugin )->once()->andReturn( null );
-
-		self::assertNull( $subject->maybe_activate_plugin( $plugin ) );
-	}
-
-	/**
-	 * Test maybe_activate_plugin() when the plugin is active.
-	 *
-	 * @return void
-	 */
-	public function test_maybe_activate_plugin_when_plugin_is_active(): void {
-		$plugin = 'some-plugin/some-plugin.php';
-
-		$main = Mockery::mock( Main::class )->makePartial();
-		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( true );
-
-		$subject = Mockery::mock( Integrations::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods();
-
-		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
-
-		self::assertTrue( $subject->maybe_activate_plugin( $plugin ) );
-	}
-
-	/**
-	 * Test maybe_activate_plugin() when can be installed.
-	 *
-	 * @return void
-	 * @throws ReflectionException ReflectionException.
-	 */
-	public function test_maybe_activate_plugin_when_can_be_installed(): void {
-		$plugin = 'some-plugin/some-plugin.php';
-
-		$main = Mockery::mock( Main::class )->makePartial();
-
-		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
-
-		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
-
-		$subject = Mockery::mock( Integrations::class )->makePartial();
-
-		$this->set_protected_property( $subject, 'install', true );
-
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'install_plugin' )->with( $plugin )->once()->andReturn( null );
+		$subject->shouldReceive( 'install_plugin' )->with( $plugin )->andReturn( null );
 		$subject->shouldReceive( 'activate_plugin' )->with( $plugin )->once()->andReturn( null );
 
 		self::assertNull( $subject->maybe_activate_plugin( $plugin ) );
@@ -1506,11 +1507,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$plugin = 'some-plugin/some-plugin.php';
 		$result = Mockery::mock( 'overload:WP_Error' );
 
-		$main = Mockery::mock( Main::class )->makePartial();
-
-		$main->shouldReceive( 'is_plugin_active' )->with( $plugin )->once()->andReturn( false );
-
-		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 		WP_Mock::userFunction( 'is_wp_error' )->with( $result )->once()->andReturn( true );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
@@ -1530,8 +1526,23 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_install_plugin(): void {
-		$plugin_dir = 'example-plugin';
-		$plugin     = $plugin_dir . '/example-plugin.php';
+		$wp_plugin_dir = '/path/to/plugins';
+		$plugin_dir    = 'example-plugin';
+		$plugin_file   = 'example-plugin.php';
+		$plugin        = $plugin_dir . '/' . $plugin_file;
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $wp_plugin_dir ) {
+				return 'WP_PLUGIN_DIR' === $name ? $wp_plugin_dir : '';
+			}
+		);
+		FunctionMocker::replace(
+			'file_exists',
+			static function ( $filename ) use ( $wp_plugin_dir, $plugin ) {
+				return $filename !== $wp_plugin_dir . '/' . $plugin;
+			}
+		);
 
 		WP_Mock::userFunction( 'current_user_can' )
 			->with( 'install_plugins' )
@@ -1568,8 +1579,23 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_install_plugin_with_empty_plugin_dir(): void {
-		$plugin_dir = '';
-		$plugin     = $plugin_dir . '/example-plugin.php';
+		$wp_plugin_dir = '/path/to/plugins';
+		$plugin_dir    = '';
+		$plugin_file   = 'example-plugin.php';
+		$plugin        = $plugin_dir . '/' . $plugin_file;
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $wp_plugin_dir ) {
+				return 'WP_PLUGIN_DIR' === $name ? $wp_plugin_dir : '';
+			}
+		);
+		FunctionMocker::replace(
+			'file_exists',
+			static function ( $filename ) use ( $wp_plugin_dir, $plugin ) {
+				return $filename !== $wp_plugin_dir . '/' . $plugin;
+			}
+		);
 
 		$wp_error = Mockery::mock( 'overload:WP_Error' );
 		$wp_error->shouldReceive( '__construct' )
@@ -1588,8 +1614,23 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_install_plugin_when_not_allowed(): void {
-		$plugin_dir = 'example-plugin';
-		$plugin     = $plugin_dir . '/example-plugin.php';
+		$wp_plugin_dir = '/path/to/plugins';
+		$plugin_dir    = 'example-plugin';
+		$plugin_file   = 'example-plugin.php';
+		$plugin        = $plugin_dir . '/' . $plugin_file;
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $wp_plugin_dir ) {
+				return 'WP_PLUGIN_DIR' === $name ? $wp_plugin_dir : '';
+			}
+		);
+		FunctionMocker::replace(
+			'file_exists',
+			static function ( $filename ) use ( $wp_plugin_dir, $plugin ) {
+				return $filename !== $wp_plugin_dir . '/' . $plugin;
+			}
+		);
 
 		$wp_error = Mockery::mock( 'overload:WP_Error' );
 		$wp_error->shouldReceive( '__construct' )
@@ -1612,8 +1653,23 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_install_plugin_when_api_error(): void {
-		$plugin_dir = 'example-plugin';
-		$plugin     = $plugin_dir . '/example-plugin.php';
+		$wp_plugin_dir = '/path/to/plugins';
+		$plugin_dir    = 'example-plugin';
+		$plugin_file   = 'example-plugin.php';
+		$plugin        = $plugin_dir . '/' . $plugin_file;
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $wp_plugin_dir ) {
+				return 'WP_PLUGIN_DIR' === $name ? $wp_plugin_dir : '';
+			}
+		);
+		FunctionMocker::replace(
+			'file_exists',
+			static function ( $filename ) use ( $wp_plugin_dir, $plugin ) {
+				return $filename !== $wp_plugin_dir . '/' . $plugin;
+			}
+		);
 
 		$wp_error = Mockery::mock( 'overload:WP_Error' );
 
@@ -1700,12 +1756,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_plugin_dirs_to_slugs(): void {
-		$dirs    = [ 'woocommerce-wishlists', 'woocommerce/woocommerce.php' ];
+		$dirs    = [ 'woocommerce-wishlists', 'woocommerce' ];
 		$plugins = [
 			'woocommerce-wishlists/woocommerce-wishlists.php' => [],
 			// phpcs:ignore WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 			'woocommerce/woocommerce.php'                     => [],
 		];
+
+		WP_Mock::userFunction( 'get_plugins' )->andReturn( $plugins );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$this->set_protected_property( $subject, 'plugins', $plugins );
@@ -1714,13 +1772,11 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		self::assertSame( [], $subject->plugin_dirs_to_slugs( [] ) );
 
-		WP_Mock::userFunction( 'get_plugins' )->andReturn( $plugins );
-
 		self::assertSame( array_keys( $plugins ), $subject->plugin_dirs_to_slugs( $dirs ) );
 	}
 
 	/**
-	 * Test plugin_names_from_trees() basically flatten and de-duplication.
+	 * Test plugin_names_from_trees() flatten and deduplication.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -1800,7 +1856,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$plugin_b = 'woocommerce/woocommerce.php';
 		$plugin_c = 'plugin-c/plugin-c.php';
 
-		$error = Mockery::mock( 'overload:WP_Error' );
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
 
 		$node_a = [
 			'plugin'   => $plugin_a,
@@ -1811,7 +1867,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 					'result'   => null,
 				],
 			],
-			'result'   => $error, // Root result means omit its own name.
+			'result'   => $wp_error, // Root result means omit its own name.
 		];
 
 		$node_c = [
@@ -1829,6 +1885,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 			],
 		];
 		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $wp_error )->andReturn( true );
+		WP_Mock::userFunction( 'is_wp_error' )->with( null )->andReturn( false );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -1839,6 +1897,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 				if ( $plugin === $plugin_a ) {
 					return [ 'Name' => 'Plugin A' ];
 				}
+
 				if ( $plugin === $plugin_c ) {
 					return [ 'Name' => 'Plugin C' ];
 				}
@@ -1933,9 +1992,12 @@ class IntegrationsTest extends HCaptchaTestCase {
 		self::assertSame( $expected, $subject->plugin_names_from_tree( $plugin_trees ) );
 
 		// One plugin was not activated.
-		$error = Mockery::mock( 'overload:WP_Error' );
+		$wp_error = Mockery::mock( 'overload:WP_Error' );
 
-		$plugin_trees['result'] = $error;
+		WP_Mock::userFunction( 'is_wp_error' )->with( $wp_error )->andReturn( true );
+		WP_Mock::userFunction( 'is_wp_error' )->with( null )->andReturn( false );
+
+		$plugin_trees['result'] = $wp_error;
 
 		unset( $expected[0] );
 
@@ -2352,15 +2414,20 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_get_plugin_data_when_not_installed_returns_empty_array(): void {
-		$slug = 'my-plugin/my-plugin.php';
+	public function test_get_plugin_data_when_plugin_is_not_installed(): void {
+		$plugin_dir = '/path/to/plugins';
+		$slug       = 'my-plugin/my-plugin.php';
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( string $name ) use ( $plugin_dir ): bool {
+				return 'WP_PLUGIN_DIR' === $name ? $plugin_dir : '';
+			}
+		);
+		FunctionMocker::replace( 'file_exists', false );
 
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-
-		// No installed plugins.
-		$this->set_protected_property( $subject, 'plugins', [] );
-		$this->set_protected_property( $subject, 'themes', [] );
 
 		// Ensure global get_plugin_data() is not called.
 		WP_Mock::userFunction( 'get_plugin_data' )->never();
@@ -2371,7 +2438,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test get_plugin_data() when the plugin is installed: delegates to WP get_plugin_data with a correct path and flags.
+	 * Test get_plugin_data() when the plugin is installed:
+	 * delegates to WP get_plugin_data with a correct path and flags.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection PhpConditionAlreadyCheckedInspection
@@ -2397,6 +2465,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 			->with( $slug )
 			->andReturn( $plugin_file )
 			->once();
+
+		FunctionMocker::replace( 'file_exists', true );
 
 		WP_Mock::userFunction( 'get_plugin_data' )
 			->with( $plugin_file, $markup, $translate )

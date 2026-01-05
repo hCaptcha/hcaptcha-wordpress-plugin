@@ -26,7 +26,7 @@ use WP_Mock;
 class ListPageBaseTest extends HCaptchaTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */

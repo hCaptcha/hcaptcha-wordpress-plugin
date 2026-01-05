@@ -34,7 +34,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		unset( $_GET['service-worker'], $GLOBALS['current_screen'] );

@@ -13,6 +13,7 @@
 namespace HCaptcha\NF;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\Request;
 use NF_Abstracts_Field;
 
 /**
@@ -30,7 +31,7 @@ class Field extends NF_Abstracts_Field implements Base {
 	protected $_name = self::NAME;
 
 	/**
-	 * Filed type.
+	 * Field type.
 	 *
 	 * @var string
 	 */
@@ -86,12 +87,14 @@ class Field extends NF_Abstracts_Field implements Base {
 	 * @param mixed       $data  Data.
 	 *
 	 * @return null|string
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function validate( $field, $data ): ?string {
-		$value = $field['value'] ?? '';
+		$response = $field['value'] ?? '';
+		$fields   = $data['fields'];
 
-		return API::verify_request( $value );
+		unset( $fields[ $field['id'] ] );
+
+		return API::verify( $this->get_entry( $response, $fields ) );
 	}
 
 	/**
@@ -102,9 +105,73 @@ class Field extends NF_Abstracts_Field implements Base {
 	 * @return array
 	 */
 	public function hide_field_type( $hidden_field_types ): array {
-		$hidden_field_types   = (array) $hidden_field_types;
+		$hidden_field_types = (array) $hidden_field_types;
+
+		// Remove the native hcaptcha field by Ninja Forms plugin.
+		$hidden_field_types = array_diff( $hidden_field_types, [ 'hcaptcha' ] );
+
 		$hidden_field_types[] = $this->_name;
 
 		return $hidden_field_types;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param string $response The hCaptcha response.
+	 * @param array  $fields   Form data.
+	 *
+	 * @return array
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function get_entry( string $response, array $fields ): array {
+		global $wpdb;
+
+		$form_data = Request::filter_input( INPUT_POST, 'formData' );
+		$data      = json_decode( $form_data, true );
+		$form      = Ninja_Forms()->form( $data['id'] );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated_at = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT updated_at FROM {$wpdb->prefix}nf3_forms WHERE id = %d",
+				$data['id']
+			)
+		);
+
+		$entry = [
+			'h-captcha-response' => $response,
+			'form_date_gmt'      => $updated_at,
+			'data'               => [],
+		];
+
+		$name = [];
+
+		foreach ( $fields as $field ) {
+			$id       = $field['id'];
+			$settings = $form->get_field( $id )->get_settings();
+			$key      = $settings['key'];
+			$type     = $settings['type'];
+			$label    = $settings['label'];
+			$value    = $field['value'];
+
+			if ( 'submit' === $type ) {
+				continue;
+			}
+
+			if ( 'name' === $key ) {
+				$name[] = $value;
+			}
+
+			if ( 'email' === $type ) {
+				$entry['data']['email'] = $value;
+			}
+
+			$entry['data'][ $label ] = $value;
+		}
+
+		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+
+		return $entry;
 	}
 }

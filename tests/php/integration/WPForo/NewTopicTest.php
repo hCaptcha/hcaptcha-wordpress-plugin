@@ -47,7 +47,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Tear down test.
+	 * Tear down the test.
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */

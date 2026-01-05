@@ -81,6 +81,7 @@ FunctionMocker::init(
 			'date_create_immutable',
 			'defined',
 			'extension_loaded',
+			'file_exists',
 			'filter_input',
 			'function_exists',
 			'header_remove',

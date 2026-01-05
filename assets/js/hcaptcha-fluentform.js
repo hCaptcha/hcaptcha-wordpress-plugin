@@ -21,6 +21,14 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 		onHCaptchaLoaded() {
 			const formSelector = '.ffc_conv_form';
 
+			// We assume there should be only one conversational form on the page.
+			const form = document.querySelector( formSelector );
+			const hasCaptcha = () => form.querySelector( 'h-captcha' ) !== null;
+
+			if ( hasCaptcha() ) {
+				return;
+			}
+
 			const hasOwnCaptcha = () => {
 				return document.getElementById( 'hcaptcha-container' ) !== null;
 			};
@@ -29,15 +37,13 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 			 * Process conversational form.
 			 */
 			const processForm = () => {
-				// We assume there should be only one conversational form on the page.
-				const form = document.querySelector( formSelector );
 				const submitBtnSelector = '.ff-btn';
 
-				const isSubmitVisible = ( qForm ) => {
-					return qForm.querySelector( submitBtnSelector ) !== null;
-				};
-
 				const addCaptcha = () => {
+					if ( hasCaptcha() ) {
+						return;
+					}
+
 					const hCaptchaHiddenClass = 'h-captcha-hidden';
 					const hCaptchaClass = 'h-captcha';
 					const hiddenCaptcha = document.getElementsByClassName( hCaptchaHiddenClass )[ 0 ];
@@ -63,17 +69,17 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 				const mutationObserverCallback = ( mutationList ) => {
 					for ( const mutation of mutationList ) {
 						if (
-							! (
-								mutation.type === 'attributes' &&
-								mutation.attributeName === 'class' &&
-								mutation.oldValue && mutation.oldValue.includes( 'q-is-inactive' )
-							)
+							mutation.type === 'attributes' &&
+							mutation.attributeName === 'class'
 						) {
-							continue;
-						}
+							const el = mutation.target;
 
-						if ( isSubmitVisible( mutation.target ) ) {
-							addCaptcha();
+							if (
+								el.classList.contains( 'vff' ) &&
+								el.classList.contains( 'ffc_last_step' )
+							) {
+								addCaptcha();
+							}
 						}
 					}
 				};
@@ -82,18 +88,14 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 					return;
 				}
 
-				const qFormSelector = '.q-form';
-				const qForms = form.querySelectorAll( qFormSelector );
 				const config = {
 					attributes: true,
-					attributeOldValue: true,
+					attributeFilter: [ 'class' ],
+					subtree: true,
 				};
 
-				[ ...qForms ].map( ( qForm ) => {
-					const observer = new MutationObserver( mutationObserverCallback );
-					observer.observe( qForm, config );
-					return qForm;
-				} );
+				const observer = new MutationObserver( mutationObserverCallback );
+				observer.observe( form, config );
 			};
 
 			function waitForElement( selector ) {

@@ -23,16 +23,6 @@ const hcaptchaElementorPro = function() {
 			return window?.parent?.HCaptchaMainObject?.params ?? '';
 		}
 	);
-
-	elementorFrontend.hooks.addAction(
-		'frontend/element_ready/widget',
-		function( $scope ) {
-			if ( $scope[ 0 ].classList.contains( 'elementor-widget-form' ) ) {
-				// Elementor reinserts an element during editing, so we need to bind events again.
-				hCaptchaBindEvents();
-			}
-		}
-	);
 };
 
 window.hCaptchaElementorPro = hcaptchaElementorPro;

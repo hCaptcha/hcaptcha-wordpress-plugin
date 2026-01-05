@@ -25,7 +25,7 @@ use tad\FunctionMocker\FunctionMocker;
 class NotificationsTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 *
 	 * @return void
 	 */
@@ -182,6 +182,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif',
 					'text'     => 'See an example',
 					'lightbox' => true,
+				],
+			],
+			'ai-abilities'        => [
+				'title'   => 'AI-ready security actions',
+				'message' => 'Selected hCaptcha features are now available via the WordPress Abilities API for automation and AI-driven threat response. WordPress 6.9 is required.',
+				'button'  => [
+					'url'  => 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F',
+					'text' => 'Read documentation',
 				],
 			],
 		];
@@ -527,7 +535,11 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$expected = str_replace( $this->trim_tags( $dismissed_notification ), '', $expected );
 		$expected = $this->trim_tags( $expected );
 
+		// Set shuffle to true.
+		add_filter( 'hcap_shuffle_notifications', '__return_true' );
+
 		ob_start();
+
 		$subject->show();
 
 		$actual = $this->trim_tags( ob_get_clean() );
@@ -643,11 +655,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$expected_order = array_reverse( array_keys( $notifications ) );
 
 		ob_start();
+
 		$subject->show();
+
 		$output = ob_get_clean();
 
 		// Extract notification IDs from the output in the order they appear.
 		preg_match_all( '/data-id="([^"]+)"/', $output, $matches );
+
 		$actual_order = $matches[1];
 
 		// Verify that the notifications are displayed in reverse order.

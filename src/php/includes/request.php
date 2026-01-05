@@ -7,6 +7,12 @@
 
 use HCaptcha\Helpers\API;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
+	exit;
+	// @codeCoverageIgnoreEnd
+}
+
 /**
  * Determines the user's actual IP address and attempts to partially
  * anonymize an IP address by converting it to a network ID.

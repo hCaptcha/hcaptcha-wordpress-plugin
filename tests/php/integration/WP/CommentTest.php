@@ -28,7 +28,7 @@ use WP_Error;
 class CommentTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing

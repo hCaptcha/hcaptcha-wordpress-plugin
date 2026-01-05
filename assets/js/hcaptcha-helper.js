@@ -88,7 +88,7 @@ export class helper {
 			this.params = new URLSearchParams();
 		}
 
-		return this.params.get( actionName );
+		return this.params.get( actionName ) ?? '';
 	}
 
 	/**

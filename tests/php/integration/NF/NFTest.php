@@ -374,4 +374,93 @@ JSON;
 
 		self::assertTrue( wp_script_is( 'hcaptcha-nf' ) );
 	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module(): void {
+		$subject = new NF();
+
+		// Wrong handle.
+
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag    = '<script src="https://example.com/script.js"></script>';
+		$handle = 'some';
+		$src    = 'https://example.com/script.js';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, $handle, $src ) );
+
+		// Proper handle.
+		$handle   = 'hcaptcha-nf';
+		$expected = '<script type="module" src="https://example.com/script.js"></script>';
+
+		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
+
+		// Script has a type.
+		$tag = '<script type="text/javascript" src="https://example.com/script.js"></script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
+	}
+
+	/**
+	 * Test before_nf_settings().
+	 */
+	public function test_before_nf_settings(): void {
+		$subject = new NF();
+
+		$level = ob_get_level();
+		$subject->before_nf_settings();
+
+		self::assertSame( $level + 1, ob_get_level() );
+
+		ob_end_clean();
+	}
+
+	/**
+	 * Test after_nf_settings().
+	 */
+	public function test_after_nf_settings(): void {
+		$subject = new NF();
+
+		ob_start();
+
+		$subject->before_nf_settings();
+		echo '<div id="ninja_forms_metabox_hcaptcha_settings">Native Settings</div>';
+		$subject->after_nf_settings();
+
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( 'hcaptcha-notice-label', $output );
+		self::assertStringContainsString(
+			'<div id="ninja_forms_metabox_hcaptcha_settings" style="display:none;"',
+			$output
+		);
+		self::assertStringContainsString( 'Native Settings', $output );
+	}
+
+	/**
+	 * Test admin_enqueue_scripts().
+	 */
+	public function test_admin_enqueue_scripts(): void {
+		global $wp_styles;
+
+		$subject = new NF();
+
+		self::assertFalse( wp_style_is( 'admin-nf' ) );
+
+		$subject->admin_enqueue_scripts();
+
+		self::assertTrue( wp_style_is( 'admin-nf' ) );
+
+		$min = hcap_min_suffix();
+
+		self::assertSame(
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/admin-nf$min.css",
+			$wp_styles->registered['admin-nf']->src
+		);
+	}
 }

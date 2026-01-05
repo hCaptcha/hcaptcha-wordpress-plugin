@@ -15,7 +15,6 @@ use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Class LoginTest.
@@ -26,7 +25,7 @@ use function PHPUnit\Framework\assertSame;
 class LoginTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Teardown test.
+	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -131,7 +130,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test check_signature() when good signature.
+	 * Test check_signature() when a good signature.
 	 *
 	 * @return void
 	 */
@@ -153,7 +152,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test check_signature() when bad signature.
+	 * Test check_signature() when a bad signature.
 	 *
 	 * @return void
 	 */
@@ -253,7 +252,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame( $login_data, $this->get_protected_property( $subject, 'login_data' ) );
 		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
 
-		// Check that hcaptcha_login_data option is not autoloading.
+		// Check that the hcaptcha_login_data option is not autoloading.
 		$alloptions = wp_cache_get( 'alloptions', 'options' );
 		self::assertArrayNotHasKey( LoginBase::LOGIN_DATA, $alloptions );
 	}
@@ -263,7 +262,6 @@ class LoginTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
-	 * @noinspection UnusedFunctionResultInspection
 	 */
 	public function test_login_failed(): void {
 		$ip                           = '1.1.1.1';
@@ -389,7 +387,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() when login limit is not exceeded.
+	 * Test verify() when the login limit is not exceeded.
 	 */
 	public function test_verify_NOT_limit_exceeded(): void {
 		$user = new WP_User( 1 );
