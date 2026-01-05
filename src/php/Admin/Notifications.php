@@ -328,15 +328,6 @@ class Notifications extends NotificationsBase {
 				],
 			],
 			// Added in 4.21.0.
-			'recaptcha-paid'      => [
-				'title'   => __( 'Migrating from reCAPTCHA?', 'hcaptcha-for-forms-and-more' ),
-				'message' => __( 'Google reCAPTCHA now uses usage-based pricing. hCaptcha is a drop-in alternative without traffic-based billing surprises.', 'hcaptcha-for-forms-and-more' ),
-				'button'  => [
-					'url'  => $urls['recaptcha_paid'],
-					'text' => __( 'Read more', 'hcaptcha-for-forms-and-more' ),
-				],
-			],
-			// Added in 4.21.0.
 			'ai-abilities'        => [
 				'title'   => __( 'AI-ready security actions', 'hcaptcha-for-forms-and-more' ),
 				'message' => __( 'Selected hCaptcha features are now available via the WordPress Abilities API for automation and AI-driven threat response. WordPress 6.9 is required.', 'hcaptcha-for-forms-and-more' ),
