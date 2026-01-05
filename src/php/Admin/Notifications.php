@@ -677,8 +677,6 @@ class Notifications extends NotificationsBase {
 	 * @return array
 	 */
 	private function select_active_notifications( array $notifications ): array {
-		global $wp_version;
-
 		$settings = hcaptcha()->settings();
 
 		// Key: option name, value: notification id.

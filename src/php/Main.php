@@ -902,8 +902,6 @@ class Main {
 			}
 
 			foreach ( $this->modules as $module ) {
-				// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-				/** @noinspection SuspiciousAssignmentsInspection */
 				[ $module_status, $module_source ] = $module;
 
 				if ( ! in_array( $module_status, $honeypot_statuses, true ) ) {
@@ -1695,8 +1693,6 @@ class Main {
 		}
 
 		foreach ( $this->modules as $module ) {
-			// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-			/** @noinspection SuspiciousAssignmentsInspection */
 			[ $option_name, $option_value ] = $module[0];
 
 			$option = (array) $this->settings()->get( $option_name );

@@ -436,7 +436,7 @@ class WhatsNew extends NotificationsBase {
 	protected function whats_new_4_21_0(): void {
 		$urls = $this->prepare_urls();
 
-		$block1 = [
+		$block = [
 			'type'    => 'left',
 			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
 			'title'   => __( 'AI-Ready Security Actions', 'hcaptcha-for-forms-and-more' ),
@@ -458,7 +458,7 @@ class WhatsNew extends NotificationsBase {
 			],
 		];
 
-		$this->show_block( $block1 );
+		$this->show_block( $block );
 	}
 
 	/**
