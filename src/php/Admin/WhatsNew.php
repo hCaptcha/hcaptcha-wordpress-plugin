@@ -458,7 +458,6 @@ class WhatsNew extends NotificationsBase {
 			],
 		];
 
-
 		$this->show_block( $block1 );
 	}
 
