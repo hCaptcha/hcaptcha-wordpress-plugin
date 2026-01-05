@@ -184,6 +184,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'lightbox' => true,
 				],
 			],
+			'ai-abilities'        => [
+				'title'   => 'AI-ready security actions',
+				'message' => 'Selected hCaptcha features are now available via the WordPress Abilities API for automation and AI-driven threat response. WordPress 6.9 is required.',
+				'button'  => [
+					'url'  => 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F',
+					'text' => 'Read documentation',
+				],
+			],
 		];
 
 		switch ( $setting ) {

@@ -621,25 +621,7 @@ HTML;
 					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/ai-abilities.png" alt="What's New block image">
 				</a>
 			</div>
-		</div>
-		<div class="hcaptcha-whats-new-block center">
-			<div class="hcaptcha-whats-new-text">
-				<h2> reCAPTCHA pricing changes </h2>
-				<div class="hcaptcha-whats-new-message">
-					<p>Google has introduced usage-based pricing for reCAPTCHA, which may affect sites as traffic grows.</p><p>hCaptcha for WordPress continues to provide predictable bot protection without automatic upgrades or surprise billing.</p><p>If you are evaluating alternatives to reCAPTCHA, hCaptcha works as a drop-in replacement for most WordPress forms and integrations.</p>
-				</div>
-				<div class="hcaptcha-whats-new-button">
-					<a
-							href="https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#description" class="button button-primary"
-							target="_blank">
-						Read more
-					</a>
-				</div>
-			</div>
-			<div class="hcaptcha-whats-new-image">
-			</div>
-		</div>
-		
+		</div>	
 HTML;
 
 		add_filter(
