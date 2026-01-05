@@ -13,7 +13,6 @@ Integrates with 60+ popular plugins and themes.
 
 == Description ==
 
-The first WordPress security plugin to support the new Abilities API for automated and AI-assisted security workflows.
 The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
 
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
