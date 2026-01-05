@@ -8,20 +8,17 @@ Stable tag: 4.21.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Looking for a reCAPTCHA alternative after Google imposed usage-based pricing?
-The strongest CAPTCHA. Integrates with 60+ popular plugins and themes.
+The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
+Integrates with 60+ popular plugins and themes.
 
 == Description ==
 
-Looking for a reCAPTCHA alternative after Google imposed usage-based pricing?
 The first WordPress security plugin to support the new Abilities API for automated and AI-assisted security workflows.
-The strongest CAPTCHA. Integrates with 60+ popular plugins and themes.
+The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
 
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
 Need to keep out bots? hCaptcha protects privacy while offering better protection against spam and abuse. Help build a better web.
-
-Unlike reCAPTCHA, hCaptcha does not introduce automatic upgrades or traffic-based billing, making it a predictable choice for growing sites.
 
 hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcaptcha-for-wp) with broad integration support, detailed analytics, and strong protection. Start protecting logins, forms, and more in minutes.
 
@@ -172,7 +169,7 @@ wp ability run hcaptcha/block-offenders \
 --user=admin
 `
 
-Using REST API:
+Using REST API (authenticated):
 `
 curl --globoff -u "USER:APP_PASSWORD" \
 "https://example.com/wp-json/wp-abilities/v1/abilities/hcaptcha/block-offenders/run?input[offender_ids][]=a1376a016c4156933c4d49b0bc56fa01"
@@ -862,7 +859,7 @@ Instructions for popular native integrations are below:
 * Added compatibility with the latest version of the Ninja Forms plugin.
 * Fixed FluentForms integrations after the latest FluentForms update.
 * Fixed the inability to send FluentForms Conversational Form.
-* Fix the racing condition which sometimes led to double rendering of the hCaptcha widget on any forms.
+* Fixed the racing condition which sometimes led to double rendering of the hCaptcha widget on any forms.
 * Fixed double rendering of the hCaptcha widget on the Elementor Form.
 * Fixed an error activating a free plugin when its premium version is not available.
 * Fixed highlighting of the suggested plugin when it is already activated.
