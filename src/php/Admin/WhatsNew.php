@@ -460,7 +460,6 @@ class WhatsNew extends NotificationsBase {
 
 
 		$this->show_block( $block1 );
-		$this->show_block( $block2 );
 	}
 
 	/**
