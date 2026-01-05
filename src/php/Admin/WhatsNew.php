@@ -458,20 +458,6 @@ class WhatsNew extends NotificationsBase {
 			],
 		];
 
-		$block2 = [
-			'type'    => 'center',
-			'title'   => __( 'reCAPTCHA pricing changes', 'hcaptcha-for-forms-and-more' ),
-			'message' => sprintf(
-				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
-				__( 'Google has introduced usage-based pricing for reCAPTCHA, which may affect sites as traffic grows.', 'hcaptcha-for-forms-and-more' ),
-				__( 'hCaptcha for WordPress continues to provide predictable bot protection without automatic upgrades or surprise billing.', 'hcaptcha-for-forms-and-more' ),
-				__( 'If you are evaluating alternatives to reCAPTCHA, hCaptcha works as a drop-in replacement for most WordPress forms and integrations.', 'hcaptcha-for-forms-and-more' )
-			),
-			'button'  => [
-				'url'  => $urls['recaptcha_paid'],
-				'text' => __( 'Read more', 'hcaptcha-for-forms-and-more' ),
-			],
-		];
 
 		$this->show_block( $block1 );
 		$this->show_block( $block2 );
