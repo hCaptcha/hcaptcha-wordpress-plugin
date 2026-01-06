@@ -852,6 +852,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.21.1 =
+* Fixed hCaptcha not loading on Contact Form 7.
+
 = 4.21.0 =
 * Added AI-ready security actions via the WordPress Abilities API, enabling automated threat inspection and response.
 * Added compatibility with the latest version of the Ninja Forms plugin.
