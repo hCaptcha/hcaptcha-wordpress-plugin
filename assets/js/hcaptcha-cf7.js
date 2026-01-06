@@ -11,3 +11,5 @@ document.addEventListener( 'DOMContentLoaded', function() {
 		return form;
 	} );
 } );
+
+document.addEventListener( 'DOMContentLoaded', hCaptchaBindEvents );
