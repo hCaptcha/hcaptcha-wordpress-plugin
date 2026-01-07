@@ -11,6 +11,7 @@
 namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\Pages;
+use HCaptcha\Main;
 use WPCF7_ContactForm;
 use WPCF7_TagGenerator;
 use WPCF7_TagGeneratorGenerator;
@@ -307,7 +308,7 @@ class Admin extends Base {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
-			[],
+			[ Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
