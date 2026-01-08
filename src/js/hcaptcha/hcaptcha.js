@@ -590,12 +590,12 @@ class HCaptcha {
 		this.getForms().map( ( formElement ) => {
 			const hcaptchaElement = formElement.querySelector( '.h-captcha' );
 
-			if ( el && ( el !== hcaptchaElement ) ) {
+			// Ignore forms not having hcaptcha.
+			if ( null === hcaptchaElement ) {
 				return formElement;
 			}
 
-			// Ignore forms not having hcaptcha.
-			if ( null === hcaptchaElement ) {
+			if ( ( el instanceof HTMLElement ) && ( el !== hcaptchaElement ) ) {
 				return formElement;
 			}
 

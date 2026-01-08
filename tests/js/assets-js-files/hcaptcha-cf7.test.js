@@ -18,6 +18,7 @@ describe( 'hCaptcha Contact Form 7', () => {
 
 		require( '../../../assets/js/hcaptcha-cf7.js' );
 		document.dispatchEvent( new Event( 'DOMContentLoaded' ) );
+		hCaptchaBindEvents.mockClear();
 	} );
 
 	afterEach( () => {

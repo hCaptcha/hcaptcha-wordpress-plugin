@@ -12,6 +12,7 @@ namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Main;
 use WPCF7_FormTag;
 use WPCF7_Submission;
 use WPCF7_Validation;
@@ -309,7 +310,7 @@ class CF7 extends Base {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
-			[],
+			[ Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
