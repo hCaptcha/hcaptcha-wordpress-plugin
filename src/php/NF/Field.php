@@ -8,12 +8,14 @@
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUnused */
+/** @noinspection PhpMissingFieldTypeInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\NF;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
 use NF_Abstracts_Field;
 
 /**
@@ -128,7 +130,7 @@ class Field extends NF_Abstracts_Field implements Base {
 		global $wpdb;
 
 		$form_data = Request::filter_input( INPUT_POST, 'formData' );
-		$data      = json_decode( $form_data, true );
+		$data      = Utils::json_decode_arr( $form_data );
 		$form      = Ninja_Forms()->form( $data['id'] );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

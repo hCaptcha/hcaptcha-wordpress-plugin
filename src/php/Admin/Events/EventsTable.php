@@ -7,7 +7,9 @@
 
 namespace HCaptcha\Admin\Events;
 
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Settings\ListPageBase;
+use JsonException;
 
 /**
  * List events in the table.
@@ -34,7 +36,7 @@ class EventsTable extends TableBase {
 	 *
 	 * @var array
 	 */
-	private $datetime_format = [];
+	private array $datetime_format = [];
 
 	/**
 	 * Init class.
@@ -166,7 +168,8 @@ class EventsTable extends TableBase {
 	 * @noinspection PhpUnused PhpUnused.
 	 */
 	protected function column_error_codes( object $item ): string {
-		$error_codes = (array) json_decode( $item->error_codes, true );
+		$error_codes = Utils::json_decode_arr( $item->error_codes );
+
 		$errors      = hcap_get_error_messages();
 		$message_arr = [];
 

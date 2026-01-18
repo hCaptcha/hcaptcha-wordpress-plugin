@@ -27,7 +27,7 @@ abstract class CommentBase {
 	 *
 	 * @var bool
 	 */
-	protected $hcaptcha_shown = false;
+	protected bool $hcaptcha_shown = false;
 
 	/**
 	 * Verification result.
@@ -41,7 +41,7 @@ abstract class CommentBase {
 	 *
 	 * @var int
 	 */
-	protected $form_id = 0;
+	protected int $form_id = 0;
 
 	/**
 	 * Init hooks.

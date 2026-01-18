@@ -9,6 +9,8 @@
 
 namespace HCaptcha\Settings;
 
+use HCaptcha\Helpers\Utils;
+use JsonException;
 use KAGG\Settings\Abstracts\SettingsBase;
 use KAGG\Settings\Abstracts\SettingsInterface;
 
@@ -29,14 +31,14 @@ class Settings implements SettingsInterface {
 	 *
 	 * @var array
 	 */
-	protected $menu_groups;
+	protected array $menu_groups = [];
 
 	/**
 	 * Menu pages and tabs in one flat array.
 	 *
 	 * @var array
 	 */
-	protected $tabs = [];
+	protected array $tabs = [];
 
 	/**
 	 * Settings constructor.
@@ -157,7 +159,7 @@ class Settings implements SettingsInterface {
 	 * @return array
 	 */
 	public function get_config_params(): array {
-		return (array) ( json_decode( $this->get( 'config_params' ), true ) ?: [] );
+		return Utils::json_decode_arr( $this->get( 'config_params' ) );
 	}
 
 	/**

@@ -6,6 +6,7 @@
  */
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -189,7 +190,7 @@ function hcap_check_site_config(): array {
 		];
 	}
 
-	$body = (array) json_decode( $raw_body, true );
+	$body = Utils::json_decode_arr( $raw_body );
 
 	if ( ! $body ) {
 		return [

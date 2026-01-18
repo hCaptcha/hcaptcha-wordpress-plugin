@@ -68,14 +68,14 @@ class Playground {
 	 *
 	 * @var array
 	 */
-	private $data;
+	private array $data;
 
 	/**
 	 * Whether to renew forms and pages upon plugin/theme activation.
 	 *
 	 * @var bool
 	 */
-	private $renew;
+	private bool $renew;
 
 	/**
 	 * Constructor.
@@ -1018,11 +1018,10 @@ class Playground {
 			// Parent item without href — just opens subitems. For it, no href.
 			[
 				'id'    => self::HCAPTCHA_MENU_ID,
-				'title' =>
-					'<span class="ab-icon hcaptcha-icon"></span>' .
-					'<span class="ab-label">' .
-					__( 'hCaptcha Samples', 'hcaptcha-for-forms-and-more' ) .
-					'</span>',
+				'title' => sprintf(
+					'<span class="ab-icon hcaptcha-icon"></span><span class="ab-label">%1$s</span>',
+					__( 'hCaptcha Samples', 'hcaptcha-for-forms-and-more' )
+				),
 				'meta'  => [ 'class' => self::HCAPTCHA_MENU_ID ],
 			],
 

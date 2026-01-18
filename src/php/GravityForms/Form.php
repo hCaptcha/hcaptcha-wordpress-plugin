@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -31,28 +31,28 @@ class Form extends Base {
 	 *
 	 * @var string|null
 	 */
-	protected $error_message;
+	protected ?string $error_message = null;
 
 	/**
 	 * Whether hCaptcha should be auto-added to any form.
 	 *
 	 * @var bool
 	 */
-	private $mode_auto = false;
+	private bool $mode_auto = false;
 
 	/**
 	 * Whether hCaptcha can be embedded into form in the GF form editor.
 	 *
 	 * @var bool
 	 */
-	private $mode_embed = false;
+	private bool $mode_embed = false;
 
 	/**
 	 * Current form id.
 	 *
 	 * @var int
 	 */
-	protected $form_id = 0;
+	protected int $form_id = 0;
 
 	/**
 	 * Constructor.

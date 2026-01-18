@@ -25,17 +25,15 @@ use tad\FunctionMocker\FunctionMocker;
 class UninstallFileTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Start transaction.
+	 * Set up test.
 	 *
 	 * @return void
-	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
-	public function start_transaction() {
-		parent::start_transaction();
+	public function setUp(): void {
+		parent::setUp();
 
 		// Disable temporary tables creating.
-		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+		remove_all_filters( 'query', 10 );
 	}
 
 	/**

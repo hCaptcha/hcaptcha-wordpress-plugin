@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -18,6 +18,7 @@ class Form extends Base {
 	 * @param string|mixed $content Content.
 	 *
 	 * @return string
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( $content ): string {
 		$content = (string) $content;

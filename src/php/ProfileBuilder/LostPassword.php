@@ -40,14 +40,14 @@ class LostPassword {
 	 *
 	 * @var string|null
 	 */
-	private $error_message;
+	private ?string $error_message = null;
 
 	/**
 	 * Username or email from $_POST.
 	 *
 	 * @var string
 	 */
-	private $username_email = '';
+	private string $username_email = '';
 
 	/**
 	 * Constructor.

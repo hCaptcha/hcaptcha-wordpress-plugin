@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * The Login class file.
  *
  * @package hcaptcha-wp
  */
@@ -47,7 +47,7 @@ class Login extends LoginBase {
 
 		$hcaptcha = '';
 
-		// Check the login status, because class is always loading when bbPress is active.
+		// Check the login status, because the class is always loading when bbPress is active.
 		if ( hcaptcha()->settings()->is( 'bbp_status', 'login' ) ) {
 			ob_start();
 

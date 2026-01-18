@@ -1,6 +1,6 @@
 <?php
 /**
- * Reply class file.
+ * `Reply` class file.
  *
  * @package hcaptcha-wp
  */

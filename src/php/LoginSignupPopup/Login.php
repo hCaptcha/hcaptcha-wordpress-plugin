@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * The Login class file.
  *
  * @package hcaptcha-wp
  */

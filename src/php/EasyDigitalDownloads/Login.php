@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -31,14 +31,14 @@ class Login {
 	 *
 	 * @var string|null
 	 */
-	private $error_message;
+	private ?string $error_message = null;
 
 	/**
 	 * Login form shown.
 	 *
 	 * @var bool
 	 */
-	private $login_form_shown = false;
+	private bool $login_form_shown = false;
 
 	/**
 	 * Form constructor.

@@ -28,10 +28,6 @@ class LostPassword {
 	 */
 	protected function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_captcha' ], 10, 4 );
-
-		if ( ! hcaptcha()->settings()->is( 'bbp_status', 'lost_pass' ) ) {
-			add_filter( 'hcap_protect_form', [ $this, 'hcap_protect_form' ], 10, 3 );
-		}
 	}
 
 	/**
@@ -71,26 +67,5 @@ class LostPassword {
 
 		// Insert hCaptcha.
 		return $output;
-	}
-
-	/**
-	 * Protect form filter.
-	 * We need it to ignore auto verification of the Lost Password form when its option is off.
-	 *
-	 * @param bool|mixed $value   The protection status of a form.
-	 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-	 * @param int|string $form_id Form id.
-	 *
-	 * @return bool
-	 */
-	public function hcap_protect_form( $value, array $source, $form_id ): bool {
-		if (
-			'lost_password' === $form_id &&
-			HCaptcha::get_class_source( __CLASS__ ) === $source
-		) {
-			return false;
-		}
-
-		return (bool) $value;
 	}
 }

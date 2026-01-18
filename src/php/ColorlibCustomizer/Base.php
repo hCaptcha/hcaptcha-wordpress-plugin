@@ -19,7 +19,7 @@ abstract class Base {
 	 *
 	 * @var bool
 	 */
-	private $login_form_shown = false;
+	private bool $login_form_shown = false;
 
 	/**
 	 * Class constructor.

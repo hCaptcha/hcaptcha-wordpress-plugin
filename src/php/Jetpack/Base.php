@@ -48,14 +48,14 @@ abstract class Base {
 	 *
 	 * @var string|null
 	 */
-	protected $error_message;
+	protected ?string $error_message = null;
 
 	/**
 	 * Errored hash of the form.
 	 *
 	 * @var string|null
 	 */
-	protected $error_form_hash;
+	protected ?string $error_form_hash = null;
 
 	/**
 	 * Constructor.

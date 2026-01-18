@@ -11,7 +11,9 @@
 namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\Pages;
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
+use JsonException;
 use WPCF7_ContactForm;
 use WPCF7_TagGenerator;
 use WPCF7_TagGeneratorGenerator;
@@ -145,23 +147,22 @@ class Admin extends Base {
 		$stripe_message = '';
 
 		if ( $this->has_stripe_element( $live_form ) ) {
-			$stripe_message =
-				'<h4><em>' .
-				__( 'The Stripe payment element already contains an invisible hCaptcha. No need to add it to the form.', 'hcaptcha-for-forms-and-more' ) .
-				'</em></h4>';
+			$stripe_message = sprintf(
+				'<h4><em>%1$s</em></h4>',
+				__( 'The Stripe payment element already contains an invisible hCaptcha. No need to add it to the form.', 'hcaptcha-for-forms-and-more' )
+			);
 		}
 
-		$live_container =
+		$live_container          = sprintf(
 			"\n" .
 			'<div id="postbox-container-live" class="postbox-container">' .
-			'<div id="form-live">' .
-			'<h3>' . __( 'Live Form', 'hcaptcha-for-forms-and-more' ) . '</h3>' .
-			$stripe_message .
-			$live_form .
+			'<div id="form-live"><h3>%1$s</h3>%2$s%3$s</div>' .
 			'</div>' .
-			'</div>' .
-			"\n";
-
+			"\n",
+			__( 'Live Form', 'hcaptcha-for-forms-and-more' ),
+			$stripe_message,
+			$live_form
+		);
 		$post_body_end_with_live = str_replace( '<br class="clear" />', $live_container . '<br class="clear" />', $post_body_end );
 
 		// Extract form content.
@@ -333,7 +334,9 @@ class Admin extends Base {
 		$data = $wp_scripts->registered['wpcf7-admin']->extra['before'][1];
 
 		if ( preg_match( '/var wpcf7 = ({.+});/s', $data, $m ) ) {
-			$wpcf7 = array_merge( $wpcf7, json_decode( $m[1], true ) );
+			$wpcf7_json = Utils::json_decode_arr( $m[1] );
+
+			$wpcf7 = array_merge( $wpcf7, $wpcf7_json );
 
 			$wp_scripts->registered['wpcf7-admin']->extra['before'][1] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
@@ -379,9 +382,11 @@ class Admin extends Base {
 			}
 		);
 
-		$live =
-			'<h3>' . __( 'Live Form', 'hcaptcha-for-forms-and-more' ) . '</h3>' .
-			do_shortcode( $shortcode );
+		$live = sprintf(
+			'<h3>%s</h3>%s',
+			__( 'Live Form', 'hcaptcha-for-forms-and-more' ),
+			do_shortcode( $shortcode )
+		);
 
 		wp_send_json_success( $live );
 	}

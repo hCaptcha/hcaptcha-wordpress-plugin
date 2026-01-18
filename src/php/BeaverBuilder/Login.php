@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * The Login class file.
  *
  * @package hcaptcha-wp
  */
@@ -33,7 +33,7 @@ class Login extends Base {
 	}
 
 	/**
-	 * Filters the Beaver Builder Login Form submit button HTML and adds hcaptcha.
+	 * Filters the `Beaver Builder Login Form` submit button HTML and adds hcaptcha.
 	 *
 	 * @param string|mixed    $out    Button html.
 	 * @param FLBuilderModule $module Button module.

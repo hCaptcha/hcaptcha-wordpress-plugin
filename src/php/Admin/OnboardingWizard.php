@@ -50,28 +50,28 @@ class OnboardingWizard {
 	 *
 	 * @var PluginSettingsBase
 	 */
-	private $tab;
-
-	/**
-	 * Plugin settings instance.
-	 *
-	 * @var Settings
-	 */
-	private $settings;
+	private PluginSettingsBase $tab;
 
 	/**
 	 * General tab instance.
 	 *
 	 * @var PluginSettingsBase
 	 */
-	private $general_tab;
+	private PluginSettingsBase $general_tab;
 
 	/**
 	 * Integrations tab instance.
 	 *
 	 * @var PluginSettingsBase
 	 */
-	private $integrations_tab;
+	private PluginSettingsBase $integrations_tab;
+
+	/**
+	 * Plugin settings instance.
+	 *
+	 * @var Settings
+	 */
+	private Settings $settings;
 
 	/**
 	 * OnboardingWizard constructor.
@@ -135,7 +135,7 @@ class OnboardingWizard {
 			$num = 1;
 		}
 
-		// Persist step in the main settings option.
+		// Persist a step in the main settings option.
 		$this->set_wizard_state( 'step ' . $num );
 
 		// Determine the target page by step.

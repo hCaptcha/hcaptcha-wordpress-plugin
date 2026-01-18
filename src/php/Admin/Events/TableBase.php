@@ -8,6 +8,8 @@
 namespace HCaptcha\Admin\Events;
 
 // If this file is called directly, abort.
+use HCaptcha\Helpers\Utils;
+use JsonException;
 use WP_List_Table;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -33,28 +35,28 @@ abstract class TableBase extends WP_List_Table {
 	 *
 	 * @var int
 	 */
-	public $per_page_default = 20;
+	public int $per_page_default = 20;
 
 	/**
 	 * Plugin page hook.
 	 *
 	 * @var string
 	 */
-	protected $plugin_page_hook;
+	protected string $plugin_page_hook = '';
 
 	/**
 	 * Plugins installed.
 	 *
 	 * @var array[]
 	 */
-	protected $plugins;
+	protected array $plugins = [];
 
 	/**
 	 * Columns.
 	 *
 	 * @var array
 	 */
-	protected $columns;
+	protected array $columns = [];
 
 	/**
 	 * Class constructor.
@@ -172,7 +174,7 @@ abstract class TableBase extends WP_List_Table {
 	 * @noinspection PhpUnused PhpUnused.
 	 */
 	protected function column_name( object $item ): string {
-		$source = (array) json_decode( $item->source, true );
+		$source = Utils::json_decode_arr( $item->source );
 
 		foreach ( $source as &$slug ) {
 			if ( 'WordPress' === $slug ) {

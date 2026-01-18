@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,6 +10,7 @@ namespace HCaptcha\EssentialBlocks;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
 use WP_Block;
 
 /**
@@ -45,7 +46,7 @@ class Form {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
-		// Disable recaptcha compatibility, otherwise, the Essential Blocks script fails.
+		// Disable recaptcha compatibility; otherwise, the Essential Blocks script fails.
 		hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
 
 		add_action( 'wp_ajax_eb_form_submit', [ $this, 'verify' ], 9 );
@@ -103,7 +104,7 @@ class Form {
 	public function verify(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$form_data_str = isset( $_POST['form_data'] ) ? sanitize_text_field( wp_unslash( $_POST['form_data'] ) ) : '';
-		$form_data     = (array) json_decode( $form_data_str, true );
+		$form_data     = Utils::json_decode_arr( $form_data_str );
 
 		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $form_data );
 

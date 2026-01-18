@@ -49,7 +49,7 @@ class Notifications extends NotificationsBase {
 	 *
 	 * @var array
 	 */
-	protected $notifications = [];
+	protected array $notifications = [];
 
 	/**
 	 * Init class.

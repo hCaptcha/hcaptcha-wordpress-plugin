@@ -31,7 +31,7 @@ class Register {
 	 *
 	 * @var string|null
 	 */
-	private $error_message;
+	private ?string $error_message = null;
 
 	/**
 	 * Constructor.

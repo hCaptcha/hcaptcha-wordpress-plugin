@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * The Login class file.
  *
  * @package hcaptcha-wp
  */
@@ -9,6 +9,7 @@ namespace HCaptcha\LearnDash;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\WP\LoginOut;
 
 /**
  * Class Login.
@@ -23,7 +24,7 @@ class Login extends LoginBase {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_filter( 'login_form_middle', [ $this, 'add_learn_dash_captcha' ], 10, 2 );
+		add_filter( 'login_form_middle', [ $this, 'add_learn_dash_captcha' ], 0, 2 );
 	}
 
 	/**
@@ -42,6 +43,10 @@ class Login extends LoginBase {
 		if ( ! $this->is_learn_dash_login_form() ) {
 			return $content;
 		}
+
+		$wp_login_out = hcaptcha()->get( LoginOut::class );
+
+		remove_filter( 'login_form_middle', [ $wp_login_out, 'add_wp_login_out_hcaptcha' ] );
 
 		ob_start();
 		$this->add_captcha();

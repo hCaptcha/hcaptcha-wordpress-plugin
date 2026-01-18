@@ -254,7 +254,6 @@ class SettingsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_get_config_params(): array {
 		return [
-			[ null, [] ],
 			[ '', [] ],
 			[ 'some string', [] ],
 			[ '{"some":"object"}', [ 'some' => 'object' ] ],

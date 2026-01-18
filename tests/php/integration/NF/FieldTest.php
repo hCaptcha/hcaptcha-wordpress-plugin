@@ -40,20 +40,6 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Start transaction.
-	 *
-	 * @return void
-	 * @noinspection ReturnTypeCanBeDeclaredInspection
-	 */
-	public function start_transaction() {
-		parent::start_transaction();
-
-		// Disable temporary tables creating.
-		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
-	}
-
-	/**
 	 * Test __construct().
 	 *
 	 * @noinspection PhpUndefinedMethodInspection

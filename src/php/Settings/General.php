@@ -84,7 +84,7 @@ class General extends PluginSettingsBase {
 	public const SECTION_ANTISPAM = 'antispam';
 
 	/**
-	 * Other section id.
+	 * Another section id.
 	 */
 	public const SECTION_OTHER = 'other';
 
@@ -146,9 +146,9 @@ class General extends PluginSettingsBase {
 	/**
 	 * Notifications class instance.
 	 *
-	 * @var Notifications
+	 * @var Notifications|null
 	 */
-	protected $notifications;
+	protected ?Notifications $notifications = null;
 
 	/**
 	 * Get page title.

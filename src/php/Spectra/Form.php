@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,6 +10,7 @@ namespace HCaptcha\Spectra;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
 use WP_Block;
 
 /**
@@ -37,7 +38,7 @@ class Form {
 	 *
 	 * @var bool
 	 */
-	protected $has_recaptcha_field;
+	protected bool $has_recaptcha_field = false;
 
 	/**
 	 * Form constructor.
@@ -122,7 +123,7 @@ class Form {
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$form_data = isset( $_POST['form_data'] )
-			? json_decode( sanitize_text_field( wp_unslash( $_POST['form_data'] ) ), true )
+			? Utils::json_decode_arr( sanitize_text_field( wp_unslash( $_POST['form_data'] ) ) )
 			: [];
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -180,7 +181,7 @@ class Form {
 	}
 
 	/**
-	 * Filter print hCaptcha scripts status and return true if no reCaptcha is in the form.
+	 * Filter the print hCaptcha scripts status and return true if no reCaptcha is in the form.
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *

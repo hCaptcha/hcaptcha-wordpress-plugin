@@ -34,7 +34,7 @@ class FormsTable extends TableBase {
 	 *
 	 * @var array
 	 */
-	public $served = [];
+	public array $served = [];
 
 	/**
 	 * Init class.

@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -40,7 +40,7 @@ class Form {
 	 *
 	 * @var string|null
 	 */
-	private $error_message;
+	private ?string $error_message = null;
 
 	/**
 	 * Constructor.
@@ -65,7 +65,7 @@ class Form {
 	}
 
 	/**
-	 * Filter the submit button element HTML.
+	 * Filter the Submit button element HTML.
 	 *
 	 * @param string|mixed     $html Button HTML.
 	 * @param \HTML_Forms\Form $form Form data and settings.

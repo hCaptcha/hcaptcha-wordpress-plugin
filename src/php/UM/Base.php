@@ -36,35 +36,35 @@ abstract class Base extends LoginBase {
 	 *
 	 * @var string
 	 */
-	private $key;
+	private string $key;
 
 	/**
 	 * UM mode.
 	 *
 	 * @var string
 	 */
-	private $um_mode;
+	private string $um_mode;
 
 	/**
 	 * The hCaptcha action.
 	 *
 	 * @var string
 	 */
-	private $hcaptcha_action;
-
-	/**
-	 * Form id.
-	 *
-	 * @var int
-	 */
-	protected $form_id = 0;
+	private string $hcaptcha_action;
 
 	/**
 	 * The hCaptcha nonce.
 	 *
 	 * @var string
 	 */
-	private $hcaptcha_nonce;
+	private string $hcaptcha_nonce;
+
+	/**
+	 * Form id.
+	 *
+	 * @var int
+	 */
+	protected int $form_id = 0;
 
 	/**
 	 * Constructor.

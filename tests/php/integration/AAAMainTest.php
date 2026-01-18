@@ -1280,8 +1280,6 @@ CSS;
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_load_modules( array $module ): void {
-		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-		/** @noinspection SuspiciousAssignmentsInspection */
 		[ $option_name, $option_value ] = $module[0];
 
 		update_option(
@@ -1469,20 +1467,12 @@ CSS;
 			'bbPress Login Form'                => [
 				[ 'bbp_status', 'login' ],
 				'bbpress/bbpress.php',
-				[
-					\HCaptcha\BBPress\Login::class,
-					\HCaptcha\BBPress\LostPassword::class,
-					\HCaptcha\BBPress\Register::class,
-				],
+				[ \HCaptcha\BBPress\Login::class ],
 			],
 			'bbPress Lost Password Form'        => [
 				[ 'bbp_status', 'lost_pass' ],
 				'bbpress/bbpress.php',
-				[
-					\HCaptcha\BBPress\Login::class,
-					\HCaptcha\BBPress\LostPassword::class,
-					\HCaptcha\BBPress\Register::class,
-				],
+				[ \HCaptcha\BBPress\LostPassword::class ],
 			],
 			'bbPress New Topic'                 => [
 				[ 'bbp_status', 'new_topic' ],
@@ -1492,11 +1482,7 @@ CSS;
 			'bbPress Register Form'             => [
 				[ 'bbp_status', 'register' ],
 				'bbpress/bbpress.php',
-				[
-					\HCaptcha\BBPress\Login::class,
-					\HCaptcha\BBPress\LostPassword::class,
-					\HCaptcha\BBPress\Register::class,
-				],
+				[ \HCaptcha\BBPress\Register::class ],
 			],
 			'bbPress Reply'                     => [
 				[ 'bbp_status', 'reply' ],

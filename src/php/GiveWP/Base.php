@@ -38,7 +38,7 @@ abstract class Base {
 	 *
 	 * @var int
 	 */
-	private $form_id;
+	private int $form_id;
 
 	/**
 	 * Base constructor.

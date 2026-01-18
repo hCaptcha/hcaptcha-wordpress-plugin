@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -10,6 +10,8 @@ namespace HCaptcha\Avada;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
+use JsonException;
 
 /**
  * Class Form.
@@ -26,7 +28,7 @@ class Form {
 	 *
 	 * @var int
 	 */
-	private $form_id = 0;
+	private int $form_id = 0;
 
 	/**
 	 * Form constructor.
@@ -200,7 +202,7 @@ class Form {
 			'data'               => [],
 		];
 
-		$field_types = json_decode( Request::filter_input( INPUT_POST, 'field_types' ), true );
+		$field_types = Utils::json_decode_arr( Request::filter_input( INPUT_POST, 'field_types' ) );
 
 		foreach ( $form_data as $key => $value ) {
 			$type = $field_types[ $key ] ?? '';

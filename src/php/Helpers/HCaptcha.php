@@ -37,7 +37,7 @@ class HCaptcha {
 	 *
 	 * @var array
 	 */
-	private static $default_id = [
+	private static array $default_id = [
 		'source'  => [],
 		'form_id' => 0,
 	];
@@ -302,7 +302,7 @@ class HCaptcha {
 
 		$id = wp_parse_args(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			(array) json_decode( base64_decode( $encoded_id ), true ),
+			Utils::json_decode_arr( base64_decode( $encoded_id ) ),
 			self::$default_id
 		);
 
@@ -486,16 +486,16 @@ class HCaptcha {
 	 * @return string
 	 */
 	public static function get_source_name( string $source ): string {
-		$source = json_decode( $source, true );
+		$source_arr = Utils::json_decode_arr( $source );
 
-		if ( ! $source ) {
+		if ( ! $source_arr ) {
 			return '';
 		}
 
 		foreach ( hcaptcha()->modules as $module ) {
 			$module_source = (array) ( '' === $module[1] ? 'WordPress' : $module[1] );
 
-			if ( array_intersect( $source, $module_source ) ) {
+			if ( array_intersect( $source_arr, $module_source ) ) {
 				$status = $module[0][0];
 
 				/**
@@ -515,7 +515,7 @@ class HCaptcha {
 			}
 		}
 
-		return implode( ',', $source );
+		return implode( ',', $source_arr );
 	}
 
 	/**
@@ -1076,7 +1076,7 @@ class HCaptcha {
 
 		$id = wp_parse_args(
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			(array) json_decode( base64_decode( $encoded_id ), true ),
+			Utils::json_decode_arr( base64_decode( $encoded_id ) ),
 			self::$default_id
 		);
 

@@ -57,7 +57,7 @@ class Quform {
 	 *
 	 * @var array
 	 */
-	private $entry = [];
+	private array $entry = [];
 
 	/**
 	 * Quform constructor.

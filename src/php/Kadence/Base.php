@@ -17,7 +17,7 @@ class Base {
 	 *
 	 * @var bool
 	 */
-	protected $has_hcaptcha = false;
+	protected bool $has_hcaptcha = false;
 
 	/**
 	 * Add hooks.

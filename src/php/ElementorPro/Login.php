@@ -1,6 +1,6 @@
 <?php
 /**
- * Login class file.
+ * The Login class file.
  *
  * @package hcaptcha-wp
  */
@@ -74,7 +74,7 @@ class Login extends LoginBase {
 
 		$hcaptcha = '';
 
-		// Check the login status, because class is always loading when Elementor Pro is active.
+		// Check the login status, because the class is always loading when Elementor Pro is active.
 		if ( hcaptcha()->settings()->is( 'elementor_pro_status', 'login' ) ) {
 			ob_start();
 			$this->add_captcha();

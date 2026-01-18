@@ -80,7 +80,6 @@ class EmailOptin {
 	 * Verify email optin form.
 	 *
 	 * @return void
-	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): void {
 		$error_message = API::verify_post( self::NONCE, self::ACTION );

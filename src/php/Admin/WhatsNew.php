@@ -52,7 +52,7 @@ class WhatsNew extends NotificationsBase {
 	 *
 	 * @var bool
 	 */
-	protected $allowed = false;
+	protected bool $allowed = false;
 
 	/**
 	 * Constructor.
@@ -86,7 +86,7 @@ class WhatsNew extends NotificationsBase {
 	 */
 	private function init_hooks(): void {
 		add_action( 'kagg_settings_tab', [ $this, 'action_settings_tab' ] );
-		add_action( 'admin_print_footer_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'admin_print_footer_scripts', [ $this, 'enqueue_assets' ], 9 );
 		add_action( 'admin_footer', [ $this, 'maybe_show_popup' ] );
 		add_action( 'wp_ajax_' . self::MARK_SHOWN_ACTION, [ $this, 'mark_shown' ] );
 		add_filter( 'update_footer', [ $this, 'update_footer' ], 1010 );

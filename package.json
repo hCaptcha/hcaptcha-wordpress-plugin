@@ -49,35 +49,35 @@
     "@wordpress/hooks": "^4.33.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.5",
-    "@babel/preset-env": "^7.28.5",
-    "@inrupt/jest-jsdom-polyfills": "^4.0.5",
-    "@wordpress/eslint-plugin": "^22.19.0",
+    "@babel/core": "^7.28.6",
+    "@babel/preset-env": "^7.28.6",
+    "@inrupt/jest-jsdom-polyfills": "^4.0.8",
+    "@wordpress/eslint-plugin": "^24.0.0",
     "babel-loader": "^10.0.0",
     "coveralls": "^3.1.1",
     "css-loader": "^7.1.2",
-    "css-minimizer-webpack-plugin": "^7.0.2",
+    "css-minimizer-webpack-plugin": "^7.0.4",
     "eslint": "^8.57.1",
     "glob": "^13.0.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "jest-fetch-mock": "^3.0.3",
     "jquery": "^3.7.1",
-    "mini-css-extract-plugin": "^2.9.4",
-    "prettier": "^3.6.2",
+    "mini-css-extract-plugin": "^2.10.0",
+    "prettier": "^3.8.0",
     "qs": "^6.14.1",
-    "terser-webpack-plugin": "^5.3.14",
+    "terser-webpack-plugin": "^5.3.16",
     "typescript": "^5.9.3",
-    "webpack": "^5.102.1",
+    "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
     "webpack-remove-empty-scripts": "^1.1.1"
   },
   "overrides": {
     "cross-spawn": "^7.0.6",
-    "form-data": "^2.5.4",
+    "form-data": "^2.5.5",
     "js-yaml": "^4.1.1",
     "micromatch": "^4.0.8",
-    "tar": "^7.5.2",
-    "undici": "^7.8.0"
+    "tar": "^7.5.3",
+    "undici": "^7.18.2"
   }
 }

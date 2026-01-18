@@ -26,7 +26,7 @@
     <arg name="parallel" value="12"/><!-- Enables parallel processing when available for faster results. -->
 
     <config name="installed_paths" value="vendor/phpcompatibility/php-compatibility,vendor/phpcompatibility/phpcompatibility-paragonie,vendor/phpcompatibility/phpcompatibility-wp,vendor/phpcsstandards/phpcsextra,vendor/phpcsstandards/phpcsutils,vendor/wp-coding-standards/wpcs"/>
-	<config name="testVersion" value="7.2-"/>
+	<config name="testVersion" value="7.4-"/>
     <config name="text_domain" value="hcaptcha-for-forms-and-more"/>
 
 	<!-- Rules: Check PHP version compatibility -->

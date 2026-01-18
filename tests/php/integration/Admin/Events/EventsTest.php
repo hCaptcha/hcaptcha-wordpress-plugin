@@ -27,6 +27,18 @@ use tad\FunctionMocker\FunctionMocker;
 class EventsTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Set up test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		// Disable temporary tables creating.
+		remove_all_filters( 'query', 10 );
+	}
+
+	/**
 	 * Tear down the test.
 	 *
 	 * @return void
@@ -37,20 +49,6 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->drop_table();
 
 		parent::tearDown();
-	}
-
-	/**
-	 * Start transaction.
-	 *
-	 * @return void
-	 * @noinspection ReturnTypeCanBeDeclaredInspection
-	 */
-	public function start_transaction() {
-		parent::start_transaction();
-
-		// Disable temporary tables creating.
-		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
 	}
 
 	/**

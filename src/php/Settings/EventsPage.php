@@ -39,21 +39,21 @@ class EventsPage extends ListPageBase {
 	 *
 	 * @var EventsTable
 	 */
-	protected $list_table;
+	protected EventsTable $list_table;
 
 	/**
 	 * Succeed events.
 	 *
 	 * @var array
 	 */
-	protected $succeed;
+	protected array $succeed = [];
 
 	/**
 	 * Failed events.
 	 *
 	 * @var array
 	 */
-	protected $failed;
+	protected array $failed = [];
 
 	/**
 	 * Get page title.

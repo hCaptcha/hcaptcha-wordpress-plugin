@@ -13,7 +13,7 @@ use HCaptcha\Helpers\HCaptcha;
 /**
  * Class LostPassword
  *
- * This class uses verify hook in WP\LostPassword.
+ * This class uses a `verify` hook in WP\LostPassword.
  */
 class LostPassword extends LostPasswordBase {
 	/**

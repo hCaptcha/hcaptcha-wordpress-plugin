@@ -105,35 +105,35 @@ class Integrations extends PluginSettingsBase {
 	 *
 	 * @var string
 	 */
-	protected $entity = '';
+	protected string $entity = '';
 
 	/**
 	 * Plugin trees.
 	 *
 	 * @var array
 	 */
-	protected $plugin_trees = [];
+	protected array $plugin_trees = [];
 
 	/**
 	 * Installed plugins.
 	 *
 	 * @var array[]
 	 */
-	protected $plugins;
+	protected array $plugins = [];
 
 	/**
 	 * Installed themes.
 	 *
 	 * @var WP_Theme[]
 	 */
-	protected $themes;
+	protected array $themes = [];
 
 	/**
 	 * All protected forms.
 	 *
 	 * @var array
 	 */
-	protected $all_protected_forms = [];
+	protected array $all_protected_forms = [];
 
 	/**
 	 * Get page title.

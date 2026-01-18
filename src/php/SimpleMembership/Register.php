@@ -1,6 +1,6 @@
 <?php
 /**
- * `Register` class file.
+ * The Register class file.
  *
  * @package hcaptcha-wp
  */

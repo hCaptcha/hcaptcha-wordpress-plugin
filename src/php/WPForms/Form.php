@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -38,7 +38,7 @@ class Form {
 	 *
 	 * @var bool
 	 */
-	private $mode_auto = false;
+	private bool $mode_auto = false;
 
 	/**
 	 * Whether hCaptcha can be embedded into form in the WPForms form editor.
@@ -46,7 +46,7 @@ class Form {
 	 *
 	 * @var bool
 	 */
-	private $mode_embed = false;
+	private bool $mode_embed = false;
 
 	/**
 	 * Form constructor.

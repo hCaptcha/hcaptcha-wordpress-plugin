@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -46,14 +46,14 @@ class Form {
 	 *
 	 * @var array
 	 */
-	private $show_in_popup = [];
+	private array $show_in_popup = [];
 
 	/**
 	 * The Icegram Express widget is processing.
 	 *
 	 * @var bool
 	 */
-	private $in_widget = false;
+	private bool $in_widget = false;
 
 	/**
 	 * Constructor.
@@ -250,6 +250,7 @@ class Form {
 	 * @param array|null $attr    Shortcode attribute array or null if the form is rendered from the widget.
 	 *
 	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function show_in_popup( int $form_id, ?array $attr ): bool {
 		if ( null === $attr && $this->in_widget ) {

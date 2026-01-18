@@ -9,6 +9,7 @@ namespace HCaptcha\Settings;
 
 use DateTimeImmutable;
 use Exception;
+use HCaptcha\Helpers\Utils;
 
 /**
  * Class ListPageBase.
@@ -70,14 +71,14 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @var string
 	 */
-	protected $unit;
+	protected string $unit;
 
 	/**
 	 * The page is allowed to be shown.
 	 *
 	 * @var bool
 	 */
-	protected $allowed = false;
+	protected bool $allowed = false;
 
 	/**
 	 * Delete hCaptcha events by IDs.
@@ -289,14 +290,12 @@ abstract class ListPageBase extends PluginSettingsBase {
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$bulk = isset( $_POST['bulk'] ) ? sanitize_text_field( wp_unslash( $_POST['bulk'] ) ) : '';
-		$ids  = isset( $_POST['ids'] )
-			? (array) json_decode( sanitize_text_field( wp_unslash( $_POST['ids'] ) ), true )
-			: [];
-		$date = isset( $_POST['date'] )
-			// We need filter_input here to keep the delimiter intact.
-			? sanitize_text_field( wp_unslash( $_POST['date'] ) )
-			: '';
+		$bulk     = isset( $_POST['bulk'] ) ? sanitize_text_field( wp_unslash( $_POST['bulk'] ) ) : '';
+		$ids_json = isset( $_POST['ids'] ) ? sanitize_text_field( wp_unslash( $_POST['ids'] ) ) : '';
+
+		$ids = Utils::json_decode_arr( $ids_json );
+
+		$date = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$dates = explode( self::TIMESPAN_DELIMITER, $date );
@@ -453,7 +452,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 * Check the delimiter to see if the end date is specified.
 	 * We can assume that the start and end dates are the same if the end date is missing.
 	 *
-	 * @param string $dates Given timespan (dates) in string. i.e. "2024-04-16 - 2024-05-16" or "2024-04-16".
+	 * @param string $dates Given timespan (dates) in string. I.e. "2024-04-16 - 2024-05-16" or "2024-04-16".
 	 *
 	 * @return string
 	 */

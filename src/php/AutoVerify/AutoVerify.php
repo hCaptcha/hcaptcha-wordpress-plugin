@@ -37,7 +37,7 @@ class AutoVerify {
 	 *
 	 * @var array
 	 */
-	protected $registry = [];
+	protected array $registry = [];
 
 	/**
 	 * Init class.

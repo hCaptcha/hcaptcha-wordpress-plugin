@@ -250,7 +250,7 @@ class Migrations {
 		$raw_version = $matches[0];
 
 		if ( strpos( $raw_version, '_' ) ) {
-			// Modern notation: 3_10_0 means 3.10.0 version.
+			// Modern notation: 3_10_0 means the 3.10.0 version.
 
 			// @codeCoverageIgnoreStart
 			return str_replace( '_', '.', $raw_version );
