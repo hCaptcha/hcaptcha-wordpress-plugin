@@ -1,3 +1,10 @@
+= 4.22.0 =
+* The minimum required PHP version is now 7.4.
+* The minimum required WordPress version is now 6.0.
+* Added support of 1Password on the General page. 
+* Fixed an issue where third-party plugins calling WordPress core functions incorrectly could break What's New admin scripts and styles.
+* Fixed LearDash Login form.
+
 = 4.21.1 =
 * Fixed hCaptcha not loading on Contact Form 7.
 

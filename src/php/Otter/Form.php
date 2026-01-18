@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -44,16 +44,16 @@ class Form {
 	/**
 	 * Error code.
 	 *
-	 * @var int
+	 * @var string|null
 	 */
-	private $error_code;
+	private ?string $error_code = null;
 
 	/**
 	 * Error message.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
-	private $error_message;
+	private ?string $error_message = null;
 
 	/**
 	 * Otter Form constructor.

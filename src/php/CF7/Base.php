@@ -17,21 +17,21 @@ class Base {
 	 *
 	 * @var bool
 	 */
-	protected $mode_auto = false;
+	protected bool $mode_auto = false;
 
 	/**
 	 * Whether hCaptcha can be embedded into form in the form editor.
 	 *
 	 * @var bool
 	 */
-	protected $mode_embed = false;
+	protected bool $mode_embed = false;
 
 	/**
 	 * Whether to show the live hCaptcha form in the form editor.
 	 *
 	 * @var bool
 	 */
-	protected $mode_live = false;
+	protected bool $mode_live = false;
 
 	/**
 	 * Base constructor.

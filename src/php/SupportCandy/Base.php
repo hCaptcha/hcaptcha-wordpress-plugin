@@ -20,7 +20,7 @@ abstract class Base {
 	 *
 	 * @var bool
 	 */
-	private $did_support_candy_shortcode_tag_filter = false;
+	private bool $did_support_candy_shortcode_tag_filter = false;
 
 	/**
 	 * Base constructor.

@@ -37,7 +37,7 @@ class Events {
 	 *
 	 * @var bool
 	 */
-	private $saved;
+	private bool $saved = false;
 
 	/**
 	 * Class constructor.

@@ -26,12 +26,12 @@ trait Base {
 	 */
 	protected function get_login_url(): string {
 		if ( function_exists( 'perfmatters_login_url' ) ) {
-			// Integration with Perfmatters plugin.
+			// Integration with the Perfmatters plugin.
 			return (string) wp_parse_url( perfmatters_login_url(), PHP_URL_PATH );
 		}
 
 		if ( class_exists( Plugin::class ) ) {
-			// Integration with WPS Hide Login plugin.
+			// Integration with the WPS Hide Login plugin.
 			return (string) wp_parse_url( Plugin::get_instance()->new_login_url(), PHP_URL_PATH );
 		}
 

@@ -19,7 +19,7 @@ class Privacy {
 	 *
 	 * @var string
 	 */
-	private $name;
+	private string $name;
 
 	/**
 	 * Constructor.
@@ -66,7 +66,7 @@ class Privacy {
 	}
 
 	/**
-	 * Add privacy policy content for the privacy policy page.
+	 * Add privacy policy content to the privacy policy page.
 	 */
 	public function get_privacy_message(): string {
 		ob_start();

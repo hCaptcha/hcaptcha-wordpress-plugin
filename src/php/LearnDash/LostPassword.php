@@ -56,10 +56,10 @@ class LostPassword {
 			],
 		];
 
-		$search  = '<input type="submit"';
-		$replace = HCaptcha::form( $args ) . $search;
+		$search  = '/(<input\s+type="submit")/';
+		$replace = HCaptcha::form( $args ) . '$1';
 
-		$output = (string) str_replace(
+		$output = (string) preg_replace(
 			$search,
 			$replace,
 			(string) $output

@@ -37,7 +37,6 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		$subject = new Register();
 
 		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_captcha' ] ) );
-		self::assertSame( 10, has_filter( 'hcap_protect_form', [ $subject, 'hcap_protect_form' ] ) );
 	}
 
 	/**
@@ -87,15 +86,6 @@ HTML;
 		$subject = new Register();
 
 		self::assertSame( $expected, $subject->add_captcha( $output, $tag, $attr, $m ) );
-
-		// Status is wrong.
-		$hcaptcha = $this->get_hcap_widget( $args['id'] );
-		$expected = str_replace( $placeholder, $hcaptcha . "\n\t\t\n", $template );
-
-		hcaptcha()->settings()->set( 'bbp_status', 'some' );
-		$subject = new Register();
-
-		self::assertSame( $expected, $subject->add_captcha( $output, $tag, $attr, $m ) );
 	}
 
 	/**
@@ -139,21 +129,5 @@ HTML;
 		$this->prepare_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register', false );
 
 		self::assertEquals( $expected, $subject->verify( $errors, $sanitized_user_login, $user_email ) );
-	}
-
-	/**
-	 * Test hcap_protect_form().
-	 *
-	 * @return void
-	 */
-	public function test_hcap_protect_form(): void {
-		$source  = [ 'bbpress/bbpress.php' ];
-		$form_id = 'register';
-
-		$subject = new Register();
-
-		self::assertTrue( $subject->hcap_protect_form( true, [ 'some source' ], $form_id ) );
-		self::assertTrue( $subject->hcap_protect_form( true, $source, 'some form id' ) );
-		self::assertFalse( $subject->hcap_protect_form( true, $source, $form_id ) );
 	}
 }

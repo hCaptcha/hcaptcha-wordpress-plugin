@@ -42,7 +42,7 @@ class Contact extends Base {
 	}
 
 	/**
-	 * Filters the Beaver Builder Contact Form submit button HTML and adds hCaptcha.
+	 * Filters the `Beaver Builder Contact Form` submit button HTML and adds hCaptcha.
 	 *
 	 * @param string|mixed    $out    Button html.
 	 * @param FLBuilderModule $module Button module.

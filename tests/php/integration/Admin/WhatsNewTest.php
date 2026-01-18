@@ -40,7 +40,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 
 		if ( $wizard_completed ) {
 			self::assertSame( 10, has_action( 'kagg_settings_tab', [ $subject, 'action_settings_tab' ] ) );
-			self::assertSame( 10, has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
+			self::assertSame( 9, has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
 			self::assertSame( 10, has_action( 'admin_footer', [ $subject, 'maybe_show_popup' ] ) );
 			self::assertSame( 10, has_action( 'wp_ajax_hcaptcha-mark-shown', [ $subject, 'mark_shown' ] ) );
 			self::assertSame( 1010, has_filter( 'update_footer', [ $subject, 'update_footer' ] ) );

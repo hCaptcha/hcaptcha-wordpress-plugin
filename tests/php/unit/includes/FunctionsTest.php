@@ -10,8 +10,6 @@
 /** @noinspection PhpUndefinedClassInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
-// phpcs:disable PHPCompatibility.FunctionDeclarations.NewReturnTypeDeclarations.voidFound
-
 namespace HCaptcha\Tests\Unit\includes;
 
 use HCaptcha\Main;
@@ -29,7 +27,7 @@ use WP_Mock;
 class FunctionsTest extends HCaptchaTestCase {
 
 	/**
-	 * Setup test class.
+	 * The setup test class.
 	 *
 	 * @return void
 	 */

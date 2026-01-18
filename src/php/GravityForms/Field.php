@@ -49,6 +49,7 @@ class Field extends GF_Field {
 	 * Field type.
 	 *
 	 * @var string
+	 * @noinspection PhpMissingFieldTypeInspection
 	 */
 	public $type = 'hcaptcha';
 
@@ -56,6 +57,8 @@ class Field extends GF_Field {
 	 * Constructor.
 	 *
 	 * @param array $data Data.
+	 *
+	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function __construct( $data = [] ) {
 		parent::__construct( $data );

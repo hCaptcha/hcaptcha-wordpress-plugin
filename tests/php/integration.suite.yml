@@ -5,6 +5,7 @@ modules:
     config:
         WPLoader:
             wpRootFolder: '%WP_ROOT_PATH%'
+            WPMU_PLUGIN_DIR: '%WP_ROOT_PATH%/_empty_mu_plugins'
             dbName: '%DB_NAME%'
             dbHost: '%DB_HOST%'
             dbUser: '%DB_USER%'

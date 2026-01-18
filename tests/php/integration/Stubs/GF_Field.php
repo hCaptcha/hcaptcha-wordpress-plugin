@@ -5,8 +5,10 @@
  * @package HCaptcha\Tests
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpIllegalPsrClassPathInspection */
+/** @noinspection PhpMissingFieldTypeInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 /**
  * Class GF_Field
@@ -21,14 +23,29 @@ class GF_Field {
 	public $id = 0;
 
 	/**
+	 * Field label.
+	 *
+	 * @var string
+	 */
+	public $label;
+
+	/**
+	 * Child inputs.
+	 *
+	 * @var array
+	 */
+	public $inputs = [];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param array $data Data.
 	 */
-	public function __construct( array $data = [] ) {}
+	public function __construct( array $data = [] ) {
+	}
 
 	/**
-	 * Determine if the current location is the entry detail page.
+	 * Determine if the current location is on the entry detail page.
 	 *
 	 * @return bool
 	 * @noinspection PhpMissingReturnTypeInspection

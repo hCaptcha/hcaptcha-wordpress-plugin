@@ -1,6 +1,6 @@
 <?php
 /**
- * Checkout class file.
+ * The Checkout class file.
  *
  * @package hcaptcha-wp
  */
@@ -45,14 +45,14 @@ class Checkout {
 	 *
 	 * @var bool
 	 */
-	private $captcha_added = false;
+	private bool $captcha_added = false;
 
 	/**
 	 * The block hCaptcha was added.
 	 *
 	 * @var bool
 	 */
-	private $block_captcha_added = false;
+	private bool $block_captcha_added = false;
 
 	/**
 	 * Constructor.

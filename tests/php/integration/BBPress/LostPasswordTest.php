@@ -36,7 +36,6 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 		$subject = new LostPassword();
 
 		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_captcha' ] ) );
-		self::assertSame( 10, has_filter( 'hcap_protect_form', [ $subject, 'hcap_protect_form' ] ) );
 	}
 
 	/**
@@ -94,21 +93,5 @@ HTML;
 		self::assertSame( $expected, $subject->add_captcha( $output, $tag, $attr, $m ) );
 		self::assertSame( 1, did_action( 'hcap_auto_verify_register' ) );
 		self::assertSame( $expected, $registered_output );
-	}
-
-	/**
-	 * Test hcap_protect_form().
-	 *
-	 * @return void
-	 */
-	public function test_hcap_protect_form(): void {
-		$source  = [ 'bbpress/bbpress.php' ];
-		$form_id = 'lost_password';
-
-		$subject = new LostPassword();
-
-		self::assertTrue( $subject->hcap_protect_form( true, [ 'some source' ], $form_id ) );
-		self::assertTrue( $subject->hcap_protect_form( true, $source, 'some form id' ) );
-		self::assertFalse( $subject->hcap_protect_form( true, $source, $form_id ) );
 	}
 }

@@ -87,7 +87,7 @@ class Main {
 	 *
 	 * @var boolean
 	 */
-	public $form_shown = false;
+	public bool $form_shown = false;
 
 	/**
 	 * We have the verification result of the hCaptcha widget.
@@ -95,63 +95,56 @@ class Main {
 	 *
 	 * @var boolean
 	 */
-	public $has_result = false;
+	public bool $has_result = false;
 
 	/**
 	 * Plugin modules.
 	 *
 	 * @var array
 	 */
-	public $modules = [];
+	public array $modules = [];
 
 	/**
 	 * Loaded integration-related classes.
 	 *
 	 * @var array
 	 */
-	protected $loaded_classes = [];
-
-	/**
-	 * Migrations' class instance.
-	 *
-	 * @var Migrations
-	 */
-	protected $migrations;
+	protected array $loaded_classes = [];
 
 	/**
 	 * Settings class instance.
 	 *
 	 * @var Settings
 	 */
-	protected $settings;
+	protected Settings $settings;
 
 	/**
 	 * Instance of AutoVerify.
 	 *
-	 * @var AutoVerify
+	 * @var AutoVerify|null
 	 */
-	protected $auto_verify;
+	protected ?AutoVerify $auto_verify = null;
 
 	/**
 	 * Instance of ProtectContent.
 	 *
 	 * @var ProtectContent
 	 */
-	protected $protect_content;
+	protected ProtectContent $protect_content;
 
 	/**
 	 * Whether hCaptcha is active.
 	 *
 	 * @var bool
 	 */
-	private $active;
+	private bool $active;
 
 	/**
 	 * Supported forms.
 	 *
 	 * @var ?array $supported_forms
 	 */
-	private $supported_forms;
+	private ?array $supported_forms = null;
 
 	/**
 	 * Init class.
@@ -1075,7 +1068,7 @@ class Main {
 				BBPress\Login::class,
 			],
 			'bbPress Lost Password Form'           => [
-				[ 'bbp_status', null ],
+				[ 'bbp_status', 'lost_pass' ],
 				'bbpress/bbpress.php',
 				BBPress\LostPassword::class,
 			],
@@ -1085,7 +1078,7 @@ class Main {
 				BBPress\NewTopic::class,
 			],
 			'bbPress Register Form'                => [
-				[ 'bbp_status', null ],
+				[ 'bbp_status', 'register' ],
 				'bbpress/bbpress.php',
 				BBPress\Register::class,
 			],

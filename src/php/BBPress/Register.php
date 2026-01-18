@@ -40,12 +40,7 @@ class Register {
 	 */
 	protected function init_hooks(): void {
 		add_filter( 'do_shortcode_tag', [ $this, 'add_captcha' ], 10, 4 );
-
-		if ( hcaptcha()->settings()->is( 'bbp_status', 'register' ) ) {
-			add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
-		} else {
-			add_filter( 'hcap_protect_form', [ $this, 'hcap_protect_form' ], 10, 3 );
-		}
+		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
 
 	/**
@@ -97,26 +92,5 @@ class Register {
 		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		return HCaptcha::add_error_message( $errors, $error_message );
-	}
-
-	/**
-	 * Protect form filter.
-	 * We need it to ignore auto verification of the Register form when its option is off.
-	 *
-	 * @param bool|mixed $value   The protection status of a form.
-	 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-	 * @param int|string $form_id Form id.
-	 *
-	 * @return bool
-	 */
-	public function hcap_protect_form( $value, array $source, $form_id ): bool {
-		if (
-			'register' === $form_id &&
-			HCaptcha::get_class_source( __CLASS__ ) === $source
-		) {
-			return false;
-		}
-
-		return (bool) $value;
 	}
 }

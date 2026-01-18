@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -50,14 +50,14 @@ class Form {
 	 *
 	 * @var int
 	 */
-	protected $form_id = 0;
+	protected int $form_id = 0;
 
 	/**
 	 * Form has hCaptcha field.
 	 *
 	 * @var bool
 	 */
-	protected $has_hcaptcha_field = false;
+	protected bool $has_hcaptcha_field = false;
 
 	/**
 	 * Quform constructor.

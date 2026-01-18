@@ -8,6 +8,7 @@
 namespace HCaptcha\NF;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
 
 /**
@@ -41,14 +42,14 @@ class NF implements Base {
 	 *
 	 * @var int
 	 */
-	protected $form_id = 0;
+	protected int $form_id = 0;
 
 	/**
 	 * Templates dir.
 	 *
 	 * @var string
 	 */
-	protected $templates_dir;
+	protected string $templates_dir;
 
 	/**
 	 * NF constructor.
@@ -124,7 +125,7 @@ class NF implements Base {
 			return;
 		}
 
-		$vars  = json_decode( $m[1], true );
+		$vars  = Utils::json_decode_arr( $m[1] );
 		$found = false;
 
 		foreach ( $vars['preloadedFormData']['fields'] as & $field ) {

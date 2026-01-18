@@ -19,14 +19,14 @@ class API {
 	 *
 	 * @var string|null
 	 */
-	private static $result;
+	private static ?string $result = null;
 
 	/**
 	 * Error codes of the hCaptcha widget verification.
 	 *
 	 * @var array
 	 */
-	private static $error_codes;
+	private static array $error_codes = [];
 
 	/**
 	 * Verify hCaptcha and AntiSpam response.
@@ -347,7 +347,7 @@ class API {
 			return self::filtered_result( $result, $error_codes );
 		}
 
-		$body = json_decode( $raw_body, true );
+		$body = Utils::json_decode_arr( $raw_body );
 
 		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
 			// Verification request is not verified.

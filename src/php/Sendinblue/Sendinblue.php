@@ -57,7 +57,6 @@ class Sendinblue {
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
 		if ( 'sibwp_form' !== $tag ) {

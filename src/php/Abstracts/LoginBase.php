@@ -51,14 +51,14 @@ abstract class LoginBase {
 	 *
 	 * @var bool
 	 */
-	protected $hcaptcha_shown = false;
+	protected bool $hcaptcha_shown = false;
 
 	/**
 	 * Login form shown.
 	 *
 	 * @var bool
 	 */
-	private $login_form_shown = false;
+	private bool $login_form_shown = false;
 
 	/**
 	 * Constructor.

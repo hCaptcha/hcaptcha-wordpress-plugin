@@ -1,10 +1,10 @@
 === hCaptcha for WP ===
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, antispam, abuse, protect
-Requires at least: 5.3
+Requires at least: 6.0
 Tested up to: 6.9
-Requires PHP: 7.2
-Stable tag: 4.21.1
+Requires PHP: 7.4
+Stable tag: 4.22.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -851,6 +851,13 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.22.0 =
+* The minimum required PHP version is now 7.4.
+* The minimum required WordPress version is now 6.0.
+* Added support of 1Password on the General page. 
+* Fixed an issue where third-party plugins calling WordPress core functions incorrectly could break What's New admin scripts and styles.
+* Fixed LearDash Login form.
 
 = 4.21.1 =
 * Fixed hCaptcha not loading on Contact Form 7.

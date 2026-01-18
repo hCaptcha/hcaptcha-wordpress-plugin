@@ -13,6 +13,8 @@ namespace HCaptcha\Brizy;
 use Brizy_Editor_Project;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
+use JsonException;
 use WP_Post;
 
 /**
@@ -84,8 +86,10 @@ abstract class Base {
 	 */
 	public function verify( $form ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$data              = isset( $_POST['data'] ) ? sanitize_text_field( wp_unslash( $_POST['data'] ) ) : '';
-		$data_arr          = json_decode( $data, true );
+		$data = isset( $_POST['data'] ) ? sanitize_text_field( wp_unslash( $_POST['data'] ) ) : '';
+
+		$data_arr = Utils::json_decode_arr( $data );
+
 		$hcaptcha_response = '';
 
 		foreach ( $data_arr as $item ) {

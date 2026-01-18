@@ -38,14 +38,14 @@ class FormsPage extends ListPageBase {
 	 *
 	 * @var FormsTable
 	 */
-	protected $list_table;
+	protected FormsTable $list_table;
 
 	/**
 	 * Served events.
 	 *
 	 * @var array
 	 */
-	protected $served;
+	protected array $served = [];
 
 	/**
 	 * Get page title.

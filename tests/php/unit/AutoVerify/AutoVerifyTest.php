@@ -126,7 +126,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_register_hcaptcha(): void {
-		$wrong_registry = 'wrong registry';
+		$wrong_registry = [ 'wrong registry' ];
 
 		WP_Mock::userFunction( 'wp_json_encode' )->andReturnUsing(
 			static function ( $value ) {

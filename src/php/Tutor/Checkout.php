@@ -1,6 +1,6 @@
 <?php
 /**
- * Checkout class file.
+ * The Checkout class file.
  *
  * @package hcaptcha-wp
  */

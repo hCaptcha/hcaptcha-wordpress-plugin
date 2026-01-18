@@ -31,7 +31,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 *
 	 * @var bool
 	 */
-	protected $submit_shown = false;
+	protected bool $submit_shown = false;
 
 	/**
 	 * Constructor.

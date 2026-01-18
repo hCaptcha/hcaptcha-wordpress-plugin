@@ -9,6 +9,8 @@ namespace HCaptcha\Abilities;
 
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
+use JsonException;
 use WP_Error;
 
 /**
@@ -553,8 +555,7 @@ class Abilities {
 		$offender_totals = [];
 
 		foreach ( $rows as $row ) {
-			$decoded_errors = json_decode( $row->error_codes, true );
-			$error_codes    = is_array( $decoded_errors ) ? array_filter( $decoded_errors ) : [];
+			$error_codes = Utils::json_decode_arr( $row->error_codes );
 
 			foreach ( $error_codes as $code ) {
 				$code                  = (string) $code;

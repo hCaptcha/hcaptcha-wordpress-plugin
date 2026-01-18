@@ -43,14 +43,14 @@ class ProtectContent {
 	 *
 	 * @var string
 	 */
-	protected $error_message = '';
+	protected string $error_message = '';
 
 	/**
 	 * Request URI.
 	 *
 	 * @var string
 	 */
-	protected $request_uri = '';
+	protected string $request_uri = '';
 
 	/**
 	 * Init class.

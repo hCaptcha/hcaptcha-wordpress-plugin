@@ -30,7 +30,7 @@ class Comment extends CommentBase {
 	 *
 	 * @var bool
 	 */
-	protected $active;
+	protected bool $active;
 
 	/**
 	 * Constructor.

@@ -55,14 +55,14 @@ class AntiSpam {
 	 *
 	 * @var ProviderBase
 	 */
-	private $provider;
+	private ProviderBase $provider;
 
 	/**
 	 * The entry to check for spam.
 	 *
 	 * @var array
 	 */
-	private $entry;
+	private array $entry;
 
 	/**
 	 * Constructor.

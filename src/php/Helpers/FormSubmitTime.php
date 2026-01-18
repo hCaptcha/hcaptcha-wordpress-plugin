@@ -18,7 +18,7 @@ class FormSubmitTime {
 	 *
 	 * @var FormSubmitTime|null
 	 */
-	protected static $instance;
+	protected static ?FormSubmitTime $instance = null;
 
 	/**
 	 * Script handle.
@@ -196,7 +196,7 @@ class FormSubmitTime {
 	}
 
 	/**
-	 * Get token form a payload.
+	 * Get token from a payload.
 	 * Signs the given payload and appends a signature.
 	 *
 	 * @param array $payload The data array to be signed.
@@ -235,9 +235,9 @@ class FormSubmitTime {
 			return new WP_Error( 'fst_bad_b64', __( 'Decode error.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$payload = json_decode( $json, true );
+		$payload = Utils::json_decode_arr( $json );
 
-		if ( ! is_array( $payload ) ) {
+		if ( ! $payload ) {
 			return new WP_Error( 'fst_bad_payload', __( 'Invalid payload.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
@@ -247,7 +247,7 @@ class FormSubmitTime {
 	/**
 	 * Parses a token into data and signature.
 	 *
-	 * @param string $token The token string to be parsed, containing a data and signature separated by a dash.
+	 * @param string $token The token string to be parsed, containing data and signature separated by a dash.
 	 *
 	 * @return array An array containing the parsed data and the signature.
 	 */

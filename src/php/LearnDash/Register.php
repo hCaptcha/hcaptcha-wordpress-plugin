@@ -91,9 +91,9 @@ class Register {
 	 *
 	 * @param string[]|mixed $registration_errors An array of registration errors and descriptions.
 	 *
-	 * @return mixed
+	 * @return array
 	 */
-	public function add_registration_errors( $registration_errors ) {
+	public function add_registration_errors( $registration_errors ): array {
 		return array_merge( (array) $registration_errors, hcap_get_error_messages() );
 	}
 

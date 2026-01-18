@@ -45,9 +45,9 @@ class Compatibility {
 
 		foreach ( $cacsp_options as $option ) {
 			if ( $use_blog_option ) {
-				add_filter( "blog_option_{$option}", [ $this, 'cacsp_option' ] );
+				add_filter( "blog_option_$option", [ $this, 'cacsp_option' ] );
 			} else {
-				add_filter( "option_{$option}", [ $this, 'cacsp_option' ] );
+				add_filter( "option_$option", [ $this, 'cacsp_option' ] );
 			}
 		}
 	}

@@ -11,6 +11,8 @@ use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
+use JsonException;
 use WP_Block;
 
 /**
@@ -38,14 +40,14 @@ class Contact {
 	 *
 	 * @var int
 	 */
-	protected $render_count = 0;
+	protected int $render_count = 0;
 
 	/**
 	 * Captcha status.
 	 *
 	 * @var string
 	 */
-	protected $captcha = 'off';
+	protected string $captcha = 'off';
 
 	/**
 	 * Constructor.
@@ -397,8 +399,10 @@ class Contact {
 			$fields_data_array   = [];
 
 			if ( $current_form_fields ) {
-				$fields_data_json             = html_entity_decode( str_replace( '\\', '', $current_form_fields ) );
-				$fields_data_array            = json_decode( $fields_data_json, true ) ?? [];
+				$fields_data_json = html_entity_decode( str_replace( '\\', '', $current_form_fields ) );
+
+					$fields_data_array = Utils::json_decode_arr( $fields_data_json );
+
 				$fields_data_array            = array_filter(
 					$fields_data_array,
 					static function ( $item ) {

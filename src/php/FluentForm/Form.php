@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -19,6 +19,7 @@ use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
 use stdClass;
 
@@ -64,7 +65,7 @@ class Form extends LoginBase {
 	 *
 	 * @var int
 	 */
-	protected $form_id = 0;
+	protected int $form_id = 0;
 
 	/**
 	 * Init hooks.
@@ -199,7 +200,7 @@ class Form extends LoginBase {
 		$errors['h-captcha-response'] = [ $error_message ];
 
 		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
-		$form_fields      = json_decode( $form_fields_json, true );
+		$form_fields      = Utils::json_decode_arr( $form_fields_json );
 		$multi_step       = isset( $form_fields['stepsWrapper'] );
 
 		if ( $multi_step ) {
@@ -569,7 +570,7 @@ class Form extends LoginBase {
 		$post_data = (array) $post_data; // The $post_data is filtered in the wp_parse_str() and can be anything.
 
 		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
-		$form_fields      = json_decode( $form_fields_json, true );
+		$form_fields      = Utils::json_decode_arr( $form_fields_json );
 		$fields           = $form_fields['fields'] ?? [];
 
 		// Build map.

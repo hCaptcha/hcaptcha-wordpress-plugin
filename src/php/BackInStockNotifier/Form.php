@@ -1,6 +1,6 @@
 <?php
 /**
- * 'Form' class file.
+ * The Form class file.
  *
  * @package hcaptcha-wp
  */
@@ -35,7 +35,7 @@ class Form {
 	 *
 	 * @var int
 	 */
-	private $form_id = 0;
+	private int $form_id = 0;
 
 	/**
 	 * Form constructor.
