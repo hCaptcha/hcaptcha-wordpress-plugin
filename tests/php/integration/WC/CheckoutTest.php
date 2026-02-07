@@ -238,10 +238,17 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
 
 		// Checkout route, not verified.
+		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( [ 'payment_data' => [] ] ) );
+
 		hcaptcha()->has_result = false;
 		$this->prepare_verify_request( $hcaptcha_response, false );
+		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
 		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
 		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_name, '' );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
 		$expected = new WP_Error(
