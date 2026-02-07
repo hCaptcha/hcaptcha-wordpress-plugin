@@ -132,7 +132,17 @@ class ProtectContent {
 			$time   = time();
 			$cookie = $time . '|' . wp_hash( $time );
 
-			$this->setcookie( self::COOKIE_NAME, $cookie, $time + self::COOKIE_EXPIRATION, '/' );
+			$this->setcookie(
+				self::COOKIE_NAME,
+				$cookie,
+				[
+					'expires'  => $time + self::COOKIE_EXPIRATION,
+					'path'     => '/',
+					'secure'   => is_ssl(),
+					'httponly' => true,
+				]
+			);
+
 			wp_safe_redirect( $this->request_uri );
 		}
 
@@ -512,28 +522,26 @@ class ProtectContent {
 	/**
 	 * Setcookie wrapper for test purposes.
 	 *
-	 * @param string $name               The name of the cookie.
-	 * @param string $value              The value of the cookie.
-	 * @param int    $expires_or_options The time the cookie expires.
-	 * @param string $path               The path on the server in which the cookie will be available on.
-	 * @param string $domain             The domain that the cookie is available.
-	 * @param bool   $secure             Indicates that the cookie should only be transmitted over HTTPS.
-	 * @param bool   $httponly           When true, the cookie will be made accessible only through the HTTP protocol.
+	 * @param string $name    The name of the cookie.
+	 * @param string $value   The value of the cookie.
+	 * @param array  $options The cookie options.
 	 *
 	 * @return bool
-	 * @noinspection PhpUnusedParameterInspection
 	 */
-	protected function setcookie(
-		string $name,
-		string $value = '',
-		int $expires_or_options = 0,
-		string $path = '',
-		string $domain = '',
-		bool $secure = false,
-		bool $httponly = false
-	): bool {
+	protected function setcookie( string $name, string $value = '', array $options = [] ): bool {
 		// @codeCoverageIgnoreStart
-		return setcookie( $name, $value, $expires_or_options, $path );
+		$options = wp_parse_args(
+			$options,
+			[
+				'expires'  => 0,
+				'path'     => '',
+				'domain'   => '',
+				'secure'   => false,
+				'httponly' => false,
+			]
+		);
+
+		return setcookie( $name, $value, $options );
 		// @codeCoverageIgnoreEnd
 	}
 

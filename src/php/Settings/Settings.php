@@ -56,7 +56,10 @@ class Settings implements SettingsInterface {
 	 *
 	 * @return void
 	 */
-	protected function init(): void {
+	public function init(): void {
+		// Reset tabs for the case of re-initialization.
+		$this->tabs = [];
+
 		foreach ( $this->menu_groups as $menu_group ) {
 			$classes = (array) ( $menu_group['classes'] ?? [] );
 			$args    = $menu_group['args'] ?? [];

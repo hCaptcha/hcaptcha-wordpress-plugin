@@ -524,6 +524,10 @@ class FormTest extends HCaptchaWPTestCase {
 
 		wp_dequeue_script( 'fluent_forms_conversational_form' );
 		wp_deregister_script( 'fluent_forms_conversational_form' );
+
+		// Restore the proper status of our hcaptcha script.
+		wp_register_script( 'hcaptcha', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit', [], '1.0.0', true );
+		wp_enqueue_script( 'hcaptcha' );
 	}
 
 	/**

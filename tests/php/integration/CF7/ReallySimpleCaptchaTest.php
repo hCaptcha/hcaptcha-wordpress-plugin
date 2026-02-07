@@ -23,8 +23,6 @@ use function PHPUnit\Framework\assertSame;
 /**
  * Test ReallySimpleCaptcha class.
  *
- * @requires PHP >= 7.4
- *
  * @group    cf7
  * @group    cf7-really-simple-captcha
  */

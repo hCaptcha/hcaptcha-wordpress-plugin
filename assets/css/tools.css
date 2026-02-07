@@ -1,0 +1,60 @@
+#hcaptcha-options.hcaptcha-tools fieldset input[type="checkbox"] {
+	display: inline-block;
+	border: none;
+	box-shadow: none;
+	width: 2.3611rem;
+	height: 1.25rem;
+	margin-block-start: -0.125rem;
+	margin-inline-end: 0.5rem;
+	margin-block-end: 0;
+	margin-inline-start: 0;
+}
+
+#hcaptcha-options.hcaptcha-tools fieldset input[type="checkbox"]::before {
+	background: url('../images/checkbox-off.svg');
+	background-size: cover;
+	margin: 0;
+	width: 2.3611rem;
+	height: 1.25rem;
+	content: '';
+	display: inline-block;
+}
+
+#hcaptcha-options.hcaptcha-tools fieldset input[type="checkbox"]:checked::before {
+	background: no-repeat url('../images/checkbox-on.svg');
+	background-size: cover;
+}
+
+#hcaptcha-options.hcaptcha-tools .import-notice {
+	display: none;
+	color: #d63638;
+}
+
+#hcaptcha-options.hcaptcha-tools:has(#include_keys:checked) .import-notice {
+	display: block;
+}
+
+.hcaptcha-file-upload {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.hcaptcha-file-upload input[type="file"] {
+	position: absolute;
+	left: -9999px;
+}
+
+.hcaptcha-file-name {
+	font-size: 13px;
+	color: #646970;
+	max-width: 320px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.hcaptcha-file-name.is-selected {
+	color: #1d2327;
+	font-weight: 500;
+}

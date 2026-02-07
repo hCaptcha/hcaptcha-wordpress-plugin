@@ -5,8 +5,10 @@
  * @package HCaptcha\Tests
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpIllegalPsrClassPathInspection */
+/** @noinspection PhpMissingFieldTypeInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 /**
  * Class FrmSettings.

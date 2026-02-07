@@ -193,7 +193,6 @@ class Playground {
 
 		$this->setup_permalinks();
 		$this->setup_settings();
-		Events::create_table();
 
 		$this->data['setup'] = true;
 
