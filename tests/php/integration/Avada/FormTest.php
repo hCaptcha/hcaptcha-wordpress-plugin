@@ -33,9 +33,6 @@ class FormTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'hcaptcha-avada' );
 		wp_deregister_script( 'hcaptcha-avada' );
 
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
-
 		parent::tearDown();
 	}
 

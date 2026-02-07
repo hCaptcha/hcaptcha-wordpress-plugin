@@ -86,7 +86,7 @@ body.settings_page_hcaptcha {
 }
 
 #hcaptcha-options table tr td fieldset input[type="checkbox"] {
-	display: inline;
+	display: inline-block;
 	border: none;
 	box-shadow: none;
 	width: 2.3611rem;

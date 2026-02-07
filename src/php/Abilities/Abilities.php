@@ -10,7 +10,7 @@ namespace HCaptcha\Abilities;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
-use JsonException;
+use HCaptcha\Settings\SettingsTransfer;
 use WP_Error;
 
 /**
@@ -43,6 +43,16 @@ class Abilities {
 	 * Ability name.
 	 */
 	private const ABILITY_BLOCK_OFFENDERS = 'hcaptcha/block-offenders';
+
+	/**
+	 * Ability name.
+	 */
+	private const ABILITY_EXPORT_SETTINGS = 'hcaptcha/export-settings';
+
+	/**
+	 * Ability name.
+	 */
+	private const ABILITY_IMPORT_SETTINGS = 'hcaptcha/import-settings';
 
 	/**
 	 * Maximum number of top offenders to return in a threat snapshot.
@@ -137,7 +147,6 @@ class Abilities {
 							'default'     => self::DEFAULT_TOP_OFFENDERS,
 						],
 					],
-					'required'             => [ 'window' ],
 					'additionalProperties' => false,
 				],
 				'output_schema'       => [
@@ -317,6 +326,142 @@ class Abilities {
 				],
 			]
 		);
+
+		wp_register_ability(
+			self::ABILITY_EXPORT_SETTINGS,
+			[
+				'label'               => __( 'Export Settings', 'hcaptcha-for-forms-and-more' ),
+				'description'         => __( 'Exports hCaptcha settings as JSON.', 'hcaptcha-for-forms-and-more' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => [
+					'type'                 => 'object',
+					'properties'           => [
+						'include_keys' => [
+							'type'        => 'boolean',
+							'description' => __( 'Include site and secret keys.', 'hcaptcha-for-forms-and-more' ),
+							'default'     => false,
+						],
+					],
+					'additionalProperties' => false,
+				],
+				'output_schema'       => [
+					'type'                 => 'object',
+					'properties'           => [
+						'meta'     => [
+							'type'                 => 'object',
+							'properties'           => [
+								'plugin'         => [ 'type' => 'string' ],
+								'plugin_version' => [ 'type' => 'string' ],
+								'schema_version' => [ 'type' => 'string' ],
+								'exported_at'    => [
+									'type'   => 'string',
+									'format' => 'date-time',
+								],
+							],
+							'required'             => [ 'plugin', 'plugin_version', 'schema_version', 'exported_at' ],
+							'additionalProperties' => false,
+						],
+						'settings' => [
+							'type'                 => 'object',
+							'additionalProperties' => true,
+						],
+						'keys'     => [
+							'type'                 => 'object',
+							'properties'           => [
+								'site_key'   => [ 'type' => 'string' ],
+								'secret_key' => [ 'type' => 'string' ],
+							],
+							'required'             => [ 'site_key', 'secret_key' ],
+							'additionalProperties' => false,
+						],
+					],
+					'required'             => [ 'meta', 'settings' ],
+					'additionalProperties' => false,
+				],
+				'permission_callback' => [ $this, 'can_export_settings' ],
+				'execute_callback'    => [ $this, 'export_settings' ],
+				'meta'                => [
+					'show_in_rest' => true,
+					'annotations'  => [
+						'readonly'    => true,
+						'idempotent'  => true,
+						'destructive' => false,
+					],
+				],
+			]
+		);
+
+		wp_register_ability(
+			self::ABILITY_IMPORT_SETTINGS,
+			[
+				'label'               => __( 'Import Settings', 'hcaptcha-for-forms-and-more' ),
+				'description'         => __( 'Imports hCaptcha settings from JSON.', 'hcaptcha-for-forms-and-more' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => [
+					'type'                 => 'object',
+					'properties'           => [
+						'input_file' => [
+							'type'        => 'string',
+							'description' => __( 'Path to a JSON file containing settings payload.', 'hcaptcha-for-forms-and-more' ),
+						],
+						'allow_keys' => [
+							'type'        => 'boolean',
+							'description' => __( 'Allow importing keys block.', 'hcaptcha-for-forms-and-more' ),
+							'default'     => false,
+						],
+						'dry_run'    => [
+							'type'        => 'boolean',
+							'description' => __( 'Validate without applying changes.', 'hcaptcha-for-forms-and-more' ),
+							'default'     => false,
+						],
+					],
+					'additionalProperties' => false,
+				],
+				'output_schema'       => [
+					'type'                 => 'object',
+					'properties'           => [
+						'success'  => [ 'type' => 'boolean' ],
+						'dry_run'  => [ 'type' => 'boolean' ],
+						'applied'  => [
+							'type'                 => 'object',
+							'properties'           => [
+								'settings' => [ 'type' => 'boolean' ],
+								'keys'     => [ 'type' => 'boolean' ],
+							],
+							'required'             => [ 'settings', 'keys' ],
+							'additionalProperties' => false,
+						],
+						'messages' => [
+							'type'                 => 'object',
+							'properties'           => [
+								'warnings' => [
+									'type'  => 'array',
+									'items' => [ 'type' => 'string' ],
+								],
+								'info'     => [
+									'type'  => 'array',
+									'items' => [ 'type' => 'string' ],
+								],
+							],
+							'required'             => [ 'warnings' ],
+							'additionalProperties' => false,
+						],
+					],
+					'required'             => [ 'success', 'dry_run', 'applied', 'messages' ],
+					'additionalProperties' => false,
+				],
+				'permission_callback' => [ $this, 'can_import_settings' ],
+				'execute_callback'    => [ $this, 'import_settings' ],
+				'meta'                => [
+					'show_in_rest' => true,
+					'annotations'  => [
+						'readonly'    => false,
+						'idempotent'  => false,
+						'destructive' => true,
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -342,6 +487,24 @@ class Abilities {
 	 * @return bool
 	 */
 	public function can_get_threat_snapshot(): bool {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Permission callback for the `hcaptcha/export-settings` ability.
+	 *
+	 * @return bool
+	 */
+	public function can_export_settings(): bool {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Permission callback for the `hcaptcha/import-settings` ability.
+	 *
+	 * @return bool
+	 */
+	public function can_import_settings(): bool {
 		return current_user_can( 'manage_options' );
 	}
 
@@ -377,6 +540,108 @@ class Abilities {
 		$snapshot['generated_at']   = gmdate( 'c' );
 
 		return $snapshot;
+	}
+
+	/**
+	 * Execute callback for the `hcaptcha/export-settings` ability.
+	 *
+	 * @param mixed $input Ability input.
+	 *
+	 * @return array
+	 */
+	public function export_settings( $input ): array {
+		$input        = (array) $input;
+		$include_keys = ! empty( $input['include_keys'] );
+
+		$transfer = new SettingsTransfer();
+
+		return $transfer->build_export_payload( $include_keys );
+	}
+
+	/**
+	 * Execute callback for the `hcaptcha/import-settings` ability.
+	 *
+	 * @param mixed $input Ability input.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function import_settings( $input ) {
+		$input      = (array) $input;
+		$allow_keys = ! empty( $input['allow_keys'] );
+		$dry_run    = ! empty( $input['dry_run'] );
+		$input_file = isset( $input['input_file'] ) ? trim( (string) $input['input_file'] ) : '';
+		$payload    = $input;
+
+		unset( $payload['allow_keys'], $payload['dry_run'], $payload['input_file'] );
+
+		if ( '' !== $input_file ) {
+			if ( ! file_exists( $input_file ) || ! is_readable( $input_file ) ) {
+				return new WP_Error(
+					'hcaptcha_invalid_payload',
+					__( 'Input file not found or unreadable.', 'hcaptcha-for-forms-and-more' )
+				);
+			}
+
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$json = file_get_contents( $input_file );
+			$data = json_decode( $json, true );
+
+			if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $data ) ) {
+				return new WP_Error(
+					'hcaptcha_invalid_payload',
+					__( 'Invalid JSON in input file.', 'hcaptcha-for-forms-and-more' )
+				);
+			}
+
+			$payload = $data;
+		}
+
+		if ( ! is_array( $payload ) || empty( $payload ) ) {
+			return new WP_Error(
+				'hcaptcha_invalid_payload',
+				__( 'Invalid settings payload.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		$transfer = new SettingsTransfer();
+		$result   = $transfer->apply_import_payload( $payload, $allow_keys, $dry_run );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$has_keys = isset( $payload['keys'] );
+		$warnings = [];
+		$info     = [];
+
+		if ( $has_keys && ! $allow_keys ) {
+			$warnings[] = __( 'Keys were present but were not applied.', 'hcaptcha-for-forms-and-more' );
+		}
+
+		if ( is_string( $result ) && '' !== $result ) {
+			$info[] = $result;
+		}
+
+		$messages = [
+			'warnings' => $warnings,
+		];
+
+		if ( $info ) {
+			$messages['info'] = $info;
+		}
+
+		$settings_applied = ! $dry_run && null === $result;
+		$keys_applied     = $settings_applied && $has_keys && $allow_keys;
+
+		return [
+			'success'  => true,
+			'dry_run'  => $dry_run,
+			'applied'  => [
+				'settings' => $settings_applied,
+				'keys'     => $keys_applied,
+			],
+			'messages' => $messages,
+		];
 	}
 
 	/**

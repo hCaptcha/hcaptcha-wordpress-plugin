@@ -28,6 +28,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 function hcap_get_user_ip( bool $filter_out_local = true ) {
 	$ip = false;
 
+	$remote_addr = isset( $_SERVER['REMOTE_ADDR'] )
+		? filter_var( wp_unslash( $_SERVER['REMOTE_ADDR'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+		: '';
+
 	// In order of preference, with the best ones for this purpose first.
 	$address_headers = [
 		'HTTP_TRUE_CLIENT_IP',
@@ -39,8 +43,18 @@ function hcap_get_user_ip( bool $filter_out_local = true ) {
 		'HTTP_X_CLUSTER_CLIENT_IP',
 		'HTTP_FORWARDED_FOR',
 		'HTTP_FORWARDED',
-		'REMOTE_ADDR',
 	];
+
+	/**
+	 * Filters the list of address headers to trust.
+	 *
+	 * @param string[] $address_headers Standard address headers.
+	 * @param string   $remote_addr     Current REMOTE_ADDR value.
+	 */
+	$address_headers = (array) apply_filters( 'hcap_trusted_address_headers', $address_headers, $remote_addr );
+
+	// Fall back to REMOTE_ADDR if no other headers are present.
+	$address_headers[] = 'REMOTE_ADDR';
 
 	foreach ( $address_headers as $header ) {
 		if ( ! array_key_exists( $header, $_SERVER ) ) {

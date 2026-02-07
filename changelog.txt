@@ -1,9 +1,20 @@
+= 4.23.0 =
+* Added 'hcap_trusted_address_headers' filter to customize the list of IP-related headers used for client IP detection.
+* Added admin tools for exporting and importing plugin settings.
+* Added WP-CLI support for exporting and importing plugin settings.
+* Added support for exporting and importing plugin settings via Abilities API.
+* Added temporary submit button locking when using Invisible hCaptcha to prevent multiple submissions.
+* Fixed a fatal error related to the missing events database table.
+* Fixed fatal errors on Forms and Events pages when the Events table was empty.
+* Fixed admin pages layout with the latest WordPress changes.
+* Fixed challenging hCaptcha with the express checkout methods on WooCommerce Checkout page.
+
 = 4.22.0 =
 * The minimum required PHP version is now 7.4.
 * The minimum required WordPress version is now 6.0.
-* Added support of 1Password on the General page. 
-* Fixed an issue where third-party plugins calling WordPress core functions incorrectly could break What's New admin scripts and styles.
-* Fixed LearDash Login form.
+* Added support for 1Password on the General page.
+* Fixed an issue where third-party plugins calling WordPress core functions incorrectly could break the What's New admin scripts and styles.
+* Fixed LearnDash Login form.
 
 = 4.21.1 =
 * Fixed hCaptcha not loading on Contact Form 7.

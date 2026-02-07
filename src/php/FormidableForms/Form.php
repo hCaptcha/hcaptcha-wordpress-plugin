@@ -11,6 +11,8 @@
 namespace HCaptcha\FormidableForms;
 
 use FrmAppHelper;
+use FrmField;
+use FrmForm;
 use FrmSettings;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
@@ -173,7 +175,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, array $values, array $validate_args ) {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry( $values, $validate_args ) );
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -185,6 +187,68 @@ class Form {
 		$errors[ 'field' . $field_id ] = $error_message;
 
 		return $errors;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $values        Form data.
+	 * @param array $validate_args Custom arguments.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $values, array $validate_args ): array {
+		$form_id = $values['form_id'] ?? 0;
+		$form    = FrmForm::getOne( $form_id );
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $values['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $form->created_at ?? null,
+		];
+
+		$fields        = $validate_args['posted_fields'] ?? [];
+		$entry['data'] = $this->get_data( $fields, $values );
+
+		return $entry;
+	}
+
+	/**
+	 * Get data.
+	 *
+	 * @param array $fields Form fields.
+	 * @param array $values Form values.
+	 *
+	 * @return array
+	 */
+	private function get_data( array $fields, array $values ): array {
+		$data = [];
+		$name = [];
+
+		foreach ( $fields as $field ) {
+			$field_id = $field->id;
+			$val      = $values['item_meta'][ $field_id ] ?? '';
+
+			if ( ! $val ) {
+				continue;
+			}
+
+			if ( 'name' === $field->type ) {
+				$val    = implode( ' ', (array) $val );
+				$name[] = $val;
+			}
+
+			if ( 'email' === $field->type ) {
+				$data['email'] = $val;
+			}
+
+			$data[ $field->name ] = $val;
+		}
+
+		$data['name'] = implode( ' ', $name ) ?: null;
+
+		return $data;
 	}
 
 	/**

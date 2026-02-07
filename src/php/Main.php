@@ -25,12 +25,12 @@ use HCaptcha\CACSP\Compatibility;
 use HCaptcha\CF7\CF7;
 use HCaptcha\CF7\ReallySimpleCaptcha;
 use HCaptcha\DelayedScript\DelayedScript;
-use HCaptcha\Divi\Fix;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\EventsManager\Booking;
 use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Install;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Playground;
 use HCaptcha\Helpers\Request;
@@ -42,11 +42,14 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
+use HCaptcha\Settings\Tools;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
+use HCaptcha\CLI\Commands;
+use WP_CLI;
 
 /**
  * Class Main.
@@ -114,9 +117,9 @@ class Main {
 	/**
 	 * Settings class instance.
 	 *
-	 * @var Settings
+	 * @var Settings|null
 	 */
-	protected Settings $settings;
+	protected ?Settings $settings = null;
 
 	/**
 	 * Instance of AutoVerify.
@@ -158,10 +161,9 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
+		$this->load( Install::class );
 		$this->load( Migrations::class );
 		$this->load( Playground::class );
-
-		( new Fix() )->init();
 
 		$this->load( FormSubmitTime::class );
 
@@ -178,6 +180,16 @@ class Main {
 
 		$this->load_textdomain();
 
+		// Register WP-CLI commands.
+		if ( Request::is_cli() ) {
+			add_action(
+				'cli_init',
+				static function () {
+					WP_CLI::add_command( 'hcaptcha', Commands::class );
+				}
+			);
+		}
+
 		/**
 		 *  Filters the settings system initialization arguments.
 		 *
@@ -193,6 +205,7 @@ class Main {
 						Integrations::class,
 						FormsPage::class,
 						EventsPage::class,
+						Tools::class,
 						SystemInfo::class,
 					],
 					'args'    => $args,
@@ -261,9 +274,9 @@ class Main {
 	/**
 	 * Get Settings instance.
 	 *
-	 * @return Settings
+	 * @return Settings|null
 	 */
-	public function settings(): Settings {
+	public function settings(): ?Settings {
 		return $this->settings;
 	}
 

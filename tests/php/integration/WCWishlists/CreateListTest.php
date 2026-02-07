@@ -13,10 +13,6 @@ use HCaptcha\WCWishlists\CreateList;
 /**
  * Test CreateList class.
  *
- * WooCommerce requires PHP 7.4.
- *
- * @requires PHP >= 7.4
- *
  * @group    wcwishlist
  */
 class CreateListTest extends HCaptchaPluginWPTestCase {

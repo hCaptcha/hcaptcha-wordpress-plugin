@@ -95,7 +95,7 @@ class NewsletterSubscribe {
 	 */
 	public function verify(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry( $_POST ) );
 
 		if ( null === $error_message ) {
 			return;
@@ -133,5 +133,36 @@ class NewsletterSubscribe {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		global $post;
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+
+		foreach ( $form_data as $key => $value ) {
+			$key = strtolower( $key );
+
+			if ( ! in_array( $key, [ 'email', 'group' ], true ) ) {
+				continue;
+			}
+
+			$entry['data'][ $key ] = $value;
+		}
+
+		return $entry;
 	}
 }

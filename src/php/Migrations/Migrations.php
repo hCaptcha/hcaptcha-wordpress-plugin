@@ -13,6 +13,7 @@ namespace HCaptcha\Migrations;
 use ActionScheduler;
 use ActionScheduler_Store;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\PluginSettingsBase;
 
 /**
@@ -195,6 +196,7 @@ class Migrations {
 		foreach ( $this->get_migrations() as $migration ) {
 			$upgrade_version = $this->get_upgrade_version( $migration );
 
+			// Mark migration as done.
 			$migrated[ $upgrade_version ] = 0;
 		}
 
@@ -411,7 +413,7 @@ class Migrations {
 	protected function migrate_4_0_0(): ?bool {
 		Events::create_table();
 
-		add_action( 'plugins_loaded', [ $this, 'save_license_level' ] );
+		add_action( 'plugins_loaded', [ HCaptcha::class, 'save_license_level' ] );
 
 		return true;
 	}
@@ -466,28 +468,6 @@ class Migrations {
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$this->mark_completed();
-	}
-
-	/**
-	 * Save license level in settings.
-	 *
-	 * @return void
-	 */
-	public function save_license_level(): void {
-		// Check the license level.
-		$result = hcap_check_site_config();
-
-		if ( $result['error'] ?? false ) {
-			return;
-		}
-
-		$pro               = $result['features']['custom_theme'] ?? false;
-		$license           = $pro ? 'pro' : 'free';
-		$option            = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$option['license'] = $license;
-
-		// Save license level in settings.
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
 	}
 
 	/**

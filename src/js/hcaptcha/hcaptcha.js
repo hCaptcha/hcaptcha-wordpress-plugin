@@ -621,6 +621,11 @@ class HCaptcha {
 				return formElement;
 			}
 
+			if ( submitButtonElement?.dataset?.hCaptchaDisabled === '1' ) {
+				submitButtonElement.dataset.hCaptchaDisabled = '0';
+				submitButtonElement.disabled = false;
+			}
+
 			const dataset = hcaptchaElement.dataset;
 
 			if ( dataset.size === 'invisible' || dataset.force === 'true' ) {
@@ -666,6 +671,10 @@ class HCaptcha {
 
 			return;
 		}
+
+		// Prevent the Submit button being clicked again.
+		submitButtonElement.disabled = true;
+		submitButtonElement.dataset.hCaptchaDisabled = '1';
 
 		if ( formElement.requestSubmit ) {
 			formElement.requestSubmit( submitButtonElement );

@@ -9,6 +9,7 @@ namespace HCaptcha\Blocksy;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Error;
 
 /**
@@ -117,7 +118,8 @@ class Waitlist {
 			$value = null;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$error_message = API::verify( $this->get_entry( $_POST ) );
 
 		if ( null !== $error_message ) {
 			$value = $value ?? new WP_Error( 'hcaptcha_error', $error_message );
@@ -151,5 +153,38 @@ class Waitlist {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		$product_id = (int) Request::filter_input( INPUT_POST, 'product_id' );
+
+		$post = get_post( $product_id );
+
+		$entry = [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => [],
+		];
+
+		foreach ( $form_data as $key => $value ) {
+			$type = $key;
+
+			if ( ! in_array( $type, [ 'email', 'product_id' ], true ) ) {
+				continue;
+			}
+
+			$entry['data'][ $key ] = $value;
+		}
+
+		return $entry;
 	}
 }

@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Maintenance;
 
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Maintenance\Login;
 use tad\FunctionMocker\FunctionMocker;
@@ -56,7 +57,13 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_render(): void {
 		$footer_scripts = '<!-- footer-scripts -->';
 
-		// Junk all late styles and scripts not related to the test.
+		// In WP 6.9.1, a new error is triggered:
+		// The script with the handle "hcaptcha-kadence-advanced" was enqueued with dependencies that are not registered: kadence-blocks-advanced-form. (This message was added in version 6.9.1.).
+		// Some tests enqueuing scripts without proper dependencies, since those dependencies are in plugins.
+		// Here we suppress the error caused by the doing 'wp_print_footer_scripts' in the tested class.
+		Utils::instance()->remove_action_regex( '/WPTestCase/', 'doing_it_wrong_run' );
+
+		// Junk all late styles and scripts aren't related to the test.
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		ob_get_clean();
@@ -228,6 +235,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test print_inline_styles().
+	 *
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
