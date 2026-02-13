@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.22.0
+Stable tag: 4.23.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -199,6 +199,68 @@ You can point an AI agent to a WordPress site with Abilities enabled and instruc
 * block the most active offenders
 
 Internally, the agent performs the same commands shown above (`wp ability list`, `get-threat-snapshot`, `block-offenders`).
+
+** 3. Export plugin settings **
+
+You can export current plugin settings as JSON (optionally including keys) for backup or migration.
+
+Using WP-CLI:
+
+`
+wp ability run hcaptcha/export-settings --include_keys --user=admin
+`
+
+Using REST API (authenticated):
+
+`
+curl --globoff -u "USER:APP_PASSWORD" \
+"https://example.com/wp-json/wp-abilities/v1/abilities/hcaptcha/export-settings/run?input[include_keys]=1"
+`
+
+** 4. Import plugin settings **
+
+Import settings from a JSON file path on the server. Use `allow_keys` to apply the keys block and `dry_run` to validate without saving.
+
+Using WP-CLI:
+
+`
+wp ability run hcaptcha/import-settings --allow_keys --dry-run=false --user=igor --input_file=1.json
+`
+
+Using REST API (authenticated):
+
+`
+curl --globoff -u "USER:APP_PASSWORD" \
+"https://example.com/wp-json/wp-abilities/v1/abilities/hcaptcha/import-settings/run?input[input_file]=%2Fpath%2Fto%2Fhcaptcha-settings.json&input[allow_keys]=1&input[dry_run]=0"
+`
+
+= WP-CLI commands for exporting and importing settings =
+
+The plugin also adds the `wp hcaptcha export` and `wp hcaptcha import` commands.
+
+**Export settings**
+
+```
+wp hcaptcha export --pretty > hcaptcha-settings.json
+wp hcaptcha export --include-keys --file=./hcaptcha-settings.json
+```
+
+Parameters:
+* `--include-keys` — include the `site_key` and `secret_key` values.
+* `--pretty` — pretty-print JSON for readability.
+* `--file=<path>` — write JSON to a file instead of STDOUT.
+
+**Import settings**
+
+```
+wp hcaptcha import ./hcaptcha-settings.json
+wp hcaptcha import ./hcaptcha-settings.json --dry-run
+wp hcaptcha import ./hcaptcha-settings.json --allow-keys
+```
+
+Parameters:
+* `--dry-run` — validate the JSON without saving.
+* `--allow-keys` — allow importing keys from the `keys` block.
 
 = You don't support plugin X. How can I get support for it added? =
 
@@ -852,12 +914,23 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.23.0 =
+* Added 'hcap_trusted_address_headers' filter to customize the list of IP-related headers used for client IP detection.
+* Added admin tools for exporting and importing plugin settings.
+* Added WP-CLI support for exporting and importing plugin settings.
+* Added support for exporting and importing plugin settings via Abilities API.
+* Added temporary submit button locking when using Invisible hCaptcha to prevent multiple submissions.
+* Fixed a fatal error related to the missing events database table.
+* Fixed fatal errors on Forms and Events pages when the Events table was empty.
+* Fixed admin pages layout with the latest WordPress changes.
+* Fixed challenging hCaptcha with the express checkout methods on WooCommerce Checkout page.
+
 = 4.22.0 =
 * The minimum required PHP version is now 7.4.
 * The minimum required WordPress version is now 6.0.
-* Added support of 1Password on the General page. 
-* Fixed an issue where third-party plugins calling WordPress core functions incorrectly could break What's New admin scripts and styles.
-* Fixed LearDash Login form.
+* Added support for 1Password on the General page.
+* Fixed an issue where third-party plugins calling WordPress core functions incorrectly could break the What's New admin scripts and styles.
+* Fixed LearnDash Login form.
 
 = 4.21.1 =
 * Fixed hCaptcha not loading on Contact Form 7.

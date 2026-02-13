@@ -84,13 +84,18 @@ class API {
 			return null;
 		}
 
-		$header = _n( 'hCaptcha error:', 'hCaptcha errors:', substr_count( $message, ';' ) + 1, 'hcaptcha-for-forms-and-more' );
+		$header = _n(
+			'hCaptcha error:',
+			'hCaptcha errors:',
+			substr_count( $message, ';' ) + 1,
+			'hcaptcha-for-forms-and-more'
+		);
 
 		if ( false === strpos( $message, $header ) ) {
 			$message = $header . ' ' . $message;
 		}
 
-		return str_replace( $header, '<strong>' . $header . '</strong>', $message );
+		return wp_kses_post( str_replace( $header, '<strong>' . $header . '</strong>', $message ) );
 	}
 
 	/**
@@ -417,7 +422,7 @@ class API {
 		 */
 		$result = apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
 
-		$result = null === $result ? null : (string) $result;
+		$result = null === $result ? null : esc_html( (string) $result );
 
 		self::$result      = $result;
 		self::$error_codes = $error_codes;

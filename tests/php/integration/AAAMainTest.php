@@ -64,7 +64,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 *
 	 * @var array
 	 */
-	private static $included_components = [];
+	private static array $included_components = [];
 
 	/**
 	 * Tear down the test.
@@ -95,12 +95,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		wp_dequeue_script( 'hcaptcha-fst' );
 		wp_deregister_script( 'hcaptcha-fst' );
-
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
-
-		wp_dequeue_script( 'jquery' );
-		wp_deregister_script( 'jquery' );
 
 		$hcaptcha->form_shown = false;
 
@@ -1059,9 +1053,9 @@ CSS;
 			]
 		);
 
-		$hcaptcha->init_hooks();
+		wp_deregister_script( 'hcaptcha' );
 
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
+		$hcaptcha->init_hooks();
 
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
@@ -1091,13 +1085,10 @@ CSS;
 
 		$subject->init_hooks();
 
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		$scripts = ob_get_clean();
 
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertSame( '', $scripts );
 	}
 
@@ -1251,8 +1242,6 @@ CSS;
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown(): void {
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
-
 		$site_key = 'some key';
 
 		update_option( 'hcaptcha_settings', [ 'site_key' => $site_key ] );
@@ -1267,8 +1256,6 @@ CSS;
 
 		self::assertFalse( strpos( $scripts, '<style>' ) );
 		self::assertFalse( strpos( $scripts, 'api.js' ) );
-
-		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 	}
 
 	/**

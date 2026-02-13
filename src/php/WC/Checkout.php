@@ -158,6 +158,22 @@ class Checkout {
 			return $response;
 		}
 
+		$method = $request->get_method();
+
+		if ( 'POST' !== $method ) {
+			return $response;
+		}
+
+		$body         = (string) $request->get_body();
+		$body_arr     = json_decode( $body, true );
+		$payment_data = $body_arr['payment_data'] ?? [];
+
+		foreach ( $payment_data as $payment_datum ) {
+			if ( 'express_payment_type' === $payment_datum['key'] ) {
+				return $response;
+			}
+		}
+
 		$params         = $request->get_params();
 		$widget_id_name = 'hcaptcha-widget-id';
 		$response_name  = 'h-captcha-response';

@@ -1143,11 +1143,11 @@ class General extends PluginSettingsBase {
 		$prefix = '';
 
 		if ( ! $raw_result ) {
-			$prefix = esc_html__( 'Site configuration error', 'hcaptcha-for-forms-and-more' );
+			$prefix = __( 'Site configuration error', 'hcaptcha-for-forms-and-more' );
 			$prefix = $error ? $prefix . ': ' : $prefix . '.';
 		}
 
-		wp_send_json_error( $prefix . $error );
+		wp_send_json_error( esc_html( $prefix . $error ) );
 	}
 
 	/**

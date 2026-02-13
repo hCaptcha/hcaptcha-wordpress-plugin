@@ -147,7 +147,7 @@ class Form {
 
 		$post_data = $form_data->dump_data()['form_data'];
 
-		$this->error_message = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
+		$this->error_message = API::verify( $this->get_entry( $post_data ) );
 
 		if ( null !== $this->error_message ) {
 			$this->error_code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
@@ -159,6 +159,83 @@ class Form {
 		}
 
 		return $form_data;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $post_data Post data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $post_data ): array {
+		$payload     = $post_data['payload'] ?? [];
+		$form_inputs = $payload['formInputsData'] ?? [];
+		$post_id     = $payload['postId'] ?? 0;
+		$form        = get_post( $post_id );
+
+		return [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $post_data['h-captcha-response'] ?? '',
+			'form_date_gmt'      => $form->post_modified_gmt ?? null,
+			'post_data'          => $post_data,
+			'data'               => $this->get_data( $form_inputs ),
+		];
+	}
+
+	/**
+	 * Get data.
+	 *
+	 * @param array $form_inputs Form inputs data.
+	 *
+	 * @return array
+	 */
+	private function get_data( array $form_inputs ): array {
+		$data = [];
+		$name = [];
+
+		foreach ( $form_inputs as $input ) {
+			$input = wp_parse_args(
+				$input,
+				[
+					'label' => '',
+					'value' => '',
+					'type'  => '',
+					'id'    => '',
+				]
+			);
+			$label = $input['label'];
+			$value = $input['value'];
+			$type  = $input['type'];
+			$id    = $input['id'];
+			$key   = $label ?: $id;
+
+			if ( '' === $key || '' === $value ) {
+				continue;
+			}
+
+			if ( is_array( $value ) ) {
+				$value = implode( ' ', $value );
+			}
+
+			$mapped_name = $input['metadata']['mappedName'] ?? '';
+			$label_name  = strtolower( $label );
+
+			if ( 'email' === $type ) {
+				$data['email'] = $value;
+			}
+
+			if ( 'name' === $mapped_name || 'name' === $label_name ) {
+				$name[] = $value;
+			}
+
+			$data[ $key ] = $value;
+		}
+
+		$data['name'] = implode( ' ', $name ) ?: null;
+
+		return $data;
 	}
 
 	/**

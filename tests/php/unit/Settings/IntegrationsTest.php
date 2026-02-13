@@ -1070,8 +1070,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires     PHP >= 7.4
-	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -1128,8 +1126,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires     PHP >= 7.4
-	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -1180,8 +1176,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
 	 *
-	 * @requires     PHP >= 7.4
-	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.
 	 */
@@ -1221,8 +1215,6 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 * Test process_theme() when cannot be activated.
 	 *
 	 * There is a unique issue with _n() and lower phpunit versions.
-	 *
-	 * @requires            PHP >= 7.4
 	 *
 	 * @noinspection        PhpConditionAlreadyCheckedInspection
 	 * @throws ReflectionException ReflectionException.

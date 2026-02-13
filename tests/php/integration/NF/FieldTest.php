@@ -17,8 +17,6 @@ use NF_Database_Migrations;
 /**
  * Test Field class.
  *
- * @requires PHP >= 7.4
- *
  * @group    nf
  */
 class FieldTest extends HCaptchaPluginWPTestCase {

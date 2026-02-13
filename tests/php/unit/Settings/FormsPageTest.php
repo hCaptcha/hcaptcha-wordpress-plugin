@@ -589,7 +589,8 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_prepare_chart_data_when_no_items(): void {
-		$items = [];
+		$items      = [];
+		$gmt_offset = 3.0;
 
 		$list_table = Mockery::mock( FormsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$subject    = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
@@ -597,6 +598,39 @@ class FormsPageTest extends HCaptchaTestCase {
 		$list_table->shouldReceive( 'prepare_items' )->once();
 		$this->set_protected_property( $list_table, 'items', $items );
 		$this->set_protected_property( $subject, 'list_table', $list_table );
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				if ( 'MINUTE_IN_SECONDS' === $name ) {
+					return 60;
+				}
+
+				if ( 'HOUR_IN_SECONDS' === $name ) {
+					return 3600;
+				}
+
+				if ( 'DAY_IN_SECONDS' === $name ) {
+					return 86400;
+				}
+
+				if ( 'WEEK_IN_SECONDS' === $name ) {
+					return 604800;
+				}
+
+				if ( 'MONTH_IN_SECONDS' === $name ) {
+					return 2592000;
+				}
+
+				if ( 'YEAR_IN_SECONDS' === $name ) {
+					return 31536000;
+				}
+
+				return null;
+			}
+		);
+
+		WP_Mock::userFunction( 'get_option' )->with( 'gmt_offset' )->andReturn( $gmt_offset );
 
 		$method = 'prepare_chart_data';
 		$subject->$method();

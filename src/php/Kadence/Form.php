@@ -108,8 +108,10 @@ class Form extends Base {
 		}
 
 		$data = [
-			'html'         => '<div class="kadence-blocks-form-message kadence-blocks-form-warning">' . $error . '</div>',
-			'console'      => __( 'hCaptcha Failed', 'hcaptcha-for-forms-and-more' ),
+			'html'         => wp_kses_post(
+				'<div class="kadence-blocks-form-message kadence-blocks-form-warning">' . $error . '</div>'
+			),
+			'console'      => esc_html__( 'hCaptcha Failed', 'hcaptcha-for-forms-and-more' ),
 			'required'     => null,
 			'headers_sent' => headers_sent(),
 		];

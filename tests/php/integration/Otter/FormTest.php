@@ -15,8 +15,11 @@ namespace HCaptcha\Tests\Integration\Otter;
 use HCaptcha\Otter\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
 use WP_Block;
+use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * Test Otter Form.
@@ -177,6 +180,113 @@ HTML;
 			[ 'not verified' => false ],
 			[ 'verified' => true ],
 		];
+	}
+
+	/**
+	 * Test get_entry() and get_data().
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_entry_and_data(): void {
+		$subject   = new Form();
+		$post_id   = wp_insert_post(
+			[
+				'post_title'  => 'Otter Test Form',
+				'post_status' => 'publish',
+			]
+		);
+		$post      = get_post( $post_id );
+		$inputs    = [
+			[
+				'label' => 'Name',
+				'value' => 'Jane Doe',
+				'type'  => 'text',
+			],
+			[
+				'label' => 'Email',
+				'value' => 'jane@example.com',
+				'type'  => 'email',
+			],
+			[
+				'label' => 'Message',
+				'value' => [ 'Hello', 'world' ],
+				'type'  => 'textarea',
+			],
+			[
+				'label' => '',
+				'id'    => 'field-id',
+				'value' => 'Field value',
+			],
+			[
+				'label' => 'Empty',
+				'value' => '',
+			],
+		];
+		$post_data = [
+			'payload'            => [
+				'formInputsData' => $inputs,
+				'postId'         => $post_id,
+			],
+			'h-captcha-response' => 'token',
+		];
+
+		$method = $this->set_method_accessibility( $subject, 'get_entry' );
+		$entry  = $method->invoke( $subject, $post_data );
+
+		self::assertSame( 'hcaptcha_otter_nonce', $entry['nonce_name'] );
+		self::assertSame( 'hcaptcha_otter', $entry['nonce_action'] );
+		self::assertSame( 'token', $entry['h-captcha-response'] );
+		self::assertSame( $post->post_modified_gmt, $entry['form_date_gmt'] );
+		self::assertSame( $post_data, $entry['post_data'] );
+		self::assertSame( 'jane@example.com', $entry['data']['email'] );
+		self::assertSame( 'Jane Doe', $entry['data']['name'] );
+		self::assertSame( 'Jane Doe', $entry['data']['Name'] );
+		self::assertSame( 'Hello world', $entry['data']['Message'] );
+		self::assertSame( 'Field value', $entry['data']['field-id'] );
+		self::assertArrayNotHasKey( 'Empty', $entry['data'] );
+	}
+
+	/**
+	 * Test filter_response().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_response(): void {
+		$subject  = new Form();
+		$response = new WP_REST_Response( [ 'success' => false ] );
+		$request  = new WP_REST_Request( 'POST', '/otter/v1/form/frontend' );
+
+		$this->set_protected_property( $subject, 'error_code', 'fail' );
+		$this->set_protected_property( $subject, 'error_message', 'The hCaptcha is invalid.' );
+
+		$result = $subject->filter_response( $response, [], $request );
+		$data   = $result->get_data();
+
+		self::assertSame( 'fail', $data['code'] );
+		self::assertSame( 'The hCaptcha is invalid.', $data['displayError'] );
+
+		$request_other  = new WP_REST_Request( 'POST', '/otter/v1/other' );
+		$response_other = new WP_REST_Response( [ 'success' => true ] );
+		$result_other   = $subject->filter_response( $response_other, [], $request_other );
+
+		self::assertSame( [ 'success' => true ], $result_other->get_data() );
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		$subject = new Form();
+
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag = '<script src="/assets/js/hcaptcha-otter.js"></script>';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'other-handle', '' ) );
+		self::assertStringContainsString( 'type="module"', $subject->add_type_module( $tag, 'hcaptcha-otter', '' ) );
 	}
 
 	/**

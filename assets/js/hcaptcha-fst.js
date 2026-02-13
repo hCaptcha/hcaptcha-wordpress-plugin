@@ -3,6 +3,7 @@
 /**
  * @param HCaptchaFSTObject.ajaxUrl
  * @param HCaptchaFSTObject.issueTokenAction
+ * @param HCaptchaFSTObject.issueTokenNonce
  */
 
 /**
@@ -43,19 +44,30 @@ const fst = window.hCaptchaFST || ( function( document ) {
 				const formBody = new URLSearchParams();
 
 				formBody.set( 'action', HCaptchaFSTObject.issueTokenAction );
+				formBody.set( 'nonce', HCaptchaFSTObject.issueTokenNonce );
 				formBody.set( 'postId', postId );
 
-				const res = await fetch( HCaptchaFSTObject.ajaxUrl, {
-					method: 'POST',
-					credentials: 'same-origin',
-					cache: 'no-store',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-					},
-					body: formBody.toString(),
-				} );
-				const body = await res.json();
-				const token = body?.data?.token ?? '';
+				let token = '';
+
+				try {
+					const res = await fetch( HCaptchaFSTObject.ajaxUrl, {
+						method: 'POST',
+						credentials: 'same-origin',
+						cache: 'no-store',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+						},
+						body: formBody.toString(),
+					} );
+
+					const body = await res.json();
+
+					if ( res.ok && body?.success ) {
+						token = body?.data?.token ?? '';
+					}
+				} catch ( error ) {
+					// Intentionally leave the token empty on any error.
+				}
 
 				document.querySelectorAll( '[name="hcap_fst_token"]' ).forEach( ( element ) => {
 					element.value = token;

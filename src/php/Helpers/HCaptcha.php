@@ -15,6 +15,7 @@ namespace HCaptcha\Helpers;
 use HCaptcha\Helpers\Minify\CSS;
 use HCaptcha\Helpers\Minify\JS;
 use HCaptcha\Settings\Integrations;
+use HCaptcha\Settings\PluginSettingsBase;
 use WP_Error;
 
 /**
@@ -1127,5 +1128,27 @@ class HCaptcha {
 		];
 
 		return (string) preg_replace( $search, $replace, $tag );
+	}
+
+	/**
+	 * Save license level in settings.
+	 *
+	 * @return void
+	 */
+	public static function save_license_level(): void {
+		// Check the license level.
+		$result = hcap_check_site_config();
+
+		if ( $result['error'] ?? false ) {
+			return;
+		}
+
+		$pro               = $result['features']['custom_theme'] ?? false;
+		$license           = $pro ? 'pro' : 'free';
+		$option            = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$option['license'] = $license;
+
+		// Save license level in settings.
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
 	}
 }

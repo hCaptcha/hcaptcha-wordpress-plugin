@@ -17,6 +17,7 @@ use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
+use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -30,10 +31,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $_POST['_acf_post_id'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
-
-		wp_dequeue_script( 'hcaptcha' );
-		wp_deregister_script( 'hcaptcha' );
+		unset( $_POST['_acf_post_id'], $_POST['_acf_form'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		wp_dequeue_script( 'hcaptcha-acfe' );
 		wp_deregister_script( 'hcaptcha-acfe' );
@@ -212,8 +210,11 @@ class FormTest extends HCaptchaWPTestCase {
 		$form_id = 5;
 		$field   = [ 'required' => true ];
 
-		$_POST['_acf_post_id']                 = $form_id;
+		$_POST['_acf_form']                    = 'acf-form';
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'encoded-hash';
+		$_POST['acf']                          = [];
+
+		$this->mock_acf_form( $form_id );
 
 		$this->prepare_verify_request( $value, $result );
 
@@ -279,6 +280,143 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( false, $value, $field, $input ) );
 
 		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
+	 * Mock an ACF form for verification.
+	 *
+	 * @param array|false|int $form Form data.
+	 *
+	 * @return void
+	 */
+	private function mock_acf_form( $form ): void {
+		$return          = is_int( $form ) ? [ 'ID' => $form ] : $form;
+		$acf             = new stdClass();
+		$acf->form_front = Mockery::mock();
+		$acf->form_front->shouldReceive( 'get_form' )->andReturn( $return );
+
+		FunctionMocker::replace(
+			'acf',
+			static function () use ( $acf ) {
+				return $acf;
+			}
+		);
+	}
+
+	/**
+	 * Test get_entry() and get_data().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_entry_and_data(): void {
+		$post_id   = wp_insert_post(
+			[
+				'post_title'  => 'ACFE Test Form',
+				'post_status' => 'publish',
+			]
+		);
+		$form_id   = (int) $post_id;
+		$form_post = get_post( $post_id );
+		$acf_data  = [
+			'_validate_email'         => '',
+			'field_name'              => 'Jane Doe',
+			'field_email'             => 'jane.doe@example.com',
+			'field_array'             => [ 'Hello', 'World' ],
+			'field_empty'             => '',
+			'field_key_without_label' => 'Value',
+		];
+		$post_data = [
+			'acf'                => $acf_data,
+			'h-captcha-response' => 'captcha-response',
+			'other'              => 'value',
+		];
+
+		$acf_fields = [
+			'field_name'              => [
+				'label' => 'Name',
+				'type'  => 'text',
+				'name'  => 'name',
+			],
+			'field_email'             => [
+				'label' => 'Email',
+				'type'  => 'email',
+				'name'  => 'email',
+			],
+			'field_array'             => [
+				'label' => 'Message',
+				'type'  => 'textarea',
+				'name'  => 'message',
+			],
+			'field_key_without_label' => [
+				'label' => '',
+				'type'  => 'text',
+				'name'  => '',
+			],
+			'field_empty'             => [
+				'label' => 'Empty',
+				'type'  => 'text',
+				'name'  => 'empty',
+			],
+		];
+
+		FunctionMocker::replace(
+			'acf_get_field',
+			static function ( $field_key ) use ( $acf_fields ) {
+				return $acf_fields[ $field_key ] ?? null;
+			}
+		);
+
+		$subject = new Form();
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		$get_entry = $this->set_method_accessibility( $subject, 'get_entry' );
+		$entry     = $get_entry->invoke( $subject, $post_data );
+
+		self::assertSame( 'captcha-response', $entry['h-captcha-response'] );
+		self::assertSame( $form_post->post_modified_gmt, $entry['form_date_gmt'] );
+		self::assertSame( $post_data, $entry['post_data'] );
+		self::assertNull( $entry['nonce_name'] );
+		self::assertNull( $entry['nonce_action'] );
+		self::assertSame(
+			[
+				'Name'                    => 'Jane Doe',
+				'email'                   => 'jane.doe@example.com',
+				'Email'                   => 'jane.doe@example.com',
+				'Message'                 => 'Hello World',
+				'field_key_without_label' => 'Value',
+				'name'                    => 'Jane Doe',
+			],
+			$entry['data']
+		);
+	}
+
+	/**
+	 * Test get_form() branches.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_form(): void {
+		$subject  = new Form();
+		$get_form = $this->set_method_accessibility( $subject, 'get_form' );
+
+		unset( $_POST['_acf_form'] );
+		self::assertFalse( $get_form->invoke( $subject ) );
+
+		$_POST['_acf_form'] = 'acf-form';
+		$this->mock_acf_form( [ 'ID' => 55 ] );
+		self::assertSame( [ 'ID' => 55 ], $get_form->invoke( $subject ) );
+
+		$_POST['_acf_form'] = 'encrypted-form';
+		$this->mock_acf_form( false );
+		FunctionMocker::replace(
+			'acf_decrypt',
+			static function () {
+				return wp_json_encode( [ 'ID' => 77 ] );
+			}
+		);
+		self::assertSame( [ 'ID' => 77 ], $get_form->invoke( $subject ) );
 	}
 
 	/**

@@ -21,10 +21,6 @@ use WP_REST_Request;
 /**
  * Test Checkout class.
  *
- * WooCommerce requires PHP 7.4.
- *
- * @requires PHP >= 7.4
- *
  * @group    wc-checkout
  * @group    wc
  */
@@ -188,6 +184,9 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	public function test_verify_block(): void {
 		$widget_id_name         = 'hcaptcha-widget-id';
 		$hcaptcha_response_name = 'h-captcha-response';
+		$hp_sig_name            = 'hcap_hp_sig';
+		$token_name             = 'hcap_fst_token';
+		$hp_name                = 'hcap_hp_test';
 		$hcaptcha_response      = 'some hcaptcha response';
 		$response               = 'some response';
 		$handler                = [];
@@ -201,21 +200,100 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		// Checkout route, verified.
 		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+		$request->set_method( 'GET' );
 
-		$request->set_param( $widget_id_name, [ 'some widget' ] );
-		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
+		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
+
+		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( [ 'payment_data' => [] ] ) );
 
 		$this->prepare_verify_request( $hcaptcha_response );
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
+		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
+		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_name, '' );
+
+		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
+
+		// Checkout route, express payment type.
+		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+		$request->set_method( 'POST' );
+		$request->set_body(
+			wp_json_encode(
+				[
+					'payment_data' => [
+						[
+							'key'   => 'express_payment_type',
+							'value' => 'example',
+						],
+					],
+				]
+			)
+		);
 
 		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
 
 		// Checkout route, not verified.
+		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( [ 'payment_data' => [] ] ) );
+
 		hcaptcha()->has_result = false;
 		$this->prepare_verify_request( $hcaptcha_response, false );
+		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
+		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
+		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_name, '' );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
 		$expected = new WP_Error(
 			'fail',
 			'The hCaptcha is invalid.',
+			400
+		);
+
+		self::assertEquals( $expected, $subject->verify_block( $response, $handler, $request ) );
+	}
+
+	/**
+	 * Test verify_block() error code mapping.
+	 *
+	 * @return void
+	 */
+	public function test_verify_block_error_code_mapping(): void {
+		$widget_id_name         = 'hcaptcha-widget-id';
+		$hcaptcha_response_name = 'h-captcha-response';
+		$hp_sig_name            = 'hcap_hp_sig';
+		$token_name             = 'hcap_fst_token';
+		$hp_name                = 'hcap_hp_test';
+		$hcaptcha_response      = '';
+		$response               = 'some response';
+		$handler                = [];
+
+		$subject = new Checkout();
+
+		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( [ 'payment_data' => [] ] ) );
+
+		$this->prepare_verify_request( $hcaptcha_response, false );
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
+		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
+		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_name, '' );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+		$expected = new WP_Error(
+			'empty',
+			hcap_get_error_messages()['empty'],
 			400
 		);
 

@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\Migrations;
 
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -31,6 +32,9 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		parent::setUp();
 
 		delete_option( 'hcaptcha_settings' );
+
+		// Disable temporary tables creating.
+		remove_all_filters( 'query', 10 );
 	}
 
 	/**
@@ -348,7 +352,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			3
 		);
 
-		$subject->save_license_level();
+		HCaptcha::save_license_level();
 
 		self::assertSame( $expected, get_option( PluginSettingsBase::OPTION_NAME, [] ) );
 	}

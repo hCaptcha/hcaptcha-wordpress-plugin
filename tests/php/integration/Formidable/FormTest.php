@@ -197,26 +197,58 @@ HTML;
 	}
 
 	/**
-	 * Test verify() with bad response.
+	 * Test verify() with a bad response.
 	 *
 	 * @return void
 	 */
 	public function test_verify_no_success(): void {
 		$errors        = [ 'some error' => 'some message' ];
-		$values        = [ 'some values' ];
-		$validate_args = [ 'some args' ];
-		$error_message = 'The hCaptcha is invalid.';
+		$values        = [
+			'h-captcha-response' => 'some-token',
+			'form_id'            => 1,
+			'item_meta'          => [
+				10 => 'John',
+				11 => 'Doe',
+				12 => 'john@doe.com',
+				13 => 'Hello world',
+			],
+		];
+		$validate_args = [];
+		$error_message = 'hCaptcha error message';
 		$expected      = array_merge( $errors, [ 'field1' => $error_message ] );
 
-		$this->prepare_verify_post(
-			'hcaptcha_formidable_forms_nonce',
-			'hcaptcha_formidable_forms',
-			false
-		);
+		$entry = [
+			'nonce_name'    => 'hcaptcha_formidable_forms_nonce',
+			'nonce_action'  => 'hcaptcha_formidable_forms',
+			'form_date_gmt' => '2023-01-01 10:00:00',
+		];
+
+		$_POST[ $entry['nonce_name'] ] = wp_create_nonce( $entry['nonce_action'] );
+
+		FunctionMocker::replace( 'HCaptcha\Helpers\API::verify', $error_message );
+
+		$form             = new stdClass();
+		$form->updated_at = $entry['form_date_gmt'];
+
+		FunctionMocker::replace( [ 'FrmForm', 'getOne' ], $form );
 
 		$subject = new Form();
 
 		self::assertSame( $expected, $subject->verify( $errors, $values, $validate_args ) );
+	}
+
+	/**
+	 * Prepare verify.
+	 *
+	 * @param string $nonce  Nonce.
+	 * @param string $action Action.
+	 *
+	 * @return void
+	 */
+	protected function prepare_verify( string $nonce, string $action ): void {
+		$_POST[ $nonce ] = wp_create_nonce( $action );
+
+		FunctionMocker::replace( 'HCaptcha\Helpers\API::verify', null );
 	}
 
 	/**
@@ -226,13 +258,29 @@ HTML;
 	 */
 	public function test_verify(): void {
 		$errors        = [ 'some error' => 'some message' ];
-		$values        = [ 'some values' ];
-		$validate_args = [ 'some args' ];
+		$values        = [
+			'h-captcha-response' => 'some-token',
+			'form_id'            => 1,
+			'item_meta'          => [
+				10 => 'John Doe',
+				11 => 'john@doe.com',
+			],
+		];
+		$validate_args = [];
 
-		$this->prepare_verify_post(
+		$entry = [
+			'form_date_gmt' => '2023-01-01 10:00:00',
+		];
+
+		$this->prepare_verify(
 			'hcaptcha_formidable_forms_nonce',
 			'hcaptcha_formidable_forms'
 		);
+
+		$form             = new stdClass();
+		$form->updated_at = $entry['form_date_gmt'];
+
+		FunctionMocker::replace( [ 'FrmForm', 'getOne' ], $form );
 
 		$subject = new Form();
 
@@ -296,7 +344,7 @@ HTML;
 	}
 
 	/**
-	 * Test admin_enqueue_scripts() when not on Formidable Forms page.
+	 * Test admin_enqueue_scripts() when not on the Formidable Forms page.
 	 *
 	 * @return void
 	 */

@@ -24,8 +24,6 @@ use WPCF7_Validation;
 /**
  * Test CF7 class.
  *
- * @requires PHP >= 7.4
- *
  * @group    cf7
  * @group    cf7-cf7
  */

@@ -53,8 +53,8 @@ class FormSubmitTime {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'wp_ajax_nopriv_' . self::ISSUE_TOKEN_ACTION, [ $this, 'issue_token' ] );
 		add_action( 'wp_ajax_' . self::ISSUE_TOKEN_ACTION, [ $this, 'issue_token' ] );
 	}
@@ -108,6 +108,10 @@ class FormSubmitTime {
 	 * @return void Outputs a JSON-encoded token and terminates the script execution.
 	 */
 	public function issue_token(): void {
+		if ( ! check_ajax_referer( self::ISSUE_TOKEN_ACTION, 'nonce', false ) ) {
+			wp_send_json_error();
+		}
+
 		$post_id   = Request::filter_input( INPUT_POST, 'postId' );
 		$issued_at = time();
 
@@ -135,7 +139,9 @@ class FormSubmitTime {
 		}
 
 		if ( ! headers_sent() ) {
+			// @codeCoverageIgnoreStart
 			header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+			// @codeCoverageIgnoreEnd
 		}
 
 		/**

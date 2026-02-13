@@ -28,12 +28,35 @@ use Mockery;
 class FormTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Setup test.
+	 */
+	public function setUp(): void {
+		global $wpdb;
+
+		parent::setUp();
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			"CREATE TABLE IF NOT EXISTS {$wpdb->prefix}mailpoet_forms
+					(id bigint(20) NOT NULL AUTO_INCREMENT,
+					updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					PRIMARY KEY (id))"
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, ordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
 	 * Tear down the test.
-	 *
-	 * @return void
 	 */
 	public function tearDown(): void {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}mailpoet_forms" );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
+
 		unset( $_POST['action'], $_POST['endpoint'], $_POST['method'] );
+
 		parent::tearDown();
 	}
 

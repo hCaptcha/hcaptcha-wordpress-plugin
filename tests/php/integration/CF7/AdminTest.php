@@ -22,8 +22,6 @@ use WPCF7_TagGenerator;
 /**
  * Test Admin class.
  *
- * @requires PHP >= 7.4
- *
  * @group    cf7
  * @group    cf7-admin
  */

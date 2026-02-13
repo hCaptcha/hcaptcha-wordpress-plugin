@@ -209,13 +209,14 @@ class FormsPage extends ListPageBase {
 	protected function prepare_chart_data(): void {
 		$this->served = [];
 
+		// Always calculate a date format, as the unit must be initialized.
+		$date_format = $this->get_date_format( $this->list_table->served ?? [] );
+
 		$this->list_table->prepare_items();
 
 		if ( ! $this->list_table->served ) {
 			return;
 		}
-
-		$date_format = $this->get_date_format( $this->list_table->served );
 
 		foreach ( $this->list_table->served as $item ) {
 			$time_gmt = strtotime( $item->date_gmt );

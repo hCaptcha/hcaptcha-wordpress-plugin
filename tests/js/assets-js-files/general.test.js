@@ -50,9 +50,28 @@ const defaultGeneralObject = {
 
 global.HCaptchaGeneralObject = { ...defaultGeneralObject };
 
+let consoleLogSpy;
+let consoleWarnSpy;
+let consoleInfoSpy;
+let consoleErrorSpy;
+let consoleClearSpy;
+
 // kaggDialog mock
 beforeEach( () => {
+	consoleLogSpy = jest.spyOn( console, 'log' ).mockImplementation( () => {} );
+	consoleWarnSpy = jest.spyOn( console, 'warn' ).mockImplementation( () => {} );
+	consoleInfoSpy = jest.spyOn( console, 'info' ).mockImplementation( () => {} );
+	consoleErrorSpy = jest.spyOn( console, 'error' ).mockImplementation( () => {} );
+	consoleClearSpy = jest.spyOn( console, 'clear' ).mockImplementation( () => {} );
 	global.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg?.onAction?.( true ) ) };
+} );
+
+afterEach( () => {
+	consoleLogSpy?.mockRestore();
+	consoleWarnSpy?.mockRestore();
+	consoleInfoSpy?.mockRestore();
+	consoleErrorSpy?.mockRestore();
+	consoleClearSpy?.mockRestore();
 } );
 
 function getDom() {
