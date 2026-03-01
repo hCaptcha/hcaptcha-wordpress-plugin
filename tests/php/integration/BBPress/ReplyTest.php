@@ -73,6 +73,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply' );
+		$this->prepare_reply_topic();
 
 		$expected = new WP_Error();
 		$subject  = new Reply();
@@ -92,9 +93,28 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		$subject  = new Reply();
 
 		$this->prepare_verify_post( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply', null );
+		$this->prepare_reply_topic();
 
 		self::assertFalse( $subject->verify() );
 
 		self::assertEquals( $expected, bbpress()->errors );
+	}
+
+	/**
+	 * Prepare reply topic data.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function prepare_reply_topic(): void {
+		$topic_id = wp_insert_post(
+			[
+				'post_title'   => 'Test topic',
+				'post_content' => 'Test content',
+				'post_status'  => 'publish',
+				'post_type'    => bbp_get_topic_post_type(),
+			]
+		);
+
+		$_POST['bbp_topic_id'] = (string) $topic_id;
 	}
 }

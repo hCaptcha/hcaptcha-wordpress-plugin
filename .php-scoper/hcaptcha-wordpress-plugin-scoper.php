@@ -19,7 +19,11 @@ require_once __DIR__ . '/src/Scoper.php';
 
 $finders = Scoper::get_finders();
 
-$finders[0]->name( [ 'keywords*.txt', 'operators*.txt' ] );
+if ( isset( $finders['matthiasmullie/minify'] ) ) {
+	$finders['matthiasmullie/minify']
+		->in( __DIR__ . '/../vendor/matthiasmullie/minify/data/js' )
+		->name( [ 'keywords*.txt', 'operators*.txt' ] );
+}
 
 $config = [
 	'prefix'   => 'HCaptcha\Vendors',

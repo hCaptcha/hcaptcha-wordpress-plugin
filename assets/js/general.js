@@ -1,4 +1,4 @@
-/* global jQuery, hCaptcha, hCaptchaSettingsBase, HCaptchaGeneralObject, kaggDialog */
+/* global jQuery, lodash, hCaptcha, hCaptchaSettingsBase, HCaptchaGeneralObject, kaggDialog */
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
@@ -519,7 +519,7 @@ const general = function( $ ) {
 	 *
 	 * @param {jQuery.Event|undefined} e Event object.
 	 */
-	function syncKeysWithMode( e ) {
+	function syncKeysWithMode( e = undefined ) {
 		const mode = $mode.val();
 
 		if ( ! modes.hasOwnProperty( mode ) ) {
@@ -551,6 +551,10 @@ const general = function( $ ) {
 		window.__generalTest = {
 			getCleanConsoleLogs,
 			interceptConsoleLogs,
+			showMessage,
+			showErrorMessage,
+			hCaptchaUpdate,
+			deepMerge,
 		};
 	}
 
@@ -617,13 +621,24 @@ const general = function( $ ) {
 
 	$mode.on( 'change', syncKeysWithMode );
 
+	function toggleCustomThemeFields() {
+		const isOn = $customThemes.prop( 'checked' );
+
+		$customProp.prop( 'disabled', ! isOn );
+		$customValue.prop( 'disabled', ! isOn );
+		$configParams.prop( 'disabled', ! isOn );
+	}
+
+	toggleCustomThemeFields();
+
 	$customThemes.on( 'change', function() {
+		toggleCustomThemeFields();
 		applyCustomThemes();
 	} );
 
-	$configParams.on( 'blur', function() {
+	$configParams.on( 'input', lodash.debounce( function() {
 		applyCustomThemes();
-	} );
+	}, 300 ) );
 
 	$configParams.on( 'focus', function() {
 		$configParams.css( 'background-color', 'unset' );
@@ -774,9 +789,9 @@ const general = function( $ ) {
 		}
 	} );
 
-	// On Custom Value change.
-	$customValue.on( 'change', function( e ) {
-		const value = $( e.target ).val();
+	// On Custom Value change (debounced for live color-picker updates).
+	function customValueChange() {
+		const value = $customValue.val();
 		const $selected = $customProp.find( 'option:selected' );
 		const option = $selected.val().split( '=' );
 		let key = option[ 0 ];
@@ -793,7 +808,9 @@ const general = function( $ ) {
 		}, params );
 
 		applyCustomThemes( params );
-	} );
+	}
+
+	$customValue.on( 'input', lodash.debounce( customValueChange, 300 ) );
 
 	function checkAntiSpamProvider() {
 		const provider = $antiSpamProvider.val();

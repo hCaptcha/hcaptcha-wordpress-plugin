@@ -90,8 +90,8 @@ class Form {
 		}
 
 		$settings                = hcaptcha()->settings();
-		$value->hcaptcha_pubkey  = $settings->get_site_key();
-		$value->hcaptcha_privkey = $settings->get_secret_key();
+		$value->hcaptcha_pubkey  = $settings ? $settings->get_site_key() : '';
+		$value->hcaptcha_privkey = $settings ? $settings->get_secret_key() : '';
 
 		return $value;
 	}

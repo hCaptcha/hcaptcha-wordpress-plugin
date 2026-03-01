@@ -108,7 +108,9 @@ class HCaptchaHandler {
 	 */
 	public function init(): void {
 		if ( ! class_exists( FormsModule::class, false ) ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// Register or re-register hCaptcha component.

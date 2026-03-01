@@ -17,6 +17,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use KB_Ajax_Advanced_Form;
 use Mockery;
 use ReflectionException;
+use ReflectionMethod;
 
 /**
  * Test Kadence AdvancedForm.
@@ -96,6 +97,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function test_render_block(): void {
 		$block_content              = 'some block content';
@@ -148,9 +150,66 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	 * Test process_ajax().
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_process_ajax(): void {
 		$hcaptcha_response = 'some response';
+
+		// Create a post first to get the ID, then update with a proper uniqueID.
+		$post_id = wp_insert_post(
+			[
+				'post_content' => 'temp',
+				'post_status'  => 'publish',
+			]
+		);
+
+		// phpcs:disable Generic.WhiteSpace.ScopeIndent.IncorrectExact, Generic.Strings.UnnecessaryHeredoc.Found
+		$post_content = <<<HTML
+<!-- wp:group -->
+<div class="wp-block-group">
+<!-- wp:kadence/advanced-form {"uniqueID":"{$post_id}_abc123"} -->
+	<!-- wp:core/paragraph -->
+	<p>Some intro text</p>
+	<!-- /wp:core/paragraph -->
+
+	<!-- wp:kadence/advanced-form {"uniqueID":"nested_bad"} /-->
+
+	<!-- wp:kadence/advanced-form-select {"label":"Country","uniqueID":"sel001"} -->
+	<div class="kb-adv-form-field">Country</div>
+	<!-- /wp:kadence/advanced-form-select -->
+
+	<!-- wp:core/column -->
+	<div class="wp-block-column">
+		<!-- wp:kadence/advanced-form-text {"label":"Name","uniqueID":"txt001"} -->
+		<div class="kb-adv-form-field">Name</div>
+		<!-- /wp:kadence/advanced-form-text -->
+	</div>
+	<!-- /wp:core/column -->
+
+	<!-- wp:kadence/advanced-form-email {"label":"Email","uniqueID":"eml001"} -->
+	<div class="kb-adv-form-field">Email</div>
+	<!-- /wp:kadence/advanced-form-email -->
+
+	<!-- wp:kadence/advanced-form-textarea {"label":"Message","uniqueID":"txa001"} -->
+	<div class="kb-adv-form-field">Message</div>
+	<!-- /wp:kadence/advanced-form-textarea -->
+<!-- /wp:kadence/advanced-form -->
+</div>
+<!-- /wp:group -->
+HTML;
+		// phpcs:enable Generic.WhiteSpace.ScopeIndent.IncorrectExact
+
+		wp_update_post(
+			[
+				'ID'           => $post_id,
+				'post_content' => $post_content,
+			]
+		);
+
+		$_POST['_kb_adv_form_post_id'] = $post_id;
+		$_POST['fieldtxt001']          = 'John';
+		$_POST['fieldeml001']          = 'john@example.com';
+		$_POST['fieldtxa001']          = 'Hello there';
 
 		$this->prepare_verify_request( $hcaptcha_response );
 
@@ -159,6 +218,19 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 
 		$subject->process_ajax();
+
+		// Verify that get_entry() populates data from form fields.
+		$method = new ReflectionMethod( AdvancedForm::class, 'get_entry' );
+
+		$method->setAccessible( true );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$entry = $method->invoke( $subject, $_POST );
+
+		self::assertSame( 'John', $entry['data']['Name'] );
+		self::assertSame( 'john@example.com', $entry['data']['Email'] );
+		self::assertSame( 'john@example.com', $entry['data']['email'] );
+		self::assertSame( 'Hello there', $entry['data']['Message'] );
 	}
 
 	/**
@@ -234,9 +306,28 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		$subject = new AdvancedForm();
+
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag = '<script src="/assets/js/hcaptcha-kadence-advanced.js"></script>';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'other-handle', '' ) );
+		self::assertStringContainsString(
+			'type="module"',
+			$subject->add_type_module( $tag, 'hcaptcha-kadence-advanced', '' )
+		);
+	}
+
+	/**
 	 * Test editor_assets().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_editor_assets(): void {
 		$handle = 'admin-kadence-advanced';

@@ -226,8 +226,7 @@ class CF7 extends Base {
 			return $result;
 		}
 
-		$data           = $submission->get_posted_data();
-		$captcha_result = API::verify( $this->get_entry( $data ) );
+		$captcha_result = API::verify( $this->get_entry( $submission ) );
 
 		if ( null !== $captcha_result ) {
 			return $this->get_invalidated_result( $result, $captcha_result );
@@ -405,21 +404,16 @@ class CF7 extends Base {
 	/**
 	 * Get entry.
 	 *
-	 * @param array $data Entry data.
+	 * @param WPCF7_Submission $submission CF& submission instance.
 	 *
 	 * @return array
 	 */
-	private function get_entry( array $data ): array {
+	private function get_entry( WPCF7_Submission $submission ): array {
 		$entry = [
 			'data' => [],
 		];
 
-		$submission = WPCF7_Submission::get_instance();
-
-		if ( ! $submission ) {
-			return $entry;
-		}
-
+		$data                   = $submission->get_posted_data();
 		$contact_form           = $submission->get_contact_form();
 		$form_id                = $contact_form->id();
 		$post                   = get_post( $form_id );

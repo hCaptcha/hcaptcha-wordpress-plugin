@@ -9,6 +9,8 @@ namespace HCaptcha\WC;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
 use WP_Error;
 use WP_HTTP_Response;
 use WP_REST_Request;
@@ -135,6 +137,19 @@ class Checkout {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): void {
+		$wc_ajax = Request::filter_input( INPUT_GET, 'wc-ajax' );
+		$path    = Request::filter_input( INPUT_GET, 'path' );
+
+		if ( 'wc_stripe_frontend_request' === $wc_ajax && '/wc-stripe/v1/checkout' === $path ) {
+			return;
+		}
+
+		$payment_method = Request::filter_input( INPUT_POST, 'payment_method' );
+
+		if ( $this->is_express_payment_method( $payment_method ) ) {
+			return;
+		}
+
 		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null !== $error_message ) {
@@ -164,14 +179,12 @@ class Checkout {
 			return $response;
 		}
 
-		$body         = (string) $request->get_body();
-		$body_arr     = json_decode( $body, true );
-		$payment_data = $body_arr['payment_data'] ?? [];
+		$body           = (string) $request->get_body();
+		$body_arr       = Utils::json_decode_arr( $body );
+		$payment_method = $body_arr['payment_method'] ?? '';
 
-		foreach ( $payment_data as $payment_datum ) {
-			if ( 'express_payment_type' === $payment_datum['key'] ) {
-				return $response;
-			}
+		if ( $this->is_express_payment_method( $payment_method ) ) {
+			return $response;
 		}
 
 		$params         = $request->get_params();
@@ -196,6 +209,26 @@ class Checkout {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Check whether the payment method is an express payment method.
+	 *
+	 * @param string $payment_method Payment method.
+	 *
+	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function is_express_payment_method( string $payment_method ): bool {
+		$express_payment_methods = [];
+
+		foreach ( WC()->payment_gateways()->get_available_payment_gateways() as $gateway ) {
+			if ( $gateway->supports( 'wc_stripe_banner_checkout' ) && $gateway->banner_checkout_enabled() ) {
+				$express_payment_methods[] = $gateway->id;
+			}
+		}
+
+		return in_array( $payment_method, $express_payment_methods, true );
 	}
 
 	/**
@@ -228,7 +261,7 @@ class Checkout {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

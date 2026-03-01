@@ -72,9 +72,10 @@ class Login extends LoginBase {
 		}
 
 		$hcaptcha = '';
+		$settings = hcaptcha()->settings();
 
 		// Check the login status because the class is always loading when PMPro is active.
-		if ( hcaptcha()->settings()->is( 'paid_memberships_pro_status', 'login' ) ) {
+		if ( $settings && $settings->is( 'paid_memberships_pro_status', 'login' ) ) {
 			ob_start();
 			$this->add_captcha();
 

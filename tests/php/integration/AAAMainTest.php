@@ -14,6 +14,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Abilities\Abilities;
+use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AutoVerify\AutoVerify;
@@ -43,6 +44,8 @@ use HCaptcha\WP\LostPassword;
 use HCaptcha\WP\PasswordProtected;
 use HCaptcha\WP\Register;
 use HCaptcha\WPDiscuz\Subscribe;
+use JsonException;
+use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
@@ -65,6 +68,34 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 * @var array
 	 */
 	private static array $included_components = [];
+
+	/**
+	 * GeoIP test country map.
+	 *
+	 * @var array<string, string>
+	 * @noinspection PhpPropertyOnlyWrittenInspection
+	 */
+	private static array $geoip_country_by_ip = [];
+
+	/**
+	 * Initialize GeoIP Reader mock once per process.
+	 *
+	 * @return void
+	 */
+	private function init_geoip_reader_mock(): void {
+		$reader = Mockery::mock( 'overload:HCaptcha\Vendors\GeoIp2\Database\Reader' );
+
+		$reader->shouldReceive( 'country' )->andReturnUsing(
+			static function ( string $ip ) {
+				return (object) [
+					'country' => (object) [
+						'isoCode' => self::$geoip_country_by_ip[ $ip ] ?? '',
+					],
+				];
+			}
+		);
+		$reader->shouldReceive( 'close' )->andReturnNull();
+	}
 
 	/**
 	 * Tear down the test.
@@ -167,7 +198,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
-
 		self::assertSame( Main::LOAD_PRIORITY + 10, has_action( 'plugins_loaded', [ $hcaptcha, 'load_modules' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_resource_hints', [ $hcaptcha, 'prefetch_hcaptcha_dns' ] ) );
@@ -485,12 +515,18 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			? 'If you see this message, hCaptcha failed to load due to site errors.'
 			: 'The hCaptcha loading is delayed until user interaction.';
 
+		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			$encoded_params = json_encode( $config_params, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $e ) {
+			$encoded_params = '';
+		}
+
 		update_option(
 			'hcaptcha_settings',
 			[
 				'custom_themes' => $custom_themes ? [ $custom_themes ] : [],
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-				'config_params' => json_encode( $config_params ),
+				'config_params' => $encoded_params,
 				'license'       => $license,
 				'delay'         => $delay,
 			]
@@ -1016,23 +1052,38 @@ CSS;
 
 		$expected_scripts = "<script>$expected_scripts</script>\n";
 
-		$site_key       = 'some site key';
-		$secret_key     = 'some secret key';
-		$theme          = 'light';
-		$size           = 'normal';
-		$language       = $language ?: 'en';
-		$params         = [
+		$site_key      = 'some site key';
+		$secret_key    = 'some secret key';
+		$theme         = 'light';
+		$size          = 'normal';
+		$language      = $language ?: 'en';
+		$params        = [
 			'sitekey' => $site_key,
 			'theme'   => $theme,
 			'size'    => $size,
 			'hl'      => $language,
 		];
-		$config_params  = 'on' === $custom_themes ? [ 'theme' => [ 'some theme' ] ] : [];
-		$params         = array_merge( $params, $config_params );
+		$config_params = 'on' === $custom_themes ? [ 'theme' => [ 'some theme' ] ] : [];
+		$params        = array_merge( $params, $config_params );
+
+		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			$encoded_params = json_encode( $params, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $e ) {
+			$encoded_params = '';
+		}
+
+		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			$encoded_config_params = json_encode( $config_params, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $e ) {
+			$encoded_config_params = '';
+		}
+
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaMainObject = {"params":"' . addslashes( json_encode( $params ) ) . '"};',
+			'data'  => 'var HCaptchaMainObject = {"params":"' . addslashes( $encoded_params ) . '"};',
 		];
 
 		update_option(
@@ -1046,8 +1097,7 @@ CSS;
 				'theme'                => $theme,
 				'size'                 => $size,
 				'custom_themes'        => $custom_themes ? [ $custom_themes ] : [],
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-				'config_params'        => json_encode( $config_params ),
+				'config_params'        => $encoded_config_params,
 				'delay'                => -100,
 				'license'              => 'pro',
 			]
@@ -1239,6 +1289,114 @@ CSS;
 	}
 
 	/**
+	 * Test denylist by country.
+	 *
+	 * @param array  $denylisted_countries Settings.
+	 * @param string $country              Country code.
+	 * @param bool   $expected             Expected result.
+	 *
+	 * @dataProvider        dp_test_denylist_country
+	 * @return void
+	 */
+	public function test_denylist_country( array $denylisted_countries, string $country, bool $expected ): void {
+		update_option( 'hcaptcha_settings', [ 'blacklisted_countries' => $denylisted_countries ] );
+		$this->init_geoip_reader_mock();
+
+		$client_ip = '203.0.113.10';
+
+		self::$geoip_country_by_ip = [ $client_ip => $country ];
+
+		$maxmind_db_path_filter = static function () {
+			return __FILE__;
+		};
+
+		add_filter(
+			'hcap_maxmind_db_path',
+			$maxmind_db_path_filter
+		);
+
+		try {
+			$subject = new Main();
+
+			$subject->init_hooks();
+
+			self::assertSame( $expected, $subject->denylist_ip( false, $client_ip ) );
+		} finally {
+			remove_filter( 'hcap_maxmind_db_path', $maxmind_db_path_filter );
+			self::$geoip_country_by_ip = [];
+		}
+	}
+
+	/**
+	 * Data provider for test_denylist_country().
+	 *
+	 * @return array
+	 */
+	public function dp_test_denylist_country(): array {
+		return [
+			'empty countries'             => [ [], 'US', false ],
+			'not matching country'        => [ [ 'US', 'DE' ], 'FR', false ],
+			'matching country'            => [ [ 'US', 'DE' ], 'US', true ],
+			'matching lower case country' => [ [ 'US', 'DE' ], 'de', true ],
+			'invalid country code'        => [ [ 'US', 'DE' ], 'USA', false ],
+		];
+	}
+
+	/**
+	 * Test allowlist by country.
+	 *
+	 * @param array  $allowlisted_countries Settings.
+	 * @param string $country               Country code.
+	 * @param bool   $expected              Expected result.
+	 *
+	 * @dataProvider dp_test_allowlist_country
+	 * @return void
+	 */
+	public function test_allowlist_country( array $allowlisted_countries, string $country, bool $expected ): void {
+		update_option( 'hcaptcha_settings', [ 'whitelisted_countries' => $allowlisted_countries ] );
+		$this->init_geoip_reader_mock();
+
+		$client_ip = '203.0.113.20';
+
+		self::$geoip_country_by_ip = [ $client_ip => $country ];
+
+		$maxmind_db_path_filter = static function () {
+			return __FILE__;
+		};
+
+		add_filter(
+			'hcap_maxmind_db_path',
+			$maxmind_db_path_filter
+		);
+
+		try {
+			$subject = new Main();
+
+			$subject->init_hooks();
+
+			self::assertSame( $expected, $subject->allowlist_ip( false, $client_ip ) );
+		} finally {
+			remove_filter( 'hcap_maxmind_db_path', $maxmind_db_path_filter );
+			self::$geoip_country_by_ip = [];
+		}
+	}
+
+	/**
+	 * Data provider for test_allowlist_country().
+	 *
+	 * @return array
+	 */
+	public function dp_test_allowlist_country(): array {
+		return [
+			'empty countries'             => [ [], 'US', false ],
+			'not matching country'        => [ [ 'US', 'DE' ], 'FR', false ],
+			'matching country'            => [ [ 'US', 'DE' ], 'US', true ],
+			'matching lower case country' => [ [ 'US', 'DE' ], 'de', true ],
+			'invalid country code'        => [ [ 'US', 'DE' ], 'USA', false ],
+		];
+	}
+
+	/**
 	 * Test print_footer_scripts() when form NOT shown.
 	 */
 	public function test_print_footer_scripts_when_form_NOT_shown(): void {
@@ -1291,6 +1449,7 @@ CSS;
 
 		$expected_loaded_classes = [
 			PluginStats::class,
+			MaxMindDb::class,
 			Events::class,
 			Privacy::class,
 			WhatsNew::class,
@@ -1761,6 +1920,11 @@ CSS;
 				[ 'woocommerce_status', 'checkout' ],
 				'woocommerce/woocommerce.php',
 				Checkout::class,
+			],
+			'WooCommerce Add Payment Method'    => [
+				[ 'woocommerce_status', 'add_payment_method' ],
+				'woocommerce/woocommerce.php',
+				\HCaptcha\WC\AddPaymentMethod::class,
 			],
 			'WooCommerce Login'                 => [
 				[ 'woocommerce_status', 'login' ],

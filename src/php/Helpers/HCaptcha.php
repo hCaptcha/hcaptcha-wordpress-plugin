@@ -63,7 +63,14 @@ class HCaptcha {
 	 * @param array $args Arguments.
 	 */
 	public static function form_display( array $args = [] ): void {
-		$settings          = hcaptcha()->settings();
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
 		$hcaptcha_site_key = $settings->get_site_key();
 		$hcaptcha_force    = $settings->is_on( 'force' );
 		$hcaptcha_theme    = $settings->get_theme() ?: 'light';
@@ -158,7 +165,14 @@ class HCaptcha {
 	 * @return array
 	 */
 	private static function validate_args( array $args ): array {
-		$settings       = hcaptcha()->settings();
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings ) {
+			// @codeCoverageIgnoreStart
+			return $args;
+			// @codeCoverageIgnoreEnd
+		}
+
 		$hcaptcha_theme = $settings->get_theme();
 		$hcaptcha_size  = $settings->get( 'size' );
 		$bg             = $settings->get_custom_theme_background();
@@ -198,7 +212,9 @@ class HCaptcha {
 	 * @return void
 	 */
 	private static function honeypot_display(): void {
-		if ( ! hcaptcha()->settings()->is_on( 'honeypot' ) ) {
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings || ! $settings->is_on( 'honeypot' ) ) {
 			return;
 		}
 
@@ -493,6 +509,8 @@ class HCaptcha {
 			return '';
 		}
 
+		$settings = hcaptcha()->settings();
+
 		foreach ( hcaptcha()->modules as $module ) {
 			$module_source = (array) ( '' === $module[1] ? 'WordPress' : $module[1] );
 
@@ -504,7 +522,7 @@ class HCaptcha {
 				 *
 				 * @var $integrations Integrations
 				 */
-				$integrations = hcaptcha()->settings()->get_tab( Integrations::class );
+				$integrations = $settings ? $settings->get_tab( Integrations::class ) : null;
 
 				if ( ! $integrations ) {
 					// @CodeCoverageIgnoreStart
@@ -1111,7 +1129,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string $tag Script tag.
 	 *

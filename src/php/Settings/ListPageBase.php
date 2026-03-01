@@ -71,7 +71,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	 *
 	 * @var string
 	 */
-	protected string $unit;
+	protected string $unit = 'second';
 
 	/**
 	 * The page is allowed to be shown.

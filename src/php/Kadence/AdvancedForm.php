@@ -69,18 +69,26 @@ class AdvancedForm extends Base {
 			return;
 		}
 
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
 		add_action( 'wp_ajax_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
 		add_action( 'wp_ajax_nopriv_kb_process_advanced_form_submit', [ $this, 'process_ajax' ], 9 );
 		add_filter(
 			'pre_option_kadence_blocks_hcaptcha_site_key',
-			static function () {
-				return hcaptcha()->settings()->get_site_key();
+			static function () use ( $settings ) {
+				return $settings->get_site_key();
 			}
 		);
 		add_filter(
 			'pre_option_kadence_blocks_hcaptcha_secret_key',
-			static function () {
-				return hcaptcha()->settings()->get_secret_key();
+			static function () use ( $settings ) {
+				return $settings->get_secret_key();
 			}
 		);
 		add_action( 'enqueue_block_editor_assets', [ $this, 'editor_assets' ] );
@@ -96,6 +104,7 @@ class AdvancedForm extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_block( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
@@ -163,7 +172,7 @@ class AdvancedForm extends Base {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

@@ -1,3 +1,17 @@
+= 4.24.0 =
+* Added country allowlist and denylist to control where hCaptcha protections apply.
+* Added compatibility with Payment Plugins for Stripe WooCommerce.
+* Added support for the Add Payment Method form in the WooCommerce My Account page.
+* Improved Custom Theme editor with live preview on color and JSON changes.
+* Fixed a fatal error occurred with WP-CLI in a rare case.
+* Fixed a PHP notice occurred on the Contact Form 7 edit form page.
+* Fixed inability to log in and register from the Woocommerce My Account page.
+* Fixed inability to send a form with invisible or forced hCaptcha.
+* Fixed mobile layout of the Anti-spam and Notifications blocks on the General admin page.
+* Fixed processing options before saving on multisite.
+* Fixed empty charts on Forms and Events admin pages.
+* Fixed Custom and Enterprise section inputs with free license.
+
 = 4.23.0 =
 * Added 'hcap_trusted_address_headers' filter to customize the list of IP-related headers used for client IP detection.
 * Added admin tools for exporting and importing plugin settings.

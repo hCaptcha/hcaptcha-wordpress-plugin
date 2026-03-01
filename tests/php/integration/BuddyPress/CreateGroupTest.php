@@ -12,8 +12,10 @@
 
 namespace HCaptcha\Tests\Integration\BuddyPress;
 
+use BP_Groups_Group;
 use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -82,7 +84,42 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_verify_post( 'hcaptcha_bp_create_group_nonce', 'hcaptcha_bp_create_group' );
 
-		self::assertTrue( $subject->verify( null ) );
+		self::assertTrue( $subject->verify( new BP_Groups_Group() ) );
+	}
+
+	/**
+	 * Test get_entry().
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_entry(): void {
+		$subject = new CreateGroup();
+		$method  = $this->set_method_accessibility( $subject, 'get_entry' );
+
+		$_POST['h-captcha-response'] = 'some response';
+
+		$bp_group               = new BP_Groups_Group();
+		$bp_group->name         = 'John Doe';
+		$bp_group->description  = 'Some description';
+		$bp_group->date_created = '2026-02-15 15:03:24';
+		$bp_group->slug         = 'must-not-be-included';
+
+		$actual = $method->invoke( $subject, $bp_group );
+
+		self::assertSame(
+			[
+				'nonce_name'         => 'hcaptcha_bp_create_group_nonce',
+				'nonce_action'       => 'hcaptcha_bp_create_group',
+				'h-captcha-response' => 'some response',
+				'data'               => [
+					'name'         => 'John Doe',
+					'description'  => 'Some description',
+					'date_created' => '2026-02-15 15:03:24',
+				],
+			],
+			$actual
+		);
 	}
 
 	/**
@@ -93,7 +130,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new CreateGroup();
 
-		self::assertFalse( $subject->verify( null ) );
+		self::assertFalse( $subject->verify( new BP_Groups_Group() ) );
 	}
 
 	/**
@@ -132,7 +169,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_verify_post( 'hcaptcha_bp_create_group_nonce', 'hcaptcha_bp_create_group', null );
 
-		self::assertFalse( $subject->verify( null ) );
+		self::assertFalse( $subject->verify( new BP_Groups_Group() ) );
 
 		$bp = buddypress();
 

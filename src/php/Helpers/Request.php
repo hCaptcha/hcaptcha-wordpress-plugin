@@ -42,7 +42,7 @@ class Request {
 	 * @return bool
 	 */
 	public static function is_cli(): bool {
-		return defined( 'WP_CLI' ) && constant( 'WP_CLI' );
+		return defined( 'WP_CLI' ) && constant( 'WP_CLI' ) && class_exists( 'WP_CLI', false );
 	}
 
 	/**
@@ -125,20 +125,37 @@ class Request {
 	 * @return string
 	 */
 	public static function filter_input( int $type, string $var_name ): string {
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		switch ( $type ) {
 			case INPUT_GET:
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				return isset( $_GET[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_GET[ $var_name ] ) ) : '';
+				return isset( $_GET[ $var_name ] ) ? self::sanitize_data( $_GET[ $var_name ] ) : '';
 			case INPUT_POST:
 				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				return isset( $_POST[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_POST[ $var_name ] ) ) : '';
+				return isset( $_POST[ $var_name ] ) ? self::sanitize_data( $_POST[ $var_name ] ) : '';
 			case INPUT_SERVER:
-				return isset( $_SERVER[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $var_name ] ) ) : '';
+				return isset( $_SERVER[ $var_name ] ) ? self::sanitize_data( $_SERVER[ $var_name ] ) : '';
 			case INPUT_COOKIE:
-				return isset( $_COOKIE[ $var_name ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $var_name ] ) ) : '';
+				return isset( $_COOKIE[ $var_name ] ) ? self::sanitize_data( $_COOKIE[ $var_name ] ) : '';
 			default:
 				return '';
 		}
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+	}
+
+	/**
+	 * Sanitize data.
+	 *
+	 * @param array|string $data Data to sanitize.
+	 *
+	 * @return array|string
+	 */
+	private static function sanitize_data( $data ) {
+		if ( is_array( $data ) ) {
+			return array_map( [ self::class, 'sanitize_data' ], $data );
+		}
+
+		return is_scalar( $data ) ? sanitize_text_field( wp_unslash( $data ) ) : '';
 	}
 
 	/**

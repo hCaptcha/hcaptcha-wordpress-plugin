@@ -279,9 +279,9 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$_POST[ $this->submit_field ] = 'submit';
 
-		$current_form_fields                = '[{&#34;field_id&#34;:&#34;et_pb_contact_name_0&#34;,&#34;original_id&#34;:&#34;name&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;input&#34;,&#34;field_label&#34;:&#34;Name&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_email_0&#34;,&#34;original_id&#34;:&#34;email&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;email&#34;,&#34;field_label&#34;:&#34;Email Address&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_message_0&#34;,&#34;original_id&#34;:&#34;message&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;Message&#34;},{&#34;field_id&#34;:&#34;h-captcha-response-0lwsv53iy61b&#34;,&#34;original_id&#34;:&#34;&#34;,&#34;required_mark&#34;:&#34;not_required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;&#34;}]';
+		$current_form_fields                = '[{&#34;field_id&#34;:&#34;et_pb_contact_name_0&#34;,&#34;original_id&#34;:&#34;name&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;input&#34;,&#34;field_label&#34;:&#34;Name&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_email_0&#34;,&#34;original_id&#34;:&#34;email&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;email&#34;,&#34;field_label&#34;:&#34;Email Address&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_message_0&#34;,&#34;original_id&#34;:&#34;message&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;Message&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_some_0&#34;,&#34;original_id&#34;:&#34;some&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;some&#34;,&#34;field_label&#34;:&#34;Some&#34;},{&#34;field_id&#34;:&#34;h-captcha-response-0lwsv53iy61b&#34;,&#34;original_id&#34;:&#34;&#34;,&#34;required_mark&#34;:&#34;not_required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;&#34;}]';
 		$_POST[ $this->current_form_field ] = $current_form_fields;
-		$expected_current_form_fields       = '[{\"field_id\":\"et_pb_contact_name_0\",\"original_id\":\"name\",\"required_mark\":\"required\",\"field_type\":\"input\",\"field_label\":\"Name\"},{\"field_id\":\"et_pb_contact_email_0\",\"original_id\":\"email\",\"required_mark\":\"required\",\"field_type\":\"email\",\"field_label\":\"Email Address\"},{\"field_id\":\"et_pb_contact_message_0\",\"original_id\":\"message\",\"required_mark\":\"required\",\"field_type\":\"text\",\"field_label\":\"Message\"}]';
+		$expected_current_form_fields       = '[{\"field_id\":\"et_pb_contact_name_0\",\"original_id\":\"name\",\"required_mark\":\"required\",\"field_type\":\"input\",\"field_label\":\"Name\"},{\"field_id\":\"et_pb_contact_email_0\",\"original_id\":\"email\",\"required_mark\":\"required\",\"field_type\":\"email\",\"field_label\":\"Email Address\"},{\"field_id\":\"et_pb_contact_message_0\",\"original_id\":\"message\",\"required_mark\":\"required\",\"field_type\":\"text\",\"field_label\":\"Message\"},{\"field_id\":\"et_pb_contact_some_0\",\"original_id\":\"some\",\"required_mark\":\"required\",\"field_type\":\"some\",\"field_label\":\"Some\"}]';
 
 		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
 
@@ -405,9 +405,6 @@ class ContactTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_5(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$_SERVER['REQUEST_METHOD'] = 'POST';
-
 		$nonce                          = wp_create_nonce( 'et-pb-contact-form-submit' );
 		$_POST[ $this->cf_nonce_field ] = $nonce;
 		$_POST[ $this->submit_field ]   = 'submit';
@@ -446,16 +443,34 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		$module->attrs['module']['advanced']['spamProtection']['desktop']['value']['enabled'] = 'off';
 
-		// Put a module in the store so Contact::verify_5 can mutate it.
-		BlockParserStore::$module = $module;
-
 		$filter_args = [
-			'name'          => 'divi/contact-form',
+			'name'          => 'divi/some',
 			'id'            => 'module-1',
 			'storeInstance' => 'store-1',
 		];
 
 		$subject = new Contact();
+
+		// 1. Wrong request method.
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		self::assertSame( [], $subject->verify_5( [], $filter_args ) );
+
+		// 2. Request method POST. Wrong filter args.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+
+		self::assertSame( [], $subject->verify_5( [], $filter_args ) );
+
+		// 3. Request method POST. Correct filter args. Wrong module.
+		$filter_args['name'] = 'divi/contact-form';
+
+		// Put a module in the store so Contact::verify_5 can mutate it.
+		BlockParserStore::$module = null;
+
+		self::assertSame( [], $subject->verify_5( [], $filter_args ) );
+
+		// 4. Request method POST. Correct filter args. Correct module.
+		BlockParserStore::$module = $module;
 
 		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
 		self::assertSame( [], $subject->verify_5( [], $filter_args ) );

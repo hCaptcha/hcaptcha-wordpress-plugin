@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\EssentialBlocks;
 use HCaptcha\EssentialBlocks\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Block;
 
@@ -24,7 +25,7 @@ class FormTest extends HCaptchaWPTestCase {
 	/**
 	 * Test init_hooks().
 	 *
-	 * @param bool $frontend Whether request is on the frontend.
+	 * @param bool $frontend Whether the request is on the frontend.
 	 *
 	 * @return void
 	 * @dataProvider dp_test_init_hooks
@@ -181,6 +182,51 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test get_entry().
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_entry(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_entry' );
+
+		$form_data = [
+			'hcap_fst_token'                  => 'token',
+			'first-name'                      => 'Melany',
+			'last-name'                       => 'Doe',
+			'subject'                         => 'Subject',
+			'hcap_hp_ICPZEfGu4px3'            => '',
+			'email'                           => 'your.email+fakedata80629@gmail.com',
+			'message'                         => 'Message',
+			'hcaptcha-widget-id'              => 'widget-id',
+			'h-captcha-response'              => 'response',
+			'hcaptcha_essential_blocks_nonce' => 'nonce',
+			'_wp_http_referer'                => '/essential-blocks/',
+			'hcap_hp_sig'                     => 'sig',
+		];
+
+		$actual = $method->invoke( $subject, $form_data );
+
+		self::assertSame(
+			[
+				'nonce_name'         => 'hcaptcha_essential_blocks_nonce',
+				'nonce_action'       => 'hcaptcha_essential_blocks',
+				'h-captcha-response' => 'response',
+				'post_data'          => $form_data,
+				'data'               => [
+					'first-name' => 'Melany',
+					'last-name'  => 'Doe',
+					'subject'    => 'Subject',
+					'email'      => 'your.email+fakedata80629@gmail.com',
+					'message'    => 'Message',
+				],
+			],
+			$actual
+		);
+	}
+
+	/**
 	 * Test print_inline_styles().
 	 *
 	 * @return void
@@ -215,6 +261,24 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		$subject = new Form();
+
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag = '<script src="/assets/js/hcaptcha-essential-blocks.js"></script>';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'other-handle', '' ) );
+		self::assertStringContainsString(
+			'type="module"',
+			$subject->add_type_module( $tag, 'hcaptcha-essential-blocks', '' )
+		);
 	}
 
 	/**
