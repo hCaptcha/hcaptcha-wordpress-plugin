@@ -104,8 +104,6 @@ class Form {
 	 * CoBlocks have no filters in form processing.
 	 * So, we need to do some tricks.
 	 *
-	 * @since WP 5.1.0
-	 *
 	 * @param array|mixed $parsed_block The block being rendered.
 	 * @param array       $source_block An unmodified copy of $parsed_block, as it appeared in the source content.
 	 *

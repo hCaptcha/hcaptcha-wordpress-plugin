@@ -12,7 +12,7 @@
 
 namespace HCaptcha\Tests\Integration;
 
-use Codeception\TestCase\WPTestCase;
+use lucatume\WPBrowser\TestCase\WPTestCase;
 use HCaptcha\Settings\General;
 use Mockery;
 use ReflectionClass;

@@ -31,6 +31,7 @@
   },
   "require": {
     "ext-json": "*",
+    "geoip2/geoip2": "^2.13",
     "matthiasmullie/minify": "^1.3.75",
     "woocommerce/action-scheduler": "^3.9.3"
   },
@@ -83,8 +84,11 @@
   },
   "extra": {
     "scope-packages": [
+      "geoip2/geoip2",
       "matthiasmullie/minify",
-      "matthiasmullie/path-converter"
+      "matthiasmullie/path-converter",
+      "maxmind/web-service-common",
+      "maxmind-db/reader"
     ]
   }
 }

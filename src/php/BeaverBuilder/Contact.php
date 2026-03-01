@@ -12,6 +12,7 @@ namespace HCaptcha\BeaverBuilder;
 
 use FLBuilderModule;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\Request;
 use stdClass;
 
 /**
@@ -73,7 +74,7 @@ class Contact extends Base {
 	 */
 	public function verify( string $mailto, string $subject, string $template, array $headers, stdClass $settings ): void {
 
-		$result = API::verify_post( self::NONCE, self::ACTION );
+		$result = API::verify( $this->get_entry() );
 
 		if ( null === $result ) {
 			return;
@@ -85,5 +86,42 @@ class Contact extends Base {
 		];
 
 		wp_send_json( $response );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		$post_id = (int) Request::filter_input( INPUT_POST, 'post_id' );
+		$post    = get_post( $post_id );
+
+		return [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
+			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'data'               => $this->get_data(),
+		];
+	}
+
+	/**
+	 * Get form data for anti-spam checks.
+	 *
+	 * @return array
+	 */
+	private function get_data(): array {
+		$data = [];
+
+		foreach ( [ 'name', 'subject', 'email', 'phone', 'message' ] as $field ) {
+			$value = Request::filter_input( INPUT_POST, $field );
+
+			if ( '' !== $value ) {
+				$data[ $field ] = $value;
+			}
+		}
+
+		return $data;
 	}
 }

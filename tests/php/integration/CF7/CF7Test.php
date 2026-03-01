@@ -380,7 +380,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_verify_hcaptcha(): void {
-		$data              = [ 'h-captcha-response' => 'some response' ];
+		$data              = [
+			'h-captcha-response' => 'some response',
+		];
 		$wpcf7_id          = 23;
 		$hcaptcha_site_key = 'some site key';
 		$cf7_text          =
@@ -390,7 +392,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			'</form>';
 		$field             = Mockery::mock( WPCF7_FormTag::class );
 		$field->type       = 'some';
-		$form_fields       = [ $field ];
+		$email_field       = Mockery::mock( WPCF7_FormTag::class );
+		$email_field->type = 'email';
+		$form_fields       = [ $field, $email_field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
 		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );

@@ -162,7 +162,7 @@ class AutoVerify {
 		$action = $args['action'] ?? '';
 		$name   = $args['name'] ?? '';
 		$ajax   = $args['ajax'] ?? '';
-		$result = API::verify_post( $name, $action );
+		$result = API::verify( $this->get_entry( $name, $action ) );
 
 		if ( $ajax ) {
 			add_filter( 'wp_doing_ajax', '__return_true' );
@@ -180,6 +180,55 @@ class AutoVerify {
 				]
 			);
 		}
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param string $name   Nonce field name.
+	 * @param string $action Nonce action name.
+	 *
+	 * @return array
+	 */
+	private function get_entry( string $name, string $action ): array {
+		return [
+			'nonce_name'         => $name,
+			'nonce_action'       => $action,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
+			'data'               => $this->get_data(),
+		];
+	}
+
+	/**
+	 * Get form data for anti-spam checks.
+	 *
+	 * @return array
+	 */
+	private function get_data(): array {
+		$data          = [];
+		$excluded_keys = [
+			'hcap_',
+			'hcaptcha-',
+			'hcaptcha_',
+			'h-captcha-response',
+			'_wp_http_referer',
+		];
+
+		// Nonce is verified later, in \HCaptcha\Helpers\API::verify().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		foreach ( $_POST as $key => $value ) {
+			$key_str = (string) $key;
+
+			foreach ( $excluded_keys as $excluded_key ) {
+				if ( 0 === strpos( $key_str, $excluded_key ) ) {
+					continue 2;
+				}
+			}
+
+			$data[ $key ] = Request::filter_input( INPUT_POST, $key );
+		}
+
+		return $data;
 	}
 
 	/**
@@ -412,7 +461,7 @@ class AutoVerify {
 			return null;
 		}
 
-		// Nonce is verified later, in \HCaptcha\Helpers\API::verify_post().
+		// Nonce is verified later, in \HCaptcha\Helpers\API::verify().
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$post_keys = array_keys( $_POST );
 

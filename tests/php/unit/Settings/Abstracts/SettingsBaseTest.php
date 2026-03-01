@@ -245,7 +245,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				2
 			);
 			WP_Mock::expectFilterAdded(
-				'pre_update_site_option_option_' . $option_name,
+				'pre_update_site_option_' . $option_name,
 				[ $subject, 'pre_update_option_filter' ],
 				10,
 				2
@@ -923,6 +923,49 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			->once();
 
 		$subject->base_admin_enqueue_scripts();
+	}
+
+	/**
+	 * Test add_type_module() with a non-target handle.
+	 *
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module_with_non_target_handle(): void {
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag    = '<script src="https://example.test/some.js"></script>';
+		$handle = 'some-other-handle';
+		$src    = 'https://example.test/some.js';
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, $handle, $src ) );
+	}
+
+	/**
+	 * Test add_type_module() with a target handle.
+	 *
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module_with_target_handle(): void {
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag      = '<script src="https://example.test/settings-base.js"></script>';
+		$expected = '<script type="module" src="https://example.test/settings-base.js"></script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+		$handle = SettingsBase::PREFIX . '-' . SettingsBase::HANDLE;
+		$src    = 'https://example.test/settings-base.js';
+
+		$add_type_module = FunctionMocker::replace(
+			'\HCaptcha\Helpers\HCaptcha::add_type_module',
+			static function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+
+		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
+		$add_type_module->wasCalledWithOnce( [ $tag ] );
 	}
 
 	/**
@@ -1614,6 +1657,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * Test get_active_tab().
 	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_get_active_tab(): void {
 		$tab = Mockery::mock( SettingsBase::class )->makePartial();
@@ -1629,10 +1673,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		self::assertSame( $subject, $subject->$method() );
 
 		$this->set_protected_property( $subject, 'tabs', [ $tab ] );
-		self::assertSame(
-			json_encode( $tab ),
-			json_encode( $subject->$method() )
-		);
+		self::assertSame( json_encode( $tab ), json_encode( $subject->$method() ) );
 	}
 
 	/**
@@ -1739,6 +1780,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'default' => '',
 				'type'    => 'checkbox',
 			],
+			'countries'       => [
+				'default' => '',
+				'type'    => 'multiple',
+			],
 			'whitelisted_ips' => [
 				'default' => '',
 				'type'    => 'textarea',
@@ -1750,12 +1795,14 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		];
 		$value       = [
 			'collect_ip'      => [ 'on' ],
+			'countries'       => [ 'US', 'DE' ],
 			'whitelisted_ips' => "some ips\nline1\nline2",
 			'size'            => 'some size',
 			'foo'             => 'bar',
 		];
 		$expected    = [
 			'collect_ip'      => [ 'on' ],
+			'countries'       => [ 'US', 'DE' ],
 			'whitelisted_ips' => "some ips\nline1\nline2",
 			'size'            => 'some size',
 			'foo'             => 'bar',
@@ -2242,7 +2289,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'field_id'     => 'some_id',
 					'disabled'     => false,
 				],
-				'<select  name="hcaptcha_settings[some_id]">' .
+				'<select  name="hcaptcha_settings[some_id]" id="some_id">' .
 				'<option value="0"  >green</option>' .
 				'<option value="1" selected="selected" >yellow</option>' .
 				'<option value="2"  >red</option>' .
@@ -2322,7 +2369,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'field_id'     => 'some_id',
 					'disabled'     => false,
 				],
-				'<select  multiple="multiple" name="hcaptcha_settings[some_id][]">' .
+				'<select  multiple="multiple" name="hcaptcha_settings[some_id][]" id="some_id">' .
 				'<option value="0"  >green</option>' .
 				'<option value="1"  >yellow</option>' .
 				'<option value="2"  >red</option>' .
@@ -2341,7 +2388,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'field_id'     => 'some_id',
 					'disabled'     => false,
 				],
-				'<select  multiple="multiple" name="hcaptcha_settings[some_id][]">' .
+				'<select  multiple="multiple" name="hcaptcha_settings[some_id][]" id="some_id">' .
 				'<option value="0"  >green</option>' .
 				'<option value="1" selected="selected" >yellow</option>' .
 				'<option value="2" selected="selected" >red</option>' .
@@ -2777,10 +2824,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @dataProvider dp_test_pre_update_option_filter
 	 */
 	public function test_pre_update_option_filter( array $form_fields, $value, $old_value, $expected ): void {
-		$option_name                   = 'hcaptcha_settings';
-		$netwide_name                  = '_network_wide';
-		$merged_value                  = array_merge( $old_value, $value );
-		$merged_value[ $netwide_name ] = array_key_exists( $netwide_name, $merged_value ) ? $merged_value[ $netwide_name ] : [];
+		$option_name = 'hcaptcha_settings';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 
@@ -2926,6 +2970,27 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
+			'multiple cleared when missing in payload' => [
+				'form_fields' => [
+					'some_multiple' => [
+						'label'        => 'some field',
+						'section'      => 'some_section',
+						'type'         => 'multiple',
+						'placeholder'  => '',
+						'helper'       => '',
+						'supplemental' => '',
+						'default'      => [],
+						'disabled'     => false,
+					],
+				],
+				'value'       => [ 'another_value' => '1' ],
+				'old_value'   => [ 'some_multiple' => [ 'US', 'DE' ] ],
+				'expected'    => [
+					'some_multiple' => [],
+					'another_value' => '1',
+					'_network_wide' => [],
+				],
+			],
 			'file field changed' => [
 				'form_fields' => [
 					'some_file' => [
@@ -3035,6 +3100,8 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'update_site_option' )
 			->with( $option_name . $netwide_name, $merged_value[ $netwide_name ] );
+		WP_Mock::userFunction( 'remove_filter' )
+			->with( 'pre_update_site_option_' . $option_name, [ $subject, 'pre_update_option_filter' ] );
 		WP_Mock::userFunction( 'update_site_option' )->with( $option_name, $merged_value );
 
 		if ( $network_wide ) {

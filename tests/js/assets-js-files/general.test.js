@@ -1,4 +1,6 @@
-// noinspection JSUnresolvedFunction,JSUnresolvedVariable
+/* global HCaptchaGeneralObject, kaggDialog */
+// noinspection JSUnresolvedReference, JSUnresolvedFunction, JSUnresolvedVariable
+
 /* eslint-disable no-console */
 import $ from 'jquery';
 
@@ -8,6 +10,7 @@ global.$ = $;
 // Mock settings base minimal API used by general.js messages
 global.hCaptchaSettingsBase = {
 	getStickyHeight: () => 50,
+	highlightElement: jest.fn(),
 };
 
 // Minimal hCaptcha mock used by general.js
@@ -50,6 +53,11 @@ const defaultGeneralObject = {
 
 global.HCaptchaGeneralObject = { ...defaultGeneralObject };
 
+// WP core runs _.noConflict() so lodash is available as window.lodash, not _.
+global.lodash = {
+	debounce: ( func ) => func,
+};
+
 let consoleLogSpy;
 let consoleWarnSpy;
 let consoleInfoSpy;
@@ -64,6 +72,9 @@ beforeEach( () => {
 	consoleErrorSpy = jest.spyOn( console, 'error' ).mockImplementation( () => {} );
 	consoleClearSpy = jest.spyOn( console, 'clear' ).mockImplementation( () => {} );
 	global.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg?.onAction?.( true ) ) };
+	window.hCaptchaBindEvents = jest.fn();
+	// Mock scrollIntoView for jsdom.
+	Element.prototype.scrollIntoView = jest.fn();
 } );
 
 afterEach( () => {
@@ -75,6 +86,7 @@ afterEach( () => {
 } );
 
 function getDom() {
+	// noinspection JSUnresolvedLibraryURL
 	return `
 <html lang="en">
 <body>
@@ -86,6 +98,9 @@ function getDom() {
 		<input type="hidden" name="hcaptcha-widget-id" value="wid-1" />
 	</div>
 	<div id="hcaptcha-message"></div>
+	<div class="hcaptcha-general-sample-hcaptcha">
+		<textarea name="h-captcha-response"></textarea>
+	</div>
 	<form class="hcaptcha-general">
 		<input id="submit" type="submit" />
 		<input id="check_config" type="button" />
@@ -95,8 +110,8 @@ function getDom() {
 			<option value="test_pub">test_pub</option>
 			<option value="test_ent_safe">test_ent_safe</option>
 		</select>
-		<input name="hcaptcha_settings[site_key]" value="live-key" />
-		<input name="hcaptcha_settings[secret_key]" value="secret" />
+		<span class="key-wrap"><input id="site_key" name="hcaptcha_settings[site_key]" value="live-key" /><span class="helper" style="display:none"></span><span class="helper-content" style="display:none"></span></span>
+		<span class="key-wrap"><input id="secret_key" name="hcaptcha_settings[secret_key]" value="secret" /><span class="helper" style="display:none"></span><span class="helper-content" style="display:none"></span></span>
 		<select name="hcaptcha_settings[theme]"><option value="light">light</option><option value="dark">dark</option></select>
 		<select name="hcaptcha_settings[size]" id="size-select"><option value="normal">normal</option><option value="invisible">invisible</option></select>
 		<div id="hcaptcha-invisible-notice" style="display:none"></div>
@@ -110,6 +125,9 @@ function getDom() {
 		<textarea name="hcaptcha_settings[config_params]">{}</textarea>
 		<label><input type="checkbox" name="hcaptcha_settings[custom_themes][]" /></label>
 		<label><input type="checkbox" name="hcaptcha_settings[recaptcha_compat_off][]" /></label>
+
+		<!-- Section toggle target -->
+		<h3 class="hcaptcha-section-keys"></h3>
 
 		<!-- Enterprise section marker + table with inputs -->
 		<h3 class="hcaptcha-section-enterprise"></h3>
@@ -159,7 +177,7 @@ describe( 'general.js basics', () => {
 
 	beforeEach( () => {
 		jest.clearAllMocks();
-		// Default $.post mock: call the beforeSend method then resolve success
+		// Default $.post mock: call the beforehand method, then resolve success
 		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
 			const d = $.Deferred();
 			if ( opts && typeof opts.beforeSend === 'function' ) {
@@ -222,7 +240,7 @@ describe( 'general.js basics', () => {
 	test( 'applyCustomThemes: bad JSON disables submit and shows error', () => {
 		bootGeneral();
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		$cfg.val( '{bad json' ).trigger( 'blur' );
+		$cfg.val( '{bad json' ).trigger( 'input' );
 		const submit = document.getElementById( 'submit' );
 		expect( submit.getAttribute( 'disabled' ) ).toBe( 'disabled' );
 		expect( $cfg.css( 'background-color' ) ).toBe( 'rgb(255, 171, 175)' );
@@ -234,7 +252,7 @@ describe( 'general.js basics', () => {
 		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
 		$custom.prop( 'checked', false );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		$cfg.val( '{"foo":1}' ).trigger( 'blur' );
+		$cfg.val( '{"foo":1}' ).trigger( 'input' );
 		expect( hCaptcha.setParams ).toHaveBeenCalled();
 		const lastCallArg = hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ];
 		expect( lastCallArg ).toEqual( expect.objectContaining( {
@@ -317,6 +335,696 @@ describe( 'general.js basics', () => {
 		await Promise.resolve();
 		jest.runAllTimers();
 		expect( submit.getAttribute( 'disabled' ) ).toBe( null );
+	} );
+} );
+
+describe( 'showMessage early return on empty message', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+		window.__generalTest.interceptConsoleLogs();
+	} );
+
+	test( 'returns early when message and console logs are both empty', () => {
+		const $msg = $( '#hcaptcha-message' );
+
+		// Ensure a message element has no classes initially.
+		$msg.removeClass();
+
+		window.__generalTest.showMessage( '', '' );
+
+		// Should not have added any notice class because it returned early.
+		expect( $msg.hasClass( 'notice' ) ).toBe( false );
+	} );
+} );
+
+describe( 'hCaptchaUpdate branches', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'sets data-theme to custom when custom themes checked and mode is live', () => {
+		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
+		const $modeSelect = $( "select[name='hcaptcha_settings[mode]']" );
+		const $sample = $( '#hcaptcha-options .h-captcha' );
+
+		$modeSelect.val( 'live' );
+		$custom.prop( 'checked', true );
+
+		window.__generalTest.hCaptchaUpdate( { theme: { palette: {} } } );
+
+		expect( $sample.attr( 'data-theme' ) ).toBe( 'custom' );
+	} );
+
+	test( 'uses hCaptcha.getParams().theme when custom themes ON and params.theme is not object', () => {
+		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
+		const $modeSelect = $( "select[name='hcaptcha_settings[mode]']" );
+
+		$modeSelect.val( 'live' );
+		$custom.prop( 'checked', true );
+
+		// params.theme is a string, not an object — so globalParams.theme should come from getParams()
+		hCaptcha.getParams.mockReturnValue( { theme: 'dark' } );
+
+		window.__generalTest.hCaptchaUpdate( { theme: 'light' } );
+
+		// setParams should have been called with theme from getParams() = 'dark'
+		const lastCall = hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ];
+		expect( lastCall.theme ).toBe( 'dark' );
+	} );
+
+	test( 'skips object params when setting data attributes', () => {
+		const $sample = $( '#hcaptcha-options .h-captcha' );
+
+		window.__generalTest.hCaptchaUpdate( { size: 'normal', theme: { palette: {} } } );
+
+		// 'size' (string) should be set as a data attribute.
+		expect( $sample.attr( 'data-size' ) ).toBe( 'normal' );
+		// 'theme' (object) should NOT be set as a data attribute.
+		expect( $sample.attr( 'data-theme' ) ).not.toBe( '[object Object]' );
+	} );
+} );
+
+describe( 'deepMerge', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'returns source when target is not an object', () => {
+		const result = window.__generalTest.deepMerge( null, { a: 1 } );
+		expect( result ).toEqual( { a: 1 } );
+	} );
+
+	test( 'returns source when source is not an object', () => {
+		const result = window.__generalTest.deepMerge( { a: 1 }, 'string' );
+		expect( result ).toBe( 'string' );
+	} );
+
+	test( 'merges nested objects deeply', () => {
+		const target = { a: { b: 1, c: 2 }, d: 3 };
+		const source = { a: { b: 10, e: 5 }, f: 6 };
+		const result = window.__generalTest.deepMerge( target, source );
+
+		expect( result ).toEqual( { a: { b: 10, c: 2, e: 5 }, d: 3, f: 6 } );
+	} );
+
+	test( 'concatenates arrays', () => {
+		const target = { items: [ 1, 2 ] };
+		const source = { items: [ 3, 4 ] };
+		const result = window.__generalTest.deepMerge( target, source );
+
+		expect( result.items ).toEqual( [ 1, 2, 3, 4 ] );
+	} );
+
+	test( 'overwrites primitive values', () => {
+		const target = { a: 1, b: 'old' };
+		const source = { a: 2, b: 'new' };
+		const result = window.__generalTest.deepMerge( target, source );
+
+		expect( result ).toEqual( { a: 2, b: 'new' } );
+	} );
+} );
+
+describe( 'checkConfig done/fail branches', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	beforeEach( () => {
+		jest.clearAllMocks();
+		postSpy = jest.spyOn( $, 'post' );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+	} );
+
+	test( 'checkConfig .done with success=false shows error', async () => {
+		postSpy.mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.resolve( { success: false, data: 'Invalid config' } ), 0 );
+			return d;
+		} );
+		bootGeneral();
+		$( 'textarea[name="h-captcha-response"]' ).val( 'token' );
+		$( '#check_config' ).trigger( 'click' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+
+	test( 'checkConfig .fail shows error with statusText', async () => {
+		postSpy.mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.reject( { statusText: 'Network error' } ), 0 );
+			return d;
+		} );
+		bootGeneral();
+		$( 'textarea[name="h-captcha-response"]' ).val( 'token' );
+		$( '#check_config' ).trigger( 'click' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+} );
+
+describe( 'checkIPs success and fail branches', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	beforeEach( () => {
+		jest.clearAllMocks();
+		postSpy = jest.spyOn( $, 'post' );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+	} );
+
+	test( 'checkIPs .done with success=true clears bg and enables submit', async () => {
+		postSpy.mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.resolve( { success: true } ), 0 );
+			return d;
+		} );
+		bootGeneral();
+		const $area = $( '#blacklisted_ips' );
+		$area.val( '1.1.1.1' ).trigger( 'blur' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $area[ 0 ].style.backgroundColor ).toBe( '' );
+		expect( $( '#submit' ).attr( 'disabled' ) ).toBeUndefined();
+	} );
+
+	test( 'checkIPs .fail shows error with statusText', async () => {
+		postSpy.mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.reject( { statusText: 'Server error' } ), 0 );
+			return d;
+		} );
+		bootGeneral();
+		$( '#blacklisted_ips' ).val( '2.2.2.2' ).trigger( 'blur' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+} );
+
+describe( 'checkChangeCredentials revert to initial', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'reverts submit state when credentials return to initial values', () => {
+		const $site = $( "[name='hcaptcha_settings[site_key]']" );
+		const $submit = $( '#submit' );
+
+		// Change credentials to trigger credentialsChanged.
+		$site.val( 'changed-key' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+
+		// Revert to initial value.
+		$site.val( 'live-key' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
+	} );
+} );
+
+describe( 'checkChangeEnterpriseSettings revert to initial', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	beforeEach( () => {
+		jest.clearAllMocks();
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.resolve( { success: true } ), 0 );
+			return d;
+		} );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+	} );
+
+	test( 'reverts submit state when enterprise settings return to initial values', () => {
+		bootGeneral();
+		const $asset = $( "[name='hcaptcha_settings[asset_host]']" );
+		const $submit = $( '#submit' );
+
+		// Change enterprise input to trigger enterpriseSettingsChanged.
+		$asset.val( 'changed.local' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+
+		// Revert to initial value.
+		$asset.val( 'assethost.local' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
+	} );
+} );
+
+describe( 'initDisabledKeyInputs helper show/hide', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'shows helper on click when input is readonly, hides on mousedown', () => {
+		// Switch to test mode to make keys readonly.
+		$( "select[name='hcaptcha_settings[mode]']" ).val( 'test_pub' ).trigger( 'change' );
+
+		const $siteKey = $( '#site_key' );
+		const $helper = $siteKey.parent().find( 'span.helper' );
+		const $helperContent = $siteKey.parent().find( 'span.helper-content' );
+
+		// Click on readonly input.
+		$siteKey.trigger( 'click' );
+		expect( $helper.css( 'display' ) ).toBe( 'block' );
+		expect( $helperContent.css( 'display' ) ).toBe( 'block' );
+
+		// Mousedown on document hides helper.
+		$( document ).trigger( 'mousedown' );
+		expect( $helper.css( 'display' ) ).toBe( 'none' );
+		expect( $helperContent.css( 'display' ) ).toBe( 'none' );
+	} );
+
+	test( 'does not show helper when input is not readonly', () => {
+		// In live mode, keys are not readonly.
+		$( "select[name='hcaptcha_settings[mode]']" ).val( 'live' ).trigger( 'change' );
+
+		const $siteKey = $( '#site_key' );
+		const $helper = $siteKey.parent().find( 'span.helper' );
+
+		$siteKey.trigger( 'click' );
+		expect( $helper.css( 'display' ) ).toBe( 'none' );
+	} );
+
+	test( 'keydown is prevented on readonly input', () => {
+		$( "select[name='hcaptcha_settings[mode]']" ).val( 'test_pub' ).trigger( 'change' );
+
+		const $siteKey = $( '#site_key' );
+		const event = $.Event( 'keydown.hcaptchaHelper' );
+
+		$siteKey.trigger( event );
+		expect( event.isDefaultPrevented() ).toBe( true );
+	} );
+} );
+
+describe( 'syncKeysWithMode unknown mode', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'returns early for unknown mode without calling hCaptchaUpdate', () => {
+		hCaptcha.setParams.mockClear();
+		$( "select[name='hcaptcha_settings[mode]']" ).val( 'unknown_mode' ).trigger( 'change' );
+		// setParams should not have been called for the unknown mode change.
+		expect( hCaptcha.setParams ).not.toHaveBeenCalled();
+	} );
+} );
+
+describe( 'hCaptchaLoaded event', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'dispatching hCaptchaLoaded calls showErrorMessage', () => {
+		const $msg = $( '#hcaptcha-message' );
+		$msg.removeClass();
+
+		// Generate a console error so showErrorMessage has content to display.
+		window.__generalTest.interceptConsoleLogs();
+		console.error( 'test error from hCaptchaLoaded' );
+
+		document.dispatchEvent( new Event( 'hCaptchaLoaded' ) );
+
+		expect( $msg.hasClass( 'notice-error' ) ).toBe( true );
+	} );
+} );
+
+describe( 'checkConfig click without solved captcha', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'opens kaggDialog when h-captcha-response is empty', () => {
+		// Prevent onAction from calling hCaptchaBindEvents.
+		kaggDialog.confirm = jest.fn();
+
+		// Ensure the sample textarea is empty.
+		$( '.hcaptcha-general-sample-hcaptcha textarea[name="h-captcha-response"]' ).val( '' );
+
+		$( '#check_config' ).trigger( 'click' );
+
+		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
+			expect.objectContaining( {
+				title: HCaptchaGeneralObject.completeHCaptchaTitle,
+				content: HCaptchaGeneralObject.completeHCaptchaContent,
+			} )
+		);
+	} );
+} );
+
+describe( 'event handlers: secretKey, theme, language, size non-invisible', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'secretKey change triggers checkChangeCredentials', () => {
+		const $secret = $( "[name='hcaptcha_settings[secret_key]']" );
+		const $submit = $( '#submit' );
+
+		$secret.val( 'new-secret' ).trigger( 'change' );
+		// credentialsChanged should disable the submitting.
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+	} );
+
+	test( 'theme change calls hCaptchaUpdate', () => {
+		hCaptcha.setParams.mockClear();
+		$( "[name='hcaptcha_settings[theme]']" ).val( 'dark' ).trigger( 'change' );
+		expect( hCaptcha.setParams ).toHaveBeenCalled();
+		const lastCall = hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ];
+		expect( lastCall.theme ).toBe( 'dark' );
+	} );
+
+	test( 'language change calls hCaptchaUpdate', () => {
+		hCaptcha.setParams.mockClear();
+		$( "[name='hcaptcha_settings[language]']" ).val( 'en' ).trigger( 'change' );
+		expect( hCaptcha.setParams ).toHaveBeenCalled();
+	} );
+
+	test( 'size change to normal hides invisible notice', () => {
+		const $notice = $( '#hcaptcha-invisible-notice' );
+		// First show it.
+		const $size = $( '#size-select' );
+
+		$size.val( 'invisible' ).trigger( 'change' );
+		expect( $notice.css( 'display' ) ).not.toBe( 'none' );
+
+		// Then hide it.
+		$size.val( 'normal' ).trigger( 'change' );
+		expect( $notice.css( 'display' ) ).toBe( 'none' );
+	} );
+} );
+
+describe( 'toggleCustomThemeFields and configParams focus', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	test( 'customThemes change toggles disabled state of custom fields', () => {
+		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
+		const $prop = $( '.hcaptcha-general-custom-prop select' );
+		const $val = $( '.hcaptcha-general-custom-value input' );
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+
+		// Initially, unchecked — fields should be disabled.
+		expect( $prop.prop( 'disabled' ) ).toBe( true );
+		expect( $val.prop( 'disabled' ) ).toBe( true );
+		expect( $cfg.prop( 'disabled' ) ).toBe( true );
+
+		// Check it.
+		$custom.prop( 'checked', true ).trigger( 'change' );
+		expect( $prop.prop( 'disabled' ) ).toBe( false );
+		expect( $val.prop( 'disabled' ) ).toBe( false );
+		expect( $cfg.prop( 'disabled' ) ).toBe( false );
+	} );
+
+	test( 'configParams focus resets background-color', () => {
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		$cfg.css( 'background-color', 'red' );
+		$cfg.trigger( 'focus' );
+		// jsdom resolves 'unset' to computed value; check the inline style directly.
+		expect( $cfg[ 0 ].style.backgroundColor ).toBe( 'unset' );
+	} );
+} );
+
+describe( 'section toggle h3 click', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	beforeEach( () => {
+		jest.clearAllMocks();
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			setTimeout( () => d.resolve( { success: true } ), 0 );
+			return d;
+		} );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+	} );
+
+	test( 'clicking h3 toggles closed class and posts to server', () => {
+		bootGeneral();
+		const $h3 = $( '.hcaptcha-section-keys' );
+
+		$h3.trigger( 'click' );
+		expect( $h3.hasClass( 'closed' ) ).toBe( true );
+		expect( postSpy ).toHaveBeenCalledWith( expect.objectContaining( {
+			url: HCaptchaGeneralObject.ajaxUrl,
+		} ) );
+
+		// Click again to toggle back.
+		$h3.trigger( 'click' );
+		expect( $h3.hasClass( 'closed' ) ).toBe( false );
+	} );
+
+	test( 'section toggle .done with success=false shows error', () => {
+		postSpy.mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: false, data: 'Toggle error' } );
+			return d;
+		} );
+		bootGeneral();
+		$( '.hcaptcha-section-keys' ).trigger( 'click' );
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+
+	test( 'section toggle .fail shows error', () => {
+		postSpy.mockImplementation( () => {
+			const d = $.Deferred();
+			d.reject( { statusText: 'Toggle fail' } );
+			return d;
+		} );
+		bootGeneral();
+		$( '.hcaptcha-section-keys' ).trigger( 'click' );
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+} );
+
+describe( 'custom prop/value change handlers', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+		// Enable custom themes.
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+	} );
+
+	test( 'customProp change sets color type and value for non-palette-mode key', () => {
+		const $prop = $( '.hcaptcha-general-custom-prop select' );
+		const $val = $( '.hcaptcha-general-custom-value input' );
+
+		// Select the color option.
+		$prop.find( 'option' ).eq( 2 ).prop( 'selected', true );
+		$prop.trigger( 'change' );
+
+		expect( $val.attr( 'type' ) ).toBe( 'color' );
+	} );
+
+	test( 'customProp change sets text type for palette--mode key', () => {
+		const $prop = $( '.hcaptcha-general-custom-prop select' );
+		const $val = $( '.hcaptcha-general-custom-value input' );
+
+		// Select palette--mode option.
+		$prop.find( 'option' ).eq( 1 ).prop( 'selected', true );
+		$prop.trigger( 'change' );
+
+		expect( $val.attr( 'type' ) ).toBe( 'text' );
+		expect( $val.val() ).toBe( 'light' );
+	} );
+
+	test( 'customValue input triggers applyCustomThemes with nested params', () => {
+		const $prop = $( '.hcaptcha-general-custom-prop select' );
+		const $val = $( '.hcaptcha-general-custom-value input' );
+
+		// Select palette--mode option.
+		$prop.find( 'option' ).eq( 1 ).prop( 'selected', true );
+		$prop.trigger( 'change' );
+
+		// Change value.
+		$val.val( 'dark' ).trigger( 'input' );
+
+		// Verify setParams was called (applyCustomThemes calls hCaptchaUpdate, which calls setParams).
+		expect( hCaptcha.setParams ).toHaveBeenCalled();
+	} );
+} );
+
+describe( 'syncConfigParams recursion and selected prop update', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+	} );
+
+	test( 'applyCustomThemes with nested theme object updates option values and selected custom value', () => {
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		const $val = $( '.hcaptcha-general-custom-value input' );
+		const $prop = $( '.hcaptcha-general-custom-prop select' );
+
+		// Select a palette--mode option (which is selected by default).
+		$prop.find( 'option' ).eq( 1 ).prop( 'selected', true );
+
+		// Set config with a nested theme containing palette.mode.
+		$cfg.val( '{"theme":{"palette":{"mode":"dark"}}}' ).trigger( 'input' );
+
+		// The selected option value should be updated and $customValue should have the value.
+		const selectedVal = $prop.find( 'option:selected' ).val();
+		expect( selectedVal ).toContain( 'palette--mode=' );
+		expect( $val.val() ).toBe( 'dark' );
+	} );
+} );
+
+describe( 'remaining branch coverage', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	beforeEach( () => {
+		jest.clearAllMocks();
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.resolve( { success: true } ), 0 );
+			return d;
+		} );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+	} );
+
+	test( 'showMessage with undefined message', () => {
+		bootGeneral();
+		window.__generalTest.interceptConsoleLogs();
+		console.error( 'some error' );
+		window.__generalTest.showMessage( undefined, 'notice-error' );
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+
+	test( 'showErrorMessage with no args calls showMessage with defaults', () => {
+		bootGeneral();
+		window.__generalTest.interceptConsoleLogs();
+		console.error( 'err' );
+		window.__generalTest.showErrorMessage();
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+
+	test( 'syncConfigParams with non-selected prop does not update customValue', () => {
+		bootGeneral();
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		const $prop = $( '.hcaptcha-general-custom-prop select' );
+		const $val = $( '.hcaptcha-general-custom-value input' );
+
+		// Select the color option (index 2), not palette--mode.
+		$prop.find( 'option' ).eq( 2 ).prop( 'selected', true );
+		$prop.find( 'option' ).eq( 1 ).prop( 'selected', false );
+
+		// Set config with palette.mode — the option exists but is NOT selected.
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		$cfg.val( '{"theme":{"palette":{"mode":"dark"}}}' ).trigger( 'input' );
+
+		// customValue should NOT have been updated to 'dark' since palette--mode is not selected.
+		expect( $val.val() ).not.toBe( 'dark' );
+	} );
+
+	test( 'applyCustomThemes with empty configParams uses null', () => {
+		bootGeneral();
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		// Empty string → configParamsJson becomes null → JSON.parse(null) = null.
+		$cfg.val( '' ).trigger( 'input' );
+		// Should not crash; setParams should still be called.
+		expect( hCaptcha.setParams ).toHaveBeenCalled();
+	} );
+
+	test( 'credentials changed twice does not re-show notice', () => {
+		bootGeneral();
+		const $site = $( "[name='hcaptcha_settings[site_key]']" );
+		const $submit = $( '#submit' );
+
+		// The first change — triggers credentialsChanged.
+		$site.val( 'key1' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+
+		// Second change — credentialsChanged already true, else-if skipped.
+		$site.val( 'key2' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+	} );
+
+	test( 'enterprise settings changed twice does not re-show notice', () => {
+		bootGeneral();
+		const $asset = $( "[name='hcaptcha_settings[asset_host]']" );
+		const $submit = $( '#submit' );
+
+		$asset.val( 'changed1.local' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+
+		$asset.val( 'changed2.local' ).trigger( 'change' );
+		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+	} );
+
+	test( 'keydown on non-readonly input is not prevented', () => {
+		bootGeneral();
+		$( "select[name='hcaptcha_settings[mode]']" ).val( 'live' ).trigger( 'change' );
+		const $siteKey = $( '#site_key' );
+		const event = $.Event( 'keydown.hcaptchaHelper' );
+		$siteKey.trigger( event );
+		expect( event.isDefaultPrevented() ).toBe( false );
+	} );
+
+	test( 'scriptUpdate with empty enterprise values and empty api_host', () => {
+		bootGeneral();
+		// Clear all enterprise inputs.
+		$( '.hcaptcha-section-enterprise + table input' ).each( function() {
+			$( this ).val( '' );
+		} );
+		// Trigger enterprise change to call scriptUpdate.
+		$( "[name='hcaptcha_settings[asset_host]']" ).trigger( 'change' );
+		const script = document.getElementById( 'hcaptcha-api' );
+		expect( script.src ).toContain( 'js.hcaptcha.com' );
+	} );
+
+	test( 'anti-spam provider in allowed list does not show error', () => {
+		bootGeneral( { configuredAntiSpamProviders: [ 'akismet' ] } );
+		const sel = $( "select[name='hcaptcha_settings[antispam_provider]']" );
+		sel.val( 'akismet' ).trigger( 'change' );
+		const tr = sel.closest( 'tr' )[ 0 ];
+		expect( tr.querySelectorAll( 'div' ).length ).toBe( 0 );
+	} );
+
+	test( 'checkConfig click with solved captcha calls onAction which invokes hCaptchaBindEvents', () => {
+		// Use the default kaggDialog mock that calls onAction.
+		bootGeneral();
+		$( '.hcaptcha-general-sample-hcaptcha textarea[name="h-captcha-response"]' ).val( '' );
+		$( '#check_config' ).trigger( 'click' );
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalled();
 	} );
 } );
 

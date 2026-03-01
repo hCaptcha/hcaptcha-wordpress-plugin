@@ -513,6 +513,28 @@ HTML;
 	}
 
 	/**
+	 * Test action_admin_print_footer_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_action_admin_print_footer_scripts(): void {
+		$subject = new Admin();
+
+		self::assertFalse( wp_script_is( $subject::HANDLE ) );
+
+		$subject->action_admin_print_footer_scripts();
+
+		self::assertTrue( wp_script_is( $subject::HANDLE ) );
+
+		$wp_scripts = wp_scripts();
+		$script     = $wp_scripts->registered[ $subject::HANDLE ];
+
+		self::assertStringContainsString( '/assets/js/hcaptcha-cf7', $script->src );
+		self::assertContains( 'hcaptcha', $script->deps );
+		self::assertSame( HCAPTCHA_VERSION, $script->ver );
+	}
+
+	/**
 	 * Test update_form().
 	 *
 	 * @return void

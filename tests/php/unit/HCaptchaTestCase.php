@@ -192,97 +192,98 @@ abstract class HCaptchaTestCase extends TestCase {
 		return [
 			'wp_status'                    =>
 				[
-					0 => 'lost_pass',
-					1 => 'password_protected',
-					2 => 'register',
+					'lost_pass',
+					'password_protected',
+					'register',
 				],
 			'acfe_status'                  =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'avada_status'                 =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'bbp_status'                   =>
 				[
-					0 => 'new_topic',
-					1 => 'reply',
+					'new_topic',
+					'reply',
 				],
 			'beaver_builder_status'        =>
 				[
-					0 => 'contact',
-					1 => 'login',
+					'contact',
+					'login',
 				],
 			'bp_status'                    =>
 				[
-					0 => 'create_group',
-					1 => 'registration',
+					'create_group',
+					'registration',
 				],
 			'cf7_status'                   =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'divi_status'                  =>
 				[
-					0 => 'comment',
-					1 => 'contact',
-					2 => 'login',
+					'comment',
+					'contact',
+					'login',
 				],
 			'download_manager_status'      =>
-				[ 0 => 'button' ],
+				[ 'button' ],
 			'elementor_pro_status'         =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'fluent_status'                =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'forminator_status'            =>
 				[],
 			'give_wp_status'               =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'gravity_status'               =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'jetpack_status'               =>
-				[ 0 => 'contact' ],
+				[ 'contact' ],
 			'kadence_status'               =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'mailchimp_status'             =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'memberpress_status'           =>
-				[ 0 => 'register' ],
+				[ 'register' ],
 			'ninja_status'                 =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'otter_status'                 =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'quform_status'                =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'sendinblue_status'            =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'subscriber_status'            =>
-				[ 0 => 'form' ],
+				[ 'form' ],
 			'ultimate_member_status'       =>
 				[
-					0 => 'login',
-					1 => 'lost_pass',
-					2 => 'register',
+					'login',
+					'lost_pass',
+					'register',
 				],
 			'woocommerce_status'           =>
 				[
-					0 => 'checkout',
-					1 => 'login',
-					2 => 'lost_pass',
-					3 => 'order_tracking',
-					4 => 'register',
+					'add_payment_method',
+					'checkout',
+					'login',
+					'lost_pass',
+					'order_tracking',
+					'register',
 				],
 			'woocommerce_wishlists_status' =>
-				[ 0 => 'create_list' ],
+				[ 'create_list' ],
 			'wpforms_status'               =>
 				[
-					0 => 'lite',
-					1 => 'pro',
+					'lite',
+					'pro',
 				],
 			'wpdiscuz_status'              =>
-				[ 0 => 'comment_form' ],
+				[ 'comment_form' ],
 			'wpforo_status'                =>
 				[
-					0 => 'new_topic',
-					1 => 'reply',
+					'new_topic',
+					'reply',
 				],
 			'woocommerce_wishlist_status'  =>
-				[ 0 => 'create_list' ],
+				[ 'create_list' ],
 			'api_key'                      => 'some API key',
 			'secret_key'                   => 'some secret key',
 			'theme'                        => 'light',
@@ -298,6 +299,8 @@ abstract class HCaptchaTestCase extends TestCase {
 			'whitelisted_ips'              => '4444444.777.2
 220.45.45.1
 ',
+			'blacklisted_countries'        => [],
+			'whitelisted_countries'        => [],
 			'_network_wide'                => [],
 			'mode'                         => 'test:publisher',
 			'site_key'                     => 'some site key',
@@ -706,6 +709,52 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => General::SECTION_OTHER,
 				'helper'  => 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.',
 			],
+			'blacklisted_countries'    => [
+				'label'   => 'Denylisted Countries',
+				'type'    => 'multiple',
+				'options' => [],
+				'section' => General::SECTION_OTHER,
+				'helper'  => 'Block form sending from selected countries.',
+			],
+			'whitelisted_countries'    => [
+				'label'   => 'Allowlisted Countries',
+				'type'    => 'multiple',
+				'options' => [],
+				'section' => General::SECTION_OTHER,
+				'helper'  => 'Do not show hCaptcha for users from selected countries.',
+			],
+			'delay'                    => [
+				'label'   => 'Delay Showing hCaptcha, ms',
+				'type'    => 'number',
+				'section' => General::SECTION_OTHER,
+				'default' => -100,
+				'min'     => -100,
+				'step'    => 100,
+				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
+			],
+			'maxmind_key'              => [
+				'label'        => 'MaxMind License Key',
+				'type'         => 'password',
+				'autocomplete' => 'off',
+				'section'      => 'other',
+				'helper'       => 'Needed to automatically download the GeoLite2 Country database for country allowlist/denylist checks.',
+			],
+			'login_limit'              => [
+				'label'   => 'Login Attempts Before hCaptcha',
+				'type'    => 'number',
+				'section' => General::SECTION_OTHER,
+				'default' => 0,
+				'min'     => 0,
+				'helper'  => 'Maximum number of failed login attempts before showing hCaptcha.',
+			],
+			'login_interval'           => [
+				'label'   => 'Failed Login Attempts Interval, min',
+				'type'    => 'number',
+				'section' => General::SECTION_OTHER,
+				'default' => 15,
+				'min'     => 1,
+				'helper'  => 'Time interval in minutes when failed login attempts are counted.',
+			],
 			'off_when_logged_in'       => [
 				'type'    => 'checkbox',
 				'section' => General::SECTION_OTHER,
@@ -745,31 +794,6 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Use network-wide settings',
 				],
 				'helper'  => 'On multisite, use same settings for all sites of the network.',
-			],
-			'login_limit'              => [
-				'label'   => 'Login Attempts Before hCaptcha',
-				'type'    => 'number',
-				'section' => General::SECTION_OTHER,
-				'default' => 0,
-				'min'     => 0,
-				'helper'  => 'Maximum number of failed login attempts before showing hCaptcha.',
-			],
-			'login_interval'           => [
-				'label'   => 'Failed Login Attempts Interval, min',
-				'type'    => 'number',
-				'section' => General::SECTION_OTHER,
-				'default' => 15,
-				'min'     => 1,
-				'helper'  => 'Time interval in minutes when failed login attempts are counted.',
-			],
-			'delay'                    => [
-				'label'   => 'Delay Showing hCaptcha, ms',
-				'type'    => 'number',
-				'section' => General::SECTION_OTHER,
-				'default' => -100,
-				'min'     => -100,
-				'step'    => 100,
-				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
 			],
 			'statistics'               => [
 				'label'   => 'Statistics',
@@ -1403,11 +1427,12 @@ abstract class HCaptchaTestCase extends TestCase {
 					'type'    => 'checkbox',
 					'options' =>
 						[
-							'checkout'       => 'Checkout Form',
-							'login'          => 'Login Form',
-							'lost_pass'      => 'Lost Password Form',
-							'order_tracking' => 'Order Tracking Form',
-							'register'       => 'Register Form',
+							'add_payment_method' => 'Add Payment Method Form',
+							'checkout'           => 'Checkout Form',
+							'login'              => 'Login Form',
+							'lost_pass'          => 'Lost Password Form',
+							'order_tracking'     => 'Order Tracking Form',
+							'register'           => 'Register Form',
 						],
 				],
 			'woocommerce_germanized_status'    =>

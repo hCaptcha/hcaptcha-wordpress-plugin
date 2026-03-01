@@ -336,6 +336,15 @@ class Notifications extends NotificationsBase {
 					'text' => __( 'Read documentation', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.23.0.
+			'export-import'       => [
+				'title'   => __( 'Settings Export and Import', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Export and import plugin settings from the Tools page, WP-CLI, or the WordPress Abilities API.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $urls['tools'],
+					'text' => __( 'Open tools', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$notifications = $this->select_active_notifications( $notifications );

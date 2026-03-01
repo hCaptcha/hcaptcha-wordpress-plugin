@@ -15,6 +15,8 @@ namespace HCaptcha\Tests\Unit\Helpers;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
+use ReflectionException;
+use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
 
@@ -122,6 +124,13 @@ class RequestTest extends HCaptchaTestCase {
 			'constant',
 			static function ( $name ) {
 				return 'WP_CLI' === $name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'class_exists',
+			static function ( $class_name ) {
+				return 'WP_CLI' === $class_name;
 			}
 		);
 
@@ -293,6 +302,39 @@ class RequestTest extends HCaptchaTestCase {
 
 		self::assertSame( '', Request::filter_input( $type, 'wrong_var_name' ) );
 		self::assertSame( '', Request::filter_input( $type, $var_name ) );
+	}
+
+	/**
+	 * Test sanitize_data() recursively handles arrays.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_sanitize_data_with_nested_array(): void {
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+
+		$method = $this->set_method_accessibility( new Request(), 'sanitize_data' );
+		$data   = [
+			'plain',
+			[
+				'nested',
+				new stdClass(),
+				'third',
+			],
+		];
+
+		self::assertSame(
+			[
+				'plain',
+				[
+					'nested',
+					'',
+					'third',
+				],
+			],
+			$method->invoke( null, $data )
+		);
 	}
 
 	/**

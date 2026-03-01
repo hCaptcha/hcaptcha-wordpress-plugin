@@ -64,7 +64,7 @@ class ProtectContent {
 
 		$settings = hcaptcha()->settings();
 
-		if ( ! $settings->is_on( 'protect_content' ) ) {
+		if ( ! $settings || ! $settings->is_on( 'protect_content' ) ) {
 			return;
 		}
 
@@ -123,8 +123,10 @@ class ProtectContent {
 	 * @return string
 	 */
 	protected function verify(): string {
+		$settings = hcaptcha()->settings();
+
 		// It is always too fast with Pro.
-		hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
+		$settings && $settings->set( 'set_min_submit_time', [ '' ] );
 
 		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
@@ -443,14 +445,15 @@ class ProtectContent {
 				<form method="post" action="<?php echo esc_url( $this->request_uri ); ?>">
 				<?php
 
-				$args = [
+				$settings = hcaptcha()->settings();
+				$args     = [
 					'action' => static::ACTION,
 					'name'   => static::NONCE,
 					'force'  => true,
 					'theme'  => 'auto',
 					'size'   => 'normal',
 					'id'     => [
-						'source'  => [ hcaptcha()->settings()->get_plugin_name() ],
+						'source'  => [ $settings ? $settings->get_plugin_name() : '' ],
 						'form_id' => 'protect',
 					],
 				];

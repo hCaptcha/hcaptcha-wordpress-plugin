@@ -99,9 +99,11 @@ class Form extends LoginBase {
 	 */
 	public function pre_option( $pre_option, $option, $default_value ) {
 		if ( '_fluentform_hCaptcha_details' === $option ) {
+			$settings = hcaptcha()->settings();
+
 			return [
-				'siteKey'   => hcaptcha()->settings()->get_site_key(),
-				'secretKey' => hcaptcha()->settings()->get_secret_key(),
+				'siteKey'   => $settings ? $settings->get_site_key() : '',
+				'secretKey' => $settings ? $settings->get_secret_key() : '',
 			];
 		}
 
@@ -122,6 +124,7 @@ class Form extends LoginBase {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_field_hcaptcha( $html, array $data, stdClass $form ): string {
 		$html = (string) $html;
@@ -311,7 +314,7 @@ class Form extends LoginBase {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

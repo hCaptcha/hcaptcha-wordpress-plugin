@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\AutoVerify;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionException;
 
 /**
  * Test AutoVerify class.
@@ -363,6 +364,43 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['wp_rewrite'] = $old_wp_rewrite;
+	}
+
+	/**
+	 * Test get_entry().
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_get_entry(): void {
+		$subject = new AutoVerify();
+		$method  = $this->set_method_accessibility( $subject, 'get_entry' );
+
+		$_POST = [
+			'hcap_fst_token'     => 'token',
+			'test_input'         => 'some input',
+			'hcap_hp_test'       => '',
+			'hcaptcha-widget-id' => 'widget-id',
+			'h-captcha-response' => 'response',
+			'hcaptcha_nonce'     => 'nonce',
+			'_wp_http_referer'   => '/some-path/',
+			'hcap_hp_sig'        => 'sig',
+		];
+
+		$actual = $method->invoke( $subject, 'hcaptcha_nonce', 'hcaptcha_action' );
+
+		self::assertSame(
+			[
+				'nonce_name'         => 'hcaptcha_nonce',
+				'nonce_action'       => 'hcaptcha_action',
+				'h-captcha-response' => 'response',
+				'data'               => [
+					'test_input' => 'some input',
+				],
+			],
+			$actual
+		);
 	}
 
 	/**

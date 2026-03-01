@@ -90,7 +90,7 @@ class HCaptcha {
 	}
 
 	/**
-	 * Check if child is same or a descendant of the parent.
+	 * Check if the child is the same or a descendant of the parent.
 	 *
 	 * @param {HTMLDivElement} parent Parent element.
 	 * @param {HTMLDivElement} child  Child element.
@@ -666,21 +666,28 @@ class HCaptcha {
 			this.isAjaxSubmitButton( submitButtonElement )
 		) {
 			submitButtonElement.removeEventListener( 'click', this.validate, true );
-
 			submitButtonElement.click();
 
+			// Do not manipulate with the disabled status. It may prevent sending the submitter.
+			// Ajax buttons are usually disabled after submission by the relevant plugins.
 			return;
 		}
-
-		// Prevent the Submit button being clicked again.
-		submitButtonElement.disabled = true;
-		submitButtonElement.dataset.hCaptchaDisabled = '1';
 
 		if ( formElement.requestSubmit ) {
 			formElement.requestSubmit( submitButtonElement );
 		} else {
-			formElement.submit();
+			// Legacy fallback: click the submitter to preserve its name/value in POST.
+			submitButtonElement.removeEventListener( 'click', this.validate, true );
+			submitButtonElement.click();
+
+			// Do not manipulate with the disabled status. It may prevent sending the submitter.
+			return;
 		}
+
+		// Prevent repeated clicks for the requestSubmit path only.
+		// Must be set after requestSubmit(), otherwise submitter name/value may be omitted.
+		submitButtonElement.disabled = true;
+		submitButtonElement.dataset.hCaptchaDisabled = '1';
 	}
 }
 

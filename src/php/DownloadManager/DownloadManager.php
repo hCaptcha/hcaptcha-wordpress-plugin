@@ -52,6 +52,7 @@ class DownloadManager {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( string $template, array $vars ): string {
 		$form_id = 0;
