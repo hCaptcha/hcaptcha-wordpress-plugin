@@ -73,7 +73,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Print release URL
+      - name: Print pre-release URL
         run: |
-          echo "Use URL in blueprint:"
+          echo "Pre-release URL:"
           echo "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/${{ env.SLUG }}.${{ env.VERSION }}.zip"

@@ -215,6 +215,32 @@ HTML;
 
 		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks' );
 
+		// Add form field data to cover foreach in get_entry().
+		$_POST['field-name']    = [
+			'label' => 'Name',
+			'value' => 'John Doe',
+		];
+		$_POST['field-email']   = [
+			'label' => 'Email',
+			'value' => 'john@example.com',
+		];
+		$_POST['field-message'] = [
+			'label' => 'Message',
+			'value' => 'Hello World',
+		];
+
+		// Non-matching key (no 'field-' prefix) — covers first continue.
+		$_POST['other-key'] = [
+			'label' => 'Other',
+			'value' => 'other',
+		];
+
+		// Unknown field type — covers second continue.
+		$_POST['field-phone'] = [
+			'label' => 'Phone',
+			'value' => '123456',
+		];
+
 		$subject = new Form();
 
 		add_filter( 'pre_http_request', [ $subject, 'verify' ] );

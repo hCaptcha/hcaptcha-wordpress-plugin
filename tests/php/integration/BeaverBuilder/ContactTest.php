@@ -22,6 +22,23 @@ use Mockery;
  * @group beaver-builder-contact
  */
 class ContactTest extends HCaptchaWPTestCase {
+	/**
+	 * Tear down.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset(
+			$_POST['name'],
+			$_POST['subject'],
+			$_POST['email'],
+			$_POST['phone'],
+			$_POST['message'],
+			$_POST['post_id']
+		);
+
+		parent::tearDown();
+	}
 
 	/**
 	 * Test init_hooks().
@@ -49,7 +66,6 @@ class ContactTest extends HCaptchaWPTestCase {
 	 * Test add_beaver_builder_captcha().
 	 *
 	 * @return void
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_beaver_builder_captcha(): void {
 		$button    = '<div class="fl-button-wrap some"><button class="fl-button">Submit</button></div>';
@@ -87,6 +103,13 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		$this->prepare_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder' );
+
+		$_POST['name']    = 'John Doe';
+		$_POST['subject'] = 'Test subject';
+		$_POST['email']   = 'test@example.com';
+		$_POST['phone']   = '123-456-7890';
+		$_POST['message'] = 'Test message';
+		$_POST['post_id'] = $this->factory()->post->create();
 
 		$subject->verify( 'a@a.com', 'Subject', 'Message', [], (object) [] );
 	}

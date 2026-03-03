@@ -168,7 +168,9 @@ abstract class LoginBase {
 			return $user;
 		}
 
-		if ( ! hcaptcha()->settings()->is_on( 'hide_login_errors' ) ) {
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings || ! $settings->is_on( 'hide_login_errors' ) ) {
 			return $user;
 		}
 
@@ -225,7 +227,8 @@ abstract class LoginBase {
 		$this->login_data[ $this->ip ][] = time();
 
 		$now            = time();
-		$login_interval = (int) hcaptcha()->settings()->get( 'login_interval' );
+		$settings       = hcaptcha()->settings();
+		$login_interval = (int) ( $settings ? $settings->get( 'login_interval' ) : 0 );
 
 		foreach ( $this->login_data as & $login_datum ) {
 			$login_datum = array_values(
@@ -297,8 +300,9 @@ abstract class LoginBase {
 	 */
 	protected function is_login_limit_exceeded(): bool {
 		$now               = time();
-		$login_limit       = (int) hcaptcha()->settings()->get( 'login_limit' );
-		$login_interval    = (int) hcaptcha()->settings()->get( 'login_interval' );
+		$settings          = hcaptcha()->settings();
+		$login_limit       = (int) ( $settings ? $settings->get( 'login_limit' ) : 0 );
+		$login_interval    = (int) ( $settings ? $settings->get( 'login_interval' ) : 0 );
 		$login_data_for_ip = $this->login_data[ $this->ip ] ?? [];
 		$count             = count(
 			array_filter(

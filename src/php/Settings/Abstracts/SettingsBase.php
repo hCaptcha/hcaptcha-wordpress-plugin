@@ -5,6 +5,9 @@
  * @package kagg-settings
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpIllegalPsrClassPathInspection */
+
 namespace KAGG\Settings\Abstracts;
 
 use HCaptcha\Helpers\HCaptcha;
@@ -285,7 +288,7 @@ abstract class SettingsBase {
 		if ( $this->is_tab_active( $this ) ) {
 			add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'pre_update_option_filter' ], 10, 2 );
 			add_filter(
-				'pre_update_site_option_option_' . $this->option_name(),
+				'pre_update_site_option_' . $this->option_name(),
 				[ $this, 'pre_update_option_filter' ],
 				10,
 				2
@@ -621,7 +624,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.
@@ -970,6 +973,7 @@ abstract class SettingsBase {
 			$type = $this->form_fields[ $key ]['type'] ?? '';
 
 			switch ( $type ) {
+				case 'multiple':
 				case 'checkbox':
 					$settings[ $key ] = array_map( 'sanitize_text_field', (array) $setting );
 					break;
@@ -1256,7 +1260,7 @@ abstract class SettingsBase {
 		$element_disabled = empty( array_diff( $arguments['options'], $arguments['disabled'] ) );
 
 		printf(
-			'<select %1$s name="%2$s[%3$s]">%4$s</select>',
+			'<select %1$s name="%2$s[%3$s]" id="%3$s">%4$s</select>',
 			disabled( $element_disabled, true, false ),
 			esc_html( $this->option_name() ),
 			esc_html( $arguments['field_id'] ),
@@ -1313,7 +1317,7 @@ abstract class SettingsBase {
 		$element_disabled = empty( array_diff( $arguments['options'], $arguments['disabled'] ) );
 
 		printf(
-			'<select %1$s multiple="multiple" name="%2$s[%3$s][]">%4$s</select>',
+			'<select %1$s multiple="multiple" name="%2$s[%3$s][]" id="%3$s">%4$s</select>',
 			disabled( $element_disabled, true, false ),
 			esc_html( $this->option_name() ),
 			esc_html( $arguments['field_id'] ),
@@ -1586,6 +1590,12 @@ abstract class SettingsBase {
 
 			// Check if the network-wide setting is on.
 			if ( [ 'on' ] === $value[ self::NETWORK_WIDE ] ) {
+				// Prevent endless loop.
+				remove_filter(
+					'pre_update_site_option_' . $this->option_name(),
+					[ $this, 'pre_update_option_filter' ]
+				);
+
 				// Save the current settings in the site option.
 				update_site_option( $this->option_name(), $value );
 
@@ -1789,11 +1799,11 @@ abstract class SettingsBase {
 				continue;
 			}
 
-			if ( 'checkbox' !== $form_field['type'] || isset( $value[ $key ] ) ) {
+			if ( isset( $value[ $key ] ) || ! in_array( $form_field['type'], [ 'checkbox', 'multiple' ], true ) ) {
 				continue;
 			}
 
-			// Checkbox status is not set in the $value array.
+			// Checkbox/multiple status is not set in the $value array.
 			if ( ! $form_field['disabled'] || ! isset( $old_value[ $key ] ) ) {
 				$value[ $key ] = [];
 			}

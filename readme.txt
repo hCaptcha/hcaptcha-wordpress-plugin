@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.23.0
+Stable tag: 4.24.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,7 +39,8 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Protect Site Content:** Protects selected site URLs from bots with hCaptcha. Works best with Pro 99.9% passive mode.
 * **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page loading impact.
-* **Allowlist IPs:** Allowlist certain IPs to skip hCaptcha verification.
+* **IP Access Control:** Allowlist trusted IPs to skip hCaptcha and denylist abusive IPs to block form submissions.
+* **Country Access Control:** Allowlist or denylist countries to control where hCaptcha protections apply.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
 
 **Customization**
@@ -913,6 +914,20 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 4.24.0 =
+* Added country allowlist and denylist to control where hCaptcha protections apply.
+* Added compatibility with Payment Plugins for Stripe WooCommerce.
+* Added support for the Add Payment Method form in the WooCommerce My Account page.
+* Improved Custom Theme editor with live preview on color and JSON changes.
+* Fixed a fatal error occurred with WP-CLI in a rare case.
+* Fixed a PHP notice occurred on the Contact Form 7 edit form page.
+* Fixed inability to log in and register from the Woocommerce My Account page.
+* Fixed inability to send a form with invisible or forced hCaptcha.
+* Fixed mobile layout of the Anti-spam and Notifications blocks on the General admin page.
+* Fixed processing options before saving on multisite.
+* Fixed empty charts on Forms and Events admin pages.
+* Fixed Custom and Enterprise section inputs with free license.
 
 = 4.23.0 =
 * Added 'hcap_trusted_address_headers' filter to customize the list of IP-related headers used for client IP detection.

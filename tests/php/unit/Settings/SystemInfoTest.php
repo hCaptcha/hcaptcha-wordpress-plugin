@@ -506,6 +506,7 @@ Users WP:
   Login Form:                         Off
   Register Form:                      Off
 WooCommerce:                          
+  Add Payment Method Form:            On
   Checkout Form:                      On
   Login Form:                         On
   Lost Password Form:                 On

@@ -248,7 +248,7 @@ HTML;
 	protected function prepare_verify( string $nonce, string $action ): void {
 		$_POST[ $nonce ] = wp_create_nonce( $action );
 
-		FunctionMocker::replace( 'HCaptcha\Helpers\API::verify', null );
+		FunctionMocker::replace( 'HCaptcha\Helpers\API::verify' );
 	}
 
 	/**
@@ -257,16 +257,44 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$errors        = [ 'some error' => 'some message' ];
-		$values        = [
+		$errors = [ 'some error' => 'some message' ];
+
+		// Create field objects for posted_fields.
+		$name_field       = new stdClass();
+		$name_field->id   = 10;
+		$name_field->type = 'name';
+		$name_field->name = 'Full Name';
+
+		$email_field       = new stdClass();
+		$email_field->id   = 11;
+		$email_field->type = 'email';
+		$email_field->name = 'Email';
+
+		$text_field       = new stdClass();
+		$text_field->id   = 12;
+		$text_field->type = 'text';
+		$text_field->name = 'Message';
+
+		// Field with an empty value.
+		$empty_field       = new stdClass();
+		$empty_field->id   = 13;
+		$empty_field->type = 'text';
+		$empty_field->name = 'Phone';
+
+		$values = [
 			'h-captcha-response' => 'some-token',
 			'form_id'            => 1,
 			'item_meta'          => [
-				10 => 'John Doe',
+				10 => [ 'John', 'Doe' ],
 				11 => 'john@doe.com',
+				12 => 'Hello World',
+				13 => '',
 			],
 		];
-		$validate_args = [];
+
+		$validate_args = [
+			'posted_fields' => [ $name_field, $email_field, $text_field, $empty_field ],
+		];
 
 		$entry = [
 			'form_date_gmt' => '2023-01-01 10:00:00',
@@ -310,6 +338,7 @@ HTML;
 	 * Test admin_enqueue_scripts().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_admin_enqueue_scripts(): void {
 		$admin_handle   = 'admin-formidable-forms';

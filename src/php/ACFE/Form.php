@@ -10,6 +10,7 @@ namespace HCaptcha\ACFE;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
 
 /**
  * Class Form.
@@ -242,7 +243,8 @@ class Form {
 			$label      = $acf_field['label'];
 			$type       = $acf_field['type'];
 			$field_name = $acf_field['name'];
-			$data_key   = $label ?: ( $field_name ?: $field_key );
+			$data_key   = $field_name ?: $field_key;
+			$data_key   = $label ?: $data_key;
 
 			if ( '' === $data_key ) {
 				continue;
@@ -288,7 +290,7 @@ class Form {
 		}
 
 		// Fallback to encrypted JSON.
-		$form = json_decode( acf_decrypt( $acf_form ), true );
+		$form = Utils::json_decode_arr( acf_decrypt( $acf_form ) );
 
 		return $form ?: false;
 	}

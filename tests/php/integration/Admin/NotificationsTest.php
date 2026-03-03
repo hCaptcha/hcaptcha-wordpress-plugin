@@ -192,6 +192,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Read documentation',
 				],
 			],
+			'export-import'       => [
+				'title'   => 'Settings Export and Import',
+				'message' => 'Export and import plugin settings from the Tools page, WP-CLI, or the WordPress Abilities API.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=tools',
+					'text' => 'Open tools',
+				],
+			],
 		];
 
 		switch ( $setting ) {

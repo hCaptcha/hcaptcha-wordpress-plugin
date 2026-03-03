@@ -210,7 +210,7 @@ class Form {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

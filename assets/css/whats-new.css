@@ -137,17 +137,15 @@
 }
 
 .hcaptcha-whats-new-text {
-	/*flex: 0 0 calc(70% - 20px); !* 20px — half of the gap *!*/
-	flex: 7;
+	flex: 5;
+}
+
+.hcaptcha-whats-new-image {
+	flex: 5;
 }
 
 .hcaptcha-whats-new-block.center .hcaptcha-whats-new-text {
 	flex: 0 0 100%;
-}
-
-.hcaptcha-whats-new-image {
-	/*flex: 0 0 calc(70% - 20px); !* 20px — half of the gap *!*/
-	flex: 3;
 }
 
 .hcaptcha-whats-new-block.center .hcaptcha-whats-new-image {
@@ -198,6 +196,10 @@
 	max-width: 100%;
 	height: auto;
 	display: block;
+}
+
+.hcaptcha-whats-new-block.center .hcaptcha-whats-new-image img {
+	max-height: 450px;
 }
 
 @media (max-width: 600px) {

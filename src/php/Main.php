@@ -15,15 +15,17 @@ namespace HCaptcha;
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\AutoVerify\AutoVerify;
-use HCaptcha\CF7\Admin;
 use HCaptcha\CACSP\Compatibility;
+use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\CF7\ReallySimpleCaptcha;
+use HCaptcha\CLI\Commands;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\ElementorPro\HCaptchaHandler;
@@ -42,13 +44,14 @@ use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
-use HCaptcha\Settings\Tools;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\Settings;
 use HCaptcha\Settings\SystemInfo;
+use HCaptcha\Settings\Tools;
+use HCaptcha\Vendors\GeoIp2\Database\Reader;
 use HCaptcha\WCGermanized\ReturnRequest;
 use HCaptcha\WCWishlists\CreateList;
-use HCaptcha\CLI\Commands;
+use Throwable;
 use WP_CLI;
 
 /**
@@ -218,6 +221,7 @@ class Main {
 		}
 
 		$this->load( PluginStats::class );
+		$this->load( MaxMindDb::class );
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
@@ -241,6 +245,7 @@ class Main {
 		add_action( 'login_head', [ $this, 'login_head' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 0 );
 		add_filter( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
+		add_action( 'action_scheduler_ensure_recurring_actions', [ $this, 'register_recurring_actions' ] );
 
 		$this->auto_verify = new AutoVerify();
 		$this->auto_verify->init();
@@ -295,7 +300,7 @@ class Main {
 		 * - when the site key or the secret key is empty (after the first plugin activation).
 		 */
 		$deactivate = (
-			( is_user_logged_in() && $settings->is_on( 'off_when_logged_in' ) ) ||
+			( $settings && $settings->is_on( 'off_when_logged_in' ) && is_user_logged_in() ) ||
 			/**
 			 * Filters the user IP to check whether it is allowlisted.
 			 *
@@ -494,13 +499,14 @@ class Main {
 			return;
 		}
 
-		$settings           = $this->settings();
-		$div_logo_url       = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
-		$div_logo_white_url = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
-		$bg                 = $settings->get_custom_theme_background() ?: 'initial';
-		$delay              = (int) $settings->get( 'delay' );
-		$animation_delay    = $delay >= 0 ? $delay / 100 + 2 : 2;
-		$load_msg           = $delay >= 0
+		$settings                = $this->settings();
+		$div_logo_url            = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
+		$div_logo_white_url      = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
+		$custom_theme_background = $settings ? $settings->get_custom_theme_background() : '';
+		$bg                      = $custom_theme_background ?: 'initial';
+		$delay                   = (int) ( $settings->get( 'delay' ) ?: 0 );
+		$animation_delay         = $delay >= 0 ? $delay / 100 + 2 : 2;
+		$load_msg                = $delay >= 0
 			? __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' )
 			: __( 'The hCaptcha loading is delayed until user interaction.', 'hcaptcha-for-forms-and-more' );
 
@@ -696,7 +702,8 @@ class Main {
 	 * @return string
 	 */
 	public function get_api_url(): string {
-		$api_host = trim( $this->settings()->get( 'api_host' ) ) ?: self::API_HOST;
+		$settings = $this->settings();
+		$api_host = trim( $settings ? $settings->get( 'api_host' ) : '' ) ?: self::API_HOST;
 
 		/**
 		 * Filters the API host.
@@ -739,11 +746,11 @@ class Main {
 
 		$settings = $this->settings();
 
-		if ( $settings->is_on( 'recaptcha_compat_off' ) ) {
+		if ( $settings && $settings->is_on( 'recaptcha_compat_off' ) ) {
 			$params['recaptchacompat'] = 'off';
 		}
 
-		if ( $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
+		if ( $settings && $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general() ) {
 			$params['custom'] = 'true';
 		}
 
@@ -757,7 +764,7 @@ class Main {
 		];
 
 		foreach ( $enterprise_params as $enterprise_param => $enterprise_arg ) {
-			$value = trim( $settings->get( $enterprise_param ) );
+			$value = trim( $settings ? $settings->get( $enterprise_param ) : '' );
 
 			if ( $value ) {
 				$params[ $enterprise_arg ] = rawurlencode( $this->force_https( $value ) );
@@ -778,7 +785,8 @@ class Main {
 	 * @return string
 	 */
 	public function get_verify_url(): string {
-		$verify_host = trim( $this->settings()->get( 'backend' ) ) ?: self::VERIFY_HOST;
+		$settings    = $this->settings();
+		$verify_host = trim( $settings ? $settings->get( 'backend' ) : '' ) ?: self::VERIFY_HOST;
 
 		/**
 		 * Filters the verification host.
@@ -798,7 +806,8 @@ class Main {
 	 * @return string
 	 */
 	public function get_check_site_config_url(): string {
-		$verify_host = trim( $this->settings()->get( 'backend' ) ) ?: self::VERIFY_HOST;
+		$settings    = $this->settings();
+		$verify_host = trim( $settings ? $settings->get( 'backend' ) : '' ) ?: self::VERIFY_HOST;
 
 		/** This filter is documented above. */
 		$verify_host = (string) apply_filters( 'hcap_verify_host', $verify_host );
@@ -837,7 +846,7 @@ class Main {
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', (int) $settings->get( 'delay' ) );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) ( $settings ? $settings->get( 'delay' ) : 0 ) );
 
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
@@ -892,6 +901,8 @@ class Main {
 	public function allow_honeypot_and_fst( $value, array $source, $form_id ): bool {
 		$value = (bool) $value;
 
+		$settings = hcaptcha()->settings();
+
 		if ( null === $this->supported_forms ) {
 			$this->supported_forms = [];
 
@@ -924,17 +935,43 @@ class Main {
 				array_unique( $this->supported_forms, SORT_REGULAR ),
 				[
 					[ General::class ], // General settings page.
-					[ hcaptcha()->settings()->get_plugin_name() ], // Protect Content.
+					[ $settings ? $settings->get_plugin_name() : '' ], // Protect Content.
 				]
 			);
 		}
 
-		if ( $source && ! in_array( $source, $this->supported_forms, true ) ) {
-			hcaptcha()->settings()->set( 'honeypot', [ '' ] );
-			hcaptcha()->settings()->set( 'set_min_submit_time', [ '' ] );
+		if ( $settings && $source && ! in_array( $source, $this->supported_forms, true ) ) {
+			$settings->set( 'honeypot', [ '' ] );
+			$settings->set( 'set_min_submit_time', [ '' ] );
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Register recurring actions.
+	 *
+	 * @return void
+	 */
+	public function register_recurring_actions(): void {
+		// Check if Action Scheduler is available.
+		if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
+			return;
+		}
+
+		$gmt_offset   = get_option( 'gmt_offset' );
+		$offset_hours = ( $gmt_offset > 0 ? '-' : '+' ) . absint( $gmt_offset ) . ' hours';
+		$tomorrow_6am = strtotime( 'tomorrow 06:00 am ' . $offset_hours );
+
+		// Update Maxmind database every 15 days.
+		as_schedule_recurring_action(
+			$tomorrow_6am,
+			15 * DAY_IN_SECONDS,
+			'hcap_update_maxmind_db',
+			[],
+			'hcaptcha',
+			true
+		);
 	}
 
 	/**
@@ -962,15 +999,21 @@ class Main {
 	public function denylist_ip( $denylisted, $client_ip ): bool {
 		$denylisted = (bool) $denylisted;
 
+		$settings = $this->settings();
+
 		$ips = explode(
 			"\n",
-			$this->settings()->get( 'blacklisted_ips' )
+			$settings ? $settings->get( 'blacklisted_ips' ) : ''
 		);
 
 		foreach ( $ips as $ip ) {
 			if ( Request::is_ip_in_range( $client_ip, $ip ) ) {
 				return true;
 			}
+		}
+
+		if ( $this->is_ip_in_listed_countries( $client_ip, 'blacklisted_countries' ) ) {
+			return true;
 		}
 
 		return $denylisted;
@@ -986,9 +1029,11 @@ class Main {
 	 * @return bool|mixed
 	 */
 	public function allowlist_ip( $allowlisted, $client_ip ) {
+		$settings = $this->settings();
+
 		$ips = explode(
 			"\n",
-			$this->settings()->get( 'whitelisted_ips' )
+			$settings ? $settings->get( 'whitelisted_ips' ) : ''
 		);
 
 		foreach ( $ips as $ip ) {
@@ -997,7 +1042,96 @@ class Main {
 			}
 		}
 
+		if ( $this->is_ip_in_listed_countries( $client_ip, 'whitelisted_countries' ) ) {
+			return true;
+		}
+
 		return $allowlisted;
+	}
+
+	/**
+	 * Whether a client IP belongs to a listed country.
+	 *
+	 * @param string|false $client_ip Client IP.
+	 * @param string       $key       List key.
+	 *
+	 * @return bool
+	 */
+	private function is_ip_in_listed_countries( $client_ip, string $key ): bool {
+		$settings = $this->settings;
+
+		$countries = (array) ( $settings ? $settings->get( $key ) : [] );
+		$countries = array_filter( $countries );
+
+		if ( ! $countries ) {
+			return false;
+		}
+
+		$country = $this->get_client_country_code( $client_ip );
+
+		return in_array( $country, $countries, true );
+	}
+
+	/**
+	 * Get client country code.
+	 *
+	 * @param string|false $client_ip Client IP.
+	 *
+	 * @return string
+	 */
+	private function get_client_country_code( $client_ip = false ): string {
+		if ( ! $client_ip ) {
+			return '';
+		}
+
+		$db_path = $this->get_maxmind_db_path();
+
+		if ( ! $db_path ) {
+			return '';
+		}
+
+		try {
+			$reader  = new Reader( $db_path );
+			$record  = $reader->country( $client_ip );
+			$country = strtoupper( trim( (string) ( $record->country->isoCode ?? '' ) ) );
+
+			$reader->close();
+
+			return $country;
+		} catch ( Throwable $e ) {
+			return '';
+		}
+	}
+
+	/**
+	 * Get MaxMind DB path.
+	 *
+	 * @return string
+	 */
+	private function get_maxmind_db_path(): string {
+		$default_paths = [
+			WP_CONTENT_DIR . '/uploads/hcaptcha/GeoLite2-Country.mmdb',
+			WP_CONTENT_DIR . '/uploads/woocommerce_uploads/GeoLite2-Country.mmdb',
+		];
+
+		/**
+		 * Filters MaxMind country DB path.
+		 *
+		 * @param string $path Path to *.mmdb file.
+		 */
+		$path = (string) apply_filters( 'hcap_maxmind_db_path', '' );
+
+		if ( $path && is_readable( $path ) ) {
+			return $path;
+		}
+
+		foreach ( $default_paths as $default_path ) {
+			if ( is_readable( $default_path ) ) {
+				return $default_path;
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -1606,6 +1740,11 @@ class Main {
 				'woocommerce/woocommerce.php',
 				WC\Checkout::class,
 			],
+			'WooCommerce Add Payment Method'       => [
+				[ 'woocommerce_status', 'add_payment_method' ],
+				'woocommerce/woocommerce.php',
+				WC\AddPaymentMethod::class,
+			],
 			'WooCommerce Login'                    => [
 				[ 'woocommerce_status', 'login' ],
 				'woocommerce/woocommerce.php',
@@ -1698,13 +1837,15 @@ class Main {
 			// @codeCoverageIgnoreEnd
 		}
 
+		$settings = $this->settings();
+
 		foreach ( $this->modules as $module ) {
 			[ $option_name, $option_value ] = $module[0];
 
-			$option = (array) $this->settings()->get( $option_name );
+			$option = (array) ( $settings ? $settings->get( $option_name ) : [] );
 
-			if ( ! $this->plugin_or_theme_active( $module[1] ) ) {
-				$this->settings()->set_field( $option_name, 'disabled', true );
+			if ( $settings && ! $this->plugin_or_theme_active( $module[1] ) ) {
+				$settings->set_field( $option_name, 'disabled', true );
 				continue;
 			}
 

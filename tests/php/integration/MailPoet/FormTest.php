@@ -133,10 +133,42 @@ HTML;
 
 		$subject->verify( $api );
 
+		// Verify with $_POST['data'] having only form_id to cover an empty $fields path.
 		$_POST['action']   = 'mailpoet';
 		$_POST['endpoint'] = 'subscribers';
 		$_POST['method']   = 'subscribe';
 		$_POST['data']     = [
+			'form_id' => '1',
+		];
+
+		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+
+		$subject->verify( $api );
+
+		// Verify with no $_POST['data'] to cover `: []` branch.
+		unset( $_POST['data'] );
+
+		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+
+		// Suppress warning for an undefined array key "form_id" when data is empty.
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		@$subject->verify( $api );
+	}
+
+	/**
+	 * Test verify() with $_POST['data'] set.
+	 */
+	public function test_verify_with_data(): void {
+		$api = Mockery::mock( API::class );
+
+		$subject = new Form();
+
+		$_POST['action']   = 'mailpoet';
+		$_POST['endpoint'] = 'subscribers';
+		$_POST['method']   = 'subscribe';
+
+		// Verify with $_POST['data'] set.
+		$_POST['data'] = [
 			'form_id'                             => '1',
 			'email'                               => '',
 			'form_field_YjVlNWFkMmRiYTlhX2VtYWls' => 'foo@bar.com',

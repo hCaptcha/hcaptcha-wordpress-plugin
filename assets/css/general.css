@@ -406,13 +406,30 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
 		"blacklisted whitelisted"
+		"blacklisted-countries whitelisted-countries"
+		"delay maxmind-key"
+		"login-limit login-interval"
 		"logged recaptcha"
 		"hide-login-errors cleanup-on-uninstall"
-		"network ."
-		"login-limit login-interval"
-		"delay .";
+		"network .";
 	gap: 0 20px;
 	padding: 15px 20px;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips {
+	grid-area: blacklisted;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
+	grid-area: whitelisted;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries {
+	grid-area: blacklisted-countries;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries {
+	grid-area: whitelisted-countries;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
@@ -431,6 +448,11 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: cleanup-on-uninstall;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
+	padding-bottom: 15px;
+}
+
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
 	grid-area: login-limit;
 	padding-top: 15px;
@@ -439,10 +461,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval {
 	grid-area: login-interval;
 	padding-top: 15px;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
-	grid-area: whitelisted;
+	padding-bottom: 15px;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide {
@@ -451,6 +470,11 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-delay {
 	grid-area: delay;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-maxmind-key {
+	grid-area: maxmind-key;
 	padding-top: 15px;
 }
 
@@ -473,15 +497,67 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit td,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-maxmind-key td {
 	width: auto;
 }
 
 .hcaptcha-section-other + table tbody tr td textarea,
-.hcaptcha-section-other + table tbody tr td input {
+.hcaptcha-section-other + table tbody tr td input,
+.hcaptcha-section-other + table tbody tr td select {
 	width: 100%;
+}
+
+.hcaptcha-section-other + table tbody tr td select[multiple="multiple"] {
+	min-height: 68px;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices {
+	width: 100%;
+	margin-bottom: 0;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices__inner,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices__inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 4px;
+	box-sizing: border-box;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices__input.choices__input--cloned,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices__input.choices__input--cloned {
+	order: -1;
+	display: block;
+	flex: 1 0 100%;
+	width: 100%;
+	min-width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	box-sizing: border-box;
+	line-height: 1.4;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices.is-focused .choices__input.choices__input--cloned,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices.is-focused .choices__input.choices__input--cloned {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices__list--multiple .choices__item,
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices__list--multiple .choices__item {
+	background: #5c6f8a;
+	border-radius: 4px;
 }
 
 /* Section Statistics */
@@ -582,8 +658,15 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	.hcaptcha-section-antispam + table tbody {
 		grid-template-columns: repeat(1, 1fr);
 		grid-template-areas:
+		"set-min-submit-time"
+		"honeypot"
+		"min-submit-time"
 		"antispam"
 		"antispam-provider";
+	}
+
+	.hcaptcha-section-antispam + table tbody tr th {
+		width: unset !important;
 	}
 
 	.hcaptcha-section-antispam + table tbody tr td {
@@ -595,17 +678,22 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		grid-template-areas:
 		"blacklisted"
 		"whitelisted"
+		"blacklisted-countries"
+		"whitelisted-countries"
+		"maxmind-key"
+		"delay"
+		"login-limit"
+		"login-interval"
 		"logged"
 		"recaptcha"
 		"hide-login-errors"
 		"cleanup-on-uninstall"
-		"network"
-		"login-limit"
-		"login-interval"
-		"delay";
+		"network";
 	}
 
 	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips,
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries,
+	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries,
 	.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
 		padding-top: 10px;
 	}

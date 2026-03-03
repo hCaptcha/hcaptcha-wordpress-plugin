@@ -781,11 +781,12 @@ class Integrations extends PluginSettingsBase {
 				'label'   => 'WooCommerce',
 				'type'    => 'checkbox',
 				'options' => [
-					'checkout'       => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
-					'login'          => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-					'lost_pass'      => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
-					'order_tracking' => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
-					'register'       => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
+					'add_payment_method' => __( 'Add Payment Method Form', 'hcaptcha-for-forms-and-more' ),
+					'checkout'           => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
+					'login'              => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
+					'lost_pass'          => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
+					'order_tracking'     => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
+					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 			'woocommerce_germanized_status'    => [

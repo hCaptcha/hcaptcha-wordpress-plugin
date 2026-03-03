@@ -36,7 +36,10 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'] );
 
-		$_POST = [];
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		foreach ( array_keys( $_POST ) as $key ) {
+			unset( $_POST[ $key ] );
+		}
 
 		parent::tearDown();
 	}
@@ -58,6 +61,8 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			3
 		);
 		WP_Mock::expectActionAdded( 'hcap_auto_verify_register', [ $subject, 'content_filter' ] );
+		WP_Mock::expectActionAdded( 'hcap_register_form', [ $subject, 'register_hcaptcha' ] );
+		WP_Mock::expectActionAdded( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ], 9 );
 
 		$subject->init();
 	}
@@ -103,7 +108,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 */
 	public function test_widget_block_content_filter_on_frontend(): void {
 		FunctionMocker::replace(
-			'\HCaptcha\Helpers\Request::is_frontend',
+			'HCaptcha\Helpers\Request::is_frontend',
 			true
 		);
 
@@ -120,17 +125,37 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test widget_block_content_filter() not on the frontend.
+	 */
+	public function test_widget_block_content_filter_not_on_frontend(): void {
+		FunctionMocker::replace(
+			'HCaptcha\Helpers\Request::is_frontend',
+			false
+		);
+
+		$content = $this->get_test_content();
+
+		$widget  = Mockery::mock( 'WP_Widget_Block' );
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldNotReceive( 'register_forms' );
+
+		self::assertSame( $content, $subject->widget_block_content_filter( $content, [], $widget ) );
+	}
+
+	/**
 	 * Test register_hcaptcha().
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_register_hcaptcha(): void {
 		$wrong_registry = [ 'wrong registry' ];
 
 		WP_Mock::userFunction( 'wp_json_encode' )->andReturnUsing(
 			static function ( $value ) {
-
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 				return json_encode( $value );
 			}
@@ -210,6 +235,10 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return '';
 			}
 		);
+		WP_Mock::userFunction( 'hcap_min_suffix' )->andReturn( $min );
+		WP_Mock::userFunction( '__' )
+			->with( 'The form was submitted successfully.', 'hcaptcha-for-forms-and-more' )
+			->andReturn( 'The form was submitted successfully.' );
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
@@ -392,7 +421,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		];
 
 		FunctionMocker::replace(
-			'\HCaptcha\Helpers\Request::is_frontend',
+			'HCaptcha\Helpers\Request::is_frontend',
 			true
 		);
 
@@ -408,7 +437,14 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return rtrim( $value, '/\\' );
 			}
 		);
-		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_post' );
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify' );
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( int $type, string $var_name ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				return $_POST[ $var_name ] ?? '';
+			}
+		);
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $url;
@@ -461,7 +497,15 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return rtrim( $value, '/\\' );
 			}
 		);
-		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_post', $result );
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify', $result );
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( int $type, string $var_name ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				return $_POST[ $var_name ] ?? '';
+			}
+		);
+		WP_Mock::passthruFunction( 'esc_html' );
 		WP_Mock::userFunction( 'wp_die' )
 			->with(
 				$result,
@@ -487,6 +531,143 @@ class AutoVerifyTest extends HCaptchaTestCase {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( [], $_POST );
+	}
+
+	/**
+	 * Test verify() when the form is not verified and not ajax.
+	 */
+	public function test_verify_when_the_form_is_not_verified_and_not_ajax(): void {
+		$url    = 'https://test.test/auto-verify?test=1';
+		$result = 'Some hCaptcha error.';
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+		$path = parse_url( $url, PHP_URL_PATH );
+
+		$registered_form = [
+			'action' => $path,
+			'inputs' => [ 'some_input' ],
+			'args'   => [
+				'action' => 'hcaptcha_action',
+				'name'   => 'hcaptcha_nonce',
+				'auto'   => true,
+				'ajax'   => false,
+			],
+		];
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_frontend', true );
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $parsed_url, $component ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $parsed_url, $component );
+			}
+		);
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
+			static function ( $value ) {
+				return rtrim( $value, '/\\' );
+			}
+		);
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify', $result );
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( int $type, string $var_name ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				return $_POST[ $var_name ] ?? '';
+			}
+		);
+		WP_Mock::passthruFunction( 'esc_html' );
+		WP_Mock::userFunction( 'wp_die' )
+			->with(
+				$result,
+				'hCaptcha',
+				[
+					'back_link' => true,
+					'response'  => 403,
+				]
+			)
+			->once();
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = $url;
+		$_POST['test']             = 'some';
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_registered_form' )->with( $path )->once()->andReturn( $registered_form );
+
+		$subject->verify();
+	}
+
+	/**
+	 * Test verify() builds entry without excluded keys.
+	 */
+	public function test_verify_builds_entry_without_excluded_keys(): void {
+		$url = 'https://test.test/auto-verify?test=1';
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+		$path = parse_url( $url, PHP_URL_PATH );
+
+		$registered_form = [
+			'action' => $path,
+			'inputs' => [ 'field' ],
+			'args'   => [
+				'action' => 'hcaptcha_action',
+				'name'   => 'hcaptcha_nonce',
+				'auto'   => true,
+			],
+		];
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_frontend', true );
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $parsed_url, $component ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $parsed_url, $component );
+			}
+		);
+		WP_Mock::userFunction( 'untrailingslashit' )->andReturnUsing(
+			static function ( $value ) {
+				return rtrim( $value, '/\\' );
+			}
+		);
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\API::verify',
+			static function ( array $entry ) {
+				self::assertSame( 'hcaptcha_nonce', $entry['nonce_name'] );
+				self::assertSame( 'hcaptcha_action', $entry['nonce_action'] );
+				self::assertSame( 'response-token', $entry['h-captcha-response'] );
+				self::assertSame(
+					[
+						'field' => 'value',
+					],
+					$entry['data']
+				);
+
+				return null;
+			}
+		);
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( int $type, string $var_name ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				return $_POST[ $var_name ] ?? '';
+			}
+		);
+
+		$_SERVER['REQUEST_METHOD']   = 'POST';
+		$_SERVER['REQUEST_URI']      = $url;
+		$_POST['field']              = 'value';
+		$_POST['hcap_token']         = 'exclude';
+		$_POST['hcaptcha-widget-id'] = 'exclude';
+		$_POST['hcaptcha_nonce']     = 'exclude';
+		$_POST['h-captcha-response'] = 'response-token';
+		$_POST['_wp_http_referer']   = '/ref';
+
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_registered_form' )->with( $path )->once()->andReturn( $registered_form );
+
+		$subject->verify();
 	}
 
 	/**

@@ -1,0 +1,8 @@
+#add_payment_method .h-captcha {
+	float: right;
+}
+
+.woocommerce #payment #place_order,
+.woocommerce-page #payment #place_order {
+	clear: both;
+}

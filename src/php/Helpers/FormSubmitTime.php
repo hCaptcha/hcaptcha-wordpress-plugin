@@ -53,7 +53,7 @@ class FormSubmitTime {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'admin_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_action( 'wp_ajax_nopriv_' . self::ISSUE_TOKEN_ACTION, [ $this, 'issue_token' ] );
 		add_action( 'wp_ajax_' . self::ISSUE_TOKEN_ACTION, [ $this, 'issue_token' ] );
@@ -72,7 +72,9 @@ class FormSubmitTime {
 		 */
 		$status = (bool) apply_filters( 'hcap_print_hcaptcha_scripts', hcaptcha()->form_shown );
 
-		if ( ! $status || ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
+		$settings = hcaptcha()->settings();
+
+		if ( ! $status || ! $settings || ! $settings->is_on( 'set_min_submit_time' ) ) {
 			return;
 		}
 

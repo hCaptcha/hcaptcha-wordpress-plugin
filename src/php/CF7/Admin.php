@@ -13,7 +13,6 @@ namespace HCaptcha\CF7;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
-use JsonException;
 use WPCF7_ContactForm;
 use WPCF7_TagGenerator;
 use WPCF7_TagGeneratorGenerator;
@@ -90,6 +89,8 @@ class Admin extends Base {
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts_before_cf7' ], 0 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts_after_cf7' ], 20 );
+
+		add_action( 'admin_print_footer_scripts', [ $this, 'action_admin_print_footer_scripts' ], 9 );
 	}
 
 	/**
@@ -304,15 +305,6 @@ class Admin extends Base {
 			[],
 			HCAPTCHA_VERSION
 		);
-
-		// The hCaptcha frontend script.
-		wp_enqueue_script(
-			self::HANDLE,
-			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
-			[ Main::HANDLE ],
-			HCAPTCHA_VERSION,
-			true
-		);
 	}
 
 	/**
@@ -340,6 +332,24 @@ class Admin extends Base {
 
 			$wp_scripts->registered['wpcf7-admin']->extra['before'][1] = 'var wpcf7 = ' . wp_json_encode( $wpcf7 ) . ';';
 		}
+	}
+
+	/**
+	 * Admin print footer scripts action.
+	 *
+	 * @return void
+	 */
+	public function action_admin_print_footer_scripts(): void {
+		$min = hcap_min_suffix();
+
+		// The hCaptcha frontend script.
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
+			[ Main::HANDLE ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

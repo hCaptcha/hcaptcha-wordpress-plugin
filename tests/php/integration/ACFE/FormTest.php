@@ -325,6 +325,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'field_array'             => [ 'Hello', 'World' ],
 			'field_empty'             => '',
 			'field_key_without_label' => 'Value',
+			''                        => 'empty-key-value',
 		];
 		$post_data = [
 			'acf'                => $acf_data,
@@ -357,6 +358,11 @@ class FormTest extends HCaptchaWPTestCase {
 				'label' => 'Empty',
 				'type'  => 'text',
 				'name'  => 'empty',
+			],
+			''                        => [
+				'label' => '',
+				'type'  => 'text',
+				'name'  => '',
 			],
 		];
 

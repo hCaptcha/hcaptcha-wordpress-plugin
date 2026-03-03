@@ -43,7 +43,7 @@ class AdvancedBlockParser extends WP_Block_Parser {
 		self::$form_id = $block['attrs']['id'] ?? 0;
 
 		if ( ! ( isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) ) {
-			// @CodeCoverageIgnoreStart
+			// @codeCoverageIgnoreStart
 			return $output;
 			// @codeCoverageIgnoreEnd
 		}

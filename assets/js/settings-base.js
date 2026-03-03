@@ -49,7 +49,7 @@ const settingsBase = ( function( $ ) {
 	}
 
 	/**
-	 * Highlight element if hash is present in the URL.
+	 * Highlight the element if a hash is present in the URL.
 	 */
 	function highLight() {
 		const url = window.location.href;
@@ -164,6 +164,10 @@ const settingsBase = ( function( $ ) {
 
 			if ( element?.type === 'checkbox' ) {
 				target = element.closest( 'fieldset' );
+			}
+
+			if ( element?.type === 'select' || element?.type === 'select-multiple' ) {
+				target = element.closest( 'td' );
 			}
 
 			target.classList.remove( 'blink' );

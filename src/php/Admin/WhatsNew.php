@@ -71,7 +71,7 @@ class WhatsNew extends NotificationsBase {
 	public function init(): void {
 		$settings = hcaptcha()->settings();
 
-		if ( 'completed' !== $settings->get( OnboardingWizard::OPTION_NAME ) ) {
+		if ( 'completed' !== ( $settings ? $settings->get( OnboardingWizard::OPTION_NAME ) : '' ) ) {
 			// Do not show the What's New popup if the onboarding wizard is not completed.
 			return;
 		}
@@ -148,18 +148,20 @@ class WhatsNew extends NotificationsBase {
 			return;
 		}
 
-		$prefix   = self::PREFIX;
-		$forced   = Request::filter_input( INPUT_GET, self::WHATS_NEW_PARAM );
-		$forced   = $this->normalize_version( $forced );
-		$current  = $forced ?: explode( '-', constant( 'HCAPTCHA_VERSION' ) )[0];
-		$shown    = $forced ? '' : hcaptcha()->settings()->get( self::WHATS_NEW_KEY );
-		$methods  = array_filter(
+		$prefix        = self::PREFIX;
+		$forced        = Request::filter_input( INPUT_GET, self::WHATS_NEW_PARAM );
+		$forced        = $this->normalize_version( $forced );
+		$current       = $forced ?: explode( '-', constant( 'HCAPTCHA_VERSION' ) )[0];
+		$settings      = hcaptcha()->settings();
+		$whats_new_key = $settings ? $settings->get( self::WHATS_NEW_KEY ) : '';
+		$shown         = $forced ? '' : $whats_new_key;
+		$methods       = array_filter(
 			get_class_methods( $this ),
 			static function ( $method ) use ( $prefix ) {
 				return 0 === strpos( $method, $prefix );
 			}
 		);
-		$versions = array_map(
+		$versions      = array_map(
 			function ( $method ) {
 				return $this->method_to_version( $method );
 			},
@@ -462,6 +464,60 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 4.24.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_4_24_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_4_24_0 = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Country Access Control', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'You can now control where hCaptcha protection applies using country-level allowlist and denylist rules.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Allowlisted countries can bypass hCaptcha, while denylisted countries can be blocked from submitting protected forms.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Use this to tailor protection by region and reduce abuse from unwanted traffic sources.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['country_access'],
+				'text' => __( 'Open general settings', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['country_access_img'],
+				'lightbox' => false,
+			],
+		];
+
+		$block_4_23_0 = [
+			'type'    => 'right',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Settings Export and Import', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'You can now export and import hCaptcha settings directly from the admin Tools page for easier backup and migration.', 'hcaptcha-for-forms-and-more' ),
+				__( 'The same workflow is available in WP-CLI via the <code>wp hcaptcha export</code> and <code>wp hcaptcha import</code> commands.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Automation tools and AI agents can also export and import settings using the WordPress Abilities API.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['tools'],
+				'text' => __( 'Open tools', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['export_import_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_4_24_0 );
+		$this->show_block( $block_4_23_0 );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.
@@ -526,7 +582,8 @@ class WhatsNew extends NotificationsBase {
 			return;
 		}
 
-		$tab = hcaptcha()->settings()->get_tab( General::class );
+		$settings = hcaptcha()->settings();
+		$tab      = $settings ? $settings->get_tab( General::class ) : null;
 
 		if ( ! $tab ) {
 			// @codeCoverageIgnoreStart

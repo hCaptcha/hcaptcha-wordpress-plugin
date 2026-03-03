@@ -40,7 +40,7 @@ class Scoper {
 	 *
 	 * @var bool
 	 */
-	private static $do_scope = false;
+	private static bool $do_scope = false;
 
 	/**
 	 * Post-update composer command.
@@ -49,6 +49,7 @@ class Scoper {
 	 *
 	 * @return void
 	 * @noinspection PhpUnused
+	 * @noinspection PhpParamsInspection
 	 */
 	public static function post_cmd( Event $event ): void {
 		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
@@ -105,7 +106,7 @@ class Scoper {
 			return;
 		}
 
-		// Do not run scoper after installation if we already have package scoped.
+		// Do not run scoper after installation if we already have the package scoped.
 		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( self::get_vendor_prefixed_dir( $package ) );
 	}
 
@@ -163,7 +164,7 @@ class Scoper {
 
 	/**
 	 * Prepare scoper to work.
-	 * It checks the PHP version, creates the `vendor_prefixed` dir and runs composer for scoper package.
+	 * It checks the PHP version, creates the `vendor_prefixed` dir, and runs composer for scoper package.
 	 *
 	 * @param Event $event Composer event.
 	 *
@@ -262,7 +263,7 @@ class Scoper {
 
 		$vendor = self::get_vendor_dir();
 
-		// Loop through the list of  packages and delete relevant dirs in vendor.
+		// Loop through the list of packages and delete relevant dirs in the vendor.
 		foreach ( $scope_packages as $scope_package ) {
 			self::delete_package( $vendor, $scope_package );
 		}
@@ -346,7 +347,7 @@ class Scoper {
 	/**
 	 * Get finders for the scoper.
 	 *
-	 * @return Finder[]
+	 * @return array<string, Finder>
 	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public static function get_finders(): array {
@@ -364,7 +365,7 @@ class Scoper {
 				continue;
 			}
 
-			$finders[] = Finder::create()
+			$finders[ $package ] = Finder::create()
 				->files()
 				->in( $package_dir )
 				->name( $filenames )
@@ -455,7 +456,7 @@ class Scoper {
 	}
 
 	/**
-	 * Detect if filename is dir and is empty.
+	 * Detect if the filename is dir and is empty.
 	 *
 	 * @param string $filename Filename.
 	 *
@@ -469,7 +470,7 @@ class Scoper {
 	}
 
 	/**
-	 * Detect if filename is dir and is not empty.
+	 * Detect if the filename is dir and is not empty.
 	 *
 	 * @param string $filename Filename.
 	 *

@@ -553,9 +553,7 @@ class Abilities {
 		$input        = (array) $input;
 		$include_keys = ! empty( $input['include_keys'] );
 
-		$transfer = new SettingsTransfer();
-
-		return $transfer->build_export_payload( $include_keys );
+		return ( new SettingsTransfer() )->build_export_payload( $include_keys );
 	}
 
 	/**
@@ -584,9 +582,9 @@ class Abilities {
 
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$json = file_get_contents( $input_file );
-			$data = json_decode( $json, true );
+			$data = Utils::json_decode_arr( $json );
 
-			if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $data ) ) {
+			if ( ! $data || JSON_ERROR_NONE !== json_last_error() ) {
 				return new WP_Error(
 					'hcaptcha_invalid_payload',
 					__( 'Invalid JSON in input file.', 'hcaptcha-for-forms-and-more' )

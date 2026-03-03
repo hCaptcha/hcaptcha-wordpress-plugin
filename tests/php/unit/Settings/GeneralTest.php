@@ -423,6 +423,7 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$settings = Mockery::mock( Settings::class )->makePartial();
 		$settings->shouldReceive( 'get' )->with( 'site_key' )->andReturn( $site_key );
+		$settings->shouldReceive( 'get' )->with( 'maxmind_key' )->andReturn( '' );
 
 		$main = Mockery::mock( Main::class )->makePartial();
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
@@ -463,7 +464,27 @@ class GeneralTest extends HCaptchaTestCase {
 			->with(
 				General::HANDLE,
 				$plugin_url . "/assets/js/general$min_suffix.js",
-				[ 'jquery', General::DIALOG_HANDLE ],
+				[ 'jquery', 'lodash', General::DIALOG_HANDLE ],
+				$plugin_version,
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				General::HANDLE . '-choices',
+				$plugin_url . '/assets/lib/choices/choices.min.js',
+				[],
+				'v11.2.0',
+				true
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_script' )
+			->with(
+				General::HANDLE . '-countries',
+				$plugin_url . '/assets/js/general-countries.js',
+				[ 'jquery', General::HANDLE . '-choices' ],
 				$plugin_version,
 				true
 			)
@@ -521,6 +542,17 @@ class GeneralTest extends HCaptchaTestCase {
 			)
 			->once();
 
+		WP_Mock::userFunction( 'wp_localize_script' )
+			->with(
+				General::HANDLE . '-countries',
+				'HCaptchaGeneralCountriesObject',
+				[
+					'searchPlaceholder' => 'Set MaxMind License Key first',
+					'searchAriaLabel'   => 'Search countries',
+				]
+			)
+			->once();
+
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				General::DIALOG_HANDLE,
@@ -534,8 +566,21 @@ class GeneralTest extends HCaptchaTestCase {
 			->with(
 				General::HANDLE,
 				$plugin_url . "/assets/css/general$min_suffix.css",
-				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, General::DIALOG_HANDLE ],
+				[
+					PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
+					General::DIALOG_HANDLE,
+					General::HANDLE . '-choices',
+				],
 				$plugin_version
+			)
+			->once();
+
+		WP_Mock::userFunction( 'wp_enqueue_style' )
+			->with(
+				General::HANDLE . '-choices',
+				$plugin_url . '/assets/lib/choices/choices.min.css',
+				[],
+				'v11.2.0'
 			)
 			->once();
 
@@ -816,6 +861,45 @@ class GeneralTest extends HCaptchaTestCase {
 			'Turned on'  => [ true, false, true ],
 			'Turned off' => [ false, true, false ],
 			'Already on' => [ true, true, false ],
+		];
+	}
+
+	/**
+	 * Test maybe_load_maxmind_db().
+	 *
+	 * @param string $maxmind_key     New maxmind key.
+	 * @param string $old_maxmind_key Old maxmind key.
+	 * @param bool   $expected        Action to be fired.
+	 *
+	 * @dataProvider dp_test_maybe_load_maxmind_db
+	 */
+	public function test_maybe_load_maxmind_db( string $maxmind_key, string $old_maxmind_key, bool $expected ): void {
+		$value     = [ 'maxmind_key' => $maxmind_key ];
+		$old_value = [ 'maxmind_key' => $old_maxmind_key ];
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		if ( $expected ) {
+			WP_Mock::expectAction( 'hcap_load_maxmind_db', $maxmind_key );
+		} else {
+			WP_Mock::userFunction( 'do_action' )->with( 'hcap_load_maxmind_db', Mockery::any() )->never();
+		}
+
+		self::assertSame( $value, $subject->maybe_load_maxmind_db( $value, $old_value ) );
+	}
+
+	/**
+	 * Data provider for test_maybe_load_maxmind_db().
+	 *
+	 * @return array
+	 */
+	public function dp_test_maybe_load_maxmind_db(): array {
+		return [
+			'No keys'     => [ '', '', false ],
+			'Key set'     => [ 'some-key', '', true ],
+			'Key removed' => [ '', 'old-key', false ],
+			'Key changed' => [ 'new-key', 'old-key', true ],
+			'Key same'    => [ 'same-key', 'same-key', false ],
 		];
 	}
 }

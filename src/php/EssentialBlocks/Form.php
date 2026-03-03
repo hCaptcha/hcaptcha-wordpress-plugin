@@ -47,7 +47,15 @@ class Form {
 	 */
 	protected function init_hooks(): void {
 		// Disable recaptcha compatibility; otherwise, the Essential Blocks script fails.
-		hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		$settings->set( 'recaptcha_compat_off', [ 'on' ] );
 
 		add_action( 'wp_ajax_eb_form_submit', [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_eb_form_submit', [ $this, 'verify' ], 9 );
@@ -106,13 +114,60 @@ class Form {
 		$form_data_str = isset( $_POST['form_data'] ) ? sanitize_text_field( wp_unslash( $_POST['form_data'] ) ) : '';
 		$form_data     = Utils::json_decode_arr( $form_data_str );
 
-		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $form_data );
-
-		unset( $_POST['hcaptcha-widget-id'], $_POST['h-captcha-response'], $_POST[ self::NONCE ] );
+		$error_message = API::verify( $this->get_entry( $form_data ) );
 
 		if ( null !== $error_message ) {
 			wp_send_json_error( $error_message );
 		}
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $form_data ): array {
+		return [
+			'nonce_name'         => self::NONCE,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+			'post_data'          => $form_data,
+			'data'               => $this->get_data( $form_data ),
+		];
+	}
+
+	/**
+	 * Get data for anti-spam checks.
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	private function get_data( array $form_data ): array {
+		$data          = [];
+		$excluded_keys = [
+			'hcap_',
+			'hcaptcha-',
+			'hcaptcha_',
+			'h-captcha-response',
+			'_wp_http_referer',
+		];
+
+		foreach ( $form_data as $key => $value ) {
+			$key_str = (string) $key;
+
+			foreach ( $excluded_keys as $excluded_key ) {
+				if ( 0 === strpos( $key_str, $excluded_key ) ) {
+					continue 2;
+				}
+			}
+
+			$data[ $key ] = $value;
+		}
+
+		return $data;
 	}
 
 	/**
@@ -150,7 +205,7 @@ class Form {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

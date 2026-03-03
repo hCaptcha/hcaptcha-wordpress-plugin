@@ -11,6 +11,7 @@ use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
+use HCaptcha\Settings\Tools;
 
 /**
  * Class NotificationsBase.
@@ -36,6 +37,7 @@ abstract class NotificationsBase {
 			$urls['integrations']         = $this->tab_url( Integrations::class );
 			$urls['forms']                = $this->tab_url( FormsPage::class );
 			$urls['events']               = $this->tab_url( EventsPage::class );
+			$urls['tools']                = $this->tab_url( Tools::class );
 			$urls['hcaptcha']             = 'https://www.hcaptcha.com' . $utm_sk;
 			$urls['register']             = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
 			$urls['pro']                  = 'https://www.hcaptcha.com/pro' . $utm_not;
@@ -60,6 +62,9 @@ abstract class NotificationsBase {
 			$urls['onboarding_demo']      = HCAPTCHA_URL . '/assets/images/demo/onboarding.gif';
 			$urls['ai_abilities']         = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F';
 			$urls['ai_abilities_img']     = HCAPTCHA_URL . '/assets/images/ai-abilities.png';
+			$urls['export_import_img']    = HCAPTCHA_URL . '/assets/images/export-import.png';
+			$urls['country_access']       = $urls['general'] . '#blacklisted_countries';
+			$urls['country_access_img']   = HCAPTCHA_URL . '/assets/images/country-access.png';
 		}
 
 		return $urls;

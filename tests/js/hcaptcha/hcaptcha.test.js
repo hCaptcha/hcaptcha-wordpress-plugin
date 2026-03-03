@@ -741,6 +741,52 @@ describe( 'HCaptcha', () => {
 		global.requestAnimationFrame = rafBackup;
 	} );
 
+	test( 'observeDarkMode triggers bindEvents when dark class is removed', () => {
+		// Arrange
+		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: 'auto' } );
+
+		const darkHost = document.createElement( 'div' );
+
+		darkHost.className = 'dark-on';
+
+		const setDarkDataSpy = jest.spyOn( hCaptcha, 'setDarkData' ).mockImplementation( () => {
+			hCaptcha.darkElement = darkHost;
+			hCaptcha.darkClass = 'dark-on';
+		} );
+		const bindSpy = jest.spyOn( hCaptcha, 'bindEvents' );
+		const MOBackup = global.MutationObserver;
+		const rafBackup = global.requestAnimationFrame;
+		global.requestAnimationFrame = ( cb ) => cb();
+		let instance;
+
+		global.MutationObserver = jest.fn( function( cb ) {
+			this.observe = jest.fn();
+			this.disconnect = jest.fn();
+			this.__cb = cb;
+			instance = this;
+		} );
+
+		// Act: start observing
+		hCaptcha.observeDarkMode();
+
+		// Assert: observer set on our element
+		expect( setDarkDataSpy ).toHaveBeenCalled();
+		expect( global.MutationObserver ).toHaveBeenCalledTimes( 1 );
+		expect( bindSpy ).not.toHaveBeenCalled();
+
+		// Simulate removing the dark class.
+		const oldVal = darkHost.getAttribute( 'class' );
+
+		darkHost.className = '';
+		instance.__cb( [ { oldValue: oldVal } ] );
+
+		expect( bindSpy ).toHaveBeenCalled();
+
+		// Cleanup
+		global.MutationObserver = MOBackup;
+		global.requestAnimationFrame = rafBackup;
+	} );
+
 	test( 'observeDarkMode does not set observer when no dark provider found', () => {
 		// Arrange
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { theme: 'auto' } );
@@ -1617,6 +1663,47 @@ describe( 'bindEvents', () => {
 		global.hcaptcha = backup;
 	} );
 
+	test( 'skips form when el is an HTMLElement different from hcaptchaElement', () => {
+		const inst = new HCaptcha();
+
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
+		const backup = global.hcaptcha;
+		global.hcaptcha = { render: jest.fn() };
+
+		// Build a form with an h-captcha element.
+		const form = document.createElement( 'form' );
+		const widget = document.createElement( 'div' );
+		widget.className = 'h-captcha';
+		widget.innerHTML = 'keep';
+		form.appendChild( widget );
+		document.body.appendChild( form );
+
+		// Pass a different HTMLElement as el.
+		const otherEl = document.createElement( 'div' );
+
+		const moveHPSpy = jest.spyOn( inst, 'moveHP' );
+		const renderSpy = jest.spyOn( inst, 'render' );
+
+		// Act
+		inst.bindEvents( otherEl );
+
+		// Assert: early return — no render/moveHP, no foundForms.
+		expect( moveHPSpy ).not.toHaveBeenCalled();
+		expect( renderSpy ).not.toHaveBeenCalled();
+		expect( inst.foundForms.length ).toBe( 0 );
+		expect( widget.innerHTML ).toBe( 'keep' );
+
+		// Cleanup
+		document.body.removeChild( form );
+		global.hcaptcha = backup;
+	} );
+
 	test( 'skips forms where .h-captcha has hcaptcha-widget-id class (no render/moveHP)', () => {
 		const inst = new HCaptcha();
 
@@ -1698,6 +1785,46 @@ describe( 'bindEvents', () => {
 		document.body.removeChild( form );
 		global.hcaptcha = backup;
 	} );
+
+	test( 're-enables submit button when dataset.hCaptchaDisabled is 1', () => {
+		const inst = new HCaptcha();
+
+		global.wp = {
+			hooks: {
+				addFilter: jest.fn(),
+				applyFilters: jest.fn( ( hook, content ) => content ),
+			},
+		};
+
+		const backup = global.hcaptcha;
+		global.hcaptcha = { render: jest.fn( () => 'wid-re-enable' ) };
+
+		// Build a form with h-captcha and a disabled submit button.
+		const form = document.createElement( 'form' );
+		const widget = document.createElement( 'div' );
+		widget.className = 'h-captcha';
+		widget.dataset.size = 'normal';
+		form.appendChild( widget );
+
+		const btn = document.createElement( 'button' );
+		btn.setAttribute( 'type', 'submit' );
+		btn.disabled = true;
+		btn.dataset.hCaptchaDisabled = '1';
+		form.appendChild( btn );
+		document.body.appendChild( form );
+
+		// Act
+		inst.bindEvents();
+
+		// Assert: button re-enabled and dataset reset.
+		expect( btn.disabled ).toBe( false );
+		expect( btn.dataset.hCaptchaDisabled ).toBe( '0' );
+		expect( inst.foundForms.length ).toBe( 1 );
+
+		// Cleanup
+		document.body.removeChild( form );
+		global.hcaptcha = backup;
+	} );
 } );
 
 // submit() tests
@@ -1719,7 +1846,7 @@ describe( 'submit', () => {
 		expect( clickSpy ).not.toHaveBeenCalled();
 	} );
 
-	test( 'removes listener and clicks for ajax button or non-form element', () => {
+	test( 'removes listener and clicks for ajax button or non-form element without toggling disabled state', () => {
 		// Build a non-form container with a button (simulates a non-form path)
 		const container = document.createElement( 'div' );
 		const btn = document.createElement( 'button' );
@@ -1735,10 +1862,36 @@ describe( 'submit', () => {
 
 		inst.submit();
 
+		expect( btn.disabled ).toBe( false );
+		expect( btn.dataset.hCaptchaDisabled ).toBeUndefined();
 		expect( remSpy ).toHaveBeenCalledWith( 'click', inst.validate, true );
 		expect( clickSpy ).toHaveBeenCalled();
 
 		// Cleanup
+		document.body.removeChild( container );
+	} );
+
+	test( 'does not early-return for ajax button even when marked as hCaptcha-disabled', () => {
+		const container = document.createElement( 'div' );
+		const btn = document.createElement( 'button' );
+		btn.setAttribute( 'type', 'button' );
+		btn.dataset.hCaptchaDisabled = '1';
+		container.appendChild( btn );
+		document.body.appendChild( container );
+
+		const remSpy = jest.spyOn( btn, 'removeEventListener' );
+		const clickSpy = jest.spyOn( btn, 'click' ).mockImplementation( () => {
+		} );
+
+		inst.currentForm = { formElement: container, submitButtonElement: btn };
+
+		inst.submit();
+
+		expect( remSpy ).toHaveBeenCalledWith( 'click', inst.validate, true );
+		expect( clickSpy ).toHaveBeenCalled();
+		expect( btn.dataset.hCaptchaDisabled ).toBe( '1' );
+		expect( btn.disabled ).toBe( false );
+
 		document.body.removeChild( container );
 	} );
 
@@ -1773,7 +1926,7 @@ describe( 'submit', () => {
 		document.body.removeChild( form );
 	} );
 
-	test( 'falls back to form.submit when requestSubmit is not available', () => {
+	test( 'falls back to submit button click when requestSubmit is not available', () => {
 		const form = document.createElement( 'form' );
 		const btn = document.createElement( 'button' );
 		btn.setAttribute( 'type', 'submit' );
@@ -1784,8 +1937,9 @@ describe( 'submit', () => {
 		Object.defineProperty( form, 'requestSubmit', { value: undefined } );
 		const formSubmitSpy = jest.spyOn( form, 'submit' ).mockImplementation( () => {
 		} );
-		const remSpy = jest.spyOn( btn, 'removeEventListener' ); // should not be used
-		const clickSpy = jest.spyOn( btn, 'click' ); // should not be used
+		const remSpy = jest.spyOn( btn, 'removeEventListener' );
+		const clickSpy = jest.spyOn( btn, 'click' ).mockImplementation( () => {
+		} );
 
 		inst.currentForm = { formElement: form, submitButtonElement: btn };
 
@@ -1794,9 +1948,9 @@ describe( 'submit', () => {
 
 		inst.submit();
 
-		expect( formSubmitSpy ).toHaveBeenCalled();
-		expect( remSpy ).not.toHaveBeenCalled();
-		expect( clickSpy ).not.toHaveBeenCalled();
+		expect( formSubmitSpy ).not.toHaveBeenCalled();
+		expect( remSpy ).toHaveBeenCalledWith( 'click', inst.validate, true );
+		expect( clickSpy ).toHaveBeenCalled();
 
 		// Cleanup
 		document.body.removeChild( form );

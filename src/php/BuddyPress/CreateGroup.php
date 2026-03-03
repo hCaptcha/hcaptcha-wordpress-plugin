@@ -5,10 +5,15 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\BuddyPress;
 
+use BP_Groups_Group;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Create Group.
@@ -68,18 +73,17 @@ class CreateGroup {
 	/**
 	 * Verify group form captcha.
 	 *
-	 * @param mixed $bp_group BuddyPress group.
+	 * @param BP_Groups_Group $bp_group BuddyPress group.
 	 *
 	 * @return bool
-	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $bp_group ): bool {
+	public function verify( BP_Groups_Group $bp_group ): bool {
 		if ( ! bp_is_group_creation_step( 'group-details' ) ) {
 			return false;
 		}
 
-		$error_message = API::verify_post( self::NAME, self::ACTION );
+		$error_message = API::verify( $this->get_entry( $bp_group ) );
 
 		if ( null !== $error_message ) {
 			bp_core_add_message( $error_message, 'error' );
@@ -91,6 +95,45 @@ class CreateGroup {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param BP_Groups_Group $bp_group BuddyPress group.
+	 *
+	 * @return array
+	 */
+	private function get_entry( BP_Groups_Group $bp_group ): array {
+		return [
+			'nonce_name'         => self::NAME,
+			'nonce_action'       => self::ACTION,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
+			'data'               => $this->get_data( $bp_group ),
+		];
+	}
+
+	/**
+	 * Get data for anti-spam checks.
+	 *
+	 * @param BP_Groups_Group $bp_group BuddyPress group.
+	 *
+	 * @return array
+	 */
+	private function get_data( BP_Groups_Group $bp_group ): array {
+		$data = [];
+
+		foreach ( [ 'name', 'description', 'date_created' ] as $field ) {
+			$value = $bp_group->$field ?? '';
+
+			if ( ! $value ) {
+				continue;
+			}
+
+			$data[ $field ] = $value;
+		}
+
+		return $data;
 	}
 
 	/**

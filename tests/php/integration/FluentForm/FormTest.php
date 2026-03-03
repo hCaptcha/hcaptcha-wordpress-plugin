@@ -205,6 +205,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify(): void {
 		$errors     = [
@@ -221,7 +222,65 @@ class FormTest extends HCaptchaWPTestCase {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'form_fields' => json_encode(
 				[
-					'fields'       => [],
+					'fields'       => [
+						// Leaf field with attributes.type set — covers resolve_field_type returning $type.
+						[
+							'element'    => 'input_email',
+							'attributes' => [
+								'name' => 'email',
+								'type' => 'email',
+							],
+						],
+						// Leaf field without attributes.type — covers resolve_field_type fallback to an element.
+						[
+							'element'    => 'textarea',
+							'attributes' => [
+								'name' => 'message',
+							],
+						],
+						// Composite field with children — covers recursive walk_form_fields call.
+						[
+							'element'    => 'input_name',
+							'attributes' => [
+								'name' => 'names',
+							],
+							'fields'     => [
+								[
+									'element'    => 'input_text',
+									'attributes' => [
+										'name' => 'first_name',
+										'type' => 'text',
+									],
+								],
+								[
+									'element'    => 'input_text',
+									'attributes' => [
+										'name' => 'last_name',
+										'type' => 'text',
+									],
+								],
+							],
+						],
+						// hcaptcha element — covers the continue branch.
+						[
+							'element'    => 'hcaptcha',
+							'attributes' => [
+								'name' => 'h-captcha-response',
+							],
+						],
+						// Leaf field with an empty name — covers the empty name continue branch.
+						[
+							'element'    => 'input_hidden',
+							'attributes' => [
+								'name' => '',
+							],
+						],
+						// Leaf field with no attributes at all — covers resolve_field_type fallback to 'text'.
+						[
+							'element'    => '',
+							'attributes' => [],
+						],
+					],
 					'submitButton' => [],
 				]
 			),
@@ -239,6 +298,10 @@ class FormTest extends HCaptchaWPTestCase {
 		$post_data = [
 			'h-captcha-response' => $response,
 			'hcaptcha-widget-id' => $widget_id,
+			'email'              => 'test@example.com',
+			'message'            => 'Hello',
+			'namesfirst_name'    => 'John',
+			'nameslast_name'     => 'Doe',
 			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
 			'hcap_fst_token'     => $_POST['hcap_fst_token'],
 			'hcap_hp_test'       => $_POST['hcap_hp_test'],
@@ -254,6 +317,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() when not verified.
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_not_verified(): void {
 		$errors     = [
@@ -308,6 +372,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_multi_step_not_verified(): void {
 		$errors    = [
@@ -395,6 +460,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_verify_login_form
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
 		$errors     = [
@@ -501,10 +567,22 @@ class FormTest extends HCaptchaWPTestCase {
 		wp_dequeue_script( 'hcaptcha' );
 		wp_deregister_script( 'hcaptcha' );
 
-		wp_register_script( 'hcaptcha', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit', [], '1.0.0', true );
+		// Register 'hcaptcha' with a src that does NOT contain 'api.js' — should not be removed.
+		wp_register_script( 'hcaptcha', 'https://example.com/some-other-script.js', [], '1.0.0', true );
 		wp_enqueue_script( 'hcaptcha' );
 
 		$subject = new Form();
+
+		self::assertFalse( $subject->print_hcaptcha_scripts( false ) );
+		self::assertTrue( wp_script_is( 'hcaptcha' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
+
+		// Now re-register with the real api.js src.
+		wp_dequeue_script( 'hcaptcha' );
+		wp_deregister_script( 'hcaptcha' );
+
+		wp_register_script( 'hcaptcha', 'https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit', [], '1.0.0', true );
+		wp_enqueue_script( 'hcaptcha' );
 
 		self::assertTrue( wp_script_is( 'hcaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
@@ -536,6 +614,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection ES6ConvertVarToLetConst
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_print_footer_scripts(): void {
 		global $wp_scripts;
@@ -609,6 +688,7 @@ HTML;
 	 * Test admin_enqueue_scripts().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_admin_enqueue_scripts(): void {
 		$admin_handle   = 'admin-fluentform';
@@ -652,6 +732,27 @@ HTML;
 		self::assertSame( HCAPTCHA_URL . '/assets/css/admin-fluentform.min.css', $style->src );
 		self::assertSame( [], $style->deps );
 		self::assertSame( HCAPTCHA_VERSION, $style->ver );
+	}
+
+	/**
+	 * Tests add_type_module().
+	 *
+	 * @return void
+	 * @noinspection JSUnresolvedLibraryURL
+	 */
+	public function test_add_type_module(): void {
+		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag      = '<script src="https://test.test/a.js">some</script>';
+		$expected = '<script type="module" src="https://test.test/a.js">some</script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		// Wrong tag.
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'some-handle', '' ) );
+
+		// Proper tag.
+		self::assertSame( $expected, $subject->add_type_module( $tag, 'hcaptcha-fluentform', '' ) );
 	}
 
 	/**

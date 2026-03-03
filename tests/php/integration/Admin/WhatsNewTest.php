@@ -651,6 +651,86 @@ HTML;
 	}
 
 	/**
+	 * Test whats_new_4_24_0().
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function test_whats_new_4_24_0(): void {
+		$expected = <<<'HTML'
+		<div class="hcaptcha-whats-new-block left">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Country Access Control </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>You can now control where hCaptcha protection applies using country-level allowlist and denylist rules.</p><p>Allowlisted countries can bypass hCaptcha, while denylisted countries can be blocked from submitting protected forms.</p><p>Use this to tailor protection by region and reduce abuse from unwanted traffic sources.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#blacklisted_countries" class="button button-primary"
+							target="_blank">
+						Open general settings
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/country-access.png" alt="What's New block image">
+			</div>
+		</div>
+		<div class="hcaptcha-whats-new-block right">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Settings Export and Import </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>You can now export and import hCaptcha settings directly from the admin Tools page for easier backup and migration.</p><p>The same workflow is available in WP-CLI via the <code>wp hcaptcha export</code> and <code>wp hcaptcha import</code> commands.</p><p>Automation tools and AI agents can also export and import settings using the WordPress Abilities API.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=tools" class="button button-primary"
+							target="_blank">
+						Open tools
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/export-import.png" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/export-import.png" alt="What's New block image">
+				</a>
+			</div>
+		</div>
+HTML;
+
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_4_24_0();
+
+		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
+	}
+
+	/**
 	 * Test update_whats_new().
 	 *
 	 * @return void

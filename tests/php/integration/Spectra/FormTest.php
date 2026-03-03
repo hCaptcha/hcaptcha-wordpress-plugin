@@ -55,7 +55,7 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test init_hooks() not on frontend.
+	 * Test init_hooks() not on the frontend.
 	 *
 	 * @return void
 	 */
@@ -162,6 +162,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_process_ajax(): void {
+		$block_id          = 'f89cebda';
 		$nonce_field_name  = 'hcaptcha_spectra_form_nonce';
 		$nonce_action_name = 'hcaptcha_spectra_form';
 		$hcaptcha_response = 'some response';
@@ -170,15 +171,65 @@ HTML;
 				'h-captcha-response' => $hcaptcha_response,
 				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
 				'hcaptcha-widget-id' => [ 'some widget' ],
-				'test_input'         => 'some input',
+				'First Name'         => 'John',
+				'Last Name'          => 'Doe',
+				'Email'              => 'john@example.com',
+				'Message'            => 'Hello world',
 				'hcap_hp_test'       => '',
 				'hcap_hp_sig'        => wp_create_nonce( 'hcap_hp_test' ),
 			]
 		);
 
-		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
+		$post_content = <<<HTML
+<!-- wp:group -->
+<div class="wp-block-group">
+<!-- wp:uagb/forms {"block_id":"$block_id","labelAlignment":"left","variationSelected":true} -->
+<div class="wp-block-uagb-forms uagb-forms__outer-wrap uagb-block-$block_id">
+	<form class="uagb-forms-main-form" method="post" name="uagb-form-$block_id">
+		<!-- wp:core/paragraph -->
+		<p>Some intro text</p>
+		<!-- /wp:core/paragraph -->
+
+		<!-- wp:uagb/forms-phone {"block_id":"aaa11111","phoneRequired":false,"name":"Phone"} -->
+		<div class="wp-block-uagb-forms-phone uagb-forms-phone-wrap uagb-forms-field-set uagb-block-aaa11111">
+			<div class="uagb-forms-phone-label uagb-forms-input-label">Phone</div>
+			<input type="tel" name="aaa11111"/></div>
+		<!-- /wp:uagb/forms-phone -->
+
+		<!-- wp:uagb/forms-name {"block_id":"046ed4b7","nameRequired":true,"name":"First Name"} -->
+		<div class="wp-block-uagb-forms-name uagb-forms-name-wrap uagb-forms-field-set uagb-block-046ed4b7">
+			<div class="uagb-forms-name-label required uagb-forms-input-label">First Name</div>
+			<input type="text" name="046ed4b7"/></div>
+		<!-- /wp:uagb/forms-name -->
+
+		<!-- wp:uagb/forms-name {"block_id":"75b30804","nameRequired":true,"name":"Last Name"} -->
+		<div class="wp-block-uagb-forms-name uagb-forms-name-wrap uagb-forms-field-set uagb-block-75b30804">
+			<div class="uagb-forms-name-label required uagb-forms-input-label">Last Name</div>
+			<input type="text" name="75b30804"/></div>
+		<!-- /wp:uagb/forms-name -->
+
+		<!-- wp:uagb/forms-email {"block_id":"9f2177c9"} -->
+		<div class="wp-block-uagb-forms-email uagb-forms-email-wrap uagb-forms-field-set uagb-block-9f2177c9">
+			<div class="uagb-forms-email-label uagb-forms-input-label">Email</div>
+			<input type="email" name="9f2177c9"/></div>
+		<!-- /wp:uagb/forms-email -->
+
+		<!-- wp:uagb/forms-textarea {"block_id":"147f2552","textareaRequired":true} -->
+		<div class="wp-block-uagb-forms-textarea uagb-forms-textarea-wrap uagb-forms-field-set uagb-block-147f2552">
+			<div class="uagb-forms-textarea-label required uagb-forms-input-label">Message</div>
+			<textarea name="147f2552"></textarea></div>
+		<!-- /wp:uagb/forms-textarea -->
+	</form>
+</div>
+<!-- /wp:uagb/forms -->
+</div>
+<!-- /wp:group -->
+HTML;
+
+		$post_id = wp_insert_post( [ 'post_content' => $post_content ] );
 
 		$_POST['post_id']   = $post_id;
+		$_POST['block_id']  = $block_id;
 		$_POST['form_data'] = $form_data;
 
 		$this->prepare_verify_request( $hcaptcha_response );
@@ -197,6 +248,7 @@ HTML;
 	 * Test process_ajax() when not verified.
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_process_ajax_when_not_verified(): void {
 		$nonce_field_name  = 'hcaptcha_spectra_form_nonce';
@@ -227,7 +279,7 @@ HTML;
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
 			'wp_die_ajax_handler',
-			static function ( $name ) use ( &$die_arr ) {
+			static function () use ( &$die_arr ) {
 				return static function ( $message, $title, $args ) use ( &$die_arr ) {
 					$die_arr = [ $message, $title, $args ];
 				};
@@ -352,11 +404,29 @@ CSS;
 	}
 
 	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		$subject = new Form();
+
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag = '<script src="/assets/js/hcaptcha-spectra.js"></script>';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'other-handle', '' ) );
+		self::assertStringContainsString(
+			'type="module"',
+			$subject->add_type_module( $tag, 'hcaptcha-spectra', '' )
+		);
+	}
+
+	/**
 	 * Test has_recaptcha().
 	 *
 	 * @return void
 	 */
-	public function test_has_recaptcha() {
+	public function test_has_recaptcha(): void {
 		$block_id              = 'f89cebda';
 		$recaptcha_placeholder = '=== recaptcha placeholder ===';
 		$template              = <<<HTML

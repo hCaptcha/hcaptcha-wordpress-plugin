@@ -303,23 +303,6 @@ class API {
 	}
 
 	/**
-	 * Verify hCaptcha request.
-	 *
-	 * @deprecated 4.15.0 Use \HCaptcha\Helpers\API::verify_request().
-	 *
-	 * @param string|null $hcaptcha_response hCaptcha response.
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 * @noinspection PhpMissingParamTypeInspection
-	 * @noinspection PhpUnused
-	 */
-	public static function request_verify( $hcaptcha_response = null ): ?string {
-		_deprecated_function( __FUNCTION__, '4.15.0', '\HCaptcha\Helpers\API::verify_request()' );
-
-		return self::verify_request( $hcaptcha_response );
-	}
-
-	/**
 	 * Process request.
 	 *
 	 * @param array $params Request parameters.

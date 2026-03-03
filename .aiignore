@@ -1,0 +1,33 @@
+## Ignore build directories with release artifacts
+build/
+
+## Ignore .yarn
+.yarn/
+
+## Ignore scoper libraries
+.php-scoper/vendor/
+
+## Ignore language files
+languages/
+
+## Ignore node_modules
+node_modules/
+
+## Ignore Composer dependencies
+vendor/
+
+vendors/
+
+## Ignore minified and generated files
+*.min.js
+*.min.css
+
+## Deny heavy / sensitive file types and system artifacts
+*.log
+*.sql
+.DS_Store
+.Trashes
+._*
+.phpcs-cache
+.sass-cache
+Thumbs.db

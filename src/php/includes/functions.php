@@ -22,7 +22,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string
  */
 function hcap_shortcode( $atts ): string {
-	$settings       = hcaptcha()->settings();
+	$settings = hcaptcha()->settings();
+
+	if ( ! $settings ) {
+		// @codeCoverageIgnoreStart
+		return '';
+		// @codeCoverageIgnoreEnd
+	}
+
 	$hcaptcha_force = $settings->is_on( 'force' );
 	$hcaptcha_theme = $settings->get_theme() ?: 'light';
 	$hcaptcha_size  = $settings->get( 'size' ) ?: 'normal';

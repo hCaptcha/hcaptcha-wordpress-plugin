@@ -50,7 +50,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 	 * Test init_hooks().
 	 */
 	public function test_init_hooks(): void {
-		self::assertEquals( 10, has_action( 'admin_enqueue_scripts', [ $this->subject, 'enqueue_scripts' ] ) );
+		self::assertEquals( 9, has_action( 'admin_print_footer_scripts', [ $this->subject, 'enqueue_scripts' ] ) );
 		self::assertEquals( 9, has_action( 'wp_print_footer_scripts', [ $this->subject, 'enqueue_scripts' ] ) );
 		self::assertEquals( 10, has_action( 'wp_ajax_nopriv_hcaptcha-fst-issue-token', [ $this->subject, 'issue_token' ] ) );
 		self::assertEquals( 10, has_action( 'wp_ajax_hcaptcha-fst-issue-token', [ $this->subject, 'issue_token' ] ) );

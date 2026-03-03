@@ -90,7 +90,7 @@ class EventsPage extends ListPageBase {
 	public function admin_init(): void {
 		$settings = hcaptcha()->settings();
 
-		$this->allowed = ( $settings->is_on( 'statistics' ) && $settings->is_pro() );
+		$this->allowed = $settings && $settings->is_on( 'statistics' ) && $settings->is_pro();
 
 		if ( ! $this->allowed ) {
 			return;
@@ -218,14 +218,13 @@ class EventsPage extends ListPageBase {
 		$this->succeed = [];
 		$this->failed  = [];
 
-		// Always calculate a date format, as the unit must be initialized.
-		$date_format = $this->get_date_format( $this->list_table->items ?? [] );
-
 		$this->list_table->prepare_items();
 
 		if ( ! $this->list_table->items ) {
 			return;
 		}
+
+		$date_format = $this->get_date_format( $this->list_table->items );
 
 		foreach ( $this->list_table->items as $item ) {
 			$time_gmt = strtotime( $item->date_gmt );
