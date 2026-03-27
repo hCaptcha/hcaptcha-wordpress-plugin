@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, antispam, abuse, protect
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.24.0
+Stable tag: 4.24.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -784,7 +784,18 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 
 = Where do I report security bugs found in this plugin? =
 
-Please report security bugs found in the source code of the undefined plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+Please report security vulnerabilities by email to:
+
+**security@hcaptcha.com**
+
+When reporting a vulnerability, please include as much information as possible to help us reproduce and investigate the issue, such as:
+
+- A clear description of the vulnerability
+- Steps to reproduce
+- Proof-of-concept or exploit code (if available)
+- Affected versions
+
+We will review your report and respond as quickly as possible.
 
 = Where can I get more information about hCaptcha? =
 
@@ -915,6 +926,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.24.1 =
+* Changed: Security vulnerability reports are now handled via security@hcaptcha.com.
+
 = 4.24.0 =
 * Added country allowlist and denylist to control where hCaptcha protections apply.
 * Added compatibility with Payment Plugins for Stripe WooCommerce.
@@ -980,7 +994,6 @@ Instructions for popular native integrations are below:
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
-* Added Patchstack security program support.
 * Added support for WP Multisite Signup form.
 * Added support for a Theme My Login Multisite Signup form.
 * Added test mode by default on the first installation.

@@ -1,3 +1,6 @@
+= 4.24.1 =
+* Changed: Security vulnerability reports are now handled via security@hcaptcha.com.
+
 = 4.24.0 =
 * Added country allowlist and denylist to control where hCaptcha protections apply.
 * Added compatibility with Payment Plugins for Stripe WooCommerce.
@@ -63,7 +66,6 @@
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
-* Added Patchstack security program support.
 * Added support for WP Multisite Signup form.
 * Added support for a Theme My Login Multisite Signup form.
 * Added test mode by default on the first installation.
