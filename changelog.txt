@@ -13,6 +13,7 @@
 * Fixed settings import with changes not on the General tab.
 * Fixed MaxMind DB update schedule not being stopped when the license key is removed.
 * Fixed detection of the email address in the Contact Form 7 form.
+* Fixed fatal error in the wp_login_form () function and LoginOut block.
 
 = 4.24.0 =
 * Added country allowlist and denylist to control where hCaptcha protections apply.
