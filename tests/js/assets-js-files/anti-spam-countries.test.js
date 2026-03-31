@@ -5,7 +5,7 @@ import $ from 'jquery';
 beforeEach( () => {
 	global.jQuery = $;
 	global.$ = $;
-	global.HCaptchaGeneralCountriesObject = {
+	global.HCaptchaAntiSpamCountriesObject = {
 		searchAriaLabel: 'Search countries',
 		searchPlaceholder: 'Type to search...',
 	};
@@ -14,7 +14,7 @@ beforeEach( () => {
 afterEach( () => {
 	document.body.innerHTML = '';
 	delete global.Choices;
-	delete global.HCaptchaGeneralCountriesObject;
+	delete global.HCaptchaAntiSpamCountriesObject;
 } );
 
 const buildDOM = () => {
@@ -48,13 +48,13 @@ const setupChoices = ( mockContainerOuter ) => {
 
 const loadAndRun = () => {
 	jest.resetModules();
-	require( '../../../assets/js/general-countries' );
+	require( '../../../assets/js/anti-spam-countries' );
 
 	// Call explicitly to ensure it runs with current DOM and globals.
-	window.hCaptchaGeneralCountries();
+	window.HCaptchaAntiSpamCountries();
 };
 
-describe( 'generalCountries', () => {
+describe( 'antiSpamCountries', () => {
 	test( 'returns early when Choices is not a function', () => {
 		global.Choices = undefined;
 		buildDOM();
@@ -158,11 +158,11 @@ describe( 'generalCountries', () => {
 		expect( mockInput.getAttribute( 'aria-label' ) ).toBe( 'Search countries' );
 	} );
 
-	test( 'exposes generalCountries on window', () => {
+	test( 'exposes antiSpamCountries on window', () => {
 		setupChoices( document.createElement( 'div' ) );
 		loadAndRun();
 
-		expect( typeof window.hCaptchaGeneralCountries ).toBe( 'function' );
+		expect( typeof window.HCaptchaAntiSpamCountries ).toBe( 'function' );
 	} );
 
 	test( 'Choices constructor receives correct options', () => {

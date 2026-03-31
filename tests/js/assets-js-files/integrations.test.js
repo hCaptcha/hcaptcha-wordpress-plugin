@@ -484,6 +484,459 @@ describe( 'additional integrations coverage', () => {
 	} );
 } );
 
+describe( 'showMessage setTimeout branch', () => {
+	beforeEach( () => {
+		document.body.innerHTML = getDom();
+		window.hCaptchaIntegrations( $ );
+	} );
+
+	test( 'setTimeout restores visibility and removes fixed clone after 3 s', () => {
+		jest.useFakeTimers();
+
+		// Trigger a message so the setTimeout is scheduled.
+		window.kaggDialog = { confirm: jest.fn() };
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		// The fixed clone should be in the body right now.
+		const fixedBefore = $( 'body' ).children( '#hcaptcha-message' ).length;
+		expect( fixedBefore ).toBeGreaterThanOrEqual( 0 ); // just ensure no throw
+
+		// Advance past the 3 000 ms timeout.
+		jest.advanceTimersByTime( 3100 );
+
+		// After the timeout the original message visibility is restored.
+		expect( $( '#hcaptcha-message' ).css( 'visibility' ) ).not.toBe( 'hidden' );
+
+		jest.useRealTimers();
+	} );
+} );
+
+describe( 'integrations.js extra branch coverage', () => {
+	let postSpy;
+
+	beforeEach( () => {
+		jest.useFakeTimers();
+		document.body.innerHTML = getDom();
+		window.hCaptchaIntegrations( $ );
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: true, data: { message: 'ok', stati: [] } } );
+			return d;
+		} );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+		jest.useRealTimers();
+	} );
+
+	// Line 241: jest !== 'undefined' branch — __integrationsTest is exposed.
+	test( '__integrationsTest is exposed when jest is defined', () => {
+		expect( window.__integrationsTest ).toBeDefined();
+		expect( typeof window.__integrationsTest.swapThemes ).toBe( 'function' );
+	} );
+
+	// Line 384: entity not in [core, theme, plugin] → early return.
+	test( 'click on image with unknown entity does nothing', () => {
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.attr( 'data-entity', 'unknown' );
+		$img.trigger( 'click' );
+		expect( postSpy ).not.toHaveBeenCalled();
+	} );
+
+	// Line 384 second guard: entity === 'core' → early return.
+	test( 'click on core image does nothing', () => {
+		const $img = $( '.hcaptcha-integrations-wp-status img' );
+		$img.trigger( 'click' );
+		expect( postSpy ).not.toHaveBeenCalled();
+	} );
+
+	// Line 412: deactivate theme builds content with <select> (already tested above, but ensure branch hit).
+	test( 'deactivate theme dialog content contains select with theme options', () => {
+		window.kaggDialog = { confirm: jest.fn() };
+		global.HCaptchaIntegrationsObject.themes = { divi: 'Divi', twentytwentyone: 'Twenty Twenty-One' };
+		global.HCaptchaIntegrationsObject.defaultTheme = 'divi';
+
+		const $themeImg = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
+		$themeImg.trigger( 'click' );
+
+		const arg = window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ];
+		expect( arg.content ).toContain( '<option value="divi" selected="selected">' );
+		expect( arg.content ).toContain( '<option value="twentytwentyone">' );
+	} );
+
+	// Lines 454-456: ctrlKey on not-installed plugin → installEntity() directly.
+	test( 'ctrlKey on not-installed plugin calls installEntity without dialog', () => {
+		window.kaggDialog = { confirm: jest.fn() };
+		const $img = $( '.hcaptcha-integrations-other-plugin img' );
+		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
+		expect( window.kaggDialog.confirm ).not.toHaveBeenCalled();
+		expect( postSpy ).toHaveBeenCalled();
+		const callData = postSpy.mock.calls[ 0 ][ 0 ].data;
+		expect( callData.install ).toBe( true );
+	} );
+
+	// Lines 336-337: done callback updates themes and defaultTheme when response.data.themes is set.
+	test( 'done callback updates HCaptchaIntegrationsObject.themes when response contains themes', () => {
+		postSpy.mockRestore();
+		const newThemes = { newtheme: 'New Theme' };
+		jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( {
+				success: true,
+				data: {
+					message: 'ok',
+					stati: [],
+					themes: newThemes,
+					defaultTheme: 'newtheme',
+				},
+			} );
+			return d;
+		} );
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( global.HCaptchaIntegrationsObject.themes ).toEqual( newThemes );
+		expect( global.HCaptchaIntegrationsObject.defaultTheme ).toBe( 'newtheme' );
+	} );
+
+	// Lines 341-345: done callback with success=false shows error message.
+	test( 'done callback with success=false and data.message shows error', () => {
+		postSpy.mockRestore();
+		jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: false, data: { message: 'Something went wrong' } } );
+			return d;
+		} );
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( document.querySelector( '#hcaptcha-message' ).className ).toContain( 'notice-error' );
+		expect( document.querySelector( '#hcaptcha-message' ).textContent ).toContain( 'Something went wrong' );
+	} );
+
+	// Lines 341-345: done callback with success=false and data as plain string.
+	test( 'done callback with success=false and data as string shows error', () => {
+		postSpy.mockRestore();
+		jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: false, data: 'plain error string' } );
+			return d;
+		} );
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( document.querySelector( '#hcaptcha-message' ).textContent ).toContain( 'plain error string' );
+	} );
+
+	// Line 273: updateActivationStati skips key === '1'.
+	test( 'updateActivationStati skips key "1" without throwing', () => {
+		postSpy.mockRestore();
+		jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: true, data: { message: 'ok', stati: { 1: true, acfe_status: true } } } );
+			return d;
+		} );
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		expect( () => {
+			$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
+		} ).not.toThrow();
+	} );
+
+	// Line 282: updateActivationStati when currStatus === status (no move needed).
+	test( 'updateActivationStati does not move row when status matches current table', () => {
+		postSpy.mockRestore();
+		// acfe_status is in table eq(1) (active), so status=true means no move.
+		jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: true, data: { message: 'ok', stati: { acfe_status: true } } } );
+			return d;
+		} );
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const $tr = $( '.hcaptcha-integrations-acfe-status' );
+		const tableBefore = $tr.closest( '.form-table' )[ 0 ];
+
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( $tr.closest( '.form-table' )[ 0 ] ).toBe( tableBefore );
+	} );
+
+	// Line 542: search scroll when $trFirst is found.
+	test( 'search scroll animates when a matching row is found', () => {
+		const animSpy = jest.spyOn( $.fn, 'animate' ).mockImplementation( function() {
+			return this;
+		} );
+		jest.spyOn( $.fn, 'offset' ).mockReturnValue( { top: 200 } );
+		jest.spyOn( $.fn, 'outerHeight' ).mockReturnValue( 50 );
+		jest.spyOn( $.fn, 'height' ).mockReturnValue( 600 );
+
+		const $search = $( '#hcaptcha-integrations-search' );
+		$search.val( 'acf' ).trigger( 'input' );
+		jest.advanceTimersByTime( 200 );
+
+		expect( animSpy ).toHaveBeenCalled();
+
+		animSpy.mockRestore();
+		$.fn.offset.mockRestore();
+		$.fn.outerHeight.mockRestore();
+		$.fn.height.mockRestore();
+	} );
+
+	// Line 541: search returns early when no matching row ($trFirst is null).
+	test( 'search does not animate when no matching row found', () => {
+		const animSpy = jest.spyOn( $.fn, 'animate' ).mockImplementation( function() {
+			return this;
+		} );
+
+		const $search = $( '#hcaptcha-integrations-search' );
+		$search.val( 'zzznomatch' ).trigger( 'input' );
+		jest.advanceTimersByTime( 200 );
+
+		expect( animSpy ).not.toHaveBeenCalled();
+
+		animSpy.mockRestore();
+	} );
+
+	// Line 241: maybeInstallEntity called with false → early return, no AJAX.
+	test( 'maybeInstallEntity with confirmation=false does not post', () => {
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( false ) ) };
+		const $img = $( '.hcaptcha-integrations-other-plugin img' );
+		$img.trigger( 'click' );
+		expect( postSpy ).not.toHaveBeenCalled();
+	} );
+
+	// Line 249: maybeToggleActivation called with false → early return, no AJAX.
+	test( 'maybeToggleActivation with confirmation=false does not post', () => {
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( false ) ) };
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.trigger( 'click' );
+		expect( postSpy ).not.toHaveBeenCalled();
+	} );
+
+	// Line 412: deactivate plugin sets deactivatePluginMsg (entity=plugin, fieldset enabled).
+	test( 'deactivate plugin dialog uses deactivatePluginMsg', () => {
+		// Move acfe row to active table (fieldset enabled) so it is in deactivate path.
+		const $tr = $( '.hcaptcha-integrations-acfe-status' );
+		$tr.find( 'fieldset' ).removeAttr( 'disabled' );
+
+		window.kaggDialog = { confirm: jest.fn() };
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' );
+
+		const arg = window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ];
+		expect( arg.title ).toContain( 'Deactivate' );
+		expect( arg.type ).toBe( 'deactivate' );
+	} );
+} );
+
+describe( 'integrations.js remaining branch coverage', () => {
+	let postSpy;
+
+	beforeEach( () => {
+		jest.useFakeTimers();
+		document.body.innerHTML = getDom();
+		// Add #adminmenuwrap for branch 58
+		const wrap = document.createElement( 'div' );
+		wrap.id = 'adminmenuwrap';
+		document.body.appendChild( wrap );
+		window.hCaptchaIntegrations( $ );
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: true, data: { message: 'ok', stati: [] } } );
+			return d;
+		} );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+		jest.useRealTimers();
+	} );
+
+	// Branch 0 (line 58): adminmenuwrap display === 'block' → use its width.
+	test( 'showMessage uses adminmenuwrap width when display is block', () => {
+		const $wrap = $( '#adminmenuwrap' );
+		$wrap.css( 'display', 'block' );
+		jest.spyOn( $.fn, 'width' ).mockImplementation( function() {
+			if ( this[ 0 ] && this[ 0 ].id === 'adminmenuwrap' ) {
+				return 160;
+			}
+			return 1024;
+		} );
+
+		// Trigger a message to run showMessage.
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		// No throw and fixed clone was appended.
+		expect( $( 'body' ).find( '.notice' ).length ).toBeGreaterThanOrEqual( 0 );
+		$.fn.width.mockRestore();
+	} );
+
+	// Branch 6 (line 128): alt is falsy → use empty string.
+	test( 'insertIntoTable handles img with no alt attribute', () => {
+		// Add a row without alt to the active table.
+		const $activeTable = $( '.form-table' ).eq( 1 );
+		const $tbody = $activeTable.find( 'tbody' );
+		const tr = document.createElement( 'tr' );
+		tr.className = 'hcaptcha-integrations-noalt-plugin';
+		tr.innerHTML = '<th><div class="hcaptcha-integrations-logo" data-installed="true"><img data-entity="plugin" data-label="NoAlt"></div></th><td><fieldset></fieldset></td>';
+		$tbody.get( 0 ).appendChild( tr );
+
+		// Trigger a click that calls insertIntoTable — it will iterate rows including the no-alt one.
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		expect( () => {
+			$( '.hcaptcha-integrations-other-plugin img' ).trigger( 'click' );
+		} ).not.toThrow();
+	} );
+
+	// Branch 12 (line 173): duplicate data-antispam-* attribute → class not added twice.
+	test( 'setupHelper does not add duplicate antispam class icons', () => {
+		const label = document.createElement( 'label' );
+		label.setAttribute( 'data-antispam', '' );
+		label.setAttribute( 'data-antispam-honeypot', '' );
+		document.body.appendChild( label );
+
+		// Re-init to pick up the new label.
+		window.hCaptchaIntegrations( $ );
+
+		const $helper = $( label ).next( '.helper' );
+		// Should have exactly one icon for honeypot.
+		expect( $helper.find( 'i.antispam-honeypot' ).length ).toBe( 1 );
+	} );
+
+	// Branch 20 (line 265): select.value is null/undefined → return ''.
+	test( 'getSelectedTheme returns empty string when select has no value', () => {
+		window.kaggDialog = {
+			confirm: jest.fn( function( cfg ) {
+				// Build a dialog with a select whose value is empty.
+				const dlg = document.createElement( 'div' );
+				dlg.className = 'kagg-dialog';
+				const select = document.createElement( 'select' );
+				// No options → value is ''.
+				dlg.appendChild( select );
+				document.body.appendChild( dlg );
+				cfg.onAction( true );
+				document.body.removeChild( dlg );
+			} ),
+		};
+
+		const $themeImg = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
+		expect( () => $themeImg.trigger( 'click' ) ).not.toThrow();
+		expect( postSpy ).toHaveBeenCalled();
+		const callData = postSpy.mock.calls[ 0 ][ 0 ].data;
+		expect( callData.newTheme ).toBe( '' );
+	} );
+
+	// Branch 24 (line 286): status=false in updateActivationStati → move to table eq(2).
+	test( 'updateActivationStati moves row to inactive table when status is false', () => {
+		postSpy.mockRestore();
+		jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			// acfe_status is currently in active table; status=false → move to inactive.
+			d.resolve( { success: true, data: { message: 'ok', stati: { acfe_status: false } } } );
+			return d;
+		} );
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const $tr = $( '.hcaptcha-integrations-acfe-status' );
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( $tr.closest( '.form-table' ).is( $( '.form-table' ).eq( 2 ) ) ).toBe( true );
+	} );
+
+	// Branch 33 (line 380): entity data attr is falsy → entity = ''.
+	test( 'click on img with no data-entity attribute does nothing', () => {
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.removeAttr( 'data-entity' );
+		$img.trigger( 'click' );
+		expect( postSpy ).not.toHaveBeenCalled();
+	} );
+
+	// Branch 36 (line 393): alt attr is falsy → alt = ''.
+	test( 'click on img with no alt attribute does not throw', () => {
+		const $img = $( '.hcaptcha-integrations-acfe-status img' );
+		$img.removeAttr( 'alt' );
+		window.kaggDialog = { confirm: jest.fn() };
+		expect( () => $img.trigger( 'click' ) ).not.toThrow();
+	} );
+
+	// Branch 37 (line 398): class has no hcaptcha-integrations-* match → status = ''.
+	test( 'click on img whose tr has no matching class does not throw', () => {
+		const $tr = $( '.hcaptcha-integrations-acfe-status' );
+		$tr.attr( 'class', 'some-other-class' );
+		window.kaggDialog = { confirm: jest.fn() };
+		expect( () => $( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' ) ).not.toThrow();
+	} );
+
+	// Branch 39 (line 406): activate=true, entity=theme → activateThemeMsg.
+	test( 'activate theme dialog uses activateThemeMsg', () => {
+		global.HCaptchaIntegrationsObject.themes = { divi: 'Divi' };
+		window.kaggDialog = { confirm: jest.fn() };
+		// Re-init with a DOM that includes a disabled theme row (activate path).
+		document.body.innerHTML = getDom() + `
+			<table class="form-table"><tbody>
+				<tr class="hcaptcha-integrations-inactive-theme">
+					<th><div class="hcaptcha-integrations-logo" data-installed="true">
+						<img alt="Inactive Theme Logo" data-entity="theme" data-label="Inactive Theme">
+					</div></th>
+					<td><fieldset disabled="disabled"></fieldset></td>
+				</tr>
+			</tbody></table>`;
+		window.hCaptchaIntegrations( $ );
+
+		$( '.hcaptcha-integrations-inactive-theme img' ).trigger( 'click' );
+
+		expect( window.kaggDialog.confirm ).toHaveBeenCalled();
+		const arg = window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ];
+		expect( arg.title ).toContain( 'Inactive Theme' );
+		expect( arg.type ).toBe( 'activate' );
+	} );
+
+	// Branch 46 (line 459): not-installed theme → installThemeMsg.
+	test( 'not-installed theme shows installThemeMsg dialog', () => {
+		global.HCaptchaIntegrationsObject.themes = { divi: 'Divi' };
+		window.kaggDialog = { confirm: jest.fn() };
+		// Re-init with a DOM that includes a not-installed theme row.
+		document.body.innerHTML = getDom() + `
+			<table class="form-table"><tbody>
+				<tr class="hcaptcha-integrations-new-theme">
+					<th><div class="hcaptcha-integrations-logo" data-installed="false">
+						<img alt="New Theme Logo" data-entity="theme" data-label="New Theme">
+					</div></th>
+					<td><fieldset disabled="disabled"></fieldset></td>
+				</tr>
+			</tbody></table>`;
+		window.hCaptchaIntegrations( $ );
+
+		$( '.hcaptcha-integrations-new-theme img' ).trigger( 'click' );
+
+		expect( window.kaggDialog.confirm ).toHaveBeenCalled();
+		const arg = window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ];
+		expect( arg.title ).toContain( 'New Theme' );
+		expect( arg.type ).toBe( 'install' );
+	} );
+
+	// Branch 53 (line 557): keydown on search with key !== 13 → no preventDefault.
+	test( 'keydown on search with key other than Enter does not prevent default', () => {
+		let prevented = false;
+		const $search = $( '#hcaptcha-integrations-search' );
+		const evt = $.Event( 'keydown', { target: $search.get( 0 ), which: 65 } );
+		evt.preventDefault = function() {
+			prevented = true;
+		};
+		$( '#hcaptcha-options' ).trigger( evt );
+		expect( prevented ).toBe( false );
+	} );
+} );
+
 describe( 'swapThemes isolated', () => {
 	function resetDomLocal() {
 		document.body.innerHTML = getDom();

@@ -982,7 +982,7 @@ class Playground {
 		$settings['whats_new_last_shown_version'] = '4.18.0';
 		$settings['blacklisted_ips']              = '';
 		$settings['antispam']                     = [ 'on' ];
-		$settings['antispam_provider']            = 'akismet';
+		$settings['antispam_provider']            = '';
 		$settings['honeypot']                     = [ 'on' ];
 		$settings['set_min_submit_time']          = [ 'on' ];
 		$settings['min_submit_time']              = '2';

@@ -1,24 +1,24 @@
-/* global jQuery, Choices, HCaptchaGeneralCountriesObject */
+/* global jQuery, Choices, HCaptchaAntiSpamCountriesObject */
 
 /**
- * @param HCaptchaGeneralCountriesObject.searchAriaLabel
- * @param HCaptchaGeneralCountriesObject.searchPlaceholder
+ * @param HCaptchaAntiSpamCountriesObject.searchAriaLabel
+ * @param HCaptchaAntiSpamCountriesObject.searchPlaceholder
  */
 
 /**
  * Enhance countries multiple selects on the General settings page.
  *
  */
-const generalCountries = function() {
+const antiSpamCountries = function() {
 	if ( 'function' !== typeof Choices ) {
 		return;
 	}
 
 	const searchPlaceholder =
-		HCaptchaGeneralCountriesObject.searchPlaceholder;
+		HCaptchaAntiSpamCountriesObject.searchPlaceholder;
 
 	const applySearchPlaceholder = function( choicesInstance ) {
-		const searchAriaLabel = HCaptchaGeneralCountriesObject.searchAriaLabel;
+		const searchAriaLabel = HCaptchaAntiSpamCountriesObject.searchAriaLabel;
 		const input = choicesInstance?.containerOuter?.element?.querySelector( '.choices__input--cloned' );
 
 		if ( ! input ) {
@@ -68,6 +68,6 @@ const generalCountries = function() {
 	} );
 };
 
-window.hCaptchaGeneralCountries = generalCountries;
+window.HCaptchaAntiSpamCountries = antiSpamCountries;
 
-jQuery( document ).ready( generalCountries );
+jQuery( document ).ready( antiSpamCountries );

@@ -27,26 +27,26 @@ class SettingsTransfer {
 	 * @return array
 	 */
 	public function build_export_payload( bool $include_keys = false ): array {
-		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
-
-		$keys = [];
+		$settings     = hcaptcha()->settings();
+		$old_settings = $settings->get_raw_settings();
+		$keys         = [];
 
 		if ( $include_keys ) {
-			$keys['site_key']   = $settings['site_key'] ?? '';
-			$keys['secret_key'] = $settings['secret_key'] ?? '';
+			$keys['site_key']   = $old_settings['site_key'] ?? '';
+			$keys['secret_key'] = $old_settings['secret_key'] ?? '';
 		}
 
 		// Remove keys from settings to avoid duplication and accidental exposure.
-		unset( $settings['site_key'], $settings['secret_key'] );
+		unset( $old_settings['site_key'], $old_settings['secret_key'] );
 
 		$data = [
 			'meta'     => [
-				'plugin'         => hcaptcha()->settings()->get_plugin_name(),
+				'plugin'         => $settings->get_plugin_name(),
 				'plugin_version' => constant( 'HCAPTCHA_VERSION' ),
 				'schema_version' => self::SCHEMA_VERSION,
 				'exported_at'    => gmdate( 'c' ),
 			],
-			'settings' => $settings,
+			'settings' => $old_settings,
 		];
 
 		if ( $include_keys ) {
@@ -93,22 +93,23 @@ class SettingsTransfer {
 			return $result;
 		}
 
-		$settings = (array) ( $payload['settings'] ?? [] );
+		$new_settings = (array) ( $payload['settings'] ?? [] );
 
 		if ( isset( $payload['keys'] ) && $allow_keys ) {
-			$settings['site_key']   = $payload['keys']['site_key'] ?? '';
-			$settings['secret_key'] = $payload['keys']['secret_key'] ?? '';
+			$new_settings['site_key']   = $payload['keys']['site_key'] ?? '';
+			$new_settings['secret_key'] = $payload['keys']['secret_key'] ?? '';
 		}
 
 		if ( $dry_run ) {
 			return null;
 		}
 
-		$old_settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$settings     = hcaptcha()->settings();
+		$old_settings = $settings->get_raw_settings();
 
 		// Use General settings page sanitization rules to prepare value like the admin UI does.
-		$general  = hcaptcha()->settings()->get_tab( General::class );
-		$prepared = $general->pre_update_option_filter( $settings, $old_settings );
+		$general  = $settings->get_tab( General::class );
+		$prepared = $general->pre_update_option_filter( $new_settings, $old_settings );
 
 		if ( $prepared === $old_settings ) {
 			// Nothing changed; return a success message.
@@ -124,7 +125,7 @@ class SettingsTransfer {
 			);
 		}
 
-		hcaptcha()->settings()->init();
+		$settings->init(); // Re-read options.
 		HCaptcha::save_license_level();
 
 		return null;

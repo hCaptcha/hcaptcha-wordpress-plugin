@@ -13,7 +13,6 @@
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\ACFE\Form;
-use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\CF7\ReallySimpleCaptcha;
@@ -86,9 +85,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'plugins', $plugins );
 		$this->set_protected_property( $subject, 'themes', $themes );
 
-		// OnboardingWizard should be instantiated with the current tab ($this).
-		$wizard = Mockery::mock( 'overload:' . OnboardingWizard::class );
-		$wizard->shouldReceive( '__construct' )->once()->with( $subject );
+		// Instantiating OnboardingWizard should execute its constructor path without class overloading.
+		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->with()->andReturn( false );
 
 		FunctionMocker::replace(
 			'function_exists',

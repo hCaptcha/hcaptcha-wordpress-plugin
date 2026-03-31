@@ -567,7 +567,7 @@ class Abilities {
 		$input      = (array) $input;
 		$allow_keys = ! empty( $input['allow_keys'] );
 		$dry_run    = ! empty( $input['dry_run'] );
-		$input_file = isset( $input['input_file'] ) ? trim( (string) $input['input_file'] ) : '';
+		$input_file = isset( $input['input_file'] ) ? realpath( trim( (string) $input['input_file'] ) ) : '';
 		$payload    = $input;
 
 		unset( $payload['allow_keys'], $payload['dry_run'], $payload['input_file'] );

@@ -120,6 +120,7 @@ function hcap_get_error_messages(): array {
 			'fst-too-fast'             => __( 'Form submitted too quickly.', 'hcaptcha-for-forms-and-more' ),
 			'fst-replayed-or-expired'  => __( 'Token replayed or expired.', 'hcaptcha-for-forms-and-more' ),
 			'fst-expired'              => __( 'Token expired.', 'hcaptcha-for-forms-and-more' ),
+			'disposable-email'         => __( 'Please use a permanent email address.', 'hcaptcha-for-forms-and-more' ),
 		]
 	);
 }

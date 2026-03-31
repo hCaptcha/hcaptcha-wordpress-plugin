@@ -74,6 +74,7 @@ const tools = function( $ ) {
 
 		const $fileInput = $( '#hcaptcha-import-file' );
 		const file = $fileInput[ 0 ].files[ 0 ];
+		const includeKeys = $( '#include_keys_import' ).is( ':checked' ) ? 'on' : '';
 
 		if ( ! file ) {
 			hCaptchaSettingsBase.showErrorMessage( HCaptchaToolsObject.selectJsonFile );
@@ -85,6 +86,7 @@ const tools = function( $ ) {
 		formData.append( 'action', HCaptchaToolsObject.importAction );
 		formData.append( 'nonce', HCaptchaToolsObject.importNonce );
 		formData.append( 'import_file', file );
+		formData.append( 'include_keys_import', includeKeys );
 
 		const $btn = $( this );
 

@@ -1,5 +1,4 @@
 #hcaptcha-notifications {
-	margin: 5px 0 15px;
 	background: #fff;
 	padding: 15px 20px;
 	max-width: 760px;
@@ -38,6 +37,10 @@
 
 #hcaptcha-notifications .hcaptcha-notification {
 	margin: 0;
+	padding: 1px 38px 1px 12px;
+	border-top: 1px solid #c3c4c7;
+	border-right: 1px solid #c3c4c7;
+	border-bottom: 1px solid #c3c4c7;
 }
 
 .hcaptcha-notification .hcaptcha-notification-title {
@@ -45,6 +48,11 @@
 	padding: 2px;
 	line-height: 1.3;
 	font-weight: 600;
+}
+
+.hcaptcha-notification .hcaptcha-notification-title + p {
+	padding: 2px;
+	line-height: 1.5;
 }
 
 .hcaptcha-notification {
