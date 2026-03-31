@@ -84,12 +84,13 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 
 		wp_dequeue_script( 'hcaptcha-fst' );
+		ob_start();
 		$this->subject->enqueue_scripts();
+		$output = ob_get_clean();
 		self::assertTrue( wp_script_is( 'hcaptcha-fst' ) );
 
-		$localized_data = wp_scripts()->get_data( 'hcaptcha-fst', 'data' );
-		self::assertStringContainsString( 'HCaptchaFSTObject', $localized_data );
-		self::assertStringContainsString( 'hcaptcha-fst-issue-token', $localized_data );
+		self::assertStringContainsString( 'HCaptchaFSTObject', $output );
+		self::assertStringContainsString( 'hcaptcha-fst-issue-token', $output );
 
 		wp_dequeue_script( 'hcaptcha-fst' );
 	}
@@ -312,6 +313,9 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test issue_token() success.
+	 *
+	 * @noinspection ThrowRawExceptionInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_issue_token_success(): void {
 		$action = 'hcaptcha-fst-issue-token';
@@ -363,6 +367,9 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test issue_token() invalid nonce.
+	 *
+	 * @noinspection ThrowRawExceptionInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_issue_token_invalid_nonce(): void {
 		$_POST['nonce']    = 'invalid-nonce';

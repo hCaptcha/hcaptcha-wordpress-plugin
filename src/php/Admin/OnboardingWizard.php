@@ -41,6 +41,11 @@ class OnboardingWizard {
 	private const STEP_PARAM = 'onboarding';
 
 	/**
+	 * GET parameter to continue onboarding automatic setup after saving General settings.
+	 */
+	public const AUTO_SETUP_PARAM = 'auto-setup';
+
+	/**
 	 * Option name for the onboarding wizard state.
 	 */
 	public const OPTION_NAME = 'onboarding_wizard';
@@ -164,11 +169,19 @@ class OnboardingWizard {
 			return;
 		}
 
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/js/onboarding$min.js",
+			constant( 'HCAPTCHA_URL' ) . "/assets/js/onboarding-wizard$min.js",
 			[ 'jquery', $this->tab::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
@@ -176,7 +189,7 @@ class OnboardingWizard {
 
 		wp_enqueue_style(
 			self::HANDLE,
-			constant( 'HCAPTCHA_URL' ) . "/assets/css/onboarding$min.css",
+			constant( 'HCAPTCHA_URL' ) . "/assets/css/onboarding-wizard$min.css",
 			[],
 			constant( 'HCAPTCHA_VERSION' )
 		);
@@ -186,13 +199,17 @@ class OnboardingWizard {
 		// Selector map.
 		$selectors = [
 			'general'      => [
-				'site_key'     => '#site_key',
-				'secret_key'   => '#secret_key',
-				'mode'         => 'select[name="hcaptcha_settings[mode]"], input[name="hcaptcha_settings[mode]"]',
-				'check_config' => '#check_config',
-				'force'        => '#force_1',
-				'antispam'     => '.hcaptcha-section-antispam+table',
-				'save'         => '#hcaptcha-options #submit',
+				'site_key'            => '#site_key',
+				'secret_key'          => '#secret_key',
+				'mode'                => 'select[name="hcaptcha_settings[mode]"], input[name="hcaptcha_settings[mode]"]',
+				'check_config'        => '#check_config',
+				'force'               => '#force_1',
+				'honeypot'            => '#honeypot_1',
+				'set_min_submit_time' => '#set_min_submit_time_1',
+				'antispam_check'      => '#antispam_1',
+				'antispam_provider'   => 'select[name="hcaptcha_settings[antispam_provider]"]',
+				'antispam'            => '.hcaptcha-section-antispam+table',
+				'save'                => '#hcaptcha-options #submit',
 			],
 			'integrations' => [
 				'integrations_list' => '.hcaptcha-enabled-section+h3+table tr:first-child',
@@ -200,7 +217,7 @@ class OnboardingWizard {
 			],
 		];
 
-		// Steps text (i18n-ready). Updated: split former step 4 into two steps.
+		// Steps text (i18n-ready).
 		$steps = [
 			1 => __( 'Get your keys at hcaptcha.com', 'hcaptcha-for-forms-and-more' ),
 			2 => __( 'Switch Mode to Live', 'hcaptcha-for-forms-and-more' ),
@@ -212,7 +229,7 @@ class OnboardingWizard {
 			8 => __( 'Save settings', 'hcaptcha-for-forms-and-more' ),
 		];
 
-		// Detect which settings page we are on by looking at body class via section title echoing into form class.
+		// Detect which settings page we are on by looking at the body class via the section title echoing into form class.
 		$page = $this->tab === $this->integrations_tab ? 'integrations' : 'general';
 
 		wp_localize_script(
@@ -222,29 +239,36 @@ class OnboardingWizard {
 				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
 				'updateAction'    => self::UPDATE_ACTION,
 				'updateNonce'     => wp_create_nonce( self::UPDATE_ACTION ),
+				'autoSetupParam'  => self::AUTO_SETUP_PARAM,
 				'page'            => $page,
 				'currentStep'     => $current_step,
 				'selectors'       => $selectors,
 				'steps'           => $steps,
-				'generalUrl'      => admin_url( 'admin.php?page=' . PluginSettingsBase::PREFIX ),
-				'integrationsUrl' => admin_url( 'admin.php?page=' . PluginSettingsBase::PREFIX . '-integrations' ),
+				'generalUrl'      => $settings->tab_url( General::class ),
+				'integrationsUrl' => $settings->tab_url( Integrations::class ),
 				'stepParam'       => self::STEP_PARAM,
 				'iconAnimatedUrl' => constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon-animated.svg',
 				'videoUrl'        => 'https://youtu.be/khKYehgr8t0',
 				'ratingUrl'       => 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post',
 				'i18n'            => [
-					'done'         => __( 'Done', 'hcaptcha-for-forms-and-more' ),
-					'close'        => __( 'Close', 'hcaptcha-for-forms-and-more' ),
-					'steps'        => __( 'Onboarding Steps', 'hcaptcha-for-forms-and-more' ),
-					'next'         => __( 'Next', 'hcaptcha-for-forms-and-more' ),
-					'welcomeTitle' => __( 'Welcome to hCaptcha for WordPress', 'hcaptcha-for-forms-and-more' ),
-					'welcomeBody'  => __( 'The hCaptcha plugin supports 60+ WordPress plugins and themes. This short tour will highlight the key settings so you can get up and running quickly.', 'hcaptcha-for-forms-and-more' ),
-					'letsGo'       => __( "Let's Go!", 'hcaptcha-for-forms-and-more' ),
-					'videoCta'     => __( 'Watch a quick setup video', 'hcaptcha-for-forms-and-more' ),
-					'videoTitle'   => __( 'Quick Setup Video', 'hcaptcha-for-forms-and-more' ),
-					'ratingTitle'  => __( 'Congrats — setup complete!', 'hcaptcha-for-forms-and-more' ),
-					'ratingBody'   => __( 'You’ve completed the onboarding wizard. If hCaptcha helps you, please consider leaving a 5‑star review on WordPress.org — your support motivates us to build even more great features. Thank you!', 'hcaptcha-for-forms-and-more' ),
-					'ratingCta'    => __( 'Rate hCaptcha on WordPress.org', 'hcaptcha-for-forms-and-more' ),
+					'done'            => __( 'Done', 'hcaptcha-for-forms-and-more' ),
+					'choiceTitle'     => __( 'How would you like to continue?', 'hcaptcha-for-forms-and-more' ),
+					'choiceBody'      => __( 'Your keys are configured and verified. We can now apply the recommended setup automatically, or you can continue step by step.', 'hcaptcha-for-forms-and-more' ),
+					'choiceAutoBody'  => __( 'Automatic setup will enable Force, apply the recommended anti-spam options, enable hCaptcha for installed plugins and themes, and save your settings.', 'hcaptcha-for-forms-and-more' ),
+					'choiceAutoCta'   => __( 'Apply recommended setup automatically', 'hcaptcha-for-forms-and-more' ),
+					'choiceManualCta' => __( 'Continue step by step', 'hcaptcha-for-forms-and-more' ),
+					'close'           => __( 'Close', 'hcaptcha-for-forms-and-more' ),
+					'steps'           => __( 'Onboarding Steps', 'hcaptcha-for-forms-and-more' ),
+					'next'            => __( 'Next', 'hcaptcha-for-forms-and-more' ),
+					'welcomeTitle'    => __( 'Welcome to hCaptcha for WordPress', 'hcaptcha-for-forms-and-more' ),
+					'welcomeBody'     => __( 'The hCaptcha plugin supports 60+ WordPress plugins and themes. This short tour will highlight the key settings so you can get up and running quickly.', 'hcaptcha-for-forms-and-more' ),
+					'letsGo'          => __( "Let's Go!", 'hcaptcha-for-forms-and-more' ),
+					'sub1'            => __( 'The secret key is shown only once — save it safely.', 'hcaptcha-for-forms-and-more' ),
+					'videoCta'        => __( 'Watch a quick setup video', 'hcaptcha-for-forms-and-more' ),
+					'videoTitle'      => __( 'Quick Setup Video', 'hcaptcha-for-forms-and-more' ),
+					'ratingTitle'     => __( 'Congrats — setup complete!', 'hcaptcha-for-forms-and-more' ),
+					'ratingBody'      => __( 'You’ve completed the onboarding wizard. If hCaptcha helps you, please consider leaving a 5‑star review on WordPress.org — your support motivates us to build even more great features. Thank you!', 'hcaptcha-for-forms-and-more' ),
+					'ratingCta'       => __( 'Rate hCaptcha on WordPress.org', 'hcaptcha-for-forms-and-more' ),
 				],
 			]
 		);
@@ -292,7 +316,7 @@ class OnboardingWizard {
 		$secret_key = $this->settings->get( 'secret_key' );
 
 		if ( $site_key && $secret_key ) {
-			// Do not run wizard if user has already made initial settings.
+			// Do not run the wizard if the user has already made initial settings.
 			$this->set_wizard_state( 'completed' );
 		}
 	}

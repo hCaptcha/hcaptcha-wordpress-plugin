@@ -21,7 +21,7 @@ body.settings_page_hcaptcha {
 .hcaptcha-settings-tabs {
 	position: sticky;
 	top: 0;
-	z-index: 2; /* +1 to .hcaptcha-header bar z-index, to overlap a bit */
+	z-index: 3; /* +1 to .hcaptcha-header bar z-index, to overlap a bit */
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
@@ -41,12 +41,11 @@ body.settings_page_hcaptcha {
 
 .hcaptcha-settings-tab:hover {
 	color: #666;
-	border-bottom-color: #025176 !important;
-	border-bottom: 2px solid;
+	border-bottom: 2px solid var(--wp-admin-theme-color, #3858e9);
 }
 
 .hcaptcha-settings-tab.active {
-	border-bottom: 2px solid #0075ab;
+	border-bottom: 2px solid var(--wp-admin-theme-color, #3858e9);
 }
 
 .hcaptcha-header-bar {
@@ -75,8 +74,32 @@ body.settings_page_hcaptcha {
 	color: #5c6f8a;
 }
 
-#hcaptcha-options .notice-dismiss:before {
+#hcaptcha-options h3.closed + table {
+	display: none;
+}
+
+#hcaptcha-options .notice-dismiss {
+	width: unset;
+	height: unset;
+	padding: 9px;
+	top: 0;
+	right: 1px;
+	display: block;
+}
+
+#hcaptcha-options .notice-dismiss:before,
+#hcaptcha-message .notice-dismiss:before {
 	color: #5c6f8a;
+	content: "\f153";
+	font-size: 16px;
+	width: 20px;
+	height: 20px;
+	line-height: 20px;
+}
+
+#hcaptcha-options .notice-dismiss:hover:before {
+	color: #5c6f8a;
+	opacity: 1;
 }
 
 #hcaptcha-options table tbody tr td {
@@ -85,7 +108,7 @@ body.settings_page_hcaptcha {
 	position: relative;
 }
 
-#hcaptcha-options table tr td fieldset input[type="checkbox"] {
+#hcaptcha-options fieldset input[type="checkbox"] {
 	display: inline-block;
 	border: none;
 	box-shadow: none;
@@ -95,9 +118,10 @@ body.settings_page_hcaptcha {
 	margin-inline-end: 0.5rem;
 	margin-block-end: 0;
 	margin-inline-start: 0;
+	background: none;
 }
 
-#hcaptcha-options table tr td fieldset input[type="checkbox"]::before {
+#hcaptcha-options fieldset input[type="checkbox"]::before {
 	background: url('../images/checkbox-off.svg');
 	background-size: cover;
 	margin: 0;
@@ -107,7 +131,7 @@ body.settings_page_hcaptcha {
 	display: inline-block;
 }
 
-#hcaptcha-options table tr td fieldset input[type="checkbox"]:checked::before {
+#hcaptcha-options fieldset input[type="checkbox"]:checked::before {
 	background: no-repeat url('../images/checkbox-on.svg');
 	background-size: cover;
 }
@@ -117,7 +141,7 @@ body.settings_page_hcaptcha {
 }
 
 #hcaptcha-navigation a {
-	border-color: #0075ab;
+	border-color: var(--wp-admin-theme-color, #3858e9);
 }
 
 #hcaptcha-options a.hcaptcha-settings-tab {
@@ -192,6 +216,19 @@ body.settings_page_hcaptcha {
 
 #hcaptcha-options .helper .helper-content a {
 	color: #fff;
+}
+
+#hcaptcha-message {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px;
+}
+
+#hcaptcha-message .notice-dismiss {
+	position: relative;
+	top: unset;
+	right: unset;
 }
 
 #hcaptcha-message {

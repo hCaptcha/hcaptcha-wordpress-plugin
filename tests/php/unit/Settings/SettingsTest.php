@@ -139,6 +139,33 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test tab_url().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_tab_url(): void {
+		$tab_url      = 'https://test.test/wp-admin/options-general.php?page=hcaptcha&tab=integrations';
+		$general      = Mockery::mock( General::class )->makePartial();
+		$integrations = Mockery::mock( Integrations::class )->makePartial();
+
+		$integrations->shouldReceive( 'tab_url' )->with( $integrations )->andReturn( $tab_url );
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		// No tabs set — should return empty string.
+		self::assertSame( '', $subject->tab_url( Integrations::class ) );
+
+		$tabs = [ $general, $integrations ];
+		$this->set_protected_property( $subject, 'tabs', $tabs );
+
+		// Tab found — should return its URL.
+		self::assertSame( $tab_url, $subject->tab_url( Integrations::class ) );
+
+		// Non-existent tab — should return empty string.
+		self::assertSame( '', $subject->tab_url( 'NonExistentClass' ) );
+	}
+
+	/**
 	 * Test get_active_tab_name().
 	 *
 	 * @throws ReflectionException ReflectionException.

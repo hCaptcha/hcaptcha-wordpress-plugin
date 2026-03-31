@@ -1134,6 +1134,7 @@ class HCaptcha {
 	 * @param string $tag Script tag.
 	 *
 	 * @return string
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public static function add_type_module( string $tag ): string {
 		$search  = [
@@ -1167,6 +1168,9 @@ class HCaptcha {
 		$option['license'] = $license;
 
 		// Save license level in settings.
+		// We cannot use hcaptcha->settings()->update(...) here, as it cannot update non-existing key.
+		// The 'license' key does not exist initially.
+		// The update_options() works properly on multisite due to our pre_update_option hook.
 		update_option( PluginSettingsBase::OPTION_NAME, $option );
 	}
 }

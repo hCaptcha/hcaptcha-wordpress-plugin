@@ -1,0 +1,355 @@
+#hcaptcha-options table tbody {
+	background: #fff;
+}
+
+#hcaptcha-options table tbody tr {
+	display: grid;
+	align-self: start;
+}
+
+#hcaptcha-options table tbody tr th {
+	color: #5c6f8a;
+}
+
+#hcaptcha-options.hcaptcha-anti-spam h3 {
+	display: flex;
+	justify-content: space-between;
+	max-width: 760px;
+	background: white;
+	box-sizing: border-box;
+	padding: 15px 20px;
+	margin: 1.5em 0 0;
+	color: #5c6f8a;
+	cursor: pointer;
+}
+
+#hcaptcha-options.hcaptcha-anti-spam h3:first-of-type {
+	margin-top: 0;
+}
+
+#hcaptcha-options.hcaptcha-anti-spam h3.disabled {
+	opacity: 0.6;
+}
+
+.hcaptcha-section-header-toggle:after {
+	content: "\f142";
+	font: normal 20px dashicons;
+	speak: never;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+h3.closed .hcaptcha-section-header-toggle:after {
+	content: "\f140";
+}
+
+#hcaptcha-options.hcaptcha-anti-spam h3 + table {
+	position: relative;
+	max-width: 760px;
+	margin-top: 0;
+}
+
+#hcaptcha-options.hcaptcha-anti-spam h3.disabled + table {
+	opacity: 0.6;
+}
+
+#hcaptcha-options.hcaptcha-anti-spam h3 + table:before {
+	content: '';
+	position: absolute;
+	top: 0;
+	width: calc(100% - 40px);
+	max-width: 720px;
+	margin: 0 20px;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.hcaptcha-loading::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(255, 255, 255, 0.8);
+	z-index: 9999;
+}
+
+.hcaptcha-loading::after {
+	content: '';
+	position: absolute;
+	top: calc(50% - 18px);
+	left: calc(50% - 18px);
+	width: 28px;
+	height: 28px;
+	border: 4px solid #ccc;
+	border-top: 4px solid #5c6f8a;
+	border-radius: 50%;
+	animation: hcaptcha-spin 1s linear infinite;
+	z-index: 10000;
+}
+
+@keyframes hcaptcha-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* Section Bot Detection */
+.hcaptcha-section-bot-detection + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"set-min-submit-time min-submit-time"
+		"honeypot min-submit-time"
+		"antispam antispam-provider"
+		"disposable-email .";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-set-min-submit-time {
+	grid-area: set-min-submit-time;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-min-submit-time {
+	grid-area: min-submit-time;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-honeypot {
+	grid-area: honeypot;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-antispam {
+	grid-area: antispam;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-antispam-provider {
+	grid-area: antispam-provider;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-antispam-provider div {
+	color: #d63638;
+	margin-top: 0.5em;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-disposable-email {
+	grid-area: disposable-email;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-honeypot th {
+	padding: 0;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr td {
+	width: max-content;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-min-submit-time td,
+.hcaptcha-section-bot-detection + table tbody tr.hcaptcha-anti-spam-antispam-provider td {
+	width: auto;
+}
+
+.hcaptcha-section-bot-detection + table tbody tr td input,
+.hcaptcha-section-bot-detection + table tbody tr td select {
+	width: 100%;
+}
+
+/* Section Access Control */
+.hcaptcha-section-access-control + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"blacklisted-ips whitelisted-ips"
+		"blacklisted-countries whitelisted-countries"
+		"maxmind-key .";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-ips {
+	grid-area: blacklisted-ips;
+	padding-bottom: 15px;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-ips {
+	grid-area: whitelisted-ips;
+	padding-bottom: 15px;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries {
+	grid-area: blacklisted-countries;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries {
+	grid-area: whitelisted-countries;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-maxmind-key {
+	grid-area: maxmind-key;
+	padding-top: 15px;
+}
+
+.hcaptcha-section-access-control + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-access-control + table tbody tr td {
+	width: auto;
+}
+
+.hcaptcha-section-access-control + table tbody tr td textarea,
+.hcaptcha-section-access-control + table tbody tr td input,
+.hcaptcha-section-access-control + table tbody tr td select {
+	width: 100%;
+}
+
+.hcaptcha-section-access-control + table tbody tr td select[multiple="multiple"] {
+	min-height: 68px;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices {
+	width: 100%;
+	margin-bottom: 0;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices__inner,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 4px;
+	box-sizing: border-box;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices__input.choices__input--cloned,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__input.choices__input--cloned {
+	order: -1;
+	display: block;
+	flex: 1 0 100%;
+	width: 100%;
+	min-width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	box-sizing: border-box;
+	line-height: 1.4;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices.is-focused .choices__input.choices__input--cloned,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices.is-focused .choices__input.choices__input--cloned {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices__list--multiple .choices__item,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__list--multiple .choices__item {
+	background: #5c6f8a;
+	border-radius: 4px;
+}
+
+/* Section Login Protection */
+.hcaptcha-section-login-protection + table tbody {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-areas:
+		"login-limit login-interval"
+		"hide-login-errors .";
+	gap: 0 20px;
+	padding: 15px 20px;
+}
+
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-login-limit {
+	grid-area: login-limit;
+	padding-bottom: 15px;
+}
+
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-login-interval {
+	grid-area: login-interval;
+	padding-bottom: 15px;
+}
+
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-hide-login-errors {
+	grid-area: hide-login-errors;
+}
+
+.hcaptcha-section-login-protection + table tbody tr th {
+	padding: 0 0 10px 0;
+	width: auto;
+}
+
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-hide-login-errors th {
+	padding: 0;
+}
+
+.hcaptcha-section-login-protection + table tbody tr td {
+	width: max-content;
+}
+
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-login-limit td,
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-login-interval td {
+	width: auto;
+}
+
+.hcaptcha-section-login-protection + table tbody tr td input {
+	width: 100%;
+}
+
+@media (max-width: 600px) {
+	.hcaptcha-section-bot-detection + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"set-min-submit-time"
+		"honeypot"
+		"min-submit-time"
+		"antispam"
+		"antispam-provider"
+		"disposable-email";
+	}
+
+	.hcaptcha-section-bot-detection + table tbody tr th,
+	.hcaptcha-section-bot-detection + table tbody tr td {
+		width: unset !important;
+	}
+
+	.hcaptcha-section-access-control + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"blacklisted-ips"
+		"whitelisted-ips"
+		"blacklisted-countries"
+		"whitelisted-countries"
+		"maxmind-key";
+	}
+
+	.hcaptcha-section-access-control + table tbody tr td {
+		width: unset !important;
+	}
+
+	.hcaptcha-section-login-protection + table tbody {
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-areas:
+		"login-limit"
+		"login-interval"
+		"hide-login-errors";
+	}
+
+	.hcaptcha-section-login-protection + table tbody tr td {
+		width: unset !important;
+	}
+}

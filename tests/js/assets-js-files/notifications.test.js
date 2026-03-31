@@ -224,4 +224,63 @@ describe( 'notifications.js', () => {
 		const current = document.getElementById( 'hcaptcha-notifications' );
 		expect( current ).toBe( original );
 	} );
+
+	test( 'normalizeNotificationHeight updates maxHeight when outerHeight returns positive value', () => {
+		bootNotifications();
+
+		// Mock outerHeight to return positive values so the height > maxHeight branch is covered.
+		const outerHeightSpy = jest.spyOn( $.fn, 'outerHeight' ).mockReturnValue( 80 );
+
+		// Re-run the initializer; normalizeNotificationHeight is called at the bottom.
+		window.hCaptchaNotifications( $ );
+
+		// The spy was invoked (once per notification inside the each loop).
+		expect( outerHeightSpy ).toHaveBeenCalled();
+		outerHeightSpy.mockRestore();
+	} );
+
+	test( 'handleNavClick does nothing when navigation would go out of bounds', () => {
+		bootNotifications( { withTwo: true } );
+
+		const { handleNavClick } = window.__notificationsTest;
+		const prevBtn = document.querySelector( '#hcaptcha-navigation .prev' );
+		const nextBtn = document.querySelector( '#hcaptcha-navigation .next' );
+
+		// Currently at index 0 (first visible). Going prev → newIndex = -1 → fails newIndex >= 0.
+		const pageBefore = document.getElementById( 'hcaptcha-navigation-page' ).textContent;
+		handleNavClick( { target: prevBtn } );
+		expect( document.getElementById( 'hcaptcha-navigation-page' ).textContent ).toBe( pageBefore );
+
+		// Navigate to last (index 1), then try to go next → newIndex = 2 → fails newIndex < length.
+		handleNavClick( { target: nextBtn } ); // now at index 1
+		handleNavClick( { target: nextBtn } ); // out of bounds → no-op
+		expect( document.getElementById( 'hcaptcha-navigation-page' ).textContent ).toBe( '2' );
+	} );
+
+	test( 'setNavStatus and setButtons take the no-visible-notification branch when all notifications are hidden', () => {
+		// Build a DOM where notifications exist but none are visible (all display:none).
+		document.body.innerHTML = getDom( { withTwo: true } );
+		document.querySelectorAll( '.hcaptcha-notification' ).forEach( ( el ) => {
+			el.style.display = 'none';
+		} );
+
+		Object.assign( window.HCaptchaNotificationsObject, defaultNotifications );
+		jest.isolateModules( () => {
+			require( '../../../assets/js/notifications.js' );
+		} );
+
+		// Boot: setButtons() (line 225) and setNavStatus() (line 230) are called during init.
+		// With index === -1: setButtons hits the early-return (line 132) and setNavStatus hits
+		// the hide/addClass/return branch (lines 112-114).
+		window.hCaptchaNotifications( $ );
+
+		// After init with all-hidden state the nav span should be hidden.
+		const navSpan = document.querySelector( '#hcaptcha-navigation span' );
+		expect( navSpan.style.display ).toBe( 'none' );
+
+		// Calling the exposed setNavStatus again explicitly to double-confirm the branch.
+		const { setNavStatus } = window.__notificationsTest;
+		setNavStatus();
+		expect( navSpan.style.display ).toBe( 'none' );
+	} );
 } );

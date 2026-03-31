@@ -418,11 +418,7 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	protected function init_settings(): void {
-		if ( $this->is_network_wide() ) {
-			$settings = get_site_option( $this->option_name(), null );
-		} else {
-			$settings = get_option( $this->option_name(), null );
-		}
+		$settings = $this->get_raw_settings();
 
 		$settings_exist                       = is_array( $settings );
 		$this->settings                       = (array) $settings;
@@ -446,6 +442,19 @@ abstract class SettingsBase {
 			array_fill_keys( array_keys( $form_fields ), '' ),
 			wp_list_pluck( $form_fields, 'default' )
 		);
+	}
+
+	/**
+	 * Get settings.
+	 *
+	 * @return array|null
+	 */
+	public function get_raw_settings(): ?array {
+		$settings = $this->is_network_wide()
+				? get_site_option( $this->option_name(), null )
+				: get_option( $this->option_name(), null );
+
+		return $settings ? (array) $settings : null;
 	}
 
 	/**

@@ -81,7 +81,7 @@ class DownloadManager {
 			$url = $m[1];
 		}
 
-		return '<form method="post" action="' . $url . '">' . $template . '</form>';
+		return '<form method="post" action="' . esc_url( $url ) . '">' . $template . '</form>';
 	}
 
 	/**

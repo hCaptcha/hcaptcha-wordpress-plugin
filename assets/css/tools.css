@@ -25,12 +25,14 @@
 	background-size: cover;
 }
 
+#hcaptcha-options.hcaptcha-tools .export-notice,
 #hcaptcha-options.hcaptcha-tools .import-notice {
 	display: none;
 	color: #d63638;
 }
 
-#hcaptcha-options.hcaptcha-tools:has(#include_keys:checked) .import-notice {
+#hcaptcha-options.hcaptcha-tools:has(#include_keys:checked) .export-notice,
+#hcaptcha-options.hcaptcha-tools:has(#include_keys_import:checked) .import-notice {
 	display: block;
 }
 
@@ -38,6 +40,7 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	margin-bottom: 13px;
 }
 
 .hcaptcha-file-upload input[type="file"] {

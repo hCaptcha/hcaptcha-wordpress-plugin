@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Unit\Helpers;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
-use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
@@ -32,7 +31,7 @@ class RequestTest extends HCaptchaTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'] );
+		unset( $_POST['test_var'], $_SERVER['test_var'], $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], $_COOKIE['test_var'] );
 
 		$_GET = [];
 
@@ -265,7 +264,7 @@ class RequestTest extends HCaptchaTestCase {
 
 		// Test with GET.
 		$type              = INPUT_GET;
-		$var_name          = 'some_var';
+		$var_name          = 'test_var';
 		$value             = 'some_value';
 		$_GET[ $var_name ] = $value;
 
@@ -308,14 +307,12 @@ class RequestTest extends HCaptchaTestCase {
 	 * Test sanitize_data() recursively handles arrays.
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_sanitize_data_with_nested_array(): void {
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
 
-		$method = $this->set_method_accessibility( new Request(), 'sanitize_data' );
-		$data   = [
+		$_POST['data'] = [
 			'plain',
 			[
 				'nested',
@@ -333,7 +330,7 @@ class RequestTest extends HCaptchaTestCase {
 					'third',
 				],
 			],
-			$method->invoke( null, $data )
+			Request::filter_input( INPUT_POST, 'data' )
 		);
 	}
 

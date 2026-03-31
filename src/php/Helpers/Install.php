@@ -44,7 +44,7 @@ class Install {
 	 *
 	 * @return void
 	 */
-	public function activation_hook() {
+	public function activation_hook(): void {
 		Events::create_table();
 
 		/**

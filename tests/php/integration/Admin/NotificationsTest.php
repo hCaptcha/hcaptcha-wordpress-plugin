@@ -200,6 +200,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Open tools',
 				],
 			],
+			'migration-wizard'    => [
+				'title'   => 'Migration Wizard',
+				'message' => 'Easily migrate from reCAPTCHA or Cloudflare Turnstile to hCaptcha. The Migration Wizard scans your site and applies changes in one click.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=tools#hcaptcha-migration-wizard',
+					'text' => 'Open wizard',
+				],
+			],
 		];
 
 		switch ( $setting ) {
@@ -500,6 +508,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$expected_notifications = $expected_notifications[0];
 		$actual_notifications   = $actual_notifications[0];
 
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected_notifications = str_replace( '&#038;', '&amp;', $expected_notifications );
+		}
+
 		$sorted_actual_notifications = [];
 
 		foreach ( $actual_notifications as $actual_notification ) {
@@ -574,6 +586,10 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$expected_notifications = $expected_notifications[0];
 		$actual_notifications   = $actual_notifications[0];
+
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected_notifications = str_replace( '&#038;', '&amp;', $expected_notifications );
+		}
 
 		$sorted_actual_notifications = [];
 

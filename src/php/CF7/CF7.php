@@ -421,7 +421,7 @@ class CF7 extends Base {
 		$form_tags              = $contact_form->scan_form_tags();
 
 		foreach ( $form_tags as $form_tag ) {
-			$type  = $form_tag->type;
+			$type  = $form_tag->basetype;
 			$name  = $form_tag->name;
 			$value = $data[ $name ] ?? '';
 

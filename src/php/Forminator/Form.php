@@ -73,7 +73,8 @@ class Form {
 	 */
 	public function init_hooks(): void {
 		add_action( 'forminator_before_form_render', [ $this, 'before_form_render' ], 10, 5 );
-		add_filter( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ], 10, 2 );
+		add_filter( 'forminator_render_button_markup', [ $this, 'add_hcaptcha' ] );
+		add_filter( 'forminator_pagination_submit_markup', [ $this, 'add_hcaptcha' ] );
 		add_filter( 'forminator_cform_form_is_submittable', [ $this, 'verify' ], 10, 3 );
 
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
@@ -82,6 +83,8 @@ class Form {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 
 		add_filter( 'forminator_field_markup', [ $this, 'replace_hcaptcha_field' ], 10, 3 );
+
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 	}
 
 	/**
@@ -105,12 +108,11 @@ class Form {
 	 * Add hCaptcha.
 	 *
 	 * @param string|mixed $html   Shortcode output.
-	 * @param string       $button Shortcode name.
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_hcaptcha( $html, string $button ) {
+	public function add_hcaptcha( $html ) {
 		if ( $this->has_hcaptcha_field ) {
 			return $html;
 		}
@@ -247,6 +249,23 @@ class Form {
 		}
 
 		return $this->get_hcaptcha();
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol CssUnusedSymbol.
+	 */
+	public function print_inline_styles(): void {
+		/* language=CSS */
+		$css = '
+	.forminator-pagination--content ~ h-captcha {
+	    margin-top: 2rem;
+	}
+';
+
+		HCaptcha::css_display( $css );
 	}
 
 	/**

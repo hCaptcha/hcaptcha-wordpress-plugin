@@ -8,6 +8,7 @@
 namespace HCaptcha\Helpers;
 
 use HCaptcha\AntiSpam\AntiSpam;
+use HCaptcha\AntiSpam\DisposableEmail;
 use WP_Error;
 
 /**
@@ -61,7 +62,7 @@ class API {
 		// Init AntiSpam object and add hcap_verify_request hook.
 		( new AntiSpam( $entry ) )->init();
 
-		$result = self::verify_request( $entry['h-captcha-response'] );
+		$result = self::verify_request( $entry['h-captcha-response'], $entry );
 
 		if ( $entry['post_data'] ) {
 			self::unset_global_post_data( $entry );
@@ -198,19 +199,12 @@ class API {
 	 * Verify hCaptcha request.
 	 *
 	 * @param string|null $hcaptcha_response hCaptcha response.
+	 * @param array       $entry             Entry data.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
-	public static function verify_request( $hcaptcha_response = null ): ?string {
-		if ( null === $hcaptcha_response ) {
-			// phpcs:disable WordPress.Security.NonceVerification.Missing
-			$hcaptcha_response = isset( $_POST['h-captcha-response'] )
-				? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
-				: null;
-			// phpcs:enable WordPress.Security.NonceVerification.Missing
-		}
-
+	public static function verify_request( $hcaptcha_response = null, array $entry = [] ): ?string {
 		// Do not make a remote request more than once.
 		if ( hcaptcha()->has_result ) {
 			return self::filtered_result( self::$result, self::$error_codes );
@@ -258,10 +252,14 @@ class API {
 			return self::filtered_result( $result, $error_codes );
 		}
 
-		$hcaptcha_response_sanitized = htmlspecialchars(
-			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
-			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
-		);
+		if ( ! self::check_disposable_email( $entry ) ) {
+			$result      = hcap_get_error_messages()['disposable-email'];
+			$error_codes = [ 'disposable-email' ];
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
+		$hcaptcha_response_sanitized = self::get_hcaptcha_response_sanitized( $hcaptcha_response );
 
 		// The hCaptcha response field is empty.
 		if ( '' === $hcaptcha_response_sanitized ) {
@@ -271,16 +269,7 @@ class API {
 			return self::filtered_result( $result, $error_codes );
 		}
 
-		$params = [
-			'secret'   => hcaptcha()->settings()->get_secret_key(),
-			'response' => $hcaptcha_response_sanitized,
-		];
-
-		$ip = hcap_get_user_ip();
-
-		if ( $ip ) {
-			$params['remoteip'] = $ip;
-		}
+		$params = self::get_params( $hcaptcha_response_sanitized );
 
 		return self::process_request( $params );
 	}
@@ -471,5 +460,66 @@ class API {
 		 * @param true|WP_Error $check True, if the Form Submit Time token is valid. WP_Error object otherwise.
 		 */
 		return apply_filters( 'hcap_verify_fst_token', $fst_obj->verify_token( $min_submit_time ) );
+	}
+
+	/**
+	 * Check if email is NOT disposable.
+	 * Return true if the email is not disposable.
+	 *
+	 * @param array $entry Entry data.
+	 *
+	 * @return bool
+	 */
+	private static function check_disposable_email( array $entry ): bool {
+		if ( ! hcaptcha()->settings()->is_on( 'disposable_email' ) ) {
+			return true;
+		}
+
+		// Init DisposableEmail object and verify the email.
+		return ( new DisposableEmail() )->verify( $entry );
+	}
+
+	/**
+	 * Get request parameters.
+	 *
+	 * @param string $hcaptcha_response_sanitized Sanitized hCaptcha response.
+	 *
+	 * @return array
+	 */
+	private static function get_params( string $hcaptcha_response_sanitized ): array {
+		$params = [
+			'secret'   => hcaptcha()->settings()->get_secret_key(),
+			'response' => $hcaptcha_response_sanitized,
+		];
+
+		$ip = hcap_get_user_ip();
+
+		if ( $ip ) {
+			$params['remoteip'] = $ip;
+		}
+
+		return $params;
+	}
+
+	/**
+	 * Get sanitized hCaptcha response.
+	 *
+	 * @param string|null $hcaptcha_response hCaptcha response.
+	 *
+	 * @return string
+	 */
+	private static function get_hcaptcha_response_sanitized( ?string $hcaptcha_response ): string {
+		if ( null === $hcaptcha_response ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Missing
+			$hcaptcha_response = isset( $_POST['h-captcha-response'] )
+				? filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+				: null;
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
+		}
+
+		return htmlspecialchars(
+			filter_var( $hcaptcha_response, FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
+			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401
+		);
 	}
 }

@@ -1,0 +1,157 @@
+/**
+ * Migration Wizard styles.
+ *
+ * @package hcaptcha-wp
+ */
+
+.hcaptcha-migration-wizard {
+	width: 100%;
+	max-width: 1000px;
+	margin: 20px 0;
+}
+
+.wizard-step-content {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	padding: 24px;
+	margin-bottom: 20px;
+}
+
+#hcaptcha-options .wizard-step-content h3 {
+	margin-top: 13px;
+	font-size: 1.5em;
+}
+
+#hcaptcha-options .wizard-step-content h4 {
+	margin-top: 24px;
+	margin-bottom: 8px;
+}
+
+.wizard-info-list {
+	list-style: disc;
+	padding-left: 20px;
+}
+
+.wizard-info-list li {
+	margin-bottom: 8px;
+}
+
+.wizard-actions {
+	margin-top: 20px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.wizard-spinner {
+	text-align: center;
+	padding: 20px;
+}
+
+.wizard-spinner .spinner {
+	float: none;
+}
+
+/* Results tables. */
+.hcaptcha-migration-wizard .widefat {
+	margin-top: 12px;
+	margin-bottom: 20px;
+}
+
+#hcaptcha-options .hcaptcha-migration-wizard .widefat tr th,
+#hcaptcha-options .hcaptcha-migration-wizard .widefat tr td {
+	padding: 8px 10px;
+	vertical-align: middle;
+}
+
+#hcaptcha-options .hcaptcha-migration-wizard .widefat .check-column {
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	padding: 8px 10px;
+}
+
+.hcaptcha-migration-wizard .widefat .check-column input[type="checkbox"] {
+	margin: 0;
+}
+
+/* Confidence badges. */
+.confidence-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+}
+
+.confidence-high {
+	background: #d4edda;
+	color: #155724;
+}
+
+.confidence-medium {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.confidence-low {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+/* Apply section. */
+.wizard-apply-info {
+	margin-bottom: 16px;
+	padding: 12px 16px;
+	background: #f0f6fc;
+	border: 1px solid #c5d9ed;
+	border-radius: 4px;
+}
+
+.wizard-apply-info label {
+	cursor: pointer;
+}
+
+/* Summary messages. */
+#wizard-summary-message {
+	margin-bottom: 16px;
+}
+
+#wizard-summary-message p {
+	margin: 4px 0;
+}
+
+/* Completion screen. */
+.wizard-checklist {
+	margin: 20px 0;
+	padding: 16px;
+	background: #f0f6fc;
+	border: 1px solid #c5d9ed;
+	border-radius: 4px;
+}
+
+#hcaptcha-options .wizard-checklist h4 {
+	margin-top: 0;
+}
+
+.wizard-checklist ul {
+	list-style: disc;
+	padding-left: 20px;
+	margin-bottom: 0;
+}
+
+.wizard-checklist li {
+	margin-bottom: 6px;
+}
+
+/* Inline notices inside wizard. */
+.hcaptcha-migration-wizard .notice.inline {
+	margin: 16px 0;
+}
+
+/* Complete summary. */
+#wizard-complete-summary {
+	margin-bottom: 16px;
+}

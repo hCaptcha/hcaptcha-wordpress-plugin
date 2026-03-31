@@ -1,6 +1,8 @@
 .codeception/_output/
 .idea/
 .php-scoper/vendor
+.reports/
+.tools/
 .yarn/
 assets/css/*.min.css
 assets/css/*.min.css.map

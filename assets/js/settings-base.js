@@ -1,6 +1,12 @@
-/* global jQuery */
+/* global jQuery, HCaptchaSettingsBaseObject */
 
 import { helper } from './hcaptcha-helper.js';
+
+/**
+ * @param HCaptchaSettingsBaseObject.ajaxUrl
+ * @param HCaptchaSettingsBaseObject.toggleSectionAction
+ * @param HCaptchaSettingsBaseObject.toggleSectionNonce
+ */
 
 /**
  * Base settings page logic.
@@ -268,6 +274,36 @@ const settingsBase = ( function( $ ) {
 	highLight();
 
 	setupLightBox();
+
+	// Toggle a section.
+	$( '#hcaptcha-options h3.togglable' ).on( 'click', function( event ) {
+		const $h3 = $( event.currentTarget );
+
+		$h3.toggleClass( 'closed' );
+
+		$.post( {
+			url: HCaptchaSettingsBaseObject.ajaxUrl,
+			data: {
+				action: HCaptchaSettingsBaseObject.toggleSectionAction,
+				nonce: HCaptchaSettingsBaseObject.toggleSectionNonce,
+				section: $h3.attr( 'class' ).replaceAll( /(hcaptcha-section-|closed|togglable)/g, '' ).trim(),
+				status: ! $h3.hasClass( 'closed' ),
+			},
+		} )
+			.done( function( response ) {
+				if ( ! response.success ) {
+					app.showErrorMessage( response.data );
+				}
+			} )
+			.fail(
+				/**
+				 * @param {Object} response
+				 */
+				function( response ) {
+					app.showErrorMessage( response.statusText );
+				},
+			);
+	} );
 
 	return app;
 }( jQuery ) );

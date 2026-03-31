@@ -32,6 +32,17 @@ use WP_Mock;
 class PluginSettingsBaseTest extends HCaptchaTestCase {
 
 	/**
+	 * Tear down the test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		$_POST = [];
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test constructor.
 	 *
 	 * @return void
@@ -451,5 +462,160 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 			'Bad referer'     => [ false, true, 'Your session has expired. Please reload the page.' ],
 			'No capabilities' => [ true, false, 'You are not allowed to perform this action.' ],
 		];
+	}
+
+	/**
+	 * Test init_hooks().
+	 */
+	public function test_init_hooks(): void {
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->andReturn( false );
+
+		WP_Mock::expectActionAdded( 'wp_ajax_' . PluginSettingsBase::TOGGLE_SECTION_ACTION, [ $subject, 'toggle_section' ] );
+		WP_Mock::expectActionAdded( 'admin_enqueue_scripts', [ $subject, 'localize_settings_base_script' ] );
+
+		$method = 'init_hooks';
+		$subject->$method();
+	}
+
+	/**
+	 * Test toggle_section().
+	 *
+	 * @param string|null $status Status.
+	 *
+	 * @dataProvider dp_test_toggle_section
+	 */
+	public function test_toggle_section( ?string $status ): void {
+		$section                = 'some-section';
+		$user_id                = 1;
+		$user                   = (object) [ 'ID' => $user_id ];
+		$hcaptcha_user_settings = [
+			'sections' => [
+				$section => (bool) $status,
+			],
+		];
+		$subject                = Mockery::mock( PluginSettingsBase::class )->makePartial();
+
+		$_POST['section'] = $section;
+
+		if ( null !== $status ) {
+			$_POST['status'] = $status;
+		}
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $var_name, $filter ) {
+				return (
+					INPUT_POST === $type &&
+					'status' === $var_name &&
+					FILTER_VALIDATE_BOOLEAN === $filter
+				);
+			}
+		);
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'check_ajax_referer' )->with( PluginSettingsBase::TOGGLE_SECTION_ACTION, 'nonce', false )->once()
+			->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( $user );
+		WP_Mock::userFunction( 'get_user_meta' )->with( $user_id, PluginSettingsBase::USER_SETTINGS_META, true )->once()
+			->andReturn( false );
+		WP_Mock::userFunction( 'update_user_meta' )->with( $user_id, PluginSettingsBase::USER_SETTINGS_META, $hcaptcha_user_settings )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->with()->once();
+
+		$subject->toggle_section();
+	}
+
+	/**
+	 * Data provider for test_toggle_section().
+	 *
+	 * @return array
+	 */
+	public function dp_test_toggle_section(): array {
+		return [
+			'No status' => [ null ],
+			'True'      => [ 'true' ],
+			'False'     => [ 'false' ],
+		];
+	}
+
+	/**
+	 * Test localize_settings_base_script().
+	 *
+	 * @param bool $is_options_screen Whether on options screen.
+	 *
+	 * @dataProvider dp_test_localize_settings_base_script
+	 */
+	public function test_localize_settings_base_script( bool $is_options_screen ): void {
+		$ajax_url = 'https://test.test/wp-admin/admin-ajax.php';
+		$nonce    = 'some_nonce';
+		$subject  = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->with()->andReturn( $is_options_screen );
+
+		if ( $is_options_screen ) {
+			WP_Mock::userFunction( 'admin_url' )->with( 'admin-ajax.php' )->once()->andReturn( $ajax_url );
+			WP_Mock::userFunction( 'wp_create_nonce' )->with( PluginSettingsBase::TOGGLE_SECTION_ACTION )->once()->andReturn( $nonce );
+			WP_Mock::userFunction( 'wp_localize_script' )
+				->with(
+					PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
+					PluginSettingsBase::OBJECT,
+					[
+						'ajaxUrl'             => $ajax_url,
+						'toggleSectionAction' => PluginSettingsBase::TOGGLE_SECTION_ACTION,
+						'toggleSectionNonce'  => $nonce,
+					]
+				)
+				->once();
+		}
+
+		$subject->localize_settings_base_script();
+	}
+
+	/**
+	 * Data provider for test_localize_settings_base_script().
+	 *
+	 * @return array
+	 */
+	public function dp_test_localize_settings_base_script(): array {
+		return [
+			'On options screen'     => [ true ],
+			'Not on options screen' => [ false ],
+		];
+	}
+
+	/**
+	 * Test toggle_section() without a user.
+	 */
+	public function test_toggle_section_without_a_user(): void {
+		$section = 'some-section';
+		$status  = '1';
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+
+		$_POST['section'] = $section;
+		$_POST['status']  = $status;
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $var_name, $filter ) {
+				return (
+					INPUT_POST === $type &&
+					'status' === $var_name &&
+					FILTER_VALIDATE_BOOLEAN === $filter
+				);
+			}
+		);
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'check_ajax_referer' )->with( PluginSettingsBase::TOGGLE_SECTION_ACTION, 'nonce', false )->once()
+			->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( null );
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Cannot save section status.' )->once();
+
+		$subject->toggle_section();
 	}
 }
