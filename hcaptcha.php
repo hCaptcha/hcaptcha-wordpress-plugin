@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version.
  */
-const HCAPTCHA_VERSION = '4.25.0';
+const HCAPTCHA_VERSION = '4.25.0-RC3';
 
 /**
  * Path to the plugin dir.
