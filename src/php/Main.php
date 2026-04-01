@@ -19,6 +19,7 @@ use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
+use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CACSP\Compatibility;
@@ -41,6 +42,7 @@ use HCaptcha\NF\NF;
 use HCaptcha\ProtectContent\ProtectContent;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
@@ -205,6 +207,7 @@ class Main {
 				'hCaptcha' => [
 					'classes' => [
 						General::class,
+						AntiSpamPage::class,
 						Integrations::class,
 						FormsPage::class,
 						EventsPage::class,
@@ -222,6 +225,8 @@ class Main {
 
 		$this->load( PluginStats::class );
 		$this->load( MaxMindDb::class );
+		$this->load( DisposableEmail::class );
+
 		$this->load( Events::class );
 		$this->load( Privacy::class );
 		$this->load( WhatsNew::class );
@@ -277,7 +282,7 @@ class Main {
 	}
 
 	/**
-	 * Get Settings instance.
+	 * Get a Settings instance.
 	 *
 	 * @return Settings|null
 	 */
@@ -295,9 +300,9 @@ class Main {
 
 		/**
 		 * Do not load hCaptcha functionality:
-		 * - if a user is logged in and the option 'off_when_logged_in' is set;
-		 * - for allowlisted IPs;
-		 * - when the site key or the secret key is empty (after the first plugin activation).
+		 * - If a user is logged in and the option 'off_when_logged_in' is set;
+		 * - For allowlisted IPs;
+		 * - When the site key or the secret key is empty (after the first plugin activation).
 		 */
 		$deactivate = (
 			( $settings && $settings->is_on( 'off_when_logged_in' ) && is_user_logged_in() ) ||
@@ -818,11 +823,40 @@ class Main {
 	}
 
 	/**
-	 * Add the hCaptcha script to footer.
+	 * Add the hCaptcha script to the footer.
 	 *
 	 * @return void
 	 */
 	public function print_footer_scripts(): void {
+		$settings = $this->settings();
+
+		if ( $settings ) {
+			$params   = [
+				'sitekey' => $settings->get_site_key(),
+				'theme'   => $settings->get_theme(),
+				'size'    => $settings->get( 'size' ),
+			];
+			$language = $settings->get_language();
+
+			// Fix auto-detection of hCaptcha language.
+			$language = $language ?: HCaptcha::get_hcap_locale();
+
+			if ( $language ) {
+				$params['hl'] = $language;
+			}
+
+			$config_params = $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general()
+				? $settings->get_config_params()
+				: [];
+
+			$params = array_merge( $params, $config_params );
+
+			// Output the params object, regardless of whether hCaptcha scripts are enqueued.
+			wp_print_inline_script_tag(
+				'var ' . self::OBJECT . ' = ' . wp_json_encode( [ 'params' => wp_json_encode( $params ) ] ) . ';'
+			);
+		}
+
 		$status = $this->form_shown;
 
 		/**
@@ -834,7 +868,9 @@ class Main {
 			return;
 		}
 
-		$settings = $this->settings();
+		if ( ! $settings ) {
+			return;
+		}
 
 		/**
 		 * Filters delay time for the hCaptcha API script.
@@ -846,12 +882,12 @@ class Main {
 		 * @param int $delay Number of milliseconds to delay hCaptcha API script.
 		 *                   Any negative value means delay until user interaction.
 		 */
-		$delay = (int) apply_filters( 'hcap_delay_api', (int) ( $settings ? $settings->get( 'delay' ) : 0 ) );
+		$delay = (int) apply_filters( 'hcap_delay_api', (int) ( $settings->get( 'delay' ) ) );
 
+		// This delayed script will be waiting for the hCaptchaBeforeAPI event fired by the self::HANDLE script.
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
 
-		wp_enqueue_script( self::WP_HOOKS_HANDLE );
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js',
 			[ self::WP_HOOKS_HANDLE ],
@@ -859,31 +895,7 @@ class Main {
 			true
 		);
 
-		$params   = [
-			'sitekey' => $settings->get_site_key(),
-			'theme'   => $settings->get_theme(),
-			'size'    => $settings->get( 'size' ),
-		];
-		$language = $settings->get_language();
-
-		// Fix auto-detection of hCaptcha language.
-		$language = $language ?: HCaptcha::get_hcap_locale();
-
-		if ( $language ) {
-			$params['hl'] = $language;
-		}
-
-		$config_params = $settings->is_on( 'custom_themes' ) && $settings->is_pro_or_general()
-			? $settings->get_config_params()
-			: [];
-
-		$params = array_merge( $params, $config_params );
-
-		wp_localize_script(
-			self::HANDLE,
-			self::OBJECT,
-			[ 'params' => wp_json_encode( $params ) ]
-		);
+		DelayedScript::enqueue( [ self::WP_HOOKS_HANDLE, self::HANDLE ] );
 	}
 
 	/**

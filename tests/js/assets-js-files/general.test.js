@@ -30,13 +30,9 @@ const defaultGeneralObject = {
 	checkConfigAction: 'hcap_check_config',
 	checkConfigNonce: 'nonce1',
 	checkConfigNotice: 'Please re-check configuration',
-	checkIPsAction: 'hcap_check_ips',
-	checkIPsNonce: 'nonce2',
 	checkingConfigMsg: 'Checking...',
 	completeHCaptchaContent: 'Please solve hCaptcha',
 	completeHCaptchaTitle: 'hCaptcha needed',
-	configuredAntiSpamProviderError: 'Provider %1$s is not supported',
-	configuredAntiSpamProviders: [],
 	modeLive: 'live',
 	modeTestEnterpriseBotDetected: 'test_ent_bot',
 	modeTestEnterpriseBotDetectedSiteKey: 'ent-bot-key',
@@ -47,8 +43,6 @@ const defaultGeneralObject = {
 	siteKey: 'live-key',
 	OKBtnText: 'OK',
 	CancelBtnText: 'Cancel',
-	toggleSectionAction: 'hcap_toggle',
-	toggleSectionNonce: 'nonce3',
 };
 
 global.HCaptchaGeneralObject = { ...defaultGeneralObject };
@@ -141,17 +135,6 @@ function getDom() {
 			<tr><td><input name="hcaptcha_settings[api_host]" value="js.hcaptcha.com" /></td></tr>
 		</tbody></table>
 
-		<!-- Anti-spam provider -->
-		<table><tbody><tr><td>
-		<select name="hcaptcha_settings[antispam_provider]">
-			<option value="none" selected>None</option>
-			<option value="akismet">Akismet</option>
-		</select>
-		</td></tr></tbody></table>
-
-		<!-- IP areas to trigger checkIPs() -->
-		<textarea id="blacklisted_ips"></textarea>
-		<textarea id="whitelisted_ips"></textarea>
 	</form>
 </div>
 <!-- Existing API script to be replaced by scriptUpdate() -->
@@ -163,6 +146,7 @@ function getDom() {
 
 // Load modules after DOM is set in each test
 function bootGeneral( domOverrides = {} ) {
+	jest.resetModules();
 	document.body.innerHTML = getDom();
 	Object.assign( window.HCaptchaGeneralObject, defaultGeneralObject, domOverrides );
 	require( '../../../assets/js/settings-base.js' );
@@ -202,14 +186,20 @@ describe( 'general.js basics', () => {
 		// provide a solved hcaptcha so it does not open the dialog
 		$( 'textarea[name="h-captcha-response"]' ).val( 'token' );
 		const animSpy = jest.spyOn( $.fn, 'animate' ).mockImplementation( () => $.fn );
+		const offsetSpy = jest.spyOn( $.fn, 'offset' ).mockReturnValue( { top: 0, left: 0 } );
 
 		$( '#check_config' ).trigger( 'click' );
 		await Promise.resolve();
+		jest.runAllTimers();
+		await Promise.resolve();
 
-		const msg = document.querySelector( '#hcaptcha-message' );
-		expect( msg.className ).toContain( 'notice-success' );
+		// Re-query the last #hcaptcha-message after clearMessage() may create a new one.
+		const allMsgEls = document.querySelectorAll( '#hcaptcha-message' );
+		const lastMsg = allMsgEls[ allMsgEls.length - 1 ];
+		expect( lastMsg.className ).toContain( 'notice-success' );
 		expect( animSpy ).toHaveBeenCalled();
 		animSpy.mockRestore();
+		offsetSpy.mockRestore();
 	} );
 
 	test( 'size change toggles invisible notice and calls hCaptchaUpdate', () => {
@@ -261,31 +251,6 @@ describe( 'general.js basics', () => {
 		} ) );
 	} );
 
-	test( 'checkIPs: early return on empty, otherwise toggles loading and handles error', async () => {
-		bootGeneral();
-		// Early return
-		const $area = $( '#blacklisted_ips' );
-
-		$area.val( '   ' ).trigger( 'blur' );
-		expect( postSpy ).toHaveBeenCalledTimes( 0 );
-
-		// Now with value — simulate error success:false
-		postSpy.mockImplementation( ( opts ) => {
-			const d = $.Deferred();
-			opts?.beforeSend?.();
-			setTimeout( () => d.resolve( { success: false, data: 'Bad IPs' } ), 0 );
-			return d;
-		} );
-
-		$area.val( '1.1.1.1' ).trigger( 'blur' );
-		await Promise.resolve();
-		jest.runAllTimers();
-		const parent = $area.parent();
-		expect( parent.hasClass( 'hcaptcha-loading' ) ).toBe( false );
-		expect( $area.css( 'background-color' ) ).toBe( 'rgb(255, 171, 175)' );
-		expect( document.querySelector( '#hcaptcha-message' ).className ).toContain( 'notice-error' );
-	} );
-
 	test( 'scriptUpdate: rebuilds API script with params and clears sample', async () => {
 		bootGeneral();
 		// Enable recaptcha compat off and custom themes to get params in URL
@@ -302,18 +267,6 @@ describe( 'general.js basics', () => {
 		expect( script.src ).toContain( 'custom=true' );
 		// sample cleared
 		expect( $( '#hcaptcha-options .h-captcha' ).html() ).toBe( '' );
-	} );
-
-	test( 'anti-spam provider error is shown when provider not in allowed list', () => {
-		bootGeneral( { configuredAntiSpamProviders: [] } );
-		const sel = $( "select[name='hcaptcha_settings[antispam_provider]']" );
-		sel.val( 'akismet' ).trigger( 'change' );
-		// The code appends a <div> with an error to the same row
-		expect( document.querySelectorAll( "[name='hcaptcha_settings[antispam_provider]']" ).length ).toBe( 1 );
-		// Search for the appended div under the same row
-		const tr = sel.closest( 'tr' )[ 0 ];
-		expect( tr ).toBeTruthy();
-		expect( tr.querySelectorAll( 'div' ).length ).toBeGreaterThan( 0 );
 	} );
 
 	test( 'credentials change disables submit and checkConfig success re-enables', async () => {
@@ -493,52 +446,6 @@ describe( 'checkConfig done/fail branches', () => {
 	} );
 } );
 
-describe( 'checkIPs success and fail branches', () => {
-	jest.useFakeTimers();
-	let postSpy;
-
-	beforeEach( () => {
-		jest.clearAllMocks();
-		postSpy = jest.spyOn( $, 'post' );
-	} );
-
-	afterEach( () => {
-		postSpy.mockRestore();
-	} );
-
-	test( 'checkIPs .done with success=true clears bg and enables submit', async () => {
-		postSpy.mockImplementation( ( opts ) => {
-			const d = $.Deferred();
-			opts?.beforeSend?.();
-			setTimeout( () => d.resolve( { success: true } ), 0 );
-			return d;
-		} );
-		bootGeneral();
-		const $area = $( '#blacklisted_ips' );
-		$area.val( '1.1.1.1' ).trigger( 'blur' );
-		jest.runAllTimers();
-		await Promise.resolve();
-
-		expect( $area[ 0 ].style.backgroundColor ).toBe( '' );
-		expect( $( '#submit' ).attr( 'disabled' ) ).toBeUndefined();
-	} );
-
-	test( 'checkIPs .fail shows error with statusText', async () => {
-		postSpy.mockImplementation( ( opts ) => {
-			const d = $.Deferred();
-			opts?.beforeSend?.();
-			setTimeout( () => d.reject( { statusText: 'Server error' } ), 0 );
-			return d;
-		} );
-		bootGeneral();
-		$( '#blacklisted_ips' ).val( '2.2.2.2' ).trigger( 'blur' );
-		jest.runAllTimers();
-		await Promise.resolve();
-
-		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
-	} );
-} );
-
 describe( 'checkChangeCredentials revert to initial', () => {
 	beforeEach( () => {
 		jest.clearAllMocks();
@@ -660,16 +567,14 @@ describe( 'hCaptchaLoaded event', () => {
 	} );
 
 	test( 'dispatching hCaptchaLoaded calls showErrorMessage', () => {
-		const $msg = $( '#hcaptcha-message' );
-		$msg.removeClass();
-
 		// Generate a console error so showErrorMessage has content to display.
 		window.__generalTest.interceptConsoleLogs();
 		console.error( 'test error from hCaptchaLoaded' );
 
 		document.dispatchEvent( new Event( 'hCaptchaLoaded' ) );
 
-		expect( $msg.hasClass( 'notice-error' ) ).toBe( true );
+		// Re-query after clearMessage() replaces the element.
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
 	} );
 } );
 
@@ -770,63 +675,6 @@ describe( 'toggleCustomThemeFields and configParams focus', () => {
 		$cfg.trigger( 'focus' );
 		// jsdom resolves 'unset' to computed value; check the inline style directly.
 		expect( $cfg[ 0 ].style.backgroundColor ).toBe( 'unset' );
-	} );
-} );
-
-describe( 'section toggle h3 click', () => {
-	jest.useFakeTimers();
-	let postSpy;
-
-	beforeEach( () => {
-		jest.clearAllMocks();
-		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => {
-			const d = $.Deferred();
-			setTimeout( () => d.resolve( { success: true } ), 0 );
-			return d;
-		} );
-	} );
-
-	afterEach( () => {
-		postSpy.mockRestore();
-	} );
-
-	test( 'clicking h3 toggles closed class and posts to server', () => {
-		bootGeneral();
-		const $h3 = $( '.hcaptcha-section-keys' );
-
-		$h3.trigger( 'click' );
-		expect( $h3.hasClass( 'closed' ) ).toBe( true );
-		expect( postSpy ).toHaveBeenCalledWith( expect.objectContaining( {
-			url: HCaptchaGeneralObject.ajaxUrl,
-		} ) );
-
-		// Click again to toggle back.
-		$h3.trigger( 'click' );
-		expect( $h3.hasClass( 'closed' ) ).toBe( false );
-	} );
-
-	test( 'section toggle .done with success=false shows error', () => {
-		postSpy.mockImplementation( () => {
-			const d = $.Deferred();
-			d.resolve( { success: false, data: 'Toggle error' } );
-			return d;
-		} );
-		bootGeneral();
-		$( '.hcaptcha-section-keys' ).trigger( 'click' );
-
-		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
-	} );
-
-	test( 'section toggle .fail shows error', () => {
-		postSpy.mockImplementation( () => {
-			const d = $.Deferred();
-			d.reject( { statusText: 'Toggle fail' } );
-			return d;
-		} );
-		bootGeneral();
-		$( '.hcaptcha-section-keys' ).trigger( 'click' );
-
-		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
 	} );
 } );
 
@@ -1009,14 +857,6 @@ describe( 'remaining branch coverage', () => {
 		$( "[name='hcaptcha_settings[asset_host]']" ).trigger( 'change' );
 		const script = document.getElementById( 'hcaptcha-api' );
 		expect( script.src ).toContain( 'js.hcaptcha.com' );
-	} );
-
-	test( 'anti-spam provider in allowed list does not show error', () => {
-		bootGeneral( { configuredAntiSpamProviders: [ 'akismet' ] } );
-		const sel = $( "select[name='hcaptcha_settings[antispam_provider]']" );
-		sel.val( 'akismet' ).trigger( 'change' );
-		const tr = sel.closest( 'tr' )[ 0 ];
-		expect( tr.querySelectorAll( 'div' ).length ).toBe( 0 );
 	} );
 
 	test( 'checkConfig click with solved captcha calls onAction which invokes hCaptchaBindEvents', () => {

@@ -101,7 +101,7 @@ class DownloadManagerTest extends HCaptchaWPTestCase {
 </div>
 HTML;
 		$expected  = <<<HTML
-<form method="post" action="https://test.test/download/test-download/?wpdmdl=$form_id&refresh=6730d78f063da1731254159"><div class="row">
+<form method="post" action="https://test.test/download/test-download/?wpdmdl=$form_id&#038;refresh=6730d78f063da1731254159"><div class="row">
 	<div class="col-md-12">
 		<div class="card mb-3 p-3 hide_empty wpdm_hide wpdm_remove_empty">[featured_image]</div>
 	</div>

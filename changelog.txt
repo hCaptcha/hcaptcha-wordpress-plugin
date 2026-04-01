@@ -1,3 +1,20 @@
+= 4.25.0 =
+* Added a one-click setup option to the Onboarding Wizard to apply recommended settings automatically.
+* Added Migration Wizard to help migrate from Google reCAPTCHA and Cloudflare Turnstile to hCaptcha.
+* Added a dedicated Anti-Spam settings tab, moving bot protection, access control, and login security settings out of the General page.
+* Added disposable email blocking with an auto-updating blocklist of 4,000+ temporary email domains.
+* Added sorting country names on the Anti-Spam tab.
+* Added Include Site and Secret Keys checkbox to the options import dialog.
+* Added support for Forminator multi-step forms when hCaptcha is not explicitly inserted into the form.
+* Added hcap_delay_api_selector filter to delay API script loading based on selector.
+* Added compatibility with WordPress 7.0.
+* Fixed a fatal error when processing Jetpack Forms with multiple choices.
+* Fixed settings export and import on multisite.
+* Fixed settings import with changes not on the General tab.
+* Fixed MaxMind DB update schedule not being stopped when the license key is removed.
+* Fixed detection of the email address in the Contact Form 7 form.
+* Fixed a fatal error in the wp_login_form () function and LoginOut block.
+
 = 4.24.0 =
 * Added country allowlist and denylist to control where hCaptcha protections apply.
 * Added compatibility with Payment Plugins for Stripe WooCommerce.
@@ -63,7 +80,6 @@
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
-* Added Patchstack security program support.
 * Added support for WP Multisite Signup form.
 * Added support for a Theme My Login Multisite Signup form.
 * Added test mode by default on the first installation.

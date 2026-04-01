@@ -304,6 +304,10 @@ HTML;
 			'description' => 'When hCaptcha plugin is active and integration is on, hCaptcha settings must be modified on the <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general" target="_blank">General settings page</a>.',
 		];
 
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected['description'] = str_replace( '&#038;', '&amp;', $expected['description'] );
+		}
+
 		self::assertSame( $expected, HCaptcha::get_hcaptcha_plugin_notice() );
 	}
 

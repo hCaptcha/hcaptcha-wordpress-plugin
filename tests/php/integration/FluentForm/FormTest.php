@@ -632,7 +632,16 @@ class FormTest extends HCaptchaWPTestCase {
 			'some key' => 'some value',
 		];
 		$fluent_forms_conversational_json   = wp_json_encode( $fluent_forms_conversational_params );
-		$expected_fluent_forms_extra        = <<<HTML
+
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected_fluent_forms_extra = <<<HTML
+<script id="$fluent_forms_conversational_script-js-extra">
+var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
+//# sourceURL=fluent_forms_conversational_form-js-extra
+</script>
+HTML;
+		} else {
+			$expected_fluent_forms_extra = <<<HTML
 <script type="text/javascript" id="$fluent_forms_conversational_script-js-extra">
 /* <![CDATA[ */
 var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
@@ -640,6 +649,7 @@ var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
 /* ]]> */
 </script>
 HTML;
+		}
 
 		wp_enqueue_script( $fluent_forms_conversational_script, $fluent_forms_conversational_source, [], '1.0.0', true );
 		wp_localize_script(

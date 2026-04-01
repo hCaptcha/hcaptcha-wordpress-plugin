@@ -30,6 +30,11 @@ class MaxMindDb {
 	public const DATABASE_EXTENSION = '.mmdb';
 
 	/**
+	 * Action Scheduler hook name.
+	 */
+	public const UPDATE_ACTION = 'hcap_update_maxmind_db';
+
+	/**
 	 * MaxMind DB file name.
 	 */
 	private const DB_FILE = self::DATABASE . self::DATABASE_EXTENSION;
@@ -62,7 +67,61 @@ class MaxMindDb {
 	 */
 	private function init_hooks(): void {
 		add_action( 'hcap_load_maxmind_db', [ $this, 'load_db' ] );
-		add_action( 'hcap_update_maxmind_db', [ $this, 'update_db' ] );
+		add_action( self::UPDATE_ACTION, [ $this, 'update_db' ] );
+	}
+
+	/**
+	 * Handle key activation: download the DB if needed, schedule updates.
+	 *
+	 * @param string $key MaxMind license key.
+	 *
+	 * @return void
+	 */
+	public function activate( string $key ): void {
+		$this->load_db( $key );
+		$this->schedule_update();
+	}
+
+	/**
+	 * Handle key deactivation: unschedule updates.
+	 *
+	 * @return void
+	 */
+	public function deactivate(): void {
+		$this->unschedule_update();
+	}
+
+	/**
+	 * Schedule the recurring DB update via Action Scheduler.
+	 *
+	 * @return void
+	 */
+	protected function schedule_update(): void {
+		if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
+			return;
+		}
+
+		as_schedule_recurring_action(
+			time() + WEEK_IN_SECONDS,
+			WEEK_IN_SECONDS,
+			self::UPDATE_ACTION,
+			[],
+			'hcaptcha',
+			true
+		);
+	}
+
+	/**
+	 * Unschedule the recurring DB update.
+	 *
+	 * @return void
+	 */
+	protected function unschedule_update(): void {
+		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
+			return;
+		}
+
+		as_unschedule_all_actions( self::UPDATE_ACTION, [], 'hcaptcha' );
 	}
 
 	/**

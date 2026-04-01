@@ -672,57 +672,6 @@ abstract class HCaptchaTestCase extends TestCase {
 				'section' => 'content',
 				'helper'  => 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.',
 			],
-			'set_min_submit_time'      => [
-				'label'   => 'Token and Honeypot',
-				'type'    => 'checkbox',
-				'section' => 'antispam',
-				'options' => [
-					'on' => 'Set Minimum Time',
-				],
-				'helper'  => 'Set a minimum amount of time a user must spend on a form before submitting.',
-			],
-			'min_submit_time'          => [
-				'label'   => 'Minimum Time to Submit the Form, sec',
-				'type'    => 'number',
-				'section' => 'antispam',
-				'default' => 2,
-				'min'     => 1,
-				'helper'  => 'Set a minimum amount of time a user must spend on a form before submitting.',
-			],
-			'honeypot'                 => [
-				'type'    => 'checkbox',
-				'section' => 'antispam',
-				'options' => [
-					'on' => 'Enable Honeypot Field',
-				],
-				'helper'  => 'Add a honeypot field to submitted forms for early bot prevention.',
-			],
-			'blacklisted_ips'          => [
-				'label'   => 'Denylisted IPs',
-				'type'    => 'textarea',
-				'section' => General::SECTION_OTHER,
-				'helper'  => 'Block form sending from listed IP addresses. Please specify one IP, range, or CIDR per line.',
-			],
-			'whitelisted_ips'          => [
-				'label'   => 'Allowlisted IPs',
-				'type'    => 'textarea',
-				'section' => General::SECTION_OTHER,
-				'helper'  => 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.',
-			],
-			'blacklisted_countries'    => [
-				'label'   => 'Denylisted Countries',
-				'type'    => 'multiple',
-				'options' => [],
-				'section' => General::SECTION_OTHER,
-				'helper'  => 'Block form sending from selected countries.',
-			],
-			'whitelisted_countries'    => [
-				'label'   => 'Allowlisted Countries',
-				'type'    => 'multiple',
-				'options' => [],
-				'section' => General::SECTION_OTHER,
-				'helper'  => 'Do not show hCaptcha for users from selected countries.',
-			],
 			'delay'                    => [
 				'label'   => 'Delay Showing hCaptcha, ms',
 				'type'    => 'number',
@@ -732,30 +681,8 @@ abstract class HCaptchaTestCase extends TestCase {
 				'step'    => 100,
 				'helper'  => 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.',
 			],
-			'maxmind_key'              => [
-				'label'        => 'MaxMind License Key',
-				'type'         => 'password',
-				'autocomplete' => 'off',
-				'section'      => 'other',
-				'helper'       => 'Needed to automatically download the GeoLite2 Country database for country allowlist/denylist checks.',
-			],
-			'login_limit'              => [
-				'label'   => 'Login Attempts Before hCaptcha',
-				'type'    => 'number',
-				'section' => General::SECTION_OTHER,
-				'default' => 0,
-				'min'     => 0,
-				'helper'  => 'Maximum number of failed login attempts before showing hCaptcha.',
-			],
-			'login_interval'           => [
-				'label'   => 'Failed Login Attempts Interval, min',
-				'type'    => 'number',
-				'section' => General::SECTION_OTHER,
-				'default' => 15,
-				'min'     => 1,
-				'helper'  => 'Time interval in minutes when failed login attempts are counted.',
-			],
 			'off_when_logged_in'       => [
+				'label'   => 'Other Settings',
 				'type'    => 'checkbox',
 				'section' => General::SECTION_OTHER,
 				'options' => [
@@ -770,14 +697,6 @@ abstract class HCaptchaTestCase extends TestCase {
 					'on' => 'Disable reCAPTCHA Compatibility',
 				],
 				'helper'  => 'Use if including both hCaptcha and reCAPTCHA on the same page.',
-			],
-			'hide_login_errors'        => [
-				'type'    => 'checkbox',
-				'section' => General::SECTION_OTHER,
-				'options' => [
-					'on' => 'Hide Login Errors',
-				],
-				'helper'  => 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.',
 			],
 			'cleanup_on_uninstall'     => [
 				'type'    => 'checkbox',

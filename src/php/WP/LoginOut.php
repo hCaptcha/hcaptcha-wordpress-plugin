@@ -31,12 +31,12 @@ class LoginOut extends LoginBase {
 	 * Add hCaptcha.
 	 *
 	 * @param string|mixed $content Content to display. Default empty.
-	 * @param array        $args    Array of login form arguments.
+	 * @param array|mixed  $args    Array of login form arguments.
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_wp_login_out_hcaptcha( $content, array $args ): string {
+	public function add_wp_login_out_hcaptcha( $content, $args ): string {
 		$content = (string) $content;
 
 		if ( ! $this->is_wp_login_out_form() ) {

@@ -8,6 +8,8 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Helpers\Request;
+use HCaptcha\Helpers\Utils;
+use HCaptcha\MigrationWizard\MigrationWizard;
 
 /**
  * Class Tools
@@ -51,15 +53,6 @@ class Tools extends PluginSettingsBase {
 	}
 
 	/**
-	 * Get menu title.
-	 *
-	 * @return string
-	 */
-	protected function menu_title(): string {
-		return __( 'Tools', 'hcaptcha-for-forms-and-more' );
-	}
-
-	/**
 	 * Get section title.
 	 *
 	 * @return string
@@ -69,12 +62,22 @@ class Tools extends PluginSettingsBase {
 	}
 
 	/**
+	 * Migration wizard instance.
+	 *
+	 * @var MigrationWizard
+	 */
+	private MigrationWizard $migration_wizard;
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
 	 */
 	protected function init_hooks(): void {
 		parent::init_hooks();
+
+		$this->migration_wizard = new MigrationWizard();
+		$this->migration_wizard->init();
 
 		add_action( 'wp_ajax_' . self::EXPORT_ACTION, [ $this, 'ajax_handle_export' ] );
 		add_action( 'wp_ajax_' . self::IMPORT_ACTION, [ $this, 'ajax_handle_import' ] );
@@ -86,7 +89,7 @@ class Tools extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function admin_enqueue_scripts(): void {
-		$min = defined( 'SCRIPT_DEBUG' ) && constant( 'SCRIPT_DEBUG' ) ? '' : '.min';
+		$min = hcap_min_suffix();
 
 		wp_enqueue_script(
 			self::HANDLE,
@@ -117,6 +120,8 @@ class Tools extends PluginSettingsBase {
 				'selectJsonFile' => __( 'Please select a JSON file.', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
+
+		$this->migration_wizard->admin_enqueue_scripts();
 	}
 
 	/**
@@ -147,21 +152,21 @@ class Tools extends PluginSettingsBase {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$filename = isset( $_FILES['import_file']['tmp_name'] ) ? sanitize_text_field( $_FILES['import_file']['tmp_name'] ) : '';
 
+		$include_keys = 'on' === Request::filter_input( INPUT_POST, 'include_keys_import' );
+
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$json = file_get_contents( $filename );
-		$data = json_decode( $json, true );
+		$data = Utils::json_decode_arr( $json );
 
 		// Admin UI import keeps keys if present.
 		$transfer = new SettingsTransfer();
-		$result   = $transfer->apply_import_payload( $data, true );
+		$result   = $transfer->apply_import_payload( $data, $include_keys );
 
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( [ 'message' => $result->get_error_message() ] );
 		}
 
-		$message = null === $result
-				? __( 'hCaptcha settings were successfully imported.', 'hcaptcha-for-forms-and-more' )
-				: $result;
+		$message = $result ?? __( 'hCaptcha settings were successfully imported.', 'hcaptcha-for-forms-and-more' );
 
 		wp_send_json_success( [ 'message' => $message ] );
 	}
@@ -179,9 +184,13 @@ class Tools extends PluginSettingsBase {
 		?>
 		<div id="hcaptcha-message"></div>
 		<p>
-			<?php esc_html_e( 'Manage the export and import of hCaptcha plugin settings.', 'hcaptcha-for-forms-and-more' ); ?>
+			<?php esc_html_e( 'Manage migration wizard, export and import of hCaptcha plugin settings.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>
 		<?php
+
+		$this->print_section_header( 'migration-wizard', __( 'Migration Wizard', 'hcaptcha-for-forms-and-more' ) );
+
+		$this->migration_wizard->render_section();
 
 		$this->print_section_header( 'export', __( 'Export', 'hcaptcha-for-forms-and-more' ) );
 
@@ -194,7 +203,7 @@ class Tools extends PluginSettingsBase {
 					<?php esc_html_e( 'Include site and secret keys', 'hcaptcha-for-forms-and-more' ); ?>
 				</label>
 			</fieldset>
-			<p class="import-notice">
+			<p class="export-notice">
 				<span>
 					<?php esc_html_e( 'Including keys will export sensitive data. Only use this file in a trusted environment.', 'hcaptcha-for-forms-and-more' ); ?>
 				</span>
@@ -219,6 +228,17 @@ class Tools extends PluginSettingsBase {
 				</span>
 				<input type="file" id="hcaptcha-import-file" name="import_file" accept=".json,application/json"/>
 			</div>
+			<fieldset>
+				<label for="include_keys_import">
+					<input id="include_keys_import" name="include_keys_import" type="checkbox" value="on">
+					<?php esc_html_e( 'Include site and secret keys', 'hcaptcha-for-forms-and-more' ); ?>
+				</label>
+			</fieldset>
+			<p class="import-notice">
+				<span>
+					<?php esc_html_e( 'Including keys will import sensitive data. Only use this file in a trusted environment.', 'hcaptcha-for-forms-and-more' ); ?>
+				</span>
+			</p>
 			<p>
 				<input
 						type="submit" name="hcaptcha_import" id="hcaptcha-import-btn" class="button button-primary"
@@ -248,6 +268,7 @@ class Tools extends PluginSettingsBase {
 		$class = $open ? '' : ' closed';
 
 		?>
+		<hr class="hcaptcha-section-<?php echo esc_attr( $id ); ?>">
 		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?><?php echo esc_attr( $class ); ?>">
 			<span class="hcaptcha-section-header-title">
 				<?php echo esc_html( $title ); ?>

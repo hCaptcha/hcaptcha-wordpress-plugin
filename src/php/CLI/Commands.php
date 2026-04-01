@@ -13,6 +13,7 @@
 
 namespace HCaptcha\CLI;
 
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Settings\SettingsTransfer;
 use WP_CLI;
 use function WP_CLI\Utils\get_flag_value;
@@ -64,11 +65,9 @@ class Commands {
 
 		if ( $file ) {
 			$dir = dirname( $file );
-			if ( ! is_dir( $dir ) ) {
+			if ( ! is_dir( $dir ) && ! @wp_mkdir_p( $dir ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 				// Try to create the directory tree.
-				if ( ! @wp_mkdir_p( $dir ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-					WP_CLI::error( sprintf( 'Cannot create directory: %s', $dir ) );
-				}
+				WP_CLI::error( sprintf( 'Cannot create directory: %s', $dir ) );
 			}
 
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.PHP.NoSilencedErrors.Discouraged
@@ -128,7 +127,7 @@ class Commands {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$json = file_get_contents( $file );
-		$data = json_decode( $json, true );
+		$data = Utils::json_decode_arr( $json );
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
 			WP_CLI::error( 'Invalid JSON.' );
@@ -145,6 +144,7 @@ class Commands {
 	 * @param bool  $dry_run    Dry run.
 	 *
 	 * @return void
+	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
 	private function apply_import_payload( array $data, bool $allow_keys, bool $dry_run ): void {
 		$transfer = new SettingsTransfer();

@@ -7,6 +7,8 @@
 
 namespace HCaptcha\Helpers;
 
+use HCaptcha\DelayedScript\DelayedScript;
+use HCaptcha\Main;
 use WP_Error;
 
 /**
@@ -80,22 +82,24 @@ class FormSubmitTime {
 
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-fst$min.js",
-			[ 'hcaptcha' ],
+			[ Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
 
-		wp_localize_script(
-			self::HANDLE,
-			self::OBJECT,
-			[
-				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-				'issueTokenAction' => self::ISSUE_TOKEN_ACTION,
-				'issueTokenNonce'  => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
-			]
+		DelayedScript::enqueue( self::HANDLE );
+
+		wp_print_inline_script_tag(
+			'var ' . self::OBJECT . ' = ' . wp_json_encode(
+				[
+					'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+					'issueTokenAction' => self::ISSUE_TOKEN_ACTION,
+					'issueTokenNonce'  => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
+				]
+			) . ';'
 		);
 	}
 

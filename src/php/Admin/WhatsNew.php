@@ -518,6 +518,39 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 4.25.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_4_25_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_4_25_0 = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Migration Wizard', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'Switching from reCAPTCHA or Turnstile? The new Migration Wizard makes it effortless.', 'hcaptcha-for-forms-and-more' ),
+				__( 'It automatically scans your site for existing CAPTCHA plugins, detects the surfaces they protect, and enables hCaptcha on those surfaces with a single click.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Find the Migration Wizard on the Tools page and migrate in seconds.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['migration_wizard'],
+				'text' => __( 'Open Migration Wizard', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['migration_wizard_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_4_25_0 );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.

@@ -22,6 +22,21 @@ abstract class PluginSettingsBase extends SettingsBase {
 	public const PREFIX = 'hcaptcha';
 
 	/**
+	 * Script localization object.
+	 */
+	public const OBJECT = 'HCaptchaSettingsBaseObject';
+
+	/**
+	 * Toggle section ajax action.
+	 */
+	public const TOGGLE_SECTION_ACTION = 'hcaptcha-toggle-section';
+
+	/**
+	 * User settings meta.
+	 */
+	public const USER_SETTINGS_META = 'hcaptcha_user_settings';
+
+	/**
 	 * Settings option name.
 	 */
 	public const OPTION_NAME = 'hcaptcha_settings';
@@ -32,6 +47,39 @@ abstract class PluginSettingsBase extends SettingsBase {
 	 * @var bool
 	 */
 	protected bool $submit_shown = false;
+
+	/**
+	 * Init class hooks.
+	 *
+	 * @return void
+	 */
+	protected function init_hooks(): void {
+		parent::init_hooks();
+
+		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'localize_settings_base_script' ] );
+	}
+
+	/**
+	 * Localize a settings-base script with toggle-section data.
+	 *
+	 * @return void
+	 */
+	public function localize_settings_base_script(): void {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
+		wp_localize_script(
+			static::PREFIX . '-' . self::HANDLE,
+			self::OBJECT,
+			[
+				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+				'toggleSectionAction' => self::TOGGLE_SECTION_ACTION,
+				'toggleSectionNonce'  => wp_create_nonce( self::TOGGLE_SECTION_ACTION ),
+			]
+		);
+	}
 
 	/**
 	 * Constructor.
@@ -277,6 +325,60 @@ abstract class PluginSettingsBase extends SettingsBase {
 			__( 'Version %s', 'hcaptcha-for-forms-and-more' ),
 			constant( 'HCAPTCHA_VERSION' )
 		);
+	}
+
+	/**
+	 * Ajax action to toggle a section.
+	 *
+	 * @return void
+	 */
+	public function toggle_section(): void {
+		$this->run_checks( self::TOGGLE_SECTION_ACTION );
+
+		// Nonce is checked by check_ajax_referer() in run_checks().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
+		$status  = isset( $_POST['status'] )
+			? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN )
+			: false;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
+
+		if ( ! $user_id ) {
+			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
+		}
+
+		$hcaptcha_user_settings = array_filter(
+			(array) get_user_meta( $user_id, self::USER_SETTINGS_META, true )
+		);
+
+		$hcaptcha_user_settings['sections'][ $section ] = (bool) $status;
+
+		update_user_meta( $user_id, self::USER_SETTINGS_META, $hcaptcha_user_settings );
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Get section open status.
+	 *
+	 * @param string $id Section id.
+	 *
+	 * @return bool
+	 */
+	protected function get_section_open_status( string $id ): bool {
+		$user                   = wp_get_current_user();
+		$hcaptcha_user_settings = [];
+
+		if ( $user ) {
+			$hcaptcha_user_settings = get_user_meta( $user->ID, self::USER_SETTINGS_META, true );
+		}
+
+		return (bool) ( $hcaptcha_user_settings['sections'][ $id ] ?? true );
 	}
 
 	/**

@@ -75,6 +75,14 @@ export class helper {
 	static getAction( options, actionName ) {
 		const data = options.data ?? '';
 
+		if ( data instanceof FormData ) {
+			return data.get( actionName ) ?? '';
+		}
+
+		if ( typeof data === 'object' ) {
+			return data.action ?? '';
+		}
+
 		if ( typeof data !== 'string' ) {
 			return '';
 		}

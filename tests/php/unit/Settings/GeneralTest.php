@@ -16,6 +16,8 @@ namespace HCaptcha\Tests\Unit\Settings;
 use HCaptcha\Admin\Notifications;
 use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Main;
+use HCaptcha\MigrationWizard\DetectionResult;
+use HCaptcha\MigrationWizard\MigrationWizard;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Settings\General;
@@ -41,6 +43,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 */
 	public function tearDown(): void {
 		$_POST = [];
+		unset( $_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] );
 
 		parent::tearDown();
 	}
@@ -81,10 +84,7 @@ class GeneralTest extends HCaptchaTestCase {
 
 		// is_admin() is checked inside SettingsBase::init().
 		WP_Mock::userFunction( 'is_admin' )->once()->andReturn( true );
-
-		// OnboardingWizard should be instantiated with the current tab ($this).
-		$wizard = Mockery::mock( 'overload:' . OnboardingWizard::class );
-		$wizard->shouldReceive( '__construct' )->once()->with( $subject );
+		WP_Mock::userFunction( 'wp_doing_ajax' )->once()->andReturn( false );
 
 		$subject->init();
 	}
@@ -112,6 +112,7 @@ class GeneralTest extends HCaptchaTestCase {
 		if ( $doing_ajax ) {
 			$subject->shouldReceive( 'init_notifications' )->with()->once();
 		} else {
+			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'maybe_handle_onboarding_auto_setup' ], 5 );
 			WP_Mock::expectActionAdded( 'current_screen', [ $subject, 'init_notifications' ] );
 		}
 
@@ -120,7 +121,7 @@ class GeneralTest extends HCaptchaTestCase {
 
 		WP_Mock::expectFilterAdded( 'kagg_settings_fields', [ $subject, 'settings_fields' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . General::CHECK_CONFIG_ACTION, [ $subject, 'check_config' ] );
-		WP_Mock::expectActionAdded( 'wp_ajax_' . General::TOGGLE_SECTION_ACTION, [ $subject, 'toggle_section' ] );
+		WP_Mock::expectActionAdded( 'wp_ajax_' . PluginSettingsBase::TOGGLE_SECTION_ACTION, [ $subject, 'toggle_section' ] );
 
 		WP_Mock::expectFilterAdded( 'pre_update_option_' . $option_name, [ $subject, 'maybe_send_stats' ], 20, 2 );
 
@@ -145,6 +146,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test init_notifications().
 	 *
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_init_notifications(): void {
 		$hcaptcha      = Mockery::mock( Main::class )->makePartial();
@@ -182,6 +184,132 @@ class GeneralTest extends HCaptchaTestCase {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		self::assertNull( $this->get_protected_property( $subject, 'notifications' ) );
+	}
+
+	/**
+	 * Test maybe_handle_onboarding_auto_setup().
+	 */
+	public function test_maybe_handle_onboarding_auto_setup(): void {
+		$_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] = '1';
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
+		$subject->shouldReceive( 'should_enable_onboarding_antispam' )->once()->andReturn( true );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'force', [ 'on' ] );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'honeypot', [ 'on' ] );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'set_min_submit_time', [ 'on' ] );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'antispam', [ 'on' ] );
+		$subject->shouldReceive( 'auto_migration' )->once();
+		$subject->shouldReceive( 'update_option' )->once()->with( OnboardingWizard::OPTION_NAME, 'step 8' );
+		$subject->shouldReceive( 'tab_url' )->once()->with( $subject )->andReturn( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
+		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )
+			->once()
+			->with( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
+
+		$subject->maybe_handle_onboarding_auto_setup();
+	}
+
+	/**
+	 * Test maybe_handle_onboarding_auto_setup() when anti-spam provider is not configured.
+	 */
+	public function test_maybe_handle_onboarding_auto_setup_without_configured_antispam_provider(): void {
+		$_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] = '1';
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
+		$subject->shouldReceive( 'should_enable_onboarding_antispam' )->once()->andReturn( false );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'force', [ 'on' ] );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'honeypot', [ 'on' ] );
+		$subject->shouldReceive( 'update_option' )->once()->with( 'set_min_submit_time', [ 'on' ] );
+		$subject->shouldReceive( 'update_option' )->never()->with( 'antispam', [ 'on' ] );
+		$subject->shouldReceive( 'auto_migration' )->once();
+		$subject->shouldReceive( 'update_option' )->once()->with( OnboardingWizard::OPTION_NAME, 'step 8' );
+		$subject->shouldReceive( 'tab_url' )->once()->with( $subject )->andReturn( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
+		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )
+			->once()
+			->with( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
+
+		$subject->maybe_handle_onboarding_auto_setup();
+	}
+
+	/**
+	 * Test auto_migration().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_auto_migration(): void {
+		if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+			define( 'HOUR_IN_SECONDS', 3600 );
+		}
+
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+
+		$scan_data = [
+			'already_enabled' => [ 'wp_comment' ],
+			'results'         => [
+				[
+					'surface'               => 'wp_login',
+					'confidence'            => DetectionResult::CONFIDENCE_HIGH,
+					'is_migratable'         => true,
+					'hcaptcha_option_key'   => 'wp_status',
+					'hcaptcha_option_value' => 'login',
+				],
+				[
+					'surface'               => 'wp_register',
+					'confidence'            => DetectionResult::CONFIDENCE_LOW,
+					'is_migratable'         => true,
+					'hcaptcha_option_key'   => 'wp_status',
+					'hcaptcha_option_value' => 'register',
+				],
+				[
+					'surface'               => 'wp_comment',
+					'confidence'            => DetectionResult::CONFIDENCE_MEDIUM,
+					'is_migratable'         => true,
+					'hcaptcha_option_key'   => 'wp_status',
+					'hcaptcha_option_value' => 'comment',
+				],
+				[
+					'surface'               => 'wp_lost_password',
+					'confidence'            => DetectionResult::CONFIDENCE_HIGH,
+					'is_migratable'         => false,
+					'hcaptcha_option_key'   => 'wp_status',
+					'hcaptcha_option_value' => 'lost_password',
+				],
+			],
+		];
+
+		$wizard = Mockery::mock( MigrationWizard::class );
+		$wizard->shouldReceive( 'scan' )->once()->andReturn( $scan_data );
+		$wizard->shouldReceive( 'apply' )
+			->once()
+			->with(
+				[
+					[
+						'surface'               => 'wp_login',
+						'hcaptcha_option_key'   => 'wp_status',
+						'hcaptcha_option_value' => 'login',
+					],
+				]
+			)
+			->andReturn(
+				[
+					'enabled' => [ 'wp_login' ],
+					'failed'  => [],
+				]
+			);
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'create_migration_wizard' )->once()->andReturn( $wizard );
+
+		$method = $this->set_method_accessibility( $subject, 'auto_migration' );
+		$method->invoke( $subject );
+		$method->setAccessible( false );
 	}
 
 	/**
@@ -322,7 +450,7 @@ class GeneralTest extends HCaptchaTestCase {
 			</div>
 					</div>
 						<div id="hcaptcha-message"></div>
-						<h3 class="hcaptcha-section-keys">
+						<h3 class="togglable hcaptcha-section-keys">
 			<span class="hcaptcha-section-header-title">
 				Keys			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -332,7 +460,7 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'appearance' => [
 				General::SECTION_APPEARANCE,
-				'		<h3 class="hcaptcha-section-appearance">
+				'		<h3 class="togglable hcaptcha-section-appearance">
 			<span class="hcaptcha-section-header-title">
 				Appearance			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -342,7 +470,7 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'custom'     => [
 				General::SECTION_CUSTOM,
-				'		<h3 class="hcaptcha-section-custom closed disabled">
+				'		<h3 class="togglable hcaptcha-section-custom closed disabled">
 			<span class="hcaptcha-section-header-title">
 				Custom - hCaptcha Pro Required			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -352,7 +480,7 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'enterprise' => [
 				General::SECTION_ENTERPRISE,
-				'		<h3 class="hcaptcha-section-enterprise closed disabled">
+				'		<h3 class="togglable hcaptcha-section-enterprise closed disabled">
 			<span class="hcaptcha-section-header-title">
 				Enterprise - hCaptcha Enterprise Required			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -362,7 +490,7 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'content'    => [
 				General::SECTION_CONTENT,
-				'		<h3 class="hcaptcha-section-content">
+				'		<h3 class="togglable hcaptcha-section-content">
 			<span class="hcaptcha-section-header-title">
 				Content			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -370,19 +498,9 @@ class GeneralTest extends HCaptchaTestCase {
 		</h3>
 		',
 			],
-			'antispam'   => [
-				General::SECTION_ANTISPAM,
-				'		<h3 class="hcaptcha-section-antispam">
-			<span class="hcaptcha-section-header-title">
-				Anti-spam			</span>
-			<span class="hcaptcha-section-header-toggle">
-			</span>
-		</h3>
-		',
-			],
 			'other'      => [
 				General::SECTION_OTHER,
-				'		<h3 class="hcaptcha-section-other">
+				'		<h3 class="togglable hcaptcha-section-other">
 			<span class="hcaptcha-section-header-title">
 				Other			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -392,7 +510,7 @@ class GeneralTest extends HCaptchaTestCase {
 			],
 			'statistics' => [
 				General::SECTION_STATISTICS,
-				'		<h3 class="hcaptcha-section-statistics">
+				'		<h3 class="togglable hcaptcha-section-statistics">
 			<span class="hcaptcha-section-header-title">
 				Statistics			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -423,7 +541,6 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$settings = Mockery::mock( Settings::class )->makePartial();
 		$settings->shouldReceive( 'get' )->with( 'site_key' )->andReturn( $site_key );
-		$settings->shouldReceive( 'get' )->with( 'maxmind_key' )->andReturn( '' );
 
 		$main = Mockery::mock( Main::class )->makePartial();
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
@@ -470,26 +587,6 @@ class GeneralTest extends HCaptchaTestCase {
 			)
 			->once();
 
-		WP_Mock::userFunction( 'wp_enqueue_script' )
-			->with(
-				General::HANDLE . '-choices',
-				$plugin_url . '/assets/lib/choices/choices.min.js',
-				[],
-				'v11.2.0',
-				true
-			)
-			->once();
-
-		WP_Mock::userFunction( 'wp_enqueue_script' )
-			->with(
-				General::HANDLE . '-countries',
-				$plugin_url . '/assets/js/general-countries.js',
-				[ 'jquery', General::HANDLE . '-choices' ],
-				$plugin_version,
-				true
-			)
-			->once();
-
 		WP_Mock::userFunction( 'admin_url' )
 			->with( 'admin-ajax.php' )
 			->andReturn( $ajax_url )
@@ -497,16 +594,6 @@ class GeneralTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'wp_create_nonce' )
 			->with( General::CHECK_CONFIG_ACTION )
-			->andReturn( $nonce )
-			->once();
-
-		WP_Mock::userFunction( 'wp_create_nonce' )
-			->with( General::CHECK_IPS_ACTION )
-			->andReturn( $nonce )
-			->once();
-
-		WP_Mock::userFunction( 'wp_create_nonce' )
-			->with( General::TOGGLE_SECTION_ACTION )
 			->andReturn( $nonce )
 			->once();
 
@@ -518,10 +605,6 @@ class GeneralTest extends HCaptchaTestCase {
 					'ajaxUrl'                              => $ajax_url,
 					'checkConfigAction'                    => General::CHECK_CONFIG_ACTION,
 					'checkConfigNonce'                     => $nonce,
-					'checkIPsAction'                       => General::CHECK_IPS_ACTION,
-					'checkIPsNonce'                        => $nonce,
-					'toggleSectionAction'                  => General::TOGGLE_SECTION_ACTION,
-					'toggleSectionNonce'                   => $nonce,
 					'modeLive'                             => General::MODE_LIVE,
 					'modeTestPublisher'                    => General::MODE_TEST_PUBLISHER,
 					'modeTestEnterpriseSafeEndUser'        => General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
@@ -537,18 +620,6 @@ class GeneralTest extends HCaptchaTestCase {
 					'completeHCaptchaContent'              => 'Before checking the site config, please complete the Active hCaptcha in the current section.',
 					'OKBtnText'                            => 'OK',
 					'configuredAntiSpamProviders'          => [],
-					'configuredAntiSpamProviderError'      => '%1$s anti-spam provider is not configured.',
-				]
-			)
-			->once();
-
-		WP_Mock::userFunction( 'wp_localize_script' )
-			->with(
-				General::HANDLE . '-countries',
-				'HCaptchaGeneralCountriesObject',
-				[
-					'searchPlaceholder' => 'Set MaxMind License Key first',
-					'searchAriaLabel'   => 'Search countries',
 				]
 			)
 			->once();
@@ -569,18 +640,8 @@ class GeneralTest extends HCaptchaTestCase {
 				[
 					PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
 					General::DIALOG_HANDLE,
-					General::HANDLE . '-choices',
 				],
 				$plugin_version
-			)
-			->once();
-
-		WP_Mock::userFunction( 'wp_enqueue_style' )
-			->with(
-				General::HANDLE . '-choices',
-				$plugin_url . '/assets/lib/choices/choices.min.css',
-				[],
-				'v11.2.0'
 			)
 			->once();
 
@@ -700,133 +761,6 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test check_ips().
-	 *
-	 * @return void
-	 */
-	public function test_check_ips(): void {
-		$ips = '192.168.1.1 10.0.0.0/8 2a02:6b8::1 10.0.0.1-10.0.0.100';
-
-		$_POST['ips'] = $ips;
-
-		$subject = Mockery::mock( General::class )->makePartial();
-
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'run_checks' )->with( General::CHECK_IPS_ACTION )->twice();
-
-		// Valid IPs.
-		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::passthruFunction( 'sanitize_text_field' );
-		WP_Mock::userFunction( 'wp_send_json_success' )->with()->once();
-
-		$subject->check_ips();
-
-		// Invalid IP.
-		$ips = '1.2.3.4 999.999.999.999';
-
-		$_POST['ips'] = $ips;
-
-		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Invalid IP or CIDR range: 999.999.999.999' )->once();
-
-		$subject->check_ips();
-	}
-
-	/**
-	 * Test toggle_section().
-	 *
-	 * @param string|null $status Status.
-	 *
-	 * @dataProvider dp_test_toggle_section
-	 */
-	public function test_toggle_section( ?string $status ): void {
-		$section                = 'some-section';
-		$user_id                = 1;
-		$user                   = (object) [ 'ID' => $user_id ];
-		$hcaptcha_user_settings = [
-			'sections' => [
-				$section => (bool) $status,
-			],
-		];
-		$subject                = Mockery::mock( General::class )->makePartial();
-
-		$_POST['section'] = $section;
-
-		if ( null !== $status ) {
-			$_POST['status'] = $status;
-		}
-
-		FunctionMocker::replace(
-			'filter_input',
-			static function ( $type, $var_name, $filter ) {
-				return (
-					INPUT_POST === $type &&
-					'status' === $var_name &&
-					FILTER_VALIDATE_BOOLEAN === $filter
-				);
-			}
-		);
-
-		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::passthruFunction( 'sanitize_text_field' );
-		WP_Mock::userFunction( 'check_ajax_referer' )->with( General::TOGGLE_SECTION_ACTION, 'nonce', false )->once()
-			->andReturn( true );
-		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
-		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( $user );
-		WP_Mock::userFunction( 'get_user_meta' )->with( $user_id, General::USER_SETTINGS_META, true )->once()
-			->andReturn( false );
-		WP_Mock::userFunction( 'update_user_meta' )->with( $user_id, General::USER_SETTINGS_META, $hcaptcha_user_settings )->once();
-		WP_Mock::userFunction( 'wp_send_json_success' )->with()->once();
-
-		$subject->toggle_section();
-	}
-
-	/**
-	 * Data provider for test_toggle_section().
-	 *
-	 * @return array
-	 */
-	public function dp_test_toggle_section(): array {
-		return [
-			'No status' => [ null ],
-			'True'      => [ 'true' ],
-			'False'     => [ 'false' ],
-		];
-	}
-
-	/**
-	 * Test toggle_section() without a user.
-	 */
-	public function test_toggle_section_without_a_user(): void {
-		$section = 'some-section';
-		$status  = '1';
-		$subject = Mockery::mock( General::class )->makePartial();
-
-		$_POST['section'] = $section;
-		$_POST['status']  = $status;
-
-		FunctionMocker::replace(
-			'filter_input',
-			static function ( $type, $var_name, $filter ) {
-				return (
-					INPUT_POST === $type &&
-					'status' === $var_name &&
-					FILTER_VALIDATE_BOOLEAN === $filter
-				);
-			}
-		);
-
-		WP_Mock::passthruFunction( 'wp_unslash' );
-		WP_Mock::passthruFunction( 'sanitize_text_field' );
-		WP_Mock::userFunction( 'check_ajax_referer' )->with( General::TOGGLE_SECTION_ACTION, 'nonce', false )->once()
-			->andReturn( true );
-		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
-		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( null );
-		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Cannot save section status.' )->once();
-
-		$subject->toggle_section();
-	}
-
-	/**
 	 * Test maybe_send_stats().
 	 *
 	 * @param bool $stats     New stats value.
@@ -861,45 +795,6 @@ class GeneralTest extends HCaptchaTestCase {
 			'Turned on'  => [ true, false, true ],
 			'Turned off' => [ false, true, false ],
 			'Already on' => [ true, true, false ],
-		];
-	}
-
-	/**
-	 * Test maybe_load_maxmind_db().
-	 *
-	 * @param string $maxmind_key     New maxmind key.
-	 * @param string $old_maxmind_key Old maxmind key.
-	 * @param bool   $expected        Action to be fired.
-	 *
-	 * @dataProvider dp_test_maybe_load_maxmind_db
-	 */
-	public function test_maybe_load_maxmind_db( string $maxmind_key, string $old_maxmind_key, bool $expected ): void {
-		$value     = [ 'maxmind_key' => $maxmind_key ];
-		$old_value = [ 'maxmind_key' => $old_maxmind_key ];
-
-		$subject = Mockery::mock( General::class )->makePartial();
-
-		if ( $expected ) {
-			WP_Mock::expectAction( 'hcap_load_maxmind_db', $maxmind_key );
-		} else {
-			WP_Mock::userFunction( 'do_action' )->with( 'hcap_load_maxmind_db', Mockery::any() )->never();
-		}
-
-		self::assertSame( $value, $subject->maybe_load_maxmind_db( $value, $old_value ) );
-	}
-
-	/**
-	 * Data provider for test_maybe_load_maxmind_db().
-	 *
-	 * @return array
-	 */
-	public function dp_test_maybe_load_maxmind_db(): array {
-		return [
-			'No keys'     => [ '', '', false ],
-			'Key set'     => [ 'some-key', '', true ],
-			'Key removed' => [ '', 'old-key', false ],
-			'Key changed' => [ 'new-key', 'old-key', true ],
-			'Key same'    => [ 'same-key', 'same-key', false ],
 		];
 	}
 }

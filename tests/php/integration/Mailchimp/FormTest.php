@@ -141,6 +141,10 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'Token expired.',
 			],
+			'disposable-email'         => [
+				'type' => 'error',
+				'text' => 'Please use a permanent email address.',
+			],
 		];
 
 		$expected = array_merge( $messages, $hcap_errors );

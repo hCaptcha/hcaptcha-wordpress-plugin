@@ -54,7 +54,7 @@ class Base {
 			return;
 		}
 
-		add_filter( 'option_wpcf7', [ $this, 'option_wpcf7' ], 10, 2 );
+		add_filter( 'option_wpcf7', [ self::class, 'option_wpcf7' ], 10, 2 );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class Base {
 	 *
 	 * @return array|mixed
 	 */
-	public function option_wpcf7( $value, $option ) {
+	public static function option_wpcf7( $value, $option ) {
 		if ( 'wpcf7' !== $option ) {
 			return $value;
 		}

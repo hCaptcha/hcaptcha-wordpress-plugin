@@ -48,8 +48,16 @@ class HCaptchaWPTestCase extends WPTestCase {
 			static function ( $form_fields, $instance ) {
 				if ( $instance instanceof General ) {
 					// Set min submit time and honeypot for tests.
-					$form_fields['set_min_submit_time']['default'] = 'on';
-					$form_fields['honeypot']['default']            = 'on';
+					$form_fields['set_min_submit_time'] = [
+						'default'  => 'on',
+						'type'     => 'checkbox',
+						'disabled' => false,
+					];
+					$form_fields['honeypot']            = [
+						'default'  => 'on',
+						'type'     => 'checkbox',
+						'disabled' => false,
+					];
 				}
 
 				return $form_fields;

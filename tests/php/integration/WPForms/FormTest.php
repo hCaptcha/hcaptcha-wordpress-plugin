@@ -446,6 +446,10 @@ CSS;
 			'captcha-preview'     => '<div>' . $hcap_form . '</div>',
 		];
 
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected = str_replace( '&#038;', '&amp;', $expected );
+		}
+
 		$subject = new Form();
 
 		self::assertSame( $fields, $subject->wpforms_settings_fields( $fields, 'some_view' ) );

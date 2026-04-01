@@ -122,9 +122,9 @@ class Request {
 	 * @param int    $type     Input type.
 	 * @param string $var_name Variable name.
 	 *
-	 * @return string
+	 * @return array|string
 	 */
-	public static function filter_input( int $type, string $var_name ): string {
+	public static function filter_input( int $type, string $var_name ) {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		switch ( $type ) {
 			case INPUT_GET:

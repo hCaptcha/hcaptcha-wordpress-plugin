@@ -17,6 +17,7 @@ use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
+use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\BBPress\NewTopic;
 use HCaptcha\BBPress\Reply;
@@ -1080,11 +1081,7 @@ CSS;
 			$encoded_config_params = '';
 		}
 
-		$expected_extra = [
-			'group' => 1,
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaMainObject = {"params":"' . addslashes( $encoded_params ) . '"};',
-		];
+		$expected_inline = 'var HCaptchaMainObject = ' . wp_json_encode( [ 'params' => $encoded_params ] ) . ';';
 
 		update_option(
 			'hcaptcha_settings',
@@ -1117,7 +1114,8 @@ CSS;
 		self::assertSame( HCAPTCHA_URL . '/assets/js/apps/hcaptcha.js', $script->src );
 		self::assertSame( [ 'wp-hooks' ], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
-		self::assertSame( $expected_extra, $script->extra );
+		self::assertSame( [ 'group' => 1 ], $script->extra );
+		self::assertNotFalse( strpos( $scripts, $expected_inline ) );
 
 		self::assertNotFalse( strpos( $scripts, $expected_scripts ) );
 	}
@@ -1139,7 +1137,43 @@ CSS;
 		do_action( 'wp_print_footer_scripts' );
 		$scripts = ob_get_clean();
 
-		self::assertSame( '', $scripts );
+		self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
+		self::assertFalse( strpos( $scripts, 'api.js' ) );
+	}
+
+	/**
+	 * Test print_footer_scripts() when the delay API selector is set.
+	 *
+	 * @return void
+	 */
+	public function test_print_footer_scripts_with_delay_api_selector(): void {
+		$selector = '.hcaptcha-widget';
+
+		add_filter(
+			'hcap_delay_api_selector',
+			static function () use ( $selector ) {
+				return $selector;
+			}
+		);
+
+		$hcaptcha = hcaptcha();
+
+		$hcaptcha->form_shown = true;
+
+		$hcaptcha->init_hooks();
+
+		ob_start();
+		do_action( 'wp_print_footer_scripts' );
+		$scripts = ob_get_clean();
+
+		// Inline object must still be present.
+		self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
+
+		// Inline loader script must be present with selector, IntersectionObserver, and both script URLs.
+		self::assertNotFalse( strpos( $scripts, $selector ) );
+		self::assertNotFalse( strpos( $scripts, 'IntersectionObserver' ) );
+		self::assertNotFalse( strpos( $scripts, 'hcaptcha.js' ) );
+		self::assertNotFalse( strpos( $scripts, 'hooks' ) );
 	}
 
 	/**
@@ -1412,6 +1446,7 @@ CSS;
 		do_action( 'wp_print_footer_scripts' );
 		$scripts = ob_get_clean();
 
+		self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
 		self::assertFalse( strpos( $scripts, '<style>' ) );
 		self::assertFalse( strpos( $scripts, 'api.js' ) );
 	}
@@ -1450,6 +1485,7 @@ CSS;
 		$expected_loaded_classes = [
 			PluginStats::class,
 			MaxMindDb::class,
+			DisposableEmail::class,
 			Events::class,
 			Privacy::class,
 			WhatsNew::class,

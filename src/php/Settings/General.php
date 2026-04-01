@@ -14,6 +14,8 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Main;
+use HCaptcha\MigrationWizard\DetectionResult;
+use HCaptcha\MigrationWizard\MigrationWizard;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
@@ -44,16 +46,6 @@ class General extends PluginSettingsBase {
 	public const CHECK_CONFIG_ACTION = 'hcaptcha-general-check-config';
 
 	/**
-	 * Toggle section ajax action.
-	 */
-	public const TOGGLE_SECTION_ACTION = 'hcaptcha-general-toggle-section';
-
-	/**
-	 * Check IPs ajax action.
-	 */
-	public const CHECK_IPS_ACTION = 'hcaptcha-general-check-ips';
-
-	/**
 	 * Keys section id.
 	 */
 	public const SECTION_KEYS = 'keys';
@@ -77,11 +69,6 @@ class General extends PluginSettingsBase {
 	 * Content section id.
 	 */
 	public const SECTION_CONTENT = 'content';
-
-	/**
-	 * AntiSpam section id.
-	 */
-	public const SECTION_ANTISPAM = 'antispam';
 
 	/**
 	 * Another section id.
@@ -132,11 +119,6 @@ class General extends PluginSettingsBase {
 	 * Test secret key.
 	 */
 	public const MODE_TEST_SECRET_KEY = '0' . 'x' . '0000000000000000000000000000000000000000'; // phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
-
-	/**
-	 * User settings meta.
-	 */
-	public const USER_SETTINGS_META = 'hcaptcha_user_settings';
 
 	/**
 	 * The 'check config' form id.
@@ -193,9 +175,12 @@ class General extends PluginSettingsBase {
 			// We need ajax actions in the Notifications and Onboarding class.
 			$this->init_notifications();
 		} else {
-			// The current class loaded early on plugins_loaded.
-			// Init Notifications and Onboarding later, when the Settings class is ready.
-			// Also, we need to check if we are on the General screen.
+			/**
+			 * The current class loaded early on plugins_loaded.
+			 * Init Notifications, Onboarding, and Auto Setup later, when the Settings class is ready.
+			 * Also, we need to check if we are on the General screen.
+			 */
+			add_action( 'current_screen', [ $this, 'maybe_handle_onboarding_auto_setup' ], 5 );
 			add_action( 'current_screen', [ $this, 'init_notifications' ] );
 		}
 
@@ -204,14 +189,135 @@ class General extends PluginSettingsBase {
 
 		add_filter( 'kagg_settings_fields', [ $this, 'settings_fields' ] );
 		add_action( 'wp_ajax_' . self::CHECK_CONFIG_ACTION, [ $this, 'check_config' ] );
-		add_action( 'wp_ajax_' . self::CHECK_IPS_ACTION, [ $this, 'check_ips' ] );
-		add_action( 'wp_ajax_' . self::TOGGLE_SECTION_ACTION, [ $this, 'toggle_section' ] );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_send_stats' ], 20, 2 );
 		add_filter( 'pre_update_site_option_' . $this->option_name(), [ $this, 'maybe_send_stats' ], 20, 2 );
+	}
 
-		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_load_maxmind_db' ], 20, 2 );
-		add_filter( 'pre_update_site_option_' . $this->option_name(), [ $this, 'maybe_load_maxmind_db' ], 20, 2 );
+	/**
+	 * Apply onboarding automatic setup on the General page.
+	 *
+	 * @return void
+	 */
+	public function maybe_handle_onboarding_auto_setup(): void {
+		if ( ! $this->is_options_screen() ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] ) ) {
+			return;
+		}
+
+		$this->update_option( 'force', [ 'on' ] );
+		$this->update_option( 'honeypot', [ 'on' ] );
+		$this->update_option( 'set_min_submit_time', [ 'on' ] );
+
+		if ( $this->should_enable_onboarding_antispam() ) {
+			$this->update_option( 'antispam', [ 'on' ] );
+		}
+
+		$this->auto_migration();
+
+		$this->update_option( OnboardingWizard::OPTION_NAME, 'step 8' );
+
+		$url = $this->tab_url( $this );
+
+		$this->redirect_after_onboarding_auto_setup( $url );
+	}
+
+	/**
+	 * Apply the recommended migration wizard setup during onboarding auto-setup.
+	 *
+	 * @return void
+	 */
+	protected function auto_migration(): void {
+		$migration_wizard = $this->create_migration_wizard();
+		$scan_data        = $migration_wizard->scan();
+		$surfaces         = $this->get_migration_surfaces( $scan_data );
+
+		if ( empty( $surfaces ) ) {
+			return;
+		}
+
+		$migration_wizard->apply( $surfaces );
+	}
+
+	/**
+	 * Create a migration wizard instance.
+	 *
+	 * @return MigrationWizard
+	 */
+	protected function create_migration_wizard(): MigrationWizard {
+		// @codeCoverageIgnoreStart
+		return new MigrationWizard();
+		// @codeCoverageIgnoreEnd
+	}
+
+	/**
+	 * Get migration surfaces suitable for onboarding auto-setup.
+	 *
+	 * @param array $scan_data Scan data returned by the migration wizard.
+	 *
+	 * @return array
+	 */
+	protected function get_migration_surfaces( array $scan_data ): array {
+		$surfaces        = [];
+		$already_enabled = (array) ( $scan_data['already_enabled'] ?? [] );
+
+		foreach ( (array) ( $scan_data['results'] ?? [] ) as $result ) {
+			if ( ! is_array( $result ) ) {
+				continue;
+			}
+
+			$surface_id = $result['surface'] ?? '';
+
+			if (
+				empty( $result['is_migratable'] ) ||
+				DetectionResult::CONFIDENCE_LOW === ( $result['confidence'] ?? '' ) ||
+				in_array( $surface_id, $already_enabled, true )
+			) {
+				continue;
+			}
+
+			$surfaces[] = [
+				'surface'               => $surface_id,
+				'hcaptcha_option_key'   => $result['hcaptcha_option_key'] ?? '',
+				'hcaptcha_option_value' => $result['hcaptcha_option_value'] ?? '',
+			];
+		}
+
+		return $surfaces;
+	}
+
+	/**
+	 * Whether onboarding automatic setup can enable the anti-spam check.
+	 *
+	 * @return bool
+	 */
+	protected function should_enable_onboarding_antispam(): bool {
+		$provider = (string) $this->get( 'antispam_provider' );
+
+		if ( ! $provider ) {
+			return false;
+		}
+
+		return in_array( $provider, AntiSpam::get_configured_providers(), true );
+	}
+
+	/**
+	 * Redirect after onboarding automatic setup changes are applied.
+	 *
+	 * @param string $url Redirect URL.
+	 *
+	 * @return void
+	 */
+	protected function redirect_after_onboarding_auto_setup( string $url ): void {
+		// @codeCoverageIgnoreStart
+		wp_safe_redirect( $url );
+
+		exit;
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -235,7 +341,7 @@ class General extends PluginSettingsBase {
 	 */
 	public function init_form_fields(): void {
 		$this->form_fields = [
-			'site_key'              => [
+			'site_key'             => [
 				'label'        => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
 				'type'         => 'text',
 				'autocomplete' => 'nickname',
@@ -243,30 +349,30 @@ class General extends PluginSettingsBase {
 				'section'      => self::SECTION_KEYS,
 				'helper'       => __( 'To fill out the site key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'secret_key'            => [
+			'secret_key'           => [
 				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'password',
 				'section' => self::SECTION_KEYS,
 				'helper'  => __( 'To fill out the secret key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'sample_hcaptcha'       => [
+			'sample_hcaptcha'      => [
 				'label'   => __( 'Active hCaptcha to Check Site Config', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'hcaptcha',
 				'section' => self::SECTION_KEYS,
 			],
-			'check_config'          => [
+			'check_config'         => [
 				'label'   => __( 'Check Site Config', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'button',
 				'text'    => __( 'Check', 'hcaptcha-for-forms-and-more' ),
 				'section' => self::SECTION_KEYS,
 			],
-			'reset_notifications'   => [
+			'reset_notifications'  => [
 				'label'   => __( 'Reset Notifications', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'button',
 				'text'    => __( 'Reset', 'hcaptcha-for-forms-and-more' ),
 				'section' => self::SECTION_KEYS,
 			],
-			'theme'                 => [
+			'theme'                => [
 				'label'   => __( 'Theme', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_APPEARANCE,
@@ -277,7 +383,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Select hCaptcha theme.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'size'                  => [
+			'size'                 => [
 				'label'   => __( 'Size', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_APPEARANCE,
@@ -288,7 +394,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Select hCaptcha size.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'language'              => [
+			'language'             => [
 				'label'   => __( 'Language', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_APPEARANCE,
@@ -410,7 +516,7 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
-			'mode'                  => [
+			'mode'                 => [
 				'label'   => __( 'Mode', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_APPEARANCE,
@@ -428,7 +534,7 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
-			'force'                 => [
+			'force'                => [
 				'label'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_APPEARANCE,
@@ -437,7 +543,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Force hCaptcha check before submit.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'menu_position'         => [
+			'menu_position'        => [
 				'label'   => __( 'Tabs Menu Under Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_APPEARANCE,
@@ -446,7 +552,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'When on, the hCaptcha admin menu is placed under Settings.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'custom_themes'         => [
+			'custom_themes'        => [
 				'label'   => __( 'Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_CUSTOM,
@@ -454,7 +560,7 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Enable Custom Themes', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => sprintf(
-				/* translators: 1: hCaptcha Pro link, 2: hCaptcha Enterprise link. */
+					/* translators: 1: hCaptcha Pro link, 2: hCaptcha Enterprise link. */
 					__( 'Note: only works on hCaptcha %1$s and %2$s site keys.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="https://www.hcaptcha.com/pro?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=upgrade" target="_blank">%s</a>',
@@ -466,25 +572,25 @@ class General extends PluginSettingsBase {
 					)
 				),
 			],
-			'custom_prop'           => [
+			'custom_prop'          => [
 				'label'   => __( 'Property', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'options' => [],
 				'section' => self::SECTION_CUSTOM,
 				'helper'  => __( 'Select custom theme property.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'custom_value'          => [
+			'custom_value'         => [
 				'label'   => __( 'Value', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_CUSTOM,
 				'helper'  => __( 'Set property value.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'config_params'         => [
+			'config_params'        => [
 				'label'   => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_CUSTOM,
 				'helper'  => sprintf(
-				/* translators: 1: hCaptcha render params doc link. */
+					/* translators: 1: hCaptcha render params doc link. */
 					__( 'hCaptcha render %s (optional). Must be a valid JSON.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=docs" target="_blank">%s</a>',
@@ -492,57 +598,57 @@ class General extends PluginSettingsBase {
 					)
 				),
 			],
-			'api_host'              => [
+			'api_host'             => [
 				'label'   => __( 'API Host', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'default' => Main::API_HOST,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'asset_host'            => [
+			'asset_host'           => [
 				'label'   => __( 'Asset Host', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'endpoint'              => [
+			'endpoint'             => [
 				'label'   => __( 'Endpoint', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'host'                  => [
+			'host'                 => [
 				'label'   => __( 'Host', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'image_host'            => [
+			'image_host'           => [
 				'label'   => __( 'Image Host', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'report_api'            => [
+			'report_api'           => [
 				'label'   => __( 'Report API', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'sentry'                => [
+			'sentry'               => [
 				'label'   => __( 'Sentry', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'backend'               => [
+			'backend'              => [
 				'label'   => __( 'Backend', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'text',
 				'section' => self::SECTION_ENTERPRISE,
 				'default' => Main::VERIFY_HOST,
 				'helper'  => __( 'See Enterprise docs.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'protect_content'       => [
+			'protect_content'      => [
 				'label'   => __( 'Content Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_CONTENT,
@@ -551,80 +657,13 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Protect site content from bots with hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'protected_urls'        => [
+			'protected_urls'       => [
 				'label'   => __( 'Protected URLs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_CONTENT,
 				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'set_min_submit_time'   => [
-				'label'   => __( 'Token and Honeypot', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'checkbox',
-				'section' => self::SECTION_ANTISPAM,
-				'options' => [
-					'on' => __( 'Set Minimum Time', 'hcaptcha-for-forms-and-more' ),
-				],
-				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'min_submit_time'       => [
-				'label'   => __( 'Minimum Time to Submit the Form, sec', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'number',
-				'section' => self::SECTION_ANTISPAM,
-				'default' => 2,
-				'min'     => 1,
-				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'honeypot'              => [
-				'type'    => 'checkbox',
-				'section' => self::SECTION_ANTISPAM,
-				'options' => [
-					'on' => __( 'Enable Honeypot Field', 'hcaptcha-for-forms-and-more' ),
-				],
-				'helper'  => __( 'Add a honeypot field to submitted forms for early bot prevention.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'antispam'              => [
-				'label'   => __( 'Anti-Spam Check', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'checkbox',
-				'section' => self::SECTION_ANTISPAM,
-				'options' => [
-					'on' => __( 'Enable Anti-Spam Check', 'hcaptcha-for-forms-and-more' ),
-				],
-				'helper'  => __( 'Enable anti-spam check of submitted forms.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'antispam_provider'     => [
-				'label'   => __( 'Anti-Spam Provider', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'select',
-				'section' => self::SECTION_ANTISPAM,
-				'options' => AntiSpam::get_supported_providers(),
-				'helper'  => __( 'Select anti-spam provider.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'blacklisted_ips'       => [
-				'label'   => __( 'Denylisted IPs', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'textarea',
-				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Block form sending from listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'whitelisted_ips'       => [
-				'label'   => __( 'Allowlisted IPs', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'textarea',
-				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'blacklisted_countries' => [
-				'label'   => __( 'Denylisted Countries', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'multiple',
-				'options' => [],
-				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Block form sending from selected countries.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'whitelisted_countries' => [
-				'label'   => __( 'Allowlisted Countries', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'multiple',
-				'options' => [],
-				'section' => self::SECTION_OTHER,
-				'helper'  => __( 'Do not show hCaptcha for users from selected countries.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'delay'                 => [
+			'delay'                => [
 				'label'   => __( 'Delay Showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_OTHER,
@@ -633,30 +672,8 @@ class General extends PluginSettingsBase {
 				'step'    => 100,
 				'helper'  => __( 'Delay time for loading the hCaptcha API script. Any negative value will prevent the API script from loading until user interaction: mouseenter, click, scroll or touch. This significantly improves Google Pagespeed Insights score.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'maxmind_key'           => [
-				'label'        => __( 'MaxMind License Key', 'hcaptcha-for-forms-and-more' ),
-				'type'         => 'password',
-				'autocomplete' => 'off',
-				'section'      => self::SECTION_OTHER,
-				'helper'       => __( 'Needed to automatically download the GeoLite2 Country database for country allowlist/denylist checks.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'login_limit'           => [
-				'label'   => __( 'Login Attempts Before hCaptcha', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'number',
-				'section' => self::SECTION_OTHER,
-				'default' => 0,
-				'min'     => 0,
-				'helper'  => __( 'Maximum number of failed login attempts before showing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'login_interval'        => [
-				'label'   => __( 'Failed Login Attempts Interval, min', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'number',
-				'section' => self::SECTION_OTHER,
-				'default' => 15,
-				'min'     => 1,
-				'helper'  => __( 'Time interval in minutes when failed login attempts are counted.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'off_when_logged_in'    => [
+			'off_when_logged_in'   => [
+				'label'   => __( 'Other Settings', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
@@ -664,7 +681,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Do not show hCaptcha to logged-in users.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'recaptcha_compat_off'  => [
+			'recaptcha_compat_off' => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
@@ -672,15 +689,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Use if including both hCaptcha and reCAPTCHA on the same page.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'hide_login_errors'     => [
-				'type'    => 'checkbox',
-				'section' => self::SECTION_OTHER,
-				'options' => [
-					'on' => __( 'Hide Login Errors', 'hcaptcha-for-forms-and-more' ),
-				],
-				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'cleanup_on_uninstall'  => [
+			'cleanup_on_uninstall' => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
@@ -688,7 +697,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'When enabled, all plugin data will be removed when uninstalling the plugin.', 'hcaptcha-for-forms-and-more' ),
 			],
-			self::NETWORK_WIDE      => [
+			self::NETWORK_WIDE     => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
 				'options' => [
@@ -696,7 +705,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'On multisite, use same settings for all sites of the network.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'statistics'            => [
+			'statistics'           => [
 				'label'   => __( 'Statistics', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_STATISTICS,
@@ -705,7 +714,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'anonymous'             => [
+			'anonymous'            => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_STATISTICS,
 				'options' => [
@@ -714,7 +723,7 @@ class General extends PluginSettingsBase {
 				'default' => 'on',
 				'helper'  => __( 'Store collected IP and User Agent locally as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'collect_ip'            => [
+			'collect_ip'           => [
 				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_STATISTICS,
@@ -723,7 +732,7 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Allow collecting of IP addresses from which forms were sent.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'collect_ua'            => [
+			'collect_ua'           => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_STATISTICS,
 				'options' => [
@@ -735,10 +744,6 @@ class General extends PluginSettingsBase {
 
 		if ( ! is_multisite() ) {
 			unset( $this->form_fields[ self::NETWORK_WIDE ] );
-		}
-
-		if ( ! AntiSpam::get_supported_providers() ) {
-			unset( $this->form_fields['antispam'], $this->form_fields['antispam_provider'] );
 		}
 	}
 
@@ -781,17 +786,6 @@ class General extends PluginSettingsBase {
 		}
 
 		$this->form_fields['custom_prop']['options'] = $options;
-
-		$country_names = $this->get_country_names();
-		$maxmind_key   = $settings->get( 'maxmind_key' );
-
-		$this->form_fields['blacklisted_countries']['options'] = $country_names;
-		$this->form_fields['whitelisted_countries']['options'] = $country_names;
-
-		if ( '' === $maxmind_key ) {
-			$this->form_fields['blacklisted_countries']['disabled'] = true;
-			$this->form_fields['whitelisted_countries']['disabled'] = true;
-		}
 
 		$license = $settings->get_license();
 
@@ -839,9 +833,6 @@ class General extends PluginSettingsBase {
 			case self::SECTION_CONTENT:
 				$this->print_section_header( $arguments['id'], __( 'Content', 'hcaptcha-for-forms-and-more' ) );
 				break;
-			case self::SECTION_ANTISPAM:
-				$this->print_section_header( $arguments['id'], __( 'Anti-spam', 'hcaptcha-for-forms-and-more' ) );
-				break;
 			case self::SECTION_OTHER:
 				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
 				break;
@@ -863,7 +854,7 @@ class General extends PluginSettingsBase {
 	 */
 	private function print_section_header( string $id, string $title ): void {
 		$open     = $this->get_section_open_status( $id );
-		$disabled = '';
+		$disabled = false;
 		$settings = hcaptcha()->settings();
 		$license  = $settings ? $settings->get_license() : 'free';
 
@@ -893,7 +884,7 @@ class General extends PluginSettingsBase {
 		$class .= $disabled ? ' disabled' : '';
 
 		?>
-		<h3 class="hcaptcha-section-<?php echo esc_attr( $id ); ?><?php echo esc_attr( $class ); ?>">
+		<h3 class="togglable hcaptcha-section-<?php echo esc_attr( $id ); ?><?php echo esc_attr( $class ); ?>">
 			<span class="hcaptcha-section-header-title">
 				<?php echo esc_html( $title ); ?>
 			</span>
@@ -904,37 +895,12 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
-	 * Get section open status.
-	 *
-	 * @param string $id Section id.
-	 *
-	 * @return bool
-	 */
-	private function get_section_open_status( string $id ): bool {
-		$user                   = wp_get_current_user();
-		$hcaptcha_user_settings = [];
-
-		if ( $user ) {
-			$hcaptcha_user_settings = get_user_meta( $user->ID, self::USER_SETTINGS_META, true );
-		}
-
-		return (bool) ( $hcaptcha_user_settings['sections'][ $id ] ?? true );
-	}
-
-	/**
 	 * Enqueue class scripts.
 	 *
 	 * @return void
 	 */
 	public function admin_enqueue_scripts(): void {
-		$settings                     = hcaptcha()->settings();
-		$maxmind_key                  = $settings ? $settings->get( 'maxmind_key' ) : '';
-		$countries_search_placeholder = $maxmind_key
-			? __( 'Search countries...', 'hcaptcha-for-forms-and-more' )
-			: __( 'Set MaxMind License Key first', 'hcaptcha-for-forms-and-more' );
-
-		$choices_handle   = self::HANDLE . '-choices';
-		$countries_handle = self::HANDLE . '-countries';
+		$settings = hcaptcha()->settings();
 
 		wp_enqueue_script(
 			self::DIALOG_HANDLE,
@@ -959,37 +925,9 @@ class General extends PluginSettingsBase {
 			true
 		);
 
-		wp_enqueue_script(
-			$choices_handle,
-			constant( 'HCAPTCHA_URL' ) . '/assets/lib/choices/choices.min.js',
-			[],
-			'v11.2.0',
-			true
-		);
-
-		wp_enqueue_script(
-			$countries_handle,
-			constant( 'HCAPTCHA_URL' ) . '/assets/js/general-countries.js',
-			[ 'jquery', $choices_handle ],
-			constant( 'HCAPTCHA_VERSION' ),
-			true
-		);
-
-		wp_localize_script(
-			$countries_handle,
-			'HCaptchaGeneralCountriesObject',
-			[
-				'searchPlaceholder' => $countries_search_placeholder,
-				'searchAriaLabel'   => __( 'Search countries', 'hcaptcha-for-forms-and-more' ),
-			]
-		);
-
 		$check_config_notice =
 			esc_html__( 'Credentials changed.', 'hcaptcha-for-forms-and-more' ) . "\n" .
 			esc_html__( 'Please complete hCaptcha and check the site config.', 'hcaptcha-for-forms-and-more' );
-
-		/* translators: 1: Provider name. */
-		$provider_error = __( '%1$s anti-spam provider is not configured.', 'hcaptcha-for-forms-and-more' );
 
 		wp_localize_script(
 			self::HANDLE,
@@ -998,10 +936,6 @@ class General extends PluginSettingsBase {
 				'ajaxUrl'                              => admin_url( 'admin-ajax.php' ),
 				'checkConfigAction'                    => self::CHECK_CONFIG_ACTION,
 				'checkConfigNonce'                     => wp_create_nonce( self::CHECK_CONFIG_ACTION ),
-				'checkIPsAction'                       => self::CHECK_IPS_ACTION,
-				'checkIPsNonce'                        => wp_create_nonce( self::CHECK_IPS_ACTION ),
-				'toggleSectionAction'                  => self::TOGGLE_SECTION_ACTION,
-				'toggleSectionNonce'                   => wp_create_nonce( self::TOGGLE_SECTION_ACTION ),
 				'modeLive'                             => self::MODE_LIVE,
 				'modeTestPublisher'                    => self::MODE_TEST_PUBLISHER,
 				'modeTestEnterpriseSafeEndUser'        => self::MODE_TEST_ENTERPRISE_SAFE_END_USER,
@@ -1017,21 +951,13 @@ class General extends PluginSettingsBase {
 				'completeHCaptchaContent'              => __( 'Before checking the site config, please complete the Active hCaptcha in the current section.', 'hcaptcha-for-forms-and-more' ),
 				'OKBtnText'                            => __( 'OK', 'hcaptcha-for-forms-and-more' ),
 				'configuredAntiSpamProviders'          => AntiSpam::get_configured_providers(),
-				'configuredAntiSpamProviderError'      => $provider_error,
 			]
-		);
-
-		wp_enqueue_style(
-			$choices_handle,
-			constant( 'HCAPTCHA_URL' ) . '/assets/lib/choices/choices.min.css',
-			[],
-			'v11.2.0'
 		);
 
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_suffix.css",
-			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE, $choices_handle ],
+			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
 	}
@@ -1152,73 +1078,6 @@ class General extends PluginSettingsBase {
 	}
 
 	/**
-	 * Ajax action to check IPs.
-	 *
-	 * @return void
-	 */
-	public function check_ips(): void {
-		$this->run_checks( self::CHECK_IPS_ACTION );
-
-		// Nonce is checked by check_ajax_referer() in run_checks().
-		$ips     = Request::filter_input( INPUT_POST, 'ips' );
-		$ips_arr = explode( ' ', $ips );
-
-		foreach ( $ips_arr as $key => $ip ) {
-			$ip = trim( $ip );
-
-			if ( ! $this->is_valid_ip_or_range( $ip ) ) {
-				wp_send_json_error(
-					esc_html__( 'Invalid IP or CIDR range:', 'hcaptcha-for-forms-and-more' ) .
-					' ' . esc_html( $ip )
-				);
-
-				// For testing purposes.
-				return;
-			}
-
-			$ips_arr[ $key ] = $ip;
-		}
-
-		wp_send_json_success();
-	}
-
-	/**
-	 * Ajax action to toggle a section.
-	 *
-	 * @return void
-	 */
-	public function toggle_section(): void {
-		$this->run_checks( self::TOGGLE_SECTION_ACTION );
-
-		// Nonce is checked by check_ajax_referer() in run_checks().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$section = isset( $_POST['section'] ) ? sanitize_text_field( wp_unslash( $_POST['section'] ) ) : '';
-		$status  = isset( $_POST['status'] )
-			? filter_input( INPUT_POST, 'status', FILTER_VALIDATE_BOOLEAN )
-			: false;
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		$user    = wp_get_current_user();
-		$user_id = $user->ID ?? 0;
-
-		if ( ! $user_id ) {
-			wp_send_json_error( esc_html__( 'Cannot save section status.', 'hcaptcha-for-forms-and-more' ) );
-
-			return; // For testing purposes.
-		}
-
-		$hcaptcha_user_settings = array_filter(
-			(array) get_user_meta( $user_id, self::USER_SETTINGS_META, true )
-		);
-
-		$hcaptcha_user_settings['sections'][ $section ] = (bool) $status;
-
-		update_user_meta( $user_id, self::USER_SETTINGS_META, $hcaptcha_user_settings );
-
-		wp_send_json_success();
-	}
-
-	/**
 	 * Send stats if the key is switched on.
 	 *
 	 * @param mixed $value     New option value.
@@ -1235,30 +1094,6 @@ class General extends PluginSettingsBase {
 			 * Statistics switch is turned on, send plugin statistics.
 			 */
 			do_action( 'hcap_send_plugin_stats' );
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Load maxmind db if country settings are changed.
-	 *
-	 * @param mixed $value     New option value.
-	 * @param mixed $old_value Old option value.
-	 *
-	 * @return mixed
-	 */
-	public function maybe_load_maxmind_db( $value, $old_value ) {
-		$maxmind_key     = $value['maxmind_key'] ?? [];
-		$old_maxmind_key = $old_value['maxmind_key'] ?? [];
-
-		if ( $maxmind_key && $maxmind_key !== $old_maxmind_key ) {
-			/**
-			 * Statistics switch is turned on, send plugin statistics.
-			 *
-			 * @param string $maxmind_key Maxmind key.
-			 */
-			do_action( 'hcap_load_maxmind_db', $maxmind_key );
 		}
 
 		return $value;
@@ -1310,323 +1145,5 @@ class General extends PluginSettingsBase {
 		}
 
 		return array_merge( [], ...$result );
-	}
-
-	/**
-	 * Get country names.
-	 *
-	 * @return array
-	 */
-	private function get_country_names(): array {
-		static $country_names;
-
-		if ( $country_names ) {
-			return $country_names;
-		}
-
-		// Country codes are according ISO 3166-1 alpha-2.
-		$country_names = [
-			'AD' => __( 'Andorra', 'hcaptcha-for-forms-and-more' ),
-			'AE' => __( 'United Arab Emirates', 'hcaptcha-for-forms-and-more' ),
-			'AF' => __( 'Afghanistan', 'hcaptcha-for-forms-and-more' ),
-			'AG' => __( 'Antigua and Barbuda', 'hcaptcha-for-forms-and-more' ),
-			'AI' => __( 'Anguilla', 'hcaptcha-for-forms-and-more' ),
-			'AL' => __( 'Albania', 'hcaptcha-for-forms-and-more' ),
-			'AM' => __( 'Armenia', 'hcaptcha-for-forms-and-more' ),
-			'AO' => __( 'Angola', 'hcaptcha-for-forms-and-more' ),
-			'AR' => __( 'Argentina', 'hcaptcha-for-forms-and-more' ),
-			'AS' => __( 'American Samoa', 'hcaptcha-for-forms-and-more' ),
-			'AT' => __( 'Austria', 'hcaptcha-for-forms-and-more' ),
-			'AU' => __( 'Australia', 'hcaptcha-for-forms-and-more' ),
-			'AW' => __( 'Aruba', 'hcaptcha-for-forms-and-more' ),
-			'AX' => __( 'Aland Islands', 'hcaptcha-for-forms-and-more' ),
-			'AZ' => __( 'Azerbaijan', 'hcaptcha-for-forms-and-more' ),
-			'BA' => __( 'Bosnia and Herzegovina', 'hcaptcha-for-forms-and-more' ),
-			'BB' => __( 'Barbados', 'hcaptcha-for-forms-and-more' ),
-			'BD' => __( 'Bangladesh', 'hcaptcha-for-forms-and-more' ),
-			'BE' => __( 'Belgium', 'hcaptcha-for-forms-and-more' ),
-			'BF' => __( 'Burkina Faso', 'hcaptcha-for-forms-and-more' ),
-			'BG' => __( 'Bulgaria', 'hcaptcha-for-forms-and-more' ),
-			'BH' => __( 'Bahrain', 'hcaptcha-for-forms-and-more' ),
-			'BI' => __( 'Burundi', 'hcaptcha-for-forms-and-more' ),
-			'BJ' => __( 'Benin', 'hcaptcha-for-forms-and-more' ),
-			'BL' => __( 'St. Barthelemy', 'hcaptcha-for-forms-and-more' ),
-			'BM' => __( 'Bermuda', 'hcaptcha-for-forms-and-more' ),
-			'BN' => __( 'Brunei', 'hcaptcha-for-forms-and-more' ),
-			'BO' => __( 'Bolivia', 'hcaptcha-for-forms-and-more' ),
-			'BQ' => __( 'Bonaire, Sint Eustatius and Saba', 'hcaptcha-for-forms-and-more' ),
-			'BR' => __( 'Brazil', 'hcaptcha-for-forms-and-more' ),
-			'BS' => __( 'Bahamas', 'hcaptcha-for-forms-and-more' ),
-			'BT' => __( 'Bhutan', 'hcaptcha-for-forms-and-more' ),
-			'BW' => __( 'Botswana', 'hcaptcha-for-forms-and-more' ),
-			'BY' => __( 'Belarus', 'hcaptcha-for-forms-and-more' ),
-			'BZ' => __( 'Belize', 'hcaptcha-for-forms-and-more' ),
-			'CA' => __( 'Canada', 'hcaptcha-for-forms-and-more' ),
-			'CC' => __( 'Cocos (Keeling) Islands', 'hcaptcha-for-forms-and-more' ),
-			'CD' => __( 'Congo (DRC)', 'hcaptcha-for-forms-and-more' ),
-			'CF' => __( 'Central African Republic', 'hcaptcha-for-forms-and-more' ),
-			'CG' => __( 'Congo', 'hcaptcha-for-forms-and-more' ),
-			'CH' => __( 'Switzerland', 'hcaptcha-for-forms-and-more' ),
-			'CI' => __( 'Cote d\'Ivoire', 'hcaptcha-for-forms-and-more' ),
-			'CK' => __( 'Cook Islands', 'hcaptcha-for-forms-and-more' ),
-			'CL' => __( 'Chile', 'hcaptcha-for-forms-and-more' ),
-			'CM' => __( 'Cameroon', 'hcaptcha-for-forms-and-more' ),
-			'CN' => __( 'China', 'hcaptcha-for-forms-and-more' ),
-			'CO' => __( 'Colombia', 'hcaptcha-for-forms-and-more' ),
-			'CR' => __( 'Costa Rica', 'hcaptcha-for-forms-and-more' ),
-			'CU' => __( 'Cuba', 'hcaptcha-for-forms-and-more' ),
-			'CV' => __( 'Cabo Verde', 'hcaptcha-for-forms-and-more' ),
-			'CW' => __( 'Curacao', 'hcaptcha-for-forms-and-more' ),
-			'CX' => __( 'Christmas Island', 'hcaptcha-for-forms-and-more' ),
-			'CY' => __( 'Cyprus', 'hcaptcha-for-forms-and-more' ),
-			'CZ' => __( 'Czechia', 'hcaptcha-for-forms-and-more' ),
-			'DE' => __( 'Germany', 'hcaptcha-for-forms-and-more' ),
-			'DJ' => __( 'Djibouti', 'hcaptcha-for-forms-and-more' ),
-			'DK' => __( 'Denmark', 'hcaptcha-for-forms-and-more' ),
-			'DM' => __( 'Dominica', 'hcaptcha-for-forms-and-more' ),
-			'DO' => __( 'Dominican Republic', 'hcaptcha-for-forms-and-more' ),
-			'DZ' => __( 'Algeria', 'hcaptcha-for-forms-and-more' ),
-			'EC' => __( 'Ecuador', 'hcaptcha-for-forms-and-more' ),
-			'EE' => __( 'Estonia', 'hcaptcha-for-forms-and-more' ),
-			'EG' => __( 'Egypt', 'hcaptcha-for-forms-and-more' ),
-			'ER' => __( 'Eritrea', 'hcaptcha-for-forms-and-more' ),
-			'ES' => __( 'Spain', 'hcaptcha-for-forms-and-more' ),
-			'ET' => __( 'Ethiopia', 'hcaptcha-for-forms-and-more' ),
-			'FI' => __( 'Finland', 'hcaptcha-for-forms-and-more' ),
-			'FJ' => __( 'Fiji', 'hcaptcha-for-forms-and-more' ),
-			'FK' => __( 'Falkland Islands', 'hcaptcha-for-forms-and-more' ),
-			'FM' => __( 'Micronesia', 'hcaptcha-for-forms-and-more' ),
-			'FO' => __( 'Faroe Islands', 'hcaptcha-for-forms-and-more' ),
-			'FR' => __( 'France', 'hcaptcha-for-forms-and-more' ),
-			'GA' => __( 'Gabon', 'hcaptcha-for-forms-and-more' ),
-			'GB' => __( 'United Kingdom', 'hcaptcha-for-forms-and-more' ),
-			'GD' => __( 'Grenada', 'hcaptcha-for-forms-and-more' ),
-			'GE' => __( 'Georgia', 'hcaptcha-for-forms-and-more' ),
-			'GF' => __( 'French Guiana', 'hcaptcha-for-forms-and-more' ),
-			'GG' => __( 'Guernsey', 'hcaptcha-for-forms-and-more' ),
-			'GH' => __( 'Ghana', 'hcaptcha-for-forms-and-more' ),
-			'GI' => __( 'Gibraltar', 'hcaptcha-for-forms-and-more' ),
-			'GL' => __( 'Greenland', 'hcaptcha-for-forms-and-more' ),
-			'GM' => __( 'Gambia', 'hcaptcha-for-forms-and-more' ),
-			'GN' => __( 'Guinea', 'hcaptcha-for-forms-and-more' ),
-			'GP' => __( 'Guadeloupe', 'hcaptcha-for-forms-and-more' ),
-			'GQ' => __( 'Equatorial Guinea', 'hcaptcha-for-forms-and-more' ),
-			'GR' => __( 'Greece', 'hcaptcha-for-forms-and-more' ),
-			'GT' => __( 'Guatemala', 'hcaptcha-for-forms-and-more' ),
-			'GU' => __( 'Guam', 'hcaptcha-for-forms-and-more' ),
-			'GW' => __( 'Guinea-Bissau', 'hcaptcha-for-forms-and-more' ),
-			'GY' => __( 'Guyana', 'hcaptcha-for-forms-and-more' ),
-			'HK' => __( 'Hong Kong SAR', 'hcaptcha-for-forms-and-more' ),
-			'HN' => __( 'Honduras', 'hcaptcha-for-forms-and-more' ),
-			'HR' => __( 'Croatia', 'hcaptcha-for-forms-and-more' ),
-			'HT' => __( 'Haiti', 'hcaptcha-for-forms-and-more' ),
-			'HU' => __( 'Hungary', 'hcaptcha-for-forms-and-more' ),
-			'ID' => __( 'Indonesia', 'hcaptcha-for-forms-and-more' ),
-			'IE' => __( 'Ireland', 'hcaptcha-for-forms-and-more' ),
-			'IL' => __( 'Israel', 'hcaptcha-for-forms-and-more' ),
-			'IM' => __( 'Isle of Man', 'hcaptcha-for-forms-and-more' ),
-			'IN' => __( 'India', 'hcaptcha-for-forms-and-more' ),
-			'IO' => __( 'British Indian Ocean Territory', 'hcaptcha-for-forms-and-more' ),
-			'IQ' => __( 'Iraq', 'hcaptcha-for-forms-and-more' ),
-			'IR' => __( 'Iran', 'hcaptcha-for-forms-and-more' ),
-			'IS' => __( 'Iceland', 'hcaptcha-for-forms-and-more' ),
-			'IT' => __( 'Italy', 'hcaptcha-for-forms-and-more' ),
-			'JE' => __( 'Jersey', 'hcaptcha-for-forms-and-more' ),
-			'JM' => __( 'Jamaica', 'hcaptcha-for-forms-and-more' ),
-			'JO' => __( 'Jordan', 'hcaptcha-for-forms-and-more' ),
-			'JP' => __( 'Japan', 'hcaptcha-for-forms-and-more' ),
-			'KE' => __( 'Kenya', 'hcaptcha-for-forms-and-more' ),
-			'KG' => __( 'Kyrgyzstan', 'hcaptcha-for-forms-and-more' ),
-			'KH' => __( 'Cambodia', 'hcaptcha-for-forms-and-more' ),
-			'KI' => __( 'Kiribati', 'hcaptcha-for-forms-and-more' ),
-			'KM' => __( 'Comoros', 'hcaptcha-for-forms-and-more' ),
-			'KN' => __( 'St. Kitts and Nevis', 'hcaptcha-for-forms-and-more' ),
-			'KP' => __( 'North Korea', 'hcaptcha-for-forms-and-more' ),
-			'KR' => __( 'Korea', 'hcaptcha-for-forms-and-more' ),
-			'KW' => __( 'Kuwait', 'hcaptcha-for-forms-and-more' ),
-			'KY' => __( 'Cayman Islands', 'hcaptcha-for-forms-and-more' ),
-			'KZ' => __( 'Kazakhstan', 'hcaptcha-for-forms-and-more' ),
-			'LA' => __( 'Laos', 'hcaptcha-for-forms-and-more' ),
-			'LB' => __( 'Lebanon', 'hcaptcha-for-forms-and-more' ),
-			'LC' => __( 'St. Lucia', 'hcaptcha-for-forms-and-more' ),
-			'LI' => __( 'Liechtenstein', 'hcaptcha-for-forms-and-more' ),
-			'LK' => __( 'Sri Lanka', 'hcaptcha-for-forms-and-more' ),
-			'LR' => __( 'Liberia', 'hcaptcha-for-forms-and-more' ),
-			'LS' => __( 'Lesotho', 'hcaptcha-for-forms-and-more' ),
-			'LT' => __( 'Lithuania', 'hcaptcha-for-forms-and-more' ),
-			'LU' => __( 'Luxembourg', 'hcaptcha-for-forms-and-more' ),
-			'LV' => __( 'Latvia', 'hcaptcha-for-forms-and-more' ),
-			'LY' => __( 'Libya', 'hcaptcha-for-forms-and-more' ),
-			'MA' => __( 'Morocco', 'hcaptcha-for-forms-and-more' ),
-			'MC' => __( 'Monaco', 'hcaptcha-for-forms-and-more' ),
-			'MD' => __( 'Moldova', 'hcaptcha-for-forms-and-more' ),
-			'ME' => __( 'Montenegro', 'hcaptcha-for-forms-and-more' ),
-			'MF' => __( 'St. Martin', 'hcaptcha-for-forms-and-more' ),
-			'MG' => __( 'Madagascar', 'hcaptcha-for-forms-and-more' ),
-			'MH' => __( 'Marshall Islands', 'hcaptcha-for-forms-and-more' ),
-			'MK' => __( 'North Macedonia', 'hcaptcha-for-forms-and-more' ),
-			'ML' => __( 'Mali', 'hcaptcha-for-forms-and-more' ),
-			'MM' => __( 'Myanmar', 'hcaptcha-for-forms-and-more' ),
-			'MN' => __( 'Mongolia', 'hcaptcha-for-forms-and-more' ),
-			'MO' => __( 'Macao SAR', 'hcaptcha-for-forms-and-more' ),
-			'MP' => __( 'Northern Mariana Islands', 'hcaptcha-for-forms-and-more' ),
-			'MQ' => __( 'Martinique', 'hcaptcha-for-forms-and-more' ),
-			'MR' => __( 'Mauritania', 'hcaptcha-for-forms-and-more' ),
-			'MS' => __( 'Montserrat', 'hcaptcha-for-forms-and-more' ),
-			'MT' => __( 'Malta', 'hcaptcha-for-forms-and-more' ),
-			'MU' => __( 'Mauritius', 'hcaptcha-for-forms-and-more' ),
-			'MV' => __( 'Maldives', 'hcaptcha-for-forms-and-more' ),
-			'MW' => __( 'Malawi', 'hcaptcha-for-forms-and-more' ),
-			'MX' => __( 'Mexico', 'hcaptcha-for-forms-and-more' ),
-			'MY' => __( 'Malaysia', 'hcaptcha-for-forms-and-more' ),
-			'MZ' => __( 'Mozambique', 'hcaptcha-for-forms-and-more' ),
-			'NA' => __( 'Namibia', 'hcaptcha-for-forms-and-more' ),
-			'NC' => __( 'New Caledonia', 'hcaptcha-for-forms-and-more' ),
-			'NE' => __( 'Niger', 'hcaptcha-for-forms-and-more' ),
-			'NF' => __( 'Norfolk Island', 'hcaptcha-for-forms-and-more' ),
-			'NG' => __( 'Nigeria', 'hcaptcha-for-forms-and-more' ),
-			'NI' => __( 'Nicaragua', 'hcaptcha-for-forms-and-more' ),
-			'NL' => __( 'Netherlands', 'hcaptcha-for-forms-and-more' ),
-			'NO' => __( 'Norway', 'hcaptcha-for-forms-and-more' ),
-			'NP' => __( 'Nepal', 'hcaptcha-for-forms-and-more' ),
-			'NR' => __( 'Nauru', 'hcaptcha-for-forms-and-more' ),
-			'NU' => __( 'Niue', 'hcaptcha-for-forms-and-more' ),
-			'NZ' => __( 'New Zealand', 'hcaptcha-for-forms-and-more' ),
-			'OM' => __( 'Oman', 'hcaptcha-for-forms-and-more' ),
-			'PA' => __( 'Panama', 'hcaptcha-for-forms-and-more' ),
-			'PE' => __( 'Peru', 'hcaptcha-for-forms-and-more' ),
-			'PF' => __( 'French Polynesia', 'hcaptcha-for-forms-and-more' ),
-			'PG' => __( 'Papua New Guinea', 'hcaptcha-for-forms-and-more' ),
-			'PH' => __( 'Philippines', 'hcaptcha-for-forms-and-more' ),
-			'PK' => __( 'Pakistan', 'hcaptcha-for-forms-and-more' ),
-			'PL' => __( 'Poland', 'hcaptcha-for-forms-and-more' ),
-			'PM' => __( 'St. Pierre and Miquelon', 'hcaptcha-for-forms-and-more' ),
-			'PN' => __( 'Pitcairn Islands', 'hcaptcha-for-forms-and-more' ),
-			'PR' => __( 'Puerto Rico', 'hcaptcha-for-forms-and-more' ),
-			'PS' => __( 'Palestinian Authority', 'hcaptcha-for-forms-and-more' ),
-			'PT' => __( 'Portugal', 'hcaptcha-for-forms-and-more' ),
-			'PW' => __( 'Palau', 'hcaptcha-for-forms-and-more' ),
-			'PY' => __( 'Paraguay', 'hcaptcha-for-forms-and-more' ),
-			'QA' => __( 'Qatar', 'hcaptcha-for-forms-and-more' ),
-			'RE' => __( 'Reunion', 'hcaptcha-for-forms-and-more' ),
-			'RO' => __( 'Romania', 'hcaptcha-for-forms-and-more' ),
-			'RS' => __( 'Serbia', 'hcaptcha-for-forms-and-more' ),
-			'RU' => __( 'Russia', 'hcaptcha-for-forms-and-more' ),
-			'RW' => __( 'Rwanda', 'hcaptcha-for-forms-and-more' ),
-			'SA' => __( 'Saudi Arabia', 'hcaptcha-for-forms-and-more' ),
-			'SB' => __( 'Solomon Islands', 'hcaptcha-for-forms-and-more' ),
-			'SC' => __( 'Seychelles', 'hcaptcha-for-forms-and-more' ),
-			'SD' => __( 'Sudan', 'hcaptcha-for-forms-and-more' ),
-			'SE' => __( 'Sweden', 'hcaptcha-for-forms-and-more' ),
-			'SG' => __( 'Singapore', 'hcaptcha-for-forms-and-more' ),
-			'SH' => __( 'St Helena, Ascension, Tristan da Cunha', 'hcaptcha-for-forms-and-more' ),
-			'SI' => __( 'Slovenia', 'hcaptcha-for-forms-and-more' ),
-			'SJ' => __( 'Svalbard and Jan Mayen', 'hcaptcha-for-forms-and-more' ),
-			'SK' => __( 'Slovakia', 'hcaptcha-for-forms-and-more' ),
-			'SL' => __( 'Sierra Leone', 'hcaptcha-for-forms-and-more' ),
-			'SM' => __( 'San Marino', 'hcaptcha-for-forms-and-more' ),
-			'SN' => __( 'Senegal', 'hcaptcha-for-forms-and-more' ),
-			'SO' => __( 'Somalia', 'hcaptcha-for-forms-and-more' ),
-			'SR' => __( 'Suriname', 'hcaptcha-for-forms-and-more' ),
-			'SS' => __( 'South Sudan', 'hcaptcha-for-forms-and-more' ),
-			'ST' => __( 'Sao Tome and Principe', 'hcaptcha-for-forms-and-more' ),
-			'SV' => __( 'El Salvador', 'hcaptcha-for-forms-and-more' ),
-			'SX' => __( 'Sint Maarten', 'hcaptcha-for-forms-and-more' ),
-			'SY' => __( 'Syria', 'hcaptcha-for-forms-and-more' ),
-			'SZ' => __( 'Eswatini', 'hcaptcha-for-forms-and-more' ),
-			'TC' => __( 'Turks and Caicos Islands', 'hcaptcha-for-forms-and-more' ),
-			'TD' => __( 'Chad', 'hcaptcha-for-forms-and-more' ),
-			'TG' => __( 'Togo', 'hcaptcha-for-forms-and-more' ),
-			'TH' => __( 'Thailand', 'hcaptcha-for-forms-and-more' ),
-			'TJ' => __( 'Tajikistan', 'hcaptcha-for-forms-and-more' ),
-			'TK' => __( 'Tokelau', 'hcaptcha-for-forms-and-more' ),
-			'TL' => __( 'Timor-Leste', 'hcaptcha-for-forms-and-more' ),
-			'TM' => __( 'Turkmenistan', 'hcaptcha-for-forms-and-more' ),
-			'TN' => __( 'Tunisia', 'hcaptcha-for-forms-and-more' ),
-			'TO' => __( 'Tonga', 'hcaptcha-for-forms-and-more' ),
-			'TR' => __( 'Turkiye', 'hcaptcha-for-forms-and-more' ),
-			'TT' => __( 'Trinidad and Tobago', 'hcaptcha-for-forms-and-more' ),
-			'TV' => __( 'Tuvalu', 'hcaptcha-for-forms-and-more' ),
-			'TW' => __( 'Taiwan', 'hcaptcha-for-forms-and-more' ),
-			'TZ' => __( 'Tanzania', 'hcaptcha-for-forms-and-more' ),
-			'UA' => __( 'Ukraine', 'hcaptcha-for-forms-and-more' ),
-			'UG' => __( 'Uganda', 'hcaptcha-for-forms-and-more' ),
-			'UM' => __( 'U.S. Outlying Islands', 'hcaptcha-for-forms-and-more' ),
-			'US' => __( 'United States', 'hcaptcha-for-forms-and-more' ),
-			'UY' => __( 'Uruguay', 'hcaptcha-for-forms-and-more' ),
-			'UZ' => __( 'Uzbekistan', 'hcaptcha-for-forms-and-more' ),
-			'VA' => __( 'Vatican City', 'hcaptcha-for-forms-and-more' ),
-			'VC' => __( 'St. Vincent and Grenadines', 'hcaptcha-for-forms-and-more' ),
-			'VE' => __( 'Venezuela', 'hcaptcha-for-forms-and-more' ),
-			'VG' => __( 'British Virgin Islands', 'hcaptcha-for-forms-and-more' ),
-			'VI' => __( 'U.S. Virgin Islands', 'hcaptcha-for-forms-and-more' ),
-			'VN' => __( 'Vietnam', 'hcaptcha-for-forms-and-more' ),
-			'VU' => __( 'Vanuatu', 'hcaptcha-for-forms-and-more' ),
-			'WF' => __( 'Wallis and Futuna', 'hcaptcha-for-forms-and-more' ),
-			'WS' => __( 'Samoa', 'hcaptcha-for-forms-and-more' ),
-			'XK' => __( 'Kosovo', 'hcaptcha-for-forms-and-more' ),
-			'YE' => __( 'Yemen', 'hcaptcha-for-forms-and-more' ),
-			'YT' => __( 'Mayotte', 'hcaptcha-for-forms-and-more' ),
-			'ZA' => __( 'South Africa', 'hcaptcha-for-forms-and-more' ),
-			'ZM' => __( 'Zambia', 'hcaptcha-for-forms-and-more' ),
-			'ZW' => __( 'Zimbabwe', 'hcaptcha-for-forms-and-more' ),
-		];
-
-		return $country_names;
-	}
-
-	/**
-	 * Validate IP or CIDR range.
-	 *
-	 * @param string $input Input to validate.
-	 *
-	 * @return bool
-	 */
-	private function is_valid_ip_or_range( string $input ): bool {
-		$input = trim( $input );
-
-		// Check for a single IP (IPv4 or IPv6).
-		if ( filter_var( $input, FILTER_VALIDATE_IP ) ) {
-			return true;
-		}
-
-		// Check CIDR-range.
-		if ( strpos( $input, '/' ) !== false ) {
-			[ $ip, $prefix ] = explode( '/', $input, 2 );
-
-			// Check that the prefix is correct.
-			if ( filter_var( $ip, FILTER_VALIDATE_IP ) && filter_var( $prefix, FILTER_VALIDATE_INT ) !== false ) {
-				$prefix = (int) $prefix;
-
-				if (
-					( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) && $prefix >= 0 && $prefix <= 32 ) ||
-					( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) && $prefix >= 0 && $prefix <= 128 )
-				) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		// Check the range of 'IP-IP' type.
-		if ( strpos( $input, '-' ) !== false ) {
-			[ $ip_start, $ip_end ] = explode( '-', $input, 2 );
-
-			$ip_start = trim( $ip_start );
-			$ip_end   = trim( $ip_end );
-
-			if ( filter_var( $ip_start, FILTER_VALIDATE_IP ) && filter_var( $ip_end, FILTER_VALIDATE_IP ) ) {
-				// Make sure that both IPs are of the same type (IPv4/IPv6).
-				if (
-					( filter_var( $ip_start, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) && filter_var( $ip_end, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) ||
-					( filter_var( $ip_start, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) && filter_var( $ip_end, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) )
-				) {
-					return true;
-				}
-			}
-		}
-
-		return false;
 	}
 }

@@ -4,40 +4,6 @@
 	box-sizing: border-box;
 }
 
-.hcaptcha-loading::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(255, 255, 255, 0.8);
-	z-index: 9999;
-}
-
-.hcaptcha-loading::after {
-	content: '';
-	position: absolute;
-	top: calc(50% - 18px);
-	left: calc(50% - 18px);
-	width: 28px;
-	height: 28px;
-	border: 4px solid #ccc;
-	border-top: 4px solid #5c6f8a;
-	border-radius: 50%;
-	animation: hcaptcha-spin 1s linear infinite;
-	z-index: 10000;
-}
-
-@keyframes hcaptcha-spin {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
-}
-
 #hcaptcha-options table tbody {
 	background: #fff;
 }
@@ -49,12 +15,6 @@
 
 #hcaptcha-options table tbody tr th {
 	color: #5c6f8a;
-}
-
-#hcaptcha-options table tbody tr td {
-	padding: 0;
-	margin: 0;
-	position: relative;
 }
 
 #hcaptcha-options .h-captcha {
@@ -97,10 +57,6 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 #hcaptcha-options.hcaptcha-general h3.disabled + table {
 	opacity: 0.6;
-}
-
-#hcaptcha-options.hcaptcha-general h3.closed + table {
-	display: none;
 }
 
 #hcaptcha-options.hcaptcha-general h3 + table:before {
@@ -334,102 +290,21 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: 100%;
 }
 
-/* Section Anti-spam */
-.hcaptcha-section-antispam + table tbody {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	grid-template-areas:
-		"set-min-submit-time min-submit-time"
-		"honeypot min-submit-time"
-		"antispam antispam-provider";
-	gap: 0 20px;
-	padding: 15px 20px;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-set-min-submit-time {
-	grid-area: set-min-submit-time;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-min-submit-time {
-	grid-area: min-submit-time;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-honeypot {
-	grid-area: honeypot;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam {
-	grid-area: antispam;
-	padding-top: 15px;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider {
-	grid-area: antispam-provider;
-	padding-top: 15px;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider div {
-	color: #d63638;
-	margin-top: 0.5em;
-}
-
-.hcaptcha-section-antispam + table tbody tr th {
-	padding: 0 0 10px 0;
-	width: auto;
-}
-
-.hcaptcha-section-antispam + table tbody tr td {
-	width: max-content;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-min-submit-time td,
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-antispam-provider td {
-	width: auto;
-}
-
-.hcaptcha-section-antispam + table tbody tr td input,
-.hcaptcha-section-antispam + table tbody tr td select {
-	width: 100%;
-}
-
-.hcaptcha-section-antispam + table tbody tr.hcaptcha-general-honeypot th {
-	padding: 0;
-}
-
-.hcaptcha-section-antispam + table tbody tr td input {
-	width: 100%;
-}
 
 /* Section Other */
 .hcaptcha-section-other + table tbody {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
-		"blacklisted whitelisted"
-		"blacklisted-countries whitelisted-countries"
-		"delay maxmind-key"
-		"login-limit login-interval"
-		"logged recaptcha"
-		"hide-login-errors cleanup-on-uninstall"
-		"network .";
+		"logged delay"
+		"recaptcha delay"
+		"cleanup-on-uninstall network";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
 
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips {
-	grid-area: blacklisted;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
-	grid-area: whitelisted;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries {
-	grid-area: blacklisted-countries;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries {
-	grid-area: whitelisted-countries;
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay {
+	grid-area: delay;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
@@ -440,42 +315,12 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: recaptcha;
 }
 
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors {
-	grid-area: hide-login-errors;
-}
-
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall {
 	grid-area: cleanup-on-uninstall;
 }
 
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips {
-	padding-bottom: 15px;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit {
-	grid-area: login-limit;
-	padding-top: 15px;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval {
-	grid-area: login-interval;
-	padding-top: 15px;
-	padding-bottom: 15px;
-}
-
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide {
 	grid-area: network;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay {
-	grid-area: delay;
-	padding-top: 15px;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-maxmind-key {
-	grid-area: maxmind-key;
-	padding-top: 15px;
 }
 
 .hcaptcha-section-other + table tbody tr th {
@@ -483,9 +328,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: auto;
 }
 
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-hide-login-errors th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
 	padding: 0;
@@ -495,69 +338,12 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: max-content;
 }
 
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-ips td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-limit td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-login-interval td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-maxmind-key td {
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td {
 	width: auto;
 }
 
-.hcaptcha-section-other + table tbody tr td textarea,
-.hcaptcha-section-other + table tbody tr td input,
-.hcaptcha-section-other + table tbody tr td select {
+.hcaptcha-section-other + table tbody tr td input {
 	width: 100%;
-}
-
-.hcaptcha-section-other + table tbody tr td select[multiple="multiple"] {
-	min-height: 68px;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices {
-	width: 100%;
-	margin-bottom: 0;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices__inner,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices__inner {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: 4px;
-	box-sizing: border-box;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices__input.choices__input--cloned,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices__input.choices__input--cloned {
-	order: -1;
-	display: block;
-	flex: 1 0 100%;
-	width: 100%;
-	min-width: 100%;
-	max-width: 100%;
-	margin: 0;
-	padding: 0 8px;
-	border: 1px solid #8c8f94;
-	border-radius: 4px;
-	background: #fff;
-	box-sizing: border-box;
-	line-height: 1.4;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices.is-focused .choices__input.choices__input--cloned,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices.is-focused .choices__input.choices__input--cloned {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries td .choices__list--multiple .choices__item,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries td .choices__list--multiple .choices__item {
-	background: #5c6f8a;
-	border-radius: 4px;
 }
 
 /* Section Statistics */
@@ -655,47 +441,14 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		width: unset !important;
 	}
 
-	.hcaptcha-section-antispam + table tbody {
-		grid-template-columns: repeat(1, 1fr);
-		grid-template-areas:
-		"set-min-submit-time"
-		"honeypot"
-		"min-submit-time"
-		"antispam"
-		"antispam-provider";
-	}
-
-	.hcaptcha-section-antispam + table tbody tr th {
-		width: unset !important;
-	}
-
-	.hcaptcha-section-antispam + table tbody tr td {
-		width: unset !important;
-	}
-
 	.hcaptcha-section-other + table tbody {
 		grid-template-columns: repeat(1, 1fr) !important;
 		grid-template-areas:
-		"blacklisted"
-		"whitelisted"
-		"blacklisted-countries"
-		"whitelisted-countries"
-		"maxmind-key"
 		"delay"
-		"login-limit"
-		"login-interval"
 		"logged"
 		"recaptcha"
-		"hide-login-errors"
 		"cleanup-on-uninstall"
 		"network";
-	}
-
-	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-ips,
-	.hcaptcha-section-other + table tbody tr.hcaptcha-general-blacklisted-countries,
-	.hcaptcha-section-other + table tbody tr.hcaptcha-general-whitelisted-countries,
-	.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
-		padding-top: 10px;
 	}
 
 	.hcaptcha-section-other + table tbody tr td {

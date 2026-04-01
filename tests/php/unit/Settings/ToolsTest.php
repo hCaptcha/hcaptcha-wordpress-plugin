@@ -7,9 +7,11 @@
 
 namespace HCaptcha\Tests\Unit\Settings;
 
+use HCaptcha\MigrationWizard\MigrationWizard;
 use HCaptcha\Settings\Tools;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
+use ReflectionClass;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
 
@@ -52,7 +54,7 @@ class ToolsTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 
-		self::assertSame( 'Tools', $subject->menu_title() );
+		self::assertSame( 'hCaptcha', $subject->menu_title() );
 	}
 
 	/**
@@ -67,9 +69,35 @@ class ToolsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Set migration wizard mock on the subject.
+	 *
+	 * @param Tools|Mockery\MockInterface $subject Subject.
+	 *
+	 * @return MigrationWizard|Mockery\MockInterface
+	 */
+	private function set_migration_wizard( $subject ) {
+		if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+			define( 'HOUR_IN_SECONDS', 3600 );
+		}
+
+		$wizard = Mockery::mock( MigrationWizard::class );
+
+		$ref  = new ReflectionClass( Tools::class );
+		$prop = $ref->getProperty( 'migration_wizard' );
+		$prop->setAccessible( true );
+		$prop->setValue( $subject, $wizard );
+
+		return $wizard;
+	}
+
+	/**
 	 * Test init_hooks().
 	 */
 	public function test_init_hooks(): void {
+		if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+			define( 'HOUR_IN_SECONDS', 3600 );
+		}
+
 		$subject = Mockery::mock( Tools::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
@@ -79,6 +107,9 @@ class ToolsTest extends HCaptchaTestCase {
 		// Expect registration of AJAX hooks for export and import actions.
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Tools::EXPORT_ACTION, [ $subject, 'ajax_handle_export' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . Tools::IMPORT_ACTION, [ $subject, 'ajax_handle_import' ] );
+
+		// Migration wizard init registers its own AJAX hooks.
+		WP_Mock::userFunction( 'add_action' )->withAnyArgs();
 
 		$subject->shouldAllowMockingProtectedMethods();
 
@@ -98,6 +129,8 @@ class ToolsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Tools::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'hcap_min_suffix' )->andReturn( $min );
 
 		FunctionMocker::replace(
 			'constant',
@@ -165,6 +198,9 @@ class ToolsTest extends HCaptchaTestCase {
 			)
 			->once();
 
+		$wizard = $this->set_migration_wizard( $subject );
+		$wizard->shouldReceive( 'admin_enqueue_scripts' )->once();
+
 		$subject->admin_enqueue_scripts();
 	}
 
@@ -231,7 +267,7 @@ class ToolsTest extends HCaptchaTestCase {
 
 		$transfer = Mockery::mock( 'overload:HCaptcha\Settings\SettingsTransfer' );
 		$transfer->shouldReceive( 'apply_import_payload' )
-			->with( $decoded_data, true )
+			->with( $decoded_data, false )
 			->once()
 			->andReturn( null );
 
@@ -278,7 +314,7 @@ class ToolsTest extends HCaptchaTestCase {
 		$transfer = Mockery::mock( 'overload:HCaptcha\Settings\SettingsTransfer' );
 
 		$transfer->shouldReceive( 'apply_import_payload' )
-			->with( $decoded_data, true )
+			->with( $decoded_data, false )
 			->andReturn( $error );
 
 		WP_Mock::userFunction( 'is_wp_error' )->with( $error )->andReturn( true );
@@ -302,6 +338,9 @@ class ToolsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Tools::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$user    = (object) [ 'ID' => 1 ];
 
+		$wizard = $this->set_migration_wizard( $subject );
+		$wizard->shouldReceive( 'render_section' )->once();
+
 		WP_Mock::userFunction( 'wp_get_current_user' )->with()->andReturn( $user );
 		WP_Mock::userFunction( 'get_user_meta' )->with( $user->ID, Tools::USER_SETTINGS_META, true )->andReturn( [] );
 		WP_Mock::expectAction( 'kagg_settings_header' );
@@ -324,10 +363,11 @@ class ToolsTest extends HCaptchaTestCase {
 		$output = ob_get_clean();
 
 		self::assertStringContainsString( '<div class="hcaptcha-header-bar">', $output );
+		self::assertStringContainsString( '<h3 class="hcaptcha-section-migration-wizard">', $output );
 		self::assertStringContainsString( '<div id="hcaptcha-message"></div>', $output );
 		self::assertStringContainsString( '<h3 class="hcaptcha-section-export">', $output );
 		self::assertStringContainsString( '<h3 class="hcaptcha-section-import">', $output );
-		self::assertStringContainsString( 'Manage the export and import of hCaptcha plugin settings.', $output );
+		self::assertStringContainsString( 'Manage migration wizard, export and import of hCaptcha plugin settings.', $output );
 		self::assertStringContainsString( 'Export your hCaptcha settings to a JSON file.', $output );
 		self::assertStringContainsString( 'Import your hCaptcha settings from a JSON file.', $output );
 	}
@@ -338,6 +378,9 @@ class ToolsTest extends HCaptchaTestCase {
 	public function test_section_callback_closed_sections(): void {
 		$subject = Mockery::mock( Tools::class )->makePartial()->shouldAllowMockingProtectedMethods();
 		$user    = (object) [ 'ID' => 1 ];
+
+		$wizard = $this->set_migration_wizard( $subject );
+		$wizard->shouldReceive( 'render_section' )->once();
 
 		WP_Mock::userFunction( 'wp_get_current_user' )->with()->andReturn( $user );
 		WP_Mock::userFunction( 'get_user_meta' )->with( $user->ID, Tools::USER_SETTINGS_META, true )

@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\CF7;
 
+use HCaptcha\CF7\Base;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -79,9 +80,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 
 		if ( $mode_auto || $mode_embed ) {
-			self::assertSame( 10, has_action( 'option_wpcf7', [ $subject, 'option_wpcf7' ] ) );
+			self::assertSame( 10, has_action( 'option_wpcf7', [ Base::class, 'option_wpcf7' ] ) );
 		} else {
-			self::assertFalse( has_action( 'option_wpcf7', [ $subject, 'option_wpcf7' ] ) );
+			self::assertFalse( has_action( 'option_wpcf7', [ Base::class, 'option_wpcf7' ] ) );
 		}
 	}
 
@@ -380,21 +381,21 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	public function test_verify_hcaptcha(): void {
-		$data              = [
+		$data                  = [
 			'h-captcha-response' => 'some response',
 		];
-		$wpcf7_id          = 23;
-		$hcaptcha_site_key = 'some site key';
-		$cf7_text          =
+		$wpcf7_id              = 23;
+		$hcaptcha_site_key     = 'some site key';
+		$cf7_text              =
 			'<form>' .
 			'<input type="submit" value="Send">' .
 			$hcaptcha_site_key .
 			'</form>';
-		$field             = Mockery::mock( WPCF7_FormTag::class );
-		$field->type       = 'some';
-		$email_field       = Mockery::mock( WPCF7_FormTag::class );
-		$email_field->type = 'email';
-		$form_fields       = [ $field, $email_field ];
+		$field                 = Mockery::mock( WPCF7_FormTag::class );
+		$field->type           = 'some';
+		$email_field           = Mockery::mock( WPCF7_FormTag::class );
+		$email_field->basetype = 'email';
+		$form_fields           = [ $field, $email_field ];
 
 		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
 		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );

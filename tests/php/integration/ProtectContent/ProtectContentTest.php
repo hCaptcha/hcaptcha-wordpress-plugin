@@ -260,6 +260,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * Test show_protection_page().
 	 *
 	 * @return void
+	 * @noinspection ES6ConvertVarToLetConst
 	 */
 	public function test_show_protection_page(): void {
 		global $wp_scripts, $wp_styles;
@@ -341,7 +342,30 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 				}
 			} );
 		</script>
+HTML;
+
+		$expected .= "\n";
+
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected .= <<<'HTML'
 		<script>
+var HCaptchaMainObject = {"params":"{\"sitekey\":\"10000000-ffff-ffff-ffff-000000000001\",\"theme\":\"\",\"size\":\"\",\"hl\":\"en\"}"};
+</script>
+HTML;
+		} else {
+			$expected .= <<<'HTML'
+		<script type="text/javascript">
+/* <![CDATA[ */
+var HCaptchaMainObject = {"params":"{\"sitekey\":\"10000000-ffff-ffff-ffff-000000000001\",\"theme\":\"\",\"size\":\"\",\"hl\":\"en\"}"};
+/* ]]> */
+</script>
+HTML;
+		}
+
+		$expected .= "\n";
+
+		$expected .= <<<'HTML'
+<script>
 (()=>{'use strict';let loaded=!1,scrolled=!1,timerId;function load(){if(loaded){return}
 loaded=!0;clearTimeout(timerId);window.removeEventListener('touchstart',load);document.body.removeEventListener('mouseenter',load);document.body.removeEventListener('click',load);window.removeEventListener('keydown',load);window.removeEventListener('scroll',scrollHandler);const t=document.getElementsByTagName('script')[0];const s=document.createElement('script');s.type='text/javascript';s.id='hcaptcha-api';s.src='https://js.hcaptcha.com/1/api.js?onload=hCaptchaOnLoad&render=explicit';s.async=!0;t.parentNode.insertBefore(s,t)}
 function scrollHandler(){if(!scrolled){scrolled=!0;return}
@@ -349,18 +373,28 @@ load()}
 document.addEventListener('hCaptchaBeforeAPI',function(){const delay=-100;if(delay>=0){timerId=setTimeout(load,delay)}
 const options={passive:!0};window.addEventListener('touchstart',load,options);document.body.addEventListener('mouseenter',load);document.body.addEventListener('click',load);window.addEventListener('keydown',load);window.addEventListener('scroll',scrollHandler,options)})})()
 </script>
+HTML;
+
+		$expected .= "\n";
+
+		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
+			$expected .= <<<HTML
+<script id="wp-hooks-js" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=7496969728ca0f95732d"></script>
+<script id="hcaptcha-js" src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/js/apps/hcaptcha.js?ver=$current_version"></script>
+		</body>
+		</html>
+		
+HTML;
+		} else {
+			$expected .= <<<HTML
 <script type="text/javascript" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=dd5603f07f9220ed27f1" id="wp-hooks-js"></script>
-<script type="text/javascript" id="hcaptcha-js-extra">
-/* <![CDATA[ */
-var HCaptchaMainObject = {"params":"{\"sitekey\":\"10000000-ffff-ffff-ffff-000000000001\",\"theme\":\"\",\"size\":\"\",\"hl\":\"en\"}"};
-//# sourceURL=hcaptcha-js-extra
-/* ]]> */
-</script>
 <script type="text/javascript" src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/js/apps/hcaptcha.js?ver=$current_version" id="hcaptcha-js"></script>
 		</body>
 		</html>
 		
 HTML;
+		}
+
 		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
 
 		$expected = str_replace( 'http://test.test', home_url(), $expected );

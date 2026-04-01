@@ -345,6 +345,15 @@ class Notifications extends NotificationsBase {
 					'text' => __( 'Open tools', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.25.0.
+			'migration-wizard'    => [
+				'title'   => __( 'Migration Wizard', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'Easily migrate from reCAPTCHA or Cloudflare Turnstile to hCaptcha. The Migration Wizard scans your site and applies changes in one click.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $urls['migration_wizard'],
+					'text' => __( 'Open wizard', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$notifications = $this->select_active_notifications( $notifications );

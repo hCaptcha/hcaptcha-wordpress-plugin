@@ -29,15 +29,23 @@ abstract class NotificationsBase {
 		static $urls = [];
 
 		if ( ! $urls ) {
+			$settings = hcaptcha()->settings();
+
+			// @codeCoverageIgnoreStart
+			if ( ! $settings ) {
+				return [];
+			}
+			// @codeCoverageIgnoreEnd
+
 			$utm     = '/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=';
 			$utm_sk  = $utm . 'sk';
 			$utm_not = $utm . 'not';
 
-			$urls['general']              = $this->tab_url( General::class );
-			$urls['integrations']         = $this->tab_url( Integrations::class );
-			$urls['forms']                = $this->tab_url( FormsPage::class );
-			$urls['events']               = $this->tab_url( EventsPage::class );
-			$urls['tools']                = $this->tab_url( Tools::class );
+			$urls['general']              = $settings->tab_url( General::class );
+			$urls['integrations']         = $settings->tab_url( Integrations::class );
+			$urls['forms']                = $settings->tab_url( FormsPage::class );
+			$urls['events']               = $settings->tab_url( EventsPage::class );
+			$urls['tools']                = $settings->tab_url( Tools::class );
 			$urls['hcaptcha']             = 'https://www.hcaptcha.com' . $utm_sk;
 			$urls['register']             = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
 			$urls['pro']                  = 'https://www.hcaptcha.com/pro' . $utm_not;
@@ -65,21 +73,10 @@ abstract class NotificationsBase {
 			$urls['export_import_img']    = HCAPTCHA_URL . '/assets/images/export-import.png';
 			$urls['country_access']       = $urls['general'] . '#blacklisted_countries';
 			$urls['country_access_img']   = HCAPTCHA_URL . '/assets/images/country-access.png';
+			$urls['migration_wizard']     = $urls['tools'] . '#hcaptcha-migration-wizard';
+			$urls['migration_wizard_img'] = HCAPTCHA_URL . '/assets/images/migration-wizard.png';
 		}
 
 		return $urls;
-	}
-
-	/**
-	 * Get tab url.
-	 *
-	 * @param string $classname Tab class name.
-	 *
-	 * @return string
-	 */
-	protected function tab_url( string $classname ): string {
-		$tab = hcaptcha()->settings()->get_tab( $classname );
-
-		return $tab ? $tab->tab_url( $tab ) : '';
 	}
 }

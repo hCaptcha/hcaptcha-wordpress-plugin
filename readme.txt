@@ -1,19 +1,21 @@
 === hCaptcha for WP ===
 Contributors: hcaptcha, kaggdesign
-Tags: captcha, hcaptcha, antispam, abuse, protect
+Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.24.0
+Stable tag: 4.25.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
-Integrates with 60+ popular plugins and themes.
+The strongest CAPTCHA. Switch from reCAPTCHA and Turnstile for free.
+Works with 60+ integrations: Contact Form 7, Elementor, WooCommerce, Divi, etc.
 
 == Description ==
 
-The strongest CAPTCHA. Switch from reCAPTCHA, Turnstile, etc. for free.
+The strongest CAPTCHA. Switch from reCAPTCHA and Turnstile for free.
+
+A built-in Migration Wizard helps you move from Google reCAPTCHA or Cloudflare Turnstile to hCaptcha in just a few clicks.
 
 [hCaptcha](https://www.hcaptcha.com/) is a drop-in replacement for reCAPTCHA that puts user privacy first.
 
@@ -32,6 +34,8 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 
 **Highlights**
 
+* **Migration Wizard:** Migrate from Google reCAPTCHA or Cloudflare Turnstile to hCaptcha in just a few clicks.
+* **Built-in Anti-Spam:** Honeypot fields and minimum submit time catch bots before the hCaptcha challenge, reducing friction for real users.
 * **Detailed Analytics:** Get detailed analytics on hCaptcha events and form submissions.
 * **AI-Ready Security:** Selected security actions are exposed via the WordPress Abilities API for automation and AI-driven workflows.
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
@@ -42,6 +46,13 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **IP Access Control:** Allowlist trusted IPs to skip hCaptcha and denylist abusive IPs to block form submissions.
 * **Country Access Control:** Allowlist or denylist countries to control where hCaptcha protections apply.
 * **Multisite Support:** Sync hCaptcha settings across a Multisite Network.
+
+**Anti-Spam**
+
+* **Honeypot Protection:** A hidden field catches bots before they reach the hCaptcha challenge, reducing friction for real users.
+* **Minimum Submit Time:** Blocks instant form submissions from automated scripts.
+* **IP Denylist:** Block abusive IPs from submitting any protected form.
+* **Country Blocking:** Restrict form submissions by country to stop region-specific spam campaigns.
 
 **Customization**
 
@@ -83,10 +94,12 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 7. Elementor Pro Form.
 8. Elementor Pro Form in admin editor.
 9. General settings page.
-10. Integrations' settings page.
-11. Activating plugin from the Integration settings page.
-12. (Optional) Local Forms statistics.
-13. (Optional) Local Events statistics.
+10. Anti-Spam settings page.
+11. Integrations' settings page.
+12. Activating plugin from the Integrations' settings page.
+13. Migration Wizard scan results on the Tools settings page.
+14. (Optional) Local Forms statistics.
+15. (Optional) Local Events statistics.
 
 == Installation ==
 
@@ -108,6 +121,12 @@ For non-standard cases, you can use the `[hcaptcha]` shortcode provided by the p
 For example, we support Contact Forms 7 automatically. However, sometimes a theme can modify the form. In this case, you can manually add the `[cf7-hcaptcha]` shortcode to the CF7 form.
 
 To make hCaptcha work, the shortcode must be inside the <form ...> ... </form> tag.
+
+= How do I migrate from reCAPTCHA or Turnstile? =
+
+Go to Settings → hCaptcha → Tools and use the Migration Wizard.
+
+It scans your site for existing CAPTCHA providers, shows what can be migrated, and applies the changes in one click.
 
 = How do I use the new AI / Abilities features? =
 
@@ -432,7 +451,7 @@ add_action( 'wp_head', 'hcap_block_inline_styles', 0 );
 
 = Skipping hCaptcha verification on a specific form =
 
-The plugin has a filter to skip adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source and form_id.
+The plugin has a filter to skip adding and verifying hCaptcha on a specific form. The filter receives three parameters: current protection status ('true' by default), source, and form_id.
 
 The source is the plugin's slug (like 'directory/main-plugin-file.php'), the theme name (like 'Avada') or the WordPress core (like 'WordPress').
 
@@ -668,6 +687,28 @@ function my_hcap_delay_api( $delay ): int {
 add_filter( 'hcap_delay_api', 'my_hcap_delay_api' );
 `
 
+= How can I load the hCaptcha API script only when a specific element is visible? =
+
+To load the hCaptcha API script only when a WordPress comment form is visible, you can use the followign filter:
+
+/**
+ * Filters delay API selector.
+ *
+ * When set, the hcaptcha.js script will be loaded only when the specified element is visible.
+ * This can improve page load performance by deferring the API script until it's necessary.
+ *
+ * @param string|mixed $delay_api_selector CSS selector of the element to observe.
+ */
+add_filter( 'hcap_delay_api_selector', static function ( $delay_api_selector ) {
+	$delay_api_selector = (string) $delay_api_selector;
+
+	if ( is_admin() ) {
+		return $delay_api_selector;
+	}
+
+	return '.comment-form';
+} );
+
 = How to set hCaptcha language programmatically? =
 
 hCaptcha defaults to using the user's language as reported by the browser. However, on multilingual sites you can override this to set the hCaptcha language to match the current page language. For this, you can use the following filter:
@@ -784,11 +825,29 @@ add_filter( 'hcap_settings_init_args', 'hcap_settings_init_args_filter' );
 
 = Where do I report security bugs found in this plugin? =
 
-Please report security bugs found in the source code of the undefined plugin through the [Patchstack Vulnerability Disclosure  Program](https://patchstack.com/database/vdp/59a09f24-9828-4304-aa15-727e12737b54). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
+Please report security vulnerabilities by email to:
+
+**security@hcaptcha.com**
+
+When reporting a vulnerability, please include as much information as possible to help us reproduce and investigate the issue, such as:
+
+- A clear description of the vulnerability
+- Steps to reproduce
+- Proof-of-concept or exploit code (if available)
+- Affected versions
+
+We will review your report and respond as quickly as possible.
 
 = Where can I get more information about hCaptcha? =
 
 Please see our [website](https://hcaptcha.com/).
+
+= How can I rerun the setup wizard? =
+
+You can rerun the setup flows from the General settings page by adding a parameter to the URL:
+
+- `&onboarding` — starts the Onboarding Wizard
+- `&auto-setup` — performs the Recommended Setup
 
 == Privacy Notices ==
 
@@ -822,7 +881,7 @@ You can collect data anonymously but still distinguish sources. The hashed IP ad
 
 If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
 
-=== Plugins, Themes and Forms Supported ==
+== Plugins, Themes, and Forms Supported ==
 
 * WordPress Login, Register, Lost Password, Comment, and Post/Page Password Forms
 * ACF Extended Form
@@ -915,6 +974,23 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.25.0 =
+* Added a one-click setup option to the Onboarding Wizard to apply recommended settings automatically.
+* Added Migration Wizard to help migrate from Google reCAPTCHA and Cloudflare Turnstile to hCaptcha.
+* Added a dedicated Anti-Spam settings tab, moving bot protection, access control, and login security settings out of the General page.
+* Added disposable email blocking with an auto-updating blocklist of 4,000+ temporary email domains.
+* Added sorting country names on the Anti-Spam tab.
+* Added Include Site and Secret Keys checkbox to the options import dialog.
+* Added support for Forminator multi-step forms when hCaptcha is not explicitly inserted into the form.
+* Added hcap_delay_api_selector filter to delay API script loading based on selector.
+* Added compatibility with WordPress 7.0.
+* Fixed a fatal error when processing Jetpack Forms with multiple choices.
+* Fixed settings export and import on multisite.
+* Fixed settings import with changes not on the General tab.
+* Fixed MaxMind DB update schedule not being stopped when the license key is removed.
+* Fixed detection of the email address in the Contact Form 7 form.
+* Fixed a fatal error in the wp_login_form () function and LoginOut block.
+
 = 4.24.0 =
 * Added country allowlist and denylist to control where hCaptcha protections apply.
 * Added compatibility with Payment Plugins for Stripe WooCommerce.
@@ -980,7 +1056,6 @@ Instructions for popular native integrations are below:
 
 = 4.19.0 =
 * Added Elementor Safe Mode information to the System Info admin page.
-* Added Patchstack security program support.
 * Added support for WP Multisite Signup form.
 * Added support for a Theme My Login Multisite Signup form.
 * Added test mode by default on the first installation.
@@ -1205,7 +1280,7 @@ Instructions for popular native integrations are below:
 * Tested with WooCommerce 9.3.
 
 = 4.6.0 =
-* Added support for Simple Membership Login, Register and Lost Password forms.
+* Added support for Simple Membership Login, Register, and Lost Password forms.
 * Added an option to show Live Form in CF7 admin.
 * Added hCaptcha tab on the Gravity Forms settings page.
 * Added uninstallation code to delete plugin data.
@@ -1219,7 +1294,7 @@ Instructions for popular native integrations are below:
 
 = 4.5.0 =
 * Added support for Jetpack forms in block theme templates.
-* Added support for bbPress Login, Register and Lost Password forms.
+* Added support for bbPress Login, Register, and Lost Password forms.
 * Added the second argument $atts to the 'hcap_hcaptcha_content' filter.
 * Added support for MailPoet forms at any placement.
 * Added the ability to have multiple MailPoet forms on the same page.

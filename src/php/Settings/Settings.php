@@ -10,7 +10,6 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Helpers\Utils;
-use JsonException;
 use KAGG\Settings\Abstracts\SettingsBase;
 use KAGG\Settings\Abstracts\SettingsInterface;
 
@@ -119,6 +118,19 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get tab url.
+	 *
+	 * @param string $classname Tab class name.
+	 *
+	 * @return string
+	 */
+	public function tab_url( string $classname ): string {
+		$tab = $this->get_tab( $classname );
+
+		return $tab ? $tab->tab_url( $tab ) : '';
+	}
+
+	/**
 	 * Get an active tab name.
 	 *
 	 * @return string
@@ -185,6 +197,26 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get raw settings.
+	 *
+	 * @return array|null
+	 */
+	public function get_raw_settings(): ?array {
+		$first_tab = $this->tabs[0] ?? null;
+
+		if ( ! $first_tab ) {
+			return null;
+		}
+
+		/**
+		 * Page / Tab.
+		 *
+		 * @var SettingsBase $tab
+		 */
+		return $first_tab->get_raw_settings();
+	}
+
+	/**
 	 * Get plugin option.
 	 *
 	 * @param string $key         Setting name.
@@ -236,6 +268,35 @@ class Settings implements SettingsInterface {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Update plugin option.
+	 *
+	 * @param string $key   Setting name.
+	 * @param mixed  $value Value for this setting.
+	 *
+	 * @return bool
+	 */
+	public function update( string $key, $value ): bool {
+		if ( ! $this->set( $key, $value ) ) {
+			return false;
+		}
+
+		$first_tab = $this->tabs[0] ?? null;
+
+		if ( ! $first_tab ) {
+			return false;
+		}
+
+		/**
+		 * Page / Tab.
+		 *
+		 * @var SettingsBase $tab
+		 */
+		$first_tab->update_option( $key, $value );
+
+		return true;
 	}
 
 	/**
