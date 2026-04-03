@@ -536,7 +536,7 @@ class GeneralTest extends HCaptchaTestCase {
 		$nonce               = 'some_nonce';
 		$site_key            = 'some key';
 		$check_config_notice =
-			'Credentials changed.' . "\n" .
+			'Credentials changed.<br>' .
 			'Please complete hCaptcha and check the site config.';
 
 		$settings = Mockery::mock( Settings::class )->makePartial();

@@ -1,6 +1,6 @@
 <?php
 /**
- * Abilities integration class file.
+ * The Abilities integration class file.
  *
  * @package hcaptcha-wp
  */
@@ -14,7 +14,7 @@ use HCaptcha\Settings\SettingsTransfer;
 use WP_Error;
 
 /**
- * Abilities API integration.
+ * The Abilities API integration.
  *
  * Enables AI agents to interact with the hCaptcha plugin.
  */
@@ -465,7 +465,7 @@ class Abilities {
 	}
 
 	/**
-	 * Filter the user IP to check if it is the offenders list.
+	 * Filter the user IP to check if it is the offender list.
 	 * For denylisted IPs, any form submission fails.
 	 *
 	 * @param bool|mixed   $denylisted Whether IP is denylisted.
@@ -1010,7 +1010,7 @@ class Abilities {
 	}
 
 	/**
-	 * Can block offenders permission callback.
+	 * Can block offender permission callback.
 	 */
 	public function can_block_offenders(): bool {
 		return current_user_can( 'manage_options' );

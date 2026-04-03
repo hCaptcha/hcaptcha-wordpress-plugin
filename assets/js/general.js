@@ -186,7 +186,7 @@ const general = function( $ ) {
 
 		$( document ).trigger( 'wp-updates-notice-added' );
 
-		$( 'html, body' ).animate(
+		$( 'html, body' ).stop().animate(
 			{
 				scrollTop: $message.offset().top - hCaptchaSettingsBase.getStickyHeight(),
 			},
@@ -349,6 +349,8 @@ const general = function( $ ) {
 
 				siteKeyInitVal = $siteKey.val();
 				secretKeyInitVal = $secretKey.val();
+				credentialsChanged = false;
+
 				enterpriseInitValues = getValues( $enterpriseInputs );
 				enterpriseSettingsChanged = false;
 
@@ -372,11 +374,9 @@ const general = function( $ ) {
 		if ( $siteKey.val() === siteKeyInitVal && $secretKey.val() === secretKeyInitVal ) {
 			credentialsChanged = false;
 			clearMessage();
-			$submit.attr( 'disabled', false );
 		} else if ( ! credentialsChanged ) {
 			credentialsChanged = true;
 			showErrorMessage( HCaptchaGeneralObject.checkConfigNotice );
-			$submit.attr( 'disabled', true );
 		}
 	}
 
@@ -384,11 +384,9 @@ const general = function( $ ) {
 		if ( JSON.stringify( getEnterpriseValues() ) === JSON.stringify( enterpriseInitValues ) ) {
 			enterpriseSettingsChanged = false;
 			clearMessage();
-			$submit.attr( 'disabled', false );
 		} else if ( ! enterpriseSettingsChanged ) {
 			enterpriseSettingsChanged = true;
 			showErrorMessage( HCaptchaGeneralObject.checkConfigNotice );
-			$submit.attr( 'disabled', true );
 		}
 	}
 
@@ -525,6 +523,28 @@ const general = function( $ ) {
 		}
 
 		checkConfig();
+	} );
+
+	$submit.on( 'click', function( event ) {
+		if ( ! ( credentialsChanged || enterpriseSettingsChanged ) ) {
+			return;
+		}
+
+		event.preventDefault();
+
+		const viewportHeight = $( window ).height();
+		const buttonHeight = $checkConfig.outerHeight();
+		const buttonTop = $checkConfig.offset().top;
+
+		$( 'html, body' ).stop().animate(
+			{
+				scrollTop: buttonTop - viewportHeight + buttonHeight,
+			},
+			1000,
+			function() {
+				$checkConfig[ 0 ].click();
+			}
+		);
 	} );
 
 	$siteKey.on( 'change', function( e ) {

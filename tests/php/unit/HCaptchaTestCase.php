@@ -769,8 +769,9 @@ abstract class HCaptchaTestCase extends TestCase {
 				'type'    => 'checkbox',
 				'section' => Integrations::SECTION_HEADER,
 				'options' => [
-					'on' => 'Show Antispam Coverage',
+					'on' => 'Show Anti-Spam Indicators',
 				],
+				'helper'  => 'Shows icons for built-in antispam methods (Honeypot, Time check) for supported integrations, including inactive ones.',
 			],
 			'wp_status'                        =>
 				[

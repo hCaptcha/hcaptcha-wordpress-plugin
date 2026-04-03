@@ -26,7 +26,13 @@ abstract class AbstractDetector implements SourceDetectorInterface {
 	 * @return bool
 	 */
 	protected function is_plugin_active( string $plugin_slug ): bool {
-		return in_array( $plugin_slug, (array) get_option( 'active_plugins', [] ), true );
+		$active_plugins = get_option( 'active_plugins', [] );
+
+		if ( ! is_array( $active_plugins ) ) {
+			$active_plugins = [];
+		}
+
+		return in_array( $plugin_slug, $active_plugins, true );
 	}
 
 	/**

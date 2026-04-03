@@ -40,7 +40,7 @@ class Form extends Base {
 		}
 
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -58,20 +58,7 @@ class Form extends Base {
 			return $block_content;
 		}
 
-		$pattern       = '/(<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">).+?(<\/div>)/';
 		$block_content = (string) $block_content;
-
-		if ( preg_match( $pattern, $block_content ) ) {
-			// Do not replace reCaptcha V2.
-			return $block_content;
-		}
-
-		if ( false !== strpos( $block_content, 'recaptcha_response' ) ) {
-			// Do not replace reCaptcha V3.
-			return $block_content;
-		}
-
-		$this->has_hcaptcha = true;
 
 		$args = [
 			'id' => [
@@ -79,12 +66,26 @@ class Form extends Base {
 				'form_id' => isset( $block['attrs']['postID'] ) ? (int) $block['attrs']['postID'] : 0,
 			],
 		];
+		$form = HCaptcha::form( $args );
+
+		// // Replace reCaptcha V2 and V3.
+		$pattern =
+			'#' .
+			'<div class="kadence-blocks-form-field google-recaptcha-checkout-wrap">.+?</div>' . // V2.
+			'<input type="hidden" name="recaptcha_response" class=".+?">' . // V3.
+			'#';
+
+		if ( preg_match( $pattern, $block_content, $m ) ) {
+			return str_replace( $m[0], $form, $block_content );
+		}
+
+		$this->has_captcha = true;
 
 		$search = '<div class="kadence-blocks-form-field kb-submit-field';
 
 		return (string) str_replace(
 			$search,
-			HCaptcha::form( $args ) . $search,
+			$form . $search,
 			$block_content
 		);
 	}
@@ -95,10 +96,6 @@ class Form extends Base {
 	 * @return void
 	 */
 	public function process_ajax(): void {
-		if ( $this->has_recaptcha() ) {
-			return;
-		}
-
 		// Nonce is checked by Kadence.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$error = API::verify( $this->get_entry( $_POST ) );
@@ -130,43 +127,10 @@ class Form extends Base {
 		wp_enqueue_script(
 			'hcaptcha-kadence',
 			HCAPTCHA_URL . "/assets/js/hcaptcha-kadence$min.js",
-			[ 'hcaptcha' ],
+			[ 'wp-hooks', 'hcaptcha' ],
 			HCAPTCHA_VERSION,
 			true
 		);
-	}
-
-	/**
-	 * Whether form has recaptcha.
-	 *
-	 * @return bool
-	 */
-	protected function has_recaptcha(): bool {
-		// Nonce is checked by Kadence.
-
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$form_id = isset( $_POST['_kb_form_id'] ) ? sanitize_text_field( wp_unslash( $_POST['_kb_form_id'] ) ) : '';
-		$post_id = isset( $_POST['_kb_form_post_id'] ) ? sanitize_text_field( wp_unslash( $_POST['_kb_form_post_id'] ) ) : '';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		$post = get_post( $post_id );
-
-		if ( ! $post ) {
-			return false;
-		}
-
-		foreach ( parse_blocks( $post->post_content ) as $block ) {
-			if (
-				isset( $block['blockName'], $block['attrs']['uniqueID'] ) &&
-				'kadence/form' === $block['blockName'] &&
-				$form_id === $block['attrs']['uniqueID'] &&
-				! empty( $block['attrs']['recaptcha'] )
-			) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	/**

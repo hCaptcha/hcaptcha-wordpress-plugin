@@ -12,11 +12,16 @@ const icegramExpress = window.hCaptchaIcegramExpress || ( function( document, wi
 	 */
 	const app = {
 		init() {
-			$( window ).on( 'init.icegram', app.initIcegram );
-			$( app.ready );
-		},
-
-		ready() {
+			/**
+			 * init.icegram may have already fired before this script was loaded.
+			 * #icegram_messages_container is appended during the Icegram.prototype.init(),
+			 * before init.icegram is triggered — so its presence reliably means init already happened.
+			 */
+			if ( $( '#icegram_messages_container' ).length ) {
+				app.initIcegram();
+			} else {
+				$( window ).on( 'init.icegram', app.initIcegram );
+			}
 		},
 
 		initIcegram() {

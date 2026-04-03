@@ -10,10 +10,24 @@ namespace HCaptcha\MigrationWizard;
 use HCaptcha\MigrationWizard\Detectors\AdvancedGoogleRecaptchaDetector;
 use HCaptcha\MigrationWizard\Detectors\AdvancedNoCaptchaDetector;
 use HCaptcha\MigrationWizard\Detectors\CF7RecaptchaDetector;
+use HCaptcha\MigrationWizard\Detectors\ACFEDetector;
+use HCaptcha\MigrationWizard\Detectors\BeaverBuilderDetector;
+use HCaptcha\MigrationWizard\Detectors\BrevoDetector;
+use HCaptcha\MigrationWizard\Detectors\CoBlocksDetector;
+use HCaptcha\MigrationWizard\Detectors\DownloadManagerDetector;
 use HCaptcha\MigrationWizard\Detectors\ElementorProDetector;
+use HCaptcha\MigrationWizard\Detectors\FluentFormsDetector;
+use HCaptcha\MigrationWizard\Detectors\FormidableFormsDetector;
+use HCaptcha\MigrationWizard\Detectors\ForminatorDetector;
 use HCaptcha\MigrationWizard\Detectors\ContactForm7CaptchaDetector;
 use HCaptcha\MigrationWizard\Detectors\GoogleCaptchaDetector;
+use HCaptcha\MigrationWizard\Detectors\GiveWPDetector;
 use HCaptcha\MigrationWizard\Detectors\GravityFormsRecaptchaDetector;
+use HCaptcha\MigrationWizard\Detectors\KadenceDetector;
+use HCaptcha\MigrationWizard\Detectors\MailPoetDetector;
+use HCaptcha\MigrationWizard\Detectors\NinjaFormsDetector;
+use HCaptcha\MigrationWizard\Detectors\OtterDetector;
+use HCaptcha\MigrationWizard\Detectors\PaidMembershipProDetector;
 use HCaptcha\MigrationWizard\Detectors\SpectraDetector;
 use HCaptcha\MigrationWizard\Detectors\SimpleTurnstileDetector;
 use HCaptcha\MigrationWizard\Detectors\WPFormsRecaptchaDetector;
@@ -53,9 +67,23 @@ class Scanner {
 			new AdvancedNoCaptchaDetector(),
 			new SimpleTurnstileDetector(),
 			new CF7RecaptchaDetector(),
+			new CoBlocksDetector(),
 			new ContactForm7CaptchaDetector(),
 			new WPFormsRecaptchaDetector(),
+			new FluentFormsDetector(),
+			new FormidableFormsDetector(),
+			new ForminatorDetector(),
+			new GiveWPDetector(),
 			new GravityFormsRecaptchaDetector(),
+			new KadenceDetector(),
+			new MailPoetDetector(),
+			new NinjaFormsDetector(),
+			new OtterDetector(),
+			new PaidMembershipProDetector(),
+			new ACFEDetector(),
+			new BeaverBuilderDetector(),
+			new BrevoDetector(),
+			new DownloadManagerDetector(),
 			new SpectraDetector(),
 			new WordfenceDetector(),
 		];
