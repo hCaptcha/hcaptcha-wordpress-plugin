@@ -130,6 +130,9 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		$hcaptcha->form_shown = false;
 
+		// Reset the enqueue state for the hcaptcha script so subsequent tests see it as not yet enqueued.
+		wp_dequeue_script( Main::HANDLE );
+
 		parent::tearDown();
 	}
 

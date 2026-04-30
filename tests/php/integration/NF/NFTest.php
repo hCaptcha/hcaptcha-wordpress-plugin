@@ -41,6 +41,8 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	public function tearDown(): void {
 		unset( $_GET['form_id'] );
 
+		wp_dequeue_script( 'hcaptcha-nf' );
+
 		parent::tearDown();
 	}
 
@@ -368,40 +370,24 @@ JSON;
 	public function test_nf_captcha_script(): void {
 		$subject = new NF();
 
+		$this->set_protected_property( $subject, 'form_shown', true );
+
 		$subject->nf_captcha_script();
 
 		self::assertTrue( wp_script_is( 'hcaptcha-nf' ) );
 	}
 
 	/**
-	 * Test add_type_module().
-	 *
-	 * @return void
-	 * @noinspection JSUnresolvedLibraryURL
+	 * Test nf_captcha_script() when the form was not shown.
 	 */
-	public function test_add_type_module(): void {
+	public function test_nf_captcha_script_when_form_was_not_shown(): void {
+		hcaptcha()->form_shown = false;
+
 		$subject = new NF();
 
-		// Wrong handle.
+		$subject->nf_captcha_script();
 
-		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
-		$tag    = '<script src="https://example.com/script.js"></script>';
-		$handle = 'some';
-		$src    = 'https://example.com/script.js';
-
-		self::assertSame( $tag, $subject->add_type_module( $tag, $handle, $src ) );
-
-		// Proper handle.
-		$handle   = 'hcaptcha-nf';
-		$expected = '<script type="module" src="https://example.com/script.js"></script>';
-
-		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
-
-		// Script has a type.
-		$tag = '<script type="text/javascript" src="https://example.com/script.js"></script>';
-		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
-
-		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
+		self::assertFalse( wp_script_is( 'hcaptcha-nf' ) );
 	}
 
 	/**

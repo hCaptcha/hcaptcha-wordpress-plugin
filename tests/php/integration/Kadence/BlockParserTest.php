@@ -1,22 +1,33 @@
 <?php
 /**
- * AdvancedBlockParserTest class file.
+ * BlockParserTest class file.
  *
  * @package HCaptcha\Tests
  */
 
 namespace HCaptcha\Tests\Integration\Kadence;
 
-use HCaptcha\Kadence\AdvancedBlockParser;
+use HCaptcha\Kadence\BlockParser;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
- * Test Kadence AdvancedBlockParser.
+ * Test Kadence BlockParser.
  *
  * @group kadence
- * @group kadence-advanced-block-parser
+ * @group kadence-block-parser
  */
-class AdvancedBlockParserTest extends HCaptchaWPTestCase {
+class BlockParserTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Set up test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		BlockParser::$form_id = 0;
+	}
 
 	/**
 	 * Test parse() method.
@@ -24,32 +35,32 @@ class AdvancedBlockParserTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_parse(): void {
-		$subject = new AdvancedBlockParser();
+		$subject = new BlockParser();
 
 		// No blocks.
 		$document = 'some text';
 
 		self::assertNull( $subject->parse( $document )[0]['blockName'] );
-		self::assertEquals( 0, AdvancedBlockParser::$form_id );
+		self::assertEquals( 0, BlockParser::$form_id );
 
 		// Some block.
 		$document = '<!-- wp:some/some {"id":123} --><div></div><!-- /wp:some/some -->';
 
 		self::assertSame( 'some/some', $subject->parse( $document )[0]['blockName'] );
-		self::assertEquals( 0, AdvancedBlockParser::$form_id );
+		self::assertEquals( 0, BlockParser::$form_id );
 
 		// Advanced form block.
 		$document = '<!-- wp:kadence/advanced-form {"id":123} --><div class="wp-block-kadence-advanced-form"></div><!-- /wp:kadence/advanced-form -->';
 
 		self::assertEquals( 'kadence/advanced-form', $subject->parse( $document )[0]['blockName'] );
-		self::assertEquals( 123, AdvancedBlockParser::$form_id );
+		self::assertEquals( 123, BlockParser::$form_id );
 
 		// Advanced form block with hCaptcha.
 		$document = '<!-- wp:kadence/advanced-form {"id":456} --><!-- wp:kadence/advanced-form-captcha {"type":"hcaptcha"} --><div class="wp-block-kadence-advanced-form-captcha"></div><!-- /wp:kadence/advanced-form-captcha --><!-- /wp:kadence/advanced-form -->';
 		$result   = $subject->parse( $document );
 
 		self::assertEquals( 'kadence/advanced-form', $result[0]['blockName'] );
-		self::assertEquals( 456, AdvancedBlockParser::$form_id );
+		self::assertEquals( 456, BlockParser::$form_id );
 		self::assertEmpty( $result[0]['innerBlocks'] );
 	}
 }

@@ -1477,13 +1477,13 @@ describe( 'moveHP', () => {
 		document.body.appendChild( form );
 
 		const originalRandom = Math.random;
-		// Filtered candidates: vis1, vis2, btn => choose index 1 => vis2
+		// Filtered candidates: vis1, vis2 => choose index 0 => vis1
 		Math.random = jest.fn( () => 1 / 3 );
 
 		inst.moveHP( form );
 
-		// Expected: hidden, vis1, lbl, hp, vis2, btn
-		expect( Array.from( form.children ) ).toEqual( [ hidden, vis1, lbl, hp, vis2, btn ] );
+		// Expected: hidden, lbl, hp, vis1, vis2, btn
+		expect( Array.from( form.children ) ).toEqual( [ hidden, lbl, hp, vis1, vis2, btn ] );
 		expect( lbl.isConnected ).toBe( true );
 
 		Math.random = originalRandom;

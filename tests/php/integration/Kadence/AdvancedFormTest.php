@@ -11,7 +11,7 @@
 namespace HCaptcha\Tests\Integration\Kadence;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Kadence\AdvancedBlockParser;
+use HCaptcha\Kadence\BlockParser;
 use HCaptcha\Kadence\AdvancedForm;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use KB_Ajax_Advanced_Form;
@@ -107,7 +107,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 		];
 		$instance                   = Mockery::mock( 'WP_Block' );
 		$form_id                    = 5;
-		$adv_block_parser           = Mockery::mock( AdvancedBlockParser::class );
+		$adv_block_parser           = Mockery::mock( BlockParser::class );
 		$adv_block_parser::$form_id = $form_id;
 		$hcap_form                  = $this->get_hcap_form(
 			[
@@ -141,9 +141,9 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 			1
 		);
 
-		self::assertFalse( $this->get_protected_property( $subject, 'has_hcaptcha' ) );
+		self::assertFalse( $this->get_protected_property( $subject, 'has_captcha' ) );
 		self::assertSame( $expected, $subject->render_block( $block_content, $block, $instance ) );
-		self::assertTrue( $this->get_protected_property( $subject, 'has_hcaptcha' ) );
+		self::assertTrue( $this->get_protected_property( $subject, 'has_captcha' ) );
 	}
 
 	/**

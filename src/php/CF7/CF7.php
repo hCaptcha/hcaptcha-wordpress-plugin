@@ -10,6 +10,7 @@
 
 namespace HCaptcha\CF7;
 
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
@@ -40,6 +41,13 @@ class CF7 extends Base {
 	 * Field type.
 	 */
 	public const FIELD_TYPE = 'hcaptcha';
+
+	/**
+	 * Form shown, use this flag to run the script.
+	 *
+	 * @var boolean
+	 */
+	private bool $form_shown = false;
 
 	/**
 	 * Init hooks.
@@ -107,6 +115,8 @@ class CF7 extends Base {
 		$cf7_hcap_form = do_shortcode( '[' . self::SHORTCODE . " form_id=\"$form_id\"]" );
 		$submit_button = '/(<(input|button) .*?type="submit")/';
 
+		$this->form_shown = true;
+
 		return preg_replace(
 			$submit_button,
 			$cf7_hcap_form . '$1',
@@ -159,6 +169,8 @@ class CF7 extends Base {
 		$hcap_invalid_field = $submission ? $submission->get_invalid_field( 'hcap-cf7' ) : [];
 		$reason             = $hcap_invalid_field['reason'] ?? '';
 		$not_valid_tip      = $reason ? '<span class="wpcf7-not-valid-tip" aria-hidden="true">' . $reason . '</span>' : '';
+
+		$this->form_shown = true;
 
 		return (
 			'<span class="wpcf7-form-control-wrap" data-name="' . self::DATA_NAME . '">' .
@@ -300,19 +312,21 @@ class CF7 extends Base {
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		if ( ! hcaptcha()->form_shown ) {
+		if ( ! $this->form_shown ) {
 			return;
 		}
 
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-cf7$min.js",
 			[ Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
+
+		DelayedScript::enqueue( self::HANDLE );
 	}
 
 	/**

@@ -4,6 +4,8 @@ describe( 'hCaptcha Contact Form 7', () => {
 	let hCaptchaBindEvents;
 
 	beforeEach( () => {
+		jest.resetModules();
+
 		document.body.innerHTML = `
 	      <form class="wpcf7">
 	        <div class="h-captcha-widget"></div>
@@ -17,12 +19,14 @@ describe( 'hCaptcha Contact Form 7', () => {
 		global.hCaptchaBindEvents = hCaptchaBindEvents;
 
 		require( '../../../assets/js/hcaptcha-cf7.js' );
-		document.dispatchEvent( new Event( 'DOMContentLoaded' ) );
-		hCaptchaBindEvents.mockClear();
 	} );
 
 	afterEach( () => {
-		global.hCaptchaBindEvents.mockRestore();
+		jest.restoreAllMocks();
+	} );
+
+	test( 'calls hCaptchaBindEvents immediately on load', () => {
+		expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 
 	const eventTypes = [
@@ -35,10 +39,12 @@ describe( 'hCaptcha Contact Form 7', () => {
 
 	eventTypes.forEach( ( eventType ) => {
 		test( `hCaptchaBindEvents is called when the ${ eventType } event is triggered`, () => {
+			document.dispatchEvent( new Event( 'hCaptchaLoaded' ) );
+			hCaptchaBindEvents.mockClear();
+
 			const forms = document.querySelectorAll( '.wpcf7' );
 			forms.forEach( ( form ) => {
-				const event = new CustomEvent( eventType );
-				form.dispatchEvent( event );
+				form.dispatchEvent( new CustomEvent( eventType ) );
 			} );
 
 			expect( hCaptchaBindEvents ).toHaveBeenCalledTimes( forms.length );

@@ -1,4 +1,5 @@
-body.toplevel_page_wpcf7 #poststuff {
+body.toplevel_page_wpcf7 #poststuff,
+body.contact_page_wpcf7-new #poststuff {
 	display: grid;
 	gap: 0 20px;
 	grid-template-columns: repeat(2, 1fr);
@@ -7,7 +8,8 @@ body.toplevel_page_wpcf7 #poststuff {
 	min-width: unset;
 }
 
-body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
+body.toplevel_page_wpcf7 #poststuff #post-body.columns-2,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 {
 	display: grid;
 	grid-template-rows: subgrid;
 	grid-template-columns: subgrid;
@@ -16,7 +18,8 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
 	margin-inline-end: 0;
 }
 
-body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
+body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
 	display: grid;
 	grid-template-rows: subgrid;
 	grid-template-columns: subgrid;
@@ -24,7 +27,8 @@ body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-e
 	grid-column: 1/3;
 }
 
-body.toplevel_page_wpcf7 #poststuff #postbox-container-live {
+body.toplevel_page_wpcf7 #poststuff #postbox-container-live,
+body.contact_page_wpcf7-new #poststuff #postbox-container-live {
 	display: grid;
 	grid-template-rows: subgrid;
 	grid-template-columns: subgrid;
@@ -34,11 +38,12 @@ body.toplevel_page_wpcf7 #poststuff #postbox-container-live {
 	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
 	background: #f5f5f5;
 	padding: 0 12px 12px 12px;
-	margin: 40px 0 84px 0;
+	margin: 40px 0 95px 0;
 	box-sizing: border-box;
 }
 
-body.toplevel_page_wpcf7 #poststuff #postbox-container-live h3 {
+body.toplevel_page_wpcf7 #poststuff #postbox-container-live h3,
+body.contact_page_wpcf7-new #poststuff #postbox-container-live h3 {
 	font-size: 14px;
 	font-weight: bold;
 	padding: 0;
@@ -46,51 +51,62 @@ body.toplevel_page_wpcf7 #poststuff #postbox-container-live h3 {
 	line-height: 30px;
 }
 
-body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #post-body-content {
+body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #post-body-content,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #post-body-content {
 	grid-row: 1;
 	grid-column: 1/3;
 }
 
 body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1,
-body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2 {
+body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #postbox-container-1,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #postbox-container-2 {
 	float: none;
 	margin-inline-end: 0;
 	width: 100%;
 }
 
-body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1 {
+body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #postbox-container-1 {
 	grid-row: 2;
 	grid-column: 1/3;
 }
 
-body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2 {
+body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-2,
+body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #postbox-container-2 {
 	grid-row: 3;
 	grid-column: 1;
 }
 
 @media screen and (max-width: 850px) {
-	body.toplevel_page_wpcf7 #poststuff {
+	body.toplevel_page_wpcf7 #poststuff,
+	body.contact_page_wpcf7-new #poststuff {
 		grid-template-columns: 1fr;
 	}
 
-	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 {
+	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2,
+	body.contact_page_wpcf7-new #poststuff #post-body.columns-2 {
 		grid-column: 1;
 	}
 
-	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
+	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 form#wpcf7-admin-form-element,
+	body.contact_page_wpcf7-new #poststuff #post-body.columns-2 form#wpcf7-admin-form-element {
 		grid-column: 1;
 	}
 
-	body.toplevel_page_wpcf7 #poststuff #postbox-container-live {
+	body.toplevel_page_wpcf7 #poststuff #postbox-container-live,
+	body.contact_page_wpcf7-new #poststuff #postbox-container-live {
 		grid-column: 1;
 		grid-row: 4;
 	}
 
-	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #post-body-content {
+	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #post-body-content,
+	body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #post-body-content {
 		grid-column: 1;
 	}
 
-	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1 {
+	body.toplevel_page_wpcf7 #poststuff #post-body.columns-2 #postbox-container-1,
+	body.contact_page_wpcf7-new #poststuff #post-body.columns-2 #postbox-container-1 {
 		grid-column: 1;
 	}
 }

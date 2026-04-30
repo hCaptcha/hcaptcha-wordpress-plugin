@@ -17,7 +17,14 @@ class ReadyGate {
 		this._onDom = this._onDom.bind( this );
 		this._onHCaptcha = this._onHCaptcha.bind( this );
 
-		document.addEventListener( 'DOMContentLoaded', this._onDom, { once: true } );
+		if ( ! this._domReady ) {
+			// DOM is not ready - add event listener
+			document.addEventListener( 'DOMContentLoaded', this._onDom, { once: true } );
+		} else {
+			// DOMContentLoaded fired already - call callback immediately
+			this._onDom();
+		}
+
 		document.addEventListener( 'hCaptchaOnLoad', this._onHCaptcha, { once: true } );
 
 		this._tryResolve();

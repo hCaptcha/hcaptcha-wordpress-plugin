@@ -33,6 +33,7 @@ const integrations = function( $ ) {
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 	const $search = $( '#hcaptcha-integrations-search' );
 	const $showAntispamCoverage = $( '#show_antispam_coverage_1' );
+	const $antispamLegend = $( '#hcaptcha-antispam-legend' );
 
 	function clearMessage() {
 		$message.remove();
@@ -142,7 +143,7 @@ const integrations = function( $ ) {
 		}
 	}
 
-	// Setup antispam helper
+	// Set up antispam helper
 	function setupHelper( $label ) {
 		let $helper = $label.next( '.helper' );
 
@@ -188,6 +189,12 @@ const integrations = function( $ ) {
 	}
 
 	function setupHelpers() {
+		const disabled = $showAntispamCoverage.prop( 'disabled' );
+
+		if ( disabled ) {
+			return;
+		}
+
 		const checked = $showAntispamCoverage.prop( 'checked' );
 
 		// Find all labels that declare the antispam marker
@@ -200,6 +207,13 @@ const integrations = function( $ ) {
 				$helper.hide();
 			}
 		} );
+
+		// Toggle legend visibility.
+		if ( checked ) {
+			$antispamLegend.show();
+		} else {
+			$antispamLegend.hide();
+		}
 	}
 
 	/**
@@ -230,7 +244,7 @@ const integrations = function( $ ) {
 		};
 	}
 
-	// Handle Show Antispam Coverage checkbox change: insert/clear helper spans after honeypot labels
+	// Handle Show Antispam Indicators checkbox change: insert/clear helper spans after labels
 	$showAntispamCoverage.on( 'change', function() {
 		setupHelpers();
 	} );

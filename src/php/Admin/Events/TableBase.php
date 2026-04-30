@@ -9,7 +9,6 @@ namespace HCaptcha\Admin\Events;
 
 // If this file is called directly, abort.
 use HCaptcha\Helpers\Utils;
-use JsonException;
 use WP_List_Table;
 
 if ( ! defined( 'ABSPATH' ) ) {

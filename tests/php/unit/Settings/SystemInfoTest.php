@@ -319,7 +319,7 @@ Migrations:
 
 --- Integrations header info ---
 
-  Show Antispam Coverage:             Off
+  Show Anti-Spam Indicators:          Off
 
 --- Active plugins and themes ---
 

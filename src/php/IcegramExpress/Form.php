@@ -12,6 +12,7 @@ namespace HCaptcha\IcegramExpress;
 
 use ES_Form_Widget;
 use ES_Forms_Table;
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
@@ -226,7 +227,7 @@ class Form {
 
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-icegram-express$min.js",
 			[ Main::HANDLE ],
@@ -234,12 +235,14 @@ class Form {
 			true
 		);
 
-		wp_localize_script(
-			self::HANDLE,
-			self::OBJECT,
-			[
-				'hCaptchaWidgets' => wp_json_encode( $this->show_in_popup ),
-			]
+		DelayedScript::enqueue( self::HANDLE );
+
+		wp_print_inline_script_tag(
+			'var ' . self::OBJECT . ' = ' . wp_json_encode(
+				[
+					'hCaptchaWidgets' => wp_json_encode( $this->show_in_popup ),
+				]
+			) . ';'
 		);
 	}
 

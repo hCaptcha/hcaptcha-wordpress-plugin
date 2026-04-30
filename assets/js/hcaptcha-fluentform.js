@@ -23,7 +23,7 @@ const hCaptchaFluentForm = window.hCaptchaFluentForm || ( function( window, $ ) 
 
 			// We assume there should be only one conversational form on the page.
 			const form = document.querySelector( formSelector );
-			const hasCaptcha = () => form.querySelector( 'h-captcha' ) !== null;
+			const hasCaptcha = () => form?.querySelector( 'h-captcha' ) !== null;
 
 			if ( hasCaptcha() ) {
 				return;

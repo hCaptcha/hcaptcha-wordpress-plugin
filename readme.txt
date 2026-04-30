@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.25.0
+Stable tag: 4.26.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -702,11 +702,21 @@ To load the hCaptcha API script only when a WordPress comment form is visible, y
 add_filter( 'hcap_delay_api_selector', static function ( $delay_api_selector ) {
 	$delay_api_selector = (string) $delay_api_selector;
 
-	if ( is_admin() ) {
+	if ( is_admin() || is_login() ) {
 		return $delay_api_selector;
 	}
 
-	return '.comment-form';
+	$selectors = [
+		'.comment-form', // WP comment form.
+		'.elementor-form', // Elementor Pro.
+		'.wpcf7-form', // Contact Form 7.
+		'.fluentform, .frm-fluent-form', // Fluent Forms.
+		'.nf-form-cont', // Ninja Forms.
+		'.es_subscription_form, .es-form-field-container, .ig_popup', // Icegram Express Forms.
+		'.cr-reviews-ajax-reviews, .cr-qna-block', // Customer Reviews.
+	];
+
+	return implode( ', ', $selectors );
 } );
 
 = How to set hCaptcha language programmatically? =
@@ -974,6 +984,24 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 4.26.0 =
+* Added hcap_delay_api_selector filter to delay Elementor Pro, Contact Form 7, Fluent Forms, Ninja Forms, Customer Reviews, and Icegram Express scripts loading based on selector.
+* Added Migration Wizard for Fluent Forms, Forminator, Ninja Forms, MailPoet, CoBlocks, Formidable Forms, Otter, ACFE, Download Manager, GiveWP, Paid Membership Pro, and Brevo to help migrate from Google reCAPTCHA and Cloudflare Turnstile to hCaptcha.
+* Added Live Preview for a new Contact Form 7 form.
+* Removed Cookies and Content Security Policy plugin integration as it is no longer needed — hCaptcha support is now built into the plugin.
+* Improved UX with saving credentials.
+* Improved UX with Anti-Spam Indicators.
+* Fixed running Elementor Pro, Contact Form 7, Fluent Forms, Ninja Forms, Customer Reviews, and Icegram Express scripts. Now on pages containing relevant form only.
+* Fixed multiple Ajax calls for the Anti-Spam Token under some conditions.
+* Fixed console error with Fluent Forms.
+* Fixed multiple Ajax calls and PHP notices with regular Fluent Forms.
+* Fixed notice on pages not containing Ninja Form.
+* Fixed floating JavaScript Anti-Spam error with Ninja Form.
+* Fixed replacement of any CAPTCHA with hCaptcha in the Kadence Form and Kadence Advanced Form.
+* Fixed ACFE form recaptcha validation in admin.
+* Fixed hCaptcha verification for the second and subsequent Divi Contact Form instances on the same page.
+* Fixed PHP notice with Kadence Form.
+
 = 4.25.0 =
 * Added a one-click setup option to the Onboarding Wizard to apply recommended settings automatically.
 * Added Migration Wizard to help migrate from Google reCAPTCHA and Cloudflare Turnstile to hCaptcha.
@@ -1000,7 +1028,7 @@ Instructions for popular native integrations are below:
 * Fixed a PHP notice occurred on the Contact Form 7 edit form page.
 * Fixed inability to log in and register from the Woocommerce My Account page.
 * Fixed inability to send a form with invisible or forced hCaptcha.
-* Fixed mobile layout of the Anti-spam and Notifications blocks on the General admin page.
+* Fixed mobile layout of the Anti-Spam and Notifications blocks on the General admin page.
 * Fixed processing options before saving on multisite.
 * Fixed empty charts on Forms and Events admin pages.
 * Fixed Custom and Enterprise section inputs with free license.
@@ -1029,8 +1057,8 @@ Instructions for popular native integrations are below:
 = 4.21.0 =
 * Added AI-ready security actions via the WordPress Abilities API, enabling automated threat inspection and response.
 * Added compatibility with the latest version of the Ninja Forms plugin.
-* Fixed FluentForms integrations after the latest FluentForms update.
-* Fixed the inability to send FluentForms Conversational Form.
+* Fixed Fluent Forms integrations after the latest Fluent Forms update.
+* Fixed the inability to send Fluent Forms Conversational Form.
 * Fixed the racing condition which sometimes led to double rendering of the hCaptcha widget on any forms.
 * Fixed double rendering of the hCaptcha widget on the Elementor Form.
 * Fixed an error activating a free plugin when its premium version is not available.
