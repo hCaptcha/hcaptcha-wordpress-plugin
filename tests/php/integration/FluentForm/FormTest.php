@@ -596,6 +596,8 @@ class FormTest extends HCaptchaWPTestCase {
 		wp_register_script( 'fluent_forms_conversational_form', 'https://example.com/some-fluent-form.js', [], '1.0.0', true );
 		wp_enqueue_script( 'fluent_forms_conversational_form' );
 
+		$this->set_protected_property( $subject, 'form_shown', true );
+
 		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
 		self::assertFalse( wp_script_is( 'hcaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
@@ -635,6 +637,9 @@ class FormTest extends HCaptchaWPTestCase {
 
 		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
 			$expected_fluent_forms_extra = <<<HTML
+<script>
+var HCaptchaFluentFormObject = {"id":"fluent_forms_conversational_form","url":"https:\/\/example.com\/script.js"};
+</script>
 <script id="$fluent_forms_conversational_script-js-extra">
 var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
 //# sourceURL=fluent_forms_conversational_form-js-extra
@@ -642,6 +647,11 @@ var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
 HTML;
 		} else {
 			$expected_fluent_forms_extra = <<<HTML
+<script type="text/javascript">
+/* <![CDATA[ */
+var HCaptchaFluentFormObject = {"id":"fluent_forms_conversational_form","url":"https:\/\/example.com\/script.js"};
+/* ]]> */
+</script>
 <script type="text/javascript" id="$fluent_forms_conversational_script-js-extra">
 /* <![CDATA[ */
 var $fluent_forms_conversational_object = $fluent_forms_conversational_json;
@@ -666,7 +676,7 @@ HTML;
 		$expected_extra = [
 			'group' => 1,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
-			'data'  => 'var HCaptchaFluentFormObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
+			'type'  => 'module',
 		];
 		$args           = [
 			'action' => 'hcaptcha_fluentform',
@@ -681,6 +691,7 @@ HTML;
 		$hcap_form      = '<div class="h-captcha-hidden" style="display: none;">' . "\n$hcap_form\n</div>";
 
 		$this->set_protected_property( $subject, 'form_id', $form_id );
+		$this->set_protected_property( $subject, 'form_shown', true );
 
 		ob_start();
 		$subject->print_footer_scripts();

@@ -40,6 +40,7 @@ function getDom() {
 	<input id="hcaptcha-integrations-search" type="text" />
 </div>
 <label><input type="checkbox" id="show_antispam_coverage_1" /></label>
+<div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="display: none;"></div>
 <div id="hcaptcha-message"></div>
 	<table class="form-table">
 		<tbody>
@@ -206,11 +207,16 @@ describe( 'integrations', () => {
 		expect( $helper.find( 'i.antispam-honeypot' ).length ).toBe( 1 );
 		expect( $helper.find( 'i.antispam-fst' ).length ).toBe( 1 );
 
-		// Toggle the checkbox to show helpers
+		// Legend should be hidden by default
+		const $legend = $( '#hcaptcha-antispam-legend' );
+		expect( $legend.css( 'display' ) ).toBe( 'none' );
+
+		// Toggle the checkbox to show helpers and legend
 		const $cb = $( '#show_antispam_coverage_1' );
 		$cb.prop( 'checked', true ).trigger( 'change' );
 		$helper = $label.next( '.helper' );
 		expect( $helper.css( 'display' ) ).toBe( 'inline-flex' );
+		expect( $legend.css( 'display' ) ).not.toBe( 'none' );
 	} );
 
 	test( 'suggestActivate highlights element and shows success message when configured', () => {

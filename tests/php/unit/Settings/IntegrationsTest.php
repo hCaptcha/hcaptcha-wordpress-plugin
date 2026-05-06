@@ -484,6 +484,15 @@ class IntegrationsTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 		WP_Mock::userFunction( 'submit_button' );
 
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'is_on' )->with( 'honeypot' )->andReturn( false );
+		$settings->shouldReceive( 'is_on' )->with( 'set_min_submit_time' )->andReturn( false );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+
 		$subject = Mockery::mock( Integrations::class )->makePartial()->shouldAllowMockingProtectedMethods();
 
 		ob_start();
@@ -517,7 +526,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 			],
 			'enabled'  => [
 				Integrations::SECTION_ENABLED,
-				'				<hr class="hcaptcha-enabled-section">
+				'				<div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="display: none;">
+					Antispam indicators: <i class="antispam-honeypot"></i> Honeypot &middot; <i class="antispam-fst"></i> Time check				</div>
+				<hr class="hcaptcha-enabled-section">
 				<h3>Active plugins and themes</h3>
 				',
 			],

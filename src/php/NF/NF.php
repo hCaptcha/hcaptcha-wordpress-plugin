@@ -7,6 +7,7 @@
 
 namespace HCaptcha\NF;
 
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
@@ -52,6 +53,13 @@ class NF implements Base {
 	protected string $templates_dir;
 
 	/**
+	 * Form shown, use this flag to run the script.
+	 *
+	 * @var boolean
+	 */
+	private bool $form_shown = false;
+
+	/**
 	 * NF constructor.
 	 */
 	public function __construct() {
@@ -76,7 +84,6 @@ class NF implements Base {
 		add_filter( "ninja_forms_localize_field_$name", [ $this, 'localize_field' ] );
 		add_filter( "ninja_forms_localize_field_{$name}_preview", [ $this, 'localize_field' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
-		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 
 		// Block native hCaptcha settings in the Ninja Forms plugin.
 		add_action( 'ninja-forms_page_nf-settings', [ $this, 'before_nf_settings' ], 0 );
@@ -85,7 +92,7 @@ class NF implements Base {
 	}
 
 	/**
-	 * Display template on form edit page.
+	 * Display the template on the form edit page.
 	 *
 	 * @return void
 	 */
@@ -246,10 +253,10 @@ class NF implements Base {
 	public function localize_field( $field ): array {
 		$field = (array) $field;
 
-		$field['settings']['hcaptcha'] = $field['settings']['hcaptcha'] ?? $this->get_hcaptcha( $field['id'] );
+		$field['settings']['hcaptcha'] = $this->get_hcaptcha( $field['id'] );
 
 		// Mark hCaptcha as shown in any case. Needed on the preview page.
-		hcaptcha()->form_shown = true;
+		$this->form_shown = true;
 
 		return $field;
 	}
@@ -287,9 +294,13 @@ class NF implements Base {
 	 * @return void
 	 */
 	public function nf_captcha_script(): void {
+		if ( ! $this->form_shown ) {
+			return;
+		}
+
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-nf$min.js",
 			[ 'jquery', Main::HANDLE, 'nf-front-end', 'nf-front-end-deps' ],
@@ -297,28 +308,10 @@ class NF implements Base {
 			true
 		);
 
+		DelayedScript::enqueue( self::HANDLE );
+
 		// Dequeue hCaptcha script by Ninja Forms plugin.
 		wp_dequeue_script( 'nf-hcaptcha' );
-	}
-
-	/**
-	 * Add type="module" attribute to script tag.
-	 *
-	 * @param string|mixed $tag    Script tag.
-	 * @param string       $handle Script handle.
-	 * @param string       $src    Script source.
-	 *
-	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
-	 */
-	public function add_type_module( $tag, string $handle, string $src ): string {
-		$tag = (string) $tag;
-
-		if ( self::HANDLE !== $handle ) {
-			return $tag;
-		}
-
-		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**

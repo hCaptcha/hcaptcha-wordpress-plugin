@@ -21,7 +21,7 @@ class Request {
 	 */
 	public static function is_frontend(): bool {
 		return ! (
-			self::is_xml_rpc() || self::is_cli() || self::is_wc_ajax() ||
+			self::is_xml_rpc() || self::is_cli() ||
 			is_admin() || wp_doing_ajax() || wp_doing_cron() ||
 			self::is_rest()
 		);
@@ -52,7 +52,7 @@ class Request {
 	 */
 	public static function is_wc_ajax(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return isset( $_GET['wc-ajax'] );
+		return is_plugin_active( 'woocommerce/woocommerce.php' ) && isset( $_GET['wc-ajax'] );
 	}
 
 	/**
@@ -80,16 +80,16 @@ class Request {
 
 		// Case #2.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$rest_route = isset( $_GET['rest_route'] ) ?
-			filter_input( INPUT_GET, 'rest_route', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
+		$rest_route  = self::filter_input( INPUT_GET, 'rest_route' );
+		$script_name = self::filter_input( INPUT_SERVER, 'SCRIPT_NAME' );
 
-		if ( 0 === strpos( trim( $rest_route, '\\/' ), rest_get_url_prefix() ) ) {
+		if ( 0 === strpos( $rest_route, '/' ) && 'index.php' === basename( $script_name ) ) {
 			return true;
 		}
 
 		// Case #3.
 		global $wp_rewrite;
+
 		if ( null === $wp_rewrite ) {
 			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			$wp_rewrite = new WP_Rewrite();

@@ -82,7 +82,7 @@ class BaseTest extends HCaptchaWPTestCase {
 	public function test_dequeue_kadence_captcha_api_replaced(): void {
 		$subject = new Base();
 
-		$this->set_protected_property( $subject, 'has_hcaptcha', true );
+		$this->set_protected_property( $subject, 'has_captcha', true );
 
 		// Enqueue the scripts to test if they are dequeued.
 		$handles = [

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\CustomerReviews;
 
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
@@ -30,6 +31,13 @@ abstract class Base {
 	 * Script handle.
 	 */
 	private const HANDLE = 'hcaptcha-customer-reviews';
+
+	/**
+	 * Form shown, use this flag to run the script.
+	 *
+	 * @var boolean
+	 */
+	protected bool $form_shown = false;
 
 	/**
 	 * Constructor.
@@ -114,19 +122,28 @@ abstract class Base {
 	 * @return void
 	 */
 	public function print_footer_scripts(): void {
+		global $wp_scripts;
+
+		if ( ! $this->form_shown ) {
+			return;
+		}
+
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-customer-reviews$min.js",
 			[ Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
+		$wp_scripts->add_data( self::HANDLE, 'type', 'module' );
+
+		DelayedScript::enqueue( self::HANDLE );
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

@@ -15,6 +15,18 @@ use HCaptcha\Helpers\HCaptcha;
 class DelayedScript {
 
 	/**
+	 * Priority of the print observation script hook.
+	 */
+	private const OBSERVATION_SCRIPT_PRIORITY = PHP_INT_MAX - 1000;
+
+	/**
+	 * List of scripts already launched.
+	 *
+	 * @var array
+	 */
+	private static array $launched = [];
+
+	/**
 	 * Create a delayed script.
 	 *
 	 * @param string $js    js code to wrap in setTimeout().
@@ -83,15 +95,13 @@ $js
 	}
 
 	/**
-	 * Enqueue a script or load it via interact() if the delay API selector is set.
+	 * Enqueue a script or load it via observe() if the delay API selector is set.
 	 *
-	 * @param string|array $handles Script handles to register and enqueue.
+	 * @param string $handle Script handle to register and enqueue.
 	 *
 	 * @return void
 	 */
-	public static function enqueue( $handles ): void {
-		$handles = (array) $handles;
-
+	public static function enqueue( string $handle ): void {
 		/**
 		 * Filters delay API selector.
 		 *
@@ -103,95 +113,185 @@ $js
 		$delay_api_selector = trim( (string) apply_filters( 'hcap_delay_api_selector', '' ) );
 
 		if ( $delay_api_selector ) {
-			self::interact( $delay_api_selector, $handles );
+			self::observe( $delay_api_selector, $handle );
 
 			return;
 		}
 
-		foreach ( $handles as $handle ) {
-			wp_enqueue_script( $handle );
+		wp_enqueue_script( $handle );
+	}
+
+	/**
+	 * Print observation script.
+	 *
+	 * Defines the global `hCaptchaObserve( selector, scripts )` function used by small per-call scripts.
+	 *
+	 * @return void
+	 * @noinspection JSUnnecessarySemicolon
+	 * @noinspection CommaExpressionJS
+	 * @noinspection JSUnresolvedReference
+	 */
+	public static function print_observation_script(): void {
+		if ( ! self::$launched ) {
+			return;
 		}
+
+		/* language=JS */
+		$data =
+			"
+	hCaptchaObserve = function( selector, scripts ) {
+		'use strict';
+
+		scripts = Object.entries( scripts )
+			.filter( function( [ handle ] ) {
+				return ! document.getElementById( handle + '-js' );
+			} )
+			.map( function( [ handle, script ] ) {
+				return { handle: handle, src: script.src, type: script.type };
+			} );
+
+		if ( ! scripts.length ) {
+			return;
+		}
+
+		const observed = new Set();
+
+		const intersectionObserver = new IntersectionObserver( function( entries ) {
+			if ( entries.some( function( e ) { return e.isIntersecting; } ) ) {
+				launch();
+			}
+		} );
+
+		const mutationObserver = new MutationObserver( function() {
+			observeNewEls( document.querySelectorAll( selector ) );
+		} );
+
+		observeNewEls( document.querySelectorAll( selector ) );
+		mutationObserver.observe( document.body, { childList: true, subtree: true } );
+
+		function loadScript( scripts, index = 0 ) {
+			if ( index >= scripts.length ) {
+				return;
+			}
+
+			const t = document.getElementsByTagName( 'script' )[0];
+			const s = document.createElement( 'script' );
+
+			s.id     = scripts[index].handle + '-js';
+			s.type   = scripts[index].type || 'text/javascript';
+			s.src    = scripts[index].src;
+			s.onload = function() {
+				loadScript( scripts, index + 1 );
+			};
+
+			t.parentNode.insertBefore( s, t );
+		}
+
+		function launch() {
+			const toLoad = scripts.filter( function( script ) {
+				return ! document.getElementById( script.handle + '-js' );
+			} );
+
+			if ( ! toLoad.length ) {
+				return;
+			}
+
+			loadScript( toLoad );
+		}
+
+		function observeNewEls( els ) {
+			els.forEach( function( el ) {
+				if ( ! observed.has( el ) ) {
+					observed.add( el );
+					intersectionObserver.observe( el );
+				}
+			} );
+		}
+	};
+";
+
+		foreach ( self::$launched as $selector => $handles ) {
+			$scripts = [];
+
+			foreach ( $handles as $handle ) {
+				if ( ! wp_script_is( $handle, 'registered' ) || wp_script_is( $handle ) ) {
+					// Don't print the script if it's already registered and enqueued.
+					continue;
+				}
+
+				$obj = self::get_script_obj( $handle );
+
+				if ( $obj->src ) {
+					$scripts[ $handle ] = [
+						'src'  => $obj->src,
+						'type' => $obj->extra['type'] ?? '',
+					];
+				}
+			}
+
+			if ( ! $scripts ) {
+				continue;
+			}
+
+			$selector_js = wp_json_encode( $selector );
+			$scripts_js  = wp_json_encode( $scripts );
+
+			$data .=
+				/* language=JS */
+				"
+	hCaptchaObserve( $selector_js, $scripts_js );
+";
+		}
+
+		wp_print_inline_script_tag( $data );
 	}
 
 	/**
 	 * Print an inline script that loads scripts by handles when a given element becomes visible.
 	 *
 	 * Scripts are loaded sequentially in the order the handles are provided.
+	 * The main observer logic is printed once; each call emits a small script
+	 * that passes selector and sources to the global `hCaptchaObserve` function.
 	 *
-	 * @param string   $selector CSS selector of the element to observe.
-	 * @param string[] $handles  Script handles registered in WordPress.
+	 * @param string          $selector CSS selector of the element to observe.
+	 * @param string|string[] $handles  Script handles registered in WordPress.
 	 *
 	 * @return void
+	 * @noinspection JSUnresolvedReference
+	 * @noinspection CommaExpressionJS
 	 */
-	public static function interact( string $selector, array $handles ): void {
-		$wp_scripts = wp_scripts();
-		$sources    = [];
+	private static function observe( string $selector, $handles ): void {
+		$handles = (array) $handles;
+
+		$launching = [];
 
 		foreach ( $handles as $handle ) {
-			$obj = $wp_scripts->registered[ $handle ] ?? null;
-			$src = $obj->src ?? '';
-			$ver = $obj->ver ?? '';
+			$obj = self::get_script_obj( $handle );
 
-			// Make URL absolute if needed.
-			if ( $src && 0 !== strpos( $src, 'http' ) ) {
-				$src = $wp_scripts->base_url . $src;
+			if ( ! $obj->src ) {
+				continue;
 			}
 
-			if ( $ver ) {
-				$src = add_query_arg( 'ver', $ver, $src );
-			}
+			// Include dependencies first.
+			self::observe( $selector, $obj->deps );
 
-			$sources[] = $src;
+			// Include script in current handles.
+			$launching[] = $handle;
 		}
 
-		$selector_js = wp_json_encode( $selector );
-		$sources_js  = wp_json_encode( $sources );
-
-		/* language=JS */
-		wp_print_inline_script_tag(
-			"
-	( () => {
-		'use strict';
-	
-		// noinspection JSAnnotator
-		const selector = $selector_js;
-		const el       = document.querySelector( selector );
-	
-		if ( ! el ) {
+		if ( ! $launching ) {
 			return;
 		}
-	
-		// noinspection JSAnnotator
-		const sources = $sources_js;
-	
-		function loadScript( index ) {
-			if ( index >= sources.length ) {
-				return;
-			}
-	
-			const t = document.getElementsByTagName( 'script' )[0];
-			const s = document.createElement( 'script' );
-	
-			s.type   = 'text/javascript';
-			s.src    = sources[index];
-			s.onload = function() {
-				loadScript( index + 1 );
-			};
-	
-			t.parentNode.insertBefore( s, t );
-		}
-	
-		const observer = new IntersectionObserver( function( entries ) {
-			if ( entries[0].isIntersecting ) {
-				observer.disconnect();
-				loadScript( 0 );
-			}
-		} );
-	
-		observer.observe( el );
-	} )();
-"
-		);
+
+		$launched  = self::$launched[ $selector ] ?? [];
+		$launching = array_values( array_diff( $launching, $launched ) );
+
+		array_push( $launched, ...$launching );
+
+		self::$launched[ $selector ] = $launched;
+
+		// Print the main script later. Multiple add_action calls result in one hook added.
+		add_action( 'wp_print_footer_scripts', [ __CLASS__, 'print_observation_script' ], self::OBSERVATION_SCRIPT_PRIORITY );
 	}
 
 	/**
@@ -237,5 +337,32 @@ $js
 
 		echo self::create( $js, $delay );
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Get a script object.
+	 *
+	 * @param string $handle Script handle.
+	 *
+	 * @return object
+	 */
+	private static function get_script_obj( string $handle ): object {
+		$wp_scripts = wp_scripts();
+		$obj        = clone( $wp_scripts->registered[ $handle ] ?? (object) [] );
+
+		$obj->src  = $obj->src ?? '';
+		$obj->deps = $obj->deps ?? [];
+		$obj->ver  = $obj->ver ?? '';
+
+		// Make URL absolute if needed.
+		if ( $obj->src && 0 !== strpos( $obj->src, 'http' ) ) {
+			$obj->src = $wp_scripts->base_url . $obj->src;
+		}
+
+		if ( $obj->ver ) {
+			$obj->src = add_query_arg( 'ver', $obj->ver, $obj->src );
+		}
+
+		return $obj;
 	}
 }

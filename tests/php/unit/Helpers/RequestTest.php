@@ -31,7 +31,7 @@ class RequestTest extends HCaptchaTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $_POST['test_var'], $_SERVER['test_var'], $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], $_COOKIE['test_var'] );
+		unset( $_POST['test_var'], $_SERVER['test_var'], $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], $_SERVER['SCRIPT_NAME'], $_COOKIE['test_var'] );
 
 		$_GET = [];
 
@@ -54,11 +54,6 @@ class RequestTest extends HCaptchaTestCase {
 		self::assertFalse( Request::is_frontend() );
 
 		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_cli', false );
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_wc_ajax', true );
-
-		self::assertFalse( Request::is_frontend() );
-
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_wc_ajax', false );
 		FunctionMocker::replace( 'is_admin', true );
 
 		self::assertFalse( Request::is_frontend() );
@@ -142,6 +137,8 @@ class RequestTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_is_wp_ajax(): void {
+		FunctionMocker::replace( 'is_plugin_active', true );
+
 		self::assertFalse( Request::is_wc_ajax() );
 
 		$_GET['wc-ajax'] = 'some-action';
@@ -190,22 +187,10 @@ class RequestTest extends HCaptchaTestCase {
 		$route              = '/wp-json/some-route';
 		$_GET['rest_route'] = $route;
 
-		FunctionMocker::replace(
-			'filter_input',
-			static function ( $type, $var_name, $filter ) use ( $route ) {
-				if (
-					INPUT_GET === $type &&
-					'rest_route' === $var_name &&
-					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
-				) {
-					return $route;
-				}
+		$_SERVER['SCRIPT_NAME'] = '/index.php';
 
-				return false;
-			}
-		);
-
-		WP_Mock::userFunction( 'rest_get_url_prefix' )->andreturn( 'wp-json' );
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
 
 		self::assertTrue( Request::is_rest() );
 

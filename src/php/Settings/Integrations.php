@@ -1,6 +1,6 @@
 <?php
 /**
- * Integrations class file.
+ * The Integrations class file.
  *
  * @package hcaptcha-wp
  */
@@ -267,8 +267,9 @@ class Integrations extends PluginSettingsBase {
 				'type'    => 'checkbox',
 				'section' => self::SECTION_HEADER,
 				'options' => [
-					'on' => __( 'Show Antispam Coverage', 'hcaptcha-for-forms-and-more' ),
+					'on' => __( 'Show Anti-Spam Indicators', 'hcaptcha-for-forms-and-more' ),
 				],
+				'helper'  => __( 'Shows icons for built-in antispam methods (Honeypot, Time check) for supported integrations, including inactive ones.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'wp_status'                        => [
 				'entity'  => 'core',
@@ -912,6 +913,26 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Show the settings page.
+	 *
+	 * @return void
+	 */
+	public function settings_page(): void {
+		global $wp_settings_sections;
+
+		if ( ! $this->is_any_antispam_enabled() ) {
+			$page   = $this->get_active_tab()->option_page();
+			$output = '<p>' . __( 'Enable Honeypot or Time check in the Anti-Spam tab to use indicators.', 'hcaptcha-for-forms-and-more' ) . '</p>';
+
+			// Add output after the section.
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$wp_settings_sections[ $page ][ self::SECTION_HEADER ]['after_section'] = $output;
+		}
+
+		parent::settings_page();
+	}
+
+	/**
 	 * Check whether one of the plugins or themes is installed.
 	 *
 	 * @param string|array $plugin_or_theme_names Plugin or theme names.
@@ -956,6 +977,10 @@ class Integrations extends PluginSettingsBase {
 		uasort(
 			$fields,
 			static function ( $a, $b ) {
+				if ( self::SECTION_HEADER === $a['section'] ) {
+					return -1;
+				}
+
 				$a_disabled = $a['disabled'] ?? false;
 				$b_disabled = $b['disabled'] ?? false;
 
@@ -1041,7 +1066,23 @@ class Integrations extends PluginSettingsBase {
 
 				break;
 			case self::SECTION_ENABLED:
+				$style = $this->is_any_antispam_enabled() && hcaptcha()->settings()->is_on( 'show_antispam_coverage' )
+					? 'display: block;'
+					: 'display: none;';
+
 				?>
+				<div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="<?php echo esc_attr( $style ); ?>">
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: 1: Honeypot icon, 2: Time check icon. */
+							__( 'Antispam indicators: %1$s Honeypot &middot; %2$s Time check', 'hcaptcha-for-forms-and-more' ),
+							'<i class="antispam-honeypot"></i>',
+							'<i class="antispam-fst"></i>'
+						)
+					);
+					?>
+				</div>
 				<hr class="hcaptcha-enabled-section">
 				<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
 				<?php
@@ -1137,6 +1178,17 @@ class Integrations extends PluginSettingsBase {
 			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
 			constant( 'HCAPTCHA_VERSION' )
 		);
+	}
+
+	/**
+	 * Check if any antispam method (Honeypot or Time check) is enabled.
+	 *
+	 * @return bool
+	 */
+	private function is_any_antispam_enabled(): bool {
+		$settings = hcaptcha()->settings();
+
+		return $settings->is_on( 'honeypot' ) || $settings->is_on( 'set_min_submit_time' );
 	}
 
 	/**
@@ -2020,6 +2072,10 @@ class Integrations extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function setup_antispam_data( array $installed ): void {
+		if ( ! $this->is_any_antispam_enabled() ) {
+			$this->form_fields['show_antispam_coverage']['disabled'] = true;
+		}
+
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
 				continue;

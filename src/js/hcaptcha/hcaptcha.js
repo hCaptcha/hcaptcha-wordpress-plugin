@@ -516,7 +516,10 @@ class HCaptcha {
 
 		const inputs = [ ...formElement.querySelectorAll( 'input,select,textarea,button' ) ]
 			// Do not insert inside .h-captcha element - it may be re-rendered later.
-			.filter( ( el ) => el !== hpInput && el.type !== 'hidden' && ! el.closest( '.h-captcha' ) );
+			// Do not insert before hidden inputs and submit buttons. They may be re-rendered later.
+			.filter(
+				( el ) => el !== hpInput && el.type !== 'hidden' && el.type !== 'submit' && ! el.closest( '.h-captcha' )
+			);
 
 		if ( ! inputs.length ) {
 			return;

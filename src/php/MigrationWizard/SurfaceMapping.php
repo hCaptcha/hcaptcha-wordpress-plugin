@@ -23,85 +23,108 @@ class SurfaceMapping {
 	 */
 	private const MAP = [
 		// WordPress core.
-		'wp_comment'               => [ 'wp_status', 'comment', 'WordPress Comment' ],
-		'wp_login'                 => [ 'wp_status', 'login', 'WordPress Login' ],
-		'wp_lost_password'         => [ 'wp_status', 'lost_pass', 'WordPress Lost Password' ],
-		'wp_password_protected'    => [ 'wp_status', 'password_protected', 'WordPress Post/Page Password' ],
-		'wp_register'              => [ 'wp_status', 'register', 'WordPress Register' ],
+		'wp_comment'                => [ 'wp_status', 'comment', 'WordPress Comment' ],
+		'wp_login'                  => [ 'wp_status', 'login', 'WordPress Login' ],
+		'wp_lost_password'          => [ 'wp_status', 'lost_pass', 'WordPress Lost Password' ],
+		'wp_password_protected'     => [ 'wp_status', 'password_protected', 'WordPress Post/Page Password' ],
+		'wp_register'               => [ 'wp_status', 'register', 'WordPress Register' ],
 
+		// ACF Extended.
+		'acfe_form'                 => [ 'acfe_status', 'form', 'ACF Extended' ],
 		// bbPress.
-		'bbpress_new_topic'        => [ 'bbp_status', 'new_topic', 'bbPress New Topic' ],
-		'bbpress_register'         => [ 'bbp_status', 'register', 'bbPress Register' ],
-		'bbpress_reply'            => [ 'bbp_status', 'reply', 'bbPress Reply' ],
+				'bbpress_new_topic' => [ 'bbp_status', 'new_topic', 'bbPress New Topic' ],
+		'bbpress_register'          => [ 'bbp_status', 'register', 'bbPress Register' ],
+		'bbpress_reply'             => [ 'bbp_status', 'reply', 'bbPress Reply' ],
 
 		// BuddyPress.
-		'buddypress_create_group'  => [ 'bp_status', 'create_group', 'BuddyPress Create Group' ],
-		'buddypress_registration'  => [ 'bp_status', 'registration', 'BuddyPress Register' ],
+		'buddypress_create_group'   => [ 'bp_status', 'create_group', 'BuddyPress Create Group' ],
+		'buddypress_registration'   => [ 'bp_status', 'registration', 'BuddyPress Register' ],
+
+		// Beaver Builder.
+		'beaver_builder_contact'    => [ 'beaver_builder_status', 'contact', 'Beaver Builder Contact Form' ],
 
 		// Contact Form 7.
-		'cf7_form'                 => [ 'cf7_status', 'form', 'Contact Form 7 Auto' ],
-		'cf7_embed'                => [ 'cf7_status', 'embed', 'Contact Form 7 Embed' ],
+		'cf7_form'                  => [ 'cf7_status', 'form', 'Contact Form 7 Auto' ],
+		'cf7_embed'                 => [ 'cf7_status', 'embed', 'Contact Form 7 Embed' ],
+
+		// CoBlocks.
+		'coblocks_form'             => [ 'coblocks_status', 'form', 'CoBlocks' ],
+
+		// Download Manager.
+		'download_manager_button'   => [ 'download_manager_status', 'button', 'Download Manager Button' ],
 
 		// Easy Digital Downloads.
-		'edd_checkout'             => [ 'easy_digital_downloads_status', 'checkout', 'Easy Digital Downloads Checkout' ],
-		'edd_login'                => [ 'easy_digital_downloads_status', 'login', 'Easy Digital Downloads Login' ],
-		'edd_register'             => [ 'easy_digital_downloads_status', 'register', 'Easy Digital Downloads Register' ],
+		'edd_checkout'              => [ 'easy_digital_downloads_status', 'checkout', 'Easy Digital Downloads Checkout' ],
+		'edd_login'                 => [ 'easy_digital_downloads_status', 'login', 'Easy Digital Downloads Login' ],
+		'edd_register'              => [ 'easy_digital_downloads_status', 'register', 'Easy Digital Downloads Register' ],
 
 		// Elementor Pro.
-		'elementor_form'           => [ 'elementor_pro_status', 'form', 'Elementor Pro Form' ],
-		'elementor_login'          => [ 'elementor_pro_status', 'login', 'Elementor Pro Login' ],
+		'elementor_form'            => [ 'elementor_pro_status', 'form', 'Elementor Pro Form' ],
+		'elementor_login'           => [ 'elementor_pro_status', 'login', 'Elementor Pro Login' ],
 
 		// Fluent Forms.
-		'fluent_form'              => [ 'fluent_status', 'form', 'Fluent Forms' ],
+		'fluent_form'               => [ 'fluent_status', 'form', 'Fluent Forms' ],
 
 		// Formidable Forms.
-		'formidable_form'          => [ 'formidable_forms_status', 'form', 'Formidable Forms' ],
+		'formidable_form'           => [ 'formidable_forms_status', 'form', 'Formidable Forms' ],
 
 		// Forminator.
-		'forminator_form'          => [ 'forminator_status', 'form', 'Forminator' ],
+		'forminator_form'           => [ 'forminator_status', 'form', 'Forminator' ],
+
+		// GiveWP.
+		'give_wp_form'              => [ 'give_wp_status', 'form', 'GiveWP' ],
 
 		// Gravity Forms.
-		'gravity_form'             => [ 'gravity_status', 'form', 'Gravity Forms Auto' ],
-		'gravity_embed'            => [ 'gravity_status', 'embed', 'Gravity Forms Embed' ],
+		'gravity_form'              => [ 'gravity_status', 'form', 'Gravity Forms Auto' ],
+		'gravity_embed'             => [ 'gravity_status', 'embed', 'Gravity Forms Embed' ],
+
+		// Ninja Forms.
+		'ninja_form'                => [ 'ninja_status', 'form', 'Ninja Forms' ],
+
+		// Otter Blocks.
+		'otter_form'                => [ 'otter_status', 'form', 'Otter Blocks' ],
 
 		// Jetpack Forms.
-		'jetpack_form'             => [ 'jetpack_status', 'contact', 'Jetpack' ],
+		'jetpack_form'              => [ 'jetpack_status', 'contact', 'Jetpack' ],
 
 		// Kadence Forms.
-		'kadence_form'             => [ 'kadence_status', 'form', 'Kadence Form' ],
-		'kadence_advanced'         => [ 'kadence_status', 'advanced_form', 'Kadence Advanced' ],
+		'kadence_form'              => [ 'kadence_status', 'form', 'Kadence Form' ],
+		'kadence_advanced'          => [ 'kadence_status', 'advanced_form', 'Kadence Advanced' ],
 
 		// Mailpoet Forms.
-		'mailpoet_form'            => [ 'mailpoet_status', 'form', 'Mailpoet' ],
+		'mailpoet_form'             => [ 'mailpoet_status', 'form', 'Mailpoet' ],
 
 		// MemberPress.
-		'memberpress_login'        => [ 'memberpress_status', 'login', 'MemberPress Login' ],
-		'memberpress_register'     => [ 'memberpress_status', 'register', 'MemberPress Register' ],
+		'memberpress_login'         => [ 'memberpress_status', 'login', 'MemberPress Login' ],
+		'memberpress_register'      => [ 'memberpress_status', 'register', 'MemberPress Register' ],
 
 		// Paid Memberships Pro.
-		'pmp_checkout'             => [ 'paid_memberships_pro_status', 'checkout', 'Paid Memberships Pro Checkout' ],
-		'pmp_login'                => [ 'paid_memberships_pro_status', 'login', 'Paid Memberships Pro Login' ],
+		'pmp_checkout'              => [ 'paid_memberships_pro_status', 'checkout', 'Paid Memberships Pro Checkout' ],
+		'pmp_login'                 => [ 'paid_memberships_pro_status', 'login', 'Paid Memberships Pro Login' ],
+
+		// Brevo.
+		'sendinblue_form'           => [ 'sendinblue_status', 'form', 'Brevo' ],
 
 		// Spectra.
-		'spectra_form'             => [ 'spectra_status', 'form', 'Spectra Form' ],
+		'spectra_form'              => [ 'spectra_status', 'form', 'Spectra Form' ],
 
 		// Ultimate Member.
-		'ultimate_member_login'    => [ 'ultimate_member_status', 'login', 'Ultimate Member Login' ],
-		'ultimate_member_password' => [ 'ultimate_member_status', 'lost_pass', 'Ultimate Member Lost Password' ],
-		'ultimate_member_register' => [ 'ultimate_member_status', 'register', 'Ultimate Member Register' ],
+		'ultimate_member_login'     => [ 'ultimate_member_status', 'login', 'Ultimate Member Login' ],
+		'ultimate_member_password'  => [ 'ultimate_member_status', 'lost_pass', 'Ultimate Member Lost Password' ],
+		'ultimate_member_register'  => [ 'ultimate_member_status', 'register', 'Ultimate Member Register' ],
 
 		// WooCommerce.
-		'wc_login'                 => [ 'woocommerce_status', 'login', 'WooCommerce Login' ],
-		'wc_register'              => [ 'woocommerce_status', 'register', 'WooCommerce Register' ],
-		'wc_checkout'              => [ 'woocommerce_status', 'checkout', 'WooCommerce Checkout' ],
-		'wc_lost_password'         => [ 'woocommerce_status', 'lost_pass', 'WooCommerce Lost Password' ],
+		'wc_login'                  => [ 'woocommerce_status', 'login', 'WooCommerce Login' ],
+		'wc_register'               => [ 'woocommerce_status', 'register', 'WooCommerce Register' ],
+		'wc_checkout'               => [ 'woocommerce_status', 'checkout', 'WooCommerce Checkout' ],
+		'wc_lost_password'          => [ 'woocommerce_status', 'lost_pass', 'WooCommerce Lost Password' ],
 
 		// Wordfence.
-		'wordfence_login'          => [ 'wordfence_status', 'login', 'Wordfence Login' ],
+		'wordfence_login'           => [ 'wordfence_status', 'login', 'Wordfence Login' ],
 
 		// WPForms.
-		'wpforms_form'             => [ 'wpforms_status', 'form', 'WPForms Auto' ],
-		'wpforms_embed'            => [ 'wpforms_status', 'embed', 'WPForms Embed' ],
+		'wpforms_form'              => [ 'wpforms_status', 'form', 'WPForms Auto' ],
+		'wpforms_embed'             => [ 'wpforms_status', 'embed', 'WPForms Embed' ],
 	];
 
 	/**

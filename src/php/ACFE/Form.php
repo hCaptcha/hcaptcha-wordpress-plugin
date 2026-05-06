@@ -168,23 +168,36 @@ class Form {
 			return $valid;
 		}
 
+		if ( is_admin() ) {
+			// In admin, the recaptcha field is required and $valid set to false in the acf_validate_value().
+			// So,we fix it.
+			return true;
+		}
+
 		$form          = $this->get_form();
 		$this->form_id = $form['ID'] ?? 0;
 
-		// Avoid duplicate token: process during ajax validation only.
+		// ACFE uses a two-step submission flow: AJAX field validation first, then a direct POST submission.
+		// The token/honeypot can only be verified once,
+		// so we verify during the AJAX step and cache the result in a transient.
+		// On the subsequent direct POST, we retrieve the cached result instead of verifying again
+		// (which would fail on a consumed token).
 		if ( wp_doing_ajax() ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$post_data = wp_unslash( $_POST );
 			$result    = API::verify( $this->get_entry( $post_data ) ) ?: true;
 
-			set_transient( self::TRANSIENT, [ $this->form_id, $result ], 300 );
+			set_transient( self::TRANSIENT, [ $this->form_id, $result ], 30 );
 
 			return $result;
 		}
 
 		$transient = get_transient( self::TRANSIENT );
-		$form_id   = $transient[0] ?? false;
-		$result    = $transient[1] ?? false;
+
+		delete_transient( self::TRANSIENT );
+
+		$form_id = $transient[0] ?? false;
+		$result  = $transient[1] ?? false;
 
 		return $form_id === $this->form_id ? $result : false;
 	}

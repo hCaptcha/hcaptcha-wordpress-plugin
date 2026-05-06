@@ -2833,6 +2833,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
 
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( false );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_network_options' )->andReturn( true );
 
 		$general_tab     = isset( $value['site_key'] );
 		$network_wide    = $general_tab
@@ -3085,6 +3086,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'get_network_wide' )->andReturn( $get_network_wide );
 
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_network_options' )->andReturn( true );
 
 		$general_tab  = isset( $value['site_key'] );
 		$network_wide = $general_tab

@@ -98,7 +98,7 @@ abstract class SettingsBase {
 
 	/**
 	 * Parent slug.
-	 * By default, add menu pages to Options menu.
+	 * By default, add menu pages to an Options menu.
 	 *
 	 * @var string|null
 	 */
@@ -771,7 +771,7 @@ abstract class SettingsBase {
 			<?php
 
 			/**
-			 * Fires before settings tab closing tag.
+			 * Fires before the settings tab closing tag.
 			 */
 			do_action( 'kagg_settings_tab' );
 
@@ -1487,7 +1487,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Get plugin option.
+	 * Get a plugin option.
 	 *
 	 * @param string $key         Setting name.
 	 * @param mixed  $empty_value Empty value for this setting.
@@ -1631,7 +1631,7 @@ abstract class SettingsBase {
 	}
 
 	/**
-	 * Is current admin screen the plugin options screen.
+	 * Whether the current admin screen is the plugin options screen.
 	 *
 	 * @param string|array $ids Additional screen id or ids to check.
 	 *
@@ -1754,7 +1754,7 @@ abstract class SettingsBase {
 			<?php
 
 			/**
-			 * Fires before settings tab closing tag.
+			 * Fires before the settings tab closing tag.
 			 */
 			do_action( 'kagg_settings_header' );
 
@@ -1788,19 +1788,7 @@ abstract class SettingsBase {
 	 * @return array
 	 */
 	private function prepare_value( $value, $old_value ): array {
-		$value       = is_array( $value ) ? $value : [];
-		$general_tab = isset( $value['site_key'] );
-
-		// When saving not the General tab, use the network-wide site option.
-		$network_wide = $general_tab
-			? $value[ self::NETWORK_WIDE ] ?? []
-			: $this->get_network_wide();
-
-		if ( $network_wide ) {
-			$old_value = (array) get_site_option( $this->option_name(), [] );
-		} else {
-			$old_value = is_array( $old_value ) ? $old_value : [];
-		}
+		[ $value, $old_value, $network_wide ] = $this->prepare_network_wide_values( $value, $old_value );
 
 		foreach ( $this->form_fields() as $key => $form_field ) {
 			if ( 'file' === $form_field['type'] ) {
@@ -1824,5 +1812,33 @@ abstract class SettingsBase {
 		$value[ self::NETWORK_WIDE ] = $network_wide;
 
 		return $value;
+	}
+
+	/**
+	 * Prepare network wide values.
+	 *
+	 * @param mixed $value     New value.
+	 * @param mixed $old_value Old value.
+	 *
+	 * @return array
+	 */
+	private function prepare_network_wide_values( $value, $old_value ): array {
+		$value       = is_array( $value ) ? $value : [];
+		$general_tab = isset( $value['site_key'] );
+
+		// When saving not the General tab, use the network-wide site option.
+		$network_wide = $general_tab
+			? $value[ self::NETWORK_WIDE ] ?? []
+			: $this->get_network_wide();
+
+		$network_wide = current_user_can( 'manage_network_options' ) ? $network_wide : [];
+
+		if ( $network_wide ) {
+			$old_value = (array) get_site_option( $this->option_name(), [] );
+		} else {
+			$old_value = is_array( $old_value ) ? $old_value : [];
+		}
+
+		return [ $value, $old_value, $network_wide ];
 	}
 }

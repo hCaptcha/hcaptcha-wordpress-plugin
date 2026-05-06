@@ -926,7 +926,7 @@ class General extends PluginSettingsBase {
 		);
 
 		$check_config_notice =
-			esc_html__( 'Credentials changed.', 'hcaptcha-for-forms-and-more' ) . "\n" .
+			esc_html__( 'Credentials changed.', 'hcaptcha-for-forms-and-more' ) . '<br>' .
 			esc_html__( 'Please complete hCaptcha and check the site config.', 'hcaptcha-for-forms-and-more' );
 
 		wp_localize_script(

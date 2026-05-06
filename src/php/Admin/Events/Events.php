@@ -123,7 +123,7 @@ class Events {
 			$wpdb->prefix . self::TABLE_NAME,
 			[
 				'source'      => (string) wp_json_encode( $info['id']['source'] ),
-				'form_id'     => $info['id']['form_id'],
+				'form_id'     => sanitize_text_field( $info['id']['form_id'] ),
 				'ip'          => $ip,
 				'user_agent'  => $user_agent,
 				'uuid'        => $uuid,

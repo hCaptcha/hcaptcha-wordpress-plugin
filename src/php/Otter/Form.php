@@ -14,6 +14,7 @@ namespace HCaptcha\Otter;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
 use WP_Block;
 use WP_Error;
@@ -68,12 +69,17 @@ class Form {
 	 * @return void
 	 */
 	public function init_hooks(): void {
-		add_filter( 'option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 10, 2 );
-		add_filter( 'default_option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 99, 3 );
 		add_filter( 'render_block', [ $this, 'add_hcaptcha' ], 10, 3 );
 		add_filter( 'otter_form_anti_spam_validation', array( $this, 'verify' ) );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
+
+		if ( ! Request::is_frontend() ) {
+			return;
+		}
+
+		add_filter( 'option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 10, 2 );
+		add_filter( 'default_option_themeisle_google_captcha_api_site_key', [ $this, 'replace_site_key' ], 99, 3 );
 	}
 
 	/**

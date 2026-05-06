@@ -269,7 +269,7 @@ describe( 'general.js basics', () => {
 		expect( $( '#hcaptcha-options .h-captcha' ).html() ).toBe( '' );
 	} );
 
-	test( 'credentials change disables submit and checkConfig success re-enables', async () => {
+	test( 'credentials change does not disable submit and checkConfig success re-enables', async () => {
 		// Post resolves success
 		postSpy.mockImplementation( ( opts ) => {
 			const d = $.Deferred();
@@ -281,7 +281,7 @@ describe( 'general.js basics', () => {
 		const $site = $( "[name='hcaptcha_settings[site_key]']" );
 		const submit = document.getElementById( 'submit' );
 		$site.val( 'other-key' ).trigger( 'change' );
-		expect( submit.getAttribute( 'disabled' ) ).toBe( 'disabled' );
+		expect( submit.getAttribute( 'disabled' ) ).toBe( null );
 		// provide response token to avoid dialog
 		$( 'textarea[name="h-captcha-response"]' ).val( 'token' );
 		$( '#check_config' ).trigger( 'click' );
@@ -452,13 +452,13 @@ describe( 'checkChangeCredentials revert to initial', () => {
 		bootGeneral();
 	} );
 
-	test( 'reverts submit state when credentials return to initial values', () => {
+	test( 'reverts credentialsChanged state when credentials return to initial values', () => {
 		const $site = $( "[name='hcaptcha_settings[site_key]']" );
 		const $submit = $( '#submit' );
 
 		// Change credentials to trigger credentialsChanged.
 		$site.val( 'changed-key' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 
 		// Revert to initial value.
 		$site.val( 'live-key' ).trigger( 'change' );
@@ -484,14 +484,14 @@ describe( 'checkChangeEnterpriseSettings revert to initial', () => {
 		postSpy.mockRestore();
 	} );
 
-	test( 'reverts submit state when enterprise settings return to initial values', () => {
+	test( 'reverts enterpriseSettingsChanged state when enterprise settings return to initial values', () => {
 		bootGeneral();
 		const $asset = $( "[name='hcaptcha_settings[asset_host]']" );
 		const $submit = $( '#submit' );
 
 		// Change enterprise input to trigger enterpriseSettingsChanged.
 		$asset.val( 'changed.local' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 
 		// Revert to initial value.
 		$asset.val( 'assethost.local' ).trigger( 'change' );
@@ -613,8 +613,8 @@ describe( 'event handlers: secretKey, theme, language, size non-invisible', () =
 		const $submit = $( '#submit' );
 
 		$secret.val( 'new-secret' ).trigger( 'change' );
-		// credentialsChanged should disable the submitting.
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		// credentialsChanged should NOT disable the submitting anymore.
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 	} );
 
 	test( 'theme change calls hCaptchaUpdate', () => {
@@ -819,11 +819,11 @@ describe( 'remaining branch coverage', () => {
 
 		// The first change — triggers credentialsChanged.
 		$site.val( 'key1' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 
 		// Second change — credentialsChanged already true, else-if skipped.
 		$site.val( 'key2' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 	} );
 
 	test( 'enterprise settings changed twice does not re-show notice', () => {
@@ -832,10 +832,10 @@ describe( 'remaining branch coverage', () => {
 		const $submit = $( '#submit' );
 
 		$asset.val( 'changed1.local' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 
 		$asset.val( 'changed2.local' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBe( 'disabled' );
+		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 	} );
 
 	test( 'keydown on non-readonly input is not prevented', () => {
@@ -845,6 +845,32 @@ describe( 'remaining branch coverage', () => {
 		const event = $.Event( 'keydown.hcaptchaHelper' );
 		$siteKey.trigger( event );
 		expect( event.isDefaultPrevented() ).toBe( false );
+	} );
+	test( 'clicking Save with changed credentials triggers checkConfig and scrolls', async () => {
+		bootGeneral();
+		const $site = $( "[name='hcaptcha_settings[site_key]']" );
+		const $submit = $( '#submit' );
+		const $check = $( '#check_config' );
+		// Mock animation
+		const animSpy = jest.spyOn( $.fn, 'animate' ).mockImplementation( ( params, duration, callback ) => {
+			if ( typeof callback === 'function' ) {
+				callback();
+			}
+			return $.fn;
+		} );
+		const offsetSpy = jest.spyOn( $.fn, 'offset' ).mockReturnValue( { top: 123, left: 0 } );
+		// Mock check button handler
+		const checkClickSpy = jest.fn();
+		$check.on( 'click', checkClickSpy );
+		// Change credentials
+		$site.val( 'new-key' ).trigger( 'change' );
+		const event = $.Event( 'click' );
+		$submit.trigger( event );
+		expect( event.isDefaultPrevented() ).toBe( true );
+		expect( animSpy ).toHaveBeenCalled();
+		expect( checkClickSpy ).toHaveBeenCalled();
+		animSpy.mockRestore();
+		offsetSpy.mockRestore();
 	} );
 
 	test( 'scriptUpdate with empty enterprise values and empty api_host', () => {

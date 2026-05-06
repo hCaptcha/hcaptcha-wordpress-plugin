@@ -386,6 +386,8 @@ class Contact {
 	 * @return void
 	 */
 	private function verify(): void {
+		$this->detect_render_count();
+
 		$submit_field = 'et_pb_contactform_submit_' . $this->render_count;
 		$number_field = 'et_pb_contact_et_number_' . $this->render_count;
 
@@ -418,6 +420,22 @@ class Contact {
 			if ( null !== $error_message ) {
 				// Simulate captcha error.
 				$this->captcha = 'on';
+			}
+		}
+	}
+
+	/**
+	 * Detect the render count from the submitted form.
+	 *
+	 * @return void
+	 */
+	private function detect_render_count(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		foreach ( $_POST as $key => $value ) {
+			if ( preg_match( '/^et_pb_contactform_submit_(\d+)$/', $key, $m ) ) {
+				$this->render_count = (int) $m[1];
+
+				return;
 			}
 		}
 	}

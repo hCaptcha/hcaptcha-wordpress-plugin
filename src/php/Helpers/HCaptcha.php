@@ -397,8 +397,8 @@ class HCaptcha {
 		);
 
 		if (
-			self::get_class_source( $class_name ) !== $info['id']['source'] ||
-			wp_hash( $info['encoded_id'] ) !== $info['hash']
+			! $info['valid'] ||
+			self::get_class_source( $class_name ) !== $info['id']['source']
 		) {
 			return false;
 		}
@@ -425,12 +425,10 @@ class HCaptcha {
 	public static function is_protection_enabled(): bool {
 		$info = self::decode_id_info();
 
-		$id         = $info['id'];
-		$encoded_id = $info['encoded_id'];
-		$hash       = $info['hash'];
+		$id = $info['id'];
 
 		return ! (
-			wp_hash( $encoded_id ) === $hash &&
+			$info['valid'] &&
 			/** This filter is documented above. */
 			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
 		);
@@ -1086,6 +1084,7 @@ class HCaptcha {
 				'id'         => self::$default_id,
 				'encoded_id' => $encoded_id,
 				'hash'       => $hash,
+				'valid'      => true,
 			];
 		}
 
@@ -1103,6 +1102,7 @@ class HCaptcha {
 			'id'         => $id,
 			'encoded_id' => $encoded_id,
 			'hash'       => $hash,
+			'valid'      => wp_hash( $encoded_id ) === $hash,
 		];
 	}
 

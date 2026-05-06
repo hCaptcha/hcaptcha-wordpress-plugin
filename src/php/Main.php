@@ -22,7 +22,6 @@ use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\AntiSpam\Honeypot;
 use HCaptcha\AutoVerify\AutoVerify;
-use HCaptcha\CACSP\Compatibility;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\CF7\ReallySimpleCaptcha;
@@ -895,7 +894,7 @@ class Main {
 			true
 		);
 
-		DelayedScript::enqueue( [ self::WP_HOOKS_HANDLE, self::HANDLE ] );
+		DelayedScript::enqueue( self::HANDLE );
 	}
 
 	/**
@@ -1330,11 +1329,6 @@ class Main {
 				[ 'cf7_status', null ],
 				'contact-form-7/wp-contact-form-7.php',
 				[ CF7::class, Admin::class, ReallySimpleCaptcha::class ],
-			],
-			'Cookies and Content Security Policy'  => [
-				[ 'cacsp_status', null ],
-				'cookies-and-content-security-policy/cookies-and-content-security-policy.php',
-				[ Compatibility::class ],
 			],
 			'Customer Reviews for WC Question'     => [
 				[ 'customer_reviews_status', 'q&a' ],

@@ -135,6 +135,14 @@ describe( 'ReadyGate', () => {
 	test( 'registers DOMContentLoaded and hCaptchaOnLoad listeners with once option', () => {
 		global.hcaptcha = {};
 
+		// Override readyState to 'loading' so DOMContentLoaded listener is registered.
+		const desc = Object.getOwnPropertyDescriptor( Document.prototype, 'readyState' ) ||
+			Object.getOwnPropertyDescriptor( document, 'readyState' );
+		Object.defineProperty( document, 'readyState', {
+			configurable: true,
+			get: () => 'loading',
+		} );
+
 		// Use real addEventListener to check options.
 		addEventSpy.mockRestore();
 		const realSpy = jest.spyOn( document, 'addEventListener' );
@@ -151,6 +159,13 @@ describe( 'ReadyGate', () => {
 		expect( hcapCall[ 2 ] ).toEqual( { once: true } );
 
 		realSpy.mockRestore();
+
+		// Restore readyState.
+		if ( desc ) {
+			Object.defineProperty( document, 'readyState', desc );
+		} else {
+			delete document.readyState;
+		}
 	} );
 
 	test( '_tryResolve does not throw on repeated calls after resolve', async () => {

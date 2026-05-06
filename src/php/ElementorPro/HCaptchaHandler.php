@@ -20,6 +20,7 @@ use Elementor\Widget_Base;
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
 use ElementorPro\Modules\Forms\Module as FormsModule;
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
@@ -58,11 +59,20 @@ class HCaptchaHandler {
 	private const ADMIN_HANDLE = 'admin-elementor-pro';
 
 	/**
+	 * Form shown, use this flag to run the script.
+	 *
+	 * @var boolean
+	 */
+	private bool $form_shown = false;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
 		// Init this integration.
 		add_action( 'elementor/init', [ $this, 'init' ], 20 );
+
+		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ] );
 
 		// Block native integration.
 		add_filter( 'pre_option_elementor_pro_hcaptcha_site_key', '__return_empty_string' );
@@ -374,7 +384,7 @@ class HCaptchaHandler {
 			return;
 		}
 
-		// If success - remove the field form list (don't send it in emails etc.).
+		// If success, remove the field form list (don't send it in emails etc.).
 		$record->remove_field( $field['id'] );
 	}
 
@@ -386,6 +396,7 @@ class HCaptchaHandler {
 	 * @param Widget_Base $widget     Widget.
 	 *
 	 * @return void
+	 * @noinspection PhpPossiblePolymorphicInvocationInspection
 	 */
 	public function render_field( array $item, int $item_index, Widget_Base $widget ): void {
 		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . esc_html( $item['custom_id'] ) . '">';
@@ -411,6 +422,8 @@ class HCaptchaHandler {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $hcaptcha_html;
+
+		$this->form_shown = true;
 	}
 
 	/**
@@ -521,11 +534,24 @@ class HCaptchaHandler {
 	public function elementor_content( $content ): string {
 		$content = (string) $content;
 
-		if ( ! hcaptcha()->form_shown && false !== strpos( $content, '<h-captcha' ) ) {
-			hcaptcha()->form_shown = true;
+		if ( false !== strpos( $content, '<h-captcha' ) ) {
+			$this->form_shown = true;
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Print hCaptcha script when an Elementor Pro form was shown.
+	 *
+	 * @param bool|mixed $status Current print status.
+	 *
+	 * @return bool
+	 */
+	public function print_hcaptcha_scripts( $status ): bool {
+		$status = (bool) $status;
+
+		return $this->form_shown || $status;
 	}
 
 	/**
@@ -534,7 +560,11 @@ class HCaptchaHandler {
 	 * @return void
 	 */
 	public function print_footer_scripts(): void {
-		wp_enqueue_script( self::HANDLE );
+		if ( ! $this->form_shown ) {
+			return;
+		}
+
+		DelayedScript::enqueue( self::HANDLE );
 	}
 
 	/**

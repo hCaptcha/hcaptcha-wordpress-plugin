@@ -1,6 +1,6 @@
 /* global hCaptchaBindEvents */
 
-document.addEventListener( 'DOMContentLoaded', function() {
+document.addEventListener( 'hCaptchaLoaded', function() {
 	[ ...document.querySelectorAll( '.wpcf7' ) ].map( ( form ) => {
 		form.addEventListener( 'wpcf7invalid', hCaptchaBindEvents, false );
 		form.addEventListener( 'wpcf7spam', hCaptchaBindEvents, false );
@@ -12,4 +12,4 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	} );
 } );
 
-document.addEventListener( 'DOMContentLoaded', hCaptchaBindEvents );
+hCaptchaBindEvents();

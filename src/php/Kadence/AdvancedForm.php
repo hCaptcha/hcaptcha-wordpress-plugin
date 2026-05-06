@@ -57,7 +57,7 @@ class AdvancedForm extends Base {
 			add_filter(
 				'block_parser_class',
 				static function () {
-					return AdvancedBlockParser::class;
+					return BlockParser::class;
 				}
 			);
 		}
@@ -109,8 +109,7 @@ class AdvancedForm extends Base {
 	public function render_block( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
 
-		if ( 'kadence/advanced-form-submit' === $block['blockName'] && ! $this->has_hcaptcha ) {
-
+		if ( 'kadence/advanced-form-submit' === $block['blockName'] && ! $this->has_captcha ) {
 			$search = '<div class="kb-adv-form-field kb-submit-field';
 
 			return str_replace( $search, $this->get_hcaptcha() . $search, $block_content );
@@ -120,15 +119,18 @@ class AdvancedForm extends Base {
 			return $block_content;
 		}
 
+		$this->has_captcha = true;
+
+		// Replace any captcha by this plugin hCaptcha.
 		$block_content = (string) preg_replace(
-			'#<div class="h-captcha" .*?></div>#',
+			'#<div class="(g-recaptcha|cf-turnstile|h-captcha)" .*?></div>#',
 			$this->get_hcaptcha(),
 			$block_content,
 			1,
 			$count
 		);
 
-		$this->has_hcaptcha = (bool) $count;
+		$this->has_captcha = (bool) $count;
 
 		return $block_content;
 	}
@@ -145,6 +147,10 @@ class AdvancedForm extends Base {
 		$error = API::verify( $this->get_entry( $_POST ) );
 
 		if ( null === $error ) {
+			// Disable reCAPTCHA and Turnstile validation.
+			add_filter( 'pre_option_kadence_blocks_recaptcha_site_key', '__return_empty_string' );
+			add_filter( 'pre_option_kadence_blocks_turnstile_site_key', '__return_empty_string' );
+
 			return;
 		}
 
@@ -235,7 +241,7 @@ class AdvancedForm extends Base {
 		$args = [
 			'id' => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => AdvancedBlockParser::$form_id,
+				'form_id' => BlockParser::$form_id,
 			],
 		];
 

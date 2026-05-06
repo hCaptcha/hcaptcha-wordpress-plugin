@@ -243,6 +243,59 @@
 	transition: opacity .2s ease .3s, visibility 0s linear .3s;
 }
 
+/* Antispam indicators toggle */
+#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage fieldset:disabled {
+	color: #a9a9a9;
+}
+
+#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage fieldset:disabled+.helper::before {
+	opacity: 0.7;
+}
+
+/* Antispam indicators help icon */
+.hcaptcha-antispam-help {
+	font-size: 18px;
+	color: #787c82;
+	cursor: help;
+	vertical-align: middle;
+	margin-inline-start: 4px;
+}
+
+/* Antispam disabled note */
+.hcaptcha-antispam-disabled-note {
+	color: #787c82;
+	font-style: italic;
+	margin: 4px 0 0;
+}
+
+/* Antispam legend */
+.hcaptcha-antispam-legend {
+	color: #50575e;
+	font-size: 13px;
+	margin: 8px 0;
+}
+
+.hcaptcha-antispam-legend i[class^="antispam"] {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+}
+
+.hcaptcha-antispam-legend i.antispam-honeypot {
+	width: 18px;
+	transform: translateY(-1px);
+	background-image: url('../images/antispam-honeypot.svg');
+}
+
+.hcaptcha-antispam-legend i.antispam-fst {
+	background-image: url('../images/antispam-fst.svg');
+}
+
+.hcaptcha-enabled-section,
 .hcaptcha-disabled-section {
 	margin: 20px 0;
 }

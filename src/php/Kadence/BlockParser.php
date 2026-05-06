@@ -12,7 +12,7 @@ use WP_Block_Parser;
 /**
  * Class BlockParser.
  */
-class AdvancedBlockParser extends WP_Block_Parser {
+class BlockParser extends WP_Block_Parser {
 
 	/**
 	 * Form id.
@@ -32,19 +32,62 @@ class AdvancedBlockParser extends WP_Block_Parser {
 	 * @return array[]
 	 */
 	public function parse( $document ): array {
-		$output     = parent::parse( $document );
-		$block      = $output[0] ?? [];
-		$block_name = $block['blockName'] ?? '';
+		$output = parent::parse( $document );
 
-		if ( 'kadence/advanced-form' !== $block_name ) {
-			return $output;
+		foreach ( $output as &$block ) {
+			$this->process_block( $block );
 		}
 
+		return $output;
+	}
+
+	/**
+	 * Process block.
+	 *
+	 * @param array $block Block.
+	 *
+	 * @return void
+	 */
+	private function process_block( array &$block ): void {
+		$block_name = $block['blockName'] ?? '';
+
+		switch ( $block_name ) {
+			case 'kadence/form':
+				$this->process_form_block( $block );
+				break;
+			case 'kadence/advanced-form':
+				$this->process_advanced_form_block( $block );
+				break;
+			default:
+				break;
+		}
+	}
+
+	/**
+	 * Process form block.
+	 *
+	 * @param array $block Block.
+	 *
+	 * @return void
+	 */
+	private function process_form_block( array &$block ): void {
+		// Disable reCAPTCHA.
+		$block['attrs']['recaptcha'] = false;
+	}
+
+	/**
+	 * Process advanced form block.
+	 *
+	 * @param array $block Block.
+	 *
+	 * @return void
+	 */
+	private function process_advanced_form_block( array &$block ): void {
 		self::$form_id = $block['attrs']['id'] ?? 0;
 
 		if ( ! ( isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) ) {
 			// @codeCoverageIgnoreStart
-			return $output;
+			return;
 			// @codeCoverageIgnoreEnd
 		}
 
@@ -56,11 +99,8 @@ class AdvancedBlockParser extends WP_Block_Parser {
 			) {
 				unset( $block['innerBlocks'][ $index ] );
 
-				$output[0] = $block;
 				break;
 			}
 		}
-
-		return $output;
 	}
 }

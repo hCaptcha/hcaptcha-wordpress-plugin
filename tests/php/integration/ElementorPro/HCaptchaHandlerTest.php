@@ -1239,19 +1239,17 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_elementor_content(): void {
-		hcaptcha()->form_shown = false;
-
 		$subject = new HCaptchaHandler();
 
 		// Some content.
 		$subject->elementor_content( 'some content' );
 
-		self::assertFalse( hcaptcha()->form_shown );
+		self::assertFalse( apply_filters( 'hcap_print_hcaptcha_scripts', false ) );
 
 		// Content with hCaptcha.
 		$subject->elementor_content( 'some content <h-captcha ...' );
 
-		self::assertTrue( hcaptcha()->form_shown );
+		self::assertTrue( apply_filters( 'hcap_print_hcaptcha_scripts', false ) );
 	}
 
 	/**
@@ -1264,6 +1262,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		wp_register_script( HCaptchaHandler::HANDLE, '', [], HCAPTCHA_VERSION, true );
 
+		// form_shown is false by default, script should not be enqueued.
+		$subject->print_footer_scripts();
+
+		self::assertFalse( wp_script_is( HCaptchaHandler::HANDLE ) );
+
+		// Set form_shown to true by processing content with hCaptcha.
+		$subject->elementor_content( 'some content <h-captcha ...' );
 		$subject->print_footer_scripts();
 
 		self::assertTrue( wp_script_is( HCaptchaHandler::HANDLE ) );
