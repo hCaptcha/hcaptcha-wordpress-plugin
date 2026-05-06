@@ -11,6 +11,7 @@
 namespace HCaptcha\CF7;
 
 use HCaptcha\Helpers\Pages;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
 use WPCF7_ContactForm;
@@ -120,11 +121,16 @@ class Admin extends Base {
 	 * @return string
 	 */
 	private function insert_live_form( string $output ): string {
-		if ( ! preg_match( '/<input type="text" id="wpcf7-shortcode" .+ value="(.+)"/', $output, $m ) ) {
+		// phpcs:ignore WordPress.WP.Capabilities.Unknown
+		if ( ! current_user_can( 'wpcf7_edit_contact_form' ) ) {
 			return $output;
 		}
 
-		$form_shortcode = htmlspecialchars_decode( $m[1] );
+		$form_shortcode = '';
+
+		if ( preg_match( '/<input type="text" id="wpcf7-shortcode" .+ value="(.+)"/', $output, $m ) ) {
+			$form_shortcode = htmlspecialchars_decode( $m[1] );
+		}
 
 		if ( ! preg_match( '~(<form method="post".+?)<div id="poststuff">.+?(</form>)~s', $output, $m ) ) {
 			return $output;
@@ -144,7 +150,14 @@ class Admin extends Base {
 
 		$post_body_end = $m[1];
 
-		$live_form      = do_shortcode( $form_shortcode );
+		if ( $form_shortcode ) {
+			$live_form = do_shortcode( $form_shortcode );
+		} else {
+			preg_match( '#<textarea id="wpcf7-form".+?>(.*?)</textarea>#s', $form, $m );
+
+			$live_form = $this->new_form( html_entity_decode( $m[1] ?? '' ) );
+		}
+
 		$stripe_message = '';
 
 		if ( $this->has_stripe_element( $live_form ) ) {
@@ -366,38 +379,86 @@ class Admin extends Base {
 			return; // For testing purposes.
 		}
 
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		// phpcs:ignore WordPress.WP.Capabilities.Unknown
+		if ( ! current_user_can( 'wpcf7_edit_contact_form' ) ) {
 			wp_send_json_error( esc_html__( 'You do not have permission to update the form.', 'hcaptcha-for-forms-and-more' ) );
 
 			return; // For testing purposes.
 		}
 
-		$shortcode = html_entity_decode( filter_input( INPUT_POST, 'shortcode', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
-		$form      = html_entity_decode( filter_input( INPUT_POST, 'form', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) );
+		$cf7_tag   = 'contact-form-7';
+		$shortcode = Request::filter_input( INPUT_POST, 'shortcode' );
+		$form      = isset( $_POST['form'] ) ? wp_kses_post( wp_unslash( $_POST['form'] ) ) : '';
 
-		add_action(
-			'wpcf7_contact_form',
-			static function ( $contact_form ) use ( $form ) {
-				/**
-				 * Contact Form instance.
-				 *
-				 * @var WPCF7_ContactForm $contact_form
-				 */
-				$properties         = $contact_form->get_properties();
-				$properties['form'] = $form;
+		if ( $shortcode ) {
+			// Saved form.
+			preg_match( '/' . get_shortcode_regex() . '/s', $shortcode, $m );
 
-				$contact_form->set_properties( $properties );
+			// Validate CF7 shortcode.
+			$shortcode = $cf7_tag === $m[2] ? "[$cf7_tag $m[3]]" : '';
 
-				return $form;
-			}
-		);
+			add_action(
+				'wpcf7_contact_form',
+				static function ( $contact_form ) use ( $form ) {
+					/**
+					 * Contact Form instance.
+					 *
+					 * @var WPCF7_ContactForm $contact_form
+					 */
+					$properties         = $contact_form->get_properties();
+					$properties['form'] = $form;
 
-		$live = sprintf(
+					$contact_form->set_properties( $properties );
+
+					return $form;
+				}
+			);
+
+			$live_form = do_shortcode( $shortcode );
+		} else {
+			$live_form = $this->new_form( $form );
+		}
+
+		$live_form = sprintf(
 			'<h3>%s</h3>%s',
 			__( 'Live Form', 'hcaptcha-for-forms-and-more' ),
-			do_shortcode( $shortcode )
+			$live_form
 		);
 
-		wp_send_json_success( $live );
+		wp_send_json_success( $live_form );
+	}
+
+	/**
+	 * New form.
+	 *
+	 * @param string $form Form.
+	 *
+	 * @return mixed
+	 */
+	private function new_form( string $form ) {
+		// New form.
+		$contact_form = WPCF7_ContactForm::get_template();
+
+		$atts               = [];
+		$properties         = $contact_form->get_properties();
+		$properties['form'] = $form;
+
+		$contact_form->set_properties( $properties );
+
+		$callback = static function ( $contact_form, $atts ) {
+			return $contact_form->form_html( $atts );
+		};
+
+		$live_form = wpcf7_switch_locale(
+			$contact_form->locale(),
+			$callback,
+			$contact_form,
+			$atts
+		);
+
+		do_action( 'wpcf7_shortcode_callback', $contact_form, $atts );
+
+		// Add hCaptcha to the form.
+		return apply_filters( 'do_shortcode_tag', $live_form, 'contact-form-7', [], [] );
 	}
 }

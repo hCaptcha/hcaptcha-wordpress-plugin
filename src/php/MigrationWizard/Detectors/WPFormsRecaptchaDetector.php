@@ -18,6 +18,14 @@ use HCaptcha\MigrationWizard\DetectionResult;
 class WPFormsRecaptchaDetector extends AbstractDetector {
 
 	/**
+	 * WPForms plugin slugs.
+	 */
+	private const PLUGIN_SLUGS = [
+		'wpforms/wpforms.php',
+		'wpforms-lite/wpforms.php',
+	];
+
+	/**
 	 * WPForms surface IDs to detect.
 	 */
 	private const SURFACES = [
@@ -31,7 +39,13 @@ class WPFormsRecaptchaDetector extends AbstractDetector {
 	 * @return string
 	 */
 	public function get_source_plugin(): string {
-		return 'wpforms-lite/wpforms.php';
+		foreach ( self::PLUGIN_SLUGS as $slug ) {
+			if ( $this->is_plugin_active( $slug ) ) {
+				return $slug;
+			}
+		}
+
+		return self::PLUGIN_SLUGS[0];
 	}
 
 	/**
@@ -49,8 +63,13 @@ class WPFormsRecaptchaDetector extends AbstractDetector {
 	 * @return bool
 	 */
 	public function is_applicable(): bool {
-		return $this->is_plugin_active( 'wpforms-lite/wpforms.php' )
-			|| $this->is_plugin_active( 'wpforms/wpforms.php' );
+		foreach ( self::PLUGIN_SLUGS as $slug ) {
+			if ( $this->is_plugin_active( $slug ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

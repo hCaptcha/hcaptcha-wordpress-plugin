@@ -307,6 +307,8 @@ $live_container
 </div><!-- .wrap -->
 HTML;
 
+		FunctionMocker::replace( '\HCaptcha\CF7\current_user_can', true );
+
 		$subject = new Admin();
 
 		// No shortcode.
@@ -546,6 +548,8 @@ HTML;
 
 		wp_set_current_user( $user_id );
 
+		FunctionMocker::replace( '\HCaptcha\CF7\current_user_can', true );
+
 		$action = Admin::UPDATE_FORM_ACTION;
 		$nonce  = wp_create_nonce( $action );
 
@@ -637,20 +641,8 @@ HTML;
 		$_REQUEST['action'] = $action;
 		$_REQUEST['nonce']  = $nonce;
 
-		FunctionMocker::replace(
-			'filter_input',
-			static function ( $type, $var_name, $filter ) use ( $shortcode, $form ) {
-				if ( INPUT_POST === $type && 'shortcode' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
-					return $shortcode;
-				}
-
-				if ( INPUT_POST === $type && 'form' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
-					return $form;
-				}
-
-				return null;
-			}
-		);
+		$_POST['shortcode'] = $shortcode;
+		$_POST['form']      = $form;
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(

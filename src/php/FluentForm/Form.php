@@ -16,6 +16,7 @@ use FluentForm\App\Models\Form as FluentForm;
 use FluentForm\App\Modules\Form\FormFieldsParser;
 use FluentForm\Framework\Helpers\ArrayHelper;
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
@@ -66,6 +67,13 @@ class Form extends LoginBase {
 	 * @var int
 	 */
 	protected int $form_id = 0;
+
+	/**
+	 * Form shown, use this flag to run the script.
+	 *
+	 * @var boolean
+	 */
+	private bool $form_shown = false;
 
 	/**
 	 * Init hooks.
@@ -225,11 +233,11 @@ class Form extends LoginBase {
 		$this->remove_ff_hcaptcha();
 
 		// Always run hCaptcha main script with conversational forms.
-		if ( wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
+		if ( $this->form_shown && wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
 			return true;
 		}
 
-		return $status;
+		return $this->form_shown || $status;
 	}
 
 	/**
@@ -240,23 +248,35 @@ class Form extends LoginBase {
 	public function print_footer_scripts(): void {
 		global $wp_scripts;
 
+		if ( ! $this->form_shown ) {
+			return;
+		}
+
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-fluentform$min.js",
 			[ 'jquery', Main::HANDLE ],
 			HCAPTCHA_VERSION,
 			true
 		);
+		$wp_scripts->add_data( self::HANDLE, 'type', 'module' );
 
-		wp_localize_script(
-			self::HANDLE,
-			self::OBJECT,
-			[
-				'id'  => self::FLUENT_FORMS_CONVERSATIONAL_HANDLE,
-				'url' => $wp_scripts->registered[ self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ]->src,
-			]
+		DelayedScript::enqueue( self::HANDLE );
+
+		if ( ! wp_script_is( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ) ) {
+			return;
+		}
+
+		// Conversational form-related actions.
+		wp_print_inline_script_tag(
+			'var ' . self::OBJECT . ' = ' . wp_json_encode(
+				[
+					'id'  => self::FLUENT_FORMS_CONVERSATIONAL_HANDLE,
+					'url' => $wp_scripts->registered[ self::FLUENT_FORMS_CONVERSATIONAL_HANDLE ]->src,
+				]
+			) . ';'
 		);
 
 		// Print localization data of conversational script.
@@ -370,7 +390,8 @@ class Form extends LoginBase {
 			return $form;
 		}
 
-		$this->form_id = (int) ( $form->id ?? 0 );
+		$this->form_id    = (int) ( $form->id ?? 0 );
+		$this->form_shown = true;
 
 		return $form;
 	}
@@ -462,6 +483,8 @@ class Form extends LoginBase {
 		if ( $this->is_login_form( $form ) && ! $this->is_login_limit_exceeded() ) {
 			return '';
 		}
+
+		$this->form_shown = true;
 
 		$args = [
 			'action' => self::ACTION,

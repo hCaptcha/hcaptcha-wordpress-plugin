@@ -130,5 +130,7 @@ class QuestionAnswer extends Base {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $template;
+
+		$this->form_shown = true;
 	}
 }

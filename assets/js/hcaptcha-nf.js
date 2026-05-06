@@ -10,6 +10,7 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 				app.isAjaxSubmitButton
 			);
 
+			document.addEventListener( 'hCaptchaLoaded', app.onDomReady );
 			document.addEventListener( 'DOMContentLoaded', app.onDomReady );
 			$.ajaxPrefilter( this.ajaxPrefilter() );
 			$( document ).on( 'ajaxSuccess', app.ajaxSuccessHandler );
@@ -25,6 +26,10 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 
 		// Initialize Ninja Forms field controller listeners when DOM is ready.
 		onDomReady() {
+			if ( window.hCaptchaFieldController ) {
+				return;
+			}
+
 			// Create a Marionette controller mirroring the original behavior but scoped here.
 			const HCaptchaFieldController = Marionette.Object.extend( {
 				initialize() {

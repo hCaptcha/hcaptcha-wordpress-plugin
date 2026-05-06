@@ -19,20 +19,8 @@ const fst = window.hCaptchaFST || ( function( document ) {
 	 */
 	const app = {
 		init() {
-			let hCaptchaLoaded;
-
 			document.addEventListener( 'hCaptchaAfterBindEvents', function() {
-				if ( ! hCaptchaLoaded ) {
-					return;
-				}
-
 				app.getToken();
-			} );
-
-			document.addEventListener( 'hCaptchaLoaded', function() {
-				app.getToken();
-
-				hCaptchaLoaded = true;
 			} );
 		},
 

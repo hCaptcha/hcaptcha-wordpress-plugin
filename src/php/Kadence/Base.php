@@ -13,11 +13,11 @@ namespace HCaptcha\Kadence;
 class Base {
 
 	/**
-	 * Whether hCaptcha was replaced.
+	 * Whether a form had any captcha (ReCaptcha, Turnstile, hCaptcha).
 	 *
 	 * @var bool
 	 */
-	protected bool $has_hcaptcha = false;
+	protected bool $has_captcha = false;
 
 	/**
 	 * Add hooks.
@@ -34,7 +34,7 @@ class Base {
 	 * @return void
 	 */
 	public function dequeue_kadence_captcha_api(): void {
-		if ( ! $this->has_hcaptcha ) {
+		if ( ! $this->has_captcha ) {
 			return;
 		}
 

@@ -1,3 +1,21 @@
+= 4.26.0 =
+* Added hcap_delay_api_selector filter to delay Elementor Pro, Contact Form 7, Fluent Forms, Ninja Forms, Customer Reviews, and Icegram Express scripts loading based on selector.
+* Added Migration Wizard for Fluent Forms, Forminator, Ninja Forms, MailPoet, CoBlocks, Formidable Forms, Otter, ACFE, Download Manager, GiveWP, Paid Membership Pro, and Brevo to help migrate from Google reCAPTCHA and Cloudflare Turnstile to hCaptcha.
+* Added Live Preview for a new Contact Form 7 form.
+* Removed Cookies and Content Security Policy plugin integration as it is no longer needed — hCaptcha support is now built into the plugin.
+* Improved UX with saving credentials.
+* Improved UX with Anti-Spam Indicators.
+* Fixed running Elementor Pro, Contact Form 7, Fluent Forms, Ninja Forms, Customer Reviews, and Icegram Express scripts. Now on pages containing relevant form only.
+* Fixed multiple Ajax calls for the Anti-Spam Token under some conditions.
+* Fixed console error with Fluent Forms.
+* Fixed multiple Ajax calls and PHP notices with regular Fluent Forms.
+* Fixed notice on pages not containing Ninja Form.
+* Fixed floating JavaScript Anti-Spam error with Ninja Form.
+* Fixed replacement of any CAPTCHA with hCaptcha in the Kadence Form and Kadence Advanced Form.
+* Fixed ACFE form recaptcha validation in admin.
+* Fixed hCaptcha verification for the second and subsequent Divi Contact Form instances on the same page.
+* Fixed PHP notice with Kadence Form.
+
 = 4.25.0 =
 * Added a one-click setup option to the Onboarding Wizard to apply recommended settings automatically.
 * Added Migration Wizard to help migrate from Google reCAPTCHA and Cloudflare Turnstile to hCaptcha.

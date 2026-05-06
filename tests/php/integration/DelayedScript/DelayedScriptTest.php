@@ -9,6 +9,9 @@ namespace HCaptcha\Tests\Integration\DelayedScript;
 
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 use tad\FunctionMocker\FunctionMocker;
 
 /**
@@ -17,6 +20,19 @@ use tad\FunctionMocker\FunctionMocker;
  * @group delayed-script
  */
 class DelayedScriptTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Reset the static state after each test.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function tearDown(): void {
+		$prop = ( new ReflectionClass( DelayedScript::class ) )->getProperty( 'launched' );
+		$prop->setAccessible( true );
+		$prop->setValue( null, [] );
+
+		parent::tearDown();
+	}
 
 	/**
 	 * Test create().
@@ -103,6 +119,67 @@ JS;
 		$expected = str_replace( '3000', '-1', $expected );
 
 		self::assertSame( $expected, DelayedScript::create( $js, - 1 ) );
+	}
+
+	/**
+	 * Test observe().
+	 *
+	 * @noinspection JSUnresolvedReference
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_observe(): void {
+		global $wp_scripts;
+
+		// Register fake scripts.
+		wp_register_script( 'fake-script-a', 'https://example.com/a.js', [], '1.0', false );
+		wp_register_script( 'fake-script-b', '/relative/b.js', [], '2.0', false );
+		wp_register_script( 'fake-script-c', 'https://example.com/c.js', [], '3.0', false );
+
+		$selector = '.my-form';
+
+		$base_url = $wp_scripts->base_url;
+		$source_a = 'https://example.com/a.js?ver=1.0';
+		$source_b = $base_url . '/relative/b.js?ver=2.0';
+		$source_c = 'https://example.com/c.js?ver=3.0';
+
+		$method = new ReflectionMethod( DelayedScript::class, 'observe' );
+		$method->setAccessible( true );
+
+		// First call with A and B.
+		$method->invoke( null, $selector, [ 'fake-script-a', 'fake-script-b' ] );
+
+		// Second call with same handles: already launched, no change to state.
+		$method->invoke( null, $selector, [ 'fake-script-a', 'fake-script-b' ] );
+
+		// Third call with A and C: only C is new and gets added.
+		$method->invoke( null, $selector, [ 'fake-script-a', 'fake-script-c' ] );
+
+		// Capture output from the deferred print (all calls accumulated).
+		ob_start();
+		DelayedScript::print_observation_script();
+		$output = ob_get_clean();
+
+		// Main script must be present.
+		self::assertStringContainsString( 'hCaptchaObserve', $output );
+
+		// All three unique sources in order, no duplicates from the repeated call.
+		$sources_js = wp_json_encode(
+			[
+				'fake-script-a' => [
+					'src'  => $source_a,
+					'type' => '',
+				],
+				'fake-script-b' => [
+					'src'  => $source_b,
+					'type' => '',
+				],
+				'fake-script-c' => [
+					'src'  => $source_c,
+					'type' => '',
+				],
+			]
+		);
+		self::assertStringContainsString( 'hCaptchaObserve( ".my-form", ' . $sources_js . ' );', $output );
 	}
 
 	/**
