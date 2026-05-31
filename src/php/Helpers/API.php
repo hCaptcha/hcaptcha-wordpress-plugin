@@ -46,6 +46,7 @@ class API {
 				'form_date_gmt'      => null, // Form date in GMT.
 				'data'               => [], // Form data for antispam checks.
 				'post_data'          => [], // Contains data to set in global POST for verifying hCaptcha response.
+				'expected_id'        => [], // Expected hCaptcha widget id.
 			]
 		);
 
@@ -53,20 +54,17 @@ class API {
 			self::set_global_post_data( $entry );
 		}
 
-		$result = self::verify_nonce( $entry['nonce_name'], $entry['nonce_action'] );
-
-		if ( null !== $result ) {
-			return $result;
-		}
+		$result = self::verify_widget_id( $entry['expected_id'] );
+		$result = $result ?? self::verify_nonce( $entry['nonce_name'], $entry['nonce_action'] );
 
 		// Init AntiSpam object and add hcap_verify_request hook.
-		( new AntiSpam( $entry ) )->init();
+		if ( null === $result ) {
+			( new AntiSpam( $entry ) )->init();
 
-		$result = self::verify_request( $entry['h-captcha-response'], $entry );
-
-		if ( $entry['post_data'] ) {
-			self::unset_global_post_data( $entry );
+			$result = self::verify_request( $entry['h-captcha-response'], $entry );
 		}
+
+		self::unset_global_post_data( $entry );
 
 		return $result;
 	}
@@ -150,7 +148,7 @@ class API {
 		$widget_id_name = 'hcaptcha-widget-id';
 		$hp_sig_name    = 'hcap_hp_sig';
 		$token_name     = 'hcap_fst_token';
-		$hp_name        = self::get_hp_name( $entry['post_data'] );
+		$hp_name        = self::get_hp_name( $entry['post_data'] ?? [] );
 
 		return [
 			$entry['nonce_name'],
@@ -188,11 +186,49 @@ class API {
 	 * @return void
 	 */
 	private static function unset_global_post_data( array $entry ): void {
+		if ( ! $entry['post_data'] ) {
+			return;
+		}
+
 		$keys = self::get_hcaptcha_post_keys( $entry );
 
 		foreach ( $keys as $key ) {
 			unset( $_POST[ $key ] );
 		}
+	}
+
+	/**
+	 * Verify that posted hCaptcha widget id belongs to the expected form.
+	 *
+	 * @param array $expected_id Expected hCaptcha widget id.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	private static function verify_widget_id( array $expected_id = [] ): ?string {
+		if ( ! $expected_id ) {
+			return null;
+		}
+
+		$expected_id = [
+			'source'  => (array) ( $expected_id['source'] ?? [] ),
+			'form_id' => $expected_id['form_id'] ?? 0,
+		];
+
+		$info = HCaptcha::decode_id_info();
+
+		if (
+			// Nonce is checked in verify().
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			empty( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] ) ||
+			! $info['valid'] ||
+			$expected_id !== $info['id']
+		) {
+			$errors = hcap_get_error_messages();
+
+			return self::filtered_result( $errors['bad-signature'], [ 'bad-signature' ] );
+		}
+
+		return null;
 	}
 
 	/**

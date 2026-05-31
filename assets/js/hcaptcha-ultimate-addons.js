@@ -14,7 +14,7 @@ wp.hooks.addFilter(
 		}
 
 		return isAjaxSubmitButton;
-	}
+	},
 );
 
 ( function( $ ) {
@@ -95,7 +95,7 @@ wp.hooks.addFilter(
 			.after(
 				'<span class="uael-register-field-message"><span class="uael-loginform-error">' +
 				hCaptchaError +
-				'</span></span>'
+				'</span></span>',
 			);
 	} );
 }( jQuery ) );

@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\BBPress;
 
 use HCaptcha\BBPress\NewTopic;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use WP_Error;
 
@@ -74,6 +75,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_bbp_new_topic_nonce', 'hcaptcha_bbp_new_topic' );
+		$this->prepare_widget_id();
 
 		$expected = new WP_Error();
 		$subject  = new NewTopic();
@@ -93,9 +95,22 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 		$subject  = new NewTopic();
 
 		$this->prepare_verify_post( 'hcaptcha_bbp_new_topic_nonce', 'hcaptcha_bbp_new_topic', null );
+		$this->prepare_widget_id();
 
 		self::assertFalse( $subject->verify() );
 
 		self::assertEquals( $expected, bbpress()->errors );
+	}
+
+	/**
+	 * Prepare widget id.
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'new_topic',
+			]
+		);
 	}
 }

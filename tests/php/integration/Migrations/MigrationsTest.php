@@ -92,17 +92,18 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	public function test_migrate(): void {
 		FunctionMocker::replace( 'time', time() );
 
-		$time              = time();
-		$size              = 'normal';
-		$expected_option   = [
-			'2.0.0'          => $time,
-			'3.6.0'          => $time,
-			'4.0.0'          => $time,
-			'4.6.0'          => $time,
-			'4.11.0'         => $time,
-			HCAPTCHA_VERSION => $time,
+		$time                 = time();
+		$size                 = 'normal';
+		$plugin_major_version = explode( '-', HCAPTCHA_VERSION )[0];
+		$expected_option      = [
+			'2.0.0'               => $time,
+			'3.6.0'               => $time,
+			'4.0.0'               => $time,
+			'4.6.0'               => $time,
+			'4.11.0'              => $time,
+			$plugin_major_version => $time,
 		];
-		$expected_settings = [
+		$expected_settings    = [
 			'site_key'                     => '',
 			'secret_key'                   => '',
 			'theme'                        => '',
@@ -130,6 +131,12 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			'wpforo_status'                => [],
 		];
 
+		if ( version_compare( '5.0.0', $plugin_major_version, '<=' ) ) {
+			$expected_option['5.0.0'] = $time;
+		}
+
+		uksort( $expected_option, 'version_compare' );
+
 		update_option( 'hcaptcha_size', $size );
 		update_option( 'hcaptcha_wpforms_status', 'on' );
 
@@ -141,6 +148,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		// Do not run async migrations via Action Scheduler.
 		set_transient( 'hcaptcha_async_migrate_4_11_0', Migrations::COMPLETED );
+		set_transient( 'hcaptcha_async_migrate_5_0_0', Migrations::COMPLETED );
 
 		$subject->migrate();
 
@@ -173,7 +181,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		}
 
 		foreach ( $expected_option as $version => $time ) {
-			// Due to the glitch with mocking time(), let us allow 5 seconds time difference.
+			// Due to the glitch with mocking time(), let us allow 5-second time difference.
 			if ( $option[ $version ] - $time > 5 ) {
 				return false;
 			}
@@ -239,13 +247,17 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		    uuid        VARCHAR(36)     NOT NULL,
 		    error_codes VARCHAR(256)    NOT NULL,
 		    date_gmt    DATETIME        NOT NULL,
+		    status      VARCHAR(20)     NOT NULL DEFAULT 'active',
+		    trashed_at_gmt DATETIME     NULL,
 		    PRIMARY KEY (id),
 		    KEY source (source),
 		    KEY form_id (form_id),
 		    KEY hcaptcha_id (source, form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
-		    KEY date_gmt (date_gmt)
+		    KEY date_gmt (date_gmt),
+		    KEY status_date_gmt (status, date_gmt),
+		    KEY status_source_form (status, source, form_id)
 		) $charset_collate;";
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -287,6 +299,62 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_trusted_address_headers().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_trusted_address_headers(): void {
+		$method_name = 'add_trusted_address_headers';
+		$subject     = new Migrations();
+		$filter      = static function () {
+			return [
+				'HTTP_CF_CONNECTING_IP',
+				'HTTP_X_FORWARDED_FOR',
+			];
+		};
+
+		$method = $this->set_method_accessibility( $subject, $method_name );
+
+		add_filter( 'hcap_trusted_address_headers', $filter );
+
+		$method->invoke( $subject );
+
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		self::assertSame(
+			[
+				'HTTP_CF_CONNECTING_IP',
+				'HTTP_X_FORWARDED_FOR',
+			],
+			$option['trusted_address_headers']
+		);
+		self::assertArrayNotHasKey( Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION, $option );
+
+		remove_filter( 'hcap_trusted_address_headers', $filter );
+	}
+
+	/**
+	 * Test add_trusted_address_headers() without a custom trusted address headers filter.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_trusted_address_headers_without_filter(): void {
+		$method_name = 'add_trusted_address_headers';
+		$subject     = new Migrations();
+
+		$method = $this->set_method_accessibility( $subject, $method_name );
+
+		$method->invoke( $subject );
+
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		self::assertSame( [], $option['trusted_address_headers'] );
+		self::assertSame( 'on', $option[ Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] );
+	}
+
+	/**
 	 * Test save_license_level().
 	 *
 	 * @param string $license_level License level.
@@ -295,7 +363,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_save_license_level
 	 */
 	public function test_save_license_level( string $license_level ): void {
-		$subject = new Migrations();
+		new Migrations();
 
 		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
 

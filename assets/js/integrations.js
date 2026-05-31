@@ -38,7 +38,7 @@ const integrations = function( $ ) {
 	function clearMessage() {
 		$message.remove();
 		// Concat to avoid an inspection message.
-		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( '.hcaptcha-header-bar' );
+		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( '#hcaptcha-admin-notices' );
 		$message = $( msgSelector );
 	}
 
@@ -70,7 +70,7 @@ const integrations = function( $ ) {
 				$message.css( 'visibility', 'unset' );
 				$fixed.remove();
 			},
-			3000
+			3000,
 		);
 	}
 
@@ -370,7 +370,7 @@ const integrations = function( $ ) {
 						{
 							scrollTop: $tr.offset().top - hCaptchaSettingsBase.getStickyHeight(),
 						},
-						1000
+						1000,
 					);
 				} )
 				.fail(
@@ -379,7 +379,7 @@ const integrations = function( $ ) {
 					 */
 					function( response ) {
 						showErrorMessage( response.statusText );
-					}
+					},
 				)
 				.always( function() {
 					$tr.removeClass( 'install on off' );
@@ -560,10 +560,10 @@ const integrations = function( $ ) {
 
 			$( 'html' ).stop().animate(
 				{ scrollTop },
-				1000
+				1000,
 			);
 		},
-		100
+		100,
 	) );
 
 	$( '#hcaptcha-options' ).keydown(
@@ -571,7 +571,7 @@ const integrations = function( $ ) {
 			if ( $( e.target ).is( $search ) && e.which === 13 ) {
 				e.preventDefault();
 			}
-		}
+		},
 	);
 
 	setupHelpers();

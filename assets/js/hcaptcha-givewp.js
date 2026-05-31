@@ -18,7 +18,7 @@ const hCaptchaGiveWP = window.hCaptchaGiveWP || ( function( window ) {
 					}
 
 					return isAjaxSubmitButton;
-				}
+				},
 			);
 
 			// Install global fetch event wrapper (idempotent).
@@ -46,7 +46,7 @@ const hCaptchaGiveWP = window.hCaptchaGiveWP || ( function( window ) {
 			try {
 				const u = new URL( url, window.location.href );
 				route = u.searchParams.get( 'givewp-route' ) || '';
-			} catch ( e ) {
+			} catch {
 				// ignore
 			}
 
@@ -94,7 +94,7 @@ const hCaptchaGiveWP = window.hCaptchaGiveWP || ( function( window ) {
 			try {
 				const u = new URL( url, window.location.href );
 				route = u.searchParams.get( 'givewp-route' ) || '';
-			} catch ( e ) {
+			} catch {
 				// ignore
 			}
 

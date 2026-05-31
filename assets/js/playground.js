@@ -15,7 +15,7 @@ const hCaptchaPlayground = window.hCaptchaPlayground || ( function( window, docu
 
 			try {
 				inIframe = window.self !== window.top;
-			} catch ( e ) {
+			} catch {
 				// If cross-origin blocks access to window.top, we are in an iframe.
 				inIframe = true;
 			}

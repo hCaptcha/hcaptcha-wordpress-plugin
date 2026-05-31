@@ -1,6 +1,5 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-/* eslint-disable no-unused-vars */
 import $ from 'jquery';
 
 global.jQuery = $;
@@ -104,7 +103,7 @@ describe( 'whats-new.js', () => {
 					nonce: defaultWhatsNewObject.markShownNonce,
 					version: '4.20.0',
 				} ),
-			} )
+			} ),
 		);
 	} );
 
@@ -138,14 +137,22 @@ describe( 'whats-new.js', () => {
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
 
-	test( 'button link click prevents default, posts markShown and opens link', () => {
+	test( 'button link click prevents default, stops propagation, posts markShown and opens link', () => {
 		bootWhatsNew();
+		const documentClickSpy = jest.fn();
 		const event = $.Event( 'click' );
 		const preventDefaultSpy = jest.spyOn( event, 'preventDefault' );
+
+		$( document ).on( 'click.test', documentClickSpy );
 		$( '.hcaptcha-whats-new-button a' ).trigger( event );
+
 		expect( preventDefaultSpy ).toHaveBeenCalled();
+		expect( event.isImmediatePropagationStopped() ).toBe( true );
+		expect( documentClickSpy ).not.toHaveBeenCalled();
 		expect( postSpy ).toHaveBeenCalled();
 		expect( openSpy ).toHaveBeenCalledWith( 'https://example.com', '_blank' );
+
+		$( document ).off( 'click.test' );
 	} );
 
 	test( 'whats-new link click prevents default, sets overflow and calls fadeIn', () => {

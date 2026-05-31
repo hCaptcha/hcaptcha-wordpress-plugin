@@ -354,6 +354,23 @@ class Notifications extends NotificationsBase {
 					'text' => __( 'Open wizard', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 4.27.0.
+			'trusted-ip-headers'  => [
+				'title'   => __( 'Trusted IP Headers', 'hcaptcha-for-forms-and-more' ),
+				'message' => sprintf(
+				/* translators: 1: Trusted IP Headers settings link. */
+					__( 'Choose which proxy or CDN IP headers hCaptcha can trust in %1$s.', 'hcaptcha-for-forms-and-more' ),
+					sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$urls['trusted_ip_headers'],
+						__( 'Anti-Spam settings', 'hcaptcha-for-forms-and-more' )
+					)
+				),
+				'button'  => [
+					'url'  => $urls['trusted_ip_headers'],
+					'text' => __( 'Review headers', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$notifications = $this->select_active_notifications( $notifications );

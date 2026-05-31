@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\BBPress;
 
 use HCaptcha\BBPress\Reply;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use WP_Error;
 
@@ -74,6 +75,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply' );
 		$this->prepare_reply_topic();
+		$this->prepare_widget_id();
 
 		$expected = new WP_Error();
 		$subject  = new Reply();
@@ -94,6 +96,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_verify_post( 'hcaptcha_bbp_reply_nonce', 'hcaptcha_bbp_reply', null );
 		$this->prepare_reply_topic();
+		$this->prepare_widget_id();
 
 		self::assertFalse( $subject->verify() );
 
@@ -116,5 +119,17 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		);
 
 		$_POST['bbp_topic_id'] = (string) $topic_id;
+	}
+
+	/**
+	 * Prepare widget id.
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'reply',
+			]
+		);
 	}
 }

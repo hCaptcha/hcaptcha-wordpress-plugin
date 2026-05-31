@@ -42,10 +42,7 @@ abstract class LostPasswordBase {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'lost_password',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -73,8 +70,26 @@ abstract class LostPasswordBase {
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = API::verify_post( static::NONCE, static::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => static::NONCE,
+				'nonce_action' => static::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		HCaptcha::add_error_message( $errors, $error_message );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'lost_password',
+		];
 	}
 }

@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -42,6 +43,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$subject->init();
 
 		self::assertSame( -PHP_INT_MAX, has_action( 'init', [ $subject, 'verify' ] ) );
+		self::assertSame( 10, has_filter( 'hcap_form_args', [ $subject, 'add_default_id' ] ) );
 		self::assertSame( PHP_INT_MAX, has_filter( 'the_content', [ $subject, 'content_filter' ] ) );
 		self::assertSame(
 			PHP_INT_MAX,
@@ -257,6 +259,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_POST['test_input']   = 'some input';
 		$_POST['hcap_hp_test'] = '';
 		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
+		$this->prepare_widget_id();
 
 		$die_arr  = [];
 		$expected = [
@@ -298,6 +301,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			'test_input'         => 'some input',
 			'hcap_hp_test'       => '',
 			'hcap_hp_sig'        => wp_create_nonce( 'hcap_hp_test' ),
+			'hcaptcha-widget-id' => $this->get_test_widget_id(),
 			'hcaptcha_nonce'     => $this->get_test_nonce(),
 			'h-captcha-response' => $hcaptcha_response,
 			'hcap_fst_token'     => 'test_token',
@@ -309,6 +313,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_POST['test_input']   = 'some input';
 		$_POST['hcap_hp_test'] = '';
 		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
+		$this->prepare_widget_id();
 
 		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
 
@@ -388,7 +393,11 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			'hcap_hp_sig'        => 'sig',
 		];
 
-		$actual = $method->invoke( $subject, 'hcaptcha_nonce', 'hcaptcha_action' );
+		$expected_id = [
+			'source'  => [ AutoVerify::class ],
+			'form_id' => 0,
+		];
+		$actual      = $method->invoke( $subject, 'hcaptcha_nonce', 'hcaptcha_action', $expected_id );
 
 		self::assertSame(
 			[
@@ -398,6 +407,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 				'data'               => [
 					'test_input' => 'some input',
 				],
+				'expected_id'        => $expected_id,
 			],
 			$actual
 		);
@@ -419,6 +429,27 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 */
 	private function get_test_nonce(): string {
 		return '5e9f1e63ed';
+	}
+
+	/**
+	 * Prepare widget id.
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_test_widget_id();
+	}
+
+	/**
+	 * Get test widget id.
+	 *
+	 * @return string
+	 */
+	private function get_test_widget_id(): string {
+		return HCaptcha::widget_id_value(
+			[
+				'source'  => [ AutoVerify::class ],
+				'form_id' => 0,
+			]
+		);
 	}
 
 	/**
@@ -465,7 +496,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			'theme'   => 'light',
 			'size'    => 'normal',
 			'id'      => [
-				'source'  => [],
+				'source'  => [ AutoVerify::class ],
 				'form_id' => 0,
 			],
 			'protect' => true,
@@ -477,7 +508,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 					[
 						'inputs' => [
 							'test_input',
-							'hcap_hp_test',
 						],
 						'args'   => $args,
 					],

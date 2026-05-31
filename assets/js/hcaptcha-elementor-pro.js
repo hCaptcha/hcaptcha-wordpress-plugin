@@ -21,7 +21,7 @@ const hcaptchaElementorPro = function() {
 		() => {
 			// noinspection JSUnresolvedReference
 			return window?.parent?.HCaptchaMainObject?.params ?? '';
-		}
+		},
 	);
 };
 

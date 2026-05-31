@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Comment;
 use Mockery;
@@ -215,6 +216,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		];
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+		$this->prepare_widget_id( (int) $comment_data['comment_post_ID'] );
 
 		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
@@ -284,6 +286,41 @@ class CommentTest extends HCaptchaWPTestCase {
 		$expected     = 'The hCaptcha is invalid.';
 
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment', false );
+		$this->prepare_widget_id( (int) $comment_data['comment_post_ID'] );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
+
+		$subject = new Comment();
+
+		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
+		self::assertSame( $expected, $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$comment_data = [
+			'comment_post_ID'      => 5,
+			'comment_author'       => 'Some author',
+			'comment_author_email' => 'author@some.com',
+			'comment_author_url'   => 'https://some.com/author',
+			'comment_content'      => 'https://some.com/author',
+			'comment_author_IP'    => '7.7.7.7',
+			'comment_agent'        => 'some agent',
+		];
+		$expected     = 'Bad hCaptcha signature!';
+
+		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+		$this->prepare_widget_id(
+			(int) $comment_data['comment_post_ID'],
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => (int) $comment_data['comment_post_ID'],
+			]
+		);
 
 		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
@@ -399,5 +436,20 @@ class CommentTest extends HCaptchaWPTestCase {
 		$this->set_protected_property( $subject, 'result', $error_message );
 
 		self::assertEquals( $expected, $subject->pre_comment_approved( $approved, $comment_data ) );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'WordPress' ],
+			'form_id' => $form_id,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

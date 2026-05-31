@@ -87,10 +87,7 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => isset( $block['attrs']['block_id'] ) ? (int) $block['attrs']['block_id'] : 0,
-			],
+			'id'     => $this->get_expected_id( $block['attrs']['block_id'] ?? 0 ),
 		];
 
 		$this->has_recaptcha_field = false;
@@ -265,8 +262,9 @@ class Form {
 	 * @return array
 	 */
 	private function get_entry( array $form_data ): array {
-		$post_id = (int) Request::filter_input( INPUT_POST, 'post_id' );
-		$post    = get_post( $post_id );
+		$post_id  = (int) Request::filter_input( INPUT_POST, 'post_id' );
+		$block_id = Request::filter_input( INPUT_POST, 'block_id' );
+		$post     = get_post( $post_id );
 
 		$entry = [
 			'nonce_name'         => self::NONCE,
@@ -274,6 +272,7 @@ class Form {
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $block_id ),
 		];
 
 		$blocks = parse_blocks( $post->post_content ?? '' );
@@ -362,5 +361,19 @@ class Form {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 }

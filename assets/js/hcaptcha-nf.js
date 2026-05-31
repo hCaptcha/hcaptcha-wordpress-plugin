@@ -7,7 +7,7 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 			wp.hooks.addFilter(
 				'hcaptcha.ajaxSubmitButton',
 				'hcaptcha',
-				app.isAjaxSubmitButton
+				app.isAjaxSubmitButton,
 			);
 
 			document.addEventListener( 'hCaptchaLoaded', app.onDomReady );
@@ -54,7 +54,7 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 						nfRadio.channel( 'fields' ).request(
 							'remove:error',
 							model.get( 'id' ),
-							'required-error'
+							'required-error',
 						);
 					} else {
 						const fieldId = model.get( 'id' );
@@ -63,7 +63,7 @@ const hCaptchaNF = window.hCaptchaNF || ( function( window, $ ) {
 						 * @type {HTMLTextAreaElement}
 						 */
 						const hcapResponse = document.querySelector(
-							`div[data-field-id="${ fieldId }"] textarea[name="h-captcha-response"]`
+							`div[data-field-id="${ fieldId }"] textarea[name="h-captcha-response"]`,
 						);
 
 						model.set( 'value', hcapResponse?.value );

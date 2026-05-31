@@ -1,6 +1,5 @@
 // noinspection ES6ConvertVarToLetConst
 
-// eslint-disable-next-line no-var
 const kaggDialog = window.kaggDialog || ( function( document ) {
 	return {
 		defaults: {
@@ -20,7 +19,7 @@ const kaggDialog = window.kaggDialog || ( function( document ) {
 					action() {},
 				},
 			},
-			// eslint-disable-next-line no-unused-vars
+
 			onAction() {},
 		},
 

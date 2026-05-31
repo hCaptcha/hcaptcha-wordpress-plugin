@@ -7,7 +7,7 @@ wp.hooks.addFilter(
 	'hcaptcha',
 	( formSelector ) => {
 		return formSelector + ', div.fl-login-form';
-	}
+	},
 );
 
 wp.hooks.addFilter(
@@ -15,7 +15,7 @@ wp.hooks.addFilter(
 	'hcaptcha',
 	( submitButtonSelector ) => {
 		return submitButtonSelector + ', a.fl-button';
-	}
+	},
 );
 
 ( function( $ ) {
@@ -35,14 +35,14 @@ wp.hooks.addFilter(
 			options,
 			'fl_builder_email',
 			'hcaptcha_beaver_builder_nonce',
-			$node
+			$node,
 		);
 
 		helper.addHCaptchaData(
 			options,
 			'fl_builder_login_form_submit',
 			'hcaptcha_login_nonce',
-			$node
+			$node,
 		);
 	} );
 }( jQuery ) );

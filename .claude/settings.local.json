@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Command playwright -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command node, npx -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command \"node.exe\" -ErrorAction SilentlyContinue | Select-Object Source; \\(Get-Command \"node\" -ErrorAction SilentlyContinue\\).Source)",
+      "PowerShell($env:PATH -split ';' | Where-Object { $_ -ne '' } | Select-Object -First 30)",
+      "PowerShell(npx playwright --version 2>$null)",
+      "PowerShell(npm list -g playwright 2>$null)",
+      "PowerShell(npx playwright install --list-installed 2>$null)",
+      "PowerShell(Get-ChildItem \"$env:LOCALAPPDATA\\\\ms-playwright\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name | Select-Object -First 10)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts, null, 2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")"
+    ]
+  }
+}

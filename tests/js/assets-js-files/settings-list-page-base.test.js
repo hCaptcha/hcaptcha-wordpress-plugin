@@ -1,6 +1,6 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-/* eslint-disable no-unused-vars,import/no-extraneous-dependencies */
+/* eslint-disable import/no-extraneous-dependencies */
 
 // whatwg-url serializer — same registry as jsdom since it's a plain Node module.
 const whatwgURL = require( 'whatwg-url' );

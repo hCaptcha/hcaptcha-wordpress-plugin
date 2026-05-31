@@ -11,7 +11,7 @@ wp.hooks.addFilter(
 		}
 
 		return isAjaxSubmitButton;
-	}
+	},
 );
 
 ( function( $ ) {
@@ -30,7 +30,7 @@ wp.hooks.addFilter(
 			options,
 			'validate_input',
 			'hcaptcha_passster_nonce',
-			$( '[data-area=' + area + ']' ).closest( 'form' )
+			$( '[data-area=' + area + ']' ).closest( 'form' ),
 		);
 	} );
 }( jQuery ) );

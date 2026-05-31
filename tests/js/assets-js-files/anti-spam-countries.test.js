@@ -6,6 +6,8 @@ beforeEach( () => {
 	global.jQuery = $;
 	global.$ = $;
 	global.HCaptchaAntiSpamCountriesObject = {
+		headersSearchAriaLabel: 'Search trusted IP headers',
+		headersSearchPlaceholder: 'Type to search headers...',
 		searchAriaLabel: 'Search countries',
 		searchPlaceholder: 'Type to search...',
 	};
@@ -25,6 +27,9 @@ const buildDOM = () => {
 		</select>
 		<select name="hcaptcha_settings[whitelisted_countries][]" multiple>
 			<option value="GB">United Kingdom</option>
+		</select>
+		<select name="hcaptcha_settings[trusted_address_headers][]" multiple>
+			<option value="HTTP_CF_CONNECTING_IP">CF-Connecting-IP</option>
 		</select>
 	`;
 };
@@ -65,25 +70,25 @@ describe( 'antiSpamCountries', () => {
 		expect( el.dataset.hcaptchaChoicesInit ).toBeUndefined();
 	} );
 
-	test( 'initializes Choices on both selects', () => {
-		const { mockInput, mockContainerOuter } = createMockInput();
+	test( 'initializes Choices on all selects', () => {
+		const { mockContainerOuter } = createMockInput();
 
 		setupChoices( mockContainerOuter );
 		buildDOM();
 		loadAndRun();
 
-		expect( global.Choices ).toHaveBeenCalledTimes( 2 );
+		expect( global.Choices ).toHaveBeenCalledTimes( 3 );
 
 		const blacklisted = document.querySelector( '[name="hcaptcha_settings[blacklisted_countries][]"]' );
 		const whitelisted = document.querySelector( '[name="hcaptcha_settings[whitelisted_countries][]"]' );
+		const headers = document.querySelector( '[name="hcaptcha_settings[trusted_address_headers][]"]' );
 
 		expect( blacklisted.dataset.hcaptchaChoicesInit ).toBe( '1' );
 		expect( whitelisted.dataset.hcaptchaChoicesInit ).toBe( '1' );
+		expect( headers.dataset.hcaptchaChoicesInit ).toBe( '1' );
 		expect( blacklisted.hcaptchaChoices ).toBeDefined();
 		expect( whitelisted.hcaptchaChoices ).toBeDefined();
-
-		expect( mockInput.placeholder ).toBe( 'Type to search...' );
-		expect( mockInput.getAttribute( 'aria-label' ) ).toBe( 'Search countries' );
+		expect( headers.hcaptchaChoices ).toBeDefined();
 	} );
 
 	test( 'skips element already initialized', () => {
@@ -97,8 +102,8 @@ describe( 'antiSpamCountries', () => {
 
 		loadAndRun();
 
-		// Only whitelisted should be initialized.
-		expect( global.Choices ).toHaveBeenCalledTimes( 1 );
+		// Whitelisted countries and trusted headers should be initialized.
+		expect( global.Choices ).toHaveBeenCalledTimes( 2 );
 	} );
 
 	test( 'skips element when not found in DOM', () => {
@@ -120,7 +125,7 @@ describe( 'antiSpamCountries', () => {
 		loadAndRun();
 
 		// Should not throw; placeholder not set on anything.
-		expect( global.Choices ).toHaveBeenCalledTimes( 2 );
+		expect( global.Choices ).toHaveBeenCalledTimes( 3 );
 	} );
 
 	test( 'addItem event re-applies search placeholder', () => {
@@ -156,6 +161,32 @@ describe( 'antiSpamCountries', () => {
 
 		expect( mockInput.placeholder ).toBe( 'Type to search...' );
 		expect( mockInput.getAttribute( 'aria-label' ) ).toBe( 'Search countries' );
+	} );
+
+	test( 'trusted headers select uses header search placeholder', () => {
+		const createdInputs = [];
+
+		global.Choices = jest.fn( function() {
+			const { mockInput, mockContainerOuter } = createMockInput();
+
+			createdInputs.push( mockInput );
+			this.containerOuter = { element: mockContainerOuter };
+		} );
+
+		buildDOM();
+		loadAndRun();
+
+		const headers = document.querySelector( '[name="hcaptcha_settings[trusted_address_headers][]"]' );
+
+		expect( createdInputs[ 2 ].placeholder ).toBe( 'Type to search headers...' );
+		expect( createdInputs[ 2 ].getAttribute( 'aria-label' ) ).toBe( 'Search trusted IP headers' );
+
+		createdInputs[ 2 ].placeholder = '';
+		createdInputs[ 2 ].removeAttribute( 'aria-label' );
+		headers.dispatchEvent( new Event( 'removeItem' ) );
+
+		expect( createdInputs[ 2 ].placeholder ).toBe( 'Type to search headers...' );
+		expect( createdInputs[ 2 ].getAttribute( 'aria-label' ) ).toBe( 'Search trusted IP headers' );
 	} );
 
 	test( 'exposes antiSpamCountries on window', () => {

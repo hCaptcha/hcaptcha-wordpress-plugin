@@ -30,7 +30,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_REQUEST['action'], $_REQUEST['nonce'] );
+		unset( $_REQUEST['action'], $_REQUEST['nonce'], $_GET['mc4wp_preview_form'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		parent::tearDown();
 	}
@@ -185,9 +185,13 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+		$form_id = 5;
 
-		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
+		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+		$this->prepare_widget_id( $form_id );
+
+		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
+		$mc4wp_form->ID = $form_id;
 
 		$subject = new Form();
 
@@ -198,12 +202,15 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() with a shortcode.
 	 */
 	public function test_verify_with_shortcode(): void {
-		$name   = 'some_nonce';
-		$action = 'some';
+		$form_id = 5;
+		$name    = 'some_nonce';
+		$action  = 'some';
 
-		$this->prepare_verify_post( $name, $action );
+		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+		$this->prepare_widget_id( $form_id );
 
-		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
+		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
+		$mc4wp_form->ID = $form_id;
 
 		$mc4wp_form->content = sprintf( '[hcaptcha name="%s" action="%s"]', $name, $action );
 
@@ -216,9 +223,13 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified(): void {
-		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
+		$form_id = 5;
 
-		$mc4wp_form = Mockery::mock( MC4WP_Form::class );
+		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
+		$this->prepare_widget_id( $form_id );
+
+		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
+		$mc4wp_form->ID = $form_id;
 
 		$subject = new Form();
 
@@ -226,9 +237,33 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify() with a bad widget id.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$form_id = 5;
+
+		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
+		$this->prepare_widget_id(
+			$form_id,
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => $form_id,
+			]
+		);
+
+		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
+		$mc4wp_form->ID = $form_id;
+
+		$subject = new Form();
+
+		self::assertSame( [ 'bad-signature' ], $subject->verify( [], $mc4wp_form ) );
+	}
+
+	/**
 	 * Test preview_scripts().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_preview_scripts(): void {
 		$form_id        = 123;
@@ -271,5 +306,22 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( [], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'mailchimp-for-wp/mailchimp-for-wp.php' ],
+			'form_id' => $form_id,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

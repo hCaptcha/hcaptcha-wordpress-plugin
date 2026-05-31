@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Tests\Integration\WPForms;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WPForms\Form;
@@ -183,6 +184,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject = new Form();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
+		$this->prepare_widget_id( $id );
 
 		wpforms()->objects();
 		wpforms()->obj( 'process' )->errors = [];
@@ -257,6 +259,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject = new Form();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
+		$this->prepare_widget_id( $id );
 
 		wpforms()->objects();
 		wpforms()->obj( 'process' )->errors = [];
@@ -332,6 +335,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject = new Form();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms', false );
+		$this->prepare_widget_id( $id );
 
 		wpforms()->objects();
 		wpforms()->obj( 'process' )->errors = [];
@@ -339,6 +343,71 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject->verify( $fields, $entry, $form_data );
 
 		self::assertSame( $wpforms_error_message, wpforms()->obj( 'process' )->errors[ $form_data['id'] ]['footer'] );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$id        = 5;
+		$fields    = [ 'some field' ];
+		$entry     = [
+			'fields' =>
+				[
+					[
+						'first' => 'John',
+						'last'  => 'Doe',
+					],
+					'foo@bar.com',
+					'Some message',
+				],
+			'id'     => (string) $id,
+			'nonce'  => 'some nonce',
+		];
+		$form_data = [
+			'id'     => $id,
+			'fields' => [
+				[
+					'id'     => '0',
+					'type'   => 'name',
+					'label'  => 'Name',
+					'format' => 'first-last',
+				],
+				[
+					'id'    => '1',
+					'type'  => 'email',
+					'label' => 'Email',
+				],
+				[
+					'id'    => '2',
+					'type'  => 'textarea',
+					'label' => 'Comment or Message',
+				],
+			],
+		];
+		$expected  = 'Bad hCaptcha signature!';
+
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+
+		$subject = new Form();
+
+		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
+		$this->prepare_widget_id(
+			$id,
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => $id,
+			]
+		);
+
+		wpforms()->objects();
+		wpforms()->obj( 'process' )->errors = [];
+
+		$subject->verify( $fields, $entry, $form_data );
+
+		self::assertSame( $expected, wpforms()->obj( 'process' )->errors[ $form_data['id'] ]['footer'] );
 	}
 
 	/**
@@ -901,5 +970,22 @@ CSS;
 			[ true, true, false, true ],
 			[ true, true, true, true ],
 		];
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'wpforms/wpforms.php', 'wpforms-lite/wpforms.php' ],
+			'form_id' => $form_id,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

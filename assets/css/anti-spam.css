@@ -172,19 +172,17 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-areas:
 		"blacklisted-ips whitelisted-ips"
 		"blacklisted-countries whitelisted-countries"
-		"maxmind-key .";
-	gap: 0 20px;
+		"maxmind-key trusted-address-headers";
+	gap: 15px 20px;
 	padding: 15px 20px;
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-ips {
 	grid-area: blacklisted-ips;
-	padding-bottom: 15px;
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-ips {
 	grid-area: whitelisted-ips;
-	padding-bottom: 15px;
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries {
@@ -195,9 +193,12 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: whitelisted-countries;
 }
 
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-trusted-address-headers {
+	grid-area: trusted-address-headers;
+}
+
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-maxmind-key {
 	grid-area: maxmind-key;
-	padding-top: 15px;
 }
 
 .hcaptcha-section-access-control + table tbody tr th {
@@ -220,13 +221,15 @@ h3.closed .hcaptcha-section-header-toggle:after {
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices,
-.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices {
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-trusted-address-headers td .choices {
 	width: 100%;
 	margin-bottom: 0;
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices__inner,
-.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__inner {
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__inner,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-trusted-address-headers td .choices__inner {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -235,7 +238,8 @@ h3.closed .hcaptcha-section-header-toggle:after {
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices__input.choices__input--cloned,
-.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__input.choices__input--cloned {
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__input.choices__input--cloned,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-trusted-address-headers td .choices__input.choices__input--cloned {
 	order: -1;
 	display: block;
 	flex: 1 0 100%;
@@ -252,13 +256,15 @@ h3.closed .hcaptcha-section-header-toggle:after {
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices.is-focused .choices__input.choices__input--cloned,
-.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices.is-focused .choices__input.choices__input--cloned {
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices.is-focused .choices__input.choices__input--cloned,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-trusted-address-headers td .choices.is-focused .choices__input.choices__input--cloned {
 	border-color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
 }
 
 .hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-blacklisted-countries td .choices__list--multiple .choices__item,
-.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__list--multiple .choices__item {
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-whitelisted-countries td .choices__list--multiple .choices__item,
+.hcaptcha-section-access-control + table tbody tr.hcaptcha-anti-spam-trusted-address-headers td .choices__list--multiple .choices__item {
 	background: #5c6f8a;
 	border-radius: 4px;
 }
@@ -334,7 +340,8 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		"whitelisted-ips"
 		"blacklisted-countries"
 		"whitelisted-countries"
-		"maxmind-key";
+		"maxmind-key"
+		"trusted-address-headers";
 	}
 
 	.hcaptcha-section-access-control + table tbody tr td {

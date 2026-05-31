@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\WC;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\Checkout;
 use Mockery;
@@ -140,6 +141,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
+		$this->prepare_widget_id();
 
 		WC()->init();
 		wc_clear_notices();
@@ -166,6 +168,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+		$this->prepare_widget_id();
 
 		WC()->init();
 		wc_clear_notices();
@@ -211,7 +214,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
 		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
 		$request->set_param( $token_name, $_POST[ $token_name ] );
@@ -234,6 +237,11 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 				]
 			)
 		);
+		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
+		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
+		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
+		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_name, '' );
 
 		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
 
@@ -244,7 +252,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		hcaptcha()->has_result = false;
 		$this->prepare_verify_request( $hcaptcha_response, false );
-		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
 		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
 		$request->set_param( $token_name, $_POST[ $token_name ] );
@@ -284,7 +292,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_request( $hcaptcha_response, false );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$request->set_param( $widget_id_name, [ 'some widget' ] );
+		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
 		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
 		$request->set_param( $token_name, $_POST[ $token_name ] );
@@ -364,5 +372,26 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		// Proper tag.
 		self::assertSame( $expected, $subject->add_type_module( $tag, 'hcaptcha-wc-block-checkout', '' ) );
+	}
+
+	/**
+	 * Prepare widget id.
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_test_widget_id();
+	}
+
+	/**
+	 * Get test widget id.
+	 *
+	 * @return string
+	 */
+	private function get_test_widget_id(): string {
+		return HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'checkout',
+			]
+		);
 	}
 }

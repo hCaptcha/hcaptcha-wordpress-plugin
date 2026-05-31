@@ -162,6 +162,10 @@ class SystemInfoTest extends HCaptchaTestCase {
 					System Info				</h2>
 			</div>
 					</div>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
 				<div id="hcaptcha-system-info-wrap">
 			<span class="helper">
 				<span class="helper-content">Copy system info to clipboard</span>
@@ -283,6 +287,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 			'akismet' => [],
 		];
 		$server                 = 'Apache/2.4.57 (Ubuntu)';
+		$paypal_payments_pad    = str_repeat( ' ', 10 );
 		$expected               = "
 ### Begin System Info ###
 
@@ -514,6 +519,8 @@ WooCommerce:
   Register Form:                      On
 WooCommerce Germanized:               
   Return Request Form:                Off
+WooCommerce PayPal Payments:$paypal_payments_pad
+  PayPal Button:                      Off
 WooCommerce Wishlists:                
   Create List Form:                   On
 Wordfence:                            

@@ -59,7 +59,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			( accumulator, currentOption ) => {
 				return accumulator || currentOption.value === 'hcaptcha';
 			},
-			false
+			false,
 		);
 
 		if ( ! hasHCaptcha ) {

@@ -44,36 +44,39 @@ class RequestTest extends HCaptchaTestCase {
 	 * @return void
 	 */
 	public function test_is_frontend(): void {
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_xml_rpc', true );
+		FunctionMocker::replace( 'HCaptcha\Helpers\is_admin', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\wp_doing_ajax', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\wp_doing_cron', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_xml_rpc', true );
 
 		self::assertFalse( Request::is_frontend() );
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_xml_rpc', false );
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_cli', true );
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_xml_rpc', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_cli', true );
 
 		self::assertFalse( Request::is_frontend() );
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_cli', false );
-		FunctionMocker::replace( 'is_admin', true );
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_cli', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\is_admin', true );
 
 		self::assertFalse( Request::is_frontend() );
 
-		FunctionMocker::replace( 'is_admin', false );
-		FunctionMocker::replace( 'wp_doing_ajax', true );
+		FunctionMocker::replace( 'HCaptcha\Helpers\is_admin', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\wp_doing_ajax', true );
 
 		self::assertFalse( Request::is_frontend() );
 
-		FunctionMocker::replace( 'wp_doing_ajax', false );
-		FunctionMocker::replace( 'wp_doing_cron', true );
+		FunctionMocker::replace( 'HCaptcha\Helpers\wp_doing_ajax', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\wp_doing_cron', true );
 
 		self::assertFalse( Request::is_frontend() );
 
-		FunctionMocker::replace( 'wp_doing_cron', false );
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_rest', true );
+		FunctionMocker::replace( 'HCaptcha\Helpers\wp_doing_cron', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_rest', true );
 
 		self::assertFalse( Request::is_frontend() );
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_rest', false );
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_rest', false );
 
 		self::assertTrue( Request::is_frontend() );
 	}

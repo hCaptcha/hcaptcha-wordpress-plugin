@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\EmailOptin;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -82,6 +83,7 @@ HTML;
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( EmailOptin::NONCE, EmailOptin::ACTION );
+		$this->prepare_widget_id();
 
 		$subject = new EmailOptin();
 
@@ -112,6 +114,7 @@ HTML;
 		);
 
 		$this->prepare_verify_post( EmailOptin::NONCE, EmailOptin::ACTION, false );
+		$this->prepare_widget_id();
 
 		$subject = new EmailOptin();
 
@@ -120,6 +123,47 @@ HTML;
 		$json = ob_get_clean();
 
 		self::assertSame( '{"error":"The hCaptcha is invalid."}', $json );
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @return void
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$this->prepare_verify_post( EmailOptin::NONCE, EmailOptin::ACTION );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'email_optin',
+			]
+		);
+
+		$subject = new EmailOptin();
+
+		ob_start();
+		$subject->verify();
+		$json = ob_get_clean();
+
+		self::assertSame( '{"error":"Bad hCaptcha signature!"}', $json );
 		self::assertSame( $expected, $die_arr );
 	}
 
@@ -184,5 +228,21 @@ HTML;
 		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
 
 		self::assertSame( $expected, $subject->add_type_module( $tag, $handle, $src ) );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'Divi' ],
+			'form_id' => 'email_optin',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

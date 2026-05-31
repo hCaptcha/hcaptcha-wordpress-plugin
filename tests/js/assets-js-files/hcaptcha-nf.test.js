@@ -39,13 +39,13 @@ describe( 'Ninja Forms hCaptcha', () => {
 		expect( controller.listenTo ).toHaveBeenCalledWith(
 			expect.any( Object ),
 			'validate:field',
-			controller.updateHcaptcha
+			controller.updateHcaptcha,
 		);
 
 		expect( controller.listenTo ).toHaveBeenCalledWith(
 			expect.any( Object ),
 			'change:modelValue',
-			controller.updateHcaptcha
+			controller.updateHcaptcha,
 		);
 	} );
 
@@ -71,7 +71,7 @@ describe( 'Ninja Forms hCaptcha', () => {
 		expect( nfRadio.channel( 'fields' ).request ).toHaveBeenCalledWith(
 			'remove:error',
 			expect.anything(),
-			'required-error'
+			'required-error',
 		);
 	} );
 } );

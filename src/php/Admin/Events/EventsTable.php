@@ -8,8 +8,6 @@
 namespace HCaptcha\Admin\Events;
 
 use HCaptcha\Helpers\Utils;
-use HCaptcha\Settings\ListPageBase;
-use JsonException;
 
 /**
  * List events in the table.
@@ -105,14 +103,8 @@ class EventsTable extends TableBase {
 		$paged   = isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1;
 		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'DESC';
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'date_gmt';
-		$date    = isset( $_GET['date'] )
-			// We need filter_input here to keep the delimiter intact.
-			? filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
-			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$dates        = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
-		$dates        = array_filter( array_map( 'trim', $dates ) );
 		$column_slugs = str_replace( [ 'cb', 'name' ], [ 'id', 'source' ], array_keys( $this->columns ) );
 		$per_page     = $this->get_items_per_page( self::ITEMS_PER_PAGE, $this->per_page_default );
 		$offset       = ( $paged - 1 ) * $per_page;
@@ -122,7 +114,8 @@ class EventsTable extends TableBase {
 			'limit'   => $per_page,
 			'order'   => $order,
 			'orderby' => $orderby,
-			'dates'   => $dates,
+			'dates'   => $this->get_dates(),
+			'status'  => $this->get_status(),
 		];
 
 		$events      = Events::get_events( $args );

@@ -33,7 +33,7 @@ class AutoVerify {
 	public const OBJECT = 'HCaptchaAutoVerifyObject';
 
 	/**
-	 * The hCaptcha forms registry.
+	 * The hCaptcha forms' registry.
 	 *
 	 * @var array
 	 */
@@ -55,11 +55,32 @@ class AutoVerify {
 	 */
 	private function init_hooks(): void {
 		add_action( 'init', [ $this, 'verify' ], - PHP_INT_MAX );
+		add_filter( 'hcap_form_args', [ $this, 'add_default_id' ] );
 		add_filter( 'the_content', [ $this, 'content_filter' ], PHP_INT_MAX );
 		add_filter( 'widget_block_content', [ $this, 'widget_block_content_filter' ], PHP_INT_MAX, 3 );
 		add_action( 'hcap_auto_verify_register', [ $this, 'content_filter' ] );
 		add_action( 'hcap_register_form', [ $this, 'register_hcaptcha' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+	}
+
+	/**
+	 * Add default id to the auto-verified hCaptcha form.
+	 *
+	 * @param array|mixed $args hCaptcha form arguments.
+	 *
+	 * @return array
+	 */
+	public function add_default_id( $args ): array {
+		$args = (array) $args;
+		$auto = filter_var( $args['auto'] ?? false, FILTER_VALIDATE_BOOLEAN );
+
+		if ( ! $auto ) {
+			return $args;
+		}
+
+		$args['id'] = $this->normalize_id( $args );
+
+		return $args;
 	}
 
 	/**
@@ -99,9 +120,26 @@ class AutoVerify {
 			return;
 		}
 
-		$widget_id = HCaptcha::widget_id_value( $args['id'] ?? [] );
+		$args['id'] = $this->normalize_id( $args );
+		$widget_id  = HCaptcha::widget_id_value( $args['id'] );
 
 		$this->registry[ $widget_id ] = $args;
+	}
+
+	/**
+	 * Normalize hCaptcha widget id.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return array
+	 */
+	private function normalize_id( array $args ): array {
+		$id = (array) ( $args['id'] ?? [] );
+
+		return [
+			'source'  => empty( $id['source'] ) ? [ self::class ] : (array) $id['source'],
+			'form_id' => empty( $id['form_id'] ) ? (int) get_the_ID() : $id['form_id'],
+		];
 	}
 
 	/**
@@ -162,7 +200,7 @@ class AutoVerify {
 		$action = $args['action'] ?? '';
 		$name   = $args['name'] ?? '';
 		$ajax   = $args['ajax'] ?? '';
-		$result = API::verify( $this->get_entry( $name, $action ) );
+		$result = API::verify( $this->get_entry( $name, $action, $this->get_expected_id( $args ) ) );
 
 		if ( $ajax ) {
 			add_filter( 'wp_doing_ajax', '__return_true' );
@@ -185,18 +223,31 @@ class AutoVerify {
 	/**
 	 * Get entry.
 	 *
-	 * @param string $name   Nonce field name.
-	 * @param string $action Nonce action name.
+	 * @param string $name        Nonce field name.
+	 * @param string $action      Nonce action name.
+	 * @param array  $expected_id Expected hCaptcha widget id.
 	 *
 	 * @return array
 	 */
-	private function get_entry( string $name, string $action ): array {
+	private function get_entry( string $name, string $action, array $expected_id ): array {
 		return [
 			'nonce_name'         => $name,
 			'nonce_action'       => $action,
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
 			'data'               => $this->get_data(),
+			'expected_id'        => $expected_id,
 		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param array $args hCaptcha form arguments.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( array $args ): array {
+		return (array) ( $args['id'] ?? [] );
 	}
 
 	/**

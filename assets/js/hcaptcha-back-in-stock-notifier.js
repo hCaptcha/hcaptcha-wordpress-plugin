@@ -9,7 +9,7 @@ import { helper } from './hcaptcha-helper.js';
 			options,
 			'cwginstock_product_subscribe',
 			'hcaptcha_back_in_stock_notifier_nonce',
-			$( '.cwginstock-subscribe-form' )
+			$( '.cwginstock-subscribe-form' ),
 		);
 	} );
 }( jQuery ) );
