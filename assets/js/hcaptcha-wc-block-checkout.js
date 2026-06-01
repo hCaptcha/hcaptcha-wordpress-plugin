@@ -10,7 +10,7 @@ const wcBlockCheckout = window.hCaptchaWCBlockCheckout || ( function( window ) {
 				'hcaptcha',
 				( submitButtonSelector ) => {
 					return submitButtonSelector + `, .${ checkoutButtonClass }`;
-				}
+				},
 			);
 
 			wp.hooks.addFilter(
@@ -22,7 +22,7 @@ const wcBlockCheckout = window.hCaptchaWCBlockCheckout || ( function( window ) {
 					}
 
 					return isAjaxSubmitButton;
-				}
+				},
 			);
 
 			helper.installFetchEvents();
@@ -41,7 +41,7 @@ const wcBlockCheckout = window.hCaptchaWCBlockCheckout || ( function( window ) {
 
 			try {
 				formData = JSON.parse( config.body );
-			} catch ( e ) {
+			} catch {
 				formData = {};
 			}
 

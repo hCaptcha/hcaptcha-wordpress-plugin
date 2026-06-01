@@ -77,7 +77,7 @@ class Comment {
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
 			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
+				'source'  => HCaptcha::get_class_source( \HCaptcha\WP\Comment::class ),
 				'form_id' => $post_id,
 			],
 		];

@@ -89,6 +89,7 @@ class Integrations extends PluginSettingsBase {
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
 		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
 		'woocommerce-germanized/woocommerce-germanized.php'                 => 'woocommerce/woocommerce.php',
+		'woocommerce-paypal-payments/woocommerce-paypal-payments.php'       => 'woocommerce/woocommerce.php',
 		'woocommerce-wishlists/woocommerce-wishlists.php'                   => 'woocommerce/woocommerce.php',
 		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
 	];
@@ -797,6 +798,13 @@ class Integrations extends PluginSettingsBase {
 					'return_request' => __( 'Return Request Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'paypal_payments_status'           => [
+				'label'   => 'WooCommerce PayPal Payments',
+				'type'    => 'checkbox',
+				'options' => [
+					'button' => __( 'PayPal Button', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'woocommerce_wishlists_status'     => [
 				'label'   => 'WooCommerce Wishlists',
 				'type'    => 'checkbox',
@@ -1032,7 +1040,6 @@ class Integrations extends PluginSettingsBase {
 				$this->print_header();
 
 				?>
-				<div id="hcaptcha-message"></div>
 				<p>
 					<?php esc_html_e( 'Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.', 'hcaptcha-for-forms-and-more' ); ?>
 				</p>
@@ -2100,6 +2107,8 @@ class Integrations extends PluginSettingsBase {
 	protected function setup_field_data( array $installed ): void {
 		$this->form_fields = $this->sort_fields( $this->form_fields );
 
+		$this->setup_paypal_payments_dependency_notice();
+
 		$prefix = self::PREFIX . '-' . $this->section_title() . '-';
 
 		foreach ( $this->form_fields as $status => &$form_field ) {
@@ -2120,5 +2129,61 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		unset( $form_field );
+	}
+
+	/**
+	 * Setup WooCommerce PayPal Payments dependency notice.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	private function setup_paypal_payments_dependency_notice(): void {
+		if (
+			! in_array( 'button', (array) $this->get( 'paypal_payments_status' ), true ) ||
+			in_array( 'checkout', (array) $this->get( 'woocommerce_status' ), true )
+		) {
+			return;
+		}
+
+		$checkout_id = $this->get_checkbox_option_id( 'woocommerce_status', 'checkout' );
+
+		if ( '' === $checkout_id ) {
+			return;
+		}
+
+		$checkout_link = sprintf(
+			'<a href="#%1$s">%2$s</a>',
+			esc_attr( $checkout_id ),
+			esc_html__( 'WooCommerce Checkout', 'hcaptcha-for-forms-and-more' )
+		);
+
+		$this->form_fields['paypal_payments_status']['supplemental'] = sprintf(
+			/* translators: 1: WooCommerce Checkout integration link. */
+			__(
+				'Checkout PayPal buttons use WooCommerce Checkout hCaptcha. Enable %1$s to protect them.',
+				'hcaptcha-for-forms-and-more'
+			),
+			$checkout_link
+		);
+	}
+
+	/**
+	 * Get checkbox option id.
+	 *
+	 * @param string $status Integration status.
+	 * @param string $option Checkbox option.
+	 *
+	 * @return string
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function get_checkbox_option_id( string $status, string $option ): string {
+		$options = array_keys( $this->form_fields[ $status ]['options'] ?? [] );
+		$index   = array_search( $option, $options, true );
+
+		if ( false === $index ) {
+			return '';
+		}
+
+		return sprintf( '%1$s_%2$d', $status, $index + 1 );
 	}
 }

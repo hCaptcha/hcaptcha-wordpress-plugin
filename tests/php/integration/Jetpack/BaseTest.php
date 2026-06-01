@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Jetpack\Base;
 use HCaptcha\Jetpack\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -95,6 +96,7 @@ class BaseTest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+		$this->prepare_widget_id();
 
 		$_POST['contact-form-id'] = '13';
 		$_POST['g13-name']        = 'Some name';
@@ -117,6 +119,7 @@ class BaseTest extends HCaptchaWPTestCase {
 		$error = new WP_Error( 'invalid_hcaptcha', 'The hCaptcha is invalid.' );
 
 		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack', false );
+		$this->prepare_widget_id();
 
 		$subject = new Form();
 
@@ -125,10 +128,35 @@ class BaseTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', [ $subject, 'error_message' ] ) );
 
 		$_POST['contact-form-hash'] = $hash;
+		$this->prepare_widget_id( $hash );
 
 		self::assertEquals( $error, $subject->verify() );
 		self::assertSame( $hash, $this->get_protected_property( $subject, 'error_form_hash' ) );
 		self::assertSame( 10, has_action( 'hcap_hcaptcha_content', [ $subject, 'error_message' ] ) );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$error = new WP_Error( 'invalid_hcaptcha', 'Bad hCaptcha signature!' );
+		$hash  = 'some hash';
+
+		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+		$this->prepare_widget_id(
+			$hash,
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'contact_' . $hash,
+			]
+		);
+
+		$_POST['contact-form-hash'] = $hash;
+
+		$subject = new Form();
+
+		self::assertEquals( $error, $subject->verify() );
+		self::assertSame( $hash, $this->get_protected_property( $subject, 'error_form_hash' ) );
 	}
 
 	/**
@@ -390,5 +418,26 @@ CSS;
 		$_GET['post'] = $post_id;
 
 		self::assertTrue( $subject->is_editing_jetpack_form_post() );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param string $hash Form hash.
+	 * @param array  $id   Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( string $hash = '', array $id = [] ): void {
+		if ( $hash && '_' !== $hash[0] ) {
+			$hash = '_' . $hash;
+		}
+
+		$id = $id ?: [
+			'source'  => [ 'jetpack/jetpack.php' ],
+			'form_id' => 'contact' . $hash,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

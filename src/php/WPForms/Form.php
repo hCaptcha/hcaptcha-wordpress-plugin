@@ -364,10 +364,7 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => (int) $form_data['id'],
-			],
+			'id'     => $this->get_expected_id( (int) $form_data['id'] ),
 		];
 
 		if ( ! $this->mode_embed && $this->form_has_hcaptcha( $form_data ) ) {
@@ -498,6 +495,7 @@ class Form {
 			'nonce_name'    => self::NAME,
 			'nonce_action'  => self::ACTION,
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'expected_id'   => $this->get_expected_id( (int) $form_data['id'] ),
 			'data'          => [],
 		];
 
@@ -517,5 +515,19 @@ class Form {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $form_id,
+		];
 	}
 }

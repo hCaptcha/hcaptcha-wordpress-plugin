@@ -202,7 +202,7 @@ class HCaptcha {
 
 		try {
 			params = JSON.parse( wp.hooks.applyFilters( 'hcaptcha.params', HCaptchaMainObject?.params ?? '' ) );
-		} catch ( e ) {
+		} catch {
 			params = {};
 		}
 
@@ -416,7 +416,7 @@ class HCaptcha {
 		document.dispatchEvent(
 			new CustomEvent( 'hCaptchaSubmitted', {
 				detail: { token },
-			} )
+			} ),
 		);
 
 		const params = this.getParams();
@@ -518,7 +518,7 @@ class HCaptcha {
 			// Do not insert inside .h-captcha element - it may be re-rendered later.
 			// Do not insert before hidden inputs and submit buttons. They may be re-rendered later.
 			.filter(
-				( el ) => el !== hpInput && el.type !== 'hidden' && el.type !== 'submit' && ! el.closest( '.h-captcha' )
+				( el ) => el !== hpInput && el.type !== 'hidden' && el.type !== 'submit' && ! el.closest( '.h-captcha' ),
 			);
 
 		if ( ! inputs.length ) {
@@ -533,16 +533,7 @@ class HCaptcha {
 			return;
 		}
 
-		const inputId = hpInput.getAttribute( 'id' ) ?? '';
-		const label = inputId ? formElement.querySelector( `label[for="${ inputId }"]` ) : null;
-		const frag = document.createDocumentFragment();
-
-		if ( label && label.isConnected ) {
-			frag.appendChild( label );
-		}
-
-		frag.appendChild( hpInput );
-		ref.parentNode.insertBefore( frag, ref );
+		ref.parentNode.insertBefore( hpInput, ref );
 	}
 
 	addFSTToken( formElement ) {
@@ -579,14 +570,14 @@ class HCaptcha {
 			'hcaptcha.formSelector',
 			'form' +
 			', section.cwginstock-subscribe-form, div.sdm_download_item' +
-			', .gform_editor, #nf-builder, .wpforms-captcha-preview'
+			', .gform_editor, #nf-builder, .wpforms-captcha-preview',
 		);
 		this.submitButtonSelector = wp.hooks.applyFilters(
 			'hcaptcha.submitButtonSelector',
 			'*[type="submit"]:not(.quform-default-submit), #check_config' +
 			', button[type="button"].ff-btn, a.et_pb_newsletter_button.et_pb_button' +
 			', .forminator-button-submit, .frm_button_submit, a.sdm_download' +
-			', .uagb-forms-main-submit-button' // Spectra.
+			', .uagb-forms-main-submit-button', // Spectra.
 		);
 		this.responseSelector = 'textarea[name="h-captcha-response"]';
 

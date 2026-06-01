@@ -20,7 +20,7 @@ namespace HCaptcha\Tests\Integration;
 class MainPluginFileTest extends HCaptchaWPTestCase {
 
 	/**
-	 * Test main plugin file content.
+	 * Test the main plugin file content.
 	 *
 	 * @noinspection HttpUrlsUsage
 	 */
@@ -82,7 +82,7 @@ class MainPluginFileTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test that readme.txt contains changelog records for the current version.
+	 * Test that changelog.txt contains changelog records for the current version.
 	 */
 	public function test_changelog(): void {
 		if ( preg_match( '/-.+$/', HCAPTCHA_VERSION ) ) {

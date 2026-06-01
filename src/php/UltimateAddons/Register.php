@@ -85,7 +85,13 @@ class Register extends Base {
 	 * Verify a register form.
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return;
@@ -110,5 +116,17 @@ class Register extends Base {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'register',
+		];
 	}
 }

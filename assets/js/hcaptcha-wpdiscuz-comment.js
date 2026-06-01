@@ -14,7 +14,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 			}
 
 			return isAjaxSubmitButton;
-		}
+		},
 	);
 
 	const threadsElement = document.getElementById( 'wpd-threads' );

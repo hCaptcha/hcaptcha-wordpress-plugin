@@ -91,7 +91,7 @@ class CF7 extends Base {
 			return preg_replace( '/\[cf7-hcaptcha.*?]/', '', $output );
 		}
 
-		$form_id            = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+		$form_id            = $this->get_form_id( $output, (array) $attr );
 		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
 
 		if ( $cf7_hcap_shortcode ) {
@@ -144,10 +144,7 @@ class CF7 extends Base {
 
 		$attr['action'] = 'wp_rest';
 		$attr['name']   = '_wpnonce';
-		$attr['id']     = [
-			'source'  => HCaptcha::get_class_source( __CLASS__ ),
-			'form_id' => (int) ( $attr['form_id'] ?? 0 ),
-		];
+		$attr['id']     = $this->get_expected_id( (int) ( $attr['form_id'] ?? 0 ) );
 
 		$hcap_form = hcap_shortcode( $attr );
 
@@ -367,6 +364,30 @@ class CF7 extends Base {
 	}
 
 	/**
+	 * Get CF7 form id.
+	 *
+	 * @param string $output CF7 form output.
+	 * @param array  $attr   Shortcode attributes.
+	 *
+	 * @return int
+	 */
+	private function get_form_id( string $output, array $attr ): int {
+		if ( preg_match( '/<input[^>]+name=([\'"])_wpcf7\1[^>]+value=([\'"])(\d+)\2/i', $output, $m ) ) {
+			return (int) $m[3];
+		}
+
+		if ( preg_match( '/<input[^>]+value=([\'"])(\d+)\1[^>]+name=([\'"])_wpcf7\3/i', $output, $m ) ) {
+			return (int) $m[2];
+		}
+
+		if ( preg_match( '/data-wpcf7-id=([\'"])(\d+)\1/i', $output, $m ) ) {
+			return (int) $m[2];
+		}
+
+		return isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+	}
+
+	/**
 	 * Add form_id to cf7_hcaptcha shortcode if it does not exist.
 	 * Replace to proper form_id if needed.
 	 *
@@ -432,6 +453,7 @@ class CF7 extends Base {
 		$form_id                = $contact_form->id();
 		$post                   = get_post( $form_id );
 		$entry['form_date_gmt'] = $post->post_modified_gmt ?? null;
+		$entry['expected_id']   = $this->get_expected_id( $form_id );
 		$form_tags              = $contact_form->scan_form_tags();
 
 		foreach ( $form_tags as $form_tag ) {
@@ -447,5 +469,19 @@ class CF7 extends Base {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 }

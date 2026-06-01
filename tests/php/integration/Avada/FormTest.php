@@ -12,8 +12,9 @@
 
 namespace HCaptcha\Tests\Integration\Avada;
 
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Avada\Form;
+use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
  * Test FormTest class.
@@ -61,11 +62,17 @@ class FormTest extends HCaptchaWPTestCase {
 				'hcaptcha-widget-id'   => 'some_widget_id',
 				'h-captcha-response'   => 'some_h_response',
 				'g-recaptcha-response' => 'some_g_response',
+				'hcap_fst_token'       => 'some_token',
+				'hcap_hp_123'          => '',
+				'hcap_hp_sig'          => 'some_signature',
+				'input_1'              => 'some_text',
 			],
 			'more' => [ 'some' ],
 		];
 		$expected = [
-			'data' => [],
+			'data' => [
+				'input_1' => 'some_text',
+			],
 			'more' => [ 'some' ],
 		];
 
@@ -106,17 +113,16 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify(): void {
 		$demo_mode         = true;
+		$form_id           = 123;
 		$hcaptcha_response = 'some_response';
 		$field_types       = [
 			'input_1' => 'text',
 		];
-		$form_data         = "h-captcha-response=$hcaptcha_response";
-
-		$form_data .= '&fusion-form-nonce-123=some_fusion_form_nonce';
-		$form_data .= '&input_1=some_text';
+		$form_data         = $this->get_form_data( $form_id, $hcaptcha_response );
 
 		$this->prepare_verify_request( $hcaptcha_response );
 
@@ -127,6 +133,48 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( $demo_mode, $subject->verify( $demo_mode ) );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$form_id           = 123;
+		$hcaptcha_response = 'some_response';
+		$die_arr           = [];
+		$expected          = [
+			'{"status":"error","info":{"hcaptcha":"Bad hCaptcha signature!"}}',
+			'',
+			[],
+		];
+		$bad_widget_id     = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => $form_id,
+			]
+		);
+
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		$_POST['formData'] = $this->get_form_data( $form_id, $hcaptcha_response, $bad_widget_id );
+
+		$subject = new Form();
+
+		add_filter(
+			'wp_die_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject->verify( true );
+
+		self::assertSame( $expected, $die_arr );
 	}
 
 	/**
@@ -179,5 +227,32 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$subject->enqueue_scripts();
 		self::assertTrue( wp_script_is( 'hcaptcha-avada' ) );
+	}
+
+	/**
+	 * Get form data.
+	 *
+	 * @param int    $form_id           Form id.
+	 * @param string $hcaptcha_response hCaptcha response.
+	 * @param string $widget_id         Widget id.
+	 *
+	 * @return string
+	 */
+	private function get_form_data( int $form_id, string $hcaptcha_response, string $widget_id = '' ): string {
+		$widget_id = $widget_id ?: HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'Avada' ],
+				'form_id' => $form_id,
+			]
+		);
+
+		return http_build_query(
+			[
+				'h-captcha-response'         => $hcaptcha_response,
+				'hcaptcha-widget-id'         => $widget_id,
+				"fusion-form-nonce-$form_id" => 'some_fusion_form_nonce',
+				'input_1'                    => 'some_text',
+			]
+		);
 	}
 }

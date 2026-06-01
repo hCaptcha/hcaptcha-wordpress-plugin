@@ -122,6 +122,7 @@ class SignupTest extends HCaptchaWPTestCase {
 		$_POST['stage'] = 'validate-user-signup';
 
 		$this->prepare_verify_post_html( 'hcaptcha_signup_nonce', 'hcaptcha_signup' );
+		$this->prepare_widget_id();
 
 		$subject = new Signup();
 
@@ -141,6 +142,7 @@ class SignupTest extends HCaptchaWPTestCase {
 		$_POST['stage'] = 'validate-user-signup';
 
 		$this->prepare_verify_post_html( 'hcaptcha_signup_nonce', 'hcaptcha_signup', false );
+		$this->prepare_widget_id();
 
 		$subject = new Signup();
 
@@ -150,6 +152,31 @@ class SignupTest extends HCaptchaWPTestCase {
 		self::assertInstanceOf( WP_Error::class, $result['errors'] );
 		self::assertSame( 'The hCaptcha is invalid.', $result['errors']->get_error_message( 'fail' ) );
 		self::assertSame( '<p class="error" id="wp-signup-hcaptcha-error">The hCaptcha is invalid.</p>', $subject->get_error_html() );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		do_action( 'before_signup_form' );
+		$_POST['stage'] = 'validate-user-signup';
+
+		$this->prepare_verify_post_html( 'hcaptcha_signup_nonce', 'hcaptcha_signup' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'signup',
+			]
+		);
+
+		$subject = new Signup();
+
+		$result = apply_filters( 'wpmu_validate_user_signup', [ 'errors' => '' ] );
+
+		self::assertArrayHasKey( 'errors', $result );
+		self::assertInstanceOf( WP_Error::class, $result['errors'] );
+		self::assertSame( 'Bad hCaptcha signature!', $result['errors']->get_error_message( 'bad-signature' ) );
+		self::assertSame( '<p class="error" id="wp-signup-hcaptcha-error">Bad hCaptcha signature!</p>', $subject->get_error_html() );
 	}
 
 	/**
@@ -165,5 +192,19 @@ class SignupTest extends HCaptchaWPTestCase {
 		$this->set_protected_property( $subject, 'error_message', 'Some error message.' );
 
 		self::assertSame( '<p class="error" id="wp-signup-hcaptcha-error">Some error message.</p>', $subject->get_error_html() );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => HCaptcha::get_class_source( Signup::class ),
+			'form_id' => 'signup',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

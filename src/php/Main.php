@@ -14,6 +14,7 @@ namespace HCaptcha;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Abilities\Abilities;
+use HCaptcha\Admin\AdminNotices;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\PluginStats;
@@ -223,6 +224,7 @@ class Main {
 		}
 
 		$this->load( PluginStats::class );
+		$this->load( AdminNotices::class );
 		$this->load( MaxMindDb::class );
 		$this->load( DisposableEmail::class );
 
@@ -963,6 +965,7 @@ class Main {
 	 * Register recurring actions.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function register_recurring_actions(): void {
 		// Check if Action Scheduler is available.
@@ -979,6 +982,16 @@ class Main {
 			$tomorrow_6am,
 			15 * DAY_IN_SECONDS,
 			'hcap_update_maxmind_db',
+			[],
+			'hcaptcha',
+			true
+		);
+
+		// Clean up trashed events daily.
+		as_schedule_recurring_action(
+			$tomorrow_6am,
+			DAY_IN_SECONDS,
+			Events::CLEANUP_ACTION,
 			[],
 			'hcaptcha',
 			true
@@ -1775,6 +1788,11 @@ class Main {
 				[ 'woocommerce_germanized_status', 'return_request' ],
 				'woocommerce-germanized/woocommerce-germanized.php',
 				ReturnRequest::class,
+			],
+			'WooCommerce PayPal Payments'          => [
+				[ 'paypal_payments_status', 'button' ],
+				'woocommerce-paypal-payments/woocommerce-paypal-payments.php',
+				WooCommercePayPalPayments\Button::class,
 			],
 			'WooCommerce Wishlists'                => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],

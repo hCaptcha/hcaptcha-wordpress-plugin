@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\includes;
 
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
@@ -31,18 +32,24 @@ class FunctionsTest extends HCaptchaWPTestCase {
 		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;
 		$form_name   = empty( $name ) ? 'hcaptcha_nonce' : $name;
 		$form_auto   = filter_var( $auto, FILTER_VALIDATE_BOOLEAN );
+		$form_args   = [
+			'action' => $form_action,
+			'name'   => $form_name,
+			'auto'   => $form_auto,
+		];
+
+		if ( $form_auto ) {
+			$form_args['id'] = [
+				'source'  => [ AutoVerify::class ],
+				'form_id' => 0,
+			];
+		}
+
+		hcaptcha()->init_hooks();
 
 		$expected =
 			$filtered .
-			$this->get_hcap_form(
-				[
-					'action' => $form_action,
-					'name'   => $form_name,
-					'auto'   => $form_auto,
-				]
-			);
-
-		hcaptcha()->init_hooks();
+			$this->get_hcap_form( $form_args );
 
 		add_filter(
 			'hcap_hcaptcha_content',
@@ -74,8 +81,8 @@ class FunctionsTest extends HCaptchaWPTestCase {
 			'name only'      => [ '', 'some_name', '' ],
 			'with arguments' => [ 'some_action', 'some_name', '' ],
 			'auto false'     => [ 'some_action', 'some_name', 'false' ],
-			'auto 0'         => [ 'some_action', 'some_name', 'false' ],
-			'auto wrong'     => [ 'some_action', 'some_name', 'false' ],
+			'auto 0'         => [ 'some_action', 'some_name', '0' ],
+			'auto wrong'     => [ 'some_action', 'some_name', 'wrong' ],
 			'auto true'      => [ 'some_action', 'some_name', 'true' ],
 			'auto 1'         => [ 'some_action', 'some_name', '1' ],
 		];

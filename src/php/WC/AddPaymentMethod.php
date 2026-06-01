@@ -54,9 +54,10 @@ class AddPaymentMethod {
 	}
 
 	/**
-	 * Enqueue styles for Add Payment Method endpoint.
+	 * Enqueue styles for the Add Payment Method endpoint.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function enqueue_styles(): void {
 		if ( ! is_account_page() || ! is_wc_endpoint_url( 'add-payment-method' ) ) {
@@ -113,10 +114,7 @@ class AddPaymentMethod {
 		$hcap_args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'add_payment_method',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$hcaptcha = HCaptcha::form( $hcap_args );
@@ -134,11 +132,12 @@ class AddPaymentMethod {
 	}
 
 	/**
-	 * Verify Add Payment Method form.
+	 * Verify the Add Payment Method form.
 	 *
 	 * @param bool|mixed $is_valid Whether the form is valid.
 	 *
 	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $is_valid ): bool {
 		$is_valid = (bool) $is_valid;
@@ -147,7 +146,13 @@ class AddPaymentMethod {
 			return false;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return true;
@@ -156,6 +161,18 @@ class AddPaymentMethod {
 		wc_add_notice( $error_message, 'error' );
 
 		return false;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'add_payment_method',
+		];
 	}
 
 	/**

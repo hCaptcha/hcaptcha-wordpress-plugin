@@ -27,7 +27,7 @@
  * @param {Object} $ jQuery instance.
  */
 const general = function( $ ) {
-	const headerBarSelector = '.hcaptcha-header-bar';
+	const adminNoticesSelector = '#hcaptcha-admin-notices';
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 	const $form = $( 'form.hcaptcha-general' );
@@ -160,7 +160,7 @@ const general = function( $ ) {
 	function clearMessage() {
 		$message.remove();
 		// Concat below to avoid an inspection message.
-		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
+		$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( adminNoticesSelector );
 		$message = $( msgSelector );
 	}
 
@@ -190,7 +190,7 @@ const general = function( $ ) {
 			{
 				scrollTop: $message.offset().top - hCaptchaSettingsBase.getStickyHeight(),
 			},
-			1000
+			1000,
 		);
 	}
 
@@ -293,7 +293,7 @@ const general = function( $ ) {
 
 		try {
 			configParams = JSON.parse( configParamsJson );
-		} catch ( ex ) {
+		} catch {
 			$configParams.css( 'background-color', dataErrorBgColor );
 			$submit.attr( 'disabled', true );
 			showErrorMessage( HCaptchaGeneralObject.badJSONError );
@@ -363,7 +363,7 @@ const general = function( $ ) {
 				 */
 				function( response ) {
 					showErrorMessage( response.statusText );
-				}
+				},
 			)
 			.always( function() {
 				hCaptchaUpdate();
@@ -543,7 +543,7 @@ const general = function( $ ) {
 			1000,
 			function() {
 				$checkConfig[ 0 ].click();
-			}
+			},
 		);
 	} );
 

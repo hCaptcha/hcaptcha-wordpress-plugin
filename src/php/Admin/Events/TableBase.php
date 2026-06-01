@@ -9,6 +9,7 @@ namespace HCaptcha\Admin\Events;
 
 // If this file is called directly, abort.
 use HCaptcha\Helpers\Utils;
+use HCaptcha\Settings\ListPageBase;
 use WP_List_Table;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,6 +29,11 @@ if ( ! class_exists( 'WP_List_Table', false ) ) {
  * Class TableBase.
  */
 abstract class TableBase extends WP_List_Table {
+
+	/**
+	 * Status query argument.
+	 */
+	protected const STATUS_QUERY_ARG = 'event_status';
 
 	/**
 	 * Default number of forms to show per page.
@@ -56,6 +62,13 @@ abstract class TableBase extends WP_List_Table {
 	 * @var array
 	 */
 	protected array $columns = [];
+
+	/**
+	 * Current event's status.
+	 *
+	 * @var string
+	 */
+	protected string $status = Events::STATUS_ACTIVE;
 
 	/**
 	 * Class constructor.
@@ -139,11 +152,61 @@ abstract class TableBase extends WP_List_Table {
 	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	protected function get_bulk_actions() {
-		$actions = [];
+		if ( ! Events::is_trash_schema_ready() ) {
+			return [];
+		}
 
-		$actions['trash'] = __( 'Delete', 'hcaptcha-for-forms-and-more' );
+		if ( Events::STATUS_TRASH === $this->get_status() ) {
+			return [
+				'restore' => __( 'Restore', 'hcaptcha-for-forms-and-more' ),
+				'delete'  => __( 'Delete Permanently', 'hcaptcha-for-forms-and-more' ),
+			];
+		}
 
-		return $actions;
+		return [
+			'trash' => __( 'Move to Trash', 'hcaptcha-for-forms-and-more' ),
+		];
+	}
+
+	/**
+	 * Get views.
+	 *
+	 * @return array
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection HtmlUnknownAttribute
+	 */
+	protected function get_views(): array {
+		if ( ! Events::is_trash_schema_ready() ) {
+			return [];
+		}
+
+		$counts = Events::get_status_counts(
+			[
+				'dates' => $this->get_dates(),
+			]
+		);
+
+		$views = [
+			Events::STATUS_ACTIVE => __( 'All', 'hcaptcha-for-forms-and-more' ),
+			Events::STATUS_TRASH  => __( 'Trash', 'hcaptcha-for-forms-and-more' ),
+		];
+
+		foreach ( $views as $status => &$label ) {
+			$url   = $this->get_status_url( $status );
+			$count = $counts[ $status ] ?? 0;
+			$class = $status === $this->get_status() ? ' class="current" aria-current="page"' : '';
+			$label = sprintf(
+				'<a href="%1$s"%2$s>%3$s <span class="count">(%4$s)</span></a>',
+				esc_url( $url ),
+				$class,
+				esc_html( $label ),
+				esc_html( number_format_i18n( $count ) )
+			);
+		}
+
+		unset( $label );
+
+		return $views;
 	}
 
 	/**
@@ -224,5 +287,63 @@ abstract class TableBase extends WP_List_Table {
 		<?php
 
 		return ob_get_clean();
+	}
+
+	/**
+	 * Get current status.
+	 *
+	 * @return string
+	 */
+	protected function get_status(): string {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$status = isset( $_GET[ self::STATUS_QUERY_ARG ] )
+			? sanitize_key( wp_unslash( $_GET[ self::STATUS_QUERY_ARG ] ) )
+			: Events::STATUS_ACTIVE;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$this->status = in_array( $status, [ Events::STATUS_ACTIVE, Events::STATUS_TRASH ], true )
+			? $status
+			: Events::STATUS_ACTIVE;
+
+		return $this->status;
+	}
+
+	/**
+	 * Get dates from the request.
+	 *
+	 * @return array
+	 */
+	protected function get_dates(): array {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$date = isset( $_GET['date'] )
+			// We need filter_input here to keep the delimiter intact.
+			? filter_input( INPUT_GET, 'date', FILTER_SANITIZE_FULL_SPECIAL_CHARS )
+			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$dates = explode( ListPageBase::TIMESPAN_DELIMITER, $date );
+
+		return array_filter( array_map( 'trim', $dates ) );
+	}
+
+	/**
+	 * Get status view URL.
+	 *
+	 * @param string $status Status.
+	 *
+	 * @return string
+	 */
+	private function get_status_url( string $status ): string {
+		$args = [
+			'paged' => false,
+		];
+
+		if ( Events::STATUS_ACTIVE === $status ) {
+			$args[ self::STATUS_QUERY_ARG ] = false;
+		} else {
+			$args[ self::STATUS_QUERY_ARG ] = $status;
+		}
+
+		return add_query_arg( $args );
 	}
 }

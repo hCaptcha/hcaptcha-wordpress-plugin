@@ -43,7 +43,7 @@ HTML;
 				'action' => Comment::ACTION,
 				'name'   => Comment::NONCE,
 				'id'     => [
-					'source'  => [ 'Divi' ],
+					'source'  => [ 'WordPress' ],
 					'form_id' => $form_id,
 				],
 			]
@@ -59,7 +59,7 @@ HTML;
 	}
 
 	/**
-	 * Test add_captcha() when output is not a string.
+	 * Test add_captcha() when the output is not a string.
 	 */
 	public function test_add_captcha_when_output_is_not_a_string(): void {
 		$output      = [ 'some string' ];
@@ -71,7 +71,7 @@ HTML;
 	}
 
 	/**
-	 * Test add_captcha() when output has hCaptcha.
+	 * Test add_captcha() when the output has hCaptcha.
 	 */
 	public function test_add_captcha_when_output_has_hcaptcha(): void {
 		$output      = 'some output with h-captcha attr';
@@ -83,7 +83,7 @@ HTML;
 	}
 
 	/**
-	 * Test add_captcha() in frontend builder.
+	 * Test add_captcha() in the frontend builder.
 	 */
 	public function test_add_captcha_in_frontend_builder(): void {
 		$output      = 'some string';

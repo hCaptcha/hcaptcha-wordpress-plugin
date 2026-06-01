@@ -41,6 +41,7 @@ function getDom() {
 </div>
 <label><input type="checkbox" id="show_antispam_coverage_1" /></label>
 <div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="display: none;"></div>
+<div id="hcaptcha-admin-notices"></div>
 <div id="hcaptcha-message"></div>
 	<table class="form-table">
 		<tbody>
@@ -315,6 +316,26 @@ describe( 'integrations', () => {
 		$img.trigger( 'click' );
 
 		expect( document.querySelector( '#hcaptcha-message' ).className ).toContain( 'notice-error' );
+	} );
+
+	test( 'activation messages preserve admin notice', () => {
+		postSpy.mockRestore();
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => {
+			const d = $.Deferred();
+			d.resolve( { success: true, data: { message: 'Activated', stati: [] } } );
+			return d;
+		} );
+
+		$( '#hcaptcha-admin-notices' ).append(
+			'<div class="notice notice-warning inline hcaptcha-admin-notice"><p>Review Trusted IP Headers</p></div>',
+		);
+
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' ).length ).toBe( 1 );
+		expect( $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' ).text() ).toContain( 'Review Trusted IP Headers' );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Activated' );
 	} );
 
 	test( 'clicking on an image sends an AJAX request', () => {

@@ -91,7 +91,7 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		// Nonce for this field is checked in Maintenance plugin.
+		// Nonce for this field is checked in the Maintenance plugin.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( ! isset( $_POST['is_custom_login'] ) ) {
 			return $user;
@@ -101,13 +101,43 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		$this->error_message = API::verify_post_html( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
-		if ( null === $this->error_message ) {
+		if ( null === $error_message ) {
 			return $user;
 		}
 
+		$this->error_message = $this->format_error_message( $error_message );
+
 		return new WP_Error( 'invalid_hcaptcha', $this->error_message, 400 );
+	}
+
+	/**
+	 * Format an error message as HTML.
+	 *
+	 * @param string $error_message Error message.
+	 *
+	 * @return string
+	 */
+	private function format_error_message( string $error_message ): string {
+		$header = _n(
+			'hCaptcha error:',
+			'hCaptcha errors:',
+			substr_count( $error_message, ';' ) + 1,
+			'hcaptcha-for-forms-and-more'
+		);
+
+		if ( false === strpos( $error_message, $header ) ) {
+			$error_message = $header . ' ' . $error_message;
+		}
+
+		return wp_kses_post( str_replace( $header, '<strong>' . $header . '</strong>', $error_message ) );
 	}
 
 	/**

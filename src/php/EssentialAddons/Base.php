@@ -15,7 +15,7 @@ use HCaptcha\Helpers\Pages;
  */
 trait Base {
 	/**
-	 * Print hCaptcha script on edit page.
+	 * Print hCaptcha script on the edit page.
 	 *
 	 * @param bool|mixed $status Current print status.
 	 *
@@ -30,12 +30,39 @@ trait Base {
 	}
 
 	/**
+	 * Enqueue Essential Addons script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			'hcaptcha-essential-addons',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-essential-addons$min.js",
+			[ 'jquery', 'wp-hooks' ],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
 	 * Verify hCaptcha.
 	 *
 	 * @return void
 	 */
 	private function base_verify(): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return;
@@ -67,4 +94,11 @@ trait Base {
 		exit();
 		// @codeCoverageIgnoreEnd
 	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	abstract protected function get_expected_id(): array;
 }

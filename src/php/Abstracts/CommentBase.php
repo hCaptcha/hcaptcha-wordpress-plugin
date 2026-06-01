@@ -162,6 +162,7 @@ abstract class CommentBase {
 
 		return [
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'expected_id'   => $this->get_expected_id( (int) $post_id ),
 			'data'          => [
 				'name'    => $comment_data['comment_author'],
 				'email'   => $comment_data['comment_author_email'],
@@ -170,6 +171,20 @@ abstract class CommentBase {
 				'ip'      => $comment_data['comment_author_IP'],
 				'agent'   => $comment_data['comment_agent'],
 			],
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $form_id,
 		];
 	}
 }

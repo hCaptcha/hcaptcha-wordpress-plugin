@@ -36,14 +36,29 @@ class OnboardingWizard {
 	public const UPDATE_ACTION = 'hcaptcha_onboarding_update';
 
 	/**
+	 * GET action to update a wizard step.
+	 */
+	public const STEP_ACTION = 'hcaptcha_onboarding_step';
+
+	/**
+	 * GET action to run onboarding automatic setup.
+	 */
+	public const AUTO_SETUP_ACTION = 'hcaptcha_onboarding_auto_setup';
+
+	/**
 	 * GET parameter to force a specific wizard step.
 	 */
-	private const STEP_PARAM = 'onboarding';
+	public const STEP_PARAM = 'onboarding';
 
 	/**
 	 * GET parameter to continue onboarding automatic setup after saving General settings.
 	 */
 	public const AUTO_SETUP_PARAM = 'auto-setup';
+
+	/**
+	 * GET nonce parameter.
+	 */
+	public const NONCE_PARAM = 'hcaptcha_onboarding_nonce';
 
 	/**
 	 * Option name for the onboarding wizard state.
@@ -65,7 +80,7 @@ class OnboardingWizard {
 	private PluginSettingsBase $general_tab;
 
 	/**
-	 * Integrations tab instance.
+	 * Integration tab instance.
 	 *
 	 * @var PluginSettingsBase
 	 */
@@ -127,14 +142,18 @@ class OnboardingWizard {
 	 * @return void
 	 */
 	public function maybe_handle_direct_step(): void {
-		// Helper to restart the wizard from any step.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET[ self::STEP_PARAM ] ) ) {
+		$step = Request::filter_input( INPUT_GET, self::STEP_PARAM );
+
+		if ( ! is_string( $step ) || '' === $step ) {
+			return;
+		}
+
+		if ( ! self::verify_request( self::STEP_ACTION ) ) {
 			return;
 		}
 
 		// Accept a numeric step only: onb=1..8.
-		$num = (int) Request::filter_input( INPUT_GET, self::STEP_PARAM );
+		$num = (int) $step;
 
 		if ( $num < 1 || $num > 8 ) {
 			$num = 1;
@@ -148,10 +167,43 @@ class OnboardingWizard {
 			? $this->tab->tab_url( $this->general_tab )
 			: $this->tab->tab_url( $this->integrations_tab );
 
-		// Perform safe redirect and stop.
+		$this->redirect_after_direct_step( $url );
+	}
+
+	/**
+	 * Verify a GET onboarding request.
+	 *
+	 * @param string $action Nonce action.
+	 *
+	 * @return bool
+	 */
+	public static function verify_request( string $action ): bool {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
+
+		$nonce = Request::filter_input( INPUT_GET, self::NONCE_PARAM );
+
+		if ( ! is_string( $nonce ) ) {
+			return false;
+		}
+
+		return (bool) wp_verify_nonce( $nonce, $action );
+	}
+
+	/**
+	 * Redirect after direct step changes are applied.
+	 *
+	 * @param string $url Redirect URL.
+	 *
+	 * @return void
+	 */
+	protected function redirect_after_direct_step( string $url ): void {
+		// @codeCoverageIgnoreStart
 		wp_safe_redirect( $url );
 
 		exit;
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -239,6 +291,8 @@ class OnboardingWizard {
 				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
 				'updateAction'    => self::UPDATE_ACTION,
 				'updateNonce'     => wp_create_nonce( self::UPDATE_ACTION ),
+				'nonceParam'      => self::NONCE_PARAM,
+				'autoSetupNonce'  => wp_create_nonce( self::AUTO_SETUP_ACTION ),
 				'autoSetupParam'  => self::AUTO_SETUP_PARAM,
 				'page'            => $page,
 				'currentStep'     => $current_step,
@@ -247,6 +301,7 @@ class OnboardingWizard {
 				'generalUrl'      => $settings->tab_url( General::class ),
 				'integrationsUrl' => $settings->tab_url( Integrations::class ),
 				'stepParam'       => self::STEP_PARAM,
+				'stepNonce'       => wp_create_nonce( self::STEP_ACTION ),
 				'iconAnimatedUrl' => constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon-animated.svg',
 				'videoUrl'        => 'https://youtu.be/khKYehgr8t0',
 				'ratingUrl'       => 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post',

@@ -5,7 +5,7 @@ wp.hooks.addFilter(
 	'hcaptcha',
 	( formSelector ) => {
 		return formSelector.replace( /(form.*?),/, '$1:not(.wpsc-create-ticket),' ) + ', div.wpsc-body';
-	}
+	},
 );
 
 wp.hooks.addFilter(
@@ -13,7 +13,7 @@ wp.hooks.addFilter(
 	'hcaptcha',
 	( submitButtonSelector ) => {
 		return submitButtonSelector + ', button.wpsc-button.primary';
-	}
+	},
 );
 
 wp.hooks.addFilter(
@@ -28,7 +28,7 @@ wp.hooks.addFilter(
 		}
 
 		return isAjaxSubmitButton;
-	}
+	},
 );
 
 jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {

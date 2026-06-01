@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Helpers;
 
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\Integrations;
@@ -56,6 +57,10 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 			'name'   => $name,
 			'auto'   => $auto,
 		];
+		$id     = [
+			'source'  => [ AutoVerify::class ],
+			'form_id' => 0,
+		];
 
 		self::assertSame(
 			$this->get_hcap_form(
@@ -63,6 +68,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 					'action' => $action,
 					'name'   => $name,
 					'auto'   => $auto,
+					'id'     => $id,
 				]
 			),
 			HCaptcha::form( $args )
@@ -90,6 +96,10 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 			'name'   => $name,
 			'auto'   => $auto,
 		];
+		$id     = [
+			'source'  => [ AutoVerify::class ],
+			'form_id' => 0,
+		];
 
 		ob_start();
 		HCaptcha::form_display( $args );
@@ -99,6 +109,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 					'action' => $action,
 					'name'   => $name,
 					'auto'   => $auto,
+					'id'     => $id,
 				]
 			),
 			ob_get_clean()
@@ -117,6 +128,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 					'name'   => $name,
 					'auto'   => $auto,
 					'size'   => 'invisible',
+					'id'     => $id,
 				]
 			),
 			ob_get_clean()

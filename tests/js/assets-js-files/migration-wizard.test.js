@@ -128,7 +128,7 @@ describe( 'migration-wizard.js', () => {
 		document.getElementById( 'wizard-scan-btn' ).click();
 		expect( global.fetch ).toHaveBeenCalledWith(
 			'/wp-admin/admin-ajax.php',
-			expect.objectContaining( { method: 'POST' } )
+			expect.objectContaining( { method: 'POST' } ),
 		);
 		const scanning = document.querySelector( '[data-step="scanning"]' );
 		expect( scanning.style.display ).toBe( '' );
@@ -162,7 +162,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 1,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -201,7 +201,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 0,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -229,7 +229,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 0,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -259,7 +259,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 1,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -272,7 +272,7 @@ describe( 'migration-wizard.js', () => {
 		buildDOM();
 		const scanData = { results: [], already_enabled: [], migratable: 0 };
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -287,26 +287,26 @@ describe( 'migration-wizard.js', () => {
 			Promise.resolve( {
 				json: () =>
 					Promise.resolve( { success: false, data: { message: 'Custom scan error' } } ),
-			} )
+			} ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
 		await flushPromises();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'Custom scan error' } )
+			expect.objectContaining( { title: 'Custom scan error' } ),
 		);
 	} );
 
 	test( 'doScan: failure response without message uses i18n.scanError', async () => {
 		buildDOM();
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: false, data: {} } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: false, data: {} } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
 		await flushPromises();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'Scan error' } )
+			expect.objectContaining( { title: 'Scan error' } ),
 		);
 	} );
 
@@ -317,7 +317,7 @@ describe( 'migration-wizard.js', () => {
 		document.getElementById( 'wizard-scan-btn' ).click();
 		await flushPromises();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'Scan error' } )
+			expect.objectContaining( { title: 'Scan error' } ),
 		);
 		const welcome = document.querySelector( '[data-step="welcome"]' );
 		expect( welcome.style.display ).toBe( '' );
@@ -330,7 +330,7 @@ describe( 'migration-wizard.js', () => {
 		document.querySelector( '.wizard-surface-cb' ).checked = false;
 		document.getElementById( 'wizard-apply-btn' ).click();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'No surfaces selected' } )
+			expect.objectContaining( { title: 'No surfaces selected' } ),
 		);
 	} );
 
@@ -347,7 +347,7 @@ describe( 'migration-wizard.js', () => {
 							failed: [ 'f1' ],
 						},
 					} ),
-			} )
+			} ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-apply-btn' ).click();
@@ -368,7 +368,7 @@ describe( 'migration-wizard.js', () => {
 						success: true,
 						data: { enabled: [], message: '', failed: [] },
 					} ),
-			} )
+			} ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-apply-btn' ).click();
@@ -386,13 +386,13 @@ describe( 'migration-wizard.js', () => {
 						success: false,
 						data: { message: 'Apply failed msg' },
 					} ),
-			} )
+			} ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-apply-btn' ).click();
 		await flushPromises();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'Apply failed msg' } )
+			expect.objectContaining( { title: 'Apply failed msg' } ),
 		);
 	} );
 
@@ -401,13 +401,13 @@ describe( 'migration-wizard.js', () => {
 		global.fetch = jest.fn( () =>
 			Promise.resolve( {
 				json: () => Promise.resolve( { success: false, data: {} } ),
-			} )
+			} ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-apply-btn' ).click();
 		await flushPromises();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'Apply error' } )
+			expect.objectContaining( { title: 'Apply error' } ),
 		);
 	} );
 
@@ -418,7 +418,7 @@ describe( 'migration-wizard.js', () => {
 		document.getElementById( 'wizard-apply-btn' ).click();
 		await flushPromises();
 		expect( kaggDialog.confirm ).toHaveBeenCalledWith(
-			expect.objectContaining( { title: 'Apply error' } )
+			expect.objectContaining( { title: 'Apply error' } ),
 		);
 		const results = document.querySelector( '[data-step="results"]' );
 		expect( results.style.display ).toBe( '' );
@@ -457,7 +457,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 0,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -487,7 +487,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 1,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -516,7 +516,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 1,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -545,7 +545,7 @@ describe( 'migration-wizard.js', () => {
 			migratable: 1,
 		};
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();
@@ -585,7 +585,7 @@ describe( 'migration-wizard.js', () => {
 		buildDOM();
 		const scanData = { migratable: 0 };
 		global.fetch = jest.fn( () =>
-			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } )
+			Promise.resolve( { json: () => Promise.resolve( { success: true, data: scanData } ) } ),
 		);
 		loadModule();
 		document.getElementById( 'wizard-scan-btn' ).click();

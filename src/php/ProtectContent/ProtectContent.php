@@ -430,6 +430,7 @@ class ProtectContent {
 
 				?>
 			</style>
+			<?php wp_site_icon(); ?>
 		</head>
 		<body>
 		<div class="main-wrapper" role="main">

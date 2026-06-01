@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\BBPress;
 
 use HCaptcha\BBPress\Register;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use WP_Error;
 
@@ -103,6 +104,7 @@ HTML;
 		$expected->add( 'some code', 'some message' );
 
 		$this->prepare_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register' );
+		$this->prepare_widget_id();
 
 		$subject = new Register();
 
@@ -127,7 +129,20 @@ HTML;
 		$subject = new Register();
 
 		$this->prepare_verify_post( 'hcaptcha_bbp_register_nonce', 'hcaptcha_bbp_register', false );
+		$this->prepare_widget_id();
 
 		self::assertEquals( $expected, $subject->verify( $errors, $sanitized_user_login, $user_email ) );
+	}
+
+	/**
+	 * Prepare widget id.
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'register',
+			]
+		);
 	}
 }

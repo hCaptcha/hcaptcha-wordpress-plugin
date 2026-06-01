@@ -5,7 +5,7 @@
     "dev": "webpack --mode development",
     "prod": "webpack --env production --mode production",
     "watch": "webpack --mode development --watch",
-    "lint": "npx eslint 'webpack.config.js' 'src/js/**/*.js' 'assets/js/*.js' 'tests/js/**/*.js'",
+    "lint": "npx eslint 'eslint.config.cjs' 'webpack.config.js' 'src/js/**/*.js' 'assets/js/*.js' 'tests/js/**/*.js'",
     "test": "jest"
   },
   "jest": {
@@ -27,12 +27,7 @@
         {
           "presets": [
             [
-              "@babel/preset-env",
-              {
-                "targets": {
-                  "node": 10
-                }
-              }
+              "@babel/preset-env"
             ]
           ]
         }
@@ -40,38 +35,40 @@
     }
   },
   "engines": {
-    "node": ">=22.22.0",
-    "npm": ">=11.9.0"
+    "node": ">=24.15.0",
+    "npm": ">=11.12.1"
   },
-  "packageManager": "yarn@4.14.1",
+  "packageManager": "yarn@4.15.0",
   "dependencies": {
-    "@wordpress/hooks": "^4.44.0"
+    "@wordpress/hooks": "^4.45.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "@inrupt/jest-jsdom-polyfills": "^4.1.0",
-    "@wordpress/eslint-plugin": "^24.5.0",
+    "@babel/preset-env": "^7.29.5",
+    "@inrupt/jest-jsdom-polyfills": "^4.1.1",
+    "@wordpress/eslint-plugin": "^25.1.0",
     "babel-loader": "^10.1.1",
     "css-loader": "^7.1.4",
     "css-minimizer-webpack-plugin": "^8.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^10.3.0",
     "glob": "^13.0.6",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
+    "globals": "^17.6.0",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "jest-fetch-mock": "^3.0.3",
     "jquery": "^3.7.1",
     "mini-css-extract-plugin": "^2.10.2",
     "prettier": "^3.8.3",
-    "qs": "^6.15.1",
-    "terser-webpack-plugin": "^5.4.0",
+    "terser-webpack-plugin": "^5.6.0",
     "typescript": "^6.0.3",
     "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2",
     "webpack-remove-empty-scripts": "^1.1.1"
   },
   "resolutions": {
+    "@babel/plugin-transform-modules-systemjs": "^7.29.4",
     "cross-spawn": "^7.0.6",
+    "fast-uri": "^3.1.2",
     "flatted": "^3.4.2",
     "js-yaml": "^4.1.1",
     "micromatch": "^4.0.8",
@@ -80,9 +77,10 @@
     "minimatch@npm:^10": "^10.2.4",
     "picomatch@npm:^2": "^2.3.2",
     "picomatch@npm:^4": "^4.0.4",
+    "qs": "^6.15.2",
     "serialize-javascript": "^7.0.5",
     "svgo": "^4.0.1",
-    "tar": "^7.5.11",
+    "tar": "^7.5.13",
     "undici": "^7.24.2"
   }
 }

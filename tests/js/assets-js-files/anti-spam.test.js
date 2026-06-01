@@ -1,7 +1,6 @@
 // noinspection JSUnresolvedReference
 // noinspection JSUnresolvedFunction, JSUnresolvedVariable
 
-/* eslint-disable no-console */
 import $ from 'jquery';
 
 global.jQuery = $;
@@ -14,6 +13,9 @@ const defaultAntiSpamObject = {
 	checkIPsNonce: 'nonce2',
 	configuredAntiSpamProviderError: 'Provider %1$s is not supported',
 	configuredAntiSpamProviders: [],
+	detectCloudflareAction: 'hcap_detect_cloudflare',
+	detectCloudflareError: 'Detection failed',
+	detectCloudflareNonce: 'nonce3',
 };
 
 global.HCaptchaAntiSpamObject = { ...defaultAntiSpamObject };
@@ -48,6 +50,8 @@ function getDom() {
 <body>
 <div id="wpwrap">
 	<div class="hcaptcha-header-bar"></div>
+	<div id="hcaptcha-admin-notices"></div>
+	<div id="hcaptcha-message"></div>
 	<form class="hcaptcha-anti-spam">
 		<input id="submit" type="submit" />
 
@@ -62,6 +66,12 @@ function getDom() {
 		<!-- IP areas to trigger checkIPs() -->
 		<textarea id="blacklisted_ips"></textarea>
 		<textarea id="whitelisted_ips"></textarea>
+		<table><tbody><tr><td>
+			<select id="trusted_address_headers" name="hcaptcha_settings[trusted_address_headers][]" multiple>
+				<option value="HTTP_CF_CONNECTING_IP">CF-Connecting-IP</option>
+			</select>
+			<p class="description">Initial text <a href="#detect-cloudflare">Detect Cloudflare</a>.</p>
+		</td></tr></tbody></table>
 	</form>
 </div>
 </body>
@@ -176,6 +186,72 @@ describe( 'checkIPs success and fail branches', () => {
 		} );
 		bootAntiSpam();
 		$( '#blacklisted_ips' ).val( '2.2.2.2' ).trigger( 'blur' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+	} );
+} );
+
+describe( 'Cloudflare detection', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	beforeEach( () => {
+		jest.clearAllMocks();
+		postSpy = jest.spyOn( $, 'post' );
+	} );
+
+	afterEach( () => {
+		postSpy.mockRestore();
+	} );
+
+	test( 'detect Cloudflare replaces trusted headers description', async () => {
+		postSpy.mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout(
+				() => d.resolve(
+					{
+						success: true,
+						data: { message: 'Select CF-Connecting-IP and save settings.' },
+					},
+				),
+				0,
+			);
+			return d;
+		} );
+
+		bootAntiSpam();
+		$( 'a[href="#detect-cloudflare"]' ).trigger( 'click' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( postSpy ).toHaveBeenCalledWith(
+			expect.objectContaining(
+				{
+					data: {
+						action: 'hcap_detect_cloudflare',
+						nonce: 'nonce3',
+					},
+					url: 'https://test.test/wp-admin/admin-ajax.php',
+				},
+			),
+		);
+		expect( $( '#trusted_address_headers' ).closest( 'td' ).find( 'p.description' ).html() )
+			.toBe( 'Select CF-Connecting-IP and save settings.' );
+	} );
+
+	test( 'detect Cloudflare failure shows an error message', async () => {
+		postSpy.mockImplementation( ( opts ) => {
+			const d = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => d.reject( { statusText: 'Server error' } ), 0 );
+			return d;
+		} );
+
+		bootAntiSpam();
+		$( 'a[href="#detect-cloudflare"]' ).trigger( 'click' );
 		jest.runAllTimers();
 		await Promise.resolve();
 

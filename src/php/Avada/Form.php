@@ -11,7 +11,6 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
-use JsonException;
 
 /**
  * Class Form.
@@ -73,10 +72,15 @@ class Form {
 	public function submission_data( $data ): array {
 		$data = (array) $data;
 
+		$hp_name = API::get_hp_name( $data['data'] );
+
 		unset(
 			$data['data']['hcaptcha-widget-id'],
 			$data['data']['h-captcha-response'],
-			$data['data']['g-recaptcha-response']
+			$data['data']['g-recaptcha-response'],
+			$data['data']['hcap_fst_token'],
+			$data['data'][ $hp_name ],
+			$data['data']['hcap_hp_sig']
 		);
 
 		return $data;
@@ -105,10 +109,7 @@ class Form {
 		$second_part = substr( $html, $last_pos );
 
 		$hcap_args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $this->form_id,
-			],
+			'id' => $this->get_expected_id( $this->form_id ),
 		];
 
 		$hcaptcha = HCaptcha::form( $hcap_args );
@@ -202,6 +203,10 @@ class Form {
 			'data'               => [],
 		];
 
+		if ( $form_id ) {
+			$entry['expected_id'] = $this->get_expected_id( $form_id );
+		}
+
 		$field_types = Utils::json_decode_arr( Request::filter_input( INPUT_POST, 'field_types' ) );
 
 		foreach ( $form_data as $key => $value ) {
@@ -215,5 +220,19 @@ class Form {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 }

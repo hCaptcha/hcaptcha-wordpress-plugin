@@ -34,6 +34,8 @@ class Login extends LoginBase {
 		add_action( 'eael/login-register/before-login', [ $this, 'verify' ], 10, 3 );
 
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
+
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**

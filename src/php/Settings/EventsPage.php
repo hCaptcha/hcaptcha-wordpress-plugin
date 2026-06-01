@@ -156,10 +156,6 @@ class EventsPage extends ListPageBase {
 	public function section_callback( array $arguments ): void {
 		$this->print_header();
 
-		?>
-		<div id="hcaptcha-message"></div>
-		<?php
-
 		if ( ! $this->allowed ) {
 			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
 			$pro_url        = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
@@ -203,6 +199,7 @@ class EventsPage extends ListPageBase {
 		</div>
 		<div id="hcaptcha-events-wrap">
 			<?php
+			$this->list_table->views();
 			$this->list_table->display();
 			?>
 		</div>
@@ -242,7 +239,37 @@ class EventsPage extends ListPageBase {
 	}
 
 	/**
-	 * Delete hCaptcha events by IDs.
+	 * Move hCaptcha events to Trash.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	protected function trash_events( array $args ): bool {
+		if ( ! Events::is_trash_schema_ready() ) {
+			return false;
+		}
+
+		return $this->update_events_status( $args, Events::STATUS_TRASH, Events::STATUS_ACTIVE );
+	}
+
+	/**
+	 * Restore hCaptcha events from Trash.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	protected function restore_events( array $args ): bool {
+		if ( ! Events::is_trash_schema_ready() ) {
+			return false;
+		}
+
+		return $this->update_events_status( $args, Events::STATUS_ACTIVE, Events::STATUS_TRASH );
+	}
+
+	/**
+	 * Delete hCaptcha events permanently.
 	 *
 	 * @param array $args Arguments.
 	 *
@@ -251,18 +278,75 @@ class EventsPage extends ListPageBase {
 	protected function delete_events( array $args ): bool {
 		global $wpdb;
 
+		if ( ! Events::is_trash_schema_ready() ) {
+			return false;
+		}
+
 		$ids = $args['ids'] ?? [];
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 		$in         = DB::prepare_in( $ids, '%d' );
 
+		if ( ! $ids ) {
+			return false;
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$result = $wpdb->query(
 			$wpdb->prepare(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"DELETE FROM $table_name WHERE id IN($in)"
+				"DELETE FROM $table_name WHERE id IN($in) AND status = %s",
+				Events::STATUS_TRASH
 			)
 		);
+
+		return (bool) $result;
+	}
+
+	/**
+	 * Update hCaptcha event status.
+	 *
+	 * @param array  $args        Arguments.
+	 * @param string $status      New status.
+	 * @param string $from_status Current status.
+	 *
+	 * @return bool
+	 */
+	private function update_events_status( array $args, string $status, string $from_status ): bool {
+		global $wpdb;
+
+		$ids = $args['ids'] ?? [];
+
+		if ( ! $ids ) {
+			return false;
+		}
+
+		$table_name     = $wpdb->prefix . Events::TABLE_NAME;
+		$in             = DB::prepare_in( $ids, '%d' );
+		$trashed_at_gmt = Events::STATUS_TRASH === $status ? current_time( 'mysql', true ) : null;
+
+		if ( null === $trashed_at_gmt ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$result = $wpdb->query(
+				$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"UPDATE $table_name SET status = %s, trashed_at_gmt = NULL WHERE id IN($in) AND status = %s",
+					$status,
+					$from_status
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$result = $wpdb->query(
+				$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"UPDATE $table_name SET status = %s, trashed_at_gmt = %s WHERE id IN($in) AND status = %s",
+					$status,
+					$trashed_at_gmt,
+					$from_status
+				)
+			);
+		}
 
 		return (bool) $result;
 	}

@@ -63,10 +63,7 @@ class EmailOptin {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'email_optin',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search  = '<p class="et_pb_newsletter_button_wrap">';
@@ -77,18 +74,36 @@ class EmailOptin {
 	}
 
 	/**
-	 * Verify email optin form.
+	 * Verify the email optin form.
 	 *
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return;
 		}
 
 		wp_send_json( [ 'error' => $error_message ] );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'email_optin',
+		];
 	}
 
 	/**
@@ -113,7 +128,7 @@ class EmailOptin {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

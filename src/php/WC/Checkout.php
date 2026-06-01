@@ -25,12 +25,12 @@ class Checkout {
 	/**
 	 * Nonce action.
 	 */
-	private const ACTION = 'hcaptcha_wc_checkout';
+	public const ACTION = 'hcaptcha_wc_checkout';
 
 	/**
 	 * Nonce name.
 	 */
-	private const NONCE = 'hcaptcha_wc_checkout_nonce';
+	public const NONCE = 'hcaptcha_wc_checkout_nonce';
 
 	/**
 	 * Script handle.
@@ -86,10 +86,7 @@ class Checkout {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'checkout',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -119,10 +116,7 @@ class Checkout {
 		$args   = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'checkout',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$this->block_captcha_added = true;
@@ -150,7 +144,7 @@ class Checkout {
 			return;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );
@@ -200,7 +194,7 @@ class Checkout {
 		$_POST[ $hp_name ]        = $request->get_param( $hp_name );
 		$_POST[ $token_name ]     = $request->get_param( $token_name );
 
-		$error_message = API::verify_request();
+		$error_message = API::verify( $this->get_block_entry() );
 
 		if ( null === $error_message ) {
 			return $response;
@@ -229,6 +223,42 @@ class Checkout {
 		}
 
 		return in_array( $payment_method, $express_payment_methods, true );
+	}
+
+	/**
+	 * Get hCaptcha verification entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get hCaptcha block verification entry.
+	 *
+	 * @return array
+	 */
+	private function get_block_entry(): array {
+		return [
+			'expected_id' => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'checkout',
+		];
 	}
 
 	/**

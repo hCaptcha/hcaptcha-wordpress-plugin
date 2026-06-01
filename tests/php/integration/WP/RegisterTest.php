@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Register;
 use WPS\WPS_Hide_Login\Plugin;
@@ -136,6 +137,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$errors = new WP_Error( 'some error' );
 
 		$this->prepare_verify_post_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
+		$this->prepare_widget_id();
 
 		$subject = new Register();
 
@@ -153,6 +155,30 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$errors->add( 'invalid_captcha', '<strong>Error</strong>: The Captcha is invalid.' );
 
 		$this->prepare_verify_post_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration', false );
+		$this->prepare_widget_id();
+
+		$subject = new Register();
+
+		self::assertEquals( $errors, $subject->verify( $errors, '', '' ) );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$_GET['action'] = 'register';
+
+		$errors = new WP_Error( 'some error' );
+
+		$errors->add( 'bad-signature', 'Bad hCaptcha signature!' );
+
+		$this->prepare_verify_post_html( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'register',
+			]
+		);
 
 		$subject = new Register();
 
@@ -170,5 +196,19 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$subject = new Register();
 
 		self::assertEquals( $errors, $subject->verify( $errors, '', '' ) );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'WordPress' ],
+			'form_id' => 'register',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

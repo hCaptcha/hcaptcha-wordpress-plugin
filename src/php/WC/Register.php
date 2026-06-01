@@ -52,24 +52,27 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
 	}
 
 	/**
-	 * Verify register form.
+	 * Verify the register form.
 	 *
 	 * @param WP_Error|mixed $validation_error Validation error.
 	 *
 	 * @return WP_Error|mixed
 	 */
 	public function verify( $validation_error ) {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return $validation_error;
@@ -82,6 +85,18 @@ class Register {
 		$validation_error->add( 'hcaptcha_error', $error_message );
 
 		return $validation_error;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 
 	/**

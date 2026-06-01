@@ -89,9 +89,10 @@ class EventsTest extends HCaptchaWPTestCase {
 		$user_agent  = 'some user agent string';
 		$ip          = '1.1.1.1';
 		$option      = [
-			'collect_ua' => [ 'on' ],
-			'collect_ip' => [ 'on' ],
-			'anonymous'  => [],
+			'collect_ua'              => [ 'on' ],
+			'collect_ip'              => [ 'on' ],
+			'anonymous'               => [],
+			'trusted_address_headers' => [ 'HTTP_TRUE_CLIENT_IP' ],
 		];
 		$table_name  = Events::TABLE_NAME;
 
@@ -120,6 +121,8 @@ class EventsTest extends HCaptchaWPTestCase {
 		$this->assertEquals( $user_agent, $event->user_agent );
 		$this->assertEquals( '', $event->uuid );
 		$this->assertEquals( json_encode( $error_codes ), $event->error_codes );
+		$this->assertEquals( Events::STATUS_ACTIVE, $event->status );
+		$this->assertNull( $event->trashed_at_gmt );
 		// phpcs:enable WordPress.WP.AlternativeFunctions.json_encode_json_encode
 
 		delete_option( 'hcaptcha_settings' );
@@ -175,24 +178,28 @@ class EventsTest extends HCaptchaWPTestCase {
 		$expected = [
 			'items' => [
 				(object) [
-					'id'          => '1',
-					'source'      => '[]',
-					'form_id'     => '0',
-					'ip'          => '',
-					'user_agent'  => '',
-					'uuid'        => '',
-					'error_codes' => '["empty"]',
-					'date_gmt'    => $date,
+					'id'             => '1',
+					'source'         => '[]',
+					'form_id'        => '0',
+					'ip'             => '',
+					'user_agent'     => '',
+					'uuid'           => '',
+					'error_codes'    => '["empty"]',
+					'date_gmt'       => $date,
+					'status'         => Events::STATUS_ACTIVE,
+					'trashed_at_gmt' => null,
 				],
 				(object) [
-					'id'          => '2',
-					'source'      => '[]',
-					'form_id'     => '0',
-					'ip'          => '',
-					'user_agent'  => '',
-					'uuid'        => '',
-					'error_codes' => '[]',
-					'date_gmt'    => $date,
+					'id'             => '2',
+					'source'         => '[]',
+					'form_id'        => '0',
+					'ip'             => '',
+					'user_agent'     => '',
+					'uuid'           => '',
+					'error_codes'    => '[]',
+					'date_gmt'       => $date,
+					'status'         => Events::STATUS_ACTIVE,
+					'trashed_at_gmt' => null,
 				],
 			],
 			'total' => 2,
@@ -231,6 +238,8 @@ class EventsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_get_forms(): void {
+		global $wpdb;
+
 		$date = wp_date( 'Y-m-d H:i:s' );
 
 		$expected = [
@@ -267,6 +276,38 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$subject->save_event( 'success', [], (object) [] );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
+			$wpdb->prefix . Events::TABLE_NAME,
+			[
+				'source'         => '[]',
+				'form_id'        => '0',
+				'ip'             => '',
+				'user_agent'     => '',
+				'uuid'           => '',
+				'error_codes'    => '[]',
+				'date_gmt'       => '2020-01-01 00:00:00',
+				'status'         => Events::STATUS_ACTIVE,
+				'trashed_at_gmt' => null,
+			]
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
+			$wpdb->prefix . Events::TABLE_NAME,
+			[
+				'source'         => '[]',
+				'form_id'        => '0',
+				'ip'             => '',
+				'user_agent'     => '',
+				'uuid'           => '',
+				'error_codes'    => '[]',
+				'date_gmt'       => $date,
+				'status'         => Events::STATUS_TRASH,
+				'trashed_at_gmt' => $date,
+			]
+		);
+
 		$actual = $subject::get_forms();
 
 		// Make sure the dates are the same (no more than 10 sec difference).
@@ -301,13 +342,17 @@ class EventsTest extends HCaptchaWPTestCase {
 		    uuid        VARCHAR(36)     NOT NULL,
 		    error_codes VARCHAR(256)    NOT NULL,
 		    date_gmt    DATETIME        NOT NULL,
+		    status      VARCHAR(20)     NOT NULL DEFAULT 'active',
+		    trashed_at_gmt DATETIME     NULL,
 		    PRIMARY KEY (id),
 		    KEY source (source),
 		    KEY form_id (form_id),
 		    KEY hcaptcha_id (source, form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
-		    KEY date_gmt (date_gmt)
+		    KEY date_gmt (date_gmt),
+		    KEY status_date_gmt (status, date_gmt),
+		    KEY status_source_form (status, source, form_id)
 		) $charset_collate";
 
 		$this->drop_table();

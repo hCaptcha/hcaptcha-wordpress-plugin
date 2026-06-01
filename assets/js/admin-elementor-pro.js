@@ -63,7 +63,7 @@ class HCaptchaAdminElementorPro extends elementorModules.editor.utils.Module {
 			'elementor_pro/forms/content_template/field/hcaptcha',
 			this.renderField,
 			10,
-			2
+			2,
 		);
 	}
 }

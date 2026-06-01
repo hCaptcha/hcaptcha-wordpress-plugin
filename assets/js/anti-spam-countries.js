@@ -1,6 +1,8 @@
 /* global jQuery, Choices, HCaptchaAntiSpamCountriesObject */
 
 /**
+ * @param HCaptchaAntiSpamCountriesObject.headersSearchAriaLabel
+ * @param HCaptchaAntiSpamCountriesObject.headersSearchPlaceholder
  * @param HCaptchaAntiSpamCountriesObject.searchAriaLabel
  * @param HCaptchaAntiSpamCountriesObject.searchPlaceholder
  */
@@ -17,24 +19,36 @@ const antiSpamCountries = function() {
 	const searchPlaceholder =
 		HCaptchaAntiSpamCountriesObject.searchPlaceholder;
 
-	const applySearchPlaceholder = function( choicesInstance ) {
-		const searchAriaLabel = HCaptchaAntiSpamCountriesObject.searchAriaLabel;
+	const applySearchPlaceholder = function( choicesInstance, searchAriaLabel, placeholder ) {
 		const input = choicesInstance?.containerOuter?.element?.querySelector( '.choices__input--cloned' );
 
 		if ( ! input ) {
 			return;
 		}
 
-		input.placeholder = searchPlaceholder;
+		input.placeholder = placeholder;
 		input.setAttribute( 'aria-label', searchAriaLabel );
 	};
 
 	const selectors = [
-		'[name="hcaptcha_settings[blacklisted_countries][]"]',
-		'[name="hcaptcha_settings[whitelisted_countries][]"]',
+		{
+			searchAriaLabel: HCaptchaAntiSpamCountriesObject.searchAriaLabel,
+			searchPlaceholder,
+			selector: '[name="hcaptcha_settings[blacklisted_countries][]"]',
+		},
+		{
+			searchAriaLabel: HCaptchaAntiSpamCountriesObject.searchAriaLabel,
+			searchPlaceholder,
+			selector: '[name="hcaptcha_settings[whitelisted_countries][]"]',
+		},
+		{
+			searchAriaLabel: HCaptchaAntiSpamCountriesObject.headersSearchAriaLabel,
+			searchPlaceholder: HCaptchaAntiSpamCountriesObject.headersSearchPlaceholder,
+			selector: '[name="hcaptcha_settings[trusted_address_headers][]"]',
+		},
 	];
 
-	selectors.forEach( ( selector ) => {
+	selectors.forEach( ( { searchAriaLabel, searchPlaceholder: placeholder, selector } ) => {
 		const element = document.querySelector( selector );
 
 		if ( ! element || element.dataset.hcaptchaChoicesInit ) {
@@ -51,19 +65,19 @@ const antiSpamCountries = function() {
 				placeholder: false,
 				removeItemButton: true,
 				searchEnabled: true,
-				searchPlaceholderValue: searchPlaceholder,
+				searchPlaceholderValue: placeholder,
 				shouldSort: false,
-			}
+			},
 		);
 
-		applySearchPlaceholder( element.hcaptchaChoices );
+		applySearchPlaceholder( element.hcaptchaChoices, searchAriaLabel, placeholder );
 
 		element.addEventListener( 'addItem', function() {
-			applySearchPlaceholder( element.hcaptchaChoices );
+			applySearchPlaceholder( element.hcaptchaChoices, searchAriaLabel, placeholder );
 		} );
 
 		element.addEventListener( 'removeItem', function() {
-			applySearchPlaceholder( element.hcaptchaChoices );
+			applySearchPlaceholder( element.hcaptchaChoices, searchAriaLabel, placeholder );
 		} );
 	} );
 };

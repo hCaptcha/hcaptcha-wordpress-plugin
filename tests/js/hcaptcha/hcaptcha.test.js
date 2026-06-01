@@ -1439,7 +1439,7 @@ describe( 'moveHP', () => {
 		document.body.removeChild( form );
 	} );
 
-	test( 'moves honeypot and its connected label before the chosen visible input', () => {
+	test( 'moves only honeypot before the chosen visible input', () => {
 		const form = document.createElement( 'form' );
 		const hidden = document.createElement( 'input' );
 
@@ -1482,41 +1482,9 @@ describe( 'moveHP', () => {
 
 		inst.moveHP( form );
 
-		// Expected: hidden, lbl, hp, vis1, vis2, btn
-		expect( Array.from( form.children ) ).toEqual( [ hidden, lbl, hp, vis1, vis2, btn ] );
+		// Expected: hidden, hp, vis1, vis2, btn, lbl
+		expect( Array.from( form.children ) ).toEqual( [ hidden, hp, vis1, vis2, btn, lbl ] );
 		expect( lbl.isConnected ).toBe( true );
-
-		Math.random = originalRandom;
-		document.body.removeChild( form );
-	} );
-
-	test( 'does not append a disconnected label (label exists but not in DOM)', () => {
-		const form = document.createElement( 'form' );
-		const vis = document.createElement( 'input' );
-
-		vis.name = 'vis';
-
-		const hp = document.createElement( 'input' );
-
-		hp.id = 'hcap_hp_orphan';
-
-		const lbl = document.createElement( 'label' );
-
-		lbl.setAttribute( 'for', 'hcap_hp_orphan' );
-
-		form.appendChild( vis );
-		form.appendChild( hp );
-		document.body.appendChild( form );
-
-		const originalRandom = Math.random;
-		Math.random = jest.fn( () => 0 ); // choose vis
-
-		inst.moveHP( form );
-
-		// Label wasn't connected, so only hp moved; label remains disconnected
-		expect( lbl.isConnected ).toBe( false );
-		expect( form.children[ 0 ] ).toBe( hp );
-		expect( form.children[ 1 ] ).toBe( vis );
 
 		Math.random = originalRandom;
 		document.body.removeChild( form );

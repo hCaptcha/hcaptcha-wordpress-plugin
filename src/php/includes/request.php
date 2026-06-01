@@ -5,13 +5,100 @@
  * @package hcaptcha-wp
  */
 
-use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
 	exit;
 	// @codeCoverageIgnoreEnd
+}
+
+/**
+ * Get supported client IP address headers.
+ *
+ * @return string[]
+ */
+function hcap_get_address_headers(): array {
+	return [
+		'HTTP_TRUE_CLIENT_IP',
+		'HTTP_CF_CONNECTING_IP',
+		'HTTP_X_REAL_IP',
+		'HTTP_CLIENT_IP',
+		'HTTP_X_FORWARDED_FOR',
+		'HTTP_X_FORWARDED',
+		'HTTP_X_CLUSTER_CLIENT_IP',
+		'HTTP_FORWARDED_FOR',
+		'HTTP_FORWARDED',
+	];
+}
+
+/**
+ * Get client IP address headers enabled in settings.
+ *
+ * @param string[] $address_headers Supported client IP address headers.
+ *
+ * @return string[]
+ */
+function hcap_get_enabled_address_headers( array $address_headers ): array {
+	$settings = function_exists( 'hcaptcha' ) ? hcaptcha()->settings() : null;
+
+	if ( ! $settings ) {
+		return [];
+	}
+
+	if ( hcap_use_legacy_address_headers( $settings->get_raw_settings() ) ) {
+		return $address_headers;
+	}
+
+	$trusted_address_headers = (array) $settings->get( 'trusted_address_headers' );
+
+	return array_values( array_intersect( $address_headers, $trusted_address_headers ) );
+}
+
+/**
+ * Filter and normalize address headers.
+ *
+ * @param string[] $address_headers          Address headers.
+ * @param string   $remote_addr              Current REMOTE_ADDR value.
+ * @param string[] $standard_address_headers Supported address headers.
+ *
+ * @return string[]
+ */
+function hcap_filter_address_headers( array $address_headers, string $remote_addr, array $standard_address_headers ): array {
+	/**
+	 * Filters the list of address headers to trust.
+	 *
+	 * @param string[] $address_headers          Enabled address headers.
+	 * @param string   $remote_addr              Current REMOTE_ADDR value.
+	 * @param string[] $standard_address_headers Supported address headers.
+	 */
+	$address_headers = (array) apply_filters(
+		'hcap_trusted_address_headers',
+		$address_headers,
+		$remote_addr,
+		$standard_address_headers
+	);
+
+	$address_headers = array_filter( $address_headers, 'is_string' );
+
+	return array_values( array_unique( $address_headers ) );
+}
+
+/**
+ * Whether to keep legacy address header behavior before upgrade migration runs.
+ *
+ * @param array|null $settings Raw settings.
+ *
+ * @return bool
+ */
+function hcap_use_legacy_address_headers( ?array $settings ): bool {
+	if ( ! is_array( $settings ) || array_key_exists( 'trusted_address_headers', $settings ) ) {
+		return false;
+	}
+
+	$migrated_versions = (array) get_option( 'hcaptcha_versions', [] );
+
+	return ! array_key_exists( '5.0.0', $migrated_versions );
 }
 
 /**
@@ -32,29 +119,17 @@ function hcap_get_user_ip( bool $filter_out_local = true ) {
 		? filter_var( wp_unslash( $_SERVER['REMOTE_ADDR'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		: '';
 
-	// In order of preference, with the best ones for this purpose first.
-	$address_headers = [
-		'HTTP_TRUE_CLIENT_IP',
-		'HTTP_CF_CONNECTING_IP',
-		'HTTP_X_REAL_IP',
-		'HTTP_CLIENT_IP',
-		'HTTP_X_FORWARDED_FOR',
-		'HTTP_X_FORWARDED',
-		'HTTP_X_CLUSTER_CLIENT_IP',
-		'HTTP_FORWARDED_FOR',
-		'HTTP_FORWARDED',
-	];
-
-	/**
-	 * Filters the list of address headers to trust.
-	 *
-	 * @param string[] $address_headers Standard address headers.
-	 * @param string   $remote_addr     Current REMOTE_ADDR value.
-	 */
-	$address_headers = (array) apply_filters( 'hcap_trusted_address_headers', $address_headers, $remote_addr );
+	$standard_address_headers = hcap_get_address_headers();
+	$address_headers          = hcap_get_enabled_address_headers( $standard_address_headers );
+	$address_headers          = hcap_filter_address_headers(
+		$address_headers,
+		$remote_addr,
+		$standard_address_headers
+	);
 
 	// Fall back to REMOTE_ADDR if no other headers are present.
 	$address_headers[] = 'REMOTE_ADDR';
+	$address_headers   = array_values( array_unique( $address_headers ) );
 
 	foreach ( $address_headers as $header ) {
 		if ( ! array_key_exists( $header, $_SERVER ) ) {
@@ -62,9 +137,8 @@ function hcap_get_user_ip( bool $filter_out_local = true ) {
 		}
 
 		/*
-		 * HTTP_X_FORWARDED_FOR can contain a chain of comma-separated addresses.
-		 * The first one is the original client.
-		 * It can't be trusted for authenticity, but we don't need to for this purpose.
+		 * Some address headers can contain a chain of comma-separated addresses.
+		 * When a trusted header is enabled, use the first address in the chain.
 		 */
 		$address_chain = explode(
 			',',
