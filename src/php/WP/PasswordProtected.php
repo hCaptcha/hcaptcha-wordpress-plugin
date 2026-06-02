@@ -56,10 +56,7 @@ class PasswordProtected {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'password_protected',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
@@ -93,7 +90,13 @@ class PasswordProtected {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
 		// Standard hCaptcha logic for verifying the post password request.
-		$result = API::verify_post( self::NONCE, self::ACTION );
+		$result = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $result ) {
 			return;
@@ -107,5 +110,17 @@ class PasswordProtected {
 				'response'  => 303,
 			]
 		);
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'password_protected',
+		];
 	}
 }

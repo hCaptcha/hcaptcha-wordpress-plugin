@@ -62,6 +62,11 @@ class Migrations {
 	private const AS_GROUP = 'hcaptcha';
 
 	/**
+	 * Review trusted address headers option name.
+	 */
+	public const REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION = 'review_trusted_address_headers';
+
+	/**
 	 * Migration constructor.
 	 */
 	public function __construct() {
@@ -92,6 +97,7 @@ class Migrations {
 		add_action( 'plugins_loaded', [ $this, 'load_action_scheduler' ], -10 );
 
 		add_action( 'async_migrate_4_11_0', [ $this, 'async_migrate_4_11_0' ] );
+		add_action( 'async_migrate_5_0_0', [ $this, 'async_migrate_5_0_0' ] );
 	}
 
 	/**
@@ -109,19 +115,25 @@ class Migrations {
 	 * @return void
 	 */
 	public function migrate(): void {
-		$migrated = (array) get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
+		$migrated             = (array) get_option( self::MIGRATED_VERSIONS_OPTION_NAME, [] );
+		$plugin_major_version = explode( '-', self::PLUGIN_VERSION )[0];
 
-		$this->check_plugin_update( $migrated );
+		$this->check_plugin_update( $migrated, $plugin_major_version );
 
 		$upgrade_versions = [];
 
 		foreach ( $this->get_migrations() as $migration ) {
-			$upgrade_version    = $this->get_upgrade_version( $migration );
+			$upgrade_version = $this->get_upgrade_version( $migration );
+
+			if ( ! $upgrade_version ) {
+				continue;
+			}
+
 			$upgrade_versions[] = $upgrade_version;
 
 			if (
 				( isset( $migrated[ $upgrade_version ] ) && $migrated[ $upgrade_version ] >= 0 ) ||
-				version_compare( $upgrade_version, self::PLUGIN_VERSION, '>' )
+				version_compare( $upgrade_version, $plugin_major_version, '>' )
 			) {
 				continue;
 			}
@@ -149,14 +161,14 @@ class Migrations {
 		}
 
 		// Set the current version update time if it does not exist.
-		$current_version_migrated = $migrated[ self::PLUGIN_VERSION ] ?? time();
+		$current_version_migrated = $migrated[ $plugin_major_version ] ?? time();
 
 		// Remove any keys that are not in the migration list.
 		$migrated = array_intersect_key( $migrated, array_flip( $upgrade_versions ) );
 
 		// Restore the current version update time.
 		// Prevents updating the option on each request.
-		$migrated[ self::PLUGIN_VERSION ] = $current_version_migrated;
+		$migrated[ $plugin_major_version ] = $current_version_migrated;
 
 		// Sort the array by version.
 		uksort( $migrated, 'version_compare' );
@@ -196,6 +208,10 @@ class Migrations {
 		foreach ( $this->get_migrations() as $migration ) {
 			$upgrade_version = $this->get_upgrade_version( $migration );
 
+			if ( ! $upgrade_version ) {
+				continue;
+			}
+
 			// Mark migration as done.
 			$migrated[ $upgrade_version ] = 0;
 		}
@@ -213,7 +229,9 @@ class Migrations {
 	 */
 	public function send_plugin_stats(): void {
 		/**
-		 * Send plugin statistics.
+		 * Statistics switch is turned on, send plugin statistics.
+		 *
+		 * @param bool $force_send Whether to force sending stats. Default is false.
 		 */
 		do_action( 'hcap_send_plugin_stats' );
 	}
@@ -221,12 +239,13 @@ class Migrations {
 	/**
 	 * Check if the plugin was updated.
 	 *
-	 * @param array $migrated Migrated versions.
+	 * @param array  $migrated             Migrated versions.
+	 * @param string $plugin_major_version Plugin version without pre-release suffix.
 	 *
 	 * @return void
 	 */
-	private function check_plugin_update( array $migrated ): void {
-		if ( isset( $migrated[ self::PLUGIN_VERSION ] ) ) {
+	private function check_plugin_update( array $migrated, string $plugin_major_version ): void {
+		if ( isset( $migrated[ $plugin_major_version ] ) ) {
 			return;
 		}
 
@@ -471,6 +490,28 @@ class Migrations {
 	}
 
 	/**
+	 * Migrate to 5.0.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_5_0_0(): ?bool {
+		return $this->run_async( __FUNCTION__ );
+	}
+
+	/**
+	 * Async migration to 5.0.0.
+	 *
+	 * @return void
+	 */
+	public function async_migrate_5_0_0(): void {
+		$this->add_trusted_address_headers();
+		$this->add_events_trash_folder();
+
+		$this->mark_completed();
+	}
+
+	/**
 	 * Run async action.
 	 *
 	 * @param string $method Method name.
@@ -510,6 +551,77 @@ class Migrations {
 		);
 
 		return null;
+	}
+
+	/**
+	 * Add the trusted address headers option.
+	 *
+	 * @return void
+	 */
+	private function add_trusted_address_headers(): void {
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		if ( ! is_array( $option ) || array_key_exists( 'trusted_address_headers', $option ) ) {
+			return;
+		}
+
+		$address_headers          = hcap_get_address_headers();
+		$filtered_address_headers = [];
+
+		if ( has_filter( 'hcap_trusted_address_headers' ) ) {
+			// Migration has no reliable visitor request context, so do not use the current REMOTE_ADDR.
+			$filtered_address_headers = hcap_filter_address_headers( $address_headers, '', $address_headers );
+		}
+
+		$option['trusted_address_headers'] = array_values(
+			array_intersect( $filtered_address_headers, $address_headers )
+		);
+
+		if ( ! $option['trusted_address_headers'] ) {
+			$option[ self::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] = 'on';
+		}
+
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
+	}
+
+	/**
+	 * Add support for the Trash Folder.
+	 *
+	 * @return void
+	 */
+	private function add_events_trash_folder(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		if ( ! $this->table_exists( $table_name ) ) {
+			Events::create_table();
+
+			return;
+		}
+
+		$this->add_column(
+			$table_name,
+			'status',
+			"VARCHAR(20) NOT NULL DEFAULT '" . Events::STATUS_ACTIVE . "' AFTER date_gmt"
+		);
+		$this->add_column(
+			$table_name,
+			'trashed_at_gmt',
+			'DATETIME NULL AFTER status'
+		);
+
+		$this->add_index( $table_name, 'status_date_gmt', 'status, date_gmt' );
+		$this->add_index( $table_name, 'status_source_form', 'status, source, form_id' );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE $table_name SET status = %s WHERE status = ''",
+				Events::STATUS_ACTIVE
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
 	/**
@@ -607,6 +719,74 @@ class Migrations {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query( "CREATE INDEX $index_name ON $table_name ( $key_part )" );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	}
+
+	/**
+	 * Add a column to a table if it does not exist.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $column     Column name.
+	 * @param string $definition Column definition.
+	 *
+	 * @return void
+	 */
+	private function add_column( string $table_name, string $column, string $definition ): void {
+		global $wpdb;
+
+		if ( $this->column_exists( $table_name, $column ) ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query( "ALTER TABLE $table_name ADD COLUMN $column $definition" );
+		// phpcs:enable PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+	}
+
+	/**
+	 * Check if a table exists.
+	 *
+	 * @param string $table_name Table name.
+	 *
+	 * @return bool
+	 */
+	private function table_exists( string $table_name ): bool {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$tables = $wpdb->get_results(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ),
+			'ARRAY_N'
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return ! empty( $tables );
+	}
+
+	/**
+	 * Check if a column exists.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $column     Column name.
+	 *
+	 * @return bool
+	 */
+	private function column_exists( string $table_name, string $column ): bool {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$columns = $wpdb->get_results(
+			$wpdb->prepare( "SHOW COLUMNS FROM $table_name LIKE %s", $column ),
+			'ARRAY_N'
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+
+		return ! empty( $columns );
 	}
 
 	/**

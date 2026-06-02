@@ -182,7 +182,6 @@ class Tools extends PluginSettingsBase {
 		$this->print_header();
 
 		?>
-		<div id="hcaptcha-message"></div>
 		<p>
 			<?php esc_html_e( 'Manage migration wizard, export and import of hCaptcha plugin settings.', 'hcaptcha-for-forms-and-more' ); ?>
 		</p>

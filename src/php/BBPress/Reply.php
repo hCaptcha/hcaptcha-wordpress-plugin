@@ -58,7 +58,7 @@ class Reply extends Base {
 	 *
 	 * @return array
 	 */
-	private function get_entry(): array {
+	protected function get_entry(): array {
 		$data = [];
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -79,6 +79,7 @@ class Reply extends Base {
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
 			'form_date_gmt'      => $topic->post_modified_gmt ?? null,
 			'data'               => $data,
+			'expected_id'        => $this->get_expected_id(),
 		];
 	}
 }

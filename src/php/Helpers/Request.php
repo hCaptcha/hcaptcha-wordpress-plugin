@@ -90,6 +90,8 @@ class Request {
 		// Case #3.
 		global $wp_rewrite;
 
+		$initial_wp_rewrite = $wp_rewrite;
+
 		if ( null === $wp_rewrite ) {
 			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			$wp_rewrite = new WP_Rewrite();
@@ -98,6 +100,9 @@ class Request {
 		// Case #4.
 		$current_url = (string) wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
 		$rest_url    = wp_parse_url( trailingslashit( rest_url() ), PHP_URL_PATH );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_rewrite = $initial_wp_rewrite;
 
 		return 0 === strpos( $current_url, $rest_url );
 	}

@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\Base;
 use HCaptcha\CF7\CF7;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
@@ -342,6 +343,77 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test wpcf7_shortcode() with a generated CF7 form id.
+	 *
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 */
+	public function test_wpcf7_shortcode_uses_generated_form_id(): void {
+		$output            =
+			'<form>' .
+			'<input type="hidden" name="_wpcf7" value="177">' .
+			'<input type="submit" value="Send">' .
+			'</form>';
+		$tag               = 'contact-form-7';
+		$attr              = [ 'id' => 6 ];
+		$m                 = [
+			'[contact-form-7 id="6" title="Contact form 1"]',
+			'',
+			'contact-form-7',
+			'id="6" title="Contact form 1"',
+			'',
+			'',
+			'',
+		];
+		$uniqid            = 'hcap_cf7-6004092a854114.24546665';
+		$nonce             = wp_nonce_field( 'wp_rest', '_wpnonce', true, false );
+		$hcaptcha_site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
+		$id                = [
+			'source'  => [ 'contact-form-7/wp-contact-form-7.php' ],
+			'form_id' => 177,
+		];
+		$expected          =
+			'<form>' .
+			'<span class="wpcf7-form-control-wrap" data-name="hcap-cf7">' .
+			$this->get_hcap_widget( $id ) . '
+				<span id="' . $uniqid . '" class="wpcf7-form-control h-captcha "
+			data-sitekey="' . $hcaptcha_site_key . '"
+			data-theme="light"
+			data-size="normal"
+			data-auto="false"
+			data-ajax="false"
+			data-force="false">' . '
+		</span>
+		' . $nonce . $this->get_hp_field( $id ) .
+			'</span><input type="hidden" name="_wpcf7" value="177"><input type="submit" value="Send">' .
+			'</form>';
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => $hcaptcha_site_key,
+				'cf7_status' => [ 'form' ],
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
+		FunctionMocker::replace(
+			'uniqid',
+			static function ( $prefix, $more_entropy ) use ( $uniqid ) {
+				if ( 'hcap_cf7-' === $prefix && $more_entropy ) {
+					return $uniqid;
+				}
+
+				return null;
+			}
+		);
+
+		$subject = new CF7();
+
+		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
+	}
+
+	/**
 	 * Test check_rest_nonce().
 	 *
 	 * @return void
@@ -428,6 +500,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$this->prepare_verify_request( $data['h-captcha-response'] );
+		$this->prepare_widget_id( $wpcf7_id );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 		$tag    = Mockery::mock( WPCF7_FormTag::class );
@@ -556,6 +629,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$tag = Mockery::mock( WPCF7_FormTag::class );
 
 		$this->prepare_verify_request( '', false );
+		$this->prepare_widget_id( $wpcf7_id );
 
 		$subject = new CF7();
 
@@ -602,6 +676,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$this->prepare_verify_request( '', false );
+		$this->prepare_widget_id( $wpcf7_id );
 
 		$subject = new CF7();
 
@@ -671,6 +746,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 			->once();
 
 		$this->prepare_verify_request( '', false );
+		$this->prepare_widget_id( $wpcf7_id );
 
 		$subject = new CF7();
 
@@ -726,6 +802,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$this->prepare_verify_request( $data['h-captcha-response'], false );
+		$this->prepare_widget_id( $wpcf7_id );
 
 		$result = Mockery::mock( WPCF7_Validation::class );
 		$tag    = Mockery::mock( WPCF7_FormTag::class );
@@ -738,6 +815,66 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 					'name' => 'hcap-cf7',
 				],
 				'The hCaptcha is invalid.'
+			)
+			->once();
+
+		$subject = new CF7();
+
+		self::assertSame( $result, $subject->verify_hcaptcha( $result, $tag ) );
+	}
+
+	/**
+	 * Test verify_hcaptcha() when widget id is bad.
+	 *
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 */
+	public function test_verify_hcaptcha_bad_widget_id(): void {
+		$data              = [ 'h-captcha-response' => 'some response' ];
+		$wpcf7_id          = 23;
+		$hcaptcha_site_key = 'some site key';
+		$field             = Mockery::mock( WPCF7_FormTag::class );
+		$field->type       = 'some';
+		$form_fields       = [ $field ];
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'id' )->andReturn( $wpcf7_id );
+		$contact_form->shouldReceive( 'scan_form_tags' )->andReturn( $form_fields );
+
+		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $contact_form );
+		$submission->shouldReceive( 'get_posted_data' )->andReturn( $data );
+		FunctionMocker::replace( 'WPCF7_Submission::get_instance', $submission );
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => $hcaptcha_site_key,
+				'cf7_status' => [ 'form', 'embed' ],
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
+		$this->prepare_verify_request( $data['h-captcha-response'] );
+		$this->prepare_widget_id(
+			$wpcf7_id,
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => $wpcf7_id,
+			]
+		);
+
+		$result = Mockery::mock( WPCF7_Validation::class );
+		$tag    = Mockery::mock( WPCF7_FormTag::class );
+
+		$result
+			->shouldReceive( 'invalidate' )
+			->with(
+				[
+					'type' => 'hcaptcha',
+					'name' => 'hcap-cf7',
+				],
+				'Bad hCaptcha signature!'
 			)
 			->once();
 
@@ -890,5 +1027,20 @@ CSS;
 		$expected = '[cf7-hcaptcha class:some-class form_id="177"]';
 
 		self::assertSame( $expected, $subject->add_form_id_to_cf7_hcap_shortcode( $output, 177 ) );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'contact-form-7/wp-contact-form-7.php' ],
+			'form_id' => $form_id,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

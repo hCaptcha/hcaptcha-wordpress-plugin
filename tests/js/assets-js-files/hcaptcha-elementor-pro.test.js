@@ -33,7 +33,7 @@ describe( 'Elementor Frontend hCaptcha', () => {
 		expect( wp.hooks.addFilter ).toHaveBeenCalledWith(
 			'hcaptcha.params',
 			'hcaptcha',
-			expect.any( Function )
+			expect.any( Function ),
 		);
 	} );
 

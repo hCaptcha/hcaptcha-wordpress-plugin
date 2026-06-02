@@ -106,10 +106,7 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form->ID,
-			],
+			'id'     => $this->get_expected_id( (int) $form->ID ),
 		];
 
 		return preg_replace(
@@ -131,7 +128,13 @@ class Form {
 	public function verify( $errors, MC4WP_Form $form ) {
 		// Do not allow modification of the nonce field in the shortcode.
 		// During preview, we cannot recalculate the nonce field.
-		$error_message = API::verify_post( self::NAME, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NAME,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id( (int) $form->ID ),
+			]
+		);
 
 		if ( null !== $error_message ) {
 			$error_code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'empty';
@@ -155,10 +158,7 @@ class Form {
 		}
 
 		$min = hcap_min_suffix();
-		$id  = [
-			'source'  => HCaptcha::get_class_source( __CLASS__ ),
-			'form_id' => $form_id,
-		];
+		$id  = $this->get_expected_id( $form_id );
 
 		wp_enqueue_script(
 			self::ADMIN_HANDLE,
@@ -178,5 +178,19 @@ class Form {
 				'widget'     => HCaptcha::get_widget( $id ),
 			]
 		);
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 }

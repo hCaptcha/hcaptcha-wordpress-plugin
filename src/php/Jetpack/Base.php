@@ -357,10 +357,7 @@ abstract class Base {
 		return [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'contact' . $hash,
-			],
+			'id'     => $this->get_expected_id( $hash ),
 		];
 	}
 
@@ -442,6 +439,7 @@ abstract class Base {
 			'nonce_name'    => self::NAME,
 			'nonce_action'  => self::ACTION,
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'expected_id'   => $this->get_expected_id( (string) $this->get_submitted_form_hash() ),
 			'data'          => [],
 		];
 
@@ -466,5 +464,23 @@ abstract class Base {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param string $hash Form hash.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( string $hash = '' ): array {
+		if ( $hash && '_' !== $hash[0] ) {
+			$hash = '_' . $hash;
+		}
+
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'contact' . $hash,
+		];
 	}
 }

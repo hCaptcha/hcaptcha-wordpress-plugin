@@ -1364,6 +1364,15 @@ abstract class HCaptchaTestCase extends TestCase {
 							'return_request' => 'Return Request Form',
 						],
 				],
+			'paypal_payments_status'           =>
+				[
+					'label'   => 'WooCommerce PayPal Payments',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'button' => 'PayPal Button',
+						],
+				],
 			'woocommerce_wishlists_status'     =>
 				[
 					'label'   => 'WooCommerce Wishlists',

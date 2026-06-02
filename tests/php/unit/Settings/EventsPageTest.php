@@ -330,7 +330,10 @@ class EventsPageTest extends HCaptchaTestCase {
 					Events				</h2>
 			</div>
 			' . $datepicker . '		</div>
-				<div id="hcaptcha-message"></div>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
 				<div id="hcaptcha-events-chart">
 			<canvas id="eventsChart" aria-label="The hCaptcha Events Chart" role="img">
 				<p>
@@ -354,6 +357,7 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		WP_Mock::onAction( 'kagg_settings_header' )->with( null )->perform( [ $subject, 'date_picker_display' ] );
 
+		$list_table->shouldReceive( 'views' )->once();
 		$list_table->shouldReceive( 'display' )->once();
 		$this->set_protected_property( $subject, 'allowed', true );
 		$this->set_protected_property( $subject, 'list_table', $list_table );
@@ -375,7 +379,10 @@ class EventsPageTest extends HCaptchaTestCase {
 					Events				</h2>
 			</div>
 					</div>
-				<div id="hcaptcha-message"></div>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
 					<div class="hcaptcha-events-sample-bg"></div>
 
 			<div class="hcaptcha-events-sample-text">
@@ -797,7 +804,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		$in         = implode( ',', $ids );
 		$prefix     = 'wp_';
 		$table_name = 'hcaptcha_events';
-		$sql        = "DELETE FROM $prefix$table_name WHERE id IN($in)";
+		$sql        = "DELETE FROM $prefix$table_name WHERE id IN($in) AND status = %s";
 		$prepared   = $sql;
 		$result     = count( $ids );
 
@@ -811,7 +818,7 @@ class EventsPageTest extends HCaptchaTestCase {
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$wpdb         = Mockery::mock( 'WPDB' );
 		$wpdb->prefix = $prefix;
-		$wpdb->shouldReceive( 'prepare' )->with( $sql )->andReturn( $prepared );
+		$wpdb->shouldReceive( 'prepare' )->with( $sql, 'trash' )->andReturn( $prepared );
 		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( $result );
 
 		$subject = Mockery::mock( EventsPage::class )->makePartial();

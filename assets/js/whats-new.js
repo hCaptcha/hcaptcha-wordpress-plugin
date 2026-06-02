@@ -51,7 +51,7 @@ const whatsNew = ( $ ) => {
 			if ( params.has( HCaptchaWhatsNewObject.whatsNewParam ) ) {
 				return jQuery.Deferred().resolve().promise();
 			}
-		} catch ( e ) {
+		} catch {
 			// In environments without URLSearchParams, silently ignore and proceed.
 		}
 
@@ -80,8 +80,9 @@ const whatsNew = ( $ ) => {
 		done();
 	} );
 
-	$( document ).on( 'click', '.hcaptcha-whats-new-button a', function( e ) {
+	$modal.on( 'click', '.hcaptcha-whats-new-button a', function( e ) {
 		e.preventDefault();
+		e.stopImmediatePropagation();
 
 		const $btn = $( this );
 		const href = $btn.attr( 'href' );

@@ -14,7 +14,7 @@ const hCaptchaEssentialBlocks = window.hCaptchaEssentialBlocks || ( function( wi
 					}
 
 					return isAjaxSubmitButton;
-				}
+				},
 			);
 
 			// Install global fetch event wrapper (idempotent).
@@ -44,7 +44,7 @@ const hCaptchaEssentialBlocks = window.hCaptchaEssentialBlocks || ( function( wi
 			let formData;
 			try {
 				formData = JSON.parse( formDataRaw );
-			} catch ( e ) {
+			} catch {
 				return;
 			}
 

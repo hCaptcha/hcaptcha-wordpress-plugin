@@ -181,6 +181,8 @@ class FormsPageTest extends HCaptchaTestCase {
 			}
 		);
 
+		WP_Mock::userFunction( 'hcap_min_suffix' )->andReturn( $min_suffix );
+
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				FormsPage::HANDLE,
@@ -321,7 +323,10 @@ class FormsPageTest extends HCaptchaTestCase {
 					Forms				</h2>
 			</div>
 			' . $datepicker . '		</div>
-				<div id="hcaptcha-message"></div>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
 				<div id="hcaptcha-forms-chart">
 			<canvas id="formsChart" aria-label="The hCaptcha Forms Chart" role="img">
 				<p>
@@ -348,6 +353,7 @@ class FormsPageTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'number_format_i18n' );
 		WP_Mock::onAction( 'kagg_settings_header' )->with( null )->perform( [ $subject, 'date_picker_display' ] );
 
+		$list_table->shouldReceive( 'views' )->once();
 		$list_table->shouldReceive( 'display' )->once();
 		$this->set_protected_property( $subject, 'allowed', true );
 		$this->set_protected_property( $subject, 'list_table', $list_table );
@@ -369,7 +375,10 @@ class FormsPageTest extends HCaptchaTestCase {
 					Forms				</h2>
 			</div>
 					</div>
-				<div id="hcaptcha-message"></div>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
 					<div class="hcaptcha-forms-sample-bg"></div>
 
 			<div class="hcaptcha-forms-sample-text">
@@ -667,8 +676,9 @@ class FormsPageTest extends HCaptchaTestCase {
 		$where_clause = '((source = %s AND form_id = %s) OR (source = %s AND form_id = %s)) AND date_gmt BETWEEN %s AND %s';
 		$prefix       = 'wp_';
 		$table_name   = 'hcaptcha_events';
-		$sql          = "DELETE FROM $prefix$table_name WHERE $where_clause";
-		$prepared     = "DELETE FROM $prefix$table_name WHERE ((source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = '177')) AND date_gmt BETWEEN '2025-01-24 00:00:00' AND '2025-02-23 23:59:59'";
+		$sql          = "$where_clause AND status = %s";
+		$prepared     = "((source = '[\"WordPress\"]' AND form_id = 'login') OR (source = '[\"Contact Form 7\"]' AND form_id = '177')) AND date_gmt BETWEEN '2025-01-24 00:00:00' AND '2025-02-23 23:59:59' AND status = 'trash'";
+		$query        = "DELETE FROM $prefix$table_name WHERE $prepared";
 		$result       = count( $ids );
 
 		WP_Mock::passthruFunction( 'get_gmt_from_date' );
@@ -678,9 +688,9 @@ class FormsPageTest extends HCaptchaTestCase {
 		$wpdb         = Mockery::mock( 'WPDB' );
 		$wpdb->prefix = $prefix;
 		$wpdb->shouldReceive( 'prepare' )
-			->with( $sql, 'WordPress', 'login', 'Contact Form 7', '177', '2025-01-24 00:00:00', '2025-02-23 23:59:59' )
+			->with( $sql, 'WordPress', 'login', 'Contact Form 7', '177', '2025-01-24 00:00:00', '2025-02-23 23:59:59', 'trash' )
 			->andReturn( $prepared );
-		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( $result );
+		$wpdb->shouldReceive( 'query' )->with( $query )->andReturn( $result );
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();

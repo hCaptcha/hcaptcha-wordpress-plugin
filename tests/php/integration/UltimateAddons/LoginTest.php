@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\UltimateAddons;
 
 use Elementor\Element_Base;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\UltimateAddons\Login;
 use Mockery;
@@ -162,8 +163,9 @@ class LoginTest extends HCaptchaWPTestCase {
 		$subject = new Login();
 		$user    = new WP_User( 1 );
 
-		// Simulate successful verification (API::verify_post returns null).
+		// Simulate successful verification.
 		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id();
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
@@ -183,6 +185,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify() when in UAEL AJAX action, login limit exceeded and verification FAILS -> sends a JSON error.
+	 *
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_not_verified(): void {
 		$user     = new WP_User( 1 );
@@ -198,6 +202,60 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		// Simulate failed verification.
 		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_widget_id();
+
+		$subject = new Login();
+
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+		add_action(
+			'wp_ajax_nopriv_uael_login_form_submit',
+			static function () use ( $subject, $user, &$filter_result ) {
+				$filter_result = $subject->verify( $user, 'some pass' );
+			}
+		);
+
+		ob_start();
+		do_action( 'wp_ajax_nopriv_uael_login_form_submit' );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		self::assertSame( json_encode( $response ), ob_get_clean() );
+
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$user     = new WP_User( 1 );
+		$response = [
+			'success' => false,
+			'data'    => [ 'hCaptchaError' => 'Bad hCaptcha signature!' ],
+		];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'login',
+			]
+		);
 
 		$subject = new Login();
 
@@ -229,6 +287,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test print_inline_styles().
+	 *
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
@@ -259,5 +319,21 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'ultimate-elementor/ultimate-elementor.php' ],
+			'form_id' => 'login',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

@@ -222,7 +222,6 @@ class HCaptcha {
 		$hp_sig  = wp_create_nonce( $hp_name );
 
 		?>
-		<label for="<?php echo esc_attr( $hp_name ); ?>"></label>
 		<input
 				type="text" id="<?php echo esc_attr( $hp_name ); ?>" name="<?php echo esc_attr( $hp_name ); ?>" value=""
 				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
@@ -291,59 +290,6 @@ class HCaptcha {
 	}
 
 	/**
-	 * Check widget.
-	 *
-	 * @param string     $class_name Class name.
-	 * @param int|string $form_id    Form id.
-	 *
-	 * @return bool|null True if the widget is valid, false if not or does not exist.
-	 *                   Null if valid and created by the same $class_name and $form_id.
-	 */
-	public static function check_widget( string $class_name, $form_id ): ?bool {
-		$hashed_id_field = self::HCAPTCHA_WIDGET_ID;
-
-		// Nonce is checked in \HCaptcha\Helpers\API::verify_post().
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$hashed_id = isset( $_POST[ $hashed_id_field ] ) ?
-			filter_var( wp_unslash( $_POST[ $hashed_id_field ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( ! $hashed_id ) {
-			return false;
-		}
-
-		$hashed_id_arr = explode( '-', $hashed_id );
-		$encoded_id    = $hashed_id_arr[0];
-		$hash          = $hashed_id_arr[1] ?? '';
-
-		$id = wp_parse_args(
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			Utils::json_decode_arr( base64_decode( $encoded_id ) ),
-			self::$default_id
-		);
-
-		$info = [
-			'id'         => $id,
-			'encoded_id' => $encoded_id,
-			'hash'       => $hash,
-		];
-
-		if ( wp_hash( $info['encoded_id'] ) !== $info['hash'] ) {
-			return false;
-		}
-
-		if (
-			$form_id !== $info['id']['form_id'] ||
-			self::get_class_source( $class_name ) !== $info['id']['source']
-		) {
-			return true;
-		}
-
-		return null;
-	}
-
-	/**
 	 * Get signature.
 	 *
 	 * @param string     $class_name     Class name.
@@ -361,6 +307,10 @@ class HCaptcha {
 
 	/**
 	 * Display signature.
+	 *
+	 * Signatures route shared verification flows.
+	 * When several classes can submit through the same verification hook,
+	 * each class writes whether it actually rendered hCaptcha for this form.
 	 *
 	 * @param string     $class_name     Class name.
 	 * @param int|string $form_id        Form id.
@@ -516,7 +466,7 @@ class HCaptcha {
 				$status = $module[0][0];
 
 				/**
-				 * Integrations class instance.
+				 * The Integrations class instance.
 				 *
 				 * @var $integrations Integrations
 				 */
@@ -1134,7 +1084,6 @@ class HCaptcha {
 	 * @param string $tag Script tag.
 	 *
 	 * @return string
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public static function add_type_module( string $tag ): string {
 		$search  = [

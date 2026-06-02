@@ -269,10 +269,7 @@ abstract class LoginBase {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'login',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$this->hcaptcha_shown = true;
@@ -335,7 +332,13 @@ abstract class LoginBase {
 			return $user;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => static::NONCE,
+				'nonce_action' => static::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return $user;
@@ -344,6 +347,18 @@ abstract class LoginBase {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'login',
+		];
 	}
 
 	/**

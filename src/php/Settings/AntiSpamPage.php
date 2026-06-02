@@ -10,7 +10,9 @@ namespace HCaptcha\Settings;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\DisposableEmail;
+use HCaptcha\Helpers\CloudflareDetector;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Migrations\Migrations;
 use KAGG\Settings\Abstracts\SettingsBase;
 
 /**
@@ -34,6 +36,21 @@ class AntiSpamPage extends PluginSettingsBase {
 	 * Check IPs ajax action.
 	 */
 	public const CHECK_IPS_ACTION = 'hcaptcha-anti-spam-check-ips';
+
+	/**
+	 * Detect Cloudflare ajax action.
+	 */
+	public const DETECT_CLOUDFLARE_ACTION = 'hcaptcha-anti-spam-detect-cloudflare';
+
+	/**
+	 * Cloudflare detection status option.
+	 */
+	public const CLOUDFLARE_DETECTION_STATUS_OPTION = 'cloudflare_detection_status';
+
+	/**
+	 * Cloudflare connecting IP header.
+	 */
+	private const CLOUDFLARE_CONNECTING_IP_HEADER = 'HTTP_CF_CONNECTING_IP';
 
 	/**
 	 * Bot Detection section id.
@@ -77,12 +94,16 @@ class AntiSpamPage extends PluginSettingsBase {
 		parent::init_hooks();
 
 		add_action( 'wp_ajax_' . self::CHECK_IPS_ACTION, [ $this, 'check_ips' ] );
+		add_action( 'wp_ajax_' . self::DETECT_CLOUDFLARE_ACTION, [ $this, 'detect_cloudflare' ] );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_load_maxmind_db' ], 20, 2 );
 		add_filter( 'pre_update_site_option_' . $this->option_name(), [ $this, 'maybe_load_maxmind_db' ], 20, 2 );
 
 		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'maybe_toggle_disposable_email' ], 20, 2 );
 		add_filter( 'pre_update_site_option_' . $this->option_name(), [ $this, 'maybe_toggle_disposable_email' ], 20, 2 );
+
+		add_filter( 'pre_update_option_' . $this->option_name(), [ $this, 'clear_trusted_address_headers_review_notice' ], 30, 2 );
+		add_filter( 'pre_update_site_option_' . $this->option_name(), [ $this, 'clear_trusted_address_headers_review_notice' ], 30, 2 );
 	}
 
 	/**
@@ -91,8 +112,10 @@ class AntiSpamPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function init_form_fields(): void {
+		$trusted_ip_headers_description = $this->get_trusted_ip_headers_description();
+
 		$this->form_fields = [
-			'set_min_submit_time'   => [
+			'set_min_submit_time'     => [
 				'label'   => __( 'Token and Honeypot', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -101,7 +124,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'min_submit_time'       => [
+			'min_submit_time'         => [
 				'label'   => __( 'Minimum Time to Submit the Form, sec', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -109,7 +132,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				'min'     => 1,
 				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'honeypot'              => [
+			'honeypot'                => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
 				'options' => [
@@ -117,7 +140,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Add a honeypot field to submitted forms for early bot prevention.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'antispam'              => [
+			'antispam'                => [
 				'label'   => __( 'Anti-Spam Check', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -126,14 +149,14 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Enable anti-spam check of submitted forms.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'antispam_provider'     => [
+			'antispam_provider'       => [
 				'label'   => __( 'Anti-Spam Provider', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_BOT_DETECTION,
 				'options' => AntiSpam::get_supported_providers(),
 				'helper'  => __( 'Select anti-spam provider.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'disposable_email'      => [
+			'disposable_email'        => [
 				'label'   => __( 'Disposable Emails', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -142,40 +165,47 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Block form submissions from disposable and temporary email addresses.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'blacklisted_ips'       => [
+			'blacklisted_ips'         => [
 				'label'   => __( 'Denylisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Block form sending from listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'whitelisted_ips'       => [
+			'whitelisted_ips'         => [
 				'label'   => __( 'Allowlisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'blacklisted_countries' => [
+			'blacklisted_countries'   => [
 				'label'   => __( 'Denylisted Countries', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'multiple',
 				'options' => [],
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Block form sending from selected countries.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'whitelisted_countries' => [
+			'whitelisted_countries'   => [
 				'label'   => __( 'Allowlisted Countries', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'multiple',
 				'options' => [],
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Do not show hCaptcha for users from selected countries.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'maxmind_key'           => [
-				'label'        => __( 'MaxMind License Key', 'hcaptcha-for-forms-and-more' ),
-				'type'         => 'password',
-				'autocomplete' => 'off',
+			'trusted_address_headers' => [
+				'label'        => __( 'Trusted IP Headers', 'hcaptcha-for-forms-and-more' ),
+				'type'         => 'multiple',
+				'options'      => $this->get_trusted_address_header_options(),
 				'section'      => self::SECTION_ACCESS_CONTROL,
-				'helper'       => __( 'Needed to automatically download the GeoLite2 Country database for country allowlist/denylist checks.', 'hcaptcha-for-forms-and-more' ),
+				'helper'       => __( 'Only enable headers that your proxy or CDN overwrites or removes from direct client requests. Selected headers are scanned in the listed order. For Cloudflare, select CF-Connecting-IP only, and make sure direct access to the origin is blocked. When no headers are selected, REMOTE_ADDR is used.', 'hcaptcha-for-forms-and-more' ),
+				'supplemental' => $trusted_ip_headers_description,
 			],
-			'login_limit'           => [
+			'maxmind_key'             => [
+				'label'   => __( 'MaxMind License Key', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'password',
+				'section' => self::SECTION_ACCESS_CONTROL,
+				'helper'  => __( 'Needed to automatically download the GeoLite2 Country database for country allowlist/denylist checks.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'login_limit'             => [
 				'label'   => __( 'Login Attempts Before hCaptcha', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_LOGIN_PROTECTION,
@@ -183,7 +213,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				'min'     => 0,
 				'helper'  => __( 'Maximum number of failed login attempts before showing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'login_interval'        => [
+			'login_interval'          => [
 				'label'   => __( 'Failed Login Attempts Interval, min', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_LOGIN_PROTECTION,
@@ -191,7 +221,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				'min'     => 1,
 				'helper'  => __( 'Time interval in minutes when failed login attempts are counted.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'hide_login_errors'     => [
+			'hide_login_errors'       => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_LOGIN_PROTECTION,
 				'options' => [
@@ -218,8 +248,9 @@ class AntiSpamPage extends PluginSettingsBase {
 		$maxmind_key   = $settings ? $settings->get( 'maxmind_key' ) : '';
 		$country_names = $this->get_country_names();
 
-		$this->form_fields['blacklisted_countries']['options'] = $country_names;
-		$this->form_fields['whitelisted_countries']['options'] = $country_names;
+		$this->form_fields['blacklisted_countries']['options']        = $country_names;
+		$this->form_fields['whitelisted_countries']['options']        = $country_names;
+		$this->form_fields['trusted_address_headers']['supplemental'] = $this->get_trusted_ip_headers_description();
 
 		if ( '' === $maxmind_key ) {
 			$this->form_fields['blacklisted_countries']['disabled'] = true;
@@ -240,10 +271,6 @@ class AntiSpamPage extends PluginSettingsBase {
 		switch ( $arguments['id'] ) {
 			case self::SECTION_BOT_DETECTION:
 				$this->print_header();
-
-				?>
-				<div id="hcaptcha-message"></div>
-				<?php
 
 				$this->print_section_header( $arguments['id'], __( 'Bot Detection', 'hcaptcha-for-forms-and-more' ) );
 				break;
@@ -301,8 +328,10 @@ class AntiSpamPage extends PluginSettingsBase {
 			$countries_handle,
 			'HCaptchaAntiSpamCountriesObject',
 			[
-				'searchPlaceholder' => $countries_search_placeholder,
-				'searchAriaLabel'   => __( 'Search countries', 'hcaptcha-for-forms-and-more' ),
+				'searchPlaceholder'        => $countries_search_placeholder,
+				'searchAriaLabel'          => __( 'Search countries', 'hcaptcha-for-forms-and-more' ),
+				'headersSearchPlaceholder' => __( 'Search headers...', 'hcaptcha-for-forms-and-more' ),
+				'headersSearchAriaLabel'   => __( 'Search trusted IP headers', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
@@ -316,6 +345,9 @@ class AntiSpamPage extends PluginSettingsBase {
 				'ajaxUrl'                         => admin_url( 'admin-ajax.php' ),
 				'checkIPsAction'                  => self::CHECK_IPS_ACTION,
 				'checkIPsNonce'                   => wp_create_nonce( self::CHECK_IPS_ACTION ),
+				'detectCloudflareAction'          => self::DETECT_CLOUDFLARE_ACTION,
+				'detectCloudflareNonce'           => wp_create_nonce( self::DETECT_CLOUDFLARE_ACTION ),
+				'detectCloudflareError'           => __( 'Cannot detect Cloudflare. Please try again later.', 'hcaptcha-for-forms-and-more' ),
 				'configuredAntiSpamProviders'     => AntiSpam::get_configured_providers(),
 				'configuredAntiSpamProviderError' => $provider_error,
 			]
@@ -365,6 +397,32 @@ class AntiSpamPage extends PluginSettingsBase {
 		}
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * Ajax action to detect Cloudflare.
+	 *
+	 * @return void
+	 */
+	public function detect_cloudflare(): void {
+		$this->run_checks( self::DETECT_CLOUDFLARE_ACTION );
+
+		$context = CloudflareDetector::get_context();
+		$status  = $this->sanitize_cloudflare_detection_status( (string) ( $context['status'] ?? '' ) );
+
+		$this->save_cloudflare_detection_status(
+			[
+				'status'     => $status,
+				'confidence' => sanitize_key( (string) ( $context['confidence'] ?? '' ) ),
+				'checked_at' => time(),
+			]
+		);
+
+		wp_send_json_success(
+			[
+				'message' => CloudflareDetector::get_recommendation( $status ),
+			]
+		);
 	}
 
 	/**
@@ -422,6 +480,123 @@ class AntiSpamPage extends PluginSettingsBase {
 	}
 
 	/**
+	 * Clear trusted address headers review notice when Anti-Spam settings are saved.
+	 *
+	 * @param mixed $value     New option value.
+	 * @param mixed $old_value Old option value.
+	 *
+	 * @return mixed
+	 */
+	public function clear_trusted_address_headers_review_notice( $value, $old_value ) {
+		if ( ! is_array( $value ) || ! $this->is_anti_spam_settings_save() ) {
+			return $value;
+		}
+
+		unset( $value[ Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] );
+
+		$new_headers = (array) ( $value['trusted_address_headers'] ?? [] );
+		$old_headers = (array) ( $old_value['trusted_address_headers'] ?? [] );
+
+		sort( $new_headers );
+		sort( $old_headers );
+
+		if ( $new_headers !== $old_headers ) {
+			unset( $value[ self::CLOUDFLARE_DETECTION_STATUS_OPTION ] );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Get Trusted IP Headers supplemental description.
+	 *
+	 * @return string
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	private function get_trusted_ip_headers_description(): string {
+		$settings = $this->get_stored_settings();
+		$headers  = (array) ( $settings['trusted_address_headers'] ?? [] );
+
+		if ( in_array( self::CLOUDFLARE_CONNECTING_IP_HEADER, $headers, true ) ) {
+			return '';
+		}
+
+		$cloudflare_status = $settings[ self::CLOUDFLARE_DETECTION_STATUS_OPTION ] ?? [];
+
+		if ( is_array( $cloudflare_status ) && isset( $cloudflare_status['status'] ) ) {
+			return CloudflareDetector::get_recommendation(
+				$this->sanitize_cloudflare_detection_status( (string) $cloudflare_status['status'] )
+			);
+		}
+
+		return sprintf(
+			/* translators: 1: Detect Cloudflare link. */
+			__( 'Trusted IP headers are used to determine the visitor IP address when WordPress is behind a proxy or CDN. Only enable headers that your proxy or CDN overwrites or removes from direct requests. If your site uses Cloudflare, hCaptcha can try to detect it: %1$s.', 'hcaptcha-for-forms-and-more' ),
+			'<a href="#detect-cloudflare">Detect Cloudflare</a>'
+		);
+	}
+
+	/**
+	 * Save Cloudflare detection status in settings.
+	 *
+	 * @param array $cloudflare_status Cloudflare detection status.
+	 *
+	 * @return void
+	 */
+	private function save_cloudflare_detection_status( array $cloudflare_status ): void {
+		$settings = $this->get_stored_settings();
+
+		$settings[ self::CLOUDFLARE_DETECTION_STATUS_OPTION ] = $cloudflare_status;
+
+		$this->update_stored_settings( $settings );
+	}
+
+	/**
+	 * Get stored settings.
+	 *
+	 * @return array
+	 */
+	private function get_stored_settings(): array {
+		if ( is_multisite() && $this->is_network_wide() ) {
+			$settings = get_site_option( $this->option_name(), [] );
+		} else {
+			$settings = get_option( $this->option_name(), [] );
+		}
+
+		return is_array( $settings ) ? $settings : [];
+	}
+
+	/**
+	 * Update stored settings.
+	 *
+	 * @param array $settings Settings.
+	 *
+	 * @return void
+	 */
+	private function update_stored_settings( array $settings ): void {
+		if ( is_multisite() && $this->is_network_wide() ) {
+			update_site_option( $this->option_name(), $settings );
+
+			return;
+		}
+
+		update_option( $this->option_name(), $settings );
+	}
+
+	/**
+	 * Sanitize Cloudflare detection status.
+	 *
+	 * @param string $status Cloudflare detection status.
+	 *
+	 * @return string
+	 */
+	private function sanitize_cloudflare_detection_status( string $status ): string {
+		return in_array( $status, CloudflareDetector::get_statuses(), true )
+			? $status
+			: CloudflareDetector::STATUS_NOT_DETECTED;
+	}
+
+	/**
 	 * Print section header.
 	 *
 	 * @param string $id    Section id.
@@ -442,6 +617,22 @@ class AntiSpamPage extends PluginSettingsBase {
 			</span>
 		</h3>
 		<?php
+	}
+
+	/**
+	 * Whether the current request saves Anti-Spam settings.
+	 *
+	 * @return bool
+	 */
+	private function is_anti_spam_settings_save(): bool {
+		// Nonce is checked by the WordPress Settings API before updating the option.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$settings = isset( $_POST[ $this->option_name() ] ) ? (array) wp_unslash( $_POST[ $this->option_name() ] ) : [];
+
+		$setting_keys    = array_map( 'sanitize_key', array_keys( $settings ) );
+		$form_field_keys = array_map( 'sanitize_key', array_keys( $this->form_fields ) );
+
+		return (bool) array_intersect( $setting_keys, $form_field_keys );
 	}
 
 	/**
@@ -497,6 +688,25 @@ class AntiSpamPage extends PluginSettingsBase {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get trusted address header options.
+	 *
+	 * @return array
+	 */
+	private function get_trusted_address_header_options(): array {
+		return [
+			'HTTP_TRUE_CLIENT_IP'      => 'True-Client-IP',
+			'HTTP_CF_CONNECTING_IP'    => 'CF-Connecting-IP',
+			'HTTP_X_REAL_IP'           => 'X-Real-IP',
+			'HTTP_CLIENT_IP'           => 'Client-IP',
+			'HTTP_X_FORWARDED_FOR'     => 'X-Forwarded-For',
+			'HTTP_X_FORWARDED'         => 'X-Forwarded',
+			'HTTP_X_CLUSTER_CLIENT_IP' => 'X-Cluster-Client-IP',
+			'HTTP_FORWARDED_FOR'       => 'Forwarded-For',
+			'HTTP_FORWARDED'           => 'Forwarded',
+		];
 	}
 
 	/**

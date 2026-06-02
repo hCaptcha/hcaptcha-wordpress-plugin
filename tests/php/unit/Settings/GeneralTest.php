@@ -44,6 +44,7 @@ class GeneralTest extends HCaptchaTestCase {
 	public function tearDown(): void {
 		$_POST = [];
 		unset( $_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] );
+		unset( $_GET[ OnboardingWizard::NONCE_PARAM ] );
 
 		parent::tearDown();
 	}
@@ -190,7 +191,26 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test maybe_handle_onboarding_auto_setup().
 	 */
 	public function test_maybe_handle_onboarding_auto_setup(): void {
-		$_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] = '1';
+		$nonce = 'auto_setup_nonce';
+
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( $type, $name ) use ( $nonce ) {
+				if ( INPUT_GET !== $type ) {
+					return '';
+				}
+
+				if ( OnboardingWizard::AUTO_SETUP_PARAM === $name ) {
+					return '1';
+				}
+
+				if ( OnboardingWizard::NONCE_PARAM === $name ) {
+					return $nonce;
+				}
+
+				return '';
+			}
+		);
 
 		$subject = Mockery::mock( General::class )->makePartial();
 
@@ -208,6 +228,12 @@ class GeneralTest extends HCaptchaTestCase {
 			->once()
 			->with( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
 
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'wp_verify_nonce' )
+			->with( $nonce, OnboardingWizard::AUTO_SETUP_ACTION )
+			->once()
+			->andReturn( 1 );
+
 		$subject->maybe_handle_onboarding_auto_setup();
 	}
 
@@ -215,7 +241,26 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test maybe_handle_onboarding_auto_setup() when anti-spam provider is not configured.
 	 */
 	public function test_maybe_handle_onboarding_auto_setup_without_configured_antispam_provider(): void {
-		$_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] = '1';
+		$nonce = 'auto_setup_nonce';
+
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( $type, $name ) use ( $nonce ) {
+				if ( INPUT_GET !== $type ) {
+					return '';
+				}
+
+				if ( OnboardingWizard::AUTO_SETUP_PARAM === $name ) {
+					return '1';
+				}
+
+				if ( OnboardingWizard::NONCE_PARAM === $name ) {
+					return $nonce;
+				}
+
+				return '';
+			}
+		);
 
 		$subject = Mockery::mock( General::class )->makePartial();
 
@@ -232,6 +277,55 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )
 			->once()
 			->with( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
+
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'wp_verify_nonce' )
+			->with( $nonce, OnboardingWizard::AUTO_SETUP_ACTION )
+			->once()
+			->andReturn( 1 );
+
+		$subject->maybe_handle_onboarding_auto_setup();
+	}
+
+	/**
+	 * Test maybe_handle_onboarding_auto_setup() with a bad nonce.
+	 */
+	public function test_maybe_handle_onboarding_auto_setup_with_bad_nonce(): void {
+		$nonce = 'bad_nonce';
+
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( $type, $name ) use ( $nonce ) {
+				if ( INPUT_GET !== $type ) {
+					return '';
+				}
+
+				if ( OnboardingWizard::AUTO_SETUP_PARAM === $name ) {
+					return '1';
+				}
+
+				if ( OnboardingWizard::NONCE_PARAM === $name ) {
+					return $nonce;
+				}
+
+				return '';
+			}
+		);
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
+		$subject->shouldReceive( 'update_option' )->never();
+		$subject->shouldReceive( 'should_enable_onboarding_antispam' )->never();
+		$subject->shouldReceive( 'auto_migration' )->never();
+		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )->never();
+
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'wp_verify_nonce' )
+			->with( $nonce, OnboardingWizard::AUTO_SETUP_ACTION )
+			->once()
+			->andReturn( false );
 
 		$subject->maybe_handle_onboarding_auto_setup();
 	}
@@ -449,8 +543,11 @@ class GeneralTest extends HCaptchaTestCase {
 					General				</h2>
 			</div>
 					</div>
-						<div id="hcaptcha-message"></div>
-						<h3 class="togglable hcaptcha-section-keys">
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
+				<h3 class="togglable hcaptcha-section-keys">
 			<span class="hcaptcha-section-header-title">
 				Keys			</span>
 			<span class="hcaptcha-section-header-toggle">
@@ -776,7 +873,7 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( General::class )->makePartial();
 
 		if ( $expected ) {
-			WP_Mock::expectAction( 'hcap_send_plugin_stats' );
+			WP_Mock::expectAction( 'hcap_send_plugin_stats', [ true ] );
 		} else {
 			WP_Mock::userFunction( 'do_action' )->with( 'hcap_send_plugin_stats' )->never();
 		}

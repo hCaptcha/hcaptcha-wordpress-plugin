@@ -12,9 +12,10 @@
 
 namespace HCaptcha\Tests\Integration\Maintenance;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Maintenance\Login;
+use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
@@ -32,7 +33,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_POST['is_custom_login'] );
+		unset( $_POST['is_custom_login'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		parent::tearDown();
 	}
@@ -126,6 +127,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		// Prepare a failed verification so verify() sets error_message.
 		$this->prepare_verify_post_html( 'hcaptcha_maintenance_login_nonce', 'hcaptcha_maintenance_login', false );
+		$this->prepare_widget_id();
 
 		$user = new WP_User( 1 );
 
@@ -207,6 +209,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
 		$this->prepare_verify_post_html( 'hcaptcha_maintenance_login_nonce', 'hcaptcha_maintenance_login' );
+		$this->prepare_widget_id();
 
 		self::assertSame( $user, $subject->verify( $user, 'pass' ) );
 	}
@@ -224,12 +227,41 @@ class LoginTest extends HCaptchaWPTestCase {
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
 		$this->prepare_verify_post_html( 'hcaptcha_maintenance_login_nonce', 'hcaptcha_maintenance_login', false );
+		$this->prepare_widget_id();
 
 		$result = $subject->verify( $user, 'pass' );
 
 		self::assertInstanceOf( WP_Error::class, $result );
 		self::assertSame( 'invalid_hcaptcha', $result->get_error_code() );
 		self::assertSame( '<strong>hCaptcha error:</strong> The hCaptcha is invalid.', $result->get_error_message() );
+		self::assertSame( 400, $result->get_error_data() );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$subject = new Login();
+		$user    = new WP_User( 1 );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST['is_custom_login'] = '1';
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+
+		$this->prepare_verify_post_html( 'hcaptcha_maintenance_login_nonce', 'hcaptcha_maintenance_login' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'login',
+			]
+		);
+
+		$result = $subject->verify( $user, 'pass' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'invalid_hcaptcha', $result->get_error_code() );
+		self::assertSame( '<strong>hCaptcha error:</strong> Bad hCaptcha signature!', $result->get_error_message() );
 		self::assertSame( 400, $result->get_error_data() );
 	}
 
@@ -277,5 +309,21 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'maintenance/maintenance.php' ],
+			'form_id' => 'login',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

@@ -91,6 +91,7 @@ function getDom() {
 		<textarea name="h-captcha-response"></textarea>
 		<input type="hidden" name="hcaptcha-widget-id" value="wid-1" />
 	</div>
+	<div id="hcaptcha-admin-notices"></div>
 	<div id="hcaptcha-message"></div>
 	<div class="hcaptcha-general-sample-hcaptcha">
 		<textarea name="h-captcha-response"></textarea>
@@ -167,7 +168,7 @@ describe( 'general.js basics', () => {
 			if ( opts && typeof opts.beforeSend === 'function' ) {
 				try {
 					opts.beforeSend();
-				} catch ( e ) {
+				} catch {
 					// ignore
 				}
 			}
@@ -597,7 +598,7 @@ describe( 'checkConfig click without solved captcha', () => {
 			expect.objectContaining( {
 				title: HCaptchaGeneralObject.completeHCaptchaTitle,
 				content: HCaptchaGeneralObject.completeHCaptchaContent,
-			} )
+			} ),
 		);
 	} );
 } );

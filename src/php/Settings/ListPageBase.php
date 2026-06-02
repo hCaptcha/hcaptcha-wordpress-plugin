@@ -81,7 +81,25 @@ abstract class ListPageBase extends PluginSettingsBase {
 	protected bool $allowed = false;
 
 	/**
-	 * Delete hCaptcha events by IDs.
+	 * Move hCaptcha events to Trash.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	abstract protected function trash_events( array $args ): bool;
+
+	/**
+	 * Restore hCaptcha events from Trash.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	abstract protected function restore_events( array $args ): bool;
+
+	/**
+	 * Delete hCaptcha events permanently.
 	 *
 	 * @param array $args Arguments.
 	 *
@@ -101,7 +119,7 @@ abstract class ListPageBase extends PluginSettingsBase {
 	}
 
 	/**
-	 * Get suggested data format from items array.
+	 * Get a suggested data format from an item's array.
 	 *
 	 * @param array $items Items array.
 	 *
@@ -301,29 +319,47 @@ abstract class ListPageBase extends PluginSettingsBase {
 		$dates = explode( self::TIMESPAN_DELIMITER, $date );
 		$dates = array_filter( array_map( 'trim', $dates ) );
 
-		if ( 'trash' === $bulk ) {
-			$args = [
-				'ids'   => $ids,
-				'dates' => $dates,
-			];
+		$args = [
+			'ids'   => $ids,
+			'dates' => $dates,
+		];
 
-			if ( ! $this->delete_events( $args ) ) {
-				wp_send_json_error( __( 'Failed to delete the selected items.', 'hcaptcha-for-forms-and-more' ) );
+		$actions = [
+			'trash'   => [
+				'callback' => 'trash_events',
+				'error'    => __( 'Failed to move the selected items to Trash.', 'hcaptcha-for-forms-and-more' ),
+				'success'  => __( 'Selected items have been successfully moved to Trash.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'restore' => [
+				'callback' => 'restore_events',
+				'error'    => __( 'Failed to restore the selected items.', 'hcaptcha-for-forms-and-more' ),
+				'success'  => __( 'Selected items have been successfully restored.', 'hcaptcha-for-forms-and-more' ),
+			],
+			'delete'  => [
+				'callback' => 'delete_events',
+				'error'    => __( 'Failed to permanently delete the selected items.', 'hcaptcha-for-forms-and-more' ),
+				'success'  => __( 'Selected items have been successfully deleted permanently.', 'hcaptcha-for-forms-and-more' ),
+			],
+		];
 
-				return; // For testing purposes.
-			}
+		if ( ! isset( $actions[ $bulk ] ) ) {
+			wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );
 
-			set_transient(
-				self::TRANSIENT,
-				__( 'Selected items have been successfully deleted.', 'hcaptcha-for-forms-and-more' )
-			);
+			return;
+		}
 
-			wp_send_json_success();
+		$action   = $actions[ $bulk ];
+		$callback = $action['callback'];
+
+		if ( ! $this->$callback( $args ) ) {
+			wp_send_json_error( $action['error'] );
 
 			return; // For testing purposes.
 		}
 
-		wp_send_json_error( __( 'Invalid bulk action.', 'hcaptcha-for-forms-and-more' ) );
+		set_transient( self::TRANSIENT, $action['success'] );
+
+		wp_send_json_success();
 	}
 
 	/**

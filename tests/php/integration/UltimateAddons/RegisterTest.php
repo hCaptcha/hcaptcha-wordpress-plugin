@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\UltimateAddons;
 
 use Elementor\Element_Base;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\UltimateAddons\Register;
 use Mockery;
@@ -103,19 +104,22 @@ class RegisterTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() when verification succeeds (API::verify_post returns null) -> outputs nothing.
+	 * Test verify() when verification succeeds -> outputs nothing.
 	 */
 	public function test_verify_success(): void {
 		$subject = new Register();
 
 		// Simulate successful verification.
 		$this->prepare_verify_post( 'hcaptcha_ultimate_addons_register_nonce', 'hcaptcha_ultimate_addons_register' );
+		$this->prepare_widget_id();
 
 		$subject->verify();
 	}
 
 	/**
 	 * Test verify() when verification FAILS -> sends a JSON error.
+	 *
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_not_verified(): void {
 		$response     = [
@@ -130,6 +134,53 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		// Simulate failed verification.
 		$this->prepare_verify_post( 'hcaptcha_ultimate_addons_register_nonce', 'hcaptcha_ultimate_addons_register', false );
+		$this->prepare_widget_id();
+
+		$subject = new Register();
+
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		ob_start();
+
+		$subject->verify();
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		self::assertSame( json_encode( $response ), ob_get_clean() );
+
+		self::assertSame( $expected_die, $die_arr );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$response     = [
+			'success' => false,
+			'data'    => [ 'hCaptchaError' => 'Bad hCaptcha signature!' ],
+		];
+		$expected_die = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$this->prepare_verify_post( 'hcaptcha_ultimate_addons_register_nonce', 'hcaptcha_ultimate_addons_register' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'register',
+			]
+		);
 
 		$subject = new Register();
 
@@ -155,6 +206,8 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test print_inline_styles().
+	 *
+	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
 		FunctionMocker::replace(
@@ -186,5 +239,21 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'ultimate-elementor/ultimate-elementor.php' ],
+			'form_id' => 'register',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

@@ -6,6 +6,9 @@
  * @param HCaptchaAntiSpamObject.checkIPsNonce
  * @param HCaptchaAntiSpamObject.configuredAntiSpamProviderError
  * @param HCaptchaAntiSpamObject.configuredAntiSpamProviders
+ * @param HCaptchaAntiSpamObject.detectCloudflareAction
+ * @param HCaptchaAntiSpamObject.detectCloudflareError
+ * @param HCaptchaAntiSpamObject.detectCloudflareNonce
  */
 
 /**
@@ -19,10 +22,12 @@ const antiSpam = function( $ ) {
 	const $whitelistedIPs = $( '#whitelisted_ips' );
 	const $antiSpamProvider = $( '[name="hcaptcha_settings[antispam_provider]"]' );
 	const $submit = $form.find( '#submit' );
+	const $trustedHeadersDescription = $( '#trusted_address_headers' ).closest( 'td' ).find( 'p.description' ).last();
 	const dataErrorBgColor = '#fcf0f0';
 	const hcaptchaLoading = 'hcaptcha-loading';
 
 	checkAntiSpamProvider();
+	bindCloudflareDetector();
 
 	/**
 	 * Check if the anti-spam provider is configured.
@@ -42,10 +47,60 @@ const antiSpam = function( $ ) {
 
 		const errorMsg = HCaptchaAntiSpamObject.configuredAntiSpamProviderError.replace(
 			'%1$s',
-			provider
+			provider,
 		);
 
 		hCaptchaSettingsBase.showErrorMessage( errorMsg );
+	}
+
+	/**
+	 * Bind Cloudflare detection link.
+	 */
+	function bindCloudflareDetector() {
+		$( document )
+			.off( 'click.hcaptchaDetectCloudflare', 'a[href="#detect-cloudflare"]' )
+			.on( 'click.hcaptchaDetectCloudflare', 'a[href="#detect-cloudflare"]', function( event ) {
+				event.preventDefault();
+
+				const $link = $( this );
+
+				if ( $link.data( 'hcaptchaDetecting' ) ) {
+					return;
+				}
+
+				const data = {
+					action: HCaptchaAntiSpamObject.detectCloudflareAction,
+					nonce: HCaptchaAntiSpamObject.detectCloudflareNonce,
+				};
+
+				$link.data( 'hcaptchaDetecting', true );
+
+				$.post( {
+					url: HCaptchaAntiSpamObject.ajaxUrl,
+					data,
+					beforeSend: () => $trustedHeadersDescription.addClass( hcaptchaLoading ),
+				} )
+					.done( function( response ) {
+						if ( ! response.success ) {
+							hCaptchaSettingsBase.showErrorMessage(
+								response.data || HCaptchaAntiSpamObject.detectCloudflareError,
+							);
+
+							return;
+						}
+
+						$trustedHeadersDescription.text( response.data.message );
+					} )
+					.fail( function( response ) {
+						hCaptchaSettingsBase.showErrorMessage(
+							response.statusText || HCaptchaAntiSpamObject.detectCloudflareError,
+						);
+					} )
+					.always( function() {
+						$link.data( 'hcaptchaDetecting', false );
+						$trustedHeadersDescription.removeClass( hcaptchaLoading );
+					} );
+			} );
 	}
 
 	// Check IPs.

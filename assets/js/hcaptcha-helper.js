@@ -92,7 +92,7 @@ export class helper {
 
 		try {
 			this.params = new URLSearchParams( queryString );
-		} catch ( e ) {
+		} catch {
 			this.params = new URLSearchParams();
 		}
 
@@ -179,9 +179,9 @@ export class helper {
 				// Fire "before" event prior to the actual call.
 				try {
 					window.dispatchEvent(
-						new CustomEvent( 'hCaptchaFetch:before', { detail: { args } } )
+						new CustomEvent( 'hCaptchaFetch:before', { detail: { args } } ),
 					);
-				} catch ( e ) {
+				} catch {
 					// Never break the chain because of event listener errors.
 				}
 
@@ -193,23 +193,23 @@ export class helper {
 						window.dispatchEvent(
 							new CustomEvent( 'hCaptchaFetch:success', {
 								detail: { args, response: response.clone() },
-							} )
+							} ),
 						);
-					} catch ( e ) {
+					} catch {
 					}
 				} ).catch( ( error ) => {
 					try {
 						window.dispatchEvent(
-							new CustomEvent( 'hCaptchaFetch:error', { detail: { args, error } } )
+							new CustomEvent( 'hCaptchaFetch:error', { detail: { args, error } } ),
 						);
-					} catch ( e ) {
+					} catch {
 					}
 				} ).finally( () => {
 					try {
 						window.dispatchEvent(
-							new CustomEvent( 'hCaptchaFetch:complete', { detail: { args } } )
+							new CustomEvent( 'hCaptchaFetch:complete', { detail: { args } } ),
 						);
-					} catch ( e ) {
+					} catch {
 					}
 				} );
 
@@ -223,7 +223,7 @@ export class helper {
 				value: true,
 				configurable: true,
 			} );
-		} catch ( e ) {
+		} catch {
 			// Fallback if defineProperty is restricted.
 			window.__hcapFetchWrapped = true;
 		}

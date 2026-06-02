@@ -38,14 +38,10 @@ abstract class Base {
 	 * @return void
 	 */
 	public function add_captcha(): void {
-		$form_id = str_replace( 'hcaptcha_bbp_', '', static::ACTION );
-		$args    = [
+		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $form_id,
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -58,7 +54,7 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify(): bool {
-		$error_message = API::verify_post( static::NAME, static::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null !== $error_message ) {
 			bbp_add_error( 'hcap_error', $error_message );
@@ -67,5 +63,30 @@ abstract class Base {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get hCaptcha verification entry.
+	 *
+	 * @return array
+	 */
+	protected function get_entry(): array {
+		return [
+			'nonce_name'   => static::NAME,
+			'nonce_action' => static::ACTION,
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => str_replace( 'hcaptcha_bbp_', '', static::ACTION ),
+		];
 	}
 }

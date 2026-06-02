@@ -204,8 +204,13 @@ class General extends PluginSettingsBase {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] ) ) {
+		$auto_setup = Request::filter_input( INPUT_GET, OnboardingWizard::AUTO_SETUP_PARAM );
+
+		if ( '1' !== $auto_setup ) {
+			return;
+		}
+
+		if ( ! OnboardingWizard::verify_request( OnboardingWizard::AUTO_SETUP_ACTION ) ) {
 			return;
 		}
 
@@ -814,10 +819,6 @@ class General extends PluginSettingsBase {
 			case self::SECTION_KEYS:
 				$this->print_header();
 
-				?>
-				<div id="hcaptcha-message"></div>
-				<?php
-
 				$this->notifications->show();
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;
@@ -1092,8 +1093,10 @@ class General extends PluginSettingsBase {
 		if ( 'on' === $stats && 'on' !== $old_stats ) {
 			/**
 			 * Statistics switch is turned on, send plugin statistics.
+			 *
+			 * @param bool $force_send Whether to force sending stats. Default is false.
 			 */
-			do_action( 'hcap_send_plugin_stats' );
+			do_action( 'hcap_send_plugin_stats', true );
 		}
 
 		return $value;

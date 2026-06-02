@@ -53,6 +53,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject = new AutoVerify();
 
 		WP_Mock::expectActionAdded( 'init', [ $subject, 'verify' ], -PHP_INT_MAX );
+		WP_Mock::expectFilterAdded( 'hcap_form_args', [ $subject, 'add_default_id' ] );
 		WP_Mock::expectFilterAdded( 'the_content', [ $subject, 'content_filter' ], PHP_INT_MAX );
 		WP_Mock::expectFilterAdded(
 			'widget_block_content',
@@ -161,6 +162,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			}
 		);
 		WP_Mock::passthruFunction( 'wp_hash' );
+		WP_Mock::userFunction( 'get_the_ID' )->andReturn( 7 );
 
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
@@ -175,11 +177,16 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		// Args are an empty array.
 		$this->set_protected_property( $subject, 'registry', [] );
 
-		$args = [];
+		$args = [
+			'id' => [
+				'source'  => [ AutoVerify::class ],
+				'form_id' => 7,
+			],
+		];
 
-		$subject->register_hcaptcha( $args );
+		$subject->register_hcaptcha( [] );
 
-		$widget_id = HCaptcha::widget_id_value( [] );
+		$widget_id = HCaptcha::widget_id_value( $args['id'] );
 		$registry  = $this->get_protected_property( $subject, 'registry' );
 
 		self::assertSame( $args, $registry[ $widget_id ] );

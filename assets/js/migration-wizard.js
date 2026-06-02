@@ -485,7 +485,7 @@
 				buildResultsUI( scanData );
 				showStep( 'results' );
 			}
-		} catch ( e ) {
+		} catch {
 			showStep( 'welcome' );
 		}
 	} else {

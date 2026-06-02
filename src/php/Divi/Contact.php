@@ -12,7 +12,6 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
-use JsonException;
 use WP_Block;
 
 /**
@@ -93,10 +92,7 @@ class Contact {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'contact',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search  = '<div class="et_contact_bottom_container">';
@@ -144,10 +140,7 @@ class Contact {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'contact',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search  = '<div class="et_contact_bottom_container">';
@@ -340,6 +333,7 @@ class Contact {
 			'nonce_name'    => self::NONCE,
 			'nonce_action'  => self::ACTION,
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'expected_id'   => $this->get_expected_id(),
 			'data'          => [],
 		];
 
@@ -378,6 +372,18 @@ class Contact {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'contact',
+		];
 	}
 
 	/**

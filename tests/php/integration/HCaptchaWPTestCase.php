@@ -176,7 +176,6 @@ class HCaptchaWPTestCase extends WPTestCase {
 		$hp_name  = 'hcap_hp_test';
 		$hp_sig   = wp_create_nonce( $hp_name );
 		$hp_field = <<<HTML
-		<label for="$hp_name"></label>
 		<input
 				type="text" id="$hp_name" name="$hp_name" value=""
 				readonly inputmode="none" autocomplete="new-password" tabindex="-1" aria-hidden="true"
@@ -298,7 +297,10 @@ HTML;
 		$hcaptcha_settings = (array) get_option( 'hcaptcha_settings', [] );
 		$hcaptcha_settings = array_merge(
 			$hcaptcha_settings,
-			[ 'secret_key' => $hcaptcha_secret_key ]
+			[
+				'secret_key'              => $hcaptcha_secret_key,
+				'trusted_address_headers' => [ 'HTTP_CLIENT_IP' ],
+			]
 		);
 
 		update_option( 'hcaptcha_settings', $hcaptcha_settings );

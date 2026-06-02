@@ -14,7 +14,7 @@ import { helper } from './hcaptcha-helper.js';
 			options,
 			'et_pb_submit_subscribe_form',
 			'hcaptcha_divi_email_optin_nonce',
-			$form
+			$form,
 		);
 	} );
 

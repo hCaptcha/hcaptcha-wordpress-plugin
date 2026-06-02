@@ -25,6 +25,7 @@ ${ withAdminBar ? '<div id="wpadminbar" style="position:fixed;height:32px;"></di
 ${ withTabs ? '<div class="hcaptcha-settings-tabs" style="height:40px;"></div>' : '' }
 <div class="hcaptcha-header-bar"></div>
 <div class="hcaptcha-header"><h2>Settings</h2></div>
+<div id="hcaptcha-admin-notices"></div>
 <div id="hcaptcha-message"></div>
 <div id="hcaptcha-options">
 	<h3 class="togglable hcaptcha-section-keys"></h3>
@@ -317,6 +318,19 @@ describe( 'showMessage', () => {
 		const html = $( '#hcaptcha-message' ).html();
 		expect( html ).toContain( '<p>Line1</p>' );
 		expect( html ).toContain( '<p>Line2</p>' );
+	} );
+
+	test( 'showMessage preserves admin notices', () => {
+		bootSettingsBase();
+		$( '#hcaptcha-admin-notices' ).append(
+			'<div class="notice notice-warning inline hcaptcha-admin-notice"><p>Review Trusted IP Headers</p></div>',
+		);
+
+		window.hCaptchaSettingsBase.showErrorMessage( 'Something failed' );
+
+		expect( $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' ).length ).toBe( 1 );
+		expect( $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' ).text() ).toContain( 'Review Trusted IP Headers' );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Something failed' );
 	} );
 } );
 

@@ -69,7 +69,7 @@ jQuery( document ).ready( function( $ ) {
 		document.getElementById( providerId ).closest( settingSelector ),
 		{
 			attributes: true,
-		}
+		},
 	);
 
 	$provider.on( 'change', blockHCaptchaSettings );

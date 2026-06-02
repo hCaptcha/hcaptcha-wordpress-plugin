@@ -2,6 +2,7 @@
 
 /**
  * @param HCaptchaOnboardingObject.ajaxUrl
+ * @param HCaptchaOnboardingObject.autoSetupNonce
  * @param HCaptchaOnboardingObject.autoSetupParam
  * @param HCaptchaOnboardingObject.currentStep
  * @param HCaptchaOnboardingObject.generalUrl
@@ -21,6 +22,7 @@
  * @param HCaptchaOnboardingObject.i18n.welcomeTitle
  * @param HCaptchaOnboardingObject.iconAnimatedUrl
  * @param HCaptchaOnboardingObject.integrationsUrl
+ * @param HCaptchaOnboardingObject.nonceParam
  * @param HCaptchaOnboardingObject.page
  * @param HCaptchaOnboardingObject.selectors
  * @param HCaptchaOnboardingObject.selectors.general.antispam
@@ -31,6 +33,7 @@
  * @param HCaptchaOnboardingObject.selectors.general.site_key
  * @param HCaptchaOnboardingObject.selectors.integrations.integrations_list
  * @param HCaptchaOnboardingObject.selectors.integrations.save
+ * @param HCaptchaOnboardingObject.stepNonce
  * @param HCaptchaOnboardingObject.stepParam
  * @param HCaptchaOnboardingObject.steps
  * @param HCaptchaOnboardingObject.updateAction
@@ -121,6 +124,7 @@ const onboarding = function( $ ) {
 	function runAutomaticSetupOnGeneralPage() {
 		const autoSetupUrl = buildUrl( cfg.generalUrl, {
 			[ cfg.autoSetupParam ]: '1',
+			[ cfg.nonceParam ]: cfg.autoSetupNonce,
 		} );
 		const $form = $( '#hcaptcha-options' );
 		const form = $form.get( 0 );
@@ -130,7 +134,7 @@ const onboarding = function( $ ) {
 			if ( window.sessionStorage ) {
 				sessionStorage.setItem( 'hcapOnbAutoSetup', '1' );
 			}
-		} catch ( e ) {
+		} catch {
 			// no-op
 		}
 
@@ -282,7 +286,7 @@ const onboarding = function( $ ) {
 		setTimeout( function() {
 			try {
 				$go.trigger( 'focus' );
-			} catch ( e ) {
+			} catch {
 			}
 		}, 0 );
 	}
@@ -348,7 +352,7 @@ const onboarding = function( $ ) {
 		setTimeout( function() {
 			try {
 				$auto.trigger( 'focus' );
-			} catch ( e ) {
+			} catch {
 				// no-op
 			}
 		}, 0 );
@@ -385,7 +389,7 @@ const onboarding = function( $ ) {
 				}
 
 				return 'https://www.youtube.com/embed/' + encodeURIComponent( id ) + '?autoplay=1&rel=0';
-			} catch ( e ) {
+			} catch {
 				return String( url || '' );
 			}
 		}
@@ -426,7 +430,7 @@ const onboarding = function( $ ) {
 		setTimeout( function() {
 			try {
 				$close.trigger( 'focus' );
-			} catch ( e ) {
+			} catch {
 				// no-op
 			}
 		}, 0 );
@@ -486,7 +490,7 @@ const onboarding = function( $ ) {
 		setTimeout( function() {
 			try {
 				$rate.trigger( 'focus' );
-			} catch ( e ) {
+			} catch {
 				// no-op
 			}
 		}, 0 );
@@ -539,7 +543,7 @@ const onboarding = function( $ ) {
 					$heading.trigger( 'click' );
 				}
 			}
-		} catch ( e ) {
+		} catch {
 			// no-op
 		}
 
@@ -549,7 +553,7 @@ const onboarding = function( $ ) {
 			if ( el && typeof el.scrollIntoView === 'function' ) {
 				el.scrollIntoView( { behavior: 'smooth', block: 'center', inline: 'nearest' } );
 			}
-		} catch ( e ) {
+		} catch {
 			// no-op
 		}
 
@@ -696,6 +700,7 @@ const onboarding = function( $ ) {
 
 		setLocationHref( buildUrl( base, {
 			[ cfg.stepParam ]: n,
+			[ cfg.nonceParam ]: cfg.stepNonce,
 		} ) );
 	}
 
@@ -746,7 +751,7 @@ const onboarding = function( $ ) {
 				if ( window.sessionStorage ) {
 					sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
 				}
-			} catch ( err2 ) {
+			} catch {
 				// no-op
 			}
 		} else if ( n === 8 && cfg.page === 'integrations' ) {
@@ -765,7 +770,7 @@ const onboarding = function( $ ) {
 
 					try {
 						$( '#hcaptcha-options' ).get( 0 ).submit();
-					} catch ( err ) {
+					} catch {
 						// fallback: trigger a click on the `submit` button
 						$( '#hcaptcha-options [type="submit"]' ).first().trigger( 'click' );
 					}
@@ -795,7 +800,7 @@ const onboarding = function( $ ) {
 				setLocationHref( cfg.integrationsUrl );
 			}
 		}
-	} catch ( e ) {
+	} catch {
 	}
 
 	// If we are on General and at step 1, show the Welcome modal first

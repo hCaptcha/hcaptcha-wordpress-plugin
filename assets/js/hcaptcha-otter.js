@@ -12,7 +12,7 @@ const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 					}
 
 					return isAjaxSubmitButton;
-				}
+				},
 			);
 
 			// Install global fetch event wrapper (idempotent).
@@ -47,7 +47,7 @@ const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 
 			try {
 				formData = JSON.parse( formDataRaw );
-			} catch ( e ) {
+			} catch {
 				return;
 			}
 

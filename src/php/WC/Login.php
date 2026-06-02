@@ -31,7 +31,7 @@ class Login extends LoginBase {
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify the login form.
 	 *
 	 * @param WP_Error|mixed $validation_error Validation error.
 	 *
@@ -46,7 +46,13 @@ class Login extends LoginBase {
 			return $validation_error;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $error_message ) {
 			return $validation_error;

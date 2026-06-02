@@ -148,12 +148,12 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'run_checks' );
-		$subject->shouldReceive( 'delete_events' )->with( $args )->andReturn( true );
+		$subject->shouldReceive( 'trash_events' )->with( $args )->andReturn( true );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
 		WP_Mock::userFunction( 'set_transient' )->once()
-			->with( 'hcaptcha_page_base', 'Selected items have been successfully deleted.' );
+			->with( 'hcaptcha_page_base', 'Selected items have been successfully moved to Trash.' );
 		WP_Mock::userFunction( 'wp_send_json_success' )->once()->with();
 
 		$subject->bulk_action();
@@ -172,7 +172,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test bulk_action() with invalid action.
+	 * Test bulk_action() with an invalid action.
 	 *
 	 * @return void
 	 */
@@ -202,11 +202,11 @@ class ListPageBaseTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( ListPageBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'run_checks' );
-		$subject->shouldReceive( 'delete_events' )->with( $args )->andReturn( false );
+		$subject->shouldReceive( 'trash_events' )->with( $args )->andReturn( false );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
-		WP_Mock::userFunction( 'wp_send_json_error' )->once()->with( 'Failed to delete the selected items.' );
+		WP_Mock::userFunction( 'wp_send_json_error' )->once()->with( 'Failed to move the selected items to Trash.' );
 
 		$subject->bulk_action();
 	}
@@ -354,7 +354,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test process_timespan() with empty $_GET.
+	 * Test process_timespan() with an empty $ _ GET.
 	 *
 	 * @return void
 	 */

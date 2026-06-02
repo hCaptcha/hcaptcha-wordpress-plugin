@@ -7,11 +7,14 @@ const defaultOnboardingObject = {
 	ajaxUrl: 'https://test.test/wp-admin/admin-ajax.php',
 	updateAction: 'hcap_onboarding_update',
 	updateNonce: 'nonce',
+	nonceParam: 'hcaptcha_onboarding_nonce',
+	autoSetupNonce: 'auto_setup_nonce',
 	page: 'general',
 	currentStep: 'step 3',
 	generalUrl: 'https://test.test/wp-admin/admin.php?page=hcaptcha',
 	integrationsUrl: 'https://test.test/wp-admin/admin.php?page=hcaptcha-integrations',
 	stepParam: 'onboarding_step',
+	stepNonce: 'step_nonce',
 	autoSetupParam: 'auto-setup',
 	iconAnimatedUrl: 'https://test.test/wp-content/plugins/hcaptcha/assets/images/icon.svg',
 	videoUrl: 'https://youtu.be/khKYehgr8t0',
@@ -183,7 +186,7 @@ describe( 'onboarding.js', () => {
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'step 4' } )
+			expect.objectContaining( { value: 'step 4' } ),
 		);
 		expect( $( '.hcap-onb-tip-text' ).first().text() ).toBe( 'Enable Force (recommended)' );
 		expect( $( '.hcap-onb-panel [data-step="4"]' ).hasClass( 'current' ) ).toBe( true );
@@ -201,7 +204,7 @@ describe( 'onboarding.js', () => {
 		expect( form.submit ).toHaveBeenCalledTimes( 1 );
 		expect( sessionStorage.getItem( 'hcapOnbAutoSetup' ) ).toBe( '1' );
 		expect( $( '[name="_wp_http_referer"]' ).val() ).toBe(
-			'https://test.test/wp-admin/admin.php?page=hcaptcha&auto-setup=1'
+			'https://test.test/wp-admin/admin.php?page=hcaptcha&auto-setup=1&hcaptcha_onboarding_nonce=auto_setup_nonce',
 		);
 	} );
 
@@ -212,12 +215,12 @@ describe( 'onboarding.js', () => {
 				page: 'integrations',
 				currentStep: 'step 8',
 			},
-			getIntegrationsDom()
+			getIntegrationsDom(),
 		);
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'completed' } )
+			expect.objectContaining( { value: 'completed' } ),
 		);
 		expect( document.body.textContent ).toContain( 'Congrats — setup complete!' );
 		expect( sessionStorage.getItem( 'hcapOnbAutoSetup' ) ).toBe( '1' );
@@ -373,7 +376,7 @@ describe( 'onboarding.js', () => {
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'step 4' } )
+			expect.objectContaining( { value: 'step 4' } ),
 		);
 		expect( $( '.hcap-onb-modal-overlay' ).length ).toBe( 0 );
 	} );
@@ -395,7 +398,7 @@ describe( 'onboarding.js', () => {
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'completed' } )
+			expect.objectContaining( { value: 'completed' } ),
 		);
 		expect( $( '.hcap-onb-panel' ).length ).toBe( 0 );
 	} );
@@ -416,6 +419,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-list li[data-step="2"]' ).trigger( 'click' );
 
 		expect( locationHref ).toContain( 'onboarding_step=2' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
 		expect( locationHref ).toContain( 'page=hcaptcha' );
 	} );
 
@@ -424,6 +428,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-list li[data-step="7"]' ).trigger( 'click' );
 
 		expect( locationHref ).toContain( 'onboarding_step=7' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
 		expect( locationHref ).toContain( 'page=hcaptcha-integrations' );
 	} );
 
@@ -443,6 +448,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-list li[data-step="2"]' ).trigger( $.Event( 'keydown', { key: 'Enter' } ) );
 
 		expect( locationHref ).toContain( 'onboarding_step=2' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
 	} );
 
 	test( 'keydown Space on panel step item navigates', () => {
@@ -450,6 +456,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-list li[data-step="2"]' ).trigger( $.Event( 'keydown', { key: ' ' } ) );
 
 		expect( locationHref ).toContain( 'onboarding_step=2' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
 	} );
 
 	test( 'keydown Spacebar on panel step item navigates', () => {
@@ -457,6 +464,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-list li[data-step="2"]' ).trigger( $.Event( 'keydown', { key: 'Spacebar' } ) );
 
 		expect( locationHref ).toContain( 'onboarding_step=2' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
 	} );
 
 	test( 'keydown non-trigger key on panel step does not navigate', () => {
@@ -536,8 +544,8 @@ describe( 'onboarding.js', () => {
 
 		const clickedH3 = triggerSpy.mock.calls.some(
 			( [ event ] ) => event === 'click' && triggerSpy.mock.instances.some(
-				( el ) => el[ 0 ] && el[ 0 ].matches && el[ 0 ].matches( 'h3.closed' )
-			)
+				( el ) => el[ 0 ] && el[ 0 ].matches && el[ 0 ].matches( 'h3.closed' ),
+			),
 		);
 
 		expect( clickedH3 ).toBe( true );
@@ -639,7 +647,7 @@ describe( 'onboarding.js', () => {
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'step 7' } )
+			expect.objectContaining( { value: 'step 7' } ),
 		);
 		expect( locationHref ).toContain( 'page=hcaptcha-integrations' );
 	} );
@@ -700,7 +708,7 @@ describe( 'onboarding.js', () => {
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'step 7' } )
+			expect.objectContaining( { value: 'step 7' } ),
 		);
 		expect( sessionStorage.getItem( 'hcapOnbGoIntegrations' ) ).toBe( '1' );
 	} );
@@ -796,6 +804,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-auto-setup' ).trigger( 'click' );
 
 		expect( locationHref ).toContain( 'auto-setup=1' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=auto_setup_nonce' );
 	} );
 
 	test( 'automatic setup falls back to window.location.href when form element is absent', () => {
@@ -815,6 +824,7 @@ describe( 'onboarding.js', () => {
 		$( '.hcap-onb-auto-setup' ).trigger( 'click' );
 
 		expect( locationHref ).toContain( 'auto-setup=1' );
+		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=auto_setup_nonce' );
 	} );
 
 	// ─── sessionStorage catch in runAutomaticSetupOnGeneralPage ──────────────

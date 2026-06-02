@@ -393,7 +393,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test import_settings() returns error for empty payload.
+	 * Test import_settings() returns an error for an empty payload.
 	 */
 	public function test_import_settings_invalid_payload(): void {
 		$subject = new Abilities();
@@ -684,7 +684,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		self::assertSame( 'low', $method->invoke( $subject, 0, 0, 0.0 ) );
 		self::assertSame( 'low', $method->invoke( $subject, 19, 19, 1.0 ) );
 
-		// High likelihood threshold (inclusive).
+		// High-likelihood threshold (inclusive).
 		self::assertSame( 'high', $method->invoke( $subject, 20, 10, 0.50 ) );
 
 		// Medium likelihood threshold (inclusive).
@@ -717,7 +717,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		self::assertSame( 'medium', $method->invoke( $subject, 100 ) );
 		self::assertSame( 'low', $method->invoke( $subject, 99 ) );
 
-		// Low confidence fallback.
+		// Low-confidence fallback.
 		self::assertSame( 'low', $method->invoke( $subject, 0 ) );
 
 		$this->set_method_accessibility( $subject, 'calculate_confidence', false );
@@ -734,6 +734,9 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 
 		$subject = new Abilities();
 		$saved   = $wpdb;
+
+		update_option( 'hcaptcha_versions', [ '5.0.0' => time() ] );
+		wp_cache_set( 'hcaptcha_versions', [ '5.0.0' => time() ], 'options' );
 
 		$mock         = Mockery::mock( 'wpdb' );
 		$mock->prefix = $saved->prefix ?? 'wp_';

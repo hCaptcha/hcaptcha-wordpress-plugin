@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Admin;
 
+use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\General;
@@ -41,40 +42,53 @@ abstract class NotificationsBase {
 			$utm_sk  = $utm . 'sk';
 			$utm_not = $utm . 'not';
 
-			$urls['general']              = $settings->tab_url( General::class );
-			$urls['integrations']         = $settings->tab_url( Integrations::class );
-			$urls['forms']                = $settings->tab_url( FormsPage::class );
-			$urls['events']               = $settings->tab_url( EventsPage::class );
-			$urls['tools']                = $settings->tab_url( Tools::class );
-			$urls['hcaptcha']             = 'https://www.hcaptcha.com' . $utm_sk;
-			$urls['register']             = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
-			$urls['pro']                  = 'https://www.hcaptcha.com/pro' . $utm_not;
-			$urls['dashboard']            = 'https://dashboard.hcaptcha.com' . $utm_not;
-			$urls['post_leadership']      = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
-			$urls['rate']                 = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post';
-			$urls['search_integrations']  = $urls['integrations'] . '#hcaptcha-integrations-search';
-			$urls['enterprise_features']  = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
-			$urls['statistics']           = $urls['general'] . '#statistics_1';
-			$urls['force']                = $urls['general'] . '#force_1';
-			$urls['elementor_edit_form']  = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
-			$urls['size']                 = $urls['general'] . '#size';
-			$urls['passive_mode_demo']    = HCAPTCHA_URL . '/assets/images/demo/passive-mode.gif';
-			$urls['protect_content']      = $urls['general'] . '#protect_content_1';
-			$urls['protect_content_demo'] = HCAPTCHA_URL . '/assets/images/demo/protect-content.gif';
-			$urls['antispam']             = $urls['general'] . '#antispam_1';
-			$urls['antispam_demo']        = HCAPTCHA_URL . '/assets/images/demo/antispam.gif';
-			$urls['token']                = $urls['general'] . '#set_min_submit_time_1';
-			$urls['honeypot']             = $urls['general'] . '#honeypot_1';
-			$urls['honeypot_demo']        = HCAPTCHA_URL . '/assets/images/demo/honeypot.png';
-			$urls['onboarding']           = $urls['general'] . '&onboarding';
-			$urls['onboarding_demo']      = HCAPTCHA_URL . '/assets/images/demo/onboarding.gif';
-			$urls['ai_abilities']         = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F';
-			$urls['ai_abilities_img']     = HCAPTCHA_URL . '/assets/images/ai-abilities.png';
-			$urls['export_import_img']    = HCAPTCHA_URL . '/assets/images/export-import.png';
-			$urls['country_access']       = $urls['general'] . '#blacklisted_countries';
-			$urls['country_access_img']   = HCAPTCHA_URL . '/assets/images/country-access.png';
-			$urls['migration_wizard']     = $urls['tools'] . '#hcaptcha-migration-wizard';
-			$urls['migration_wizard_img'] = HCAPTCHA_URL . '/assets/images/migration-wizard.png';
+			$urls['general']                = $settings->tab_url( General::class );
+			$urls['anti_spam_page']         = $settings->tab_url( AntiSpamPage::class );
+			$urls['integrations']           = $settings->tab_url( Integrations::class );
+			$urls['forms']                  = $settings->tab_url( FormsPage::class );
+			$urls['events']                 = $settings->tab_url( EventsPage::class );
+			$urls['tools']                  = $settings->tab_url( Tools::class );
+			$urls['hcaptcha']               = 'https://www.hcaptcha.com' . $utm_sk;
+			$urls['register']               = 'https://www.hcaptcha.com/signup-interstitial' . $utm_sk;
+			$urls['pro']                    = 'https://www.hcaptcha.com/pro' . $utm_not;
+			$urls['dashboard']              = 'https://dashboard.hcaptcha.com' . $utm_not;
+			$urls['post_leadership']        = 'https://www.hcaptcha.com/post/hcaptcha-named-a-technology-leader-in-bot-management' . $utm_not;
+			$urls['rate']                   = 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post';
+			$urls['search_integrations']    = $urls['integrations'] . '#hcaptcha-integrations-search';
+			$urls['enterprise_features']    = 'https://www.hcaptcha.com/#enterprise-features' . $utm_not;
+			$urls['statistics']             = $urls['general'] . '#statistics_1';
+			$urls['force']                  = $urls['general'] . '#force_1';
+			$urls['elementor_edit_form']    = HCAPTCHA_URL . '/assets/images/elementor-edit-form.png';
+			$urls['size']                   = $urls['general'] . '#size';
+			$urls['passive_mode_demo']      = HCAPTCHA_URL . '/assets/images/demo/passive-mode.gif';
+			$urls['protect_content']        = $urls['general'] . '#protect_content_1';
+			$urls['protect_content_demo']   = HCAPTCHA_URL . '/assets/images/demo/protect-content.gif';
+			$urls['antispam']               = $urls['general'] . '#antispam_1';
+			$urls['antispam_demo']          = HCAPTCHA_URL . '/assets/images/demo/antispam.gif';
+			$urls['token']                  = $urls['general'] . '#set_min_submit_time_1';
+			$urls['honeypot']               = $urls['general'] . '#honeypot_1';
+			$urls['honeypot_demo']          = HCAPTCHA_URL . '/assets/images/demo/honeypot.png';
+			$urls['onboarding']             = add_query_arg(
+				[
+					OnboardingWizard::STEP_PARAM  => 1,
+					OnboardingWizard::NONCE_PARAM => wp_create_nonce( OnboardingWizard::STEP_ACTION ),
+				],
+				$urls['general']
+			);
+			$urls['onboarding_demo']        = HCAPTCHA_URL . '/assets/images/demo/onboarding.gif';
+			$urls['ai_abilities']           = 'https://wordpress.org/plugins/hcaptcha-for-forms-and-more/#how%20do%20i%20use%20the%20new%20ai%20/%20abilities%20features%3F';
+			$urls['ai_abilities_img']       = HCAPTCHA_URL . '/assets/images/ai-abilities.png';
+			$urls['export_import_img']      = HCAPTCHA_URL . '/assets/images/export-import.png';
+			$urls['country_access']         = $urls['general'] . '#blacklisted_countries';
+			$urls['country_access_img']     = HCAPTCHA_URL . '/assets/images/country-access.png';
+			$urls['migration_wizard']       = $urls['tools'] . '#hcaptcha-migration-wizard';
+			$urls['migration_wizard_img']   = HCAPTCHA_URL . '/assets/images/migration-wizard.png';
+			$urls['trusted_ip_headers']     = $urls['anti_spam_page'] . '#trusted_address_headers';
+			$urls['trusted_ip_headers_img'] = HCAPTCHA_URL . '/assets/images/trusted-ip-headers.png';
+			$urls['forms_events_trash']     = $urls['forms'];
+			$urls['forms_events_trash_img'] = HCAPTCHA_URL . '/assets/images/forms-events-trash.png';
+			$urls['paypal_payments']        = $urls['integrations'] . '#paypal_payments_status_1';
+			$urls['paypal_payments_img']    = HCAPTCHA_URL . '/assets/images/woocommerce-paypal-payments.png';
 		}
 
 		return $urls;

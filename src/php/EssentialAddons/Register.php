@@ -50,6 +50,8 @@ class Register {
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
+
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 	}
 
 	/**
@@ -64,10 +66,7 @@ class Register {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -98,5 +97,17 @@ class Register {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'register',
+		];
 	}
 }

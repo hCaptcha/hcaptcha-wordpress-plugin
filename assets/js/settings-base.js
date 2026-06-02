@@ -23,14 +23,14 @@ const settingsBase = ( function( $ ) {
 	 * @type {HTMLElement}
 	 */
 	const tabs = document.querySelector( '.hcaptcha-settings-tabs' );
+	const headerBarSelector = '.hcaptcha-header-bar';
 
 	/**
 	 * @type {HTMLElement}
 	 */
-	const headerBar = document.querySelector( '.hcaptcha-header-bar' );
+	const headerBar = document.querySelector( headerBarSelector );
 
 	const h2Selector = '.hcaptcha-header h2';
-	const headerBarSelector = '.hcaptcha-header-bar';
 	const msgSelector = '#hcaptcha-message';
 	let $message = $( msgSelector );
 
@@ -55,20 +55,14 @@ const settingsBase = ( function( $ ) {
 	}
 
 	/**
-	 * Highlight the element if a hash is present in the URL.
+	 * Get highlighted element by hash.
+	 *
+	 * @param {string} hash URL hash without a leading #.
+	 * @return {HTMLElement|null} Highlighted element.
 	 */
-	function highLight() {
-		const url = window.location.href;
-		const referrer = document.referrer;
-
-		if ( ! referrer || referrer === url ) {
-			return;
-		}
-
-		const hash = window.location.hash.slice( 1 );
-
+	function getHighlightElement( hash ) {
 		if ( ! hash ) {
-			return;
+			return null;
 		}
 
 		// Try to find by id.
@@ -79,10 +73,82 @@ const settingsBase = ( function( $ ) {
 		}
 
 		if ( ! element ) {
+			return null;
+		}
+
+		return element;
+	}
+
+	/**
+	 * Highlight the element by hash.
+	 *
+	 * @param {string} hash URL hash without a leading #.
+	 */
+	function highlightHash( hash ) {
+		const element = getHighlightElement( hash );
+
+		if ( ! element ) {
 			return;
 		}
 
 		app.highlightElement( element );
+	}
+
+	/**
+	 * Highlight the element if a hash is present in the URL.
+	 */
+	function highLight() {
+		const url = window.location.href;
+		const referrer = document.referrer;
+
+		if ( ! referrer || referrer === url ) {
+			return;
+		}
+
+		highlightHash( window.location.hash.slice( 1 ) );
+	}
+
+	/**
+	 * Setup same-page hash links.
+	 */
+	function setupHashLinks() {
+		$( document ).on( 'click', 'a[href*="#"]', function( event ) {
+			const href = this.getAttribute( 'href' );
+
+			if ( ! href || '#' === href ) {
+				return;
+			}
+
+			const targetUrl = new URL( href, window.location.href );
+			const currentUrl = new URL( window.location.href );
+
+			if (
+				targetUrl.origin !== currentUrl.origin ||
+				targetUrl.pathname !== currentUrl.pathname ||
+				targetUrl.search !== currentUrl.search ||
+				! targetUrl.hash
+			) {
+				return;
+			}
+
+			const element = getHighlightElement( targetUrl.hash.slice( 1 ) );
+
+			if ( ! element ) {
+				return;
+			}
+
+			event.preventDefault();
+
+			if ( window.location.hash !== targetUrl.hash ) {
+				window.history.pushState( null, '', targetUrl.hash );
+			}
+
+			app.highlightElement( element );
+		} );
+
+		window.addEventListener( 'hashchange', function() {
+			highlightHash( window.location.hash.slice( 1 ) );
+		} );
 	}
 
 	/**
@@ -122,7 +188,7 @@ const settingsBase = ( function( $ ) {
 		clearMessage() {
 			$message.remove();
 			// Concat below to avoid an inspection message.
-			$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( headerBarSelector );
+			$( '<div id="hcaptcha-message">' + '</div>' ).insertAfter( '#hcaptcha-admin-notices' );
 			$message = $( msgSelector );
 		},
 
@@ -272,6 +338,8 @@ const settingsBase = ( function( $ ) {
 	setHeaderBarTop();
 
 	highLight();
+
+	setupHashLinks();
 
 	setupLightBox();
 

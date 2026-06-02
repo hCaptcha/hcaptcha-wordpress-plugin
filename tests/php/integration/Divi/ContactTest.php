@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\Divi;
 
 use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
 use HCaptcha\Divi\Contact;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
 use stdClass;
@@ -27,21 +28,21 @@ class ContactTest extends HCaptchaWPTestCase {
 	 *
 	 * @var string
 	 */
-	private $cf_nonce_field = '_wpnonce-et-pb-contact-form-submitted-0';
+	private string $cf_nonce_field = '_wpnonce-et-pb-contact-form-submitted-0';
 
 	/**
 	 * Contact form submit field.
 	 *
 	 * @var string
 	 */
-	private $submit_field = 'et_pb_contactform_submit_0';
+	private string $submit_field = 'et_pb_contactform_submit_0';
 
 	/**
 	 * Contact form current form field.
 	 *
 	 * @var string
 	 */
-	private $current_form_field = 'et_pb_contact_email_fields_0';
+	private string $current_form_field = 'et_pb_contact_email_fields_0';
 
 	/**
 	 * Tear down the test.
@@ -284,6 +285,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$expected_current_form_fields       = '[{\"field_id\":\"et_pb_contact_name_0\",\"original_id\":\"name\",\"required_mark\":\"required\",\"field_type\":\"input\",\"field_label\":\"Name\"},{\"field_id\":\"et_pb_contact_email_0\",\"original_id\":\"email\",\"required_mark\":\"required\",\"field_type\":\"email\",\"field_label\":\"Email Address\"},{\"field_id\":\"et_pb_contact_message_0\",\"original_id\":\"message\",\"required_mark\":\"required\",\"field_type\":\"text\",\"field_label\":\"Message\"},{\"field_id\":\"et_pb_contact_some_0\",\"original_id\":\"some\",\"required_mark\":\"required\",\"field_type\":\"some\",\"field_label\":\"Some\"}]';
 
 		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+		$this->prepare_widget_id();
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -345,6 +347,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$expected_current_form_fields       = '[{\"field_id\":\"et_pb_contact_name_0\",\"original_id\":\"name\",\"required_mark\":\"required\",\"field_type\":\"input\",\"field_label\":\"Name\"},{\"field_id\":\"et_pb_contact_email_0\",\"original_id\":\"email\",\"required_mark\":\"required\",\"field_type\":\"email\",\"field_label\":\"Email Address\"},{\"field_id\":\"et_pb_contact_message_0\",\"original_id\":\"message\",\"required_mark\":\"required\",\"field_type\":\"text\",\"field_label\":\"Message\"}]';
 
 		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf', false );
+		$this->prepare_widget_id();
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -388,6 +391,60 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify_4() with bad widget id.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_4_bad_widget_id(): void {
+		$return = 'some html';
+		$tag    = 'et_pb_contact_form';
+
+		$nonce                          = wp_create_nonce( 'et-pb-contact-form-submit' );
+		$_POST[ $this->cf_nonce_field ] = $nonce;
+		$_POST[ $this->submit_field ]   = 'submit';
+
+		$current_form_fields                = '[{&#34;field_id&#34;:&#34;et_pb_contact_name_0&#34;,&#34;original_id&#34;:&#34;name&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;input&#34;,&#34;field_label&#34;:&#34;Name&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_email_0&#34;,&#34;original_id&#34;:&#34;email&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;email&#34;,&#34;field_label&#34;:&#34;Email Address&#34;},{&#34;field_id&#34;:&#34;et_pb_contact_message_0&#34;,&#34;original_id&#34;:&#34;message&#34;,&#34;required_mark&#34;:&#34;required&#34;,&#34;field_type&#34;:&#34;text&#34;,&#34;field_label&#34;:&#34;Message&#34;}]';
+		$_POST[ $this->current_form_field ] = $current_form_fields;
+
+		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'contact',
+			]
+		);
+
+		FunctionMocker::replace(
+			'filter_input',
+			function ( $type, $var_name, $filter ) use ( $nonce, $current_form_fields ) {
+				if (
+					INPUT_POST === $type &&
+					$this->cf_nonce_field === $var_name &&
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
+				) {
+					return $nonce;
+				}
+
+				if (
+					INPUT_POST === $type &&
+					$this->current_form_field === $var_name &&
+					FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter
+				) {
+					return $current_form_fields;
+				}
+
+				return null;
+			}
+		);
+
+		$subject = new Contact();
+
+		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
+		self::assertEquals( $return, $subject->verify_4( $return, $tag, [], [] ) );
+		self::assertSame( 'on', $this->get_protected_property( $subject, 'captcha' ) );
+	}
+
+	/**
 	 * Test verify_4() with the wrong tag.
 	 */
 	public function test_verify_4_wrong_tag(): void {
@@ -413,6 +470,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$_POST[ $this->current_form_field ] = $current_form_fields;
 
 		$this->prepare_verify_post_html( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf', false );
+		$this->prepare_widget_id();
 
 		FunctionMocker::replace(
 			'filter_input',
@@ -632,5 +690,21 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'Divi' ],
+			'form_id' => 'contact',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

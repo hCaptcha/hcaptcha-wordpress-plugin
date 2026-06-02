@@ -3323,6 +3323,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					$page_title				</h2>
 			</div>
 					</div>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
 		
 HTML;
 

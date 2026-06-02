@@ -208,6 +208,14 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Open wizard',
 				],
 			],
+			'trusted-ip-headers'  => [
+				'title'   => 'Trusted IP Headers',
+				'message' => 'Choose which proxy or CDN IP headers hCaptcha can trust in <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=antispampage#trusted_address_headers" target="_blank">Anti-Spam settings</a>.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=antispampage#trusted_address_headers',
+					'text' => 'Review headers',
+				],
+			],
 		];
 
 		switch ( $setting ) {

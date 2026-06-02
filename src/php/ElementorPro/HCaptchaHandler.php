@@ -396,7 +396,6 @@ class HCaptchaHandler {
 	 * @param Widget_Base $widget     Widget.
 	 *
 	 * @return void
-	 * @noinspection PhpPossiblePolymorphicInvocationInspection
 	 */
 	public function render_field( array $item, int $item_index, Widget_Base $widget ): void {
 		$hcaptcha_html = '<div class="elementor-field" id="form-field-' . esc_html( $item['custom_id'] ) . '">';
@@ -407,10 +406,7 @@ class HCaptchaHandler {
 		$form_id = $data['settings']['form_id'] ?? 0;
 
 		$args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form_id,
-			],
+			'id' => $this->get_expected_id( $form_id ),
 		];
 
 		$hcaptcha_html .=
@@ -597,11 +593,12 @@ class HCaptchaHandler {
 	 */
 	private function get_entry( Form_Record $record ): array {
 		$form_settings = $record->get( 'form_settings' );
-		$form_id       = (int) ( $form_settings['form_post_id'] ?? 0 );
-		$post          = get_post( $form_id );
+		$form_post_id  = (int) ( $form_settings['form_post_id'] ?? 0 );
+		$post          = get_post( $form_post_id );
 		$sent_data     = $record->get( 'sent_data' );
 		$entry         = [
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
+			'expected_id'   => $this->get_expected_id( $form_settings['form_id'] ?? 0 ),
 			'data'          => $sent_data,
 		];
 
@@ -617,5 +614,19 @@ class HCaptchaHandler {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 }

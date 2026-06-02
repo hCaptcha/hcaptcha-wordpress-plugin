@@ -218,6 +218,22 @@ body.settings_page_hcaptcha {
 	color: #fff;
 }
 
+#hcaptcha-options p.description {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 8px 0 0;
+	padding: 8px 10px;
+	border-inline-start: 4px solid #99a6bb;
+	background: #f9f9f9;
+	color: #5c6f8a;
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+#hcaptcha-options p.description a {
+	white-space: nowrap;
+}
+
 #hcaptcha-message {
 	display: flex;
 	align-items: center;

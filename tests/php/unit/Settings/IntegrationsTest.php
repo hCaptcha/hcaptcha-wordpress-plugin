@@ -362,6 +362,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'get' )->with( 'paypal_payments_status' )->andReturn( [] );
 		$subject->shouldReceive( 'plugin_or_theme_installed' )
 			->with( 'woocommerce/woocommerce.php' )->andReturn( true );
 		$subject->shouldReceive( 'plugin_or_theme_installed' )
@@ -515,8 +516,11 @@ class IntegrationsTest extends HCaptchaTestCase {
 					Integrations				</h2>
 			</div>
 					</div>
-						<div id="hcaptcha-message"></div>
-				<p>
+
+		<div id="hcaptcha-admin-notices">
+					</div>
+		<div id="hcaptcha-message"></div>
+						<p>
 					Manage integrations with popular plugins and themes such as Contact Form 7, Elementor Pro, WPForms, and more.				</p>
 				<p>
 					You can activate and deactivate a plugin or theme by clicking on its logo.				</p>

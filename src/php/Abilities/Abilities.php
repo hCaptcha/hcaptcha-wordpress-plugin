@@ -699,35 +699,16 @@ class Abilities {
 			],
 		];
 
-		$table_name = $wpdb->prefix . Events::TABLE_NAME;
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$total = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $table_name WHERE date_gmt BETWEEN %s AND %s",
-				$from_gmt,
-				$to_gmt
-			)
-		);
+		$table_name         = $wpdb->prefix . Events::TABLE_NAME;
+		$trash_schema_ready = Events::is_trash_schema_ready();
+		$total              = $this->get_threats_total( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
 
 		if ( null === $total ) {
 			return $empty;
 		}
 
 		$total = (int) $total;
-
-		$rows = (array) $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT source, form_id, ip, user_agent, error_codes
-						FROM $table_name
-						WHERE date_gmt BETWEEN %s AND %s
-							AND error_codes <> %s",
-				$from_gmt,
-				$to_gmt,
-				'[]'
-			)
-		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows  = $this->get_threats_failed_rows( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
 
 		$failed_count = count( $rows );
 		$fail_rate    = $total > 0 ? ( $failed_count / $total ) : 0.0;
@@ -803,6 +784,94 @@ class Abilities {
 				'offenders' => $offenders,
 			],
 		];
+	}
+
+	/**
+	 * Get total threats count.
+	 *
+	 * @param string $table_name         Events table name.
+	 * @param string $from_gmt           From date (UTC), `Y-m-d H:i:s`.
+	 * @param string $to_gmt             To date (UTC), `Y-m-d H:i:s`.
+	 * @param bool   $trash_schema_ready Whether the Events table has the Trash Folder schema.
+	 *
+	 * @return null|string
+	 */
+	private function get_threats_total( string $table_name, string $from_gmt, string $to_gmt, bool $trash_schema_ready ): ?string {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( $trash_schema_ready ) {
+			return $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM $table_name WHERE date_gmt BETWEEN %s AND %s AND status = %s",
+					$from_gmt,
+					$to_gmt,
+					Events::STATUS_ACTIVE
+				)
+			);
+		}
+
+		return $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM $table_name WHERE date_gmt BETWEEN %s AND %s",
+				$from_gmt,
+				$to_gmt
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
+	 * Get failed threat rows.
+	 *
+	 * @param string $table_name         Events table name.
+	 * @param string $from_gmt           From date (UTC), `Y-m-d H:i:s`.
+	 * @param string $to_gmt             To date (UTC), `Y-m-d H:i:s`.
+	 * @param bool   $trash_schema_ready Whether the Events table has the Trash Folder schema.
+	 *
+	 * @return array
+	 */
+	private function get_threats_failed_rows(
+		string $table_name,
+		string $from_gmt,
+		string $to_gmt,
+		bool $trash_schema_ready
+	): array {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( $trash_schema_ready ) {
+			return (array) $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT source, form_id, ip, user_agent, error_codes
+							FROM $table_name
+							WHERE date_gmt BETWEEN %s AND %s
+								AND error_codes <> %s
+								AND status = %s",
+					$from_gmt,
+					$to_gmt,
+					'[]',
+					Events::STATUS_ACTIVE
+				)
+			);
+		}
+
+		return (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT source, form_id, ip, user_agent, error_codes
+						FROM $table_name
+						WHERE date_gmt BETWEEN %s AND %s
+							AND error_codes <> %s",
+				$from_gmt,
+				$to_gmt,
+				'[]'
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
 	/**

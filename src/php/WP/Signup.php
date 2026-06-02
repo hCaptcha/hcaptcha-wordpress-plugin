@@ -79,10 +79,7 @@ class Signup {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'signup',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form( $args );
@@ -117,7 +114,13 @@ class Signup {
 
 		$result['errors'] = is_wp_error( $result['errors'] ) ? $result['errors'] : new WP_Error();
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		if ( null === $this->error_message ) {
 			return $result;
@@ -139,5 +142,17 @@ class Signup {
 		}
 
 		return '<p class="error" id="wp-signup-hcaptcha-error">' . $this->error_message . '</p>';
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'signup',
+		];
 	}
 }

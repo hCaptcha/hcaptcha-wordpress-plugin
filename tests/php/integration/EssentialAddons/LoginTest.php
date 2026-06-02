@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\EssentialAddons;
 
 use HCaptcha\EssentialAddons\Login;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use Essential_Addons_Elementor\Classes\Bootstrap;
@@ -67,6 +68,8 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_action( 'eael/login-register/before-login', [ $subject, 'verify' ] ) );
 
 		self::assertSame( 0, has_filter( 'hcap_print_hcaptcha_scripts', [ $subject, 'print_hcaptcha_scripts' ] ) );
+
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
 	}
 
 	/**
@@ -108,7 +111,8 @@ class LoginTest extends HCaptchaWPTestCase {
 		$settings  = [ 'some Elementor widget settings' ];
 		$bootstrap = Mockery::mock( Bootstrap::class );
 
-		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login_data' );
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id();
 
 		$subject = new Login();
 
@@ -116,7 +120,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() when login limit is not exceeded.
+	 * Test verify() when the login limit is not exceeded.
 	 *
 	 * @return void
 	 */
@@ -164,8 +168,14 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$this->prepare_verify_post(
 			'hcaptcha_login_nonce',
-			'hcaptcha_login_data',
+			'hcaptcha_login',
 			false
+		);
+		$this->prepare_widget_id(
+			[
+				'source'  => [],
+				'form_id' => 'login',
+			]
 		);
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -218,5 +228,82 @@ class LoginTest extends HCaptchaWPTestCase {
 			[ false ],
 			[ true ],
 		];
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @return void
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$post          = [ 'some post data' ];
+		$settings      = [ 'some Elementor widget settings' ];
+		$bootstrap     = Mockery::mock( Bootstrap::class );
+		$widget_id     = 'some_id';
+		$error_message = 'Bad hCaptcha signature!';
+		$die_arr       = [];
+		$setcookie     = [];
+		$expected      = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$_POST['widget_id'] = $widget_id;
+
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'login',
+			]
+		);
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		FunctionMocker::replace(
+			'setcookie',
+			static function ( $name, $value ) use ( &$setcookie ) {
+				$setcookie = [ $name, $value ];
+			}
+		);
+
+		$subject = new Login();
+
+		ob_start();
+		$subject->verify( $post, $settings, $bootstrap );
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame( '{"success":false,"data":"' . $error_message . '"}', $json );
+		self::assertSame( 'eael_login_error_' . $widget_id, $setcookie[0] );
+		self::assertSame( $error_message, $setcookie[1] );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [
+				'essential-addons-elementor/essential_adons_elementor.php',
+				'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+			],
+			'form_id' => 'login',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

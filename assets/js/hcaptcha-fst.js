@@ -53,7 +53,7 @@ const fst = window.hCaptchaFST || ( function( document ) {
 					if ( res.ok && body?.success ) {
 						token = body?.data?.token ?? '';
 					}
-				} catch ( error ) {
+				} catch {
 					// Intentionally leave the token empty on any error.
 				}
 

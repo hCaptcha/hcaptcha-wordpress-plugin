@@ -145,10 +145,6 @@ class FormsPage extends ListPageBase {
 	public function section_callback( array $arguments ): void {
 		$this->print_header();
 
-		?>
-		<div id="hcaptcha-message"></div>
-		<?php
-
 		if ( ! $this->allowed ) {
 			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
 
@@ -196,6 +192,7 @@ class FormsPage extends ListPageBase {
 		</div>
 		<div id="hcaptcha-forms-wrap">
 			<?php
+			$this->list_table->views();
 			$this->list_table->display();
 			?>
 		</div>
@@ -229,7 +226,37 @@ class FormsPage extends ListPageBase {
 	}
 
 	/**
-	 * Delete hCaptcha events by forms.
+	 * Move hCaptcha events by forms to Trash.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	protected function trash_events( array $args ): bool {
+		if ( ! Events::is_trash_schema_ready() ) {
+			return false;
+		}
+
+		return $this->update_events_status( $args, Events::STATUS_TRASH, Events::STATUS_ACTIVE );
+	}
+
+	/**
+	 * Restore hCaptcha events by forms from Trash.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return bool
+	 */
+	protected function restore_events( array $args ): bool {
+		if ( ! Events::is_trash_schema_ready() ) {
+			return false;
+		}
+
+		return $this->update_events_status( $args, Events::STATUS_ACTIVE, Events::STATUS_TRASH );
+	}
+
+	/**
+	 * Delete hCaptcha events by forms permanently.
 	 *
 	 * @param array $args Arguments.
 	 *
@@ -238,17 +265,90 @@ class FormsPage extends ListPageBase {
 	protected function delete_events( array $args ): bool {
 		global $wpdb;
 
+		if ( ! Events::is_trash_schema_ready() ) {
+			return false;
+		}
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$where      = $this->get_forms_where_clause( $args, Events::STATUS_TRASH );
+
+		if ( ! $where ) {
+			return false;
+		}
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$result = $wpdb->query( "DELETE FROM $table_name WHERE $where" );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		return (bool) $result;
+	}
+
+	/**
+	 * Update hCaptcha event status by forms.
+	 *
+	 * @param array  $args        Arguments.
+	 * @param string $status      New status.
+	 * @param string $from_status Current status.
+	 *
+	 * @return bool
+	 */
+	private function update_events_status( array $args, string $status, string $from_status ): bool {
+		global $wpdb;
+
+		$table_name     = $wpdb->prefix . Events::TABLE_NAME;
+		$where          = $this->get_forms_where_clause( $args, $from_status );
+		$trashed_at_gmt = Events::STATUS_TRASH === $status ? current_time( 'mysql', true ) : null;
+
+		if ( ! $where ) {
+			return false;
+		}
+
+		if ( null === $trashed_at_gmt ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$result = $wpdb->query(
+				$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"UPDATE $table_name SET status = %s, trashed_at_gmt = NULL WHERE $where",
+					$status
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$result = $wpdb->query(
+				$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"UPDATE $table_name SET status = %s, trashed_at_gmt = %s WHERE $where",
+					$status,
+					$trashed_at_gmt
+				)
+			);
+		}
+
+		return (bool) $result;
+	}
+
+	/**
+	 * Get forms WHERE clause.
+	 *
+	 * @param array  $args   Arguments.
+	 * @param string $status Status.
+	 *
+	 * @return string
+	 */
+	private function get_forms_where_clause( array $args, string $status ): string {
+		global $wpdb;
+
 		$ids   = $args['ids'] ?? [];
 		$dates = $args['dates'] ?? [];
 		$dates = $dates ?: Events::get_default_dates();
 		$dates = Events::prepare_gmt_dates( $dates );
 
-		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 		$conditions = [];
 		$values     = [];
 
 		if ( ! $ids ) {
-			return false;
+			return '';
 		}
 
 		foreach ( $ids as $item ) {
@@ -258,18 +358,14 @@ class FormsPage extends ListPageBase {
 		}
 
 		$where_clause = implode( ' OR ', $conditions );
-		$where_clause = "($where_clause) AND date_gmt BETWEEN %s AND %s";
+		$where_clause = "($where_clause) AND date_gmt BETWEEN %s AND %s AND status = %s";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$result = $wpdb->query(
-			$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-				"DELETE FROM $table_name WHERE $where_clause",
-				...$values,
-				...$dates
-			)
+		$prepare_values = array_merge( $values, $dates, [ $status ] );
+
+		return $wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$where_clause,
+			...$prepare_values
 		);
-
-		return (bool) $result;
 	}
 }

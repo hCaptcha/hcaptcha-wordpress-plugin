@@ -69,16 +69,20 @@ class PluginStats {
 	/**
 	 * Send plugin statistics.
 	 *
+	 * @param bool $force_send Whether to force sending stats. Default is false.
+	 *
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
-	public function send_plugin_stats(): void {
+	public function send_plugin_stats( bool $force_send = false ): void {
+		$allow = $force_send || hcaptcha()->settings()->is_on( 'statistics' );
+
 		/**
 		 * Allow sending plugin statistics.
 		 *
 		 * @param bool $allow Allow sending plugin statistics.
 		 */
-		$allow = (bool) apply_filters( 'hcap_allow_send_plugin_stats', true );
+		$allow = (bool) apply_filters( 'hcap_allow_send_plugin_stats', $allow );
 
 		if ( ! $allow ) {
 			return;

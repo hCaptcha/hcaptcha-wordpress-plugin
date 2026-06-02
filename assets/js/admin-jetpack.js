@@ -24,7 +24,7 @@ const jetpack = window.hCaptchaJetpack || ( function( document, window, wp ) {
 				'hcaptcha',
 				( formSelector ) => {
 					return formSelector + ', div.jetpack-contact-form';
-				}
+				},
 			);
 		},
 

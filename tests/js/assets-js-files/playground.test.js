@@ -1,7 +1,5 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-/* eslint-disable no-unused-vars */
-
 import $ from 'jquery';
 
 global.jQuery = $;

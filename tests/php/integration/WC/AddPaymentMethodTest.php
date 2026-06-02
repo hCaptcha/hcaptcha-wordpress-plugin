@@ -5,8 +5,12 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedFunctionInspection */
+
 namespace HCaptcha\Tests\Integration\WC;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\AddPaymentMethod;
 
@@ -107,6 +111,7 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_wc_add_payment_method_nonce', 'hcaptcha_wc_add_payment_method' );
+		$this->prepare_widget_id();
 
 		$subject = new AddPaymentMethod();
 
@@ -131,6 +136,7 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_wc_add_payment_method_nonce', 'hcaptcha_wc_add_payment_method', false );
+		$this->prepare_widget_id();
 
 		$subject = new AddPaymentMethod();
 
@@ -139,5 +145,49 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 
 		self::assertFalse( $subject->verify( true ) );
 		self::assertSame( $expected, wc_get_notices() );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$expected = [
+			'error' => [
+				[
+					'notice' => 'Bad hCaptcha signature!',
+					'data'   => [],
+				],
+			],
+		];
+
+		$this->prepare_verify_post( 'hcaptcha_wc_add_payment_method_nonce', 'hcaptcha_wc_add_payment_method' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'add_payment_method',
+			]
+		);
+
+		$subject = new AddPaymentMethod();
+
+		WC()->init();
+		wc_clear_notices();
+
+		self::assertFalse( $subject->verify( true ) );
+		self::assertSame( $expected, wc_get_notices() );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'woocommerce/woocommerce.php' ],
+			'form_id' => 'add_payment_method',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

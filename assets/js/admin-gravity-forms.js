@@ -68,7 +68,7 @@ const gravityForms = window.hCaptchaGravityForms || ( function( document, window
 					}
 
 					return value;
-				}
+				},
 			);
 		},
 
@@ -121,7 +121,7 @@ const gravityForms = window.hCaptchaGravityForms || ( function( document, window
 					'<fieldset class="gform-settings-panel gform-settings-panel--full gform-settings-panel--with-title">' +
 					legend +
 					panel +
-					'</fieldset>'
+					'</fieldset>',
 				);
 
 				$( '.gform-settings__content' ).html( tabSettings ); // Update the content.

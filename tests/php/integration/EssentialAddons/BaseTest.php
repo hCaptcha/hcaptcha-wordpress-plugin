@@ -32,6 +32,8 @@ class BaseTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		unset( $_GET['elementor-preview'] );
 
+		hcaptcha()->form_shown = false;
+
 		parent::tearDown();
 	}
 
@@ -52,5 +54,33 @@ class BaseTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( $subject->print_hcaptcha_scripts( false ) );
 		self::assertTrue( $subject->print_hcaptcha_scripts( true ) );
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_scripts(): void {
+		$subject = Mockery::mock( Base::class );
+
+		$subject->makePartial();
+
+		hcaptcha()->form_shown = false;
+
+		$subject->enqueue_scripts();
+
+		self::assertFalse( wp_script_is( 'hcaptcha-essential-addons' ) );
+
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( 'hcaptcha-essential-addons' ) );
+
+		$script = wp_scripts()->registered['hcaptcha-essential-addons'];
+
+		self::assertSame( HCAPTCHA_URL . '/assets/js/hcaptcha-essential-addons.min.js', $script->src );
+		self::assertSame( [ 'jquery', 'wp-hooks' ], $script->deps );
 	}
 }

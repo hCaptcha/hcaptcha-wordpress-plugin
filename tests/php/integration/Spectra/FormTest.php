@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Spectra;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Spectra\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -80,7 +81,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function test_render_block(): void {
 		$placeholder = '===hcaptcha placeholder===';
-		$form_id     = 1;
+		$form_id     = 'f89cebda';
 		$block       = [
 			'blockName' => 'some block',
 		];
@@ -170,7 +171,7 @@ HTML;
 			[
 				'h-captcha-response' => $hcaptcha_response,
 				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
-				'hcaptcha-widget-id' => [ 'some widget' ],
+				'hcaptcha-widget-id' => $this->get_widget_id( $block_id ),
 				'First Name'         => 'John',
 				'Last Name'          => 'Doe',
 				'Email'              => 'john@example.com',
@@ -245,12 +246,13 @@ HTML;
 	}
 
 	/**
-	 * Test process_ajax() when not verified.
+	 * Test process_ajax() when widget id is bad.
 	 *
 	 * @return void
 	 * @noinspection JsonEncodingApiUsageInspection
 	 */
-	public function test_process_ajax_when_not_verified(): void {
+	public function test_process_ajax_bad_widget_id(): void {
+		$block_id          = 'f89cebda';
 		$nonce_field_name  = 'hcaptcha_spectra_form_nonce';
 		$nonce_action_name = 'hcaptcha_spectra_form';
 		$hcaptcha_response = 'some response';
@@ -258,11 +260,18 @@ HTML;
 			[
 				'h-captcha-response' => $hcaptcha_response,
 				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
+				'hcaptcha-widget-id' => $this->get_widget_id(
+					$block_id,
+					[
+						'source'  => [ 'WordPress' ],
+						'form_id' => $block_id,
+					]
+				),
 			]
 		);
 		$response          = [
 			'success' => false,
-			'data'    => 'Please complete the hCaptcha.',
+			'data'    => 'Bad hCaptcha signature!',
 		];
 		$expected          = [
 			'',
@@ -272,7 +281,70 @@ HTML;
 
 		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
 
-		$_POST['post_id'] = $post_id;
+		$_POST['post_id']   = $post_id;
+		$_POST['block_id']  = $block_id;
+		$_POST['form_data'] = $form_data;
+
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'has_recaptcha' )->andReturn( false );
+
+		ob_start();
+
+		$subject->process_ajax();
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		self::assertSame( json_encode( $response ), ob_get_clean() );
+
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test process_ajax() when not verified.
+	 *
+	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_process_ajax_when_not_verified(): void {
+		$block_id          = 'f89cebda';
+		$nonce_field_name  = 'hcaptcha_spectra_form_nonce';
+		$nonce_action_name = 'hcaptcha_spectra_form';
+		$hcaptcha_response = 'some response';
+		$form_data         = wp_json_encode(
+			[
+				'h-captcha-response' => $hcaptcha_response,
+				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
+				'hcaptcha-widget-id' => $this->get_widget_id( $block_id ),
+			]
+		);
+		$response          = [
+			'success' => false,
+			'data'    => 'The hCaptcha is invalid.',
+		];
+		$expected          = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
+
+		$_POST['post_id']   = $post_id;
+		$_POST['block_id']  = $block_id;
+		$_POST['form_data'] = $form_data;
 
 		$this->prepare_verify_request( $hcaptcha_response, false );
 
@@ -291,7 +363,6 @@ HTML;
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'has_recaptcha' )->andReturn( false );
 
-		// Without form_data.
 		ob_start();
 
 		$subject->process_ajax();
@@ -300,9 +371,57 @@ HTML;
 		self::assertSame( json_encode( $response ), ob_get_clean() );
 
 		self::assertSame( $expected, $die_arr );
+	}
 
-		// With form_data.
+	/**
+	 * Test process_ajax() when block id is missing.
+	 *
+	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_process_ajax_missing_block_id(): void {
+		$block_id          = 'f89cebda';
+		$nonce_field_name  = 'hcaptcha_spectra_form_nonce';
+		$nonce_action_name = 'hcaptcha_spectra_form';
+		$hcaptcha_response = 'some response';
+		$form_data         = wp_json_encode(
+			[
+				'h-captcha-response' => $hcaptcha_response,
+				$nonce_field_name    => wp_create_nonce( $nonce_action_name ),
+				'hcaptcha-widget-id' => $this->get_widget_id( $block_id ),
+			]
+		);
+		$response          = [
+			'success' => false,
+			'data'    => 'Bad hCaptcha signature!',
+		];
+		$expected          = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
+
+		$_POST['post_id']   = $post_id;
 		$_POST['form_data'] = $form_data;
+
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = Mockery::mock( Form::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'has_recaptcha' )->andReturn( false );
 
 		ob_start();
 
@@ -496,5 +615,22 @@ HTML;
 		$_POST['post_id'] = $post_id;
 
 		self::assertTrue( $subject->has_recaptcha() );
+	}
+
+	/**
+	 * Get widget id.
+	 *
+	 * @param string $form_id Form id.
+	 * @param array  $id      Widget id.
+	 *
+	 * @return string
+	 */
+	private function get_widget_id( string $form_id, array $id = [] ): string {
+		$id = $id ?: [
+			'source'  => [ 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php' ],
+			'form_id' => $form_id,
+		];
+
+		return HCaptcha::widget_id_value( $id );
 	}
 }

@@ -62,6 +62,9 @@ composer unit
 Q: Where can I get more information about hCaptcha?
 A: Please see our website at: https://www.hcaptcha.com/
 
+Q: How does the plugin determine a visitor IP behind a proxy or CDN?
+A: hCaptcha uses `REMOTE_ADDR` by default. In Settings -> hCaptcha -> Anti-Spam -> Access Control, select only headers your edge service overwrites or strips from direct client requests. On upgrade, custom `hcap_trusted_address_headers` filters are migrated into this setting; otherwise the setting starts empty and an admin notice asks you to review it.
+
 ## Screenshots
 
 See the [official plugin page on wordpress.org](https://wordpress.org/plugins/hcaptcha-for-forms-and-more/).
@@ -149,4 +152,3 @@ Please check with your plugin author if native support is not yet available.
 Instructions for native integrations are below:
 
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms/)
-

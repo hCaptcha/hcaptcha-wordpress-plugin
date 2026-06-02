@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.26.0
+Stable tag: 5.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -769,6 +769,14 @@ function my_hcap_denylist_ip( $denylisted, $ip ): bool {
 add_filter( 'hcap_blacklist_ip', 'my_hcap_denylist_ip', 10, 2 );
 `
 
+= How does hCaptcha determine the visitor IP address? =
+
+hCaptcha uses `REMOTE_ADDR` by default. If your site is behind a trusted proxy or CDN, go to Settings → hCaptcha → Anti-Spam → Access Control and select only the IP headers your edge service overwrites or strips from direct client requests.
+
+Forwarding headers such as `X-Forwarded-For`, `CF-Connecting-IP`, and `X-Real-IP` can be spoofed when they pass through from the browser unchanged. Do not enable a header unless your hosting stack makes it trustworthy before WordPress receives the request.
+
+On upgrade, custom `hcap_trusted_address_headers` filters are migrated into this setting. Otherwise the setting starts empty and an admin notice asks you to review it.
+
 = How to allowlist certain IPs =
 
 You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
@@ -854,10 +862,7 @@ Please see our [website](https://hcaptcha.com/).
 
 = How can I rerun the setup wizard? =
 
-You can rerun the setup flows from the General settings page by adding a parameter to the URL:
-
-- `&onboarding` — starts the Onboarding Wizard
-- `&auto-setup` — performs the Recommended Setup
+Use the plugin-generated "Restart wizard" onboarding link from the admin area. Onboarding setup URLs are nonce-protected and should not be crafted manually.
 
 == Privacy Notices ==
 
@@ -983,6 +988,20 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.0.0 =
+* Added Trusted IP Headers settings. hCaptcha uses REMOTE_ADDR by default; custom `hcap_trusted_address_headers` filters are migrated into the setting during upgrade.
+* Added Cloudflare detection to help identify when CF-Connecting-IP should be selected as a Trusted IP Header.
+* Added Trash support for Forms and Events statistics, including restore/permanent delete actions, 30-day Trash cleanup, and migration for existing event tables.
+* Added WooCommerce PayPal Payments integration for product, cart, mini-cart, and checkout express flows.
+* Added site icon on protected content pages.
+* Hardened form verification for some popular forms.
+* Fixed returning unexpected results by REST API in some cases.
+* Fixed Avada Forms integration so internal hCaptcha fields are excluded from `[all_fields]` notification emails.
+* Fixed sending statistics at the plugin update in some rare cases when the switch is off.
+* Fixed an issue in some custom Gravity Forms layouts.
+* Fixed an issue where a What's New modal action could scroll the current Integrations page before opening the target integration in a new tab.
+* Fixed errors when resubmitting Essential Addons login and registration forms.
 
 = 4.26.0 =
 * Added hcap_delay_api_selector filter to delay Elementor Pro, Contact Form 7, Fluent Forms, Ninja Forms, Customer Reviews, and Icegram Express scripts loading based on selector.

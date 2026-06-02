@@ -413,7 +413,7 @@ class WhatsNew extends NotificationsBase {
 			'message' => sprintf(
 				'<p>%1$s</p><p>%2$s</p>',
 				__( 'Added an onboarding wizard for new users.', 'hcaptcha-for-forms-and-more' ),
-				__( 'You can restart it anytime by adding the <code>&onboarding</code> parameter to the browser URL.', 'hcaptcha-for-forms-and-more' )
+				__( 'You can restart it anytime from the plugin-generated onboarding link.', 'hcaptcha-for-forms-and-more' )
 			),
 			'button'  => [
 				'url'  => $urls['onboarding'],
@@ -548,6 +548,80 @@ class WhatsNew extends NotificationsBase {
 		];
 
 		$this->show_block( $block_4_25_0 );
+	}
+
+	/**
+	 * What's New 5.0.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_5_0_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_trusted_ip_headers = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Trusted IP Headers', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'hCaptcha now includes a dedicated setting for choosing which IP headers your site should use when it runs behind a proxy, CDN, or load balancer.', 'hcaptcha-for-forms-and-more' ),
+				__( 'By default, hCaptcha continues to use REMOTE_ADDR. When Cloudflare is detected, the settings page can suggest CF-Connecting-IP for sites that use Cloudflare proxying.', 'hcaptcha-for-forms-and-more' ),
+				__( 'If you already customized IP headers with the hcap_trusted_address_headers filter, your configuration is migrated automatically during upgrade.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['trusted_ip_headers'],
+				'text' => __( 'Open Access Control', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['trusted_ip_headers_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$block_forms_events_trash = [
+			'type'    => 'right',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Trash for Forms and Events', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'Forms and Events statistics now include Trash, giving admins more flexibility when cleaning up old records.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Deleted items can be restored or permanently deleted, and Trash is cleaned up automatically after 30 days.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Existing statistics tables are updated during upgrade.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['forms_events_trash'],
+				'text' => __( 'Open statistics', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['forms_events_trash_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$block_paypal_payments = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'WooCommerce PayPal Payments', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p>',
+				__( 'hCaptcha now supports WooCommerce PayPal Payments express checkout flows on product, cart, mini-cart, and checkout pages.', 'hcaptcha-for-forms-and-more' ),
+				__( 'The integration works with PayPal order creation so express checkout can use hCaptcha while keeping the buyer flow familiar.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['paypal_payments'],
+				'text' => __( 'Open integrations', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['paypal_payments_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_trusted_ip_headers );
+		$this->show_block( $block_forms_events_trash );
+		$this->show_block( $block_paypal_payments );
 	}
 
 	/**

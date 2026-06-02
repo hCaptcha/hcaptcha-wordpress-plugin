@@ -9,6 +9,7 @@ namespace HCaptcha\Admin\Events;
 
 use Exception;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
 
 /**
@@ -25,6 +26,26 @@ class Events {
 	 * Served items limit.
 	 */
 	public const SERVED_LIMIT = 1000;
+
+	/**
+	 * Active event status.
+	 */
+	public const STATUS_ACTIVE = 'active';
+
+	/**
+	 * Trash event status.
+	 */
+	public const STATUS_TRASH = 'trash';
+
+	/**
+	 * Cleanup Trash action.
+	 */
+	public const CLEANUP_ACTION = 'hcap_cleanup_events_trash';
+
+	/**
+	 * Trash retention in days.
+	 */
+	public const TRASH_RETENTION_DAYS = 30;
 
 	/**
 	 * Verify request hook priority.
@@ -54,6 +75,8 @@ class Events {
 	 * @return void
 	 */
 	private function init_hooks(): void {
+		add_action( self::CLEANUP_ACTION, [ self::class, 'cleanup_trash' ] );
+
 		if ( ! hcaptcha()->settings()->is_on( 'statistics' ) ) {
 			return;
 		}
@@ -145,12 +168,20 @@ class Events {
 	public static function get_events( array $args = [] ): array {
 		global $wpdb;
 
-		$args = self::prepare_args( $args );
+		$args               = self::prepare_args( $args );
+		$trash_schema_ready = self::is_trash_schema_ready();
+
+		if ( ! $trash_schema_ready && self::STATUS_TRASH === $args['status'] ) {
+			return [
+				'items' => [],
+				'total' => 0,
+			];
+		}
 
 		$columns           = implode( ',', $args['columns'] );
 		$columns           = $columns ?: '*';
 		$table_name        = $wpdb->prefix . self::TABLE_NAME;
-		$where_date        = self::get_where_date_gmt( $args );
+		$where             = self::get_where( $args );
 		$where_date_nested = self::get_where_date_gmt_nested( $args );
 		$orderby           = self::get_order_by( $args );
 		$limit             = $args['limit'];
@@ -161,7 +192,7 @@ class Events {
 			'START TRANSACTION',
 			"SELECT COUNT(*)
 				FROM $table_name
-				WHERE $where_date",
+				WHERE $where",
 			$wpdb->prepare(
 				"SELECT $columns
 						FROM $table_name
@@ -213,22 +244,32 @@ class Events {
 	public static function get_forms( array $args = [] ): array {
 		global $wpdb;
 
-		$args = self::prepare_args( $args );
+		$args               = self::prepare_args( $args );
+		$trash_schema_ready = self::is_trash_schema_ready();
+
+		if ( ! $trash_schema_ready && self::STATUS_TRASH === $args['status'] ) {
+			return [
+				'items'  => [],
+				'total'  => 0,
+				'served' => [],
+			];
+		}
 
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
-		$where_date = self::get_where_date_gmt( $args );
+		$where      = self::get_where( $args );
 		$orderby    = self::get_order_by( $args );
 		$offset     = $args['offset'];
 		$limit      = $args['limit'];
+		$force_key  = $trash_schema_ready ? 'status_date_gmt' : 'date_gmt';
 
 		// We need to collect id also to distinguish rows on the Forms page.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$results = (array) $wpdb->get_results(
 			$wpdb->prepare(
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT SQL_CALC_FOUND_ROWS id, source, form_id, COUNT(*) as served
+				"SELECT SQL_CALC_FOUND_ROWS MIN(id) AS id, source, form_id, COUNT(*) as served
 						FROM $table_name
-						WHERE $where_date
+						WHERE $where
 						GROUP BY source, form_id
 						$orderby
 						LIMIT %d, %d",
@@ -241,23 +282,23 @@ class Events {
 		$total = (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-		$where = '1=0';
+		$forms_where = '1=0';
 
 		foreach ( $results as $result ) {
 			$source  = esc_sql( $result->source );
 			$form_id = esc_sql( $result->form_id );
 
-			$where .= " OR (source='$source' AND form_id='$form_id')";
+			$forms_where .= " OR (source='$source' AND form_id='$form_id')";
 		}
 
-		$where        = "($where) AND " . $where_date;
+		$where        = "($forms_where) AND $where";
 		$served_limit = self::SERVED_LIMIT;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			"SELECT date_gmt
-					FROM $table_name FORCE INDEX (date_gmt)
+					FROM $table_name FORCE INDEX ($force_key)
 					WHERE $where
 					ORDER BY date_gmt
 					LIMIT $served_limit"
@@ -274,6 +315,63 @@ class Events {
 	}
 
 	/**
+	 * Get event counts grouped by status.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return array
+	 */
+	public static function get_status_counts( array $args = [] ): array {
+		global $wpdb;
+
+		$args = self::prepare_args( $args );
+
+		$counts = [
+			self::STATUS_ACTIVE => 0,
+			self::STATUS_TRASH  => 0,
+		];
+
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$where_date = self::get_where_date_gmt( $args );
+
+		if ( ! self::is_trash_schema_ready() ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$counts[ self::STATUS_ACTIVE ] = (int) $wpdb->get_var(
+				"SELECT COUNT(*)
+						FROM $table_name
+						WHERE $where_date"
+			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+			return $counts;
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$results = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT status, COUNT(*) as total
+						FROM $table_name
+						WHERE $where_date
+							AND status IN (%s, %s)
+						GROUP BY status",
+				self::STATUS_ACTIVE,
+				self::STATUS_TRASH
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		foreach ( $results as $result ) {
+			$counts[ $result->status ] = (int) $result->total;
+		}
+
+		return $counts;
+	}
+
+	/**
 	 * Create the table.
 	 *
 	 * @return void
@@ -282,12 +380,6 @@ class Events {
 		global $wpdb;
 
 		$table_name = self::TABLE_NAME;
-
-		if ( self::table_exists( $wpdb->prefix . $table_name ) ) {
-			// @codeCoverageIgnoreStart
-			return;
-			// @codeCoverageIgnoreEnd
-		}
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -302,16 +394,54 @@ class Events {
 		    uuid        VARCHAR(36)     NOT NULL,
 		    error_codes VARCHAR(256)    NOT NULL,
 		    date_gmt    DATETIME        NOT NULL,
+		    status      VARCHAR(20)     NOT NULL DEFAULT 'active',
+		    trashed_at_gmt DATETIME     NULL,
 		    PRIMARY KEY (id),
 		    KEY source (source),
 		    KEY form_id (form_id),
 		    KEY hcaptcha_id (source, form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
-		    KEY date_gmt (date_gmt)
+		    KEY date_gmt (date_gmt),
+		    KEY status_date_gmt (status, date_gmt),
+		    KEY status_source_form (status, source, form_id)
 		) $charset_collate";
 
 		dbDelta( $sql );
+	}
+
+	/**
+	 * Cleanup trashed events older than the retention window.
+	 *
+	 * @return void
+	 */
+	public static function cleanup_trash(): void {
+		global $wpdb;
+
+		if ( ! self::is_trash_schema_ready() ) {
+			return;
+		}
+
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$date_gmt   = gmdate(
+			'Y-m-d H:i:s',
+			time() - self::TRASH_RETENTION_DAYS * constant( 'DAY_IN_SECONDS' )
+		);
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $table_name
+					WHERE status = %s
+						AND trashed_at_gmt IS NOT NULL
+						AND trashed_at_gmt < %s",
+				self::STATUS_TRASH,
+				$date_gmt
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
 	/**
@@ -353,31 +483,81 @@ class Events {
 			return '1=1';
 		}
 
-		$dates      = self::prepare_gmt_dates( $dates );
-		$table_name = $wpdb->prefix . self::TABLE_NAME;
-		$order      = $args['order'];
-		$offset     = $args['offset'];
-		$compare    = 'DESC' === $order ? '<=' : '>=';
+		$dates               = self::prepare_gmt_dates( $dates );
+		$table_name          = $wpdb->prefix . self::TABLE_NAME;
+		$order               = $args['order'];
+		$offset              = $args['offset'];
+		$compare             = 'DESC' === $order ? '<=' : '>=';
+		$trash_schema_ready  = self::is_trash_schema_ready();
+		$status_outer_where  = '';
+		$status_nested_where = '';
+
+		if ( $trash_schema_ready ) {
+			$status              = esc_sql( $args['status'] );
+			$status_outer_where  = "AND status = '$status'";
+			$status_nested_where = "AND status = '$status'";
+		}
 
 		return sprintf(
 			"date_gmt BETWEEN '%s' AND '%s'
+					%s
 					AND date_gmt %s (
 						SELECT date_gmt
 						FROM %s
 						WHERE date_gmt BETWEEN '%s' AND '%s'
+							%s
 						ORDER BY date_gmt %s
 						LIMIT %d, 1
 					)
 					",
 			esc_sql( $dates[0] ),
 			esc_sql( $dates[1] ),
+			$status_outer_where,
 			$compare,
 			$table_name,
 			esc_sql( $dates[0] ),
 			esc_sql( $dates[1] ),
+			$status_nested_where,
 			$order,
 			$offset
 		);
+	}
+
+	/**
+	 * Get WHERE clause.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	private static function get_where( array $args ): string {
+		if ( ! self::is_trash_schema_ready() ) {
+			return self::get_where_date_gmt( $args );
+		}
+
+		return self::get_where_date_gmt( $args ) . ' AND ' . self::get_where_status( $args );
+	}
+
+	/**
+	 * Whether the Events table has the Trash Folder schema.
+	 *
+	 * @return bool
+	 */
+	public static function is_trash_schema_ready(): bool {
+		$migrated_versions = (array) get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [] );
+
+		return 0 <= (int) ( $migrated_versions['5.0.0'] ?? 0 );
+	}
+
+	/**
+	 * Get the WHERE status clause.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return string
+	 */
+	private static function get_where_status( array $args ): string {
+		return sprintf( "status = '%s'", esc_sql( $args['status'] ) );
 	}
 
 	/**
@@ -440,62 +620,6 @@ class Events {
 	}
 
 	/**
-	 * Check if the database table exists and cache the result.
-	 *
-	 * @param string $table_name Table name. Can have SQL wildcard.
-	 *
-	 * @return bool
-	 */
-	private static function table_exists( string $table_name ): bool {
-		foreach ( self::get_existing_tables( $table_name ) as $existing_table ) {
-			if ( self::wildcard_match( $table_name, $existing_table ) ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Get the list of existing tables and cache the result.
-	 *
-	 * @param string $table_name Table name. Can have SQL wildcard.
-	 *
-	 * @return array List of table names.
-	 */
-	private static function get_existing_tables( string $table_name ): array {
-		global $wpdb;
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$tables = $wpdb->get_results(
-			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ),
-			'ARRAY_N'
-		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-
-		return ! empty( $tables ) ? wp_list_pluck( $tables, 0 ) : [];
-	}
-
-	/**
-	 * Wildcard match.
-	 * Works as MySQL LIKE match.
-	 *
-	 * @param string $pattern Pattern.
-	 * @param string $subject String to search into.
-	 *
-	 * @return false|int
-	 */
-	private static function wildcard_match( string $pattern, string $subject ) {
-		$regex = str_replace(
-			[ '%', '_' ], // MySQL wildcard chars.
-			[ '.*', '.' ],  // Regexp chars.
-			preg_quote( $pattern, '/' )
-		);
-
-		return preg_match( '/^' . $regex . '$/is', $subject );
-	}
-
-	/**
 	 * Prepare arguments.
 	 *
 	 * @param array $args Arguments.
@@ -512,6 +636,7 @@ class Events {
 				'order'   => 'ASC',
 				'orderby' => '',
 				'dates'   => [],
+				'status'  => self::STATUS_ACTIVE,
 			]
 		);
 
@@ -524,6 +649,10 @@ class Events {
 		$args['orderby'] = in_array( $orderby, $args['columns'], true ) ? $orderby : '';
 		$dates           = (array) $args['dates'];
 		$args['dates']   = $dates ?: self::get_default_dates();
+		$status          = sanitize_key( $args['status'] );
+		$args['status']  = in_array( $status, [ self::STATUS_ACTIVE, self::STATUS_TRASH ], true )
+			? $status
+			: self::STATUS_ACTIVE;
 
 		return $args;
 	}

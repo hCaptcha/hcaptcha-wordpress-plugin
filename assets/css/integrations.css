@@ -168,6 +168,10 @@
 	overflow: hidden;
 }
 
+.hcaptcha-integrations table tr.hcaptcha-integrations-paypal-payments-status td {
+	flex-direction: column;
+}
+
 #hcaptcha-options label + .helper {
 	position: absolute;
 	display: none;
@@ -241,6 +245,10 @@
 	visibility: visible;
 	opacity: 1;
 	transition: opacity .2s ease .3s, visibility 0s linear .3s;
+}
+
+#hcaptcha-options .hcaptcha-disabled-section + h3 + table.form-table .hcaptcha-integrations-paypal-payments-status p.description {
+	display: none;
 }
 
 /* Antispam indicators toggle */

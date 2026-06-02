@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\WP;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\PasswordProtected;
 use WP_Post;
@@ -84,6 +85,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 		$_POST['post_password'] = '123';
 
 		$this->prepare_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected' );
+		$this->prepare_widget_id();
 
 		$subject = new PasswordProtected();
 
@@ -108,6 +110,7 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 		$_POST['post_password'] = '123';
 
 		$this->prepare_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected', false );
+		$this->prepare_widget_id();
 
 		$subject = new PasswordProtected();
 
@@ -123,5 +126,60 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 		$subject->verify();
 
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$die_arr                = [];
+		$expected               = [
+			'Bad hCaptcha signature!',
+			'hCaptcha',
+			[
+				'back_link' => true,
+				'response'  => 303,
+			],
+		];
+		$_POST['post_password'] = '123';
+
+		$this->prepare_verify_post( 'hcaptcha_password_protected_nonce', 'hcaptcha_password_protected' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'password_protected',
+			]
+		);
+
+		$subject = new PasswordProtected();
+
+		add_filter(
+			'wp_die_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject->verify();
+
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'WordPress' ],
+			'form_id' => 'password_protected',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

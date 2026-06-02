@@ -1,12 +1,15 @@
 # A set of files and directories you probably don't want in your WordPress.org distribution
 
 # Directories
+/.aiassistant
+/.claude
 /.codeception
 /.git
 /.githooks
 /.github
 /.idea
 /.php-scoper
+/.reports
 /.wordpress-org
 /.yarn
 /build
@@ -18,25 +21,24 @@
 
 # Files
 /.DS_Store
-/.babelrc
-/codeception.yml
+/.aiignore
 /.distignore
-/.editorconfig
-/.eslintrc.json
 /.gitattributes
 /.gitignore
 /.phpcs.cache
 /.yarnrc.yml
+/AGENTS.md
 /MAINTAINERS.md
 /README.md
 /SECURITY.md
-/RULES.md
 /Thumbs.db
 /auth.json
 /babel.config.json
+/codeception.yml
 /composer.lock
+/eslint.config.cjs
+/languages/*.pot
 /package.json
 /phpcs.xml
 /webpack.config.js
 /yarn.lock
-/languages/*.pot

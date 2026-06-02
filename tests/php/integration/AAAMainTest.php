@@ -14,6 +14,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Abilities\Abilities;
+use HCaptcha\Admin\AdminNotices;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\WhatsNew;
@@ -1487,6 +1488,7 @@ CSS;
 
 		$expected_loaded_classes = [
 			PluginStats::class,
+			AdminNotices::class,
 			MaxMindDb::class,
 			DisposableEmail::class,
 			Events::class,
@@ -1984,6 +1986,11 @@ CSS;
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',
 				\HCaptcha\WC\Register::class,
+			],
+			'WooCommerce PayPal Payments'       => [
+				[ 'paypal_payments_status', 'button' ],
+				'woocommerce-paypal-payments/woocommerce-paypal-payments.php',
+				\HCaptcha\WooCommercePayPalPayments\Button::class,
 			],
 			'WooCommerce Wishlists'             => [
 				[ 'woocommerce_wishlists_status', 'create_list' ],

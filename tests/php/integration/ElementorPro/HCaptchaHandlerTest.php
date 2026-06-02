@@ -657,6 +657,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response );
+		$this->prepare_widget_id( $form_settings['form_id'] );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
@@ -750,6 +751,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'Please complete the hCaptcha.' )->once();
 
 		$this->prepare_verify_request( '', false );
+		$this->prepare_widget_id( $form_settings['form_id'] );
 
 		unset( $_POST['h-captcha-response'] );
 
@@ -811,6 +813,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response, false );
+		$this->prepare_widget_id( $form_settings['form_id'] );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
@@ -880,6 +883,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response, null );
+		$this->prepare_widget_id( $form_settings['form_id'] );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
@@ -890,6 +894,82 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$ajax_handler = Mockery::mock( Ajax_Handler::class );
 		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'The hCaptcha is invalid.' )->once();
+
+		$subject = new HCaptchaHandler();
+		$subject->validation( $record, $ajax_handler );
+	}
+
+	/**
+	 * Test validation with bad hCaptcha widget id.
+	 */
+	public function test_validation_bad_widget_id(): void {
+		$form_settings = [
+			'form_id' => '23',
+		];
+		$fields        = [
+			'name'          =>
+				[
+					'id'        => 'name',
+					'type'      => 'text',
+					'title'     => 'Name',
+					'value'     => 'John Doe',
+					'raw_value' => 'John Doe',
+					'required'  => false,
+				],
+			'email'         =>
+				[
+					'id'        => 'email',
+					'type'      => 'email',
+					'title'     => 'Email',
+					'value'     => 'foo@bar.com',
+					'raw_value' => 'foo@bar.com',
+					'required'  => false,
+				],
+			'message'       =>
+				[
+					'id'        => 'message',
+					'type'      => 'textarea',
+					'title'     => 'Message',
+					'value'     => 'Some message',
+					'raw_value' => 'Some message',
+					'required'  => false,
+				],
+			'field_014ea7c' =>
+				[
+					'id'        => 'field_014ea7c',
+					'type'      => 'hcaptcha',
+					'title'     => '',
+					'value'     => '',
+					'raw_value' => '',
+					'required'  => false,
+				],
+		];
+		$field         = current( $fields );
+		$sent_data     = [
+			'name'    => 'John Doe',
+			'email'   => 'foo@bar.com',
+			'message' => 'Some message',
+		];
+
+		$hcaptcha_response = 'some response';
+		$this->prepare_verify_request( $hcaptcha_response );
+		$this->prepare_widget_id(
+			$form_settings['form_id'],
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => $form_settings['form_id'],
+			]
+		);
+
+		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->once()->andReturn( $sent_data );
+		$record->shouldReceive( 'get' )->with( 'fields' )->once()->andReturn( $fields );
+		$record->shouldReceive( 'get_field' )->with( [ 'type' => 'hcaptcha' ] )->once()->andReturn( $fields );
+		$record->shouldReceive( 'remove_field' )->never();
+
+		$ajax_handler = Mockery::mock( Ajax_Handler::class );
+		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'Bad hCaptcha signature!' )->once();
 
 		$subject = new HCaptchaHandler();
 		$subject->validation( $record, $ajax_handler );
@@ -1357,5 +1437,22 @@ CSS;
 		if ( $is_preview ) {
 			$_GET['elementor-preview'] = 123;
 		}
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param string|int $form_id Form id.
+	 * @param array      $id      Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( $form_id, array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'elementor-pro/elementor-pro.php' ],
+			'form_id' => $form_id,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

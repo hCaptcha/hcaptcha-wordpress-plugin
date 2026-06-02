@@ -1760,6 +1760,11 @@ abstract class SettingsBase {
 
 			?>
 		</div>
+
+		<div id="hcaptcha-admin-notices">
+			<?php do_action( 'hcap_admin_notices' ); ?>
+		</div>
+		<div id="hcaptcha-message"></div>
 		<?php
 	}
 

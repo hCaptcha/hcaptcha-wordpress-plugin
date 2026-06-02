@@ -68,9 +68,8 @@ function bootEvents( domOverrides = {} ) {
 	Object.assign( window.HCaptchaEventsObject, defaultEventsObject );
 	// (Re)require the module only once; it attaches window.hCaptchaEvents
 	try {
-		// eslint-disable-next-line global-require
 		require( '../../../assets/js/events.js' );
-	} catch ( e ) {
+	} catch {
 		// module may already be loaded in Jest cache; ignore
 	}
 	// Trigger jQuery ready by calling the exported function directly

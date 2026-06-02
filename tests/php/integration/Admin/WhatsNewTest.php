@@ -538,33 +538,6 @@ HTML;
 	 * @noinspection HtmlUnknownAnchorTarget
 	 */
 	public function test_whats_new_4_20_0(): void {
-		$expected = <<<'HTML'
-		<div class="hcaptcha-whats-new-block center">
-			<div class="hcaptcha-whats-new-text">
-				<div class="hcaptcha-whats-new-badge">
-					New Feature
-				</div>
-				<h2> Onboarding Wizard </h2>
-				<div class="hcaptcha-whats-new-message">
-					<p>Added an onboarding wizard for new users.</p><p>You can restart it anytime by adding the <code>&amp;onboarding</code> parameter to the browser URL.</p>
-				</div>
-				<div class="hcaptcha-whats-new-button">
-					<a
-							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general&#038;onboarding" class="button button-primary"
-							target="_blank">
-						Restart wizard
-					</a>
-				</div>
-			</div>
-			<div class="hcaptcha-whats-new-image">
-				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/onboarding.gif" class="hcaptcha-lightbox">
-					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/onboarding.gif" alt="What's New block image">
-				</a>
-			</div>
-		</div>
-		
-HTML;
-
 		add_filter(
 			'hcap_settings_init_args',
 			static function ( $args ) {
@@ -579,6 +552,35 @@ HTML;
 		hcaptcha()->init_hooks();
 		set_current_screen( 'hcaptcha' );
 		do_action( 'admin_menu' );
+
+		$onboarding_nonce = wp_create_nonce( OnboardingWizard::STEP_ACTION );
+		$nonce_param      = OnboardingWizard::NONCE_PARAM;
+		$expected         = <<<HTML
+		<div class="hcaptcha-whats-new-block center">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Onboarding Wizard </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>Added an onboarding wizard for new users.</p><p>You can restart it anytime from the plugin-generated onboarding link.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general&#038;onboarding=1&#038;{$nonce_param}=$onboarding_nonce" class="button button-primary"
+							target="_blank">
+						Restart wizard
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/onboarding.gif" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/onboarding.gif" alt="What's New block image">
+				</a>
+			</div>
+		</div>
+		
+HTML;
 
 		$subject = Mockery::mock( WhatsNew::class )->makePartial();
 
@@ -726,6 +728,111 @@ HTML;
 		ob_start();
 
 		$subject->whats_new_4_24_0();
+
+		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
+	}
+
+	/**
+	 * Test whats_new_5_0_0().
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function test_whats_new_5_0_0(): void {
+		$expected = <<<'HTML'
+		<div class="hcaptcha-whats-new-block left">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Trusted IP Headers </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>hCaptcha now includes a dedicated setting for choosing which IP headers your site should use when it runs behind a proxy, CDN, or load balancer.</p><p>By default, hCaptcha continues to use REMOTE_ADDR. When Cloudflare is detected, the settings page can suggest CF-Connecting-IP for sites that use Cloudflare proxying.</p><p>If you already customized IP headers with the hcap_trusted_address_headers filter, your configuration is migrated automatically during upgrade.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=antispampage#trusted_address_headers" class="button button-primary"
+							target="_blank">
+						Open Access Control
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/trusted-ip-headers.png" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/trusted-ip-headers.png" alt="What's New block image">
+				</a>
+			</div>
+		</div>
+		<div class="hcaptcha-whats-new-block right">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> Trash for Forms and Events </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>Forms and Events statistics now include Trash, giving admins more flexibility when cleaning up old records.</p><p>Deleted items can be restored or permanently deleted, and Trash is cleaned up automatically after 30 days.</p><p>Existing statistics tables are updated during upgrade.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=forms" class="button button-primary"
+							target="_blank">
+						Open statistics
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/forms-events-trash.png" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/forms-events-trash.png" alt="What's New block image">
+				</a>
+			</div>
+		</div>
+		<div class="hcaptcha-whats-new-block left">
+			<div class="hcaptcha-whats-new-text">
+				<div class="hcaptcha-whats-new-badge">
+					New Feature
+				</div>
+				<h2> WooCommerce PayPal Payments </h2>
+				<div class="hcaptcha-whats-new-message">
+					<p>hCaptcha now supports WooCommerce PayPal Payments express checkout flows on product, cart, mini-cart, and checkout pages.</p><p>The integration works with PayPal order creation so express checkout can use hCaptcha while keeping the buyer flow familiar.</p>
+				</div>
+				<div class="hcaptcha-whats-new-button">
+					<a
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=integrations#paypal_payments_status_1" class="button button-primary"
+							target="_blank">
+						Open integrations
+					</a>
+				</div>
+			</div>
+			<div class="hcaptcha-whats-new-image">
+				<a href="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/woocommerce-paypal-payments.png" class="hcaptcha-lightbox">
+					<img src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/woocommerce-paypal-payments.png" alt="What's New block image">
+				</a>
+			</div>
+		</div>
+HTML;
+
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_5_0_0();
 
 		self::assertSame( self::normalize_html( $expected ), self::normalize_html( ob_get_clean() ) );
 	}

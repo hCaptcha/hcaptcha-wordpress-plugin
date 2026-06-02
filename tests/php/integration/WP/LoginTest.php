@@ -103,6 +103,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
 
 		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id();
 
 		$subject = new Login();
 
@@ -371,6 +372,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$user = new WP_User( 1 );
 
 		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id();
 
 		$_POST['log'] = 'some login';
 		$_POST['pwd'] = 'some password';
@@ -418,6 +420,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 
 		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_widget_id();
 
 		$_POST['log'] = 'some login';
 		$_POST['pwd'] = 'some password';
@@ -427,6 +430,29 @@ class LoginTest extends HCaptchaWPTestCase {
 		$GLOBALS['wp_actions']['login_form_login']     = 1;
 		$GLOBALS['wp_filters']['login_link_separator'] = 1;
 		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		$subject = new Login();
+
+		self::assertEquals( $expected, $subject->login_base_verify( $user, '' ) );
+	}
+
+	/**
+	 * Test verify() when widget id is bad.
+	 */
+	public function test_verify_bad_widget_id(): void {
+		$user     = new WP_User( 1 );
+		$expected = new WP_Error( 'bad-signature', 'Bad hCaptcha signature!', 400 );
+
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'login',
+			]
+		);
+
+		$_POST['log'] = 'some login';
+		$_POST['pwd'] = 'some password';
 
 		$subject = new Login();
 
@@ -452,5 +478,19 @@ class LoginTest extends HCaptchaWPTestCase {
 				name="' . $name . '"
 				value="' . $this->get_encoded_signature( [ 'WordPress' ], 'login', false ) . '">
 		';
+	}
+
+	/**
+	 * Prepare widget id.
+	 *
+	 * @param array $id The hCaptcha widget id.
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'WordPress' ],
+			'form_id' => 'login',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 }

@@ -70,14 +70,10 @@ abstract class Base extends LoginBase {
 	 * @return string
 	 */
 	protected function get_hcap_form(): string {
-		$form_id = false !== strpos( static::ACTION, 'login' ) ? 'login' : 'register';
-		$args    = [
+		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $form_id,
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		return (
@@ -114,7 +110,7 @@ abstract class Base extends LoginBase {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.
