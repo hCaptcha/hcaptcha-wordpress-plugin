@@ -529,15 +529,23 @@ class Abilities {
 		}
 
 		$seconds  = $this->window_to_seconds( $window );
-		$now      = time();
-		$to_gmt   = gmdate( 'Y-m-d H:i:s', $now );
-		$from_gmt = gmdate( 'Y-m-d H:i:s', max( 0, $now - $seconds ) );
+		$settings = hcaptcha()->settings();
 
-		$snapshot                   = $this->query_threats_snapshot( $from_gmt, $to_gmt, $top_n );
-		$snapshot['schema_version'] = self::THREAT_SNAPSHOT_SCHEMA_VERSION;
-		$snapshot['window']         = $window;
-		$snapshot['window_seconds'] = $seconds;
-		$snapshot['generated_at']   = gmdate( 'c' );
+		if ( ! $settings || ! $settings->is_on( 'statistics' ) ) {
+			$snapshot = $this->get_empty_threat_snapshot( true );
+		} else {
+			$now      = time();
+			$to_gmt   = gmdate( 'Y-m-d H:i:s', $now );
+			$from_gmt = gmdate( 'Y-m-d H:i:s', max( 0, $now - $seconds ) );
+
+			$snapshot = $this->query_threats_snapshot( $from_gmt, $to_gmt, $top_n );
+		}
+
+		$snapshot['metrics']['fail_rate'] = number_format( (float) ( $snapshot['metrics']['fail_rate'] ?? 0 ), 2 );
+		$snapshot['schema_version']       = self::THREAT_SNAPSHOT_SCHEMA_VERSION;
+		$snapshot['window']               = $window;
+		$snapshot['window_seconds']       = $seconds;
+		$snapshot['generated_at']         = gmdate( 'c' );
 
 		return $snapshot;
 	}
@@ -681,23 +689,11 @@ class Abilities {
 	private function query_threats_snapshot( string $from_gmt, string $to_gmt, int $top_n ): array {
 		global $wpdb;
 
-		$empty = [
-			'metrics'   => [
-				'total'     => 0,
-				'failed'    => 0,
-				'fail_rate' => 0.0,
-			],
-			'signals'   => [
-				'attack_likelihood' => 'low',
-				'confidence'        => 'low',
-				'top_vectors'       => [],
-			],
-			'breakdown' => [
-				'errors'    => [],
-				'sources'   => [],
-				'offenders' => [],
-			],
-		];
+		$empty = $this->get_empty_threat_snapshot();
+
+		if ( ! Events::table_exists() ) {
+			return $empty;
+		}
 
 		$table_name         = $wpdb->prefix . Events::TABLE_NAME;
 		$trash_schema_ready = Events::is_trash_schema_ready();
@@ -782,6 +778,33 @@ class Abilities {
 				'errors'    => $error_counts,
 				'sources'   => $sources,
 				'offenders' => $offenders,
+			],
+		];
+	}
+
+	/**
+	 * Get an empty threat snapshot.
+	 *
+	 * @param bool $formatted Whether to format the fail rate as a display string.
+	 *
+	 * @return array
+	 */
+	private function get_empty_threat_snapshot( bool $formatted = false ): array {
+		return [
+			'metrics'   => [
+				'total'     => 0,
+				'failed'    => 0,
+				'fail_rate' => $formatted ? '0.00' : 0.0,
+			],
+			'signals'   => [
+				'attack_likelihood' => 'low',
+				'confidence'        => 'low',
+				'top_vectors'       => [],
+			],
+			'breakdown' => [
+				'errors'    => [],
+				'sources'   => [],
+				'offenders' => [],
 			],
 		];
 	}

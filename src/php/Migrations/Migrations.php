@@ -67,6 +67,13 @@ class Migrations {
 	public const REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION = 'review_trusted_address_headers';
 
 	/**
+	 * Whether a table check was done during the current request.
+	 *
+	 * @var bool
+	 */
+	private bool $tables_check_done = false;
+
+	/**
 	 * Migration constructor.
 	 */
 	public function __construct() {
@@ -84,6 +91,7 @@ class Migrations {
 		}
 
 		$this->maybe_prepare_migration_option();
+		$this->maybe_create_tables();
 		$this->init_hooks();
 	}
 
@@ -220,6 +228,21 @@ class Migrations {
 		uksort( $migrated, 'version_compare' );
 
 		update_option( self::MIGRATED_VERSIONS_OPTION_NAME, $migrated );
+	}
+
+	/**
+	 * Maybe create custom database tables.
+	 *
+	 * @return void
+	 */
+	private function maybe_create_tables(): void {
+		if ( $this->tables_check_done ) {
+			return;
+		}
+
+		Events::create_table();
+
+		$this->tables_check_done = true;
 	}
 
 	/**
@@ -594,9 +617,9 @@ class Migrations {
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 
-		if ( ! $this->table_exists( $table_name ) ) {
-			Events::create_table();
+		Events::create_table();
 
+		if ( ! Events::table_exists() ) {
 			return;
 		}
 
@@ -744,26 +767,6 @@ class Migrations {
 		// phpcs:enable PluginCheck.Security.DirectDB.UnescapedDBParameter
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
-	}
-
-	/**
-	 * Check if a table exists.
-	 *
-	 * @param string $table_name Table name.
-	 *
-	 * @return bool
-	 */
-	private function table_exists( string $table_name ): bool {
-		global $wpdb;
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$tables = $wpdb->get_results(
-			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ),
-			'ARRAY_N'
-		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-
-		return ! empty( $tables );
 	}
 
 	/**

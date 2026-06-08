@@ -605,12 +605,14 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test validation.
+	 *
+	 * @param array  $form_settings Form settings.
+	 * @param string $form_id       Elementor form widget id.
+	 *
+	 * @dataProvider dp_test_validation
 	 */
-	public function test_validation(): void {
-		$form_settings = [
-			'form_id' => '23',
-		];
-		$fields        = [
+	public function test_validation( array $form_settings, string $form_id ): void {
+		$fields    = [
 			'name'          =>
 				[
 					'id'        => 'name',
@@ -648,8 +650,8 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 					'required'  => false,
 				],
 		];
-		$field         = current( $fields );
-		$sent_data     = [
+		$field     = current( $fields );
+		$sent_data = [
 			'name'    => 'John Doe',
 			'email'   => 'foo@bar.com',
 			'message' => 'Some message',
@@ -657,7 +659,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response );
-		$this->prepare_widget_id( $form_settings['form_id'] );
+		$this->prepare_widget_id( $form_id );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
@@ -670,6 +672,33 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$subject = new HCaptchaHandler();
 		$subject->validation( $record, $ajax_handler );
+	}
+
+	/**
+	 * Data provider for test_validation().
+	 *
+	 * @return array
+	 */
+	public function dp_test_validation(): array {
+		$form_id = '687b087';
+
+		return [
+			'custom form id is ignored'        => [
+				[
+					'id'        => $form_id,
+					'form_id'   => 'test_form',
+					'form_name' => 'New Form',
+				],
+				$form_id,
+			],
+			'form name without custom form id' => [
+				[
+					'id'        => $form_id,
+					'form_name' => 'New Form',
+				],
+				$form_id,
+			],
+		];
 	}
 
 	/**
@@ -693,7 +722,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_validation_with_no_captcha(): void {
 		$form_settings = [
-			'form_id' => '23',
+			'id' => '23',
 		];
 		$fields        = [
 			'name'          =>
@@ -751,7 +780,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$ajax_handler->shouldReceive( 'add_error' )->with( $field['id'], 'Please complete the hCaptcha.' )->once();
 
 		$this->prepare_verify_request( '', false );
-		$this->prepare_widget_id( $form_settings['form_id'] );
+		$this->prepare_widget_id( $form_settings['id'] );
 
 		unset( $_POST['h-captcha-response'] );
 
@@ -764,7 +793,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_validation_with_failed_captcha(): void {
 		$form_settings = [
-			'form_id' => '23',
+			'id' => '23',
 		];
 		$fields        = [
 			'name'          =>
@@ -813,7 +842,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response, false );
-		$this->prepare_widget_id( $form_settings['form_id'] );
+		$this->prepare_widget_id( $form_settings['id'] );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
@@ -834,7 +863,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_validation_with_empty_captcha(): void {
 		$form_settings = [
-			'form_id' => '23',
+			'id' => '23',
 		];
 		$fields        = [
 			'name'          =>
@@ -883,7 +912,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response, null );
-		$this->prepare_widget_id( $form_settings['form_id'] );
+		$this->prepare_widget_id( $form_settings['id'] );
 
 		$record = Mockery::mock( Form_Record::class );
 		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( $form_settings );
@@ -904,7 +933,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 */
 	public function test_validation_bad_widget_id(): void {
 		$form_settings = [
-			'form_id' => '23',
+			'id' => '23',
 		];
 		$fields        = [
 			'name'          =>
@@ -954,10 +983,10 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		$hcaptcha_response = 'some response';
 		$this->prepare_verify_request( $hcaptcha_response );
 		$this->prepare_widget_id(
-			$form_settings['form_id'],
+			$form_settings['id'],
 			[
 				'source'  => [ 'WordPress' ],
-				'form_id' => $form_settings['form_id'],
+				'form_id' => $form_settings['id'],
 			]
 		);
 
@@ -977,8 +1006,12 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test render_field.
+	 *
+	 * @param array $raw_data Widget raw data.
+	 *
+	 * @dataProvider dp_test_render_field
 	 */
-	public function test_render_field(): void {
+	public function test_render_field( array $raw_data ): void {
 		$site_key = General::MODE_TEST_PUBLISHER_SITE_KEY;
 		$theme    = 'some theme';
 		$size     = 'some size';
@@ -1004,12 +1037,7 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 				'data-size'    => $size,
 			],
 		];
-		$form_id           = 'test_form';
-		$data              = [
-			'settings' => [
-				'form_id' => $form_id,
-			],
-		];
+		$form_id           = '687b087';
 		$args              = [
 			'size'    => $size,
 			'id'      => [
@@ -1026,13 +1054,39 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 
 		$widget = Mockery::mock( Widget_Base::class );
 		$widget->shouldReceive( 'add_render_attribute' )->with( $render_attributes )->once();
-		$widget->shouldReceive( 'get_raw_data' )->with()->once()->andReturn( $data );
+		$widget->shouldReceive( 'get_raw_data' )->with()->andReturn( $raw_data );
+		$widget->shouldReceive( 'get_id' )->with()->once()->andReturn( $form_id );
 
 		$subject = new HCaptchaHandler();
 
 		ob_start();
 		$subject->render_field( $item, $item_index, $widget );
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Data provider for test_render_field().
+	 *
+	 * @return array
+	 */
+	public function dp_test_render_field(): array {
+		return [
+			'custom form id is ignored'        => [
+				[
+					'settings' => [
+						'form_id'   => 'test_form',
+						'form_name' => 'New Form',
+					],
+				],
+			],
+			'form name without custom form id' => [
+				[
+					'settings' => [
+						'form_name' => 'New Form',
+					],
+				],
+			],
+		];
 	}
 
 	/**

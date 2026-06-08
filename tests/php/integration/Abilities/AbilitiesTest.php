@@ -20,7 +20,6 @@ use HCaptcha\Settings\SettingsTransfer;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -477,8 +476,6 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		$expired_hash    = wp_hash( $expired_ip );
 		$expired_expires = $now - 1;
 
-		FunctionMocker::replace( 'time', $now );
-
 		update_option(
 			'hcaptcha_offender_blocks_v1',
 			[
@@ -646,6 +643,62 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test get_threat_snapshot() does not query events when statistics are off.
+	 */
+	public function test_get_threat_snapshot_returns_empty_when_statistics_are_off(): void {
+		global $wpdb;
+
+		$subject = new Abilities();
+
+		update_option( PluginSettingsBase::OPTION_NAME, [ 'statistics' => [] ] );
+		hcaptcha()->init_hooks();
+
+		$this->drop_events_table();
+
+		$wpdb->last_error = '';
+
+		$result = $subject->get_threat_snapshot( [ 'window' => '5m' ] );
+
+		self::assertSame(
+			[
+				'total'     => 0,
+				'failed'    => 0,
+				'fail_rate' => '0.00',
+			],
+			$result['metrics']
+		);
+		self::assertSame( '', $wpdb->last_error );
+	}
+
+	/**
+	 * Test get_threat_snapshot() handles an events table not marked as created.
+	 */
+	public function test_get_threat_snapshot_returns_empty_when_events_table_is_not_marked_created(): void {
+		global $wpdb;
+
+		$subject = new Abilities();
+
+		update_option( 'hcaptcha_settings', [ 'statistics' => [ 'on' ] ] );
+		hcaptcha()->init_hooks();
+
+		$this->drop_events_table();
+
+		$wpdb->last_error = '';
+
+		$result = $subject->get_threat_snapshot( [ 'window' => '5m' ] );
+
+		self::assertSame(
+			[
+				'total'     => 0,
+				'failed'    => 0,
+				'fail_rate' => '0.00',
+			],
+			$result['metrics']
+		);
+		self::assertSame( '', $wpdb->last_error );
+	}
+
+	/**
 	 * Test window_to_seconds().
 	 *
 	 * @return void
@@ -735,6 +788,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		$subject = new Abilities();
 		$saved   = $wpdb;
 
+		$this->mark_events_table_created();
 		update_option( 'hcaptcha_versions', [ '5.0.0' => time() ] );
 		wp_cache_set( 'hcaptcha_versions', [ '5.0.0' => time() ], 'options' );
 
@@ -787,6 +841,8 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		global $wpdb;
 
 		$subject = new Abilities();
+
+		Events::create_table();
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 		$now        = time();
@@ -1006,9 +1062,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		$valid       = wp_hash( '7.7.7.7' );
 		$default_ttl = 3600;
 		$ttl         = 100;
-		$now         = time();
-
-		FunctionMocker::replace( 'time', $now );
+		$before      = time();
 
 		$result = $subject->block_offenders(
 			[
@@ -1016,10 +1070,13 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 				'reason'       => 'test',
 			]
 		);
+		$after  = time();
+		$actual = strtotime( $result['effective_until'] );
 
 		self::assertSame( [ $valid ], $result['blocked'] );
 		self::assertSame( [], $result['already_blocked'] );
-		self::assertSame( gmdate( 'c', $now + $default_ttl ), $result['effective_until'] );
+		self::assertGreaterThanOrEqual( $before + $default_ttl, $actual );
+		self::assertLessThanOrEqual( $after + $default_ttl, $actual );
 
 		$result2 = $subject->block_offenders(
 			[
@@ -1028,10 +1085,51 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 			]
 		);
 
-		$max_ttl = max( $default_ttl, $ttl );
-
 		self::assertSame( [], $result2['blocked'] );
 		self::assertSame( [ $valid ], $result2['already_blocked'] );
-		self::assertSame( gmdate( 'c', $now + $max_ttl ), $result['effective_until'] );
+		self::assertSame( $result['effective_until'], $result2['effective_until'] );
+	}
+
+	/**
+	 * Drop the events table.
+	 *
+	 * @return void
+	 */
+	private function drop_events_table(): void {
+		global $wpdb;
+
+		$table_name = Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
+		$this->clear_events_table_created();
+	}
+
+	/**
+	 * Mark the events table as created.
+	 *
+	 * @return void
+	 */
+	private function mark_events_table_created(): void {
+		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		$settings[ Events::TABLE_CREATED_OPTION_NAME ] = 'on';
+
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
+	}
+
+	/**
+	 * Clear the events table created marker.
+	 *
+	 * @return void
+	 */
+	private function clear_events_table_created(): void {
+		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		unset( $settings[ Events::TABLE_CREATED_OPTION_NAME ] );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
 	}
 }
