@@ -987,15 +987,25 @@ class Main {
 			true
 		);
 
-		// Clean up trashed events daily.
-		as_schedule_recurring_action(
-			$tomorrow_6am,
-			DAY_IN_SECONDS,
-			Events::CLEANUP_ACTION,
-			[],
-			'hcaptcha',
-			true
-		);
+		$settings = $this->settings();
+
+		if ( $settings && $settings->is_on( 'statistics' ) ) {
+			// Clean up trashed events daily.
+			as_schedule_recurring_action(
+				$tomorrow_6am,
+				DAY_IN_SECONDS,
+				Events::CLEANUP_ACTION,
+				[],
+				'hcaptcha',
+				true
+			);
+
+			return;
+		}
+
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( Events::CLEANUP_ACTION, [], 'hcaptcha' );
+		}
 	}
 
 	/**

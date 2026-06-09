@@ -11,6 +11,7 @@ use Exception;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
+use HCaptcha\Settings\PluginSettingsBase;
 
 /**
  * Class Events.
@@ -21,6 +22,11 @@ class Events {
 	 * Table name.
 	 */
 	public const TABLE_NAME = 'hcaptcha_events';
+
+	/**
+	 * Table created option name.
+	 */
+	public const TABLE_CREATED_OPTION_NAME = 'events_table_created';
 
 	/**
 	 * Served items limit.
@@ -133,11 +139,7 @@ class Events {
 
 		$info = HCaptcha::decode_id_info();
 
-		if (
-			[ General::class ] === $info['id']['source'] &&
-			General::CHECK_CONFIG_FORM_ID === $info['id']['form_id']
-		) {
-			// Do not store events from the check config form.
+		if ( self::should_skip_event( $info ) ) {
 			return $result;
 		}
 
@@ -170,6 +172,13 @@ class Events {
 
 		$args               = self::prepare_args( $args );
 		$trash_schema_ready = self::is_trash_schema_ready();
+
+		if ( ! self::table_exists() ) {
+			return [
+				'items' => [],
+				'total' => 0,
+			];
+		}
 
 		if ( ! $trash_schema_ready && self::STATUS_TRASH === $args['status'] ) {
 			return [
@@ -246,6 +255,14 @@ class Events {
 
 		$args               = self::prepare_args( $args );
 		$trash_schema_ready = self::is_trash_schema_ready();
+
+		if ( ! self::table_exists() ) {
+			return [
+				'items'  => [],
+				'total'  => 0,
+				'served' => [],
+			];
+		}
 
 		if ( ! $trash_schema_ready && self::STATUS_TRASH === $args['status'] ) {
 			return [
@@ -331,6 +348,10 @@ class Events {
 			self::STATUS_TRASH  => 0,
 		];
 
+		if ( ! self::table_exists() ) {
+			return $counts;
+		}
+
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
 		$where_date = self::get_where_date_gmt( $args );
 
@@ -374,10 +395,26 @@ class Events {
 	/**
 	 * Create the table.
 	 *
+	 * @param bool $force Whether to ignore the stored table-created marker.
+	 *
 	 * @return void
 	 */
-	public static function create_table(): void {
+	public static function create_table( bool $force = false ): void {
 		global $wpdb;
+
+		if ( ! $force && self::table_exists() ) {
+			return;
+		}
+
+		if ( self::database_table_exists() ) {
+			self::mark_table_created();
+
+			return;
+		}
+
+		if ( $force ) {
+			self::unmark_table_created();
+		}
 
 		$table_name = self::TABLE_NAME;
 
@@ -408,6 +445,91 @@ class Events {
 		) $charset_collate";
 
 		dbDelta( $sql );
+
+		if ( self::database_table_exists() ) {
+			self::mark_table_created();
+		}
+	}
+
+	/**
+	 * Whether the Events table is marked as created.
+	 *
+	 * @return bool
+	 */
+	public static function table_exists(): bool {
+		$settings = hcaptcha()->settings();
+		$raw      = $settings ? $settings->get_raw_settings() : get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$raw      = is_array( $raw ) ? $raw : [];
+
+		return 'on' === ( $raw[ self::TABLE_CREATED_OPTION_NAME ] ?? '' );
+	}
+
+	/**
+	 * Whether the Events table exists in the database.
+	 *
+	 * @return bool
+	 */
+	private static function database_table_exists(): bool {
+		global $wpdb;
+
+		$table_name = $wpdb->esc_like( $wpdb->prefix . self::TABLE_NAME );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$tables = $wpdb->get_results(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ),
+			'ARRAY_N'
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return ! empty( $tables );
+	}
+
+	/**
+	 * Mark the Events table as created.
+	 *
+	 * @return void
+	 */
+	private static function mark_table_created(): void {
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$option = is_array( $option ) ? $option : [];
+
+		$option[ self::TABLE_CREATED_OPTION_NAME ] = 'on';
+
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
+	}
+
+	/**
+	 * Unmark the Events table as created.
+	 *
+	 * @return void
+	 */
+	private static function unmark_table_created(): void {
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		if ( ! is_array( $option ) || ! array_key_exists( self::TABLE_CREATED_OPTION_NAME, $option ) ) {
+			return;
+		}
+
+		unset( $option[ self::TABLE_CREATED_OPTION_NAME ] );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
+	}
+
+	/**
+	 * Whether an event should be skipped.
+	 *
+	 * @param array $info Decoded hCaptcha ID info.
+	 *
+	 * @return bool
+	 */
+	private static function should_skip_event( array $info ): bool {
+		return (
+			(
+				[ General::class ] === $info['id']['source'] &&
+				General::CHECK_CONFIG_FORM_ID === $info['id']['form_id']
+			) ||
+			! self::table_exists()
+		);
 	}
 
 	/**
@@ -418,7 +540,14 @@ class Events {
 	public static function cleanup_trash(): void {
 		global $wpdb;
 
-		if ( ! self::is_trash_schema_ready() ) {
+		$settings = hcaptcha()->settings();
+
+		if (
+			! $settings ||
+			! $settings->is_on( 'statistics' ) ||
+			! self::table_exists() ||
+			! self::is_trash_schema_ready()
+		) {
 			return;
 		}
 

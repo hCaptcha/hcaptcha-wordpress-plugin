@@ -402,8 +402,7 @@ class HCaptchaHandler {
 
 		$this->add_render_attributes( $item, $item_index, $widget );
 
-		$data    = $widget->get_raw_data();
-		$form_id = $data['settings']['form_id'] ?? 0;
+		$form_id = $widget->get_id();
 
 		$args = [
 			'id' => $this->get_expected_id( $form_id ),
@@ -598,7 +597,7 @@ class HCaptchaHandler {
 		$sent_data     = $record->get( 'sent_data' );
 		$entry         = [
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
-			'expected_id'   => $this->get_expected_id( $form_settings['form_id'] ?? 0 ),
+			'expected_id'   => $this->get_expected_id( $form_settings['id'] ?? 0 ),
 			'data'          => $sent_data,
 		];
 
