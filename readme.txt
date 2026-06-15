@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 5.0.0
+Stable tag: 5.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -988,6 +988,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.0.1 =
+* Fixed Elementor Pro Forms validation when the optional Form ID is empty or differs from the Elementor widget ID.
+* Fixed Events statistics table handling to avoid runtime table-existence checks and recreate the table during activation or maintenance when needed.
 
 = 5.0.0 =
 * Added Trusted IP Headers settings. hCaptcha uses REMOTE_ADDR by default; custom `hcap_trusted_address_headers` filters are migrated into the setting during upgrade.

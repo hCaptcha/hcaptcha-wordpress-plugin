@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\Admin\Events;
 
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Settings\General;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -73,6 +74,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 * Test save_event().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_save_event(): void {
 		global $wpdb;
@@ -333,6 +335,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		global $wpdb;
 
 		$charset_collate = $wpdb->get_charset_collate();
+		$actual_query    = [];
 		$expected_query  = "CREATE TABLE {$wpdb->prefix}hcaptcha_events (
 		    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		    source      VARCHAR(256)    NOT NULL,
@@ -354,11 +357,161 @@ class EventsTest extends HCaptchaWPTestCase {
 		    KEY status_date_gmt (status, date_gmt),
 		    KEY status_source_form (status, source, form_id)
 		) $charset_collate";
+		$filter          = static function ( $queries ) use ( &$actual_query ) {
+			$actual_query = $queries;
+
+			return $queries;
+		};
 
 		$this->drop_table();
+
+		add_filter( 'dbdelta_queries', $filter );
+
 		Events::create_table();
 
-		$this->assertSame( $expected_query, $wpdb->last_query );
+		remove_filter( 'dbdelta_queries', $filter );
+
+		$this->assertSame( [ $expected_query ], array_values( $actual_query ) );
+		self::assertTrue( Events::table_exists() );
+	}
+
+	/**
+	 * Test create_table() marks an existing table without running dbDelta().
+	 *
+	 * @return void
+	 */
+	public function test_create_table_marks_existing_table_without_dbdelta(): void {
+		$actual_query = [];
+		$filter       = static function ( $queries ) use ( &$actual_query ) {
+			$actual_query = $queries;
+
+			return $queries;
+		};
+
+		$this->drop_table();
+
+		Events::create_table();
+
+		self::assertTrue( Events::table_exists() );
+
+		$this->clear_events_table_created();
+
+		self::assertFalse( Events::table_exists() );
+
+		add_filter( 'dbdelta_queries', $filter );
+
+		Events::create_table();
+
+		remove_filter( 'dbdelta_queries', $filter );
+
+		self::assertSame( [], $actual_query );
+		self::assertTrue( Events::table_exists() );
+	}
+
+	/**
+	 * Test create_table() can force a physical table check.
+	 *
+	 * @return void
+	 */
+	public function test_create_table_force_ignores_created_marker(): void {
+		$actual_query = [];
+		$filter       = static function ( $queries ) use ( &$actual_query ) {
+			$actual_query = $queries;
+
+			return $queries;
+		};
+
+		$this->drop_table();
+		$this->mark_events_table_created();
+
+		self::assertTrue( Events::table_exists() );
+
+		add_filter( 'dbdelta_queries', $filter );
+
+		Events::create_table();
+
+		remove_filter( 'dbdelta_queries', $filter );
+
+		self::assertSame( [], $actual_query );
+		self::assertFalse( $this->database_table_exists() );
+
+		$actual_query = [];
+
+		add_filter( 'dbdelta_queries', $filter );
+
+		Events::create_table( true );
+
+		remove_filter( 'dbdelta_queries', $filter );
+
+		self::assertNotSame( [], $actual_query );
+		self::assertTrue( $this->database_table_exists() );
+		self::assertTrue( Events::table_exists() );
+	}
+
+	/**
+	 * Test events queries are empty when the table is missing.
+	 *
+	 * @return void
+	 */
+	public function test_missing_table_queries_return_empty(): void {
+		global $wpdb;
+
+		$this->drop_table();
+
+		$wpdb->last_error = '';
+
+		self::assertFalse( Events::table_exists() );
+		self::assertSame(
+			[
+				'items' => [],
+				'total' => 0,
+			],
+			Events::get_events()
+		);
+		self::assertSame(
+			[
+				'items'  => [],
+				'total'  => 0,
+				'served' => [],
+			],
+			Events::get_forms()
+		);
+		self::assertSame(
+			[
+				Events::STATUS_ACTIVE => 0,
+				Events::STATUS_TRASH  => 0,
+			],
+			Events::get_status_counts()
+		);
+
+		Events::cleanup_trash();
+
+		self::assertSame( '', $wpdb->last_error );
+	}
+
+	/**
+	 * Test cleanup_trash() does not query events when statistics are off.
+	 *
+	 * @return void
+	 */
+	public function test_cleanup_trash_does_not_query_events_when_statistics_are_off(): void {
+		global $wpdb;
+
+		update_option( 'hcaptcha_versions', [ '5.0.0' => time() ] );
+		wp_cache_set( 'hcaptcha_versions', [ '5.0.0' => time() ], 'options' );
+		update_option( 'hcaptcha_settings', [ 'statistics' => [] ] );
+		hcaptcha()->init_hooks();
+
+		Events::create_table();
+
+		$wpdb->last_query = '';
+
+		Events::cleanup_trash();
+
+		self::assertStringNotContainsString( 'DELETE FROM', $wpdb->last_query );
+
+		delete_option( 'hcaptcha_versions' );
+		wp_cache_delete( 'hcaptcha_versions', 'options' );
 	}
 
 	/**
@@ -394,5 +547,48 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
+		$this->clear_events_table_created();
+	}
+
+	/**
+	 * Whether the physical events table exists.
+	 *
+	 * @return bool
+	 */
+	private function database_table_exists(): bool {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+	}
+
+	/**
+	 * Mark the events table as created.
+	 *
+	 * @return void
+	 */
+	private function mark_events_table_created(): void {
+		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		$settings[ Events::TABLE_CREATED_OPTION_NAME ] = 'on';
+
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
+	}
+
+	/**
+	 * Clear the events table created marker.
+	 *
+	 * @return void
+	 */
+	private function clear_events_table_created(): void {
+		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		unset( $settings[ Events::TABLE_CREATED_OPTION_NAME ] );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
 	}
 }

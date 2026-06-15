@@ -14,7 +14,6 @@ use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test MigrationsTest class.
@@ -90,8 +89,6 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_migrate(): void {
-		FunctionMocker::replace( 'time', time() );
-
 		$time                 = time();
 		$size                 = 'normal';
 		$plugin_major_version = explode( '-', HCAPTCHA_VERSION )[0];
@@ -104,31 +101,32 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			$plugin_major_version => $time,
 		];
 		$expected_settings    = [
-			'site_key'                     => '',
-			'secret_key'                   => '',
-			'theme'                        => '',
-			'size'                         => $size,
-			'language'                     => '',
-			'off_when_logged_in'           => [],
-			'recaptcha_compat_off'         => [],
-			'wp_status'                    => [],
-			'bbp_status'                   => [],
-			'bp_status'                    => [],
-			'cf7_status'                   => [ 'live' ],
-			'divi_status'                  => [],
-			'elementor_pro_status'         => [],
-			'fluent_status'                => [],
-			'gravity_status'               => [],
-			'jetpack_status'               => [],
-			'mailchimp_status'             => [],
-			'memberpress_status'           => [],
-			'ninja_status'                 => [],
-			'subscriber_status'            => [],
-			'ultimate_member_status'       => [],
-			'woocommerce_status'           => [],
-			'woocommerce_wishlists_status' => [],
-			'wpforms_status'               => [ 'form' ],
-			'wpforo_status'                => [],
+			'site_key'                        => '',
+			'secret_key'                      => '',
+			'theme'                           => '',
+			'size'                            => $size,
+			'language'                        => '',
+			'off_when_logged_in'              => [],
+			'recaptcha_compat_off'            => [],
+			'wp_status'                       => [],
+			'bbp_status'                      => [],
+			'bp_status'                       => [],
+			'cf7_status'                      => [ 'live' ],
+			'divi_status'                     => [],
+			'elementor_pro_status'            => [],
+			'fluent_status'                   => [],
+			'gravity_status'                  => [],
+			'jetpack_status'                  => [],
+			'mailchimp_status'                => [],
+			'memberpress_status'              => [],
+			'ninja_status'                    => [],
+			'subscriber_status'               => [],
+			'ultimate_member_status'          => [],
+			'woocommerce_status'              => [],
+			'woocommerce_wishlists_status'    => [],
+			'wpforms_status'                  => [ 'form' ],
+			'wpforo_status'                   => [],
+			Events::TABLE_CREATED_OPTION_NAME => 'on',
 		];
 
 		if ( version_compare( '5.0.0', $plugin_major_version, '<=' ) ) {
@@ -144,6 +142,8 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		$subject = new Migrations();
 
+		delete_option( $subject::MIGRATED_VERSIONS_OPTION_NAME );
+
 		self::assertSame( [], get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) );
 
 		// Do not run async migrations via Action Scheduler.
@@ -156,6 +156,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( $this->compare_migrated( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) ) );
 		self::assertSame( $expected_settings, get_option( 'hcaptcha_settings', [] ) );
+		self::assertTrue( Events::table_exists() );
 		self::assertFalse( get_option( 'hcaptcha_size' ) );
 		self::assertFalse( get_option( 'hcaptcha_wpforms_status' ) );
 
@@ -165,6 +166,37 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject->migrate();
 
 		self::assertTrue( $this->compare_migrated( $expected_option, get_option( $subject::MIGRATED_VERSIONS_OPTION_NAME, [] ) ) );
+	}
+
+	/**
+	 * Test init() creates the events table when no migration is pending.
+	 *
+	 * @return void
+	 */
+	public function test_init_creates_events_table_when_no_migration_is_pending(): void {
+		$this->drop_events_table();
+
+		self::assertFalse( Events::table_exists() );
+
+		$plugin_major_version = explode( '-', HCAPTCHA_VERSION )[0];
+
+		update_option(
+			Migrations::MIGRATED_VERSIONS_OPTION_NAME,
+			[
+				'2.0.0'               => 0,
+				'3.6.0'               => 0,
+				'4.0.0'               => 0,
+				'4.6.0'               => 0,
+				'4.11.0'              => 0,
+				'5.0.0'               => 0,
+				$plugin_major_version => time(),
+			]
+		);
+
+		set_current_screen( 'some-screen' );
+		new Migrations();
+
+		self::assertTrue( Events::table_exists() );
 	}
 
 	/**
@@ -277,6 +309,35 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject->$method();
 
 		self::assertSame( array_filter( explode( ';', $expected_query ) ), $actual_query );
+	}
+
+	/**
+	 * Drop the events table.
+	 *
+	 * @return void
+	 */
+	private function drop_events_table(): void {
+		global $wpdb;
+
+		$table_name = Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP TABLE IF EXISTS $wpdb->prefix$table_name" );
+		$this->clear_events_table_created();
+	}
+
+	/**
+	 * Clear the events table created marker.
+	 *
+	 * @return void
+	 */
+	private function clear_events_table_created(): void {
+		$settings = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		unset( $settings[ Events::TABLE_CREATED_OPTION_NAME ] );
+
+		update_option( PluginSettingsBase::OPTION_NAME, $settings );
 	}
 
 	/**

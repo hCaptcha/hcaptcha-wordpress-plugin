@@ -1,3 +1,7 @@
+= 5.0.1 =
+* Fixed Elementor Pro Forms validation when the optional Form ID is empty or differs from the Elementor widget ID.
+* Fixed Events statistics table handling to avoid runtime table-existence checks and recreate the table during activation or maintenance when needed.
+
 = 5.0.0 =
 * Added Trusted IP Headers settings. hCaptcha uses REMOTE_ADDR by default; custom `hcap_trusted_address_headers` filters are migrated into the setting during upgrade.
 * Added Cloudflare detection to help identify when CF-Connecting-IP should be selected as a Trusted IP Header.

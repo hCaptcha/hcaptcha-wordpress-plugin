@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -52,7 +53,10 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 			define( 'WP_UNINSTALL_PLUGIN', true );
 		}
 
-		$settings          = [ 'some settings' ];
+		$settings          = [
+			'some settings',
+			Events::TABLE_CREATED_OPTION_NAME => 'on',
+		];
 		$network_settings  = [ 'some network settings' ];
 		$login_data        = [ 'some login data' ];
 		$migrated_versions = [ 'some migration data' ];
