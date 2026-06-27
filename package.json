@@ -43,7 +43,7 @@
     "@wordpress/hooks": "^4.45.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.6",
     "@babel/preset-env": "^7.29.5",
     "@inrupt/jest-jsdom-polyfills": "^4.1.1",
     "@wordpress/eslint-plugin": "^25.1.0",
