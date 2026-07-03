@@ -19,7 +19,6 @@ use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
 use stdClass;
@@ -287,7 +286,11 @@ class Form extends LoginBase {
 		wp_deregister_script( self::FLUENT_FORMS_CONVERSATIONAL_HANDLE );
 
 		$hcap_form = $this->get_hcaptcha();
-		$hcap_form = str_replace( 'class="h-captcha"', 'class=""', $hcap_form );
+		$hcap_form = preg_replace(
+			'#class="[^"]*\bh-captcha\b[^"]*"#',
+			'class=""',
+			$hcap_form
+		);
 		$hcap_form = '<div class="h-captcha-hidden" style="display: none;">' . "\n$hcap_form\n</div>";
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -489,10 +492,7 @@ class Form extends LoginBase {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $this->form_id,
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		return HCaptcha::form( $args );
@@ -589,13 +589,17 @@ class Form extends LoginBase {
 	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	private function get_entry( FluentForm $form ): array {
-		$post_data_str = Request::filter_input( INPUT_POST, 'data' );
+		// Fluent Forms sends serialized form data; sanitizing the whole query string breaks encoded field values.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$post_data_str = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : '';
 
 		wp_parse_str( $post_data_str, $post_data );
 
 		$post_data = (array) $post_data; // The $post_data is filtered in the wp_parse_str() and can be anything.
 
-		$form_fields_json = $form->getAttributes()['form_fields'] ?? [];
+		$attributes       = $form->getAttributes();
+		$form_id          = (int) ( $attributes['id'] ?? $form->id ?? 0 );
+		$form_fields_json = $attributes['form_fields'] ?? [];
 		$form_fields      = Utils::json_decode_arr( $form_fields_json );
 		$fields           = $form_fields['fields'] ?? [];
 
@@ -611,6 +615,30 @@ class Form extends LoginBase {
 			'form_date_gmt' => $form->updated_at ?? null,
 			'data'          => $data,
 			'post_data'     => $post_data,
+			'expected_id'   => $this->get_form_expected_id( $form_id ),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return $this->get_form_expected_id( $this->form_id );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id for the form.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_form_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
 		];
 	}
 
@@ -699,7 +727,7 @@ class Form extends LoginBase {
 	}
 
 	/**
-	 * Filter raw post_data and keep only keys that exist in the fields map.
+	 * Filter raw post_data and keep only keys that exist in the field map.
 	 * Returns values enriched with type/element.
 	 *
 	 * @param array $post_data  Raw parsed post data.

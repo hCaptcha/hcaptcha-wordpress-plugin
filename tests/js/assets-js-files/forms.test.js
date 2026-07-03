@@ -72,7 +72,7 @@ function getDom( { withButton = true, withDatepicker = true } = {} ) {
 				</tr>
 			</tbody>
 		</table>
-		${ withButton ? '<button id="doaction" type="button">Apply</button>' : '' }
+		${ withButton ? '<button id="do-action" type="button">Apply</button>' : '' }
 		${ withDatepicker ? '<input type="date" id="hcaptcha-datepicker" value="2025-11-01" />' : '' }
 	</form>
 	<div id="hcaptcha-message"></div>
@@ -129,15 +129,15 @@ describe( 'forms.js', () => {
 		expect( cfg.options.aspectRatio ).toBe( 2 );
 	} );
 
-	test( 'on ready shows bulk message and attaches click handler when #doaction exists', () => {
+	test( 'on ready shows bulk message and attaches click handler when #do-action exists', () => {
 		bootForms();
 		expect( baseMock.showSuccessMessage ).toHaveBeenCalledWith( defaultFormsObject.bulkMessage );
 		// Simulate click to ensure a handler is attached (will trigger early noAction branch by default)
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		expect( baseMock.showErrorMessage ).toHaveBeenCalledWith( HCaptchaListPageBaseObject.noAction );
 	} );
 
-	test( 'gracefully handles missing #doaction (no listener) but still shows message', () => {
+	test( 'gracefully handles missing #do-action (no listener) but still shows message', () => {
 		bootForms( { withButton: false } );
 		expect( baseMock.showSuccessMessage ).toHaveBeenCalledWith( defaultFormsObject.bulkMessage );
 		// No button means anything to click. Ensure no exception and Chart was created
@@ -147,7 +147,7 @@ describe( 'forms.js', () => {
 	test( 'bulk action early return when action == -1 shows noAction and does not post', () => {
 		bootForms();
 		postSpy.mockImplementation( () => $.Deferred() );
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		expect( baseMock.showErrorMessage ).toHaveBeenCalledWith( HCaptchaListPageBaseObject.noAction );
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
@@ -158,7 +158,7 @@ describe( 'forms.js', () => {
 		// Ensure all checkboxes are unchecked
 		$( 'input[name="bulk-checkbox[]"]' ).prop( 'checked', false );
 		postSpy.mockImplementation( () => $.Deferred() );
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		expect( baseMock.showErrorMessage ).toHaveBeenCalledWith( HCaptchaListPageBaseObject.noItems );
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
@@ -181,7 +181,7 @@ describe( 'forms.js', () => {
 		// Spy on console.error to observe jsdom navigation error produced by reload()
 		const consoleSpy = jest.spyOn( console, 'error' ).mockImplementation( () => {} );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		d.resolve( { success: true, data: 'Done' } );
 		await Promise.resolve();
 
@@ -215,7 +215,7 @@ describe( 'forms.js', () => {
 			return d;
 		} );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		// do not need to resolve; just check the payload prepared
 		expect( captured.data.date ).toBe( '' );
 	} );
@@ -234,7 +234,7 @@ describe( 'forms.js', () => {
 
 		const consoleSpy = jest.spyOn( console, 'error' ).mockImplementation( () => {} );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		// Resolve with failure
 		d.resolve( { success: false, data: 'Bad request' } );
 		await Promise.resolve();
@@ -255,7 +255,7 @@ describe( 'forms.js', () => {
 		const d = $.Deferred();
 		postSpy.mockImplementation( () => d );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		d.reject( { statusText: 'Boom' } );
 		await Promise.resolve();
 

@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\BuddyPress;
 
 use BP_Groups_Group;
 use HCaptcha\BuddyPress\CreateGroup;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
@@ -83,6 +84,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 		$subject = new CreateGroup();
 
 		$this->prepare_verify_post( 'hcaptcha_bp_create_group_nonce', 'hcaptcha_bp_create_group' );
+		$this->prepare_widget_id();
 
 		self::assertTrue( $subject->verify( new BP_Groups_Group() ) );
 	}
@@ -117,6 +119,10 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 					'description'  => 'Some description',
 					'date_created' => '2026-02-15 15:03:24',
 				],
+				'expected_id'        => [
+					'source'  => [ 'buddypress/bp-loader.php' ],
+					'form_id' => 'create_group',
+				],
 			],
 			$actual
 		);
@@ -148,10 +154,8 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 		);
 
 		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'BP_TESTS_DIR' === $constant_name;
-			}
+			'HCaptcha\\BuddyPress\\bp_core_redirect',
+			static function (): void {}
 		);
 
 		add_filter(
@@ -168,6 +172,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 		$subject = new CreateGroup();
 
 		$this->prepare_verify_post( 'hcaptcha_bp_create_group_nonce', 'hcaptcha_bp_create_group', null );
+		$this->prepare_widget_id();
 
 		self::assertFalse( $subject->verify( new BP_Groups_Group() ) );
 
@@ -212,5 +217,19 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'buddypress/bp-loader.php' ],
+				'form_id' => 'create_group',
+			]
+		);
 	}
 }

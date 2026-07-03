@@ -11,7 +11,6 @@
 namespace HCaptcha\BeaverBuilder;
 
 use FLBuilderModule;
-use HCaptcha\Helpers\API;
 use WP_Error;
 use WP_User;
 
@@ -65,7 +64,6 @@ class Login extends Base {
 	 * @param string           $password Password to check against the user.
 	 *
 	 * @return WP_User|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
 		if ( ! doing_action( 'wp_ajax_nopriv_fl_builder_login_form_submit' ) ) {
@@ -76,12 +74,6 @@ class Login extends Base {
 			return $user;
 		}
 
-		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
-
-		if ( null === $error_message ) {
-			return $user;
-		}
-
-		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
+		return $this->login_base_verify( $user, $password );
 	}
 }

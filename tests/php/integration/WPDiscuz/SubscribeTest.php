@@ -14,6 +14,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPDiscuz\Subscribe;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
+use function function_exists;
 
 /**
  * Test Subscribe class.
@@ -50,7 +51,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
-				return 'wpDiscuz' === $function_name;
+				return 'wpDiscuz' === $function_name || function_exists( $function_name );
 			}
 		);
 		FunctionMocker::replace( 'wpDiscuz', $this->wp_discuz );

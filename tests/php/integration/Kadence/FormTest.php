@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Kadence;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Kadence\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -118,7 +119,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, $subject->render_block( $block_content, $block, $instance ) );
 
-		// No reCaptcha, add hCaptcha before submit.
+		// No reCaptcha, add hCaptcha before submitting.
 		$block_content = '<div class="kadence-blocks-form-field kb-submit-field">Some block content</div>';
 		$expected      = $hcap_form . $block_content;
 
@@ -136,6 +137,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$hcaptcha_response = 'some response';
 
 		$this->prepare_verify_request( $hcaptcha_response );
+		$this->prepare_widget_id( 0 );
 
 		$subject = new Form();
 
@@ -149,6 +151,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_process_ajax_when_not_success
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_process_ajax_when_not_success( ?bool $result ): void {
 		$hcaptcha_response = 'some response';
@@ -175,10 +178,60 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 
 		$this->prepare_verify_request( $hcaptcha_response, $result );
+		$this->prepare_widget_id( 0 );
 
 		if ( null === $result ) {
 			unset( $_POST['h-captcha-response'] );
 		}
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new Form();
+
+		ob_start();
+		$subject->process_ajax();
+		$json = ob_get_clean();
+
+		$expected_json['data']['headers_sent'] = json_decode( $json, true )['data']['headers_sent'];
+
+		self::assertSame( wp_json_encode( $expected_json ), $json );
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test process_ajax() when widget id is missing.
+	 *
+	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_process_ajax_missing_widget_id(): void {
+		$hcaptcha_response = 'some response';
+		$error_message     = 'Bad hCaptcha signature!';
+		$die_arr           = [];
+		$expected_json     = [
+			'success' => false,
+			'data'    => [
+				'html'         => "<div class=\"kadence-blocks-form-message kadence-blocks-form-warning\">$error_message</div>",
+				'console'      => 'hCaptcha Failed',
+				'required'     => null,
+				'headers_sent' => true,
+			],
+		];
+		$expected          = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
@@ -212,6 +265,27 @@ class FormTest extends HCaptchaWPTestCase {
 			'null'  => [ null ],
 			'false' => [ false ],
 		];
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => [ 'kadence-blocks/kadence-blocks.php' ],
+				'form_id' => $form_id,
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

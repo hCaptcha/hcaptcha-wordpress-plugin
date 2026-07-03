@@ -43,8 +43,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 */
 	public function tearDown(): void {
 		$_POST = [];
-		unset( $_GET[ OnboardingWizard::AUTO_SETUP_PARAM ] );
-		unset( $_GET[ OnboardingWizard::NONCE_PARAM ] );
+		unset( $_GET[ OnboardingWizard::AUTO_SETUP_PARAM ], $_GET[ OnboardingWizard::NONCE_PARAM ] );
 
 		parent::tearDown();
 	}
@@ -238,7 +237,7 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test maybe_handle_onboarding_auto_setup() when anti-spam provider is not configured.
+	 * Test maybe_handle_onboarding_auto_setup() when the anti-spam provider is not configured.
 	 */
 	public function test_maybe_handle_onboarding_auto_setup_without_configured_antispam_provider(): void {
 		$nonce = 'auto_setup_nonce';
@@ -406,6 +405,105 @@ class GeneralTest extends HCaptchaTestCase {
 		$method->setAccessible( false );
 	}
 
+	/**
+	 * Test maybe_handle_onboarding_auto_setup() when not on the option screen.
+	 */
+	public function test_maybe_handle_onboarding_auto_setup_not_on_options_screen(): void {
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( false );
+		$subject->shouldReceive( 'update_option' )->never();
+		$subject->shouldReceive( 'should_enable_onboarding_antispam' )->never();
+		$subject->shouldReceive( 'auto_migration' )->never();
+		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )->never();
+
+		$subject->maybe_handle_onboarding_auto_setup();
+	}
+
+	/**
+	 * Test maybe_handle_onboarding_auto_setup() without an auto-setup request.
+	 */
+	public function test_maybe_handle_onboarding_auto_setup_without_auto_setup_request(): void {
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( $type, $name ) {
+				if ( INPUT_GET === $type && OnboardingWizard::AUTO_SETUP_PARAM === $name ) {
+					return '';
+				}
+
+				return 'some value';
+			}
+		);
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
+		$subject->shouldReceive( 'update_option' )->never();
+		$subject->shouldReceive( 'should_enable_onboarding_antispam' )->never();
+		$subject->shouldReceive( 'auto_migration' )->never();
+		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )->never();
+
+		$subject->maybe_handle_onboarding_auto_setup();
+	}
+
+	/**
+	 * Test auto_migration() with no surfaces.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_auto_migration_with_no_surfaces(): void {
+		$scan_data = [
+			'already_enabled' => [],
+			'results'         => [
+				'not an array',
+				[
+					'surface'               => 'wp_login',
+					'confidence'            => DetectionResult::CONFIDENCE_LOW,
+					'is_migratable'         => true,
+					'hcaptcha_option_key'   => 'wp_status',
+					'hcaptcha_option_value' => 'login',
+				],
+			],
+		];
+
+		$wizard = Mockery::mock( MigrationWizard::class );
+		$wizard->shouldReceive( 'scan' )->once()->andReturn( $scan_data );
+		$wizard->shouldReceive( 'apply' )->never();
+
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'create_migration_wizard' )->once()->andReturn( $wizard );
+
+		$method = $this->set_method_accessibility( $subject, 'auto_migration' );
+		$method->invoke( $subject );
+		$method->setAccessible( false );
+	}
+
+	/**
+	 * Test should_enable_onboarding_antispam().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_should_enable_onboarding_antispam(): void {
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get' )->with( 'antispam_provider' )->andReturn( '', 'some-provider' );
+
+		FunctionMocker::replace(
+			'\HCaptcha\AntiSpam\AntiSpam::get_configured_providers',
+			[ 'some-provider' ]
+		);
+
+		$method = $this->set_method_accessibility( $subject, 'should_enable_onboarding_antispam' );
+
+		self::assertFalse( $method->invoke( $subject ) );
+		self::assertTrue( $method->invoke( $subject ) );
+
+		$method->setAccessible( false );
+	}
 	/**
 	 * Test init_form_fields()
 	 *

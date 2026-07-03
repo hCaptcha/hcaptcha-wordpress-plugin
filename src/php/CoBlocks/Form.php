@@ -44,6 +44,13 @@ class Form {
 	private ?string $error_message = null;
 
 	/**
+	 * Current form id.
+	 *
+	 * @var int|string
+	 */
+	private $form_id = 0;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -151,6 +158,8 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function before_form_submit( array $post, array $atts ): void {
+		$this->form_id = $atts['formHash'] ?? $atts['form-hash'] ?? $post['form-hash'] ?? 0;
+
 		add_filter( 'pre_option_coblocks_google_recaptcha_site_key', '__return_true' );
 		add_filter( 'pre_option_coblocks_google_recaptcha_secret_key', '__return_true' );
 
@@ -226,6 +235,20 @@ class Form {
 	}
 
 	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int|string $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $this->form_id ?: $form_id,
+		];
+	}
+
+	/**
 	 * Get entry.
 	 *
 	 * @param array $form_data Form data.
@@ -241,6 +264,7 @@ class Form {
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $form_data['form-hash'] ?? 0 ),
 		];
 		$name  = [];
 

@@ -11,7 +11,10 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Main;
 use HCaptcha\Settings\Settings;
+use HCaptcha\WP\Signup;
 use Mockery;
+use ReflectionException;
+use RuntimeException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
 
@@ -120,6 +123,85 @@ class MainTest extends HCaptchaTestCase {
 			->with( Events::CLEANUP_ACTION, [], 'hcaptcha' );
 
 		$subject->register_recurring_actions();
+	}
+
+	/**
+	 * Test get_client_country_code().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_client_country_code(): void {
+		$client_ip = '203.0.113.40';
+		$error_ip  = '203.0.113.41';
+
+		$db_path = WP_CONTENT_DIR . '/uploads/hcaptcha/GeoLite2-Country.mmdb';
+
+		FunctionMocker::replace( 'is_readable', true );
+
+		$reader = Mockery::mock( 'overload:HCaptcha\Vendors\GeoIp2\Database\Reader' );
+		$reader->shouldReceive( '__construct' )->with( $db_path );
+		$reader->shouldReceive( 'country' )->andReturnUsing(
+			static function ( string $ip ) use ( $client_ip, $error_ip ) {
+				if ( $error_ip === $ip ) {
+					throw new RuntimeException( 'Reader error.' );
+				}
+
+				self::assertSame( $client_ip, $ip );
+
+				return (object) [
+					'country' => (object) [
+						'isoCode' => ' us ',
+					],
+				];
+			}
+		);
+		$reader->shouldReceive( 'close' )->andReturnNull();
+
+		$subject = new Main();
+		$method  = $this->set_method_accessibility( $subject, 'get_client_country_code' );
+
+		self::assertSame( 'US', $method->invoke( $subject, $client_ip ) );
+		self::assertSame( '', $method->invoke( $subject, $error_ip ) );
+	}
+
+	/**
+	 * Test load_modules() on multisite.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_load_modules_on_multisite(): void {
+		FunctionMocker::replace( 'is_multisite', true );
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( $function_name ) {
+				return 'is_plugin_active' === $function_name;
+			}
+		);
+
+		$subject = new Main();
+
+		$this->set_protected_property( $subject, 'active', false );
+		$subject->load_modules();
+
+		self::assertSame(
+			[
+				[ 'wp_status', 'signup' ],
+				'',
+				Signup::class,
+			],
+			$subject->modules['Signup Form']
+		);
+		self::assertSame(
+			[
+				[ 'theme_my_login_status', 'signup' ],
+				'theme-my-login/theme-my-login.php',
+				\HCaptcha\ThemeMyLogin\Signup::class,
+			],
+			$subject->modules['Theme My Login Signup']
+		);
+		self::assertArrayNotHasKey( 'Theme My Login Register', $subject->modules );
 	}
 
 	/**

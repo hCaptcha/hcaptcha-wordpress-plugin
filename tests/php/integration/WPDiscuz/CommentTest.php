@@ -14,6 +14,7 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPDiscuz\Comment;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
+use function function_exists;
 
 /**
  * Test Comment class.
@@ -49,7 +50,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
-				return 'wpDiscuz' === $function_name;
+				return 'wpDiscuz' === $function_name || function_exists( $function_name );
 			}
 		);
 		FunctionMocker::replace( 'wpDiscuz', $this->wp_discuz );
@@ -62,6 +63,8 @@ class CommentTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset( $_POST['action'], $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
+
+		parent::tearDown();
 	}
 
 	/**
@@ -88,7 +91,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
-				return 'wpDiscuz' !== $function_name;
+				return ! ( 'wpDiscuz' === $function_name ) && function_exists( $function_name );
 			}
 		);
 
@@ -133,7 +136,7 @@ class CommentTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace(
 			'function_exists',
 			static function ( $function_name ) {
-				return 'wpDiscuz' === $function_name;
+				return 'wpDiscuz' === $function_name || function_exists( $function_name );
 			}
 		);
 		FunctionMocker::replace( 'wpDiscuz', $core );

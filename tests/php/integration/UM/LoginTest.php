@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\UM;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UM\Login;
 use Mockery;
@@ -320,7 +321,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test add_um_captcha() when login limit is not exceeded.
+	 * Test add_um_captcha() when the login limit is not exceeded.
 	 *
 	 * @return void
 	 */
@@ -337,9 +338,10 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test add_um_captcha() with wrong mode.
+	 * Test add_um_captcha() with the wrong mode.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_add_um_captcha_with_wrong_mode(): void {
 		$fields  = [ 'some fields' ];
@@ -416,11 +418,32 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$mode = $subject::UM_MODE;
 
 		$this->prepare_verify_post( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
+		$this->prepare_widget_id( $mode );
 		$subject->verify( $submitted_data );
 
 		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
 	}
 
+	/**
+	 * Test verify() with submitted form id.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_with_submitted_form_id(): void {
+		$submitted_data = [];
+		$subject        = $this->get_subject();
+		$mode           = $subject::UM_MODE;
+		$form_id        = 3140;
+
+		$this->prepare_verify_post( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
+		$_POST['form_id'] = (string) $form_id;
+		$this->prepare_widget_id( $form_id );
+
+		$subject->verify( $submitted_data );
+
+		self::assertFalse( UM()->form()->has_error( 'hcaptcha' ) );
+	}
 	/**
 	 * Test verify() not verified.
 	 *
@@ -431,6 +454,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$mode    = $subject::UM_MODE;
 
 		$this->prepare_verify_post( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode", false );
+		$this->prepare_widget_id( $mode );
 
 		$args['mode'] = $subject::UM_MODE;
 
@@ -441,9 +465,29 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test verify() when login limit is not exceeded.
+	 * Test verify() when widget id is missing.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$subject = $this->get_subject();
+		$mode    = $subject::UM_MODE;
+
+		$this->prepare_verify_post( "hcaptcha_um_{$mode}_nonce", "hcaptcha_um_$mode" );
+
+		$args['mode'] = $mode;
+
+		$subject->verify( $args );
+
+		self::assertTrue( UM()->form()->has_error( 'hcaptcha' ) );
+		self::assertSame( 'Bad hCaptcha signature!', UM()->form()->errors['hcaptcha'] );
+	}
+	/**
+	 * Test verify() when the login limit is not exceeded.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_when_login_limit_is_not_exceeded(): void {
 		$submitted_data = [ 'some submitted data' ];
@@ -478,6 +522,21 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( '', $subject->mute_login_hcaptcha_notice( $message, $error_key ) );
 	}
 
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int|string $mode UM mode or form id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( $mode ): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'ultimate-member/ultimate-member.php' ],
+				'form_id' => $mode,
+			]
+		);
+	}
 	/**
 	 * Get subject.
 	 *

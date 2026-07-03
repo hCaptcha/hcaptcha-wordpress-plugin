@@ -30,9 +30,9 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	private const PLUGIN_SLUG_LITE = 'acf-extended/acf-extended.php';
 
 	/**
-	 * Test detect when reCAPTCHA keys are present in acfe_settings option.
+	 * Test detect when reCAPTCHA keys are present in the acfe_settings option.
 	 */
-	public function test_detect_with_keys_in_option() {
+	public function test_detect_with_keys_in_option(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -60,9 +60,9 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect when reCAPTCHA keys are present via acf_get_setting.
+	 * Tests detect when reCAPTCHA keys are present via acf_get_setting.
 	 */
-	public function test_detect_with_keys_in_acf_get_setting() {
+	public function test_detect_with_keys_in_acf_get_setting(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -85,7 +85,7 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect when no keys are present.
 	 */
-	public function test_detect_no_keys() {
+	public function test_detect_no_keys(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -101,9 +101,9 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect when only site key is present.
+	 * Test detect when only a site key is present.
 	 */
-	public function test_detect_only_site_key() {
+	public function test_detect_only_site_key(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -129,7 +129,7 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect with whitespace keys.
 	 */
-	public function test_detect_with_whitespace_keys() {
+	public function test_detect_with_whitespace_keys(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -156,7 +156,7 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test is_applicable.
 	 */
-	public function test_is_applicable() {
+	public function test_is_applicable(): void {
 		// Lite active.
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
@@ -176,7 +176,7 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test get_source_plugin.
 	 */
-	public function test_get_source_plugin() {
+	public function test_get_source_plugin(): void {
 		// Case 1: Pro is active.
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
@@ -184,5 +184,44 @@ class ACFEDetectorTest extends HCaptchaTestCase {
 
 		$detector = new ACFEDetector();
 		self::assertSame( self::PLUGIN_SLUG_PRO, $detector->get_source_plugin(), 'Should return Pro when Pro is active' );
+	}
+
+	/**
+	 * Test get_source_plugin defaults to Pro when no plugin is active.
+	 */
+	public function test_get_source_plugin_defaults_to_pro_when_no_plugin_active(): void {
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'active_plugins', [] )
+			->andReturn( [] );
+
+		$detector = new ACFEDetector();
+
+		self::assertSame( 'acf-extended-pro/acf-extended.php', $detector->get_source_plugin() );
+	}
+
+	/**
+	 * Test is_applicable returns false when neither ACFE plugin is active.
+	 */
+	public function test_is_applicable_when_plugin_inactive(): void {
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'active_plugins', [] )
+			->andReturn( [] );
+
+		$detector = new ACFEDetector();
+
+		self::assertFalse( $detector->is_applicable() );
+	}
+
+	/**
+	 * Test detect returns an empty array when settings are a non-array.
+	 */
+	public function test_detect_with_non_array_settings(): void {
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'acfe_settings', [] )
+			->andReturn( 'broken' );
+
+		$detector = new ACFEDetector();
+
+		self::assertSame( [], $detector->detect() );
 	}
 }

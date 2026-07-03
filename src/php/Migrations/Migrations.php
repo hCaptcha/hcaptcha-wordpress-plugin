@@ -106,6 +106,7 @@ class Migrations {
 
 		add_action( 'async_migrate_4_11_0', [ $this, 'async_migrate_4_11_0' ] );
 		add_action( 'async_migrate_5_0_0', [ $this, 'async_migrate_5_0_0' ] );
+		add_action( 'async_migrate_5_1_0', [ $this, 'async_migrate_5_1_0' ] );
 	}
 
 	/**
@@ -499,9 +500,14 @@ class Migrations {
 	public function async_migrate_4_11_0(): void {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$table_name      = $wpdb->prefix . Events::TABLE_NAME;
+		$source_key_part = $this->source_index_key_part();
 
-		$this->add_index( $table_name, 'idx_date_source_form', 'date_gmt, source, form_id' );
+		$this->add_index(
+			$table_name,
+			'idx_date_source_form',
+			'date_gmt, ' . $source_key_part . ', form_id'
+		);
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -530,6 +536,27 @@ class Migrations {
 	public function async_migrate_5_0_0(): void {
 		$this->add_trusted_address_headers();
 		$this->add_events_trash_folder();
+
+		$this->mark_completed();
+	}
+
+	/**
+	 * Migrate to 5.1.0
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_5_1_0(): ?bool {
+		return $this->run_async( __FUNCTION__ );
+	}
+
+	/**
+	 * Async migration to 5.1.0.
+	 *
+	 * @return void
+	 */
+	public function async_migrate_5_1_0(): void {
+		$this->update_events_source_indexes();
 
 		$this->mark_completed();
 	}
@@ -635,7 +662,11 @@ class Migrations {
 		);
 
 		$this->add_index( $table_name, 'status_date_gmt', 'status, date_gmt' );
-		$this->add_index( $table_name, 'status_source_form', 'status, source, form_id' );
+		$this->add_index(
+			$table_name,
+			'status_source_form',
+			'status, ' . $this->source_index_key_part() . ', form_id'
+		);
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query(
@@ -722,26 +753,122 @@ class Migrations {
 	private function add_index( string $table_name, string $index_name, string $key_part ): void {
 		global $wpdb;
 
-		// Check id index already exists.
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$result = $wpdb->get_var(
-			"SELECT COUNT(1) IndexIsThere
-					FROM INFORMATION_SCHEMA.STATISTICS
-					WHERE table_schema = DATABASE()
-      					AND table_name = '$table_name'
-          				AND index_name = '$index_name'"
-		);
-
-		if ( '0' !== $result ) {
+		if ( $this->index_exists( $table_name, $index_name ) ) {
 			return;
 		}
 
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
-
-		// Change the column length for the wp_wpforms_entry_meta.type column to 255 and add an index.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query( "CREATE INDEX $index_name ON $table_name ( $key_part )" );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+	}
+
+	/**
+	 * Replace an index.
+	 *
+	 * @param string $table_name        Table.
+	 * @param string $index_name        Index name.
+	 * @param string $key_part          Key part.
+	 * @param bool   $create_if_missing Whether to create the index if it does not exist.
+	 *
+	 * @return void
+	 */
+	private function replace_index(
+		string $table_name,
+		string $index_name,
+		string $key_part,
+		bool $create_if_missing = true
+	): void {
+		global $wpdb;
+
+		$exists = $this->index_exists( $table_name, $index_name );
+
+		if ( ! $exists && ! $create_if_missing ) {
+			return;
+		}
+
+		if ( $exists ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+			// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$wpdb->query( "DROP INDEX $index_name ON $table_name" );
+			// phpcs:enable PluginCheck.Security.DirectDB.UnescapedDBParameter
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		}
+
+		$this->add_index( $table_name, $index_name, $key_part );
+	}
+
+	/**
+	 * Check if an index exists.
+	 *
+	 * @param string $table_name Table.
+	 * @param string $index_name Index name.
+	 *
+	 * @return bool
+	 */
+	private function index_exists( string $table_name, string $index_name ): bool {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(1) IndexIsThere
+					FROM INFORMATION_SCHEMA.STATISTICS
+					WHERE table_schema = DATABASE()
+						AND table_name = %s
+						AND index_name = %s',
+				$table_name,
+				$index_name
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return 0 < (int) $result;
+	}
+
+	/**
+	 * Update events table indexes that include the source column.
+	 *
+	 * @return void
+	 */
+	private function update_events_source_indexes(): void {
+		global $wpdb;
+
+		Events::create_table( true );
+
+		if ( ! Events::table_exists() ) {
+			return;
+		}
+
+		$table_name        = $wpdb->prefix . Events::TABLE_NAME;
+		$source_key_part   = $this->source_index_key_part();
+		$source_form_index = $source_key_part . ', form_id';
+
+		$this->replace_index( $table_name, 'source', $source_key_part );
+		$this->replace_index( $table_name, 'hcaptcha_id', $source_form_index, false );
+		$this->replace_index(
+			$table_name,
+			'idx_date_source_form',
+			'date_gmt, ' . $source_form_index
+		);
+
+		if ( $this->column_exists( $table_name, 'status' ) ) {
+			$this->replace_index(
+				$table_name,
+				'status_source_form',
+				'status, ' . $source_form_index
+			);
+		}
+	}
+
+	/**
+	 * Get the source index key part.
+	 *
+	 * @return string
+	 */
+	private function source_index_key_part(): string {
+		return 'source(' . Events::SOURCE_INDEX_LENGTH . ')';
 	}
 
 	/**

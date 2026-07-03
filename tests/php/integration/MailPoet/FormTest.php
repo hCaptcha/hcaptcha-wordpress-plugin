@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\MailPoet;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\MailPoet\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Tests\Integration\Stubs\MailPoet\API\JSON\ResponseStub;
@@ -55,7 +56,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}mailpoet_forms" );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-		unset( $_POST['action'], $_POST['endpoint'], $_POST['method'] );
+		unset( $_POST['action'], $_POST['endpoint'], $_POST['method'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		parent::tearDown();
 	}
@@ -142,6 +143,7 @@ HTML;
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+		$this->prepare_widget_id( 1 );
 
 		$subject->verify( $api );
 
@@ -149,10 +151,9 @@ HTML;
 		unset( $_POST['data'] );
 
 		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+		$this->prepare_widget_id( 0 );
 
-		// Suppress warning for an undefined array key "form_id" when data is empty.
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		@$subject->verify( $api );
+		$subject->verify( $api );
 	}
 
 	/**
@@ -175,6 +176,7 @@ HTML;
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+		$this->prepare_widget_id( 1 );
 
 		$subject->verify( $api );
 	}
@@ -186,7 +188,9 @@ HTML;
 		$code          = 'fail';
 		$error_message = 'The hCaptcha is invalid.';
 
-		Mockery::namedMock( Response::class, ResponseStub::class );
+		if ( ! class_exists( Response::class, false ) ) {
+			Mockery::namedMock( Response::class, ResponseStub::class );
+		}
 		$error_response = Mockery::mock( ErrorResponse::class );
 		$api            = Mockery::mock( API::class );
 
@@ -209,8 +213,64 @@ HTML;
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet', false );
+		$this->prepare_widget_id( 1 );
 
 		$subject->verify( $api );
+	}
+
+	/**
+	 * Test verify() when widget id is missing.
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$code          = 'bad-signature';
+		$error_message = 'Bad hCaptcha signature!';
+
+		if ( ! class_exists( Response::class, false ) ) {
+			Mockery::namedMock( Response::class, ResponseStub::class );
+		}
+		$error_response = Mockery::mock( ErrorResponse::class );
+		$api            = Mockery::mock( API::class );
+
+		$error_response->shouldReceive( 'send' )->once();
+		$api->shouldReceive( 'createErrorResponse' )
+			->with( $code, $error_message, ResponseStub::STATUS_UNAUTHORIZED )
+			->andReturn( $error_response );
+
+		$subject = new Form();
+
+		$_POST['action']   = 'mailpoet';
+		$_POST['endpoint'] = 'subscribers';
+		$_POST['method']   = 'subscribe';
+		$_POST['data']     = [
+			'form_id'                             => '1',
+			'email'                               => '',
+			'form_field_YjVlNWFkMmRiYTlhX2VtYWls' => 'foo@bar.com',
+		];
+
+		$this->prepare_verify_post( 'hcaptcha_mailpoet_nonce', 'hcaptcha_mailpoet' );
+
+		$subject->verify( $api );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => [ 'mailpoet/mailpoet.php' ],
+				'form_id' => $form_id,
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

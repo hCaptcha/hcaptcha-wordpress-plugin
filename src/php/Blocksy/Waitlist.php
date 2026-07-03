@@ -17,6 +17,11 @@ use WP_Error;
  */
 class Waitlist {
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-blocksy';
+
+	/**
 	 * Nonce action.
 	 */
 	private const ACTION = 'hcaptcha_blocksy_waitlist';
@@ -45,6 +50,8 @@ class Waitlist {
 		add_filter( 'blocksy:ext:woocommerce-extra:waitlist:subscribe:validate', [ $this, 'verify' ], 10, 3 );
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -83,10 +90,7 @@ class Waitlist {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $layer['__id'],
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		// Find the last $search string and insert hcaptcha before it.
@@ -127,6 +131,47 @@ class Waitlist {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-blocksy$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Add the type="module" attribute to the script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**
@@ -173,6 +218,7 @@ class Waitlist {
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id(),
 		];
 
 		foreach ( $form_data as $key => $value ) {
@@ -186,5 +232,17 @@ class Waitlist {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'waitlist',
+		];
 	}
 }

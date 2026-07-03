@@ -44,19 +44,29 @@ abstract class Base extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	protected function add_hcap_form( string $out, $module ): string {
-		$form_id        = false !== strpos( static::ACTION, 'login' ) ? 'login' : 'contact';
 		$args           = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $form_id,
-			],
+			'id'     => $this->get_expected_id(),
 		];
 		$hcaptcha       = '<div class="fl-input-group fl-hcaptcha">' . HCaptcha::form( $args ) . '</div>';
 		$button_pattern = '<div class="fl-button-wrap';
 
 		return str_replace( $button_pattern, $hcaptcha . $button_pattern, $out );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		$form_id = false !== strpos( static::ACTION, 'login' ) ? 'login' : 'contact';
+
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**
@@ -81,7 +91,7 @@ abstract class Base extends LoginBase {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

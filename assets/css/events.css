@@ -41,7 +41,10 @@
 	position: relative;
 	margin: auto;
 	width: 100%;
-	aspect-ratio: 3/1;
+}
+
+#hcaptcha-events-chart:not(.is-dashboard) {
+	height: clamp(280px, 32vw, 430px);
 }
 
 #hcaptcha-events-wrap #user_agent {
@@ -59,5 +62,217 @@
 
 	#hcaptcha-options #hcaptcha-events-wrap table tbody tr td.column-primary {
 		padding: 3px 10px;
+	}
+}
+
+#hcaptcha-events-chart.is-dashboard {
+	min-height: 280px;
+}
+
+#hcaptcha-events-toggle {
+	position: absolute;
+	top: 4px;
+	right: 15px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 24px;
+	height: 24px;
+	width: 24px;
+	padding: 0;
+	line-height: 1;
+	background: #fff;
+}
+
+#hcaptcha-events-toggle .dashicons {
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
+	line-height: 24px;
+}
+
+.hcaptcha-events-chart-panel {
+	width: 100%;
+	height: 100%;
+}
+
+.hcaptcha-events-dashboard {
+	box-sizing: border-box;
+	padding: 32px 14px 14px;
+	color: #1d2327;
+}
+
+.hcaptcha-events-dashboard-metrics,
+.hcaptcha-events-dashboard-grid {
+	display: grid;
+	gap: 10px;
+}
+
+.hcaptcha-events-dashboard-metrics {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	margin-bottom: 12px;
+}
+
+.hcaptcha-events-dashboard-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hcaptcha-events-dashboard-metric,
+.hcaptcha-events-dashboard-panel {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	box-sizing: border-box;
+}
+
+.hcaptcha-events-dashboard-metric {
+	min-width: 0;
+	padding: 10px 12px;
+}
+
+.hcaptcha-events-dashboard-metric-label,
+.hcaptcha-events-dashboard-metric-meta,
+.hcaptcha-events-dashboard-panel span,
+.hcaptcha-events-dashboard-empty {
+	color: #646970;
+}
+
+.hcaptcha-events-dashboard-metric-label,
+.hcaptcha-events-dashboard-metric-meta {
+	display: block;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.hcaptcha-events-dashboard-metric strong {
+	display: block;
+	margin: 3px 0;
+	font-size: 20px;
+	line-height: 1.2;
+	overflow-wrap: anywhere;
+}
+
+.hcaptcha-events-dashboard-metric.is-success strong {
+	color: #008a20;
+}
+
+.hcaptcha-events-dashboard-metric.is-failed strong,
+.hcaptcha-events-dashboard-metric.is-risk-critical strong,
+.hcaptcha-events-dashboard-metric.is-risk-high strong {
+	color: #b32d2e;
+}
+
+.hcaptcha-events-dashboard-metric.is-risk-elevated strong {
+	color: #996800;
+}
+
+.hcaptcha-events-dashboard-metric.is-risk-low strong {
+	color: #2271b1;
+}
+
+.hcaptcha-events-dashboard-panel {
+	min-width: 0;
+	padding: 10px 12px 12px;
+}
+
+.hcaptcha-events-dashboard-panel h3 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	line-height: 1.3;
+}
+
+.hcaptcha-events-dashboard-panel table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+	table-layout: fixed;
+}
+
+.hcaptcha-events-dashboard-panel th,
+.hcaptcha-events-dashboard-panel td {
+	padding: 6px 4px;
+	border-top: 1px solid #dcdcde;
+	text-align: left;
+	vertical-align: top;
+}
+
+.hcaptcha-events-dashboard-panel th {
+	font-weight: 600;
+	color: #50575e;
+}
+
+.hcaptcha-events-dashboard-panel td strong,
+.hcaptcha-events-dashboard-panel td span {
+	display: block;
+	overflow-wrap: anywhere;
+}
+
+.hcaptcha-events-dashboard-list {
+	margin: 0;
+}
+
+.hcaptcha-events-dashboard-list li,
+.hcaptcha-events-dashboard-signals {
+	display: flex;
+	/* gap: 8px; */
+	justify-content: space-between;
+	border-top: 1px solid #dcdcde;
+	padding: 6px 0;
+	margin: 0;
+}
+
+.hcaptcha-events-dashboard-list li span {
+	overflow-wrap: anywhere;
+}
+
+.hcaptcha-events-dashboard-list li strong {
+	white-space: nowrap;
+}
+
+.hcaptcha-events-dashboard-peak {
+	border-top: 1px solid #dcdcde;
+	padding-top: 7px;
+}
+
+.hcaptcha-events-dashboard-peak strong,
+.hcaptcha-events-dashboard-peak span,
+.hcaptcha-events-dashboard-signals span {
+	display: block;
+	overflow-wrap: anywhere;
+}
+
+.hcaptcha-events-dashboard-peak strong {
+	margin-bottom: 4px;
+	font-size: 18px;
+	line-height: 1.25;
+}
+
+.hcaptcha-events-dashboard-signals {
+	flex-direction: column;
+	padding-bottom: 0;
+}
+
+@media (max-width: 960px) {
+	.hcaptcha-events-dashboard-metrics {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 782px) {
+	#hcaptcha-events-chart:not(.is-dashboard) {
+		height: clamp(280px, 76vw, 360px);
+	}
+
+	#hcaptcha-events-chart.is-dashboard {
+		min-height: 360px;
+	}
+
+	.hcaptcha-events-dashboard {
+		padding: 55px 14px 10px;
+	}
+
+	.hcaptcha-events-dashboard-grid,
+	.hcaptcha-events-dashboard-metrics {
+		grid-template-columns: 1fr;
 	}
 }

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\PaidMembershipsPro;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\PaidMembershipsPro\Checkout;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
@@ -74,6 +75,7 @@ class CheckoutTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace( 'pmpro_was_checkout_form_submitted', true );
 
 		$this->prepare_verify_post( 'hcaptcha_pmpro_checkout_nonce', 'hcaptcha_pmpro_checkout' );
+		$this->prepare_widget_id();
 
 		$subject = new Checkout();
 
@@ -94,6 +96,7 @@ class CheckoutTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace( 'pmpro_was_checkout_form_submitted', true );
 
 		$this->prepare_verify_post( 'hcaptcha_pmpro_checkout_nonce', 'hcaptcha_pmpro_checkout', false );
+		$this->prepare_widget_id();
 
 		$subject = new Checkout();
 
@@ -119,5 +122,18 @@ class CheckoutTest extends HCaptchaWPTestCase {
 
 		self::assertNull( $pmpro_msg );
 		self::assertNull( $pmpro_msgt );
+	}
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'paid-memberships-pro/paid-memberships-pro.php' ],
+				'form_id' => 'checkout',
+			]
+		);
 	}
 }

@@ -103,4 +103,10 @@ describe( 'admin-fluentform', () => {
 	test( 'getLocationHref returns the correct location', () => {
 		expect( window.hCaptchaFluentForm.getLocationHref() ).toBe( 'http://domain.tld/' );
 	} );
+	test( 'ready returns when settings page has no hCaptcha wrapper', () => {
+		document.body.innerHTML = '<div id="ff_global_settings_option_app"></div>';
+		window.hCaptchaFluentForm.getLocationHref = () => 'https://test.test/wp-admin/admin.php?page=fluent_forms_settings';
+
+		expect( () => window.hCaptchaFluentForm.ready() ).not.toThrow();
+	} );
 } );

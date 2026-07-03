@@ -43,6 +43,7 @@ class DBTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_prepare_in(): array {
 		return [
+			'Empty array'                              => [ [], null, '' ],
 			'Empty items'                              => [ '', null, "''" ],
 			'Single string item'                       => [ 'id', null, "'id'" ],
 			'Array string items'                       => [ [ 'id' ], null, "'id'" ],

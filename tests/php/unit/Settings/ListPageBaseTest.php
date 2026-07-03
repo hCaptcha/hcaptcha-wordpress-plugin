@@ -125,6 +125,7 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 * @dataProvider dp_test_bulk_action
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_bulk_action( ?string $date ): void {
 		$ids   = [ 1, 2, 3 ];
@@ -487,18 +488,55 @@ class ListPageBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_timespan_dates() when date modification throws.
+	 *
+	 * @return void
+	 */
+	public function test_get_timespan_dates_when_modify_throws(): void {
+		$expected_start = new DateTimeImmutable( '2024-05-27 00:00:00' );
+		$expected_end   = new DateTimeImmutable( '2024-05-27 23:59:59' );
+		$date           = Mockery::mock();
+		$subject        = Mockery::mock( ListPageBase::class )->makePartial();
+
+		$date->shouldReceive( 'modify' )->with( '-30 day' )->andThrow( new Exception( 'bad date' ) );
+		$date->shouldReceive( 'setTime' )->with( 0, 0 )->andReturn( $expected_start );
+		$date->shouldReceive( 'setTime' )->with( 23, 59, 59 )->andReturn( $expected_end );
+		$subject->shouldAllowMockingProtectedMethods();
+
+		FunctionMocker::replace(
+			'date_create_immutable',
+			static function () use ( $date ) {
+				return $date;
+			}
+		);
+
+		WP_Mock::userFunction( 'wp_timezone' )->with()->andReturn( new DateTimeZone( 'UTC' ) );
+
+		$actual = $subject->get_timespan_dates( '30' );
+
+		self::assertSame( $expected_start->getTimestamp(), $actual[0]->getTimestamp() );
+		self::assertSame( $expected_end->getTimestamp(), $actual[1]->getTimestamp() );
+		self::assertSame( '30', $actual[2] );
+		self::assertSame( 'Last 30 days', $actual[3] );
+	}
+	/**
 	 * Data provider for test_get_timespan_dates().
 	 *
 	 * @return array
 	 */
 	public function dp_test_get_timespan_dates(): array {
-		$start_date = date_create_immutable( '2024-04-27 00:00:00' );
-		$end_date   = date_create_immutable( '2024-05-27 23:59:59' );
+		$start_date      = date_create_immutable( '2024-04-27 00:00:00' );
+		$end_date        = date_create_immutable( '2024-05-27 23:59:59' );
+		$exception_start = date_create_immutable( '2024-05-27 00:00:00' );
 
 		return [
 			[
 				'30',
 				[ $start_date, $end_date, '30', 'Last 30 days' ],
+			],
+			[
+				'2.2250738585072011e-308',
+				[ $exception_start, $end_date, 'custom', 'Custom' ],
 			],
 			[
 				'custom',

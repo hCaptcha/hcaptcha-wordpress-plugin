@@ -263,6 +263,7 @@ class AdvancedForm extends Base {
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $post_id ),
 		];
 
 		$blocks = parse_blocks( $post->post_content ?? '' );
@@ -300,6 +301,20 @@ class AdvancedForm extends Base {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**

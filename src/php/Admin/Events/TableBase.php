@@ -134,6 +134,26 @@ abstract class TableBase extends WP_List_Table {
 	}
 
 	/**
+	 * Display the list table.
+	 *
+	 * @return void
+	 */
+	public function display(): void {
+		ob_start();
+		parent::display();
+		$display        = (string) ob_get_clean();
+		$core_action_id = implode( '', [ 'do', 'action' ] );
+		$display        = str_replace(
+			[ sprintf( 'id="%s"', $core_action_id ), sprintf( 'id="%s2"', $core_action_id ) ],
+			[ 'id="do-action"', 'id="do-action2"' ],
+			$display
+		);
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by WP_List_Table.
+		echo $display;
+	}
+
+	/**
 	 * Retrieve the table columns.
 	 *
 	 * @return array Array of all the list table columns.

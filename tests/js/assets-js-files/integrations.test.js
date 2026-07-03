@@ -1041,3 +1041,123 @@ describe( 'swapThemes isolated', () => {
 		expect( $inactiveTable.find( 'img[data-entity="theme"][data-label="Some Theme"]' ).length ).toBe( 0 );
 	} );
 } );
+
+describe( 'integrations edge branch coverage', () => {
+	function resetDom( custom = {} ) {
+		document.body.innerHTML = getDom();
+		Object.assign( window.HCaptchaIntegrationsObject, {
+			...global.HCaptchaIntegrationsObject,
+			...custom,
+		} );
+		window.hCaptchaIntegrations( $ );
+	}
+
+	afterEach( () => {
+		jest.restoreAllMocks();
+	} );
+
+	test( 'setupHelpers returns when antispam coverage checkbox is disabled', () => {
+		document.body.innerHTML = getDom();
+		document.getElementById( 'show_antispam_coverage_1' ).disabled = true;
+		window.hCaptchaIntegrations( $ );
+
+		expect( $( '#antispam-label' ).next( '.helper' ).length ).toBe( 0 );
+	} );
+
+	test( 'setupHelper tolerates missing labels and duplicate antispam attributes', () => {
+		document.body.innerHTML = getDom();
+		const originalGet = $.fn.get;
+		let labelCalls = 0;
+		jest.spyOn( $.fn, 'get' ).mockImplementation( function( index ) {
+			if ( this.is( 'label[data-antispam]' ) ) {
+				labelCalls++;
+
+				if ( labelCalls === 1 ) {
+					return undefined;
+				}
+
+				return {
+					attributes: [
+						{ name: 'data-antispam-fst' },
+						{ name: 'data-antispam-fst' },
+					],
+				};
+			}
+
+			return originalGet.call( this, index );
+		} );
+		document.getElementById( 'antispam-label' ).insertAdjacentHTML( 'afterend', '<label data-antispam id="antispam-label-2">Second</label>' );
+
+		window.hCaptchaIntegrations( $ );
+
+		expect( labelCalls ).toBeGreaterThan( 1 );
+	} );
+
+	test( 'deactivate theme uses empty newTheme when dialog select value is undefined', () => {
+		resetDom();
+		window.kaggDialog = {
+			confirm: jest.fn( ( cfg ) => {
+				const querySelectorSpy = jest.spyOn( document, 'querySelector' ).mockImplementation( ( selector ) => {
+					if ( selector === '.kagg-dialog select' ) {
+						return { value: undefined };
+					}
+
+					return Document.prototype.querySelector.call( document, selector );
+				} );
+				cfg.onAction( true );
+				querySelectorSpy.mockRestore();
+			} ),
+		};
+		const calls = [];
+		jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
+			calls.push( opts );
+			const deferred = $.Deferred();
+			deferred.resolve( { success: true, data: { message: 'ok', stati: [] } } );
+
+			return deferred;
+		} );
+
+		$( '.hcaptcha-integrations-twentytwentyone-theme img' ).trigger( 'click' );
+
+		expect( calls[ 0 ].data.newTheme ).toBe( '' );
+	} );
+
+	test( 'updateActivationStati moves inactive rows into active table and handles missing alt text', () => {
+		resetDom();
+		const inactiveTable = $( '.form-table' ).eq( 2 );
+		const activeTable = $( '.form-table' ).eq( 1 );
+		const row = $( '.hcaptcha-integrations-other-plugin' );
+		activeTable.find( 'img' ).first().removeAttr( 'alt' );
+		inactiveTable.find( 'tbody' ).append( row );
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const deferred = $.Deferred();
+		jest.spyOn( $, 'post' ).mockImplementation( () => deferred );
+
+		row.find( 'img' ).trigger( 'click' );
+		deferred.resolve( { success: true, data: { message: 'ok', stati: { other_plugin: true } } } );
+
+		expect( row.closest( '.form-table' )[ 0 ] ).toBe( activeTable[ 0 ] );
+	} );
+
+	test( 'plugin image without a status class still sends an empty status value', () => {
+		document.body.innerHTML = getDom();
+		document.querySelectorAll( '.form-table' )[ 1 ].querySelector( 'tbody' ).insertAdjacentHTML(
+			'beforeend',
+			'<tr class="plain-plugin-row"><th><div class="hcaptcha-integrations-logo" data-installed="true"><img alt="Plain Plugin Logo" data-entity="plugin" data-label="Plain Plugin"></div></th><td><fieldset><label>Plain</label></fieldset></td></tr>',
+		);
+		window.hCaptchaIntegrations( $ );
+		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
+		const calls = [];
+		jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
+			calls.push( opts );
+			const deferred = $.Deferred();
+			deferred.resolve( { success: true, data: { message: 'ok', stati: [] } } );
+
+			return deferred;
+		} );
+
+		$( '.plain-plugin-row img' ).trigger( 'click' );
+
+		expect( calls[ 0 ].data.status ).toBe( '' );
+	} );
+} );

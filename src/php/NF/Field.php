@@ -14,6 +14,7 @@
 namespace HCaptcha\NF;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use NF_Abstracts_Field;
@@ -131,13 +132,14 @@ class Field extends NF_Abstracts_Field implements Base {
 
 		$form_data = Request::filter_input( INPUT_POST, 'formData' );
 		$data      = Utils::json_decode_arr( $form_data );
-		$form      = Ninja_Forms()->form( $data['id'] );
+		$form_id   = (int) ( $data['id'] ?? 0 );
+		$form      = Ninja_Forms()->form( $form_id );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$updated_at = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT updated_at FROM {$wpdb->prefix}nf3_forms WHERE id = %d",
-				$data['id']
+				$form_id
 			)
 		);
 
@@ -145,6 +147,7 @@ class Field extends NF_Abstracts_Field implements Base {
 			'h-captcha-response' => $response,
 			'form_date_gmt'      => $updated_at,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
 		$name = [];
@@ -175,5 +178,19 @@ class Field extends NF_Abstracts_Field implements Base {
 		$entry['data']['name'] = implode( ' ', $name ) ?: null;
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( NF::class ),
+			'form_id' => $form_id,
+		];
 	}
 }

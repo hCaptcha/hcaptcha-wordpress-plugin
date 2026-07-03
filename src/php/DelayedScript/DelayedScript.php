@@ -29,13 +29,18 @@ class DelayedScript {
 	/**
 	 * Create a delayed script.
 	 *
-	 * @param string $js    js code to wrap in setTimeout().
-	 * @param int    $delay Delay in ms. Negative means no delay, wait for user interaction.
+	 * @param string $js              js code to wrap in setTimeout().
+	 * @param int    $delay           Delay in ms. Negative means no delay, wait for user interaction.
+	 * @param string $delay_api_event Custom browser event name to wait for instead of default triggers.
 	 *
 	 * @return string
 	 * @noinspection JSUnusedAssignment
 	 */
-	public static function create( string $js, int $delay = -1 ): string {
+	public static function create( string $js, int $delay = -1, string $delay_api_event = '' ): string {
+		if ( '' !== $delay_api_event ) {
+			return self::create_for_event( $js, $delay_api_event );
+		}
+
 		/* language=JS */
 		$js = "
 	( () => {
@@ -87,6 +92,49 @@ $js
 			document.body.addEventListener( 'click', load );
 			window.addEventListener( 'keydown', load );
 			window.addEventListener( 'scroll', scrollHandler, options );
+		} );
+	} )();
+";
+
+		return "<script>\n" . HCaptcha::js_minify( $js ) . "\n</script>\n";
+	}
+
+	/**
+	 * Create a delayed script that waits for a custom event.
+	 *
+	 * @param string $js              js code to wrap in a custom event listener.
+	 * @param string $delay_api_event Custom browser event name to wait for.
+	 *
+	 * @return string
+	 */
+	private static function create_for_event( string $js, string $delay_api_event ): string {
+		$delay_api_event = wp_json_encode(
+			$delay_api_event,
+			JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
+		);
+
+		/* language=JS */
+		$js = "
+	( () => {
+		'use strict';
+
+		// noinspection JSAnnotator
+		const delayApiEvent = $delay_api_event;
+		let loaded = false;
+
+		function load() {
+			if ( loaded ) {
+				return;
+			}
+
+			loaded = true;
+			document.removeEventListener( delayApiEvent, load );
+
+$js
+		}
+
+		document.addEventListener( 'hCaptchaBeforeAPI', function() {
+			document.addEventListener( delayApiEvent, load );
 		} );
 	} )();
 ";
@@ -297,12 +345,13 @@ $js
 	/**
 	 * Launch script specified by a source url.
 	 *
-	 * @param array $args  Arguments.
-	 * @param int   $delay Delay in ms. Negative means no delay, wait for user interaction.
+	 * @param array  $args            Arguments.
+	 * @param int    $delay           Delay in ms. Negative means no delay, wait for user interaction.
+	 * @param string $delay_api_event Custom browser event name to wait for instead of default triggers.
 	 *
 	 * @noinspection JSUnusedLocalSymbols
 	 */
-	public static function launch( array $args, int $delay = -1 ): void {
+	public static function launch( array $args, int $delay = -1, string $delay_api_event = '' ): void {
 		unset( $args['id'], $args['async'] );
 
 		/* language=JS */
@@ -335,7 +384,7 @@ $js
 
 		$js = trim( $js, " \n\r" );
 
-		echo self::create( $js, $delay );
+		echo self::create( $js, $delay, $delay_api_event );
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 

@@ -40,13 +40,33 @@ const ChartMock = jest.fn();
 
 global.Chart = ChartMock;
 
-function getDom( { withButton = true } = {} ) {
+function getDom( { withButton = true, withDashboardToggle = true } = {} ) {
+	const chart = withDashboardToggle ? `
+	<div id="hcaptcha-events-chart">
+		<button
+			id="hcaptcha-events-toggle"
+			type="button"
+			aria-label="Show dashboard"
+			aria-expanded="false"
+			title="Show dashboard"
+			data-dashboard-icon="dashicons-dashboard"
+			data-chart-icon="dashicons-chart-bar"
+			data-show-dashboard-label="Show dashboard"
+			data-show-chart-label="Show chart">
+			<span class="dashicons dashicons-dashboard hcaptcha-events-toggle-icon" aria-hidden="true"></span>
+		</button>
+		<div class="hcaptcha-events-chart-panel">
+			<canvas id="eventsChart"></canvas>
+		</div>
+		<div id="hcaptcha-events-dashboard" hidden>Dashboard content</div>
+	</div>` : '<canvas id="eventsChart"></canvas>';
+
 	return `
 <html lang="en">
 <body>
 <div id="wpwrap">
 	<div class="hcaptcha-header-bar"></div>
-	<canvas id="eventsChart"></canvas>
+	${ chart }
 	<form id="events-form">
 		<select name="action">
 			<option value="-1" selected>— Bulk actions —</option>
@@ -54,7 +74,7 @@ function getDom( { withButton = true } = {} ) {
 		</select>
 		<label><input type="checkbox" name="bulk-checkbox[]" value="101" /></label>
 		<label><input type="checkbox" name="bulk-checkbox[]" value="202" /></label>
-		${ withButton ? '<button id="doaction" type="button">Apply</button>' : '' }
+		${ withButton ? '<button id="do-action" type="button">Apply</button>' : '' }
 	</form>
 	<div id="hcaptcha-message"></div>
 </div>
@@ -83,6 +103,7 @@ describe( 'events.js', () => {
 	beforeEach( () => {
 		jest.clearAllMocks();
 		ChartMock.mockClear();
+		window.localStorage.clear();
 		postSpy = jest.spyOn( $, 'post' );
 	} );
 
@@ -91,8 +112,7 @@ describe( 'events.js', () => {
 		Object.defineProperty( window, 'innerWidth', { value: originalInnerWidth, configurable: true } );
 	} );
 
-	test( 'initChart constructs Chart with labels/data and correct aspect ratio (wide)', () => {
-		Object.defineProperty( window, 'innerWidth', { value: 1024, configurable: true } );
+	test( 'initChart constructs Chart with labels/data and fills CSS container', () => {
 		bootEvents();
 		expect( ChartMock ).toHaveBeenCalledTimes( 1 );
 		const args = ChartMock.mock.calls[ 0 ];
@@ -103,36 +123,78 @@ describe( 'events.js', () => {
 		expect( cfg.data.datasets[ 0 ].data ).toEqual( defaultEventsObject.succeed );
 		expect( cfg.data.datasets[ 1 ].label ).toBe( defaultEventsObject.failedLabel );
 		expect( cfg.data.datasets[ 1 ].data ).toEqual( defaultEventsObject.failed );
-		expect( cfg.options.aspectRatio ).toBe( 3 );
+		expect( cfg.options.maintainAspectRatio ).toBe( false );
+		expect( cfg.options ).not.toHaveProperty( 'aspectRatio' );
 		expect( cfg.options.scales.x.time.unit ).toBe( defaultEventsObject.unit );
 	} );
 
-	test( 'initChart sets aspect ratio 2 on small screens', () => {
-		Object.defineProperty( window, 'innerWidth', { value: 480, configurable: true } );
-		bootEvents();
-		const cfg = ChartMock.mock.calls[ 0 ][ 1 ];
-		expect( cfg.options.aspectRatio ).toBe( 2 );
-	} );
-
-	test( 'on ready shows bulk message and attaches click handler when #doaction exists', () => {
+	test( 'on ready shows bulk message and attaches click handler when #do-action exists', () => {
 		bootEvents();
 		expect( baseMock.showSuccessMessage ).toHaveBeenCalledWith( defaultEventsObject.bulkMessage );
 		// Simulate click to ensure a handler is attached (will trigger early noAction branch by default)
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		expect( baseMock.showErrorMessage ).toHaveBeenCalledWith( HCaptchaListPageBaseObject.noAction );
 	} );
 
-	test( 'gracefully handles missing #doaction (no listener) but still shows message', () => {
+	test( 'gracefully handles missing #do-action (no listener) but still shows message', () => {
 		bootEvents( { withButton: false } );
 		expect( baseMock.showSuccessMessage ).toHaveBeenCalledWith( defaultEventsObject.bulkMessage );
 		// No button means anything to click. Ensure no exception and Chart was created
 		expect( ChartMock ).toHaveBeenCalledTimes( 1 );
 	} );
 
+	test( 'dashboard toggle switches view and stores next state', () => {
+		bootEvents();
+
+		const button = document.getElementById( 'hcaptcha-events-toggle' );
+		const icon = button.querySelector( '.hcaptcha-events-toggle-icon' );
+		const chartPanel = document.querySelector( '.hcaptcha-events-chart-panel' );
+		const dashboard = document.getElementById( 'hcaptcha-events-dashboard' );
+
+		expect( icon.classList.contains( 'dashicons-dashboard' ) ).toBe( true );
+		expect( button.getAttribute( 'title' ) ).toBe( 'Show dashboard' );
+		expect( chartPanel.hidden ).toBe( false );
+		expect( dashboard.hidden ).toBe( true );
+
+		button.click();
+
+		expect( icon.classList.contains( 'dashicons-chart-bar' ) ).toBe( true );
+		expect( button.getAttribute( 'aria-label' ) ).toBe( 'Show chart' );
+		expect( button.getAttribute( 'title' ) ).toBe( 'Show chart' );
+		expect( button.getAttribute( 'aria-expanded' ) ).toBe( 'true' );
+		expect( chartPanel.hidden ).toBe( true );
+		expect( dashboard.hidden ).toBe( false );
+		expect( window.localStorage.getItem( 'hcaptchaEventsView' ) ).toBe( 'dashboard' );
+
+		button.click();
+
+		expect( icon.classList.contains( 'dashicons-dashboard' ) ).toBe( true );
+		expect( button.getAttribute( 'aria-label' ) ).toBe( 'Show dashboard' );
+		expect( button.getAttribute( 'title' ) ).toBe( 'Show dashboard' );
+		expect( button.getAttribute( 'aria-expanded' ) ).toBe( 'false' );
+		expect( chartPanel.hidden ).toBe( false );
+		expect( dashboard.hidden ).toBe( true );
+		expect( window.localStorage.getItem( 'hcaptchaEventsView' ) ).toBe( 'chart' );
+	} );
+
+	test( 'dashboard toggle restores dashboard state from localStorage', () => {
+		window.localStorage.setItem( 'hcaptchaEventsView', 'dashboard' );
+
+		bootEvents();
+
+		expect(
+			document
+				.getElementById( 'hcaptcha-events-toggle' )
+				.querySelector( '.hcaptcha-events-toggle-icon' )
+				.classList.contains( 'dashicons-chart-bar' ),
+		).toBe( true );
+		expect( document.querySelector( '.hcaptcha-events-chart-panel' ).hidden ).toBe( true );
+		expect( document.getElementById( 'hcaptcha-events-dashboard' ).hidden ).toBe( false );
+	} );
 	test( 'bulk action early return when action == -1 shows noAction and does not post', () => {
 		bootEvents();
 		postSpy.mockImplementation( () => $.Deferred() );
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		expect( baseMock.showErrorMessage ).toHaveBeenCalledWith( HCaptchaListPageBaseObject.noAction );
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
@@ -143,7 +205,7 @@ describe( 'events.js', () => {
 		// Ensure all checkboxes are unchecked
 		$( 'input[name="bulk-checkbox[]"]' ).prop( 'checked', false );
 		postSpy.mockImplementation( () => $.Deferred() );
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		expect( baseMock.showErrorMessage ).toHaveBeenCalledWith( HCaptchaListPageBaseObject.noItems );
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
@@ -164,7 +226,7 @@ describe( 'events.js', () => {
 		const consoleSpy = jest.spyOn( console, 'error' ).mockImplementation( () => {
 		} );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		// Resolve with failure
 		d.resolve( { success: false, data: 'Bad request' } );
 		await Promise.resolve();
@@ -198,7 +260,7 @@ describe( 'events.js', () => {
 		const consoleSpy = jest.spyOn( console, 'error' ).mockImplementation( () => {
 		} );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		d.resolve( { success: true, data: 'Done' } );
 		await Promise.resolve();
 
@@ -223,7 +285,7 @@ describe( 'events.js', () => {
 		const d = $.Deferred();
 		postSpy.mockImplementation( () => d );
 
-		$( '#doaction' ).trigger( 'click' );
+		$( '#do-action' ).trigger( 'click' );
 		d.reject( { statusText: 'Boom' } );
 		await Promise.resolve();
 

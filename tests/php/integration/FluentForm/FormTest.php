@@ -212,13 +212,15 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$response   = 'some response';
-		$widget_id  = 'some-widget-id';
+		$form_id    = 1;
+		$widget_id  = $this->get_widget_id( $form_id );
 		$data       = [
 			'h-captcha-response' => $response,
 			'hcaptcha-widget-id' => $widget_id,
 		];
 		$fields     = [];
 		$attributes = [
+			'id'          => $form_id,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'form_fields' => json_encode(
 				[
@@ -287,6 +289,8 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 
 		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
+		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
 		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$mock = Mockery::mock( Form::class )->makePartial();
@@ -324,7 +328,8 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$response   = 'some response';
-		$widget_id  = 'some-widget-id';
+		$form_id    = 1;
+		$widget_id  = $this->get_widget_id( $form_id );
 		$data       = [
 			'h-captcha-response' => $response,
 			'hcaptcha-widget-id' => $widget_id,
@@ -335,6 +340,7 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 		$fields     = [];
 		$attributes = [
+			'id'          => $form_id,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'form_fields' => json_encode(
 				[
@@ -345,6 +351,8 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 
 		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
+		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
 		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$mock = Mockery::mock( Form::class )->makePartial();
@@ -368,6 +376,60 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$errors     = [
+			'some_error' => 'Some error description',
+		];
+		$response   = 'some response';
+		$form_id    = 1;
+		$data       = [
+			'h-captcha-response' => $response,
+		];
+		$expected   = [
+			'some_error'         => 'Some error description',
+			'h-captcha-response' => [ 'Bad hCaptcha signature!' ],
+		];
+		$fields     = [];
+		$attributes = [
+			'id'          => $form_id,
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'form_fields' => json_encode(
+				[
+					'fields'       => [],
+					'submitButton' => [],
+				]
+			),
+		];
+
+		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
+		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
+		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
+
+		$mock = Mockery::mock( Form::class )->makePartial();
+		$mock->shouldAllowMockingProtectedMethods();
+
+		$this->prepare_verify_request( $response );
+
+		//phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$post_data = [
+			'h-captcha-response' => $response,
+			'hcap_hp_sig'        => $_POST['hcap_hp_sig'],
+			'hcap_fst_token'     => $_POST['hcap_fst_token'],
+			'hcap_hp_test'       => $_POST['hcap_hp_test'],
+		];
+		//phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+
+		$_POST['data'] = http_build_query( $post_data );
+
+		self::assertSame( $expected, $mock->verify( $errors, $data, $form, $fields ) );
+	}
+	/**
 	 * Test verify() when a multistep form is not verified.
 	 *
 	 * @return void
@@ -379,7 +441,8 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$response  = 'some response';
-		$widget_id = 'some-widget-id';
+		$form_id   = 1;
+		$widget_id = $this->get_widget_id( $form_id );
 		$data      = [
 			'h-captcha-response' => $response,
 			'hcaptcha-widget-id' => $widget_id,
@@ -405,6 +468,7 @@ class FormTest extends HCaptchaWPTestCase {
 			],
 		];
 		$attributes       = [
+			'id'          => $form_id,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'form_fields' => json_encode(
 				[
@@ -416,6 +480,8 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 
 		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
+		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
 		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$mock = Mockery::mock( Form::class )->makePartial();
@@ -467,7 +533,8 @@ class FormTest extends HCaptchaWPTestCase {
 			'some_error' => 'Some error description',
 		];
 		$response   = 'some response';
-		$widget_id  = 'some-widget-id';
+		$form_id    = 1;
+		$widget_id  = $this->get_widget_id( $form_id );
 		$user       = get_user_by( 'id', 1 );
 		$email      = $user->user_email;
 		$password   = 'some password';
@@ -477,6 +544,7 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 		$fields     = [];
 		$attributes = [
+			'id'          => $form_id,
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'form_fields' => json_encode(
 				[
@@ -487,6 +555,8 @@ class FormTest extends HCaptchaWPTestCase {
 		];
 
 		$form = Mockery::mock( FluentForm::class );
+		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
+		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
 		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
 
 		$array_helper = Mockery::mock( 'alias:' . ArrayHelper::class );
@@ -1033,6 +1103,22 @@ CSS;
 		return ob_get_clean();
 	}
 
+	/**
+	 * Get widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return string
+	 */
+	private function get_widget_id( int $form_id, array $id = [] ): string {
+		$id = $id ?: [
+			'source'  => [ 'fluentformpro/fluentformpro.php', 'fluentform/fluentform.php' ],
+			'form_id' => $form_id,
+		];
+
+		return HCaptcha::widget_id_value( $id );
+	}
 	/**
 	 * Get hCaptcha form.
 	 *

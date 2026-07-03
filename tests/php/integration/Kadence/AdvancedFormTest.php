@@ -212,6 +212,7 @@ HTML;
 		$_POST['fieldtxa001']          = 'Hello there';
 
 		$this->prepare_verify_request( $hcaptcha_response );
+		$this->prepare_widget_id( (int) $post_id );
 
 		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
 
@@ -250,10 +251,43 @@ HTML;
 		}
 
 		$this->prepare_verify_request( $hcaptcha_response, $result );
+		$this->prepare_widget_id( 0 );
 
 		if ( null === $result ) {
 			unset( $_POST['h-captcha-response'] );
 		}
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$kb_ajax_advanced_form = Mockery::mock( 'alias:KB_Ajax_Advanced_Form' );
+		$kb_ajax_advanced_form->shouldReceive( 'get_instance' )->once()->andReturn( $kb_ajax_advanced_form );
+		$kb_ajax_advanced_form->shouldReceive( 'process_bail' )
+			->once()->with( $error_message, 'hCaptcha Failed' );
+
+		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->process_ajax();
+	}
+
+	/**
+	 * Test process_ajax() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_process_ajax_missing_widget_id(): void {
+		$hcaptcha_response = 'some response';
+		$error_message     = 'Bad hCaptcha signature!';
+
+		$this->prepare_verify_request( $hcaptcha_response );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter(
@@ -286,6 +320,27 @@ HTML;
 			'null'  => [ null ],
 			'false' => [ false ],
 		];
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => [ 'kadence-blocks/kadence-blocks.php' ],
+				'form_id' => $form_id,
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

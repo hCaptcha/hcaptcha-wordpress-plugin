@@ -18,9 +18,74 @@
  * @param {Object} $ jQuery instance.
  */
 const events = function( $ ) {
+	const storageKey = 'hcaptchaEventsView';
+
+	function getStoredView() {
+		try {
+			return window.localStorage?.getItem( storageKey ) ?? '';
+		} catch ( e ) {
+			// Local storage can be unavailable in private browsing modes.
+			if ( e ) {
+				return '';
+			}
+
+			return '';
+		}
+	}
+
+	function setStoredView( view ) {
+		try {
+			window.localStorage?.setItem( storageKey, view );
+		} catch ( e ) {
+			// Local storage can be unavailable in private browsing modes.
+			if ( e ) {
+				e.toString();
+			}
+		}
+	}
+
+	function initDashboardToggle() {
+		const wrap = document.getElementById( 'hcaptcha-events-chart' );
+		const button = document.getElementById( 'hcaptcha-events-toggle' );
+		const chartPanel = wrap?.querySelector( '.hcaptcha-events-chart-panel' );
+		const dashboard = document.getElementById( 'hcaptcha-events-dashboard' );
+		const icon = button?.querySelector( '.hcaptcha-events-toggle-icon' );
+
+		if ( ! wrap || ! button || ! chartPanel || ! dashboard ) {
+			return;
+		}
+
+		function setView( view, persist = true ) {
+			const showDashboard = view === 'dashboard';
+			const nextIcon = showDashboard ? button.dataset.chartIcon : button.dataset.dashboardIcon;
+			const nextAriaLabel = showDashboard ? button.dataset.showChartLabel : button.dataset.showDashboardLabel;
+
+			wrap.classList.toggle( 'is-dashboard', showDashboard );
+			chartPanel.hidden = showDashboard;
+			dashboard.hidden = ! showDashboard;
+
+			if ( icon && nextIcon ) {
+				icon.className = [ 'dashicons', nextIcon, 'hcaptcha-events-toggle-icon' ].join( ' ' );
+			}
+
+			button.setAttribute( 'aria-label', nextAriaLabel );
+			button.setAttribute( 'title', nextAriaLabel );
+			button.setAttribute( 'aria-expanded', showDashboard ? 'true' : 'false' );
+
+			if ( persist ) {
+				setStoredView( showDashboard ? 'dashboard' : 'chart' );
+			}
+		}
+
+		setView( getStoredView() === 'dashboard' ? 'dashboard' : 'chart', false );
+
+		button.addEventListener( 'click', () => {
+			setView( dashboard.hidden ? 'dashboard' : 'chart' );
+		} );
+	}
+
 	function initChart() {
 		const ctx = document.getElementById( 'eventsChart' );
-		const aspectRatio = window.innerWidth > 600 ? 3 : 2;
 
 		new Chart( ctx, {
 			type: 'bar',
@@ -40,8 +105,7 @@ const events = function( $ ) {
 			},
 			options: {
 				responsive: true,
-				maintainAspectRatio: true,
-				aspectRatio,
+				maintainAspectRatio: false,
 				scales: {
 					x: {
 						type: 'time',
@@ -123,9 +187,10 @@ const events = function( $ ) {
 	}
 
 	initChart();
+	initDashboardToggle();
 
 	hCaptchaSettingsBase.showSuccessMessage( HCaptchaEventsObject.bulkMessage );
-	document.getElementById( 'doaction' )?.addEventListener( 'click', handleBulkAction );
+	document.getElementById( 'do-action' )?.addEventListener( 'click', handleBulkAction );
 };
 
 window.hCaptchaEvents = events;

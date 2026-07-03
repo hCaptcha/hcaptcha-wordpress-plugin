@@ -698,4 +698,212 @@ class FormsPageTest extends HCaptchaTestCase {
 		self::assertFalse( $subject->delete_events( [] ) );
 		self::assertTrue( $subject->delete_events( $args ) );
 	}
+	/**
+	 * Test trash_events() when the trash schema is not ready.
+	 *
+	 * @return void
+	 */
+	public function test_trash_events_when_schema_is_not_ready(): void {
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [ '5.0.0' => -1 ] );
+
+		self::assertFalse(
+			$subject->trash_events(
+				[
+					'ids' => [
+						[
+							'source' => 'WordPress',
+							'formId' => 'login',
+						],
+					],
+				]
+			)
+		);
+	}
+
+	/**
+	 * Test restore_events() when the trash schema is not ready.
+	 *
+	 * @return void
+	 */
+	public function test_restore_events_when_schema_is_not_ready(): void {
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [ '5.0.0' => -1 ] );
+
+		self::assertFalse(
+			$subject->restore_events(
+				[
+					'ids' => [
+						[
+							'source' => 'WordPress',
+							'formId' => 'login',
+						],
+					],
+				]
+			)
+		);
+	}
+
+	/**
+	 * Test trash_events().
+	 *
+	 * @return void
+	 */
+	public function test_trash_events(): void {
+		global $wpdb;
+
+		$ids            = [
+			[
+				'source' => 'WordPress',
+				'formId' => 'login',
+			],
+		];
+		$dates          = [ '2025-01-24', '2025-02-23' ];
+		$args           = [
+			'ids'   => $ids,
+			'dates' => $dates,
+		];
+		$prefix         = 'wp_';
+		$table_name     = $prefix . Events::TABLE_NAME;
+		$where_clause   = '((source = %s AND form_id = %s)) AND date_gmt BETWEEN %s AND %s AND status = %s';
+		$where          = "((source = 'WordPress' AND form_id = 'login')) AND date_gmt BETWEEN '2025-01-24 00:00:00' AND '2025-02-23 23:59:59' AND status = 'active'";
+		$trashed_at_gmt = '2026-06-28 12:00:00';
+		$sql            = "UPDATE $table_name SET status = %s, trashed_at_gmt = %s WHERE $where";
+		$prepared       = 'prepared trash forms query';
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+		WP_Mock::passthruFunction( 'get_gmt_from_date' );
+		WP_Mock::userFunction( 'wp_timezone' )->with()->andReturn( new DateTimeZone( 'UTC' ) );
+		WP_Mock::userFunction( 'current_time' )
+			->with( 'mysql', true )
+			->andReturn( $trashed_at_gmt );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $where_clause, 'WordPress', 'login', '2025-01-24 00:00:00', '2025-02-23 23:59:59', Events::STATUS_ACTIVE )
+			->andReturn( $where );
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $sql, Events::STATUS_TRASH, $trashed_at_gmt )
+			->andReturn( $prepared );
+		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( count( $ids ) );
+
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertTrue( $subject->trash_events( $args ) );
+	}
+
+	/**
+	 * Test restore_events().
+	 *
+	 * @return void
+	 */
+	public function test_restore_events(): void {
+		global $wpdb;
+
+		$ids          = [
+			[
+				'source' => 'WordPress',
+				'formId' => 'login',
+			],
+		];
+		$dates        = [ '2025-01-24', '2025-02-23' ];
+		$args         = [
+			'ids'   => $ids,
+			'dates' => $dates,
+		];
+		$prefix       = 'wp_';
+		$table_name   = $prefix . Events::TABLE_NAME;
+		$where_clause = '((source = %s AND form_id = %s)) AND date_gmt BETWEEN %s AND %s AND status = %s';
+		$where        = "((source = 'WordPress' AND form_id = 'login')) AND date_gmt BETWEEN '2025-01-24 00:00:00' AND '2025-02-23 23:59:59' AND status = 'trash'";
+		$sql          = "UPDATE $table_name SET status = %s, trashed_at_gmt = NULL WHERE $where";
+		$prepared     = 'prepared restore forms query';
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+		WP_Mock::passthruFunction( 'get_gmt_from_date' );
+		WP_Mock::userFunction( 'wp_timezone' )->with()->andReturn( new DateTimeZone( 'UTC' ) );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $where_clause, 'WordPress', 'login', '2025-01-24 00:00:00', '2025-02-23 23:59:59', Events::STATUS_TRASH )
+			->andReturn( $where );
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $sql, Events::STATUS_ACTIVE )
+			->andReturn( $prepared );
+		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( count( $ids ) );
+
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertTrue( $subject->restore_events( $args ) );
+	}
+
+	/**
+	 * Test restore_events() with empty args.
+	 *
+	 * @return void
+	 */
+	public function test_restore_events_with_empty_args(): void {
+		global $wpdb;
+
+		$prefix = 'wp_';
+		$args   = [ 'dates' => [ '2025-01-24', '2025-02-23' ] ];
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+		WP_Mock::passthruFunction( 'get_gmt_from_date' );
+		WP_Mock::userFunction( 'wp_timezone' )->with()->andReturn( new DateTimeZone( 'UTC' ) );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertFalse( $subject->restore_events( $args ) );
+	}
+	/**
+	 * Test delete_events() when the trash schema is not ready.
+	 *
+	 * @return void
+	 */
+	public function test_delete_events_when_schema_is_not_ready(): void {
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [ '5.0.0' => -1 ] );
+
+		self::assertFalse(
+			$subject->delete_events(
+				[
+					'ids' => [
+						[
+							'source' => 'WordPress',
+							'formId' => 'login',
+						],
+					],
+				]
+			)
+		);
+	}
 }

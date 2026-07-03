@@ -14,6 +14,9 @@ namespace HCaptcha\Tests\Unit\AntiSpam;
 
 use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
+use ReflectionException;
+use stdClass;
+use tad\FunctionMocker\FunctionMocker;
 use Mockery;
 use WP_Mock;
 use WP_Mock\Matcher\AnyInstance;
@@ -27,9 +30,20 @@ use WP_Mock\Matcher\AnyInstance;
 class DisposableEmailTest extends HCaptchaTestCase {
 
 	/**
+	 * Tear down the test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		unset( $GLOBALS['wp_filesystem'] );
+
+		parent::tearDown();
+	}
+
+	/**
 	 * Test constructor and init_hooks().
 	 *
-	 * @throws \ReflectionException ReflectionException.
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_hooks(): void {
 		WP_Mock::expectActionAdded( 'admin_notices', [ DisposableEmail::class, 'show_download_failed_notice' ] );
@@ -42,7 +56,7 @@ class DisposableEmailTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test get_blocklist() returns cached transient.
+	 * Test get_blocklist() returns a cached transient.
 	 */
 	public function test_get_blocklist_returns_cached(): void {
 		$cached = [
@@ -66,7 +80,7 @@ class DisposableEmailTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test get_blocklist() reads file from uploads when no transient.
+	 * Test get_blocklist() reads a file from uploads when no transient.
 	 */
 	public function test_get_blocklist_reads_file_from_uploads(): void {
 		$file_content = "mailinator.com\nguerrillamail.com\n";
@@ -105,7 +119,7 @@ class DisposableEmailTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test get_blocklist() returns empty array when file doesn't exist (graceful degradation).
+	 * Test get_blocklist() returns an empty array when a file doesn't exist (graceful degradation).
 	 */
 	public function test_get_blocklist_returns_empty_when_file_missing(): void {
 		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
@@ -138,7 +152,7 @@ class DisposableEmailTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test get_blocklist_path() returns uploads path.
+	 * Test get_blocklist_path() returns uploads a path.
 	 */
 	public function test_get_blocklist_path(): void {
 		WP_Mock::userFunction( 'wp_upload_dir' )
@@ -154,6 +168,190 @@ class DisposableEmailTest extends HCaptchaTestCase {
 			'/var/www/html/wp-content/uploads/hcaptcha/disposable-email-blocklist.conf',
 			DisposableEmail::get_blocklist_path()
 		);
+	}
+
+	/**
+	 * Test read_file() when WP_Filesystem init fails.
+	 */
+	public function test_read_file_when_filesystem_init_fails(): void {
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( false );
+
+		self::assertFalse( $subject->read_file( '/tmp/blocklist.conf' ) );
+	}
+
+	/**
+	 * Test read_file() when the file does not exist.
+	 */
+	public function test_read_file_when_file_does_not_exist(): void {
+		$file          = '/tmp/blocklist.conf';
+		$wp_filesystem = $this->mock_wp_filesystem();
+		$wp_filesystem->shouldReceive( 'exists' )->with( $file )->once()->andReturn( false );
+		$wp_filesystem->shouldReceive( 'get_contents' )->never();
+
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( true );
+
+		self::assertFalse( $subject->read_file( $file ) );
+	}
+
+	/**
+	 * Test read_file() returns contents.
+	 */
+	public function test_read_file_returns_contents(): void {
+		$file          = '/tmp/blocklist.conf';
+		$contents      = "mailinator.com\n";
+		$wp_filesystem = $this->mock_wp_filesystem();
+		$wp_filesystem->shouldReceive( 'exists' )->with( $file )->once()->andReturn( true );
+		$wp_filesystem->shouldReceive( 'get_contents' )->with( $file )->once()->andReturn( $contents );
+
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( true );
+
+		self::assertSame( $contents, $subject->read_file( $file ) );
+	}
+
+	/**
+	 * Test download_blocklist() when WP_Filesystem init fails.
+	 */
+	public function test_download_blocklist_when_filesystem_init_fails(): void {
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( false );
+
+		self::assertFalse( $subject->download_blocklist() );
+	}
+
+	/**
+	 * Test download_blocklist() when a remote request fails.
+	 */
+	public function test_download_blocklist_when_request_fails(): void {
+		$response = new stdClass();
+		$this->mock_wp_filesystem();
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( true );
+
+		WP_Mock::userFunction( 'wp_remote_get' )->once()->andReturn( $response );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $response )->once()->andReturn( true );
+
+		self::assertFalse( $subject->download_blocklist() );
+	}
+
+	/**
+	 * Test download_blocklist() when the response code is not OK.
+	 */
+	public function test_download_blocklist_when_response_code_is_not_ok(): void {
+		$response = new stdClass();
+		$this->mock_wp_filesystem();
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( true );
+
+		WP_Mock::userFunction( 'wp_remote_get' )->once()->andReturn( $response );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $response )->once()->andReturn( false );
+		WP_Mock::userFunction( 'wp_remote_retrieve_response_code' )->with( $response )->once()->andReturn( 500 );
+
+		self::assertFalse( $subject->download_blocklist() );
+	}
+
+	/**
+	 * Test download_blocklist() when the response body is empty.
+	 */
+	public function test_download_blocklist_when_body_is_empty(): void {
+		$response = new stdClass();
+		$this->mock_wp_filesystem();
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( true );
+
+		WP_Mock::userFunction( 'wp_remote_get' )->once()->andReturn( $response );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $response )->once()->andReturn( false );
+		WP_Mock::userFunction( 'wp_remote_retrieve_response_code' )->with( $response )->once()->andReturn( 200 );
+		WP_Mock::userFunction( 'wp_remote_retrieve_body' )->with( $response )->once()->andReturn( '' );
+
+		self::assertFalse( $subject->download_blocklist() );
+	}
+
+	/**
+	 * Test download_blocklist() when directory creation fails.
+	 */
+	public function test_download_blocklist_when_directory_creation_fails(): void {
+		$base_dir      = str_replace( '\\', '/', sys_get_temp_dir() ) . '/hcaptcha-antispam-uploads';
+		$path          = $this->mock_blocklist_path( $base_dir );
+		$dir           = dirname( $path );
+		$wp_filesystem = $this->mock_wp_filesystem();
+		$subject       = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->mock_wp_filesystem_init( true );
+		$this->mock_successful_remote_blocklist_response( "mailinator.com\n" );
+
+		$wp_filesystem->shouldReceive( 'is_dir' )->with( $dir )->once()->andReturn( false );
+		$wp_filesystem->shouldReceive( 'put_contents' )->never();
+
+		WP_Mock::userFunction( 'wp_mkdir_p' )->with( $dir )->once()->andReturn( false );
+
+		self::assertFalse( $subject->download_blocklist() );
+	}
+
+	/**
+	 * Test download_blocklist() success.
+	 */
+	public function test_download_blocklist_success(): void {
+		$base_dir      = str_replace( '\\', '/', sys_get_temp_dir() ) . '/hcaptcha-antispam-uploads';
+		$body          = "mailinator.com\n";
+		$path          = $this->mock_blocklist_path( $base_dir );
+		$dir           = dirname( $path );
+		$wp_filesystem = $this->mock_wp_filesystem();
+		$subject       = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$this->define_fs_chmod_file();
+		$this->mock_wp_filesystem_init( true );
+		$this->mock_successful_remote_blocklist_response( $body );
+
+		$wp_filesystem->shouldReceive( 'is_dir' )->with( $dir )->once()->andReturn( false );
+		$wp_filesystem->shouldReceive( 'put_contents' )
+			->with( $path, $body, constant( 'HCaptcha\\AntiSpam\\FS_CHMOD_FILE' ) )
+			->once()
+			->andReturn( true );
+
+		WP_Mock::userFunction( 'wp_mkdir_p' )->with( $dir )->once()->andReturn( true );
+
+		self::assertTrue( $subject->download_blocklist() );
+	}
+
+	/**
+	 * Test schedule_update() when Action Scheduler is unavailable.
+	 */
+	public function test_schedule_update_without_action_scheduler(): void {
+		FunctionMocker::replace( 'function_exists', false );
+
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->schedule_update();
+	}
+
+	/**
+	 * Test unschedule_update() when Action Scheduler is unavailable.
+	 */
+	public function test_unschedule_update_without_action_scheduler(): void {
+		FunctionMocker::replace( 'function_exists', false );
+
+		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->unschedule_update();
 	}
 
 	/**
@@ -370,7 +568,7 @@ class DisposableEmailTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test activate() downloads blocklist and schedules update when file doesn't exist.
+	 * Test activate() downloads blocklist and schedules update when the file doesn't exist.
 	 */
 	public function test_activate_downloads_and_schedules(): void {
 		$subject = Mockery::mock( DisposableEmail::class )->makePartial();
@@ -471,5 +669,99 @@ class DisposableEmailTest extends HCaptchaTestCase {
 		$output = ob_get_clean();
 
 		self::assertEmpty( $output );
+	}
+
+	/**
+	 * Mock WP_Filesystem global.
+	 *
+	 * @return Mockery\LegacyMockInterface
+	 */
+	private function mock_wp_filesystem(): Mockery\LegacyMockInterface {
+		global $wp_filesystem;
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wp_filesystem = Mockery::mock();
+
+		return $wp_filesystem;
+	}
+
+	/**
+	 * Mock WP_Filesystem init.
+	 *
+	 * @param bool $result WP_Filesystem result.
+	 *
+	 * @return void
+	 */
+	private function mock_wp_filesystem_init( bool $result ): void {
+		$this->define_namespaced_abspath();
+
+		FunctionMocker::replace( 'HCaptcha\AntiSpam\WP_Filesystem', $result );
+	}
+
+	/**
+	 * Define namespaced ABSPATH for AntiSpam filesystem tests.
+	 *
+	 * @return void
+	 */
+	private function define_namespaced_abspath(): void {
+		$base_dir = str_replace( '\\', '/', sys_get_temp_dir() ) . '/hcaptcha-antispam-wp';
+		$file     = $base_dir . '/wp-admin/includes/file.php';
+
+		if ( ! is_dir( dirname( $file ) ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
+			mkdir( dirname( $file ), 0777, true );
+		}
+
+		if ( ! file_exists( $file ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			file_put_contents( $file, "<?php\n" );
+		}
+
+		if ( ! defined( 'HCaptcha\AntiSpam\ABSPATH' ) ) {
+			define( 'HCaptcha\AntiSpam\ABSPATH', $base_dir . '/' );
+		}
+	}
+
+	/**
+	 * Define namespaced FS_CHMOD_FILE for AntiSpam filesystem tests.
+	 *
+	 * @return void
+	 */
+	private function define_fs_chmod_file(): void {
+		if ( ! defined( 'HCaptcha\AntiSpam\FS_CHMOD_FILE' ) ) {
+			define( 'HCaptcha\AntiSpam\FS_CHMOD_FILE', 0644 );
+		}
+	}
+
+	/**
+	 * Mock a successful remote blocklist response.
+	 *
+	 * @param string $body Response body.
+	 *
+	 * @return void
+	 */
+	private function mock_successful_remote_blocklist_response( string $body ): void {
+		$response = new stdClass();
+
+		WP_Mock::userFunction( 'wp_remote_get' )->once()->andReturn( $response );
+		WP_Mock::userFunction( 'is_wp_error' )->with( $response )->once()->andReturn( false );
+		WP_Mock::userFunction( 'wp_remote_retrieve_response_code' )->with( $response )->once()->andReturn( 200 );
+		WP_Mock::userFunction( 'wp_remote_retrieve_body' )->with( $response )->once()->andReturn( $body );
+	}
+
+	/**
+	 * Mock blocklist path helpers.
+	 *
+	 * @param string $base_dir Upload base dir.
+	 *
+	 * @return string
+	 */
+	private function mock_blocklist_path( string $base_dir ): string {
+		$path = $base_dir . '/hcaptcha/disposable-email-blocklist.conf';
+
+		WP_Mock::userFunction( 'wp_upload_dir' )->once()->andReturn( [ 'basedir' => $base_dir ] );
+		WP_Mock::userFunction( 'trailingslashit' )->with( $base_dir )->once()->andReturn( $base_dir . '/' );
+
+		return $path;
 	}
 }

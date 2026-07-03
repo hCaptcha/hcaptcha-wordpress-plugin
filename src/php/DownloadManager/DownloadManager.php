@@ -9,6 +9,7 @@ namespace HCaptcha\DownloadManager;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class DownloadManager.
@@ -52,7 +53,6 @@ class DownloadManager {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( string $template, array $vars ): string {
 		$form_id = 0;
@@ -96,7 +96,7 @@ class DownloadManager {
 	 */
 	public function verify( $package ): void {
 
-		$result = API::verify_post( self::NONCE, self::ACTION );
+		$result = API::verify( $this->get_entry() );
 
 		if ( null === $result ) {
 			return;
@@ -110,6 +110,42 @@ class DownloadManager {
 				'response'  => 303,
 			]
 		);
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'expected_id'  => $this->get_expected_id( $this->get_form_id() ),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
+	}
+
+	/**
+	 * Get form id.
+	 *
+	 * @return int
+	 */
+	private function get_form_id(): int {
+		return absint( Request::filter_input( INPUT_GET, 'wpdmdl' ) );
 	}
 
 	/**

@@ -73,6 +73,7 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function add_captcha( $html, \HTML_Forms\Form $form ): string {
+		$html    = (string) $html;
 		$form_id = (int) ( $form->ID ?? 0 );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
@@ -96,7 +97,7 @@ class Form {
 			],
 		];
 
-		return (string) preg_replace(
+		return preg_replace(
 			'/(<p.*?>\s*?<input\s*?type="submit")/',
 			HCaptcha::form( $args ) . "\n$1",
 			$html
@@ -111,7 +112,7 @@ class Form {
 	 * @return void
 	 */
 	public function add_to_fields( \HTML_Forms\Form $form ): void {
-		if ( false !== strpos( $form->markup, 'class="h-captcha"' ) ) {
+		if ( preg_match( '#class="[^"]*\bh-captcha\b[^"]*"#', $form->markup ) ) {
 			return;
 		}
 
@@ -163,7 +164,7 @@ class Form {
 
 		$data['post_content'] = preg_replace(
 			[
-				'#\s*<div\s*?class=\\\"h-captcha\\\"[\s\S]*?</div>#',
+				'#\s*<div\s*?class=\\\"[^\\\"]*\bh-captcha\b[^\\\"]*\\\"[\s\S]*?</div>#',
 				'#<input\s*?type=\\\"hidden\\\"\s*?id=\\\"html_forms_form_nonce\\\"[\s\S]*?/>#',
 				'#<input\s*?type=\\\"hidden\\\"\s*?name=\\\"_wp_http_referer\\\"[\s\S]*?/>#',
 			],

@@ -9,6 +9,7 @@ namespace HCaptcha\Admin\Events;
 
 use Exception;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Utils;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\PluginSettingsBase;
@@ -34,6 +35,11 @@ class Events {
 	public const SERVED_LIMIT = 1000;
 
 	/**
+	 * Maximum indexed source length.
+	 */
+	public const SOURCE_INDEX_LENGTH = 191;
+
+	/**
 	 * Active event status.
 	 */
 	public const STATUS_ACTIVE = 'active';
@@ -52,6 +58,11 @@ class Events {
 	 * Trash retention in days.
 	 */
 	public const TRASH_RETENTION_DAYS = 30;
+
+	/**
+	 * Number of dashboard top items.
+	 */
+	private const DASHBOARD_TOP_LIMIT = 5;
 
 	/**
 	 * Verify request hook priority.
@@ -313,7 +324,7 @@ class Events {
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$served = (array) $wpdb->get_results(
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			"SELECT date_gmt
 					FROM $table_name FORCE INDEX ($force_key)
 					WHERE $where
@@ -393,6 +404,45 @@ class Events {
 	}
 
 	/**
+	 * Get dashboard data for events.
+	 *
+	 * @param array $args Arguments.
+	 *
+	 * @return array
+	 */
+	public static function get_dashboard_data( array $args = [] ): array {
+		global $wpdb;
+
+		$args               = self::prepare_args( $args );
+		$dashboard          = self::get_empty_dashboard_data();
+		$trash_schema_ready = self::is_trash_schema_ready();
+
+		if ( ! self::table_exists() ) {
+			return $dashboard;
+		}
+
+		if ( ! $trash_schema_ready && self::STATUS_TRASH === $args['status'] ) {
+			return $dashboard;
+		}
+
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$where      = self::get_where( $args );
+
+		$dashboard['totals'] = self::get_dashboard_totals( $table_name, $where );
+
+		if ( ! $dashboard['totals']['total'] ) {
+			return $dashboard;
+		}
+
+		$dashboard['top_forms']  = self::get_dashboard_top_forms( $table_name, $where );
+		$dashboard['top_errors'] = self::get_dashboard_top_errors( $table_name, $where );
+		$dashboard['peak']       = self::get_dashboard_peak( $table_name, $where, $args );
+		$dashboard['risk']       = self::get_dashboard_risk( $dashboard );
+
+		return $dashboard;
+	}
+
+	/**
 	 * Create the table.
 	 *
 	 * @param bool $force Whether to ignore the stored table-created marker.
@@ -416,7 +466,8 @@ class Events {
 			self::unmark_table_created();
 		}
 
-		$table_name = self::TABLE_NAME;
+		$table_name          = self::TABLE_NAME;
+		$source_index_length = self::SOURCE_INDEX_LENGTH;
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -434,14 +485,14 @@ class Events {
 		    status      VARCHAR(20)     NOT NULL DEFAULT 'active',
 		    trashed_at_gmt DATETIME     NULL,
 		    PRIMARY KEY (id),
-		    KEY source (source),
+		    KEY source (source($source_index_length)),
 		    KEY form_id (form_id),
-		    KEY hcaptcha_id (source, form_id),
+		    KEY hcaptcha_id (source($source_index_length), form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt),
 		    KEY status_date_gmt (status, date_gmt),
-		    KEY status_source_form (status, source, form_id)
+		    KEY status_source_form (status, source($source_index_length), form_id)
 		) $charset_collate";
 
 		dbDelta( $sql );
@@ -482,6 +533,359 @@ class Events {
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return ! empty( $tables );
+	}
+
+	/**
+	 * Get empty dashboard data.
+	 *
+	 * @return array
+	 */
+	private static function get_empty_dashboard_data(): array {
+		return [
+			'totals'     => [
+				'total'             => 0,
+				'succeed'           => 0,
+				'failed'            => 0,
+				'ip_total'          => 0,
+				'unique_ip'         => 0,
+				'user_agent_total'  => 0,
+				'unique_user_agent' => 0,
+			],
+			'top_forms'  => [],
+			'top_errors' => [],
+			'peak'       => [
+				'bucket'       => '',
+				'total'        => 0,
+				'succeed'      => 0,
+				'failed'       => 0,
+				'bucket_count' => 0,
+			],
+			'risk'       => [
+				'score'      => 0,
+				'level'      => 'low',
+				'components' => [
+					'failed_rate'            => 0,
+					'spike_ratio'            => 0,
+					'ip_repeat_rate'         => 0,
+					'user_agent_repeat_rate' => 0,
+					'error_concentration'    => 0,
+				],
+			],
+		];
+	}
+
+	/**
+	 * Get dashboard totals.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $where      WHERE clause.
+	 *
+	 * @return array
+	 */
+	private static function get_dashboard_totals( string $table_name, string $where ): array {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$row = $wpdb->get_row(
+			"SELECT COUNT(*) AS total,
+					SUM(IF(error_codes = '[]', 1, 0)) AS succeed,
+					SUM(IF(error_codes <> '[]', 1, 0)) AS failed,
+					SUM(IF(ip <> '', 1, 0)) AS ip_total,
+					COUNT(DISTINCT NULLIF(ip, '')) AS unique_ip,
+					SUM(IF(user_agent <> '', 1, 0)) AS user_agent_total,
+					COUNT(DISTINCT NULLIF(user_agent, '')) AS unique_user_agent
+				FROM $table_name
+				WHERE $where"
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( ! $row ) {
+			return self::get_empty_dashboard_data()['totals'];
+		}
+
+		return [
+			'total'             => (int) $row->total,
+			'succeed'           => (int) $row->succeed,
+			'failed'            => (int) $row->failed,
+			'ip_total'          => (int) $row->ip_total,
+			'unique_ip'         => (int) $row->unique_ip,
+			'user_agent_total'  => (int) $row->user_agent_total,
+			'unique_user_agent' => (int) $row->unique_user_agent,
+		];
+	}
+
+	/**
+	 * Get top dashboard forms.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $where      WHERE clause.
+	 *
+	 * @return array
+	 */
+	private static function get_dashboard_top_forms( string $table_name, string $where ): array {
+		global $wpdb;
+
+		$limit = self::DASHBOARD_TOP_LIMIT;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$results = (array) $wpdb->get_results(
+			"SELECT source,
+					form_id,
+					COUNT(*) AS total,
+					SUM(IF(error_codes = '[]', 1, 0)) AS succeed,
+					SUM(IF(error_codes <> '[]', 1, 0)) AS failed
+				FROM $table_name
+				WHERE $where
+				GROUP BY source, form_id
+				ORDER BY total DESC, failed DESC
+				LIMIT $limit"
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return array_map(
+			static function ( object $row ): array {
+				$total  = (int) $row->total;
+				$failed = (int) $row->failed;
+
+				return [
+					'source'      => (string) $row->source,
+					'form_id'     => (string) $row->form_id,
+					'total'       => $total,
+					'succeed'     => (int) $row->succeed,
+					'failed'      => $failed,
+					'failed_rate' => self::get_rate( $failed, $total ),
+				];
+			},
+			$results
+		);
+	}
+
+	/**
+	 * Get top dashboard error codes.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $where      WHERE clause.
+	 *
+	 * @return array
+	 */
+	private static function get_dashboard_top_errors( string $table_name, string $where ): array {
+		global $wpdb;
+
+		$limit = self::DASHBOARD_TOP_LIMIT * 4;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$results = (array) $wpdb->get_results(
+			"SELECT error_codes, COUNT(*) AS total
+				FROM $table_name
+				WHERE $where
+					AND error_codes <> '[]'
+				GROUP BY error_codes
+				ORDER BY total DESC
+				LIMIT $limit"
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$errors = [];
+
+		foreach ( $results as $result ) {
+			$error_codes = Utils::json_decode_arr( (string) $result->error_codes );
+			$total       = (int) $result->total;
+
+			foreach ( $error_codes as $error_code ) {
+				$error_code            = (string) $error_code;
+				$errors[ $error_code ] = ( $errors[ $error_code ] ?? 0 ) + $total;
+			}
+		}
+
+		arsort( $errors, SORT_NUMERIC );
+		$errors = array_slice( $errors, 0, self::DASHBOARD_TOP_LIMIT, true );
+
+		$top_errors = [];
+
+		foreach ( $errors as $code => $total ) {
+			$top_errors[] = [
+				'code'  => $code,
+				'total' => (int) $total,
+			];
+		}
+
+		return $top_errors;
+	}
+
+	/**
+	 * Get dashboard peak.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $where      WHERE clause.
+	 * @param array  $args       Arguments.
+	 *
+	 * @return array
+	 */
+	private static function get_dashboard_peak( string $table_name, string $where, array $args ): array {
+		global $wpdb;
+
+		$bucket_format = self::get_dashboard_bucket_format( $args['dates'] );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$results = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DATE_FORMAT(date_gmt, %s) AS bucket,
+						COUNT(*) AS total,
+						SUM(IF(error_codes = '[]', 1, 0)) AS succeed,
+						SUM(IF(error_codes <> '[]', 1, 0)) AS failed
+					FROM $table_name
+					WHERE $where
+					GROUP BY bucket
+					ORDER BY bucket",
+				$bucket_format
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$peak = self::get_empty_dashboard_data()['peak'];
+
+		foreach ( $results as $result ) {
+			$total = (int) $result->total;
+
+			if ( $total <= $peak['total'] ) {
+				continue;
+			}
+
+			$peak = [
+				'bucket'       => (string) $result->bucket,
+				'total'        => $total,
+				'succeed'      => (int) $result->succeed,
+				'failed'       => (int) $result->failed,
+				'bucket_count' => count( $results ),
+			];
+		}
+
+		return $peak;
+	}
+
+	/**
+	 * Get dashboard risk.
+	 *
+	 * @param array $dashboard Dashboard data.
+	 *
+	 * @return array
+	 */
+	private static function get_dashboard_risk( array $dashboard ): array {
+		$totals = $dashboard['totals'];
+		$total  = $totals['total'];
+
+		if ( ! $total ) {
+			return self::get_empty_dashboard_data()['risk'];
+		}
+
+		$failed_rate        = self::get_rate( $totals['failed'], $total );
+		$ip_repeat_rate     = self::get_repeat_rate( $totals['ip_total'], $totals['unique_ip'] );
+		$ua_repeat_rate     = self::get_repeat_rate( $totals['user_agent_total'], $totals['unique_user_agent'] );
+		$concentration_rate = max( $ip_repeat_rate, $ua_repeat_rate );
+		$peak               = $dashboard['peak'];
+		$average            = $peak['bucket_count'] ? $total / $peak['bucket_count'] : $total;
+		$spike_ratio        = $average > 0 ? $peak['total'] / $average : 0;
+		$spike_score        = max( 0, min( 100, ( $spike_ratio - 1 ) * 40 ) );
+		$top_error          = $dashboard['top_errors'][0]['total'] ?? 0;
+		$error_rate         = self::get_rate( $top_error, $totals['failed'] );
+		$score              = min(
+			100,
+			$failed_rate * 0.45 + $spike_score * 0.25 + $concentration_rate * 0.2 + $error_rate * 0.1
+		);
+
+		return [
+			'score'      => (int) round( $score ),
+			'level'      => self::get_dashboard_risk_level( $score ),
+			'components' => [
+				'failed_rate'            => $failed_rate,
+				'spike_ratio'            => round( $spike_ratio, 2 ),
+				'ip_repeat_rate'         => $ip_repeat_rate,
+				'user_agent_repeat_rate' => $ua_repeat_rate,
+				'error_concentration'    => $error_rate,
+			],
+		];
+	}
+
+	/**
+	 * Get dashboard bucket format.
+	 *
+	 * @param array $dates Dates.
+	 *
+	 * @return string
+	 */
+	private static function get_dashboard_bucket_format( array $dates ): string {
+		$dates[1] = $dates[1] ?? $dates[0];
+		$start    = strtotime( $dates[0] . ' 00:00:00' );
+		$end      = strtotime( $dates[1] . ' 23:59:59' );
+
+		if ( false === $start || false === $end ) {
+			return '%Y-%m-%d';
+		}
+
+		return ( $end - $start ) <= constant( 'DAY_IN_SECONDS' ) ? '%Y-%m-%d %H:00:00' : '%Y-%m-%d';
+	}
+
+	/**
+	 * Get dashboard rate.
+	 *
+	 * @param int $value Value.
+	 * @param int $total Total.
+	 *
+	 * @return float
+	 */
+	private static function get_rate( int $value, int $total ): float {
+		if ( ! $total ) {
+			return 0;
+		}
+
+		return round( $value / $total * 100, 1 );
+	}
+
+	/**
+	 * Get repeat rate.
+	 *
+	 * @param int $total  Total.
+	 * @param int $unique Unique.
+	 *
+	 * @return float
+	 */
+	private static function get_repeat_rate( int $total, int $unique ): float {
+		if ( ! $total || $unique >= $total ) {
+			return 0;
+		}
+
+		return self::get_rate( $total - $unique, $total );
+	}
+
+	/**
+	 * Get dashboard risk level.
+	 *
+	 * @param float $score Score.
+	 *
+	 * @return string
+	 */
+	private static function get_dashboard_risk_level( float $score ): string {
+		if ( $score >= 75 ) {
+			return 'critical';
+		}
+
+		if ( $score >= 55 ) {
+			return 'high';
+		}
+
+		if ( $score >= 30 ) {
+			return 'elevated';
+		}
+
+		return 'low';
 	}
 
 	/**
@@ -558,7 +962,7 @@ class Events {
 		);
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM $table_name
@@ -569,7 +973,7 @@ class Events {
 				$date_gmt
 			)
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 

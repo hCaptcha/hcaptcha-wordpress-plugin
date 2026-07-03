@@ -24,6 +24,11 @@ use WP_Error;
 class HCaptcha {
 
 	/**
+	 * API delayed widget class.
+	 */
+	public const HCAPTCHA_API_DELAYED_CLASS = 'hcaptcha-api-delayed';
+
+	/**
 	 * Widget id.
 	 */
 	public const HCAPTCHA_WIDGET_ID = 'hcaptcha-widget-id';
@@ -138,9 +143,11 @@ class HCaptcha {
 			return;
 		}
 
+		$hcaptcha_classes = self::get_hcaptcha_classes();
+
 		?>
 		<h-captcha
-			class="h-captcha"
+			class="<?php echo esc_attr( implode( ' ', $hcaptcha_classes ) ); ?>"
 			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
 			data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
 			data-size="<?php echo esc_attr( $args['size'] ); ?>"
@@ -155,6 +162,21 @@ class HCaptcha {
 		}
 
 		self::honeypot_display();
+	}
+
+	/**
+	 * Get hCaptcha widget classes.
+	 *
+	 * @return string[]
+	 */
+	private static function get_hcaptcha_classes(): array {
+		$classes = [ 'h-captcha' ];
+
+		if ( '' !== hcaptcha()->get_delay_api_event() ) {
+			$classes[] = self::HCAPTCHA_API_DELAYED_CLASS;
+		}
+
+		return $classes;
 	}
 
 	/**
@@ -1095,7 +1117,7 @@ class HCaptcha {
 			'<script type="module" ',
 		];
 
-		return (string) preg_replace( $search, $replace, $tag );
+		return preg_replace( $search, $replace, $tag );
 	}
 
 	/**

@@ -159,4 +159,55 @@ describe( 'admin-cf7', () => {
 		// Check that the AJAX request was not made.
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
+	test( 'aborts previous preview request, handles success, and ignores unrelated mutations', async () => {
+		const requests = [];
+		postSpy.mockImplementation( () => {
+			const request = {
+				abort: jest.fn(),
+				done: jest.fn( ( callback ) => {
+					callback( {
+						success: true,
+						data: '<div class="updated-form">Updated</div>',
+					} );
+
+					return request;
+				} ),
+			};
+			requests.push( request );
+
+			return request;
+		} );
+
+		const $form = $( '#wpcf7-form' );
+		$form.val( '<div data-sitekey="first"></div>' ).trigger( 'input' );
+		jest.runOnlyPendingTimers();
+		$form.val( '<div data-sitekey="second"></div>' ).trigger( 'input' );
+		jest.runOnlyPendingTimers();
+
+		document.body.setAttribute( 'open', 'open' );
+		await Promise.resolve();
+		jest.runOnlyPendingTimers();
+
+		expect( requests[ 0 ].abort ).toHaveBeenCalledTimes( 1 );
+		expect( $( '#form-live' ).html() ).toBe( '<div class="updated-form">Updated</div>' );
+		expect( global.hCaptcha.bindEvents ).toHaveBeenCalledTimes( 2 );
+	} );
+	test( 'unsuccessful AJAX response leaves preview unchanged', () => {
+		postSpy.mockImplementation( () => {
+			const request = {
+				done: jest.fn( ( callback ) => {
+					callback( { success: false } );
+
+					return request;
+				} ),
+			};
+
+			return request;
+		} );
+
+		$( '#wpcf7-form' ).val( '<div data-sitekey="failed"></div>' ).trigger( 'input' );
+		jest.runOnlyPendingTimers();
+
+		expect( $( '#form-live' ).html() ).toBe( '' );
+	} );
 } );

@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\Blocksy;
 
 use HCaptcha\Blocksy\NewsletterSubscribe;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -50,6 +51,8 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 			has_action( 'wp_ajax_nopriv_blc_newsletter_subscribe_process_ajax_subscribe', [ $subject, 'verify' ] )
 		);
 		self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
+		self::assertSame( 10, has_filter( 'script_loader_tag', [ $subject, 'add_type_module' ] ) );
 	}
 
 	/**
@@ -88,6 +91,7 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 			'hcaptcha_blocksy_newsletter_subscribe_nonce',
 			'hcaptcha_blocksy_newsletter_subscribe'
 		);
+		$this->prepare_widget_id();
 
 		$_POST['email'] = 'test@example.com';
 		$_POST['group'] = 'newsletter';
@@ -96,6 +100,41 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 
 		// Successful verification — should return without calling wp_send_json_error.
 		$subject->verify();
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		$subject = new NewsletterSubscribe();
+
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag = '<script src="/assets/js/hcaptcha-blocksy.js"></script>';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'other-handle', '' ) );
+		self::assertStringContainsString(
+			'type="module"',
+			$subject->add_type_module( $tag, 'hcaptcha-blocksy', '' )
+		);
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_scripts(): void {
+		$subject = new NewsletterSubscribe();
+
+		$subject->enqueue_scripts();
+		self::assertFalse( wp_script_is( 'hcaptcha-blocksy' ) );
+
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+		self::assertTrue( wp_script_is( 'hcaptcha-blocksy' ) );
 	}
 
 	/**
@@ -117,6 +156,7 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 			'hcaptcha_blocksy_newsletter_subscribe',
 			false
 		);
+		$this->prepare_widget_id();
 
 		$_POST['email'] = 'test@example.com';
 		$_POST['group'] = 'newsletter';
@@ -143,6 +183,52 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 		self::assertArrayHasKey( 'result', $data['data'] );
 		self::assertSame( 'no', $data['data']['result'] );
 		self::assertNotEmpty( $data['data']['message'] );
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$this->prepare_verify_post(
+			'hcaptcha_blocksy_newsletter_subscribe_nonce',
+			'hcaptcha_blocksy_newsletter_subscribe'
+		);
+
+		$_POST['email'] = 'test@example.com';
+		$_POST['group'] = 'newsletter';
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new NewsletterSubscribe();
+
+		ob_start();
+		$subject->verify();
+		$json = ob_get_clean();
+
+		$data = json_decode( $json, true );
+
+		self::assertFalse( $data['success'] );
+		self::assertSame( 'no', $data['data']['result'] );
+		self::assertSame( 'Bad hCaptcha signature!', $data['data']['message'] );
 		self::assertSame( $expected, $die_arr );
 	}
 
@@ -188,7 +274,34 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 		// 'Email' key overwrites 'email' after strtolower.
 		self::assertSame( 'upper@example.com', $actual['data']['email'] );
 		self::assertSame( 'newsletter', $actual['data']['group'] );
+		self::assertSame(
+			[
+				'source'  => HCaptcha::get_class_source( NewsletterSubscribe::class ),
+				'form_id' => 'newsletter-subscribe',
+			],
+			$actual['expected_id']
+		);
 		self::assertArrayNotHasKey( 'some_other_field', $actual['data'] );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id Widget id.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => HCaptcha::get_class_source( NewsletterSubscribe::class ),
+				'form_id' => 'newsletter-subscribe',
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

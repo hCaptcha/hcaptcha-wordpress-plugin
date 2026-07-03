@@ -22,16 +22,32 @@ const hCaptchaMailPoet = window.hCaptchaMailPoet || ( function( window, $ ) {
 					return;
 				}
 
-				// eslint-disable-next-line @wordpress/no-global-active-element
-				const eventTarget = options.context || document.activeElement;
-				const $form = $( eventTarget.closest( 'form' ) );
-
 				// Field names.
 				const responseName = 'h-captcha-response';
 				const widgetName = 'hcaptcha-widget-id';
 				const nonceName = 'hcaptcha_mailpoet_nonce';
 				const tokenName = 'hcap_fst_token';
 				const sigName = 'hcap_hp_sig';
+				const formId = urlParams.get( 'data[form_id]' );
+				let $form = $();
+
+				if ( formId ) {
+					$form = $( 'input[name="data[form_id]"]' ).filter( function() {
+						return $( this ).val() === formId;
+					} ).closest( 'form' );
+				}
+
+				if ( ! $form.length ) {
+					// eslint-disable-next-line @wordpress/no-global-active-element
+					const eventTarget = options.context || document.activeElement;
+					const form = eventTarget?.closest?.( 'form' );
+
+					$form = form ? $( form ) : $();
+				}
+
+				if ( ! $form.length ) {
+					return;
+				}
 
 				const response = $form.find( `[name="${ responseName }"]` ).val() ?? '';
 				const widget = $form.find( `[name="${ widgetName }"]` ).val() ?? '';

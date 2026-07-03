@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Tests\Unit\MigrationWizard\Detectors;
 
-use HCaptcha\MigrationWizard\DetectionResult;
 use HCaptcha\MigrationWizard\Detectors\WPFormsRecaptchaDetector;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use WP_Mock;
@@ -32,7 +31,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect with reCAPTCHA keys.
 	 */
-	public function test_detect_with_recaptcha() {
+	public function test_detect_with_recaptcha(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -60,7 +59,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect with Turnstile keys.
 	 */
-	public function test_detect_with_turnstile() {
+	public function test_detect_with_turnstile(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_PRO ] );
@@ -85,7 +84,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect with no settings.
 	 */
-	public function test_detect_no_settings() {
+	public function test_detect_no_settings(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -103,7 +102,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect with other provider (e.g. hcaptcha).
 	 */
-	public function test_detect_with_hcaptcha_provider() {
+	public function test_detect_with_hcaptcha_provider(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -125,7 +124,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test detect with missing keys.
 	 */
-	public function test_detect_missing_keys() {
+	public function test_detect_missing_keys(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -149,7 +148,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test is_applicable.
 	 */
-	public function test_is_applicable_lite() {
+	public function test_is_applicable_lite(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
@@ -160,7 +159,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test is_applicable pro.
 	 */
-	public function test_is_applicable_pro() {
+	public function test_is_applicable_pro(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_PRO ] );
@@ -171,7 +170,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test is_applicable none.
 	 */
-	public function test_is_applicable_none() {
+	public function test_is_applicable_none(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [] );
@@ -182,7 +181,7 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test get_source_plugin pro.
 	 */
-	public function test_get_source_plugin_pro() {
+	public function test_get_source_plugin_pro(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_PRO ] );
@@ -193,11 +192,23 @@ class WPFormsRecaptchaDetectorTest extends HCaptchaTestCase {
 	/**
 	 * Test get_source_plugin lite.
 	 */
-	public function test_get_source_plugin_lite() {
+	public function test_get_source_plugin_lite(): void {
 		WP_Mock::userFunction( 'get_option' )
 			->with( 'active_plugins', [] )
 			->andReturn( [ self::PLUGIN_SLUG_LITE ] );
 		$detector = new WPFormsRecaptchaDetector();
 		self::assertSame( self::PLUGIN_SLUG_LITE, $detector->get_source_plugin(), 'Should return Lite when Lite is active' );
+	}
+	/**
+	 * Test get_source_plugin defaults to Pro when no plugin is active.
+	 */
+	public function test_get_source_plugin_defaults_to_pro_when_no_plugin_active(): void {
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'active_plugins', [] )
+			->andReturn( [] );
+
+		$detector = new WPFormsRecaptchaDetector();
+
+		self::assertSame( 'wpforms/wpforms.php', $detector->get_source_plugin() );
 	}
 }

@@ -284,3 +284,53 @@ describe( 'notifications.js', () => {
 		expect( navSpan.style.display ).toBe( 'none' );
 	} );
 } );
+
+describe( 'notifications edge branch coverage', () => {
+	afterEach( () => {
+		jest.restoreAllMocks();
+	} );
+
+	test( 'normalizeNotificationHeight keeps all notifications hidden when visible index disappears', () => {
+		bootNotifications( { withTwo: true } );
+		let notificationCalls = 0;
+		const wrappedJQuery = ( selector, context ) => {
+			if ( selector === 'div.hcaptcha-notification' ) {
+				notificationCalls++;
+
+				if ( notificationCalls === 3 ) {
+					return $( [] );
+				}
+			}
+
+			return $( selector, context );
+		};
+		Object.assign( wrappedJQuery, $ );
+		wrappedJQuery.fn = $.fn;
+
+		window.hCaptchaNotifications( wrappedJQuery );
+
+		expect( notificationCalls ).toBeGreaterThanOrEqual( 3 );
+	} );
+
+	test( 'initializer can run without the Jest-only test hook', () => {
+		const jestRef = jest;
+		const savedJest = global.jest;
+
+		document.body.innerHTML = getDom( { withTwo: true } );
+		Object.assign( window.HCaptchaNotificationsObject, defaultNotifications );
+		Object.defineProperty( global, 'jest', {
+			configurable: true,
+			value: undefined,
+		} );
+		jestRef.isolateModules( () => {
+			require( '../../../assets/js/notifications.js' );
+		} );
+		window.hCaptchaNotifications( $ );
+		Object.defineProperty( global, 'jest', {
+			configurable: true,
+			value: savedJest,
+		} );
+
+		expect( document.getElementById( 'hcaptcha-navigation-pages' ).textContent ).toBe( '2' );
+	} );
+} );

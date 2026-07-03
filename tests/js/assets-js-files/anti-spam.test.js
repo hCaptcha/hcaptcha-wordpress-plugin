@@ -258,3 +258,74 @@ describe( 'Cloudflare detection', () => {
 		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
 	} );
 } );
+
+describe( 'additional anti-spam coverage', () => {
+	jest.useFakeTimers();
+	let postSpy;
+
+	afterEach( () => {
+		postSpy?.mockRestore();
+	} );
+
+	test( 'empty anti-spam provider returns without showing an error', () => {
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => $.Deferred() );
+		bootAntiSpam( { configuredAntiSpamProviders: [ 'none' ] } );
+
+		$( "select[name='hcaptcha_settings[antispam_provider]']" ).val( '' ).trigger( 'change' );
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( false );
+	} );
+
+	test( 'Cloudflare detection ignores a second click while a request is pending', () => {
+		const deferred = $.Deferred();
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
+			opts?.beforeSend?.();
+
+			return deferred;
+		} );
+		bootAntiSpam();
+
+		const $link = $( 'a[href="#detect-cloudflare"]' );
+		$link.trigger( 'click' );
+		$link.trigger( 'click' );
+
+		expect( postSpy ).toHaveBeenCalledTimes( 1 );
+		expect( $( '#trusted_address_headers' ).closest( 'td' ).find( 'p.description' ).hasClass( 'hcaptcha-loading' ) ).toBe( true );
+
+		deferred.resolve( { success: true, data: { message: 'Done' } } );
+		jest.runAllTimers();
+	} );
+
+	test( 'Cloudflare detection uses configured fallback errors', async () => {
+		postSpy = jest.spyOn( $, 'post' ).mockImplementationOnce( ( opts ) => {
+			const deferred = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => deferred.resolve( { success: false, data: '' } ), 0 );
+
+			return deferred;
+		} );
+		bootAntiSpam();
+
+		$( 'a[href="#detect-cloudflare"]' ).trigger( 'click' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $( '#hcaptcha-message' ).text() ).toContain( defaultAntiSpamObject.detectCloudflareError );
+
+		postSpy.mockRestore();
+		postSpy = jest.spyOn( $, 'post' ).mockImplementationOnce( ( opts ) => {
+			const deferred = $.Deferred();
+			opts?.beforeSend?.();
+			setTimeout( () => deferred.reject( { statusText: '' } ), 0 );
+
+			return deferred;
+		} );
+		bootAntiSpam();
+
+		$( 'a[href="#detect-cloudflare"]' ).trigger( 'click' );
+		jest.runAllTimers();
+		await Promise.resolve();
+
+		expect( $( '#hcaptcha-message' ).text() ).toContain( defaultAntiSpamObject.detectCloudflareError );
+	} );
+} );

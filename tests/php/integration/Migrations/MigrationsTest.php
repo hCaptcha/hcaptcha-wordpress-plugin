@@ -5,8 +5,12 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\Migrations;
 
+use ActionScheduler_Store;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
@@ -14,6 +18,7 @@ use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test MigrationsTest class.
@@ -34,6 +39,8 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		// Disable temporary tables creating.
 		remove_all_filters( 'query', 10 );
+
+		$this->drop_events_table();
 	}
 
 	/**
@@ -41,6 +48,9 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset( $_GET['service-worker'], $GLOBALS['current_screen'] );
+		delete_transient( 'hcaptcha_async_migrate_4_11_0' );
+		delete_transient( 'hcaptcha_async_migrate_5_0_0' );
+		delete_transient( 'hcaptcha_async_migrate_5_1_0' );
 
 		parent::tearDown();
 	}
@@ -149,6 +159,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		// Do not run async migrations via Action Scheduler.
 		set_transient( 'hcaptcha_async_migrate_4_11_0', Migrations::COMPLETED );
 		set_transient( 'hcaptcha_async_migrate_5_0_0', Migrations::COMPLETED );
+		set_transient( 'hcaptcha_async_migrate_5_1_0', Migrations::COMPLETED );
 
 		$subject->migrate();
 
@@ -197,6 +208,370 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		new Migrations();
 
 		self::assertTrue( Events::table_exists() );
+	}
+
+	/**
+	 * Test load_action_scheduler().
+	 *
+	 * @return void
+	 */
+	public function test_load_action_scheduler(): void {
+		$subject = new Migrations();
+
+		$subject->load_action_scheduler();
+
+		self::assertTrue( function_exists( 'as_get_scheduled_actions' ) );
+	}
+
+	/**
+	 * Test migration methods without an upgrade version are skipped.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_migrations_without_upgrade_version_are_skipped(): void {
+		$subject = new class() extends Migrations {
+
+			/**
+			 * Migration without a version in the method name.
+			 *
+			 * @return bool|null
+			 * @noinspection PhpUnused
+			 */
+			public function migrate_without_version(): ?bool {
+				return true;
+			}
+		};
+		$method  = $this->set_method_accessibility( $subject, 'maybe_prepare_migration_option' );
+
+		delete_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME );
+
+		$method->invoke( $subject );
+
+		$migrated = get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [] );
+
+		self::assertIsArray( $migrated );
+		self::assertArrayNotHasKey( '', $migrated );
+
+		$subject->migrate();
+
+		self::assertArrayNotHasKey( '', get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [] ) );
+	}
+
+	/**
+	 * Test maybe_create_tables() returns after the table check was already done.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_maybe_create_tables_returns_after_first_check(): void {
+		set_current_screen( 'some-screen' );
+
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'maybe_create_tables' );
+
+		$method->invoke( $subject );
+
+		self::assertTrue( $this->get_protected_property( $subject, 'tables_check_done' ) );
+	}
+
+	/**
+	 * Test async_migrate_4_11_0().
+	 *
+	 * @return void
+	 */
+	public function test_async_migrate_4_11_0(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$subject    = new Migrations();
+
+		Events::create_table();
+
+		add_action( 'async_migrate_4_11_0', [ $subject, 'async_migrate_4_11_0' ] );
+
+		do_action( 'async_migrate_4_11_0' );
+
+		$indexes = $this->get_index_sub_parts(
+			$table_name,
+			[
+				'idx_date_source_form',
+				'hcaptcha_id',
+			]
+		);
+
+		self::assertSame( Migrations::COMPLETED, (int) get_transient( 'hcaptcha_async_migrate_4_11_0' ) );
+		self::assertArrayHasKey( 'idx_date_source_form', $indexes );
+		self::assertArrayNotHasKey( 'hcaptcha_id', $indexes );
+
+		Events::create_table( true );
+	}
+
+	/**
+	 * Test async_migrate_5_0_0().
+	 *
+	 * @return void
+	 */
+	public function test_async_migrate_5_0_0(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$subject    = new Migrations();
+		$filter     = static function (): array {
+			return [ 'HTTP_CF_CONNECTING_IP' ];
+		};
+
+		$this->create_legacy_events_table();
+		add_filter( 'hcap_trusted_address_headers', $filter );
+		add_action( 'async_migrate_5_0_0', [ $subject, 'async_migrate_5_0_0' ] );
+
+		try {
+			do_action( 'async_migrate_5_0_0' );
+		} finally {
+			remove_filter( 'hcap_trusted_address_headers', $filter );
+		}
+
+		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		self::assertSame( [ 'HTTP_CF_CONNECTING_IP' ], $option['trusted_address_headers'] );
+		self::assertSame( Migrations::COMPLETED, (int) get_transient( 'hcaptcha_async_migrate_5_0_0' ) );
+		self::assertContains( 'status', $this->get_column_names( $table_name ) );
+		self::assertContains( 'trashed_at_gmt', $this->get_column_names( $table_name ) );
+		self::assertSame(
+			[
+				'status_date_gmt'    => [
+					'status'   => null,
+					'date_gmt' => null,
+				],
+				'status_source_form' => [
+					'status'  => null,
+					'source'  => 191,
+					'form_id' => null,
+				],
+			],
+			$this->get_index_sub_parts(
+				$table_name,
+				[
+					'status_date_gmt',
+					'status_source_form',
+				]
+			)
+		);
+	}
+
+	/**
+	 * Test async_migrate_5_1_0().
+	 *
+	 * @return void
+	 */
+	public function test_async_migrate_5_1_0(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$subject    = new Migrations();
+
+		Events::create_table();
+		add_action( 'async_migrate_5_1_0', [ $subject, 'async_migrate_5_1_0' ] );
+
+		do_action( 'async_migrate_5_1_0' );
+
+		self::assertSame( Migrations::COMPLETED, (int) get_transient( 'hcaptcha_async_migrate_5_1_0' ) );
+		self::assertSame(
+			[
+				'source'               => [
+					'source' => 191,
+				],
+				'hcaptcha_id'          => [
+					'source'  => 191,
+					'form_id' => null,
+				],
+				'idx_date_source_form' => [
+					'date_gmt' => null,
+					'source'   => 191,
+					'form_id'  => null,
+				],
+				'status_source_form'   => [
+					'status'  => null,
+					'source'  => 191,
+					'form_id' => null,
+				],
+			],
+			$this->get_index_sub_parts(
+				$table_name,
+				[
+					'source',
+					'hcaptcha_id',
+					'idx_date_source_form',
+					'status_source_form',
+				]
+			)
+		);
+	}
+
+	/**
+	 * Test async migration scheduling records failed Action Scheduler status.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_run_async_sets_failed_transient_when_action_creation_fails(): void {
+		$subject      = new Migrations();
+		$method       = $this->set_method_accessibility( $subject, 'run_async' );
+		$hook         = 'async_migrate_custom_async';
+		$transient    = 'hcaptcha_' . $hook;
+		$enqueue_args = [];
+		$filter       = static function ( $pre, string $hook, array $args, string $group, int $priority, bool $unique ) use ( &$enqueue_args ): int {
+			$enqueue_args = compact( 'hook', 'args', 'group', 'priority', 'unique' );
+
+			return 0;
+		};
+
+		$subject->load_action_scheduler();
+		delete_transient( $transient );
+		add_filter( 'pre_as_enqueue_async_action', $filter, 10, 6 );
+
+		try {
+			$result = $method->invoke( $subject, 'migrate_custom_async' );
+
+			self::assertNull( $result );
+			self::assertSame( Migrations::STARTED, (int) get_transient( $transient ) );
+
+			$this->run_last_init_callback_at_priority_20();
+
+			self::assertSame( Migrations::FAILED, (int) get_transient( $transient ) );
+			self::assertSame(
+				[
+					'hook'     => $hook,
+					'args'     => [],
+					'group'    => 'hcaptcha',
+					'priority' => 10,
+					'unique'   => true,
+				],
+				$enqueue_args
+			);
+		} finally {
+			remove_filter( 'pre_as_enqueue_async_action', $filter );
+			delete_transient( $transient );
+		}
+	}
+
+	/**
+	 * Test create_as_action() with an existing started action.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_create_as_action_returns_started_for_existing_action(): void {
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'create_as_action' );
+		$hook    = 'hcaptcha_existing_action_test';
+		$group   = 'hcaptcha';
+
+		$subject->load_action_scheduler();
+
+		$action_id = as_enqueue_async_action( $hook, [], $group, true );
+
+		try {
+			self::assertGreaterThan( 0, $action_id );
+			self::assertSame( Migrations::STARTED, $method->invoke( $subject, $hook, [], $group ) );
+		} finally {
+			as_unschedule_all_actions( $hook, [], $group );
+		}
+	}
+
+	/**
+	 * Test add_trusted_address_headers() returns on settings that do not need migration.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_add_trusted_address_headers_returns_when_settings_do_not_need_migration(): void {
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'add_trusted_address_headers' );
+
+		update_option( PluginSettingsBase::OPTION_NAME, 'not-an-array' );
+
+		$method->invoke( $subject );
+
+		self::assertSame( 'not-an-array', get_option( PluginSettingsBase::OPTION_NAME ) );
+
+		update_option(
+			PluginSettingsBase::OPTION_NAME,
+			[
+				'trusted_address_headers' => [ 'HTTP_X_FORWARDED_FOR' ],
+			]
+		);
+
+		$method->invoke( $subject );
+
+		self::assertSame(
+			[
+				'trusted_address_headers' => [ 'HTTP_X_FORWARDED_FOR' ],
+			],
+			get_option( PluginSettingsBase::OPTION_NAME )
+		);
+	}
+
+	/**
+	 * Test add_events_trash_folder() returns when the Events table is not available.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_add_events_trash_folder_returns_when_table_is_missing(): void {
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'add_events_trash_folder' );
+
+		FunctionMocker::replace( '\HCaptcha\Admin\Events\Events::create_table' );
+		FunctionMocker::replace( '\HCaptcha\Admin\Events\Events::table_exists', false );
+
+		$method->invoke( $subject );
+
+		self::assertFalse( Events::table_exists() );
+	}
+
+	/**
+	 * Test table helper early returns.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_table_helpers_return_when_schema_items_already_match(): void {
+		global $wpdb;
+
+		$subject       = new Migrations();
+		$table_name    = $wpdb->prefix . Events::TABLE_NAME;
+		$add_index     = $this->set_method_accessibility( $subject, 'add_index' );
+		$replace_index = $this->set_method_accessibility( $subject, 'replace_index' );
+		$add_column    = $this->set_method_accessibility( $subject, 'add_column' );
+
+		Events::create_table();
+
+		$add_index->invoke( $subject, $table_name, 'date_gmt', 'date_gmt' );
+		$replace_index->invoke( $subject, $table_name, 'missing_migration_index', 'source(191)', false );
+		$add_column->invoke( $subject, $table_name, 'status', "VARCHAR(20) NOT NULL DEFAULT 'active'" );
+
+		self::assertContains( 'status', $this->get_column_names( $table_name ) );
+		self::assertArrayHasKey( 'date_gmt', $this->get_index_sub_parts( $table_name, [ 'date_gmt' ] ) );
+	}
+
+	/**
+	 * Test update_events_source_indexes() returns when the Events table is unavailable.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_update_events_source_indexes_returns_when_table_is_missing(): void {
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'update_events_source_indexes' );
+
+		FunctionMocker::replace( '\HCaptcha\Admin\Events\Events::create_table' );
+		FunctionMocker::replace( '\HCaptcha\Admin\Events\Events::table_exists', false );
+
+		$method->invoke( $subject );
+
+		self::assertFalse( Events::table_exists() );
 	}
 
 	/**
@@ -282,14 +657,14 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		    status      VARCHAR(20)     NOT NULL DEFAULT 'active',
 		    trashed_at_gmt DATETIME     NULL,
 		    PRIMARY KEY (id),
-		    KEY source (source),
+		    KEY source (source(191)),
 		    KEY form_id (form_id),
-		    KEY hcaptcha_id (source, form_id),
+		    KEY hcaptcha_id (source(191), form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt),
 		    KEY status_date_gmt (status, date_gmt),
-		    KEY status_source_form (status, source, form_id)
+		    KEY status_source_form (status, source(191), form_id)
 		) $charset_collate;";
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -309,6 +684,59 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		$subject->$method();
 
 		self::assertSame( array_filter( explode( ';', $expected_query ) ), $actual_query );
+	}
+
+	/**
+	 * Test update_events_source_indexes().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_update_events_source_indexes(): void {
+		global $wpdb;
+
+		$method_name = 'update_events_source_indexes';
+		$subject     = new Migrations();
+		$table_name  = $wpdb->prefix . Events::TABLE_NAME;
+
+		$this->drop_events_table();
+
+		Events::create_table();
+
+		$method = $this->set_method_accessibility( $subject, $method_name );
+
+		$method->invoke( $subject );
+
+		self::assertSame(
+			[
+				'source'               => [
+					'source' => 191,
+				],
+				'hcaptcha_id'          => [
+					'source'  => 191,
+					'form_id' => null,
+				],
+				'idx_date_source_form' => [
+					'date_gmt' => null,
+					'source'   => 191,
+					'form_id'  => null,
+				],
+				'status_source_form'   => [
+					'status'  => null,
+					'source'  => 191,
+					'form_id' => null,
+				],
+			],
+			$this->get_index_sub_parts(
+				$table_name,
+				[
+					'source',
+					'hcaptcha_id',
+					'idx_date_source_form',
+					'status_source_form',
+				]
+			)
+		);
 	}
 
 	/**
@@ -338,6 +766,135 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		unset( $settings[ Events::TABLE_CREATED_OPTION_NAME ] );
 
 		update_option( PluginSettingsBase::OPTION_NAME, $settings );
+	}
+
+	/**
+	 * Create a legacy Events table without Trash Folder columns and indexes.
+	 *
+	 * @return void
+	 */
+	private function create_legacy_events_table(): void {
+		global $wpdb;
+
+		$table_name          = $wpdb->prefix . Events::TABLE_NAME;
+		$charset_collate     = $wpdb->get_charset_collate();
+		$source_index_length = Events::SOURCE_INDEX_LENGTH;
+
+		$this->drop_events_table();
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query(
+			"CREATE TABLE $table_name (
+				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				source VARCHAR(256) NOT NULL,
+				form_id VARCHAR(20) NOT NULL,
+				ip VARCHAR(39) NOT NULL,
+				user_agent VARCHAR(256) NOT NULL,
+				uuid VARCHAR(36) NOT NULL,
+				error_codes VARCHAR(256) NOT NULL,
+				date_gmt DATETIME NOT NULL,
+				PRIMARY KEY (id),
+				KEY source (source($source_index_length)),
+				KEY form_id (form_id),
+				KEY hcaptcha_id (source($source_index_length), form_id),
+				KEY date_gmt (date_gmt)
+			) $charset_collate"
+		);
+		// phpcs:enable PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange
+	}
+
+	/**
+	 * Get table column names.
+	 *
+	 * @param string $table_name Table name.
+	 *
+	 * @return string[]
+	 */
+	private function get_column_names( string $table_name ): array {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = (array) $wpdb->get_results( "SHOW COLUMNS FROM $table_name", ARRAY_A );
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return array_map(
+			static function ( array $row ): string {
+				return $row['Field'];
+			},
+			$rows
+		);
+	}
+
+	/**
+	 * Run the last init callback registered at priority 20.
+	 *
+	 * @return void
+	 */
+	private function run_last_init_callback_at_priority_20(): void {
+		$callbacks = $GLOBALS['wp_filter']['init']->callbacks[20] ?? [];
+
+		self::assertNotEmpty( $callbacks );
+
+		$callback = end( $callbacks );
+		$function = $callback['function'] ?? null;
+
+		self::assertIsCallable( $function );
+
+		$function();
+	}
+
+	/**
+	 * Get index sub-parts.
+	 *
+	 * @param string   $table_name  Table name.
+	 * @param string[] $index_names Index names.
+	 *
+	 * @return array
+	 */
+	private function get_index_sub_parts( string $table_name, array $index_names ): array {
+		global $wpdb;
+
+		$index_map = array_fill_keys( $index_names, true );
+		$sub_parts = array_fill_keys( $index_names, [] );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT INDEX_NAME, COLUMN_NAME, SUB_PART
+					FROM INFORMATION_SCHEMA.STATISTICS
+					WHERE table_schema = DATABASE()
+						AND table_name = %s
+					ORDER BY INDEX_NAME, SEQ_IN_INDEX',
+				$table_name
+			),
+			ARRAY_A
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		foreach ( $rows as $row ) {
+			$index_name = $row['INDEX_NAME'];
+
+			if ( ! isset( $index_map[ $index_name ] ) ) {
+				continue;
+			}
+
+			$sub_parts[ $index_name ][ $row['COLUMN_NAME'] ] = null === $row['SUB_PART'] ?
+				null :
+				(int) $row['SUB_PART'];
+		}
+
+		return array_filter(
+			$sub_parts,
+			static function ( array $parts ): bool {
+				return [] !== $parts;
+			}
+		);
 	}
 
 	/**

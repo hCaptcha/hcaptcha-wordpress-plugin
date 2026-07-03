@@ -133,7 +133,7 @@ class SystemInfo extends PluginSettingsBase {
 	 *
 	 * @return string
 	 */
-	protected function get_system_info(): string {
+	public function get_system_info(): string {
 		$data = $this->header( '### Begin System Info ###' );
 
 		$data .= $this->hcaptcha_info();
@@ -199,9 +199,20 @@ class SystemInfo extends PluginSettingsBase {
 		$format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 
 		foreach ( $migrations as $version => $timestamp ) {
-			$value = Migrations::STARTED === $timestamp ? 'Started' : 0;
-			$value = Migrations::FAILED === $timestamp ? 'Failed' : $value;
-			$value = $value ?: gmdate( $format, $timestamp );
+			switch ( $timestamp ) {
+				case Migrations::STARTED:
+					$value = 'Started';
+					break;
+				case Migrations::FAILED:
+					$value = 'Failed';
+					break;
+				case 0:
+					$value = 'Not required';
+					break;
+				default:
+					$value = gmdate( $format, $timestamp );
+					break;
+			}
 
 			$data .= $this->data( '  ' . $version, $value );
 		}

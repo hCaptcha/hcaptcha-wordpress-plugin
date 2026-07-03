@@ -27,6 +27,8 @@ class DelayedScriptTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function tearDown(): void {
+		remove_all_filters( 'hcap_delay_api_selector' );
+
 		$prop = ( new ReflectionClass( DelayedScript::class ) )->getProperty( 'launched' );
 		$prop->setAccessible( true );
 		$prop->setValue( null, [] );
@@ -122,6 +124,122 @@ JS;
 	}
 
 	/**
+	 * Test create() with a custom delay API event.
+	 *
+	 * @noinspection BadExpressionStatementJS
+	 * @noinspection JSUnusedLocalSymbols
+	 */
+	public function test_create_with_delay_api_event(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$js              = "\t\t\tconst some = 1;";
+		$delay_api_event = 'hcap:load-api';
+
+		$expected = <<<'JS'
+	( () => {
+		'use strict';
+
+		// noinspection JSAnnotator
+		const delayApiEvent = "hcap:load-api";
+		let loaded = false;
+
+		function load() {
+			if ( loaded ) {
+				return;
+			}
+
+			loaded = true;
+			document.removeEventListener( delayApiEvent, load );
+
+			const some = 1;
+		}
+
+		document.addEventListener( 'hCaptchaBeforeAPI', function() {
+			document.addEventListener( delayApiEvent, load );
+		} );
+	} )();
+JS;
+
+		$expected = "<script>\n$expected\n</script>\n";
+		$output   = DelayedScript::create( $js, 3000, $delay_api_event );
+
+		self::assertSame( $expected, $output );
+		self::assertStringNotContainsString( 'setTimeout', $output );
+		self::assertStringNotContainsString( 'touchstart', $output );
+		self::assertStringNotContainsString( 'mouseenter', $output );
+		self::assertStringNotContainsString( 'keydown', $output );
+		self::assertStringNotContainsString( 'scrollHandler', $output );
+	}
+
+	/**
+	 * Test enqueue() without a delay API selector.
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_without_delay_api_selector(): void {
+		$handle = 'hcap-delayed-script-enqueue';
+
+		wp_register_script( $handle, 'https://example.com/enqueue.js', [], '1.0', false );
+
+		DelayedScript::enqueue( $handle );
+
+		self::assertTrue( wp_script_is( $handle ) );
+	}
+
+	/**
+	 * Test enqueue() with a delay API selector.
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_with_delay_api_selector(): void {
+		$handle = 'hcap-delayed-script-observe';
+
+		add_filter(
+			'hcap_delay_api_selector',
+			static function (): string {
+				return ' .delayed-form ';
+			}
+		);
+
+		wp_register_script( $handle, 'https://example.com/observe.js', [], '1.0', false );
+
+		DelayedScript::enqueue( $handle );
+
+		self::assertFalse( wp_script_is( $handle ) );
+
+		ob_start();
+		DelayedScript::print_observation_script();
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString( 'hCaptchaObserve( ".delayed-form", ', $output );
+		self::assertStringContainsString( 'https:\/\/example.com\/observe.js?ver=1.0', $output );
+	}
+
+	/**
+	 * Test print_observation_script() without launched scripts.
+	 *
+	 * @return void
+	 */
+	public function test_print_observation_script_without_launched_scripts(): void {
+		ob_start();
+		DelayedScript::print_observation_script();
+		$output = (string) ob_get_clean();
+
+		self::assertSame( '', $output );
+	}
+	/**
 	 * Test observe().
 	 *
 	 * @noinspection JSUnresolvedReference
@@ -182,6 +300,50 @@ JS;
 		self::assertStringContainsString( 'hCaptchaObserve( ".my-form", ' . $sources_js . ' );', $output );
 	}
 
+	/**
+	 * Test observe() ignores handles without a source.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_observe_ignores_handles_without_source(): void {
+		$method = new ReflectionMethod( DelayedScript::class, 'observe' );
+		$method->setAccessible( true );
+
+		$method->invoke( null, '.missing-script-form', 'missing-script' );
+
+		self::assertSame( [], $this->get_launched() );
+	}
+
+	/**
+	 * Test print_observation_script() skips scripts that cannot be printed.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_print_observation_script_skips_unprintable_scripts(): void {
+		$handle = 'hcap-delayed-script-enqueued';
+
+		wp_register_script( $handle, 'https://example.com/enqueued.js', [], '1.0', false );
+		wp_enqueue_script( $handle );
+
+		$this->set_launched(
+			[
+				'.skip-form' => [
+					$handle,
+					'missing-script',
+				],
+			]
+		);
+
+		ob_start();
+		DelayedScript::print_observation_script();
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString( 'hCaptchaObserve = function', $output );
+		self::assertStringNotContainsString( '".skip-form"', $output );
+		self::assertStringNotContainsString( 'https:\/\/example.com\/enqueued.js?ver=1.0', $output );
+	}
 	/**
 	 * Test launch().
 	 *
@@ -276,5 +438,136 @@ JS;
 		ob_start();
 		DelayedScript::launch( $args, - 1 );
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test launch() with data attributes.
+	 *
+	 * @noinspection BadExpressionStatementJS
+	 */
+	public function test_launch_with_data_attributes(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		ob_start();
+		DelayedScript::launch(
+			[
+				'src'   => 'https://js.hcaptcha.com/1/api.js',
+				'id'    => 'ignored-id',
+				'async' => false,
+				'data'  => [
+					'sitekey' => 'site-key',
+					'theme'   => 'dark',
+				],
+			]
+		);
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString( "s.setAttribute( 'data-' + 'sitekey', 'site-key' );", $output );
+		self::assertStringContainsString( "s.setAttribute( 'data-' + 'theme', 'dark' );", $output );
+		self::assertStringContainsString( "s['src'] = 'https://js.hcaptcha.com/1/api.js';", $output );
+		self::assertStringNotContainsString( 'ignored-id', $output );
+		self::assertStringNotContainsString( "s['async']", $output );
+	}
+	/**
+	 * Test launch() with a custom delay API event.
+	 *
+	 * @noinspection BadExpressionStatementJS
+	 */
+	public function test_launch_with_delay_api_event(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<'JS'
+	( () => {
+		'use strict';
+
+		// noinspection JSAnnotator
+		const delayApiEvent = "hcap:load-api";
+		let loaded = false;
+
+		function load() {
+			if ( loaded ) {
+				return;
+			}
+
+			loaded = true;
+			document.removeEventListener( delayApiEvent, load );
+
+			const t = document.getElementsByTagName( 'script' )[0];
+			const s = document.createElement( 'script' );
+			s.type  = 'text/javascript';
+			s.id = 'hcaptcha-api';
+			s['src'] = 'https://js.hcaptcha.com/1/api.js';
+			s.async = true;
+			t.parentNode.insertBefore( s, t );
+		}
+
+		document.addEventListener( 'hCaptchaBeforeAPI', function() {
+			document.addEventListener( delayApiEvent, load );
+		} );
+	} )();
+JS;
+
+		$expected = "<script>\n$expected\n</script>\n";
+
+		ob_start();
+		DelayedScript::launch( [ 'src' => 'https://js.hcaptcha.com/1/api.js' ], 3000, 'hcap:load-api' );
+		$output = ob_get_clean();
+
+		self::assertSame( $expected, $output );
+		self::assertStringNotContainsString( 'setTimeout', $output );
+		self::assertStringNotContainsString( 'touchstart', $output );
+		self::assertStringNotContainsString( 'mouseenter', $output );
+		self::assertStringNotContainsString( 'keydown', $output );
+		self::assertStringNotContainsString( 'scrollHandler', $output );
+	}
+	/**
+	 * Get launched scripts.
+	 *
+	 * @return array
+	 * @throws ReflectionException ReflectionException.
+	 */
+	private function get_launched(): array {
+		$prop = ( new ReflectionClass( DelayedScript::class ) )->getProperty( 'launched' );
+		$prop->setAccessible( true );
+
+		return (array) $prop->getValue();
+	}
+
+	/**
+	 * Set launched scripts.
+	 *
+	 * @param array $launched Launched scripts.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	private function set_launched( array $launched ): void {
+		$prop = ( new ReflectionClass( DelayedScript::class ) )->getProperty( 'launched' );
+		$prop->setAccessible( true );
+		$prop->setValue( null, $launched );
 	}
 }
