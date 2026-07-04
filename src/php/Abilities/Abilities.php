@@ -8,6 +8,7 @@
 namespace HCaptcha\Abilities;
 
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Admin\Events\RiskAssessment;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Settings\SettingsTransfer;
@@ -27,7 +28,7 @@ class Abilities {
 	/**
 	 * Threat snapshot schema version.
 	 */
-	private const THREAT_SNAPSHOT_SCHEMA_VERSION = '1.0';
+	private const THREAT_SNAPSHOT_SCHEMA_VERSION = '1.1';
 
 	/**
 	 * Option name for storing offender blocks.
@@ -182,14 +183,51 @@ class Abilities {
 						'signals'        => [
 							'type'                 => 'object',
 							'properties'           => [
-								'attack_likelihood' => [ 'type' => 'string' ],
+								'attack_likelihood' => [
+									'type' => 'string',
+									'enum' => [ 'low', 'medium', 'high', 'critical' ],
+								],
 								'confidence'        => [ 'type' => 'string' ],
 								'top_vectors'       => [
 									'type'  => 'array',
 									'items' => [ 'type' => 'string' ],
 								],
+								'risk_score'        => [
+									'type'    => 'integer',
+									'minimum' => 0,
+									'maximum' => 100,
+								],
+								'risk_level'        => [
+									'type' => 'string',
+									'enum' => [ 'low', 'elevated', 'high', 'critical' ],
+								],
+								'risk_components'   => [
+									'type'                 => 'object',
+									'properties'           => [
+										'failed_rate'            => [ 'type' => 'number' ],
+										'spike_ratio'            => [ 'type' => 'number' ],
+										'ip_repeat_rate'         => [ 'type' => 'number' ],
+										'user_agent_repeat_rate' => [ 'type' => 'number' ],
+										'error_concentration' => [ 'type' => 'number' ],
+									],
+									'required'             => [
+										'failed_rate',
+										'spike_ratio',
+										'ip_repeat_rate',
+										'user_agent_repeat_rate',
+										'error_concentration',
+									],
+									'additionalProperties' => false,
+								],
 							],
-							'required'             => [ 'attack_likelihood', 'confidence', 'top_vectors' ],
+							'required'             => [
+								'attack_likelihood',
+								'confidence',
+								'top_vectors',
+								'risk_score',
+								'risk_level',
+								'risk_components',
+							],
 							'additionalProperties' => false,
 						],
 						'breakdown'      => [
@@ -532,7 +570,7 @@ class Abilities {
 		$settings = hcaptcha()->settings();
 
 		if ( ! $settings || ! $settings->is_on( 'statistics' ) ) {
-			$snapshot = $this->get_empty_threat_snapshot( true );
+			$snapshot = $this->get_empty_threat_snapshot();
 		} else {
 			$now      = time();
 			$to_gmt   = gmdate( 'Y-m-d H:i:s', $now );
@@ -541,7 +579,7 @@ class Abilities {
 			$snapshot = $this->query_threats_snapshot( $from_gmt, $to_gmt, $top_n );
 		}
 
-		$snapshot['metrics']['fail_rate'] = number_format( (float) ( $snapshot['metrics']['fail_rate'] ?? 0 ), 2 );
+		$snapshot['metrics']['fail_rate'] = round( (float) ( $snapshot['metrics']['fail_rate'] ?? 0 ), 2 );
 		$snapshot['schema_version']       = self::THREAT_SNAPSHOT_SCHEMA_VERSION;
 		$snapshot['window']               = $window;
 		$snapshot['window_seconds']       = $seconds;
@@ -697,20 +735,69 @@ class Abilities {
 
 		$table_name         = $wpdb->prefix . Events::TABLE_NAME;
 		$trash_schema_ready = Events::is_trash_schema_ready();
-		$total              = $this->get_threats_total( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
+		$totals             = $this->get_threats_totals( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
 
-		if ( null === $total ) {
+		if ( null === $totals ) {
 			return $empty;
 		}
 
-		$total = (int) $total;
-		$rows  = $this->get_threats_failed_rows( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
-
-		$failed_count = count( $rows );
+		$total        = $totals['total'];
+		$failed_count = $totals['failed'];
+		$rows         = $this->get_threats_failed_rows( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
+		$peak         = $this->get_threats_peak( $table_name, $from_gmt, $to_gmt, $trash_schema_ready );
 		$fail_rate    = $total > 0 ? ( $failed_count / $total ) : 0.0;
 
 		[ $error_counts, $sources, $offenders ] = $this->get_threat_details( $rows );
 
+		$sources   = $this->sort_threat_sources( $sources );
+		$offenders = $this->prepare_threat_offenders( $offenders, $top_n );
+
+		$top_error_total = $error_counts ? (int) reset( $error_counts ) : 0;
+		$top_vectors     = array_slice( array_keys( $error_counts ), 0, 3 );
+		$risk            = RiskAssessment::assess(
+			[
+				'total'             => $total,
+				'failed'            => $failed_count,
+				'ip_total'          => $totals['ip_total'],
+				'unique_ip'         => $totals['unique_ip'],
+				'user_agent_total'  => $totals['user_agent_total'],
+				'unique_user_agent' => $totals['unique_user_agent'],
+				'peak_total'        => $peak['total'],
+				'bucket_count'      => $peak['bucket_count'],
+				'top_error_total'   => $top_error_total,
+			]
+		);
+
+		return [
+			'metrics'   => [
+				'total'     => $total,
+				'failed'    => $failed_count,
+				'fail_rate' => round( $fail_rate, 2 ),
+			],
+			'signals'   => [
+				'attack_likelihood' => RiskAssessment::get_attack_likelihood( $risk['level'] ),
+				'confidence'        => $this->calculate_confidence( $total ),
+				'top_vectors'       => $top_vectors,
+				'risk_score'        => $risk['score'],
+				'risk_level'        => $risk['level'],
+				'risk_components'   => $risk['components'],
+			],
+			'breakdown' => [
+				'errors'    => $error_counts,
+				'sources'   => $sources,
+				'offenders' => $offenders,
+			],
+		];
+	}
+
+	/**
+	 * Sort threat sources.
+	 *
+	 * @param array $sources Threat sources.
+	 *
+	 * @return array
+	 */
+	private function sort_threat_sources( array $sources ): array {
 		usort(
 			$sources,
 			static function ( array $a, array $b ): int {
@@ -728,6 +815,18 @@ class Abilities {
 			}
 		);
 
+		return $sources;
+	}
+
+	/**
+	 * Prepare threat offenders.
+	 *
+	 * @param array $offenders Threat offenders.
+	 * @param int   $top_n     Number of top offenders to return.
+	 *
+	 * @return array
+	 */
+	private function prepare_threat_offenders( array $offenders, int $top_n ): array {
 		usort(
 			$offenders,
 			static function ( array $a, array $b ): int {
@@ -742,64 +841,61 @@ class Abilities {
 		$offenders = array_slice( $offenders, 0, max( 1, $top_n ) );
 
 		foreach ( $offenders as &$offender ) {
-			$error_map  = $this->sort_map_by_count_desc_then_key( $offender['_error_counts'] );
-			$source_map = $this->sort_map_by_count_desc_then_key( $offender['_source_counts'] );
-
-			unset( $offender['_error_counts'], $offender['_source_counts'] );
-
-			$top_errors  = array_slice( array_keys( $error_map ), 0, 3 );
-			$top_sources = array_slice( array_keys( $source_map ), 0, 3 );
-
-			if ( $top_errors ) {
-				$offender['top_errors'] = $top_errors;
-			}
-
-			if ( $top_sources ) {
-				$offender['top_sources'] = $top_sources;
-			}
+			$offender = $this->prepare_threat_offender( $offender );
 		}
 
 		unset( $offender );
 
-		$top_vectors = array_slice( array_keys( $error_counts ), 0, 3 );
-
-		return [
-			'metrics'   => [
-				'total'     => $total,
-				'failed'    => $failed_count,
-				'fail_rate' => number_format( $fail_rate, 2 ),
-			],
-			'signals'   => [
-				'attack_likelihood' => $this->calculate_attack_likelihood( $total, $failed_count, $fail_rate ),
-				'confidence'        => $this->calculate_confidence( $total ),
-				'top_vectors'       => $top_vectors,
-			],
-			'breakdown' => [
-				'errors'    => $error_counts,
-				'sources'   => $sources,
-				'offenders' => $offenders,
-			],
-		];
+		return $offenders;
 	}
 
 	/**
-	 * Get an empty threat snapshot.
+	 * Prepare threat offender.
 	 *
-	 * @param bool $formatted Whether to format the fail rate as a display string.
+	 * @param array $offender Threat offender.
 	 *
 	 * @return array
 	 */
-	private function get_empty_threat_snapshot( bool $formatted = false ): array {
+	private function prepare_threat_offender( array $offender ): array {
+		$error_map  = $this->sort_map_by_count_desc_then_key( $offender['_error_counts'] );
+		$source_map = $this->sort_map_by_count_desc_then_key( $offender['_source_counts'] );
+		$top_errors = array_slice( array_keys( $error_map ), 0, 3 );
+
+		unset( $offender['_error_counts'], $offender['_source_counts'] );
+
+		if ( $top_errors ) {
+			$offender['top_errors'] = $top_errors;
+		}
+
+		$top_sources = array_slice( array_keys( $source_map ), 0, 3 );
+
+		if ( $top_sources ) {
+			$offender['top_sources'] = $top_sources;
+		}
+
+		return $offender;
+	}
+	/**
+	 * Get an empty threat snapshot.
+	 *
+	 * @return array
+	 */
+	private function get_empty_threat_snapshot(): array {
+		$risk = RiskAssessment::get_empty();
+
 		return [
 			'metrics'   => [
 				'total'     => 0,
 				'failed'    => 0,
-				'fail_rate' => $formatted ? '0.00' : 0.0,
+				'fail_rate' => 0.0,
 			],
 			'signals'   => [
-				'attack_likelihood' => 'low',
+				'attack_likelihood' => RiskAssessment::get_attack_likelihood( $risk['level'] ),
 				'confidence'        => 'low',
 				'top_vectors'       => [],
+				'risk_score'        => $risk['score'],
+				'risk_level'        => $risk['level'],
+				'risk_components'   => $risk['components'],
 			],
 			'breakdown' => [
 				'errors'    => [],
@@ -810,40 +906,152 @@ class Abilities {
 	}
 
 	/**
-	 * Get total threats count.
+	 * Get threat totals for risk assessment.
 	 *
 	 * @param string $table_name         Events table name.
 	 * @param string $from_gmt           From date (UTC), `Y-m-d H:i:s`.
 	 * @param string $to_gmt             To date (UTC), `Y-m-d H:i:s`.
 	 * @param bool   $trash_schema_ready Whether the Events table has the Trash Folder schema.
 	 *
-	 * @return null|string
+	 * @return array|null
 	 */
-	private function get_threats_total( string $table_name, string $from_gmt, string $to_gmt, bool $trash_schema_ready ): ?string {
+	private function get_threats_totals( string $table_name, string $from_gmt, string $to_gmt, bool $trash_schema_ready ): ?array {
 		global $wpdb;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		if ( $trash_schema_ready ) {
-			return $wpdb->get_var(
+			$row = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT COUNT(*) FROM $table_name WHERE date_gmt BETWEEN %s AND %s AND status = %s",
+					"SELECT COUNT(*) AS total,
+							SUM(IF(error_codes <> %s, 1, 0)) AS failed,
+							SUM(IF(ip <> '', 1, 0)) AS ip_total,
+							COUNT(DISTINCT NULLIF(ip, '')) AS unique_ip,
+							SUM(IF(user_agent <> '', 1, 0)) AS user_agent_total,
+							COUNT(DISTINCT NULLIF(user_agent, '')) AS unique_user_agent
+						FROM $table_name
+						WHERE date_gmt BETWEEN %s AND %s
+							AND status = %s",
+					'[]',
 					$from_gmt,
 					$to_gmt,
 					Events::STATUS_ACTIVE
 				)
 			);
+		} else {
+			$row = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT COUNT(*) AS total,
+							SUM(IF(error_codes <> %s, 1, 0)) AS failed,
+							SUM(IF(ip <> '', 1, 0)) AS ip_total,
+							COUNT(DISTINCT NULLIF(ip, '')) AS unique_ip,
+							SUM(IF(user_agent <> '', 1, 0)) AS user_agent_total,
+							COUNT(DISTINCT NULLIF(user_agent, '')) AS unique_user_agent
+						FROM $table_name
+						WHERE date_gmt BETWEEN %s AND %s",
+					'[]',
+					$from_gmt,
+					$to_gmt
+				)
+			);
 		}
-
-		return $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $table_name WHERE date_gmt BETWEEN %s AND %s",
-				$from_gmt,
-				$to_gmt
-			)
-		);
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( ! $row ) {
+			return null;
+		}
+
+		return [
+			'total'             => (int) $row->total,
+			'failed'            => (int) $row->failed,
+			'ip_total'          => (int) $row->ip_total,
+			'unique_ip'         => (int) $row->unique_ip,
+			'user_agent_total'  => (int) $row->user_agent_total,
+			'unique_user_agent' => (int) $row->unique_user_agent,
+		];
+	}
+
+	/**
+	 * Get threat peak activity for risk assessment.
+	 *
+	 * @param string $table_name         Events table name.
+	 * @param string $from_gmt           From date (UTC), `Y-m-d H:i:s`.
+	 * @param string $to_gmt             To date (UTC), `Y-m-d H:i:s`.
+	 * @param bool   $trash_schema_ready Whether the Events table has the Trash Folder schema.
+	 *
+	 * @return array
+	 */
+	private function get_threats_peak( string $table_name, string $from_gmt, string $to_gmt, bool $trash_schema_ready ): array {
+		global $wpdb;
+
+		$bucket_format = $this->get_threats_bucket_format( $from_gmt, $to_gmt );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( $trash_schema_ready ) {
+			$results = (array) $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT DATE_FORMAT(date_gmt, %s) AS bucket,
+							COUNT(*) AS total
+						FROM $table_name
+						WHERE date_gmt BETWEEN %s AND %s
+							AND status = %s
+						GROUP BY bucket
+						ORDER BY bucket",
+					$bucket_format,
+					$from_gmt,
+					$to_gmt,
+					Events::STATUS_ACTIVE
+				)
+			);
+		} else {
+			$results = (array) $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT DATE_FORMAT(date_gmt, %s) AS bucket,
+							COUNT(*) AS total
+						FROM $table_name
+						WHERE date_gmt BETWEEN %s AND %s
+						GROUP BY bucket
+						ORDER BY bucket",
+					$bucket_format,
+					$from_gmt,
+					$to_gmt
+				)
+			);
+		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$peak_total = 0;
+
+		foreach ( $results as $result ) {
+			$peak_total = max( $peak_total, (int) $result->total );
+		}
+
+		return [
+			'total'        => $peak_total,
+			'bucket_count' => count( $results ),
+		];
+	}
+
+	/**
+	 * Get threat bucket format.
+	 *
+	 * @param string $from_gmt From date (UTC), `Y-m-d H:i:s`.
+	 * @param string $to_gmt   To date (UTC), `Y-m-d H:i:s`.
+	 *
+	 * @return string
+	 */
+	private function get_threats_bucket_format( string $from_gmt, string $to_gmt ): string {
+		$start = strtotime( $from_gmt );
+		$end   = strtotime( $to_gmt );
+
+		if ( false === $start || false === $end ) {
+			return '%Y-%m-%d';
+		}
+
+		return ( $end - $start ) <= constant( 'DAY_IN_SECONDS' ) ? '%Y-%m-%d %H:00:00' : '%Y-%m-%d';
 	}
 
 	/**
@@ -1057,30 +1265,6 @@ class Abilities {
 		return $map;
 	}
 
-	/**
-	 * Calculate attack likelihood.
-	 *
-	 * @param int   $total     Total events.
-	 * @param int   $failed    Failed events.
-	 * @param float $fail_rate Fail rate.
-	 *
-	 * @return string
-	 */
-	private function calculate_attack_likelihood( int $total, int $failed, float $fail_rate ): string {
-		if ( $total < 20 ) {
-			return 'low';
-		}
-
-		if ( $fail_rate >= 0.50 && $failed >= 10 ) {
-			return 'high';
-		}
-
-		if ( $fail_rate >= 0.20 && $failed >= 5 ) {
-			return 'medium';
-		}
-
-		return 'low';
-	}
 
 	/**
 	 * Calculate confidence.

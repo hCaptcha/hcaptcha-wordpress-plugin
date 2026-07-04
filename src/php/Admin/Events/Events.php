@@ -560,17 +560,7 @@ class Events {
 				'failed'       => 0,
 				'bucket_count' => 0,
 			],
-			'risk'       => [
-				'score'      => 0,
-				'level'      => 'low',
-				'components' => [
-					'failed_rate'            => 0,
-					'spike_ratio'            => 0,
-					'ip_repeat_rate'         => 0,
-					'user_agent_repeat_rate' => 0,
-					'error_concentration'    => 0,
-				],
-			],
+			'risk'       => RiskAssessment::get_empty(),
 		];
 	}
 
@@ -780,38 +770,20 @@ class Events {
 	 */
 	private static function get_dashboard_risk( array $dashboard ): array {
 		$totals = $dashboard['totals'];
-		$total  = $totals['total'];
 
-		if ( ! $total ) {
-			return self::get_empty_dashboard_data()['risk'];
-		}
-
-		$failed_rate        = self::get_rate( $totals['failed'], $total );
-		$ip_repeat_rate     = self::get_repeat_rate( $totals['ip_total'], $totals['unique_ip'] );
-		$ua_repeat_rate     = self::get_repeat_rate( $totals['user_agent_total'], $totals['unique_user_agent'] );
-		$concentration_rate = max( $ip_repeat_rate, $ua_repeat_rate );
-		$peak               = $dashboard['peak'];
-		$average            = $peak['bucket_count'] ? $total / $peak['bucket_count'] : $total;
-		$spike_ratio        = $average > 0 ? $peak['total'] / $average : 0;
-		$spike_score        = max( 0, min( 100, ( $spike_ratio - 1 ) * 40 ) );
-		$top_error          = $dashboard['top_errors'][0]['total'] ?? 0;
-		$error_rate         = self::get_rate( $top_error, $totals['failed'] );
-		$score              = min(
-			100,
-			$failed_rate * 0.45 + $spike_score * 0.25 + $concentration_rate * 0.2 + $error_rate * 0.1
+		return RiskAssessment::assess(
+			[
+				'total'             => $totals['total'],
+				'failed'            => $totals['failed'],
+				'ip_total'          => $totals['ip_total'],
+				'unique_ip'         => $totals['unique_ip'],
+				'user_agent_total'  => $totals['user_agent_total'],
+				'unique_user_agent' => $totals['unique_user_agent'],
+				'peak_total'        => $dashboard['peak']['total'],
+				'bucket_count'      => $dashboard['peak']['bucket_count'],
+				'top_error_total'   => $dashboard['top_errors'][0]['total'] ?? 0,
+			]
 		);
-
-		return [
-			'score'      => (int) round( $score ),
-			'level'      => self::get_dashboard_risk_level( $score ),
-			'components' => [
-				'failed_rate'            => $failed_rate,
-				'spike_ratio'            => round( $spike_ratio, 2 ),
-				'ip_repeat_rate'         => $ip_repeat_rate,
-				'user_agent_repeat_rate' => $ua_repeat_rate,
-				'error_concentration'    => $error_rate,
-			],
-		];
 	}
 
 	/**
@@ -849,44 +821,6 @@ class Events {
 		return round( $value / $total * 100, 1 );
 	}
 
-	/**
-	 * Get repeat rate.
-	 *
-	 * @param int $total  Total.
-	 * @param int $unique Unique.
-	 *
-	 * @return float
-	 */
-	private static function get_repeat_rate( int $total, int $unique ): float {
-		if ( ! $total || $unique >= $total ) {
-			return 0;
-		}
-
-		return self::get_rate( $total - $unique, $total );
-	}
-
-	/**
-	 * Get dashboard risk level.
-	 *
-	 * @param float $score Score.
-	 *
-	 * @return string
-	 */
-	private static function get_dashboard_risk_level( float $score ): string {
-		if ( $score >= 75 ) {
-			return 'critical';
-		}
-
-		if ( $score >= 55 ) {
-			return 'high';
-		}
-
-		if ( $score >= 30 ) {
-			return 'elevated';
-		}
-
-		return 'low';
-	}
 
 	/**
 	 * Mark the Events table as created.

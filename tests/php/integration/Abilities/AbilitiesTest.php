@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\Abilities;
 
 use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Admin\Events\RiskAssessment;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\SettingsTransfer;
@@ -602,7 +603,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		// Default window when no input is provided.
 		$default = $subject->get_threat_snapshot( [] );
 		self::assertIsArray( $default );
-		self::assertSame( '1.0', $default['schema_version'] );
+		self::assertSame( '1.1', $default['schema_version'] );
 		self::assertSame( '5m', $default['window'] );
 		self::assertSame( 300, $default['window_seconds'] );
 		self::assertArrayHasKey( 'generated_at', $default );
@@ -610,7 +611,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 			[
 				'total'     => 0,
 				'failed'    => 0,
-				'fail_rate' => '0.00',
+				'fail_rate' => 0.0,
 			],
 			$default['metrics']
 		);
@@ -630,7 +631,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertIsArray( $result );
-		self::assertSame( '1.0', $result['schema_version'] );
+		self::assertSame( '1.1', $result['schema_version'] );
 		self::assertSame( '5m', $result['window'] );
 		self::assertSame( 300, $result['window_seconds'] );
 		self::assertArrayHasKey( 'generated_at', $result );
@@ -663,7 +664,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 			[
 				'total'     => 0,
 				'failed'    => 0,
-				'fail_rate' => '0.00',
+				'fail_rate' => 0.0,
 			],
 			$result['metrics']
 		);
@@ -691,7 +692,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 			[
 				'total'     => 0,
 				'failed'    => 0,
-				'fail_rate' => '0.00',
+				'fail_rate' => 0.0,
 			],
 			$result['metrics']
 		);
@@ -723,32 +724,32 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test calculate_attack_likelihood().
+	 * Test RiskAssessment attack likelihood mapping.
 	 *
 	 * @return void
-	 * @throws ReflectionException Reflection exception.
 	 */
-	public function test_calculate_attack_likelihood(): void {
-		$subject = new Abilities();
+	public function test_risk_assessment_attack_likelihood(): void {
+		self::assertSame( 'low', RiskAssessment::get_attack_likelihood( RiskAssessment::LEVEL_LOW ) );
+		self::assertSame( 'medium', RiskAssessment::get_attack_likelihood( RiskAssessment::LEVEL_ELEVATED ) );
+		self::assertSame( 'high', RiskAssessment::get_attack_likelihood( RiskAssessment::LEVEL_HIGH ) );
+		self::assertSame( 'critical', RiskAssessment::get_attack_likelihood( RiskAssessment::LEVEL_CRITICAL ) );
 
-		$method = $this->set_method_accessibility( $subject, 'calculate_attack_likelihood' );
+		$risk = RiskAssessment::assess(
+			[
+				'total'             => 20,
+				'failed'            => 20,
+				'ip_total'          => 20,
+				'unique_ip'         => 1,
+				'user_agent_total'  => 20,
+				'unique_user_agent' => 1,
+				'peak_total'        => 20,
+				'bucket_count'      => 2,
+				'top_error_total'   => 20,
+			]
+		);
 
-		// When there is insufficient sample size, always return low.
-		self::assertSame( 'low', $method->invoke( $subject, 0, 0, 0.0 ) );
-		self::assertSame( 'low', $method->invoke( $subject, 19, 19, 1.0 ) );
-
-		// High-likelihood threshold (inclusive).
-		self::assertSame( 'high', $method->invoke( $subject, 20, 10, 0.50 ) );
-
-		// Medium likelihood threshold (inclusive).
-		self::assertSame( 'medium', $method->invoke( $subject, 20, 5, 0.20 ) );
-		self::assertSame( 'medium', $method->invoke( $subject, 20, 9, 0.60 ) );
-
-		// Fallback to low if thresholds are not met.
-		self::assertSame( 'low', $method->invoke( $subject, 20, 4, 0.90 ) );
-		self::assertSame( 'low', $method->invoke( $subject, 20, 5, 0.19 ) );
-
-		$this->set_method_accessibility( $subject, 'calculate_attack_likelihood', false );
+		self::assertSame( RiskAssessment::LEVEL_CRITICAL, $risk['level'] );
+		self::assertSame( 'critical', RiskAssessment::get_attack_likelihood( $risk['level'] ) );
 	}
 
 	/**
@@ -796,7 +797,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		$mock->prefix = $saved->prefix ?? 'wp_';
 
 		$mock->shouldReceive( 'prepare' )->andReturn( 'SELECT 1' );
-		$mock->shouldReceive( 'get_var' )->andReturn( null );
+		$mock->shouldReceive( 'get_row' )->andReturn( null );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride
 		$GLOBALS['wpdb'] = $mock;
@@ -816,6 +817,9 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 						'attack_likelihood' => 'low',
 						'confidence'        => 'low',
 						'top_vectors'       => [],
+						'risk_score'        => 0,
+						'risk_level'        => 'low',
+						'risk_components'   => RiskAssessment::get_empty()['components'],
 					],
 					'breakdown' => [
 						'errors'    => [],
@@ -845,7 +849,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		Events::create_table();
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
-		$now        = time();
+		$now        = strtotime( '2026-01-01 12:30:00' );
 		$from_gmt   = gmdate( 'Y-m-d H:i:s', $now - 60 );
 		$to_gmt     = gmdate( 'Y-m-d H:i:s', $now );
 
@@ -989,7 +993,12 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 			self::assertIsArray( $snapshot );
 			self::assertSame( 10, $snapshot['metrics']['total'] );
 			self::assertSame( 10, $snapshot['metrics']['failed'] );
-			self::assertSame( '1.00', $snapshot['metrics']['fail_rate'] );
+			self::assertSame( 1.0, $snapshot['metrics']['fail_rate'] );
+			self::assertSame( 'high', $snapshot['signals']['attack_likelihood'] );
+			self::assertSame( 'high', $snapshot['signals']['risk_level'] );
+			self::assertSame( 69, $snapshot['signals']['risk_score'] );
+			self::assertSame( 100.0, $snapshot['signals']['risk_components']['failed_rate'] );
+			self::assertSame( 1.0, $snapshot['signals']['risk_components']['spike_ratio'] );
 			self::assertSame(
 				[
 					[

@@ -153,15 +153,28 @@ curl --globoff -u "USER:APP_PASSWORD" \
 
 The response includes:
 * overall metrics (total requests, failure rate)
-* dominant attack signals
+* dominant attack signals and the same risk score used by the Events dashboard
 * breakdown by error type and form source
 * a list of top offenders (if present)
+
+`attack_likelihood` values are `low`, `medium`, `high`, and `critical`. `risk_level` uses the Events dashboard levels: `low`, `elevated`, `high`, and `critical`.
 
 Example (simplified):
 `
 {
-  "metrics": { "total": 353, "failed": 215 },
-  "signals": { "attack_likelihood": "high" },
+  "metrics": { "total": 353, "failed": 215, "fail_rate": 0.61 },
+  "signals": {
+    "attack_likelihood": "critical",
+    "risk_level": "critical",
+    "risk_score": 82,
+    "risk_components": {
+      "failed_rate": 60.9,
+      "spike_ratio": 1.8,
+      "ip_repeat_rate": 42.4,
+      "user_agent_repeat_rate": 39.1,
+      "error_concentration": 74.4
+    }
+  },
   "breakdown": {
     "errors": { "empty": 160, "spam": 16 },
     "offenders": [
