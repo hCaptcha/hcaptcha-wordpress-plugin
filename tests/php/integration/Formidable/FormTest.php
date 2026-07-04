@@ -316,6 +316,39 @@ HTML;
 	}
 
 	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$form_id       = 5;
+		$errors        = [];
+		$values        = [
+			'h-captcha-response' => 'some response',
+			'form_id'            => $form_id,
+		];
+		$validate_args = [];
+		$expected      = [
+			'field1' => 'Bad hCaptcha signature!',
+		];
+
+		$this->prepare_verify_post(
+			'hcaptcha_formidable_forms_nonce',
+			'hcaptcha_formidable_forms'
+		);
+
+		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
+
+		$form             = new stdClass();
+		$form->created_at = '2023-01-01 10:00:00';
+
+		FunctionMocker::replace( [ 'FrmForm', 'getOne' ], $form );
+
+		$subject = new Form();
+
+		self::assertSame( $expected, $subject->verify( $errors, $values, $validate_args ) );
+	}
+	/**
 	 * Test enqueue_scripts().
 	 *
 	 * @return void

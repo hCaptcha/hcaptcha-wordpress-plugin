@@ -79,7 +79,7 @@ class Register {
 	public function verify(): bool {
 		global $bp;
 
-		$error_message = API::verify_post( self::NAME, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null !== $error_message ) {
 			$bp->signup->errors['hcaptcha_response_verify'] = $error_message;
@@ -88,5 +88,30 @@ class Register {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NAME,
+			'nonce_action' => self::ACTION,
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

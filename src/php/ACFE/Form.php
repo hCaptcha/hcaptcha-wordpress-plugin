@@ -199,7 +199,16 @@ class Form {
 		$form_id = $transient[0] ?? false;
 		$result  = $transient[1] ?? false;
 
-		return $form_id === $this->form_id ? $result : false;
+		if ( $form_id === $this->form_id ) {
+			return $result;
+		}
+
+		// Some ACFE forms submit directly without the AJAX validation step.
+		// In that case, verify the current POST once instead of requiring a transient.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$post_data = wp_unslash( $_POST );
+
+		return API::verify( $this->get_entry( $post_data ) ) ?: true;
 	}
 
 	/**
@@ -220,6 +229,19 @@ class Form {
 			'form_date_gmt'      => $form_post->post_modified_gmt ?? null,
 			'post_data'          => $post_data,
 			'data'               => $this->get_data( $acf_data ),
+			'expected_id'        => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $this->form_id,
 		];
 	}
 
@@ -318,12 +340,17 @@ class Form {
 			return;
 		}
 
-		$min = hcap_min_suffix();
+		$min  = hcap_min_suffix();
+		$deps = [ 'jquery', 'hcaptcha' ];
+
+		if ( wp_script_is( 'acf-extended-input', 'registered' ) ) {
+			$deps[] = 'acf-extended-input';
+		}
 
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-acfe$min.js",
-			[ 'jquery', 'hcaptcha' ],
+			$deps,
 			HCAPTCHA_VERSION,
 			true
 		);

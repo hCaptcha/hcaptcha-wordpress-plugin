@@ -115,7 +115,7 @@ abstract class Base {
 			return;
 		}
 
-		$error_message = API::verify_post( static::NAME, static::ACTION );
+		$error_message = $this->verify_entry();
 
 		if ( null !== $error_message ) {
 			give_set_error( 'invalid_hcaptcha', $error_message );
@@ -146,13 +146,7 @@ abstract class Base {
 			return;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$hcaptcha_response = isset( $_POST['h-captcha-response'] ) ?
-			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		$error_message = API::verify_request( $hcaptcha_response );
+		$error_message = $this->verify_entry( false );
 
 		if ( null === $error_message ) {
 			return;
@@ -164,6 +158,68 @@ abstract class Base {
 				'errors' => new WP_Error( DonationFormErrorTypes::GATEWAY, $error_message ),
 			]
 		);
+	}
+
+	/**
+	 * Verify entry.
+	 *
+	 * @param bool $check_nonce Whether to check nonce.
+	 *
+	 * @return string|null
+	 */
+	private function verify_entry( bool $check_nonce = true ): ?string {
+		return API::verify( $this->get_entry( $check_nonce ) );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param bool $check_nonce Whether to check nonce.
+	 *
+	 * @return array
+	 */
+	private function get_entry( bool $check_nonce = true ): array {
+		return [
+			'nonce_name'         => $check_nonce ? static::NAME : null,
+			'nonce_action'       => $check_nonce ? static::ACTION : null,
+			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
+			'expected_id'        => $this->get_expected_id( $this->get_form_id() ),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $form_id,
+		];
+	}
+
+	/**
+	 * Get form id.
+	 *
+	 * @return int
+	 */
+	private function get_form_id(): int {
+		$form_id = absint( Request::filter_input( INPUT_POST, 'give-form-id' ) );
+
+		if ( $form_id ) {
+			return $form_id;
+		}
+
+		$form_id = absint( Request::filter_input( INPUT_POST, 'formId' ) );
+
+		if ( $form_id ) {
+			return $form_id;
+		}
+
+		return absint( Request::filter_input( INPUT_POST, 'form-id' ) );
 	}
 
 	/**

@@ -1,3 +1,4 @@
+bootstrap: _bootstrap.php
 paths:
   tests: tests/php
   output: .codeception/_output

@@ -4,6 +4,7 @@
 .reports/
 .tools/
 .yarn/
+.junie/
 assets/css/*.min.css
 assets/css/*.min.css.map
 assets/js/apps/

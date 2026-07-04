@@ -85,11 +85,7 @@ class Form {
 			return (string) $block_content;
 		}
 
-		$form_id = 0;
-
-		if ( preg_match( '/<form id="(.+?)"/', $block_content, $m ) ) {
-			$form_id = $m[1];
-		}
+		$form_id = $this->get_form_id_from_block_content( (string) $block_content );
 
 		$search = '<div class="eb-form-submit';
 		$args   = [
@@ -105,6 +101,29 @@ class Form {
 	}
 
 	/**
+	 * Get form id from block content.
+	 *
+	 * @param string $block_content Block content.
+	 *
+	 * @return string
+	 * @noinspection NestedTernaryOperatorInspection
+	 */
+	private function get_form_id_from_block_content( string $block_content ): string {
+		if (
+			preg_match( '/<button\b(?=[^>]*\beb-form-submit-button\b)[^>]*>/i', $block_content, $button ) &&
+			preg_match( '/\bdata-id=(?:"([^"]+)"|\'([^\']+)\'|([^\s>]+))/i', $button[0], $m )
+		) {
+			return $m[1] ?: ( $m[2] ?: $m[3] );
+		}
+
+		if ( preg_match( '/<form id="(.+?)"/', $block_content, $m ) ) {
+			return $m[1];
+		}
+
+		return '0';
+	}
+
+	/**
 	 * Verify the hCaptcha.
 	 *
 	 * @return void
@@ -114,7 +133,7 @@ class Form {
 		$form_data_str = isset( $_POST['form_data'] ) ? sanitize_text_field( wp_unslash( $_POST['form_data'] ) ) : '';
 		$form_data     = Utils::json_decode_arr( $form_data_str );
 
-		$error_message = API::verify( $this->get_entry( $form_data ) );
+		$error_message = API::verify( $this->get_entry( $form_data, $this->get_form_id() ) );
 
 		if ( null !== $error_message ) {
 			wp_send_json_error( $error_message );
@@ -124,18 +143,43 @@ class Form {
 	/**
 	 * Get entry.
 	 *
-	 * @param array $form_data Form data.
+	 * @param array  $form_data Form data.
+	 * @param string $form_id   Form id.
 	 *
 	 * @return array
 	 */
-	private function get_entry( array $form_data ): array {
+	private function get_entry( array $form_data, string $form_id ): array {
 		return [
 			'nonce_name'         => self::NONCE,
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'post_data'          => $form_data,
 			'data'               => $this->get_data( $form_data ),
+			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param string $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( string $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
+	}
+
+	/**
+	 * Get form id.
+	 *
+	 * @return string
+	 */
+	private function get_form_id(): string {
+		return (string) Request::filter_input( INPUT_POST, 'form_id' );
 	}
 
 	/**

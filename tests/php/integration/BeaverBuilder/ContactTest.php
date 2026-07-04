@@ -12,6 +12,7 @@ namespace HCaptcha\Tests\Integration\BeaverBuilder;
 
 use FLBuilderModule;
 use HCaptcha\BeaverBuilder\Contact;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 
@@ -103,6 +104,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$subject = new Contact();
 
 		$this->prepare_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder' );
+		$this->prepare_widget_id();
 
 		$_POST['name']    = 'John Doe';
 		$_POST['subject'] = 'Test subject';
@@ -138,6 +140,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		);
 
 		$this->prepare_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder', false );
+		$this->prepare_widget_id();
 
 		$subject = new Contact();
 
@@ -147,5 +150,19 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		self::assertSame( '{"error":true,"message":"The hCaptcha is invalid."}', $json );
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'bb-plugin/fl-builder.php' ],
+				'form_id' => 'contact',
+			]
+		);
 	}
 }

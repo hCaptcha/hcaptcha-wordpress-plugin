@@ -1021,7 +1021,7 @@ class Integrations extends PluginSettingsBase {
 			<label for="hcaptcha-integrations-search"></label>
 			<input
 					type="search" id="hcaptcha-integrations-search"
-					placeholder="<?php esc_html_e( 'Search plugins and themes...', 'hcaptcha-for-forms-and-more' ); ?>">
+					placeholder="<?php esc_html_e( 'Search integrations...', 'hcaptcha-for-forms-and-more' ); ?>">
 		</div>
 		<?php
 	}

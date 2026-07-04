@@ -149,6 +149,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'hcaptcha_forminator',
 			false
 		);
+		$this->prepare_widget_id( $id );
 
 		Forminator_Front_Action::$module_object = $module_object;
 
@@ -207,6 +208,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'hcaptcha_forminator_nonce',
 			'hcaptcha_forminator'
 		);
+		$this->prepare_widget_id( $id );
 
 		Forminator_Front_Action::$module_object = $module_object;
 
@@ -214,6 +216,37 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertTrue( $subject->verify( true, $id, $form_settings ) );
 		self::assertEquals( (object) [ 'fields' => $expected_fields ], $module_object );
+	}
+
+	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$id            = 5;
+		$form_settings = [ 'some form settings' ];
+		$error_message = 'Bad hCaptcha signature!';
+		$module_object = (object) [
+			'fields' => [],
+		];
+		$expected      = [
+			'can_submit' => false,
+			'error'      => $error_message,
+		];
+
+		$this->prepare_verify_post(
+			'hcaptcha_forminator_nonce',
+			'hcaptcha_forminator'
+		);
+
+		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
+
+		Forminator_Front_Action::$module_object = $module_object;
+
+		$subject = new Form();
+
+		self::assertSame( $expected, $subject->verify( true, $id, $form_settings ) );
 	}
 
 	/**
@@ -378,6 +411,23 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $html, $subject->replace_hcaptcha_field( $html, $some_field, $front_instance ) );
 		self::assertSame( $hcap_form, $subject->replace_hcaptcha_field( $html, $hcaptcha_field, $front_instance ) );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = $id ?: [
+			'source'  => [ 'forminator/forminator.php' ],
+			'form_id' => $form_id,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

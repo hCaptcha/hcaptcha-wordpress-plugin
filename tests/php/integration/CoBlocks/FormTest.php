@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\CoBlocks;
 
 use CoBlocks_Form;
 use HCaptcha\CoBlocks\Form;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use WP_Block;
@@ -196,6 +197,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify(): void {
+		$form_id     = '5509c11f003ddee1ee47fbb0a2ffb7b47b57434c';
 		$verify_url  = CoBlocks_Form::GCAPTCHA_VERIFY_URL;
 		$response    = [ 'some response' ];
 		$parsed_args = [
@@ -214,6 +216,8 @@ HTML;
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks' );
+		$_POST['form-hash'] = $form_id;
+		$this->prepare_widget_id( $form_id );
 
 		// Add form field data to cover foreach in get_entry().
 		$_POST['field-name']    = [
@@ -268,6 +272,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify_not_verified(): void {
+		$form_id     = '5509c11f003ddee1ee47fbb0a2ffb7b47b57434c';
 		$verify_url  = CoBlocks_Form::GCAPTCHA_VERIFY_URL;
 		$response    = [ 'some response' ];
 		$parsed_args = [
@@ -286,6 +291,8 @@ HTML;
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks', false );
+		$_POST['form-hash'] = $form_id;
+		$this->prepare_widget_id( $form_id );
 
 		$subject = new Form();
 
@@ -296,6 +303,73 @@ HTML;
 
 		self::assertSame( $expected, $subject->verify( $response, $parsed_args, $url ) );
 		self::assertFalse( has_filter( 'pre_http_request', [ $subject, 'verify' ] ) );
+	}
+
+	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$form_id     = '5509c11f003ddee1ee47fbb0a2ffb7b47b57434c';
+		$verify_url  = CoBlocks_Form::GCAPTCHA_VERIFY_URL;
+		$response    = [ 'some response' ];
+		$parsed_args = [
+			'body' => [
+				'response' => 'hcaptcha_token',
+			],
+		];
+		$url         = $verify_url;
+		$expected    = [
+			'body'     => '{"success":false}',
+			'response' =>
+				[
+					'code'    => 200,
+					'message' => 'OK',
+				],
+		];
+
+		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks' );
+		$_POST['form-hash'] = $form_id;
+
+		$subject = new Form();
+
+		add_filter( 'pre_http_request', [ $subject, 'verify' ] );
+
+		self::assertSame( $expected, $subject->verify( $response, $parsed_args, $url ) );
+		self::assertFalse( has_filter( 'pre_http_request', [ $subject, 'verify' ] ) );
+
+		$block    = [
+			'blockName' => 'coblocks/form',
+		];
+		$instance = Mockery::mock( WP_Block::class );
+		$content  = '<div class="coblocks-form" id="' . $form_id . '"><button type="submit" class="wp-block-button__link">Contact Us</button></div>';
+
+		self::assertStringContainsString(
+			'<div class="h-captcha-error">Bad hCaptcha signature!</div>',
+			$subject->add_hcaptcha( $content, $block, $instance )
+		);
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int|string $form_id Form id.
+	 * @param array      $id      Widget id.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function prepare_widget_id( $form_id, array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => [ 'coblocks/class-coblocks.php' ],
+				'form_id' => $form_id,
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

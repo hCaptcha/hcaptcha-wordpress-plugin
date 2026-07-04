@@ -723,35 +723,6 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test calculate_attack_likelihood().
-	 *
-	 * @return void
-	 * @throws ReflectionException Reflection exception.
-	 */
-	public function test_calculate_attack_likelihood(): void {
-		$subject = new Abilities();
-
-		$method = $this->set_method_accessibility( $subject, 'calculate_attack_likelihood' );
-
-		// When there is insufficient sample size, always return low.
-		self::assertSame( 'low', $method->invoke( $subject, 0, 0, 0.0 ) );
-		self::assertSame( 'low', $method->invoke( $subject, 19, 19, 1.0 ) );
-
-		// High-likelihood threshold (inclusive).
-		self::assertSame( 'high', $method->invoke( $subject, 20, 10, 0.50 ) );
-
-		// Medium likelihood threshold (inclusive).
-		self::assertSame( 'medium', $method->invoke( $subject, 20, 5, 0.20 ) );
-		self::assertSame( 'medium', $method->invoke( $subject, 20, 9, 0.60 ) );
-
-		// Fallback to low if thresholds are not met.
-		self::assertSame( 'low', $method->invoke( $subject, 20, 4, 0.90 ) );
-		self::assertSame( 'low', $method->invoke( $subject, 20, 5, 0.19 ) );
-
-		$this->set_method_accessibility( $subject, 'calculate_attack_likelihood', false );
-	}
-
-	/**
 	 * Test calculate_confidence().
 	 *
 	 * @return void
@@ -813,9 +784,8 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 						'fail_rate' => 0.0,
 					],
 					'signals'   => [
-						'attack_likelihood' => 'low',
-						'confidence'        => 'low',
-						'top_vectors'       => [],
+						'confidence'  => 'low',
+						'top_vectors' => [],
 					],
 					'breakdown' => [
 						'errors'    => [],

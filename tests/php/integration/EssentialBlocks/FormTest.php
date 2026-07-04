@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\EssentialBlocks;
 
 use HCaptcha\EssentialBlocks\Form;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -83,7 +84,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'name'   => 'hcaptcha_essential_blocks_nonce',
 			'id'     => [
 				'source'  => [ 'essential-blocks/essential-blocks.php' ],
-				'form_id' => 'ebf-faf933',
+				'form_id' => 'eb-form-xmouf',
 			],
 		];
 
@@ -108,9 +109,9 @@ class FormTest extends HCaptchaWPTestCase {
 				'<div class="example-block"></div>',
 			],
 			'Essential Blocks Form'        => [
-				'<form id="ebf-faf933" class="example-form"><div class="eb-form-submit>Submit</div></form>',
+				'<form id="ebf-faf933" class="example-form"><div class="eb-form-submit>Submit</div><button type="submit" class="eb-form-submit-button" data-id="eb-form-xmouf">Send</button></form>',
 				[ 'blockName' => 'essential-blocks/form' ],
-				'<form id="ebf-faf933" class="example-form">{hcaptcha}<div class="eb-form-submit>Submit</div></form>',
+				'<form id="ebf-faf933" class="example-form">{hcaptcha}<div class="eb-form-submit>Submit</div><button type="submit" class="eb-form-submit-button" data-id="eb-form-xmouf">Send</button></form>',
 			],
 		];
 	}
@@ -123,13 +124,17 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_essential_blocks_nonce', 'hcaptcha_essential_blocks' );
 
+		$form_id = 'eb-form-xmouf';
+
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$form_data['h-captcha-response']              = $_POST['h-captcha-response'];
 		$form_data['hcaptcha_essential_blocks_nonce'] = $_POST['hcaptcha_essential_blocks_nonce'];
+		$form_data[ HCaptcha::HCAPTCHA_WIDGET_ID ]    = $this->get_widget_id( $form_id );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
 		unset( $_POST['h-captcha-response'], $_POST['hcaptcha_essential_blocks_nonce'] );
 
+		$_POST['form_id']   = $form_id;
 		$_POST['form_data'] = wp_json_encode( $form_data );
 
 		$subject = new Form();
@@ -152,13 +157,17 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$this->prepare_verify_post( 'hcaptcha_essential_blocks_nonce', 'hcaptcha_essential_blocks', false );
 
+		$form_id = 'eb-form-xmouf';
+
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$form_data['h-captcha-response']              = $_POST['h-captcha-response'];
 		$form_data['hcaptcha_essential_blocks_nonce'] = $_POST['hcaptcha_essential_blocks_nonce'];
+		$form_data[ HCaptcha::HCAPTCHA_WIDGET_ID ]    = $this->get_widget_id( $form_id );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
 		unset( $_POST['h-captcha-response'], $_POST['hcaptcha_essential_blocks_nonce'] );
 
+		$_POST['form_id']   = $form_id;
 		$_POST['form_data'] = wp_json_encode( $form_data );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -206,7 +215,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'hcap_hp_sig'                     => 'sig',
 		];
 
-		$actual = $method->invoke( $subject, $form_data );
+		$actual = $method->invoke( $subject, $form_data, 'eb-form-xmouf' );
 
 		self::assertSame(
 			[
@@ -220,6 +229,10 @@ class FormTest extends HCaptchaWPTestCase {
 					'subject'    => 'Subject',
 					'email'      => 'your.email+fakedata80629@gmail.com',
 					'message'    => 'Message',
+				],
+				'expected_id'        => [
+					'source'  => [ 'essential-blocks/essential-blocks.php' ],
+					'form_id' => 'eb-form-xmouf',
 				],
 			],
 			$actual
@@ -292,5 +305,21 @@ CSS;
 		$subject->enqueue_scripts();
 
 		self::assertTrue( wp_script_is( 'hcaptcha-essential-blocks' ) );
+	}
+
+	/**
+	 * Get hCaptcha widget id.
+	 *
+	 * @param string $form_id Form id.
+	 *
+	 * @return string
+	 */
+	private function get_widget_id( string $form_id ): string {
+		return HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'essential-blocks/essential-blocks.php' ],
+				'form_id' => $form_id,
+			]
+		);
 	}
 }

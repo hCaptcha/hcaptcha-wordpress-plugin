@@ -95,6 +95,81 @@
 	color: #0075ab;
 }
 
+.hcaptcha-whats-new-version-control {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.hcaptcha-whats-new-version-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	margin: 5px 0 0 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+}
+
+.hcaptcha-whats-new-version-toggle:before {
+	display: block;
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 6px solid #0075ab;
+	content: "";
+}
+
+.hcaptcha-whats-new-version-control.is-open .hcaptcha-whats-new-version-toggle:before {
+	transform: rotate(180deg);
+}
+
+.hcaptcha-whats-new-version-list {
+	position: absolute;
+	z-index: 100002;
+	top: 100%;
+	right: 0;
+	min-width: 110px;
+	margin: 6px 0 0 0;
+	padding: 6px 0;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+	font-size: 14px;
+	line-height: 1.4;
+	list-style: none;
+}
+
+.hcaptcha-whats-new-version-list li {
+	margin: 0;
+}
+
+.hcaptcha-whats-new-version-list a {
+	display: block;
+	padding: 6px 12px;
+	color: #1d2327;
+	text-align: left;
+	text-decoration: none;
+}
+
+.hcaptcha-whats-new-version-list a:hover,
+.hcaptcha-whats-new-version-list a:focus {
+	background: #f0f6fc;
+	color: #0075ab;
+}
+
+.hcaptcha-whats-new-version-list .is-current a {
+	background: #f0f6fc;
+	color: #0075ab;
+	font-weight: 600;
+}
+
 .hcaptcha-whats-new-content {
 	margin: 50px 0 0 0;
 	flex: 1 1 auto;

@@ -16,6 +16,11 @@ use WP_Block;
  */
 class NewsletterSubscribe {
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-blocksy';
+
+	/**
 	 * Nonce action.
 	 */
 	private const ACTION = 'hcaptcha_blocksy_newsletter_subscribe';
@@ -51,6 +56,8 @@ class NewsletterSubscribe {
 		);
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
@@ -73,10 +80,7 @@ class NewsletterSubscribe {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'newsletter-subscribe',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search = '<button';
@@ -107,6 +111,47 @@ class NewsletterSubscribe {
 				'message' => $error_message,
 			]
 		);
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		if ( ! hcaptcha()->form_shown ) {
+			return;
+		}
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-blocksy$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Add the type="module" attribute to the script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 
 	/**
@@ -151,6 +196,7 @@ class NewsletterSubscribe {
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id(),
 		];
 
 		foreach ( $form_data as $key => $value ) {
@@ -164,5 +210,17 @@ class NewsletterSubscribe {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'newsletter-subscribe',
+		];
 	}
 }

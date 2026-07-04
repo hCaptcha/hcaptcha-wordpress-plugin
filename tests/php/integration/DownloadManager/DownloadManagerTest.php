@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\DownloadManager;
 
 use HCaptcha\DownloadManager\DownloadManager;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -158,7 +159,12 @@ HTML;
 	 * Test verify().
 	 */
 	public function test_verify(): void {
+		$form_id = 3220;
+
 		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager' );
+		$this->prepare_widget_id( $form_id );
+
+		$_GET['wpdmdl'] = $form_id;
 
 		$subject = new DownloadManager();
 
@@ -180,7 +186,12 @@ HTML;
 			],
 		];
 
+		$form_id = 3220;
+
 		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager', false );
+		$this->prepare_widget_id( $form_id );
+
+		$_GET['wpdmdl'] = $form_id;
 
 		$subject = new DownloadManager();
 
@@ -196,6 +207,58 @@ HTML;
 		$subject->verify( null );
 
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test verify() with missing hCaptcha widget id.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$die_arr  = [];
+		$expected = [
+			'Bad hCaptcha signature!',
+			'hCaptcha error',
+			[
+				'back_link' => true,
+				'response'  => 303,
+			],
+		];
+
+		$_GET['wpdmdl'] = 3220;
+
+		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager' );
+
+		$subject = new DownloadManager();
+
+		add_filter(
+			'wp_die_handler',
+			static function ( $name ) use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject->verify( null );
+
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id ): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'download-manager/download-manager.php' ],
+				'form_id' => $form_id,
+			]
+		);
 	}
 
 	/**

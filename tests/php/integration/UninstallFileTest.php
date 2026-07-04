@@ -100,9 +100,9 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		    error_codes VARCHAR(256)    NOT NULL,
 		    date_gmt    DATETIME        NOT NULL,
 		    PRIMARY KEY (id),
-		    KEY source (source),
+		    KEY source (source(191)),
 		    KEY form_id (form_id),
-		    KEY hcaptcha_id (source, form_id),
+		    KEY hcaptcha_id (source(191), form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt)

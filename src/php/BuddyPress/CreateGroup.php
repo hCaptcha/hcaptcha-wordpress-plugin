@@ -110,6 +110,19 @@ class CreateGroup {
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
 			'data'               => $this->get_data( $bp_group ),
+			'expected_id'        => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'create_group',
 		];
 	}
 

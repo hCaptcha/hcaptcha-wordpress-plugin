@@ -353,7 +353,13 @@
 @media (max-width: 782px) {
 	#hcaptcha-integrations-search {
 		font-size: 14px;
-		min-height: unset;
+		min-height: 40px;
+	}
+}
+
+@media (max-width: 600px) {
+	#hcaptcha-integrations-search {
+		width: 100px;
 	}
 }
 

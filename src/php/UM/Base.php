@@ -10,6 +10,7 @@ namespace HCaptcha\UM;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class Base
@@ -222,12 +223,48 @@ abstract class Base extends LoginBase {
 			return;
 		}
 
-		$error_message = API::verify_post( $this->hcaptcha_nonce, $this->hcaptcha_action );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null === $error_message ) {
 			return;
 		}
 
 		$um->form()->add_error( self::KEY, $error_message );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => $this->hcaptcha_nonce,
+			'nonce_action' => $this->hcaptcha_action,
+			'expected_id'  => $this->get_expected_id( $this->get_submitted_form_id() ),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $submitted_form_id Submitted form id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id( int $submitted_form_id = 0 ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $submitted_form_id ?: $this->form_id ?: $this->um_mode,
+		];
+	}
+
+	/**
+	 * Get submitted form id.
+	 *
+	 * @return int
+	 */
+	private function get_submitted_form_id(): int {
+		return absint( Request::filter_input( INPUT_POST, 'form_id' ) );
 	}
 }

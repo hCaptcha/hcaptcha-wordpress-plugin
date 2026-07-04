@@ -13,6 +13,7 @@ namespace HCaptcha\Tests\Integration\WC;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\AddPaymentMethod;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test AddPaymentMethod class.
@@ -107,6 +108,34 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test enqueue_styles().
+	 */
+	public function test_enqueue_styles(): void {
+		$subject = new AddPaymentMethod();
+
+		FunctionMocker::replace( 'HCaptcha\WC\is_account_page', false );
+		FunctionMocker::replace( 'HCaptcha\WC\is_wc_endpoint_url', true );
+
+		$subject->enqueue_styles();
+
+		self::assertFalse( wp_style_is( 'hcaptcha-wc-add-payment-method' ) );
+
+		FunctionMocker::replace( 'HCaptcha\WC\is_account_page', true );
+		FunctionMocker::replace( 'HCaptcha\WC\is_wc_endpoint_url', false );
+
+		$subject->enqueue_styles();
+
+		self::assertFalse( wp_style_is( 'hcaptcha-wc-add-payment-method' ) );
+
+		FunctionMocker::replace( 'HCaptcha\WC\is_account_page', true );
+		FunctionMocker::replace( 'HCaptcha\WC\is_wc_endpoint_url', true );
+
+		$subject->enqueue_styles();
+
+		self::assertTrue( wp_style_is( 'hcaptcha-wc-add-payment-method' ) );
+	}
+
+	/**
 	 * Test verify().
 	 */
 	public function test_verify(): void {
@@ -120,6 +149,15 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( $subject->verify( true ) );
 		self::assertSame( [], wc_get_notices() );
+	}
+
+	/**
+	 * Test verify() with an already invalid form.
+	 */
+	public function test_verify_when_already_invalid(): void {
+		$subject = new AddPaymentMethod();
+
+		self::assertFalse( $subject->verify( false ) );
 	}
 
 	/**

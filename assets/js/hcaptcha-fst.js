@@ -19,6 +19,8 @@ const fst = window.hCaptchaFST || ( function( document ) {
 	 */
 	const app = {
 		init() {
+			app.getToken();
+
 			document.addEventListener( 'hCaptchaAfterBindEvents', function() {
 				app.getToken();
 			} );

@@ -17,6 +17,7 @@ use ReflectionException;
 /**
  * Test WhatsNew class.
  *
+ * @group admin
  * @group whats-new
  */
 class WhatsNewTest extends HCaptchaWPTestCase {
@@ -43,12 +44,14 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 			self::assertSame( 9, has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
 			self::assertSame( 10, has_action( 'admin_footer', [ $subject, 'maybe_show_popup' ] ) );
 			self::assertSame( 10, has_action( 'wp_ajax_hcaptcha-mark-shown', [ $subject, 'mark_shown' ] ) );
+			self::assertSame( 10, has_action( 'wp_ajax_hcaptcha-render-whats-new-popup', [ $subject, 'render_popup_ajax' ] ) );
 			self::assertSame( 1010, has_filter( 'update_footer', [ $subject, 'update_footer' ] ) );
 		} else {
 			self::assertFalse( has_action( 'kagg_settings_tab', [ $subject, 'action_settings_tab' ] ) );
 			self::assertFalse( has_action( 'admin_print_footer_scripts', [ $subject, 'enqueue_assets' ] ) );
 			self::assertFalse( has_action( 'admin_footer', [ $subject, 'maybe_show_popup' ] ) );
 			self::assertFalse( has_action( 'wp_ajax_hcaptcha-mark-shown', [ $subject, 'mark_shown' ] ) );
+			self::assertFalse( has_action( 'wp_ajax_hcaptcha-render-whats-new-popup', [ $subject, 'render_popup_ajax' ] ) );
 			self::assertFalse( has_filter( 'update_footer', [ $subject, 'update_footer' ] ) );
 		}
 	}
@@ -84,15 +87,18 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_enqueue_assets(): void {
 		$handle         = 'hcaptcha-whats-new';
 		$action         = 'hcaptcha-mark-shown';
+		$render_action  = 'hcaptcha-render-whats-new-popup';
 		$params         = [
-			'ajaxUrl'         => 'http://test.test/wp-admin/admin-ajax.php',
-			'markShownAction' => $action,
-			'markShownNonce'  => wp_create_nonce( $action ),
-			'whatsNewParam'   => 'whats_new',
+			'ajaxUrl'           => 'http://test.test/wp-admin/admin-ajax.php',
+			'markShownAction'   => $action,
+			'markShownNonce'    => wp_create_nonce( $action ),
+			'renderPopupAction' => $render_action,
+			'renderPopupNonce'  => wp_create_nonce( $render_action ),
 		];
 		$expected_extra = [
 			'group' => 1,
@@ -221,6 +227,51 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $expected, $die_arr );
 		self::assertSame( '{"success":true}', $json );
+	}
+
+	/**
+	 * Test render_popup_ajax().
+	 *
+	 * @return void
+	 */
+	public function test_render_popup_ajax(): void {
+		wp_set_current_user( 1 );
+
+		$action   = 'hcaptcha-render-whats-new-popup';
+		$nonce    = wp_create_nonce( $action );
+		$version  = '4.13.0';
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+		$_POST['version']   = $version;
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'render_popup' )->once()->with( 'whats_new_4_13_0', true );
+
+		ob_start();
+		$subject->render_popup_ajax();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame( '{"success":true,"data":{"html":""}}', $json );
 	}
 
 	/**
@@ -354,41 +405,27 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 		self::assertSame( '', ob_get_clean() );
 
 		// Mocked method.
-		$version  = '4.13.0';
-		$expected = <<<HTML
-		<div
-				id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal"
-				style="display: flex;">
-			<div class="hcaptcha-whats-new-modal-bg"></div>
-			<div class="hcaptcha-whats-new-modal-popup">
-				<button id="hcaptcha-whats-new-close" class="hcaptcha-whats-new-close"></button>
-				<div class="hcaptcha-whats-new-header">
-					<div class="hcaptcha-whats-new-icon">
-						<img
-								src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-icon-animated.svg"
-								alt="Icon">
-					</div>
-					<div class="hcaptcha-whats-new-title">
-						<h1>
-							What&#039;s New in hCaptcha							<span id="hcaptcha-whats-new-version">$version</span>
-						</h1>
-					</div>
-				</div>
-				<div class="hcaptcha-whats-new-content">
-									</div>
-			</div>
-		</div>
-		<div id="hcaptcha-lightbox-modal">
-			<img id="hcaptcha-lightbox-img" src="" alt="lightbox-image">
-		</div>
-		
-HTML;
+		$version = '4.13.0';
 
 		ob_start();
 
 		$subject->render_popup( $method, true );
 
-		self::assertSame( $expected, ob_get_clean() );
+		$html = ob_get_clean();
+
+		self::assertStringContainsString(
+			'id="hcaptcha-whats-new-modal" class="hcaptcha-whats-new-modal"',
+			$html
+		);
+		self::assertStringContainsString( 'What&#039;s New in hCaptcha', $html );
+		self::assertStringContainsString( '<span class="hcaptcha-whats-new-version-control">', $html );
+		self::assertStringContainsString( '<span id="hcaptcha-whats-new-version">' . $version . '</span>', $html );
+		self::assertStringContainsString( 'class="hcaptcha-whats-new-version-toggle"', $html );
+		self::assertStringContainsString( 'id="hcaptcha-whats-new-versions"', $html );
+		self::assertStringContainsString( 'data-version="5.0.0"', $html );
+		self::assertStringContainsString( 'data-version="' . $version . '"', $html );
+		self::assertStringNotContainsString( 'whats_new=', $html );
+		self::assertStringContainsString( '<div id="hcaptcha-lightbox-modal">', $html );
 	}
 
 	/**
@@ -567,7 +604,7 @@ HTML;
 				</div>
 				<div class="hcaptcha-whats-new-button">
 					<a
-							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general&#038;onboarding=1&#038;{$nonce_param}=$onboarding_nonce" class="button button-primary"
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general&#038;onboarding=1&#038;$nonce_param=$onboarding_nonce" class="button button-primary"
 							target="_blank">
 						Restart wizard
 					</a>
@@ -861,6 +898,166 @@ HTML;
 		$subject->update_whats_new( $version );
 
 		self::assertSame( $version, $settings->get( $key ) );
+	}
+
+	/**
+	 * Test render_popup_ajax() with a bad ajax referer.
+	 *
+	 * @return void
+	 */
+	public function test_render_popup_ajax_with_bad_ajax_referer(): void {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		ob_start();
+		( new WhatsNew() )->render_popup_ajax();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"Your session has expired. Please reload the page."}'
+			)
+		);
+	}
+
+	/**
+	 * Test render_popup_ajax() when a user has no caps.
+	 *
+	 * @return void
+	 */
+	public function test_render_popup_ajax_when_user_has_no_caps(): void {
+		$action = 'hcaptcha-render-whats-new-popup';
+		$nonce  = wp_create_nonce( $action );
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		ob_start();
+		( new WhatsNew() )->render_popup_ajax();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertSame(
+			0,
+			strpos(
+				$json,
+				'{"success":false,"data":"You are not allowed to perform this action."}'
+			)
+		);
+	}
+
+	/**
+	 * Test render_popup_ajax() with an unavailable version.
+	 *
+	 * @return void
+	 */
+	public function test_render_popup_ajax_with_unavailable_version(): void {
+		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );
+		$action  = 'hcaptcha-render-whats-new-popup';
+		$nonce   = wp_create_nonce( $action );
+
+		wp_set_current_user( $user_id );
+
+		$_REQUEST['action'] = $action;
+		$_REQUEST['nonce']  = $nonce;
+		$_POST['version']   = '1.0.0';
+
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		ob_start();
+		( new WhatsNew() )->render_popup_ajax();
+		$json = ob_get_clean();
+
+		self::assertSame( $expected, $die_arr );
+		self::assertStringContainsString(
+			'{"success":false,"data":"The requested version is not available."}',
+			$json
+		);
+	}
+
+	/**
+	 * Test whats_new_4_25_0().
+	 *
+	 * @return void
+	 */
+	public function test_whats_new_4_25_0(): void {
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_4_25_0();
+
+		$html = ob_get_clean();
+
+		self::assertStringContainsString( 'Migration Wizard', $html );
+		self::assertStringContainsString( 'Open Migration Wizard', $html );
+		self::assertStringContainsString( 'assets/images/migration-wizard.png', $html );
 	}
 
 	/**

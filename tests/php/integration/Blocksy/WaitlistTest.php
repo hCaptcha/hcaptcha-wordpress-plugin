@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\Blocksy;
 
 use HCaptcha\Blocksy\Waitlist;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
@@ -52,6 +53,8 @@ class WaitlistTest extends HCaptchaWPTestCase {
 			has_filter( 'blocksy:ext:woocommerce-extra:waitlist:subscribe:validate', [ $subject, 'verify' ] )
 		);
 		self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'enqueue_scripts' ] ) );
+		self::assertSame( 10, has_filter( 'script_loader_tag', [ $subject, 'add_type_module' ] ) );
 	}
 
 	/**
@@ -123,6 +126,7 @@ class WaitlistTest extends HCaptchaWPTestCase {
 		$email      = 'test@example.com';
 
 		$this->prepare_verify_post( 'hcaptcha_blocksy_waitlist_nonce', 'hcaptcha_blocksy_waitlist' );
+		$this->prepare_widget_id();
 
 		$_POST['product_id'] = $product_id;
 		$_POST['email']      = $email;
@@ -144,6 +148,7 @@ class WaitlistTest extends HCaptchaWPTestCase {
 		$email      = 'test@example.com';
 
 		$this->prepare_verify_post( 'hcaptcha_blocksy_waitlist_nonce', 'hcaptcha_blocksy_waitlist', false );
+		$this->prepare_widget_id();
 
 		$_POST['product_id'] = $product_id;
 		$_POST['email']      = $email;
@@ -166,6 +171,7 @@ class WaitlistTest extends HCaptchaWPTestCase {
 		$existing   = new WP_Error( 'some_error', 'Some error' );
 
 		$this->prepare_verify_post( 'hcaptcha_blocksy_waitlist_nonce', 'hcaptcha_blocksy_waitlist', false );
+		$this->prepare_widget_id();
 
 		$_POST['product_id'] = $product_id;
 		$_POST['email']      = $email;
@@ -189,6 +195,7 @@ class WaitlistTest extends HCaptchaWPTestCase {
 		$email      = 'test@example.com';
 
 		$this->prepare_verify_post( 'hcaptcha_blocksy_waitlist_nonce', 'hcaptcha_blocksy_waitlist' );
+		$this->prepare_widget_id();
 
 		$_POST['product_id'] = $product_id;
 		$_POST['email']      = $email;
@@ -199,6 +206,28 @@ class WaitlistTest extends HCaptchaWPTestCase {
 		$result = $subject->verify( 'some_string', $product_id, $email );
 
 		self::assertNull( $result );
+	}
+
+	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$product_id = 42;
+		$email      = 'test@example.com';
+
+		$this->prepare_verify_post( 'hcaptcha_blocksy_waitlist_nonce', 'hcaptcha_blocksy_waitlist' );
+
+		$_POST['product_id'] = $product_id;
+		$_POST['email']      = $email;
+
+		$subject = new Waitlist();
+
+		$result = $subject->verify( null, $product_id, $email );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'Bad hCaptcha signature!', $result->get_error_message( 'hcaptcha_error' ) );
 	}
 
 	/**
@@ -237,7 +266,72 @@ class WaitlistTest extends HCaptchaWPTestCase {
 		self::assertNotNull( $actual['form_date_gmt'] );
 		self::assertSame( 'test@example.com', $actual['data']['email'] );
 		self::assertSame( (string) $product_id, $actual['data']['product_id'] );
+		self::assertSame(
+			[
+				'source'  => HCaptcha::get_class_source( Waitlist::class ),
+				'form_id' => 'waitlist',
+			],
+			$actual['expected_id']
+		);
 		self::assertArrayNotHasKey( 'some_other_field', $actual['data'] );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param array $id Widget id.
+	 *
+	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function prepare_widget_id( array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => HCaptcha::get_class_source( Waitlist::class ),
+				'form_id' => 'waitlist',
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+
+	/**
+	 * Test add_type_module().
+	 *
+	 * @return void
+	 */
+	public function test_add_type_module(): void {
+		$subject = new Waitlist();
+
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+		$tag = '<script src="/assets/js/hcaptcha-blocksy.js"></script>';
+
+		self::assertSame( $tag, $subject->add_type_module( $tag, 'other-handle', '' ) );
+		self::assertStringContainsString(
+			'type="module"',
+			$subject->add_type_module( $tag, 'hcaptcha-blocksy', '' )
+		);
+	}
+
+	/**
+	 * Test enqueue_scripts().
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_scripts(): void {
+		wp_dequeue_script( 'hcaptcha-blocksy' );
+		hcaptcha()->form_shown = false;
+
+		$subject = new Waitlist();
+
+		$subject->enqueue_scripts();
+		self::assertFalse( wp_script_is( 'hcaptcha-blocksy' ) );
+
+		hcaptcha()->form_shown = true;
+
+		$subject->enqueue_scripts();
+		self::assertTrue( wp_script_is( 'hcaptcha-blocksy' ) );
 	}
 
 	/**

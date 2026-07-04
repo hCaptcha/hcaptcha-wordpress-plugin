@@ -182,14 +182,13 @@ class Abilities {
 						'signals'        => [
 							'type'                 => 'object',
 							'properties'           => [
-								'attack_likelihood' => [ 'type' => 'string' ],
-								'confidence'        => [ 'type' => 'string' ],
-								'top_vectors'       => [
+								'confidence'  => [ 'type' => 'string' ],
+								'top_vectors' => [
 									'type'  => 'array',
 									'items' => [ 'type' => 'string' ],
 								],
 							],
-							'required'             => [ 'attack_likelihood', 'confidence', 'top_vectors' ],
+							'required'             => [ 'confidence', 'top_vectors' ],
 							'additionalProperties' => false,
 						],
 						'breakdown'      => [
@@ -770,9 +769,8 @@ class Abilities {
 				'fail_rate' => number_format( $fail_rate, 2 ),
 			],
 			'signals'   => [
-				'attack_likelihood' => $this->calculate_attack_likelihood( $total, $failed_count, $fail_rate ),
-				'confidence'        => $this->calculate_confidence( $total ),
-				'top_vectors'       => $top_vectors,
+				'confidence'  => $this->calculate_confidence( $total ),
+				'top_vectors' => $top_vectors,
 			],
 			'breakdown' => [
 				'errors'    => $error_counts,
@@ -797,9 +795,8 @@ class Abilities {
 				'fail_rate' => $formatted ? '0.00' : 0.0,
 			],
 			'signals'   => [
-				'attack_likelihood' => 'low',
-				'confidence'        => 'low',
-				'top_vectors'       => [],
+				'confidence'  => 'low',
+				'top_vectors' => [],
 			],
 			'breakdown' => [
 				'errors'    => [],
@@ -1055,31 +1052,6 @@ class Abilities {
 		);
 
 		return $map;
-	}
-
-	/**
-	 * Calculate attack likelihood.
-	 *
-	 * @param int   $total     Total events.
-	 * @param int   $failed    Failed events.
-	 * @param float $fail_rate Fail rate.
-	 *
-	 * @return string
-	 */
-	private function calculate_attack_likelihood( int $total, int $failed, float $fail_rate ): string {
-		if ( $total < 20 ) {
-			return 'low';
-		}
-
-		if ( $fail_rate >= 0.50 && $failed >= 10 ) {
-			return 'high';
-		}
-
-		if ( $fail_rate >= 0.20 && $failed >= 5 ) {
-			return 'medium';
-		}
-
-		return 'low';
 	}
 
 	/**

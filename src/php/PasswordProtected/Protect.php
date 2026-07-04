@@ -72,7 +72,7 @@ class Protect {
 	public function verify( $errors ): ?WP_Error {
 		$errors = is_wp_error( $errors ) ? $errors : new WP_Error();
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -81,6 +81,31 @@ class Protect {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'protect',
+		];
 	}
 
 	/**

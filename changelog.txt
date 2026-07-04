@@ -1,3 +1,19 @@
+= 5.1.0 =
+* Added version switching to the What's New popup.
+* Added a Help button on hCaptcha admin pages to generate support reports for GitHub or WordPress.org, with optional System Info included.
+* Added hcap_delay_api_event filter for delayed loading of the hCaptcha API upon user interaction.
+* Hardened form verification for 22 integrations.
+* Fixed hcap_delay_api_selector filter for delayed loading of hCaptcha in the Jetpack contact forms.
+* Fixed hCaptcha auto-insertion for Jetpack block contact forms that render the Submit button with core Button block markup.
+* Fixed hCaptcha auto-insertion for WooCommerce Checkout blocks when the Return to Cart link is enabled.
+* Fixed manually added hCaptcha shortcodes inside Jetpack contact forms to use the proper form signature.
+* Fixed Events statistics table indexes for MariaDB/MyISAM databases with a 1000-byte key length limit.
+* Fixed System Info migration entries to show that older migrations were not required instead of displaying the Unix epoch date.
+* Fixed hCaptcha token refresh for Blocksy newsletter and waitlist forms after failed submissions.
+* Fixed ACF Extended Forms integration to prevent reCAPTCHA from loading when hCaptcha is used to avoid submission errors.
+* Fixed hCaptcha verification for upgraded GiveWP donation forms.
+* Fixed FST token replay errors after submitting GiveWP forms without completing hCaptcha.
+
 = 5.0.1 =
 * Fixed Elementor Pro Forms validation when the optional Form ID is empty or differs from the Elementor widget ID.
 * Fixed Events statistics table handling to avoid runtime table-existence checks and recreate the table during activation or maintenance when needed.

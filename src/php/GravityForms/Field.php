@@ -14,6 +14,7 @@ use GFCommon;
 use GFForms;
 use GFFormsModel;
 use HCaptcha\Helpers\HCaptcha;
+use JsonException;
 
 /**
  * Class Field.
@@ -216,9 +217,7 @@ class Field extends GF_Field {
 		$hcaptcha_size   = hcaptcha()->settings()->get( 'size' );
 		$tabindex        = GFCommon::$tab_index > 0 ? GFCommon::$tab_index++ : 0;
 		$tabindex        = 'invisible' === $hcaptcha_size ? -1 : $tabindex;
-		$search          = 'class="h-captcha"';
-
-		$args = [
+		$args            = [
 			'action' => Base::ACTION,
 			'name'   => Base::NONCE,
 			'id'     => [
@@ -227,9 +226,9 @@ class Field extends GF_Field {
 			],
 		];
 
-		return str_replace(
-			$search,
-			$search . ' id="' . $field_id . '" data-tabindex="' . $tabindex . '"',
+		return preg_replace(
+			'#class="([^"]*\bh-captcha\b[^"]*)"#',
+			'class="$1" id="' . $field_id . '" data-tabindex="' . $tabindex . '"',
 			HCaptcha::form( $args )
 		);
 	}
@@ -246,7 +245,11 @@ class Field extends GF_Field {
 		$action = rgpost( 'action' );
 
 		if ( 'rg_add_field' === $action ) {
-			$field = json_decode( rgpost( 'field' ), false );
+			try {
+				$field = json_decode( rgpost( 'field' ), false, 512, JSON_THROW_ON_ERROR );
+			} catch ( JsonException $e ) {
+				$field = null;
+			}
 		} else {
 			if ( ! preg_match( "/id='gfield_duplicate_(.*)?'/", $duplicate_field_link, $m ) ) {
 				return $duplicate_field_link;

@@ -7,10 +7,12 @@
 
 namespace HCaptcha\Jetpack;
 
+use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
+use HCaptcha\Main;
 use WP_Error;
 
 /**
@@ -187,17 +189,19 @@ abstract class Base {
 
 		$min = hcap_min_suffix();
 
-		wp_enqueue_script(
+		wp_register_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/hcaptcha-jetpack$min.js",
-			[ 'hcaptcha' ],
+			[ Main::HANDLE ],
 			constant( 'HCAPTCHA_VERSION' ),
 			true
 		);
+
+		DelayedScript::enqueue( self::HANDLE );
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

@@ -104,6 +104,7 @@ class Checkout {
 	 * @return string
 	 *
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_block_captcha( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
@@ -112,8 +113,13 @@ class Checkout {
 			return (string) $block_content;
 		}
 
-		$search = '<div data-block-name="woocommerce/checkout-actions-block" class="wp-block-woocommerce-checkout-actions-block"></div>';
-		$args   = [
+		$search = '~<div(?=[^>]*\bdata-block-name="woocommerce/checkout-actions-block")(?=[^>]*\bclass="[^"]*\bwp-block-woocommerce-checkout-actions-block\b[^"]*")[^>]*></div>~';
+
+		if ( ! preg_match( $search, $block_content ) ) {
+			return $block_content;
+		}
+
+		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
 			'id'     => $this->get_expected_id(),
@@ -121,11 +127,11 @@ class Checkout {
 
 		$this->block_captcha_added = true;
 
-		return str_replace( $search, HCaptcha::form( $args ) . $search, $block_content );
+		return (string) preg_replace( $search, HCaptcha::form( $args ) . '$0', $block_content, 1 );
 	}
 
 	/**
-	 * Verify checkout form.
+	 * Verify the checkout form.
 	 *
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection

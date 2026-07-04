@@ -1,4 +1,7 @@
 bootstrap: ./_bootstrap.php
+extensions:
+    enabled:
+        - HCaptcha\Tests\Codeception\FunctionMockerExtension
 modules:
     enabled:
         - WPLoader

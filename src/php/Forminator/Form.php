@@ -141,7 +141,7 @@ class Form {
 			}
 		}
 
-		$error_message = API::verify( $this->get_entry( $module_object->fields ) );
+		$error_message = API::verify( $this->get_entry( $module_object->fields, $id ) );
 
 		if ( null !== $error_message ) {
 			return [
@@ -277,13 +277,24 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $this->form_id,
-			],
+			'id'     => $this->get_expected_id( $this->form_id ),
 		];
 
 		return HCaptcha::form( $args );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**
@@ -344,13 +355,13 @@ class Form {
 	/**
 	 * Get entry.
 	 *
-	 * @param array $fields Form data.
+	 * @param array $fields  Form data.
+	 * @param int   $form_id Form id.
 	 *
 	 * @return array
 	 */
-	private function get_entry( array $fields ): array {
-		$form_id = (int) Request::filter_input( INPUT_POST, 'form_id' );
-		$form    = get_post( $form_id );
+	private function get_entry( array $fields, int $form_id ): array {
+		$form = get_post( $form_id );
 
 		$entry = [
 			'nonce_name'         => self::NONCE,
@@ -358,6 +369,7 @@ class Form {
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ) ?? '',
 			'form_date_gmt'      => $form->post_modified_gmt ?? null,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
 		$name = [];

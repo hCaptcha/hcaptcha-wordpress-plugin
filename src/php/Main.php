@@ -19,6 +19,7 @@ use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
+use HCaptcha\Admin\SupportModal;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\AntiSpam\Honeypot;
@@ -230,6 +231,7 @@ class Main {
 
 		$this->load( Events::class );
 		$this->load( Privacy::class );
+		$this->load( SupportModal::class );
 		$this->load( WhatsNew::class );
 		$this->load( Abilities::class );
 
@@ -512,9 +514,8 @@ class Main {
 		$bg                      = $custom_theme_background ?: 'initial';
 		$delay                   = (int) ( $settings->get( 'delay' ) ?: 0 );
 		$animation_delay         = $delay >= 0 ? $delay / 100 + 2 : 2;
-		$load_msg                = $delay >= 0
-			? __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' )
-			: __( 'The hCaptcha loading is delayed until user interaction.', 'hcaptcha-for-forms-and-more' );
+		$load_msg                = __( 'If you see this message, hCaptcha failed to load due to site errors.', 'hcaptcha-for-forms-and-more' );
+		$delay_api_event_msg     = __( 'The hCaptcha loading is delayed until user interaction with the form.', 'hcaptcha-for-forms-and-more' );
 
 		/* language=CSS */
 		$css = '
@@ -567,13 +568,22 @@ class Main {
 		left: 0;
 		right: 0;
 		box-sizing: border-box;
-        color: #bf1722;
+		color: #bf1722;
 		opacity: 0;
+	}
+
+	.h-captcha.hcaptcha-api-delayed::after {
+		content: "' . $delay_api_event_msg . '";
+		color: #555;
 	}
 
 	.h-captcha:not(:has(iframe))::after {
 		animation: hcap-msg-fade-in .3s ease forwards;
 		animation-delay: ' . $animation_delay . 's;
+	}
+
+	.h-captcha.hcaptcha-api-delayed:not(:has(iframe))::after {
+		animation-delay: 0s;
 	}
 	
 	.h-captcha:has(iframe)::after {
@@ -885,8 +895,10 @@ class Main {
 		 */
 		$delay = (int) apply_filters( 'hcap_delay_api', (int) ( $settings->get( 'delay' ) ) );
 
+		$delay_api_event = $this->get_delay_api_event();
+
 		// This delayed script will be waiting for the hCaptchaBeforeAPI event fired by the self::HANDLE script.
-		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay );
+		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay, $delay_api_event );
 
 		wp_register_script(
 			self::HANDLE,
@@ -897,6 +909,23 @@ class Main {
 		);
 
 		DelayedScript::enqueue( self::HANDLE );
+	}
+
+	/**
+	 * Get the custom event name used to load the hCaptcha API script.
+	 *
+	 * @return string
+	 */
+	public function get_delay_api_event(): string {
+		/**
+		 * Filters the custom browser event name used to load the hCaptcha API script.
+		 *
+		 * When non-empty, the delayed loader waits for this event on a document after hCaptchaBeforeAPI and
+		 * skips the default timer and user interaction listeners.
+		 *
+		 * @param string $delay_api_event Custom browser event name.
+		 */
+		return trim( (string) apply_filters( 'hcap_delay_api_event', '' ) );
 	}
 
 	/**
@@ -1127,7 +1156,7 @@ class Main {
 		try {
 			$reader  = new Reader( $db_path );
 			$record  = $reader->country( $client_ip );
-			$country = strtoupper( trim( (string) ( $record->country->isoCode ?? '' ) ) );
+			$country = strtoupper( trim( $record->country->isoCode ?? '' ) );
 
 			$reader->close();
 

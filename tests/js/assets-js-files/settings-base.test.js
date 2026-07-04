@@ -532,3 +532,93 @@ describe( 'ajaxPrefilter', () => {
 		expect( fd.get( '_wp_http_referer' ) ).toBe( 'existing' );
 	} );
 } );
+
+describe( 'additional settings-base coverage', () => {
+	afterEach( () => {
+		$( document ).off();
+		jest.useRealTimers();
+		jest.dontMock( '../../../assets/js/hcaptcha-helper.js' );
+	} );
+
+	test( 'hash links ignore empty and off-page href values', () => {
+		bootSettingsBase();
+		document.body.insertAdjacentHTML( 'beforeend', '<a id="hash-empty" href="#">empty</a><a id="hash-external" href="https://other.test/admin.php#target">external</a>' );
+		const emptyEvent = $.Event( 'click' );
+		const externalEvent = $.Event( 'click' );
+
+		$( '#hash-empty' ).trigger( emptyEvent );
+		$( '#hash-external' ).trigger( externalEvent );
+
+		expect( emptyEvent.isDefaultPrevented() ).toBe( false );
+		expect( externalEvent.isDefaultPrevented() ).toBe( false );
+	} );
+
+	test( 'same-page hash links prevent default, push history, and highlight target', () => {
+		jest.useFakeTimers();
+		bootSettingsBase();
+		document.body.insertAdjacentHTML( 'beforeend', '<table><tbody><tr><td><input id="hash-target" type="text"></td></tr></tbody></table><a id="hash-link" href="#hash-target">target</a>' );
+		const pushStateSpy = jest.spyOn( window.history, 'pushState' );
+		const event = $.Event( 'click' );
+
+		$( '#hash-link' ).trigger( event );
+		jest.runAllTimers();
+
+		expect( event.isDefaultPrevented() ).toBe( true );
+		expect( pushStateSpy ).toHaveBeenCalledWith( null, '', '#hash-target' );
+		expect( document.getElementById( 'hash-target' ).classList.contains( 'blink' ) ).toBe( true );
+		pushStateSpy.mockRestore();
+	} );
+
+	test( 'same-page hash link skips pushState when hash is unchanged', () => {
+		jest.useFakeTimers();
+		window.location.hash = '#hash-same';
+		bootSettingsBase();
+		document.body.insertAdjacentHTML( 'beforeend', '<table><tbody><tr><td><input id="hash-same" type="text"></td></tr></tbody></table><a id="hash-same-link" href="#hash-same">target</a>' );
+		const pushStateSpy = jest.spyOn( window.history, 'pushState' );
+
+		$( '#hash-same-link' ).trigger( 'click' );
+		jest.runAllTimers();
+
+		expect( pushStateSpy ).not.toHaveBeenCalled();
+		expect( document.getElementById( 'hash-same' ).classList.contains( 'blink' ) ).toBe( true );
+		pushStateSpy.mockRestore();
+		window.location.hash = '';
+	} );
+
+	test( 'hashchange highlights matching elements', () => {
+		jest.useFakeTimers();
+		bootSettingsBase();
+		document.body.insertAdjacentHTML( 'beforeend', '<table><tbody><tr><td><input id="hash-change-target" type="text"></td></tr></tbody></table>' );
+
+		window.location.hash = '#hash-change-target';
+		window.dispatchEvent( new Event( 'hashchange' ) );
+		jest.runAllTimers();
+
+		expect( document.getElementById( 'hash-change-target' ).classList.contains( 'blink' ) ).toBe( true );
+		window.location.hash = '';
+	} );
+
+	test( 'ajax prefilter creates query data when hCaptcha action has no data payload', () => {
+		let settingsBasePrefilter;
+		const originalAjaxPrefilter = $.ajaxPrefilter;
+
+		jest.resetModules();
+		jest.doMock( '../../../assets/js/hcaptcha-helper.js', () => ( {
+			helper: {
+				getAction: () => 'hcaptcha_mock',
+			},
+		} ) );
+		document.body.innerHTML = getDom();
+		Object.assign( window.HCaptchaSettingsBaseObject, defaultSettingsBaseObject );
+		$.ajaxPrefilter = ( dataTypes, handler ) => {
+			settingsBasePrefilter = typeof dataTypes === 'function' ? dataTypes : handler;
+		};
+		require( '../../../assets/js/settings-base.js' );
+		$.ajaxPrefilter = originalAjaxPrefilter;
+
+		const options = { url: 'https://test.test/wp-admin/admin-ajax.php' };
+		settingsBasePrefilter( options, {}, null );
+
+		expect( options.data ).toContain( '_wp_http_referer=' );
+	} );
+} );
