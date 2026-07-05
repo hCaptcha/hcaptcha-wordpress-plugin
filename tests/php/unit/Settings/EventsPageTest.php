@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\Admin\Events\EventsTable;
+use HCaptcha\Admin\Events\Events;
 use HCaptcha\Main;
 use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\ListPageBase;
@@ -825,5 +826,177 @@ class EventsPageTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 
 		self::assertTrue( $subject->delete_events( [ 'ids' => $ids ] ) );
+	}
+	/**
+	 * Test trash_events() when the trash schema is not ready.
+	 *
+	 * @return void
+	 */
+	public function test_trash_events_when_schema_is_not_ready(): void {
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [ '5.0.0' => -1 ] );
+
+		self::assertFalse( $subject->trash_events( [ 'ids' => [ 1 ] ] ) );
+	}
+
+	/**
+	 * Test restore_events() when the trash schema is not ready.
+	 *
+	 * @return void
+	 */
+	public function test_restore_events_when_schema_is_not_ready(): void {
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [ '5.0.0' => -1 ] );
+
+		self::assertFalse( $subject->restore_events( [ 'ids' => [ 1 ] ] ) );
+	}
+
+	/**
+	 * Test trash_events().
+	 *
+	 * @return void
+	 */
+	public function test_trash_events(): void {
+		global $wpdb;
+
+		$ids            = [ 1, 2 ];
+		$in             = implode( ',', $ids );
+		$prefix         = 'wp_';
+		$table_name     = $prefix . Events::TABLE_NAME;
+		$trashed_at_gmt = '2026-06-28 12:00:00';
+		$sql            = "UPDATE $table_name SET status = %s, trashed_at_gmt = %s WHERE id IN($in) AND status = %s";
+		$prepared       = 'prepared trash events query';
+
+		FunctionMocker::replace(
+			'HCaptcha\Helpers\DB::prepare_in',
+			static function ( $ids ) {
+				return implode( ',', $ids );
+			}
+		);
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+		WP_Mock::userFunction( 'current_time' )
+			->with( 'mysql', true )
+			->andReturn( $trashed_at_gmt );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $sql, Events::STATUS_TRASH, $trashed_at_gmt, Events::STATUS_ACTIVE )
+			->andReturn( $prepared );
+		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( count( $ids ) );
+
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertTrue( $subject->trash_events( [ 'ids' => $ids ] ) );
+	}
+
+	/**
+	 * Test restore_events().
+	 *
+	 * @return void
+	 */
+	public function test_restore_events(): void {
+		global $wpdb;
+
+		$ids        = [ 1, 2 ];
+		$in         = implode( ',', $ids );
+		$prefix     = 'wp_';
+		$table_name = $prefix . Events::TABLE_NAME;
+		$sql        = "UPDATE $table_name SET status = %s, trashed_at_gmt = NULL WHERE id IN($in) AND status = %s";
+		$prepared   = 'prepared restore events query';
+
+		FunctionMocker::replace(
+			'HCaptcha\Helpers\DB::prepare_in',
+			static function ( $ids ) {
+				return implode( ',', $ids );
+			}
+		);
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+		$wpdb->shouldReceive( 'prepare' )
+			->with( $sql, Events::STATUS_ACTIVE, Events::STATUS_TRASH )
+			->andReturn( $prepared );
+		$wpdb->shouldReceive( 'query' )->with( $prepared )->andReturn( count( $ids ) );
+
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertTrue( $subject->restore_events( [ 'ids' => $ids ] ) );
+	}
+	/**
+	 * Test delete_events() when the trash schema is not ready.
+	 *
+	 * @return void
+	 */
+	public function test_delete_events_when_schema_is_not_ready(): void {
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [ '5.0.0' => -1 ] );
+
+		self::assertFalse( $subject->delete_events( [ 'ids' => [ 1 ] ] ) );
+	}
+
+	/**
+	 * Test delete_events() with empty ids.
+	 *
+	 * @return void
+	 */
+	public function test_delete_events_with_empty_ids(): void {
+		global $wpdb;
+
+		$prefix = 'wp_';
+
+		FunctionMocker::replace( 'HCaptcha\Helpers\DB::prepare_in', '' );
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb         = Mockery::mock( 'WPDB' );
+		$wpdb->prefix = $prefix;
+
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		self::assertFalse( $subject->delete_events( [] ) );
+	}
+
+	/**
+	 * Test trash_events() with empty ids.
+	 *
+	 * @return void
+	 */
+	public function test_trash_events_with_empty_ids(): void {
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_versions', [] )
+			->andReturn( [] );
+
+		self::assertFalse( $subject->trash_events( [] ) );
 	}
 }

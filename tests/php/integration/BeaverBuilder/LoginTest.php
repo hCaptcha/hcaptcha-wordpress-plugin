@@ -12,6 +12,7 @@ namespace HCaptcha\Tests\Integration\BeaverBuilder;
 
 use FLBuilderModule;
 use HCaptcha\BeaverBuilder\Login;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use WP_Error;
@@ -75,7 +76,7 @@ class LoginTest extends HCaptchaWPTestCase {
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
 			'id'     => [
-				'source'  => [],
+				'source'  => [ 'bb-plugin/fl-builder.php' ],
 				'form_id' => 'login',
 			],
 		];
@@ -84,10 +85,9 @@ class LoginTest extends HCaptchaWPTestCase {
 		$expected  = 'some output <div class="fl-login-form ">' . $hcaptcha . $button . '</div> more';
 		$module    = Mockery::mock( 'alias:' . FLBuilderModule::class );
 
-		$subject = Mockery::mock( Login::class )->makePartial();
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( true );
+		$subject = new Login();
 
 		// Some output.
 		self::assertSame( $some_out, $subject->add_beaver_builder_captcha( $some_out, $module ) );
@@ -111,10 +111,9 @@ class LoginTest extends HCaptchaWPTestCase {
 		$some_out = 'some output';
 		$module   = Mockery::mock( 'alias:' . FLBuilderModule::class );
 
-		$subject = Mockery::mock( Login::class )->makePartial();
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( false );
+		$subject = new Login();
 
 		self::assertSame( $some_out, $subject->add_beaver_builder_captcha( $some_out, $module ) );
 	}
@@ -132,11 +131,11 @@ class LoginTest extends HCaptchaWPTestCase {
 		$user = new WP_User( 1 );
 
 		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id();
 
-		$subject = Mockery::mock( Login::class )->makePartial();
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( true );
+		$subject = new Login();
 
 		self::assertSame( $user, $subject->verify( $user, 'some password' ) );
 	}
@@ -151,15 +150,15 @@ class LoginTest extends HCaptchaWPTestCase {
 		$GLOBALS['wp_current_filter'] = [ 'wp_ajax_nopriv_fl_builder_login_form_submit' ];
 
 		$user          = new WP_User( 1 );
-		$error_message = '<strong>hCaptcha error:</strong> The hCaptcha is invalid.';
-		$expected      = new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
+		$error_message = 'The hCaptcha is invalid.';
+		$expected      = new WP_Error( 'fail', $error_message, 400 );
 
 		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_widget_id();
 
-		$subject = Mockery::mock( Login::class )->makePartial();
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( true );
+		$subject = new Login();
 
 		self::assertEquals( $expected, $subject->verify( $user, 'some password' ) );
 	}
@@ -188,11 +187,24 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$user = new WP_User( 1 );
 
-		$subject = Mockery::mock( Login::class )->makePartial();
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( false );
+		$subject = new Login();
 
 		self::assertEquals( $user, $subject->verify( $user, 'some password' ) );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'bb-plugin/fl-builder.php' ],
+				'form_id' => 'login',
+			]
+		);
 	}
 }

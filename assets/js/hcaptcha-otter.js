@@ -57,7 +57,7 @@ const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 				return;
 			}
 
-			const form = document.getElementById( formId );
+			const form = app.getForm( formId );
 
 			if ( ! form ) {
 				return;
@@ -105,6 +105,11 @@ const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 			config.body = body;
 			args[ 1 ] = config;
 			event.detail.args = args;
+		},
+
+		getForm( formId ) {
+			return document.getElementById( formId ) ||
+				document.getElementById( `wp-block-themeisle-blocks-form-${ formId }` );
 		},
 
 		fetchComplete( event ) {

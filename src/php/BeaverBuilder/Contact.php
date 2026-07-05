@@ -103,6 +103,7 @@ class Contact extends Base {
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
 			'data'               => $this->get_data(),
+			'expected_id'        => $this->get_expected_id(),
 		];
 	}
 

@@ -16,7 +16,10 @@ use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\Integrations;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use ReflectionException;
+use ReflectionMethod;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
@@ -139,6 +142,35 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		ob_start();
 		HCaptcha::form_display( $args );
 		self::assertFalse( strpos( ob_get_clean(), '<h-captcha' ) );
+	}
+
+	/**
+	 * Test HCaptcha::form_display() with delay API event.
+	 *
+	 * @return void
+	 */
+	public function test_form_display_with_delay_api_event(): void {
+		$delay_api_event_filter = static function () {
+			return 'hcap-load-api';
+		};
+
+		add_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+
+		try {
+			ob_start();
+			HCaptcha::form_display();
+
+			self::assertSame(
+				$this->get_hcap_form(
+					[
+						'hcaptcha_class' => 'h-captcha hcaptcha-api-delayed',
+					]
+				),
+				ob_get_clean()
+			);
+		} finally {
+			remove_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+		}
 	}
 
 	/**
@@ -592,5 +624,194 @@ JS;
 			'<script type="module" id="some-id">...</script>',
 			HCaptcha::add_type_module( '<script type="text/javascript" id="some-id">...</script>' )
 		);
+	}
+	/**
+	 * Test form_display() signature hook.
+	 *
+	 * @return void
+	 */
+	public function test_form_display_signature_hook(): void {
+		$received_args = null;
+		$callback      = static function ( array $args ) use ( &$received_args ) {
+			$received_args = $args;
+		};
+
+		add_action( 'hcap_signature_test', $callback );
+
+		try {
+			ob_start();
+			HCaptcha::form_display(
+				[
+					'sign'    => 'test',
+					'protect' => false,
+				]
+			);
+			ob_get_clean();
+		} finally {
+			remove_action( 'hcap_signature_test', $callback );
+		}
+
+		self::assertIsArray( $received_args );
+		self::assertSame( 'test', $received_args['sign'] );
+	}
+
+	/**
+	 * Test form_display() falls back to saved theme and size.
+	 *
+	 * @return void
+	 */
+	public function test_form_display_invalid_theme_and_size_fallback(): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'theme' => 'dark',
+				'size'  => 'compact',
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		ob_start();
+		HCaptcha::form_display(
+			[
+				'theme' => 'wrong-theme',
+				'size'  => 'wrong-size',
+			]
+		);
+		$form = ob_get_clean();
+
+		self::assertStringContainsString( 'data-theme="dark"', $form );
+		self::assertStringContainsString( 'data-size="compact"', $form );
+	}
+
+	/**
+	 * Test original protected get_hp_name().
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_hp_name(): void {
+		$method = new ReflectionMethod( HCaptcha::class, 'get_hp_name' );
+
+		FunctionMocker::tearDown();
+		$method->setAccessible( true );
+
+		try {
+			$name = $method->invoke( null );
+		} finally {
+			$method->setAccessible( false );
+			FunctionMocker::setUp();
+			FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::get_hp_name', 'hcap_hp_test' );
+		}
+
+		self::assertStringStartsWith( 'hcap_hp_', $name );
+	}
+
+	/**
+	 * Test check_signature() with a mismatched source.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_source_mismatch(): void {
+		$class_name = CF7::class;
+		$form_id    = 123;
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
+
+		$_POST[ $name ] = $this->get_encoded_signature( [ 'wrong/source.php' ], $form_id, true );
+
+		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
+	}
+
+	/**
+	 * Test get_source_name() when the integrations tab is unavailable.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_source_name_without_integrations(): void {
+		$main              = hcaptcha();
+		$original_modules  = $main->modules;
+		$original_settings = $this->get_protected_property( $main, 'settings' );
+
+		$main->modules = [
+			'bbPress' => [
+				[ 'bbp_status', null ],
+				'bbpress/bbpress.php',
+				[],
+			],
+		];
+
+		$this->set_protected_property( $main, 'settings', null );
+
+		try {
+			self::assertSame(
+				'bbpress/bbpress.php',
+				HCaptcha::get_source_name( wp_json_encode( [ 'bbpress/bbpress.php' ] ) )
+			);
+		} finally {
+			$this->set_protected_property( $main, 'settings', $original_settings );
+			$main->modules = $original_modules;
+		}
+	}
+
+	/**
+	 * Test save_license_level().
+	 *
+	 * @return void
+	 */
+	public function test_save_license_level(): void {
+		update_option( PluginSettingsBase::OPTION_NAME, [ 'license' => 'old' ] );
+
+		$this->save_license_level_with_response( new WP_Error( 'remote-error', 'Remote failed.' ) );
+
+		self::assertSame( 'old', get_option( PluginSettingsBase::OPTION_NAME )['license'] );
+
+		$this->save_license_level_with_response(
+			[
+				'body' => wp_json_encode(
+					[
+						'pass'     => true,
+						'features' => [ 'custom_theme' => false ],
+					]
+				),
+			]
+		);
+
+		self::assertSame( 'free', get_option( PluginSettingsBase::OPTION_NAME )['license'] );
+
+		$this->save_license_level_with_response(
+			[
+				'body' => wp_json_encode(
+					[
+						'pass'     => true,
+						'features' => [ 'custom_theme' => true ],
+					]
+				),
+			]
+		);
+
+		self::assertSame( 'pro', get_option( PluginSettingsBase::OPTION_NAME )['license'] );
+	}
+
+	/**
+	 * Save license level with a mocked HTTP response.
+	 *
+	 * @param array|WP_Error $response HTTP response.
+	 *
+	 * @return void
+	 */
+	private function save_license_level_with_response( $response ): void {
+		$filter = static function () use ( $response ) {
+			return $response;
+		};
+
+		add_filter( 'pre_http_request', $filter );
+
+		try {
+			HCaptcha::save_license_level();
+		} finally {
+			remove_filter( 'pre_http_request', $filter );
+		}
 	}
 }

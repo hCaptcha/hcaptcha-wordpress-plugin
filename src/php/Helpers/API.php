@@ -278,6 +278,16 @@ class API {
 			return self::filtered_result( $result, $error_codes );
 		}
 
+		$hcaptcha_response_sanitized = self::get_hcaptcha_response_sanitized( $hcaptcha_response );
+
+		// The hCaptcha response field is empty.
+		if ( '' === $hcaptcha_response_sanitized ) {
+			$result      = hcap_get_error_messages()['empty'];
+			$error_codes = [ 'empty' ];
+
+			return self::filtered_result( $result, $error_codes );
+		}
+
 		// Check the form submit time token.
 		$check = self::check_fst_token();
 
@@ -291,16 +301,6 @@ class API {
 		if ( ! self::check_disposable_email( $entry ) ) {
 			$result      = hcap_get_error_messages()['disposable-email'];
 			$error_codes = [ 'disposable-email' ];
-
-			return self::filtered_result( $result, $error_codes );
-		}
-
-		$hcaptcha_response_sanitized = self::get_hcaptcha_response_sanitized( $hcaptcha_response );
-
-		// The hCaptcha response field is empty.
-		if ( '' === $hcaptcha_response_sanitized ) {
-			$result      = hcap_get_error_messages()['empty'];
-			$error_codes = [ 'empty' ];
 
 			return self::filtered_result( $result, $error_codes );
 		}

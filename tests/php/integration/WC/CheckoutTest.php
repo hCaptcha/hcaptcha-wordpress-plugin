@@ -16,6 +16,7 @@ use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\Checkout;
 use Mockery;
+use WC_Payment_Gateway;
 use WP_Error;
 use WP_REST_Request;
 
@@ -132,6 +133,13 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		// Checkout block.
 		self::assertSame( $expected, $subject->add_block_captcha( $block_content, $block, $instance ) );
+
+		$checkout_block = '<div data-block-name="woocommerce/checkout-actions-block" data-show-return-to-cart="true" class="wp-block-woocommerce-checkout-actions-block"></div>';
+		$block_content  = $content1 . $checkout_block . $content2;
+		$expected       = $content1 . $this->get_hcap_form( $args ) . $checkout_block . $content2;
+
+		// Checkout block with the return-to-cart link enabled.
+		self::assertSame( $expected, $subject->add_block_captcha( $block_content, $block, $instance ) );
 	}
 
 	/**
@@ -142,6 +150,45 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout' );
 		$this->prepare_widget_id();
+
+		WC()->init();
+		wc_clear_notices();
+
+		$subject = new Checkout();
+		$subject->verify();
+
+		self::assertSame( [], wc_get_notices() );
+	}
+
+	/**
+	 * Test verify() skips Stripe frontend checkout request.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_skips_stripe_frontend_checkout_request(): void {
+		$_GET['wc-ajax'] = 'wc_stripe_frontend_request';
+		$_GET['path']    = '/wc-stripe/v1/checkout';
+
+		WC()->init();
+		wc_clear_notices();
+
+		$subject = new Checkout();
+		$subject->verify();
+
+		self::assertSame( [], wc_get_notices() );
+	}
+
+	/**
+	 * Test verify() skips express payment methods.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_skips_express_payment_method(): void {
+		$_POST['payment_method'] = 'express_gateway';
+
+		$this->mock_express_payment_gateway();
 
 		WC()->init();
 		wc_clear_notices();
@@ -269,6 +316,26 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test verify_block() skips express payment methods.
+	 *
+	 * @return void
+	 */
+	public function test_verify_block_skips_express_payment_method(): void {
+		$response = 'some response';
+		$handler  = [];
+		$request  = new WP_REST_Request( '', '/wc/store/v1/checkout' );
+
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( [ 'payment_method' => 'express_gateway' ] ) );
+
+		$this->mock_express_payment_gateway();
+
+		$subject = new Checkout();
+
+		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
+	}
+
+	/**
 	 * Test verify_block() error code mapping.
 	 *
 	 * @return void
@@ -327,7 +394,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-block-checkout' ) );
 
 		$subject->add_block_captcha(
-			'',
+			'<div data-block-name="woocommerce/checkout-actions-block" class="wp-block-woocommerce-checkout-actions-block"></div>',
 			[ 'blockName' => 'woocommerce/checkout' ],
 			Mockery::mock( 'WP_Block' )
 		);
@@ -346,6 +413,12 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-checkout' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-wc-block-checkout' ) );
+
+		$subject->add_block_captcha(
+			'',
+			[ 'blockName' => 'woocommerce/checkout' ],
+			Mockery::mock( 'WP_Block' )
+		);
 
 		$subject->enqueue_scripts();
 
@@ -372,6 +445,55 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		// Proper tag.
 		self::assertSame( $expected, $subject->add_type_module( $tag, 'hcaptcha-wc-block-checkout', '' ) );
+	}
+
+	/**
+	 * Add a WooCommerce express payment gateway.
+	 *
+	 * @return void
+	 */
+	private function mock_express_payment_gateway(): void {
+		$gateway = new class() extends WC_Payment_Gateway {
+
+			/**
+			 * Constructor.
+			 *
+			 * @noinspection PhpDynamicFieldDeclarationInspection
+			 */
+			public function __construct() {
+				$this->id       = 'express_gateway';
+				$this->supports = [ 'wc_stripe_banner_checkout' ];
+			}
+
+			/**
+			 * Whether the gateway is available.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function is_available(): bool {
+				return true;
+			}
+
+			/**
+			 * Whether banner checkout is enabled.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function banner_checkout_enabled(): bool {
+				return true;
+			}
+		};
+
+		add_filter(
+			'woocommerce_available_payment_gateways',
+			static function ( array $gateways ) use ( $gateway ): array {
+				$gateways[ $gateway->id ] = $gateway;
+
+				return $gateways;
+			}
+		);
 	}
 
 	/**

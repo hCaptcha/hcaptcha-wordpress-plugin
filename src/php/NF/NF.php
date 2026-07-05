@@ -139,10 +139,9 @@ class NF implements Base {
 			// See comment in admin_template().
 			if ( Base::NAME === $field['type'] ) {
 				$found             = true;
-				$search            = 'class="h-captcha"';
-				$field['hcaptcha'] = str_replace(
-					$search,
-					$search . ' style="z-index: 2;"',
+				$field['hcaptcha'] = preg_replace(
+					'#class="([^"]*\bh-captcha\b[^"]*)"#',
+					'class="$1" style="z-index: 2;"',
 					$this->get_hcaptcha( $field['id'] )
 				);
 

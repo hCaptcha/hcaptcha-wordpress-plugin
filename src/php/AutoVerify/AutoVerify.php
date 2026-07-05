@@ -544,7 +544,7 @@ class AutoVerify {
 
 		if (
 			preg_match_all(
-				'#<form [\S\s]+?class="h-captcha"[\S\s]+?</form>#',
+				'#<form [\S\s]+?class="[^"]*\bh-captcha\b[^"]*"[\S\s]+?</form>#',
 				$content,
 				$matches,
 				PREG_PATTERN_ORDER

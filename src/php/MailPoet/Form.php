@@ -150,6 +150,20 @@ class Form {
 	}
 
 	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
+	}
+
+	/**
 	 * Get entry.
 	 *
 	 * @return array
@@ -163,7 +177,7 @@ class Form {
 			: [];
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$form_id = (int) $data['form_id'];
+		$form_id = (int) ( $data['form_id'] ?? 0 );
 		$fields  = [];
 
 		foreach ( $data as $key => $value ) {
@@ -189,6 +203,7 @@ class Form {
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ) ?? '',
 			'form_date_gmt'      => $updated_at,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
 		$name = [];

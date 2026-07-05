@@ -61,7 +61,31 @@ class Checkout {
 	}
 
 	/**
-	 * Verify login form.
+	 * Get entry.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'checkout',
+		];
+	}
+	/**
+	 * Verify the login form.
 	 *
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
@@ -73,7 +97,7 @@ class Checkout {
 			return;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null === $error_message ) {
 			return;

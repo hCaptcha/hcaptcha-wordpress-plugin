@@ -182,4 +182,14 @@ describe( 'admin-forminator', () => {
 	test( 'getLocationHref returns the correct location', () => {
 		expect( window.hCaptchaForminator.getLocationHref() ).toBe( 'http://domain.tld/' );
 	} );
+	test( 'callback returns when the hCaptcha tab is inactive', async () => {
+		window.hCaptchaForminator.getLocationHref = () => 'https://test.test/wp-admin/admin.php?page=forminator-cform';
+		document.querySelectorAll( '.sui-tab-item' )[ 1 ].classList.remove( 'active' );
+
+		document.dispatchEvent( new Event( 'DOMContentLoaded' ) );
+		document.getElementById( 'forminator-field-hcaptcha_size' ).setAttribute( 'data-test', 'inactive' );
+		await Promise.resolve();
+
+		expect( document.querySelectorAll( '.sui-box-settings-row' )[ 1 ].querySelector( '.sui-settings-label' ).innerHTML ).toBe( 'Original Settings Label' );
+	} );
 } );

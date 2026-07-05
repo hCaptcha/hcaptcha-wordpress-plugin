@@ -148,7 +148,7 @@ const hCaptchaGiveWP = window.hCaptchaGiveWP || ( function( window ) {
 						return;
 					}
 
-					const submitSection = submitButton ? submitButton.closest( 'section' ) : null;
+					const submitSection = submitButton.closest( 'section' );
 
 					// On multistep form, the `submit` button is not in the section.
 					const submitElement = submitSection ?? submitButton;

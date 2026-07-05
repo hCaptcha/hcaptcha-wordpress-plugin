@@ -7,7 +7,6 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedNamespaceInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
@@ -301,7 +300,7 @@ class SettingsTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 
 		$subject->shouldReceive( 'is_on' )->with( 'custom_themes' )->andReturnUsing(
-			static function ( $key ) use ( &$custom_themes ) {
+			static function () use ( &$custom_themes ) {
 				return $custom_themes;
 			}
 		);
@@ -343,6 +342,46 @@ class SettingsTest extends HCaptchaTestCase {
 		self::assertSame( $bg, $subject->get_custom_theme_background() );
 	}
 
+	/**
+	 * Test get_raw_settings().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_raw_settings(): void {
+		$raw_settings = [ 'some key' => 'some value' ];
+		$general      = Mockery::mock( General::class )->makePartial();
+		$subject      = Mockery::mock( Settings::class )->makePartial();
+
+		self::assertNull( $subject->get_raw_settings() );
+
+		$general->shouldReceive( 'get_raw_settings' )->with()->once()->andReturn( $raw_settings );
+		$this->set_protected_property( $subject, 'tabs', [ $general ] );
+
+		self::assertSame( $raw_settings, $subject->get_raw_settings() );
+	}
+
+	/**
+	 * Test update().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_update(): void {
+		$key     = 'some key';
+		$value   = 'some value';
+		$general = Mockery::mock( General::class )->makePartial();
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'set' )->with( $key, $value )->andReturn( false, true, true );
+
+		self::assertFalse( $subject->update( $key, $value ) );
+		self::assertFalse( $subject->update( $key, $value ) );
+
+		$general->shouldReceive( 'update_option' )->with( $key, $value )->once();
+		$this->set_protected_property( $subject, 'tabs', [ $general ] );
+
+		self::assertTrue( $subject->update( $key, $value ) );
+	}
 	/**
 	 * Test get().
 	 *

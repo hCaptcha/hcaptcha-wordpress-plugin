@@ -197,9 +197,11 @@ class SystemInfoTest extends HCaptchaTestCase {
 	public function test_get_system_info(): void {
 		$plugin_version         = '1.0.0';
 		$migrations             = [
-			'2.0.0'  => 1662205373,
-			'3.6.0'  => 1703257543,
+			'2.0.0'  => 0,
+			'3.6.0'  => 1662205373,
 			'3.10.1' => 1711985976,
+			'4.0.0'  => Migrations::STARTED,
+			'5.0.0'  => Migrations::FAILED,
 		];
 		$date_format            = 'd.m.Y';
 		$time_format            = 'H:i';
@@ -318,9 +320,11 @@ Login attempts before hCaptcha:
 Failed login attempts interval, min:  
 Delay showing hCaptcha, ms:           
 Migrations:                           
-  2.0.0:                              03.09.2022 11:42
-  3.6.0:                              22.12.2023 15:05
+  2.0.0:                              Not required
+  3.6.0:                              03.09.2022 11:42
   3.10.1:                             01.04.2024 15:39
+  4.0.0:                              Started
+  5.0.0:                              Failed
 
 --- Integrations header info ---
 

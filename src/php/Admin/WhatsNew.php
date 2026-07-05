@@ -33,14 +33,14 @@ class WhatsNew extends NotificationsBase {
 	private const MARK_SHOWN_ACTION = 'hcaptcha-mark-shown';
 
 	/**
+	 * Render popup ajax action.
+	 */
+	private const RENDER_POPUP_ACTION = 'hcaptcha-render-whats-new-popup';
+
+	/**
 	 * Settings key for a last shown What's New version.
 	 */
 	private const WHATS_NEW_KEY = 'whats_new_last_shown_version';
-
-	/**
-	 * Query parameter for forcing What's New popup.
-	 */
-	private const WHATS_NEW_PARAM = 'whats_new';
 
 	/**
 	 * Method prefix.
@@ -89,6 +89,7 @@ class WhatsNew extends NotificationsBase {
 		add_action( 'admin_print_footer_scripts', [ $this, 'enqueue_assets' ], 9 );
 		add_action( 'admin_footer', [ $this, 'maybe_show_popup' ] );
 		add_action( 'wp_ajax_' . self::MARK_SHOWN_ACTION, [ $this, 'mark_shown' ] );
+		add_action( 'wp_ajax_' . self::RENDER_POPUP_ACTION, [ $this, 'render_popup_ajax' ] );
 		add_filter( 'update_footer', [ $this, 'update_footer' ], 1010 );
 	}
 
@@ -130,10 +131,11 @@ class WhatsNew extends NotificationsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
-				'markShownAction' => self::MARK_SHOWN_ACTION,
-				'markShownNonce'  => wp_create_nonce( self::MARK_SHOWN_ACTION ),
-				'whatsNewParam'   => self::WHATS_NEW_PARAM,
+				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
+				'markShownAction'   => self::MARK_SHOWN_ACTION,
+				'markShownNonce'    => wp_create_nonce( self::MARK_SHOWN_ACTION ),
+				'renderPopupAction' => self::RENDER_POPUP_ACTION,
+				'renderPopupNonce'  => wp_create_nonce( self::RENDER_POPUP_ACTION ),
 			]
 		);
 	}
@@ -148,31 +150,12 @@ class WhatsNew extends NotificationsBase {
 			return;
 		}
 
-		$prefix        = self::PREFIX;
-		$forced        = Request::filter_input( INPUT_GET, self::WHATS_NEW_PARAM );
-		$forced        = $this->normalize_version( $forced );
-		$current       = $forced ?: explode( '-', constant( 'HCAPTCHA_VERSION' ) )[0];
+		$current       = explode( '-', constant( 'HCAPTCHA_VERSION' ) )[0];
 		$settings      = hcaptcha()->settings();
 		$whats_new_key = $settings ? $settings->get( self::WHATS_NEW_KEY ) : '';
-		$shown         = $forced ? '' : $whats_new_key;
-		$methods       = array_filter(
-			get_class_methods( $this ),
-			static function ( $method ) use ( $prefix ) {
-				return 0 === strpos( $method, $prefix );
-			}
-		);
-		$versions      = array_map(
-			function ( $method ) {
-				return $this->method_to_version( $method );
-			},
-			$methods
-		);
-
-		usort( $versions, 'version_compare' );
-
-		// Sort versions in descending order.
-		$versions = array_reverse( $versions );
-		$method   = '';
+		$shown         = $whats_new_key;
+		$versions      = $this->get_versions();
+		$method        = '';
 
 		foreach ( $versions as $version ) {
 			// Find the first news version that is less or equal to the current version.
@@ -208,6 +191,39 @@ class WhatsNew extends NotificationsBase {
 
 		$this->update_whats_new( $version );
 		wp_send_json_success();
+	}
+
+	/**
+	 * Ajax action to render a popup for a selected version.
+	 *
+	 * @return void
+	 */
+	public function render_popup_ajax(): void {
+		// Run a security check.
+		if ( ! check_ajax_referer( self::RENDER_POPUP_ACTION, 'nonce', false ) ) {
+			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		// Check for permissions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		$version = Request::filter_input( INPUT_POST, 'version' );
+		$version = $this->normalize_version( $version );
+		$method  = $this->version_to_method( $version );
+
+		if ( ! $version || ! method_exists( $this, $method ) ) {
+			wp_send_json_error( esc_html__( 'The requested version is not available.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		ob_start();
+
+		$this->render_popup( $method, true );
+
+		$html = ob_get_clean();
+
+		wp_send_json_success( [ 'html' => $html ] );
 	}
 
 	/**
@@ -262,7 +278,7 @@ class WhatsNew extends NotificationsBase {
 					<div class="hcaptcha-whats-new-title">
 						<h1>
 							<?php esc_html_e( "What's New in hCaptcha", 'hcaptcha-for-forms-and-more' ); ?>
-							<span id="hcaptcha-whats-new-version"><?php echo esc_html( $version ); ?></span>
+							<?php $this->render_version_selector( $version ); ?>
 						</h1>
 					</div>
 				</div>
@@ -274,6 +290,42 @@ class WhatsNew extends NotificationsBase {
 		<div id="hcaptcha-lightbox-modal">
 			<img id="hcaptcha-lightbox-img" src="" alt="lightbox-image">
 		</div>
+		<?php
+	}
+
+	/**
+	 * Render a version selector.
+	 *
+	 * @param string $current_version Current version.
+	 *
+	 * @return void
+	 */
+	private function render_version_selector( string $current_version ): void {
+		$versions = $this->get_versions();
+
+		?>
+		<span class="hcaptcha-whats-new-version-control">
+			<span id="hcaptcha-whats-new-version"><?php echo esc_html( $current_version ); ?></span>
+			<button
+					type="button"
+					class="hcaptcha-whats-new-version-toggle"
+					aria-label="<?php esc_attr_e( "Select What's New version", 'hcaptcha-for-forms-and-more' ); ?>"
+					aria-haspopup="true"
+					aria-expanded="false"
+					aria-controls="hcaptcha-whats-new-versions"></button>
+			<ul id="hcaptcha-whats-new-versions" class="hcaptcha-whats-new-version-list" hidden>
+				<?php foreach ( $versions as $version ) : ?>
+					<li class="<?php echo esc_attr( $version === $current_version ? 'is-current' : '' ); ?>">
+						<a
+								href="#"
+								class="hcaptcha-whats-new-version-link"
+								data-version="<?php echo esc_attr( $version ); ?>">
+							<?php echo esc_html( $version ); ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</span>
 		<?php
 	}
 
@@ -721,6 +773,31 @@ class WhatsNew extends NotificationsBase {
 	 */
 	private function method_to_version( string $method ): string {
 		return str_replace( [ self::PREFIX, '_' ], [ '', '.' ], $method );
+	}
+
+	/**
+	 * Get What's New versions listed in this class.
+	 *
+	 * @return string[]
+	 */
+	private function get_versions(): array {
+		$prefix   = self::PREFIX;
+		$methods  = array_filter(
+			get_class_methods( $this ),
+			static function ( $method ) use ( $prefix ) {
+				return 0 === strpos( $method, $prefix );
+			}
+		);
+		$versions = array_map(
+			function ( $method ) {
+				return $this->method_to_version( $method );
+			},
+			$methods
+		);
+
+		usort( $versions, 'version_compare' );
+
+		return array_reverse( $versions );
 	}
 
 	/**

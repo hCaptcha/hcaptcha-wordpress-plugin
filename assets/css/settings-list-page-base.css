@@ -12,6 +12,7 @@
 	align-items: center;
 	font-size: 14px;
 	gap: 16px;
+	margin: 0;
 }
 
 .hcaptcha-datepicker-popover {
@@ -141,5 +142,11 @@
 	.hcaptcha-datepicker-popover-content .hcaptcha-datepicker-choices {
 		border-inline-end: 1px solid #ccd0d4;
 		margin-inline-end: 4px;
+	}
+}
+
+@media (max-width: 782px) {
+	#current-page-selector {
+		height: 44px;
 	}
 }

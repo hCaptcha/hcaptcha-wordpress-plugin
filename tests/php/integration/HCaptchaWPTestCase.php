@@ -125,7 +125,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 	}
 
 	/**
-	 * Set accessibility of protected method.
+	 * Set the accessibility of a protected method.
 	 *
 	 * @param object $subject     Object.
 	 * @param string $method_name Property name.
@@ -211,7 +211,7 @@ HTML;
 
 		return $this->get_hcap_widget( $args['id'] ) . '
 				<h-captcha
-			class="h-captcha"
+			class="' . $args['hcaptcha_class'] . '"
 			data-sitekey="' . $args['sitekey'] . '"
 			data-theme="' . ( $args['theme'] ?: 'light' ) . '"
 			data-size="' . ( $args['size'] ?: 'normal' ) . '"
@@ -232,16 +232,17 @@ HTML;
 	private function prepare_hcap_form_args( array $args ): array {
 		$args = array_merge(
 			[
-				'sitekey' => General::MODE_TEST_PUBLISHER_SITE_KEY,
-				'action'  => '',
-				'name'    => '',
-				'auto'    => false,
-				'ajax'    => false,
-				'force'   => false,
-				'theme'   => '',
-				'size'    => '',
-				'id'      => [],
-				'protect' => true,
+				'sitekey'        => General::MODE_TEST_PUBLISHER_SITE_KEY,
+				'action'         => '',
+				'name'           => '',
+				'auto'           => false,
+				'hcaptcha_class' => 'h-captcha',
+				'ajax'           => false,
+				'force'          => false,
+				'theme'          => '',
+				'size'           => '',
+				'id'             => [],
+				'protect'        => true,
 			],
 			$args
 		);
@@ -258,7 +259,7 @@ HTML;
 	}
 
 	/**
-	 * Prepare response from \HCaptcha\Helpers\API::verify_request().
+	 * Prepare a response from \HCaptcha\Helpers\API::verify_request().
 	 *
 	 * @param string    $hcaptcha_response hCaptcha response.
 	 * @param bool|null $result            Desired result.

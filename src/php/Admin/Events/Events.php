@@ -34,6 +34,11 @@ class Events {
 	public const SERVED_LIMIT = 1000;
 
 	/**
+	 * Maximum indexed source length.
+	 */
+	public const SOURCE_INDEX_LENGTH = 191;
+
+	/**
 	 * Active event status.
 	 */
 	public const STATUS_ACTIVE = 'active';
@@ -416,7 +421,8 @@ class Events {
 			self::unmark_table_created();
 		}
 
-		$table_name = self::TABLE_NAME;
+		$table_name          = self::TABLE_NAME;
+		$source_index_length = self::SOURCE_INDEX_LENGTH;
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -434,14 +440,14 @@ class Events {
 		    status      VARCHAR(20)     NOT NULL DEFAULT 'active',
 		    trashed_at_gmt DATETIME     NULL,
 		    PRIMARY KEY (id),
-		    KEY source (source),
+		    KEY source (source($source_index_length)),
 		    KEY form_id (form_id),
-		    KEY hcaptcha_id (source, form_id),
+		    KEY hcaptcha_id (source($source_index_length), form_id),
 		    KEY ip (ip),
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt),
 		    KEY status_date_gmt (status, date_gmt),
-		    KEY status_source_form (status, source, form_id)
+		    KEY status_source_form (status, source($source_index_length), form_id)
 		) $charset_collate";
 
 		dbDelta( $sql );

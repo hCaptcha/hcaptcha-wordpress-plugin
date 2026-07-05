@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Tests\Integration\NF;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\NF\Field;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use NF_Database_Migrations;
@@ -32,7 +33,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $_POST['formData'] );
+		unset( $_POST['formData'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		parent::tearDown();
 	}
@@ -75,6 +76,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$data['fields'] = $fields;
 
 		$this->prepare_verify_request( $field['value'] );
+		$this->prepare_widget_id( $form_id );
 
 		$subject = new Field();
 
@@ -107,6 +109,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$data['fields'] = $fields;
 
 		$this->prepare_verify_request( '', false );
+		$this->prepare_widget_id( $form_id );
 
 		$subject = new Field();
 
@@ -139,10 +142,44 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$data['fields'] = $fields;
 
 		$this->prepare_verify_request( $field['value'], false );
+		$this->prepare_widget_id( $form_id );
 
 		$subject = new Field();
 
 		self::assertSame( 'The hCaptcha is invalid.', $subject->validate( $field, $data ) );
+	}
+
+	/**
+	 * Test validate() when widget id is missing.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_validate_missing_widget_id(): void {
+		$form_id = $this->create_ninja_form();
+		$form    = Ninja_Forms()->form( $form_id );
+		$fields  = [];
+
+		foreach ( $form->get_fields() as $field ) {
+			$fields[] = [
+				'id'    => $field->get_id(),
+				'value' => 'some value',
+			];
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+		$_POST['formData'] = json_encode( [ 'id' => (string) $form_id ] );
+
+		$field          = [
+			'id'    => 90,
+			'value' => 'some value',
+		];
+		$data['fields'] = $fields;
+
+		$this->prepare_verify_request( $field['value'] );
+
+		$subject = new Field();
+
+		self::assertSame( 'Bad hCaptcha signature!', $subject->validate( $field, $data ) );
 	}
 
 	/**
@@ -157,6 +194,26 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$subject = new Field();
 
 		self::assertSame( $expected, $subject->hide_field_type( $hidden_field_types ) );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int   $form_id Form id.
+	 * @param array $id      Widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id, array $id = [] ): void {
+		$id = array_merge(
+			[
+				'source'  => [ 'ninja-forms/ninja-forms.php' ],
+				'form_id' => $form_id,
+			],
+			$id
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 	}
 
 	/**

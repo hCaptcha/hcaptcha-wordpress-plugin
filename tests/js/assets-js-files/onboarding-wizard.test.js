@@ -1,3 +1,5 @@
+// noinspection JSUnresolvedFunction,JSUnresolvedVariable
+
 import $ from 'jquery';
 
 global.jQuery = $;
@@ -576,7 +578,7 @@ describe( 'onboarding.js', () => {
 
 	test( 'tooltip top is clamped to 10 when it would go above the viewport', () => {
 		jest.spyOn( $.fn, 'offset' ).mockRestore();
-		// target is at top:0 and tooltip height is 50 → top = 0 - 25 + 0 = -25 → clamped to 10
+		// Target is at top:0, and tooltip height is 50 → top = 0 - 25 + 0 = -25 → clamped to 10
 		jest.spyOn( $.fn, 'offset' ).mockImplementation( () => ( { top: 0, left: 0 } ) );
 		jest.spyOn( $.fn, 'outerHeight' ).mockRestore();
 		jest.spyOn( $.fn, 'outerHeight' ).mockImplementation( () => 50 );
@@ -741,7 +743,7 @@ describe( 'onboarding.js', () => {
 
 		expect( document.body.textContent ).toContain( 'Congrats — setup complete!' );
 
-		// Dismiss the congrats modal → triggers the resubmit.
+		// Dismiss the congrats modal → triggers the resubmitting.
 		$( '.hcap-onb-modal-overlay' ).trigger( 'click' );
 		jest.runAllTimers();
 
@@ -808,7 +810,7 @@ describe( 'onboarding.js', () => {
 	} );
 
 	test( 'automatic setup falls back to window.location.href when form element is absent', () => {
-		// Boot with step 3 but no #hcaptcha-options form in DOM → form is null → setLocationHref is called.
+		// Boot with step 3, but no #hcaptcha-options form in DOM → form is null → setLocationHref is called.
 		bootOnboarding( { currentStep: 'step 3' }, `
 			<div class="hcaptcha-section-antispam"></div>
 			<table><tbody>
@@ -887,7 +889,7 @@ describe( 'onboarding.js', () => {
 	// ─── init: early return when step belongs to the other page ───────────────
 
 	test( 'init returns early without panel when current step belongs to the other page', () => {
-		// General page at step 7 (integrations step) → early return after goIntegrations check.
+		// General page at step 7 (integration step) → early return after goIntegrations check.
 		bootOnboarding( { page: 'general', currentStep: 'step 7' } );
 
 		expect( $( '.hcap-onb-panel' ).length ).toBe( 0 );
@@ -1001,5 +1003,220 @@ describe( 'onboarding.js', () => {
 		expect( () => bootOnboarding( { page: 'general', currentStep: 'step 7' } ) ).not.toThrow();
 
 		Storage.prototype.getItem.mockRestore();
+	} );
+	test( 'welcome proceed uses step 1 when currentStep is empty', () => {
+		bootOnboarding( { currentStep: '' } );
+
+		$( '.hcap-onb-go' ).trigger( 'click' );
+		jest.runOnlyPendingTimers();
+
+		expect( $( '.hcap-onb-panel [data-step="1"]' ).hasClass( 'current' ) ).toBe( true );
+	} );
+
+	test( 'panel navigation builds URLs without empty params', () => {
+		bootOnboarding( {
+			stepNonce: '',
+		} );
+
+		$( '.hcap-onb-list li[data-step="2"]' ).trigger( 'click' );
+
+		expect( locationHref ).toContain( 'onboarding_step=2' );
+		expect( locationHref ).not.toContain( 'hcaptcha_onboarding_nonce=' );
+	} );
+
+	test( 'panel navigation falls back to window.location.href when no test setter is installed', () => {
+		jest.resetModules();
+		$( document ).off();
+		$( window ).off();
+		document.body.innerHTML = getGeneralDom();
+		window.HCaptchaOnboardingObject = {
+			...defaultOnboardingObject,
+			currentStep: 'step 3',
+		};
+		require( '../../../assets/js/onboarding-wizard.js' );
+		window.hCaptchaOnboarding( $ );
+		jest.runOnlyPendingTimers();
+		delete window.hCaptchaOnboarding.setLocationHref;
+
+		expect( () => {
+			$( '.hcap-onb-list li[data-step="2"]' ).trigger( 'click' );
+		} ).not.toThrow();
+	} );
+
+	test( 'video URL conversion handles embed encoding errors', () => {
+		const badUrl = 'https://youtu.be/\uD800';
+
+		bootOnboarding( {
+			currentStep: 'step 1',
+			videoUrl: badUrl,
+		} );
+		$( '.hcap-onb-go' ).trigger( 'click' );
+		jest.runOnlyPendingTimers();
+		$( '.hcap-onb-video-link' ).trigger( 'click' );
+
+		expect( $( '.hcap-onb-modal.video iframe' ).attr( 'src' ) ).toBe( badUrl );
+	} );
+
+	test( 'done on a step for a now-different page leaves only the panel visible', () => {
+		bootOnboarding( { currentStep: 'step 4' } );
+		window.HCaptchaOnboardingObject.page = 'integrations';
+
+		$( '.hcap-onb-done' ).trigger( 'click' );
+
+		expect( $( '.hcap-onb-panel' ).length ).toBe( 1 );
+		expect( $( '.hcap-onb-tip' ).length ).toBe( 0 );
+	} );
+
+	test( 'done on step 4 advances to step 5', () => {
+		bootOnboarding( { currentStep: 'step 4' } );
+
+		$( '.hcap-onb-done' ).trigger( 'click' );
+
+		expect( postSpy ).toHaveBeenCalledWith(
+			'https://test.test/wp-admin/admin-ajax.php',
+			expect.objectContaining( { value: 'step 5' } ),
+		);
+		expect( $( '.hcap-onb-panel [data-step="5"]' ).hasClass( 'current' ) ).toBe( true );
+	} );
+
+	test( 'showStep skips scrollIntoView when it is unavailable', () => {
+		Element.prototype.scrollIntoView = undefined;
+
+		expect( () => {
+			bootOnboarding( { currentStep: 'step 4' } );
+			jest.runAllTimers();
+		} ).not.toThrow();
+	} );
+
+	test( 'positioning timer returns when Escape removes tooltip first', () => {
+		bootOnboarding( { currentStep: 'step 4' } );
+
+		$( document ).trigger( $.Event( 'keydown', { key: 'Escape' } ) );
+
+		expect( () => jest.runAllTimers() ).not.toThrow();
+		expect( $( '.hcap-onb-tip' ).length ).toBe( 0 );
+	} );
+
+	test( 'resize uses step 1 fallback when currentStep is empty', () => {
+		bootOnboarding( { currentStep: 'step 4' } );
+		window.HCaptchaOnboardingObject.currentStep = '';
+
+		$( window ).trigger( 'resize.hcapOnb' );
+		jest.runAllTimers();
+
+		expect( $( '.hcap-onb-tip-text' ).first().text() ).toBe( 'Get your keys at hcaptcha.com' );
+	} );
+
+	test( 'automatic setup continues when sessionStorage is unavailable', () => {
+		bootOnboarding();
+		const descriptor = Object.getOwnPropertyDescriptor( window, 'sessionStorage' );
+		Object.defineProperty( window, 'sessionStorage', {
+			configurable: true,
+			value: undefined,
+		} );
+		const form = document.getElementById( 'hcaptcha-options' );
+		form.submit = jest.fn();
+
+		$( '.hcap-onb-done' ).trigger( 'click' );
+		$( '.hcap-onb-auto-setup' ).trigger( 'click' );
+
+		expect( form.submit ).toHaveBeenCalledTimes( 1 );
+		Object.defineProperty( window, 'sessionStorage', descriptor );
+	} );
+
+	test( 'form submit step 6 continues when sessionStorage is unavailable', () => {
+		bootOnboarding( { currentStep: 'step 6' } );
+		const descriptor = Object.getOwnPropertyDescriptor( window, 'sessionStorage' );
+		Object.defineProperty( window, 'sessionStorage', {
+			configurable: true,
+			value: undefined,
+		} );
+
+		expect( () => {
+			$( '#hcaptcha-options' ).trigger( 'submit' );
+		} ).not.toThrow();
+
+		Object.defineProperty( window, 'sessionStorage', descriptor );
+	} );
+
+	test( 'form submit step 8 returns immediately after submitting flag is set', () => {
+		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+		const form = document.getElementById( 'hcaptcha-options' );
+		form.submit = jest.fn();
+
+		$( '#hcaptcha-options' ).trigger( 'submit' );
+		$( '.hcap-onb-modal-overlay' ).trigger( 'click' );
+		jest.runAllTimers();
+		window.HCaptchaOnboardingObject.currentStep = 'step 8';
+		const event = $.Event( 'submit' );
+		event.preventDefault = jest.fn();
+
+		$( '#hcaptcha-options' ).trigger( event );
+
+		expect( event.preventDefault ).not.toHaveBeenCalled();
+	} );
+	test( 'video URL conversion handles empty URL fallback', () => {
+		bootOnboarding( {
+			currentStep: 'step 1',
+			videoUrl: '',
+		} );
+		$( '.hcap-onb-go' ).trigger( 'click' );
+		jest.runOnlyPendingTimers();
+		$( '.hcap-onb-video-link' ).trigger( 'click' );
+
+		expect( $( '.hcap-onb-modal.video iframe' ).attr( 'src' ) ).toBe( '' );
+	} );
+
+	test( 'positioning timer returns when tooltip is removed before it runs', () => {
+		bootOnboarding( { currentStep: 'step 4' } );
+		$( document ).trigger( $.Event( 'keydown', { key: 'Escape' } ) );
+
+		expect( () => jest.advanceTimersByTime( 180 ) ).not.toThrow();
+		expect( $( '.hcap-onb-tip' ).length ).toBe( 0 );
+	} );
+
+	test( 'tooltip positioning keeps left value when it fits viewport', () => {
+		const widthSpy = jest.spyOn( $.fn, 'width' ).mockImplementation( function() {
+			if ( this.get( 0 ) === window ) {
+				return 1000;
+			}
+
+			return 100;
+		} );
+
+		bootOnboarding( { currentStep: 'step 4' } );
+		jest.runOnlyPendingTimers();
+
+		expect( parseInt( $( '.hcap-onb-tip' ).css( 'left' ), 10 ) ).toBeGreaterThan( 0 );
+		widthSpy.mockRestore();
+	} );
+
+	test( 'form submit uses step 1 fallback when currentStep is empty', () => {
+		bootOnboarding( { currentStep: 'step 4' } );
+		window.HCaptchaOnboardingObject.currentStep = '';
+		postSpy.mockClear();
+
+		$( '#hcaptcha-options' ).trigger( 'submit' );
+
+		expect( postSpy ).not.toHaveBeenCalled();
+	} );
+	test( 'positioning timer exits when tooltip is removed before first positioning tick', () => {
+		jest.resetModules();
+		$( document ).off();
+		$( window ).off();
+		document.body.innerHTML = getGeneralDom();
+		window.HCaptchaOnboardingObject = {
+			...defaultOnboardingObject,
+			currentStep: 'step 4',
+		};
+		require( '../../../assets/js/onboarding-wizard.js' );
+		window.hCaptchaOnboarding.setLocationHref = ( url ) => {
+			locationHref = url;
+		};
+		window.hCaptchaOnboarding( $ );
+
+		$( document ).trigger( $.Event( 'keydown', { key: 'Escape' } ) );
+		expect( () => jest.advanceTimersByTime( 180 ) ).not.toThrow();
+		expect( $( '.hcap-onb-tip' ).length ).toBe( 0 );
 	} );
 } );

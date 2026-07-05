@@ -53,7 +53,9 @@ class Privacy {
 	 */
 	public function add_privacy_message(): void {
 		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$content = $this->get_privacy_message();

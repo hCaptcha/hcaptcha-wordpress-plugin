@@ -33,6 +33,11 @@ class Form {
 	private const HANDLE = 'hcaptcha-otter';
 
 	/**
+	 * Form ID prefix.
+	 */
+	private const FORM_ID_PREFIX = 'wp-block-themeisle-blocks-form-';
+
+	/**
 	 * Nonce action.
 	 */
 	private const ACTION = 'hcaptcha_otter';
@@ -110,7 +115,7 @@ class Form {
 
 		$form_id = 0;
 
-		if ( preg_match( '/<div id="wp-block-themeisle-blocks-form-(.+?)"/', $block_content, $m ) ) {
+		if ( preg_match( '/<div id="' . self::FORM_ID_PREFIX . '(.+?)"/', $block_content, $m ) ) {
 			$form_id = $m[1];
 		}
 
@@ -187,6 +192,25 @@ class Form {
 			'form_date_gmt'      => $form->post_modified_gmt ?? null,
 			'post_data'          => $post_data,
 			'data'               => $this->get_data( $form_inputs ),
+			'expected_id'        => $this->get_expected_id( (string) ( $payload['formId'] ?? '' ) ),
+		];
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param string $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( string $form_id ): array {
+		if ( 0 === strpos( $form_id, self::FORM_ID_PREFIX ) ) {
+			$form_id = substr( $form_id, strlen( self::FORM_ID_PREFIX ) );
+		}
+
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
 		];
 	}
 
@@ -292,7 +316,7 @@ class Form {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\PasswordProtected;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\PasswordProtected\Protect;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use tad\FunctionMocker\FunctionMocker;
@@ -74,6 +75,7 @@ class ProtectTest extends HCaptchaWPTestCase {
 		$expected = $verified ? $errors : new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
 
 		$this->prepare_verify_post( $nonce, $action, $verified );
+		$this->prepare_widget_id();
 
 		$subject = new Protect();
 
@@ -81,6 +83,23 @@ class ProtectTest extends HCaptchaWPTestCase {
 		self::assertEquals( $expected, $subject->verify( $errors ) );
 	}
 
+	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$action   = 'hcaptcha_password_protected';
+		$nonce    = 'hcaptcha_password_protected_nonce';
+		$errors   = new WP_Error();
+		$expected = new WP_Error( 'bad-signature', 'Bad hCaptcha signature!', 400 );
+
+		$this->prepare_verify_post( $nonce, $action );
+
+		$subject = new Protect();
+
+		self::assertEquals( $expected, $subject->verify( $errors ) );
+	}
 	/**
 	 * Data provider for test_verify().
 	 *
@@ -91,6 +110,20 @@ class ProtectTest extends HCaptchaWPTestCase {
 			[ 'not verified' => false ],
 			[ 'verified' => true ],
 		];
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'password-protected/password-protected.php' ],
+				'form_id' => 'protect',
+			]
+		);
 	}
 
 	/**

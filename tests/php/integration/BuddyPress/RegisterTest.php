@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration\BuddyPress;
 
 use HCaptcha\BuddyPress\Register;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
@@ -64,7 +65,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha() with error.
+	 * Test add_captcha() with an error.
 	 */
 	public function test_register_error(): void {
 		global $bp;
@@ -104,6 +105,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_verify(): void {
 		$this->prepare_verify_post( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register' );
+		$this->prepare_widget_id();
 
 		$subject = new Register();
 
@@ -127,9 +129,24 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		$subject    = new Register();
 
 		$this->prepare_verify_post( 'hcaptcha_bp_register_nonce', 'hcaptcha_bp_register', null );
+		$this->prepare_widget_id();
 
 		self::assertFalse( $subject->verify() );
 
 		self::assertEquals( $expected, $bp->signup );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'buddypress/bp-loader.php' ],
+				'form_id' => 'register',
+			]
+		);
 	}
 }

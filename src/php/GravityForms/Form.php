@@ -141,7 +141,7 @@ class Form extends Base {
 	}
 
 	/**
-	 * Filter hCaptcha from args on form.
+	 * Filter hCaptcha from args on the form.
 	 *
 	 * @param array|mixed $args Form arguments.
 	 *
@@ -186,7 +186,7 @@ class Form extends Base {
 			return $validation_result;
 		}
 
-		$this->error_message = API::verify( $this->get_entry( $validation_result['form']['fields'] ) );
+		$this->error_message = API::verify( $this->get_entry( $validation_result['form']['fields'], $this->get_form_id( $validation_result ) ) );
 
 		if ( null === $this->error_message ) {
 			return $validation_result;
@@ -423,19 +423,73 @@ class Form extends Base {
 	}
 
 	/**
-	 * Get entry.
+	 * Get form id from the validation result.
 	 *
-	 * @param array $fields Form data.
+	 * @param array $validation_result Validation result.
+	 *
+	 * @return int
+	 */
+	private function get_form_id( array $validation_result ): int {
+		$form = (array) ( $validation_result['form'] ?? [] );
+
+		return (int) ( $form['id'] ?? 0 );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
 	 *
 	 * @return array
 	 */
-	private function get_entry( array $fields ): array {
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( $this->has_hcaptcha_field( $form_id ) ? Field::class : __CLASS__ ),
+			'form_id' => $form_id,
+		];
+	}
+
+	/**
+	 * Whether the form has an embedded hCaptcha field.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return bool
+	 */
+	private function has_hcaptcha_field( int $form_id ): bool {
+		$form = GFFormsModel::get_form_meta( $form_id );
+
+		if ( ! $form ) {
+			return false;
+		}
+
+		foreach ( $form['fields'] as $field ) {
+			$type = $field->type ?? '';
+
+			if ( 'hcaptcha' === $type ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get entry.
+	 *
+	 * @param array $fields  Form data.
+	 * @param int   $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $fields, int $form_id ): array {
 		$entry = [
 			'nonce_name'         => self::NONCE,
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ) ?? '',
 			'form_date_gmt'      => null, // GF does not support form updated date.
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
 		$name = [];

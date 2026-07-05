@@ -129,3 +129,33 @@ describe( 'kagg-dialog.js', () => {
 		spy.mockRestore();
 	} );
 } );
+
+describe( 'kagg-dialog defaults and custom parse coverage', () => {
+	beforeEach( () => {
+		jest.resetModules();
+		document.body.innerHTML = '<div id="root"></div>';
+		require( '../../../assets/js/kagg-dialog.js' );
+	} );
+
+	test( 'default no-op callbacks and ready can be invoked directly', () => {
+		expect( () => window.kaggDialog.defaults.defaultButtons.ok.action() ).not.toThrow();
+		expect( () => window.kaggDialog.defaults.defaultButtons.cancel.action() ).not.toThrow();
+		expect( () => window.kaggDialog.ready() ).not.toThrow();
+	} );
+
+	test( 'parseSettings leaves unknown custom buttons untouched', () => {
+		const action = jest.fn();
+
+		window.kaggDialog.parseSettings( {
+			buttons: {
+				extra: {
+					text: 'Extra',
+					class: 'btn-extra',
+					action,
+				},
+			},
+		} );
+
+		expect( window.kaggDialog.settings.buttons.extra.action ).toBe( action );
+	} );
+} );

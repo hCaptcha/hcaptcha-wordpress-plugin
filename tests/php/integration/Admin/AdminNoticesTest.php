@@ -11,7 +11,10 @@ use HCaptcha\Admin\AdminNotices;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\Settings;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use Mockery;
+use ReflectionException;
 
 /**
  * Test AdminNotices.
@@ -27,7 +30,7 @@ class AdminNoticesTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_show_trusted_address_headers_notice(): void {
-		$user_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );
 
 		wp_set_current_user( $user_id );
 
@@ -53,12 +56,60 @@ class AdminNoticesTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test show_trusted_address_headers_notice() without settings.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_show_trusted_address_headers_notice_without_settings(): void {
+		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );
+
+		wp_set_current_user( $user_id );
+
+		update_option(
+			PluginSettingsBase::OPTION_NAME,
+			[
+				Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION => 'on',
+			]
+		);
+
+		$main          = hcaptcha();
+		$settings      = $this->get_protected_property( $main, 'settings' );
+		$settings_mock = Mockery::mock( Settings::class );
+
+		$settings_mock->shouldReceive( 'get_raw_settings' )->once()->andReturnUsing(
+			function () use ( $main ): array {
+				$this->set_protected_property( $main, 'settings', null );
+
+				return [
+					Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION => 'on',
+				];
+			}
+		);
+
+		$this->set_protected_property( $main, 'settings', $settings_mock );
+
+		try {
+			ob_start();
+			( new AdminNotices() )->show_trusted_address_headers_notice();
+			$output = ob_get_clean();
+		} finally {
+			$this->set_protected_property( $main, 'settings', $settings );
+		}
+
+		self::assertStringContainsString(
+			admin_url( 'admin.php?page=hcaptcha-antispampage#trusted_address_headers' ),
+			$output
+		);
+	}
+
+	/**
 	 * Test show_trusted_address_headers_notice() without a review flag.
 	 *
 	 * @return void
 	 */
 	public function test_show_trusted_address_headers_notice_without_flag(): void {
-		$user_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );
 
 		wp_set_current_user( $user_id );
 

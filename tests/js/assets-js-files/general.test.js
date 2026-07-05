@@ -944,3 +944,47 @@ describe( 'getCleanConsoleLogs (isolated)', () => {
 		expect( out ).toBe( '' );
 	} );
 } );
+
+describe( 'additional general coverage', () => {
+	beforeEach( () => {
+		jest.clearAllMocks();
+		bootGeneral();
+	} );
+
+	afterEach( () => {
+		jest.useRealTimers();
+		$( document ).off( 'mousedown.hcaptchaHelper' );
+	} );
+
+	test( 'showMessage can be called with default arguments', () => {
+		window.__generalTest.showMessage();
+
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice' ) ).toBe( false );
+	} );
+
+	test( 'disabled key helper blocks aria-disabled events and allows editable events', () => {
+		const siteKey = document.getElementById( 'site_key' );
+		const ariaEvent = $.Event( 'keydown', { currentTarget: siteKey } );
+		ariaEvent.preventDefault = jest.fn();
+		siteKey.setAttribute( 'aria-disabled', 'true' );
+
+		$( siteKey ).trigger( ariaEvent );
+		expect( ariaEvent.preventDefault ).toHaveBeenCalled();
+
+		siteKey.removeAttribute( 'aria-disabled' );
+		const editableEvent = $.Event( 'keydown', { currentTarget: siteKey } );
+		editableEvent.preventDefault = jest.fn();
+		$( siteKey ).trigger( editableEvent );
+
+		expect( editableEvent.preventDefault ).not.toHaveBeenCalled();
+	} );
+
+	test( 'submit click returns when credentials and enterprise settings are unchanged', () => {
+		const event = $.Event( 'click' );
+		event.preventDefault = jest.fn();
+
+		$( '#submit' ).trigger( event );
+
+		expect( event.preventDefault ).not.toHaveBeenCalled();
+	} );
+} );

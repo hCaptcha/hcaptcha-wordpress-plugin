@@ -45,4 +45,13 @@ describe( 'hCaptcha Elementor', () => {
 		expect( renderedField ).toContain( 'light' );
 		expect( renderedField ).toContain( 'normal' );
 	} );
+	test( 'renderField shows setup message when hCaptcha is disabled', () => {
+		const hCaptchaElementorInstance = window.hCaptchaAdminElementorPro;
+
+		global.elementorPro.config.forms.hcaptcha.enabled = false;
+
+		const renderedField = hCaptchaElementorInstance.renderField( '', item );
+
+		expect( renderedField ).toContain( global.elementorPro.config.forms.hcaptcha.setup_message );
+	} );
 } );

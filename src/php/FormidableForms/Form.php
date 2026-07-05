@@ -116,7 +116,7 @@ class Form {
 			return $html;
 		}
 
-		if ( ! preg_match( '#<div\s+id="(.+)"\s+class="h-captcha" .+></div>#', (string) $html, $m ) ) {
+		if ( ! preg_match( '#<div\s+id="(.+)"\s+class="[^"]*\bh-captcha\b[^"]*" .+></div>#', (string) $html, $m ) ) {
 			return $html;
 		}
 
@@ -131,8 +131,11 @@ class Form {
 			],
 		];
 
-		$class = 'class="h-captcha"';
-		$form  = str_replace( $class, 'id="' . $div_id . '"' . $class, HCaptcha::form( $args ) );
+		$form = preg_replace(
+			'#class="([^"]*\bh-captcha\b[^"]*)"#',
+			'id="' . $div_id . '"class="$1"',
+			HCaptcha::form( $args )
+		);
 
 		return str_replace( $captcha_div, $form, (string) $html );
 	}
@@ -206,12 +209,27 @@ class Form {
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $values['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $form->created_at ?? null,
+			'expected_id'        => $this->get_expected_id( (int) $form_id ),
 		];
 
 		$fields        = $validate_args['posted_fields'] ?? [];
 		$entry['data'] = $this->get_data( $fields, $values );
 
 		return $entry;
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**

@@ -69,6 +69,43 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test add_default_id() without auto mode.
+	 */
+	public function test_add_default_id_without_auto_mode(): void {
+		$args = [
+			'auto' => false,
+		];
+
+		$subject = new AutoVerify();
+
+		self::assertSame( $args, $subject->add_default_id( $args ) );
+	}
+
+	/**
+	 * Test add_default_id() with auto mode.
+	 */
+	public function test_add_default_id_with_auto_mode(): void {
+		$args = [
+			'auto' => true,
+		];
+
+		WP_Mock::userFunction( 'get_the_ID' )->with()->once()->andReturn( 7 );
+
+		$subject = new AutoVerify();
+		$result  = $subject->add_default_id( $args );
+
+		self::assertSame(
+			[
+				'auto' => true,
+				'id'   => [
+					'source'  => [ AutoVerify::class ],
+					'form_id' => 7,
+				],
+			],
+			$result
+		);
+	}
+	/**
 	 * Test content_filter() on the frontend.
 	 */
 	public function test_content_filter_on_frontend(): void {

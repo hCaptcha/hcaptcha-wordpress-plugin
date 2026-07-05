@@ -17,6 +17,7 @@ use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\AdminNotices;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\Privacy;
+use HCaptcha\Admin\SupportModal;
 use HCaptcha\Admin\WhatsNew;
 use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\AutoVerify\AutoVerify;
@@ -26,6 +27,7 @@ use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\CF7\Admin;
 use HCaptcha\CF7\CF7;
 use HCaptcha\CF7\ReallySimpleCaptcha;
+use HCaptcha\CLI\Commands;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\DownloadManager\DownloadManager;
@@ -52,7 +54,11 @@ use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
+use WP_CLI;
 use WP_Textdomain_Registry;
+use function function_exists;
+
+require_once __DIR__ . '/CLI/WPCLI.php';
 
 /**
  * Test Main class.
@@ -131,8 +137,10 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		$hcaptcha->form_shown = false;
 
-		// Reset the enqueue state for the hcaptcha script so subsequent tests see it as not yet enqueued.
+		// Reset the enqueue state for the hcaptcha script so later tests see it as not yet enqueued.
 		wp_dequeue_script( Main::HANDLE );
+
+		WP_CLI::reset();
 
 		parent::tearDown();
 	}
@@ -155,6 +163,24 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha->init();
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+	}
+
+	/**
+	 * Test init_hooks() registers WP-CLI commands.
+	 *
+	 * @return void
+	 */
+	public function test_init_hooks_registers_wp_cli_command(): void {
+		WP_CLI::reset();
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::is_cli', true );
+
+		$subject = new Main();
+		$subject->init_hooks();
+
+		do_action( 'cli_init' );
+
+		self::assertSame( Commands::class, WP_CLI::$commands['hcaptcha'] ?? null );
 	}
 
 	/**
@@ -516,9 +542,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 				],
 			]
 			: [];
-		$load_msg      = $delay >= 0
-			? 'If you see this message, hCaptcha failed to load due to site errors.'
-			: 'The hCaptcha loading is delayed until user interaction.';
+		$load_msg      = 'If you see this message, hCaptcha failed to load due to site errors.';
 
 		try {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
@@ -611,13 +635,22 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		left: 0;
 		right: 0;
 		box-sizing: border-box;
-        color: #bf1722;
+		color: #bf1722;
 		opacity: 0;
+	}
+
+	.h-captcha.hcaptcha-api-delayed::after {
+		content: "The hCaptcha loading is delayed until user interaction with the form.";
+		color: #555;
 	}
 
 	.h-captcha:not(:has(iframe))::after {
 		animation: hcap-msg-fade-in .3s ease forwards;
 		animation-delay: 2s;
+	}
+
+	.h-captcha.hcaptcha-api-delayed:not(:has(iframe))::after {
+		animation-delay: 0s;
 	}
 	
 	.h-captcha:has(iframe)::after {
@@ -745,6 +778,50 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
+	 * Test print_inline_styles() when the delay API event is set.
+	 *
+	 * @return void
+	 */
+	public function test_print_inline_styles_with_delay_api_event(): void {
+		$delay_api_event_filter = static function () {
+			return 'hcap:load-api';
+		};
+
+		add_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'delay' => 0,
+			]
+		);
+
+		try {
+			$subject = new Main();
+
+			$subject->init_hooks();
+
+			ob_start();
+
+			$subject->print_inline_styles();
+
+			$styles = ob_get_clean();
+
+			self::assertStringContainsString(
+				'.h-captcha.hcaptcha-api-delayed::after{content:"The hCaptcha loading is delayed until user interaction with the form.";color:#555}',
+				$styles
+			);
+			self::assertStringContainsString(
+				'.h-captcha.hcaptcha-api-delayed:not(:has(iframe))::after{animation-delay:0s}',
+				$styles
+			);
+			self::assertStringContainsString( 'If you see this message', $styles );
+			self::assertStringNotContainsString( 'visibility:hidden', $styles );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+		}
 	}
 
 	/**
@@ -1146,6 +1223,24 @@ CSS;
 	}
 
 	/**
+	 * Test print_footer_scripts() without settings.
+	 *
+	 * @return void
+	 */
+	public function test_print_footer_scripts_without_settings(): void {
+		$subject = new Main();
+
+		$subject->form_shown = true;
+
+		ob_start();
+		$subject->print_footer_scripts();
+		$scripts = ob_get_clean();
+
+		self::assertSame( '', $scripts );
+		self::assertFalse( wp_script_is( Main::HANDLE ) );
+	}
+
+	/**
 	 * Test print_footer_scripts() when the delay API selector is set.
 	 *
 	 * @return void
@@ -1178,6 +1273,49 @@ CSS;
 		self::assertNotFalse( strpos( $scripts, 'IntersectionObserver' ) );
 		self::assertNotFalse( strpos( $scripts, 'hcaptcha.js' ) );
 		self::assertNotFalse( strpos( $scripts, 'hooks' ) );
+	}
+
+	/**
+	 * Test print_footer_scripts() when the delay API event is set.
+	 *
+	 * @return void
+	 */
+	public function test_print_footer_scripts_with_delay_api_event(): void {
+		$delay_api_event        = 'hcap:load-api';
+		$delay_api_event_filter = static function () use ( $delay_api_event ) {
+			return $delay_api_event;
+		};
+
+		add_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+
+		try {
+			$hcaptcha = hcaptcha();
+
+			$hcaptcha->form_shown = true;
+
+			$hcaptcha->init_hooks();
+
+			ob_start();
+			do_action( 'wp_print_footer_scripts' );
+			$scripts = ob_get_clean();
+
+			self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
+			self::assertNotFalse( strpos( $scripts, 'const delayApiEvent="hcap:load-api";' ) );
+			self::assertNotFalse(
+				strpos(
+					$scripts,
+					"document.addEventListener('hCaptchaBeforeAPI',function(){document.addEventListener(delayApiEvent,load)})"
+				)
+			);
+			self::assertNotFalse( strpos( $scripts, 'api.js' ) );
+			self::assertFalse( strpos( $scripts, 'setTimeout' ) );
+			self::assertFalse( strpos( $scripts, 'touchstart' ) );
+			self::assertFalse( strpos( $scripts, 'mouseenter' ) );
+			self::assertFalse( strpos( $scripts, 'keydown' ) );
+			self::assertFalse( strpos( $scripts, 'scrollHandler' ) );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+		}
 	}
 
 	/**
@@ -1420,6 +1558,51 @@ CSS;
 	}
 
 	/**
+	 * Test denylist by country without a client IP.
+	 *
+	 * @return void
+	 */
+	public function test_denylist_country_without_client_ip(): void {
+		update_option( 'hcaptcha_settings', [ 'blacklisted_countries' => [ 'US' ] ] );
+
+		$subject = new Main();
+
+		$subject->init_hooks();
+
+		self::assertFalse( $subject->denylist_ip( false, false ) );
+	}
+
+	/**
+	 * Test denylist by country without a MaxMind DB path.
+	 *
+	 * @return void
+	 */
+	public function test_denylist_country_without_maxmind_db_path(): void {
+		update_option( 'hcaptcha_settings', [ 'blacklisted_countries' => [ 'US' ] ] );
+
+		FunctionMocker::replace( 'is_readable', false );
+
+		$maxmind_db_path_filter = static function () {
+			return __DIR__ . '/missing-country.mmdb';
+		};
+
+		add_filter(
+			'hcap_maxmind_db_path',
+			$maxmind_db_path_filter
+		);
+
+		try {
+			$subject = new Main();
+
+			$subject->init_hooks();
+
+			self::assertFalse( $subject->denylist_ip( false, '203.0.113.30' ) );
+		} finally {
+			remove_filter( 'hcap_maxmind_db_path', $maxmind_db_path_filter );
+		}
+	}
+
+	/**
 	 * Data provider for test_allowlist_country().
 	 *
 	 * @return array
@@ -1453,6 +1636,78 @@ CSS;
 		self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
 		self::assertFalse( strpos( $scripts, '<style>' ) );
 		self::assertFalse( strpos( $scripts, 'api.js' ) );
+	}
+
+	/**
+	 * Test register_recurring_actions() without Action Scheduler.
+	 *
+	 * @return void
+	 */
+	public function test_register_recurring_actions_without_action_scheduler(): void {
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( string $function_name ): bool {
+				if ( 'as_schedule_recurring_action' === $function_name ) {
+					return false;
+				}
+
+				return function_exists( $function_name );
+			}
+		);
+
+		$subject = new Main();
+		$subject->register_recurring_actions();
+
+		self::assertNull( $subject->settings() );
+	}
+
+	/**
+	 * Test register_recurring_actions().
+	 *
+	 * @return void
+	 * @noinspection PhpArrayIsAlwaysEmptyInspection
+	 */
+	public function test_register_recurring_actions(): void {
+		require_once HCAPTCHA_PATH . '/vendor/woocommerce/action-scheduler/action-scheduler.php';
+
+		if (
+			! function_exists( 'as_schedule_recurring_action' ) ||
+			! function_exists( 'as_unschedule_all_actions' ) ||
+			! function_exists( 'as_next_scheduled_action' )
+		) {
+			self::markTestSkipped( 'Action Scheduler is not available.' );
+		}
+
+		as_unschedule_all_actions( MaxMindDb::UPDATE_ACTION, [], 'hcaptcha' );
+		as_unschedule_all_actions( Events::CLEANUP_ACTION, [], 'hcaptcha' );
+
+		try {
+			update_option( 'hcaptcha_settings', [ 'statistics' => [ 'on' ] ] );
+
+			$subject = new Main();
+			$subject->init_hooks();
+			$subject->register_recurring_actions();
+
+			$maxmind_scheduled = as_next_scheduled_action( MaxMindDb::UPDATE_ACTION, [], 'hcaptcha' );
+			$cleanup_scheduled = as_next_scheduled_action( Events::CLEANUP_ACTION, [], 'hcaptcha' );
+
+			self::assertIsInt( $maxmind_scheduled );
+			self::assertGreaterThan( time(), $maxmind_scheduled );
+			self::assertIsInt( $cleanup_scheduled );
+			self::assertGreaterThan( time(), $cleanup_scheduled );
+
+			update_option( 'hcaptcha_settings', [ 'statistics' => [] ] );
+
+			$subject = new Main();
+			$subject->init_hooks();
+			$subject->register_recurring_actions();
+
+			self::assertIsInt( as_next_scheduled_action( MaxMindDb::UPDATE_ACTION, [], 'hcaptcha' ) );
+			self::assertFalse( as_next_scheduled_action( Events::CLEANUP_ACTION, [], 'hcaptcha' ) );
+		} finally {
+			as_unschedule_all_actions( MaxMindDb::UPDATE_ACTION, [], 'hcaptcha' );
+			as_unschedule_all_actions( Events::CLEANUP_ACTION, [], 'hcaptcha' );
+		}
 	}
 
 	/**
@@ -1493,6 +1748,7 @@ CSS;
 			DisposableEmail::class,
 			Events::class,
 			Privacy::class,
+			SupportModal::class,
 			WhatsNew::class,
 			Abilities::class,
 		];

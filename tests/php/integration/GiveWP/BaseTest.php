@@ -13,11 +13,13 @@
 namespace HCaptcha\Tests\Integration\GiveWP;
 
 use HCaptcha\GiveWP\Form;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\Tests\Integration\Stubs\Give\DonationForms\ValueObjects\DonationFormErrorTypesStub;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
 use Give\DonationForms\ValueObjects\DonationFormErrorTypes;
+use WP_Error;
 
 /**
  * Test Base class (via Form).
@@ -137,9 +139,13 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form' );
+		$form_id = 42;
 
-		$_POST['action'] = 'give_process_donation';
+		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form' );
+		$this->prepare_widget_id( $form_id );
+
+		$_POST['action']       = 'give_process_donation';
+		$_POST['give-form-id'] = $form_id;
 
 		FunctionMocker::replace( 'give_set_error' );
 
@@ -158,9 +164,13 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_not_verified(): void {
-		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form', false );
+		$form_id = 42;
 
-		$_POST['action'] = 'give_process_donation';
+		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form', false );
+		$this->prepare_widget_id( $form_id );
+
+		$_POST['action']       = 'give_process_donation';
+		$_POST['give-form-id'] = $form_id;
 
 		$error_slug    = '';
 		$error_message = '';
@@ -181,6 +191,53 @@ class BaseTest extends HCaptchaWPTestCase {
 		self::assertNotEmpty( $error_message );
 	}
 
+	/**
+	 * Test verify() with an empty hCaptcha response does not consume FST.
+	 *
+	 * @return void
+	 */
+	public function test_verify_empty_hcaptcha_response_skips_fst(): void {
+		$form_id = 42;
+
+		remove_filter( 'hcap_verify_fst_token', '__return_true' );
+		add_filter(
+			'hcap_verify_fst_token',
+			static function () {
+				return new WP_Error( 'fst-replayed-or-expired', 'Token replayed or expired.' );
+			},
+			9
+		);
+
+		$_POST['action']                      = 'give_process_donation';
+		$_POST['give-form-id']                = $form_id;
+		$_POST['h-captcha-response']          = '';
+		$_POST['hcaptcha_give_wp_form_nonce'] = wp_create_nonce( 'hcaptcha_give_wp_form' );
+		$_POST['hcap_hp_test']                = '';
+		$_POST['hcap_hp_sig']                 = wp_create_nonce( 'hcap_hp_test' );
+		$_POST['hcap_fst_token']              = 'bad-token';
+		$_SERVER['HTTP_CLIENT_IP']            = '7.7.7.7';
+
+		$this->prepare_widget_id( $form_id );
+
+		$error_slug    = '';
+		$error_message = '';
+
+		FunctionMocker::replace(
+			'give_set_error',
+			static function ( $slug, $message ) use ( &$error_slug, &$error_message ) {
+				$error_slug    = $slug;
+				$error_message = $message;
+			}
+		);
+
+		$subject = new Form();
+
+		$subject->verify( true );
+
+		self::assertSame( 'invalid_hcaptcha', $error_slug );
+		self::assertStringContainsString( 'Please complete the hCaptcha.', $error_message );
+		self::assertStringNotContainsString( 'Token replayed or expired.', $error_message );
+	}
 	/**
 	 * Test verify() with the wrong action — early return.
 	 *
@@ -264,7 +321,9 @@ class BaseTest extends HCaptchaWPTestCase {
 		$_GET['givewp-route']              = 'donate';
 		$_GET['givewp-route-signature-id'] = 'givewp-donate';
 		$_POST['h-captcha-response']       = 'some-response';
+		$_POST['give-form-id']             = 42;
 
+		$this->prepare_widget_id( 42 );
 		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form' );
 
 		$subject = new Form();
@@ -275,6 +334,27 @@ class BaseTest extends HCaptchaWPTestCase {
 		self::assertTrue( true );
 	}
 
+	/**
+	 * Test verify_block() with the correct route and upgraded form id field — verified.
+	 *
+	 * @return void
+	 */
+	public function test_verify_block_verified_with_form_id(): void {
+		$_SERVER['REQUEST_METHOD']         = 'POST';
+		$_GET['givewp-route']              = 'donate';
+		$_GET['givewp-route-signature-id'] = 'givewp-donate';
+		$_POST['h-captcha-response']       = 'some-response';
+		$_POST['formId']                   = 42;
+
+		$this->prepare_widget_id( 42 );
+		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form' );
+
+		$subject = new Form();
+
+		$subject->verify_block();
+
+		self::assertTrue( true );
+	}
 	/**
 	 * Test verify_block() with no h-captcha-response (empty string fallback).
 	 *
@@ -296,6 +376,9 @@ class BaseTest extends HCaptchaWPTestCase {
 		$_GET['givewp-route-signature-id'] = 'givewp-donate';
 
 		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form', false );
+		$this->prepare_widget_id( 42 );
+
+		$_POST['give-form-id'] = 42;
 
 		unset( $_POST['h-captcha-response'] );
 
@@ -341,7 +424,9 @@ class BaseTest extends HCaptchaWPTestCase {
 		$_GET['givewp-route']              = 'donate';
 		$_GET['givewp-route-signature-id'] = 'givewp-donate';
 		$_POST['h-captcha-response']       = 'bad-response';
+		$_POST['give-form-id']             = 42;
 
+		$this->prepare_widget_id( 42 );
 		$this->prepare_verify_post( 'hcaptcha_give_wp_form_nonce', 'hcaptcha_give_wp_form', false );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -412,5 +497,21 @@ class BaseTest extends HCaptchaWPTestCase {
 		// phpcs:enable WordPress.WP.EnqueuedResources.NonEnqueuedScript
 
 		self::assertStringContainsString( 'type="module"', $result );
+	}
+
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id ): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'give/give.php' ],
+				'form_id' => $form_id,
+			]
+		);
 	}
 }

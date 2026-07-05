@@ -20,6 +20,7 @@ use tad\FunctionMocker\FunctionMocker;
 /**
  * Test NotificationsTest class.
  *
+ * @group admin
  * @group notifications
  */
 class NotificationsTest extends HCaptchaWPTestCase {
@@ -80,6 +81,9 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$user_id    = 1;
 		$site_key   = '';
 		$secret_key = '';
+
+		delete_option( 'hcaptcha_settings' );
+		hcaptcha()->init_hooks();
 
 		$expected = [
 			'register'            =>
@@ -401,6 +405,9 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$site_key   = '';
 		$secret_key = '';
 
+		delete_option( 'hcaptcha_settings' );
+		hcaptcha()->init_hooks();
+
 		add_filter(
 			'hcap_site_key',
 			static function () use ( $site_key ) {
@@ -661,6 +668,9 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$site_key   = '';
 		$secret_key = '';
 
+		delete_option( 'hcaptcha_settings' );
+		hcaptcha()->init_hooks();
+
 		add_filter(
 			'hcap_site_key',
 			static function () use ( $site_key ) {
@@ -705,6 +715,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 	 * Test admin_enqueue_scripts().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_admin_enqueue_scripts(): void {
 		$params         = [

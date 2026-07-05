@@ -210,9 +210,9 @@ class FormTest extends HCaptchaWPTestCase {
 		$form_id = 5;
 		$field   = [ 'required' => true ];
 
-		$_POST['_acf_form']                    = 'acf-form';
-		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'encoded-hash';
-		$_POST['acf']                          = [];
+		$_POST['_acf_form'] = 'acf-form';
+		$this->prepare_widget_id( $form_id );
+		$_POST['acf'] = [];
 
 		$this->mock_acf_form( $form_id );
 
@@ -260,6 +260,36 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify direct POST without previous AJAX validation.
+	 *
+	 * @param bool        $result   Request result.
+	 * @param bool|string $expected Expected.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_verify
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_direct_post_without_ajax( bool $result, $expected ): void {
+		$valid   = ! $expected;
+		$value   = 'some hcaptcha response';
+		$input   = 'some_input_name';
+		$form_id = 5;
+		$field   = [ 'required' => true ];
+
+		$_POST['_acf_form'] = 'acf-form';
+		$this->prepare_widget_id( $form_id );
+		$_POST['acf'] = [];
+
+		$this->mock_acf_form( $form_id );
+		$this->prepare_verify_request( $value, $result );
+
+		$subject = new Form();
+
+		self::assertSame( $expected, $subject->verify( $valid, $value, $field, $input ) );
+		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
 	 * Test verify on ajax.
 	 *
 	 * @return void
@@ -270,6 +300,12 @@ class FormTest extends HCaptchaWPTestCase {
 		$input = 'some_input_name';
 		$field = [ 'required' => true ];
 
+		$form_id = 5;
+
+		$_POST['_acf_form'] = 'acf-form';
+		$this->prepare_widget_id( $form_id );
+
+		$this->mock_acf_form( $form_id );
 		$this->prepare_verify_request( $value, false );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -277,9 +313,52 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( true, $value, $field, $input ) );
+
+		$this->prepare_widget_id( $form_id );
+
 		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( false, $value, $field, $input ) );
 
-		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
+		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
+	 * Test verify on ajax when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_ajax_missing_widget_id(): void {
+		$value   = 'some hcaptcha response';
+		$input   = 'some_input_name';
+		$field   = [ 'required' => true ];
+		$form_id = 5;
+
+		$_POST['_acf_form'] = 'acf-form';
+
+		$this->mock_acf_form( $form_id );
+		$this->prepare_verify_request( $value );
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		$subject = new Form();
+
+		self::assertSame( 'Bad hCaptcha signature!', $subject->verify( true, $value, $field, $input ) );
+
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+	}
+	/**
+	 * Prepare hCaptcha widget id.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return void
+	 */
+	private function prepare_widget_id( int $form_id ): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'acf-extended-pro/acf-extended.php', 'acf-extended/acf-extended.php' ],
+				'form_id' => $form_id,
+			]
+		);
 	}
 
 	/**

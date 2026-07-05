@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Otter;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Otter\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -141,19 +142,29 @@ HTML;
 
 		$form_data_request->shouldReceive( 'has_error' )->andReturn( false );
 
-		$action = 'hcaptcha_otter';
-		$nonce  = 'hcaptcha_otter_nonce';
+		$action    = 'hcaptcha_otter';
+		$nonce     = 'hcaptcha_otter_nonce';
+		$form_id   = 'fc0b7800';
+		$widget_id = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'otter-blocks/otter-blocks.php' ],
+				'form_id' => $form_id,
+			]
+		);
 
 		$this->prepare_verify_post( $nonce, $action, $verified );
 
 		$form_data_arr = [
 			'form_data' => [
-				'h-captcha-response'   => 'some response',
-				'hcaptcha-widget-id'   => 'some widget id',
-				'hcaptcha_otter_nonce' => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-				'hcap_fst_token'       => 'some token',
-				'hcap_hp_test'         => '',
-				'hcap_hp_sig'          => 'some signature',
+				'payload'            => [
+					'formId' => 'wp-block-themeisle-blocks-form-' . $form_id,
+				],
+				'h-captcha-response' => 'some response',
+				'hcaptcha-widget-id' => $widget_id,
+				$nonce               => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_fst_token'     => $_POST['hcap_fst_token'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_hp_test'       => $_POST['hcap_hp_test'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_hp_sig'        => $_POST['hcap_hp_sig'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 			],
 		];
 
@@ -170,6 +181,40 @@ HTML;
 		self::assertInstanceOf( Form_Data_Request::class, $result );
 	}
 
+	/**
+	 * Test verify() when widget id is missing.
+	 *
+	 * @return void
+	 */
+	public function test_verify_missing_widget_id(): void {
+		$subject           = new Form();
+		$form_data_request = Mockery::mock( Form_Data_Request::class );
+		$action            = 'hcaptcha_otter';
+		$nonce             = 'hcaptcha_otter_nonce';
+
+		$this->prepare_verify_post( $nonce, $action );
+
+		$form_data_request->shouldReceive( 'has_error' )->andReturn( false );
+		$form_data_request->shouldReceive( 'dump_data' )->with()->andReturn(
+			[
+				'form_data' => [
+					'payload'            => [
+						'formId' => 'wp-block-themeisle-blocks-form-fc0b7800',
+					],
+					'h-captcha-response' => 'some response',
+					$nonce               => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'hcap_fst_token'     => $_POST['hcap_fst_token'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'hcap_hp_test'       => $_POST['hcap_hp_test'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'hcap_hp_sig'        => $_POST['hcap_hp_sig'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				],
+			]
+		);
+		$form_data_request->shouldReceive( 'set_error' )->once()->with( 'bad-signature', 'Bad hCaptcha signature!' );
+
+		$result = $subject->verify( $form_data_request );
+
+		self::assertInstanceOf( Form_Data_Request::class, $result );
+	}
 	/**
 	 * Data provider for test_verify().
 	 *
@@ -225,6 +270,7 @@ HTML;
 		];
 		$post_data = [
 			'payload'            => [
+				'formId'         => 'wp-block-themeisle-blocks-form-fc0b7800',
 				'formInputsData' => $inputs,
 				'postId'         => $post_id,
 			],
@@ -239,6 +285,13 @@ HTML;
 		self::assertSame( 'token', $entry['h-captcha-response'] );
 		self::assertSame( $post->post_modified_gmt, $entry['form_date_gmt'] );
 		self::assertSame( $post_data, $entry['post_data'] );
+		self::assertSame(
+			[
+				'source'  => [ 'otter-blocks/otter-blocks.php' ],
+				'form_id' => 'fc0b7800',
+			],
+			$entry['expected_id']
+		);
 		self::assertSame( 'jane@example.com', $entry['data']['email'] );
 		self::assertSame( 'Jane Doe', $entry['data']['name'] );
 		self::assertSame( 'Jane Doe', $entry['data']['Name'] );
