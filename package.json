@@ -79,7 +79,7 @@
     "picomatch@npm:^4": "^4.0.5",
     "qs": "^6.15.3",
     "serialize-javascript": "^7.0.6",
-    "svgo": "^4.0.1",
+    "svgo": "^4.0.2",
     "tar": "^7.5.17",
     "undici": "^7.28.0"
   }
