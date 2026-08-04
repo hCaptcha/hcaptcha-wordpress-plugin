@@ -81,6 +81,6 @@
     "serialize-javascript": "^7.0.6",
     "svgo": "^4.0.1",
     "tar": "^7.5.17",
-    "undici": "^7.28.0"
+    "undici": "^7.29.0"
   }
 }
